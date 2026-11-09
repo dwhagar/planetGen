@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Climate branches: the ice-albedo feedback and the two climates of one flux (GEN.1046, with GEN.972) - planetGen docs</title>
+<meta name="description" content="Status: a pure module (src/planetgen/physics/climatebranches.py) wired in by GEN.972 (the feedback inside the surface-air fixed point, surfaceair.icealbedolaw, lock work).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/climate-branches.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/climate-branches.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="climate-branches-the-ice-albedo-feedback-and-the-two-climates-of-one-flux-gen1046-with-gen972">Climate branches: the ice-albedo feedback and the two climates of one flux (GEN.1046, with GEN.972)</h1><p class="meta">docs/design/composition/climate-branches.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#what-the-feedback-does">What the feedback does</a></li><li style="margin-left:0px"><a href="#the-module">The module</a></li><li style="margin-left:0px"><a href="#what-the-grey-toy-shows-and-what-it-does-not">What the grey toy shows, and what it does not</a></li><li style="margin-left:0px"><a href="#how-the-wiring-uses-it-gen972-gen1051">How the wiring uses it (GEN.972, GEN.1051)</a></li><li style="margin-left:0px"><a href="#the-wiring-of-gen972-in-detail">The wiring of GEN.972 in detail</a></li><li style="margin-left:0px"><a href="#invariants-weird-worlds-section-5">Invariants (weird-worlds section 5)</a></li><li style="margin-left:0px"><a href="#stand-ins">Stand-ins</a></li></ul></details>
+<p>Status: a pure module (<code>src/planetgen/physics/climate_branches.py</code>) wired in by GEN.972 (the feedback inside the surface-air fixed point, <code>surface_air.ice_albedo_law</code>, lock work). Its fixed-point scan and the second branch are still for GEN.1051 (W20 of <code>docs/design/systems/weird-worlds.md</code>: both branches handed back, one taken by a history draw).</p>
+<h2 id="what-the-feedback-does">What the feedback does</h2>
+<p>A world with an ocean that cools freezes, and ice and snow reflect more of the light (Bond albedo 0.5 to 0.8 against 0.30 for open sea and cloud), so it cools further [R0580, R4008]. Written as a loop, with <code>response(A)</code> the mean surface temperature the rest of the physics gives when the albedo is held at <code>A</code>:</p>
+<pre><code>T = response(albedo(T))
+</code></pre>
+<p>For one flux the loop can have three answers: a warm world, a snowball, and an unstable one between them. A small push away from the middle one grows; a push away from either end dies out. The loop is stable where its slope <code>d response(albedo(T)) / dT</code> is under 1.</p>
+<p>That is the whole of the physics this module holds. Everything else (the greenhouse, the vapour, the cloud) stays in <code>response</code>, so the three feedbacks of GEN.972 to GEN.974 add their terms there and this module does not change.</p>
+<h2 id="the-module">The module</h2>
+<ul>
+<li><code>IceAlbedoLaw</code>: the albedo as a function of the mean surface temperature. Ice-free (0.30) above 305 K, covered (0.62) below 240 K, and between them the ice cover grows as the cube of the way down the ramp. The ramp is wide because a global mean carries the spread from equator to poles, and cubic because the ice stays near the poles until the world is well into the cold and then runs to the tropics, which a one-dimensional ice-line model [R3310, R3312] gives and which would replace it. The ends and the exponent are set by one number from outside: the surface albedo feedback of the Earth at 288 K, 0.35 W/m2 per K very likely 0.10 to 0.60 (IPCC AR6 2021, table 7.10). The law gives 0.34. The first version, a straight ramp from 263 to 283 K, gave no feedback at 288 K at all, so an Earth twin could never feel its own ice.</li>
+<li><code>fixed_points(response, law)</code>: every root of <code>T - response(albedo(T))</code> between 150 and 700 K, found by a 1 K scan and refined with Brent's method, coldest first, each as a <code>Branch(temperature_k, albedo, ice_fraction, stable)</code>.</li>
+<li><code>stable_branches</code>, <code>is_bistable</code>: the stable ones; two means a snowball and a warm world both exist.</li>
+<li><code>bistable_window(response_at_flux, fluxes)</code>: the lowest and highest flux of a list at which a body is bistable. The caller builds <code>response_at_flux</code> from the body (the surface-air fixed point with its absorbed light scaled), so the window of an Earth twin can be compared with the 10 to 20 percent W20 asks for.</li>
+</ul>
+<p>It reads no body and draws nothing. The history draw that takes one branch belongs to <code>oddities.pick_branch</code>, with its own sub-stream (weird-worlds section 4.4).</p>
+<h2 id="what-the-grey-toy-shows-and-what-it-does-not">What the grey toy shows, and what it does not</h2>
+<p>With a held greenhouse factor of 0.63 (the 288 K Earth) and the law above, the Earth's own flux holds one climate, a warm world at 287 K with 2 percent of the ramp iced. A flux 15 percent lower (1,150 W/m2, a faint young Sun) holds three: a snowball at 237 K, an unstable middle at 243 K and a warm world at 271 K. The toy is bistable from 1,070 to 1,210 W/m2, 10 percent of the Earth's flux, inside the 10 to 20 percent W20 asks for and lying under the present flux, as the snowball Earth of [R1969] needed a fainter Sun. A real snowball has almost no vapour, so its greenhouse falls and its branch is colder, and the warm branch holds more; with the vapour and cloud feedbacks inside <code>response</code> (GEN.973, GEN.974) the window moves by their gain. The ramp ends and the exponent (row CC16) are the knob the wiring tunes if the real response puts the window outside W20's range, so they carry tweak level L2 (tuned to one published statistic, the AR6 feedback).</p>
+<h2 id="how-the-wiring-uses-it-gen972-gen1051">How the wiring uses it (GEN.972, GEN.1051)</h2>
+<ol>
+<li>GEN.972 puts <code>law.albedo(T)</code> into the fixed point of <code>surface_air.solve</code>: each step of the iteration reads the albedo at the temperature of the last step instead of the drawn one. Started from the no-air temperature of the drawn albedo, the iteration falls to the branch nearest its start. The drawn albedo then stays the ice-free value of the body (rock, ocean, cloud) and the ramp raises it with the ice.</li>
+<li>GEN.1051 asks <code>fixed_points</code> for the branches of the body, hands both stable ones to <code>oddities.pick_branch</code>, which takes one by the history draw (the warm one the more often, by the share of the window the flux sits in), and stores the branch taken as the body's climate. A snowball also stores that it needs a build-up of carbon dioxide to leave [R1969], which the habitability scoring reads.</li>
+<li>The stored albedo and greenhouse factor are the pair of the taken branch, so the inversion of GEN.412 reproduces the temperature.</li>
+</ol>
+<h2 id="the-wiring-of-gen972-in-detail">The wiring of GEN.972 in detail</h2>
+<p>Decisions, so the build is not a second design.</p>
+<p><strong>Which bodies.</strong> Only a body whose <code>Setting</code> holds surface water (<code>water_kg &gt; 0</code>) and is not a giant gets a law. Dry rock keeps its drawn albedo, and a giant its own range (CC13). An airless body with surface water has no fixed point of the air to iterate, but the same law holds: <code>surface_air.airless_state</code> settles <code>T = equilibrium(law.albedo(T))</code> by <code>climate_branches.settle</code> from the no-air temperature at the drawn albedo, so a far icy moon is bright and cold by its own ice and a warm one is unchanged (built in GEN.972; the first draft left these bodies at the ice-free albedo, which would have lost the 0.45 to 0.70 of the frozen range they had).</p>
+<p><strong>What is drawn.</strong> Nothing new. The albedo drawn today (<code>planets.calculate_atmospheric_conditions</code>, one <code>draw.uniform</code> of <code>climate_draws.albedo_range</code>) becomes the ice-free albedo of the law, and the ice-covered albedo is <code>max(ICE_COVERED_ALBEDO, ice_free)</code>: the draw count does not change, so no other body's stream moves. The two regimes of CC4 are merged: a body with surface water draws from <code>ALBEDO_WET_RANGE</code> always (0.25 to 0.40), and the frozen range (0.45 to 0.70) and <code>ALBEDO_FROZEN_BELOW_K</code> leave the draw, because the ramp now makes a cold wet world bright by its temperature, which is what the regime was standing in for. CC4 is rewritten, not added to.</p>
+<p><strong>In the fixed point.</strong> <code>Setting</code> gains <code>starlight_w_m2</code> and <code>albedo_law</code> (None for no feedback). Each step reads the albedo at the temperature of the step before (<code>law.albedo(temperature)</code>), gets its absorbed flux from it (<code>greenhouse.absorbed_flux_w_m2</code>, floored at <code>MIN_ABSORBED_FLUX_W_M2</code> as now), adds the giant's own heat as now, and asks the table. The iteration is the existing damped one; the albedo is a function of the temperature, so it adds no new unknown, only a slope: where the ramp is steep (20 K for 0.32 of albedo) the loop gain can reach 1 and the damped step must not overshoot. The convergence test is the temperature's (<code>TOLERANCE_K</code>); the albedo follows from it. As built, 8 of 600 solves stop unconverged in a sample of planets and moons of four star types at three orbits, against 7 of 602 without the law (an older main); a body that does not converge keeps its last step and says <code>converged=False</code>. <code>Air</code> gains <code>albedo</code> (None without a law), the albedo of the last step.</p>
+<p><strong>What is stored.</strong> <code>climate_draws.record(planet, air.albedo, air.greenhouse_factor)</code>: the albedo of the last step and the factor of the same step, so the GEN.412 pair reproduces the temperature exactly (<code>test_every_body_stores_the_draws_its_temperature_is_made_of</code>). The drawn ice-free albedo is not stored on its own; the ice fraction is the law applied to the stored temperature (<code>IceAlbedoLaw.ice_fraction</code>), which the hydrosphere and the page read.</p>
+<p><strong>Which branch.</strong> The iteration starts at the no-air temperature of the ice-free albedo, so it falls to the warm branch when one exists and to the snowball when the world has only that (GEN.1051 adds the second start and the draw). A body that finds no fixed point inside the step budget keeps the last step and says <code>converged=False</code> as now.</p>
+<p><strong>What moves.</strong> Every wet body whose temperature falls inside 263 to 283 K, or whose old regime was frozen: colder bodies get brighter (and so colder, to a snowball), warmer ones are unchanged. Dry bodies, giants and airless bodies do not move. The census (Bug 2) should show the share of wet worlds with ice cover and the share that flip.</p>
+<p><strong>Tests.</strong> The Earth twin of the climate sweep stays warm at its flux (288 K is above the ramp) and its response to a 10 percent cut of the flux rises (the ice-albedo term of the sensitivity; GEN.973 and GEN.974 add the others, and whichever of the three lands last removes the strict expected failure). A wet world at 0.9 of the twin's flux falls to a snowball. A dry twin does not change. Replays of the same body give the same branch.</p>
+<p><strong>Order.</strong> GEN.972 waits for GEN.1030 and GEN.1032 (the table it iterates is refitted there), then GEN.973, then GEN.974. It is lock work (generated output changes) and takes an epoch with the vapour feedback if the train allows, so the fixed point is retuned once.</p>
+<h2 id="invariants-weird-worlds-section-5">Invariants (weird-worlds section 5)</h2>
+<ul>
+<li>Each branch is a fixed point of its own loop (<code>test_every_branch_is_a_fixed_point_of_its_own_loop</code>): the albedo it reports is the one that gives its temperature, so the energy balance closes on every branch.</li>
+<li>A world with no ice sensitivity has one branch; a world far inside the cold or the hot side has one.</li>
+<li>The coldest stable branch is never warmer than the warmest.</li>
+</ul>
+<h2 id="stand-ins">Stand-ins</h2>
+<p>Rows CC15 (the two albedos) and CC16 (the ramp ends and the exponent) in <code>gap-filling-plan.md</code>, section 6.22. The replacement for both is an ice line in a one-dimensional energy balance, which would also give the partial ice cover of a body on the edge of freezing (the eyeball worlds of W18).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where belts come from, a scatter phase, and how many Class D bodies a system needs - planetGen docs</title>
+<meta name="description" content="Status: plan (Boss asked 4:19 PM EDT 2026-10-30 and confirmed the three defaults of section 9 at 4:37 PM EDT; nothing built).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/belt-origins.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/belt-origins.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="where-belts-come-from-a-scatter-phase-and-how-many-class-d-bodies-a-system-needs">Where belts come from, a scatter phase, and how many Class D bodies a system needs</h1><p class="meta">docs/design/systems/belt-origins.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#1-short-answers">1. Short answers</a></li><li style="margin-left:0px"><a href="#2-what-class-d-is-my-reading-stated-because-the-docs-disagree">2. What Class D is (my reading, stated because the docs disagree)</a></li><li style="margin-left:0px"><a href="#3-what-makes-a-belt-the-origin-causes">3. What makes a belt: the origin causes</a></li><li style="margin-left:14px"><a href="#31-how-the-generator-picks-the-cause-rule-not-a-roll">3.1 How the generator picks the cause (rule, not a roll)</a></li><li style="margin-left:14px"><a href="#32-what-a-belt-may-hold-the-cold-disk-loss-and-the-isolation-cap-gen1261">3.2 What a belt may hold: the cold-disk loss and the isolation cap (GEN.1261)</a></li><li style="margin-left:0px"><a href="#4-counting-sol-so-we-know-what-to-compare-to">4. Counting Sol, so we know what to compare to</a></li><li style="margin-left:0px"><a href="#5-do-systems-need-more-class-d-yes-but-as-ledger-members">5. Do systems need more Class D? Yes, but as ledger members</a></li><li style="margin-left:14px"><a href="#51-what-the-generator-does-today-repo">5.1 What the generator does today [REPO]</a></li><li style="margin-left:14px"><a href="#52-population-model-recommended">5.2 Population model (recommended)</a></li><li style="margin-left:14px"><a href="#53-moons">5.3 Moons</a></li><li style="margin-left:0px"><a href="#6-the-scatter-phase">6. The scatter phase</a></li><li style="margin-left:14px"><a href="#61-built-the-loss-past-the-outermost-planet-gen1341">6.1 Built: the loss past the outermost planet (GEN.1341)</a></li><li style="margin-left:0px"><a href="#7-todo-items">7. TODO items</a></li><li style="margin-left:0px"><a href="#8-stand-ins-and-tier">8. Stand-ins and tier</a></li><li style="margin-left:0px"><a href="#9-questions-for-boss-defaults-taken-change-on-his-word">9. Questions for Boss (defaults taken; change on his word)</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Status: plan (Boss asked 4:19 PM EDT 2026-10-30 and confirmed the three defaults of section 9 at 4:37 PM EDT; nothing built). No generator code changed. Asked for by Boss: (1) plan the items that make belts evolve and record on each belt where we think it came from (we know, because we made it); (2) where asteroid belts come from and what makes them; (3) whether systems need more Class D bodies given how many Sol has; (4) whether system generation needs an asteroid / dwarf planet scatter phase. Builds on <code>belt-evolution-and-body-ledger-2026-10-30.md</code> (the &quot;ledger draft&quot;) and <code>reports/belt-root-cause-2026-10-30.md</code>.</p>
+<p>Evidence tags: [S] read this session (arXiv abstract opened, cited); [REPO] read in the repo or measured from it; [R] recalled, not opened: the building lane reads the source before using the number, and registers a stand-in in GEN.725 (tier and tweak level) if it still cannot. The Solar System is a test target, never an input.</p>
+<h2 id="1-short-answers">1. Short answers</h2>
+<ol>
+<li><strong>Origin is a stored fact.</strong> Every belt (and outer disc) gets an <code>origin</code> cause and a <code>formation</code> record written by the generator when it is made, shown on the belt page as one sentence (&quot;the leftover of a planet that never grew here, stirred by the giant at 5.2 AU&quot;). The cause list is section 3.</li>
+<li><strong>What makes a belt</strong> is one thing in physics: a planetesimal population that did not finish growing into a planet, or was ground or scattered after. Five causes cover it (section 3). Today the generator has none of them; a belt is a 10 percent roll on a light slot.</li>
+<li><strong>Class D:</strong> the generator makes almost no dwarf-planet-size bodies, and it cannot make the outer ones at all. This is a real gap, but the cure is <strong>not more Class D planets on the planet list</strong>. It is the ledger's L1 tier of each belt and outer disc, where Sol's hundreds of 100 km to 1,000 km bodies live (section 5).</li>
+<li><strong>A scatter phase belongs in generation</strong>, as a step after the giants are placed and before the belts are finalised (section 6). It is the same step that tells a belt which part survives, which part becomes a scattered disc, and where the Trojans, Centaurs and resonant swarms sit.</li>
+</ol>
+<h2 id="2-what-class-d-is-my-reading-stated-because-the-docs-disagree">2. What Class D is (my reading, stated because the docs disagree)</h2>
+<ul>
+<li><strong>Today's definition [REPO]:</strong> <code>physics/data/planet_classes.json</code>, row D &quot;Small icy body&quot;: surface pressure under 10 Pa <strong>and</strong> water or ice at least 1 percent of the mass. Size is not in the rule. The class is derived from the finished body (epoch 121), so a Class D body is whatever small airless icy world the generator builds.</li>
+<li><strong>Older docs [REPO]:</strong> <code>mass-object-class.md</code> and <code>small-bodies-composition.md</code> say Class D is &quot;radius 50 to 500 km, so 100 to 1,000 km across&quot; and &quot;frozen hydrocarbons and ice&quot;. <code>tuning.PLANET_CLASSES[&quot;D&quot;]</code> still carries that wording. Treat the radius as the <strong>intended scale</strong> and the conditions as the <strong>rule</strong>.</li>
+<li><strong>What can be Class D in generation [REPO]:</strong> a planet must be at least <code>PLANET_MIN_MASS_EARTH = 0.1</code> Earth masses (Mercury is 0.055), and beyond the snow line at least <code>PLANET_MIN_MASS_OUTER_EARTH = 0.6016</code>. Lighter oligarchs are &quot;the debris of a belt&quot;. The whole 50 to 500 km range is 1e-6 to 1e-3 Earth masses. <strong>So no planet-list entry can be a 50 to 500 km body.</strong> Class D appears only on (a) moons, and (b) planets of 0.1 Earth masses and up that are airless and at least 1 percent water, which is rare and is not what the class name means.</li>
+<li><strong>My reading for the redesign:</strong> keep the conditions rule, and add that the class applies to any ledger body (belt member, dwarf planet, moon) with the same conditions. A 1,000 km icy dwarf planet and a 100 km icy moon are both D. Bodies below the dwarf-planet mass line (about 1e19 kg, section 5.2) are &quot;minor bodies&quot; with no class letter. Boss to confirm (section 9, question 1).</li>
+</ul>
+<h2 id="3-what-makes-a-belt-the-origin-causes">3. What makes a belt: the origin causes</h2>
+<p>Each cause is a rule the generator can apply and a sentence it can print. A belt can have several; the stored <code>origin</code> is the dominant one, <code>history</code> lists the rest.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Cause</th>
+<th>Physics</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>failed-growth</code></td>
+<td><strong>A planet that did not finish.</strong> Solids stall because the next oligarch would exceed the isolation mass, or a giant's growth starved the zone.</td>
+<td>The inner disc forms planetesimals; where growth is stopped, the mass stays as a population. The planet architecture (GEN.728) already holds the chain; a gap or unfinished tail in it is a belt.</td>
+<td>Planetesimals formed big, around 100 km and up, then the belt's size distribution has a bump near 100 km [S: Morbidelli et al., &quot;Asteroids Were Born Big&quot;, [R3147]; Weidenschilling, [R0971] gives the same 100 km peak].</td>
+</tr>
+<tr>
+<td><code>giant-stirring</code></td>
+<td><strong>A giant excites it.</strong> Mean-motion resonances and the chaotic zone around a giant raise eccentricities until bodies collide with each other (grinding) or hit a planet or the star. Growth never completes, and the zone is cleared of what drifts into resonance.</td>
+<td>Chaotic zone half-width about 1.3 a (m/M*)^(2/7) [R: [R4727]]; resonance positions a (q/p)^(2/3) [S physics]; ledger draft section 2.3.</td>
+<td>Main belt gaps at 3:1, 5:2, 2:1 [R].</td>
+</tr>
+<tr>
+<td><code>instability-depletion</code></td>
+<td><strong>A giant instability or migration swept it.</strong> Jupiter's Grand Tack or a Nice-type scatter removes most of a belt and implants bodies from elsewhere.</td>
+<td>Survival of a few percent; implants of outer-disc bodies into the inner belt.</td>
+<td>[R4603] [R], Levison and Morbidelli, who deliver KBOs during the instability, [R2654] [S].</td>
+</tr>
+<tr>
+<td><code>outer-disc</code></td>
+<td><strong>The cold leftover beyond the last giant.</strong> Solids too sparse and orbital times too long to build a planet. A Kuiper-type belt. Self-stirring by its own largest bodies (Pluto-size) sets the grinding.</td>
+<td>Kenyon and Bromley: KBOs form in a massive disc, then substantial collisional grinding and dynamical ejection [S: [R2325]]. Mass today in Sol: 0.0197 +/- 0.003 Earth masses [S: [R3538]]; 0.010 Earth masses for the classical part [S: Bernstein et al., [R0362]].</td>
+<td>Herschel DEBRIS: 17.1 percent of F-K stars show cold discs, most at 7 to 40 AU blackbody radius; the data fit &quot;all stars born with a narrow belt that then grinds&quot;, with Sol's own belt near the population median, so half of stars have depleted theirs or formed less [S: [R4081]].</td>
+</tr>
+<tr>
+<td><code>collisional-debris</code></td>
+<td><strong>The rubble of a destroyed planet</strong> or a giant collision, one composition family, differentiated shards. Also transient hot dust.</td>
+<td>A rare event, not a standing population.</td>
+<td>DEBRIS: hot dust under 4 AU &quot;likely transient events&quot; [S: [R4081]].</td>
+</tr>
+<tr>
+<td><code>captured</code></td>
+<td>A belt around a pulsar or white dwarf from a disrupted disc or scattered survivors (already used for pulsar planets).</td>
+<td>Mass-loss destabilisation, ledger draft 2.5.</td>
+<td>Existing repo rows.</td>
+</tr>
+</tbody>
+</table></div>
+<p>What makes it <strong>go away or change</strong> over time, already in the ledger draft: collisional grinding ([R4785], <code>belt_mass.py</code>, built but not called), Yarkovsky drift, star events (engulfment keeps the surviving outer part, mass-loss widening, companion truncation).</p>
+<p><strong>Link to exoplanet evidence.</strong> Debris around known planet hosts: 10 cool discs around 37 hosts, 29 +/- 9 percent for Sun-like hosts, consistent with the 20.2 +/- 2.0 percent DUNES rate [S: Herschel exoplanet-host sample, [R2894]]. That paper also finds more dust with lower planet masses and lower metallicity, which fits <code>giant-stirring</code> and <code>instability-depletion</code>: heavy planets sweep their belts, light ones leave them. Another paper finds no significant correlation between radial-velocity planet presence and disc properties [S, title seen only: [R4822]], so the link is weak and stays a stand-in: <strong>use the architecture's outcome as the driver, do not impose a correlation</strong>. The correlation then falls out of the model, and the test is whether it appears.</p>
+<h3 id="31-how-the-generator-picks-the-cause-rule-not-a-roll">3.1 How the generator picks the cause (rule, not a roll)</h3>
+<p>Run after the planet architecture (GEN.728) has the final chain and giant history:</p>
+<ol>
+<li><strong>Inner belt candidates:</strong> every gap in the oligarch chain where the next mass step is below the isolation mass, and the zone between the snow line and the first giant. Each gets <code>failed-growth</code>. If a giant lies within the chaotic-zone ratio of the zone, add <code>giant-stirring</code>: mass multiplied by a survival factor that falls with giant mass.</li>
+<li><strong>Instability flag:</strong> the architecture already moves and scatters giants. If it moved a giant through the zone, apply <code>instability-depletion</code> (survival stand-in about 0.01 to 0.3, widest range until read).</li>
+<li><strong>Outer disc:</strong> past the last giant, always built from the disc solids out to a disc edge (stand-in), then ground by Wyatt for the star's age. Occurrence of a <strong>detectable</strong> cold disc is then an output, to be compared with [R4081] and DEBRIS (17 percent F-K) as a check, not an input. Where the generator already stores the GEN.787 descriptor, that descriptor becomes the outer disc's summary and the two stop being separate things.</li>
+<li><strong>Rare cause:</strong> <code>collisional-debris</code> at a small stand-in rate per system age tied to the system's dynamical history.</li>
+<li>Write <code>origin</code>, <code>formation_snow_line</code>, and a one-line history for the belt page.</li>
+</ol>
+<p>Stand-ins this section adds: survival factors, the disc edge, the stirring factor (all T2 or T3, L0 to L1 until read).</p>
+<h3 id="32-what-a-belt-may-hold-the-cold-disk-loss-and-the-isolation-cap-gen1261">3.2 What a belt may hold: the cold-disk loss and the isolation cap (GEN.1261)</h3>
+<p>Two limits on the solids a stretch starts with, both before the giants act (<code>belt_origin._trace</code>):</p>
+<ul>
+<li><strong>Cold-disk loss.</strong> Past the snow line only a share of the disk's solids grew into planetesimals; the pebbles of the rest drifted in. Pebbles become planetesimals at <code>PEBBLE_CONVERSION_PER_ORBIT</code> (0.01) of their mass an orbit and fall in over <code>1 / (1.1 Z Omega)</code>, with <code>Z = 0.01</code> times the star's metal ratio; the two compete, so the share that becomes planetesimals is <code>zeta / (zeta + 1.1 Z)</code>, about one half for a solar disk and the same at every radius (both rates scale with the orbital frequency). The share multiplies the solids past the snow line of every belt; inside it the planetesimals formed in place. Stand-ins BG17 to BG19.</li>
+<li><strong>Isolation cap on a gap.</strong> A stretch that held more solids than the isolation mass at its centre ([R2430], <code>formation.isolation_mass_kg</code> with <code>OLIGARCH_SEPARATION_MEDIAN</code> spacing and the disk's own density) would have grown the planet, so the chain would not have the gap. A gap belt's solids are the lesser of the disk's solids in it and that mass.</li>
+</ul>
+<p>The belts are made of the disk the planets grew in: <code>belt_birth.build</code> takes the architecture's <code>disc_scatter</code> (0.7 dex, [R0114]), where it used the median disk.</p>
+<p>Measured (240 F5, G2 and K2 main-sequence systems, 80 each, <code>reports/gen1261-belt-shares-2026-11-05.md</code>): the loss step cut the median present mass of an outer disk from 10 to 2 Earth masses and the isolation cap cut the largest gap belt from 3.2 to 0.6; the share of systems with a belt did not move (inner 11 percent, cold 70 percent), and the share with a cold belt of 0.1 Earth masses or more (detectable) went from 69 to 67 percent. The loss step alone does not bring the cold share to the observed 14 to 20 percent: what is left is the streaming-instability threshold, which lets only some disks make planetesimals at all.</p>
+<h2 id="4-counting-sol-so-we-know-what-to-compare-to">4. Counting Sol, so we know what to compare to</h2>
+<p>[R] unless marked. Orders of magnitude; the lane reads the surveys.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Bodies of 100 km and up</th>
+<th>Bodies near 400 km and up (&quot;round&quot; scale)</th>
+<th>Largest</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main belt</td>
+<td>about 200 to 250</td>
+<td>4 or 5 (Ceres, Vesta, Pallas, Hygiea; Interamnia nearly)</td>
+<td>Ceres, 940 km</td>
+</tr>
+<tr>
+<td>Jupiter Trojans</td>
+<td>about 25 to 30</td>
+<td>none</td>
+<td>Hektor, about 220 km</td>
+</tr>
+<tr>
+<td>Kuiper belt and scattered disc</td>
+<td>order 1e5 [R: [R0362] fits, [R1439]; the Bernstein paper puts the classical mass &quot;predominately in the form of ~100 km bodies&quot;, S]</td>
+<td>roughly 15 to 20 candidates (Pluto, Eris, Haumea, Makemake, Gonggong, Quaoar, Sedna, Orcus, Salacia, Varda, Huya about 410 km [S: [R3917]])</td>
+<td>Eris and Pluto, about 2,300 km</td>
+</tr>
+<tr>
+<td>Moons of 50 to 500 km radius</td>
+<td>about 25 to 30 (Saturn: Mimas, Enceladus, Hyperion, Phoebe, Janus; Uranus: Miranda, Puck; Neptune: Proteus, Nereid, Larissa; others)</td>
+<td>only a few at the top</td>
+<td>Tethys, 530 km</td>
+</tr>
+<tr>
+<td>IAU dwarf planets</td>
+<td>5 (Ceres, Pluto, Eris, Haumea, Makemake)</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The cold classical belt has <strong>no objects of 400 km or more</strong>; its size distribution has an exponential cutoff there [S: OSSOS, [R2288]]. The big bodies are in the excited (scattered) population, which is the point of section 6.</p>
+<h2 id="5-do-systems-need-more-class-d-yes-but-as-ledger-members">5. Do systems need more Class D? Yes, but as ledger members</h2>
+<h3 id="51-what-the-generator-does-today-repo">5.1 What the generator does today [REPO]</h3>
+<ul>
+<li>No planet can be lighter than 0.1 Earth masses (0.6 beyond the snow line). Dwarf planets as planets: <strong>zero</strong>.</li>
+<li><code>DWARF_PLANET</code> exists only as a moon-parent kind and a composition draw (<code>moon_composition.py</code>, <code>small_body_composition.draw_icy_body</code>). Nothing makes a dwarf planet in a belt or an outer disc.</li>
+<li>There is no outer disc at all, so the part of Sol with the most dwarf planets does not exist in any system.</li>
+<li>Belts carry no members, so a belt with Ceres in it is a belt with nothing in it.</li>
+<li>I could not run the census this session: the stellar data files (SC1 isochrones) are not on this machine, so the per-star counts of Class D from a sample run are not measured. The Class D count per system from the code above is not zero only through moons and the rare airless icy planet. The building lane takes the number from <code>scripts/test.py</code> census once the data are fetched; section 7 item 1.</li>
+</ul>
+<h3 id="52-population-model-recommended">5.2 Population model (recommended)</h3>
+<p>Do not add Class D to the planet slot loop. Draw them from the belt and disc size laws:</p>
+<ul>
+<li><code>N(&gt;D) = N100 (D / 100 km)^(-q)</code> per population, with the slope <code>q</code> and the cutoff from the size-law note (<code>small-body-size-laws.md</code>: main belt cumulative q 3.0 from 5 to 40 km (Ivezic's differential 4) and a steeper stand-in above, see <code>belt_ledger.ROCKY_LAW</code>; Kuiper bright slope, hot and cold from [R1439] [REPO table]).</li>
+<li><code>N100</code> from the belt mass and size law, not typed in; the top body is the order statistic <code>N(&gt;D) = 1</code> (ledger draft 3.1). Test target: main belt with 0.0005 Earth masses gives a Ceres-size top body and 200 to 250 bodies of 100 km and up; Kuiper-type with 0.02 Earth masses gives order 1e5 bodies of 100 km and up and the 15 to 20 round candidates.</li>
+<li><strong>Dwarf planet line:</strong> a body is a dwarf planet when its mass is above the hydrostatic mass for its composition (ice about 1e20 to 1e21 kg, rock above that, ledger draft 3.2) and the orbit-clearing number is under the planet line. The count follows from the size law; <strong>do not put a count in as a target</strong>.</li>
+<li><strong>Class D label:</strong> applied to every L1 body that is airless and at least 1 percent ice (conditions rule). The rocky ones inside the snow line are Class C or A by the rules the planet classes already hold, or have no letter if they are under the dwarf line.</li>
+<li><strong>What the user sees:</strong> a rich outer disc lists tens of individual dwarf planets; a main-belt analogue lists Ceres-class bodies; a thin belt lists none. Mass is conserved.</li>
+</ul>
+<p>Expected effect, order of magnitude for a Sun-like star with a Sol-like outer disc: from zero dwarf planets per system to about 5 to 20, and L1 members (the 1e19 kg and up cut recommended in the ledger draft section 11.1, rule E, cap 300) from none to tens or hundreds per rich disc. For an M dwarf the disc is lighter and the count falls with it; for a system where <code>instability-depletion</code> happened the inner belt has a few and the outer more.</p>
+<h3 id="53-moons">5.3 Moons</h3>
+<p>Sol has about 25 to 30 moons in the 50 to 500 km radius range, mostly irregular captured moons and small regular ones. The moon draw already has a <code>captured</code> row. The scatter phase (section 6) is the natural source for captured irregular moons (giants capture scattered bodies); if the moon counts are low after the architecture lands (GEN.921 already tracks moons), tie capture to the same event.</p>
+<h2 id="6-the-scatter-phase">6. The scatter phase</h2>
+<p><strong>Yes, system generation needs one.</strong> Without it the outer disc would be one flat ring and there would be no reason for a dwarf planet to be on an eccentric orbit, for Trojans to exist, or for a belt to be partly emptied. Boss's idea fits the physics.</p>
+<p>What it does, once per system, after the architecture, before belts are finalised and before validation:</p>
+<ol>
+<li><strong>Inputs:</strong> final giants (mass, a, e), their migration history, the outer disc (mass, edge) and each inner belt.</li>
+<li><strong>Scatter fraction:</strong> the fraction of each disc that was scattered is a function of the last giant's mass and migration extent (stand-in; Levison et al. [S: [R2654]] needs Neptune scattering and a disc truncated at about 30 to 35 AU for the observed structure). A system whose giants never moved keeps a cold disc and no scattered population; a system with a Nice-type instability makes a hot population.</li>
+<li><strong>Outcome classes</strong> (each a tag on a ledger member and a share of the disc mass): <code>cold-classical</code> (stays, low eccentricity and inclination, no large bodies, as OSSOS), <code>hot-classical</code>, <code>resonant</code> (3:2 and 2:1 with the outer giant), <code>scattered-disc</code> (high eccentricity, perihelion near the giant), <code>detached</code>, <code>centaur</code> (crossing the giants), <code>trojan</code> (1:1 with a giant, L4 and L5), <code>ejected</code> (leaves the system; contributes to rogue and interstellar bodies, which the generator already has).</li>
+<li><strong>Implant:</strong> a small share of outer bodies is implanted into the inner belt (the C and D taxon mix in Sol's outer main belt) and a share is captured as irregular moons.</li>
+<li><strong>Write</strong> the mass shares, the tags on the L1 draw, and one history line (&quot;when the outer giant moved from 18 to 30 AU it scattered 82 percent of the disc&quot;).</li>
+</ol>
+<p>The step is a rule over the architecture's own events; it needs no N-body run. A sparse fast check (does a drawn scattered body cross a giant's Hill sphere within the system age) can be a test, not a runtime cost.</p>
+<p><strong>Where the swept mass goes (GEN.1308, built).</strong> <code>belt_origin</code> already takes the giant's work out of an outer disk (<code>cleared_earth</code>, <code>scattered_earth</code>), so the disk's own mass is never lowered a second time. The mass it lost is shared by the two rules above that do not depend on where the swept band lies (the ejected share <code>1 - exp(-Theta / THETA_EJECT)</code>, the rest by <code>SWEPT_SPLIT</code>; <code>physics/swept_hand_on.py</code>) and handed on: the ejected part to the rogue builders (the bodies of it heavy enough to be rogue planets by the disk's size law become one <code>disk</code> loss of <code>StarSystem.ejected_losses</code>; the rest is interstellar debris, counted and not drawn), the implanted part to the inner belt nearest the disk's inner edge (<code>AsteroidBelt.receive</code>: primordial mass that is ground down with the rest of it), and the captured part to the planets, which are caught from it before the disk's own mass is touched (<code>irregular_moons.take_from_disks</code>). The scattered disk, the centaurs, the detached bodies and the trojans hold their share in <code>other</code>: no object holds it yet (the trojans have their own item). The sum of the parts is the mass the disk lost, which a test checks. Stand-ins: section 6.210 of the gap-filling plan.</p>
+<p><strong>Limits to name:</strong> no direct observation of how many other systems did this. Exoplanet evidence is indirect (debris discs at 7 to 40 AU, Fomalhaut-type narrow rings). We declare the scatter fraction a stand-in (tier educated guess from physics, tweak L1 to L3) and keep it a single registered row.</p>
+<h3 id="61-built-the-loss-past-the-outermost-planet-gen1341">6.1 Built: the loss past the outermost planet (GEN.1341)</h3>
+<p><code>belt_origin</code> has a shaping cause <code>planet-scattering</code>. A system with an instability level above 0 and two giants or more lost belt mass past its outermost giant: the stretch of the disk that starts at or beyond that giant and lies inside its reach (apoapsis plus 3 chaotic half-widths) loses the share <code>instability x (1 - exp(-Theta / 10))</code>, where Theta is the Safronov number of the giant (row SX3, the escape-speed-to-orbital-speed ratio squared, [R5138] [R5139] [R5141] [R5140]). No share is tuned to the observed cold share. A system with one giant, or none, or a stretch outside the reach, is untouched. Registry rows BG20 and BG21 in section 6.97 of the stand-in values.</p>
+<h2 id="7-todo-items">7. TODO items</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner and train (best guess, can move)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.1087</td>
+<td>Census of Class D and dwarf-size bodies</td>
+<td>Aux 3, now</td>
+</tr>
+<tr>
+<td>GEN.1060</td>
+<td>Research read (extended with the sources here)</td>
+<td>Sources 2, now</td>
+</tr>
+<tr>
+<td>GEN.1088</td>
+<td>belt_origin.py</td>
+<td>Planets 1</td>
+</tr>
+<tr>
+<td>GEN.1089</td>
+<td>scatter.py</td>
+<td>Core 4</td>
+</tr>
+<tr>
+<td>GEN.1090</td>
+<td>dwarf_population.py</td>
+<td>Sources 2</td>
+</tr>
+<tr>
+<td>GEN.1091</td>
+<td>Class D wording (docs only)</td>
+<td>Aux 2, done: the wording is a conditions rule, stated in mass-object-class.md, small-bodies-composition.md, D-small-bodies-moons.md, unified-system-barycentre.md and the comment on <code>tuning.PLANET_CLASSES[&quot;D&quot;]</code></td>
+</tr>
+<tr>
+<td>GEN.1068, GEN.1069</td>
+<td>Belt birth and storage carry the origin (lock)</td>
+<td>Planets 1 and Sources 2, train 15</td>
+</tr>
+<tr>
+<td>GEN.1092</td>
+<td>Wire scatter and origin (lock)</td>
+<td>Sources 2 with Planets 1, train 16</td>
+</tr>
+<tr>
+<td>GEN.1082</td>
+<td>Captured moons from the scatter step wait for the census</td>
+<td>with GEN.921</td>
+</tr>
+</tbody>
+</table></div>
+<p>The belt chain itself is in <a href="belt-evolution.html">belt-evolution.md</a>.</p>
+<h2 id="8-stand-ins-and-tier">8. Stand-ins and tier</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Tier</th>
+<th>Tweak</th>
+<th>Replace by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Survival factors for <code>giant-stirring</code> and <code>instability-depletion</code></td>
+<td>educated guess from physics</td>
+<td>L1</td>
+<td>[R3681, R4603]</td>
+</tr>
+<tr>
+<td>Disc edge and scatter fraction</td>
+<td>educated guess from physics</td>
+<td>L1 to L3</td>
+<td>[R2654] simulations; DEBRIS fit</td>
+</tr>
+<tr>
+<td><code>collisional-debris</code> rate</td>
+<td>educated guess from needed output</td>
+<td>L3</td>
+<td>transient-dust statistics</td>
+</tr>
+<tr>
+<td>Cut for L1 members</td>
+<td>design</td>
+<td>L0</td>
+<td>Boss decision in ledger draft 11.1</td>
+</tr>
+<tr>
+<td>Dwarf-planet mass line</td>
+<td>confident unverified</td>
+<td>L0</td>
+<td>Bierson and Nimmo</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="9-questions-for-boss-defaults-taken-change-on-his-word">9. Questions for Boss (defaults taken; change on his word)</h2>
+<ol>
+<li><strong>Class D scope.</strong> Default: the class stays &quot;small, airless, at least 1 percent ice&quot;, and applies to belt members and dwarf planets as well as moons. The alternative is a new class letter for dwarf planets of belts, leaving D for moons only.</li>
+<li><strong>Where dwarf planets live in lists.</strong> Default: they appear on the system page as members of their belt or outer disc, not in the planet list.</li>
+<li><strong>Scatter phase size.</strong> Default: a rule over the architecture's events with stored mass shares, no N-body run.</li>
+</ol>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Mass of the Kuiper Belt, [R3538] [S]</li>
+<li>OSSOS exponential cutoff, [R2288] [S]</li>
+<li>Asteroids Were Born Big, [R3147] [S]</li>
+<li>Towards initial mass functions for asteroids and KBOs, [R0971] [S]</li>
+<li>Bernstein et al., size distribution of trans-Neptunian bodies, [R0362] [S]</li>
+<li>Kenyon and Bromley chapter, [R2325] [S]</li>
+<li>Levison et al., Kuiper belt structure during the instability, [R2654] [S]</li>
+<li>Sibthorpe et al., DEBRIS Sun-like sample, [R4081] [S]</li>
+<li>Herschel exoplanet-host sample, [R2894] [S]</li>
+<li>Huya occultation, [R3917] [S]</li>
+<li>Repo: <code>physics/data/planet_classes.json</code>, <code>tuning.py</code> (PLANET_MIN_MASS_*), <code>composition/small-bodies-composition.md</code>, <code>architecture/mass-object-class.md</code>, ledger draft, belt root-cause report.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

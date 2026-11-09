@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Impact erosion and late delivery (GEN.739) - planetGen docs</title>
+<meta name="description" content="Status: research note and module, written on the night of 2026-10-24 (as the lane reported) by the Citations lane; wired into the air by GEN.819 (section 5).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/impact-erosion-and-late-delivery.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/impact-erosion-and-late-delivery.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="impact-erosion-and-late-delivery-gen739">Impact erosion and late delivery (GEN.739)</h1><p class="meta">docs/design/composition/impact-erosion-and-late-delivery.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-answer-in-short">1. The answer in short</a></li><li style="margin-left:0px"><a href="#2-sources-and-what-was-read">2. Sources, and what was read</a></li><li style="margin-left:0px"><a href="#3-the-model">3. The model</a></li><li style="margin-left:0px"><a href="#4-checks-against-the-terrestrial-planets">4. Checks against the terrestrial planets</a></li><li style="margin-left:0px"><a href="#5-limits-and-what-is-not-done">5. Limits and what is not done</a></li><li style="margin-left:0px"><a href="#6-registry">6. Registry</a></li></ul></details>
+<p>Status: research note and module, written on the night of 2026-10-24 (as the lane reported) by the Citations lane; wired into the air by GEN.819 (section 5). The module is <code>src/planetgen/physics/impact_history.py</code> and its supply-law hook is <code>surface_pressure.impact_inventory</code>. The numbers in section 4 are COMPUTED here from published formulas; they are a model result, not a measurement.</p>
+<h2 id="1-the-answer-in-short">1. The answer in short</h2>
+<ul>
+<li>After the giant impacts a rocky planet goes on accreting leftover planetesimals. The mass is about 0.7 weight percent of an Earth mass for the Earth, and goes as (M / M_earth)^(-1/3) (cross section over mass): Mercury 1.9, Venus 0.75, Earth 0.7, Mars 1.5 percent, against 2.7, 0.8, 0.7 and 1.4 in the N-body runs of [R0518] (Table 1; scatter 0.5 to 4.5 percent). The Moon is off the law (0.025 weight percent from the highly siderophile elements, as quoted in the sources above); nothing here is fitted to it.</li>
+<li>The same impacts do two opposite things to the air. They deliver volatiles (water, CO<sub>2</sub>, N<sub>2</sub>) and they blow the air away. The balance for each species is the one of [R3872]: dm/dS = (1 - zeta) x - eta m / m_air, with S the cumulative impactor mass, x the species' mass fraction in the impactors, zeta the share of the impactor's own vapour that escapes and eta the air mass one unit of impactor mass removes.</li>
+<li>With the carbonaceous reference composition of Sakuraba et al. (10 percent water, 2 percent CO<sub>2</sub>, 0.2 percent N<sub>2</sub>) scaled by a drawn factor of 0.01 to 1 (0.1 is the enstatite-chondrite-like veneer that the Earth's isotopes ask for), the Earth twin ends with 5.9e17 to 7.3e18 kg of N<sub>2</sub> in the air; the real 3.9e18 kg lies inside. The water the impactors bring and the planet keeps (above what the air can hold) is 3.7e20 to 3.7e21 kg; the ocean's 1.4e21 kg lies inside.</li>
+<li>Venus, with no ocean and no carbonate sink, holds everything the impacts do not blow away: 1.4e17 to 9.3e18 kg of N<sub>2</sub> against the observed 1.1e19 kg.</li>
+<li>Mars comes out with much more N<sub>2</sub> than it has (1.8e18 kg at scale 1, 8.8e16 kg at 0.1, against 4.4e14 kg observed). This is the result of [R3872] as well: late impacts alone do not make Mars thin. The thin air of Mars is the escape of the retention rows of the pressure supply law, not erosion by impacts. A planet the size of Mars needs those rows (GEN.411/422), and the module's test says so.</li>
+<li>About a tenth to a fifth of the impactor vapour escapes (zeta 0.10 for the Earth, 0.13 for Venus, 0.17 for Mars).</li>
+</ul>
+<h2 id="2-sources-and-what-was-read">2. Sources, and what was read</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Read</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3872], &quot;Numerous chondritic impactors and oceanic composition&quot; [R3872]</td>
+<td>full text</td>
+<td>the balance Eq. 1 and 2; Svetsov's erosion as Eq. 5 to 7; Shuvalov's vapour escape Eq. 8; the carbonaceous reference composition (section 2.4); the size distribution (section 2.6); the surface limits of an ocean and carbonate cycle (section 2.3); the Earth, Venus and Mars check</td>
+</tr>
+<tr>
+<td>[R0518], Earth Planet. Sci. Lett. 455, 85 [R0518]</td>
+<td>full text</td>
+<td>Table 1: late-accreted mass, impact speeds and escape speeds for Mercury, Venus, Earth and Mars; the 0.5 to 0.8 weight percent of [R4598]</td>
+</tr>
+<tr>
+<td>[R3960]</td>
+<td>full text</td>
+<td>the stronger erosion by the largest impactors in the cap regime: used only as the upper bracket on the erosion (section 5)</td>
+</tr>
+<tr>
+<td>[R3684]</td>
+<td>full text</td>
+<td>the stochastic nature of the late veneer (the planet-to-planet scatter that the log-normal width stands for)</td>
+</tr>
+</tbody>
+</table></div>
+<p>[R4079] were not opened; their formulas are used as printed in [R3872] (second-hand). The registry rows AM43 and AM44 say so.</p>
+<h2 id="3-the-model">3. The model</h2>
+<ul>
+<li><strong>How much accretes</strong> (<code>late_accreted_fraction</code>): 0.7 weight percent times (M / M_earth)^(-1/3), log-normal with sigma 0.65 in ln (the scatter of the Earth value, 0.7 plus or minus 0.5), capped at 3 percent, drawn once per planet and recorded as <code>late_accreted_percent</code>.</li>
+<li><strong>What it brings</strong> (<code>veneer_volatiles</code>): H<sub>2</sub>O 0.10, CO<sub>2</sub> 0.02, N<sub>2</sub> 0.002 of the impactor mass (carbonaceous reference of Sakuraba et al. section 2.4), times a scale drawn log-uniform between 0.01 and 1, recorded as <code>veneer_volatile_scale</code>. The scale is the one free number of the model; the Earth's N<sub>2</sub> and the ocean bracket it (section 4).</li>
+<li><strong>How hard it hits</strong> (<code>impact_speed_ms</code>): the speed at the surface is sqrt(v_esc^2 + v_inf^2) with v_inf = 0.6 of the orbital speed. Brasser et al. give 24.3, 21.1 and 13.4 km/s for Venus, Earth and Mars; the module gives 23.4, 21.1 and 15.3 (within 16 percent, tested).</li>
+<li><strong>What it removes</strong> (<code>erosion_per_impactor_mass</code>): Svetsov's air mass removed per unit impactor mass for an impactor of diameter D, with the plume fraction that outruns the escape speed, averaged over a size distribution whose mass is flat in the diameter from 10^-1.5 to 10^3 km ([R0484] as used by Sakuraba et al.). A thin air loses less per impactor mass, a big impactor less than a small one, and an impact too slow to launch the plume past escape erodes nothing (all tested).</li>
+<li><strong>The caps</strong> (<code>caps_pa</code>): the gas a species can hold is limited by the surface. An ocean holds the water above its vapour pressure, a carbonate cycle the CO<sub>2</sub> above its balance, an ice cap the rest. The excess is kept in the ocean, rock or ice, not eroded. The caller gives the caps (the module knows no climate), and the test uses the surface limits of Sakuraba et al. section 2.3.</li>
+<li><strong>To the supply law</strong> (<code>surface_pressure.impact_inventory(balance, mantle_kg)</code>): the air plus the kept mass, as moles of H, C and N atoms per 100 g of mantle (H = 2 H<sub>2</sub>O, C = CO<sub>2</sub>, N = 2 N<sub>2</sub>).</li>
+</ul>
+<h2 id="4-checks-against-the-terrestrial-planets">4. Checks against the terrestrial planets</h2>
+<p>Late-accreted fraction at the mean (0.70, 0.75, 1.47 percent for Earth, Venus, Mars). Masses in kg, scale 0.1 and 1.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Planet</th>
+<th>Speed km/s</th>
+<th>zeta</th>
+<th>N<sub>2</sub> delivered</th>
+<th>N<sub>2</sub> in the air</th>
+<th>Observed N<sub>2</sub> in the air</th>
+<th>H<sub>2</sub>O kept</th>
+<th>CO<sub>2</sub> kept</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth</td>
+<td>21.1</td>
+<td>0.10</td>
+<td>8.4e18 to 8.4e19</td>
+<td>5.9e17 to 7.3e18</td>
+<td>3.9e18</td>
+<td>3.7e20 to 3.7e21 (ocean 1.4e21)</td>
+<td>7.3e18 to 6.9e20</td>
+</tr>
+<tr>
+<td>Venus</td>
+<td>23.4</td>
+<td>0.13</td>
+<td>7.3e18 to 7.3e19</td>
+<td>1.4e17 to 9.3e18</td>
+<td>1.1e19</td>
+<td>none (no ocean)</td>
+<td>none (all in the air)</td>
+</tr>
+<tr>
+<td>Mars</td>
+<td>15.3</td>
+<td>0.17</td>
+<td>1.9e18 to 1.9e19</td>
+<td>8.8e16 to 1.8e18</td>
+<td>4.4e14</td>
+<td>7.8e19 to 7.8e20</td>
+<td>0 to 4.9e19</td>
+</tr>
+</tbody>
+</table></div>
+<p>Tests (<code>src/tests/test_impact_history.py</code>): the Brasser means inside their scatter, the Earth N<sub>2</sub> and ocean inside the bracket of the scale, Venus within a factor of five of its N<sub>2</sub>, Mars above 100 times its N<sub>2</sub> (so that escape, not erosion, has to explain the thin air), zeta between 0.05 and 0.25, mass conservation and the caps held.</p>
+<h2 id="5-limits-and-what-is-not-done">5. Limits and what is not done</h2>
+<ul>
+<li><strong>Erosion strength.</strong> Svetsov's formula (used by Sakuraba et al.) is the lower bracket. [R3960] find a stronger erosion by the largest impactors (about 10 times that of Svetsov's law at 15 km/s, as recorded in registry row AM43). The upper bracket would lower the Earth's and Venus's N<sub>2</sub> by the same order; with the veneer scale free over two dex, the Earth's N<sub>2</sub> alone cannot decide between the two erosion laws. A later hydrocode check ([R4273], new) would.</li>
+<li><strong>Single-species caps.</strong> The caps are supplied by the caller one species at a time. Water and CO<sub>2</sub> compete for the same ocean and the same climate; the real coupling is part of the pressure supply law (GEN.411/422).</li>
+<li><strong>Solar-System remnant mass.</strong> The leftover planetesimal mass of 1e-3 Earth masses is the Solar System's. For other systems it is a stand-in (registry row AM36).</li>
+<li><strong>Wired (GEN.819).</strong> <code>surface_air.solve</code> draws the late accretion once per rocky planet or moon with a star (<code>_late_accretion</code>: the accreted fraction and the veneer scale, recorded as <code>late_accreted_percent</code> and <code>veneer_volatile_scale</code>), runs <code>veneer_balance</code> at the body's equilibrium temperature with the planet's own orbital speed, and adds the carbon and the nitrogen of <code>impact_inventory</code> to the budget the mixture draw reads. The gas is at the surface already, so the degassed share does not apply to it, but the sinks do: the carbonate cycle weathers the carbon of the impacts together with the degassed. A water reservoir caps the water at its saturation pressure and the CO<sub>2</sub> at 1 bar (<code>IMPACT_CO2_CAP_BAR</code>, AM85), which only sets how much the later impacts erode.</li>
+<li><strong>The water is not added.</strong> The body's water is the hydrosphere's one draw, the delivered bulk water that the impactors are part of; adding the veneer's would count it twice, and Venus's lost water (the <code>water_lost</code> rows) would come back as steam. The impacts still erode the water of the air in the balance. The Done line's kept water near the ocean is the balance's own result (section 4, tested), not a second source of water.</li>
+<li><strong>Rogue planets</strong> have no star and take no late accretion.</li>
+<li><strong>What the fixed point gives</strong> (40 seeds of each twin at the Earth's mass and 1 AU, Venus's mass at 0.72 AU and Mars's mass at 1.52 AU of a G2V star, before and after; the planet class is drawn, so the Earth twin is often a hot class): the N<sub>2</sub> of the Earth twin's air has a median of 1.0e18 kg before and 3.8e18 kg after (observed 3.9e18); Venus's 3.3e18 before and 5.2e18 after (observed 1.1e19); Mars's 4.9e15 before and 8.9e15 after (observed 4.4e14), still far above the real one, because the thin air of Mars is the escape of the retention rows (<code>d</code>), which the late accretion does not change. Of 60 Earth twins, 11 stay temperate (260 to 330 K) before and 5 after: more nitrogen is more greenhouse.</li>
+<li><strong>The Moon</strong> is off the mass law by a factor of about 30 and is not covered.</li>
+</ul>
+<h2 id="6-registry">6. Registry</h2>
+<p>Rows AM36 to AM44 of <code>docs/design/research/gap-filling-plan.md</code> (and the generated <code>stand-in-values.md</code>) list each constant with its source tier and tweak level, and the test that would falsify it.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

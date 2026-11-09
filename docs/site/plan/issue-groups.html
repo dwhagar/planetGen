@@ -1,0 +1,1002 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Issue groups - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/issue-groups.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="plan/issue-groups.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="issue-groups">Issue groups</h1><p class="meta">docs/plan/issue-groups.md</p>
+<p>Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward. Each row is one GitHub issue and the items it covers. <code>scripts/build_todo_docs.py</code> reads this table and links every item to its issues in the version plan, the TODO tree and the TODO reference; <code>docs/generated/execution-plan.html</code> links them too.</p>
+<p>Rules:</p>
+<ul>
+<li>One issue per goal. An item belongs to the issue that groups it; an item may appear in more than one row.</li>
+<li>Issues Boss opened keep his text. The TODO lane adds a &quot;TODO sync&quot; comment that lists their items and does not edit his words.</li>
+<li>Findings from any thread that belong to a goal (a failed test, a bug noticed in passing, an oddity) go to the TODO thread, which attaches them to the goal's issue as a comment headed <code>Finding (date, source, kind)</code> with the test or object, the failure text, whether it fails on main, how often, and a reproducer. An item with no goal yet gets a new issue.</li>
+<li>Every test or investigation on an item gets a dated comment on its goal issue (fix, failure or could not reproduce), with the date and time in EDT, what was run, the result and what is needed next time; a bug that could not be reproduced or needs more information is flagged so (Boss, 2026-10-16, 11:48 PM EDT).</li>
+<li>Issue labels: <code>goal</code> marks a goal issue; one label per TODO ID (for example <code>GEN.250</code>) lets the issue list filter to an item's issue. Bugs also carry <code>bug</code>.</li>
+<li>Label upkeep (Boss, 9:18 AM EDT 2026-10-24): an item label stays on an issue only while the item is open; the TODO thread removes a label when the item is retired and deletes any label no issue carries. Process labels are <code>goal</code>, <code>in progress</code> (a lane is working an item of the goal), <code>queued for 8.1</code> and <code>paused until 8.1</code> (the goal's open items wait in a lane queue or for 8.1), <code>lane: &lt;name&gt;</code> (one per active lane, each with its own colour), <code>bug</code>, <code>could not reproduce</code> and <code>needs more information</code>; <code>no-release</code> goes on docs-only pull requests. Every label has a colour and the process labels a description. When a lane retires, its <code>lane:</code> label comes off and goes unless another goal still carries it.</li>
+<li>An issue closes when every item in its row is done or dropped; the row stays so the reference page keeps its links.</li>
+<li>A finished or dropped item stays in its row (Boss, 2026-10-21, 9:15 PM EDT): the pages list an open goal's finished items checked off and crossed out and its dropped items marked dropped, so the row reads as how far along the goal is. The open lists (the version plan's threads, the tree) do not list finished items; a thread of the version plan shows its finished items from <code>docs/plan/progress-ledger.md</code> above its open ones. Retiring an item therefore never removes its ID from a row; the label sync adds or drops GitHub labels for open items only.</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Issue</th>
+<th>State</th>
+<th>Goal</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5428">#5428</a></td>
+<td>open</td>
+<td>Console looks: cockpit, chart and phosphor looks times system, light and dark themes, on every panel, map chrome and admin page (8.7)</td>
+<td>UX.265, UX.266, UX.267, UX.268, UX.269, UX.270, TEST.623, DOC.104</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5429">#5429</a></td>
+<td>open</td>
+<td>Dynamic politics, ships and stations: the political step, borders on the maps, vessel positions, the journal and their storage (8.8 to 9.2)</td>
+<td>UX.271, ADM.138, POP.46, POP.47, POP.48, POP.49, POP.50, POP.51, DB.110, DB.111, TEST.624, TEST.625, NAV.77, MAP.389, MAP.390, MAP.391, DOC.105, DOC.106, GEN.1293</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5430">#5430</a></td>
+<td>open</td>
+<td>Sensor view: a rendered picture of every item on its page and in the map info panel</td>
+<td>UX.273, MAP.394, MAP.395, MAP.396, TEST.629, DOC.107, UX.286, UX.287</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5431">#5431</a></td>
+<td>open</td>
+<td>View menu: one grouped menu with search, counts, reset and named presets, built by one builder for every map</td>
+<td>UX.274, UX.280, UX.281, UX.282, TEST.630, DOC.108</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5432">#5432</a></td>
+<td>open</td>
+<td>Fudge table: stand-in widths from a sensitivity sweep, read by class fit and outcomes, regenerated by update</td>
+<td>GEN.1311, GEN.1312, GEN.1313, GEN.1314, GEN.1315, GEN.1316, GEN.1317, GEN.1318</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5433">#5433</a></td>
+<td>open</td>
+<td>Security audit findings (SEC.33 first pass) and the release-gate hardening that follows</td>
+<td>SEC.39, SEC.40, SEC.41, SEC.42, SEC.44, SEC.45, DOC.109, OPS.112, OPS.113, OPS.115, OPS.116, OPS.117, OPS.118, OPS.119, OPS.120, OPS.121</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5434">#5434</a></td>
+<td>open</td>
+<td>Uncharted sectors: index the sectors scattered objects land in, and filter charted, uncharted and empty sectors</td>
+<td>MAP.402, MAP.403</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4907">#4907</a></td>
+<td>open</td>
+<td>System View sky: the background stars as that system sees them, at true direction and distance, placed where they were when the light left (8.2 stream)</td>
+<td>VIEW.19, VIEW.25, VIEW.26, , VIEW.30, VIEW.39, VIEW.40, VIEW.45, VIEW.46</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4899">#4899</a></td>
+<td>open</td>
+<td>Names from the Object ID: scatter uids, short local names with the sector beside them, one scheme for every ID-named object</td>
+<td>GEN.1254, GEN.1256, GEN.1257, UX.259, API.38</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4589">#4589</a></td>
+<td>open</td>
+<td>Help &gt; References menu and the plain-words rules: out-of-universe pages for sources, stand-ins and method, and the Oxford comma</td>
+<td>DOC.86, DOC.87, DOC.88, DOC.95, DOC.96, DOC.97, DOC.98, DOC.99, DOC.100, DOC.101, DOC.103</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4088">#4088</a></td>
+<td>open</td>
+<td>Multi-star systems never overlap, by design (GEN.1006)</td>
+<td>GEN.1006, GEN.1004, GEN.1017, TEST.477, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016, GEN.1023, GEN.1028, GEN.1204</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4117">#4117</a></td>
+<td>open</td>
+<td>Weird worlds: physically plausible oddities, a weirdness dial and an Odd line on object pages</td>
+<td>GEN.1046, GEN.1047, GEN.1048, GEN.1049, GEN.1050, GEN.1051, TEST.492, GEN.1055, GEN.1057, GEN.1058, GEN.1094, GEN.1343, GEN.1347, GEN.1352</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/4130">#4130</a></td>
+<td>open</td>
+<td>Asteroid belts that evolve: a ledger of individual bodies, giant clearing, grinding, star events, captured asteroid moons</td>
+<td>GEN.1062, GEN.1064, GEN.1066, GEN.1067, GEN.1068, GEN.1069, GEN.1070, GEN.1071, GEN.1072, GEN.1073, GEN.1076, GEN.1077, GEN.1079, GEN.1080, GEN.1082, GEN.1083, GEN.1084, GEN.1085, GEN.1086, GEN.1092, UX.240, GEN.1103, GEN.1104, GEN.1105, GEN.1106, GEN.1107, GEN.1119, GEN.1121, GEN.1123, GEN.1127, GEN.1128, GEN.1129, GEN.1134, TEST.499, TEST.498, GEN.1141, GEN.1150, GEN.1151, GEN.1159, GEN.1161, GEN.1175, GEN.1178, GEN.1179, GEN.1201, GEN.1203, MAP.354, GEN.1231, GEN.1241, GEN.1247, GEN.1259, GEN.1261, GEN.1278, GEN.1308</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3790">#3790</a></td>
+<td>open</td>
+<td>Tides and spin built out in full: rheology, torque sum, moon orbits, ice, birth spin and the eccentricity-first order (8.1)</td>
+<td>GEN.842, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.1034, GEN.1035, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979, GEN.778, GEN.985, GEN.986, GEN.987, GEN.1244</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3244">#3244</a></td>
+<td>open</td>
+<td>Generator residuals and small stand-in fixes</td>
+<td>GEN.634, GEN.635, GEN.669, GEN.673, GEN.705, GEN.706, GEN.708, GEN.716, GEN.720, GEN.721, GEN.722, GEN.723, DOC.79</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3243">#3243</a></td>
+<td>open</td>
+<td>Day and night time shares and hours a person can be outside</td>
+<td>GEN.767, GEN.768, GEN.1097, GEN.1108, GEN.1110, UX.243, UX.244, GEN.1153, GEN.1283, TEST.582</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3242">#3242</a></td>
+<td>open</td>
+<td>Physics gap fixes from the physics gaps report</td>
+<td>GEN.727, GEN.731, GEN.732, GEN.733, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.753, GEN.759, GEN.760, GEN.761, GEN.763, DB.101, GEN.822, GEN.836, GEN.838, GEN.839, GEN.842, GEN.752, GEN.962, GEN.964, GEN.965, GEN.966, GEN.967, GEN.968, GEN.969, GEN.970, GEN.973, GEN.974, GEN.975, GEN.1024, GEN.1137, GEN.1157, GEN.1167, GEN.1171, GEN.1173, GEN.1174, GEN.1185, GEN.1186, GEN.1190, GEN.1200, GEN.1202, GEN.1246, GEN.1299, GEN.1288, GEN.1290, GEN.1291, GEN.1292, GEN.1323, GEN.1325, GEN.1326, GEN.1328, GEN.1329, GEN.1345, GEN.1348, GEN.1349, GEN.1350, GEN.1351</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3241">#3241</a></td>
+<td>open</td>
+<td>Map interface: names, picking, points of interest and zoom</td>
+<td>MAP.295, MAP.296, MAP.297, MAP.298, MAP.302, MAP.303, MAP.304, MAP.305, MAP.306, MAP.307, MAP.308, TEST.368, TEST.383, MAP.323, MAP.324, MAP.325, MAP.326, MAP.327, MAP.328, UX.236, UX.255, UX.260, MAP.374, MAP.376</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3239">#3239</a></td>
+<td>open</td>
+<td>Property sheet fill audit: every applicable column is filled or has a rule that says why not</td>
+<td>UX.208, GEN.778, GEN.779, GEN.780, GEN.781, GEN.782, GEN.783, GEN.784, GEN.787, GEN.788, GEN.789, GEN.790, GEN.791, GEN.835, GEN.1303</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3288">#3288</a></td>
+<td>open</td>
+<td>Named galaxy regions: the galactic-level map shows regions (9-block cells with any generated sector) with a Word Region name, flyToFit and a domain-sliced label budget</td>
+<td>GEN.825, GEN.827, DB.107, GEN.826, API.35, MAP.316, MAP.317, MAP.318, MAP.319, MAP.314, MAP.322, DB.108, MAP.315, UX.231, API.36, DOC.82, DB.112</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3294">#3294</a></td>
+<td>closed</td>
+<td>Distinct point-of-interest icons by kind, coloured by habitability, carried by the star in star views and by the planet or moon in system views</td>
+<td>MAP.320, MAP.321</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3274">#3274</a></td>
+<td>closed</td>
+<td>The accessibility gate passes with no excuse entries</td>
+<td>UX.229, UX.230</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3238">#3238</a></td>
+<td>open</td>
+<td>Every displayed number states its unit, and temperature differences are ranges</td>
+<td>GEN.769, GEN.770, GEN.771, GEN.772, GEN.773, GEN.795, GEN.796, UX.210, UX.212, API.33</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3237">#3237</a></td>
+<td>closed</td>
+<td>Habitability and life scores are used wherever they should be</td>
+<td>UX.214, MAP.311, ADM.132, POP.37, MAP.343, MAP.344, MAP.345, MAP.346, MAP.347, MAP.352, MAP.348, MAP.349, MAP.350, MAP.351</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3236">#3236</a></td>
+<td>open</td>
+<td>Planet page redesign: left menu, zones, summary, life and civilization paragraphs, section order, standard chips</td>
+<td>UX.215, UX.216, UX.217, UX.218, UX.219, UX.220, UX.221, UX.222, UX.238, UX.223, UX.224, UX.262</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3235">#3235</a></td>
+<td>open</td>
+<td>Resource locations: valuable belts, fields, giants and icy bodies as points of interest</td>
+<td>GEN.798, GEN.799, DB.106, MAP.312, MAP.313, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3234">#3234</a></td>
+<td>open</td>
+<td>World population and trade routes (foundations in 8.2 and 8.3, routes in 8.5, dynamic in 9.2)</td>
+<td>POP.29, POP.30, POP.31, POP.32, POP.33, POP.34, POP.35, POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3233">#3233</a></td>
+<td>open</td>
+<td>Settlements and nation-states: where people live, their nations, cities, ports and governments</td>
+<td>POP.16, POP.17, POP.18, POP.19, POP.20, POP.21, POP.22, POP.23, POP.24, POP.25, POP.26, POP.27, POP.28, GEN.774, DB.103, DB.104, ADM.130, ADM.131, TEST.380, TEST.381</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3232">#3232</a></td>
+<td>open</td>
+<td>The air fixed point exposed problems in the modules it joins (greenhouse, volatile inventory, sulfur, giants, speed)</td>
+<td>GEN.812, GEN.814, GEN.815, GEN.816, GEN.817, GEN.818, PERF.198, GEN.715, GEN.717, GEN.718, GEN.752, GEN.411, GEN.422, GEN.423, GEN.819, GEN.821, GEN.823, GEN.824, GEN.830, GEN.837, GEN.841, GEN.844, GEN.846, GEN.847, GEN.848, GEN.849, GEN.852, GEN.1030, GEN.1032, GEN.1059, GEN.853, GEN.854, GEN.855, GEN.856, GEN.862, GEN.863, GEN.864, GEN.865, GEN.866, GEN.867, GEN.868, GEN.869, GEN.870, GEN.871, GEN.872, GEN.873, GEN.874, GEN.875, GEN.876, GEN.877, GEN.878, GEN.879, GEN.880, GEN.881, GEN.882, GEN.883, GEN.884, GEN.885, GEN.886, GEN.887, GEN.888, GEN.889, GEN.890, GEN.892, GEN.893, GEN.894, GEN.895, GEN.896, GEN.897, GEN.898, GEN.899, GEN.900, GEN.901, GEN.902, GEN.904, GEN.905, GEN.907, GEN.908, GEN.909, GEN.910, GEN.911, GEN.912, GEN.915, GEN.916, GEN.917, GEN.918, GEN.921, GEN.922, GEN.927, GEN.928, GEN.929, GEN.930, GEN.932, GEN.934, GEN.935, GEN.939, GEN.940, GEN.941, GEN.942, GEN.943, GEN.944, GEN.945, GEN.946, GEN.947, GEN.949, GEN.951, GEN.952, GEN.984, GEN.995, GEN.996, GEN.997, GEN.998, GEN.999, GEN.988, GEN.989, GEN.990, GEN.991, GEN.993, GEN.994, API.37, GEN.1019, GEN.1025, GEN.1026, GEN.1027, GEN.1152, GEN.1189, GEN.1194, GEN.1199, GEN.1213, GEN.1217, GEN.1236, GEN.1237, GEN.1238, GEN.1239, GEN.1240, GEN.1249, GEN.1282, GEN.1304, GEN.1310, GEN.1319</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3231">#3231</a></td>
+<td>open</td>
+<td>Stand-ins carry a tier and a registry row, and the ones with data in hand are replaced by it</td>
+<td>GEN.797, GEN.707, GEN.711, GEN.724, GEN.754, GEN.775, GEN.776, GEN.777, GEN.794, GEN.802, GEN.813, GEN.820, GEN.1005, GEN.1021, GEN.1022</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3230">#3230</a></td>
+<td>closed</td>
+<td>Dead tuning knobs and uncalled helpers are deleted (unused values G7)</td>
+<td>OPS.72, OPS.73, OPS.74, GEN.754</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3229">#3229</a></td>
+<td>open</td>
+<td>Facility constants are registered and a facility's richness reads the host composition (unused values G6)</td>
+<td>POP.39, POP.44, POP.45, POP.37, GEN.799</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3228">#3228</a></td>
+<td>open</td>
+<td>Generation timing records are shown or no longer recorded (unused values G5)</td>
+<td>PERF.195, PERF.196, PERF.197</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3227">#3227</a></td>
+<td>open</td>
+<td>Search, lists, Nearby and the API filter and sort on every stored physical number (unused values G4)</td>
+<td>UX.226, UX.227, UX.214, UX.150, UX.232, UX.239</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3226">#3226</a></td>
+<td>closed</td>
+<td>Giant planet interior outputs feed the field, the heat and the description (unused values G3)</td>
+<td>GEN.801, GEN.809, GEN.810, GEN.811, GEN.733, GEN.735, GEN.736</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3225">#3225</a></td>
+<td>open</td>
+<td>Magnetosphere and stellar activity outputs are read by escape, dose and habitability (unused values G2)</td>
+<td>GEN.804, GEN.805, GEN.806, GEN.807, GEN.808, GEN.736, GEN.738, GEN.746, GEN.749, GEN.788, GEN.983, GEN.981</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/3224">#3224</a></td>
+<td>open</td>
+<td>Species traits and facility ratings use the homeworld and host physics (unused values G1)</td>
+<td>POP.38, POP.40, POP.41, POP.42, POP.43, POP.37, POP.17</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2350">#2350</a></td>
+<td>open</td>
+<td>Admin control suite: one quiet interface for the admin pages, the Generate suite and the settings</td>
+<td>ADM.98, ADM.55, ADM.92, ADM.93, ADM.56, ADM.99, ADM.100, ADM.101, ADM.102, ADM.103, ADM.104, ADM.105, ADM.106, ADM.107, ADM.108, ADM.109, ADM.110, ADM.111, ADM.112, ADM.113, ADM.114, ADM.115, ADM.116, ADM.117, ADM.118, ADM.119, ADM.120, ADM.121, ADM.122, ADM.123, UX.125, UX.126, UX.137, ADM.97, PERF.134, ADM.124, ADM.125, ADM.126, ADM.127, ADM.128, ADM.136, UX.283, UX.284, UX.285, DB.115, ADM.139, ADM.140, UX.288, ADM.141, ADM.142, UX.289, UX.290, UX.291, UX.292</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2355">#2355</a></td>
+<td>open</td>
+<td>Galaxy shape dials: one lever table builds the command-line flags and the Generate form for mass, size, density, structure, edge, halo and census</td>
+<td>GEN.601, GEN.602, GEN.603, GEN.604, GEN.605, GEN.606, GEN.607, GEN.608, GEN.609, GEN.610, GEN.611, GEN.612, GEN.613, GEN.617, GEN.618, GEN.619, GEN.621, GEN.625, GEN.626, GEN.627, GEN.628, DB.81, ADM.124</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2197">#2197</a></td>
+<td>closed</td>
+<td>The black hole density follows metallicity and the neutron star budget (8.1)</td>
+<td>GEN.563</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2196">#2196</a></td>
+<td>open</td>
+<td>A System is a view: the barycentre is the origin, the heaviest branch is the primary, and the point object serves any frame (8.1)</td>
+<td>DB.78, DOC.71, GEN.576, GEN.577, GEN.578, GEN.579, GEN.581, GEN.582, GEN.583, GEN.584, MAP.253, TEST.241, TEST.242, TEST.244</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2195">#2195</a></td>
+<td>open</td>
+<td>One unit registry, one Quantity class and one set of declared relations (8.1)</td>
+<td>DB.76, DB.77, DOC.70, GEN.568, GEN.569, GEN.570, GEN.571, GEN.573, GEN.574, GEN.575, GEN.585, GEN.586, GEN.587, GEN.588, UX.139, UX.140, DB.86</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2194">#2194</a></td>
+<td>open</td>
+<td>One recursive generation process for anything that can have something orbiting it: groups, stars, planets and moons (8.1)</td>
+<td>DB.73, DB.74, DB.75, GEN.550, GEN.553, GEN.554, GEN.555, GEN.556, GEN.557, GEN.558, GEN.559, GEN.560, GEN.564, GEN.565, GEN.566, GEN.580, PERF.136, TEST.239, TEST.240, UX.138, DB.94, DB.95, GEN.651, GEN.652, GEN.831</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2095">#2095</a></td>
+<td>open</td>
+<td>The plan configuration and two switches, halo and satellite galaxies, both default off (8.5)</td>
+<td>GEN.537, GEN.538, GEN.539, GEN.540, GEN.620, MAP.248, UX.137, TEST.226</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2096">#2096</a></td>
+<td>open</td>
+<td>Robust tile caching: build ahead, store compressed, build proactively, keep until the data changes (8.2)</td>
+<td>PERF.129, PERF.134, ADM.97, PERF.141, PERF.130, PERF.132, PERF.133, PERF.139</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/2293">#2293</a></td>
+<td>closed</td>
+<td>Cached index and lists of every object, rebuilt automatically when data changes (8.2)</td>
+<td>DB.79, UX.141, PERF.140</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1914">#1914</a></td>
+<td>open</td>
+<td>Galaxy types: one family per known galaxy type, drawn from the seed (9.4)</td>
+<td>DB.66, DOC.59, GEN.378, GEN.379, GEN.380, GEN.381, GEN.382, GEN.383, GEN.384, GEN.385, GEN.386, GEN.387, GEN.389, GEN.390, MAP.242, TEST.204, UX.134, UX.135, GEN.608</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1924">#1924</a></td>
+<td>open</td>
+<td>Superbubbles shape the stars: the bubble field as a density modulation (8.1)</td>
+<td>DOC.61, GEN.391, GEN.392, GEN.393, GEN.394, GEN.395, TEST.206</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1944">#1944</a></td>
+<td>open</td>
+<td>Atmosphere colour: one consistent atmosphere, then the colour of the air (9.0, foundations in 8.1)</td>
+<td>DB.67, DB.68, DB.71, DOC.63, DOC.64, GEN.410, GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, GEN.416, GEN.417, GEN.418, GEN.419, GEN.420, GEN.421, GEN.422, GEN.594, GEN.599, GEN.600, GEN.423, GEN.424, GEN.452, GEN.454, GEN.455, GEN.456, MAP.244, TEST.209, DB.96, MAP.271, MAP.272, MAP.273, MAP.274, MAP.276, MAP.277, MAP.278, UX.158, MAP.279, MAP.280, MAP.281, MAP.282, MAP.283, MAP.284, MAP.285, MAP.287, GEN.1227, GEN.1228, MAP.363</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1949">#1949</a></td>
+<td>closed</td>
+<td>Bulk composition drives mass, density and gravity (8.4)</td>
+<td>DB.69, DOC.65, GEN.425, GEN.427, GEN.428, GEN.429, GEN.430, GEN.623, TEST.210</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1955">#1955</a></td>
+<td>open</td>
+<td>Composition of every body, star and atmosphere, and the radiation that follows (9.0 headline with the atmosphere colour; building blocks in 8.1)</td>
+<td>DB.70, DOC.66, GEN.441, GEN.442, GEN.443, GEN.444, GEN.445, GEN.446, GEN.451, GEN.453, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.464, GEN.465, GEN.466, GEN.468, GEN.470, GEN.471, GEN.473, GEN.474, GEN.475, GEN.476, GEN.477, GEN.1001, GEN.478, GEN.480, GEN.481, GEN.482, GEN.483, GEN.484, GEN.485, GEN.486, GEN.487, GEN.488, GEN.489, GEN.490, GEN.491, GEN.492, GEN.493, GEN.494, GEN.495, GEN.496, GEN.497, GEN.498, GEN.499, GEN.501, GEN.503, GEN.504, GEN.505, GEN.506, GEN.507, GEN.508, GEN.509, GEN.510, GEN.511, GEN.512, GEN.513, GEN.514, GEN.515, GEN.516, GEN.517, GEN.518, GEN.519, GEN.520, GEN.521, GEN.522, GEN.523, GEN.524, GEN.525, TEST.211, TEST.212, TEST.214, TEST.215, GEN.595, GEN.457, GEN.590, GEN.641, GEN.642, GEN.650, GEN.651, GEN.652, GEN.659, GEN.632, DB.89, DOC.74, DOC.78, GEN.660, GEN.661, GEN.662, GEN.663, GEN.664, GEN.665, GEN.667, GEN.668, GEN.833, GEN.834, TEST.685, GEN.1355, GEN.1356, GEN.1357, GEN.1358, GEN.1359, GEN.1360, GEN.1361, GEN.1362, GEN.1363, GEN.1364, GEN.1365, GEN.1366, GEN.1367, GEN.1368, GEN.1369, GEN.1370, GEN.1371, GEN.1372, GEN.1373, GEN.1374, GEN.1375, GEN.1376, GEN.1377, GEN.1420, GEN.1421, GEN.1422, GEN.1423, GEN.1424, GEN.1425, GEN.1426, GEN.1427, GEN.1428, GEN.1429, GEN.1378, GEN.1379, GEN.1380, GEN.1381, GEN.1382, GEN.1383, TEST.686, GEN.1384, GEN.1395, GEN.1396</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1846">#1846</a></td>
+<td>open</td>
+<td>Map labels: names for stars, systems, sectors, big features and nebulae</td>
+<td>MAP.229, MAP.230, MAP.231, MAP.232, MAP.233</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1845">#1845</a></td>
+<td>open</td>
+<td>One configuration file and the settings page (8.1)</td>
+<td>ADM.43, ADM.44, ADM.50, ADM.83, ADM.84, ADM.85, ADM.86, ADM.87, ADM.96, GEN.303, USR.31</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1844">#1844</a></td>
+<td>open</td>
+<td>Backups: the archive, parity data, control database and repair from an archive</td>
+<td>ADM.87, ADM.88, ADM.89, ADM.90, ADM.91, DB.42, DOC.56, OPS.55, TEST.180, DB.109</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1843">#1843</a></td>
+<td>open</td>
+<td>Roles and permissions: requests, reviews, lifecycle and audit (10.0)</td>
+<td>DB.39, DOC.55, TEST.178, TEST.179, USR.12, USR.13, USR.14, USR.15, USR.16, USR.17, USR.18, USR.19, USR.20, USR.21, USR.22, USR.23, USR.24, USR.25</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1842">#1842</a></td>
+<td>open</td>
+<td>Edit everything: change plans, regions, regeneration and locks (8.6)</td>
+<td>ADM.57, ADM.58, ADM.59, ADM.60, ADM.61, ADM.62, ADM.63, ADM.64, ADM.65, ADM.66, ADM.67, ADM.68, ADM.69, ADM.70, ADM.71, ADM.72, ADM.74, ADM.75, ADM.76, ADM.77, ADM.78, ADM.79, ADM.80, ADM.81, ADM.82, ADM.94, API.28, DB.36, DB.37, DB.38, DB.60, DOC.54, DOC.57, GEN.302, MAP.212, MAP.218, TEST.175, TEST.176, TEST.177, ADM.52</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1828">#1828</a></td>
+<td>closed</td>
+<td>Slow pages queue their data in Redis and show a progress bar</td>
+<td>UX.118</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1750">#1750</a></td>
+<td>closed</td>
+<td>Site cache warm-up after an update, then rebuild only what a change invalidates</td>
+<td>PERF.104</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1749">#1749</a></td>
+<td>closed</td>
+<td>Hypervelocity stars show no accessible info; button to the phenomenon page or the star system (MAP.211)</td>
+<td>MAP.211</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1748">#1748</a></td>
+<td>closed</td>
+<td>Phenomena list: the Apply filters button disappears while the list loads (UX.117)</td>
+<td>UX.117</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1785">#1785</a></td>
+<td>closed</td>
+<td>test_gen_resume forced-scatter test failed once under gate load with no scattered system (TEST.171)</td>
+<td>TEST.171</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1811">#1811</a></td>
+<td>closed</td>
+<td>Sector page accessibility test failed once under gate load and passes alone (TEST.174)</td>
+<td>TEST.174</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1808">#1808</a></td>
+<td>closed</td>
+<td>A fill-after-failed-scatter test failed once under gate load with an empty ring (TEST.173)</td>
+<td>TEST.173</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1802">#1802</a></td>
+<td>closed</td>
+<td>Galaxy Map forward-to-current test failed once: a click on a block with 0 sectors charted did nothing (TEST.172)</td>
+<td>TEST.172</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1758">#1758</a></td>
+<td>closed</td>
+<td>test_math_check::test_whole_run_is_fast and the Galaxy Map breadcrumb folding test fail under full-suite load (TEST.170)</td>
+<td>TEST.170</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1726">#1726</a></td>
+<td>open</td>
+<td>Interface update: every control works on the whole sphere</td>
+<td>UX.115, TEST.168, UX.142, UX.143, UX.144, UX.146, DB.85</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1694">#1694</a></td>
+<td>open</td>
+<td>Test failures under parallel load and on MySQL 8.4</td>
+<td>TEST.190, TEST.192, TEST.205, DB.33, TEST.218, TEST.219, PERF.111, TEST.222, GEN.542, TEST.228, TEST.229, TEST.233, TEST.237, TEST.245, TEST.257, TEST.258, TEST.260, TEST.261, TEST.223, TEST.224, TEST.227, TEST.238, TEST.246, TEST.247, TEST.248, TEST.249, TEST.250, TEST.251, TEST.252, TEST.253, TEST.255, TEST.256, TEST.265, TEST.266, TEST.267, TEST.268, TEST.269, TEST.270, TEST.271, TEST.272, TEST.273, TEST.274, TEST.275, TEST.277, TEST.278, TEST.279, TEST.280, TEST.281, TEST.282, TEST.290, TEST.299, TEST.302, TEST.303, TEST.304, TEST.305, TEST.306, TEST.310, TEST.311, TEST.312, TEST.318, TEST.328, TEST.344, TEST.345, TEST.367, TEST.370, TEST.371, TEST.377, TEST.379, TEST.384, TEST.385, ADM.134, TEST.388, TEST.389, TEST.390, TEST.392, TEST.393, TEST.394, TEST.395, TEST.396, TEST.397, TEST.398, TEST.399, TEST.400, TEST.401, TEST.402, TEST.403, TEST.404, TEST.405, TEST.406, TEST.407, TEST.410, TEST.413, TEST.415, TEST.416, TEST.417, TEST.418, TEST.419, TEST.420, TEST.421, TEST.422, TEST.423, TEST.424, TEST.425, TEST.426, TEST.427, TEST.428, TEST.429, TEST.430, TEST.431, TEST.432, TEST.433, TEST.434, TEST.436, TEST.437, TEST.438, TEST.439, TEST.440, TEST.441, TEST.442, TEST.443, TEST.444, TEST.445, TEST.446, TEST.448, TEST.449, TEST.450, TEST.453, TEST.455, TEST.456, TEST.459, TEST.461, TEST.463, TEST.462, TEST.464, TEST.465, TEST.466, TEST.468, TEST.469, TEST.470, TEST.472, TEST.480, TEST.483, TEST.486, TEST.489, TEST.520, TEST.526, TEST.538, TEST.539, TEST.540, TEST.550, TEST.553, TEST.554, TEST.556, TEST.569, TEST.575, TEST.591, TEST.634, TEST.660, TEST.661, TEST.662, TEST.663, TEST.664, TEST.665, TEST.666, TEST.667, TEST.668, TEST.669, TEST.670, TEST.671, TEST.672, TEST.673, TEST.674, TEST.675, TEST.677, TEST.678, TEST.679, TEST.680, TEST.682, TEST.683, TEST.684, TEST.687, GEN.1385, TEST.688, TEST.689, TEST.690, TEST.691, TEST.692, TEST.693, TEST.694, TEST.695, TEST.696, TEST.697, TEST.700, TEST.698</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1693">#1693</a></td>
+<td>open</td>
+<td>View from a planet: sky maps and constellations</td>
+<td>VIEW.1, VIEW.2, VIEW.3, VIEW.4, VIEW.6, VIEW.7, VIEW.8, VIEW.9, DB.64, VIEW.11, VIEW.12, VIEW.13, VIEW.14, VIEW.15, VIEW.16, VIEW.17, VIEW.18</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1691">#1691</a></td>
+<td>closed</td>
+<td>Documentation corrections and the docs index</td>
+<td>DOC.4, DOC.21</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1690">#1690</a></td>
+<td>open</td>
+<td>Static help section for the web interface</td>
+<td>DOC.6, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.18, DOC.57, DOC.58, UX.179, UX.206</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1689">#1689</a></td>
+<td>open</td>
+<td>One logging standard and a themed, componentised interface</td>
+<td>UX.102, DOC.19, UX.43, UX.49, TEST.183, UX.121, UX.122, UX.123, UX.124, UX.125, UX.126, UX.130, UX.131, UX.132, UX.148, OPS.65, OPS.66, OPS.67</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1688">#1688</a></td>
+<td>open</td>
+<td>Admin tools: editing, configuration and incomplete uploads</td>
+<td>ADM.13, ADM.32, ADM.35, ADM.43, ADM.44, ADM.50, TEST.169</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1687">#1687</a></td>
+<td>closed</td>
+<td>Install, update and daily maintenance</td>
+<td>OPS.16, OPS.17, OPS.29, OPS.35, DB.29, OPS.61, OPS.62, DB.80, DOC.72, DOC.73, OPS.75, OPS.76, OPS.110</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1686">#1686</a></td>
+<td>open</td>
+<td>Database repair and migration helpers</td>
+<td>DB.9, DB.17, DB.18, DB.31, DB.43, DB.44, DB.45, DB.46, DB.47, DB.48, DB.84, DB.97, DB.98, UX.159</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1685">#1685</a></td>
+<td>open</td>
+<td>Performance guards, caches and benchmarks</td>
+<td>PERF.41, GEN.212, UX.136, PERF.137, DB.83, PERF.147, PERF.171, PERF.172, PERF.173, PERF.174, PERF.175, PERF.209, PERF.211, PERF.212, PERF.213, PERF.214, PERF.215, PERF.190, PERF.193, PERF.199, PERF.201, PERF.202, PERF.204, PERF.205, PERF.206, PERF.207, PERF.208, PERF.200, PERF.226, PERF.227, PERF.230, PERF.232, PERF.236, PERF.240, PERF.241, PERF.246</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1684">#1684</a></td>
+<td>open</td>
+<td>API keys, call log and compatibility data</td>
+<td>API.4, API.6, API.15, API.31</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1683">#1683</a></td>
+<td>open</td>
+<td>Remote generation: generate locally and upload through the API</td>
+<td>API.3, API.5, API.7, API.8, API.10, API.11, API.12, API.13, API.14, API.17, API.18, API.19, ADM.95, API.29, API.30, DB.62, API.41</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1682">#1682</a></td>
+<td>open</td>
+<td>Bookmarks and the user-level interface</td>
+<td>USR.7, UX.45, UX.46, UX.47, UX.48, UX.92, UX.129</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1681">#1681</a></td>
+<td>open</td>
+<td>User accounts, roles, invitations and password security</td>
+<td>USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.8, USR.9, SEC.32, SEC.33, DB.58, USR.26, USR.27, USR.28</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1680">#1680</a></td>
+<td>open</td>
+<td>Courses that steer around gravity wells and keep-out spheres</td>
+<td>NAV.6, NAV.56</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1679">#1679</a></td>
+<td>open</td>
+<td>Saved courses and waypoints (headline of 8.5)</td>
+<td>NAV.4, NAV.17, NAV.19, NAV.59, NAV.70, NAV.71, NAV.72</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1678">#1678</a></td>
+<td>open</td>
+<td>Same seed, same data: determinism, fingerprint and generator version</td>
+<td>GEN.55, GEN.57, GEN.135, GEN.136, OPS.15, OPS.28, OPS.37, DB.16, TEST.77, DB.49, GEN.304, GEN.305, GEN.306, GEN.307, OPS.56, OPS.57, OPS.58, TEST.181, GEN.764, DB.102, OPS.64, OPS.71</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1677">#1677</a></td>
+<td>open</td>
+<td>Later catalogue additions and compact-object details (low priority)</td>
+<td>GEN.280, GEN.283, GEN.284, GEN.285, GEN.286, GEN.287, UX.116, GEN.245, GEN.246, GEN.255, GEN.256, GEN.257, DB.54, GEN.333, GEN.24, GEN.364, GEN.377, GEN.589, GEN.244, GEN.282, GEN.592, GEN.1195, GEN.1196</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1676">#1676</a></td>
+<td>open</td>
+<td>One description layer for habitability, units and every object page</td>
+<td>GEN.299, GEN.300, GEN.348, GEN.349, UX.128, UX.100, UX.101, UX.150, UX.151, UX.152, UX.153, UX.154, UX.155, UX.156, DOC.75, DOC.77, TEST.300, UX.149, UX.157, UX.160, UX.257, UX.258</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1675">#1675</a></td>
+<td>open</td>
+<td>Planet classes refactored around the habitability index</td>
+<td>GEN.27, GEN.28, GEN.29, GEN.33, GEN.90, GEN.91, GEN.92, GEN.145, GEN.146, GEN.350, GEN.351, GEN.352, GEN.353, GEN.354, GEN.356, GEN.597, GEN.639, GEN.643, GEN.644, GEN.645, GEN.647, GEN.648, GEN.649, GEN.653, GEN.654, GEN.655, GEN.656, GEN.657, GEN.658, DB.90, DB.91, DB.92, DB.93, DOC.76, TEST.301, GEN.666, GEN.681, GEN.682, GEN.683, GEN.684, GEN.685, GEN.687, GEN.688, GEN.689, GEN.690, GEN.701, GEN.758, TEST.314, TEST.315, GEN.1130, GEN.1144, GEN.1207, GEN.1208, GEN.1209, GEN.1211, GEN.1221, GEN.1250, GEN.1252, GEN.1253, GEN.1281, GEN.1298, GEN.1306, GEN.1307, GEN.1309, GEN.1320, GEN.1321, GEN.1330, GEN.1331, GEN.1333, GEN.1334, TEST.676, GEN.1339, GEN.1340, GEN.1342, GEN.1346</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1674">#1674</a></td>
+<td>open</td>
+<td>Fill planning: order, directives, density and sector weeding</td>
+<td>GEN.9, GEN.40, GEN.42, GEN.102, GEN.103, GEN.144, GEN.179, GEN.180, GEN.309, GEN.450, PERF.35, TEST.182, GEN.546, GEN.547, GEN.1322, GEN.1327, GEN.1332, GEN.1335, GEN.1336, GEN.1337, GEN.1338, GEN.1341, GEN.1344, GEN.1353, GEN.1354, GEN.1386, PERF.249, GEN.1387, GEN.1388, GEN.1389, GEN.1390, PERF.250, PERF.251, PERF.252, PERF.253, GEN.1391, GEN.1392, GEN.1393, GEN.1394, GEN.1397, GEN.1398, GEN.1399, GEN.1400, GEN.1401, GEN.1402, GEN.1403, GEN.1404, GEN.1405, GEN.1406, GEN.1407, GEN.1430, GEN.1431, GEN.1432, GEN.1433, GEN.1434, GEN.1435, GEN.1436, GEN.1437, GEN.1438, PERF.254, DOC.113, DOC.114, DOC.115, DOC.116, DOC.117, ADM.148, ADM.149, ADM.150, ADM.151, OPS.122, OPS.123, OPS.124, OPS.125, OPS.126, OPS.127, OPS.128, OPS.129, OPS.130, OPS.131, OPS.132, GEN.1441, GEN.1442, GEN.1443, GEN.1444, GEN.1445, GEN.1446, GEN.1447, GEN.1448, GEN.1449, GEN.1450, GEN.1451, GEN.1452, GEN.1453, GEN.1454, GEN.1455, GEN.1456, GEN.1457, GEN.1458, GEN.1459, GEN.1460, GEN.1461, GEN.1462, GEN.1463, GEN.1464, GEN.1465, GEN.1466, GEN.1467, GEN.1468, GEN.1469, GEN.1470, GEN.1471, GEN.1472, GEN.1473, TEST.711, TEST.712, UX.295, GEN.1440, TEST.706, TEST.707, TEST.708, TEST.709, MAP.409, MAP.410, MAP.411, UX.294, TEST.701, DB.118, TEST.702, TEST.703, DB.119, DB.120, DOC.111, DOC.112, GEN.1439, TEST.704, TEST.705, PERF.255, API.43, API.44, SEC.47, ADM.152, ADM.153, API.45, API.46, UX.296, TEST.710, DOC.118, DOC.119, API.47, USR.32</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1673">#1673</a></td>
+<td>open</td>
+<td>Neighbour galaxies, satellites, wanderers and intergalactic frame</td>
+<td>GEN.157, GEN.239, GEN.248, MAP.145, MAP.207, NAV.57, GEN.366, GEN.369, GEN.371, GEN.399, GEN.536, GEN.403, GEN.545, GEN.405, GEN.531, GEN.598, GEN.404, GEN.544, GEN.591, PERF.138, GEN.624, GEN.637</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1672">#1672</a></td>
+<td>open</td>
+<td>Nebulae on the Galaxy Map and in generation</td>
+<td>MAP.171, MAP.172, MAP.173, MAP.174, MAP.176, MAP.183, GEN.93, GEN.95, GEN.99, GEN.202, TEST.135, GEN.295, DB.59, GEN.357, GEN.358, GEN.367, GEN.1267, GEN.1268, GEN.1271, GEN.1272, GEN.1273</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1671">#1671</a></td>
+<td>open</td>
+<td>Fly-through Galaxy Map and scale hand-offs</td>
+<td>MAP.59, MAP.75, MAP.119, MAP.120, MAP.121, MAP.122, MAP.139, MAP.140, MAP.141, MAP.143, MAP.146, MAP.147, MAP.152, MAP.156, MAP.160, MAP.209, MAP.210, ADM.94, DB.60, MAP.218, MAP.241, MAP.237, MAP.234, MAP.235, MAP.226, MAP.240, MAP.193, MAP.192, DB.57, MAP.216, MAP.189, MAP.190, USR.11, MAP.214, MAP.132, MAP.219, MAP.220, MAP.221, MAP.249, MAP.252, MAP.254, MAP.251, MAP.256, MAP.257, MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.263, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268, MAP.269, MAP.270</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1670">#1670</a></td>
+<td>open</td>
+<td>Gravity field and the gravity map</td>
+<td>GEN.115, GEN.198, GEN.199, MAP.167, MAP.168, MAP.169, MAP.170, API.24, UX.94, PERF.72, GEN.338, GEN.339, GEN.340, GEN.370, MAP.405, MAP.406, MAP.407, MAP.408</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1669">#1669</a></td>
+<td>open</td>
+<td>Orbital update: solver, thresholds, collisions and the nightly ceiling</td>
+<td>GEN.105, GEN.109, GEN.110, GEN.111, GEN.112, GEN.360, GEN.361, GEN.362, GEN.363, GEN.139, GEN.140, GEN.143, GEN.197, ADM.36, TEST.130, GEN.290, GEN.291, GEN.292, GEN.293, DB.55, DB.56, GEN.335, GEN.336, GEN.337, GEN.341, GEN.342, GEN.343, GEN.344, GEN.345, GEN.346, GEN.347, GEN.334, GEN.374, TEST.200, TEST.201, TEST.129</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1668">#1668</a></td>
+<td>open</td>
+<td>Nearby-object queries by cell key (stage C)</td>
+<td>NAV.61, TEST.165, TEST.166, DOC.51, GEN.376</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1667">#1667</a></td>
+<td>open</td>
+<td>Multi-star systems and the scatter member tree (stage M)</td>
+<td>GEN.373, GEN.261, GEN.263, GEN.264, GEN.267, GEN.268, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.274, GEN.275, GEN.129, TEST.162, TEST.164, DOC.50, GEN.311, GEN.312, GEN.313, GEN.315, GEN.316, GEN.327, GEN.328, GEN.329, GEN.330, GEN.331, GEN.332, MAP.255, TEST.196, GEN.229, GEN.593, GEN.596, GEN.130, GEN.317, GEN.318, GEN.631, GEN.640, ADM.128, GEN.832, MAP.337, MAP.338</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1666">#1666</a></td>
+<td>open</td>
+<td>Phenomena registry, fill stages and the remaining star types</td>
+<td>GEN.247, GEN.249, GEN.250, GEN.253, GEN.258, GEN.365, GEN.396, GEN.549, GEN.629</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1665">#1665</a></td>
+<td>open</td>
+<td>Whole-sphere reach: every cell out to 262 kpc has contents, from one rule set</td>
+<td>GEN.231, API.26, API.27, UX.113, DOC.48, TEST.158, TEST.159, TEST.160, TEST.161, GEN.310, TEST.184, TEST.185, UX.127, GEN.301, GEN.398, GEN.633</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1657">#1657</a></td>
+<td>closed</td>
+<td>GEN.232 Cap the sector-path integration for fast bodies so one hypervelocity star cannot run for min</td>
+<td>GEN.232</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1656">#1656</a></td>
+<td>closed</td>
+<td>TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel r</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1655">#1655</a></td>
+<td>closed</td>
+<td>TEST.138 test_open_map_menus_hold_no_overlap fails under load: [web.galaxy-1280] once, [web.sector-6</td>
+<td>TEST.138</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1654">#1654</a></td>
+<td>closed</td>
+<td>TEST.163 test_nav_ends_picked_from_bookmarks_on_every_page fails under load: #course-heading count i</td>
+<td>TEST.163</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1653">#1653</a></td>
+<td>closed</td>
+<td>DB.33 MySQL 8.0.46 reflects fk_facilities_type and fk_facility_field_values_field as RESTRICT, so ch</td>
+<td>DB.33</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1565">#1565</a></td>
+<td>closed</td>
+<td>Wide binary star systems must be stable: far orbits and Hill spheres must not overlap</td>
+<td>GEN.228, GEN.229</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1537">#1537</a></td>
+<td>closed</td>
+<td>Orbital update skips the galaxy position move of systems with no placed sector (GEN.223)</td>
+<td></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1532">#1532</a></td>
+<td>closed</td>
+<td>Overview page: the phenomena count is wrong (UX.110)</td>
+<td>UX.110</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1503">#1503</a></td>
+<td>closed</td>
+<td>Galaxy Map: regions under the galactic plane are hard to highlight and select (MAP.204)</td>
+<td>MAP.204</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1500">#1500</a></td>
+<td>closed</td>
+<td>Generation output: nebula kinds and layers per slab; no progress for the phenomena indexes</td>
+<td>GEN.222, PERF.101</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1464">#1464</a></td>
+<td>open</td>
+<td>List the species that could live in an environment; species environment limits and a species editor</td>
+<td>POP.12, POP.13, DB.30, POP.14, POP.15</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1454">#1454</a></td>
+<td>closed</td>
+<td>Habitability text: PHI-6 name, Air at zero pressure, wording of every line</td>
+<td>GEN.214, GEN.215, GEN.216, GEN.217</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1436">#1436</a></td>
+<td>closed</td>
+<td>update.sh and migrations refuse to start while jobs are active unless --yes or confirmed (DB.29)</td>
+<td>DB.29</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1420">#1420</a></td>
+<td>closed</td>
+<td>Sector view: stars look too big compared to the Galaxy Map (MAP.203)</td>
+<td>MAP.203</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1416">#1416</a></td>
+<td>closed</td>
+<td>Galaxy Map: a selected sector that is not filled should stay highlighted (MAP.201)</td>
+<td>MAP.201</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1414">#1414</a></td>
+<td>closed</td>
+<td>Galaxy Map: unclear which block is selected, awkward scroll zoom, and no on-map zoom and move contro</td>
+<td>MAP.198, MAP.199, MAP.200</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1406">#1406</a></td>
+<td>closed</td>
+<td>Mercury-like bodies never keep their magnetic field (GEN.213)</td>
+<td>GEN.213</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1392">#1392</a></td>
+<td>closed</td>
+<td>Keep the pymysql login workaround and make it compatible with the upstream fix (OPS.50)</td>
+<td>OPS.50</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1381">#1381</a></td>
+<td>closed</td>
+<td>Investigate resuming a test run where it left off when the build is the same (TEST.148)</td>
+<td>TEST.148</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1362">#1362</a></td>
+<td>closed</td>
+<td>update.sh fails at the database migrate step: 'NoneType' object has no attribute 'is_auth_switch_req</td>
+<td>OPS.49</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1344">#1344</a></td>
+<td>closed</td>
+<td>update.sh stops at the database migrate step in the venv: cryptography missing (OPS.47)</td>
+<td>OPS.47</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1337">#1337</a></td>
+<td>closed</td>
+<td>Installer: check the Apache mod_wsgi venv rules (OPS.46)</td>
+<td>OPS.46</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1328">#1328</a></td>
+<td>closed</td>
+<td>Save generation timing per object and per object type</td>
+<td>PERF.92</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1296">#1296</a></td>
+<td>closed</td>
+<td>Admin login returns 500: lock wait timeout on admin_users, and daemon timeouts</td>
+<td>ADM.53</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1295">#1295</a></td>
+<td>closed</td>
+<td>Install planetGen into its own virtual environment</td>
+<td>OPS.45</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1277">#1277</a></td>
+<td>closed</td>
+<td>Docs site build (GitHub Pages) fails on every release commit</td>
+<td>OPS.44</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1270">#1270</a></td>
+<td>closed</td>
+<td>A fresh install gets markdown 3.11.1, which breaks the page renderer</td>
+<td>OPS.43</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1248">#1248</a></td>
+<td>closed</td>
+<td>Sector path integration on numba</td>
+<td>PERF.88</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1247">#1247</a></td>
+<td>closed</td>
+<td>Drop astropy for a small constants table</td>
+<td>GEN.211</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1246">#1246</a></td>
+<td>closed</td>
+<td>Require Python 3.12 and install numba</td>
+<td>OPS.42</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1241">#1241</a></td>
+<td>closed</td>
+<td>Faster math and fewer heavy libraries (numba, Python 3.12, constants table)</td>
+<td>OPS.42, PERF.87, PERF.88, PERF.89, PERF.90, GEN.211, GEN.212</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1234">#1234</a></td>
+<td>closed</td>
+<td>Nav Markers</td>
+<td>MAP.132, MAP.219, MAP.220, MAP.221</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1233">#1233</a></td>
+<td>closed</td>
+<td>Default View Galaxy</td>
+<td>MAP.214</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1232">#1232</a></td>
+<td>closed</td>
+<td>Restrict the Field</td>
+<td>MAP.189, MAP.190, USR.11</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1231">#1231</a></td>
+<td>closed</td>
+<td>See most recently changed positions</td>
+<td>MAP.192, DB.57, MAP.216</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1230">#1230</a></td>
+<td>closed</td>
+<td>Complete review and rebuild of testing system</td>
+<td>TEST.139</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1229">#1229</a></td>
+<td>open</td>
+<td>Work queue on Redis: remaining steps and follow-ons</td>
+<td>PERF.86, PERF.98, PERF.99, PERF.100, PERF.29, PERF.30, DOC.20, PERF.119, PERF.163, PERF.164, PERF.165, PERF.166, PERF.150, PERF.151, PERF.152, PERF.153, PERF.155, PERF.156, PERF.157, PERF.158, PERF.159, PERF.160, PERF.161, PERF.162, PERF.120, PERF.121, PERF.122, PERF.123, PERF.124, PERF.125, PERF.128, PERF.113, PERF.114, PERF.115, PERF.116, PERF.117, PERF.144, PERF.145, PERF.146, PERF.106, PERF.107, PERF.108, PERF.142, PERF.143, PERF.247, DB.114, PERF.248</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1228">#1228</a></td>
+<td>closed</td>
+<td>Star system editor</td>
+<td>ADM.51, ADM.52</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1227">#1227</a></td>
+<td>closed</td>
+<td>Show axis, tilt, and rotations</td>
+<td>MAP.193</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1226">#1226</a></td>
+<td>open</td>
+<td>New feature:  User objects</td>
+<td>USR.10, POP.11, DB.63, DB.88, USR.29, USR.30</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1225">#1225</a></td>
+<td>closed</td>
+<td>Phenomena scatter possible hang before start.</td>
+<td>PERF.83</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1224">#1224</a></td>
+<td>closed</td>
+<td>Neighbor linking stalled out</td>
+<td>PERF.84</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1223">#1223</a></td>
+<td>closed</td>
+<td>Sector View Hides Black Holes</td>
+<td>MAP.185</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1222">#1222</a></td>
+<td>closed</td>
+<td>Galactic Core should be a Sector</td>
+<td>GEN.210</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1221">#1221</a></td>
+<td>closed</td>
+<td>Add a 5th and 6th Dimention to PHI-4 (PHI-6)</td>
+<td>GEN.207, UX.101</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1220">#1220</a></td>
+<td>closed</td>
+<td>Contradictory Planet Information</td>
+<td>GEN.206</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1219">#1219</a></td>
+<td>closed</td>
+<td>Rogue Planet Gravity</td>
+<td>UX.99</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1218">#1218</a></td>
+<td>closed</td>
+<td>Mark Rogue Planets Redundant</td>
+<td>MAP.184</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1217">#1217</a></td>
+<td>closed</td>
+<td>Habitability Notes in Planet List</td>
+<td>UX.100, GEN.208</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1216">#1216</a></td>
+<td>closed</td>
+<td>Fix weird log wording</td>
+<td>UX.98</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1215">#1215</a></td>
+<td>closed</td>
+<td>Binary Star Sector Display Error</td>
+<td>MAP.186</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1214">#1214</a></td>
+<td>closed</td>
+<td>Generation Hang after Phenomena / Layer Count Problem</td>
+<td>PERF.85</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1213">#1213</a></td>
+<td>closed</td>
+<td>Stars Vanish in new 'Window' algorithm</td>
+<td>MAP.187</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1212">#1212</a></td>
+<td>closed</td>
+<td>Galactic Map Sector Boarders</td>
+<td>MAP.202</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1211">#1211</a></td>
+<td>closed</td>
+<td>View artifacts in Galactic View</td>
+<td>MAP.187</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/1204">#1204</a></td>
+<td>open</td>
+<td>Nebulas and Globular Clusters</td>
+<td>GEN.209, MAP.194, GEN.237, GEN.296, GEN.297, GEN.161, GEN.162, GEN.163, GEN.164, DB.61, GEN.534, GEN.535, GEN.320, GEN.325, GEN.326, GEN.359, MAP.223, MAP.224, GEN.530, GEN.1191, GEN.1192, GEN.1193, GEN.1198, MAP.388</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/issues/5709">#5709</a></td>
+<td>open</td>
+<td>Fictional materials: a per-material inclusion setting with optional custom names, chosen at galaxy generation time (8.2)</td>
+<td>GEN.1408, GEN.1409, GEN.1410, DB.116, ADM.143, API.42, GEN.1411, GEN.1412, GEN.1413, DB.117, GEN.1414, GEN.1415, UX.293, ADM.144, ADM.145, ADM.146, ADM.147, TEST.699, DOC.110</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

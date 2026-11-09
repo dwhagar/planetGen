@@ -1,0 +1,1536 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part C: volatile-rich and gas bodies (ocean and ice worlds, sub-Neptunes, ice and gas giants, brown dwarfs, rogue planets) - planetGen docs</title>
+<meta name="description" content="Agent C, 2026-10-17.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/C-volatile-and-giants.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/C-volatile-and-giants.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-c-volatile-rich-and-gas-bodies-ocean-and-ice-worlds-sub-neptunes-ice-and-gas-giants-brown-dwarfs-rogue-planets">Part C: volatile-rich and gas bodies (ocean and ice worlds, sub-Neptunes, ice and gas giants, brown dwarfs, rogue planets)</h1><p class="meta">docs/design/composition/body-composition-parts/C-volatile-and-giants.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-interfaces">1. Scope and interfaces</a></li><li style="margin-left:0px"><a href="#2-findings">2. Findings</a></li><li style="margin-left:14px"><a href="#21-condensation-sequence-and-snow-lines">2.1 Condensation sequence and snow lines</a></li><li style="margin-left:14px"><a href="#22-water-and-ice-mass-fraction-from-formation">2.2 Water and ice mass fraction from formation</a></li><li style="margin-left:14px"><a href="#23-ice-phases-and-the-water-equation-of-state">2.3 Ice phases and the water equation of state</a></li><li style="margin-left:14px"><a href="#24-mass-radius-of-solid-and-water-rich-bodies">2.4 Mass-radius of solid and water-rich bodies</a></li><li style="margin-left:14px"><a href="#25-sub-neptunes-envelope-on-a-rock-or-water-core">2.5 Sub-Neptunes: envelope on a rock or water core</a></li><li style="margin-left:14px"><a href="#26-gas-and-ice-giants-composition-by-mass">2.6 Gas and ice giants: composition by mass</a></li><li style="margin-left:14px"><a href="#27-brown-dwarfs-deuterium-and-hydrogen-burning-degenerate-radius-limit">2.7 Brown dwarfs, deuterium and hydrogen burning, degenerate radius limit</a></li><li style="margin-left:14px"><a href="#28-rogue-planets-as-bodies">2.8 Rogue planets as bodies</a></li><li style="margin-left:14px"><a href="#29-agreement-and-differences-with-g425-and-the-existing-repo">2.9 Agreement and differences with G425 and the existing repo</a></li><li style="margin-left:0px"><a href="#3-how-the-generator-should-compute-or-draw-it">3. How the generator should compute or draw it</a></li><li style="margin-left:14px"><a href="#31-stored-quantities">3.1 Stored quantities</a></li><li style="margin-left:14px"><a href="#32-route-1-keep-the-drawn-bulk-figures-fill-a-composition-that-fits">3.2 Route 1: keep the drawn bulk figures, fill a composition that fits</a></li><li style="margin-left:14px"><a href="#33-route-2-draw-composition-from-formation-then-derive-the-bulk-figures-recommended">3.3 Route 2: draw composition from formation, then derive the bulk figures (recommended)</a></li><li style="margin-left:14px"><a href="#34-consistency-invariants-a-test-can-assert">3.4 Consistency invariants a test can assert</a></li><li style="margin-left:0px"><a href="#4-calibration-and-test-targets-never-presets">4. Calibration and test targets (never presets)</a></li><li style="margin-left:0px"><a href="#5-gaps-boss-must-research-and-to-verify">5. Gaps: Boss must research, and to verify</a></li><li style="margin-left:14px"><a href="#51-boss-must-research-ranked">5.1 Boss must research (ranked)</a></li><li style="margin-left:14px"><a href="#52-to-verify-recalled-or-weak">5.2 To verify (RECALLED or weak)</a></li><li style="margin-left:0px"><a href="#6-proposed-work-items-for-the-todo-tree">6. Proposed work items for the TODO tree</a></li><li style="margin-left:0px"><a href="#7-verification-summary">7. Verification summary</a></li></ul></details>
+<p>Agent C, 2026-10-17. Read-only research; nothing in the repo was touched. Scripts, parsed tables and results are in <code>/mnt/project-files/design-drafts/parts/C-volatile-and-giants-files/</code> (see its README; the scripts point at scratch paths and need editing to rerun).</p>
+<p>Labels: READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED as in the brief. Network note: after the widening, arXiv, PubChem, Wikipedia, Nature, IOP landing pages worked; IOP full-text PDFs, ADS, Science, A&amp;A, MNRAS and ScienceDirect did not ([R2726] gave only its abstract; the PDF is behind a bot check, which I did not try to get around).</p>
+<p>The GEN.425 report (<code>/mnt/project-files/reports/bulk-composition-sources-check-2026-10-17.md</code>, cited below as <strong>G425 s.N</strong>) already READ and verified [R3992, R4881] (method), [R4880, R4882] <code>f(x)</code>, [R2741] (Eq. 1, 3, tables, CSV), [R1429: Eq. 7 and 8], [R2865] (ice/rock 1 +/- 0.5), [R3193] snow line, [R0709, R3932]. I did not re-verify those; I re-used their numbers where noted and built on them. Where my own work agrees or differs it is stated in section 2.8.</p>
+<hr />
+<h2 id="1-scope-and-interfaces">1. Scope and interfaces</h2>
+<p><strong>Covers.</strong> Where the volatile (ice, water) mass fraction of a body comes from; the water and ice phases and their equations of state; mass, radius and ocean structure of water worlds and sub-Neptunes; composition by mass of ice giants, gas giants and hot Jupiters; brown dwarfs; rogue planets as bodies. Two generator routes (keep drawn bulk figures and fill a fitting composition; draw composition first and derive radius) with a recommendation, error bars measured against a reference I built.</p>
+<p><strong>Takes from other parts / the repo (interface values I need).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Need</th>
+<th>From</th>
+<th>Name used here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rock+iron core radius, core mass fraction, rock constants and EOS</td>
+<td>Part B (file did not exist when I wrote; I took [R3992: Table 1] constants, which G425 s.2.7 verified)</td>
+<td><code>CMF</code> (iron mass share of the <em>dry</em> part), <code>R_dry(M, CMF)</code></td>
+</tr>
+<tr>
+<td>Stellar [Fe/H], mass, luminosity, age</td>
+<td>stored on stars (schema v95)</td>
+<td><code>feh</code>, <code>M_star</code>, <code>L_star</code>, <code>age</code></td>
+</tr>
+<tr>
+<td>Snow line</td>
+<td><code>formation.snow_line_au(L)</code> = 2.7 AU * sqrt(L/Lsun) (170 K blackbody, G425 s.2.12)</td>
+<td><code>r_snow</code></td>
+</tr>
+<tr>
+<td>Surface gravity, temperature, pressure</td>
+<td>existing planet fields</td>
+<td><code>g</code>, <code>T_surf</code>, <code>P_surf</code></td>
+</tr>
+<tr>
+<td>Hydrosphere state</td>
+<td><code>physics/hydrosphere.py</code> stores <code>water_mass_fraction</code>, <code>ocean_fraction</code>, <code>ocean_depth_km</code>, <code>ice_shell_km</code>, <code>hp_ice_km</code>, <code>ocean_class</code>, <code>ocean_ph</code>, <code>water_activity</code>, <code>phosphorus</code>; giants (<code>body_type == &quot;g&quot;</code>) have all fields <code>None</code></td>
+<td><code>x_w</code> = <code>water_mass_fraction</code> (whole-body mass fraction)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Hands over.</strong></p>
+<ul>
+<li>To the atmosphere lane: for giants the envelope heavy-element mass fraction <code>Z_env</code>, helium mass fraction <code>Y_env</code>, interior (1-bar) temperature and surface gravity; for water worlds the water inventory (<code>x_w</code>), the pressure at the base of the volatile layer <code>P_base</code> and whether the surface is steam, liquid or ice; for sub-Neptunes the envelope mass fraction <code>f_env</code>. No gas mixes, hazes or colours here.</li>
+<li>To the radiation lane: nothing from this part is a radioactive heat source except the rock core (Part B); water and H/He are radiogenically empty. Giants and brown dwarfs have no surface; surface radiation is atmosphere only.</li>
+<li>To the hydrosphere module: a better rule for <code>water_mass_fraction</code> (section 3.2), compressed layer depth and base pressure (2.6), and constants it currently guesses (2.5).</li>
+</ul>
+<p><strong>Does not cover.</strong> Atmosphere chemistry (other lane); rock/iron EOS and radiogenic heat (B); stellar and star-remnant composition (other parts).</p>
+<hr />
+<h2 id="2-findings">2. Findings</h2>
+<h3 id="21-condensation-sequence-and-snow-lines">2.1 Condensation sequence and snow lines</h3>
+<p>Saturation curves for the ices are given by [R2865] ([R2865: Tables 3 to 5]; the CO, CO<sub>2</sub>, CH<sub>4</sub>, H<sub>2</sub>S, N<sub>2</sub>, NH<sub>3</sub>, CH<sub>3</sub>OH curves are the [R1445] compilation, <code>ln P(bar) = sum_{i=0..5} A_i / T^i</code>; water uses an Eq. 12 and 13 form with seven coefficients). I recomputed the condensation temperature of each species from those curves for the nebula abundances of their Table 2 (CO:CO<sub>2</sub> = 1:1 column, molar X/H2 in the second column). Each row is <strong>COMPUTED</strong> (inputs READ from Marboeuf Tables 2 to 4; method: solve <code>P_sat(T) = (X/H2) * P_H2</code>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>X/H2 (Marboeuf Table 2)</th>
+<th>T_cond at P_H2 = 1e-12</th>
+<th>1e-10</th>
+<th>1e-8</th>
+<th>1e-6</th>
+<th>1e-4 bar</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>5.95e-4</td>
+<td>116.7 K</td>
+<td>128.1</td>
+<td>141.9</td>
+<td>158.9</td>
+<td>180.5</td>
+<td>[R2865: Eq. 12], 13, Table 4</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>8.92e-5</td>
+<td>100.6</td>
+<td>109.6</td>
+<td>120.4</td>
+<td>133.5</td>
+<td>149.8</td>
+<td>Table 3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub> (monohydrate not modelled)</td>
+<td>4.16e-5</td>
+<td>69.7</td>
+<td>76.2</td>
+<td>84.0</td>
+<td>93.5</td>
+<td>105.5</td>
+<td>Table 3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>1.19e-4</td>
+<td>60.7</td>
+<td>66.3</td>
+<td>73.1</td>
+<td>81.5</td>
+<td>92.2</td>
+<td>Table 3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>1.19e-5</td>
+<td>52.1</td>
+<td>57.2</td>
+<td>63.3</td>
+<td>71.0</td>
+<td>80.7</td>
+<td>Table 3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>3.57e-5</td>
+<td>24.2</td>
+<td>26.7</td>
+<td>29.8</td>
+<td>33.8</td>
+<td>38.9</td>
+<td>Table 3 (valid from 20.6 K)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>1.19e-4</td>
+<td>19.4</td>
+<td>21.4</td>
+<td>23.9</td>
+<td>27.1</td>
+<td>31.2</td>
+<td>Table 3</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>4.16e-5</td>
+<td>17.9</td>
+<td>19.7</td>
+<td>21.8</td>
+<td>24.5</td>
+<td>28.0</td>
+<td>Table 3 (valid from 10 K)</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Local H<sub>2</sub> pressure for orientation (COMPUTED, <code>P = n k T</code>): n_H2 = 1e10, 1e12, 1e14 cm^-3 at 100 K gives 1.4e-10, 1.4e-8, 1.4e-6 bar.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Statement</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Evaporation (snow-line) temperatures (density-dependent, binding energies 5800, 2000, 850 K)</td>
+<td>CO 18 to 22 K (adopt 20), CO<sub>2</sub> 42 to 52 (47), H<sub>2</sub>O 120 to 150 (135); carbon grains over 150 K; silicate about 1500 K</td>
+<td>[R3322: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Average disk midplane temperature law</td>
+<td><code>T = T0 (r / 1 AU)^-q</code>, T0 = 200 K, q = 0.62 ([R0115] average)</td>
+<td>same, Eq. 1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Gas-phase C/O rises outward through the H<sub>2</sub>O line, max about 1 between the CO<sub>2</sub> and CO lines at 10 to 40 AU; interior to both lines the gas has stellar C/O</td>
+<td>qualitative</td>
+<td>same, section 2 and 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O line at 135 K in that disk</td>
+<td><code>(200/135)^(1/0.62)</code> = 1.9 AU</td>
+<td>Oeberg Eq. 1, my arithmetic</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Condensation temperatures from computed curves vs Oeberg</td>
+<td>H<sub>2</sub>O agrees (128 to 142 K at n 1e10 to 1e12 vs 120 to 150). CO within 2 K (21 to 24 vs 18 to 22). CO<sub>2</sub> differs: 66 to 73 K vs 42 to 52 K (Oeberg's CO<sub>2</sub> binding energy 2000 K is lower than the Fray and Schmitt curve implies). Treat CO<sub>2</sub> line temperature as uncertain by 20 K</td>
+<td>my comparison</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Water line vs disk heating</td>
+<td><code>r_ice = 9.2 AU (alpha/0.01)^0.61 (Sigma_g,0 / 1000 g cm^-2)^0.8 (f_DG/0.01)^0.37</code> for a 1 Msun star ([R3935] fit; reaches inside 1 AU within the first Myr in most models)</td>
+<td>[R0405: Eq. 1]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Water line position in a population synthesis</td>
+<td>median 2.81 AU; planetesimal density 3.2 g/cm3 inside, 1.0 g/cm3 outside</td>
+<td>[R1268, R1269] (NGPPS II), [R1269]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Snow line, viscous disk (G425 s.2.12): 3.3, 2.6, 1.9, 1.2, 0.5 AU for 1.0, 0.8, 0.6, 0.4, 0.2 Msun (small grains), 1-sigma about 0.2 dex</td>
+<td></td>
+<td>[R3193]</td>
+<td>READ via G425</td>
+</tr>
+<tr>
+<td>Water line temperature range quoted</td>
+<td>140 to 180 K typical disks; Ciesla uses 140 K</td>
+<td>[R0803]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Repo constant</td>
+<td>2.7 AU sqrt(L/Lsun) = the 170 K blackbody value (G425 s.2.12)</td>
+<td><code>physics/constants.py:92</code></td>
+<td>READ via G425</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consequence: the repo's single 170 K line is the warm end. For pressures typical of a mid-disk (n_H2 1e10 to 1e12 cm^-3) water condenses at 128 to 142 K, which puts the optically thin line at 2.7 * (170/135)^2 = 4.3 AU, while accretion-heated viscous disks give 3.3 AU (Mulders) and the synthesis median is 2.8 AU. A 0.2 dex scatter around 2.7 AU covers all of these (a parametrisation).</p>
+<h3 id="22-water-and-ice-mass-fraction-from-formation">2.2 Water and ice mass fraction from formation</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ice mass fraction of condensed solids beyond the snow line, all ices, range over models and 1 to 30 AU</td>
+<td>10 to 60 wt% (ice/rock 0.1 to 1.5); irradiated disks 10 to 50 wt% (0.1 to 1.1); refractory organics 20 to 30 wt%, minerals 40 to 65 (45 to 70) wt%; without organics ices are about 1.5 times higher; strong gradient near the water line</td>
+<td>[R2865] section 4.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ice/rock, model-averaged</td>
+<td>1 +/- 0.5 (ice 45 +/- 15 wt%) without organics; 0.35 +/- 0.25 (30 +/- 10 wt%) with</td>
+<td>Marboeuf abstract (via G425 s.2.12)</td>
+<td>READ via G425</td>
+</tr>
+<tr>
+<td>Nebula ice species, molar vs H<sub>2</sub>O: CO 20 %, CO<sub>2</sub> 20 %, CH<sub>4</sub> 6, H<sub>2</sub>S 2, N<sub>2</sub> 7, NH<sub>3</sub> 7, CH<sub>3</sub>OH 15 (CO:CO<sub>2</sub> = 1:1)</td>
+<td></td>
+<td>Marboeuf Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water share of the ice mass if every ice is condensed</td>
+<td>0.429 by mass (0.565 by moles)</td>
+<td>Marboeuf Table 2 times molar masses</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Water-only, ice/rock calibrated to 1.00 when all ices present: water share of solids by cumulative set (P_H2 1e-10 bar order H<sub>2</sub>O 128 K, CH<sub>3</sub>OH 110, NH<sub>3</sub> 76, CO<sub>2</sub> 66, H<sub>2</sub>S 57, CH<sub>4</sub> 27, CO 21, N<sub>2</sub> 20)</td>
+<td>H<sub>2</sub>O only 0.300; +CH<sub>3</sub>OH 0.352 (ice 0.35); +NH<sub>3</sub> 0.364; +CO<sub>2</sub> 0.438; +H<sub>2</sub>S 0.444; +CH<sub>4</sub> 0.451; +CO 0.488; +N<sub>2</sub> 0.500 are the <strong>ice fraction of solids</strong>; the water mass fraction of solids is 0.300 / 0.304 / 0.294 / 0.245 / 0.241 ... / 0.214</td>
+<td>my cumulative sum of Marboeuf Table 2</td>
+<td>COMPUTED (assumption: ice/rock = 1 when all eight ices are present, the Marboeuf mean; ice/rock 0.5 and 1.5 give water 0.143 and 0.257 of solids)</td>
+</tr>
+<tr>
+<td>Convention: solids beyond the water line are about 50 % water by mass ([R2726] chemical equilibrium); comets and icy satellites 40 to 50 %; carbonaceous chondrites 5 to 10 % (hydrated, after water loss); Ceres at least 20 to 30 %</td>
+<td></td>
+<td>[R0803] section 2</td>
+<td>READ (Lodders cited, original NOT REACHED beyond abstract)</td>
+</tr>
+<tr>
+<td>Stoichiometric estimate</td>
+<td>water / (water + refractories) = 0.566 (all O not in silicate counted as water)</td>
+<td>G425 s.2.12</td>
+<td>READ via G425 (COMPUTED there)</td>
+</tr>
+<tr>
+<td>Rock:ice assumed for icy cores</td>
+<td>x between 1/2 (solar rock:H<sub>2</sub>O) and 2/3 (rock:all ices); rock to ice ratio &quot;does not strongly depend on host metallicity&quot;</td>
+<td>[R4880]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Pebble-accretion cores that start beyond the ice line stay water-rich, <code>f_ice</code> about 0.5; inside they are dry (0); rocky core masses peak near 3 Mearth, max about 5; icy cores 1 to 36 Mearth. With collisions: about 33 % (20 %) of planets end with <code>0.05 &lt;= f_ice &lt; 0.45</code> (mean, max collisional model), 30 % stay 0, 37 % (50 %) about 0.5</td>
+<td></td>
+<td>[R4528], section 3, Appendix C and D</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water-rich sub-Neptune scenarios: formed beyond the ice line gives &quot;up to 50 %&quot; water; formed inside, with a giant core blocking the pebbles, gives dry; giant forming inside the ice line gives a water-rich atmosphere and a few percent total water</td>
+<td></td>
+<td>[R0405] section 2 and 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water inside the snow line, N-body: innermost planets around low-mass stars 1.2 to 3.3 % when planetesimals carry 50 % water, versus almost none in the [R3683] comparison</td>
+<td></td>
+<td>[R0803] section 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water delivered to terrestrial planets inside the snow line by a forming giant's scattered planetesimals: inner-belt ordinary chondrites at most 0.1 % water; C-type asteroids 5 to 20 % water; Earth's water consistent with 2.5e-3 to 25e-3 Mearth of C-type material; &quot;whenever a giant planet forms it invariably pollutes its inner system&quot;</td>
+<td></td>
+<td>[R3681], abstract and section 8.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Delivered water fraction implied for a 1 Mearth planet (my arithmetic: (2.5e-3 to 25e-3) * (0.05 to 0.20))</td>
+<td>1.2e-4 to 5e-3</td>
+<td></td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Synthetic planets in the TRAPPIST-1 zone around a 0.1 Msun star (M over 0.1 Mearth, a under 0.1 AU, 2222 planets): most purely rocky, 14 % have ice fraction over 0.1; ice-rich close-in planets reach down to about 1 Mearth for 0.1 Msun and about 3 Mearth for 1 Msun; ice-rich composition about 50 % ice outside the ice line</td>
+<td></td>
+<td>[R0602] (NGPPS IV), [R0602], sections 3 and 4.6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Planets of the NGPPS population: ice-poor/ice-rich boundary set at 1 % volatiles by mass (set so that water gives high-pressure ice at the bottom of a 1 Mearth ocean)</td>
+<td></td>
+<td>[R1268, R1269] (NGPPS II)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Observed: three populations around M dwarfs (34 planets with mass error under 25 % and radius error under 8 %): rocky mean density 0.94 +/- 0.13 and radius 1.21 +/- 0.28 Rearth; water-rich 0.47 +/- 0.05 and 1.97 +/- 0.28; puffy 0.24 +/- 0.04 and 2.85 +/- 0.63 (densities relative to a scaled Earth-like model, CMF 0.325); density gap at 0.65; no intermediate water fractions in the sample; rocky planets up to about 10 Mearth, water worlds from 2 to 3 Mearth (2 Mearth for 0.3 to 0.5 Msun hosts), puffy from 6 Mearth; innermost planets of multis are rocky</td>
+<td></td>
+<td>[R2774]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Rocky:icy core number ratio about 1:2 for 1 to 4 Rearth planets; water worlds 2 to 4 Rearth with more than 1/4 and possibly over 1/2 water by mass</td>
+<td></td>
+<td>[R4880]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-checks and disagreements:</p>
+<ul>
+<li>The water fraction of the solids beyond the line is <strong>0.14 to 0.39</strong> (Marboeuf-based, my emulation, mean about 0.21 to 0.30) in one family of sources and <strong>about 0.5</strong> in another (Lodders via Ciesla, Zeng, Venturini, Bitsch, Burn). The factor of two is not resolved by any source read. I carry both as a range in section 3.</li>
+<li>&quot;Dry inside the snow line&quot; is a scenario, not a law: Venturini has exactly zero by construction (pebble accretion), Bitsch scenario A dry, scenario B a few percent, Ciesla 1 to 3 %, Raymond 1e-4 to 5e-3. The statement &quot;dry inside, up to about 50 percent outside&quot; is supported only in the narrow form: <strong>cores that grow beyond the ice line have about 50 % ice in pebble models (Venturini, Bitsch), and cores inside are dry unless water is delivered</strong>.</li>
+<li>Metallicity: Zeng says the rock-to-ice ratio does not depend strongly on [Fe/H]; metallicity changes how much solid there is (the repo already scales disk solids with <code>10^[Fe/H]</code> in <code>formation.disk_surface_density_scale</code>), not the water share.</li>
+<li>Stellar mass: the minimum mass of an ice-rich close-in planet follows the two NGPPS IV anchors (1 Mearth at 0.1 Msun, 3 at 1 Msun), which a power law <code>M_ice,min = 3 (M_star/Msun)^0.48 Mearth</code> joins (COMPUTED two-point fit) and which gives 1.7 to 2.2 Mearth at 0.3 to 0.5 Msun, matching Luque and Palle's 2 Mearth.</li>
+</ul>
+<h3 id="23-ice-phases-and-the-water-equation-of-state">2.3 Ice phases and the water equation of state</h3>
+<p>Densities, bulk moduli and their pressure derivatives from the [R2204] Gibbs-energy B-splines as distributed in SeaFreeze 1.1.3 (PyPI, GPL-3; <strong>I used the spline data only and wrote my own evaluator, <code>sf_eval.py</code>; no package code was run</strong>). <code>rho = 1 / (dG/dP)</code>, <code>K_T = -(dG/dP)/(d2G/dP2)</code>, <code>K' = dK/dP</code> by finite difference. Spline domains: Ih 0 to 400 MPa and 1 to 301 K; II 0 to 900 MPa; III 0 to 500 MPa; V 0 to 1000 MPa; VI 0 to 3000 MPa and 0 to 400 K; VII/X (French) 1.7 GPa to 1 TPa and 20 to 1800 K; liquid (Bollengier) 0 to 2300 MPa and 239 to 501 K. Original paper ([R2204], JGR Planets) not read. Every row COMPUTED from the spline data (2ND-HAND for the underlying measurements).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase, state</th>
+<th>P (MPa)</th>
+<th>T (K)</th>
+<th>rho (kg/m3)</th>
+<th>K_T (GPa)</th>
+<th>dK/dP</th>
+<th>alpha (1/K)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ih, melting point, 1 bar</td>
+<td>0.1</td>
+<td>273.15</td>
+<td>916.72</td>
+<td>8.49</td>
+<td>4.89</td>
+<td>1.60e-4</td>
+</tr>
+<tr>
+<td>Ih, 200 K</td>
+<td>0.1</td>
+<td>200</td>
+<td>926.13</td>
+<td>9.46</td>
+<td>6.38</td>
+<td>1.16e-4</td>
+</tr>
+<tr>
+<td>Ih, 100 K</td>
+<td>0.1</td>
+<td>100</td>
+<td>933.05</td>
+<td>10.45</td>
+<td>8.07</td>
+<td>3.0e-5</td>
+</tr>
+<tr>
+<td>Ih at Ih-III-L point</td>
+<td>200</td>
+<td>251.15</td>
+<td>939.82</td>
+<td>9.86</td>
+<td>5.39</td>
+<td>1.13e-4</td>
+</tr>
+<tr>
+<td>III at Ih-III-L</td>
+<td>209.5</td>
+<td>251.15</td>
+<td>1154.5</td>
+<td>9.19</td>
+<td>6.25</td>
+<td>2.2e-4</td>
+</tr>
+<tr>
+<td>III at III-V-L</td>
+<td>355</td>
+<td>256.43</td>
+<td>1170.8</td>
+<td>10.01</td>
+<td>6.00</td>
+<td>2.05e-4</td>
+</tr>
+<tr>
+<td>II (metastable region of its field)</td>
+<td>300</td>
+<td>200</td>
+<td>1196.0</td>
+<td>14.89</td>
+<td>5.95</td>
+<td>1.14e-4</td>
+</tr>
+<tr>
+<td>V at III-V-L</td>
+<td>355</td>
+<td>256.43</td>
+<td>1244.9</td>
+<td>12.92</td>
+<td>6.15</td>
+<td>1.8e-4</td>
+</tr>
+<tr>
+<td>V at V-VI-L</td>
+<td>618.4</td>
+<td>272.73</td>
+<td>1265.7</td>
+<td>14.24</td>
+<td>5.89</td>
+<td>1.68e-4</td>
+</tr>
+<tr>
+<td>VI at V-VI-L</td>
+<td>618.4</td>
+<td>272.73</td>
+<td>1327.2</td>
+<td>14.87</td>
+<td>6.73</td>
+<td>2.44e-4</td>
+</tr>
+<tr>
+<td>VI</td>
+<td>1000</td>
+<td>300</td>
+<td>1351.1</td>
+<td>16.64</td>
+<td>6.34</td>
+<td>2.26e-4</td>
+</tr>
+<tr>
+<td>VI at VI-VII-L</td>
+<td>2216</td>
+<td>355</td>
+<td>1422.5</td>
+<td>22.44</td>
+<td>5.53</td>
+<td>1.78e-4</td>
+</tr>
+<tr>
+<td>VII at VI-VII-L</td>
+<td>2216</td>
+<td>355</td>
+<td>1476.4</td>
+<td>26.57</td>
+<td>2.11</td>
+<td>2.6e-4</td>
+</tr>
+<tr>
+<td>VII</td>
+<td>3000</td>
+<td>300</td>
+<td>1537.6</td>
+<td>29.29</td>
+<td>2.37</td>
+<td>2.0e-4</td>
+</tr>
+<tr>
+<td>VII</td>
+<td>10000</td>
+<td>300</td>
+<td>1845.3</td>
+<td>50.85</td>
+<td>3.53</td>
+<td>1.0e-4</td>
+</tr>
+<tr>
+<td>VII/X</td>
+<td>50000</td>
+<td>300</td>
+<td>2674.6</td>
+<td>204.8</td>
+<td>5.11</td>
+<td>2.0e-5</td>
+</tr>
+<tr>
+<td>X</td>
+<td>100000</td>
+<td>300</td>
+<td>3107.1</td>
+<td>503.8</td>
+<td>4.62</td>
+<td>7.4e-6</td>
+</tr>
+<tr>
+<td>X</td>
+<td>500000</td>
+<td>300</td>
+<td>4669.7</td>
+<td>1708</td>
+<td>2.79</td>
+<td>1.6e-6</td>
+</tr>
+<tr>
+<td>X</td>
+<td>1000000</td>
+<td>300</td>
+<td>5814.4</td>
+<td>2880</td>
+<td>1.91</td>
+<td>7.8e-7</td>
+</tr>
+</tbody>
+</table></div>
+<p>Checks (COMPUTED): ice Ih at 273.15 K 916.72 kg/m3 matches the 0.9167 to 0.9168 g/cm3 on the Wikipedia ice page (SNIPPET: Wikipedia, 0.9340 at 93 K, spline 0.9330 at 100 K); liquid water 996.56 at 300 K and 1 bar. Frank, Fei and Hu 2004 formula for ice VII (READ in [R4881]) <code>rho(mol/cm3) = 0.0805 + 0.0229 (1 - e^(-0.0743 p)) + 0.1573 (1 - e^(-0.0061 p))</code>, p in GPa, gives 1.584 g/cm3 at 3 GPa against 1.538 here (3 %, their 300 K and mine). Seager's DFT Table 2 (cold, READ) gives 2.576 at 44.3 GPa and 3.326 at 126.8 GPa, 3.485 at 155.9; the spline 2.67 at 50 GPa, 3.11 at 100 GPa: agree within about 3 %. Seager's ice VII zero-pressure BME (K0 23.7, K0' 4.15, rho0 1460, READ) vs the spline's VII at 3 GPa (K 29.3, K' 2.4): the BME is a different representation of the same compression curve; use the spline values above or Seager's polytrope, not both.</p>
+<p><strong>Phase boundaries, recomputed (COMPUTED from the same splines, <code>G(ice) = G(liquid)</code>):</strong> Ih melting 273.15 K at 0.1 MPa, 264.2 K at 100 MPa, 252.2 K at 200 MPa; III 251.2 K at 210 MPa, 256.2 K at 350 MPa; V 256.2 K at 350, 271.7 K at 600 MPa; VI 272.1 K at 620, 286.8 K at 800, 300.4 K at 1000, 327 K at 1500, 347 K at 2000, 353.8 K at 2200 MPa.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Triple point</th>
+<th>[R4881] (READ; [R0777])</th>
+<th><code>hydrosphere.py</code> <code>LIQUIDUS_K_MPA</code> [R4585]</th>
+<th>Recomputed here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ih-III-liquid</td>
+<td>209.5 MPa, 251.15 K</td>
+<td>207.5 MPa, 251 K</td>
+<td>about 210 MPa, 251.2 K</td>
+</tr>
+<tr>
+<td>III-V-liquid</td>
+<td>355.0 MPa, 256.43 K</td>
+<td>346 MPa, 256 K</td>
+<td>about 350 MPa, 256.2 K</td>
+</tr>
+<tr>
+<td>V-VI-liquid</td>
+<td>618.4 MPa, 272.73 K</td>
+<td>626 MPa, 273.3 K</td>
+<td>about 620 MPa, 272.1 K</td>
+</tr>
+<tr>
+<td>VI-VII-liquid</td>
+<td>2.216 GPa, 355 K</td>
+<td>2200 MPa, 355 K</td>
+<td>about 2.2 GPa, 353.8 K</td>
+</tr>
+<tr>
+<td>VII-X-liquid</td>
+<td>47 GPa, 1000 K</td>
+<td>not in the module</td>
+<td>not modelled</td>
+</tr>
+</tbody>
+</table></div>
+<p>The three sets agree within 1 to 3 %. The module's linear interpolation between triple points puts the 280 K liquidus at 755 MPa; the spline puts it near 715 MPa (between 620 MPa/272.1 K and 800 MPa/286.8 K), a 5 % difference that is smaller than the uncertainty in the bottom temperature.</p>
+<p><strong>Constants in <code>hydrosphere.py</code> vs these numbers (COMPUTED):</strong> <code>ICE_DENSITY_KG_M3 = 917</code> fine for Ih; <code>HP_ICE_DENSITY_KG_M3 = 1300</code> is below ice VI (1327 at its lowest pressure to 1422 at 2.2 GPa) and ice VII (1476 and up), so <code>hp_ice_km</code> is overestimated by about 4 to 10 %. <code>DEEP_WATER_DENSITY_KG_M3 = 1050</code> is the mean for about 0.2 GPa; the liquid column down to the 280 K liquidus is denser (1044 at 100 MPa, 1110 at 300, 1180 at 600, 1218 at 800 MPa at 280 K, so a mean of about 1110 to the 715 MPa liquidus), 6 % above the constant, which makes <code>max_liquid_depth_km</code> (73 km at Earth gravity) about 4 % too large.</p>
+<p><strong>Superionic and X:</strong> ice VII transforms to ice X near 47 GPa and 1000 K (as cited by [R4881], READ); [R1457] DFT phase diagram (superionic phase, used by [R4881] from 37.4 GPa to 8.9 TPa, READ as described there; original paper not read, 2ND-HAND). Experiment: laser-shock water solidifies to a bcc (probably ice X) then face-centred-cubic superionic <strong>ice XVIII</strong> at <strong>100 to 400 GPa and 2000 to 3000 K</strong>; superionic conduction (protons mobile in an oxygen lattice) is predicted over 100 GPa and over 2000 K ([R3081]:251, abstract READ via nature.com landing page; paper body paywalled). Superionic ice is a dense solid water layer in the deep interior of water worlds and ice giants; the generator needs only its density (the spline &quot;VII_X_French&quot; above, valid to 1 TPa and 1800 K) and the fact it is solid.</p>
+<p><strong>Low-pressure ices of other species (small icy bodies, comets, moons):</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Material</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub> solid (dry ice)</td>
+<td>1.56 g/cm3 at -79 C (about 194 K) and 1.512 at -56.6 C; 1600 kg/m3 used for cometary CO<sub>2</sub> ice</td>
+<td>PubChem density annotation (CRC and USCG entries); Blum and Bischoff, [R0430]</td>
+<td>READ (PubChem, arXiv text)</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O ice for comets</td>
+<td>934 kg/m3 (at low T)</td>
+<td>Blum and Bischoff</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N<sub>2</sub> solid</td>
+<td>1.0265 g/cm3</td>
+<td>PubChem N<sub>2</sub> density entry</td>
+<td>READ (temperature not given there)</td>
+</tr>
+<tr>
+<td>CO solid, hexagonal</td>
+<td>929 kg/m3 at 65 K; liquid 788.6 at 81.63 K</td>
+<td>PubChem CO</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH liquid</td>
+<td>0.792 g/cm3 (liquid at 20 C); the solid is not given</td>
+<td>PubChem</td>
+<td>READ (liquid only)</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>S solid densities</td>
+<td>no reachable primary value found. Crystallographic estimates from recalled lattice constants would be about 0.52 (CH<sub>4</sub> fcc phase I, a about 5.9 A), about 0.82 to 0.85 (NH<sub>3</sub>, a about 5.1 A), but these are RECALLED and not verified</td>
+<td>RECALLED</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub> clathrate hydrate</td>
+<td>about 0.9 g/cm3 (908 to 917 kg/m3 depending on structure and cage filling; 0.92 for natural hydrate extrapolated to 273 K)</td>
+<td>web search snippets (Wikipedia, MarineInfo)</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Clathrate cage and composition</td>
+<td>hydrate number <code>n_hyd = 6</code> used for all (ideal 5.75 for structure I, 5.67 for structure II); CO, CH<sub>4</sub>, CO<sub>2</sub>, H<sub>2</sub>S form structure I, N<sub>2</sub> structure II; NH<sub>3</sub> forms a stoichiometric monohydrate, not a clathrate</td>
+<td>[R2865] section 3.4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Clathrate stability, <code>ln P_cl(Pa) = A0 + A1 / T</code>: CO 23.3818, -1890.39; CO<sub>2</sub> 23.294, -2565; CH<sub>4</sub> 22.6864, -2176.2; H<sub>2</sub>S 22.8931, -3111.02; N<sub>2</sub> 22.719, -1696.05; NH<sub>3</sub> 19.515, -2878.23</td>
+<td></td>
+<td>Marboeuf Table 5 (from [R1925])</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Refractory material in comets</td>
+<td>density 1800 to 3500 kg/m3 (organics 1000 to 2000, minerals 2600 to 5000); bulk packing density of 67P Phi_bulk 0.15 to 0.37</td>
+<td>Blum and Bischoff section on porosity</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Planetesimal densities in a planet-formation model</td>
+<td>3.2 g/cm3 inside the ice line, 1.0 g/cm3 outside</td>
+<td>NGPPS II</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>For bodies below about 0.01 Mearth, G425 s.3.2 recommends a volume-additive density; with the numbers above, an ice-rock small body of ice fraction <code>w</code> has <code>rho = 1 / (w/rho_ice + (1-w)/rho_rock)</code> times a packing density (0.15 to 0.37 measured for a comet; no value was found for other small bodies).</p>
+<h3 id="24-mass-radius-of-solid-and-water-rich-bodies">2.4 Mass-radius of solid and water-rich bodies</h3>
+<p><strong>Reference I built</strong> (<code>structure.py</code>, COMPUTED): hydrostatic integration, <code>dm/dr = 4 pi r^2 rho</code>, <code>dP/dr = -G m rho / r^2</code>, surface pressure 1 bar, shooting on central pressure; layers iron ([R3992: Table 1], epsilon-Fe Vinet, 8.30 g/cm3, K0 156.2, K0' 6.08), silicate (Seager enstatite BME below 23.83 GPa, then MgSiO<sub>3</sub> perovskite BME4 247 GPa, 3.97, K0'' -0.016 per GPa, 4.10 g/cm3), water (the 300 K isotherm of the Journaux splines: liquid to 1 GPa, ice VI to 2.2 GPa, VII/X to 1 TPa, then Seager's Table 3 polytrope matched in density). Above 1 TPa the Fe and silicate branches switch to the Seager Table 3 polytropes (<code>rho0 + c P^n</code>, scaled to be continuous) in place of Thomas-Fermi-Dirac. No thermal expansion, no mixing.</p>
+<p>Validation against the six two-layer curves tabulated in [R4881: Table 1] (READ; parsed to <code>zs13_table1.json</code>; their curves use TFD above the Vinet/BME range and perovskite throughout the silicate):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Composition (mass)</th>
+<th>M = 0.1</th>
+<th>0.5</th>
+<th>1</th>
+<th>2</th>
+<th>5</th>
+<th>10</th>
+<th>20</th>
+<th>50 Mearth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pure H<sub>2</sub>O</td>
+<td>+0.4 %</td>
+<td>-0.3</td>
+<td>-0.7</td>
+<td>-1.2</td>
+<td>-1.2</td>
+<td>-0.7</td>
+<td>+0.2</td>
+<td>+1.3</td>
+</tr>
+<tr>
+<td>25 % MgSiO<sub>3</sub> + 75 % H<sub>2</sub>O</td>
+<td>+1.4</td>
+<td>-0.2</td>
+<td>-0.5</td>
+<td>-0.8</td>
+<td>-0.8</td>
+<td>-0.5</td>
+<td>+0.4</td>
+<td>+1.6</td>
+</tr>
+<tr>
+<td>50 % MgSiO<sub>3</sub> + 50 % H<sub>2</sub>O</td>
+<td>+2.6</td>
+<td>+0.2</td>
+<td>-0.2</td>
+<td>-0.4</td>
+<td>-0.4</td>
+<td>-0.2</td>
+<td>+0.6</td>
+<td>+1.8</td>
+</tr>
+<tr>
+<td>Pure Fe</td>
+<td>-0.1</td>
+<td>-0.1</td>
+<td>-0.1</td>
+<td>-0.1</td>
+<td>0.0</td>
+<td>-0.2</td>
+<td>-0.8</td>
+<td>-2.9</td>
+</tr>
+<tr>
+<td>50 % Fe + 50 % MgSiO<sub>3</sub></td>
+<td>+5.5</td>
+<td>+2.8</td>
+<td>+1.9</td>
+<td>+1.4</td>
+<td>+1.1</td>
+<td>+1.0</td>
+<td>+1.0</td>
+<td>+0.5</td>
+</tr>
+<tr>
+<td>Pure MgSiO<sub>3</sub></td>
+<td>+7.7</td>
+<td>+3.5</td>
+<td>+2.4</td>
+<td>+1.9</td>
+<td>+1.5</td>
+<td>+1.6</td>
+<td>+2.1</td>
+<td>+2.8</td>
+</tr>
+</tbody>
+</table></div>
+<p>(My radius over theirs; positive means mine is larger.) Water-bearing cases agree within 1.5 % from 0.5 to 50 Mearth; the silicate-bearing dry cases are 2 to 3 % large at 1 Mearth and up to 8 % at 0.1 Mearth because I use enstatite (3.22 g/cm3) in the upper mantle where Zeng and Sasselov use perovskite; the Earth-like case then gives 0.989 Rearth at 1 Mearth (30 % Fe, 1 bar) against [R4882]'s 1.005 (1.6 % low), the same few-percent spread G425 s.3.2 reports among published closed forms. Pure water at 1 Mearth: 1.401 Rearth against [R4882]'s 1.41 (G425 s.2.4) and 1.42 interpolated from Zeng and Sasselov Table 1.</p>
+<p><strong>Three-layer grid</strong> (<code>grid3.py</code>, <code>grid3.json</code>, 175 integrations, COMPUTED): M = 0.3, 0.5, 1, 2, 4, 8, 16 Mearth; <code>CMF</code> of the dry part = 0, 0.1, 0.325, 0.5; water mass fraction of the whole body <code>x_w</code> = 0, 0.05, 0.1, 0.25, 0.5, 0.75, 1 (CMF irrelevant at 1). Earth-like dry radii (CMF 0.325): 0.699, 0.810, 0.989, 1.203, 1.452, 1.736, 2.049 Rearth. Ratio <code>R(x)/R(0)</code> at CMF 0.325 compared with the published <code>f(x) = 1 + 0.55 x - 0.14 x^2</code> ([R4880], READ):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>x</th>
+<th>f(x)</th>
+<th>reference ratio at M = 0.3 / 1 / 4 / 16 Mearth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.05</td>
+<td>1.027</td>
+<td>1.043 / 1.041 / 1.038 / 1.039</td>
+</tr>
+<tr>
+<td>0.10</td>
+<td>1.054</td>
+<td>1.074 / 1.070 / 1.066 / 1.066</td>
+</tr>
+<tr>
+<td>0.25</td>
+<td>1.129</td>
+<td>1.151 / 1.140 / 1.134 / 1.135</td>
+</tr>
+<tr>
+<td>0.50</td>
+<td>1.240</td>
+<td>1.256 / 1.243 / 1.230 / 1.235</td>
+</tr>
+<tr>
+<td>0.75</td>
+<td>1.334</td>
+<td>1.348 / 1.332 / 1.316 / 1.325</td>
+</tr>
+<tr>
+<td>1.00 (CMF 0)</td>
+<td>1.410</td>
+<td>1.437 vs the CMF 0.325 dry radius / 1.417 / 1.397 / 1.412</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the published <code>f(x)</code> is good to 0.5 to 2 % from x = 0.25 to 1 and low by 1.5 to 2.5 % for small x (0.05 to 0.1), against my reference. <code>f(x)</code> was defined on a CMF 0.325 base only; used on top of [R4882]'s CMF-dependent dry radius it errs by up to +10 % (CMF 0.5 or x near 1), because the iron factor and the water factor are not independent. A refit (below) fixes that.</p>
+<p><strong>Recommended closed form</strong> (my fit to the 175-point grid, COMPUTED; same structure as [R4880, R4882], which it reproduces in the limits):</p>
+<p><code>R / Rearth = (1.0688 - 0.2317 CMF (1 - x)) * M^(1/3.7) * (1 + 0.4492 x - 0.1597 x^2)</code></p>
+<p>M in Mearth, <code>x</code> water mass fraction of the body, <code>CMF</code> iron mass share of the dry part. Limits: dry Earth-like (CMF 0.325, x 0) gives 0.993 at 1 Mearth; the dry coefficients 1.0688 and 0.2317 equ[R4882]'s 1.07 and 0.21 within 10 % (an independent refit landing on nearly the same numbers); pure water gives <code>1.0688 * 1.2893 = 1.378</code> at 1 Mearth against the integrated 1.401 and Zeng's 1.41.
+Errors against my reference: rms 1.2 %, maximum 3.6 % (M 0.3 to 16 Mearth, CMF 0 to 0.5, x 0 to 1); by mass band rms 1.06 % (0.3 to 1), 1.06 % (1 to 8), 1.42 % (8 to 16). Against the [R4881: Table 1] water mixtures (CMF 0): +2.7 / +0.1 / -0.3 / +1.2 % for 50 % water at 0.3 / 1 / 3 / 10 Mearth, -0.6 to +1.4 % for 75 % water, -2.4 to -0.9 % for pure water, and <strong>growing beyond 20 Mearth</strong> (+6 to +7 % at 30, +17 to +20 % at 100 Mearth, the power law bends because compression grows), so <strong>valid 0.3 to 20 Mearth</strong>. Dry cases (x = 0, vs Zeng and Sasselov, CMF 0.5): +3 % at 1 Mearth, +7 % at 0.3. Cold reference (300 K isotherm, 1-bar surface): hot steam or supercritical envelopes change this (below). Inverse (CMF, M and R known, solve for <code>x</code>) is a monotone one-dimensional root-find.</p>
+<p><strong>Irradiated water worlds.</strong> [R4448] show that a water-rich rocky planet more irradiated than the runaway-greenhouse limit (about 1.1 times Earth's insolation for a Sun-like star) holds its water as a thick steam atmosphere, which inflates the radius so that a given water mass fraction gives a much lower bulk density; they give an empirical steam-atmosphere thickness as a function of core gravity and radius, water mass fraction and irradiation (coefficient tables, not copied here). Example in the abstract: TRAPPIST-1 b, c, d can hold at most 2, 0.3 and 0.08 % water (READ abstract). Consequently the cold fit above is for planets <em>below</em> the runaway limit; above it the thickness law is needed. Also from the abstract of Luque and Palle (READ): rocky planets close to their stars may hold supercritical water that raises the radius. Both are inputs to a later flag, not implemented here.</p>
+<p><strong>Ocean-world structure</strong> (<code>ocean_table.py</code>, COMPUTED from the integrated reference, CMF 0.325, 300 K isotherm, surface 1 bar; the two x = 0.2 rows were recomputed on 2026-10-25 from <code>physics/water_layer.py</code> at the table's own radii (DOC.79), the earlier 1635 km / 26.0 GPa and 2519 km / 114 GPa did not follow from those radii, and <code>tests/test_water_layer.py</code> now reads this table and holds every row to the code):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M (Mearth)</th>
+<th>x_w</th>
+<th>R (Rearth)</th>
+<th>water layer thickness (km)</th>
+<th>pressure at base (GPa)</th>
+<th>surface g (m/s2)</th>
+<th><code>g x M / (4 pi R^2)</code> estimate (GPa)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>1e-4</td>
+<td>0.9895</td>
+<td>1.2</td>
+<td>0.012</td>
+<td>10.01</td>
+<td>0.012</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1e-3</td>
+<td>0.9907</td>
+<td>11.7</td>
+<td>0.119</td>
+<td>9.98</td>
+<td>0.119</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1e-2</td>
+<td>1.0004</td>
+<td>102</td>
+<td>1.18</td>
+<td>9.79</td>
+<td>1.14</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0.1</td>
+<td>1.0583</td>
+<td>746</td>
+<td>11.1</td>
+<td>8.75</td>
+<td>9.1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0.2</td>
+<td>1.1281</td>
+<td>1294</td>
+<td>19.2</td>
+<td>7.70</td>
+<td>14.2</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0.5</td>
+<td>1.2301</td>
+<td>3005</td>
+<td>45.4</td>
+<td>6.48</td>
+<td>25.0</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1e-4</td>
+<td>1.5406</td>
+<td>2.4</td>
+<td>0.051</td>
+<td>20.64</td>
+<td>0.051</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1e-3</td>
+<td>1.5428</td>
+<td>22.8</td>
+<td>0.51</td>
+<td>20.58</td>
+<td>0.505</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1e-2</td>
+<td>1.5571</td>
+<td>173</td>
+<td>5.03</td>
+<td>20.21</td>
+<td>4.87</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.1</td>
+<td>1.6419</td>
+<td>1189</td>
+<td>48.4</td>
+<td>18.17</td>
+<td>39.4</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.2</td>
+<td>1.7463</td>
+<td>2024</td>
+<td>84.7</td>
+<td>16.07</td>
+<td>61.7</td>
+</tr>
+<tr>
+<td>5</td>
+<td>0.5</td>
+<td>1.8942</td>
+<td>4623</td>
+<td>205</td>
+<td>13.65</td>
+<td>111</td>
+</tr>
+</tbody>
+</table></div>
+<p>The naive layer depth in <code>hydrosphere.water_layer_depth_km</code> (incompressible, 1000 kg/m3, planet radius fixed) is right to 2 % for <code>x_w &lt;= 0.01</code> (104 km vs 102 for 1 Mearth) and <strong>too deep by 40 % at x_w = 0.1</strong> (1047 km vs 746 for 1 Mearth). <code>P_base ~ g x M / (4 pi R^2)</code> holds to 3 % for <code>x_w &lt;= 0.01</code>, 20 % low at 0.1. For Earth gravity a liquid column deeper than about 70 km (about 6e-3 of an Earth mass, 26 Earth oceans) reaches the ice VI liquidus (715 to 755 MPa at 280 K): above <code>x_w</code> of order 6e-3 the ocean is sealed from the rock by high-pressure ice (the module's <code>hp_ice_km</code> rule), and the water layer thickness at <code>x_w = 0.1</code> already holds ice VII/X, which is solid water at 300 K (the integration uses 300 K, so deep layers are really hotter and may be fluid or superionic; Seager's note that temperature changes the density by under about 4 %, and radius by 1.2 % per 3.5 % in density, bounds this at the few-percent level for radius).</p>
+<h3 id="25-sub-neptunes-envelope-on-a-rock-or-water-core">2.5 Sub-Neptunes: envelope on a rock or water core</h3>
+<p>All three rows are READ via G425 s.2.5 and s.2.6, plus two checks of my own.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rock/iron core</td>
+<td><code>R_core = (M_core/Mearth)^0.25 Rearth</code> (2:1 rock:iron, within about 2 %)</td>
+<td>[R2741: Eq. 1]</td>
+<td>READ via G425</td>
+</tr>
+<tr>
+<td>Envelope</td>
+<td><code>R_env = 2.06 Rearth (M/Mearth)^-0.21 (f_env/5 %)^0.59 (F/Fearth)^0.044 (age/5 Gyr)^-0.18</code>, total <code>R = R_core + R_env + R_atm</code>, <code>R_atm ~ 9 H</code>; M 1 to 20 Mearth, f_env 0.01 to 20 %, F 0.1 to 1000 Fearth, 100 Myr to 10 Gyr; radius at 20 mbar; rock/gas divide suggested 1.75 Rearth</td>
+<td>Eq. 3</td>
+<td>READ via G425</td>
+</tr>
+<tr>
+<td>Fit accuracy against the paper's own tables (f_env at least 0.5 %)</td>
+<td>mean +3.1 %, rms 6.3 % (1 Gyr, enhanced opacity); rms 8.3 % at 10 Gyr</td>
+<td>G425 s.2.5</td>
+<td>COMPUTED there</td>
+</tr>
+<tr>
+<td><strong>Inverse</strong>: given M, R, F, age, find <code>f_env</code> from Eq. 1 and 3 (<code>M_core = M (1 - f_env)</code>), checked on the 432 table entries with enhanced opacity and f_env at least 0.5 % (CSV from G425)</td>
+<td>rms <strong>0.106 dex</strong>, median absolute 0.069 dex, worst 0.39 dex (by age: 100 Myr 0.118, 1 Gyr 0.079, 10 Gyr 0.117 dex rms); same size as the paper's own &quot;within about 0.1 dex&quot;</td>
+<td>my test of <code>check_lopez_fortney_2014.py</code> data</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Water-rich cores</td>
+<td>no envelope-on-water-core fit exists in what was read. [R4880]: &quot;a gas envelope of at most a few percent by mass&quot; is enough to inflate any planet to 2 to 4 Rearth; envelope isotherms 300 to 1000 K; surface 1 mbar</td>
+<td>[R4880]</td>
+<td>READ via G425</td>
+</tr>
+<tr>
+<td>Transition</td>
+<td>most 1.6 Rearth planets are not rocky ([R3800], not read); the observed M-dwarf gap is in density (0.65 of Earth-like), not radius</td>
+<td>[R2774]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="26-gas-and-ice-giants-composition-by-mass">2.6 Gas and ice giants: composition by mass</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Heavy-element mass vs planet mass, 47 transiting giants with <code>20 Mearth &lt; M &lt; 20 MJ</code>, insolation under 2e8 erg s^-1 cm^-2 (no hot-Jupiter inflation)</td>
+<td><code>M_Z = (57.9 +/- 7.03) (M/MJ)^(0.61 +/- 0.08) Mearth</code> (units from Fig. 7: M in Jupiter masses, M_Z in Earth masses; M_Z roughly proportional to sqrt(M)); intrinsic spread: 1 sigma within a factor <code>10^sigma = 1.82 +/- 0.09</code> (0.26 dex); &quot;using planet mass alone ... appears accurate to a factor of a few&quot;</td>
+<td>[R4352] (not 1511.07442), section 5.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Enrichment relative to the star</td>
+<td><code>Z_planet / Z_star = (9.7 +/- 1.28) (M/MJ)^(-0.45 +/- 0.09)</code>, <code>Z_star = 0.014 * 10^[Fe/H]</code> (their simple approximation); weaker fit to [Fe/H] than earlier work: Kendall tau 0.088, p 0.38 for M_Z against [Fe/H] (no correlation in the full sample); planets over 100 Mearth of metals orbit metal-rich stars; few planets over 1 to 3 MJ around metal-poor stars; no relation with orbital distance, stellar mass or eccentricity</td>
+<td>same, sections 5.2, 5.3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Model used for the above</td>
+<td>[R3932] H/He with Y = 0.27, additive volumes; metals as a 50:50 rock-ice mixture (ANEOS), <strong>distributed through the envelope</strong> (not all in a core: an all-core model needs implausibly large cores); more than 50 Mearth of metals in many planets implies metal-enriched envelopes</td>
+<td>same, section 3.1, 3.2, abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Same relations tabulated (my arithmetic)</td>
+<td>M (MJ) 0.05 / 0.1 / 0.3 / 1 / 3 / 10: M_Z = 9.3 / 14.2 / 27.8 / 57.9 / 113 / 236 Mearth; Z = 0.59 / 0.45 / 0.29 / 0.18 / 0.12 / 0.074; second relation at Z_star 0.014: Z = 0.52 / 0.38 / 0.23 / 0.14 / 0.083 / 0.048. The two relations differ by up to 30 % in Z; <code>Z = 1</code> at about 4.5 Mearth (M_Z = M) so the fit cannot be extended below that</td>
+<td></td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Heavy-element mass in giants from earlier work</td>
+<td>extended M_Z vs M trends and [Fe/H] link [R3077]</td>
+<td>not re-read</td>
+<td>NOT READ (fetched, 469 lines, not used)</td>
+</tr>
+<tr>
+<td>Atmospheric metals vs mass</td>
+<td>H<sub>2</sub>O abundance rises with decreasing mass: generally sub-stellar in gas giants, stellar to super-stellar in Neptunes and mini-Neptunes; the overall water trend is far below the solar-system carbon mass-metallicity relation; Na and K in gas giants are stellar or super-stellar and follow the solar-system trend; elements are not all enriched together</td>
+<td>[R4663], abstract</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Ice giants</td>
+<td>H/He envelope about 10 to 20 % of the total mass; metals mass fraction 0.75 to 0.92 (Uranus), 0.76 to 0.90 (Neptune) in empirical density-profile models; interiors need not be water-rich; the 3-layer rock-water-gas models need rock-to-water ratios far from solar (water-to-rock 19 to 35 by one model), which is why they are doubted; possible composition gradients and non-adiabatic profiles</td>
+<td>[R1892]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Transitional planets 4 to 10 Rearth</td>
+<td>ice-rich with gas envelopes of at least 5 to 10 % by mass, a few tens of Mearth; gas giants over 10 Rearth dominated by H<sub>2</sub>-He; cosmic H<sub>2</sub>-He mix 75 % H<sub>2</sub>, 25 % He by mass</td>
+<td>[R4880]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Protosolar mass fractions</td>
+<td>X 0.7110, Y 0.2741, Z 0.0149 (photosphere 0.7491 / 0.2377 / 0.0133)</td>
+<td>[R2726] abstract (IOP landing page)</td>
+<td>READ (abstract); star lane owns Y(Z)</td>
+</tr>
+<tr>
+<td>Giant radius, age and irradiation</td>
+<td>four-dimensional grid: 17 to 3594 Mearth (0.052 to 11.3 MJ), core 0 to 100 Mearth, 0.02 to 9.5 AU around the Sun (Teq about 1960, 1300, 875, 260, 78 K), ages 0.3, 1, 4.5 Gyr; radii in RJ at 1 bar; SCvH H/He with Y = 0.28, olivine/ice/iron cores; 4.5 Gyr example values are in the correction paragraph below the table</td>
+<td>[R1429], astro-ph/0612671, Tables 2 to 4 (parsed to <code>fortney2007_tables.json</code>)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Radius vs mass shape: Terran <code>R = 1.008 Rearth M^0.279</code> up to 2.04 Mearth (rms 4.0 %), Neptunian <code>R ~ M^0.589</code> (+0.044 -0.031) to 0.414 MJ (rms 14.6 %), Jovian <code>R ~ M^-0.044</code> (+/-0.018) to 0.080 Msun (rms 7.4 %), stellar <code>M^0.881</code> beyond</td>
+<td></td>
+<td>[R0758: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>The repo's giant relation: Neptunian exponent 0.519 anchored on Saturn (95.16 Mearth, 9.449 Rearth), Jovian -0.04 anchored on Jupiter (317.8, 11.21); the code comment says the shape is Chen and Kipping's. The paper's own Neptunian exponent is 0.589</td>
+<td></td>
+<td><code>physics/constants.py:182-183</code></td>
+<td>READ (code)</td>
+</tr>
+<tr>
+<td>Hot-Jupiter inflation</td>
+<td>heating efficiency (anomalous power as a fraction of incident flux) rises with <code>T_eq</code> to a maximum of about 2.5 % near 1500 K and falls to about 0.2 % at 2500 K (Ohmic dissipation predicted this); the Gaussian model's peak is about 2 % (favoured 75:25 over a 3.5 % peak); planets below about 0.5 MJ behave differently and were excluded</td>
+<td>[R4351], abstract and Fig. 8 text</td>
+<td>READ (abstract, text)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Test of the table interpolation (COMPUTED, <code>fortney_fit.py</code>; interior grid points left out and predicted by linear interpolation, M at least 0.15 MJ): in log mass rms 2.0 %, worst 11.5 %; in log <code>T_eq</code> (distance, 3 interior of 5 rows) rms 3.7 %, worst 19.6 %; in log age (1 Gyr from 0.3 and 4.5) rms 1.0 %, worst 4.6 %. A single global regression (ln M, ln T_eq, ln age, core/M, cross terms) is worse: rms 4.1 %, worst 32 % (M at least 0.15 MJ), 2.6 % and 13.6 % for M at least 0.41 MJ. <strong>The table is the better representation.</strong></p>
+<p>Correction to the Fortney row above: for a 1 MJ planet at 4.5 Gyr the table gives, for core 0, 10, 25, 50, 100 Mearth: 1.081, 1.058, 1.026, 0.974, 0.878 RJ at 1 AU, and 1.019, 0.999, 0.972, 0.926, 0.842 at 9.5 AU (READ). Interpolating the Thorngren value <code>M_Z = 58 Mearth</code> as a core at 1 AU gives about 0.96 RJ. The 1-bar radius is smaller than the roughly 1.0 to 1.1 RJ seen for cool Jupiter-mass planets because Thorngren spreads the metals through the envelope, which gives a larger radius than the same metals in a core (his section 3.1): using his M_Z as a Fortney <em>core</em> therefore understates the radius by a few percent. I did not quantify it.</p>
+<h3 id="27-brown-dwarfs-deuterium-and-hydrogen-burning-degenerate-radius-limit">2.7 Brown dwarfs, deuterium and hydrogen burning, degenerate radius limit</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deuterium burning mass (50 % of initial D burned), solar Z, Y = 0.25, D/H 2e-5</td>
+<td>13.55 MJ; range 12.7 to 14.35 MJ for 10 to 90 % burned; for &quot;most proto-brown dwarf conditions&quot; <code>13.0 +/- 0.8 MJ</code></td>
+<td>[R4170: Table 1] and abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Dependence</td>
+<td>on Y: He22 14.08, He25 13.55, He28 12.83, He30 12.42, He32 12.05 (50 %): about <code>-0.2 MJ</code> per 0.01 in Y; on initial D: D1 (1e-5) 13.74, D2 13.55, D4 (4e-5) 13.09: <code>-0.8 MJ</code> per dex of D; on Z (Z/Zsun 0, 0.01, 0.1, 0.3, 1): 15.40, 14.56, 13.82, 13.33, 12.79 MJ (50 %): <code>-0.9 MJ</code> per dex of Z; with COOLTLUSTY atmospheres (0.3, 1, 3 Zsun): 13.77, 13.48, 13.13 (<code>-0.7 MJ</code> per dex). Whole range 11.0 MJ (3 Zsun, 10 %) to 16.3 MJ (Z = 0, 90 %). Their Zsun is 0.0189 (Anders and Grevesse)</td>
+<td>same Table 1, 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hydrogen-burning minimum mass</td>
+<td>0.07 to 0.074 Msun at solar Z and Y = 0.25 (Teff 1700 to 1750 K, L about 6e-5 Lsun); 0.092 Msun at Z = 0 (Teff about 3600 K); <code>dM_edge/dY</code> about -0.1 Msun; weak function of metallicity, <code>M_edge ~ 0.0865 (kappa_R / 1e-2 cm2 g^-1)^(-1/9) Msun</code>; lithium burning below 0.06 to 0.065 Msun</td>
+<td>[R0606], astro-ph/0103383, section III</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cooling power laws for old objects (solar Z): <code>L ~ 4e-5 Lsun (t/Gyr)^-1.3 (M/0.05 Msun)^2.64 (kappa/1e-2)^0.35</code>, <code>Teff ~ 1550 K (t/Gyr)^-0.32 (M/0.05 Msun)^0.83 (kappa)^0.088</code>, <code>M ~ 35 MJ (g/1e5)^0.64 (Teff/1000 K)^0.23</code>, <code>t ~ 1.0 Gyr (g/1e5)^1.7 (1000 K/Teff)^2.8</code>, <code>R ~ 6.7e4 km (1e5/g)^0.18 (Teff/1000 K)^0.11</code>; for Z = 0 divide L by about 4 and use indices 1.25, 2.4 and Teff 1140 K with 0.31 and 0.77</td>
+<td>[R0606: Eq. 1 to 5]</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>Degenerate-matter radius</td>
+<td>on the very low-mass main sequence <code>R ~ M^0.6</code>; for a cold substellar object the radius peaks near 4 MJ [R4867] and is mass-independent within 30 % from 0.3 to 70 MJ because Coulomb (<code>R ~ M^(1/3)</code>) and degeneracy (<code>R ~ M^(-1/3)</code>) compete, &quot;a feature of a polytrope of index 1.0&quot;</td>
+<td>[R0606] section II</td>
+<td>READ ([R4867] itself NOT REACHED, not on arXiv)</td>
+</tr>
+<tr>
+<td>Radius table (solar Z, Y about 0.275, dust-free COND models)</td>
+<td>R in RJ at ages 0.1 / 0.5 / 1 / 5 / 10 Gyr (3 decimals; R/Rsun is quoted to 3 digits so these carry about 0.5 % rounding): 1 MJ 1.139 / 1.061 / 1.032 / - / -; 2.1 MJ 1.168 / 1.090 / 1.061 / 1.022 / -; 5.2 MJ 1.187 / 1.100 / 1.070 / 1.022 / 1.002; 10.5 MJ 1.168 / 1.070 / 1.041 / 0.983 / 0.963; 21 MJ 1.187 / 1.012 / 0.973 / 0.924 / 0.905; 42 MJ 1.285 / 0.973 / 0.905 / 0.827 / 0.808; 63 MJ 1.460 / 0.993 / 0.895 / 0.769 / 0.740; 75 MJ 1.576 / 1.041 / 0.924 / 0.808 / 0.788; 84 MJ 1.654 / 1.080 / 0.993 / 0.963 / 0.963; 105 MJ 1.839 / 1.246 / 1.216 / 1.216 / 1.216. Teff at 5 Gyr: 129 K (2.1 MJ), 322 K (10.5), 760 K (42), 1120 K (63), 1524 K (73), 2320 K (84), 2785 K (105 MJ). Minimum radius about 0.077 Rsun (0.74 RJ) near 0.06 Msun (63 MJ) at 10 Gyr</td>
+<td>[R0253], astro-ph/0302293, Tables 1 to 5 (parsed to <code>baraffe2003_cond.json</code>)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mass cut of the giant classes</td>
+<td>The repo's J class goes to 13 x 317.8 Mearth (13 MJ) and a giant is at most 1 % of the star's mass (<code>tuning.GIANT_*</code>); the 13 MJ cut moves by -0.9 MJ per dex Z and -0.2 MJ per 0.01 Y</td>
+<td></td>
+<td>READ (code) with Spiegel</td>
+</tr>
+<tr>
+<td>Rogue brown dwarf cooling used by the repo</td>
+<td><code>L ~ t^-1.3</code> from Burrows; Teff capped at 2800 K</td>
+<td><code>docs/design/systems/rogue-planet-surface.md</code></td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="28-rogue-planets-as-bodies">2.8 Rogue planets as bodies</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Finding</th>
+<th>Source</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Composition</td>
+<td>a rogue keeps the composition it formed with; ejection does not change the heavy-element budget of a rock-ice core. What changes: no stellar irradiation, so surface temperature is set by internal heat alone (<code>docs/design/systems/rogue-planet-surface.md</code>, steps 1 to 4: radiogenic heat for rock, Kelvin-Helmholtz cooling for giants, 2.725 K background, hydrogen envelopes kept with chance 10 % terrestrial and 50 % sub-Neptune, water 1e-4 to 10 % of mass in 35 % (terrestrial) or 80 % (sub-Neptune) of rogues)</td>
+<td>the design note</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Population synthesis ejection statistics (model, 1000 systems per stellar mass): fraction of systems that eject planets 17.5 % (1 Msun), 12 % (0.3), 0.8 % (0.1); mean ejected mass 7.2, 5.2, 1.6 Mearth; median 0.8, 0.3, 1.4 Mearth; mean total ejected per ejecting system 44.2, 24.5, 3.3 Mearth; population = Jupiter-mass planets, then more numerous super-Earths, with a tail down to 1e-5 Mearth; the paper gives no composition of the ejected planets</td>
+<td>Ma et al. 2016, [R2783]</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>Stripping of volatiles by ejection</td>
+<td>no source read states how much of a planet's water or envelope is lost on ejection. Ice-rich bodies come from beyond the snow line where planets and embryos are ejected preferentially (outer planets are the ones scattered), so the water fraction distribution of ejected planets should be taken from the <em>outer</em> branch (2.2) unless a source says otherwise; this is a parametrisation</td>
+<td>none</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Radius at fixed mass</td>
+<td>a rogue giant keeps cooling: radius of a gas giant is nearly flat in mass and shrinks with age (Baraffe, Fortney tables) and no irradiation inflation applies, so use the cold (9.5 AU, Teq 78 K) rows of the Fortney tables</td>
+<td>[R1429]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="29-agreement-and-differences-with-g425-and-the-existing-repo">2.9 Agreement and differences with G425 and the existing repo</h3>
+<ul>
+<li>Agree: Seager constants, [R4880] <code>f(x)</code> (I confirm it to 0.5 to 2 % on a base of CMF 0.325 and show it errs by up to 10 % when stacked on [R4882]'s CMF term; section 2.4), Lopez and Fortney Eq. 1 and 3 (added an inverse test), Marboeuf ice/rock 1 +/- 0.5 (I extend it to a per-species cumulative sequence), Mulders snow line.</li>
+<li>New here and in G425's &quot;gaps that are yours&quot;: low-pressure ice densities and bulk moduli (2.3, via the Journaux splines), triple points recomputed, water inside the snow line (2.2), ocean-world structure (2.4), Thorngren heavy-element masses (2.6), brown dwarf and rogue bodies (2.7, 2.8). Not obtained: [R3932] numerical tables (CDS refused in G425; I did not retry); I did not need them because [R1429] and Lopez and Fortney are already built on SCvH.</li>
+<li>The repo <code>hydrosphere.py</code> constants <code>HP_ICE_DENSITY_KG_M3</code>, <code>DEEP_WATER_DENSITY_KG_M3</code> and the liquidus line are within 1 to 10 % of the recomputed numbers (2.3); the water layer depth formula needs a compressed version above <code>x_w</code> about 0.03 (2.4).</li>
+</ul>
+<hr />
+<h2 id="3-how-the-generator-should-compute-or-draw-it">3. How the generator should compute or draw it</h2>
+<h3 id="31-stored-quantities">3.1 Stored quantities</h3>
+<p>Per body (all new unless noted):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Unit</th>
+<th>Range</th>
+<th>Scope</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>x_w</code> (existing <code>water_mass_fraction</code>)</td>
+<td>mass fraction of body</td>
+<td>1e-6 to 0.5 (0.6 max sourced)</td>
+<td>per body</td>
+<td>rocky and icy planets and moons</td>
+</tr>
+<tr>
+<td><code>x_ice_other</code></td>
+<td>mass fraction of body</td>
+<td>0 to 0.3</td>
+<td>per body</td>
+<td>CH<sub>3</sub>OH, NH<sub>3</sub>, CO<sub>2</sub>, CO, CH<sub>4</sub>, H<sub>2</sub>S, N<sub>2</sub> ices summed (needed for comets, icy moons and outer ice worlds); optional, set 0 if not tracked</td>
+</tr>
+<tr>
+<td><code>cmf</code></td>
+<td>fraction of the dry part</td>
+<td>0 to 0.5</td>
+<td>per body</td>
+<td>Part B owns it; used here as the iron share</td>
+</tr>
+<tr>
+<td><code>f_env</code></td>
+<td>mass fraction of body</td>
+<td>0 to 0.9</td>
+<td>per body</td>
+<td>H/He envelope of sub-Neptunes, ice giants</td>
+</tr>
+<tr>
+<td><code>Z_env</code>, <code>Y_env</code></td>
+<td>mass fractions of the envelope</td>
+<td>0 to 0.6; 0.22 to 0.32</td>
+<td>per giant</td>
+<td><code>Z_env</code> from <code>M_Z</code> below; <code>Y_env</code> = initial helium mass fraction of the star's natal gas (star lane)</td>
+</tr>
+<tr>
+<td><code>M_Z</code></td>
+<td>Mearth</td>
+<td>3 to 1e3</td>
+<td>per giant</td>
+<td>total heavy-element mass</td>
+</tr>
+<tr>
+<td><code>core_mass</code></td>
+<td>Mearth</td>
+<td>0 to 100</td>
+<td>per giant</td>
+<td>the part of <code>M_Z</code> in a core; rest in the envelope</td>
+</tr>
+<tr>
+<td><code>born_beyond_snow_line</code></td>
+<td>boolean</td>
+<td></td>
+<td>per body</td>
+<td>needed to keep the drawn water fraction reproducible if radius is later recomputed</td>
+</tr>
+<tr>
+<td><code>ice_phase_surface</code></td>
+<td>enum Ih, III, V, VI, VII, X, liquid, none</td>
+<td></td>
+<td>per body</td>
+<td>derived from <code>T_surf</code>, <code>P_surf</code>; the module has <code>hydrosphere</code> state already</td>
+</tr>
+<tr>
+<td><code>radius</code> reference level</td>
+<td></td>
+<td></td>
+<td>global</td>
+<td>one choice (G425 s.3.2 item 4: 1 bar), documented; Lopez and Fortney is 20 mbar; Fortney 1 bar</td>
+</tr>
+</tbody>
+</table></div>
+<p>Already stored and used: mass, radius, density, <code>feh</code>, age, <code>T_surf</code>, <code>P_surf</code>, orbital distance, snow line from luminosity.</p>
+<h3 id="32-route-1-keep-the-drawn-bulk-figures-fill-a-composition-that-fits">3.2 Route 1: keep the drawn bulk figures, fill a composition that fits</h3>
+<p>Inputs: drawn mass <code>M</code>, radius <code>R</code> (from the existing class draws). Output: composition consistent with <code>(M, R)</code>.</p>
+<ol>
+<li><strong>Solid planets and moons (class by existing rock/ice classes; M below about 0.01 Mearth: use density).</strong> Compute the bulk density; subtract compression with the closed form (section 2.4) by writing it for density <code>rho / rho_dry-Earth-like(M)</code> and solving for <code>x</code>. Algorithm: for given <code>(M, R, cmf)</code>, find <code>x_w</code> in [0, 1] with <code>(1.0688 - 0.2317 cmf (1-x)) M^(1/3.7) (1 + 0.4492 x - 0.1597 x^2) = R</code>. If the root is below 0 (the radius is below the dry model), the planet is iron-richer: lower <code>cmf</code> ≥ 0.5 is out of range; report the maximum <code>cmf</code> (Fe-only ≈ <code>R_Fe(M)</code>, Part B). If the root is above 1 (radius above pure water), the planet needs a gas envelope: go to step 2. The ratio <code>rho / rho_Earth-like(M)</code> of 0.65 maps to <code>x_w</code> about 0.3 (COMPUTED from the fit; Luque and Palle's gap at 0.65 corresponds to about 30 % water, and their 0.47 mean for the water-world population to about 55 to 60 %).</li>
+<li><strong>Sub-Neptunes (R above the water-world curve for x = 0.5).</strong> Fix a core from step 1 at a water fraction drawn from the section 3.3 branch, then solve <code>f_env</code> from the Lopez and Fortney inverse (rms 0.106 dex, section 2.5). Use the model radius reference level 20 mbar and <code>R_atm</code>.</li>
+<li><strong>Ice giants (10 to 60 Mearth, current class I) and gas giants (J) with drawn M and R.</strong> Heavy-element mass from Thorngren's mean relation with its scatter, <code>log10 M_Z = log10(57.9) + 0.61 log10(M/MJ) + N(0, 0.26)</code>, capped at <code>M</code> (Z at most 1); put the H/He share <code>1 - Z</code> in the envelope; the radius stays the drawn one. For M below about 30 Mearth use the ice giant branch: <code>f_env</code> log-uniform 0.05 to 0.20 (Helled and Fortney 10 to 20 %; the Thorngren fit is outside its sampled range there and gives 0.4 to 0.6 envelope fraction at 16 Mearth, which disagrees). Consistency check afterwards: <code>R_model(M, Z)</code> from the Fortney table (3.4 step 1) must be within the Fortney tabulated scatter (about 5 %); if not, redraw <code>M_Z</code> (or keep the drawn radius and flag it).</li>
+<li><strong>Brown dwarfs (13 MJ to 0.075 Msun)</strong>: no composition draw beyond <code>Y</code>, <code>Z</code> of the host gas; radius from the age/mass table (2.7).</li>
+</ol>
+<p>Disadvantages: nothing ties <code>x_w</code> to formation, so the same planet may sit at an unphysical distance (a 50 % water planet at 0.05 AU around an F star would be a steam world, 2.4); the radius draw must stay within what composition can produce, or step 1 returns no root.</p>
+<h3 id="33-route-2-draw-composition-from-formation-then-derive-the-bulk-figures-recommended">3.3 Route 2: draw composition from formation, then derive the bulk figures (recommended)</h3>
+<p>Recommended because: the bulk density becomes a consequence of composition and mass (what Boss asked), the number of free draws stays small, and every draw has a sourced range. All distribution shapes are parametrisations of the quoted ranges.</p>
+<p><strong>Step A. Snow line.</strong> <code>r_snow = 2.7 AU * sqrt(L/Lsun) * 10^(N(0, 0.2))</code> (centre = repo constant; 0.2 dex = [R3193, R3196], covers 2.8 to 4.3 AU for 1 Lsun, section 2.1). Draw it once per star so every planet of a system shares it (store <code>snow_line_au</code> per system). Born-beyond flag <code>B</code>:</p>
+<ul>
+<li>orbital distance now <code>a &gt;= r_snow</code> → <code>B = true</code>;</li>
+<li><code>a &lt; r_snow</code> → a migrant with probability <code>p_mig</code>; <code>p_mig = 0</code> if <code>M &lt; M_ice,min = 3 (M_star/Msun)^0.48 Mearth</code> (two NGPPS IV anchors; 2 Mearth for 0.3 to 0.5 Msun per Luque and Palle), else <code>p_mig</code> in [0.14, 0.67] (lower end NGPPS IV 0.1 Msun, upper end [R4880]'s 2:1 icy:rocky core ratio fitted to Kepler occurrence). <strong>PARAMETRISATION; weakest link, see gaps.</strong></li>
+<li>if a giant planet orbits outside the snow line in the same system and formed earlier, set <code>p_mig</code> to 0 (blocks the pebbles; Bitsch scenario A) — optional, only if the system already stores the giant.</li>
+</ul>
+<p><strong>Step B. Water mass fraction of the solids <code>W</code>.</strong></p>
+<ul>
+<li><strong>If <code>B</code></strong> (formed outside): draw <code>r_ir</code> (ice-to-rock mass ratio when every ice is condensed) from a normal with mean 1.0, sigma 0.5 truncated to [0.1, 1.5] (Marboeuf); multiply by 0.67 with probability 0.5 if the system is drawn &quot;with refractory organics&quot; (Marboeuf 30 +/- 10 % vs 45 +/- 15 %). Draw the formation temperature <code>T_form</code> of the solids as the temperature at the formation distance (store or draw <code>r_form = r_snow * 10^U(0, 1.3)</code>, up to ~20 times the snow line), then use the cumulative sequence of 2.2: the set of ices condensed at <code>T_form</code> (using the T_cond table at the local pressure; default P_H2 1e-10 bar) and <code>W = m_H2O / (m_set + 25.0 / r_ir)</code> with masses in mg per mol of H<sub>2</sub>: H<sub>2</sub>O 10.72, CH<sub>3</sub>OH 2.858, NH<sub>3</sub> 0.708, CO<sub>2</sub> 5.237, H<sub>2</sub>S 0.406, CH<sub>4</sub> 0.573, CO 3.333, N<sub>2</sub> 1.165 (25.0 for the total). Result: <code>W</code> between 0.14 and 0.39, centre about 0.21 to 0.30. A second parameter <code>convention_high_water = true</code> replaces this by <code>W ~ N(0.5, 0.1)</code> truncated to [0.3, 0.6] (Zeng, Venturini, Bitsch, Ciesla 50 %). <strong>Boss must choose; section 5.</strong> The remaining ice mass (<code>1 - m_H2O/m_set</code> of the ice) goes to <code>x_ice_other</code>.</li>
+<li><strong>If not <code>B</code></strong>: <code>W = 0</code> with probability <code>1 - p_deliv</code> (dry), else log-uniform <code>[1.2e-4, 5e-3]</code> (Raymond and Izidoro, delivered by planetesimals scattered by a forming giant; give <code>p_deliv = 1</code> when the system has a giant planet outside the snow line, otherwise a draw of 0.5 — no source for giantless systems; for stars under 0.5 Msun use Ciesla's 0.012 to 0.033 for the innermost planets if the draw says &quot;water-rich planetesimals&quot; — no source gives that probability either).</li>
+<li>Metallicity: no [Fe/H] term on <code>W</code> [R4880]. [Fe/H] sets how much solid mass the disk has (existing <code>disk_surface_density_scale</code>), which moves mass, not <code>W</code>.</li>
+</ul>
+<p><strong>Step C. Body water fraction.</strong> <code>x_w = W * (1 - f_env)</code> when the body has an envelope; <code>x_w = W</code> otherwise. For rocky planets and icy moons <code>x_w</code> replaces the class range draw in <code>hydrosphere.py</code> (so <code>WATER_MASS_FRACTION</code> classes become the <em>output</em> of this rule, not an input); the class label is then chosen from <code>x_w</code>, <code>T_surf</code> and <code>P_surf</code>.</p>
+<p><strong>Step D. Core composition.</strong> <code>cmf</code> from Part B (stellar Fe/Si and Mg/Si; G425 s.3.3 gives CMF 0.2 to 0.47 from Thiabaud corners and 0.320 for the Lodders Sun).</p>
+<p><strong>Step E. Radius.</strong> Rocky/icy planets 0.3 to 20 Mearth: the closed form of 2.4 with <code>(M, cmf, x_w)</code>, rms 1.2 %, worst 3.6 % against my integration (valid for <code>T_surf</code> below the runaway greenhouse; above it add Turbet's steam atmosphere, not implemented). Below 0.3 Mearth the fit extrapolates (the Fe and rock parts get +5 to +8 % too large against Zeng and Sasselov at 0.1 Mearth): use <code>rho = 1 / sum(w_i / rho_i)</code> with the Table of 2.3 and a Seager polytrope correction; the error is not measured. Sub-Neptunes with an envelope: <code>R = R_core(M(1-f_env), cmf, x) + R_env(f_env, M, F, t) + R_atm</code> with Lopez and Fortney Eq. 3 and 20 mbar; <em>the water-core + envelope combination is not tested</em> (G425 and Lopez use rock/iron cores only).</p>
+<p><strong>Step F. Giants.</strong> <code>M_Z</code> from Thorngren with 0.26 dex scatter (3.2 step 3), cap <code>Z = 1</code>; <code>core_mass</code> = <code>min(M_Z, 10 to 50 Mearth)</code>? <strong>No source gives a core-mass distribution for modern giants</strong> (the core mass is the least constrained quantity; Thorngren and Helled and Fortney put metals in the envelope, in a diluted core), so store <code>Z_env = (M_Z - core_mass)/(M - core_mass)</code> with <code>core_mass</code> log-uniform 5 to 20 Mearth (the minimum core for runaway accretion, G425 and [R4880]'s &quot;typically a few tens of Mearth&quot; for transitional planets) as a placeholder. Radius from the [R1429] table (mass, <code>T_eq</code> via a bilinear or table interpolation in log M and log T_eq, age in log t, core mass), rms 2 to 4 % and worst 11 to 20 % interpolation error, plus an inflation term for <code>T_eq &gt; 1000 K</code> and <code>M &gt; 0.5 MJ</code>: heating efficiency <code>eps(T_eq)</code> Gaussian peaking at about 2 % near 1500 to 1600 K (falling to 0.2 % at 2500 K; the full Gaussian parameters are in Thorngren and Fortney's text/figure, not extracted, see gaps). Scatter: Chen and Kipping 7.4 % (Jovian), 14.6 % (Neptunian), 4 % (Terran) rms in radius at fixed mass; the project currently uses 10 % and 7 %. Fallback if tables are not wanted: the repo's anchored power laws with Chen and Kipping scatter.</p>
+<p><strong>Step G. Brown dwarfs and the giant mass cut.</strong> Deuterium limit <code>M_D = 13.55 MJ - 0.9 MJ * log10(Z/Zsun) - 0.2 MJ * (Y - 0.25)/0.01</code> (linear fits of Spiegel Table 1 around the Z = Zsun, Y = 0.25 centre; Z = Zsun means 0.0189 in their units; 50 % burned; +/-0.8 MJ spread). Hydrogen-burning limit <code>M_H = 0.074 Msun</code> at solar Z, Y 0.25, rising toward 0.092 Msun as Z → 0 (Burrows; log-linear in Z is a parametrisation), <code>-0.1 Msun</code> per unit Y. Radius: [R0253] COND table interpolated in log age and log mass (solar Z only); for other Z: not available. Cooling luminosity and Teff from Burrows' power laws only for old objects.</p>
+<p><strong>Step H. Rogue planets.</strong> Keep all composition fields; after ejection set irradiation to zero, keep <code>x_w</code>, <code>f_env</code>, <code>Z_env</code>; the existing <code>rogue_surface</code> module then computes heat flow and surface state. Preserve the formed branch (outer-branch <code>W</code> if the planet was ejected from beyond the snow line; ejection from within is a minority since ejection is driven from the outer planets, a parametrisation).</p>
+<h3 id="34-consistency-invariants-a-test-can-assert">3.4 Consistency invariants a test can assert</h3>
+<ol>
+<li>Mass budget: <code>x_w + x_ice_other + (1 - x_w - x_ice_other) = 1</code> and layer masses sum to M: <code>M_Fe + M_Si + M_H2O + M_ice_other + M_env = M</code> (relative error 1e-9).</li>
+<li><code>R_model(M, cmf, x_w)</code> is strictly increasing in <code>x_w</code> and decreasing in <code>cmf</code> at fixed M (monotone), and <code>R(x_w = 0, cmf = 0.325, M = 1 Mearth)</code> within 1.6 % of 1.00 Rearth (a calibration, not a preset).</li>
+<li>Round trip: from <code>(M, cmf, x)</code>, compute R, invert for <code>x</code> and recover it within 0.01 (absolute) for x in [0.02, 1] (the fit is monotone).</li>
+<li>Hydrosphere: <code>P_base ≈ g x M / (4 pi R^2)</code> within 3 % for <code>x_w &lt;= 0.01</code> against the integrated profile; <code>x_w * M / (rho_w * 4 pi R^2)</code> equals the layer depth within 40 % for <code>x_w &lt;= 0.1</code>.</li>
+<li>Giants: <code>0 &lt;= Z &lt;= 1</code>, <code>M_Z &lt;= M</code>, and <code>M_Z</code> median over many draws at 1 MJ within 15 % of 57.9 Mearth.</li>
+<li>Snow line: median <code>r_snow / (2.7 sqrt(L))</code> over many draws is 1.0 +/- 0.05; log scatter 0.2 dex.</li>
+<li>A body with <code>born_beyond_snow_line = false</code> and no giant in the system has <code>x_w &lt;= 5e-3</code>.</li>
+<li>Brown dwarf limits: <code>M_D(Z = Zsun, Y = 0.25)</code> = 13.55 MJ within rounding; radius from the table at (age, mass) is within 1 % of the table entry at grid points.</li>
+</ol>
+<hr />
+<h2 id="4-calibration-and-test-targets-never-presets">4. Calibration and test targets (never presets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Check</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth-like dry planet, CMF 0.325, 1 Mearth</td>
+<td>R_model within 1.6 % of 1.00 Rearth</td>
+<td>[R4882] (via G425)</td>
+</tr>
+<tr>
+<td>Pure water, 1 Mearth</td>
+<td>1.401 integrated, fit 1.378 (-1.6 %) vs Zeng 1.41</td>
+<td>[R4882]/2019</td>
+</tr>
+<tr>
+<td>Water mixtures, 50 and 75 % water, 0.3 to 10 Mearth</td>
+<td>within 3 % of [R4881: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Luque and Palle water-world population density 0.47 +/- 0.05 of Earth-like, radius 1.97 +/- 0.28 Rearth</td>
+<td>50 % water on an Earth-like rock gives 0.54 in the cold fit (so the observed value needs slightly more water, about 55 to 60 %, or hotter/puffier envelopes)</td>
+<td>Luque and Palle</td>
+</tr>
+<tr>
+<td>Earth's oceans, 2.34e-4 of mass</td>
+<td><code>P_base</code> 0.027 GPa (1 Mearth, 2.34e-4: about 0.028 by interpolation of the table)</td>
+<td>derived</td>
+</tr>
+<tr>
+<td>Ice Ih density 916.7 kg/m3 at 273.15 K, 1 bar</td>
+<td>916.72 spline</td>
+<td>NIST/Wikipedia SNIPPET and spline</td>
+</tr>
+<tr>
+<td>Jupiter-mass cool giant (not a preset): 4.5 Gyr, 1 MJ, 1 AU, core 10 to 50 Mearth</td>
+<td>Fortney table 1.058 to 0.974 RJ</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Neptune/Uranus class</td>
+<td>H/He envelope fraction 0.10 to 0.20; Z = 0.75 to 0.92</td>
+<td>Helled and Fortney</td>
+</tr>
+<tr>
+<td>Deuterium limit</td>
+<td>13 +/- 0.8 MJ</td>
+<td>[R4170]</td>
+</tr>
+<tr>
+<td>TRAPPIST-1 (b, c, d)</td>
+<td>water at most 2, 0.3, 0.08 % when inside the runaway limit</td>
+<td>[R4448] abstract</td>
+</tr>
+<tr>
+<td>TRAPPIST-1 interior ice</td>
+<td>below 1 % (low-iron core), below 7 % (CMF 0.325), below 14 % (CMF 0.5); ice fraction rises with orbital period</td>
+<td>[R0039] as quoted by [R0602] (2ND-HAND)</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-gaps-boss-must-research-and-to-verify">5. Gaps: Boss must research, and to verify</h2>
+<h3 id="51-boss-must-research-ranked">5.1 Boss must research (ranked)</h3>
+<ol>
+<li><strong>Water fraction of solids beyond the snow line</strong>: the two conventions (0.14 to 0.39 Marboeuf-derived, vs 0.5 Lodders/Zeng/Venturini). Needs [R2726] full text (ApJ 591:1220, Table 8 condensation temperatures at 1e-4 bar and the 50 % water claim; IOP PDF behind a bot check from here) and [R2865: Figure 8 and 9] values by distance; this controls the whole ice-world branch. Number it gives: water mass share of condensed solids at the H<sub>2</sub>O line and at larger radii.</li>
+<li><strong>Probability that a planet inside the snow line is a migrant</strong> (<code>p_mig</code>) as a function of mass and stellar mass: [R4528]/2022 and Emsenhuber (NGPPS) give planet-by-planet data (Zenodo / DACE tables) not extracted here. Gives the fraction of 2 to 20 Mearth close-in planets that are water-rich (0.14 to 0.67 is a range, not a distribution).</li>
+<li><strong>Hot-Jupiter inflation efficiency function</strong>: the Gaussian hyper-parameter posterior in [R4351] (Table of medians; text read gives only peak about 2 % at 1500 to 1600 K, 0.2 % at 2500 K).</li>
+<li><strong>Core mass and diluted core of giants</strong>: modern interior models ([R4586] [R1038, R1896] review &quot;Giant planet interiors&quot;) give core mass and metal gradient; not read; core mass distribution is a placeholder.</li>
+<li><strong>Solid CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>S, CH<sub>3</sub>OH ice densities and bulk moduli</strong> ([R1445] review, ScienceDirect, refused; [R2392] tables). Gives the low-pressure density of small icy bodies and the outer-Solar-System-type composition rows.</li>
+<li>**[R3932] numerical tables ** (CDS refused in G425): only needed if a lane integrates the H/He envelope itself; the Fortney tables replace them.</li>
+<li><strong>[R1457, R1458] superionic phase diagram</strong> (PRB, APS, not on arXiv by title search); the superionic boundary in P-T and the density along it; for deep layers of water worlds and ice giants.</li>
+<li><strong>[R1754] AQUA</strong> water EOS tables (title search found nothing on arXiv; Zenodo is reachable but I did not find the record); gives a single tabulated water EOS from 0.1 bar to 400 TPa and 300 to 5000 K, which would replace my 300 K isotherm plus polytrope.</li>
+<li><strong>Ejection and stripping of volatiles from rogue planets</strong>: no source found on how ejection changes water or envelope content.</li>
+<li><strong>[R4352] Z/Z_star scatter and [R3077]</strong> mass-metallicity details (fetched but not read).</li>
+</ol>
+<h3 id="52-to-verify-recalled-or-weak">5.2 To verify (RECALLED or weak)</h3>
+<ol>
+<li>Solid CH<sub>4</sub> 0.52 and NH<sub>3</sub> 0.82 to 0.85 g/cm3 crystallographic estimates (RECALLED lattice constants).</li>
+<li>CH<sub>4</sub> clathrate density about 0.9 g/cm3 (SNIPPET).</li>
+<li>[R3935] snow-line fit as quoted in [R0405] (2ND-HAND).</li>
+<li>[R0039] TRAPPIST-1 ice limits (2ND-HAND via [R0602]).</li>
+<li>The SeaFreeze splines are [R2204]; I used them as data and checked them against NIST-class values only through Ih (916.7, 0.934 at 93 K SNIPPET) and the triple points (agree with Zeng and Sasselov to 1 %); the original paper and its stated uncertainties were not read.</li>
+<li>Units of Thorngren's <code>M_Z</code> fit (Earth masses for M in Jupiter masses) are inferred from Fig. 7 and the abstract text; the printed formula has no explicit units.</li>
+<li>The transition formula <code>M_ice,min = 3 (M_star/Msun)^0.48</code> is a two-point fit to NGPPS IV anchors (about 1 and about 3 Mearth), read off figure descriptions, not a fitted law.</li>
+</ol>
+<hr />
+<h2 id="6-proposed-work-items-for-the-todo-tree">6. Proposed work items for the TODO tree</h2>
+<p><strong>Research and design</strong></p>
+<ol>
+<li><em>Water-fraction convention decision</em>; settle 0.14 to 0.39 vs 0.5 for solids beyond the line, with Lodders full text; depends on: Boss; size small.</li>
+<li><em>Migrant probability study</em>; extract planet-by-planet ice fractions from NGPPS/Venturini tables to replace <code>p_mig</code>; depends on: 1; size medium.</li>
+<li><em>Giant interior design note</em>; core mass, diluted core, <code>Z_env</code> placeholder replaced by modern interior models; depends on: none; size medium.</li>
+<li><em>Design note: volatile-rich and gas bodies</em> (this part into <code>docs/design/</code>); depends on: Part B and E done; size small.</li>
+</ol>
+<p><strong>Tables</strong>
+5. <em>Ice and water materials table</em>: Journaux spline outputs (rho, K, K', alpha per phase) as a compact table plus the VII/X curve to 1 TPa; also a 300 K isotherm for the integrator; depends on: none; size small.
+6. <em>Volatile ices table</em>: T_cond(P) for the eight species (Marboeuf curves), molar masses, abundance shares, densities (CO<sub>2</sub>, N<sub>2</sub>, CO measured; CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>S pending); depends on: 5; size small.
+7. <em>[R1429] giant radius table + [R0253] brown dwarf table</em> as data files with interpolators; depends on: none; size small.</p>
+<p><strong>Drawing rules</strong>
+8. <em>Snow line draw per system</em> with 0.2 dex scatter and <code>born_beyond_snow_line</code> flag; depends on: 1; size small.
+9. <em>Water fraction draw</em> (route 2 steps A to C), replacing class ranges in <code>hydrosphere.py</code>; depends on: 1, 6, 8; size medium.
+10. <em>Giant heavy-element draw</em> (<code>M_Z</code>, <code>Z_env</code>, <code>Y_env</code>, <code>core_mass</code>); depends on: 3; size small.
+11. <em>Deuterium and hydrogen burning limits with Z and Y</em>; depends on: none; size small.</p>
+<p><strong>Derivations</strong>
+12. <em>Closed-form radius for rock, iron and water</em> (the 1.0688 fit), incl. inverse; depends on: B's CMF; size small.
+13. <em>Sub-Neptune envelope</em> (Lopez inverse and forward, 20 mbar convention); depends on: 12; size small.
+14. <em>Giant and brown dwarf radius lookup</em> with inflation; depends on: 7, 10; size medium.
+15. <em>Hydrosphere upgrade</em>: compressed water-layer depth, <code>P_base</code>, constants (<code>HP_ICE_DENSITY</code>, <code>DEEP_WATER_DENSITY</code>), liquidus from recomputed boundaries; depends on: 5, 12; size medium.
+16. <em>Steam-atmosphere radius for irradiated water worlds</em> ([R4448] formula); depends on: 12; size medium.
+17. <em>Rogue planet composition carry-over rules</em>; depends on: 9, 10; size small.</p>
+<p><strong>Storage</strong>
+18. <em>Schema</em>: <code>x_ice_other</code>, <code>f_env</code>, <code>Z_env</code>, <code>Y_env</code>, <code>M_Z</code>, <code>core_mass</code>, <code>born_beyond_snow_line</code>, per-system <code>snow_line_au</code>; depends on: 9, 10; size medium.</p>
+<p><strong>Tests</strong>
+19. <em>Invariant tests</em> of 3.4; depends on: 12 to 15; size medium.
+20. <em>Calibration tests</em> of section 4 (as tolerances, no presets); depends on: 12, 14; size small.</p>
+<p><strong>Docs</strong>
+21. <em>Docs and sources section</em> for this part, including the correction that [R1319] is not [R4352] (it is 1511.07854); depends on: 4; size small.</p>
+<hr />
+<h2 id="7-verification-summary">7. Verification summary</h2>
+<p>Counts are mentions of each label word in this file (grep, 2026-10-17; they include the legend and gap lists, so they are upper bounds on rows):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Label</th>
+<th>Mentions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ</td>
+<td>78</td>
+</tr>
+<tr>
+<td>2ND-HAND</td>
+<td>8</td>
+</tr>
+<tr>
+<td>COMPUTED</td>
+<td>33</td>
+</tr>
+<tr>
+<td>SNIPPET</td>
+<td>7</td>
+</tr>
+<tr>
+<td>RECALLED</td>
+<td>7</td>
+</tr>
+<tr>
+<td>NOT REACHED</td>
+<td>5</td>
+</tr>
+</tbody>
+</table></div>
+<p>Caveats: the 4.5 Gyr Fortney 1-bar radii to use are those in the correction paragraph below the 2.6 table. The Earth-ocean base pressure in section 4 is interpolated from the ocean table (COMPUTED), not a measured target. The Fortney row's first draft contained a self-correction; it has been removed.</p>
+<p>READ items rest on 20 full-text arXiv papers ([R3992] [via G425 and own read of Tables 1 to 4], [R0253, R0405, R0602, R0606, R0758, R1429, R1892, R2865, R4170, R4352, R4528, R4880, R4881], [R1268, R1269], [R0803, R2774, R3681], Ma 2016, [R4448] [abstract], [R4351] [abstract and text], [R4663] [abstract], [R0430] [density lines]) plus PubChem, Nature (abstract) and IOP (abstract) pages. The COMPUTED items are four own calculations: the Journaux-spline ice properties and phase boundaries, the hydrostatic reference and its validation against Zeng and Sasselov Table 1, the 175-point three-layer fit and its errors, and the condensation and cumulative-ice computations, plus the Lopez inverse test and Fortney interpolation tests.</p>
+<p>Three corrections to the brief's pointers: [R4352] is [R4352] (1511.07442 is an unrelated spintronics paper); [R2865] is [R2865] (0804.0406 is the 2008 predecessor); Bitsch's water-content paper is 2021 [R0405].</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmosphere composition research: compounds, gases, condensates, radiation and the stats to compute with them - planetGen docs</title>
+<meta name="description" content="Version note (2026-11-05): &quot;8.4 phase 1 to 4&quot; in this document is the old plan.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/atmosphere-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="atmosphere-composition-research-compounds-gases-condensates-radiation-and-the-stats-to-compute-with-them">Atmosphere composition research: compounds, gases, condensates, radiation and the stats to compute with them</h1><p class="meta">docs/design/composition/atmosphere-composition.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-was-delivered">1. What was delivered</a></li><li style="margin-left:0px"><a href="#2-checks-by-this-lane-on-the-worker-output">2. Checks by this lane on the worker output</a></li><li style="margin-left:0px"><a href="#3-findings-that-change-the-existing-design-or-code">3. Findings that change the existing design or code</a></li><li style="margin-left:0px"><a href="#3b-composition-as-weighted-probability-tables-boss-140-am-edt">3b. Composition as weighted probability tables (Boss, 1:40 AM EDT)</a></li><li style="margin-left:0px"><a href="#3c-second-research-note-211-am-edt-result-and-counts">3c. Second research note (2:11 AM EDT): result and counts</a></li><li style="margin-left:0px"><a href="#4-design-synthesis-one-registry-many-consumers">4. Design synthesis: one registry, many consumers</a></li><li style="margin-left:0px"><a href="#5-sources-and-domains">5. Sources and domains</a></li><li style="margin-left:0px"><a href="#6-what-boss-must-research-consolidated">6. What Boss must research (consolidated)</a></li><li style="margin-left:0px"><a href="#7-recalled-values">7. Recalled values</a></li><li style="margin-left:0px"><a href="#8-method-and-limits">8. Method and limits</a></li><li style="margin-left:0px"><a href="#9-boss-supplied-research-checked-2026-10-17-122-am-edt-note-checked-by-the-lane-about-200-am-edt-as-it-reported">9. Boss-supplied research: checked (2026-10-17, 1:22 AM EDT note; checked by the lane about 2:00 AM EDT as it reported)</a></li><li style="margin-left:0px"><a href="#10-boss-supplied-research-second-note-checked-2026-10-17-211-am-edt-note-checked-by-the-lane-about-255-am-edt-as-it-reported">10. Boss-supplied research, second note: checked (2026-10-17, 2:11 AM EDT note; checked by the lane about 2:55 AM EDT as it reported)</a></li><li style="margin-left:0px"><a href="#11-usability-rule-boss-302-am-edt">11. Usability rule (Boss, 3:02 AM EDT)</a></li></ul></details>
+<blockquote>
+<p>Version note (2026-11-05): &quot;8.4 phase 1 to 4&quot; in this document is the old plan. Those phases moved into 8.1 on 2026-10-23 and are now 8.1 phases 6 to 9 (8.4 phase N is 8.1 phase N+5); see docs/plan/releases/version-8-1-zoom-and-scatters.md.</p>
+</blockquote>
+<p><strong>Status (2026-10-17):</strong> research result of GEN.431 (the Atmosphere research lane), merged here by the TODO thread so that every lane has it in the repository. It feeds GEN.409 (the checked atmosphere colour design), GEN.410 (the gas and compound table), GEN.436 (the radiation design) and the generation chain of <a href="atmosphere-colour.html">atmosphere-colour.md</a>; <a href="composition-model.html">composition-model.md</a> is the master note. Times in it are as the lane's clock reported. Where it says a source was not reached, the input is open and is Boss's to research (section 6); each such input carries a seeded physical range meanwhile, never a fixed value.</p>
+<p>Date: 2026-10-17 (written between 12:03 AM and 1:00 AM EDT as the session clock reported; lane clocks drift). Research lane, read-only on code and docs (the TODO thread merged the result into the repository). Request: Boss, 12:00 AM EDT (the message the coordinator relayed), atmosphere composition as a joint headline of the next major release with body composition; every body gets composition figures from real science, drawn from a bulk density and pressure first and then filled in, or built up from basics. Chain: goal issue #1944, plan note <code>docs/design/composition/atmosphere-colour.md</code>, baseline reports <code>sky-color-analysis-2026-10-17.md</code>, <code>atmosphere-sources-check-2026-10-17.md</code>, <code>composition-density-link-2026-10-17.md</code> under <code>/mnt/project-files/reports/</code>.</p>
+<p>This file is the master section. The detail (about 560 KB of tables, formulas and source lists) sits in fifteen part files in <code>docs/design/composition/atmosphere-composition-parts/</code>, copied unchanged from the lane's draft (<code>/mnt/project-files/design-drafts/atmosphere-parts/</code>): seven research parts (01 to 07, finished 1:00 AM EDT as the lane reported), two verification parts for the extra research note Boss posted at 1:22 AM EDT (08A and 08B, 1:45 to 2:00 AM EDT) and the weighted-probability restatement of the composition recipes that Boss asked for at 1:40 AM EDT (09), and five verification parts for Boss's second note of 2:11 AM EDT (10A to 10D, finished about 2:55 AM EDT as the lane reported, and 10E, the NH<sub>3</sub> lifetime, about 3:25 AM EDT). Findings 11 to 30 in section 3, section 3b, section 3c and section 11 summarise the last eight.</p>
+<h2 id="1-what-was-delivered">1. What was delivered</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>File</th>
+<th>Size</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>01</td>
+<td><a href="atmosphere-composition-parts/01-gas-table-thermodynamics.html">01-gas-table-thermodynamics.md</a></td>
+<td>61 KB</td>
+<td>72 gases and volatile compounds plus metal hydrides and NH<sub>4</sub>SH: formula, CAS, molar mass, flags, photolysis threshold, triple and critical points, heat capacity at three temperatures, gamma, latent heats, saturation vapour pressure curves with errors at the boiling and triple points, Henry constants for 35 species, viscosity, real-gas Z, mixture mean molar mass and density, a checked replacement for the code's two-point condensation table, a 10-row test table</td>
+</tr>
+<tr>
+<td>02</td>
+<td><a href="atmosphere-composition-parts/02-gas-optics-uv-visible.html">02-gas-optics-uv-visible.md</a></td>
+<td>64 KB</td>
+<td>Rayleigh cross sections for 28 gases (13 verified, 15 from one polarizability formula good to -9 to +6 percent), depolarization ratios with real spreads, UV/visible absorption of 22 gases in 35 bins with temperature trends, alkali and metal-oxide band data for hot giants, surface UV from the ozone column, UV index and erythemal and DNA action spectra, air mass and Chapman function, ground-bounce formula, blackbody chromaticity 2000 to 30000 K, and the re-check of the unreached sources</td>
+</tr>
+<tr>
+<td>03</td>
+<td><a href="atmosphere-composition-parts/03-infrared-greenhouse-thermal.html">03-infrared-greenhouse-thermal.md</a></td>
+<td>65 KB</td>
+<td>Greenhouse gas bands and forcing laws, collision-induced and water continuum absorption, heat capacity and lapse rates, analytic grey and two-band temperature structure, the inverse for albedo and greenhouse multiplier, Rayleigh and cloud albedo, heat redistribution, runaway and moist greenhouse limits, a split between what can be code and what needs full radiative transfer</td>
+</tr>
+<tr>
+<td>04</td>
+<td><a href="atmosphere-composition-parts/04-photochemistry-lifetimes-escape.html">04-photochemistry-lifetimes-escape.md</a></td>
+<td>59 KB</td>
+<td>A starter reaction network with rate constants, photolysis lifetimes of about 35 species for F, G, K and M hosts, UV shielding, ozone column and layer depth, escape thresholds and formulas, stellar XUV laws, exospheres of airless bodies, flares, SEPs and lightning</td>
+</tr>
+<tr>
+<td>05</td>
+<td><a href="atmosphere-composition-parts/05-mixing-ratios-by-class.html">05-mixing-ratios-by-class.md</a></td>
+<td>54 KB</td>
+<td>The solar element budget, mass-metallicity draw rule, outgassed rocky-planet atmospheres by mantle redox, lava worlds, sub-Neptunes and hycean worlds, Venus-, Mars-, Titan-, Pluto-like frost-equilibrium atmospheres, giants and brown dwarfs, hot Jupiters, comets, white-dwarf and pulsar planets, host-star dependence, and a species-by-class table</td>
+</tr>
+<tr>
+<td>06</td>
+<td><a href="atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.html">06-condensates-clouds-hazes-dust-minerals.md</a></td>
+<td>66 KB</td>
+<td>Condensation temperature fits for oxides, silicates, iron, sulfides and salts, sublimation of about 19 ices, cloud-base rule, optical table for 47 materials (density, refractive index, single-scattering albedo, colour slope from Mie runs), haze yields and sizes, dust lofting and settling, cloud albedo against optical depth, lava-world vapours and mineral densities</td>
+</tr>
+<tr>
+<td>07</td>
+<td><a href="atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.html">07-radiation-shielding-and-ground-sources.md</a></td>
+<td>62 KB</td>
+<td>EUV and X-ray absorption by composition, photon attenuation for 13 materials, proton ranges (NIST PSTAR) for 10 materials, muon and secondary data, dose against atmospheric column, cutoff rigidity, flare and SEP scaling, radioisotopes in the ground (K, U, Th, Rb, Al-26, Fe-60), gamma dose conversion, radon, Ar-40 and He-4 budgets, radiolysis, W values, dose limits, a dose recipe with code status</td>
+</tr>
+<tr>
+<td>08A</td>
+<td><a href="atmosphere-composition-parts/08-verification-of-boss-added-research-A.html">08-verification-of-boss-added-research-A.md</a></td>
+<td>17 KB</td>
+<td>Checks of the extra note: ice sublimation, [R4154] read in full, the Parmentier and Guillot equation (coefficients transcribed from the paper's LaTeX source and tested), Rayleigh and King factors</td>
+</tr>
+<tr>
+<td>08B</td>
+<td><a href="atmosphere-composition-parts/08-verification-of-boss-added-research-B.html">08-verification-of-boss-added-research-B.md</a></td>
+<td>23 KB</td>
+<td>Checks of the extra note: Mars dust, Titan haze, comet ratios, ICRP weights and neutron dose, dataset licences, NH<sub>3</sub> and CH<sub>4</sub> visible sources</td>
+</tr>
+<tr>
+<td>09</td>
+<td><a href="atmosphere-composition-parts/09-weighted-composition-tables.html">09-weighted-composition-tables.md</a></td>
+<td>42 KB</td>
+<td>The composition recipes restated as weighted probability tables with class gates (schema, 16 categories, 104 rows, worked draws, rows with no sourced weight, conflicts with the repo)</td>
+</tr>
+<tr>
+<td>10A</td>
+<td><a href="atmosphere-composition-parts/10-verification-second-note-A.html">10-verification-second-note-A.md</a></td>
+<td>40 KB</td>
+<td>Cold ices (Grundy, Blakley windows), clathrates, brines, magma-ocean redox, lava vapour, visible CH<sub>4</sub> and NH<sub>3</sub>: 42 sub-claims</td>
+</tr>
+<tr>
+<td>10B</td>
+<td><a href="atmosphere-composition-parts/10-verification-second-note-B.html">10-verification-second-note-B.md</a></td>
+<td>40 KB</td>
+<td>Energetic particles (Band form, Mars RAD, Europa, Titan), W value and photoionisation sources, Troe falloff, JPL 19-5 and its licence, PH<sub>3</sub>: 29 sub-claims</td>
+</tr>
+<tr>
+<td>10C</td>
+<td><a href="atmosphere-composition-parts/10-verification-second-note-C.html">10-verification-second-note-C.md</a></td>
+<td>36 KB</td>
+<td>Mars dust and haze, the comet table, radioisotope reservoirs, stellar abundances, [R4352], the R1 to R15 list and the licences: 61 sub-claims</td>
+</tr>
+<tr>
+<td>10D</td>
+<td><a href="atmosphere-composition-parts/10-verification-second-note-D.html">10-verification-second-note-D.md</a></td>
+<td>9 KB</td>
+<td>The Rayleigh table (per-gas dispersion and King factors) and the Parmentier and Guillot equation: 16 sub-claims</td>
+</tr>
+<tr>
+<td>10E</td>
+<td><a href="atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.html">10-verification-second-note-E-nh3-lifetime.md</a></td>
+<td>12 KB</td>
+<td>The NH<sub>3</sub> photolysis lifetime at 1 AU recomputed from a measured cross section and quiet and active solar spectra, which settles the two figures of the atmosphere and body lanes</td>
+</tr>
+</tbody>
+</table></div>
+<p>Row counts by verification label, summed from the seven research parts (01 to 07) (each worker's own count; a row with two labels counts under each): READ 399, DATA 479, COMPUTED 533, 2ND-HAND 118, NOT REACHED 46, RECALLED 34 (all also listed in the parts' to-verify sections), SNIPPET 9. Part 02 adds about 770 computed or data cells for the absorption bins that are not counted here.</p>
+<p>Labels: READ is the original paper's own text; DATA is a data file in a package or repository (name and version given); COMPUTED is re-derived in Python from stated inputs; 2ND-HAND is a number read in a paper or code that cites the original; RECALLED is memory and unverified; SNIPPET is a search summary and not relied on; NOT REACHED is needed but no reachable source gave it.</p>
+<h2 id="2-checks-by-this-lane-on-the-worker-output">2. Checks by this lane on the worker output</h2>
+<p>The parts are worker output; these are the checks the lane made itself, not a full audit.</p>
+<ul>
+<li>All 72 molar masses in the part 01 species table were recomputed from the <code>periodictable</code> package: 70 agree to 0.01 g/mol; the two exceptions are 3He (an isotope mass, my parser read the formula as a carbon-12 compound) and Rn (the isotope-222 mass 222.0176, as labelled).</li>
+<li>The part 07 finding that the dipole cutoff rigidity scales as M/r^2 (not r^3) agrees with the Stormer vertical cutoff Rc = 14.9 GV / L^2 for Earth, which depends on the moment over the square of the distance.</li>
+<li>The part 01 finding that the code's H<sub>2</sub>S condensation row is a copy of the SO<sub>2</sub> row is true in <code>src/planetgen/physics/atmosphere.py</code> (<code>CONDENSATION_K[&quot;h2s&quot;] = CONDENSATION_K[&quot;so2&quot;]</code>), and H<sub>2</sub>S boils at about 213 K at 1 atm, 50 K below SO<sub>2</sub>.</li>
+<li>The earlier verified values (Rayleigh sigma of N<sub>2</sub>, CO<sub>2</sub>/N2 ratio 2.51, Earth tau_R 0.0969) reappear in part 02 unchanged.</li>
+<li>The vapour-pressure, optical-constant and Mie tables were not independently recomputed. TODO should have each item's checked design (GEN.409 and the items it spawns) sample a few rows against the cited file before coding a table.</li>
+</ul>
+<h2 id="3-findings-that-change-the-existing-design-or-code">3. Findings that change the existing design or code</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Where</th>
+<th>Finding</th>
+<th>Source part</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>atmosphere.py</code> <code>CONDENSATION_K</code></td>
+<td>Two-point Clausius-Clapeyron rows are off: the H<sub>2</sub>S row is a copy of SO<sub>2</sub> (20 to 50 K wrong), CO<sub>2</sub> up to 7 K warm, SO<sub>2</sub> up to 16 K cold, N<sub>2</sub>, CO, Ar, O<sub>2</sub> and CH<sub>4</sub> up to 5 K cold. Rows stay acceptable only for H<sub>2</sub>, N<sub>2</sub>, CO, Ar, O<sub>2</sub>, CH<sub>4</sub>, H<sub>2</sub>S (own curve needed) and C<sub>2</sub>H<sub>6</sub>. A checked replacement with temperatures at seven pressures is given for 14 entries including NH<sub>3</sub>, H<sub>2</sub>S, NH<sub>4</sub>SH, HCN, C<sub>2</sub>H<sub>6</sub> and H<sub>2</sub>SO<sub>4</sub>. Fray and Schmitt sublimation fits exceed the lab curves by up to 6 times below 40 K</td>
+<td>01, 06</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>atmosphere.py</code> <code>REDOX_EARTH_DELTA_IW = 3.5</code></td>
+<td>The mantle redox prior is far more oxidised than meteoritic building blocks (about 1 below to 0 above the iron-wustite buffer) and than a magma-ocean stage (near IW to IW+1); a young rocky planet should start reduced and oxidise with time and mass, not start at Earth's present mantle. White dwarf debris shows bodies near IW-1</td>
+<td>05</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Rayleigh table (GEN.410, GEN.417)</td>
+<td>The older coded CH<sub>4</sub> refractivity form is about 30 percent above the measured value (He 2021 gives the replacement); the H<sub>2</sub>/N2 ratio spreads from 0.202 to 0.217; N<sub>2</sub> depolarization spreads from 0.020 to 0.031 (2 percent in sigma); the water-vapour refractivity has no known reference temperature, so use the generic polarizability route; 15 further gases are covered by one formula with a stated error of -9 to +6 percent</td>
+<td>02</td>
+</tr>
+<tr>
+<td>4</td>
+<td><code>radiation.py</code> and the radiation design</td>
+<td>The dipole cutoff scales as M/r^2 where the code uses (R_E/R_p)^3; the GCR dose-against-column curve is 1.5 to 2.7 times below proton-primary shower simulations; the flat 0.6 magnetic factor is wrong in thin atmospheres; the range law <code>R = 0.0022 E^1.77</code> holds below 300 MeV but is 5 times too long at 10 GeV; the Europa 5.4 Sv/day figure has no primary source; the 0.64 mSv/day Mars figure is a snippet in the design file and the replacement is [R1730] (read)</td>
+<td>07</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Greenhouse multiplier</td>
+<td>The existing multiplier is exactly (T_s/T_e)^4 - 1, so every composition-derived result can be reported in the repo's own variable (Earth 0.625, Venus 99.6, Titan 0.69, computed). The inverse for albedo and infrared optical depth tau0 works for those three test sets. The mean molar mass of the mixture replaces <code>atm_molar_density</code> in the scale height and in tau0. Infrared optical depth from line absorbers (CO<sub>2</sub>, H<sub>2</sub>O, CH<sub>4</sub>) needs correlated-k grids that are not reachable, so it stays a parametrisation until sourced</td>
+<td>03</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Cloud-species constants</td>
+<td>The Mg<sub>2</sub>SiO<sub>4</sub> saturation constant printed in a standard source is likely a misprint (4.88 printed, 14.88 fits); the SiO<sub>2</sub> constant is labelled &quot;made up&quot; in its own code; the FeS optical row looks suspect</td>
+<td>06</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Atmosphere document references</td>
+<td>[R1813] is real</td>
+<td>05</td>
+</tr>
+<tr>
+<td>8</td>
+<td>UV index</td>
+<td>The repo's <code>uv_index</code> is not the CIE index; part 02 gives the CIE erythemal and Setlow DNA formulas for a proper one</td>
+<td>02</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Ozone</td>
+<td>Ozone column against O<sub>2</sub> and host star: Kozakis fit stays (earlier report); Chapman layer depth and peak pressure against O<sub>2</sub>, and abiotic O<sub>2</sub>/O3 channels, are in part 04; the fit is valid only for 0.01 to 150 percent of the present level</td>
+<td>04</td>
+</tr>
+<tr>
+<td>10</td>
+<td>The ten stored species</td>
+<td>The stored set (O<sub>2</sub>, CO<sub>2</sub>, CO, N<sub>2</sub>, Ar, H<sub>2</sub>, H<sub>2</sub>O, CH<sub>4</sub>, H<sub>2</sub>S, SO<sub>2</sub>) misses He, Ne, Kr, Xe, NH<sub>3</sub>, NH<sub>4</sub>SH, HCN, C<sub>2</sub>H<sub>6</sub>, C<sub>2</sub>H<sub>2</sub>, OCS, HCl, HF, N<sub>2</sub>O, NO<sub>2</sub>, O<sub>3</sub>, Na, K, SiO, Mg, Fe, TiO, VO and PH<sub>3</sub>, which the class mixes and descriptions already name or which the physics needs; the species-by-class table in part 05 section 13 lists the add list with the class that needs each</td>
+<td>05</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Cold sublimation curves (GEN.410, GEN.422)</td>
+<td>Boss's note says the operating tables carry coefficient sign inversions. <strong>UNSUPPORTED:</strong> two independent copies of the [R2711] supplementary table (arXiv text and NTRS) agree in sign and mantissa for CO, CO<sub>2</sub>, CH<sub>4</sub>, N<sub>2</sub>, NH<sub>3</sub>, HCN, C<sub>2</sub>H<sub>2</sub>, C<sub>2</sub>H<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, O<sub>2</sub>. The real error is model error at low temperature: [R1708] lab fits (read) show Fray and Schmitt too high by 1.4 to 2.3 times for alpha-N2 at 25 to 33 K, 6 times for alpha-CO at 31 K, 1.9 times for CH<sub>4</sub> at 30 K. Use the composite: Wagner liquid above the triple point, Fray and Schmitt above about 50 K, Grundy and Blakley lab fits below. The water-ice formula of the note reproduces part 06 (cross-check only). The validity ranges the note lists are unsupported and inconsistent with the alpha and beta fits; the original Fray and Schmitt table stays unread</td>
+<td>08A</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Redox prior (refines finding 2)</td>
+<td>[R4154] read in full: Fe3+/sumFe 0.037 +- 0.005 gives magma-ocean fO2 at IW+0.5; about 99 percent of the water and about 35 percent of the CO<sub>2</sub> dissolve in the melt, N<sub>2</sub> about 0 percent (the note's &quot;extremely low carbon solubility&quot; is wrong in degree). Mass-dependent prior: IW+0.5 near 1 Earth mass, falling to about IW-2 for small bodies whose redox is set at core formation, then oxidising later. In the weighted tables: rows a1 (magma-ocean stage) and a2 (later mantle)</td>
+<td>08A, 09</td>
+</tr>
+<tr>
+<td>13</td>
+<td>[R3439] (GEN.412, GEN.423, giants)</td>
+<td>The equation in the note is not the published one. The paper's semi-grey form (eq. 30) and picket-fence form (eq. 98, coefficients A to E from a0 to a3 and b0 to b3) were read from the arXiv LaTeX source and the coefficients were coded and tested in the grey limit. The opacity link (gamma_v, kappa_R from the mixture) is the open point; the [R3440] opacity tables [R3440] still need extracting</td>
+<td>08A</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Rayleigh (GEN.410, GEN.417)</td>
+<td>The note's single reference density 2.68678e19 is wrong for N<sub>2</sub>, Ar, CO<sub>2</sub>, CO, CH<sub>4</sub> (formulas are defined at 288.15 K, 2.546899e19) and biases sigma by 5.5 percent, which is the size of the error the note blames on King factors. The claim that SO<sub>2</sub> and H<sub>2</sub>S King factors exceed 1.20 contradicts its own formula (needs rho of 0.105; rho 0.04 gives 1.07). No coefficient from the note is adopted</td>
+<td>08A</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Mars dust (GEN.414)</td>
+<td>Single-scattering albedo 0.92 to 0.95 is the solar-band mean of the bright literature, not the 670 nm value (about 0.975, second-hand) and hides a UV drop: use red and near-infrared 0.93 to 0.975, solar mean 0.89 to 0.94, UV band 0.67 to 0.74. Imaginary index above 0.01 below about 0.38 micrometre is confirmed by a digitised figure (0.013 at 0.30, minimum about 1e-3 at 0.7 to 0.8); the iron(III) attribution is in no text read. The &quot;volcanic SO<sub>2</sub> aerosol&quot; row cites two Mars dust papers (mis-citation)</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Titan haze (GEN.414)</td>
+<td>The &quot;40 percent forward-scattering underprediction&quot; has no source. The absolute extinction laws are confirmed (above 80 km 1.012e7 lambda^-2.339, 30 to 80 km 2.029e4 lambda^-1.409, below 30 km 6.27e2 lambda^-0.9706, lambda in nm; total optical depth 9.6 at 500 nm) from the 2008 DISR team slides. Aggregates of about 3000 to 4000 monomers fit the data, not equivalent spheres</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Comet coma ratios (part 05 section 9, row k in 09)</td>
+<td>Against the note: CO 0.3 to 26 percent of water (median 3.3), CO<sub>2</sub> 2 to 30 (median 12), CH<sub>4</sub> 0.15 to 2.7, <strong>NH<sub>3</sub> 0.1 to 3.6 (the note's 0.2 to 1.0 is contradicted)</strong>, Q(H2O) 5.1e26 to 1.41e31 per second in the SWAN sample</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Radiation weights</td>
+<td>ICRP 103 wR and wT confirmed (wT sums to 1.00). &quot;Subsurface dose dominated by secondary neutrons&quot; is only true for dose equivalent (50 percent at the surface to over 80 percent below 50 cm on Mars); the absorbed dose share is 2 to 9 percent</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Dataset identities and licences</td>
+<td>&quot;LAMDA / [R1873]&quot; is two different things ([R1873] is the Leiden photodissociation database, LAMDA is another database). Mainz terms found (cite [R2302, R2303]; Zenodo copy CC BY 4.0). Bremen states no licence. [R2040] and JPL 19-5 terms not reached</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Ammonia</td>
+<td>&quot;[R0847]&quot; is [R0847]. The claim that it resolved anomalies near the 500 mbar level is unsupported (chi-squared per point 1.93 to 1.60 and 2.06 to 1.76; NH<sub>3</sub> cloud at 0.55 to 0.57 bar)</td>
+<td>08B</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Cold-ice laboratory sources (refines 11)</td>
+<td>Each lab paper covers different species: [R1708] covers N<sub>2</sub>, CO and CH<sub>4</sub>; [R0418] covers only NH<sub>3</sub> and beta-O2. Lab windows are narrow: N<sub>2</sub> 23 to 31 K, CO 26 to 35 K, CH<sub>4</sub> 31 to 43 K, O<sub>2</sub> 29 to 37 K, NH<sub>3</sub> 88 to 105 K. Use the lab curves only inside their windows and blend into Fray and Schmitt where the ratio reaches 1 (CO 60 K, CH<sub>4</sub> 70 K, O<sub>2</sub> 43 K, NH<sub>3</sub> 150 to 195 K). Blakley's &quot;factor 1.6&quot; is a window average; the earlier &quot;factor 4 at 24 K&quot; in finding 11 is an extrapolation below the data and should not be used. &quot;E_a 9.2 kJ/mol&quot; is wrong: 9.2 percent is the excess over NIST's 9.26 kJ/mol, so L is about 10 kJ/mol. A sticking coefficient scales the evaporation flux, never the equilibrium pressure. Triple points: CO 68.16 K (61.6 K is the alpha-beta transition), O<sub>2</sub> 54.361 K, NH<sub>3</sub> 195.49 K. Jager and Span valid 80 to 300 K and 0 to 500 MPa (not 0 to 800 K, 12 GPa). CO<sub>2</sub> hydrate Q1 271.60 K, 1.044 MPa confirmed (uncertainty 0.021 MPa, not 0.002). Solid H<sub>2</sub> exists below 13.96 K; Tc(H2) and Tc(He) per NIST. Naming: the NH<sub>3</sub> and O<sub>2</sub> paper is [R0418] (PSS 244, 105863, [R0418]; READ abstract); earlier mentions of [R0418] refer to its NASA NTRS record. A 2026 preprint from the Grundy group adds a back-condensation correction of 1.19 +- 0.03 (+19 percent on all five ices' vapour pressures), reported by the body-composition lane (2ND-HAND, not read here); apply it if that preprint is accepted. For solid CO<sub>2</sub> sublimation the body lane reads [R4166] eq. 3.12 (842.65 Pa at 150 K, 103971 Pa at 195 K), within 0.5 percent of the Fray and Schmitt set from 150 to 195 K but 41 percent high at 100 K</td>
+<td>10A, body lane</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Rayleigh, second note (refines 14)</td>
+<td>The note now uses the correct N_s = 2.54743e19. But its CO<sub>2</sub>, O<sub>2</sub> and CH<sub>4</sub> dispersion formulas are wrong (CO<sub>2</sub> n-1 is 43 percent high, O<sub>2</sub> 46 percent high, CH<sub>4</sub> 90 times high) and its printed cross sections for N<sub>2</sub>, CO<sub>2</sub>, O<sub>2</sub>, Ar differ from the verified formulas by 2 to 7 percent. SO<sub>2</sub> and H<sub>2</sub>S King factors do not follow from the printed depolarization ratios, and their cross sections are 16 to 26 percent off the polarizability estimates. He 2021 is BBCES only and 0.4 to 2.8 percent are differences, not uncertainties. No coefficient is adopted; the first-report formulas stand</td>
+<td>10D</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Parmentier and Guillot (refines 13)</td>
+<td>The note's equation is the semi-grey form (eq. 30 of the paper), self-consistent only at mu_* = 1/sqrt 3. Its definition of beta as a line-to-continuum opacity ratio is wrong: beta is the equivalent bandwidth (fractional spectral width of band 1); the &quot;atomic below 0.1, molecular 0.1 to 0.9&quot; split is not in the paper</td>
+<td>10D</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Lava worlds and redox (refines 12)</td>
+<td>Carbon dissolves as CO below about IW and as carbonate above about IW+1 ([R0501, R1488] puts the line at IW); dissolved carbon 2 to 70 ppm, most carbon stays in the gas. LavAtmos builds on MELTS plus JANAF, not VapoRock. Lava-world vapour is Na-led to about 2700 K at 0.01 bar: the note's single 2200 K switch and its 40 to 60 g/mol mean molar mass are not adopted; table i keeps the Miguel type edges (2033, 2588, 2890, 3168 K). [R3059] is [R3059]</td>
+<td>10A</td>
+</tr>
+<tr>
+<td>25</td>
+<td>Solar particles, Mars, Europa, Titan (part 07 radiation items)</td>
+<td>The note's Band formula is discontinuous at the break (unless the index step is 1) and has the wrong high slope; use the published integral rigidity form with the event parameters (example GLE 2006: J0 1.33e8, g1 1.045, g2 5.80, R0 0.1765 GV). Mars cutoff is 165 MeV at 21 g/cm2 vertical (247 MeV at 60 degrees), not 150; set it by inverting the PSTAR range in the local gas. Mars neutrons are 2 to 7 percent of dose (3.8 to 10 percent of dose equivalent), not 15 to 20. Europa is a depth profile (1e7 Gy/yr at the surface falling to 1e3 to 1e4 at 2 to 4 cm; 1 to 10 MeV electrons reach 0.5 to 5 cm, not millimetres); the &quot;5.4 Sv/day&quot; figure traces to a popular-book table, not a primary source. Titan's column is 10,850 g/cm2 (not 1000); ionisation alone needs about 22 GeV; surface dose about 3.2e-6 Gy/yr, 475 times below the note. W for air is 33.97 eV (ICRU 90)</td>
+<td>10B</td>
+</tr>
+<tr>
+<td>26</td>
+<td>Kinetics</td>
+<td>The note's Troe exponent N gives -0.238 for F = 0.6; JPL fixes N = 1 and Fc = 0.6 (IUPAC N = 1.032). JPL 19-5 did not update ClO + O, ClO + NO (last evaluated 10-6) or the ClO dimer (15-10). No new PH<sub>3</sub> VUV cross sections exist (all work uses [R0762]). [R3662] H<sub>2</sub>O cross sections supersede the abiotic O<sub>2</sub> numbers for CO<sub>2</sub> worlds with water (upper bounds only)</td>
+<td>10B</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Comets, radioisotopes, giants</td>
+<td>NH<sub>3</sub> photolysis lifetime at 1 AU is 6.7e3 s (rate 1.5e-4 /s, range 1.3e-4 to 1.8e-4 /s, i.e. 5.6e3 to 7.7e3 s), not 2.5e4 s; settled with the body lane (part 10E): active/quiet is only 1.05 to 1.10 because NH<sub>3</sub> absorbs mainly at 170 to 217 nm; the NH<sub>3</sub> 572 GHz line is 0.52 mm, not 1.15 mm; H<sub>2</sub>O, CO, CO<sub>2</sub>, HCN lifetimes match the sbpy values; CH<sub>4</sub> and C<sub>2</sub>H<sub>6</sub> lifetimes unsupported. Venus K/U is 6 to 8 thousand (Vega, Venera), not Earth-like; oceanic crust Th/U is about 3.0 (not 3.7 to 4.0); Mercury Th/U 2.4 +- 0.9. [R4352] is [R4352] (the note's id is another paper): Z_p/Z_star = 9.7 M_J^-0.45, M_Z = 57.9 M_J^0.61 M_Earth, scatter factor 1.82, valid from 20 Earth masses. Thin-disc [Th/Si] falls with stellar age, which does not support &quot;more heat per silicate mass at low metallicity&quot;</td>
+<td>10C</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Aerosols (GEN.414)</td>
+<td>Dust effective radius 1.0 (northern summer) to 1.4 to 1.6 (quiescent) to 2 to 2.5 micron (storm onset); IR(9 micron)/visible(0.88 micron) ratio 0.37 at 1.0 micron and 0.5 to 0.6 at 1.5 micron; the water-ice-shell brightness mechanism has no source; Fe3+ in nanophase ferric oxide is the standard attribution (hedge). Haze: onset CH<sub>4</sub>/CO2 about 0.1, thick above 0.2, production cut about 10 times when H<sub>2</sub> is abundant; visible exponent 0.97 to 2.34 for aggregates (Titan), 3 to 4 only for tiny spheres; the note's 2 to 4 is wrong for fractal hazes</td>
+<td>10C</td>
+</tr>
+<tr>
+<td>29</td>
+<td>Licences (refines 19)</td>
+<td>JPL 19-5 is not public domain (NTRS lists it as copyright-protected with US-government-purpose rights). No licence text found for NMSU or Leiden (cite on use); Mainz Zenodo snapshot is CC BY 4.0; Bremen none stated. Treat JPL 19-5, Huebner and Mukherjee, NMSU and Bremen as no licence found; regenerate tables from user-supplied copies</td>
+<td>10B, 10C</td>
+</tr>
+<tr>
+<td>30</td>
+<td>Errata to earlier parts</td>
+<td>[R0768] is [R0768] (Pluto haze), not &quot;Gao and Stam&quot; (corrected in 08B); [R4109, R4110] found 6,195 mostly blended Titan features with detection limit 0.02 and updates no band-average coefficients</td>
+<td>10A, 10C</td>
+</tr>
+</tbody>
+</table></div>
+<p>Of the first note, the silicate vaporisation, H<sub>2</sub>SO<sub>4</sub>-H2O, brine and clathrate remarks carried no constants and the radiogenic-heating remarks no source; they were not adopted at 2:00 AM EDT. The second note repeats them with numbers and 10A to 10C check those (findings 21 to 30).</p>
+<h2 id="3b-composition-as-weighted-probability-tables-boss-140-am-edt">3b. Composition as weighted probability tables (Boss, 1:40 AM EDT)</h2>
+<p>Boss's requirement: every composition category has a table of possibilities with weighted probabilities; every row lists the planet or object classes it supports (the gate); the generator draws among the rows that pass the gate with weights normalised to 100 percent. Part 09 restates every recipe of parts 05, 06 and 07 (plus escape and UV from 04) in that form. Design points:</p>
+<ul>
+<li><strong>Row:</strong> id, option, gate, weight (a number, or a function of mass, temperature, pressure, redox, insolation, host star, formation distance a_form over the snow line), weight source with verification label, status, notes. <strong>Status:</strong> SOURCED (numbers from a read source), DERIVED (computed from a stated formula), DESIGN Rn (no sourced weight; the physical bracket is given and the generator draws a seeded constant inside it meanwhile, nothing fixed).</li>
+<li><strong>Combining:</strong> W_i = gate_i x weight_i; p_i = W_i / sum W. Edge clauses can be softened with a normal CDF of stated width. If the sum is zero the table's named fallback row (bare, airless, absent) wins. Level-2 tables draw only after their parent row (joint probability = parent x conditional). Draw order: host star, then the 16 category tables, with the last four reading earlier draws. One seeded random wrapper (GEN.56) is the only random source.</li>
+<li><strong>Continuous quantities</strong> (redox, metallicity, C/O) are given both as a parametric draw and as a binned table so either can be coded.</li>
+<li><strong>Size:</strong> 16 categories (a mantle redox, b volatile inventory and water fraction by snow line, c outgassed regime, d retention regime, e sub-Neptune envelope, f giants, g brown dwarfs, h hot Jupiters, i lava worlds, j frost and evolved atmospheres, k comets and KBOs, l white dwarf and pulsar planets, m trace gases, n clouds, hazes and dust, o ground radioisotopes, p host-star UV regime) and <strong>104 rows: 8 SOURCED, 48 DERIVED, 48 DESIGN</strong>. The 48 DESIGN rows group into 15 research needs (R1 to R15, section 7 of this file and part 09 section 4): the main ones are volatile delivery against formation distance (R2), the radius-valley occurrence weights (R1), giant C/O (R5), comet class fractions (R9), trace gases (R11) and brown-dwarf types against temperature (R15).</li>
+<li><strong>Conflicts the tables exposed</strong> (part 09 section 5, 13 items), most relevant to code: the repo has 20 classes (A B C D E F G H I J K L M N O P Q S T V) and no brown-dwarf letter; C, D, S have no atmosphere and no entry in <code>CLASS_MIXES</code> (a pressure would fall back to an N<sub>2</sub>-O2 mix); free O<sub>2</sub> sits in the mixes of G, H, L, O, P, Q, V with no abiotic or life rule and L has 60 percent Ar, far above the radiogenic budget; E and F carry NH<sub>3</sub> and CH<sub>4</sub> at 340 to 400 K, which photolysis removes; N says &quot;reducing&quot; but its mix is oxidised; I, J, T share one CH<sub>4</sub>/H2O/H2S mix in every zone; classes I and T cover the same sizes and V straddles the radius valley. In part 05 itself: the C/O recipe puts 13.9 percent of giants above C/O 0.8 where about 2 to 5 percent was intended (the table truncates the core at 0.8 and adds an explicit tail), the lava-world boundary difference is 63 K, not 130 K, and the brown-dwarf range 500 to 700 K is uncovered (row g4 added).</li>
+</ul>
+<h2 id="3c-second-research-note-211-am-edt-result-and-counts">3c. Second research note (2:11 AM EDT): result and counts</h2>
+<p>The note repeated most of the first one in longer form and added numbers. Four checks (10A to 10D) went through it claim by claim against primary texts, recomputation, NIST PSTAR range data and Crossref abstracts. <strong>148 sub-claims: CONFIRMED 39, PARTLY 57, CONTRADICTED 30, UNSUPPORTED 15, NOT REACHED 7.</strong> By part: 10A 42 (10, 21, 7, 4, 0), 10B 29 (6, 8, 10, 2, 3), 10C 61 (21, 21, 7, 8, 4), 10D 16 (2, 7, 6, 1, 0). Where the note agrees with the first one, that is not independent confirmation; each CONFIRMED here comes from a source read or a recomputation made after it arrived.</p>
+<p>What held: the lab approach to cold ices (Grundy, Blakley), the Mars RAD dose numbers (0.21 mGy/day, 0.64 mSv/day), the CO<sub>2</sub> hydrate Q1 point, the water-ice formula, comet ratios for CO<sub>2</sub>, the N_s value, most Titan and Mars diagnostic bands, and the Mainz licence. What did not: wrong dispersion formulas for CO<sub>2</sub>, O<sub>2</sub> and CH<sub>4</sub>; a discontinuous Band function; the Titan column (10 times too small); the Europa figure with no primary source; the Troe exponent; the claim that JPL 19-5 updated the ClO reactions; JPL 19-5 as public domain; a wrong arXiv id for Thorngren; Venus K/U. Items the note cites that I could not read are listed in each part's NOT REACHED section (10A none as whole rows; 10B the [R0879, R3308, R3452] tables, the Kr, Xe, HF, CH<sub>3</sub>Cl, TiO and VO photoionisation cross sections; 10C the CO 4.67 micron, HCN 88.6 GHz and CN 388 nm line data and the Huebner and Mukherjee terms).</p>
+<p>The note's R1 to R15 &quot;replacement&quot; paragraph lists research programmes, not sources, and renames some of our items (its R15 is brown-dwarf cloud regimes, ours is the brown-dwarf type against temperature relation); none of it sources a DESIGN row, so the 48 DESIGN rows stay open (part 10C section 7).</p>
+<h2 id="4-design-synthesis-one-registry-many-consumers">4. Design synthesis: one registry, many consumers</h2>
+<p>A single gas and compound registry (the GEN.410 table) should hold one row per species with these fields, each filled from a part; fields with no reachable source carry a NOT REACHED flag and a seeded range rather than a fixed value.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field group</th>
+<th>Fields</th>
+<th>Part</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Identity</td>
+<td>name, formula, CAS, molar mass, isotopologue flags, flags (greenhouse, condensible, photochemically fragile, toxic)</td>
+<td>01</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td>triple point, critical point, normal boiling or sublimation point, saturation vapour pressure curve with validity range, latent heats</td>
+<td>01, 06</td>
+</tr>
+<tr>
+<td>Thermal</td>
+<td>heat capacity at three temperatures (or polynomial), gamma, viscosity, Henry constant, real-gas Z</td>
+<td>01, 03</td>
+</tr>
+<tr>
+<td>Scattering</td>
+<td>Rayleigh cross section (polarizability, depolarization, reference temperature of the formula)</td>
+<td>02</td>
+</tr>
+<tr>
+<td>UV and visible absorption</td>
+<td>coarse bins with temperature trend, band positions for hot-giant absorbers</td>
+<td>02</td>
+</tr>
+<tr>
+<td>Infrared</td>
+<td>band centres, strength class, forcing law, collision-induced pairs</td>
+<td>03</td>
+</tr>
+<tr>
+<td>Photochemistry</td>
+<td>photolysis threshold, lifetime by host star class, reaction rows</td>
+<td>04</td>
+</tr>
+<tr>
+<td>Escape</td>
+<td>mass for the thermal escape test, diffusion-limit data</td>
+<td>04</td>
+</tr>
+<tr>
+<td>High energy</td>
+<td>EUV and X-ray photoabsorption, mass attenuation, proton stopping, ion-pair energy W</td>
+<td>07</td>
+</tr>
+<tr>
+<td>Distribution</td>
+<td>median mole fraction and log range by body class, redox, temperature, host star</td>
+<td>05</td>
+</tr>
+</tbody>
+</table></div>
+<p>Condensed species (the second registry, GEN.414's table): name, formula, density, condensation or sublimation curve and metallicity term, refractive index n and k by wavelength, single-scattering albedo, Angstrom exponent, particle size range by process (part 06). Radioactive ground species: half-life, decay energy, abundance ranges in crust and mantle, gamma dose coefficient, host-star scaling (part 07).</p>
+<p>How the parts feed the chain items of #1944:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Chain item</th>
+<th>Reads from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.410 gas and compound table</td>
+<td>01 (all), 02 (Rayleigh, UV bins), 03 (bands), 05 (species-by-class), 06 (condensates)</td>
+</tr>
+<tr>
+<td>GEN.411 molar density from partial pressures, GEN.424 balance gas</td>
+<td>01 (mean molar mass, scale height, real gas), 05</td>
+</tr>
+<tr>
+<td>GEN.412 albedo and greenhouse recorded with an inverse; GEN.423</td>
+<td>03 (inverse, tau0, Rayleigh and cloud albedo), 01</td>
+</tr>
+<tr>
+<td>GEN.422 freeze-out ordering</td>
+<td>01 and 06 (checked curves), 05</td>
+</tr>
+<tr>
+<td>GEN.413 ozone</td>
+<td>04 section 3, 02 (cross sections, Chapman), 05</td>
+</tr>
+<tr>
+<td>GEN.414 haze, dust, cloud</td>
+<td>06, 04 (haze yields), 03 (anti-greenhouse)</td>
+</tr>
+<tr>
+<td>GEN.417 Rayleigh of the mixture</td>
+<td>02</td>
+</tr>
+<tr>
+<td>GEN.418, GEN.419 colour of solid worlds and giants</td>
+<td>02 (chromaticity), 06 (cloud and haze optics), 05 (giant chemistry), 03</td>
+</tr>
+<tr>
+<td>Existing radiation and escape items (GEN.87, GEN.91 shoreline)</td>
+<td>07, 04</td>
+</tr>
+</tbody>
+</table></div>
+<p>New work these parts support, and where the TODO thread placed it (2026-10-17; version words are Boss's, owners are proposals):</p>
+<ol>
+<li>Atmospheric radiation: EUV and X-ray column absorption by composition, ion production and aurora (07 section 2), escape-relevant XUV heating (04): GEN.443 (9.0 phase 2).</li>
+<li>Surface radiation from composition: GCR and SEP dose against the column and gas, ground gamma from K, U, Th drawn from the host star, radon, UV index (07, 02): GEN.444 and GEN.445 (9.0 phase 2); the corrections of the existing constants are GEN.453.</li>
+<li>Ground radioisotope abundances and radiogenic heating drawn from host-star composition (07, linked to the bulk composition chain): GEN.444 with GEN.439.</li>
+<li>Outgassing speciation from mantle redox, volatile budget and temperature, with a reduced start (05): GEN.451 and GEN.411 (8.4 phase 2).</li>
+<li>Giant and brown-dwarf chemistry sequences by temperature, quench and metallicity (05), hot-Jupiter thermochemistry (05): GEN.454 (8.4 phase 2).</li>
+<li>Exospheres of airless bodies, comet coma abundances and production rates (04, 05): GEN.455 (8.4 phase 2).</li>
+<li>Dust lofting and settling by pressure and gravity (06): GEN.414 (8.4 phase 3).</li>
+<li>Lava-world and hot-rocky vapours (05, 06): GEN.456 (8.4 phase 3).</li>
+<li>A real UV index and biological UV doses (02): GEN.445 (9.0 phase 2).</li>
+<li>The checked saturation curves replacing the two-point table (01, 06): GEN.452 (8.4 phase 2); the added species and their storage: GEN.410 and DB.71 (8.4 phase 2).</li>
+<li>The weighted possibility tables of part 09 (16 categories, 104 rows) and the checks of Boss's note (findings 11 to 20): GEN.478 (the tables, loaded through GEN.472), the conflicts with the code GEN.479, and the research needs of section 6 item 14 as GEN.480 to GEN.494 (AR1 to AR15).</li>
+</ol>
+<h2 id="5-sources-and-domains">5. Sources and domains</h2>
+<p>At the time the lane started, only export.arxiv.org, ar5iv, raw.githubusercontent.com, PyPI and search snippets worked. At about 12:03 AM EDT the network was widened. Tested by this lane and by the workers:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Reachable</th>
+<th>Refused</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arxiv.org (abstracts and PDFs), export.arxiv.org, NIST WebBook, NIST XCOM, PSTAR and ASD, HITRAN (pages), ExoMol (pages), PubChem, NASA NTRS, Wikipedia, Copernicus (AMT, ACP), Optica (page and citation, PDF behind a captcha), IOPscience, Nature, Springer, Crossref, Zenodo, OSTI, UNSCEAR, PDG, NNDC, ICRP, CDS and VizieR, IPCC, PDS, archive.org (catalogue, lending 401), Mainz UV/VIS atlas, IUP Bremen ozone page, webmineral.com, gitlab.com, par.nsf.gov, europepmc</td>
+<td>doi.org, science.org, sciencedirect.com, agupubs and Wiley, aanda.org, academic.oup.com, cambridge.org, pubs.acs.org, researchgate, USGS, Mindat, lpi.usra.edu, github.com web pages (raw files work), arXiv API (rate limited), JPL data evaluation (502), HITRAN line-by-line (login), several publisher captchas</td>
+</tr>
+</tbody>
+</table></div>
+<p>Re-check of the sources that the first report could not reach (part 02 section 2.10):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Result now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3470] (H<sub>2</sub> dispersion)</td>
+<td>Optica gives only the citation. The dispersion constants (0.0148956, 180.7, 0.0049037, 92 at 273.15 K, 0.168 to 1.6945 um) were read in the refractiveindex.info database file <code>H2_nk_Peck.yml</code> (CC0). DATA for the constants; paper not reached</td>
+</tr>
+<tr>
+<td>[R0599]</td>
+<td>Mainz atlas files read for 220, 240, 260, 280 and 298 K, 407 to 762 nm; peak 5.163e-21 cm2 at 602 nm. The atlas says the cross sections were rebuilt from ratios the authors supplied in 2005. DATA; paper not reached</td>
+</tr>
+<tr>
+<td>[R4023]</td>
+<td>Bremen data read: 11 temperatures from 193 to 293 K, 213 to 1100 nm, 0.01 nm grid, systematic uncertainty under 0.5 percent. The page states no licence. DATA; licence not reached</td>
+</tr>
+<tr>
+<td>no source</td>
+<td>Not reachable (lending 401). The ground-bounce factor R_tot = R + T A (1 - s) / (1 - A s) was re-derived and checked by Monte Carlo. Formula COMPUTED</td>
+</tr>
+<tr>
+<td>[R0282, R2274, R2279, R4138]</td>
+<td>Still second-hand (ScienceDirect and Cloudflare pages); He 2021 supports the Sneep and Ubachs form and measured cross sections for O<sub>2</sub> and CO<sub>2</sub> at 532 nm agree with it (CO<sub>2</sub> 13.3e-27 cm2 measured against 13.32e-27 n-based)</td>
+</tr>
+<tr>
+<td>[R0575: Table 3], [R2047, R3480]</td>
+<td>Citations confirmed; text behind paywall or captcha; still not reached. The Earth tau_R test value stays computed</td>
+</tr>
+</tbody>
+</table></div>
+<p>The first report's open point on CO<sub>2</sub> at 532 nm (computed 13.3e-27 cm2 against a snippet 12.4e-27) is closed in favour of 13.3e-27 by the measured value in He 2021.</p>
+<h2 id="6-what-boss-must-research-consolidated">6. What Boss must research (consolidated)</h2>
+<p>Ranked by how much the chain depends on the item. The parts hold the full lists (part 01 section 13, 02 section 4, 03 section 11, 04 section 8, 05 section 14, 06 section 4, 07 section 5).</p>
+<ol>
+<li><strong>[R1445]</strong> (Planet. Space Sci. 57, 2053; no longer a request, Boss, 2026-10-18, 3:07 PM EDT): only the validity limits per fit are still missing (H<sub>2</sub> and He have no sublimation branch above their critical points; solid H<sub>2</sub> exists below 13.96 K). The lab curves of [R0418, R1708] apply only inside their measured windows (finding 21). Checked at about 1:55 AM EDT: no sign inversion in the [R2711] table (finding 11); below about 50 K the [R0418, R1708] lab fits (read) replace it. [R2137] still unread. Needed by the freeze-out ordering and by every cold world.</li>
+<li><strong>Magma-ocean redox and carbon solubility:</strong> [R4154] is now READ in full (finding 12). Still needed: [R1491] and 2021 and [R1953] (graphite, carbon solubility, the oxidation law of the later mantle) for the CO against CO<sub>2</sub> split.</li>
+<li><strong>Methane, ammonia and water absorption strengths in the visible for the giants</strong> ([R2258, R2263], 2010; no longer a request, Boss, 2026-10-18, 3:07 PM EDT: methane is filled from free data, partly verified, and ammonia and water stay labelled stand-ins, see gap-filling-plan.md), and the visible NH<sub>3</sub>, SO<sub>2</sub>, NO<sub>2</sub> tails.</li>
+<li><strong>Mars dust and Titan haze optical spectra:</strong> the [R4743] spectral albedo and index tables, [R3326] tables, [R4394] (PSS 56, 669) tables 2 and 3 and phase functions, [R1144]. The Titan extinction laws and Mars ranges are now covered second-hand (findings 15 and 16); the Fe3+ attribution of the UV absorption has no source.</li>
+<li><strong>Line and continuum data for composition-derived infrared optical depth:</strong> correlated-k grids or Rosseland and Planck means for CO<sub>2</sub>-dominated, N<sub>2</sub>-O2-H2O and steam atmospheres (HITRAN, HITEMP or ExoMol with CIA; [R3519] for the water side; [R3229] original; the [R3439] formulas are READ, finding 13, with the 2015 opacity tables still to extract). Without them the greenhouse stays a parametrisation (finding 5).</li>
+<li><strong>Rayleigh originals:</strong> [R0443] depolarization of SO<sub>2</sub>, H<sub>2</sub>S and others (the note's claim of King factors above 1.20 is contradicted, finding 14); [R0282, R0575, R4138] Table 3. They remove the plus or minus 5 to 9 percent generic error.</li>
+<li><strong>Cosmic-ray and energetic-particle inputs:</strong> (the form and parameters are now read, finding 25) and [R4789] SEP spectra; [R1843] Mars dose; [R0879, R3308] (Europa); AP9/AE9 belts; shower runs for H<sub>2</sub>, He, CH<sub>4</sub>, NH<sub>3</sub> and CO<sub>2</sub> columns; ICRP 103 numeric limits; W values and EUV outer-shell cross sections for Ar, Ne, Kr, Xe, HCN, H<sub>2</sub>CO, HCl, HF, CH<sub>3</sub>Cl, SiO, TiO, VO and the metals.</li>
+<li><strong>Hot-giant and lava-world line lists and vapour pressures:</strong> TiO, VO, FeH, CrH, Na, K line lists and pressure-broadened wings; partial pressures of Na, K, SiO, Mg, Fe, TiO, VO over magma ([R3945]; LavAtmos [R3059, R4488] numeric tables).</li>
+<li><strong>H<sub>2</sub>SO<sub>4</sub>-H2O and brines:</strong> [R0210, R4289, R4877] for the acid vapour pressure by weight percent; perchlorate eutectics and deliquescence (Chevrier, Hanley, Gough); NH<sub>4</sub>Cl and HNO<sub>3</sub> and HCl hydrates; clathrate dissociation [R0779].</li>
+<li><strong>Comet per-species abundances and production-rate law:</strong> [R0436, R3206], Dello [R0048, R1063] with usable OCR, Combi and Meech production rates; Harrington [R3535].</li>
+<li><strong>Photochemistry gaps:</strong> JPL 19-5 evaluation (ClO + O, ClO + NO, ClO + ClO, Troe parameters for all falloff reactions), phosphorus chemistry rates and PH<sub>3</sub> cross sections beyond [R4163], F-star far-UV and extreme-UV spectra, [R4415, R4883] originals (the haze threshold is read through [R0156]), [R1814, R2050, R4860].</li>
+<li><strong>Stellar abundance trends:</strong> Th, U, Eu and K against [Fe/H] and [alpha/Fe] for radioisotope scaling; measured K/U and Th/U for oceanic crust, Moon, Mars, Venus, Mercury and chondrite classes; sub-Neptune envelope metallicity occurrence distribution; [R4352] scatter of the mass-metallicity fit.</li>
+<li><strong>Licences:</strong> Mainz is settled (cite [R2302, R2303], Zenodo CC BY 4.0); still open: Leiden photodissociation database ([R1873], citation request), [R2040], JPL 19-5, the Bremen files (no licence stated) and the NMSU Karkoschka files. Record only, no gate (Boss, 2026-10-17, 2:35 PM EDT).</li>
+<li><strong>Weighted-table research R1 to R15</strong> (part 09 section 4): the sources that would replace the 48 DESIGN rows, led by volatile delivery against formation distance (R2), the radius valley and envelope occurrence (R1), giant C/O (R5), comet classes (R9), trace gases (R11), brown-dwarf types (R15).</li>
+<li><strong>Proxy widening still useful:</strong> doi.org, science.org, sciencedirect.com, agupubs (Wiley), aanda.org, academic.oup.com, cambridge.org, pubs.acs.org, usgs.gov, mindat.org, lpi.usra.edu, github.com pages, jpldataeval.jpl.nasa.gov (Project settings, environment network). With those most of the &quot;second-hand&quot; and &quot;not reached&quot; rows above can be read from the papers.</li>
+<li><strong>The Tunable gaps list</strong> (<a href="tunable-gaps.html">tunable-gaps.md</a> section 6): the exact papers and data that would turn the rows needing a named source (a1, a2, b4, b5, n7, k7) and the weaker tuned rows into sourced draws: Putirka and Xu 2021 Table A1, the NGPPS formation-stage tables, [R0710, R4350] tables, [R0364] code and labels, CKS DR2 tables and the DR25 injections, Dello [R1063, R1075] Fig. 3, [R1438, R1951], and the licences of Hypatia, the NGPPS Zenodo record and LExACoM.</li>
+</ol>
+<h2 id="7-recalled-values">7. Recalled values</h2>
+<p>Every RECALLED value is flagged in its row and listed in the &quot;Recalled / to verify&quot; section of its part (about 34 values, mostly band centres, lab constants and the Peng-Robinson constants, which matched NIST compressibility within a few percent). None of them is used as a verified input. Parts 01, 02, 03 and 06 hold nearly all of them.</p>
+<h2 id="8-method-and-limits">8. Method and limits</h2>
+<p>Seven workers each took one domain under the same rules (scientifically accurate, nothing fixed or copied from Solar System presets, every number labelled, no unmarked recall). Solar System bodies appear only as rows marked TEST or CALIBRATION. The seven research parts were written between 12:05 AM and 1:00 AM EDT; 08A, 08B and 09 between 1:22 AM and about 2:00 AM EDT. The workers' row counts are their own. Several widths in the generator recipes (for example the seeded spread on ozone, scatter on mixing ratios) are design choices and are flagged as such in the parts. This master and the parts say what the science supports; where the science is missing the part says so and offers a seeded physical range for the generator to use meanwhile, in line with the rule that nothing is fixed per class.</p>
+<h2 id="9-boss-supplied-research-checked-2026-10-17-122-am-edt-note-checked-by-the-lane-about-200-am-edt-as-it-reported">9. Boss-supplied research: checked (2026-10-17, 1:22 AM EDT note; checked by the lane about 2:00 AM EDT as it reported)</h2>
+<p>Boss posted a research text (tiers 1 to 5 and a fourteen-row priority matrix) in the body composition thread; the coordinator routed it to this lane to verify. It is now checked claim by claim in parts 08A and 08B (23 claims) and summarised as findings 11 to 20 in section 3: the cold sublimation &quot;sign inversions&quot; are unsupported and the real error is model error below about 50 K (finding 11), [R4154] is read and gives a mass-dependent redox prior (12), the Parmentier and Guillot equation in the note is not the published one (13), the single Rayleigh reference density is wrong for five gases (14), the Mars dust albedo and the Titan haze laws are confirmed in part and the 40 percent underprediction and the Fe3+ attribution have no source (15, 16), the comet NH<sub>3</sub> range is contradicted (17), the ICRP weights are confirmed with a correction on neutrons (18), two dataset identities and the licences are corrected (19) and the ammonia attribution is corrected (20). Nothing in the note is adopted without its check. The notes are on GEN.410, GEN.412, GEN.414, GEN.417, GEN.419, GEN.422, GEN.423, GEN.436, GEN.451, GEN.452, GEN.454, GEN.455, GEN.470 and GEN.444.</p>
+<p><strong>Checked by the Body composition research lane (part F of <a href="body-composition-research.html">body-composition-research.md</a>, 2026-10-17, 1:28 AM EDT as the lane reported):</strong> the Feistel and Wagner water-ice form is correct to 0.06 percent against IAPWS R14-08; the cold-ice polynomials reproduce NIST triple points within 3 percent through a secondary table (validity ranges and the cold end not verified; the primary paper stays on Boss's list); [R4154] was read and confirms the redox figures, with about 35 percent of the CO<sub>2</sub> initially dissolved; the ICRP 103 table maps tissue weights to particle types wrongly and the neutron weighting runs 2.5 to about 20.7; the comet ranges agree with part D except the lower CO bound; the Thorngren scatter stays 0.26 dex; the Mars dust row is misattributed to SO<sub>2</sub> aerosol. The new items are GEN.470 (the saturation-pressure function), GEN.471 (clathrates and brines) and the folded redox state of GEN.451.</p>
+<h2 id="10-boss-supplied-research-second-note-checked-2026-10-17-211-am-edt-note-checked-by-the-lane-about-255-am-edt-as-it-reported">10. Boss-supplied research, second note: checked (2026-10-17, 2:11 AM EDT note; checked by the lane about 2:55 AM EDT as it reported)</h2>
+<p>Boss posted a second long research note at 2:11 AM EDT (&quot;Research INCOMING&quot;): eight sections on sub-50 K ice vapour pressures and cryospheric phase equilibria, magma-ocean redox and rock vaporisation, Rayleigh and molecular spectroscopy, aerosols and haze thresholds, energetic particles and photochemical kinetics, cometary volatiles and the radiogenic ratios, a weighted-table synthesis with the dataset licences, and conclusions. The coordinator sent the whole note to this lane and the body-related parts to the Body composition research lane. Both are done: this lane checked 148 sub-claims (39 confirmed, 57 partly, 30 contradicted, 15 unsupported, 7 not reached; section 3c and findings 21 to 30; parts 10A to 10D), the body lane 100 (section 15 of <a href="body-composition-research.html">body-composition-research.md</a>). Nothing in the note is adopted without its check. What changes in the items, on top of the first note:</p>
+<ul>
+<li><strong>Cold curves (GEN.410, GEN.422, GEN.470, GEN.452):</strong> the [R1708] fits hold only inside their windows (N<sub>2</sub> 23 to 31 K, CO 26 to 35 K, CH<sub>4</sub> 31 to 43 K), beta-O2 (29 to 37 K) and NH<sub>3</sub> (88 to 105 K) come from [R0418] only, and each blends into Fray and Schmitt where the ratio reaches 1. The beta-O2 &quot;average factor 1.6&quot; is a mean over its own 29 to 37 K window (recomputed 1.7); the earlier &quot;factor 4 at 24 K&quot; for O<sub>2</sub> was the fitted curve extrapolated below the lowest datum and is dropped; L(O2) is about 10 kJ/mol. Never scale p_vap by a sticking coefficient. Triple points: CO 68.16 K, O<sub>2</sub> 54.361 K, NH<sub>3</sub> 195.49 K. The Jager and Span CO<sub>2</sub> equation is valid 80 to 300 K and 0 to 500 MPa. CO<sub>2</sub> hydrate Q1 is 271.60 K at 1.044 MPa (GEN.471).</li>
+<li><strong>Rayleigh (GEN.410, GEN.417):</strong> no coefficient from the note is adopted (its CO<sub>2</sub>, O<sub>2</sub> and CH<sub>4</sub> dispersion formulas are wrong; its N_s is right). SO<sub>2</sub> and H<sub>2</sub>S stay on the polarizability route until [R0443].</li>
+<li><strong>Radiative transfer (GEN.412, GEN.423):</strong> the Parmentier and Guillot semi-grey form is equation 30 with mu_* throughout; beta is the band fraction, not an opacity ratio.</li>
+<li><strong>Lava worlds (GEN.422, table i, GEN.456):</strong> carbon is CO below about IW and carbonate above about IW+1; Na leads the vapour to about 2700 K, so no 2200 K switch and no 40 to 60 g/mol mean; the Miguel type edges stay.</li>
+<li><strong>Radiation (GEN.443 to GEN.446, GEN.453):</strong> SEP uses the integral rigidity Band form with parameters (the note's form is discontinuous); the atmospheric cutoff comes from inverting the PSTAR range for column P/g (Mars 165 MeV vertical); neutrons are 2 to 7 percent of the dose; the Titan column is 10,850 g/cm2 and the surface dose about 3e-6 Gy per year; Europa needs a depth profile; W(air) is 33.97 eV.</li>
+<li><strong>Photochemistry (GEN.413):</strong> Troe with Fc 0.6 and N 1 (JPL); JPL 19-5 did not update the ClO reactions; no new PH<sub>3</sub> cross sections.</li>
+<li><strong>Aerosols, comets, radioisotopes, giants (GEN.414, GEN.455, GEN.459, GEN.460, GEN.464):</strong> aerosol ranges in finding 28; NH<sub>3</sub> photolysis lifetime at 1 AU settled with the body lane (part 10E, about 3:25 AM EDT as the lane reported): default 1.5e-4 per s (6.7e3 s, [R1873] with the cross section, reproduced to four digits, [R0407] agrees), range 1.3e-4 to 1.8e-4 per s (5.6e3 to 7.7e3 s; the 5.6e3 s figure is the [R2040, R2041] value, called quiet Sun by two sources and a quiet and active mean by [R1163], and those inputs were not reached), and an activity factor of 1.05 to 1.10 because NH<sub>3</sub> absorbs mainly at 170 to 217 nm; GEN.496 stores the quiet-Sun rate and that factor, and a hard 200 nm cut would be wrong by a factor 2; Venus K/U 6 to 8 thousand, MORB Th/U about 3.0 (the radioisotope Th/U range needs a lower tail), Thorngren fit Z_p/Z_* = 9.7 M_J^-0.45 [R4352] with scatter x1.82, valid from 20 Earth masses. Do not add &quot;more heat at low metallicity&quot;.</li>
+<li><strong>Licences (GEN.410, GEN.427, GEN.438; Boss ruled at 2:35 PM EDT that no licence audit gates any of them and removed GEN.500; this finding stays as the record of what each source states):</strong> JPL 19-5 is not public domain; treat JPL 19-5, Huebner and Mukherjee, NMSU and Bremen as no licence found; Mainz is CC BY 4.0; cite Leiden on use.</li>
+<li><strong>Weighted tables (part 09):</strong> no row weight changes; add a derived column X = P/g to rows d3 to d5 and a flag that abiotic-O2 outcomes for p2 and p3 are unreliable until the [R3662] cross sections are used. The note's R1 to R15 list does not source any DESIGN row, so the 48 stay open (AR1 to AR15 = GEN.480 to GEN.494).</li>
+<li>Not reached (each part lists them): the [R0879, R3308, R3452] tables, the Kr, Xe, HF, CH<sub>3</sub>Cl, TiO and VO photoionisation cross sections, the CO 4.67 micron, HCN 88.6 GHz and CN 388 nm line data and the Huebner and Mukherjee terms. Boss's list is still the 15 items of section 6.</li>
+</ul>
+<p><strong>Checked by the Body composition research lane (2026-10-17, 2:43 AM EDT as the lane reported; section 15 and parts G1 to G4 of <a href="body-composition-research.html">body-composition-research.md</a>):</strong> 100 claims of the body-related sections, 35 confirmed, 47 partly confirmed, 9 contradicted and 9 unverifiable; the new items are GEN.495 to GEN.500 (GEN.500, the licence audit, was removed by Boss at 2:35 PM EDT).</p>
+<h2 id="11-usability-rule-boss-302-am-edt">11. Usability rule (Boss, 3:02 AM EDT)</h2>
+<p>Everything verified or partly verified is usable as long as it is not contradicted; when two sources contradict, the verified one wins. Extended at 12:39 PM EDT: when in doubt, verified wins; when two verified sources are in doubt, the newest wins; when two sources are both in question, the one that takes the most permission wins (his words are 'most permission take wins'; Boss confirmed by card at 1:12 PM EDT on 2026-10-17, relayed in words by the coordinator, that it means the widest range of the two sources). Boss answered a card at 12:40 PM EDT (relayed in words): his six earlier 'widen and keep both' answers stand (arm pitch against bulge fraction, nuclear cluster mass slope, blue to red cluster radius ratio, thick-to-thin height ratio, thick-to-thin mass ratio against Vc, cluster system radius), and the newest-wins rule applies to every conflict that comes after them. Applied to the labels in the parts and the verdicts above:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Label or verdict</th>
+<th>Usable in a table or formula</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ, DATA, COMPUTED</td>
+<td>yes</td>
+<td>wins every contradiction</td>
+</tr>
+<tr>
+<td>2ND-HAND</td>
+<td>yes</td>
+<td>loses to a READ, DATA or COMPUTED value that disagrees; keep the stated spread</td>
+</tr>
+<tr>
+<td>PARTLY (verdict)</td>
+<td>yes</td>
+<td>only within the stated limit or corrected value (for example Mars omega0 by wavelength band, lab ice curves inside their measured windows)</td>
+</tr>
+<tr>
+<td>CONFIRMED (verdict)</td>
+<td>yes</td>
+<td></td>
+</tr>
+<tr>
+<td>RECALLED, SNIPPET</td>
+<td>only as a flagged placeholder with a seeded range</td>
+<td>loses to any verified value</td>
+</tr>
+<tr>
+<td>UNSUPPORTED, NOT REACHED</td>
+<td>not as a number; a DESIGN row with a physical bracket instead</td>
+<td></td>
+</tr>
+<tr>
+<td>CONTRADICTED</td>
+<td>no</td>
+<td>use the corrected value given in the verdict</td>
+</tr>
+</tbody>
+</table></div>
+<p>Open conflicts that this rule settles: the cold-ice lab fits against Fray and Schmitt (lab inside its window wins, F&amp;S outside); the note's Rayleigh dispersion formulas against the verified ones (verified win); the Band formula (published form wins); Troe N (JPL value wins). The NH<sub>3</sub> photolysis lifetime is settled: default 6.7e3 s at 1 AU, range 5.6e3 to 7.7e3 s (part 10E of this note).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

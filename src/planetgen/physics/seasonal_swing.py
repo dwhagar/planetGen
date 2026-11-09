@@ -443,6 +443,9 @@ def _anderson(step, start):
     size = updated.size
     delta_f = np.empty((ANDERSON_DEPTH, size))
     delta_g = np.empty((ANDERSON_DEPTH, size))
+    # PERF.255: the Gram matrix of the stored differences, kept between passes. A pass replaces one slot, so only its row and column are new; the rest hold the sums they
+    # held (each summed left to right by `detmath.matmul`, and a product commutes exactly, so a column is the row it mirrors, bit for bit).
+    gram_store = np.empty((ANDERSON_DEPTH, ANDERSON_DEPTH))
     count = 0
     previous_f = previous_g = None
     passes = 1
@@ -460,7 +463,10 @@ def _anderson(step, start):
         used = min(count, ANDERSON_DEPTH)
         if used:
             matrix = delta_f[:used]
-            gram = detmath.matmul(matrix, matrix.T)
+            row = detmath.matmul(delta_f[slot:slot + 1], matrix.T)[0]
+            gram_store[slot, :used] = row
+            gram_store[:used, slot] = row
+            gram = gram_store[:used, :used].copy()
             gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
             mixed = current_g - detmath.matmul(gamma, delta_g[:used])
         else:

@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G2: check of Boss's second note, radiogenic ratios by body, stellar Th and U, Thorngren mass-metallicity - planetGen docs</title>
+<meta name="description" content="Scope: claims G2.1 to G2.4 of brief G.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/body-composition-parts/G2-radiogenic-thorngren.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/body-composition-parts/G2-radiogenic-thorngren.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="g2-check-of-bosss-second-note-radiogenic-ratios-by-body-stellar-th-and-u-thorngren-mass-metallicity">G2: check of Boss's second note, radiogenic ratios by body, stellar Th and U, Thorngren mass-metallicity</h1><p class="meta">docs/design/composition/body-composition-parts/G2-radiogenic-thorngren.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#verdicts">Verdicts</a></li><li style="margin-left:0px"><a href="#evidence-tables">Evidence tables</a></li><li style="margin-left:14px"><a href="#g21-per-body-measured-k-th-u-instrument-and-sample-basis">G2.1 per body: measured K, Th, U, instrument and sample basis</a></li><li style="margin-left:14px"><a href="#scatter-by-basis-for-a-distribution-not-a-value">Scatter, by basis (for a distribution, not a value)</a></li><li style="margin-left:14px"><a href="#g22-stars-what-each-named-source-gives">G2.2 stars: what each named source gives</a></li><li style="margin-left:14px"><a href="#g23-r4352-as-read-and-the-tests-since">G2.3 [R4352] as read, and the tests since</a></li><li style="margin-left:0px"><a href="#figures-for-the-generator">Figures for the generator</a></li><li style="margin-left:14px"><a href="#31-stellar-th-and-u-relative-to-rock-forming-elements">3.1 Stellar Th (and U) relative to rock-forming elements</a></li><li style="margin-left:14px"><a href="#32-radiogenic-ratios-by-body-planet-scale">3.2 Radiogenic ratios by body (planet scale)</a></li><li style="margin-left:14px"><a href="#33-giant-planet-heavy-elements">3.3 Giant-planet heavy elements</a></li><li style="margin-left:0px"><a href="#calibration-and-test-targets-never-presets">Calibration and test targets (never presets)</a></li><li style="margin-left:0px"><a href="#still-unreachable-boss-must-research">Still unreachable (Boss must research)</a></li><li style="margin-left:0px"><a href="#counts">Counts</a></li></ul></details>
+<p>Scope: claims G2.1 to G2.4 of brief G. Boss's <code>[cite: n]</code> tags point to nothing, so each claim was treated as a pointer. Labels as in the common brief (READ, 2ND-HAND, COMPUTED, SNIPPET, RECALLED, NOT REACHED). Scripts and extracted tables are in <code>parts/G-files/</code> with prefix <code>G2-</code> (<code>G2-ratios.py</code>, <code>G2-thorngren-table2-fit.py</code>, <code>G2-mz-compare.py</code>, their <code>.out.txt</code>, <code>G2-thorngren-table2-parsed.json</code>). Part E section 2.8b and 3.3 and part C item 2.6 were reused and relabelled where they agree.</p>
+<p>Reading key: ppm is by mass. K/U is a mass ratio (the note's &quot;x10^3&quot; is the same ratio divided by 1000). Solar System numbers below are calibration targets only.</p>
+<h2 id="verdicts">Verdicts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>claim as written (short)</th>
+<th>verdict</th>
+<th>the right figure</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G2.1a</td>
+<td>CI: K/U 60 to 70 (x10^3), Th/U 3.6 to 3.8</td>
+<td>CONFIRMED</td>
+<td>K 552, Th 0.0293, U 0.0078 ppm gives K/U 70.8 x10^3 and Th/U 3.76; with Th 0.0300 and U 0.00796 [R3417] Th/U 3.77; part E's 67.4 x10^3 (K 546) sits inside the range. K/U depends on the tabulation within 67 to 71 x10^3</td>
+<td>[R2986] [R2986: Table 3]; [R4833] CI table</td>
+<td>READ (ratios COMPUTED)</td>
+</tr>
+<tr>
+<td>G2.1b</td>
+<td>Bulk Earth: K/U 10 to 12, Th/U 3.7 to 3.9</td>
+<td>PARTLY</td>
+<td>Th/U 3.77 is right (BSE kappa-Pb 3.90 +0.13/-0.08 molar). K/U is 11.4 to 13.8 x10^3, not 10 to 12: 12.6 ([R2986: Table 3], K 260, U 0.0206), 13.8 +-1.3 [R0138], more than 12.1, 11.35 (part E, [R3417]), 11.8 (McDonough and Sun 1995, part E)</td>
+<td>[R2986] sections 6.7 and the K/U paragraph</td>
+<td>READ for 12.6, 13.8, 12.1, 3.77; 2ND-HAND for Arevalo, Farcy, Wipperfurth</td>
+</tr>
+<tr>
+<td>G2.1c</td>
+<td>Earth oceanic crust: K/U 10 to 12, Th/U 3.7 to 4.0</td>
+<td>PARTLY</td>
+<td>MORB glass K/U = 12.7 x10^3 +-0.2 (just above the claimed range) and Th/U is not constant: &quot;Th/U increases systematically with Th concentration&quot;. N-MORB Th/U is 3.04 in part E (K 1162, Th 0.252, U 0.083), so 3.7 to 4.0 is wrong for the crust; 3.7 to 4.0 belongs to the whole silicate Earth and to the continental crust (UCC 3.89)</td>
+<td>[R2168] (abstract); part E table 2.8b</td>
+<td>READ (abstract); part E 2ND-HAND</td>
+</tr>
+<tr>
+<td>G2.1d</td>
+<td>Moon: K/U 2.5 to 3.0, Th/U 3.6 to 3.8</td>
+<td>PARTLY</td>
+<td>Bulk-silicate-Moon K/U is about 2.3 (K 52.6 +-9.6 ppm from mare-basalt K/La; Th 0.0849 and U 0.0229 are assumed Earth-primitive-mantle-like, so Th/U 3.71 is an assumption, not a measurement). A review quotes &quot;~2500 vs ~12000 for Earth&quot;. The upper end 3.0 is not supported. Lunar Prospector measured Th and K only (no U); surface K/Th about 360</td>
+<td>[R4155] [R4156] (Table of BSMoon); [R0640]</td>
+<td>READ (2ND-HAND) Prettyman)</td>
+</tr>
+<tr>
+<td>G2.1e</td>
+<td>Mars: K/U 16 to 20, Th/U 3.7 to 3.9</td>
+<td>CONFIRMED (value) with a caveat</td>
+<td>Bulk silicate Mars [R4833]: K 360 ppm, Th 68 ppb, U 18 ppb gives K/U 20.0 x10^3 and Th/U 3.78. [R4315] 19.3 and 3.62. Caveat: Odyssey GRS measures K and Th, not U; U is set by refractory-lithophile scaling, so Th/U is an assumed chondritic value. Models disagree widely</td>
+<td>[R4833: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.1f</td>
+<td>Venus: K/U 10 to 13, Th/U 3.7 to 3.9, &quot;Earth-like ratio confirmed by Venera data&quot;</td>
+<td>PARTLY (the confirmation is not supported)</td>
+<td>Five lander sites, each 40 to 130 percent error: K/U 5.9 +-4.5 (Vega 2), 7.0 +-6.2 (Vega 1), 15 +-7 (Venera 8); Th/U 2.3 +-2.6, 2.9 +-2.2, 3.0 +-1.4. Venera 9 and 10 (K/U about 7.8 and 6.5, Th/U about 6.1 and 1.5) are RECALLED, not verified. The data are &quot;imprecise, except for one (Venera 8) with extremely high K (about 4 percent K<sub>2</sub>O) and one (Venera 9) with a non-chondritic U/Th&quot;. Venus basalts show nearly constant K/U, unlike terrestrial rocks (constant Th/U)</td>
+<td>[R4266] JGR (EarthRef abstract); [R4044] Icarus (abstract, via search summary); Treiman EGU 2009 abstract; [R3291] (EarthRef abstract)</td>
+<td>READ (Vega, Treiman, Nikolaeva); SNIPPET (Venera 8); RECALLED (Venera 9, 10)</td>
+</tr>
+<tr>
+<td>G2.1g</td>
+<td>Mercury: K/U 8 to 18, Th/U 3.5 to 4.0, &quot;moderately high surface K ... ruling out total mantle vaporization&quot;</td>
+<td>PARTLY</td>
+<td>MESSENGER GRS northern-hemisphere surface: K 1150 +-220 ppm, Th 220 +-60 ppb, U 90 +-20 ppb. COMPUTED: K/U 12.8 +-3.7 x10^3 (inside 8 to 18), K/Th 5230, <strong>Th/U 2.4 +-0.9</strong>. The source does not give 3.5 to 4.0; 3.7 is 1.4 sigma above the measurement, so it is allowed but not measured. &quot;Ruling out total mantle vaporization&quot; is Boss's paraphrase: the source states the K/Th is similar to the other terrestrial planets and disfavours models needing extreme heating (a giant-impact high-temperature event), which a later chapter says does not strictly follow because vaporised mantle recondenses</td>
+<td>[R3483] (abstract values via search summary, full text refused); [R3484] JGR (abstract: K 300 to 2400 ppm regionally, Th nearly constant); Nittler et al. [R1207] chapter text</td>
+<td>SNIPPET (values); READ (2012 abstract, review text)</td>
+</tr>
+<tr>
+<td>G2.2a</td>
+<td>Sub-solar [Fe/H] stars have elevated [Th/Fe] and [U/Fe]</td>
+<td>PARTLY</td>
+<td>Th: solar twins show [Th/Fe]_ZAMS = +0.082 - 0.338 [Fe/H] (slope -0.338 +-0.049, 6.9 sigma, rms 0.040 dex) but only over [Fe/H] within +-0.1 dex; Eu (the proxy) falls relative to alpha elements with metallicity: slopes of [Eu/H] against [alpha/H] are 0.77 to 0.84 (less than 1). U: not measured in any disc star</td>
+<td>[R0478, R0479] [R0479: Table 4]; [R0664] [R0664: Table 1] and section 6.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.2b</td>
+<td>... &quot;due to r-process timing&quot;</td>
+<td>PARTLY</td>
+<td>Published readings: neutron-star mergers with a delay time shorter than t^-1 against iron from white-dwarf SNIa, or a metallicity-dependent r-process. Interpretation, not a measured cause (the papers list both). Th follows Eu ([Th/Eu] = 0.014 +-0.045 on the ZAMS) and not Nd (60 percent s-process)</td>
+<td>[R0664] sections 4.1; [R0478, R0479] sections 4 and 5</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.2c</td>
+<td>... &quot;higher radiogenic heating per unit silicate mass in early-formed systems&quot;</td>
+<td>PARTLY</td>
+<td>Two different axes are mixed. (1) Thin-disc solar twins: [Th/Si] at birth is <strong>lower</strong> for older stars (+0.149 now falling by 0.0121 dex per Gyr of age; +0.045 at 8.6 Gyr). (2) Galactic chemical evolution models of the total initial heat budget (K-40, U-235, U-238, Th) give a larger initial budget for planets formed earlier in Galactic time, because K-40 and U-235 decay in the ISM and non-radioactive rock-formers dilute the rest; that is a model result ([R1438], used by [R4468]) not a metallicity law. Heat per silicate mass at a given age also depends on exp(-lambda t) since formation (part E 2.8c), not only on abundance</td>
+<td>[R0479: Table 4]; [R4468] Appendix B.1 and Fig. A1; [R1438] (Icarus, only a search summary read)</td>
+<td>READ; Frank SNIPPET</td>
+</tr>
+<tr>
+<td>G2.2d</td>
+<td>(implicit) [U/Fe] elevated, U usable as an input</td>
+<td>UNVERIFIABLE for disc dwarfs</td>
+<td>U has not been measured in Sun-like or disc stars (&quot;uranium has yet to be measured in young Sun-like stars&quot;; &quot;few actual U measurements have been made in the Galactic disk&quot;). Eight r-process-enhanced halo giants with [Fe/H] about -3 have both Th and U detected (CS 31082-001, BD+17 3248, HE 1523-0901 [log eps(U) = -2.06, log eps(Th) = -1.20], CS 29497-004, J2038-0023, J0954+5246, J2003-1142, J2213-5137). Disc U must be derived from Th or Eu with a production ratio</td>
+<td>[R4468] Appendix A.4; [R0664] introduction; [R1447] [R0761, R1447] introduction (the eight stars)</td>
+<td>READ (2ND-HAND for the list of stars)</td>
+</tr>
+<tr>
+<td>G2.3a</td>
+<td>Z_planet/Z_star proportional to M_p^-alpha, alpha 0.45 to 0.55</td>
+<td>PARTLY</td>
+<td>[R4352: Fig. 11]: Z_p/Z_star = (9.7 +-1.28) (M/MJ)^(-0.45 +-0.09); the text also writes &quot;about 10 (M/MJ)^-0.5&quot;. Later fits move away: -0.41 +-0.17 (0.3 to 2 MJ, FGK) and -0.71 +-0.04 (0.1 to 10 MJ) in [R3201]; Z_p/Z_star flattens at 3.3 +-0.5 for massive planets in [R0710]. [R4328]: the relation is largely the M_Z-against-M relation, not a stellar-metallicity effect</td>
+<td>[R4352: Fig. 11] and section 6; [R3201: Eq. 3], B.1; [R0710] abstract; [R4328] section 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.3b</td>
+<td>&quot;M_p &lt; 30 Earth masses have atmospheres heavily enriched, 10 to 50 times solar&quot;</td>
+<td>PARTLY (wrong quantity)</td>
+<td>The paper's lowest-mass planets are 19 to 22 Earth masses (K2-24 b 0.06 MJ; GJ 436 b 0.07 MJ). The extrapolated fit gives bulk Z_p/Z_star of 28 at 30 and 34 at 20 Earth masses; the five lowest-mass planets have bulk Z_p/Z_star of 24 to 132. These are ratios of bulk metal fraction to the star's, not atmosphere &quot;times solar&quot;. Atmosphere: [R4350] give an upper limit of about 100 times solar at Neptune masses (a prior, f = 1); a measurement at Saturn mass is 59 to 276 times solar (HD 149026 b, bulk Z 0.66)</td>
+<td>[R4352: Table 2] and Fig. 11; [R4350] section 3.1; [R0301] abstract</td>
+<td>READ; COMPUTED (28, 34)</td>
+</tr>
+<tr>
+<td>G2.3c</td>
+<td>Z_planet is the &quot;atmospheric heavy-element enrichment / envelope metallicity&quot;</td>
+<td>CONTRADICTED</td>
+<td>Z_planet = M_Z/M_p, the <strong>bulk</strong> heavy-element mass fraction inferred from mass, radius and age with 50/50 rock-ice ANEOS metals. The paper says its Z_planet &quot;values are upper limits on Z_atmosphere&quot; for planets above Saturn mass. [R4350] define Z_atm = f Z_p with 0 &lt;= f &lt;= 1 (Jupiter and Saturn f about 0.2)</td>
+<td>[R4352] section 7 (end) and section 3.1; [R4350] eq. 1 and section 3.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.3d</td>
+<td>(part C item 2.6) M_Z = 57.9 (M/MJ)^0.61 Earth masses, 0.26 dex</td>
+<td>CONFIRMED</td>
+<td>Units and scatter confirmed independently: [R4350] write the same law as M_Z = 0.182 M^0.61 with M and M_Z in Jupiter masses (0.182 MJ = 57.9 Earth masses) and sigma_Z = 0.26 dex. The paper's own text: 10^sigma = 1.82 +-0.09. Re-fit from Table 2 (46 planets, mean values): 55.6 (M/MJ)^0.60, rms 0.32 dex (COMPUTED, includes measurement error, so above the paper's intrinsic 0.26)</td>
+<td>[R4352] section 5.1; [R4350] eq. 4; <code>G2-thorngren-table2-fit.py</code></td>
+<td>READ; COMPUTED</td>
+</tr>
+<tr>
+<td>G2.4a</td>
+<td>Photoevaporation strips H-He preferentially from low-gravity worlds, leaving metal-enriched residues</td>
+<td>PARTLY</td>
+<td>Not in [R4352] (its flux cut F &lt; 2e8 erg s-1 cm-2 and 20 Earth masses to 20 MJ remove irradiated planets and the word photoevaporation does not occur in the text). Later model papers support enrichment but only in a regime: [R2840] (final envelope Z 0.04 to 0.23 from 0.02, planets with initial envelope under 0.5 percent, 10 to 1000 times Earth's flux), [R2752] (26 Earth-mass planet, T_eq about 1000 K: metal-to-hydrogen up 50 to 70 times after 10 Gyr), [R4479] (enrichment only in a narrow intermediate-flux regime; oxygen is retained over most of the space). Model outputs, no observed population law</td>
+<td>[R4352] (no mention); [R2840] sections 4.1; [R2752] abstract; [R4479] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>G2.4b</td>
+<td>Scatter &quot;driven by planetesimal accretion histories and core-envelope mixing efficiency&quot;</td>
+<td>PARTLY</td>
+<td>[R4352] names &quot;the planet's migration history and the stochastic nature of planet formation&quot;; section 6 attributes solar-system giants' high Z to late planetesimal accretion; no residual correlates with a/period/flux/e/stellar mass (Fig. 12). Core versus envelope placement is a stated systematic of the M_Z inference (up to 10 Earth masses in a core in their models). Mixing efficiency enters as the visible fraction f [R4350]; it is not shown to drive the scatter. [R4328]: no correlation of the residual with host [Fe/H] (slope 1 excluded at 2 sigma), a possible link to stellar volatile-to-refractory ratio. [R0710]: factor-of-3 scatter in M_Z at 20 to 40 Earth masses unexplained</td>
+<td>[R4352] sections 5.1, 6; [R4328] section 4; [R0710] section 5</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="evidence-tables">Evidence tables</h2>
+<h3 id="g21-per-body-measured-k-th-u-instrument-and-sample-basis">G2.1 per body: measured K, Th, U, instrument and sample basis</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>body / reservoir</th>
+<th>K ppm</th>
+<th>Th ppm</th>
+<th>U ppm</th>
+<th>K/U</th>
+<th>Th/U</th>
+<th>instrument or sample basis</th>
+<th>source</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CI chondrite</td>
+<td>552</td>
+<td>0.0293</td>
+<td>0.0078</td>
+<td>70 800</td>
+<td>3.76</td>
+<td>meteorite compilations</td>
+<td>[R2986: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CI (part E)</td>
+<td>546</td>
+<td>0.030</td>
+<td>0.0081</td>
+<td>67 400</td>
+<td>3.70</td>
+<td>Palme and O'Neill via pyrolite</td>
+<td>part E 2.8b</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Bulk silicate Earth</td>
+<td>260</td>
+<td>0.0776</td>
+<td>0.0206</td>
+<td>12 600</td>
+<td>3.77</td>
+<td>geochemical model, Th and U +-10 percent</td>
+<td>[R2986: Table 3]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>BSE range of models</td>
+<td>144 to 310</td>
+<td>0.042 to 0.121</td>
+<td>0.012 to 0.031</td>
+<td>11 400 to 13 800</td>
+<td>3.5 to 4.0</td>
+<td>six published BSE models</td>
+<td>[R2986] (heat table); part E</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>MORB glass</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>12 700 +-200</td>
+<td>rises with Th</td>
+<td>fresh ridge-basalt glasses</td>
+<td>[R2168] abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>N-MORB</td>
+<td>1162</td>
+<td>0.252</td>
+<td>0.083</td>
+<td>14 000</td>
+<td>3.04</td>
+<td>part E table 2.8b</td>
+<td>part E</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Mars surface</td>
+<td>2000 to 6000 (mean about 3200 = 5300 x 0.6, COMPUTED)</td>
+<td>0.2 to 1 (mean 0.6)</td>
+<td>not measured</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Mars Odyssey GRS, K/Th 5300 mean, 3000 to 9000 range, 95 percent of area 4000 to 7000</td>
+<td>no source</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Martian basaltic meteorites</td>
+<td>200 to 2600</td>
+<td>0.1 to 0.7</td>
+<td>n/a here</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>SNC meteorites; &quot;not representative of the bulk crust&quot;</td>
+<td>no source</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Bulk silicate Mars</td>
+<td>360</td>
+<td>0.068</td>
+<td>0.018</td>
+<td>20 000</td>
+<td>3.78</td>
+<td>GRS K/Th plus refractory-lithophile scaling</td>
+<td>[R4833]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Moon surface</td>
+<td>K/Th about 360</td>
+<td>global mean 1.35 (1.58 with the earlier calibration)</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>Lunar Prospector GRS (Th, K), recalibrated with lunar meteorites</td>
+<td>[R4625] (abstract)</td>
+<td>READ; K/Th 2ND-HAND</td>
+</tr>
+<tr>
+<td>Bulk silicate Moon</td>
+<td>52.6 +-9.6</td>
+<td>0.0849 (assumed)</td>
+<td>0.0229 (assumed)</td>
+<td>2300 +-400</td>
+<td>3.71 (assumed)</td>
+<td>mare basalts K/La; Th, U set equal to Earth's primitive mantle. [R4625] independently extrapolates to bulk-Moon Th about 0.07</td>
+<td>no source</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Mercury north surface</td>
+<td>1150 +-220</td>
+<td>0.220 +-0.060</td>
+<td>0.090 +-0.020</td>
+<td>12 800 +-3700</td>
+<td>2.4 +-0.9</td>
+<td>MESSENGER GRS; K regionally 300 to 2400 ppm with little Th change</td>
+<td>[R3483], 2012</td>
+<td>SNIPPET; 2012 abstract READ</td>
+</tr>
+<tr>
+<td>Venus Vega 1</td>
+<td>4500 +-2200</td>
+<td>1.5 +-1.2</td>
+<td>0.64 +-0.47</td>
+<td>7000</td>
+<td>2.3</td>
+<td>Vega lander GRS</td>
+<td>[R4266]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Venus Vega 2</td>
+<td>4000 +-2000</td>
+<td>2.0 +-1.0</td>
+<td>0.68 +-0.39</td>
+<td>5900</td>
+<td>2.9</td>
+<td>Vega lander GRS</td>
+<td>[R4266]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Venus Venera 8</td>
+<td>about 33 200 (K<sub>2</sub>O 4.0 +-1.2 wt percent)</td>
+<td>6.5 +-2.2</td>
+<td>2.2 +-0.7</td>
+<td>15 000</td>
+<td>3.0</td>
+<td>Venera 8 GRS (GS-4)</td>
+<td>[R4044]</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>Venus Venera 9</td>
+<td>4700</td>
+<td>3.65</td>
+<td>0.60</td>
+<td>7800</td>
+<td>6.1</td>
+<td>Venera 9 GRS (GS-12V)</td>
+<td>no source</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>Venus Venera 10</td>
+<td>3000</td>
+<td>0.70</td>
+<td>0.46</td>
+<td>6500</td>
+<td>1.5</td>
+<td>Venera 10 GRS</td>
+<td>no source</td>
+<td>RECALLED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Venera 8 against Venera 9, 10 and Vega: Venera 8 is a high-K, high-Th, high-U outlier (about 5 to 8 times the Vega K and 3 to 10 times their U and Th); Venera 9, 10 and the Vega sites are called &quot;moderately enriched basaltic&quot; and similar to one another (U enrichment above K enrichment relative to N-MORB), while Venera 8 has K enrichment above U (Nikolaeva and Ariskin). Treiman: only one of the five (Venera 8, high K) and Venera 9 (non-chondritic U/Th) are distinguishable from the noise. One mean Venus K/U or Th/U cannot be defended from this data.</p>
+<h3 id="scatter-by-basis-for-a-distribution-not-a-value">Scatter, by basis (for a distribution, not a value)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>quantity</th>
+<th>within-body or sample scatter</th>
+<th>across-body scatter</th>
+<th>note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Th/U, refractory</td>
+<td>MORB 3.0, UCC 3.9, MCC 5.0, LCC 6.0 (part E): sample basis spread about 0.15 dex; GRS errors on Venus 50 to 130 percent; Mercury 36 percent</td>
+<td>bulk values CI 3.76, BSE 3.77 +-3 percent (Wipperfurth), Mars 3.4 to 3.8 and Moon 3.71 are assumed</td>
+<td>bulk silicate Th/U is a nearly fixed ratio; crust and rock-sample values are not</td>
+</tr>
+<tr>
+<td>K/U</td>
+<td>Mars surface K/Th factor 3 (3000 to 9000); Mercury surface K 300 to 2400 ppm at nearly fixed Th (factor 8); MORB +-2 percent</td>
+<td>CI 70.8, Mars 20, Earth 12.6, Mercury 12.8, Venus 6 to 15 (poor), Moon 2.3 (x10^3)</td>
+<td>depletion d_K = (K/U)/(K/U)_CI = 0.032 (Moon), 0.18 (Earth), 0.18 (Mercury surface), 0.28 (Mars) (COMPUTED)</td>
+</tr>
+<tr>
+<td>surface against bulk (crust enrichment)</td>
+<td>Moon surface Th 1.35 against bulk 0.07 to 0.085: factor 16 to 19 (COMPUTED); Mars surface Th 0.6 against bulk 0.068: factor 8.8 (COMPUTED); Earth continental crust Th 5.6 against BSE 0.0776: factor 72 (part E)</td>
+<td>n/a</td>
+<td>incompatible elements concentrate in crust; surface GRS values are not bulk-silicate values</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="g22-stars-what-each-named-source-gives">G2.2 stars: what each named source gives</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>source</th>
+<th>what it measures</th>
+<th>usable result</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4469]</td>
+<td>Th in 14 stars (13 plus Sun) incl. 7 planet hosts</td>
+<td>log eps(Th) -0.14 to +0.49; 59 to 251 percent of solar; Th/Si varies by factor 2.6; positive Th against Fe and Si; no Teff trend; Sun depleted against 13 stars. Later work with better data finds a much smaller scatter (below)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0479]. <strong>No separate [R0478] Th paper was found</strong> (the search returns a 2020 Botelho paper on carbon isotopes)</td>
+<td>Th II 4019.129 A in 53 thin-disc solar twins (58 listed with the Sun), HARPS R = 115 000, precision 0.025 dex; ages from [R0309]</td>
+<td>see parametrisation 3.1; U: &quot;no measurable line of uranium in the HARPS spectral coverage&quot;</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0309]</td>
+<td>30 elements in 79 solar twins</td>
+<td>supplies ages and Si, Nd, Eu to Botelho; <strong>contains no Th and no U</strong>; arXiv id not found</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R1943] (Hypatia catalogue, AJ 148, 54)</td>
+<td>compilation of abundances, 3058 stars and 50 elements in the 2014 release</td>
+<td>the source of the Eu/Mg and K/Mg samples used by [R3293, R4468]; contains no direct Th or U for most stars</td>
+<td>SNIPPET</td>
+</tr>
+<tr>
+<td>[R4468]</td>
+<td>Th from 72 solar twins and analogues ([R4469] plus [R0479]); Eu/Mg from 2023 Hypatia FGK stars (text says 2040); K/Mg from 179</td>
+<td>log-normal fits relative to solar: Th/Mg mean 1.21 (95 percent 0.77 to 1.88); Eu/Mg mean 0.93 (0.45 to 1.92) used as the U proxy with U/Eu constant; K/Mg mean 1.13 (0.35 to 3.63). 1 sigma from the 95 percent range (COMPUTED): 0.099, 0.161 and 0.259 dex. Hypatia mixes sources, so &quot;we likely overestimate the range&quot;</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4467]</td>
+<td>named by Boss as Th/U in stars</td>
+<td><strong>not found</strong>: no 2023 Unterborn paper on stellar Th/U turned up; the 2022 paper above is the one that uses Th, Eu (for U) and K</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>[R1438]</td>
+<td>GCE model for &quot;cosmochemically Earth-like&quot; planets</td>
+<td>summary seen: planets forming later start with less radiogenic heat; old planets have less heat per unit mass today because of decay; 232Th keeps a small source, 40K dominates young worlds. Original not read (no arXiv copy found)</td>
+<td>SNIPPET; [R4468] Appendix B.1 (READ) uses it</td>
+</tr>
+<tr>
+<td>[R0671]</td>
+<td>C/O and Mg/Si of hosts, planet building</td>
+<td><strong>no content on Th, U, K or radiogenic heat</strong> (full text searched for radiogenic, thorium, uranium, Th, radioactive: none). Not a source for this claim</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3293]</td>
+<td>dynamo and radiogenic heating</td>
+<td>[Eu/H] has a &quot;roughly linear correlation with [Fe/H]&quot; [R0285]; [Eu/Mg] 10 to 90 percent range about -0.3 to +0.3 dex for likely hosts ([Mg/H] &gt; -0.3), 1 to 99 percent -0.5 to +0.5 dex (Hypatia, Luck data excluded); Eu/Mg falls with stellar age by about 0.1 dex per 10 Gyr (Delgado [R1061]); Th and U 30 to 300 percent of the Solar System value</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Delgado [R1061]</td>
+<td>[X/Fe] against age and [Fe/H], HARPS</td>
+<td>Eu (large errors): &quot;abundances of Eu also show higher values as age increases and metallicity decreases&quot;; slope of [Eu/Fe] against age constant with [Fe/H]. Table 3 Spearman values are for [Eu/Fe]; the Eu/Mg slope itself is quoted from Nimmo</td>
+<td>READ (text); Eu/Mg slope 2ND-HAND</td>
+</tr>
+<tr>
+<td>[R0664]</td>
+<td>Eu in 577 (Delgado [R1062]) and 377 (Bensby) stars plus 79 solar twins</td>
+<td>detrended [Eu/H] = [Eu/H] - (A Teff + B [alpha/H] + C): B = 0.844 +-0.016 (SD 0.071), 0.768 +-0.022 (SD 0.081), solar twins 0.789 +-0.018 (SD 0.031); intrinsic dispersion at fixed Teff and [alpha/H] 0.025 dex; Eu/alpha vs alpha/H Pearson -0.71; [R3096] (not read) finds [Th/Eu] rising for [Fe/H] &lt; -0.2 with larger scatter, in tension with Botelho</td>
+<td>READ; Mishenina 2ND-HAND</td>
+</tr>
+<tr>
+<td>[R4609]</td>
+<td>Eu in alpha Cen A and B; converts Eu to Th and U</td>
+<td>[Th/Eu]_ZAMS = 0.014 +-0.045 (Botelho); 238U/Th production ratio 0.571 (+0.037 -0.031) [R1001]; 235U/238U = 24.286/75.712 [R1438, R2733]. This is the only worked Eu to U conversion found</td>
+<td>READ; Dauphas 2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="g23-r4352-as-read-and-the-tests-since">G2.3 [R4352] as read, and the tests since</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>item</th>
+<th>value</th>
+<th>where</th>
+<th>label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sample</td>
+<td>47 transiting giants, 20 Earth masses &lt; M &lt; 20 MJ, F &lt; 2e8 erg s-1 cm-2 (T_eq below about 1000 K), mass uncertainty typically 10 (+12.8 -5.7) percent, radius 5.0 (+4.6 -2.5) percent</td>
+<td>abstract, section 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>actual mass range</td>
+<td>0.06 to 10.1 MJ (19 to 3210 Earth masses)</td>
+<td>Table 2, COMPUTED from the parsed table</td>
+<td>READ; COMPUTED</td>
+</tr>
+<tr>
+<td>method</td>
+<td>1D models, core of 50/50 rock-ice (ANEOS) up to 10 Earth masses, the rest of the metals mixed in the envelope; linear Bayesian regression (Gibbs sampler) in log space</td>
+<td>sections 3, 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>stellar Z</td>
+<td>Z_star = 0.014 x 10^[Fe/H] (&quot;given our [Fe/H] uncertainties, a more advanced treatment would not be worthwhile&quot;)</td>
+<td>section 5.3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>M_Z against M</td>
+<td>(57.9 +-7.03) (M/MJ)^(0.61 +-0.08) Earth masses; intrinsic spread factor 10^sigma = 1.82 +-0.09 (0.26 dex); &quot;using planet mass alone ... appears accurate to a factor of a few&quot;; Kendall tau 0.4787, p 2.07e-6</td>
+<td>Fig. 7, section 5.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Z_p/Z_star against M</td>
+<td>(9.7 +-1.28) (M/MJ)^(-0.45 +-0.09); tau 0.4398, p 1.3e-5; no correlation of the residual with a, period, stellar mass, flux, e</td>
+<td>Fig. 11, 12, section 5.3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>stellar [Fe/H]</td>
+<td>M_Z against [Fe/H]: tau 0.0885, p 0.38 (no correlation); high-M_Z planets are rarer around low-[Fe/H] stars</td>
+<td>section 5.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>theory</td>
+<td>simple core + stellar-Z envelope predicts Z_pl/Z_star = 1 + (M_core/M)(1-Z)/Z, which falls faster than the fit; they propose Z_pl/Z_star = f_e (M_p/M_iso)^(-2/3)</td>
+<td>section 6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>re-fit here</td>
+<td>55.6 (M/MJ)^0.60, rms 0.320 dex (n = 46, Kepler-75 b upper limit dropped); Z_p/Z_star = 9.7 (M/MJ)^-0.43, rms 0.349 dex (n = 47)</td>
+<td><code>G2-thorngren-table2-fit.py</code></td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>[R4350]</td>
+<td>403 giants (70 Saturns, 35 cool and 298 hot Jupiters). Prior: M_Z = 0.182 M^0.61 x 10^(+-0.26) (M, M_Z in MJ), so Z_p = 0.182 M^(-0.39) with log10(0.182) = -0.7395. Atmospheric Z = f Z_p, 0 &lt;= f &lt;= 1. Z:H_max about 100 times solar at Neptune masses to under 10 times for brown dwarfs. Jupiter: Z_p 0.12, Z:H &lt;= 17.7, observed about 3.5 (f about 0.2); Saturn: Z_p 0.291, Z:H &lt;= 51, observed about 10. Fits for new planets (valid 0.13 &lt; M &lt; 4.8 MJ, 0.51 &lt; R &lt; 1.63 RJ): log10 Z = -2.02 - 0.27 log M - 4.75 log R + 0.17 log F - 1.27 log M log R + 0.34 log F log R, +-0.1</td>
+<td>eq. 4 to 8, 16 to 18, section 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3201]</td>
+<td>49 (FGK, mass-limited 0.3 to 2 MJ) and 15 (M dwarfs) retrievals, newer H-He EOS: FGK Z/Z_star = (8.01 +-1.19) M^(-0.41 +-0.17), M_Z = (46.81 +-9.86) M^(0.37 +-0.24); full range 0.1 to 10 MJ (103 FGK): Z/Z_star = 6.35 M^(-0.71 +-0.04), M_Z = 42.64 M^(0.39 +-0.03). Giant planets around M dwarfs have lower offsets</td>
+<td>Eq. 3, 4, B.1, B.2, Tables C.1, C.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0710]</td>
+<td>147 warm giants (20 Earth masses to 20 MJ, T_eq &lt; 1000 K, 0.06 to 12.7 MJ), updated EOS and atmosphere boundary: M_Z = M_core + f_Z (M_p - M_core), M_core = 14.7 (+1.8 -1.6) Earth masses, f_Z = 0.09 +-0.01 (6.4 times Z = 0.014), scatter 0.66 +-0.08 x M_Z (multiplicative fraction); Z_p/Z_star flattens at 3.3 +-0.5; classical core accretion (Z_p = 1 at 10 and 0.5 at 20 Earth masses) is inconsistent; factor 3 variance in M_Z at 20 to 40 Earth masses</td>
+<td>abstract, section 5</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4328]</td>
+<td>22 systems (24 planets), host C, O, Mg, Si, Fe, Ni: no clear correlation of planetary residual metal (against the T16 fit) with stellar metallicity; slope 1 excluded at 2 sigma; Z_p/Z_star against M kept at about 3 sigma and &quot;largely driven by the planetary mass-metallicity relationship&quot;; possible link to stellar [volatile/refractory]</td>
+<td>section 4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0301]</td>
+<td>HD 149026 b (Saturn mass) atmosphere 59 to 276 times solar (1 sigma) from JWST NIRCam, bulk heavy elements 66 +-2 percent; atmospheric metallicity tracks bulk metallicity better than mass</td>
+<td>abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4663]</td>
+<td>19 planets, H<sub>2</sub>O, Na, K: H<sub>2</sub>O abundance rises with falling mass (substellar for giants, stellar to superstellar for Neptunes), but well below the carbon trend of the solar-system giants; Na and K follow the solar-system trend; &quot;argue against ... metallicity as one free parameter&quot;</td>
+<td>abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Sun et al. 2024 [R4258]</td>
+<td>with the Welbanks data a linear trend cannot be told from no trend; about 58 planets needed</td>
+<td>abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4275]</td>
+<td>review: bulk-density tracers show a solar-system-like trend; transit-spectroscopy tracers are less clear</td>
+<td>abstract</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="figures-for-the-generator">Figures for the generator</h2>
+<p>All are PARAMETRISATIONS fitted to published data; the Solar System enters only as calibration. Order of draws is free.</p>
+<h3 id="31-stellar-th-and-u-relative-to-rock-forming-elements">3.1 Stellar Th (and U) relative to rock-forming elements</h3>
+<p>Needs stored [Fe/H] and stellar age (both already stored). Quantity wanted: <code>x_Th</code>, the birth log abundance of Th relative to Mg or Si against the Solar System formation value.</p>
+<ol>
+<li>Solar-metallicity discs, |[Fe/H]| up to about 0.1 dex, ages 0 to 8.6 Gyr: <code>[Th/Si]_birth = +0.149 - 0.0121 * age_Gyr + N(0, 0.053)</code> dex ([R0479: Table 4]: a = -0.0121 +-0.0018 dex per Gyr, b = +0.149 +-0.010, rms 0.053). Equivalent in iron: <code>[Th/Fe]_birth = +0.082 - 0.338 * [Fe/H] + N(0, 0.040)</code> (a = -0.338 +-0.049, b = +0.082 +-0.003); there is no age trend in [Th/Fe]_ZAMS (slope -0.0009 +-0.0015 dex per Gyr; mean +0.086 +-0.008, rms 0.047). The reference zero is the Solar System at formation (a normalisation, not a preset: only differences enter).</li>
+<li>Wider [Fe/H] (about -0.8 to +0.4): no Th data. Use the Eu proxy: <code>[Eu/alpha] = (B - 1) * [alpha/H] + c</code> with B = 0.77 to 0.84 (so -0.16 to -0.23 dex of Eu/alpha per dex of metallicity), tight intrinsic scatter 0.025 dex but add 0.06 to 0.08 dex for measurement and catalogue systematics (SD of the detrended fits: 0.071, 0.081). <code>[Th/Eu] = 0.014 +-0.045</code> at solar metallicity; below [Fe/H] about -0.2 [Th/Eu] rises with larger scatter ([R3096], 2ND-HAND), so treat Th/Mg as at least the Eu value there.</li>
+<li>A single, wider prior if the generator does not condition on [Fe/H]: log-normal in Th/Mg with sigma 0.10 dex ([R4468], 72 solar twins and analogues; mean 1.21 of the Solar System ratio) up to 0.16 dex (Eu/Mg, 2000 Hypatia stars) and about 0.23 dex for the Nimmo 10 to 90 percent range (+-0.3 dex). Truncate at +-0.5 dex (Nimmo 1 to 99 percent).</li>
+<li>U: no direct stellar value exists for discs. Derive <code>U = Th * r_UTh</code> with the 238U/232Th production ratio 0.571 (+0.037 -0.031) in atoms ([R1001], via [R4609, R4610, R4611, R4616]), about +-0.025 dex; the ratio at the star's birth is lower by the decay between the r-process event and star formation, a model dependence [R1438] that has no measurement; carry an extra N(0, 0.05) dex as a placeholder and label it as such. At the Solar System formation epoch the bulk silicate Earth has Th/U (mass) 1.77 (99 and 56 ppb, [R2986]) rising to 3.77 now; use only as a test target.</li>
+<li>K is not an r-process element. Use the volatile rule: K/Mg of the star is log-normal sigma 0.26 dex (Hypatia, 179 stars, includes systematics), but the planet's K/U spread is much larger (below).</li>
+<li>The sign statement &quot;sub-solar [Fe/H] gives higher Th&quot; is supported only per Fe, and weakly (0.34 dex per dex over a 0.2 dex range). Per rock-forming element ([Th/Mg], what controls heat per silicate mass) the metallicity trend is -0.16 to -0.23 per dex (Eu) and the age trend in the solar-twin sample runs the other way (younger stars richer). Do not hard-code &quot;low metallicity means more heat&quot;.</li>
+</ol>
+<h3 id="32-radiogenic-ratios-by-body-planet-scale">3.2 Radiogenic ratios by body (planet scale)</h3>
+<ol>
+<li>Th/U in the refractory-lithophile fraction: log-normal, median 3.77, sigma 0.02 dex (BSE +-3 percent, CI 3.76 to 3.77) as a placeholder; the CI and BSE agreement shows nothing fractionates them at bulk scale. Rock-sample scatter (crustal values) 0.15 dex (part E table). Do not use the Venus (1.5 to 6) or Mercury (2.4 +-0.9) values as evidence of intrinsic bulk scatter: their errors dominate.</li>
+<li>K/U: <code>K/U = 70 800 * d_K</code> with <code>d_K</code> log-uniform between 0.03 and 1 as in part E; the only observed bodies fall at 0.03 to 0.28 (Moon 0.032, Earth 0.18, Mercury surface 0.18, Mars 0.28; Venus landers 0.08 to 0.21 with 50 to 100 percent errors). Nothing observed lies above 0.3, so the upper half of the range is supported only by chondrites. If a data-fitted shape is wanted: log10 d_K with mean -0.9 and sd 0.36 over five bodies (COMPUTED), explicitly a five-point fit.</li>
+<li>Crust enrichment of Th and U relative to the bulk silicate: factors 9 (Mars), 16 to 19 (Moon surface, KREEP-biased), 72 (Earth continental crust, part E). Needed for surface gamma dose: surface GRS values are not bulk values.</li>
+<li>Part E 3.3 uses <code>x_Th</code> sigma 0.22 dex truncated at +-0.5; the data support 0.05 to 0.10 dex for solar twins and 0.16 to 0.23 dex for catalogue Eu. 0.22 is the Nimmo/Hypatia envelope, conservative; keep it as an upper bound and add the [Fe/H] mean shift of 3.1.</li>
+</ol>
+<h3 id="33-giant-planet-heavy-elements">3.3 Giant-planet heavy elements</h3>
+<ol>
+<li>Mean law: <code>log10 M_Z[Earth masses] = log10(57.9) + 0.61 log10(M/MJ) + N(0, 0.26)</code>, valid 19 to 3200 Earth masses, T_eq below about 1000 K, cap <code>Z_p &lt;= 1</code> ([R4352], confirmed in [R4350]). At 20 Earth masses it gives M_Z = 10.7 (Z_p 0.54), at 30 13.7 (0.46), at 318 57.9 (0.18); the data at the low end lie above it (GJ 436 b Z_p 0.85).</li>
+<li>Better for 20 to 150 Earth masses and for high masses (more planets, newer EOS): [R0710] <code>M_Z = 14.7 + 0.09 (M - 14.7)</code> Earth masses, scatter 0.66 x M_Z; comparison (COMPUTED): at 20, 100, 318, 1000 Earth masses T16 gives 10.7, 28.6, 57.9, 116; Mueller and Helled FGK (0.1 to 10 MJ) 14.5, 27.2, 42.6, 66.7; Chachan 15.2, 22.4, 42.0, 103. The three agree within about 1.5 for 100 to 1000 Earth masses; the 0.26 dex scatter is the intrinsic figure, the raw residual of the tabulated means is 0.32 dex. Recommendation: use Chachan for the mean, keep the Thorngren 0.26 dex as a cross-check; both stay a population law, not a per-planet fact.</li>
+<li>Atmosphere is not Z_p: <code>Z_atm = f Z_p</code>, <code>f</code> in (0, 1]; Jupiter and Saturn f about 0.2, WASP-39 b near 1 [R4350]. Draw <code>f</code> uniform on (0.1, 1) as a placeholder (no population distribution exists), and give the atmosphere lane a ceiling of <code>Z_p</code>. Stellar [Fe/H] should not set Z_p: [R4328] finds no residual correlation. The M_Z against [Fe/H] dependence is nil (tau 0.09).</li>
+<li>Photoevaporation: apply only to sub-Neptunes and warm Neptunes (below about 1000 K is not the relevant cut: the effect needs high XUV flux and low mass); published envelope Z growth is 0.02 to 0.04 to 0.23 (Malsky and Rogers) and 50 to 70 times metal-to-H [R2752] in individual model planets, with a feedback that limits it (metals cool the wind). Offer it as an optional post-process flag with a documented placeholder, not a law.</li>
+</ol>
+<h2 id="calibration-and-test-targets-never-presets">Calibration and test targets (never presets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>check</th>
+<th>target</th>
+<th>tolerance</th>
+<th>source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CI and BSE Th/U</td>
+<td>3.76 and 3.77</td>
+<td>3 percent</td>
+<td>[R2986]</td>
+</tr>
+<tr>
+<td>BSE K/U</td>
+<td>12.6 (11.4 to 13.8) x10^3</td>
+<td>the model range</td>
+<td>[R2986]; part E</td>
+</tr>
+<tr>
+<td>Mars K/U</td>
+<td>20 x10^3</td>
+<td>factor 1.5</td>
+<td>[R4833]</td>
+</tr>
+<tr>
+<td>Moon K/U</td>
+<td>2.3 x10^3</td>
+<td>factor 1.4</td>
+<td>no source</td>
+</tr>
+<tr>
+<td>Mercury surface K/Th and K/U</td>
+<td>5230 and 12.8 x10^3</td>
+<td>30 percent</td>
+<td>[R3483]</td>
+</tr>
+<tr>
+<td>giant planets</td>
+<td>Jupiter and Saturn M_Z about 21 and 19 Earth masses; T16 law gives 58 at Jupiter mass, Chachan gives 42</td>
+<td>factor 3</td>
+<td>[R0710] (Jupiter M_Z about 21 +-3 Earth masses for the unmodified EOS, Saturn 19.1 +-1.0, quoted there)</td>
+</tr>
+<tr>
+<td>Th/U draw</td>
+<td>test that the draw's median reproduces 3.77 within 3 percent and that bulk Th/U in the silicate stays inside 3.5 to 4.1</td>
+<td>n/a</td>
+<td>invariant</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="still-unreachable-boss-must-research">Still unreachable (Boss must research)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>rank</th>
+<th>reference</th>
+<th>why</th>
+<th>number it gives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2</td>
+<td>[R3483] full text (science.org refused; Smithsonian repository not reachable)</td>
+<td>the Mercury K, Th, U values come from a search summary of the abstract; no Th/U is printed there, and the main text may give bulk-silicate corrections</td>
+<td>K, Th, U, K/Th with error budget, the argument about extreme heating</td>
+</tr>
+<tr>
+<td>3</td>
+<td>[R3096], the Th in 276 disc dwarfs</td>
+<td>the only Th data below [Fe/H] -0.2 and against thick-disc stars; read only through [R0664]</td>
+<td>[Th/Eu] against [Fe/H] and its scatter</td>
+</tr>
+<tr>
+<td>4</td>
+<td>[R1438] (no arXiv found)</td>
+<td>the GCE evolution of the initial heat budget; only [R4468]'s re-scaling and a search summary read</td>
+<td>Q0 and 232Th, 238U, 235U, 40K against formation time</td>
+</tr>
+<tr>
+<td>5</td>
+<td>[R1943], and the Hypatia download</td>
+<td>to build Th/Mg, Eu/Mg, K/Mg distributions at the generator's own [Fe/H] bins instead of Unterborn's pooled log-normals; the catalogue is a web service and was not reachable from here</td>
+<td>per-star abundances</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Delgado [R1061: Fig. 10] slopes ([Eu/Fe] against age by metallicity bin); [R0285]</td>
+<td>to confirm Nimmo's 0.1 dex per 10 Gyr for Eu/Mg and the [Eu/H] against [Fe/H] fit</td>
+<td>slope and intercept</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Lunar Prospector GRS bulk U and Th/U in lunar samples ([R4625] main text)</td>
+<td>the Moon Th/U rows are assumptions; the K/U 2500 is quoted second-hand</td>
+<td>Th/U and K/U in Apollo and meteorite samples</td>
+</tr>
+<tr>
+<td>8</td>
+<td>[R4315] for Mars U</td>
+<td>to check the U value of bulk Mars</td>
+<td>K, Th, U of SNC-based models</td>
+</tr>
+<tr>
+<td>9</td>
+<td>[R4467] if it exists</td>
+<td>named in the note, not found</td>
+<td>stellar Th/U</td>
+</tr>
+<tr>
+<td>10</td>
+<td>[R1001] production ratios</td>
+<td>the 0.571 value was read only through [R4609]</td>
+<td>238U/232Th and 235U/238U production ratios</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="counts">Counts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>verdict</th>
+<th>rows</th>
+<th>which</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CONFIRMED</td>
+<td>3</td>
+<td>G2.1a, G2.1e, G2.3d</td>
+</tr>
+<tr>
+<td>PARTLY</td>
+<td>12</td>
+<td>G2.1b, G2.1c, G2.1d, G2.1f, G2.1g, G2.2a, G2.2b, G2.2c, G2.3a, G2.3b, G2.4a, G2.4b</td>
+</tr>
+<tr>
+<td>CONTRADICTED</td>
+<td>1</td>
+<td>G2.3c</td>
+</tr>
+<tr>
+<td>UNVERIFIABLE</td>
+<td>1</td>
+<td>G2.2d (U in disc stars)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Labels used: READ (arXiv full text or table, PMC/Nature abstract, Crossref and EarthRef abstracts), 2ND-HAND (Arevalo, Farcy, Wipperfurth, Dauphas, Mishenina, Prettyman, Bedell, the eight U stars), COMPUTED (ratios, K/U, depletion factors, Table 2 re-fits, sigma from 95 percent intervals, Chachan comparison), SNIPPET (Mercury [R3483] values, Venera 8, [R1438, R1943]), RECALLED (Venera 9 and 10 values), NOT REACHED ([R3483, R4467] full text).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

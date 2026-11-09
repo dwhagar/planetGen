@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rogue ejection kick: what the full texts say (GEN.1113) - planetGen docs</title>
+<meta name="description" content="Read on 2026-10-30 (as the lane reported 5:5x PM EDT): the full texts of [R2031, R2470] ([R2470], last 17 k characters only as a summary, marked [S]), [R3937] ([R3937], appendix A.14 and the references missing) and [R4533].">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/rogue-ejection-kick.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/rogue-ejection-kick.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="rogue-ejection-kick-what-the-full-texts-say-gen1113">Rogue ejection kick: what the full texts say (GEN.1113)</h1><p class="meta">docs/design/research/rogue-ejection-kick.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-speed-against-perturber-mass-and-orbit">1. Speed against perturber mass and orbit</a></li><li style="margin-left:0px"><a href="#2-direction">2. Direction</a></li><li style="margin-left:0px"><a href="#3-moon-survival">3. Moon survival</a></li><li style="margin-left:0px"><a href="#4-what-the-code-does-and-does-not-do">4. What the code does and does not do</a></li><li style="margin-left:0px"><a href="#5-kramer-and-profumo-internal-inconsistencies-noticed">5. Kramer and Profumo internal inconsistencies noticed</a></li></ul></details>
+<p>Read on 2026-10-30 (as the lane reported 5:5x PM EDT): the full texts of [R2031, R2470] ([R2470], last 17 k characters only as a summary, marked [S]), [R3937] ([R3937], appendix A.14 and the references missing) and [R4533]. The code is <code>physics/rogue_kick.py</code>; the registry rows are RK1 to RK8 in <code>gap-filling-plan.md</code> section 6.87. Boss's answer on direction (isotropic in the origin planet's frame, plus its real motion) stands, so only the speed and the moons were read for.</p>
+<h2 id="1-speed-against-perturber-mass-and-orbit">1. Speed against perturber mass and orbit</h2>
+<ul>
+<li><strong>Huang and Lai</strong> find from N-body scattering that speeds at infinity peak near <code>v_c = sqrt(G m1 / 0.12 a2) (m1 / m12) (a1 / a2)^(1/4)</code> (Eq. 19), for a scatterer <code>m1</code> ejecting a body <code>m2</code> (<code>m12</code> their sum). The paper's own simplification (Eq. 26) is <code>v_c = 3 km/s (m_p / M_Jup)^(1/2) (a_p / 1 AU)^(-1/2)</code>, independent of the star for star-to-scatterer mass ratios of 100 to 1000 (Eq. 19 breaks down for larger scatterers). The distribution runs from 0 to 2.5 <code>v_c</code> with a peak near 1 for two planets, to 5 to 8 <code>v_c</code> for three (Sec. 4.3 and 5.3, figures only: no median or percentile is printed). Circumbinary ejections are ten times faster (Sec. 6).</li>
+<li><strong>Kramer and Profumo</strong> (star plus giant plus light planet, 10 000 runs per setting, 10 Myr): mean <code>v_inf</code> 3.4 to 3.6 km/s for a 10 Jupiter-mass giant at 5.2 AU with no trend over ejected masses of 1e-5 to 1e-1 Jupiter masses (Sec. 4.1); 1.15 km/s for 1 Jupiter mass up to 7.07 for 75 (Sec. 4.2, fit exponent 0.42); 3.0 to 3.5 km/s across the light planet's orbit (Sec. 4.3); eccentric giants and light planets raise the mean to 5.5 to 7 km/s and the first-outbound-step speed to 23 km/s (eccentric light planet) and 80 km/s (giant of eccentricity 0.9), with 5.9 percent above 20 km/s and under 0.2 percent above 50 km/s (Sec. 4.4, 4.5, 5.2). The abstract's 23 and 80 km/s are speeds at the first accepted step inside the star's potential, not speeds at infinity. Only means are given.</li>
+<li><strong>Agreement.</strong> The two independent N-body sets agree to 15 percent: <code>v_c</code> is 1.32 and 4.16 km/s for 1 and 10 Jupiter masses at 5.2 AU, the means 1.15 and 3.5 (0.87 and 0.84 of <code>v_c</code>). The ejected mass does not matter (both papers); the star's mass does not enter (Huang and Lai). The model takes <code>v_inf = v_c X</code>, <code>X</code> log-normal with mean 0.87 and 99th percentile 2.5.</li>
+<li><strong>Sayed, Profumo and Smyth</strong> do not measure a kick: it is a stated prescription (Gaussian components of 10 km/s for a circumbinary channel, a 4 km/s Gaussian falling as <code>M^-1/2</code> with the ejected mass for planet-planet scattering; Table 8 medians 15 and 4 km/s null, 14.3 to 7.3 and 3.1 to 0.7 coupled). The combined medians of 0.708 to 10.716 km/s (Table 10) are the range quoted in the earlier design note. The <code>M^-1/2</code> fall with the ejected mass contradicts the no-trend result of the N-body papers, so it is not used. Median kicked-minus-control separation after 100 Myr: 0.054 to 0.77 kpc by bin; 3 percent leave the disc (Table 5); no Galactic unbound fraction is printed.</li>
+<li><strong>Veras and Raymond</strong> print no velocities: 20 to 70 percent of planets are ejected (positional cut at 1e5 AU, Sec. 2), more for unequal masses.</li>
+</ul>
+<h2 id="2-direction">2. Direction</h2>
+<p>None of the four papers measures a direction. Sayed et al. use isotropic. Kramer and Profumo assume it uncorrelated with the Galactic motion (Sec. 5.2) and argue outer configurations favour outward kicks. Boss's rule (isotropic in the planet's frame plus the planet's motion) is used.</p>
+<h2 id="3-moon-survival">3. Moon survival</h2>
+<ul>
+<li><strong>Huang and Lai</strong> simulate no moons. They infer survival from the closest approach <code>r_min</code> of the ejected planet to the scatterer: a moon stays bound if <code>r_moon &lt; f r_min (m2 / m12)^(1/3)</code> (Eq. 4), &quot;a high survival probability requires f ~ 1/2&quot;. Medians of <code>r_min</code> in mutual Hill radii for a scatterer ejecting a tenth of its mass: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; against the ejected mass 0.089, 0.065, 0.039, 0.052; against the inclination 0.089 to 0.0030; against the planet spacing (2.5 to 1) 0.60 to 0.051. In the fiducial run 48 percent of ejections have <code>r_min</code> above 0.1 and 82 percent above 0.01; the authors read moons at the Solar System's <code>1e-2</code> of the Hill radius as surviving &quot;at least 70 percent&quot; (Sec. 4.2.4), and three-planet systems 30 to 40 percent for moons inside 0.1 (Sec. 5.2). Their headline numbers use <code>r_min</code> directly; Eq. 4 with <code>f = 0.5</code> is stricter (a moon at 0.01 of the mutual Hill radius survives 65 percent).</li>
+<li><strong>Kramer and Profumo, Sayed et al., Veras and Raymond:</strong> no moons.</li>
+<li><strong>Not found:</strong> [R1998] (moons during scattering) and [R1032] could not be located by the fetch tool (search pages are blocked by robots rules); they are the next read if moon retention needs an N-body source.</li>
+</ul>
+<h2 id="4-what-the-code-does-and-does-not-do">4. What the code does and does not do</h2>
+<p>Done: the speed (RK1, RK3, RK4), the Safronov cut (RK2), the closest approach and moon rule (RK5 to RK8), isotropic direction, tested against the two N-body papers' means (1.15 and 3.5 km/s), the zero ejected-mass trend, the 2.5 <code>v_c</code> top, Huang and Lai's closest-approach median and the 48 and 82 percent shares, and Sayed et al.'s 0.7 to 10.7 km/s window.
+Not done: the tail that eccentric scatterers (Kramer and Profumo: mean up to 7 km/s at e = 0.9) and three-planet systems (5 to 8 <code>v_c</code>) add; the dependence of <code>r_min</code> on spacing, inclination and the ejected mass; scatterers above about 10 Jupiter masses (Kramer's mean is 7.07 km/s at 75, the formula gives 11); secular heating of floaters after ejection [R2575]; stellar flyby ejections [R2056, R2837], still unread.</p>
+<h2 id="5-kramer-and-profumo-internal-inconsistencies-noticed">5. Kramer and Profumo internal inconsistencies noticed</h2>
+<p>Ejection-fraction drop over the ejected-mass range: 1.67 points (Sec. 4.1) against 2.3 (Sec. 5.3 and 6.1); maximum first-step speed 7.5 (text) against 7.76 km/s (caption); 79.7 (text) against 79.8 km/s (caption). None changes a number used here.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

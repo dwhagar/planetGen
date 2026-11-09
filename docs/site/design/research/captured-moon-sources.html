@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Captured asteroid moons: what the papers and the satellite tables say (GEN.1075) - planetGen docs</title>
+<meta name="description" content="Sources 1 lane, 10-30.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/captured-moon-sources.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/captured-moon-sources.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="captured-asteroid-moons-what-the-papers-and-the-satellite-tables-say-gen1075">Captured asteroid moons: what the papers and the satellite tables say (GEN.1075)</h1><p class="meta">docs/design/research/captured-moon-sources.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#result-in-one-paragraph">Result in one paragraph</a></li><li style="margin-left:0px"><a href="#head-counts-per-giant-satellite-tables-read-10-30">Head counts per giant (satellite tables, read 10-30)</a></li><li style="margin-left:0px"><a href="#papers-on-the-read-list">Papers on the read list</a></li><li style="margin-left:0px"><a href="#what-this-changes-in-the-design">What this changes in the design</a></li><li style="margin-left:0px"><a href="#not-read-still-open">Not read, still open</a></li><li style="margin-left:0px"><a href="#gen1122-gas-drag-capture-r0956-r3560">GEN.1122: gas-drag capture [R0956, R3560]</a></li></ul></details>
+<p>Sources 1 lane, 10-30. This is the read list of <a href="../systems/captured-asteroid-moons.html">captured-asteroid-moons.md</a> section 7 item 1: the papers opened, the head counts per giant read from the satellite tables, and what each changes in the design. The rows for GEN.725 are plan section 6.100 (CM1 to CM20). Docs only; no module reads these numbers yet.</p>
+<h2 id="result-in-one-paragraph">Result in one paragraph</h2>
+<p>The design's picture stands: windows only, the giants' four irregular populations are comparable, retrograde dominates 4:1, the outer edge is about half the Hill radius, and the surviving mass is about 1 percent of what was captured. Six numbers in the design change. (1) The capture probabilities of Saturn, Uranus and Neptune are not Hill-volume scalings; they are printed per planet and span a factor of 30 between instability histories, and the Jupiter table can be turned into a per-encounter rate the architecture can use (CM1, CM2). (2) The &quot;63, 56, 27, 13&quot; quoted as head counts are all moons, regular ones included; the irregulars were 55, 35, 9 and 8 in 2007 and are 107, 268, 10 and 8 today. (3) Above R = 5 km the giants hold 8, 11, 9 and 8 irregulars, so a Jupiter-like planet should come out near 8 (design 10 to 20). (4) Below 5 km the cumulative size law is 1.3 at Jupiter and 2.0 at Saturn, not the 2.5 the design had. (5) Storage above 1e16 kg (R = 10.6 km) is 5 to 8 moons per giant (design 8 to 12), and 90 percent of the mass is in 1 to 3 bodies. (6) The Kozai gap is hard at Jupiter and Saturn (0 of 375) and soft at the ice giants (4 of 18).</p>
+<h2 id="head-counts-per-giant-satellite-tables-read-10-30">Head counts per giant (satellite tables, read 10-30)</h2>
+<p>Counts are rows of the JPL planetary satellite mean-elements table (ssd.jpl.nasa.gov/sats/elem, 461 rows, provisional designations included); a moon is irregular when its mean semimajor axis is beyond the largest gap in <code>a</code> of its planet (Jupiter 3.0e6 km, Saturn 5.0e6, Uranus and Neptune 2.0e6 km; gaps of x3.1 to x15.5, so no moon sits near the cut; Triton and Iapetus are regular by this cut, Nereid irregular). Hill radius from the planet's mean distance and mass. Script and inputs: <code>/mnt/project-files/data/gen1075-captured-moons/analyse.py</code> (output beside it).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Jupiter</th>
+<th>Saturn</th>
+<th>Uranus</th>
+<th>Neptune</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hill radius (million km)</td>
+<td>53.2</td>
+<td>65.5</td>
+<td>70.2</td>
+<td>116.2</td>
+</tr>
+<tr>
+<td>all moons today (JPL)</td>
+<td>115</td>
+<td>292</td>
+<td>30</td>
+<td>16</td>
+</tr>
+<tr>
+<td>irregular today</td>
+<td><strong>107</strong></td>
+<td><strong>268</strong></td>
+<td><strong>10</strong></td>
+<td><strong>8</strong></td>
+</tr>
+<tr>
+<td>prograde / retrograde today</td>
+<td>15 / 92</td>
+<td>58 / 210</td>
+<td>1 / 9</td>
+<td>4 / 4</td>
+</tr>
+<tr>
+<td>retrograde per prograde today</td>
+<td>6.1</td>
+<td>3.6</td>
+<td>9</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>irregular in 2007 (JH07 Table 2: prograde + retrograde)</td>
+<td>55 (6 + 49)</td>
+<td>35 (8 + 27)</td>
+<td>9 (1 + 8)</td>
+<td>8 (4 + 4)</td>
+</tr>
+<tr>
+<td>median a / r_H today (JH07 2007)</td>
+<td>0.43 (0.44)</td>
+<td>0.30 (0.29)</td>
+<td>0.15 (0.17)</td>
+<td>0.20 (0.19)</td>
+</tr>
+<tr>
+<td>outer edge a / r_H, prograde / retrograde</td>
+<td>0.35 / 0.46</td>
+<td>0.36 / 0.42</td>
+<td>0.21 / 0.29</td>
+<td>0.20 / 0.44</td>
+</tr>
+<tr>
+<td>irregular with inclination 55 to 130 deg</td>
+<td>0</td>
+<td>0</td>
+<td>1 (Margaret 60.5)</td>
+<td>3 (Halimede 119.6, Psamathe 127.8, Neso 128.4)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Totals all four: 393 irregular, 315 retrograde and 78 prograde (4.0 to 1; JH07 88 to 19 = 4.6). JH07 Table 1 lists 55, 14, 9 and 7 irregulars; its own Table 2 gives 55, 35, 9 and 8, and the Neptune row of Table 2 does not add up (6 + 4 + 4 is not 13), so Table 2's irregular columns are used and the paper's Table 1 and Neptune total are taken as slips.</p>
+<p>Size counts need the radii; these are Wikipedia's mean radii (from JPL and Sheppard's discovery papers; albedo 0.04 for most small ones), so they carry a factor-of-1.3 uncertainty in R. Complete to a radius of about 1.4 km at Jupiter, 1.6 km at Saturn, 7 km at Uranus ([R4053]: 50 percent at mR 26.1) and 16 km at Neptune (JH07: 36 km at mR 24, scaled to the 25.8 survey depth).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>irregulars with radius at least</th>
+<th>Jupiter</th>
+<th>Saturn</th>
+<th>Uranus</th>
+<th>Neptune</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 km</td>
+<td>76</td>
+<td>250</td>
+<td>10</td>
+<td>8</td>
+</tr>
+<tr>
+<td>5 km</td>
+<td><strong>8</strong></td>
+<td><strong>11</strong></td>
+<td><strong>9</strong></td>
+<td><strong>8</strong></td>
+</tr>
+<tr>
+<td>10.6 km (1e16 kg at 2000 kg/m3)</td>
+<td><strong>8</strong></td>
+<td><strong>5</strong></td>
+<td><strong>6</strong></td>
+<td><strong>8</strong></td>
+</tr>
+<tr>
+<td>40 km</td>
+<td>1 (2 with Himalia 85 km and Elara 43 km, as JPL and NDD14 use)</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>largest</td>
+<td>Himalia 70</td>
+<td>Phoebe 107</td>
+<td>Sycorax 93</td>
+<td>Nereid 178 (a / r_H 0.047, e 0.75, i 5 deg; without it Halimede 31)</td>
+</tr>
+<tr>
+<td>total mass at 2000 kg/m3 (kg)</td>
+<td>3.9e18</td>
+<td>1.0e19</td>
+<td>7.5e18</td>
+<td>4.8e19 (Nereid 98 percent)</td>
+</tr>
+<tr>
+<td>share of the sum of R cubed in the largest</td>
+<td>0.74</td>
+<td>0.98</td>
+<td>0.90</td>
+<td>0.98</td>
+</tr>
+<tr>
+<td>bodies holding 90 percent of the mass</td>
+<td>3</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr>
+<td>cumulative index N(&gt;R) ~ R^-b, 1 to 5 km</td>
+<td>1.3</td>
+<td>2.0</td>
+<td>not complete</td>
+<td>not complete</td>
+</tr>
+<tr>
+<td>cumulative index 5 to 40 km</td>
+<td>0.9</td>
+<td>1.3</td>
+<td>1.0</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="papers-on-the-read-list">Papers on the read list</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paper</th>
+<th>Status</th>
+<th>Taken</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3265] (NVM07), AJ 133, 1962</td>
+<td><strong>read</strong> (Troja copy)</td>
+<td>per-planet capture probabilities: Uranus 2.6e-7, Neptune 5.4e-7 (means of 14 runs of the original Nice model), Jupiter 8.5e-9 and Saturn 2.4e-8 (job 9, the best of the runs; the mean at Saturn is 5.7 times lower); 35 earth masses of disc, size law q1 4.25, q2 2.75 differential, break D 100 km; largest captured D 135 km (Jupiter), 186 km (Saturn) against Himalia 170 and Phoebe 213 km; captured ice-giant populations 2 orders larger than the known ones</td>
+</tr>
+<tr>
+<td>[R3264] (NDD14), [R3264]</td>
+<td><strong>read</strong></td>
+<td>Table 1 (Jupiter only; the design said per planet): 59, 280, 49 encounters, f3AU 4.2, 4.0, 3.5e-4, 1458, 3617, 1403 captured stable, Pcap 1.5, 3.6, 1.3e-8 (reproduced: Pcap = f3AU x Ncap / 4e7); Saturn about 5e-8, Uranus and Neptune (1 to 3)e-8 in the new histories</td>
+</tr>
+<tr>
+<td>[R2158] (JH07), astro-ph/0703059</td>
+<td><strong>read</strong></td>
+<td>Tables 1 to 3, retrograde to prograde 88 to 19, medians of a / r_H, no inclinations 55 to 130, Kozai limits 39.2 to 140.8 deg, Kozai times 180 yr (prograde) and 65 yr (retrograde) at Jupiter, family speeds about the escape speed of the largest member, collision with a regular moon per orbit (r / 2R)^2</td>
+</tr>
+<tr>
+<td>[R3147] (VNL08), AJ 136, 1463</td>
+<td><strong>read</strong> (Troja copy)</td>
+<td>binary exchange: Table 4; stable limits 0.4 r_H prograde and 0.5 to 0.6 retrograde (quoting [R3263])</td>
+</tr>
+<tr>
+<td>[R0483]</td>
+<td><strong>read</strong></td>
+<td>populations lose about 99 percent of their mass in hundreds of Myr and then sit in steady state; initial mass 0.0008 to 0.03 lunar masses (D above 0.1 km); Tables 1 and 2: collision probabilities and speeds; families</td>
+</tr>
+<tr>
+<td>[R4053], astro-ph/0410059 (Uranus)</td>
+<td><strong>read</strong></td>
+<td>q = 1.8 +/- 0.3 differential above 7 km at Uranus, Jupiter 1.9 +/- 0.3 ([R4054] as quoted); completeness 7 km at Uranus</td>
+</tr>
+<tr>
+<td>[R0163] (not on the list; the newest Jupiter size law)</td>
+<td><strong>read</strong></td>
+<td>luminosity index 0.29 +/- 0.15, q about 2.5 differential down to 0.4 km, about 600 (factor 2) retrograde moons above 0.4 km</td>
+</tr>
+<tr>
+<td>[R0037]</td>
+<td><strong>read</strong></td>
+<td>capture of Triton from a binary of about 1000 km bodies; conditions (binary, disrupted, one bound)</td>
+</tr>
+<tr>
+<td>[R3636] (not on the list; binary exchange in a migrating system)</td>
+<td><strong>read</strong> (abstract and introduction)</td>
+<td>about 1 in 100 binary planetesimals gives a captured secondary at a Neptune-mass outer planet</td>
+</tr>
+<tr>
+<td>[R2403] (not on the list; collisional capture in the gas era)</td>
+<td><strong>read</strong> (abstract and conclusions)</td>
+<td>bound fraction of collisions in the Hill sphere at most 1e-5, 60 to over 1000 collisions per Myr, the colliders mostly destroyed</td>
+</tr>
+<tr>
+<td>[R1666]</td>
+<td><strong>read</strong> (abstract)</td>
+<td>temporary captures last 286 +/- 18 days and 2.88 +/- 0.82 revolutions; at least one 1 m natural Earth satellite at any time; 0.1 percent of meteors were captured; the one known case, 2006 RH120</td>
+</tr>
+<tr>
+<td>[R3814], Nature Geoscience (HAL copy)</td>
+<td><strong>read</strong> (abstract and introduction)</td>
+<td>Phobos and Deimos are not captured: tidal dissipation cannot turn a captured body's orbit into their near-circular equatorial one; a 1e18 kg debris disc after a giant impact, inner large moons fall back in about 5 Myr</td>
+</tr>
+<tr>
+<td>[R4456] (Saturn)</td>
+<td>fetched, not used beyond JH07's families</td>
+<td>Saturn groups of 3 and 4 prograde bodies</td>
+</tr>
+<tr>
+<td>[R3263]</td>
+<td><strong>not reached</strong> (publisher copy refused)</td>
+<td>second-hand: VNL08 (limits), JH07 (Kozai, a / r_H trend), [R0483] (families, collisions)</td>
+</tr>
+<tr>
+<td>[R1771]</td>
+<td><strong>not reached</strong></td>
+<td>second-hand: JH07 section 5 (stability depends on e and i); the 0.4895 r_H circular limit is already in the repo</td>
+</tr>
+<tr>
+<td>[R4053, R4054], 2006</td>
+<td><strong>not reached</strong> (UCLA and publisher copies refused)</td>
+<td>second-hand: JH07 Tables 2 and 3, [R0483, R4053] (Uranus survey read in full)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-this-changes-in-the-design">What this changes in the design</h2>
+<ol>
+<li><strong>Section 2.3 and the stand-in table, capture probability.</strong> Replace &quot;scaled by Hill volume to other planets&quot; with the printed values (CM2). Ice giants capture more than gas giants in the original Nice model (3e-7 to 5e-7 against 1e-8 to 2e-8), and less in the newer histories ((1 to 3)e-8); the driver is the number of encounters the planet has with another giant, not its size. CM1 gives the per-encounter form (Pcap about 1.3e-10 to 2.6e-10 per encounter per disc particle at Jupiter, from 6e-7 stable captures per particle injected into the encounter sphere times the 3.5 to 4.2e-4 of the disc in it), so item 9's record of the encounter count of the architecture is enough to set a planet's capture probability.</li>
+<li><strong>Section 2.3, head counts.</strong> Use 55, 35, 9, 8 (2007) and 107, 268, 10, 8 (10-30) for irregulars; 63, 56, 27, 13 count regular moons too.</li>
+<li><strong>Section 4.5, targets.</strong> Irregulars above 5 km: Jupiter 8 (design 10 to 20), Saturn 11 (5 to 15), Uranus 9 and Neptune 8 (5 to 12; Neptune is complete only above 16 km, 7 there). Above 40 km: 1 at each (design 0 to 2). Largest: Himalia, Phoebe, Sycorax and Nereid, so the ice giant's largest is 93 km, or 178 km if Nereid is counted; the design's 30 to 100 km misses Nereid, which has the orbit of a scattered regular moon (a / r_H 0.047, i 5 deg).</li>
+<li><strong>Section 2.3, size law.</strong> Above 7 km the differential index is 1.8 to 1.9 (cumulative 0.8 to 1.0), as the design had. Below 5 km the design's &quot;q about 3.5, cumulative 2.5&quot; is not supported: counting the table gives 1.3 at Jupiter and 2.0 at Saturn, and the deepest Jupiter survey gives a differential 2.5 (cumulative 1.5) to 0.4 km. Use 1.3 to 1.5 at Jupiter and 2.0 at Saturn below 5 km; the 3.5 was marked &quot;citation needed&quot; in the source I had.</li>
+<li><strong>Section 6, storage.</strong> The floor of 1e16 kg (R = 10.6 km at 2000 kg/m3; 9.7 to 11.7 km for 2600 to 1500) stores 8, 5, 6 and 8 (design 8 to 12). Rule D's 90 percent of the mass is reached with 3, 1, 1 and 1 bodies, so the floor decides and the cap of 100 is never reached by the Solar System giants (it matters for a system with a heavy primordial reservoir).</li>
+<li><strong>Section 2.1, Kozai band.</strong> The edges 55 and 130 are the observed gap (JH07); the quadrupole limits are 39.2 and 140.8 degrees. Four of the 18 ice-giant irregulars lie inside the gap (Margaret at 60.5, and the three Neptune moons at 119.6 to 128.4 degrees, all at the far end of the retrograde zone); none of the 375 at Jupiter and Saturn do. <code>KOZAI_FORBIDDEN_DEG</code> is a hard cut at the gas giants and could be a soft one (a weight of about 0.2) at the ice giants.</li>
+<li><strong>Sections 2.2 and 4.1, windows.</strong> Gas-era collisional capture is negligible (CM12). Binary exchange gives under 0.001 small irregulars at Jupiter and Saturn, up to 0.07 at Uranus and up to 1.7 at Neptune if every planetesimal were a binary, and a chance of 0.2 to 3.5 percent of capturing a Triton-class body at Neptune, early (CM11). Temporary capture is a flag only (CM13).</li>
+<li><strong>Collisions (item 5).</strong> The present collisional lifetime of a 1 to 5 km irregular against all the others is 3e9 to 1.3e10 yr and of a 70 km one 9e7 to 1.3e9 yr (CM9), so the grinding is largely over today, and the 99 percent loss happened in the first hundreds of Myr [R0483]. The mass left now (4e18 to 1e19 kg at Jupiter, Saturn and Uranus) is 0.2 to 17 percent of the 0.0008 to 0.03 lunar masses (5.9e19 to 2.2e21 kg) the paper starts from, so it brackets the paper's 99 percent loss without fixing it. For the generator: draw the captured mass from the capture probability, then keep a fraction of 1 percent (0.5 to 5), with the largest body kept whole.</li>
+<li><strong>Terrestrial planets.</strong> [R3814] supports zero captures: the small circular equatorial moons of a rocky planet are impact debris, not captured bodies.</li>
+<li><strong>Mass check of CM1.</strong> (3 to 4)e7 disc particles above 40 km times 1.3e-8 to 3.6e-8 gives 0.4 to 1.4 captured bodies above 40 km at Jupiter (NDD14 says about one), against 1 or 2 seen.</li>
+</ol>
+<h2 id="not-read-still-open">Not read, still open</h2>
+<ul>
+<li>Gas-drag capture strength: see the GEN.1122 section below; the share stays a guess (CM14, burn-down line).</li>
+<li>Per-planet capture in the newer instability histories for Saturn, Uranus and Neptune beyond the one sentence of NDD14 section 3.4.</li>
+<li>Family speeds and counts at Saturn beyond JH07 and [R0483] (the Gallic, Inuit and Norse groups).</li>
+<li>The origin of Nereid (scattered regular moon after Triton's capture, or an irregular) decides whether Neptune's largest irregular is 178 km or 31 km.</li>
+</ul>
+<h2 id="gen1122-gas-drag-capture-r0956-r3560">GEN.1122: gas-drag capture [R0956, R3560]</h2>
+<p>Sources 1 lane, 10-30. <strong>Result: neither paper could be opened and no source reached gives a drag share against the encounter channel, so CM14 stays a guess (T6, L3); what the second-hand reading does give is a gate and a size window for the drag channel, now rows CM18 to CM20.</strong></p>
+<p>What was reached: the abstract of [R3560] (Icarus 37, 587; NTRS, the full text is not on the server); [R0956] not on arXiv and its publisher page is refused, so read only through its two summaries: [R2158] section 6.2 (read in full) and [R4055], IAU 229, [R4052] section 3.1 (read in full). Also searched for a numeric capture efficiency in [R3513] (fetched, not read beyond its title: it is the three-body channel).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>who can do it</td>
+<td>gas giants only: Jupiter and Saturn kept about 300 and 100 earth masses of H<sub>2</sub> and He, Uranus and Neptune about 1; the bloated young envelope was hundreds of times the planet's size</td>
+<td>JH07 6.3</td>
+</tr>
+<tr>
+<td>capture condition</td>
+<td>the body must meet about its own mass of gas on its way through the envelope</td>
+<td>[R4055] 3.1</td>
+</tr>
+<tr>
+<td>size window</td>
+<td>a few km to a few hundred km; larger bodies are hardly slowed, smaller ones spiral into the planet</td>
+<td>[R3560] as quoted by [R4055] and JH07 6.2</td>
+</tr>
+<tr>
+<td>timing</td>
+<td>the envelope must collapse within a few thousand years of the capture, else the body spirals in; the present irregulars would be the last few captured</td>
+<td>[R4055] 3.1</td>
+</tr>
+<tr>
+<td>orbits it predicts</td>
+<td>retrograde bodies lose more (smaller e, i, a), smaller bodies evolve faster and are removed first, larger ones are captured nearer the planet; none of these size trends is seen</td>
+<td>[R4055] 3.1; JH07 6.2</td>
+</tr>
+<tr>
+<td>fit to the data</td>
+<td>[R0956] explain the prograde Himalia group (disc, not envelope); JH07 call such a model dependent on weakly constrained parameters of the gas; the equal populations at the four giants argue against drag as the main agent</td>
+<td>JH07 6.2, 6.3</td>
+</tr>
+<tr>
+<td>pull-down (sudden planet growth)</td>
+<td>at least a 10 percent mass jump (Vieira [R4546]) or over 40 percent in a few thousand years; gas giants only; also works for prograde</td>
+<td>JH07 6.1; [R4055] 3.2</td>
+</tr>
+<tr>
+<td>quasi-satellites</td>
+<td>5 to 20 percent of scattered planetesimals become quasi-satellites of the planet</td>
+<td>JH07 6.3</td>
+</tr>
+</tbody>
+</table></div>
+<p>For the generator: the drag channel is switched on only for a planet with a massive envelope in the gas era, for bodies of 1 to 500 km, and its yield stays the guess of CM14 (0.1 to 0.3 of the encounter channel) with the knob 0 to 0.3, since the observed equality of the four giants (JH07) and the lack of size-orbit trends [R4055] put the upper end at risk. A physical form is possible when the envelope is generated: capture if the column density of gas along the path times the cross-section is at least the body's mass, which gives R_max = (3/4) (rho_gas L / rho_body); it needs the gas density of the envelope (not in any paper reached).</p>
+<p>Still open: the full text of [R0956, R3560] (a person with library access could read the capture-efficiency figure of the first and the disc-capture rate of the second).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

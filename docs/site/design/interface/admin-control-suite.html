@@ -1,0 +1,982 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin control suite redesign: Generate, Settings and the rest (research report and proposal) - planetGen docs</title>
+<meta name="description" content="Times in this note are the admin redesign thread&#x27;s own clock as it reported them.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/admin-control-suite.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/admin-control-suite.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="admin-control-suite-redesign-generate-settings-and-the-rest-research-report-and-proposal">Admin control suite redesign: Generate, Settings and the rest (research report and proposal)</h1><p class="meta">docs/design/interface/admin-control-suite.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#0-research-packing-many-options-into-an-admin-suite">0. Research: packing many options into an admin suite</a></li><li style="margin-left:14px"><a href="#01-patterns-and-what-they-would-do-here">0.1 Patterns and what they would do here</a></li><li style="margin-left:14px"><a href="#02-what-gets-out-of-the-way-means-here-design-rules">0.2 What "gets out of the way" means here (design rules)</a></li><li style="margin-left:14px"><a href="#03-the-suite">0.3 The suite</a></li><li style="margin-left:14px"><a href="#04-risks-the-design-must-handle">0.4 Risks the design must handle</a></li><li style="margin-left:0px"><a href="#where-the-redo-stands-in-the-plan">Where the redo stands in the plan</a></li><li style="margin-left:0px"><a href="#1-what-the-two-pages-do-today">1. What the two pages do today</a></li><li style="margin-left:14px"><a href="#generate-admingenerate">Generate (/admin/generate)</a></li><li style="margin-left:14px"><a href="#settings-adminsettings-adm84-adm96">Settings (/admin/settings, ADM.84, ADM.96)</a></li><li style="margin-left:0px"><a href="#2-every-setting-classified">2. Every setting classified</a></li><li style="margin-left:14px"><a href="#class-a-by-proposed-group-what-the-admin-sees">Class A, by proposed group (what the admin sees)</a></li><li style="margin-left:14px"><a href="#class-b-owner-only-7-hidden-by-default">Class B (Owner only, 7): hidden by default</a></li><li style="margin-left:14px"><a href="#class-c-server-only-24-hidden-by-default">Class C (server only, 24): hidden by default</a></li><li style="margin-left:0px"><a href="#3-the-proposed-settings-page">3. The proposed Settings page</a></li><li style="margin-left:0px"><a href="#4-the-proposed-generate-page">4. The proposed Generate page</a></li><li style="margin-left:14px"><a href="#frame-every-generate-screen">Frame (every Generate screen)</a></li><li style="margin-left:14px"><a href="#start-screen-six-task-cards">Start screen: six task cards</a></li><li style="margin-left:14px"><a href="#every-task-is-the-same-five-steps">Every task is the same five steps</a></li><li style="margin-left:14px"><a href="#what-is-removed">What is removed</a></li><li style="margin-left:0px"><a href="#5-items-needed">5. Items needed</a></li><li style="margin-left:14px"><a href="#suite-todo-filed-adm98-research-and-cards-adm99-generate-suite-adm100-settings-adm55-adm92-adm93-adm56-moved-here-from-86-as-82-phase-1-with-this-thread-as-owner-610-pm-edt">Suite (TODO filed ADM.98 research and cards, ADM.99 Generate suite, ADM.100 Settings; ADM.55, ADM.92, ADM.93, ADM.56 moved here from 8.6 as 8.2 Phase 1 with this thread as owner, 6:10 PM EDT)</a></li><li style="margin-left:14px"><a href="#settings">Settings</a></li><li style="margin-left:14px"><a href="#generate">Generate</a></li><li style="margin-left:0px"><a href="#6-overlap-with-existing-todo-items">6. Overlap with existing TODO items</a></li><li style="margin-left:0px"><a href="#7-bosss-answers-all-13-cards-tapped-605-pm-to-609-pm-edt">7. Boss's answers (all 13 cards, tapped 6:05 PM to 6:09 PM EDT)</a></li><li style="margin-left:0px"><a href="#8-notes-for-whoever-builds-it">8. Notes for whoever builds it</a></li><li style="margin-left:0px"><a href="#9-what-is-built">9. What is built</a></li></ul></details>
+<p><em>Times in this note are the admin redesign thread's own clock as it reported them.</em>
+Written 2026-10-21, 6:20 PM EDT, extended 6:45 PM EDT, from a read-only pass over dwhagar/planetGen at main 48e47b5 (Release 8.0.1864 plus TODO PRs through #2348). No code was changed and nothing is built until Boss answers the cards in section 7.</p>
+<p>Boss's asks: (5:57 PM EDT) the Generate page is horrible to use and has grown too complicated for its simple format; the Settings page is incomprehensible and reads like a Linux config file; list only what can be changed, or hide the rest behind an option that is on by default. (6:01 PM EDT) do the redesign right away in its own thread; research ways to pack a lot of options into one admin control suite that includes the Generate control suite; &quot;the interface needs to get out of the way&quot;; research, report and cards before any building.</p>
+<p>Sections 1 and 2 describe what exists. Section 0 is the research and the suite design. Sections 3 and 4 detail the Settings and Generate pages inside that suite. Section 5 lists the items, 6 the overlap with existing TODO items, 7 the choices for Boss.</p>
+<h2 id="0-research-packing-many-options-into-an-admin-suite">0. Research: packing many options into an admin suite</h2>
+<p>Method note: this is a design review from established products and published interface guidance, not a fetch of web pages (the environment's network is limited and nothing here depends on a figure that needs a citation). Each pattern is rated against this project's problem: roughly 90 settings, seven Generate forms with about 80 controls, about eight admin pages, one admin at a time, mostly on a desktop but sometimes a phone, and a rule that pages work without script.</p>
+<h3 id="01-patterns-and-what-they-would-do-here">0.1 Patterns and what they would do here</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Seen in</th>
+<th>What it gives</th>
+<th>Limit</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Command palette (one box reaches every page, task, setting, recent job)</td>
+<td>VS Code, GitHub, Linear, Raycast</td>
+<td>Zero chrome; scales to hundreds of options; gets out of the way</td>
+<td>Not discoverable alone; needs a no-script fallback and proper combobox accessibility</td>
+<td><strong>Adopt as the primary way in</strong>, beside a visible rail</td>
+</tr>
+<tr>
+<td>Typed commands with arguments that land on a review step</td>
+<td>Raycast, Slack slash commands, GitHub Actions &quot;run workflow&quot;</td>
+<td>&quot;add sectors radius 12&quot; opens the Review step pre-filled; three keystrokes to run</td>
+<td>The parser must stay small and forgiving</td>
+<td><strong>Adopt</strong>: the palette fills the same form the pages use, never runs anything by itself</td>
+</tr>
+<tr>
+<td>Search-first settings with a &quot;modified only&quot; filter</td>
+<td>VS Code, macOS System Settings, Chrome</td>
+<td>No scrolling; changed values findable; matches in labels, summaries and keywords</td>
+<td>Needs good keywords</td>
+<td><strong>Adopt</strong> for Settings</td>
+</tr>
+<tr>
+<td>Progressive disclosure (basic, then advanced)</td>
+<td>Stripe, GitHub settings, Home Assistant</td>
+<td>Fewer controls on screen, same power</td>
+<td>An &quot;advanced&quot; bucket gets abused</td>
+<td><strong>Adopt</strong> with a rule: advanced only for options a normal change never needs, and search always reaches them</td>
+</tr>
+<tr>
+<td>Accordion folds with remembered state</td>
+<td>this site's ADM.4</td>
+<td>Hides length</td>
+<td>Hides content without reducing the number of choices, which is why Generate still feels bad</td>
+<td><strong>Drop</strong> as the main device</td>
+</tr>
+<tr>
+<td>Dense table with inline edit (click the value, Enter saves, Esc cancels)</td>
+<td>Airtable, Grafana, Kubernetes dashboards</td>
+<td>Many rows per screen; value, default and state in one line</td>
+<td>Risky for options that need a review (rate limits, restart-only)</td>
+<td><strong>Offer</strong> as a compact density for Settings (answer 7)</td>
+</tr>
+<tr>
+<td>Master and detail (list left, detail right, no page loads)</td>
+<td>cloud consoles, mail clients</td>
+<td>Moving between settings groups or jobs costs nothing</td>
+<td>Needs a good phone layout (list then detail)</td>
+<td><strong>Adopt</strong> for Settings groups, Jobs and Backups</td>
+</tr>
+<tr>
+<td>Persistent activity strip</td>
+<td>CI dashboards, Vercel, GitHub Actions</td>
+<td>The running job is visible from every page, collapses to a thin bar</td>
+<td>One more moving part</td>
+<td><strong>Adopt</strong>: one strip across the whole suite, not just Generate</td>
+</tr>
+<tr>
+<td>Saved presets and &quot;run again&quot;</td>
+<td>Jenkins &quot;build with parameters&quot;, Blender presets, GitHub saved replies</td>
+<td>The common run is one click; long forms stop being re-typed</td>
+<td>Needs storage and a way to name and delete</td>
+<td><strong>Adopt</strong> as Run again first, named recipes second (answer 11)</td>
+</tr>
+<tr>
+<td>Plan, then apply with a diff</td>
+<td>Terraform, git</td>
+<td>Review is the safety; destructive actions get a typed confirm only when they cannot be undone</td>
+<td>Needs a clear summary, not raw JSON</td>
+<td><strong>Keep and reuse</strong>: Review is the same component for settings changes and for Generate runs</td>
+</tr>
+<tr>
+<td>Undo instead of confirm for reversible changes</td>
+<td>Gmail</td>
+<td>Fewer dialogs</td>
+<td>Not available for restart-only or destructive settings</td>
+<td><strong>Limited</strong>: only for light choices (density, hide toggle)</td>
+</tr>
+<tr>
+<td>Keyboard shortcuts with a help overlay (<code>/</code> to search, <code>g</code> then a letter to go)</td>
+<td>GitHub, Gmail, Linear</td>
+<td>Power use without UI weight</td>
+<td>Must not clash with typing; must be listed</td>
+<td><strong>Adopt</strong> a small set (answer 6)</td>
+</tr>
+<tr>
+<td>URL-addressable state (every setting, task step, job has a link)</td>
+<td>GitHub, Grafana</td>
+<td>Share and bookmark; Back works</td>
+<td>Needs a stable key per item</td>
+<td><strong>Adopt</strong>; settings keep their config key as the anchor</td>
+</tr>
+<tr>
+<td>Responsive bottom sheets and single-column steps</td>
+<td>mobile consoles</td>
+<td>Works on a phone</td>
+<td>More CSS</td>
+<td><strong>Adopt</strong> for the flow steps and palette</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="02-what-gets-out-of-the-way-means-here-design-rules">0.2 What &quot;gets out of the way&quot; means here (design rules)</h3>
+<ol>
+<li><strong>The default screen is status plus the next action.</strong> Nothing else is drawn until asked for. No section of long forms is open on load.</li>
+<li><strong>One way to find anything.</strong> The palette, the rail, the hub page and the settings search all read the same registry, so a new page, task or setting appears everywhere with no extra work (this is how <code>settings.opt</code> already feeds the settings page, the API and the CLI).</li>
+<li><strong>A control that cannot do anything for this admin is not drawn.</strong> The &quot;cannot be changed&quot; items sit behind a switch that is off by default (Boss's rule).</li>
+<li><strong>Each choice is made once.</strong> The same shape fields, scatter limits, prevalence and overrides exist once and are reached from whichever task needs them.</li>
+<li><strong>Safe things are cheap, dangerous things are far.</strong> Check, add sectors and settings changes sit up front. Reset and New galaxy are last, red and need the typed database name.</li>
+<li><strong>The running job follows the admin.</strong> A thin strip on every admin page; the full log opens from it.</li>
+<li><strong>Everything works without script;</strong> script adds the palette, live counts and the strip's live updates.</li>
+<li><strong>Compact by default,</strong> one density toggle, remembered in this browser.</li>
+</ol>
+<h3 id="03-the-suite">0.3 The suite</h3>
+<pre><code> top bar:  [ Admin ]  [ Search or run...  Ctrl+K ]                 [job strip: Add sectors 3/6 · 42% · ETA · Cancel]  [account]
+ rail:     Overview | Generate | Settings | Jobs | Data | Account
+ content:  one column, up to two panes (list left, detail right) at wide widths
+</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Destination</th>
+<th>Holds today</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Overview</td>
+<td>admin hub, maintenance mode, API keys</td>
+<td>status, shortcuts to the six common tasks, maintenance toggle</td>
+</tr>
+<tr>
+<td>Generate</td>
+<td>the seven forms, one-off system, Recent jobs</td>
+<td>section 4: six task cards, five-step flow, History</td>
+</tr>
+<tr>
+<td>Settings</td>
+<td>config.json options</td>
+<td>section 3</td>
+</tr>
+<tr>
+<td>Jobs</td>
+<td>Work Queue (<code>/admin/queue</code>, tree, confirmation), job pages</td>
+<td>one place for every job including Generate's; ADM.95 builds on it</td>
+</tr>
+<tr>
+<td>Data</td>
+<td>Stats, Backups and restore, Images, Facility types</td>
+<td>list and detail panes</td>
+</tr>
+<tr>
+<td>Account</td>
+<td>username, password</td>
+<td>unchanged</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <strong>admin registry</strong> is the new foundation: a small module where each page, task and setting declares a label, one-line summary, keywords, the role that may use it, a danger level (safe, rewrites rows, destroys) and the URL it lives at. Settings keep their model as the source for their entries. The palette searches it on the server (so the no-script path is a plain search page, <code>/admin/search?q=</code>), the rail and hub are drawn from it, and a test fails when an admin route is missing from it.</p>
+<p><strong>Palette contents:</strong> pages; tasks (verbs such as &quot;Add sectors&quot;, &quot;Check the database&quot;, &quot;Make one system&quot;); settings by label, summary and keywords (open the row, and switch or number options can be set from the palette); recent jobs; sectors and systems by name (the existing <code>/galaxy/locate</code> search); maintenance mode on and off; the keyboard help. Typed arguments that match a task's fields open that task's Review step pre-filled (&quot;add sectors 12 pc around <sector name>&quot;); nothing runs from the palette without the Review step.</p>
+<p><strong>Keyboard set (small on purpose):</strong> <code>Ctrl+K</code> or <code>/</code> search; <code>g</code> then <code>g</code>, <code>s</code>, <code>j</code>, <code>d</code> to go to Generate, Settings, Jobs, Data; <code>?</code> help; <code>Ctrl+Enter</code> run on a Review step; <code>Esc</code> closes. All of it off while typing in a field.</p>
+<h3 id="04-risks-the-design-must-handle">0.4 Risks the design must handle</h3>
+<ul>
+<li>The palette must be a real accessible combobox (ARIA authoring practices pattern), usable by keyboard and screen reader, with the plain search page as the no-script path.</li>
+<li>A pre-filled command must show exactly what it will do on the Review step; the parser may refuse an ambiguous command rather than guess.</li>
+<li>Settings that need a restart or are overridden by an environment variable must say so in the palette result too, not only on the page.</li>
+<li>The job strip must not poll a heavy endpoint on every page: reuse the existing Server-Sent Events stream and fall back to the light status call only while a job runs.</li>
+<li>Moving other admin pages onto the shell is the large part of the work (ADM.93); the order puts Generate and Settings first and splits the rest into one item per destination.</li>
+</ul>
+<h2 id="where-the-redo-stands-in-the-plan">Where the redo stands in the plan</h2>
+<p>Short answer to &quot;do we have a redo somewhere&quot;: yes, but late. ADM.55 (audit), ADM.92 (admin shell), ADM.93 (move every page onto it) and ADM.56 (umbrella) are all in 8.6 &quot;edit everything&quot;, behind UX.115. Nothing in the plan redesigns Generate or Settings themselves, and ADM.28 (&quot;A simpler Generate page&quot;, done, PR #991) was the last try, before the page grew to seven forms. This draft is the redesign itself, with a proposal to pull it forward.</p>
+<h2 id="1-what-the-two-pages-do-today">1. What the two pages do today</h2>
+<h3 id="generate-admingenerate">Generate (<code>/admin/generate</code>)</h3>
+<p>Files: <code>web/generate_page.py</code> (1,536 lines), <code>templates/generate.html</code> (571), <code>generate_job.html</code>, <code>generate_system.html</code>, <code>partials/job_status.html</code>, <code>static/generatejobs.js</code>, <code>generatefolds.js</code>, <code>generatecustomize.js</code>, <code>generatestarmix.js</code>, <code>generatebuttons.js</code>, <code>limitsliders.js</code>, <code>web/limit_sliders.py</code>, <code>web/system_page.py</code>.</p>
+<p>One URL, seven POST forms told apart by a hidden <code>action</code>. Every form becomes a background job (one at a time) that runs the same CLI an admin would type. Sections, top to bottom, all folded with <code>&lt;details&gt;</code> and remembered per browser (ADM.4):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Section</th>
+<th>What it does</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Badges</td>
+<td>Database name, planned or not, sector count, bright-star state</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Estimate (interstitial)</td>
+<td>After Generate or deep check, shows size, time, disk, then asks again to confirm (PERF.3, ADM.33)</td>
+<td>Generate, Generate anyway, Cancel</td>
+</tr>
+<tr>
+<td>Current job</td>
+<td>Step, stages, two progress bars, log terminal, cancel, copy, download</td>
+<td>only while a job runs</td>
+</tr>
+<tr>
+<td>Galaxy shells</td>
+<td>Read-only table of shells</td>
+<td>none</td>
+</tr>
+<tr>
+<td>One-off system</td>
+<td>Link to a second page that builds one system and never saves it</td>
+<td>link</td>
+</tr>
+<tr>
+<td>New galaxy</td>
+<td>Wipes the database, plans, generates a first neighbourhood, scatters</td>
+<td>9 shape fields, 10 prevalence and 3 star-mix fields, 5 overrides, 2 scatter sliders, neutron star and black hole limit, 3 segments (core, halo, dense cells) with 5 more sliders, skip checkbox, radius, minimum density, typed confirmation. Customize is a modal with tabs</td>
+</tr>
+<tr>
+<td>Generate sectors</td>
+<td>Adds sectors, five modes (random start, shell, around a sector, one address, span), the centre named three ways</td>
+<td>about 25 fields, the same prevalence and override groups again</td>
+</tr>
+<tr>
+<td>Plan the galaxy</td>
+<td>Rebuilds the density skeleton, then scatters</td>
+<td>the same 9 shape fields and the same scatter controls again</td>
+</tr>
+<tr>
+<td>Redo scatters</td>
+<td>Redoes mass, luminosity or phenomena scatters on the current plan</td>
+<td>3 checkboxes, each with its own slider group</td>
+</tr>
+<tr>
+<td>Add a dimmer step</td>
+<td>Extends the bright-star floor downward</td>
+<td>1 field</td>
+</tr>
+<tr>
+<td>Check the database</td>
+<td>Plain or deep check</td>
+<td>1 checkbox</td>
+</tr>
+<tr>
+<td>Reset</td>
+<td>Wipes everything</td>
+<td>typed confirmation</td>
+</tr>
+<tr>
+<td>Recent jobs</td>
+<td>Table of the last jobs</td>
+<td>pager</td>
+</tr>
+</tbody>
+</table></div>
+<p>Why it is hard to use, from the code:</p>
+<ol>
+<li>It is organised by the CLI's commands (plan, galaxy, redo, band, reset), not by what an admin wants to get done.</li>
+<li>The same controls appear on two or three forms: the shape fields on New galaxy and Plan, the scatter limits on New galaxy, Plan and Redo, prevalence and overrides on New galaxy and Generate sectors. The admin cannot tell which copy matters.</li>
+<li>Eight things that change the stored plan, the sector list and the whole database sit in one scroll with equal weight; Reset and New galaxy look like the safe forms above them.</li>
+<li>The running job is far from the forms that started it, and the forms lock without saying which one is blocked or offering a way to prepare the next run.</li>
+<li>The estimate and the confirmation arrive as a separate interstitial page that replaces the form, so a changed mind means losing the form.</li>
+<li>Radio fieldsets, <code>Customize</code> modals, folds and sliders each solve a different part of the same overload.</li>
+<li>Most fields have no unit scale or live consequence beside them (the ceiling cost hint is the one good example).</li>
+</ol>
+<h3 id="settings-adminsettings-adm84-adm96">Settings (<code>/admin/settings</code>, ADM.84, ADM.96)</h3>
+<p>Files: <code>web/settings_page.py</code>, <code>templates/admin_settings.html</code>, <code>admin_settings_review.html</code>, <code>util/settings.py</code> (the model), <code>util/settings_view.py</code>, <code>util/settings_writer.py</code>, <code>api/settings.py</code>.</p>
+<p>One form over the whole <code>config.json</code> model: 89 options in 16 categories, each drawn as a &quot;setting&quot; block: the title made from the path (<code>tile cache &gt; warm zoom levels</code>), the unit in brackets, the control, the description, then a meta line with the raw key (<code>tile_cache.warm_zoom_levels</code>), <code>Default: 14</code>, limits as text, &quot;needs a restart&quot;, &quot;overridden by PLANETGEN_X&quot;, &quot;set in config.json&quot;, a secret tag and a reset checkbox. Read-only options are printed as a <code>&lt;code&gt;</code> value plus the reason. Save is two steps (review diff, confirm) with a backup and audit rows, which is good and should stay.</p>
+<p>Why it reads like a config file:</p>
+<ol>
+<li>Titles come from key paths, not words. The key, the default and the source are printed on every row.</li>
+<li>Control choice is by type only: an integer is a text box, a duration is &quot;seconds&quot; in a text box, a rate limit is the string <code>600 per minute</code>, a list is a textarea, a colour is a text box.</li>
+<li>31 of the 89 options cannot be changed from the web, yet they are printed in full among the ones that can.</li>
+<li>Nothing is grouped by purpose: caches are 17 options in one block, search engines 14, rate limits 7 with raw limiter strings.</li>
+<li>No search, no sticky save, no way to see what you changed before you submit.</li>
+</ol>
+<h2 id="2-every-setting-classified">2. Every setting classified</h2>
+<p>Counts come from running the model (<code>settings.iter_fields</code> with <code>settings_writer.allowed</code>) on the repo.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Count</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A. Changeable by an admin from the web</td>
+<td>58</td>
+<td><code>x-editable</code> true, role admin</td>
+</tr>
+<tr>
+<td>B. Owner only</td>
+<td>7</td>
+<td><code>x-editable</code> true, <code>x-min_role</code> owner. Nobody in the web can change them until the Owner account exists (USR.31 is an open 8.1 item), so today they are read-only for everyone</td>
+</tr>
+<tr>
+<td>C. Server only</td>
+<td>24</td>
+<td><code>x-editable</code> false: the file can only be edited, or <code>python3 -m planetgen.cli.config set</code> run, on the server</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>89</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Of the 58 in class A, 13 need a web server restart to apply (the rate limits, the page cache's switches and sizes), and 6 have an environment variable that overrides the file (<code>ratelimit.default</code>, <code>ratelimit.storage_uri</code>, <code>cache.max_mb</code>, <code>cache.warm_on_change</code>, <code>page_cache.enabled</code>, <code>page_cache.stored_counts</code>), in which case a save does nothing to the value in use.</p>
+<h3 id="class-a-by-proposed-group-what-the-admin-sees">Class A, by proposed group (what the admin sees)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Proposed group</th>
+<th>Options</th>
+<th>Controls proposed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Site identity</td>
+<td><code>site_name</code>, <code>site.tagline</code>, <code>site.language</code>, <code>web.title_template</code></td>
+<td>text, text, language picker, text with a live preview of a page title</td>
+</tr>
+<tr>
+<td>Look</td>
+<td><code>web.theme_color_light</code>, <code>web.theme_color_dark</code>, <code>icons.manifest_enabled</code>, <code>icons.favicon_svg</code>, <code>favicon_png</code>, <code>apple_touch_icon</code></td>
+<td>colour pickers, a switch; the three icon paths replaced by a link to the Images page (they are already managed there) unless the path is the only way</td>
+</tr>
+<tr>
+<td>Search engines</td>
+<td><code>seo.indexing</code>, <code>detail_pages</code>, <code>description</code>, <code>keywords</code>, <code>json_ld</code>, <code>block_ai_crawlers</code>, <code>sitemap_enabled</code>, <code>sitemap_max_urls</code>, <code>sitemap_cache_hours</code></td>
+<td>segmented choices, switches, chips for keywords, number with unit</td>
+</tr>
+<tr>
+<td>Search engines, advanced (collapsed)</td>
+<td><code>seo.robots_extra</code>, <code>robots_override</code>, <code>security_txt</code>, <code>humans_txt</code>, <code>privacy_note</code></td>
+<td>text areas, with a warning on <code>robots_override</code></td>
+</tr>
+<tr>
+<td>Link previews</td>
+<td><code>og.enabled</code>, <code>site_name</code>, <code>image_alt</code>, <code>default_image</code>, <code>twitter_card</code>, <code>twitter_site</code>, <code>generated_cards</code>, <code>card_cache_mb</code></td>
+<td>switch, text, choice, slider with MB</td>
+</tr>
+<tr>
+<td>Speed and disk</td>
+<td><code>cache.max_mb</code>, <code>cache.warm_on_change</code>, <code>cache.warm_settle_seconds</code>, <code>tile_cache.warm_zoom_floor</code> (MAP.261: it replaced <code>warm_levels</code> and <code>warm_zoom_levels</code>), the three <code>prefetch_*</code>, <code>page_cache.enabled</code>, <code>page_cache.warm_max_objects</code>, <code>page_cache.stored_counts</code></td>
+<td>slider with the disk size in GB, switches, steppers with the block size shown</td>
+</tr>
+<tr>
+<td>Speed and disk, advanced (collapsed)</td>
+<td><code>page_cache.max_entries</code>, <code>max_mb</code>, <code>stamp_seconds</code>, <code>max_age_seconds</code>, <code>shared_seconds</code></td>
+<td>numbers with unit, &quot;needs restart&quot; mark</td>
+</tr>
+<tr>
+<td>Abuse protection</td>
+<td><code>ratelimit.default</code>, <code>storage_uri</code>, and the five <code>ratelimit.pages.*</code></td>
+<td>a rate control: a number, a unit (minute, hour, day) and an &quot;unlimited&quot; switch per row; storage URI behind Advanced</td>
+</tr>
+<tr>
+<td>Housekeeping</td>
+<td><code>jobs.keep</code>, <code>settings.backups_kept</code>, <code>mysql.statement_timeout_seconds</code></td>
+<td>steppers with plain sentences (&quot;keep the last 50 finished jobs&quot;)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="class-b-owner-only-7-hidden-by-default">Class B (Owner only, 7): hidden by default</h3>
+<p><code>base_url</code>, <code>login_allowlist</code>. They appear in the &quot;cannot be changed&quot; list with &quot;Only the Owner can change this&quot; until USR.31 and ADM.86 land, then in an Owner section.</p>
+<h3 id="class-c-server-only-24-hidden-by-default">Class C (server only, 24): hidden by default</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Options</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Database connection</td>
+<td><code>mysql.host</code>, <code>port</code>, <code>user</code>, <code>password</code>, <code>database</code>, <code>database_prefix</code>, <code>control_database</code></td>
+</tr>
+<tr>
+<td>Redis</td>
+<td><code>redis.url</code></td>
+</tr>
+<tr>
+<td>Logging</td>
+<td><code>debug</code>, <code>log_file</code>, <code>log_dir</code>, <code>log_rotation</code></td>
+</tr>
+<tr>
+<td>Proxy</td>
+<td><code>proxy_fix.x_for</code>, <code>x_proto</code>, <code>x_host</code></td>
+</tr>
+<tr>
+<td>Security</td>
+<td><code>admin_cookie_insecure</code>, <code>secret_key</code></td>
+</tr>
+<tr>
+<td>Paths</td>
+<td><code>api_base_url</code>, <code>web.assets_dir</code>, <code>og.card_cache_dir</code>, <code>tile_cache.dir</code>, <code>jobs.dir</code>, <code>jobs.python</code></td>
+</tr>
+<tr>
+<td>File</td>
+<td><code>config_version</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>These move into a single &quot;Server files&quot; disclosure: a section that explains in one paragraph how they are changed (<code>python3 -m planetgen.cli.config set key value</code>, then restart), then the list with values (secrets as &quot;set&quot; or &quot;empty&quot;).</p>
+<h2 id="3-the-proposed-settings-page">3. The proposed Settings page</h2>
+<p>Principles: words not keys, the control that fits the value, one line that says what it does and what happens at both ends, nothing listed that cannot be changed unless asked for.</p>
+<p>Layout:</p>
+<ol>
+<li>Header line: &quot;Settings&quot;, a search box, and a switch &quot;Show settings that cannot be changed (31)&quot;, <strong>off by default</strong>. When on, the 31 appear in their groups, greyed, with the reason in plain words (server only, Owner only, set by an environment variable) and no control. The choice is remembered in the browser and also in the URL (<code>?show=fixed</code>) so a link can carry it.</li>
+<li>Left rail (top bar on a phone): the groups from section 2 with a count of changed-but-unsaved options beside each. A group with nothing visible is not listed.</li>
+<li>Each setting is a row: <strong>plain label</strong>, a one-line description (the first sentence of the model description), the control with its unit written in the control (&quot;1,024 MB&quot;), and a small &quot;Details&quot; disclosure holding the long help, the default, the allowed range, the config key, and where the value in use comes from. &quot;Reset to default&quot; is a link in the row, shown only when the value differs from the default.</li>
+<li>Controls by kind: switch for yes or no; segmented choice for 2 to 4 choices, select for more; slider with a number box for sizes and counts (this is ADM.97, using the existing <code>limit_slider</code>); duration controls that say &quot;15 s&quot; or &quot;6 h&quot;; the rate control above; chips for lists; colour picker for colours; text area only for the long text options. Secrets are never in class A.</li>
+<li>A sticky save bar at the bottom: &quot;3 changes. Review and save.&quot; It stays disabled until something changes. The two-step review stays: a plain-language diff (&quot;Cache size: 1,024 MB to 2,048 MB&quot;), the list of changes that need a restart, a note for any that an environment variable overrides, then confirm. The backup and audit behaviour stays untouched.</li>
+<li>Environment-overridden options (6) are shown with a warning badge &quot;Set by PLANETGEN_X on the server, so a change here has no effect&quot; (answer 9).</li>
+<li>If <code>config.json</code> cannot be written (<code>view.problem</code>), the page opens with that explanation at the top and every control read-only, instead of hiding the problem.</li>
+</ol>
+<p>Wording example, today versus proposed:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Today</th>
+<th>Proposed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tile cache &gt; closest map block built ahead (shells)</code>, then &quot;Finest block level of the zoom run <code>planetgen warm</code> builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; 243 or more builds no run).&quot; then <code>tile_cache.warm_zoom_floor  Default: 9</code></td>
+<td><strong>How close the map is prepared in advance</strong> &quot;Zoom in to this block size when pre-building the map&quot; [stepper 9] &quot;Blocks of 9 shells are about 36 pc wide. 243 or more skips the zoom run.&quot; Details: default 9, key <code>tile_cache.warm_zoom_floor</code> (MAP.261; before it, <code>warm_zoom_levels</code>, a cube-tile level)</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.galaxy_tiles</code>, text box &quot;600 per minute&quot;</td>
+<td><strong>Map loading limit</strong> [600] per [minute] per visitor, &quot;Stops one visitor from flooding the server; applies after a restart.&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-the-proposed-generate-page">4. The proposed Generate page</h2>
+<p>Principles: organise by what the admin wants to do, one running job always visible, one place for each control, safe actions apart from dangerous ones, and the estimate is a step of the flow instead of a page that replaces it.</p>
+<h3 id="frame-every-generate-screen">Frame (every Generate screen)</h3>
+<ol>
+<li><strong>Status strip</strong>: database name, &quot;Planned, edge at shell N&quot; or &quot;Not planned yet&quot;, sector count, scatter state. It replaces the badges and the Galaxy shells fold (the shell table moves behind a &quot;Galaxy at a glance&quot; link).</li>
+<li><strong>Current job panel</strong>, pinned under the strip on every Generate page while a job runs: title, &quot;step 3 of 6&quot;, one overall progress bar with the estimate to finish, Cancel, and the log as a collapsed terminal (Copy and Download stay). When idle, it shows the last job's result in one line with &quot;Show on Galaxy Map&quot;, &quot;Full output&quot; and &quot;Run again with the same settings&quot;.</li>
+<li>Forms stay usable while a job runs. Only the final Run button is disabled, with the reason beside it (&quot;Generate sectors is running; Cancel it or wait&quot;). This replaces &quot;the forms unlock when the job finishes&quot; (answer 10: queue one next job, item K9).</li>
+</ol>
+<h3 id="start-screen-six-task-cards">Start screen: six task cards</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Card</th>
+<th>Replaces</th>
+<th>Danger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Add sectors to the galaxy</td>
+<td>Generate sectors</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Start a new galaxy</td>
+<td>New galaxy (reset, plan, first neighbourhood)</td>
+<td>destructive</td>
+</tr>
+<tr>
+<td>Change the stars and phenomena scattered across the galaxy</td>
+<td>Plan, Redo scatters, Add a dimmer step</td>
+<td>rewrites stored rows; sectors already generated are left alone</td>
+</tr>
+<tr>
+<td>Make one system (not saved)</td>
+<td>One-off system</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Check the database</td>
+<td>Check the database</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Wipe the galaxy</td>
+<td>Reset</td>
+<td>destructive, shown last, red, apart from the others</td>
+</tr>
+</tbody>
+</table></div>
+<p>Recent jobs becomes a <strong>History</strong> tab next to Start with a link to the Work Queue (ADM.95 and the queue pages already cover the same jobs).</p>
+<h3 id="every-task-is-the-same-five-steps">Every task is the same five steps</h3>
+<p><strong>What</strong> (only where there is a choice) → <strong>Where</strong> → <strong>How big</strong> → <strong>Review</strong> → <strong>Run</strong>. A progress rail on the left shows the steps; the draft is carried in the URL query and hidden fields, so Back works, a step can be bookmarked, and the page works without script.</p>
+<ul>
+<li><strong>Add sectors</strong>: What: &quot;Around a place&quot; or &quot;By shells, bands and wedges&quot;. Where for &quot;Around a place&quot;: a random populated spot, a named sector (the existing finder), a sector address, or a position in pc, one picker with four tabs (this is the five modes and the three centre choices collapsed into two plus a picker). Where for the grid choice: shell, band and wedge or a range of each, which also covers &quot;one address&quot; and &quot;a whole shell&quot;. How big: radius with a slider and a live line &quot;about N sectors, M systems&quot;; or the limit. Customize (collapsed, &quot;Advanced&quot;): prevalence, star mix (with the 100% total checker) and overrides, each with &quot;Usual: X%&quot; kept.</li>
+<li><strong>Start a new galaxy</strong>: Where: the shape. Every shape field shows &quot;The seed decides&quot; with a &quot;Choose it myself&quot; switch, so the pinned values are obvious and nothing is preset (nothing fixed from any real galaxy). How big: first neighbourhood radius and minimum start density. Advanced: scatter limits (below), prevalence, overrides. Review ends with the typed database name.</li>
+<li><strong>Change what is scattered</strong>: What: &quot;Rebuild the plan and scatter&quot; (today's Plan), &quot;Redo only some scatters&quot; (today's Redo, with the three kinds as three rows with switches), &quot;Add a dimmer step&quot; (one field). The scatter limits (the two galaxy-wide sliders, the neutron star and black hole limit, core, halo, dense cells) live here as an Advanced block with one &quot;Reset all to defaults&quot; and the &quot;Stored with this plan&quot; values shown in place, instead of repeated on three forms.</li>
+<li><strong>Make one system</strong>: the same page, on the same frame; the ten tri-state options become segmented &quot;Decide for me / Yes / No&quot; rows.</li>
+<li><strong>Check</strong>: plain or deep as a two-option choice with the time the deep check will take.</li>
+<li><strong>Wipe</strong>: What it deletes, what it keeps (admin logins and API keys), the typed database name, Run.</li>
+</ul>
+<p><strong>Review</strong> is the old estimate page, brought into the flow: a plain-language summary (&quot;Add about 340 sectors around the sector named X, within 12 pc, with the usual prevalence&quot;), sectors, systems, stars, database growth, time with N workers, disk check (the refusal and &quot;Generate anyway&quot; stay), the exact command line in a copyable box, then Run. Changing anything is one Back click, with the form intact.</p>
+<h3 id="what-is-removed">What is removed</h3>
+<p><code>generatefolds.js</code> and the fold macro, the Customize modal (<code>generatecustomize.js</code>), the five-radio mode fieldset, the repeated scatter and shape controls, the per-segment reset buttons, the separate estimate interstitial, and the &quot;forms below unlock&quot; lock. <code>generatejobs.js</code>, <code>limitsliders.js</code>, <code>generatestarmix.js</code>, the argv builders in <code>generate_page.py</code> and the estimate cache stay, since they are the logic and the live job panel; only the templates and their wiring change. No backward compatibility shim for the old URLs or form field names: the old <code>action</code> posts go, and <code>old_urls</code> is not extended.</p>
+<h2 id="5-items-needed">5. Items needed</h2>
+<p>Numbers were assigned by the TODO thread (6:25 PM EDT): S1 to S6 are ADM.101 to ADM.106, G1 to G11 are ADM.107 to ADM.117, K1 is ADM.118, K3 to K6 are ADM.119 to ADM.122, K9 is ADM.123; K2 is ADM.92, K7 is ADM.93 and K8 is ADM.55. Boss moved everything to 8.1 phase 1 (answer 1). Phase: &quot;8.1 P1&quot; means 8.1 Phase 1 (the Admin and API housekeeping and Generate page threads), which is where the settings page (ADM.84) already lives. The argv builders and their tests (<code>test_web_generate.py</code>, <code>test_generatebuttons.py</code>, <code>test_web_settings.py</code>) are the safety net and must keep passing unchanged where they test commands rather than markup.</p>
+<h3 id="suite-todo-filed-adm98-research-and-cards-adm99-generate-suite-adm100-settings-adm55-adm92-adm93-adm56-moved-here-from-86-as-82-phase-1-with-this-thread-as-owner-610-pm-edt">Suite (TODO filed ADM.98 research and cards, ADM.99 Generate suite, ADM.100 Settings; ADM.55, ADM.92, ADM.93, ADM.56 moved here from 8.6 as 8.2 Phase 1 with this thread as owner, 6:10 PM EDT)</h3>
+<p>The S and G items below are the children of ADM.100 and ADM.99. The K items are new and have no number yet; they are the suite pieces the research adds.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Done when</th>
+<th>Needs</th>
+<th>Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.118</td>
+<td>The admin registry: pages, tasks and settings declare label, summary, keywords, role, danger level and URL; the rail, hub and search read it</td>
+<td>a test fails for any admin route missing from the registry; the settings entries come from the settings model with no second list</td>
+<td>ADM.101</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.92</td>
+<td>The shell (this is ADM.92): top bar, rail with six destinations, content width, density toggle remembered per browser, phone layout</td>
+<td>the worked example is the Overview page; both themes; no console error; keyboard-only run</td>
+<td>ADM.118</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.119</td>
+<td>Job strip on every admin page (replaces ADM.107's current-job panel as the shared part)</td>
+<td>strip shows a running job from every page, Cancel works, the log opens from it, one SSE stream per page and none when idle</td>
+<td>ADM.92</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.120</td>
+<td>Command palette and <code>/admin/search</code>: server search over the registry, accessible combobox, Ctrl+K and <code>/</code>, results for pages, tasks, settings, jobs, sectors</td>
+<td>screen-reader pattern test; works with script off through the search page; a restart-only or overridden setting says so in its result</td>
+<td>ADM.118, ADM.92</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.121</td>
+<td>Typed commands that open a task's Review step pre-filled</td>
+<td>a table of command strings to argv, byte for byte against the old forms; ambiguous input is refused with a message</td>
+<td>ADM.120, ADM.108</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.122</td>
+<td>Keyboard set and help overlay</td>
+<td>shortcuts off inside fields; the overlay lists every shortcut; tests for each</td>
+<td>ADM.92</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.93</td>
+<td>Move the other pages onto the shell (this is ADM.93), one change per destination: Overview, Jobs, Data, Account</td>
+<td>each page opens in the shell, same table, form, confirmation and job-log parts, TEST.169 browser tests pass</td>
+<td>ADM.92</td>
+<td>8.1 P1 (Boss answers 1 and 2)</td>
+</tr>
+<tr>
+<td>ADM.55</td>
+<td>Audit of the pages other than Generate and Settings (this is ADM.55 narrowed): ranked defects</td>
+<td>report in <code>/mnt/project-files/reports/</code>, items filed for each defect above the line</td>
+<td>none</td>
+<td>8.1 P1</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="settings">Settings</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Done when</th>
+<th>Needs</th>
+<th>Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.101</td>
+<td>Words for every option: label, one-line summary, group, control, advanced flag (<code>x-label</code>, <code>x-group</code>, <code>x-control</code>, <code>x-advanced</code>) in <code>settings.opt</code>; the long help becomes Details; the path-made titles go; the <code>x-category</code> list is replaced by groups</td>
+<td>a test fails for any option without a label, group and summary; no label equals its path text; <code>config.md</code>, <code>config.json.example</code> and <code>config.schema.json</code> regenerate; wording reviewed in a short Boss-readable list</td>
+<td>none</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.102</td>
+<td>View classes: <code>settings_view.describe</code> returns <code>class</code> (editable, owner, server, overridden) and <code>fixed_reason</code>, plus counts</td>
+<td>unit tests for each class on a fixture model; the API returns them; the count of fixed options matches <code>iter_fields</code></td>
+<td>ADM.101</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.103</td>
+<td>The new Settings page: grouped rows, left rail, search, &quot;Show settings that cannot be changed&quot; switch off by default (URL and browser memory), sticky save bar, per-row reset link, Details disclosure</td>
+<td>browser test: loads with 31 fixed options hidden, switch shows them with reasons, search filters rows and groups, a change enables the save bar; works with script off; both themes; keyboard-only run</td>
+<td>ADM.101, ADM.102, UX.124</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.104</td>
+<td>Controls: switch, slider with number box (absorbs ADM.97), duration, rate-limit control, chips, colour picker</td>
+<td>each control round-trips its value through <code>collect</code> and the writer; a rate string stays valid for the limiter; invalid input shows its error at the row</td>
+<td>ADM.103, existing <code>limit_slider</code></td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.105</td>
+<td>Review page in plain language: &quot;Cache size: 1,024 MB to 2,048 MB&quot;, restart list, overridden list</td>
+<td>review tests updated; the audit rows and backup are byte-identical to today's</td>
+<td>ADM.103</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.106</td>
+<td>Server files disclosure and the overridden-option badge</td>
+<td>text names the exact command; secrets show only set or empty</td>
+<td>ADM.102</td>
+<td>8.1 P1</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="generate">Generate</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Done when</th>
+<th>Needs</th>
+<th>Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.107</td>
+<td>The frame: status strip, pinned current job panel (idle shows the last result), History tab, Work Queue link</td>
+<td>browser test opens a running job from every Generate screen; Cancel works; idle panel shows Run again</td>
+<td>none</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.108</td>
+<td>The task flow engine: Start screen with six cards, step rail, draft carried in the URL, Review step with the estimate, summary and command line, Run</td>
+<td>any task reaches Review and Back keeps every value; works without script; estimate refusal and Generate anyway still work (ADM.33)</td>
+<td>ADM.107, UX.125</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.109</td>
+<td>Add sectors task: two choices, the four-tab place picker, how-big with live count</td>
+<td>argv for every old mode and centre choice is reproduced byte for byte by a test table; the finder still lists filled sectors</td>
+<td>ADM.108</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.110</td>
+<td>Start a new galaxy task: seed-decides shape fields, first neighbourhood, typed confirmation</td>
+<td>pinned and unpinned fields produce the same argv as today's blank and filled boxes; confirmation refuses a wrong name</td>
+<td>ADM.108</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.111</td>
+<td>Scatter task: rebuild, redo some, add a dimmer step; one Advanced block of scatter limits with one reset and the stored values shown</td>
+<td>one definition of each limit renders once; Reset all restores the defaults; the three old actions build the same jobs as before</td>
+<td>ADM.108, UX.116 (done)</td>
+<td>8.1 P1 for the layout; the controls GEN.301 adds are placed in this block by their own items</td>
+</tr>
+<tr>
+<td>ADM.112</td>
+<td>Prevalence, star mix and overrides as one shared Advanced block (rendered once)</td>
+<td>the 100% total checker works; &quot;Usual&quot; values shown; one definition used by Add sectors and Start a new galaxy</td>
+<td>ADM.108</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.113</td>
+<td>One-off system on the frame, tri-state rows as segmented controls</td>
+<td><code>test_web_generate</code> tri-state field test still matches the CLI list</td>
+<td>ADM.107, UX.125</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.114</td>
+<td>Check and Wipe tasks; History tab</td>
+<td>Wipe is last and red and needs the typed name; History lists the same rows as Recent jobs</td>
+<td>ADM.107</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.115</td>
+<td>Run again from History: re-run a finished job with its stored settings</td>
+<td>needs the job record to hold the form; a failed job's Run again goes back to its Review step</td>
+<td>ADM.108, ADM.114</td>
+<td>8.1 P1 or later (answer 11: Run again plus named recipes)</td>
+</tr>
+<tr>
+<td>ADM.116</td>
+<td>Remove the old Generate page pieces and update <code>docs/reference/html-interface.md</code> and the architecture table</td>
+<td>the removed files are gone; no unused CSS; docs match</td>
+<td>ADM.109 to ADM.114</td>
+<td>8.1 P1</td>
+</tr>
+<tr>
+<td>ADM.117</td>
+<td>Browser tests for every task end to end, in both themes, without script, and on a phone width</td>
+<td>a failing step fails the test with a screenshot</td>
+<td>ADM.109 to ADM.114</td>
+<td>8.1 P1; joins TEST.168 and TEST.169</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-overlap-with-existing-todo-items">6. Overlap with existing TODO items</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>State</th>
+<th>How it relates</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.55 Admin usability audit</td>
+<td>moved by TODO to 8.2 Phase 1, owner this thread (6:10 PM EDT)</td>
+<td>The Generate and Settings audit is this report; ADM.55 narrows to the other admin pages (ADM.55)</td>
+</tr>
+<tr>
+<td>ADM.92 Admin shell, ADM.93 Move every page onto it, ADM.56 umbrella</td>
+<td>moved by TODO to 8.2 Phase 1, owner this thread</td>
+<td>The shell is ADM.92 and the page moves are K7. ADM.107 is not a second shell: its job panel becomes the shared job strip ADM.119</td>
+</tr>
+<tr>
+<td>Goal issue</td>
+<td>existing #1688 &quot;Admin tools: editing, configuration and incomplete uploads&quot; lists ADM.13, 32, 35, 43, 44, 50, 55, 56, 92, 93 and TEST.169</td>
+<td>TODO is filing a new goal issue for ADM.98 to ADM.100 and the suite; #1688 stays for the editing items</td>
+</tr>
+<tr>
+<td>ADM.97 Settings slider</td>
+<td>open, 8.2</td>
+<td>Absorbed by S4. Move it to the same phase as ADM.104</td>
+</tr>
+<tr>
+<td>ADM.86 Owner-tier settings, USR.31 Owner stub</td>
+<td>open, 8.1</td>
+<td>Class B (7 options) stays hidden until these land; ADM.102 reads the role</td>
+</tr>
+<tr>
+<td>ADM.28 Simpler Generate page</td>
+<td>done</td>
+<td>Its Customize modal and layer specs are replaced by the Advanced blocks</td>
+</tr>
+<tr>
+<td>ADM.4 folds, ADM.16 prevalence, ADM.45 star mix</td>
+<td>done</td>
+<td>Their logic and argv builders are kept, their layout is replaced</td>
+</tr>
+<tr>
+<td>UX.116 limit sliders</td>
+<td>done</td>
+<td>The sliders are reused in ADM.104 and ADM.111</td>
+</tr>
+<tr>
+<td>UX.124 field look, UX.125 Generate on the field macro, UX.126 admin pages on the field macro, UX.49 Shoelace fields</td>
+<td>open, 8.1</td>
+<td>ADM.108, ADM.113 and ADM.103 should be built on these; UX.125 becomes part of ADM.108 and UX.126 is split so settings are covered by ADM.103</td>
+</tr>
+<tr>
+<td>UX.134 Generate shows the drawn galaxy type, UX.137 halo and satellite switches, GEN.301 scatter controls</td>
+<td>open, 9.4, 8.5, 8.1</td>
+<td>These add Generate controls: they land in the new &quot;Start a new galaxy&quot; and Advanced blocks, so each should list ADM.110 or ADM.111 as a prerequisite</td>
+</tr>
+<tr>
+<td>ADM.95 A remote run is a job; ADM.13 incomplete uploads; ADM.35 control from every screen</td>
+<td>open</td>
+<td>Use the same frame and job panel from ADM.107</td>
+</tr>
+<tr>
+<td>UX.123 Generate page log on the log layer</td>
+<td>open</td>
+<td>Applies to the new job panel's terminal</td>
+</tr>
+<tr>
+<td>TEST.168 control sweep, TEST.169 admin browser tests</td>
+<td>open</td>
+<td>ADM.117 is its Generate share</td>
+</tr>
+<tr>
+<td>DOC.72 README external files; GEN.590 data check</td>
+<td>open</td>
+<td>The Run step shows the data check result; it keeps the &quot;refuse unless told to disregard missing files&quot; rule from the 5:53 PM EDT answer</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-bosss-answers-all-13-cards-tapped-605-pm-to-609-pm-edt">7. Boss's answers (all 13 cards, tapped 6:05 PM to 6:09 PM EDT)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Choice</th>
+<th>Answer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>When</td>
+<td>8.1 Phase 1, Settings first, then shell and palette, then Generate (TODO had filed 8.2 Phase 1; it moves to 8.1 Phase 1)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Shell scope</td>
+<td>Every admin page, once (ADM.92 and ADM.93 in this effort)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Palette</td>
+<td>Ctrl+K palette plus visible rail, with the plain search page for no-script use</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Typed commands</td>
+<td>Pre-fill the Review step, never run by themselves</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Job strip</td>
+<td>Thin strip on every admin page</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Keyboard</td>
+<td>The small set</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Settings saving</td>
+<td>Grouped rows with the two-step review, compact table density available</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Unchangeable settings</td>
+<td>Hidden by default, remembered in this browser and the URL</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Environment-overridden</td>
+<td>Shown with a warning badge</td>
+</tr>
+<tr>
+<td>10</td>
+<td>While a job runs</td>
+<td><strong>Queue one next job</strong> (not the recommended option): forms stay usable and Run queues one job behind the running one</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Run again and recipes</td>
+<td>Run again from History plus named recipes saved per admin in the control database</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Add sectors modes</td>
+<td>Two choices with a four-tab place picker</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Density</td>
+<td>Compact by default with a toggle, remembered in this browser</td>
+</tr>
+</tbody>
+</table></div>
+<p>Decided without a card: Owner-only options stay hidden with the unchangeable ones until the Owner account exists; Shoelace where it fits (UX.49) and native HTML elsewhere; scatter limits, prevalence, overrides, robots and page-cache internals are Advanced; Reset and New galaxy always need the typed database name.</p>
+<p>Consequences of answer 10 (new work): the job runner today allows exactly one active job (<code>web/jobs.py</code>, the <code>active</code> lock file). Queueing one next job needs a single &quot;next&quot; slot beside the active lock, started by the runner when the active job ends, shown in the job strip with a Cancel, and refused when the slot is full. It must stay one job running at a time. New item ADM.123 below; ADM.108 and ADM.115 and the job strip ADM.119 depend on it. Questions to settle in the build, not cards: the queued job keeps its own estimate check (re-run at start, refuse if the disk no longer fits); a queued Wipe or New galaxy is allowed only with its typed confirmation already given; a failed job cancels the queued one unless the admin chose otherwise (default: cancel it and say so).</p>
+<p><strong>ADM.123 Queue one next job:</strong> a single next slot with start on finish, Cancel, shown in the job strip and History. Done when: a second submit while a job runs queues, a third is refused; finishing starts it; a failure or Cancel clears it with a visible reason; a destructive job queued without its confirmation is refused. Needs K3. Phase 8.1 P1.</p>
+<h2 id="8-notes-for-whoever-builds-it">8. Notes for whoever builds it</h2>
+<ul>
+<li>Argv builders and their tests are the contract with the CLI: keep <code>plan_argv</code>, <code>galaxy_argv</code>, <code>scatter_argv</code>, <code>redo_scatters_argv</code> and friends, and add tests that pin their output across the change before any template work.</li>
+<li><code>settings_view.describe</code> is shared by the page, the API and the command line, so the new fields must come from the model, not the template.</li>
+<li>The two pages share one rule: a control that cannot do anything for this admin is not drawn.</li>
+<li>No fixed content: shape defaults stay &quot;drawn from the seed&quot; and nothing is prefilled from the Milky Way or the Solar System. Every time shown to the admin is the server's clock formatted as such; this draft's times are EDT.</li>
+</ul>
+<h2 id="9-what-is-built">9. What is built</h2>
+<ul>
+<li><strong>Settings words and groups (ADM.101)</strong> are in <code>util/settings.py</code> (<code>opt()</code> takes <code>label</code>, <code>summary</code>, <code>group</code>, and optionally <code>control</code>, <code>advanced</code>, <code>choice_labels</code> and <code>slider</code>); <code>util/settings_view.py</code> turns them into the groups and controls the page draws.</li>
+<li><strong>Settings page (ADM.102 to ADM.106)</strong>: <code>web/settings_page.py</code>, <code>templates/admin_settings.html</code>, <code>static/settingspage.js</code>.</li>
+<li><strong>Registry (ADM.118)</strong>: <code>web/adminregistry.py</code>. Pages and exempt routes are declared there (a test fails for an <code>/admin</code> page route in neither); settings entries are built from the settings model; tasks are added when the Generate cards exist.</li>
+<li><strong>Shell (ADM.92)</strong>: <code>templates/base.html</code> draws the rail, the search box and the Compact switch above every page whose <code>section</code> is in <code>adminregistry.SECTION_DESTINATION</code>. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.</li>
+<li><strong>Job strip (ADM.119)</strong>: <code>templates/partials/admin_jobstrip.html</code>, <code>static/adminjobstrip.js</code>, fed by the <code>strip</code> field of <code>/admin/generate/status</code>.</li>
+<li><strong>Search and palette (ADM.120), keys (ADM.122)</strong>: <code>web/admin_search_page.py</code> (<code>/admin/search</code>, <code>/admin/palette.json</code>) and <code>static/adminpalette.js</code>.</li>
+<li><strong>Queue the next jobs (ADM.123, PERF.154)</strong>: <code>web/jobs.py</code> (<code>submit</code>, <code>queue_next</code>, <code>queued_jobs</code>, <code>promote_queued</code>, <code>discard_queued</code>). The waiting jobs are entries of the one waiting list in Redis (<code>queue/runline.py</code>, up to <code>queue.max_waiting</code>, 8 by default, shared with the runs that wait for the machine); a job's recipe is the jobs directory's <code>queued-&lt;ticket&gt;.json</code>, mode 0600 like <code>job.json</code>, because it holds the database environment, which does not go into Redis. They start in the order they arrived, one at a time, started by <code>job_runner.run</code> when a job ends and by any strip poll. It starts after a succeeded or cancelled job and is held after a failed or interrupted one (Start now or Discard); a failed start also holds it.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

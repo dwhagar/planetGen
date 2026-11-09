@@ -2,6 +2,55 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3734] - 2026-11-09
+
+**Headline:** A running generation job now links to the systems it has made so far.
+
+### Changed
+- **New admin page "Generated so far" (ADM.151, on the ADM.150 data read), `/admin/generated`.** It lists the sectors, systems, planets and moons a generation run has made, newest first, one tab per kind, from a start time (`?since=`, by default the start of the latest galaxy run). The job panel links to it as "Made so far this run", because the Galaxy Map is closed while a run goes. The API has `GET /api/generated` for it; it reads only the rows made since by the key, so it is quick on any galaxy and is never cached.
+
+## [8.0.3733] - 2026-11-09
+
+**Headline:** The admin pages lose the Compact checkbox and the Show on Galaxy Map button on generate jobs.
+
+### Changed
+- **Compact checkbox removed from the admin shell.** The compact layout is now always on; the switch, its script and its remembered browser setting are gone.
+- **"Show on Galaxy Map" removed from generate job pages.** The button, the `made_url` field, `GET /api/galaxy/made`, the Galaxy page's `?made=` view and the map's ring layer for a run's sectors are removed, since the map cannot be loaded while a run is in progress.
+
+## [8.0.3732] - 2026-11-09
+
+**Headline:** Two tests that failed about half the time on any machine, the deferred-climate moons test and the wide-binary re-roll console test, no longer depend on luck.
+
+### Changed
+
+- **TEST.711 and TEST.712 were coin tosses, not regressions.** Neither is a change of main: the deferred-climate test asked `moon_count=2` and expected exactly two moons, but a planet built the usual way with the same request also has one moon about a third of the time (a moon that cannot stay is not made), and the run stream is seeded from the system's entropy, so the test failed on about 40 percent of runs (11 of 30 seeds at the commit that added it, 19 of 40 on main). It now draws from fixed seeds until the planet is given its two moons and checks the state before and after `finish_climate` for each. The wide-binary re-roll test expected the console line to contain "orbits beyond the farthest stable orbit", but the line names only the first three problems (`REPORT_PROBLEMS`), and a belt that stays at its place is a problem that comes first; it now expects the first three problems the scan itself found, and that the system has a "beyond the farthest stable orbit" problem among them. No code changes.
+
+generation-output: unchanged
+
+## [8.0.3731] - 2026-11-08
+
+**Headline:** A test now fails when install.sh or update.sh could miss a library that setup.py requires.
+
+### Changed
+- **`test_install_python_deps.py` checks the one list both scripts use.** install.sh and `update.sh --check` both run `scripts/install-python-deps.sh`; the test fails if either stops doing so, if the list differs from setup.py's requirements, if `psutil` is missing, or if a listed library is not pinned in `requirements.lock` and `requirements-server.lock`.
+
+## [8.0.3730] - 2026-11-08
+
+**Headline:** The update's library check now installs `psutil`, so the work queue's workers start again after the memory gate (PERF.254).
+
+### Changed
+- **`psutil` is on update.sh's list of required libraries (`scripts/install-python-deps.sh`).** PERF.254 added `psutil` to `setup.py` and the lock files but not to the script's list, so an existing install never got it and every worker died at its start on `import psutil` (exit status 1), which stopped the math check at stage 4 of the update. `--check` now sees it missing and installs it from the lock.
+
+## [8.0.3729] - 2026-11-08
+
+**Headline:** The class and systems censuses are re-tagged after trains 15 to 18: 18 new flags are tagged with their reasons, 51 stale tags are removed, and the life census passes without a flag.
+
+### Changed
+
+- **Census re-tag on epoch 140 (GEN.1353).** The three live censuses ran on the tree after train 18 (GEN.1397 included). The class census raised 17 new flags: nine in moon cells (Class D too common in four cells, and the life ceiling of four moon cells), eight in planet shares (A0V ecosphere tiers Red and Yellow and microbial ceiling, F5V ecosphere no ceiling at 0.902 against a range top of 0.736, F5V hot microbial ceiling, A0V cold Class V and G2V ecosphere Class N absent). All are tagged GEN.1353 with the numbers; the F5V ecosphere share is the one large move, likely from GEN.1397, and the TEST.660 re-baseline decides whether it is a fault. The systems census raised one flag, M2V photosynthetic life at 0.360 against a floor of 0.397, tagged GEN.1353. The life census raised a hang of 6 systems over 60 s when it ran beside two other censuses; run alone it passes with no flag, so it was load and not a fault. 18 class, 30 systems and 3 occurrence tags whose range holds again are removed. Only test data changes; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).
+
+generation-output: unchanged
+
 ## [8.0.3728] - 2026-11-08
 
 **Headline:** A warm-up or another bulk command can no longer block the site: waiting jobs are now ordered by a fair-share scheduler, with places kept for the site.

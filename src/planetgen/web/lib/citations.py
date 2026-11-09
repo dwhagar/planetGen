@@ -16,6 +16,7 @@ link or a guess: the build and the tests fail. Standard library only.
 import html
 import re
 
+from planetgen.util import chem
 from .reference_urls import PAPER_ID, reference_path
 
 _ID = PAPER_ID.pattern
@@ -48,7 +49,7 @@ def link(text, data, strict=True):
     out, pos = [], 0
     sources, aliases = data["sources"], data.get("aliases", {})
     for m in _BRACKET.finditer(text):
-        out.append(html.escape(text[pos:m.start()]))
+        out.append(chem.mark_html(text[pos:m.start()]))
         links = []
         for sid in _ONE.findall(m.group(1)):
             sid = aliases.get(sid, sid)
@@ -60,7 +61,7 @@ def link(text, data, strict=True):
         place = (", " + html.escape(m.group(2).strip())) if m.group(2) else ""
         out.append("; ".join(links) + place)
         pos = m.end()
-    out.append(html.escape(text[pos:]))
+    out.append(chem.mark_html(text[pos:]))
     return "".join(out)
 
 

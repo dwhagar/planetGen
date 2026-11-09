@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The composition of a surface liquid (GEN.1217 design) - planetGen docs</title>
+<meta name="description" content="Status: Boss answered the six questions of section 9 on 2026-10-31 (11:56 and 11:57 AM EDT); the answers are in section 9 and the design follows them.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/surface-liquid-composition.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/surface-liquid-composition.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-composition-of-a-surface-liquid-gen1217-design">The composition of a surface liquid (GEN.1217 design)</h1><p class="meta">docs/design/composition/surface-liquid-composition.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-where-the-code-is-today">1. Where the code is today</a></li><li style="margin-left:0px"><a href="#2-what-the-research-gives-and-does-not">2. What the research gives (and does not)</a></li><li style="margin-left:0px"><a href="#3-the-model-a-main-liquid-and-what-is-dissolved-in-it">3. The model: a main liquid and what is dissolved in it</a></li><li style="margin-left:0px"><a href="#4-liquids-and-supply-to-add">4. Liquids and supply to add</a></li><li style="margin-left:0px"><a href="#5-how-a-body-gets-its-liquid">5. How a body gets its liquid</a></li><li style="margin-left:0px"><a href="#6-what-the-life-classes-read">6. What the life classes read</a></li><li style="margin-left:0px"><a href="#7-build-plan">7. Build plan</a></li><li style="margin-left:0px"><a href="#8-checks">8. Checks</a></li><li style="margin-left:0px"><a href="#9-questions-for-boss-and-his-answers-1156-and-1157-am-edt-2026-10-31">9. Questions for Boss, and his answers (11:56 and 11:57 AM EDT 2026-10-31)</a></li></ul></details>
+<p>Status: Boss answered the six questions of section 9 on 2026-10-31 (11:56 and 11:57 AM EDT); the answers are in section 9 and the design follows them. GEN.1215 (the acid and ammonia columns) is built as a branch; the rest (GEN.1218) is not. It follows the research of GEN.1216 (<code>/mnt/project-files/reports/gen1216-surface-liquid-composition-2026-10-31.md</code>, called &quot;the report&quot; below) and the census of GEN.1214 (<code>/mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md</code>). It decides what a body stores about its liquid, so that GEN.1215 (the acid and ammonia columns) and GEN.1218 (the build) fit one plan.</p>
+<h2 id="1-where-the-code-is-today">1. Where the code is today</h2>
+<p><code>physics/surface_liquids.py</code> holds a table of liquids (one row each: window, density, viscosity, tier and tweak, <code>surface_liquids.json</code>). <code>physics/surface_liquid_world.py</code> (GEN.1035) gives a body at most one <code>surface_liquid</code> id with a <code>surface_liquid_fraction</code> of the surface and a mean depth. Water takes the id when the hydrosphere is a liquid; otherwise lava, otherwise the volatile with the best score among those stable at the surface and supplied (air at saturation, or the body's ice).</p>
+<p>What is not stored, and is worked out each time the life classes ask:</p>
+<ul>
+<li><strong>Acid.</strong> <code>acid_medium.level</code> (GEN.888) works the strength of sulfuric acid out from the air's SO<sub>2</sub>, an oxidiser, and the water activity. Nothing is stored; a pool and a cloud are one number, 0, 1 or 2.</li>
+<li><strong>Ammonia.</strong> <code>strange_solvents.ammonia_water_mass_fraction</code> (GEN.894) is <code>nh3_share_of_ice * ice / water</code>, the ammonia as a share of the water's mass. The Class 8 gate is that value at 0.1 or more. It is not a property of any liquid the body holds.</li>
+<li><strong>Water chemistry.</strong> <code>ocean_class</code>, <code>ocean_ph</code>, <code>water_activity</code> are stored for a water ocean (GEN.88), with no salinity and no ion mix.</li>
+<li><strong>Hydrocarbon seas.</strong> The liquid id is a single volatile (<code>methane</code>), though Titan's seas are methane, ethane and nitrogen together. <code>surface_liquids.ideal_sea</code> gives a Raoult mix with a 0.3 nitrogen factor, but the world step does not use it.</li>
+</ul>
+<h2 id="2-what-the-research-gives-and-does-not">2. What the research gives (and does not)</h2>
+<p>The report's headline: there are anchor numbers for every family and no published law that turns a planet's conditions into a composition. The generator therefore builds each law from saturation, solubility and phase equilibrium, with the anchors as checks, and the results are stand-ins of tier T6 to T9 in the registry (GEN.725). Physics drives; no game rates.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Family</th>
+<th>What can be a law</th>
+<th>What is only an anchor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Water seas</td>
+<td>Freezing point and activity from the salt (eutectics: NaCl 251.9 K, MgSO<sub>4</sub> 269.6 K, Mg and Ca perchlorate about 205 and 198 K, Na perchlorate 239 K); carbonate-system pH from CO<sub>2</sub> pressure and alkalinity</td>
+<td>Salinity against age (use modern 35 g/kg, range 20 to 50), ion mix against rock type</td>
+</tr>
+<tr>
+<td>Sulfuric acid</td>
+<td>Strength from the water activity of the air (exists, <code>acid_medium</code>); freezing point from the two eutectics (211 K at 36 wt percent, 199 K at 38 wt percent)</td>
+<td>A full liquidus; HCl and HNO<sub>3</sub> (no table, stays a stand-in)</td>
+</tr>
+<tr>
+<td>Ammonia-water</td>
+<td>Liquid down to the eutectic 176 K at 33 wt percent; seven measured liquidus points 0 to 27 wt percent</td>
+<td>Anything above 27 wt percent; viscosity (sources differ 2 to 20 times)</td>
+</tr>
+<tr>
+<td>Liquid CO<sub>2</sub></td>
+<td>Span-Wagner saturation table (216.6 K triple, 304.1 K critical)</td>
+<td>Density above 304 K</td>
+</tr>
+<tr>
+<td>Methane-ethane-nitrogen</td>
+<td>Raoult or regular-solution equilibrium with the N<sub>2</sub> solubility table (Kumar and Chevrier)</td>
+<td>Model spread of a factor of 10 in methane; the observed seas (methane 71 to 80 mol percent)</td>
+</tr>
+<tr>
+<td>Sulfur</td>
+<td>Window 392 to about 450 K, viscosity peak at 432 to 458 K</td>
+<td>Liquid density</td>
+</tr>
+</tbody>
+</table></div>
+<p>Life: water has numbers (pH -0.06 to 12.5, water activity down to 0.605). Acid, ammonia-water, dense CO<sub>2</sub> and hydrocarbon life have none, so the gates of Classes 5 to 9 stay at tier T8 or T9, tweak L3 or L4, and the registry says so.</p>
+<h2 id="3-the-model-a-main-liquid-and-what-is-dissolved-in-it">3. The model: a main liquid and what is dissolved in it</h2>
+<p>A body's surface holds a <strong>main liquid</strong> (what the existing columns say) and a <strong>mix</strong>: the mass or mole fractions of the few things dissolved in it that something else reads. The mix is stored as typed columns, one per quantity, because the repo gives every numeric column a unit (<code>db/column_units.py</code>) and every column a sheet row and a rule.</p>
+<p>Stored quantities (all nullable, all NULL when the body has no such liquid):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Unit</th>
+<th>Meaning</th>
+<th>Read by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>surface_liquid_acid_wt</code>, <code>surface_liquid_acid_layer</code></td>
+<td>percent of mass, text (<code>pool</code> or <code>cloud</code>)</td>
+<td>sulfuric acid in the acid liquid: its strength, and whether it is a pool at the ground or the cloud level (built, GEN.1215)</td>
+<td>Classes 5 and 9 gate, the sheet</td>
+</tr>
+<tr>
+<td><code>surface_liquid_ammonia_wt</code></td>
+<td>percent of mass</td>
+<td>ammonia in the water-ammonia liquid (built, GEN.1215, for a body with a liquid water ocean)</td>
+<td>Class 8 gate, the sheet, the freezing point of the sea</td>
+</tr>
+<tr>
+<td><code>surface_liquid_salt_wt</code></td>
+<td>percent of mass</td>
+<td>dissolved salt of a water sea</td>
+<td>the sheet, the freezing point and water activity of the sea</td>
+</tr>
+<tr>
+<td><code>surface_liquid_methane_mol</code>, <code>_ethane_mol</code>, <code>_nitrogen_mol</code></td>
+<td>mole fraction</td>
+<td>the hydrocarbon sea's makeup</td>
+<td>Class 7, the sheet, the density of the sea</td>
+</tr>
+</tbody>
+</table></div>
+<p>GEN.1215 stores the first two (the acid and ammonia fractions) and makes the life classes read them instead of recomputing; GEN.1218 adds the other four and the liquids of section 4. Naming them all here means the GEN.1215 migration does not have to be redone. The layer column keeps the cloud case apart from the pool case; both are stored (question 3). Built: <code>surface_liquid_world.generate</code> stores the three columns, and the life classes read them through <code>surface_liquid_world.acid_level</code> and <code>ammonia_water_mass_fraction</code>, falling back to working them out for a row without them. The Class 8 gate line is still a tenth of the water's mass (<code>life_classes._solvent_term</code>); question 4's answer moves it to about 5 percent of the liquid's mass, which is Aux 2's habitability change, tuned by the GEN.1225 research.</p>
+<h2 id="4-liquids-and-supply-to-add">4. Liquids and supply to add</h2>
+<ol>
+<li><strong>Ethane</strong> as a liquid and as an ice (today it hides in the unnamed &quot;other&quot; ice). Titan's lakes need it.</li>
+<li><strong>Nitrogen ice</strong> of cold bodies. The census found the comet volatile table has no N<sub>2</sub>, so every body's <code>ice_n2_mass_fraction</code> is 0 and Triton and Pluto kinds cannot hold N<sub>2</sub> ice. The research (GEN.1225, <code>/mnt/project-files/reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md</code>, section 3.5) gives the rule: (a) a body whose ice formed in a zone colder than the N<sub>2</sub> condensation temperature gets N<sub>2</sub> ice, and that temperature is 22 to 30 K at the disc's partial pressure (28 K at 1e-4 bar), added to <code>ICE_CONDENSATION_K</code> (CS1, T1 L0 for the vapour-pressure curve, T4 for the partial-pressure rule); (b) where it forms, the N<sub>2</sub> mass per water mass is the solar ceiling (0.107 to 0.21) times a trapping efficiency of 0.001 to 0.013, which is 1e-4 to 1.4e-3 of the water mass with a middle of about 4e-4 (new row GN1, T3 L2, from comet 67P and Pluto; the two 67P N<sub>2</sub>/CO values disagree by 5 times); (c) the body keeps it only if its Jeans parameter allows (new row GN2, retention, T8 L4: the sources give the regime but no radius cutoff, so it ties to the escape machinery the repo has). Warmer zones get no N<sub>2</sub> ice (their nitrogen is the NH<sub>3</sub> of the water ice, CS<sub>2</sub>).</li>
+<li><strong>Sulfuric acid solution</strong> as a liquid with a strength (not one fixed 75 percent row) and a freezing curve from the two eutectics.</li>
+<li><strong>Ammonia-water solution</strong> as a liquid whose melting point follows the stored ammonia fraction (176 K at 33 wt percent, 267.7 K at 5.2 wt percent, from the seven measured points), replacing pure ammonia at 195 K as the only ammonia liquid.</li>
+<li>A water sea gains a <strong>salt</strong> that sets its freezing point (NaCl, MgSO<sub>4</sub>, perchlorates as the brine rows already do).</li>
+</ol>
+<h2 id="5-how-a-body-gets-its-liquid">5. How a body gets its liquid</h2>
+<p>The order stays: water if the hydrosphere is liquid, lava if molten, otherwise the volatiles. What changes:</p>
+<ol>
+<li><strong>Windows follow the mix.</strong> The window of a solution is its own (the ammonia-water liquid is liquid from 176 K up; sulfuric acid at 36 wt percent from 211 K), not the pure liquid's. This could let more cold bodies hold a liquid without any invented supply: the 310 ammonia ice holders the census calls &quot;too cold for pure ammonia&quot; would be in the window of a water-ammonia sea at 176 to 270 K where they also hold the water for it (not yet counted).</li>
+<li><strong>A second liquid.</strong> If two liquids are stable and supplied (28 of 37 CO<sub>2</sub>-window bodies in the census show water only), the one with the larger cover is the main liquid and the other is kept as a <strong>second liquid</strong>: two more columns (<code>surface_liquid_2</code>, <code>surface_liquid_2_fraction</code>) and no more. See question 1.</li>
+<li><strong>The pick</strong> among volatiles stays by supplied amount, but a body cold enough for methane to be liquid (above 90.7 K) keeps methane over carbon monoxide; the census found 26 CO seas at 70 to 90 K that a Titan-like pick would not choose. This is a tie-break rule, not a new number.</li>
+<li><strong>Hydrocarbon mix.</strong> The mole fractions come from Raoult with the N<sub>2</sub> solubility table (a table, not the single 0.3 factor), at the sea's temperature and the air's methane partial pressure; ethane from the sea's accumulated ethane (a supply, section 4 item 1). Checks against the report's observed seas: Ligeia 71 methane, 17 nitrogen, 12 ethane (mol percent), Punga 80, 20, 0. <strong>GEN.1249:</strong> the liquid the supply gives (the label) is the bulk of the sea and the solvent the air's other gases dissolve in by that rule; ethane is in a sea only when it is the supplied liquid, because nothing in the generator makes it by photolysis. A sea that carried the labelled liquid as under half of the stored mix (7 of 24 hydrocarbon seas in the 150-system sample had under 0.1) now has the label and the mix agree; where the dissolved gases outweigh the supplied liquid (a dense cold nitrogen air) the sea is named for the gas that makes most of it (<code>surface_liquid_world.LABEL_FLOOR</code>, 0.5). A Titan-like body stores methane 0.92 and nitrogen 0.08, against Ligeia's observed 71 methane.</li>
+<li><strong>Acid.</strong> The strength and the place (pool or cloud) now come from the same <code>acid_medium</code> solver but are stored; the sheet shows them.</li>
+</ol>
+<h2 id="6-what-the-life-classes-read">6. What the life classes read</h2>
+<p>Class 5 and 9: <code>surface_liquid_acid_wt</code> at or over 81 (pool) or the cloud strength; Class 8: <code>surface_liquid_ammonia_wt</code> at or above the liquidus share for the body's temperature (about 5 percent at 267 K, 14 percent at 251 K, 20 percent at 235 K, 27 percent at 207 K, from the seven measured points of [R0794]) and at most the 33 percent peritectic share, with a 3 and a 5 percent shoulder (registry LF44 rewritten, T3 L1; GEN.1225 section 2.5). The research found no growth or activity above about 0.9 percent ammonia and no source for a 10 percent requirement, so the class is a speculation at T9 L4 in what it says about life, and the gate is a statement about the liquid being liquid; Class 7: a hydrocarbon sea with an ethane or methane mole fraction; Class 6: unchanged (liquid or supercritical CO<sub>2</sub>, <code>co2_phase</code>). Water classes: pH, activity and salinity inside the sourced limits. The gates are registered as stand-ins (T8 to T9, L3 to L4) because no source gives a growth limit; the registry rows say what paper would replace each (the report's upload list).</p>
+<h2 id="7-build-plan">7. Build plan</h2>
+<ul>
+<li><strong>GEN.1215</strong> (columns, lock): migration for <code>surface_liquid_acid_wt</code> and <code>surface_liquid_ammonia_wt</code> on <code>planets</code> and <code>moons</code>; unit registry; sheet rows and rules; <code>acid_medium</code> and <code>strange_solvents</code> write them in <code>surface_liquid_world.generate</code>; the life classes read the stored values; the ammonia definition changes from a share of the water's mass to a share of the liquid's mass (question 4). Shares one epoch with GEN.1214 and GEN.1222.</li>
+<li><strong>GEN.1218a</strong> (liquids and supply, lock): items 1, 3, 4 of section 4 and the windows of section 5.1, then the N<sub>2</sub> ice of item 2.</li>
+<li><strong>GEN.1218b</strong> (mix, lock): the hydrocarbon mix columns, salinity, the second liquid.</li>
+<li>Each part adds registry rows (stand-ins with tier and tweak), a wiring-register line and a census run (this census script, <code>census_surface_liquid.py</code>, re-run on the same seeds).</li>
+</ul>
+<h2 id="8-checks">8. Checks</h2>
+<p>After each part: the census counts methane, CO, CO<sub>2</sub>, ammonia, nitrogen seas and the water-under-150-K count; the acid and ammonia columns must be NULL on every body with no such liquid and the sheet rule must say why; Ligeia and Punga-like seas inside the report's ranges; the nine-class counts do not fall for the water classes.</p>
+<h2 id="9-questions-for-boss-and-his-answers-1156-and-1157-am-edt-2026-10-31">9. Questions for Boss, and his answers (11:56 and 11:57 AM EDT 2026-10-31)</h2>
+<ol>
+<li>A second liquid beside the main one: <strong>yes, one extra liquid.</strong></li>
+<li>The makeup of a sea as separate columns: <strong>yes, separate columns.</strong></li>
+<li>Sulfuric-acid clouds: <strong>store them too, the strongest level, with a pool-or-cloud flag</strong> (<code>surface_liquid_acid_layer</code>).</li>
+<li>The Class 8 ammonia gate: <strong>near 5 percent of the liquid's mass as a starting guess, but tuned from real physics and chemistry</strong> (Sources 1, GEN.1225). Tuned result: the gate follows the liquidus share for the body's temperature, with the 33 percent peritectic as the upper bound (section 6).</li>
+<li>Nitrogen ice on far cold bodies: <strong>invent its amount from where nitrogen freezes, as a registered stand-in, also tuned from physics</strong> (GEN.1225). Tuned result: section 4 item 2.</li>
+<li>Methane and carbon monoxide ice together, methane able to be liquid: <strong>a methane sea.</strong></li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

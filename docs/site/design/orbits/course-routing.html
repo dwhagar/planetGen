@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course routing and nearby search - planetGen docs</title>
+<meta name="description" content="How the NAV page finds a route from one system to another, how routing and the &quot;what is within N pc&quot; search read the galaxy database quickly, how a route crosses unfilled space, and how a course is shown.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/course-routing.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/course-routing.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="course-routing-and-nearby-search">Course routing and nearby search</h1><p class="meta">docs/design/orbits/course-routing.md</p><details class="toc"><summary>On this page (24 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-today">1. Today</a></li><li style="margin-left:0px"><a href="#2-no-maximum-hop-length-nav12-phase-1">2. No maximum hop length (NAV.12, phase 1)</a></li><li style="margin-left:0px"><a href="#3-routing-that-scales-nav10-built">3. Routing that scales (NAV.10, built)</a></li><li style="margin-left:14px"><a href="#31-corridor-rule-and-widening">3.1 Corridor rule and widening</a></li><li style="margin-left:14px"><a href="#32-search-algorithm">3.2 Search algorithm</a></li><li style="margin-left:14px"><a href="#33-connectivity-and-cost">3.3 Connectivity and cost</a></li><li style="margin-left:14px"><a href="#34-voxel-traversal-amanatides-woo-is-not-needed">3.4 Voxel traversal (Amanatides-Woo) is not needed</a></li><li style="margin-left:0px"><a href="#4-the-spatial-index-use-the-sector-grid">4. The spatial index: use the sector grid</a></li><li style="margin-left:14px"><a href="#41-spatial-indexes-cannot-do-3d">4.1 SPATIAL indexes cannot do 3D</a></li><li style="margin-left:14px"><a href="#42-alternatives-measured">4.2 Alternatives, measured</a></li><li style="margin-left:14px"><a href="#43-the-padding-rule">4.3 The padding rule</a></li><li style="margin-left:14px"><a href="#44-in-memory-caches-per-request">4.4 In-memory caches per request</a></li><li style="margin-left:0px"><a href="#5-everything-within-n-pc-of-a-place-nav43-nav44-nav45">5. Everything within N pc of a place (NAV.43, NAV.44, NAV.45)</a></li><li style="margin-left:0px"><a href="#6-near-a-line-segment-nav10-nav25-nav6">6. Near a line segment (NAV.10, NAV.25, NAV.6)</a></li><li style="margin-left:0px"><a href="#7-stops-in-unknown-space-nav47">7. Stops in unknown space (NAV.47)</a></li><li style="margin-left:0px"><a href="#8-charting-the-sectors-that-block-a-course-nav48">8. Charting the sectors that block a course (NAV.48)</a></li><li style="margin-left:0px"><a href="#9-travel-times-for-the-route-nav11-phase-1">9. Travel times for the route (NAV.11, phase 1)</a></li><li style="margin-left:0px"><a href="#10-showing-the-route">10. Showing the route</a></li><li style="margin-left:0px"><a href="#11-order">11. Order</a></li><li style="margin-left:0px"><a href="#12-why-it-works-this-way">12. Why it works this way</a></li><li style="margin-left:0px"><a href="#13-what-carries-over-from-the-uploaded-documents-and-what-does-not">13. What carries over from the uploaded documents, and what does not</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How the NAV page finds a route from one system to another, how routing and
+the &quot;what is within N pc&quot; search read the galaxy database quickly, how a
+route crosses unfilled space, and how a course is shown. Recorded on 2026-10-02
+from Boss's decision on hop length (NAV.12) and the hop-length study
+(<code>nav-hop-length/report.md</code> in the project's shared files); extended
+2026-10-09 with the measured routing and spatial-index research. The frames a
+course is described in (bearing and mark, warp and fold speeds) are in
+<a href="navigation-frames.html">navigation-frames.md</a>. How a hop is bent around gravity
+wells and asteroid fields is in <a href="course-avoidance.html">course-avoidance.md</a>.
+The sector grid the queries use and the order sectors are generated in are in
+<a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a> and
+<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>.</p>
+<p>Informs: NAV.9, NAV.10, NAV.11, NAV.12, NAV.34 (done), NAV.38 (done), NAV.36, NAV.39, NAV.41, NAV.42, NAV.43, NAV.44, NAV.45, NAV.47, NAV.48, UX.35 (also NAV.25 and NAV.6, which read NAV.10's corridor query)</p>
+<p>Status: mostly built (checked against <code>todo-number-map.md</code> on 2026-10-15; the last code check was main at 27220d8, 2026-10-09). Done: NAV.9 (#1139), NAV.10 (#814, the corridor query), NAV.11 (#1099), NAV.12 (#841), NAV.34 and TEST.79 (#427), NAV.38 (#357), NAV.41 (#457), NAV.42 (#1153), NAV.43 and NAV.44 (#804), NAV.47 (#1389), NAV.48 (#1195) and UX.35 (#879). Open: NAV.36, NAV.39, NAV.45, NAV.25 and NAV.6. Sections 3 to 9 are research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation.</p>
+<p>Evidence tags: [S] seen in a search result or file, [C] computed or measured in the research (single-thread CPU seconds, the MariaDB server's own CPU and index entries read, because the machine was shared and wall-clock times were unusable), [R] recalled and unconfirmed. The research environment could only read search-result text, not papers or vendor manuals, and its search budget ran out after one query, so every outside-world fact is [R] unless marked.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li><strong>NAV.12 (Boss, 2026-10-02 01:53Z):</strong> &quot;routs will always find the nearest star they can even if it crosses sector boundaries even across multiple sectors. This is for a game mechanic I need in place and I also want a jump through unknown space is marked in red and glows to draw attention to it. Also UX change here to display the path horizontally and find a way to split it between multiple lines for mobile or limited displays.&quot; No hop limit of any kind.</li>
+<li><strong>NAV.11, NAV.41, NAV.42 (Boss, 2026-10-02 04:19Z):</strong> the route's travel time &quot;using that route assuming each planet gets stopped at&quot;, read as a stop at every system on the route; a readable wide course map; a course and distance on every stop.</li>
+<li><strong>NAV.43 (Boss, 2026-10-02 04:39Z):</strong> select a place and ask what is within some distance in parsecs; the largest distance allowed is 50 pc.</li>
+<li><strong>NAV.47 (Boss, 2026-10-03 05:38Z):</strong> system to system is by far the preference; only when a jump crosses unknown space does the route look for scattered stars, black holes, neutron stars and quasars as stops, &quot;marked as their kind&quot;. Hypervelocity stars are included.</li>
+<li><strong>NAV.48 (Boss, 2026-10-07 11:47Z):</strong> where unfilled sectors block a course and cannot be bypassed, offer to generate &quot;all sectors between the two points&quot;.</li>
+<li><strong>NAV.45, issue #677 (Boss, 2026-10-08 22:24Z):</strong> the &quot;within N pc&quot; action is offered for any pickable object, down to planets and moons.</li>
+</ul>
+<h2 id="1-today">1. Today</h2>
+<ul>
+<li><code>queryDb.nav_between</code> routes two systems in the same sector over that
+sector's own systems (the Sector Local Frame) and anything else over every
+placed system in every generated sector (<code>_galaxy_frame_positions</code>, the
+Galactic Standard Frame).</li>
+<li><code>navGraph.build_knn_adjacency(positions, k=6)</code> builds a pure-Python k-d tree
+and links each system to its 6 nearest, made two-way, on every request;
+<code>navGraph.shortest_path</code> runs Dijkstra on straight-line lengths.</li>
+<li>Only star systems are stops. Phenomena can be the ends but never a stop;
+bright stars from the galaxy scatter are not; ungenerated sectors add
+nothing. Nothing limits or reports hop length, and warp and fold times are
+for the direct distance only.</li>
+<li>The NAV page lists the route as a vertical <code>&lt;ol class=&quot;nav-route&quot;&gt;</code> and draws
+it on one square map at one scale (<code>planetgen/web/maps/navmap.py</code>).</li>
+</ul>
+<p>What goes wrong:</p>
+<ul>
+<li><strong>Islands.</strong> A generated area with 7 or more systems had no link out: 2,000
+generated sectors over the disk split into 714 islands and a cross-galaxy
+course found no route. Fixed by NAV.34 (PR #427): <code>navGraph.join_islands</code>
+links each island to its <code>NAV_ISLAND_LINKS</code> (6) nearest islands, in rounds
+until one is left.</li>
+<li><strong>Hidden long hops.</strong> A lone system always links out, however far: one 2 kpc
+above the disk was reached by a route whose last hop was 6,504 ly.</li>
+<li><strong>Speed.</strong> The rebuild dominates: 0.5 s at 10,000 systems, 16 s at 200,000
+(Dijkstra 0.7 s). A galaxy-scope load of 1e6 systems with the project's
+dict-row pattern takes about 10 s and 830 MB before any graph exists [C].</li>
+<li><strong>A performance cliff.</strong> The pure-Python tree takes 1.18 s against 0.03 s for
+<code>scipy.spatial.cKDTree</code> at 10,000 points [C]. <code>join_islands</code> queries every
+point of the smaller island against the larger island's tree for each close
+pair: 15 to 18 s for 10,000 points in 4 islands, 6.9 s for 53,000 points in
+394 islands, against 0.07 s and 0.23 s for a vectorised rewrite returning the
+identical edge set (compared edge by edge, 3,003 links on 106,529 points)
+[C]. The study's 0.2 s join of 714 islands was a different implementation.
+Port it before NAV.10 relies on it.</li>
+</ul>
+<h2 id="2-no-maximum-hop-length-nav12-phase-1">2. No maximum hop length (NAV.12, phase 1)</h2>
+<p>This drops the study's optional &quot;ship range&quot; field and its &quot;deep-space hop
+over 2 sector edges&quot; flag.</p>
+<ul>
+<li>
+<p><strong>A route always exists</strong> between two placed endpoints, by joining the
+graph's islands (NAV.34). In the study, linking each island to its 6
+nearest joined all 714 in 0.2 s and gave a cross-galaxy route 1.29 times
+the direct distance.</p>
+</li>
+<li>
+<p><strong>Same-sector routes may leave the sector.</strong> This is a loading rule: load
+the corridor by cells (section 3), never &quot;that sector's systems&quot;. The
+third xfail test in <code>test_route_edge_cases.py</code>
+(<code>..._same_sector_route_uses_nearer_stars_next_door</code>) will pass because
+of graph shape (the near line stars are in the ends' 6 nearest), not the
+cost.</p>
+</li>
+<li>
+<p><strong>The longest hop is shown</strong> (<code>longest_hop_ly</code>).</p>
+</li>
+<li>
+<p><strong>Unknown-space jumps.</strong> A hop is flagged when its straight line crosses
+an unfilled sector other than the cells holding its two endpoints. The
+cells come from <code>galaxyGeometry.sectors_along_segment</code> (NAV.38, PR #357),
+exact at faces and edges, with browser twin
+<code>galaxyprisms.sectorsAlongSegment</code>. <code>/api/nav</code> returns per hop
+<code>unknown_space</code>, <code>from</code>, <code>to</code>, <code>distance_ly</code>, plus a <code>sector_id</code> and
+sector-local position per stop (NAV.42 needs them); these are the keys the
+xfail tests read.</p>
+</li>
+<li>
+<p><strong>The filled set.</strong> <code>store.filled_sector_addresses(conn)</code> returns a Python
+set of tuples: 1.56 million addresses took 5.2 s and about 170 MB [C].
+Pack each address into one int64 (ring, layer and slot fit in 49 bits, as
+<code>provisional_sector_designation</code> packs them) in a sorted array: 13 MB, 0.5 s,
+and a membership test of 14,000 cells in 0.7 ms [C]. Cache it keyed by the
+existing <code>galaxy_content_state</code> token (<code>_state_token</code>).</p>
+</li>
+<li>
+<p><strong>Void is not unknown.</strong> Cells outside the galaxy outline
+(<code>GalaxyBounds.contains</code>) are flagged &quot;through unknown space&quot; but never
+offered for charting (NAV.48).</p>
+</li>
+<li>
+<p><strong>Cheap tests first.</strong> When both endpoints share a cell or sit in
+face-adjacent filled cells, skip the ray cast; call the exact function
+only for hops longer than about one edge.</p>
+</li>
+<li>
+<p><strong>Cost stays plain length</strong> (section 3.3). Route edge cases are tests
+first (TEST.79, PR #427).</p>
+</li>
+<li>
+<p><strong>Built (NAV.12).</strong> <code>route.hops</code> carries <code>{from, to, distance_ly, unknown_space}</code> per hop and <code>route.longest_hop_ly</code> the longest
+(<code>query.nav_between</code>, <code>corridor.unknown_space_flags</code>: a hop is flagged when
+a cell on its line, other than the two holding its ends, has no <code>sectors</code>
+row). A same-sector pair with a galaxy placement is routed in the galaxy
+corridor and shifted back into the sector's frame. The NAV page states the
+longest hop and the number of unknown-space jumps; the red glow is NAV.36
+and the horizontal strip UX.35. Not yet built: the per-stop <code>sector_id</code> and
+local position, the packed filled-set cache and the cheap adjacent-cell
+shortcut (the check reads the cells a line crosses with one query per ring
+and layer).</p>
+</li>
+<li>
+<p><strong>Built (UX.35).</strong> The route is an ordered list (<code>role=&quot;list&quot;</code>) laid out left to right with
+flex wrapping, each stop a link followed by the hop to the next (distance, and &quot;unknown space&quot;
+in italics for a hop through ungenerated sectors); a stop and its hop stay on one line and the
+list wraps as the panel narrows, with no device check. A route of more than nine stops shows a
+short list instead (the first stop, the last three, both ends of the longest hop and of every
+unknown-space hop, with an ellipsis where stops are left out) and keeps the whole route in an
+&quot;All N stops&quot; <code>&lt;details&gt;</code>. Checked at 320 px and 900 px.</p>
+</li>
+</ul>
+<h2 id="3-routing-that-scales-nav10-built">3. Routing that scales (NAV.10, built)</h2>
+<ul>
+<li><strong>Corridor search.</strong> <code>query.nav_between</code> at galaxy scope no longer loads
+every placed system. <code>corridor.positions_near_segment</code> reads the sectors
+near the straight line between the ends from <code>sectors</code>' center index, cut
+into pieces so the read grows with the line's length, then the systems of
+those sectors by their indexed sector id, and keeps those within a
+half-width of the line. The half-width starts at a quarter of the direct
+distance, between 25 and 100 ly, and doubles (to at most 6,400 ly) while
+the route found has a hop longer than half of it: a hop that long may be
+hugging the corridor's edge with stepping stones just outside it. A
+corridor of more than 300,000 systems is not widened. The joined graph
+(NAV.34) still guarantees a route among whatever the corridor holds.
+Because the graph is built from the corridor's systems, a route can differ
+from the one a whole-galaxy graph would give where a nearest neighbour lies
+outside the corridor; the benchmark below shows the length stays within a
+few percent.</li>
+<li><strong>A*.</strong> <code>nav_graph.shortest_path</code> takes the node positions and uses the
+straight-line distance to the goal as its heuristic. The length is the
+same as Dijkstra's (a test checks it); fewer nodes are visited.</li>
+<li><strong>Objects near a line.</strong> <code>corridor.objects_near_segment</code> returns every
+generated system, star and phenomenon within a distance of a segment, in
+order along it (NAV.6's steering will use it).</li>
+<li><strong>No new indexes.</strong> The existing center indexes (<code>idx_sectors_center</code> and
+each phenomenon table's own) and <code>idx_star_systems_sector_id</code> serve the
+boxes, so NAV.10 needs no schema change.</li>
+<li><strong>Measured.</strong> <code>scripts/bench_nav.py</code> builds a synthetic galaxy of any size
+with bulk SQL and times a corner-to-corner route. On 100,000 sectors and
+400,000 systems (a flat grid, 4 pc apart, four systems each), a 4,519 ly
+route took 3.3 s through the corridor and found a 5,162 ly path of 561
+stops; loading every system and rebuilding the graph, as before, took 88 s
+(2.9 s to load, 84.6 s to build). On 10,000 sectors and 40,000 systems: 0.9
+s against 4.9 s, a 2,098 ly path against 2,101 ly with the whole graph.
+Measured on the build server with a test suite running beside it.</li>
+<li><strong>Research recommendations not taken.</strong> The research proposed building the
+corridor from the sector cells along the segment through the address index
+(1,000 to 52,000 rows in 15 to 60 ms and a route in 2 to 34 ms on a
+1e7-system, 1.56 million-sector test database [C], section 6), a cKDTree
+for the k-nearest graph and the island join, and noted that
+<code>idx_sectors_center</code> prunes only on X because it is <code>(center_x_pc, center_y_pc, center_z_pc)</code>. The built version reads the centre index in
+pieces along the line; revisit the cell-based read if the benchmark above
+grows slow on a full galaxy. The stored <code>nearest_systems</code> table cannot back
+routing (3 neighbours per object, within 4 pc, no island data).</li>
+</ul>
+<h3 id="31-corridor-rule-and-widening">3.1 Corridor rule and widening</h3>
+<p>kNN-6 plus island links rebuilt on the corridor's points only, against the
+whole-graph optimum, on 52,983 systems in 394 areas, 40 random routes
+between areas (median 2,545 pc, 50 hops, 1.21 times the straight line) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Half-width</th>
+<th>Corridor points (median)</th>
+<th>Length over whole-graph optimum (median, p90)</th>
+<th>CPU, pure-Python graph</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>max(20 pc, 2% of L)</td>
+<td>545</td>
+<td>0.844, 0.909</td>
+<td>0.05 s</td>
+</tr>
+<tr>
+<td>max(50 pc, 5% of L)</td>
+<td>1,533</td>
+<td>0.864, 0.918</td>
+<td>0.15 s</td>
+</tr>
+<tr>
+<td>max(100 pc, 10% of L)</td>
+<td>2,895</td>
+<td>0.896, 0.961</td>
+<td>0.60 s</td>
+</tr>
+<tr>
+<td>max(200 pc, 25% of L)</td>
+<td>11,913</td>
+<td>0.973, 1.000</td>
+<td>3.15 s</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>A route always exists whatever the corridor</strong>, because the island join
+runs on the corridor's own graph. Widening is for quality only; this
+replaces NAV.10's &quot;widened if no route is found&quot;.</li>
+<li>Corridor routes are shorter than the whole-graph &quot;optimum&quot;, which links far
+islands from the global picture. So the rule fixes the result: default
+half-width <code>max(50 pc, 5% of L)</code>, one doubling if the route exceeds 1.3
+times the straight line.</li>
+<li><strong>Density makes the corridor explode:</strong> a 1,000 pc route at 50 pc half-width
+is 7.9e6 pc^3, about 785,000 systems at solar density and 30 million near
+the core. Choose the width by a point budget (for example 50,000): sum
+<code>sector_stats.actual_systems</code> along the dilated cells and shrink the width
+until it fits.</li>
+<li>Dense regions give many tiny hops: 58 stops for a 100 pc route in the
+solar patch (2.1 pc per hop) [C]. UX.35 must cope (section 10).</li>
+</ul>
+<h3 id="32-search-algorithm">3.2 Search algorithm</h3>
+<p>Same archipelago, 211,138 edges, same 40 routes, median CPU and nodes
+expanded [C]: Dijkstra in Python 0.207 s, 28,612 nodes; A* with the
+straight-line heuristic 0.041 s, 4,994 nodes (p90 27,009 against 50,525);
+bidirectional Dijkstra 0.133 s, 24,128 nodes; weighted A* (heuristic x 1.5)
+518 nodes, route 1.023 times optimal; <code>scipy.sparse.csgraph.dijkstra</code> over
+the whole graph from one source 0.016 s.</p>
+<p>A* is exact: every edge costs its Euclidean length and the heuristic is the
+Euclidean distance (admissible and consistent, island edges included). Use
+scipy's Dijkstra on numpy arrays for plain routes and Python A* when edges
+need callbacks (unknown-space penalty, NAV.47). Weighted A* is a fallback for
+very long routes at a 2% median loss.</p>
+<h3 id="33-connectivity-and-cost">3.3 Connectivity and cost</h3>
+<p>Connectivity graphs on the same 52,983 systems; stretch is route length over
+straight line for 120 random pairs between areas [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Graph</th>
+<th>Edges per node</th>
+<th>Build CPU</th>
+<th>Stretch (median / p90)</th>
+<th>Longest hop vs minimax</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kNN-6 + join to 6 nearest islands (today)</td>
+<td>4.0</td>
+<td>0.1 s + join</td>
+<td>1.21 / 1.35</td>
+<td>1.37x</td>
+</tr>
+<tr>
+<td>Delaunay</td>
+<td>7.4</td>
+<td>2.1 s</td>
+<td>1.06 / 1.11</td>
+<td>1.64x</td>
+</tr>
+<tr>
+<td>Gabriel</td>
+<td>3.0</td>
+<td>2.9 s</td>
+<td>1.19 / 1.27</td>
+<td>1.35x</td>
+</tr>
+<tr>
+<td>Euclidean MST</td>
+<td>1.0</td>
+<td>2.2 s</td>
+<td>3.47 / 5.25</td>
+<td>1.00x</td>
+</tr>
+</tbody>
+</table></div>
+<p>Relative-neighbourhood and kNN-plus-MST graphs reach the minimax hop but
+zigzag (stretch 1.51 and 2.38). Keep kNN-6 plus nearest-island links: 1.2
+stretch, the cheapest build, a local update. Add MST edges only if a
+&quot;smallest possible longest hop&quot; feature (the dropped ship range) returns. For
+NAV.12: the longest hop on a cross-gap route is 1.37 times the unavoidable
+gap, because Euclidean cost picks long hops.</p>
+<p>Cost, 60 pairs 80 to 150 pc apart on a 6-nearest graph [C]: plain length d
+gives 58 hops, mean 2.09 pc, longest 3.44 pc, stretch 1.20 in the solar patch
+(sparse patch: 28, 5.44, 9.52, 1.23); d squared gives 104 hops, longest 2.96,
+stretch 1.41; d + 3 pc per hop gives 52 hops, stretch 1.25. The graph already
+caps hop length, so the cost mostly changes the hop count. Use length; any
+cost c(d) &gt;= d keeps the Euclidean heuristic admissible, which is why an
+unknown-space multiplier is allowed and d squared is not.</p>
+<h3 id="34-voxel-traversal-amanatides-woo-is-not-needed">3.4 Voxel traversal (Amanatides-Woo) is not needed</h3>
+<p>On this grid the axes are the layer planes (linear in t), the ring cylinders (a
+quadratic, not monotone) and the slot half-planes (an angle, with a slot count
+that changes by ring), so A-W needs two phases split at the closest approach to
+the axis. <code>sectors_along_segment</code> already collects every cut, sorts, and looks
+each piece up with <code>sector_address_at</code> (about 27 microseconds per cell; 12.6k
+cells for a 40 kpc segment in 0.32 s [C]). A streaming version would only buy
+early exit at the first unfilled cell; add a generator later only if the flag
+on very long hops needs it.</p>
+<h2 id="4-the-spatial-index-use-the-sector-grid">4. The spatial index: use the sector grid</h2>
+<p><strong>No new index is needed for NAV.43 or NAV.10.</strong> <code>sectors(ring_index, layer_index, ring_slot_index)</code> has a unique index (<code>uq_sectors_address</code>),
+<code>star_systems.sector_id</code> is indexed, and every phenomenon table has
+<code>sector_id</code> and a center index. Reading the cells a ball touches, then the
+rows in them, reads 1.3 to 1.7 times the rows in the answer at 50 pc, against
+7 to 45 times for a composite (x, y, z) index, which prunes on its first
+column only [C].</p>
+<h3 id="41-spatial-indexes-cannot-do-3d">4.1 SPATIAL indexes cannot do 3D</h3>
+<p>Both servers index only 2D shapes (an R-tree over the bounding rectangle) and
+their <code>ST_</code> functions work in X and Y [R for MySQL 8.4 and MariaDB 11.4].
+Measured on MariaDB 10.11: <code>POINT Z (1 2 3)</code> does not parse (NULL) and
+<code>ST_Distance</code> of two <code>POINT Z</code> values is NULL [C]. A 2D index on (x, y) plus a
+z filter read 6 times the answer for a 100 pc slab (126,150 entries for 19,873
+rows at 50 pc, solar patch) and took 25.4 s to build against 3.8 to 6.6 s for
+each B-tree at 1e6 rows [C]. It would also duplicate X and Y in galaxy-frame
+points that must follow <code>advance_galactic_positions</code> and sector refiling. Do
+not use it.</p>
+<h3 id="42-alternatives-measured">4.2 Alternatives, measured</h3>
+<p>&quot;Everything within R pc&quot;, MariaDB 10.11, server CPU and index entries read, at
+1e7 systems (1.56M sectors), R = 50 [C]. A is the composite (x, y, z) bounding
+box; B address ranges OR'd; C the address join through <code>sectors</code> then
+<code>sector_id</code>; D2 Morton (Z-order) ranges at a 2 pc leaf in a temporary table.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case (rows in answer)</th>
+<th>A bbox</th>
+<th>B OR ranges</th>
+<th>C sectors join</th>
+<th>D2 Morton temp join</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>core (1,345,778)</td>
+<td>7.7 s, 2,498,698</td>
+<td>17.6 s, 1,542,978</td>
+<td>8.2 s, 1,559,464</td>
+<td>7.8 s, 1,437,298</td>
+</tr>
+<tr>
+<td>solar (55,406)</td>
+<td>1.61 s, 1,150,105</td>
+<td>0.77 s, 67,618</td>
+<td>0.43 s, 87,266</td>
+<td>0.34 s, 66,484</td>
+</tr>
+<tr>
+<td>sparse (1,830)</td>
+<td>160 ms, 160,881</td>
+<td>30 ms, 2,901</td>
+<td>30 ms, 6,225</td>
+<td>30 ms, 8,250</td>
+</tr>
+</tbody>
+</table></div>
+<p>At R = 10, 1e7, solar (518 rows): A read 230,321 entries, B 1,276. Morton at an
+8 pc leaf OR'd was no better than B.</p>
+<ul>
+<li>The composite index is the worst at scale (45 times the answer at R = 10,
+sparse) and the only option needing a new index.</li>
+<li>The cell approach stays within 1.3 to 1.7 times the answer and is flat as
+the table grows. Morton needs about 3,000 ranges at 2 pc (830 at 4 pc, 235
+at 8 pc) and a new column; its one gain, fewer rows at small R (1.5x
+against 2.4x volume overscan at R = 10), does not pay for that. A Hilbert
+decomposition was not benchmarked and would gain little [R].</li>
+<li>Each row costs about 6 microseconds of server CPU for the exact-distance
+test, so 1.3 million rows cost 8 s whatever the index. That is why NAV.43
+caps totals and takes page 1 from shells (section 5).</li>
+<li><strong>Do not send hundreds of OR'd ranges.</strong> 3,000 Morton ranges as OR cost
+11.5 s of server CPU against 0.95 s joined from a temporary table; 560
+address ranges as OR cost 2.0 s against 1.1 s for a join through <code>sectors</code>
+[C]. MySQL falls back to a scan past <code>range_optimizer_max_mem_size</code> (8 MiB
+default) [R, untested]. Keep range lists under about 200 terms or use a
+temporary-table join, which both servers support.</li>
+<li><strong>Optional covering index</strong> <code>star_systems(sector_id, position_x_mpc, position_y_mpc, position_z_mpc)</code> made the same query 1.6 to 2.1 times
+cheaper at about 35% of the table's other indexes' size [C]. Add it only if
+profiling on the production database asks for it.</li>
+</ul>
+<h3 id="43-the-padding-rule">4.3 The padding rule</h3>
+<p><code>galaxyGeometry.enumerate_sectors_within_radius</code> returns the cells whose
+<strong>center</strong> is within the radius, not the cells the sphere touches. For a 10 pc
+sphere, 21.5% of the points inside it sit in cells the function does not list;
+at 50 pc it is 3.1% [C]. The farthest corner of a cell from its center is
+4.0 pc in ring 0 and 3.5 pc elsewhere at a 4 pc edge [C]. The rule for every
+caller: <strong>ask for <code>radius + one edge</code> (4 pc) and filter by exact distance.</strong>
+At R = 50 the unpadded call lists 8,060 cells in 14 to 25 ms; the padded one
+about 10,000 cells in 31 ms [C]. <code>store.sectors_reached_by</code> already pads, by
+the nominal half diagonal (<code>_sector_half_diagonal_pc</code>, 3.46 pc), a thin margin
+against 3.5 pc in the slotted rings; pad by one edge there too. The
+enumerator's docstring should say it lists centers, and it yields in no useful
+order, so sort before applying any limit
+(see fill-order-curves-and-core.md, section 3.3).</p>
+<h3 id="44-in-memory-caches-per-request">4.4 In-memory caches per request</h3>
+<p>cKDTree, one thread [C]: build 0.05 s (1e5 points), 0.78 s (1e6, 21 MB extra),
+12.5 s (1e7, 256 MB); k = 6 for all points 0.43 s, 8.6 s and 111.7 s; a ball
+of R = 50 returns in 0.9 to 5.3 ms in the solar patch and 2 to 127 ms in the
+core. A whole-galaxy graph per request at 1e7 needs about 1 GB for neighbour
+arrays alone, so a corridor is the way. <code>pykdtree</code> 1.4.3 gave identical
+neighbours and was no faster (10.3 s against 7.6 s at 1e6) and is
+LGPL-3.0-or-later [S: pypi.org/pypi/pykdtree/json]; <code>hnswlib</code> 0.8.0 is
+approximate with no radius query [S]. Stay with cKDTree (<code>workers=</code> and
+<code>return_length=</code> in the pinned scipy 1.13 [R]). Avoid <code>np.unique</code> on large
+integer arrays: 9.4 s on 6e6 int64 on numpy 2.5.3 against 0.11 s for
+sort-plus-diff [C].</p>
+<h2 id="5-everything-within-n-pc-of-a-place-nav43-nav44-nav45">5. Everything within N pc of a place (NAV.43, NAV.44, NAV.45)</h2>
+<p><code>queryDb.objects_within</code> and <code>GET /api/near</code>, the &quot;What's nearby&quot; page and the
+map actions.</p>
+<p><strong>As built (NAV.43 and NAV.44, PR #804, <code>planetgen/db/near.py</code>).</strong> The search
+is <code>near.objects_within(conn, place, distance_pc, kinds, limit, offset)</code> behind
+<code>GET /api/near</code>; a place is an object reference or a point in parsecs, the
+limit is 50 pc, pages default to 50 rows (largest 200) and use <code>limit</code> and
+<code>offset</code>. It reads the sectors the sphere can reach with one bounding-box query
+on <code>idx_sectors_center</code>, measures exact distances in the galaxy frame, loads
+only per-system body counts for the whole sphere and the bodies of the systems
+on the requested page, and counts ungenerated sectors without filling them.
+The shell-by-shell page 1, keyset cursor and &quot;300+&quot; capped totals described
+below are not built; use them if a measurement at the core of a full galaxy
+shows the bounding-box read too slow (this section's 1.3 million systems
+figure is the case to test). The design below is the research behind the
+choice.</p>
+<ol>
+<li><strong>Cells.</strong> <code>enumerate_sectors_within_radius(center, R + 4.0, edge)</code>, about
+10,000 cells at R = 50. Drop cells not in the cached generated set
+(section 2); their count is &quot;sectors not generated yet&quot;.</li>
+<li><strong>Rows per kind</strong> by the cell list in batches of about 48 cells, ordered by
+center distance, through <code>sectors</code> (systems, rogue objects, facilities) or
+by <code>sector_id</code> (phenomena; extended ones also need the bounding-box test
+<code>_placed_phenomenon_rows</code> already does), using the address ranges or the
+temporary-table join of section 4.2, never a long id list.</li>
+<li><strong>Page 1 from shells.</strong> Read cells in batches by center distance; stop
+when 50 rows are held and the 50th best distance is under the next batch's
+center distance minus 4 pc. Page 1 cost 10 to 30 ms of server CPU where
+reading the whole ball cost 30 to 740 ms at 1e6 systems [C]. Later pages use
+a keyset cursor <code>(distance, kind, id)</code>, not OFFSET. Bodies (stars, planets,
+moons, belts, comets) take their system's distance, so rank systems and
+expand.</li>
+<li><strong>Capped totals.</strong> A 50 pc sphere at the core holds 1.3 million systems
+(8 s of server CPU just to count). Totals are exact under a cap, else
+&quot;300+&quot;, as <code>SEARCH_COUNT_CAP</code> (300, <code>db/query.py</code>) does. The 50 pc limit
+stays; the row count, not the radius, needs the cap.</li>
+<li><strong>Not generated yet.</strong> The address indexes give for free the count (and an
+optional list) of pre-placed bright stars and scattered black holes and
+neutron stars in unfilled cells inside the sphere
+(<code>bright_stars.star_system_id IS NULL</code>, <code>phenomenon_scatter.built_at IS NULL</code>).</li>
+</ol>
+<p>NAV.44 and NAV.45 add no routing content; they show &quot;300+&quot; past the cap, the
+&quot;not generated yet&quot; counts and the kind filter.</p>
+<p><strong>NAV.9</strong> (references from search and locate): <code>galaxy_locate</code> returns sectors
+and systems only and has no <code>ref</code> or parents. Build <code>ref</code> with
+<code>object_ref.format(kind, id)</code> and take the parent chain from the JOIN each
+panel already runs (planets and moons: <code>star_systems</code> then <code>sectors</code>), not
+<code>resolve_object</code> per row, which makes about four queries per object. Names are
+FULLTEXT-indexed on sectors, systems, stars, planets and moons; phenomena have
+only a plain <code>KEY (name)</code>, so prefix matching works and substring matching
+scans those small tables.</p>
+<h2 id="6-near-a-line-segment-nav10-nav25-nav6">6. Near a line segment (NAV.10, NAV.25, NAV.6)</h2>
+<ul>
+<li><strong>In memory:</strong> a chain of spheres of radius sqrt(w^2 + (step/2)^2) centered
+every <code>step = sqrt(2) w</code> covers the cylinder of half-width w with a fetched
+to cylinder volume ratio of 1.73, the minimum; then filter by exact
+point-to-segment distance. cKDTree at 1e6, L = 1000 pc, w = 20 pc: 1.4 ms
+(1,491 points, solar) and 26 ms (52,152, core); a full-array bounding-box
+scan costs 33 to 70 ms at 1e6 and grows with N [C].</li>
+<li><strong>In the database:</strong> <code>sectors_along_segment</code> gives the exact cells (300
+random segments checked against dense sampling: none missing, 43
+corner-touching extras in 19,619 cells [C]). Dilate with <code>neighbor_addresses</code>
+for w up to one edge; for larger w drop cells whose center is further than
+<code>w + 4 pc</code> from the segment (the one-ring dilation over-fetches 4.4 times at
+w = 4 pc). Intersect with the cached generated set, then join through a
+temporary table.</li>
+<li><strong>End to end, 1e7 systems</strong> [C]: solar, L = 300 pc, w = 12: 3,253 cells,
+1,183 rows in 20 ms server CPU plus 15 ms client, route 3 ms; inner disk,
+L = 100: 10,319 rows, 60 + 44 ms, route 6 ms; core, L = 60, w = 4: 52,513
+rows, 340 + 222 ms, route 34 ms. This is the &quot;measured time&quot; NAV.10 asks for
+(on 1.56 million sectors rather than the TODO's 100,000).</li>
+<li>NAV.25 and NAV.6 use this same query. <a href="course-avoidance.html">course-avoidance.md</a>
+bends each hop one at a time and does not change which systems are the stops.</li>
+</ul>
+<h2 id="7-stops-in-unknown-space-nav47">7. Stops in unknown space (NAV.47)</h2>
+<p><em>Built</em> in <code>db/stones.py</code> and <code>query.nav_between</code>. What differs from the plan below: the cells read are the jump's
+crossed cells plus one or two rings of neighbours (not a cylinder), the corridor is clipped to the
+nearest 5,000 stones, the kind lookup needs no side table (the corridor is read through the address
+index, so <code>phenomenon_scatter_special</code> was not added), a hypervelocity star's position comes from
+<code>straight_line.scatter_position_mpc</code> at the orbit epoch (the row's <code>epoch_unix</code> already exists), and the
+chain replaces a jump only when it is within 1.5 times its length.</p>
+<p>Candidates are <code>bright_stars</code> (address index; absolute <code>position_*_mpc</code>;
+<code>star_system_id</code> set once the sector is filled) and <code>phenomenon_scatter</code>
+(address index only; <code>kind</code>, absolute position, <code>velocity_*_kms</code> for
+hypervelocity stars, <code>built_at</code> set once filled). Planetary nebulae and
+remnants are in the table but not on Boss's list. The scatter table holds about
+5e8 rows (tens of GB; the repo's own comment puts runaway stars at 1.3 billion),
+1,000 to 10,000 of them hypervelocity stars [C]. Stone density in the solar disk
+is about 5e-4 per pc^3 for neutron stars and 1e-4 for black holes, plus bright
+stars (about 6e7 galaxy-wide at 500 solar luminosities [R]); the simulation
+uses 6e-4.</p>
+<p><strong>Algorithm (refine flagged hops, lazily):</strong></p>
+<ol>
+<li>Route as in section 3 on generated systems only; a flagged hop is a gap.</li>
+<li>For each gap (u, v) of length L, take the unfilled cells in the cylinder of
+half-width w = max(8 pc, 0.1 L) (section 6). Read <code>bright_stars</code> rows with
+<code>star_system_id IS NULL</code> and <code>phenomenon_scatter</code> rows with <code>built_at IS NULL</code> and <code>kind IN ('black-hole', 'neutron-star', 'quasar', 'hypervelocity-star')</code> in those cells, via a temporary table of cells.</li>
+<li>Build a reach graph over {u, v} plus the stones, linking pairs closer than
+<code>r = 2 rho^(-1/3)</code> (rho the stone density measured in the corridor); double
+<code>r</code> until u and v connect or <code>r</code> reaches L. A* with cost = length; keep the
+direct edge in reserve at cost L (1 + unknown_penalty).</li>
+<li>Replace the gap by the stone chain if one exists, marking each stone with its
+kind; otherwise keep the single unknown jump.</li>
+</ol>
+<p>Simulation (Poisson stones, 30 trials, cost = length) [C]: at 6e-4 per pc^3,
+D = 100 pc gives 5 hops (longest 23.5 pc, route 1.04 of D) and D = 500 pc 28
+hops; outer disk 1e-4, D = 500 pc: 16 hops, longest 43 pc; halo-like 1e-5:
+D = 100 pc has no usable chain (the single jump stays), D = 500 pc gives 8
+hops, longest 90 pc. A d squared cost gave more, shorter hops (75, 16.6 pc, 1.31
+of D at 6e-4), so cost stays length and the reach sets the hop size.</p>
+<p><strong>Rules.</strong> Stones apply to unfilled cells only: once a sector is filled its
+scatter rows are built into <code>black_holes</code>, <code>neutron_stars</code> and <code>star_systems</code>,
+so a filled cell's black hole is not a stop (it is still an obstacle for
+<a href="course-avoidance.html">course-avoidance.md</a>). A stone in an unfilled sector has
+no sector row, so its hops are described in the Galactic Standard Frame
+(<a href="navigation-frames.html">navigation-frames.md</a>).</p>
+<p><strong>The <code>kind</code> lookup.</strong> <code>phenomenon_scatter</code> has no <code>kind</code> index, so <code>WHERE kind = 'hypervelocity-star'</code> scans about 5e8 rows. Either add <code>KEY (kind, ring_index, layer_index, ring_slot_index)</code> (10 to 15 GB and a long online <code>ALTER</code>) or write
+the hypervelocity and nucleus rows (a few thousand, inserted last by
+<code>special_rows</code>) to a small <code>phenomenon_scatter_special</code> table read whole into
+memory. Recommended: the side table. The corridor read of the big table is a
+few hundred rows by the address index.</p>
+<p><strong>Hypervelocity stars &quot;at the time&quot;.</strong> The sim clock is real elapsed time
+(<code>orbit_simulation_state.last_updated_at</code>; <code>planetgen orbits</code> runs about
+monthly). At 500 to 1,000 km/s a star moves 0.51 to 1.02 pc per 1,000 years
+(1 km/s = 1.0227 pc per million years), 2.6e-3 pc a month, about 200 AU a year
+[C]. A scatter row holds the plan-time position, so the position at time t is
+<code>p0 + v (t - t_plan)</code>; <code>t_plan</code> is not stored, so add
+<code>galaxy_shape.phenomenon_scatter_at</code> when the scatter is written. The effect is
+under 0.01 pc a year, so a stone stays in its cell: the formula is for
+correctness, not the index. Trap: <code>store.advance_galactic_positions</code> moves a
+stored system by a rotation about the galactic axis (its galactic orbit) and
+rotates its velocity vector, but never adds velocity times elapsed time, and
+skips scatter rows, so a hypervelocity star in a filled sector orbits instead of
+travelling outward. NAV.47 should define &quot;position at the time&quot; once and use it
+for both.</p>
+<h2 id="8-charting-the-sectors-that-block-a-course-nav48">8. Charting the sectors that block a course (NAV.48)</h2>
+<ul>
+<li><strong>Bypass test.</strong> Run the corridor search with flagged edges at infinite cost
+(flag evaluated lazily, memoised). If a route exists through known space,
+report its length against the best route and do not offer charting (or offer
+it as optional). If none exists, the flagged hops are the blockers: take
+<code>sectors_along_segment</code> of each, drop filled cells and cells outside
+<code>GalaxyBounds</code>; that is the list to chart.</li>
+<li><strong>Which cells.</strong> Boss's wording is &quot;all sectors between the two points&quot;.
+Charting every cell on the A-B line is far more than needed when the route
+already hops through known areas, so the default is the cells of the unknown
+hops only, then re-plot (new systems change the graph). A one-cell border
+adds about 3 to 9 times the cells; make it a checkbox.</li>
+<li><strong>Cost, before offering.</strong> <code>generation.stats.estimate(sectors, stats, database, workers)</code> takes <code>(density, expected_systems)</code> per sector and returns
+seconds, bytes and a disk refusal; <code>run_galaxy.generate_sector_neighborhood</code>
+already does this for a sphere (<code>_neighborhood_candidates</code>,
+<code>_neighborhood_batch</code>, <code>estimate_only</code>), and NAV.48 needs the same with an
+explicit address list. A line in the disk plane crosses 0.26 to 0.32 cells
+per parsec, a random 3D direction about 0.4 [C]. At 6.3 systems per
+solar-density cell that is about 6 CPU-minutes per 1,000 pc at the PERF.3
+default (<code>DEFAULT_SECONDS_PER_SYSTEM</code> = 0.2 s) and about 30 at one second per
+system, the one-off system page's figure (<code>architecture.md</code>, flow 4); a core
+cell holds up to 241 systems; a cross-galaxy line (about 7,500 cells) is 14
+hours at solar density and one second per system, far worse through the
+bulge. The existing &quot;ask again past about 5,000 sectors&quot; confirmation is the
+right gate, with the estimate (time, disk, refusal) shown first.</li>
+<li><strong>Also needed:</strong> the bright-star backfill (<code>backfill_bright_stars</code>, GEN.30)
+runs once around a center for neighborhoods; a corridor needs it per block or
+the dimmer tiers are missing along the line. The job must call it.</li>
+</ul>
+<h2 id="9-travel-times-for-the-route-nav11-phase-1">9. Travel times for the route (NAV.11, phase 1)</h2>
+<p>The route gets the same warp and fold tables as the direct distance (those in
+<a href="navigation-frames.html">navigation-frames.md</a>, which agree with the project's
+<code>travel-speeds/speeds.md</code>), per hop (unknown-space jumps included) and in
+total, the total assuming a stop at every system on the route (Boss,
+2026-10-02 04:19Z).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning</th>
+<th>Comment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A (default)</td>
+<td>A stop is each system on the route; each hop timed rest to rest at the chosen factor; no stay</td>
+<td>Sum of <code>direct.distance_ly / speed</code>; matches the constant speeds and no acceleration model</td>
+</tr>
+<tr>
+<td>B</td>
+<td>A plus an optional per-stop &quot;stay&quot; (default 0) added once per intermediate stop</td>
+<td>One number on the page and API; models refuelling without a rule change</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Visit every planet of every system on the route</td>
+<td>Not worth modelling: 1 AU is 499 s of light-travel; 30 AU is 4.2 h at warp 1 and 1.2 s at warp 9.995 [C]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ship A with B as an optional parameter; &quot;each planet&quot; reads as &quot;each stop on
+the route&quot;. The total says how many hops are unknown-space jumps and the total
+including stays. Worked example [C]: a 100 pc route in the solar disk has 58
+hops of 2.09 pc mean, 121 pc (395 ly) in all; at warp 9.995 (33.41 ly a day)
+that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
+326 ly. Per-hop times go in a collapsible detail, the total in the summary.</p>
+<h2 id="10-showing-the-route">10. Showing the route</h2>
+<ul>
+<li><strong>A readable course map (NAV.41, phase 0, bug).</strong> A wide panel across the
+usable width, labels at least body-text size, the route list below (Boss,
+2026-10-02 04:19Z). One 6,504 ly hop shrinks the other nine to a dot at one
+scale; a flagged hop could be drawn broken and dense parts inset (NAV.5,
+NAV.20).</li>
+<li><strong>Course and distance per stop (NAV.42, phase 1).</strong> Each stop shows the
+course to the next in the existing notation, for example <code>045 mark 012, 3.2 ly</code>, worked out in that hop's frame; a stone stop in an unfilled sector uses
+the Galactic frame.</li>
+<li><strong>Horizontal, wrapping (UX.35, phase 1, alongside NAV.12).</strong> Keep
+<code>&lt;ol class=&quot;nav-route&quot;&gt;</code> and add <code>role=&quot;list&quot;</code> (Safari drops list semantics
+from <code>list-style: none</code> [R]). Each <code>&lt;li&gt;</code> is one unit, the stop link plus the
+hop that follows (distance, then NAV.42's course text), <code>inline-flex</code> and
+<code>white-space: nowrap</code> so a stop is never split, <code>overflow-wrap: anywhere</code> for a
+very long name. The container is a wrapping flex row (<code>gap: 0.25rem 0.75rem</code>)
+in a wrapper with <code>container-type: inline-size; container-name: nav-route</code>,
+following the project's named container queries (<code>nav-row</code> in
+<code>html/static/style.css</code>): below about 30rem the hop line goes under the stop;
+below about 20rem fall back to the vertical list. Subgrid is not needed.</li>
+<li><strong>Long routes.</strong> 50 to 100 or more stops are normal [C]. Collapse the middle
+in a <code>&lt;details&gt;</code> (&quot;show 92 more stops&quot;), always showing the first and last
+three stops, the longest hop and every unknown-space hop. Test
+(<code>test_web_a11y.py</code>) at 320 px with a 60-stop route and a 40-character name.</li>
+<li><strong>Red and glowing (NAV.36, phase 2).</strong> A flagged hop is red with a glow in the
+route strip, on the NAV page's map and on the Galaxy Map course, with a legend
+entry; under <code>prefers-reduced-motion</code> red without the pulse; readable in both
+themes; the list also labels it &quot;unknown space&quot; in text.</li>
+<li><strong>Course diagram (NAV.67, with NAV.36).</strong> A panel below the NAV page's map
+(<code>web/maps/navdiagram.py</code>) draws the ribbon of <code>navribbon.layout_ribbon</code> (NAV.66) as SVG:
+the stops left to right, a glyph for each kind (a disc for a system, a hexagon for a
+phenomenon, and a shape of its own for each kind of stop in unknown space, so the kinds read
+by shape and not by colour), the hop's length on it and its course where the gap is wide
+enough, the start ringed dashed and the destination ringed twice. A hop through unknown
+space is red, dashed and glowing, with a legend entry and the words in the panel's text and
+in the hop's title; the glow pulses only without <code>prefers-reduced-motion</code>. The spacing
+follows the logarithm of a hop's length, so the panel says it is a schematic and not to
+scale. Three drawings of one route are on the page (layout widths 260, 520 and 880 px) and a
+media query shows the one that fits, so a phone wraps a long route into rows while the text
+stays near its set size (12 px, drawn at 0.9 or more of it). Each stop is a link to its page
+(a stop in unknown space has none) and has a text alternative; the route list stays the
+plain-text form.
+<strong>Linked to the Galaxy Map (NAV.69).</strong> The Galaxy Map's course readout carries the same diagram (stops with
+no neighbour stubs removed, the link sentence added). A plain click on a stop of the diagram selects that
+stop on the map's course (its ring is marked and the map flies to it) and marks it in all three drawings; a
+click on a stop's ring on the map marks the same stop in the diagram; a second click on the selected stop,
+or a click with Ctrl, Shift, Alt or Meta held, opens the stop's page. <code>static/coursediagram.js</code> holds the
+diagram's side; the map's side is in <code>galaxymap3d.js</code>'s NAV course section.
+<strong>Neighbours (NAV.68).</strong> The NAV page asks for the route's graph (<code>graph=1</code>, NAV.65) and draws it
+faintly under the route: a short stub from a stop to each neighbour off the route (the graph caps them
+per stop), &quot;and N more&quot; over a stop where the cap cut some, and a dotted arc between two stops of one
+row that are neighbours but no hop (a link between stops on two rows is counted in a note under the
+drawing and not drawn). A stub has no text of its own, only a title with its distance, since the
+stubs lie too close for labels; the arc carries its length. The panel and its legend say a link is a
+neighbour relation (which systems lie near each other, by the relative neighbourhood rule), not a
+travel lane, and the route's own hops are drawn over the neighbours. A hop's course text is left out
+where an &quot;and N more&quot; sits over it. Names and labels carry a halo of the panel's colour so a stub
+never cuts through their letters.
+The route list's unknown-space hops are red as well.
+<strong>On the maps (NAV.36).</strong> The NAV page's own map draws each run of known hops as one solid path and each
+unknown-space hop as its own path: red, dashed, with an SVG glow filter (<code>navmap-glow</code>) and a title in words,
+pulsing only without <code>prefers-reduced-motion</code>; a legend line under the map and a bullet in the map help say
+what it is. The Galaxy Map's course draws the same hop (<code>hopUnknown</code> on the point it arrives at, from
+<code>nav_page.galaxy_course</code>) as a red dashed line, with the glow a row of soft red sprites laid along it,
+as many as the hop is long on the screen (<code>static/coursehops.js</code>), pulsing the same way, and a Key line
+(&quot;Red dashed glowing line: a jump through unknown space&quot;) shown only for a course that has one.</li>
+<li><strong>Saved courses (NAV.39, phase 2).</strong> A saved course (NAV.17) keeps which hops
+were unknown-space jumps; opening it checks again, since sectors may have
+been filled, and says what changed.</li>
+<li><strong>Waypoints (planned 2026-10-07, NAV.49):</strong> objects picked in Star select mode
+become waypoints marked at every map level; two or more plot a course, which
+stays drawn until cleared.</li>
+</ul>
+<h2 id="11-order">11. Order</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Piece</th>
+<th>Phase</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.79</td>
+<td>Route edge cases, written first</td>
+<td>0</td>
+<td><strong>Built, PR #427</strong></td>
+</tr>
+<tr>
+<td>NAV.34</td>
+<td>Join the route graph's islands (bug)</td>
+<td>0</td>
+<td><strong>Built, PR #427</strong></td>
+</tr>
+<tr>
+<td>NAV.38</td>
+<td>Every sector a straight line passes through</td>
+<td>0</td>
+<td><strong>Built, PR #357</strong></td>
+</tr>
+<tr>
+<td>NAV.10</td>
+<td>Corridor search, A*, the segment query</td>
+<td>1</td>
+<td><strong>Built</strong></td>
+</tr>
+<tr>
+<td>NAV.12</td>
+<td>No hop limit, longest hop shown, unknown-space flag</td>
+<td>1</td>
+<td>NAV.34, NAV.38, TEST.79, NAV.10</td>
+</tr>
+<tr>
+<td>UX.35</td>
+<td>Horizontal, wrapping route strip</td>
+<td>1</td>
+<td>alongside NAV.12</td>
+</tr>
+<tr>
+<td>NAV.11</td>
+<td>Travel times per hop and for the route</td>
+<td>1</td>
+<td>NAV.10, NAV.12</td>
+</tr>
+<tr>
+<td>NAV.42</td>
+<td>Course and distance per stop</td>
+<td>1</td>
+<td>UX.35</td>
+</tr>
+<tr>
+<td>NAV.43 to 45</td>
+<td>Nearby search: query, page, map actions</td>
+<td>1</td>
+<td>NAV.7; NAV.43 then 44 then 45</td>
+</tr>
+<tr>
+<td>NAV.47</td>
+<td>Stones in unknown-space hops</td>
+<td>1</td>
+<td>NAV.12</td>
+</tr>
+<tr>
+<td>NAV.48</td>
+<td>Chart the cells that block a course</td>
+<td>1</td>
+<td>NAV.12</td>
+</tr>
+<tr>
+<td>NAV.36</td>
+<td>Unknown-space jumps red and glowing</td>
+<td>2</td>
+<td>NAV.12, UX.35, NAV.20</td>
+</tr>
+<tr>
+<td>NAV.39</td>
+<td>Saved courses re-check their unknown-space jumps</td>
+<td>2</td>
+<td>NAV.12, NAV.17</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="12-why-it-works-this-way">12. Why it works this way</h2>
+<ul>
+<li><strong>No cap.</strong> With most of the galaxy ungenerated, every capped test in the
+study that crossed ungenerated space found no route, at every cap from 5 ly
+to 5,000 ly, and the answer would change as sectors are generated. At top
+speed even the longest hop takes years (97,236 ly in 7.97 years at warp
+9.995, 4.66 at fold 8.5), so no hop is impossible under the current rules.</li>
+<li><strong>Why the route has stops at all.</strong> With straight-line costs the direct edge
+is always shortest; stops exist only because the graph leaves long edges
+out. The 6-nearest rule is today's implicit limit (about 8 ly at the Sun's
+radius, 34 ly 1 kpc above the disk).</li>
+<li><strong>Flag instead of forbid.</strong> A long hop across ungenerated space hides a gap
+behind a list that looks like a chain of nearby stars, and makes NAV.6's
+steering costlier. Flagging tells the user without refusing the course.</li>
+</ul>
+<h2 id="13-what-carries-over-from-the-uploaded-documents-and-what-does-not">13. What carries over from the uploaded documents, and what does not</h2>
+<ul>
+<li><strong><code>Orbital Position and Vector Update Algorithms.md</code>, &quot;Final Design of Vector
+Generation&quot; (<code>resolve_neighbor_sectors</code>):</strong> the idea carries over. A point
+becomes a ring, azimuth and column address, neighbouring rings' azimuth
+windows come from an angular buffer, and the records of the 25 to 33
+overlapping cells are merged. The padded enumerator of section 4.3 is the
+same dilation (one cell edge in place of the document's <code>r_search / r</code>).
+Superseded: its constants (11.5 ly thickness and arc, slot counts in
+multiples of 6, &quot;10 ly cubic sector&quot; early on). The shipped grid has a 4 pc
+edge (13.05 ly) and the master-wedge slot rule of <code>ring_sector_count</code> (3, 9,
+15, 21, 27, 36, ...; Boss, 2026-09-30); lookups use <code>sector_address_at</code> and
+<code>neighbor_addresses</code> (6 to 8 face neighbours per cell, measured in
+fill-order-curves-and-core.md, section 2.1).</li>
+<li><strong>Spatial hash and Morton keys:</strong> that document has no Morton text. The
+proposal (4 pc cubic cells, a 64-bit Morton code, a 27-cell stencil,
+&quot;replacing cylindrical geometries&quot;) is in <code>Computational Astrodynamics.md</code>,
+&quot;Synthesis and Structural Recommendations&quot;. It was turned down for the
+shipped grid (<code>galaxy-drilldown-navigation.md</code>; <code>orbital-updates.md</code> section
+11), and fill-order-curves-and-core.md shows a cubic index cannot address the
+ring, layer, slot cells. Section 4.2 measures Morton ranges as a nearby-search
+key and finds no gain over the address index. Superseded; add no Morton
+column. Superseded in turn by the built <code>cell_key</code> (a stored Morton number, <code>galaxy/cellkey.py</code>; DB.34, DB.35; see <code>galaxy-coordinate-system.md</code>, 2026-10-17). The octree depth and point-mass table material belongs to
+<code>orbital-updates.md</code>.</li>
+<li><strong>The study's range cap and &quot;deep-space hop over 2 sector edges&quot;</strong> are
+superseded by Boss's 2026-10-02 01:53Z decision. Its <code>lib/navmap.py</code> is now
+<code>planetgen/web/maps/navmap.py</code>. Its travel-time table agrees with
+<code>travel-speeds/speeds.md</code> and navigation-frames.md (6.7 ly takes 4.8 hours at
+warp 9.995).</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[R] items to verify when paper and vendor access is allowed (the research
+could only read search-result text):</p>
+<ul>
+<li>MySQL 8.4: spatial index needs NOT NULL and an SRID; WKT with Z rejected;
+<code>ST_</code> functions 2D. MariaDB 11.4: same 2D limit (measured only on 10.11).</li>
+<li>MySQL <code>range_optimizer_max_mem_size</code> behaviour with long OR/IN lists
+(MySQL 8.4 and MariaDB 11.4 were not installable; only 10.11 was measured).</li>
+<li>Generated-column indexes in both engines; Hilbert versus Morton range
+counts; scipy 1.13 <code>workers=</code> and <code>return_length=</code>; Safari <code>role=&quot;list&quot;</code>.</li>
+<li>The bright-star total (60 million at 500 solar luminosities) is from
+<code>galaxy-coordinate-system.md</code>, not recomputed.</li>
+</ul>
+<p>[C] caveats: server CPU resolution is 10 ms; the 1e6 and 1e7 databases are
+synthetic (four density patches, half uniform and half Gaussian clumps of
+sigma 4 pc; 164,064 sectors at 1e6, 1,563,383 at 1e7), not generated systems,
+and the 2D-slab amplification used +-150 pc patches (a real disk is thicker);
+MariaDB 10.11.14 only; pure-Python routing timings are the repo's own code
+under load; A* and corridor results are one archipelago layout (seed 99).</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Repository (checkout at c30d74a, rechecked at 27220d8): <code>docs/TODO.md</code>,
+<code>navigation-frames.md</code>, <code>orbital-updates.md</code>, <code>galaxy-coordinate-system.md</code>,
+<code>architecture.md</code>; <code>galaxy/nav_graph.py</code>, <code>galaxy/geometry.py</code>,
+<code>db/query.py</code>, <code>db/store.py</code>, <code>db/schema.sql</code>, <code>generation/stats.py</code>,
+<code>run_galaxy.py</code>, <code>phenomenon_scatter.py</code>, <code>tuning.py</code>,
+<code>src/tests/test_route_edge_cases.py</code>.</li>
+<li>Project files: <code>nav-hop-length/report.md</code>, <code>travel-speeds/speeds.md</code>,
+<code>nav-map-preplan/plan.md</code>; uploaded <code>Orbital Position and Vector Update Algorithms.md</code> and <code>Computational Astrodynamics.md</code>.</li>
+<li>PyPI JSON: pypi.org/pypi/pykdtree/json (1.4.3), pypi.org/pypi/hnswlib/json
+(0.8.0, 2023-12-03), pypi.org/pypi/scipy/json (lock file pins 1.13.1).</li>
+<li>One web search (MySQL 8.4 spatial, 2D index, Z): oneuptime.com and
+PlanetScale posts and the dev.mysql.com 8.4 spatial functions page described
+a 2D R-tree but not Z.</li>
+<li>Benchmark scripts (research scratchpad, not in the repository): <code>gen_data.py</code>,
+<code>gen_arch.py</code>, <code>bench_db.py</code>, <code>routing_bench2.py</code>, <code>routing_bench3.py</code>,
+<code>join_scipy.py</code>, <code>stones_sim2.py</code>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

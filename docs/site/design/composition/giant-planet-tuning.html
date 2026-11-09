@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giant planets: the retune of rows f5 and f7 (GEN.516) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-23 by lane M (builder B8, docs/design/composition/tunable-gaps.md section 4).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/giant-planet-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/giant-planet-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="giant-planets-the-retune-of-rows-f5-and-f7-gen516">Giant planets: the retune of rows f5 and f7 (GEN.516)</h1><p class="meta">docs/design/composition/giant-planet-tuning.md</p>
+<p>Status: built 2026-10-23 by lane M (builder B8, <code>docs/design/composition/tunable-gaps.md</code> section 4). Rows f5 (heavy-element enrichment of giants), f6 (its bins) and f7 (C/O) of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>); seven targets in <code>physics/data/tuning_targets.json</code>; tests in <code>src/tests/test_tuned_draws.py</code>.</p>
+<h2 id="1-f5-the-enrichment-follows-the-later-larger-fit">1. f5: the enrichment follows the later, larger fit</h2>
+<p>The row drew <code>log10(Zp/Z*) ~ N(log10(9.7 M^-0.45), 0.3)</code>: the [R4352] relation (47 giants) and a recalled design width. The 147 warm giants of [R0710] give <code>Zp/Z* = 2.6/M + 3.3</code> (M in Jupiter masses; errors 0.3 and 0.5) from 0.03 to 12 M_J and say the earlier relation is 1.4 to 1.6 times too high from 0.3 to 3 M_J. The later, larger sample wins (Boss's rule for two verified sources). The width is the intrinsic spread of the heavy-element mass, 0.26 dex (band 0.24 to 0.28), not 0.3.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>M (M_J)</th>
+<th>Earlier relation</th>
+<th>147-giant fit (target)</th>
+<th>Shipped draw (median)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1</td>
+<td>27.3</td>
+<td>29.3 +/- 3.0</td>
+<td>29.1</td>
+</tr>
+<tr>
+<td>1</td>
+<td>9.7</td>
+<td>5.9 +/- 0.6</td>
+<td>5.9</td>
+</tr>
+<tr>
+<td>10</td>
+<td>3.4</td>
+<td>3.56 +/- 0.5</td>
+<td>3.6</td>
+</tr>
+</tbody>
+</table></div>
+<p>The targets are the three medians and the spread of the logarithm (0.26 +/- 0.022). The row is bulk enrichment relative to the star; the atmospheric metallicity (the factor 0.2 between bulk and atmosphere rests on Jupiter and Saturn only) is a separate Solar System constraint and is not tuned here. With the later source the row moves from partly verified to verified.</p>
+<h2 id="2-f7-the-co-core-is-as-wide-as-the-planets">2. f7: the C/O core is as wide as the planets</h2>
+<p>The core was <code>log10(C/O) ~ N(log10 0.57, 0.15)</code> truncated to 0.2 to 0.8, a width taken from one planet (WASP-77Ab). LExACoM (69 giants with a retrieved C/O) has 12 below 0.35, 17 percent, where the old core gave 9 percent. The core width is now 0.21 dex, which gives 18 percent. The targets are the median 0.57, the share below 0.35 (12 of 69), the share above 0.8 (6 of 69) and the spread 0.27; every one passes within 2 sigma (the spread at 1.5 sigma: the core is truncated at 0.2, below which the table has planets the row cannot draw, and the table's spread carries the same method systematic of 0.2 to 0.3 as its median).</p>
+<p>The tail weight stays the bracket 0.043 to 0.087 of the earlier correction, now a tuned target (6 of 69, Wilson 0.040 to 0.177).</p>
+<h2 id="3-what-it-does-not-do">3. What it does not do</h2>
+<ul>
+<li>The retrievals have no completeness model; the draw is compared with the table on mass only (0.03 to 15 M_J).</li>
+<li>C/O above 0.8 is carried by hot and ultra-hot planets, so it mixes chemistry, retrieval systematics and formation.</li>
+<li>The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -38,7 +38,6 @@
      "source": "stars hotter than 6500 K with Kepler-like planets ([R4812]; READ, T1)"
     },
     "inner_multiplicity": {
-     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 2.8291,
      "min": 0.7709,
@@ -74,7 +73,6 @@
      "source": "stars with at least one planet of radius 1 Earth radius or more and period under 400 days ([R4898]; READ, T1)"
     },
     "inner_multiplicity": {
-     "anomaly": "GEN.1068",
      "kind": "observed",
      "max": 3.8428,
      "min": 2.1572,
@@ -98,7 +96,6 @@
   "K": {
    "measures": {
     "giants_2_8_au": {
-     "anomaly": "GEN.1068",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,

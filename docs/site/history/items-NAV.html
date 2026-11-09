@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Items: NAV, Navigation - planetGen docs</title>
+<meta name="description" content="The life of every NAV item that a commit title names, from the git history as of 27813f061: first and last date, whether it is open in docs/TODO.md now, and its commit titles in order (the pull request numbers are the GitHub pull requests).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/items-NAV.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/items-NAV.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="items-nav-navigation">Items: NAV, Navigation</h1><p class="meta">docs/history/items-NAV.md</p><details class="toc"><summary>On this page (71 headings)</summary><ul><li style="margin-left:0px"><a href="#nav3">NAV.3</a></li><li style="margin-left:0px"><a href="#nav4">NAV.4</a></li><li style="margin-left:0px"><a href="#nav5">NAV.5</a></li><li style="margin-left:0px"><a href="#nav6">NAV.6</a></li><li style="margin-left:0px"><a href="#nav7">NAV.7</a></li><li style="margin-left:0px"><a href="#nav8">NAV.8</a></li><li style="margin-left:0px"><a href="#nav9">NAV.9</a></li><li style="margin-left:0px"><a href="#nav10">NAV.10</a></li><li style="margin-left:0px"><a href="#nav11">NAV.11</a></li><li style="margin-left:0px"><a href="#nav12">NAV.12</a></li><li style="margin-left:0px"><a href="#nav13">NAV.13</a></li><li style="margin-left:0px"><a href="#nav14">NAV.14</a></li><li style="margin-left:0px"><a href="#nav15">NAV.15</a></li><li style="margin-left:0px"><a href="#nav16">NAV.16</a></li><li style="margin-left:0px"><a href="#nav17">NAV.17</a></li><li style="margin-left:0px"><a href="#nav18">NAV.18</a></li><li style="margin-left:0px"><a href="#nav20">NAV.20</a></li><li style="margin-left:0px"><a href="#nav21">NAV.21</a></li><li style="margin-left:0px"><a href="#nav22">NAV.22</a></li><li style="margin-left:0px"><a href="#nav23">NAV.23</a></li><li style="margin-left:0px"><a href="#nav24">NAV.24</a></li><li style="margin-left:0px"><a href="#nav25">NAV.25</a></li><li style="margin-left:0px"><a href="#nav26">NAV.26</a></li><li style="margin-left:0px"><a href="#nav27">NAV.27</a></li><li style="margin-left:0px"><a href="#nav28">NAV.28</a></li><li style="margin-left:0px"><a href="#nav29">NAV.29</a></li><li style="margin-left:0px"><a href="#nav30">NAV.30</a></li><li style="margin-left:0px"><a href="#nav31">NAV.31</a></li><li style="margin-left:0px"><a href="#nav32">NAV.32</a></li><li style="margin-left:0px"><a href="#nav33">NAV.33</a></li><li style="margin-left:0px"><a href="#nav34">NAV.34</a></li><li style="margin-left:0px"><a href="#nav35">NAV.35</a></li><li style="margin-left:0px"><a href="#nav36">NAV.36</a></li><li style="margin-left:0px"><a href="#nav37">NAV.37</a></li><li style="margin-left:0px"><a href="#nav38">NAV.38</a></li><li style="margin-left:0px"><a href="#nav39">NAV.39</a></li><li style="margin-left:0px"><a href="#nav40">NAV.40</a></li><li style="margin-left:0px"><a href="#nav41">NAV.41</a></li><li style="margin-left:0px"><a href="#nav42">NAV.42</a></li><li style="margin-left:0px"><a href="#nav43">NAV.43</a></li><li style="margin-left:0px"><a href="#nav44">NAV.44</a></li><li style="margin-left:0px"><a href="#nav45">NAV.45</a></li><li style="margin-left:0px"><a href="#nav46">NAV.46</a></li><li style="margin-left:0px"><a href="#nav47">NAV.47</a></li><li style="margin-left:0px"><a href="#nav48">NAV.48</a></li><li style="margin-left:0px"><a href="#nav49">NAV.49</a></li><li style="margin-left:0px"><a href="#nav50">NAV.50</a></li><li style="margin-left:0px"><a href="#nav51">NAV.51</a></li><li style="margin-left:0px"><a href="#nav52">NAV.52</a></li><li style="margin-left:0px"><a href="#nav53">NAV.53</a></li><li style="margin-left:0px"><a href="#nav54">NAV.54</a></li><li style="margin-left:0px"><a href="#nav56">NAV.56</a></li><li style="margin-left:0px"><a href="#nav58">NAV.58</a></li><li style="margin-left:0px"><a href="#nav59">NAV.59</a></li><li style="margin-left:0px"><a href="#nav60">NAV.60</a></li><li style="margin-left:0px"><a href="#nav61">NAV.61</a></li><li style="margin-left:0px"><a href="#nav62">NAV.62</a></li><li style="margin-left:0px"><a href="#nav63">NAV.63</a></li><li style="margin-left:0px"><a href="#nav64">NAV.64</a></li><li style="margin-left:0px"><a href="#nav65">NAV.65</a></li><li style="margin-left:0px"><a href="#nav66">NAV.66</a></li><li style="margin-left:0px"><a href="#nav67">NAV.67</a></li><li style="margin-left:0px"><a href="#nav68">NAV.68</a></li><li style="margin-left:0px"><a href="#nav69">NAV.69</a></li><li style="margin-left:0px"><a href="#nav70">NAV.70</a></li><li style="margin-left:0px"><a href="#nav71">NAV.71</a></li><li style="margin-left:0px"><a href="#nav72">NAV.72</a></li><li style="margin-left:0px"><a href="#nav73">NAV.73</a></li><li style="margin-left:0px"><a href="#nav74">NAV.74</a></li><li style="margin-left:0px"><a href="#nav75">NAV.75</a></li><li style="margin-left:0px"><a href="#nav76">NAV.76</a></li></ul></details>
+<p>The life of every NAV item that a commit title names, from the git history as of <code>27813f061</code>: first and last date, whether it is open in <a href="../TODO.html">docs/TODO.md</a> now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; <a href="dropped-and-closed.html">dropped-and-closed.md</a> lists the closings.</p>
+<h2 id="nav3">NAV.3</h2>
+<p>2026-10-01 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add NAV.3-6 (shared picker, saved courses, course on the map, gravity-aware courses), MAP.61 (one map engine), MAP.62 (3D system view)</li>
+<li>2026-10-08: TODO: retire NAV.50 and NAV.3 (PR #724) (#725)</li>
+</ul>
+<h2 id="nav4">NAV.4</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; open.</p>
+<ul>
+<li>2026-11-05: NAV.4, NAV.18: save a course in the browser, with a Saved Courses list (#5084)</li>
+<li>2026-11-05: TODO: retire NAV.18; NAV.4 note (#5085)</li>
+</ul>
+<h2 id="nav5">NAV.5</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.5, NAV.21, NAV.23: a course opens fitted on the Galaxy Map, and its forms are Menu layers (#5090)</li>
+<li>2026-11-05: Retire NAV.21 and NAV.23; NAV.5 keeps NAV.22 (#5091)</li>
+</ul>
+<h2 id="nav6">NAV.6</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.6: the NAV route returns the course bent around keep-out spheres (#5074)</li>
+<li>2026-11-05: Retire NAV.27 and NAV.51; NAV.6 in-system note (#5131)</li>
+</ul>
+<h2 id="nav7">NAV.7</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Add one object reference form and GET /api/objects/&lt;ref&gt; (NAV.7) (#688)</li>
+<li>2026-10-08: TODO: retire NAV.7 (PR #688) (#689)</li>
+</ul>
+<h2 id="nav8">NAV.8</h2>
+<p>2026-10-09 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-09: Record Boss's answers on NAV.8, NAV.11 and API.23 (#944)</li>
+<li>2026-10-10: Body links open the system page at the body's row, highlighted (NAV.8) (#1095)</li>
+<li>2026-10-10: TODO: retire NAV.8 (PR #1095), file UX.92, extend NAV.9 (#1096)</li>
+</ul>
+<h2 id="nav9">NAV.9</h2>
+<p>2026-10-10 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: retire NAV.8 (PR #1095), file UX.92, extend NAV.9 (#1096)</li>
+<li>2026-10-10: NAV.9: locate box finds planets and moons; locate and search rows carry ref and parent chain (#1139)</li>
+<li>2026-10-10: TODO: retire NAV.9 (PR #1139); file TEST.125 (#1140)</li>
+</ul>
+<h2 id="nav10">NAV.10</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: Route through the systems near the direct line with A*, and query objects along a line (NAV.10) (#814)</li>
+<li>2026-10-09: Retire DB.7, NAV.10, GEN.108, ADM.18 and GEN.107 (PRs #813-#817) (#818)</li>
+</ul>
+<h2 id="nav11">NAV.11</h2>
+<p>2026-10-02 to 2026-10-10; 4 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.41 (unreadable course map, bug) and NAV.42 (course per stop); NAV.11 stops at every system (#385)</li>
+<li>2026-10-09: Record Boss's answers on NAV.8, NAV.11 and API.23 (#944)</li>
+<li>2026-10-10: Travel times for each hop and the whole route, with a stay per stop (NAV.11) (#1099)</li>
+<li>2026-10-10: TODO: retire NAV.11 (PR #1099) (#1100)</li>
+</ul>
+<h2 id="nav12">NAV.12</h2>
+<p>2026-10-01 to 2026-10-09; 6 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: merge the reproducibility plan (DB.7, API.17, GEN.59; OPS.12 to phase 4) and revise NAV.12 from the hop-length study (NAV.34 islands bug) (#341)</li>
+<li>2026-10-01: TODO: NAV.12 is Boss's routing guarantee (phase 0) split into NAV.35-37 and UX.35; version and arc size decided; retire DB.4 and DB.5 (PR #342); file TEST.78 (#345)</li>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+<li>2026-10-02: TODO: retire NAV.34 and TEST.79 (PR #427), NAV.12 names its xfail tests, TEST.83 covers six more rate-limit flakes (#428)</li>
+<li>2026-10-09: Show a route's longest hop and flag jumps through unknown space (NAV.12) (#838)</li>
+<li>2026-10-09: Retire NAV.12 and PERF.42 (#842)</li>
+</ul>
+<h2 id="nav13">NAV.13</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: NAV.13: shared picker module, Galaxy Map follows it (#564)</li>
+<li>2026-10-08: Retire NAV.13 (PR #564); split NAV.15's body endpoints into NAV.50 (#565)</li>
+</ul>
+<h2 id="nav14">NAV.14</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: NAV.14: one breadcrumb component for every page and the Galaxy Map (#571)</li>
+<li>2026-10-08: Retire NAV.14 (PR #571); note the GEN.68 comparison awaiting Boss's pick (#572)</li>
+</ul>
+<h2 id="nav15">NAV.15</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire NAV.13 (PR #564); split NAV.15's body endpoints into NAV.50 (#565)</li>
+<li>2026-10-08: NAV.15: pick mode on the system and phenomenon pages (#566)</li>
+<li>2026-10-08: Retire NAV.15 (PR #566) (#567)</li>
+</ul>
+<h2 id="nav16">NAV.16</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: NAV takes any object: body endpoints with in-system legs (NAV.16) (#697)</li>
+<li>2026-10-08: TODO: retire NAV.16 (PR #697) (#700)</li>
+</ul>
+<h2 id="nav17">NAV.17</h2>
+<p>2026-10-22 to 2026-10-22; 3 commits; not open.</p>
+<ul>
+<li>2026-10-22: docs: MAP.254 retired (#2514), TEST.275 third sighting, UX.129 and NAV.17 confirmed for Core 2, PERF.123 cards recorded (#2515)</li>
+<li>2026-10-22: A saved course record with both forms (NAV.17) (#2553)</li>
+<li>2026-10-22: docs: NAV.17 retired (#2553), gate rule and dead-code pass, built-but-uncalled code noted (#2554)</li>
+</ul>
+<h2 id="nav18">NAV.18</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.4, NAV.18: save a course in the browser, with a Saved Courses list (#5084)</li>
+<li>2026-11-05: TODO: retire NAV.18; NAV.4 note (#5085)</li>
+</ul>
+<h2 id="nav20">NAV.20</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Galaxy Map course: direct line apart, legend, readout, clickable stops (NAV.20) (#711)</li>
+<li>2026-10-08: TODO: retire NAV.20 (PR #711) (#712)</li>
+</ul>
+<h2 id="nav21">NAV.21</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.5, NAV.21, NAV.23: a course opens fitted on the Galaxy Map, and its forms are Menu layers (#5090)</li>
+<li>2026-11-05: Retire NAV.21 and NAV.23; NAV.5 keeps NAV.22 (#5091)</li>
+</ul>
+<h2 id="nav22">NAV.22</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: Retire NAV.21 and NAV.23; NAV.5 keeps NAV.22 (#5091)</li>
+<li>2026-11-05: NAV.22 part a: a course inside one sector is drawn in that sector on the Galaxy Map (#5175)</li>
+<li>2026-11-05: NAV.22 part b: a course's legs inside a system are drawn in that system's 3D view (#5179)</li>
+</ul>
+<h2 id="nav23">NAV.23</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.5, NAV.21, NAV.23: a course opens fitted on the Galaxy Map, and its forms are Menu layers (#5090)</li>
+<li>2026-11-05: Retire NAV.21 and NAV.23; NAV.5 keeps NAV.22 (#5091)</li>
+</ul>
+<h2 id="nav24">NAV.24</h2>
+<p>2026-10-02 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: retire GEN.47 (PR #419); Generation bugs lane done, UX.33 and NAV.24 unblocked (#420)</li>
+<li>2026-10-08: Keep-out radius for every object and light-travel positions (NAV.24, VIEW.5) (#719)</li>
+<li>2026-10-08: TODO: retire NAV.24 and VIEW.5 (PR #719) (#720)</li>
+</ul>
+<h2 id="nav25">NAV.25</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.25: find the keep-out spheres along a path (#5070)</li>
+<li>2026-11-05: Retire NAV.25 (#5144)</li>
+</ul>
+<h2 id="nav26">NAV.26</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.26: the course planner bends a straight course around keep-out spheres (#5072)</li>
+<li>2026-11-05: Retire NAV.26 (#5143)</li>
+</ul>
+<h2 id="nav27">NAV.27</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.27: plan courses inside a system round its bodies, aimed where the destination will be (#5129)</li>
+<li>2026-11-05: Retire NAV.27 and NAV.51; NAV.6 in-system note (#5131)</li>
+</ul>
+<h2 id="nav28">NAV.28</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.28: show the adjusted course on the NAV page and the maps (#5082)</li>
+<li>2026-11-05: TODO: retire NAV.28, file TEST.594 (#5083)</li>
+</ul>
+<h2 id="nav29">NAV.29</h2>
+<p>2026-10-01 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: file Boss's navigation and Sector Map bugs (MAP.79-80, NAV.29-32)</li>
+<li>2026-10-08: NAV.29, NAV.33: Start Here and End Here keep the pick on the map (#615)</li>
+<li>2026-10-08: Plan: retire NAV.29 and NAV.33 (#616)</li>
+</ul>
+<h2 id="nav30">NAV.30</h2>
+<p>2026-10-02 to 2026-10-02; 1 commits; not open.</p>
+<ul>
+<li>2026-10-02: NAV.30: no View system/phenomenon (or Nav) links while picking a course</li>
+</ul>
+<h2 id="nav31">NAV.31</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: NAV.40, MAP.93, MAP.94, NAV.31: bookmarks while picking, one-line breadcrumb, phone Steps button, pick-mode hover (#399)</li>
+<li>2026-10-02: TODO: retire NAV.40, MAP.93, MAP.94, NAV.31 (PR #399); Galaxy Map follow-ups lane done (#402)</li>
+</ul>
+<h2 id="nav32">NAV.32</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Choosing a NAV end, every Galaxy and Sector Map control works, Charted only included (NAV.32) (#631)</li>
+<li>2026-10-08: Retire NAV.32, TEST.104, SEC.30, TEST.83; file TEST.105; fold GEN.73 into GEN.71; GEN.72 note (#644)</li>
+</ul>
+<h2 id="nav33">NAV.33</h2>
+<p>2026-10-01 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: file NAV.33, keep the zoom level after picking one end of a course</li>
+<li>2026-10-08: NAV.29, NAV.33: Start Here and End Here keep the pick on the map (#615)</li>
+<li>2026-10-08: Plan: retire NAV.29 and NAV.33 (#616)</li>
+</ul>
+<h2 id="nav34">NAV.34</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: merge the reproducibility plan (DB.7, API.17, GEN.59; OPS.12 to phase 4) and revise NAV.12 from the hop-length study (NAV.34 islands bug) (#341)</li>
+<li>2026-10-02: Join the NAV route graph's islands (NAV.34); route edge-case tests (TEST.79)</li>
+<li>2026-10-02: TODO: retire NAV.34 and TEST.79 (PR #427), NAV.12 names its xfail tests, TEST.83 covers six more rate-limit flakes (#428)</li>
+</ul>
+<h2 id="nav35">NAV.35</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: NAV.12 is Boss's routing guarantee (phase 0) split into NAV.35-37 and UX.35; version and arc size decided; retire DB.4 and DB.5 (PR #342); file TEST.78 (#345)</li>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+</ul>
+<h2 id="nav36">NAV.36</h2>
+<p>2026-10-01 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+<li>2026-11-04: NAV.36: draw a jump through unknown space red, dashed and glowing on the NAV map and the Galaxy Map course (#5018)</li>
+<li>2026-11-04: TODO: retire NAV.36 (#5019)</li>
+</ul>
+<h2 id="nav37">NAV.37</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+</ul>
+<h2 id="nav38">NAV.38</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+<li>2026-10-01: List every sector a straight segment passes through (NAV.38) (#357)</li>
+<li>2026-10-01: TODO: retire the map groundwork lane (PR #351) and NAV.38 (PR #357) (#361)</li>
+</ul>
+<h2 id="nav39">NAV.39</h2>
+<p>2026-10-01 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: NAV.12 re-anchored in phase 1 per the tree split; NAV.38, TEST.79 (phase 0), UX.35 (phase 1), NAV.36, NAV.39 (phase 2); NAV.35 merged into NAV.12, NAV.37 dropped (#346)</li>
+<li>2026-11-05: NAV.39: a saved course keeps which hops were unknown-space jumps and says when that changes (#5172)</li>
+</ul>
+<h2 id="nav40">NAV.40</h2>
+<p>2026-10-02 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.40, bookmarks can't be used once a course pick has begun (bug) (#384)</li>
+<li>2026-10-02: NAV.40, MAP.93, MAP.94, NAV.31: bookmarks while picking, one-line breadcrumb, phone Steps button, pick-mode hover (#399)</li>
+<li>2026-10-02: TODO: retire NAV.40, MAP.93, MAP.94, NAV.31 (PR #399); Galaxy Map follow-ups lane done (#402)</li>
+</ul>
+<h2 id="nav41">NAV.41</h2>
+<p>2026-10-02 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.41 (unreadable course map, bug) and NAV.42 (course per stop); NAV.11 stops at every system (#385)</li>
+<li>2026-10-07: Bug fixes, lane 2 batch 1 (OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44, MAP.118) (#457)</li>
+</ul>
+<h2 id="nav42">NAV.42</h2>
+<p>2026-10-02 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.41 (unreadable course map, bug) and NAV.42 (course per stop); NAV.11 stops at every system (#385)</li>
+<li>2026-10-10: NAV.42: each route stop shows the course and distance to the next stop (#1153)</li>
+<li>2026-10-10: TODO: retire NAV.42 (PR #1153) (#1154)</li>
+</ul>
+<h2 id="nav43">NAV.43</h2>
+<p>2026-10-02 to 2026-10-09; 4 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.43 to NAV.45, find everything within a distance in parsecs (query and API, page, map action) (#389)</li>
+<li>2026-10-09: Tier plan: open questions are collapsible; drop the two Boss has answered (NAV.43, GEN.57) (#787)</li>
+<li>2026-10-09: NAV.43, NAV.44: find what is near a place, and a What's nearby page; retuned remnant rates (#804)</li>
+<li>2026-10-09: Retire GEN.106, GEN.84, NAV.43, NAV.44; GEN.109 rule; file GEN.132, GEN.133 (#801)</li>
+</ul>
+<h2 id="nav44">NAV.44</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: NAV.43, NAV.44: find what is near a place, and a What's nearby page; retuned remnant rates (#804)</li>
+<li>2026-10-09: Retire GEN.106, GEN.84, NAV.43, NAV.44; GEN.109 rule; file GEN.132, GEN.133 (#801)</li>
+</ul>
+<h2 id="nav45">NAV.45</h2>
+<p>2026-10-02 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file NAV.43 to NAV.45, find everything within a distance in parsecs (query and API, page, map action) (#389)</li>
+<li>2026-10-17: NAV.45: links to what is within 10 pc of a system, sector and scatter object (#2001)</li>
+<li>2026-10-17: TODO: NAV.45 retired, sightings on TEST.213 and TEST.216 (#2002)</li>
+</ul>
+<h2 id="nav46">NAV.46</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Test that NAV pick mode clicks through every Galaxy Map stage (NAV.46) (#568)</li>
+<li>2026-10-08: Retire NAV.46 (closed as already fixed, test in PR #568) (#569)</li>
+</ul>
+<h2 id="nav47">NAV.47</h2>
+<p>2026-10-10 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: NAV.47 no longer waits on a missing bug (#1192)</li>
+<li>2026-10-14: NAV.47: a jump through unknown space stops at scattered stars and compact objects (#1389)</li>
+<li>2026-10-14: Retire NAV.47 and give Bugfixes lane 2 its next queue (#1390)</li>
+</ul>
+<h2 id="nav48">NAV.48</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: NAV.48: chart the uncharted sectors that block a course (#1195)</li>
+<li>2026-10-10: TODO: retire NAV.48 (PR #1195), add TEST.137 (#1196)</li>
+</ul>
+<h2 id="nav49">NAV.49</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.49 parts note; file flaky sector map label test (#5102)</li>
+<li>2026-11-05: Retire NAV.49; file TEST.599 (#5109)</li>
+</ul>
+<h2 id="nav50">NAV.50</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire NAV.13 (PR #564); split NAV.15's body endpoints into NAV.50 (#565)</li>
+<li>2026-10-08: Start Here and End Here on System Map bodies (NAV.50) (#724)</li>
+<li>2026-10-08: TODO: retire NAV.50 and NAV.3 (PR #724) (#725)</li>
+</ul>
+<h2 id="nav51">NAV.51</h2>
+<p>2026-10-08 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: TODO: file NAV.51 (courses route around asteroid fields) (#723)</li>
+<li>2026-11-05: NAV.51: test the sector-scale course round an asteroid field (#5130)</li>
+<li>2026-11-05: Retire NAV.27 and NAV.51; NAV.6 in-system note (#5131)</li>
+</ul>
+<h2 id="nav52">NAV.52</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: NAV.52: port the route graph's k-d tree and island joining to cKDTree (#1172)</li>
+<li>2026-10-10: TODO: retire NAV.52 (PR #1172) (#1173)</li>
+</ul>
+<h2 id="nav53">NAV.53</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: Half-up rounding, no -0, line endings, sphere reach, hypervelocity straight-line motion (OPS.33, UX.79, UX.80, NAV.53, GEN.137) (#843)</li>
+<li>2026-10-09: Retire GEN.137, NAV.53, OPS.33, UX.79, UX.80 (#844)</li>
+</ul>
+<h2 id="nav54">NAV.54</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.54: one keep-out table for every kind of object (#5066)</li>
+<li>2026-11-05: TODO: retire NAV.54, file TEST.592 (#5067)</li>
+</ul>
+<h2 id="nav56">NAV.56</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; open.</p>
+<ul>
+<li>2026-11-05: NAV.56: census of overlapping keep-out spheres (#5068)</li>
+<li>2026-11-05: TODO: NAV.56 note (#5069)</li>
+<li>2026-11-05: TODO: NAV.56 correction (#5071)</li>
+</ul>
+<h2 id="nav58">NAV.58</h2>
+<p>2026-10-10 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-10-10: Docs: headline feature for every release; README and changelog lead with them; plan pages trace each upcoming headline (8.0, 8.1, 8.5, 9.0); NAV.58, NAV.59 (#1168)</li>
+<li>2026-11-05: NAV.58: edit a course through waypoints (reorder, auto re-plan, drag a flag, save over or as new) (#5117)</li>
+<li>2026-11-05: File GEN.1279, GEN.1280, VIEW.42 from the HYG calibration; retire NAV.58 (#5118)</li>
+</ul>
+<h2 id="nav59">NAV.59</h2>
+<p>2026-10-10 to 2026-10-10; 1 commits; open.</p>
+<ul>
+<li>2026-10-10: Docs: headline feature for every release; README and changelog lead with them; plan pages trace each upcoming headline (8.0, 8.1, 8.5, 9.0); NAV.58, NAV.59 (#1168)</li>
+</ul>
+<h2 id="nav60">NAV.60</h2>
+<p>2026-10-16 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: record Boss's Both next for GEN.368 and GEN.276 with NAV.60 (#1917)</li>
+<li>2026-10-17: NAV.60: what is nearby reads by the cell key (#1977)</li>
+<li>2026-10-17: TODO: NAV.60 retired (#1977), Boss's second research note recorded as awaiting verification (#1979)</li>
+</ul>
+<h2 id="nav61">NAV.61</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: NAV.61: nearest first by a radius ladder, early-stop count, dense-core guard (#3685)</li>
+<li>2026-10-29: Docs: retire NAV.61 (Core 1, #3685); GEN.843 to Core 1's second change (#3686)</li>
+</ul>
+<h2 id="nav62">NAV.62</h2>
+<p>2026-10-16 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: File NAV.62: gravity of the unresolved mass, in 8.5 (Boss, 5:01 PM EDT) (#1872)</li>
+<li>2026-11-05: NAV.62: study of the gravity of the stars a crowded cell leaves out (#5136)</li>
+<li>2026-11-05: Retire NAV.62; file NAV.74-76; TEST.603 (#5137)</li>
+</ul>
+<h2 id="nav63">NAV.63</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: file the world population and trade routes tree (POP.29-POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382) (#3204)</li>
+</ul>
+<h2 id="nav64">NAV.64</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: retire TEST.375, drop TEST.374; file the resource locations tree (GEN.798-799, DB.106, MAP.312-313, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34) (#3219)</li>
+</ul>
+<h2 id="nav65">NAV.65</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File the schematic route map parts NAV.65 to NAV.72 (#4913)</li>
+<li>2026-11-04: NAV.65: the graph round a route (route.graph, graph=1 on /api/nav) (#4995)</li>
+<li>2026-11-04: TODO: retire TEST.584, MAP.177, NAV.65, NAV.66, MAP.380 (#4999)</li>
+</ul>
+<h2 id="nav66">NAV.66</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: NAV.66: the ribbon layout of a route (navribbon.layout_ribbon) (#4996)</li>
+<li>2026-11-04: TODO: retire TEST.584, MAP.177, NAV.65, NAV.66, MAP.380 (#4999)</li>
+</ul>
+<h2 id="nav67">NAV.67</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: NAV.67: the NAV page draws the route as a course diagram (SVG ribbon, glyph per stop kind, hop length and course, unknown-space hops red and glowing) (#5006)</li>
+<li>2026-11-04: TODO: retire NAV.67, file TEST.585 (#5007)</li>
+</ul>
+<h2 id="nav68">NAV.68</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: NAV.68: the course diagram draws each stop's neighbours as faint stubs, with 'and N more' and arcs between stops (#5013)</li>
+<li>2026-11-04: TODO: retire PERF.232, NAV.73, NAV.68 and GEN.1255 (#5014)</li>
+</ul>
+<h2 id="nav69">NAV.69</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: NAV.69: link the course diagram and the Galaxy Map's course (#5015)</li>
+<li>2026-11-04: TODO: retire NAV.69 (#5016)</li>
+</ul>
+<h2 id="nav70">NAV.70</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; open.</p>
+<ul>
+<li>2026-11-07: Record Boss's answers (GEN.1022, 1151, 40, 229, 157, 1110, TEST.168, MAP.170, NAV.70, PERF.204); retire GEN.371; file GEN.1347 (#5558)</li>
+</ul>
+<h2 id="nav71">NAV.71</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; open.</p>
+<ul>
+<li>2026-11-07: Defer USR.9, USR.23, NAV.71 (UX.260 already later) per Boss; retire GEN.1345; file GEN.1348 and OPS.115 (#5563)</li>
+</ul>
+<h2 id="nav72">NAV.72</h2>
+<p>2026-11-04 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File the schematic route map parts NAV.65 to NAV.72 (#4913)</li>
+<li>2026-11-05: NAV.72: the course diagram marks a hop that bends round a keep-out sphere (#5076)</li>
+<li>2026-11-05: TODO: retire NAV.72, file TEST.593 (#5077)</li>
+</ul>
+<h2 id="nav73">NAV.73</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File NAV.73 and TEST.583; retire VIEW.20, VIEW.27, VIEW.28, PERF.233 (#4966)</li>
+<li>2026-11-04: NAV.73: routed systems sit where the database stores them (#5009)</li>
+<li>2026-11-04: TODO: retire PERF.232, NAV.73, NAV.68 and GEN.1255 (#5014)</li>
+</ul>
+<h2 id="nav74">NAV.74</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: Retire NAV.62; file NAV.74-76; TEST.603 (#5137)</li>
+<li>2026-11-05: NAV.74: the expected unresolved keep-out spheres a segment crosses (#5139)</li>
+<li>2026-11-05: Retire NAV.74, NAV.75 and NAV.76 (#5142)</li>
+</ul>
+<h2 id="nav75">NAV.75</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.75: the count of unresolved stars in the adjusted course, the API and the Navigation page (#5140)</li>
+<li>2026-11-05: Retire NAV.74, NAV.75 and NAV.76 (#5142)</li>
+</ul>
+<h2 id="nav76">NAV.76</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: NAV.76: a course across the dense core goes round what is made and counts what is not (#5141)</li>
+<li>2026-11-05: Retire NAV.74, NAV.75 and NAV.76 (#5142)</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

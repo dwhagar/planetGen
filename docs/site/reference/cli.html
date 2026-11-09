@@ -1,0 +1,1014 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Command-line reference - planetGen docs</title>
+<meta name="description" content="Every option of planetgen, the one entry point for every generator.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/cli.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/cli.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="command-line-reference">Command-line reference</h1><p class="meta">docs/reference/cli.md</p><details class="toc"><summary>On this page (33 headings)</summary><ul><li style="margin-left:0px"><a href="#subcommands">Subcommands</a></li><li style="margin-left:14px"><a href="#options">Options</a></li><li style="margin-left:14px"><a href="#system-specification-files">System specification files</a></li><li style="margin-left:14px"><a href="#sector-generation">Sector Generation</a></li><li style="margin-left:14px"><a href="#sector-level-exotic-phenomena">Sector-Level Exotic Phenomena</a></li><li style="margin-left:0px"><a href="#galaxy-generation">Galaxy Generation</a></li><li style="margin-left:14px"><a href="#parallel-generation">Parallel generation</a></li><li style="margin-left:14px"><a href="#size-and-time-estimates">Size and time estimates</a></li><li style="margin-left:0px"><a href="#exotic-phenomena-generation">Exotic Phenomena Generation</a></li><li style="margin-left:0px"><a href="#population">Population</a></li><li style="margin-left:0px"><a href="#fingerprint">Fingerprint</a></li><li style="margin-left:0px"><a href="#check-the-database">Check the database</a></li><li style="margin-left:0px"><a href="#version-keys">Version keys</a></li><li style="margin-left:0px"><a href="#benchmark">Benchmark</a></li><li style="margin-left:14px"><a href="#the-performance-suite">The performance suite</a></li><li style="margin-left:0px"><a href="#warm-the-caches">Warm the caches</a></li><li style="margin-left:0px"><a href="#stop-everything">Stop everything</a></li><li style="margin-left:0px"><a href="#helper-tools">Helper tools</a></li><li style="margin-left:14px"><a href="#tiles">tiles</a></li><li style="margin-left:14px"><a href="#orbits">orbits</a></li><li style="margin-left:14px"><a href="#worker">worker</a></li><li style="margin-left:14px"><a href="#query">query</a></li><li style="margin-left:14px"><a href="#migrate">migrate</a></li><li style="margin-left:14px"><a href="#datasets">datasets</a></li><li style="margin-left:14px"><a href="#reset">reset</a></li><li style="margin-left:14px"><a href="#lockouts">lockouts</a></li><li style="margin-left:14px"><a href="#lift_lockout">lift_lockout</a></li><li style="margin-left:14px"><a href="#forget_devices">forget_devices</a></li><li style="margin-left:14px"><a href="#accounts">accounts</a></li><li style="margin-left:14px"><a href="#reset_two_factor">reset_two_factor</a></li><li style="margin-left:14px"><a href="#config">config</a></li><li style="margin-left:14px"><a href="#backup">backup</a></li><li style="margin-left:0px"><a href="#planned-commands">Planned commands</a></li></ul></details>
+<p>Every option of <code>planetgen</code>, the one entry point for every generator.
+For what planetGen is and a short tour, see the <a href="../repo/README.html">README</a>;
+for installing it, <a href="../repo/INSTALL.html">INSTALL.md</a>. The installer adds a
+<code>planetgen</code> command that runs it. <code>planetgen &lt;command&gt; --help</code> prints the same options.</p>
+<h2 id="subcommands">Subcommands</h2>
+<p><code>planetgen</code> is the single command-line entry point for every generator in this project — one command, with a subcommand per generation scale:</p>
+<pre><code class="language-bash">planetgen system [options]      # one star system
+planetgen sector [options]      # one or more independent sectors
+planetgen sectors [options]     # sectors of the planned galaxy, in one of the modes, and nothing else
+planetgen galaxy [options]      # many sectors placed as one galaxy
+planetgen plan [options]        # the galaxy's density skeleton
+planetgen scatter --KIND        # one scatter on the plan: --mass, --luminosity, --phenomena, --nebula-field, --band
+planetgen clear-scatter --KIND  # empty one scatter, so scatter can draw it again: --mass, --luminosity, --phenomena, --nebula-field
+planetgen fill-map-luminosity   # fill the map luminosity of the scattered phenomena
+planetgen rescore-habitability  # re-derive every stored habitability score
+planetgen clean-nebula-field    # count, or with --apply drop, the field clouds the keep rates now reject
+planetgen link --since TIME     # link the sectors saved since TIME to their neighbours
+planetgen backfill --since TIME # the bright-star backfill out from the sectors saved since TIME
+planetgen settle --since TIME   # save the paths of the sectors saved since TIME and of those around them
+planetgen phenomenon [options]  # one exotic stellar phenomenon
+planetgen population [options]  # species, civilizations and polities
+planetgen territories [options] # which polity owns which system
+planetgen population [options]  # species, civilizations and territories
+planetgen bring-to-epoch [--dry-run] [--no-wide-binaries]  # bring a stored galaxy to the running generator epoch without a full regeneration
+planetgen refresh-parity [--compact] [--limit N]  # make the sector parity file current (settings: parity)
+planetgen repair-db [--shell N] [--sector SHELL BAND WEDGE] [--dry-run]  # rebuild damaged sectors from the parity file
+planetgen repair-db --salvage TABLE | --reload TABLE [--restore-sectors] [--dump-dir DIR]  # rebuild a table with an unreadable page
+planetgen check-math [-v]       # the math check (update.sh runs it)
+planetgen fingerprint [options] # a digest of the generated content, to compare two builds
+planetgen check-db [options]    # look for damage in the database (writes nothing)
+planetgen versions              # the version keys the updates recorded
+planetgen benchmark [options]   # time where generation spends its time, in scratch databases
+planetgen warm [FAMILY|PHASE ...]     # build the site's caches ahead of the first visit
+planetgen queue stop-all|resume|status  # stop everything and hold, lift the hold, or show it
+planetgen commands              # every command the work queue can run
+planetgen command-run KIND ARGS # one unit of one of them, alone
+</code></pre>
+<p>Run <code>planetgen &lt;command&gt; --help</code> for that command's own full option list. <code>system</code>, <code>sector</code>, <code>galaxy</code>, <code>plan</code>, <code>phenomenon</code>, <code>population</code> and <code>bring-to-epoch</code> save what they generate to the database; <code>refresh-parity</code> writes only the parity file and the checksum marks, and <code>repair-db</code> writes only the rows of sectors it finds damaged. <code>check-math</code>, <code>fingerprint</code>, <code>check-db</code> and <code>versions</code> write nothing, and <code>benchmark</code> writes only to scratch databases of its own. <code>system</code> and <code>sector</code> are runs of one command through the work queue (a Redis server must be running, as for <code>galaxy</code>): they appear on the Queue page like any other run, and a <code>system --output</code> run, which saves nothing, does not take the generation slot.</p>
+<p><strong>The sector parity file (<code>refresh-parity</code>, DB.46).</strong> With <code>parity.enabled</code> on (<code>config.json</code>; off by default), every saved, edited or deleted sector updates a parity file kept outside the database (<code>parity.dir</code>, <code>/var/lib/planetGen/parity</code> when empty; keep it off the database's own disk if you can). The file holds, for each group of up to <code>parity.group_size</code> (32) sectors of about the same size that are far apart in sector id, <code>parity.parity_blocks</code> (2) Reed-Solomon parity blocks over the sectors' exports, so that two damaged sectors of a group can be rebuilt from the other thirty (the rebuild is <code>repair-db</code>, below) at about 7 percent of the sectors' size in disk space and a few milliseconds a save. A save, an edit or a deletion commits first and then updates the parity; a crash between them leaves the sector marked (<code>parity_dirty</code>), which the check reports as unprotected, never as damaged. <code>planetgen refresh-parity</code> builds the file for a galaxy made before, or catches up after a crash: it protects every sector that is marked or was never sealed, every sealed sector the file does not hold, and lets go of members whose sector is gone; a sector whose group has a damaged member is left marked and the command exits 1. <code>--compact</code> rewrites the file with only the latest record of each group (a record is appended on every update, so the file grows until it is compacted). <code>--limit N</code> makes at most N sectors current per run.</p>
+<p><strong>Rebuilding damaged sectors (<code>repair-db</code>, DB.47).</strong> <code>check-db</code> reports a sector whose rows no longer hash to the checksum sealed for it as damaged. <code>planetgen repair-db</code> finds those sectors (the same test, <code>--shell</code> and <code>--sector</code> limit it) and, for each, reads its group in the parity file: the other members are checked against what the record holds for them, and up to <code>parity.parity_blocks</code> (2) unusable blocks of a group, damaged sectors included, are rebuilt together. The rebuilt block must hash to the stored checksum before anything is written; then the sector's rows are made those rows in one transaction (differing values updated, lost rows inserted, rows the sector never had deleted) and the sector is checked again before the commit. Only the columns the checksum covers are written: the columns the orbit update rewrites (phases, positions, velocities) stay as they are on every row that still exists, and a row that has to be inserted gets them as zero, to be carried on by the next orbit update. A sector whose record is behind the database as well (damage and a stale record at once), a sector in no group, a group with more damage than parity blocks, and a table the server cannot read at all (the next paragraph) are listed with the reason and left as they are; the command exits 1 while any is left. If the damaged part is the parity file itself (a record that fails its checksum), the file is compacted and made again from the database, which protects only sectors that still hash to their checksum. <code>--dry-run</code> says what would be rebuilt and writes nothing. It exits 2 when there is no parity file.</p>
+<p><strong>Rebuilding a table with an unreadable page (<code>repair-db --salvage</code> and <code>--reload</code>, DB.48).</strong> When the server cannot read a page of a table's clustered index (<code>repair-db</code> lists the sectors in it as unreadable and names the tables), nothing can be fixed from SQL: the server has to be told to skip the page, and while it does InnoDB refuses inserts, updates and deletes. So it is two steps with a restart between. (1) Stop the website and any generation, add <code>innodb_force_recovery = 1</code> to the <code>[mysqld]</code> section of the server's configuration, restart the server and run <code>planetgen repair-db --salvage TABLE</code>: every readable row of the table is written to a dump file in <code>--dump-dir</code> (default: a <code>salvage</code> folder in the parity folder; the values are written exactly, nothing is rounded), the file is synced, and only then is the table dropped and made again empty. It refuses, changing nothing, if the table cannot be read and the server is not in force recovery (and says to restart it that way), if a dump is already waiting for a reload, or if a normally running server counts other rows than were dumped. (2) Remove <code>innodb_force_recovery</code>, restart the server normally and run <code>planetgen repair-db --reload TABLE</code>: the rows are inserted again with their original ids, the count is checked, the dump is renamed <code>.loaded</code>, and the sector repair above runs: a sector that lost rows with the page no longer hashes to its checksum, and the parity file rebuilds it, lost rows included. An interrupted reload is finished by running it again. Only the tables a sector's checksum covers can be rebuilt (the parity file is what brings the lost rows back); a damaged secondary index needs no parity, only a rebuild of the index. A page holds neighbouring rows, which are neighbouring sectors, which the parity groups keep apart, so one lost page costs each group at most a block or two; if more than <code>parity.parity_blocks</code> sectors of one group lost rows, the others are listed as unrepairable. Losing the <code>sectors</code> table's own rows is the one loss <code>check-db</code> cannot see (a sector with no row is on no list): <code>--reload sectors --restore-sectors</code> also puts back the sector rows the parity file holds and the table lacks, and is opt-in because a sector deleted while <code>parity.enabled</code> was off is still a member of the file and would come back. The columns the orbit update rewrites come back as the table's defaults on a row the repair has to insert, as above.</p>
+<p><strong>Bringing a galaxy to the running epoch (<code>bring-to-epoch</code>, GEN.764).</strong> An epoch bump (<code>src/tests/golden/epochs.json</code>) says generated output changed; a galaxy stored under an older epoch is not redone by the update. <code>planetgen bring-to-epoch</code> redoes the part the epochs in between changed (each epoch lists the stages it altered, <code>affects</code>, and each stage of a stored galaxy records the epoch it was made under: the plan in <code>galaxy_shape</code>, each scatter in <code>scatter_epochs</code>, each sector in <code>sectors</code>, each species in <code>species</code>). <code>--dry-run</code> says what it would do and changes nothing. It generates again, in address order, every galaxy-placed sector whose fill is behind (the sector is deleted and made again from its address and the galaxy's seed, then the paths around it are settled), makes the species of an older population epoch again (a species edited by hand is kept) and runs the population pass; it says each sector and species step. It leaves a sector with admin edits alone and lists it: the admin audit log is the record of edits, so an edit of something later deleted cannot be traced to its sector, and a sector edited before the audit log was kept looks unedited. A scatter that is behind is drawn again by the same run (GEN.845), with the settings it was drawn with (the luminosity floor, the stellar mass limit and the compact object limit, read before the clear forgets them): the massive stars first, the bright stars after them (they are split from the massive ones at the mass limit, so a redraw of either redraws the bright stars), then the phenomena and the nebula field. A scatter never adds to a sector already filled, so the sectors to be generated again are emptied first, the scatters cleared and drawn, and the emptied cells generated after; a sector left alone keeps the objects it was made with. If the scatter fails the emptied sectors stay empty, the run says so and <code>planetgen scatter</code> for the kinds cleared, then <code>planetgen sectors</code>, finish it. It refuses, naming the epochs, when the plan was made under an epoch that changed the galaxy's shape (a full regeneration is needed) or when a stored scatter setting is one <code>planetgen scatter</code> no longer accepts (draw that scatter by hand). <strong>Wide binaries (GEN.229).</strong> The run also reads every wide (S-type) binary, even when the galaxy is at the running epoch, and makes again those that break the stability rule GEN.228 put on new ones (a planet beyond its star's stable orbit limit, or the two stars' outermost bodies too close at the pair's closest approach: <code>planetgen check-db --deep --wide-binaries</code> counts them). Only those systems are redone, not their sectors: a system is drawn again as a wide binary for its sector's stellar population from a seed of its own (the galaxy seed and the system's Object ID, so the same galaxy gives the same new system), keeps its row, name, Object ID and place, and its bodies take the slots of the old ones. The console says, for each, the system and the bodies that broke the rule and what the re-roll made. A system that hosts facilities (they would be deleted), is built around a bright star the scatter placed, or lies in a sector with admin edits is left alone and named. <code>--no-wide-binaries</code> skips this stage. An interrupted run is resumed by running it again, since each sector records its epoch when it is saved. Object IDs follow the galaxy's seed and the sector's address, so a sector keeps its IDs when the redo gives it the same bodies; DB.75 (IDs that survive a changed body count) is not built yet.</p>
+<p><strong>The math check runs at every update.</strong> <code>check-math</code> runs <code>planetgen/physics/mathcheck.py</code> (known answers from real astronomy, identities, and sampler distributions; see <a href="testing.html#the-math-check">testing.md</a>) and exits 1 if a check fails; <code>-v</code> / <code>--verbose</code> lists every check. A run does not repeat it (PERF.170, Boss 1:14 PM EDT 2026-10-23): <code>update.sh</code> runs it after updating and warns (and skips the population pass) if it fails, the website runs it once when it starts, and the admin page (<code>/admin</code>, &quot;Check the math&quot;) runs it whenever an admin asks and shows the result. The bulk runs (<code>galaxy</code>, <code>plan</code>, <code>population</code>, and <code>sector --num-sectors</code> above 1), the Generate page's jobs and the Sector page's &quot;generate the neighbourhood&quot; button do need the downloaded data files (the Generate page's first step, &quot;Check the data&quot;; see <a href="#datasets">datasets</a>) and refuse to start without them, writing nothing, not even the activity log line. One system, one sector or one phenomenon is not gated.</p>
+<p>To generate a new star system:</p>
+<pre><code class="language-bash">planetgen system [options]
+</code></pre>
+<p>To generate a whole sector of star systems at once, see <a href="#sector-generation">Sector Generation</a> below.</p>
+<h3 id="options">Options</h3>
+<p>Most <code>system</code> options use a <code>+name</code>/<code>-name</code> tri-state syntax (these forcing options are for a single system only; <code>sector</code> and <code>galaxy</code> refuse them): <code>+name</code> forces that feature to be present, <code>-name</code> forces it to be absent, and leaving it off the command line leaves it up to chance. Two options are the exception: <code>+habitable_world</code> and <code>+intelligent_life</code> only raise the odds of their outcome (the draws that lead to it are kept more often) and never force it, so a system may come out without one and says so.</p>
+<ul>
+<li><code>--version</code>: Prints the program's version, repository URL, and license, then exits immediately.</li>
+<li><code>+habitable_world</code> / <code>-habitable_world</code>: Raise the odds of / forbid a habitable world in the system. The option raises the odds, never forces: no planet is placed or adapted for it, and the system's <code>habitable_request</code> says <code>unmet</code> when none came out.</li>
+<li><code>+asteroid_belt</code> / <code>-asteroid_belt</code>: Force / forbid the generation of an asteroid belt in the system.</li>
+<li><code>+comets</code> / <code>-comets</code>: Force / forbid comets in the system.</li>
+<li><code>+large_star</code> / <code>-large_star</code>: Force / forbid the generation of a large star.</li>
+<li><code>+moons</code> / <code>-moons</code>: Force / forbid moons on the system's planets.</li>
+<li><code>+max_planets</code> / <code>-max_planets</code>: Force the system to the maximum, or the minimum, number of orbital objects it can support.</li>
+<li><code>+intelligent_life</code> / <code>-intelligent_life</code>: Raise the odds of a planet with intelligent life / forbid one. The option raises the odds, never forces: a civilization is never forced, and one needs a world whose timeline reaches it. Either implies <code>+habitable_world</code>.</li>
+<li><code>+binary_system</code> / <code>-binary_system</code>: Force / forbid a binary star system.</li>
+<li><code>+wide_binary</code> / <code>-wide_binary</code>: Force an S-type (wide) binary, or force a P-type (close) one instead. Only meaningful together with <code>+binary_system</code>; if omitted, one of the two is chosen at random.</li>
+<li><code>+planets</code> / <code>-planets</code>: Ensure the system has at least one planet or asteroid belt, or none at all (star only).</li>
+<li><code>--system-file</code>, <code>-f &lt;path&gt;</code>: Load a system generation specification from a JSON file (see below). Any of the options above, or the value options below, given on the command line override the corresponding value from the file.</li>
+<li><code>--num-orbits &lt;int&gt;</code>: Force an exact number of orbital slots (planets and asteroid belts combined) to be generated.</li>
+<li><code>--stars &lt;int&gt;</code>: Force the number of stars in the system, from 1 up to the cap (GEN.267). 1 is a single star, 2 a pair, more a tree of pairs; the system file's <code>stars</code> key does the same. Carried in the config for the member-tree host (GEN.630) to read, which is not built yet, so until it lands a system still comes out a single star or a pair whatever the count. Stored with the config (<code>system_configs.stars</code>).</li>
+<li><code>--max-stars &lt;int&gt;</code>: The most stars a system may hold, the cap on the star-count draw (default 12, at most 64; the system file's <code>max_stars</code> key). Stored with the config (<code>system_configs.max_stars</code>). Also on <code>sector</code> and <code>galaxy</code>.</li>
+<li><code>--format &lt;text|markdown|document&gt;</code>: How <code>--output</code> writes the system: plain text for the terminal (the default), Markdown (the same description the site shows; UX.106) or the Document as JSON.</li>
+<li><code>--output</code>, <code>-o &lt;file&gt;</code>: Writes the system's description (in <code>--format</code>) to <code>file</code> instead of saving the system to the database; <code>-</code> writes it to stdout. The admin site's one-off system page (<code>/admin/generate/system</code>) does the same from the browser.</li>
+<li><code>--star-type &lt;type&gt;</code>: Force the generation of a specific star type (e.g., G2V).</li>
+<li><code>--name &lt;name&gt;</code>: Specifies a name for the star system, overriding the default random generation. Everything in the system is named from it: planets are numbered in orbit order (<code>Sol I</code>, <code>Sol II</code>, ...), moons add a letter (<code>Sol IIIa</code>), a close binary's two stars are the system's A and B (<code>Sol A</code>, <code>Sol B</code>, with planets named for the system), and a wide binary's two stars are two words sharing the system name's first word (<code>Sol Kelmoor</code>, <code>Sol Pikkita</code>; the second star's word sounds like a diminutive). A wide pair's primary numbers its planets after that shared word (<code>Sol I</code>) and its secondary after its own word (<code>Pikkita I</code>). Asteroid belts aren't numbered.</li>
+<li><code>--age &lt;young|old&gt;</code>: Specifies the age of the star system (young or old).</li>
+<li><code>--flavor-chance-system &lt;float&gt;</code>: Overrides the default system-level flavor text chance (0.0 to 1.0).</li>
+<li><code>--flavor-chance-planet &lt;float&gt;</code>: Overrides the default planet-level flavor text chance (0.0 to 1.0).</li>
+<li><code>--max-planet-flavor</code>: Sets the maximum flavor text total for planets to 99.</li>
+<li><code>--debug [file]</code>: <strong>Debug mode</strong> for this run. Writes every decision the run makes, however small, to stdout, one line each, with an ISO timestamp (<code>2026-10-23T17:29:42.729-0400 DEBUG    worker.py[2142] [draw] star.py:688 generate | message</code>, always in this one format, the area in brackets (<code>draw</code>, <code>sql</code>, <code>queue</code>, ...) being the thing to filter on): every random draw (the call, its arguments, the result, the source line that asked for it and the probability or threshold it was compared against), every narrated choice and why, every stage and unit of the run and every worker it starts, every SQL statement with its timing, cache hits and misses. The lines of the queue workers that do the run's work reach this stdout too, as they are written (they are relayed through Redis to the command that started the run, so a worker's own stdout, which goes nowhere, does not matter). If <code>file</code> is given, the same lines are also written to <code>file</code>. Available on every subcommand, and on every other command in this document (<code>python3 -m planetgen.cli.*</code>, the worker included); the Generate page has a Debug box for a job. A run whose result goes to stdout (<code>--output -</code>) writes the debug lines to stderr instead. The detached helpers a run starts (the background <code>planetgen warm</code>, an auto-started worker's own start and exit) have no stdout, so they write the debug log file only. The output is large (about 265 KB of text per system) and takes a quarter to two thirds longer; <code>--debug-areas</code> cuts it down. For the same output on every command without the flag, and in the debug log file, set <code>&quot;debug&quot;: true</code> in <code>config.json</code> (see <a href="config.html"><code>docs/reference/config.md</code></a>).</li>
+<li><code>--debug-areas &lt;areas&gt;</code>: Limits <code>--debug</code> (and debug mode in <code>config.json</code>) to some kinds of output. Areas: <code>decision</code> (narrated choices and timings), <code>draw</code> (random draws), <code>sql</code>, <code>queue</code> (runs, stages, units, workers), <code>cache</code>, <code>web</code> (requests, API calls, authorization), <code>lib</code> (other libraries' logging), <code>branch</code> (every conditional jump in our own code: the source line, where it went and the values it refers to; about 750,000 lines and 15 times the run time for one system, so <strong>off unless named</strong>: <code>--debug-areas branch</code>, or <code>all,branch</code> for everything). Comma separated; a leading <code>-</code> leaves one out (<code>-draw</code>). Normal output, warnings and errors always show. Not given, every area but <code>branch</code> is written. Also <code>&quot;debug_areas&quot;</code> in <code>config.json</code> and <code>PLANETGEN_DEBUG_AREAS</code>.</li>
+<li><code>--record-file &lt;file&gt;</code> / <code>--record-json</code>: Also writes every log line of the run to <code>&lt;file&gt;</code> as a record (UX.122, <code>docs/design/operations/logging-standard.md</code>): one per line, <code>ts=2026-10-24T18:40:00.123Z level=info component=generate msg=&quot;...&quot;</code> and any <code>key=value</code> fields, the time always in UTC; <code>--record-json</code> writes JSON lines instead. A web job sets <code>PLANETGEN_RECORD_FILE</code> (and <code>PLANETGEN_RECORD_FORMAT=json</code> for JSON lines) for each of its steps, which does the same. The form of every log line (time, severity, component, message, fields, stage markers) and where each kind of log is found are described once in <a href="logging.html"><code>logging.md</code></a>.</li>
+<li><code>--quiet</code> / <code>--silent</code>: Suppresses all output except errors. Available on every subcommand. Combined with <code>--debug</code>, a filename is required (there would otherwise be nowhere for debug output to go).</li>
+<li><code>--disregard-missing-data</code>: Generates even though a downloaded data file is missing (GEN.599; see <a href="#datasets">datasets</a>). Available on every subcommand; one that reads no downloaded data ignores it.</li>
+</ul>
+<p><strong>Note on Incompatible Options:</strong></p>
+<ul>
+<li><code>-planets</code> cannot be combined with <code>+moons</code>, <code>+max_planets</code>, <code>+habitable_world</code>, or <code>+asteroid_belt</code> (on the <code>system</code> command this also covers the same keys, <code>num_orbits</code> and <code>slots</code>, in a <code>--system-file</code>).</li>
+<li><code>--star-type</code> cannot be combined with <code>+large_star</code>.</li>
+<li><code>+intelligent_life</code>/<code>-intelligent_life</code> cannot be combined with <code>-habitable_world</code>.</li>
+<li><code>+habitable_world</code> and <code>+asteroid_belt</code> together cannot be combined with <code>-large_star</code> (both objects require the room a large star provides).</li>
+<li><code>--num-orbits</code> cannot be combined with <code>-planets</code>.</li>
+<li><code>--stars</code> must be a whole number of at least 1, and no more than <code>--max-stars</code> (12 unless raised; <code>--max-stars</code> itself is from 1 to 64). The error says which: &quot;stars 13 is more than the cap of 12 stars; raise the cap with --max-stars (at most 64)&quot;.</li>
+<li><code>--stars 1</code> cannot be combined with <code>+binary_system</code> or <code>+wide_binary</code> (a single star has no companion), and <code>--stars 2</code> or more cannot be combined with <code>-binary_system</code>. <code>--stars 3</code> with <code>+binary_system</code> is allowed: the system has a companion, and the rest of the tree is the host's. <code>--system-file</code> keys are checked the same way, against the command line's values when both give one.</li>
+<li><code>--num-orbits</code> must be from 0 to 500 (the generator's own ceiling on objects in a system).</li>
+<li><code>--flavor-chance-system</code> must be a float between 0.0 and 1.0.</li>
+<li><code>--flavor-chance-planet</code> must be a float between 0.0 and 1.0.</li>
+</ul>
+<p>A forced body some stars can't host (a habitable world around a hot O or B
+star, for example) is tried on up to five whole systems. If none of them has
+it, <code>system</code> exits with an error and saves nothing.</p>
+<h3 id="system-specification-files">System specification files</h3>
+<p><code>--system-file</code>/<code>-f</code> loads a JSON file describing exactly what to generate. Any key may be omitted, in which case that aspect is generated normally. The tri-state options above become <code>true</code>/<code>false</code>/omitted JSON keys, e.g.:</p>
+<pre><code class="language-json">{
+  &quot;star_type&quot;: &quot;G2V&quot;,
+  &quot;name&quot;: &quot;Sol&quot;,
+  &quot;age&quot;: &quot;young&quot;,
+  &quot;num_orbits&quot;: 5,
+  &quot;stars&quot;: 3,
+  &quot;max_stars&quot;: 12,
+  &quot;habitable_world&quot;: true,
+  &quot;asteroid_belt&quot;: true,
+  &quot;slots&quot;: [
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;M&quot;, &quot;moons&quot;: 1},
+    {&quot;type&quot;: &quot;asteroid_belt&quot;},
+    null,
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;J&quot;, &quot;moons&quot;: 4},
+    null
+  ]
+}
+</code></pre>
+<p><code>slots</code> is an optional, per-orbit list: each entry is either <code>null</code> (generate that slot normally) or an object with a required <code>&quot;type&quot;</code> (<code>&quot;planet&quot;</code> or <code>&quot;asteroid_belt&quot;</code>) and, for planets, an optional <code>&quot;planet_class&quot;</code> (e.g. <code>&quot;M&quot;</code>) and/or <code>&quot;moons&quot;</code> (an exact moon count, <code>0</code> for none). The list doesn't need to cover every orbit — slots past the end of the list are generated normally too.</p>
+<h3 id="sector-generation">Sector Generation</h3>
+<p><code>planetgen sector</code> generates a whole sector of independently-random star systems in one pass, reusing <code>planetgen system</code>'s own generation logic for each one:</p>
+<pre><code class="language-bash">planetgen sector [options]
+</code></pre>
+<p>Some of <code>system</code>'s options work here too, and apply <em>uniformly</em> to every system in the sector: <code>--star-type G2V</code> makes every star in the sector a G2V, and so on. The <code>+name</code>/<code>-name</code> forcing options are for a single system only: <code>sector</code> and <code>galaxy</code> refuse them with an error naming the option (a saved or queued command line that still has one gets the same message). <code>--system-file</code>, <code>--num-orbits</code>, and <code>system</code>'s own per-system <code>--name</code> aren't offered here either, since those describe one specific, hand-crafted system rather than a sector of varied ones; use <code>planetgen system</code> for that.</p>
+<p>Sector-specific options:</p>
+<ul>
+<li><code>--num-systems &lt;int&gt;</code>: How many star systems the sector contains. Defaults to 10.</li>
+<li><code>--name &lt;name&gt;</code>, <code>-n &lt;name&gt;</code>: Hard-sets the sector's own name, overriding the default random two-word name (e.g. <code>&quot;Voranthis Kelmoor&quot;</code>) generated the same phoneme-salad way as star names.</li>
+<li><code>--density &lt;x&gt;</code>: Scales the number of systems by a multiplier on the real local stellar density (1.0 is a realistic sector this size, 2.0 twice as dense). The count is drawn from a Poisson distribution, so it still varies from sector to sector. Cannot be combined with <code>--num-systems</code>.</li>
+<li><code>--min-habitable &lt;int&gt;</code>: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing <em>every</em> system to have one. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed <code>--num-systems</code>.</li>
+<li><code>--directive &lt;minimum&gt;</code>, <code>--directive-attempts &lt;n&gt;</code>: Redraws each sector until it holds at least this much: <code>systems&gt;=N</code>, <code>habitable&gt;=N</code> or <code>type:X&gt;=N</code> (X is one of O B A F G K M wd bh ns). Repeat <code>--directive</code> for more than one minimum. After <code>--directive-attempts</code> draws (K, <code>tuning.DIRECTIVE_ATTEMPTS</code>, 200 by default) a <code>habitable&gt;=N</code> minimum still missed is met by a forced fill (GEN.180): the sector is built once more with <code>--min-habitable N</code>, a habitable world forced into N systems (the sector then has N systems at least), and the run says <code>met_forced</code>; any other minimum the closest draw misses is reported as <code>unmet</code> with the closest sector kept. A minimum no sector can reach (a sector of 3 systems asked for 9, or a <code>habitable</code> count the compound-Poisson table puts below one in a billion and that the forced fill cannot reach) is refused before any drawing, with the reason, as a usage error; a <code>galaxy</code> or <code>sectors</code> run is judged against its densest possible sector.</li>
+<li><code>--star-mix &lt;single&gt; &lt;close&gt; &lt;wide&gt;</code>: The share of systems, in percent, with one star, a close binary and a wide pair; the three must total 100. It replaces <code>--prevalence</code> for <code>binary_system</code> and <code>wide_binary</code>, which it cannot be combined with.</li>
+<li><code>--num-sectors &lt;int&gt;</code>, <code>--yes</code>, <code>--estimate-only</code>, <code>--workers &lt;int&gt;</code>, <code>--strict</code>: A run of more than one sector works as a <code>galaxy</code> run does (see <a href="#size-and-time-estimates">Size and time estimates</a> and <a href="#parallel-generation">Parallel generation</a>); <code>--strict</code> turns the warnings the console would otherwise go ahead after into errors that stop the run with nothing generated.</li>
+<li><code>--prevalence &lt;feature&gt;=&lt;percent&gt;</code>: Makes a feature more or less common across every system the run generates, as a percentage of its normal chance: <code>--prevalence comets=+50</code> gives 1.5 times as many systems with comets, <code>--prevalence binary_system=-100</code> none at all. Repeat it for more features (also on <code>galaxy</code>). The features are the forcing options' names: <code>habitable_world</code>, <code>asteroid_belt</code>, <code>comets</code>, <code>large_star</code>, <code>moons</code> (each planet's chance of moons), <code>max_planets</code> (the chance a star gets the most orbits it can hold), <code>intelligent_life</code> (the population pass's chance of a civilization), <code>binary_system</code>, <code>wide_binary</code>, <code>planets</code> and <code>multi_star</code> (the chance of five or more stars: <code>--prevalence multi_star=+100</code> doubles it, <code>-100</code> allows none; GEN.267). Each system stores the setting with its config. <code>--max-stars &lt;int&gt;</code> sets the cap on the star count for every system (see <code>system</code>); <code>--stars</code> is for a single system only and is refused here.</li>
+<li><code>--mysql-host &lt;host&gt;</code>, <code>--mysql-port &lt;port&gt;</code>, <code>--mysql-user &lt;user&gt;</code>, <code>--mysql-password &lt;password&gt;</code>, <code>--mysql-database &lt;database&gt;</code>: Where the generated sector is saved. Each defaults to the matching <code>$PLANETGEN_MYSQL_*</code> environment variable, or a built-in default (<code>127.0.0.1:3306</code>, user/database <code>planetgen</code>) -- see <a href="database-schema.html"><code>database-schema.md</code></a>.</li>
+</ul>
+<p>Each run saves the whole generated sector — every system, star, planet, moon, and asteroid belt, plus any exotic phenomena — to the MySQL database described in <a href="database-schema.html"><code>database-schema.md</code></a>, printing only a short status line and summary per saved sector to the console (<code>--debug</code> shows more). The wiki page is rendered from those rows whenever it's viewed, not stored.</p>
+<h3 id="sector-level-exotic-phenomena">Sector-Level Exotic Phenomena</h3>
+<p>Every generated sector also seeds a realistically sparse population of exotic phenomena: black holes, neutron stars, nebulae (including molecular clouds and planetary nebulae), supernova remnants, rogue planets and free-floating brown dwarfs, and interstellar comets. Each type is drawn per star from the research densities in <a href="../design/systems/interstellar-object-rates.html"><code>design/systems/interstellar-object-rates.md</code></a> (<code>program_constants.PHENOMENON_DENSITY_PC3</code>, with a <code>PHENOMENON_RATE_SCALE</code> dial per type), so most sectors hold none of the rarer kinds, as real space this size usually doesn't. Isolated asteroid fields are not generated in sectors (they disperse); <code>planetgen phenomenon --type asteroid-field</code> still makes one on request. In a galaxy, molecular clouds (classes M-Q) belong to the galaxy rather than to one sector: they are drawn per 50 pc cell from the galaxy seed, more on the spiral arms and near the plane, and a sector gets every cloud that reaches it, stored once whichever sector it reaches is generated first (GEN.47). On an arm at the Sun's distance about one sector in eight sits in one, between the arms about one in twenty-five. Nebulae come with the stars that make them: every O star and half the B0-B2 stars sit in an H II region, and every planetary nebula has its own new hot white dwarf at the center. A galaxy's nucleus is active 10% of the time (<code>program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE</code>): then the core ball (shell 0) gets a quasar at the galactic center; otherwise it gets a quiescent supermassive black hole.</p>
+<p>Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see &quot;Minimum separation (Hill spheres)&quot; in <code>planetgen/galaxy/sector.py</code>'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cell instead.</p>
+<h2 id="galaxy-generation">Galaxy Generation</h2>
+<p><code>planetgen galaxy</code> generates and persists many sectors as one galaxy, placed
+in real galaxy-frame 3D space (see
+<a href="../design/galaxy/spherical-sector-coordinates.html"><code>docs/design/galaxy/spherical-sector-coordinates.md</code></a>):</p>
+<pre><code class="language-bash">planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | --yes] [options]
+planetgen galaxy [--shells A:B] [--bands C:D] [--wedges E:F] [--limit N | --yes] [options]
+planetgen galaxy --block M.SHELL.BAND.WEDGE [--limit N | --yes] [options]
+planetgen galaxy --center-sector ID --radius-pc R [options]
+planetgen sectors --around X Y Z --radius-pc R [--grow-shells K] [--unit-sectors N] [options]
+planetgen galaxy (--center-sector ID | --shell I --band J --wedge K) --region [options]
+planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
+planetgen galaxy [--radius-pc R] [--max-shell I] [--neighborhoods N] [options]   # random start
+</code></pre>
+<p>It reuses <code>planetgen sector</code>'s own generation logic per sector, so a sector
+generated here and one generated by <code>planetgen sector</code> directly are built by
+the same code path — the only difference is a real galaxy-frame position
+(and, in turn, the same sparse exotic-phenomena population every sector
+gets — see &quot;Sector-Level Exotic Phenomena&quot; above).</p>
+<p>Sectors sit on a spherical grid with one standard sector size, 4 parsecs
+(about 13 ly). The core is a ball, shell 0; every other shell is a
+hollow sphere 4 pc deep around it, numbered outward from 1. A shell is
+cut into <strong>bands</strong> (horizontal strips of latitude, signed: band 0 is the
+equatorial band that holds the galactic plane, positive bands are north,
+negative south, and the two end bands are the circular polar caps), and each band is
+cut into <strong>wedges</strong> (vertical slices from pole to pole). A sector is one
+(shell, band, wedge) address. Every band of every shell has 6 times m wedges,
+where m has no prime factor above 7 and is picked so each sector is close to
+4 pc across. The grid covers all of space out to its reach (262 kpc by
+default); the galaxy's outline (below) says where the disk and bulge expect
+a system, which is where random starts, the maps' planned sectors and a
+neighborhood around an outline sector look: every shell out to the last one
+whose equatorial band could still hold a star, and in each shell the bands
+the galaxy still expects a star in. A sector that is asked for outside it is
+generated from the profile of its place (<code>galaxy/profile.py</code>).</p>
+<p><code>--shell I</code> generates every not-yet-generated sector in shell I that the
+outline holds; adding <code>--band J</code> narrows it to one band, and adding
+<code>--wedge K</code> too generates exactly that one sector (and, with
+<code>--radius-pc R</code>, its neighborhood within R parsecs as well). A single
+address is generated wherever the grid's reach holds it, inside the outline or
+out in the halo (its density comes from the sector's profile, so a halo sector
+is usually saved empty); one beyond the reach, or in a band its shell does not
+hold, stops with exit status 1, and one that was already generated reports its
+sector ID. A range named in a span (<code>--shells</code>, <code>--bands</code>) is taken as named
+anywhere in the reach; a span with no range means the outline's cells. A
+<code>--center-sector</code> neighbourhood around a halo sector takes every cell of the
+reach within the radius and says how many sectors that is, and how many
+systems they expect, before it runs. A whole shell is usually
+thousands of sectors, so past 2,000 sectors a run needs <code>--limit</code> (generate
+only the first N) or <code>--yes</code>.
+The span form picks sectors by range instead: <code>--shells FIRST:LAST</code>,
+<code>--bands FIRST:LAST</code> (negative south of the equator, so write
+<code>--bands=-2:2</code>) and <code>--wedges FIRST:LAST</code> (only with exactly one shell and
+one band; a range whose first is past its last wraps through wedge 0, as in
+<code>50:5</code>). Each of the three defaults to everything the outline holds, so
+<code>--bands</code> alone fills those bands out to the galaxy's edge.
+<code>--block M.SHELL.BAND.WEDGE</code> (GEN.310) fills one block of the Galaxy Map's
+ladder, given by the key the map's stage links carry (<code>m</code> is 243, 81, 27, 9 or
+3; <code>docs/design/galaxy/spherical-block-ladder.md</code>): every not-yet-generated
+sector that the stored outline holds inside the block, shell by shell outward
+so the inner sectors come first, with the same estimate, progress and cancel
+as a shell or a span, and <code>--limit</code> and <code>--yes</code> as for them. The map starts the
+same fill through <code>POST /api/galaxy/blocks/&lt;key&gt;/generate</code>. A block the
+outline does not reach holds nothing to generate. It cannot be combined with
+<code>--shell</code>, <code>--band</code>, <code>--wedge</code>, a span, <code>--radius-pc</code> or <code>--center-sector</code>.
+<code>--around X Y Z --radius-pc R</code> (GEN.1128, region mode) generates every not-yet-generated sector a sphere of R parsecs around the point
+(parsecs from the galactic center) touches: a sector is in when its center is within R plus three quarters of a sector edge. <code>--grow-shells K</code>
+adds K whole shells of one edge. The sectors are cut into units of at most <code>--unit-sectors</code> (default 27) consecutive wedges of one shell and
+band, the nearest unit first; a unit is the retry and resume grain, and a rerun after a stop builds only the sectors not saved. The same seed
+gives the same sectors whatever the point, the radius, the unit size or the order regions are run in. It cannot be combined with another mode,
+<code>--limit</code> or the random-start options.
+<code>--center-sector ID --radius-pc R</code> generates every not-yet-generated sector
+within R parsecs of an already placed sector's own center, the sector at the
+center first and the rest outward (GEN.101): the sectors are laid on a lattice
+of one sector edge around the center, cut into blocks of four sectors a side,
+and the blocks come nearest first, in Hilbert order among blocks the same
+distance away and inside a block, so the same neighbourhood always fills in the
+same order. A ball cannot always be walked step by step between neighbouring
+sectors, so the run says how many of its steps are not (a step of more than two
+and a half sector edges), with their mean and longest length: about 97% of
+them are between neighbours in a 50 pc ball.
+<code>--region</code> (GEN.826) with <code>--center-sector</code> or <code>--shell --band --wedge</code> fills one whole region: the center moves to the anchor
+sector of the region (the 9-block of the map's block ladder, about 780 sectors) that holds it, and the standard 12 pc sphere about
+that anchor (about 109 sectors) is generated, so the finished run charts the region and the map names it. It takes the place of
+<code>--radius-pc</code>, which it refuses; a <code>--center-sector</code> run with it generates the anchor sector first when it is empty, as the
+single-address mode does. The Generate page's &quot;This region&quot; box asks for it.
+<code>--course FROM TO</code> (NAV.48) generates the uncharted sectors that block the NAV
+course between two objects (a system's object ID, or <code>&lt;kind&gt;:&lt;ID&gt;</code> for a body
+or phenomenon): the cells of the route's hops through unknown space, inside the
+galaxy's outline, not every cell on the straight line. <code>--course-border</code> adds
+the uncharted cells that share a face with them. Past 5,000 sectors it needs
+<code>--yes</code>; the size and disk checks are the same as for any run. The NAV page
+(<code>/nav/chart</code>, admins) starts it as a Generate page job.</p>
+<p>Run with none of <code>--shell</code>, <code>--shells</code>, <code>--bands</code>, <code>--block</code>, <code>--course</code> and
+<code>--center-sector</code> (random-start mode, no arguments at all), <code>planetgen galaxy</code> picks a uniformly random (by volume)
+sector address inside the galaxy's planned outline in a region with no generated sector yet (GEN.826), starts at the anchor
+sector of that region (at the drawn address where the anchor is outside the outline's reach or beyond <code>--max-shell</code>),
+generates it, and then generates every not-yet-generated sector within
+12 pc (about 39 ly) of it too, in every direction — a whole small starmap
+around a fresh, randomly chosen starting point in one run. Every sector
+any <code>galaxy</code> mode generates (and every sector the map generates on a
+visit) first gets the bright stars around it: each sector within 100 ly
+is given every star from its distance tier's floor up to what was already
+placed there, once per sector, leaving filled sectors alone (GEN.23,
+GEN.44). <code>--max-shell</code> bounds how
+far out the random starting address can land (defaults to anywhere inside the
+galaxy's stored outline), <code>--radius-pc</code> overrides the default 12 pc
+neighborhood radius, and <code>--min-start-density</code> requires the randomly
+chosen starting sector's own real density to be at least that many times
+local (e.g. <code>--min-start-density 1.0</code> for at least as dense as the
+galaxy's own real local density) before accepting it, retrying otherwise
+— useful for skipping past the galaxy's own vast, sparse outskirts to
+start somewhere with more to look at. A high threshold combined with a
+large <code>--max-shell</code> can take many retries to satisfy, since a
+volume-weighted random draw favors the sparser outskirts to begin with.
+<code>--neighborhoods N</code> generates N random neighborhoods instead of one; each
+start lies inside the galaxy with its whole neighborhood and at least twice the
+radius from every other start, so they never overlap. <code>--neighborhood-gamma G</code>
+biases the starts toward dense space (a start is kept with probability
+min(1, relative density)^G; the default 0 keeps every one, so starts are
+uniform by volume), and <code>--avoid-filled-space</code> drops any start whose
+neighborhood touches a sector that is already generated.</p>
+<p>Each of these has an upper bound, so a typo can't start a run that never
+ends: <code>--radius-pc</code> at most 200 (about 650 ly), <code>--shell</code>, <code>--shells</code> and
+<code>--max-shell</code> at most 100,000, at most 100 <code>--neighborhoods</code>, and <code>--limit</code> at most the
+number of sectors in shell 100,000.
+The web Generate page and the API check the same bounds
+(<code>src/planetgen/generation/limits.py</code>).</p>
+<p>A <code>galaxy</code> run does every stage (PERF.123), with no option to leave one out: the sectors, the link to their
+neighbours, the galaxy-wide scatters, the backfill, the population pass, the territories pass and the paths. After the sectors it scatters
+the bright stars galaxy-wide, as <code>planetgen scatter --mass</code> and <code>scatter --luminosity</code> do, and then the phenomena, as
+<code>scatter --phenomena</code> does, leaving out every sector already generated, so the scatter never draws stars for sectors
+the run filled; <code>--bright-star-min-luminosity</code> (9000 solar luminosities by default), <code>--phenomenon-min-mass</code> and
+<code>--compact-min-mass</code> set the scatters, as on <code>scatter</code>, which is described below. Once every sector of the run is
+generated, the bright stars around the run's edge are backfilled: four steps outward around the generated sectors (a
+face apart, no diagonals) get every star born from 1 solar mass up in the nearest step, 2 in the next, then 5, then 8,
+and a sector already generated never gets any. Last it saves the path every star system, rogue planet and comet takes
+through its sector, for the sectors it created and the ones around them. Whoever wants fewer stages runs the commands
+in turn: <code>planetgen sectors</code>, then <code>link</code>, <code>scatter</code>, <code>backfill</code>, <code>population</code>, <code>territories</code> and <code>settle</code>, as the Generate page does.</p>
+<h3 id="parallel-generation">Parallel generation</h3>
+<p><code>planetgen sector</code> (with <code>--num-sectors</code>) and every <code>planetgen galaxy</code>
+mode fill several sectors at once, each in its own worker process: by
+default 80% of the machine's cores, one fewer when MySQL runs on the same
+machine (3 workers on 4 cores without a local MySQL, 2 with one). Workers
+run at a lower priority (<code>nice</code> 10), so the web site and anything else on the machine come first.
+Each worker generates a whole sector and saves it in one transaction;
+the run prints each sector as it's saved, so sectors can finish out of
+order. <code>--workers N</code> sets the count (<code>PLANETGEN_WORKERS</code> does the same for
+every run), and <code>--workers 1</code> generates one sector at a time in the run's
+own process, as before. The workers are RQ workers on the Redis server
+at <code>redis.url</code> (<a href="config.html">config.md</a>), started by the run for its own
+tasks and gone when it finishes. Without a Redis server the run says so
+and generates one sector at a time. A task whose worker dies (killed, out
+of memory) runs once more on a fresh worker before the run fails. On a 4-core machine with MySQL local, 60 sectors
+of one ring of the old cylindrical grid took 16.5 s on one worker and 9.8 s on the default two (the grid has since changed; the speed per sector has not been measured again).</p>
+<p><code>planetgen plan</code> draws its bright stars the same way, one shell of the
+galaxy per task, densest shells first (<code>--workers</code> works there too).
+Each shell draws from its own random stream, so the same seed places the
+same stars on any number of workers. The seed is the galaxy seed that
+<code>planetgen plan --seed &lt;32 hex digits&gt;</code> sets (see &quot;The galaxy seed&quot; under
+<a href="#size-and-time-estimates">Size and time estimates</a>); each shell's stream
+comes from it and the shell's address.</p>
+<p>Every progress bar shows the time elapsed and the time remaining until
+it's done. The remaining time comes from a decaying average of how many
+sectors (or shells) finished per second, weighted toward the last minute
+or so, so it follows the run's current speed and doesn't jump about when
+several workers finish at once. The Generate page shows the same
+estimate (&quot;about 4 m 10 s left&quot;).</p>
+<p>A <code>galaxy</code> or <code>plan</code> run that does more than one stage also draws one &quot;Whole job (stage 3 of 7)&quot; bar at the top
+of the display (PERF.55). It counts the time since the run began against the stored time of all its stages (the
+same stage times the Generate page's overall bar uses), so it shows the time left across every phase; with no
+stored time for a stage it shows only the elapsed time. A run that outlasts its estimate keeps the bar just short
+of full. When the run ends it stores two more rows in the stage history, with the run's settings: &quot;Whole job&quot;
+(the seconds of the whole run, the stages it ran and the shells the scatter stages visited, those that placed
+nothing included, per second; <code>generation_stats.job_shells_per_second</code>) and, when scatter stages ran, &quot;All
+scatters&quot; (their operations, shells, objects and seconds, per shell and per operation). Each stage's own row also
+carries its seconds per shell. A scatter with no stored time of its own is estimated from the &quot;All scatters&quot;
+figure, so every bar and estimate reads the one stored-time function (<code>generation_stats.stage_seconds</code>).</p>
+<p>The bright-star bar (&quot;Bright stars (12 of 1,271 shells)&quot;) shows a share
+done rather than a count: before the scatter starts, every shell gets an
+expected star count from the same density model the scatter draws from
+(a quick sample of its bands, a second or two for a whole galaxy), plus
+a small allowance per band, so the nearly empty outer shells count for
+little and the dense inner ones for a lot.
+Shells in progress report their stars a few times a second and the bar
+moves with them, so the time left follows the work left rather than the
+shells left. While shells take longer than 30 seconds each, a second bar
+appears under it with the stars of the shells being drawn, done of their
+estimate, and its own time left (&quot;Shell 0: stars&quot;); it goes again once
+shells finish faster than one every 20 seconds. Sector fill keeps its one
+bar. The Generate page shows both lines too.</p>
+<p>Only one run's workers use the machine at a time: a run started while
+another is generating (from the command line or the Generate page) says
+it's waiting and starts when the other finishes (PERF.154: it takes a place in the one waiting list in Redis, up to
+<code>queue.max_waiting</code> entries, 8 by default, shared with the Generate page's waiting jobs; a run past that is refused
+with the list named, and one that has waited <code>queue.wait_minutes</code> fails naming the run it waited for). Redis keeps the run
+and its units (the run record, <code>planetgen/queue/runrecord.py</code>); the
+Queue page reads them from there. A run stopped with Ctrl-C, or Cancel
+on the Generate page, stops its workers mid-sector (each sector is saved
+in one transaction, so an unfinished one is rolled back, never half
+written), queues nothing more and is recorded as canceled, and the
+machine is free at once; a run that was killed outright is cleared once
+it shows no sign of life. A worker that dies fails the run.</p>
+<h3 id="size-and-time-estimates">Size and time estimates</h3>
+<p>Before a bulk run writes anything (<code>planetgen galaxy</code> in every mode,
+<code>planetgen sector --num-sectors</code>), it works out how big and how long
+it will be and prints it:</p>
+<pre><code>Estimate for shell 12: About &lt;size&gt; and &lt;time&gt; for &lt;N&gt; sectors (~&lt;n&gt; star systems,
+~&lt;n&gt; stars, 2 workers). &lt;free&gt; GB free of &lt;total&gt; GB.
+</code></pre>
+<p>(The figures depend on the galaxy, the density and this server; the line names
+the run, <code>shell 12 band 0</code> for a single band, and so on.)</p>
+<ul>
+<li><strong>Systems</strong> come from each sector's expected density (the galaxy's
+skeleton, or <code>--density</code>/<code>--num-systems</code>).</li>
+<li><strong>Size</strong> is those systems times this galaxy's own bytes per system,
+measured from its tables after every run (about 62 KB on a test
+galaxy, over half of it moons), plus 10%.</li>
+<li><strong>Time</strong> adds up each sector's expected systems times this server's
+measured seconds per system at that density, divided by the workers.
+The speed is kept per density bucket (two per decade from 0.01) as a
+decaying average of every sector ever filled, in the control
+database (<code>generation_stats</code>), so dense sectors aren't priced like
+sparse ones. Until a bucket has been measured the nearest measured
+one is used, and before anything has been measured a default of
+0.2 s per system (the estimate says so).</li>
+<li><strong>A run of more than 20,000 sectors</strong> is estimated from 200 of them, spread
+evenly through the run, and the line says so (&quot;worked out from 200 sampled
+sectors&quot;); its sectors are resolved as they are queued, never all held in
+memory. A radial fill (<code>--center-sector</code> and <code>--radius-pc</code>) asked for by the
+Generate page's estimate, or the sector page's neighborhood action, stops at
+2 million sectors in the ball and says to choose a smaller radius; the command
+line has no such limit.</li>
+</ul>
+<p>On a terminal, a run of more than one sector then asks <code>Generate these N sectors? [y/N]</code> (<code>--yes</code> skips the question). Off a terminal (the
+Generate page's jobs, scripts and cron) it prints the estimate and
+carries on; the Generate page shows the estimate and asks first.</p>
+<p>A run is <strong>refused</strong>, with nothing written, when it would take more than
+a quarter of the database disk or leave less than 5 GB free; the
+message says how much it needs. The disk is the one holding MySQL's
+data directory, asked of the server itself (<code>SELECT @@datadir</code>) and never
+assumed to be the boot drive; the estimate names the path and the mount
+measured, with symlinks and bind mounts resolved. A
+server on another machine is measured only if that directory is visible
+here; otherwise the disk
+shows as &quot;unknown&quot; with the reason and nothing is refused for space. <code>--yes</code> never overrides a refusal;
+generate fewer sectors (<code>--limit</code>, a smaller radius) instead.</p>
+<p><code>--estimate-only</code> prints the estimate (and any refusal) and stops
+without writing anything, ending with one <code>ESTIMATE {json}</code> line. In
+random-start mode it is the estimate for one random start, so the real
+run's start (drawn again) differs.</p>
+<p>Most of the galaxy is never actually visited or generated; <code>planetgen plan</code>
+builds a small, cheap-to-recompute density &quot;skeleton&quot; (one singleton shape
+row plus one row per shell, from the core outward, naming the highest band
+that shell reaches; the outline is symmetric about the plane) that <code>planetgen galaxy</code> consults to decide, per
+address, whether anything exists there at all before generating it lazily
+on demand (the <code>galaxy_shell</code> table in
+<a href="database-schema.html"><code>database-schema.md</code></a>). Every <code>planetgen galaxy</code> mode checks its
+address against this outline before generating anything, even when
+<code>--density</code> or <code>--num-systems</code> is given, so nothing is ever placed outside
+the galaxy: an address outside it is refused with the reason, and a
+neighborhood near the edge simply leaves out the sectors past it.
+<code>planetgen galaxy</code> refuses to run until <code>planetgen plan</code> has been run.</p>
+<p><strong>The galaxy seed.</strong> The first <code>planetgen plan</code> stores the galaxy's
+128-bit seed, shown as 32 hex digits (<code>Galaxy seed 3F2A...C901 (drawn at random)</code>). <code>--seed &lt;32 hex digits&gt;</code> sets it instead; a later plan keeps
+the stored seed, and a different <code>--seed</code> is refused once any sector
+exists. Each sector, the bright-star scatter, each band added with
+<code>scatter --band</code> and each backfill block draws from its own seed,
+the SHA-256 of the galaxy seed and its address (<code>sector:12/3/0</code> is shell 12, band 3, wedge 0), so one
+seed fills a sector the same way at any <code>--workers</code> count and in any run
+that reaches it, on the same PlanetGen release. Two systems that draw the
+same name are still told apart in save order, and the bright-star
+backfill still depends on which sectors are filled first (both phase 1,
+GEN.57). The galaxy also records the version key of the code that made
+it (22 hex digits: release, Python version, OS and architecture), and
+every run that changes it adds a row to <code>generation_runs</code> (command line,
+the run's own seed, version key, start, end and outcome; DB.6). Every
+run's first line names the galaxy seed, the release with its key, and
+the command line without the <code>--mysql-*</code> and <code>--debug</code> options, for
+example <code>Galaxy seed 3F2A...C901, PlanetGen 7.127.352 (0007007F000160030C0300), run: galaxy --shell 3</code> (<code>none yet</code> before the
+first plan; OPS.10). It goes to the console, the <code>--debug</code> file and the
+debug log, and a Generate page job's log starts with the same line for
+the job before its first step. Design:
+<a href="../design/generation/reproducible-galaxies.html"><code>design/generation/reproducible-galaxies.md</code></a>.</p>
+<p><code>planetgen plan</code> draws the shape of the galaxy from its seed (GEN.401). Every shape option is <strong>Auto</strong>
+until given: left out, the seed draws it through its law, and a given value replaces only its own draw while
+what follows from it is recomputed. The options are the rows of one table, the lever table
+(<code>planetgen/galaxy/dials.py</code>, GEN.601): the flags below, the Generate page's fields, the help lines and
+the table here are all built from it, and a test fails when one of them differs. A value outside a row's range is
+refused with the allowed range and its source; a length takes its unit (<code>--disk-scale-length 2.6kpc</code>,
+<code>2600pc</code>) and a bare number is refused. The galaxy's stellar mass comes from the seed
+(<code>galaxy/mass_chain.py</code>), the disk length from the size-mass relation of late-type galaxies, the height from the
+length, the bulge's share and size from the galaxy's stage and the arm count and pitch angle from the arm statistics
+(<a href="../design/galaxy/intergalactic-and-halo-contents.html"><code>design/galaxy/intergalactic-and-halo-contents.md</code></a>,
+section 5.13, rows 4 to 6). The plan prints what was drawn.</p>
+<!-- dials:begin (generated by planetgen.galaxy.dials; python3 -m planetgen.galaxy.dials --write) -->
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dial</th>
+<th>Flag</th>
+<th>What it sets</th>
+<th>Allowed</th>
+<th>Default (Auto)</th>
+<th>Source of the range</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shape</td>
+<td><code>--shape</code></td>
+<td>the galaxy family: which laws draw the rest of the shape (galaxy.shape_draw)</td>
+<td>spiral</td>
+<td>the family the seed draws, which is spiral, the only family built</td>
+<td>the galaxy families; only the spiral exists, later families fill the list (theory)</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td><code>--mass</code></td>
+<td>the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, the thick disk, the bulge and the black hole all follow it through their laws; under about 4.6e6 the galaxy has no dark halo (no halo draw, no halo law runs), and under 3e8 it is one disk plus a bulge</td>
+<td>281 to 1.55e+11 solar masses</td>
+<td>drawn from the galaxy stellar mass function [R0238] between 3e9 and 6e9 solar masses, a small spiral (Boss, 10-21)</td>
+<td>Boss, 10-21 (7:04 to 7:31 PM EDT): floor half the stellar mass of Segue 1, 562 solar masses (Local Volume Database v1.1.1; [R4098]); ceiling 1.5 x Andromeda's 1.03e11 [R4084], read by the galaxy size research thread (derived)</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td><code>--compactness</code></td>
+<td>the size at the same mass, as standard deviations from the size-mass law: 0 is the median galaxy, a positive value a larger disk (the scale length is the law's median times e^(sigma x z))</td>
+<td>-3 to 3 sigma</td>
+<td>drawn from the seed (a normal draw of the scatter, 0.20 dex falling to 0.15), drawn again when the shape would raise a grid warning</td>
+<td>scatter of the late-type size-mass law, [R4048] (read in the repository); three sigma is the draw's own cap (derived)</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td><code>--density</code></td>
+<td>the thin disk's central surface density, mass over 2 pi L^2: the same thing as the size at a fixed mass</td>
+<td>0.04 to 100000 solar masses per pc^2</td>
+<td>a read-out of the mass and size</td>
+<td>density-limits report (10-21): the smallest density with a planned sector at a 4 pc scale height is 0.043; the largest found in dense stellar systems is 1e5 [R2001]; the floor also grows with the scale height (check_outline) (derived)</td>
+</tr>
+<tr>
+<td>Scale</td>
+<td><code>--disk-scale-length</code> (advanced)</td>
+<td>the thin disk's scale length L; every other length of the galaxy is a ratio of it</td>
+<td>28 to 8250 pc</td>
+<td>drawn from the size-mass relation of the galaxy's stellar mass, drawn again (with the flatness) when the shape would raise a grid warning</td>
+<td>Boss, 10-21 (7:04 PM to 8:08 PM EDT): floor 28 pc (Segue 1's half, 7.1 pc, is under the 4 pc cell grid's reach: a variable sector edge, a later item, would bring it back); ceiling 1.5 x Andromeda's 5.5 kpc [R0909, R1145], read by the galaxy size research thread (derived)</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td><code>--flatness</code></td>
+<td>the thin disk's thickness: its scale height is the scale length over this (the thick disk's is 3x); a ratio keeps its meaning when the scale length moves</td>
+<td>3 to 20</td>
+<td>drawn from the seed, median 7.3 with a 0.13 dex scatter [R2484], drawn again with the size when the shape would raise a grid warning</td>
+<td>median 7.3 and 0.13 dex read in Kregel, van [R2484] (shape_draw); the range 3 to 20 is the proposal's suggestion (galaxy size levers, 10-21), not read in a source (bracket)</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td><code>--bulge-share</code></td>
+<td>the share of the stellar mass in the bulge and bar; the bulge's central density is solved from it, and 0 leaves a disk with no bulge</td>
+<td>0 to 0.9</td>
+<td>drawn from the seed by Hubble stage (about 0.25 early, 0.06 late; [R1656])</td>
+<td>stage medians from [R1656: Table 4] (shape_draw); the range 0 to 0.9 is the proposal's suggestion (galaxy size levers, 10-21), not read in a source (bracket)</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td><code>--bulge-size</code></td>
+<td>the bar bulge's scale length along the bar over the disk's scale length (the bar ends at three of them)</td>
+<td>0.02 to 1</td>
+<td>drawn from the seed, a third of a bar of 0.2 to 3 scale lengths [R1289]</td>
+<td>bar length from [R1289: Table 5] and [R1486] (shape_draw), which draws 0.067 to 1; the floor of 0.02 is the proposal's suggestion (galaxy size levers, 10-21) (bracket)</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td><code>--nuclear-amplitude</code> (advanced)</td>
+<td>the nuclear star cluster and nuclear stellar disk, as a multiple of the ones the galaxy's own laws draw (galaxy.structure_draw)</td>
+<td>0 to 10</td>
+<td>1, the galaxy's drawn pair</td>
+<td>hand option of the first plan, no source (placeholder)</td>
+</tr>
+<tr>
+<td>Edge</td>
+<td><code>--edge</code></td>
+<td>how far out the plan walks the outline of the galaxy: the outline stops here even where sectors still clear the one-star threshold (a relative length is in scale lengths of the thin disk)</td>
+<td>4 to 262140 pc, or 3 to 20 L</td>
+<td>the outline's own edge, where no sector clears the one-star-per-sector threshold, up to the grid's reach</td>
+<td>relative: Boss, 10-21 (7:01 PM EDT), 3 to 20 scale lengths; absolute: one 4 pc shell up to the grid's reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL) (derived)</td>
+</tr>
+<tr>
+<td>Halo</td>
+<td><code>--halo-ratio</code></td>
+<td>the dark halo's mass (M200) as a multiple of the galaxy's stellar mass; the virial radius, the tidal field and the disk's gas inflow follow it. Refused for a galaxy under the halo threshold</td>
+<td>10 to 3000</td>
+<td>drawn from the stellar-to-halo relation of the stellar mass [R3181], with its scatter</td>
+<td>the relation's own range: a halo holds 26 times its stars at the peak of star formation efficiency ([R3181], read in the repository) and 2200 times at the halo threshold of 1e10 solar masses; the ends are those, rounded (derived)</td>
+</tr>
+<tr>
+<td>Halo</td>
+<td><code>--stellar-halo-share</code></td>
+<td>the share of the galaxy's stars in its diffuse stellar halo (the rest are the disk, bulge and bar); refused for a galaxy under 3e8 solar masses of stars, which has none</td>
+<td>0.001 to 0.3</td>
+<td>drawn from a power law of the stellar mass (a placeholder, [R1816]) with 1.01 dex scatter</td>
+<td>the draw's own cut: 0.1 percent (Dragonfly galaxies with no detected halo) to 30 percent (the disk-dominated galaxies of [R0329]), read in structure_draw (bracket)</td>
+</tr>
+<tr>
+<td>Census</td>
+<td><code>--richness</code> (advanced)</td>
+<td>how many systems each solar mass of the galaxy's stars makes, so the galaxy's number of systems and with it the density in systems and the cost of a full generation; the mean system mass is its inverse</td>
+<td>1 to 3 systems per solar mass</td>
+<td>the mean system mass the generator derives for the galaxy's populations (about 2 systems per solar mass; galaxy.system_mass)</td>
+<td>the derived mean system mass runs 0.47 (old stars) to 0.79 solar masses (stars just formed), 1.3 to 2.1 systems per solar mass (the generator's own laws); the band 1 to 3 widens it by about a factor of 1.4 (bracket)</td>
+</tr>
+<tr>
+<td>Census</td>
+<td><code>--rogues</code></td>
+<td>how many free-floating planets a sector may hold once its top-up has made up the mass its own systems did not (physics/rogue_topup): the systems' own ejections always land where they land, and the top-up only brings a sector to the level, never past it</td>
+<td>none, few, normal, many</td>
+<td>normal, the low side of the observed range of free-floating planets per star</td>
+<td>Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to 10 per star; the number behind each word is a registered stand-in (tuning.ROGUE_LEVEL_CEILINGS) (placeholder)</td>
+</tr>
+<tr>
+<td>Pattern</td>
+<td><code>--arm-count</code></td>
+<td>the number of spiral arms</td>
+<td>1 to 10</td>
+<td>drawn from the arm-count shares (two arms in about two thirds of spirals)</td>
+<td>[R1836] counts 1 to 5 or more arms; the ceiling of 10 is a placeholder (placeholder)</td>
+</tr>
+<tr>
+<td>Pattern</td>
+<td><code>--pitch-angle-deg</code></td>
+<td>the arms' pitch angle (a negative one winds the other way)</td>
+<td>-90 to 90 degrees, at least 1 away from 0</td>
+<td>drawn from the seed, tighter for heavier galaxies</td>
+<td>[R1836] draws 10 to 40; the full quarter turn is a placeholder; under 1 degree from 0 is refused because a flat pitch divides by zero (density-limits report, 10-21) (placeholder)</td>
+</tr>
+<tr>
+<td>Pattern</td>
+<td><code>--arm-contrast</code></td>
+<td>how much denser the thin disk is on an arm crest than between arms: the arm factor is 1 + contrast x cos, so the crest is 1 + contrast and the trough 1 - contrast of the disk's own density (0 is no arms, 1 an empty trough)</td>
+<td>0 to 1</td>
+<td>0.4 (a crest 1.4 and a trough 0.6 of the disk's mean)</td>
+<td>0 to 1 because the density cannot go negative (theory); the 0.4 default is the first plan's hand value, no source (placeholder)</td>
+</tr>
+</tbody>
+</table></div>
+<p>A galaxy whose halo would weigh under 1e+10 solar masses (a stellar mass under about 4.6e6) has no dark halo: none is drawn and no law that reads one runs (bracket; see <code>dials.HALO_MIN_HALO_MASS_SOLAR</code>). A galaxy under 3e+08 solar masses of stars is one disk plus a bulge: no thick disk, bar, stellar halo or nuclear structures (<code>dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR</code>).</p>
+<!-- dials:end -->
+<p>Before it stores anything, <code>planetgen plan</code> prints one line about the galaxy it has drawn: how dense the thin disk's
+crest is as a multiple of the one-star-per-sector density (D: the systems the thin disk expects per sector on an arm
+crest at its center, from the built shape, so it follows the Census dial), about what share of the galaxy's systems sit
+in sectors that expect one (one integral of the built density over radius, height and azimuth, approximate), and how
+many shells and candidate sectors the outline holds, with about how many of those sectors really expect at least one
+system (the candidates are an upper bound: the outline keeps the best longitude and the run of bands up to a cluster's,
+and takes a cluster or dwarf galaxy in by the radius where its own density reaches one system in a sector, not by its
+tidal radius, GEN.627). A random start is redrawn until its sector expects at least one system. A
+crest under 20 times the one-star density adds a warning, and an outline with no sector in it is refused with the reason
+(raise the mass or the density, or lower the scale length or the height). The Generate page shows the same line under the
+shape dials; it asks <code>/admin/generate/shape-report</code>, which works the numbers out with the same code
+(<code>generation/plan_outline.py</code>).</p>
+<p>The galaxy holds the systems its stellar mass makes (no point of it is pinned to the local density, GEN.404). <code>--max-shell</code> caps how far out the
+shells are walked (100,000 by default) and <code>--seed &lt;32 hex digits&gt;</code> sets the
+galaxy seed. <code>--workers</code> is how many shells of bright stars are drawn at
+once.</p>
+<p><code>planetgen scatter</code> places the galaxy's stars and phenomena on the stored outline, before any sector is
+filled (PERF.121). It draws exactly one kind of scatter per run, so each kind is a command of its own that a job
+can queue, retry or leave out:</p>
+<ul>
+<li><code>--mass</code> places every star born at the stellar mass limit or more, whatever its luminosity.
+<code>--phenomenon-min-mass</code> is one of 8, 10, 12, 14, 16, 18 or 20 solar masses (14 by default).</li>
+<li><code>--luminosity</code> places the stars born lighter than the mass limit that are at least
+<code>--bright-star-min-luminosity</code> bright: from 2500 to 4,000,000 solar luminosities, 9000 by default (the Generate
+page offers presets). A lower level places far more stars and takes longer, and the run prints an estimate first.
+It works at the mass limit the mass pass stored, and stops with &quot;run 'planetgen scatter --mass' first&quot; when
+there is none.</li>
+<li><code>--phenomena</code> places the neutron stars, black holes and the rest. <code>--compact-min-mass</code> is the lowest mass of a
+neutron star or black hole placed galaxy-wide: one of 1, 2, 4, 6, or <code>star</code> for the stellar limit, which is the
+default. A lower limit stores far more rows, and <code>scatter --help</code> lists the sizes. The stars are left alone and the
+central black hole or quasar is always rebuilt.</li>
+<li><code>--nebula-field</code> draws the <code>nebula_field</code> table of molecular clouds again from the galaxy seed.</li>
+<li><code>--band --down-to N</code> adds a band of dimmer stars (described below).</li>
+</ul>
+<p>Each star is a finished star at a fixed point in its sector, stored in <code>bright_stars</code>, so the Galaxy Map can show the
+bright stars tracing the spiral arms right away. Filling a sector later
+builds a full system around each of its bright stars first, then draws
+the rest of its systems from dimmer stars only, so its expected total is
+unchanged. Every system's age comes from the stellar population mix where
+its sector sits (young stars crowd the arms near the plane; the bulge is
+old). Every option belongs to one kind and is refused with another. <code>planetgen plan</code> takes none of them, and
+a plan alone places no stars (and empties what an earlier plan's scatters left); <code>galaxy</code> runs the
+kinds as steps of one run.</p>
+<p>A scatter draws only where none of its kind is stored (Boss's F7): it stops and names the clear to run first, so
+nothing is replaced by accident. <code>planetgen clear-scatter</code> empties one kind and nothing else: <code>--mass</code> (refused while
+the bright stars are stored, which are split from the massive stars at the mass limit, so clear <code>--luminosity</code>
+first), <code>--luminosity</code> (the band goes with it), <code>--phenomena</code> or <code>--nebula-field</code>. To redo a scatter at a new
+setting, clear it and draw it again; to change the mass limit, clear <code>--luminosity</code> and <code>--mass</code>, then draw
+<code>--mass</code> and <code>--luminosity</code>. Clearing a kind with nothing stored says so and changes nothing.</p>
+<p><code>--cell-star-ceiling</code> and <code>--fill-luminosity-cap</code> (GEN.281, <code>plan</code>) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (<code>unresolved</code>). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. <code>--core-min-luminosity</code>, <code>--core-mass-limit</code> and <code>--halo-min-luminosity</code> (DB.54, <code>plan</code>) store the scatter limits by place: the core's luminosity floor and mass limit (unset, they are the baseline's times 1.1, 9,900 and 15.4 at the defaults) and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). The tiers that read them are GEN.333's. The satellites and clusters (<code>galaxy_components</code>) are drawn only by a full <code>plan</code>, so a galaxy planned before GEN.159 and GEN.237 has an empty component table until a full plan runs. <code>--timing</code> (<code>plan</code>, UX.162) prints a table of where the plan's time went, step by step with its share, the costliest first; <code>--debug</code> prints it too, and a plain plan does not. The measured cost of a full scatter is in <a href="../design/generation/generation-performance-study.html">generation-performance-study.md</a>.</p>
+<p><code>planetgen clean-nebula-field</code> (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (<code>tuning.NEBULA_FIELD_KEEP</code>): without <code>--apply</code> it counts, per class, the stored field clouds the rule now rejects and changes nothing; <code>--apply</code> deletes them (everything inside them loses its <code>inside_nebula_id</code>, and containment is refreshed in the sectors they reached). A nebula that was not made by the field is left alone. <code>planetgen scatter --nebula-field</code> then draws the <code>nebula_field</code> table again.</p>
+<p><code>planetgen sectors</code> (PERF.123) is the sector-generating part of <code>galaxy</code> as a command of its own: it takes every mode and sector option <code>galaxy</code> does (<code>--shell</code>, <code>--band</code>, <code>--wedge</code>, a span, <code>--course</code>, <code>--center-sector</code>, the random-start options, <code>--limit</code>, <code>--yes</code>, <code>--estimate-only</code>, and the generation options) and none of the later stages' options (the scatter limits). It saves the sectors unlinked and says the run's start time on the database's clock; <code>planetgen link</code>, <code>backfill</code> and <code>settle</code> then take that time as <code>--since</code>.</p>
+<p><code>planetgen link</code>, <code>planetgen backfill</code> and <code>planetgen settle</code> (PERF.123) are the last three stages of a <code>galaxy</code> run as commands of their own, each for the galaxy sectors saved at or after <code>--since TIME</code> (<code>YYYY-MM-DD HH:MM:SS</code> on the database's clock; a <code>sectors</code> or <code>galaxy</code> run says its start time near its start; without <code>--since</code>, the start of the newest <code>sectors</code> or <code>galaxy</code> run). <code>link</code> links those sectors to their neighbours (containment, nearest systems and quadrants, and the new systems merged into the sectors around them). <code>backfill</code> draws the bright stars out from them, each sector only where it is not drawn yet. <code>settle</code> saves the path of every body in them and in the sectors around them. Each is one run through the work queue, takes only <code>--since</code>, <code>--workers</code> and the connection options, can be run again, and does nothing (starts no run) when no sector was saved since <code>TIME</code>.</p>
+<p>The sky tiers (VIEW.25) are part of the backfill: <code>--sky-limit MAG</code> (<code>galaxy</code>, <code>sectors</code> and <code>backfill</code>; 2 to 9, 0 for none; without it the <code>queue.sky_limit</code> setting, 7.5 unless the deployment changed it) sets the limiting magnitude, and for each 50 parsec observer cell the new sectors lie in, the luminosity bands and mass rings of the table for that limiting magnitude (<code>generation/sky_tiers.py</code>) are drawn out to their reach, one sphere at a time in the galaxy, brightest band first, and recorded in <code>sky_tier_draws</code>. A sphere already drawn is not drawn again, and a stopped draw goes on from its last batch. The census line says the rows and the seconds a backfilled sector cost.</p>
+<p><code>planetgen fill-map-luminosity</code> (DB.23, GEN.201) fills <code>phenomenon_scatter.map_luminosity_sol</code>, the luminosity a star of a row's mass would have on the Galaxy Map, for a galaxy scattered before schema v84: id-range batches of 200,000 rows, each its own short statement and commit, resumable (it only fills rows still empty). A new scatter writes the value with each row. <code>planetgen rescore-habitability</code> (GEN.217) re-derives the stored habitability numbers of every planet and moon from its stored conditions: the flux swing of a body in a double-star system (loading that system, as generation does), the PHI-6 index, the six domains and their tiers, the survival equipment levels and the note. It is for a galaxy generated before a change to the rules (GEN.148, GEN.207, GEN.215), so the planet chip, the search page and the facet counts agree with the description, which is worked out from the same conditions whenever a page is drawn. Nothing else is touched; each batch of 500 systems is its own transaction and the result is the same however often it is run, so a stopped run is started again. A gas giant and a body saved before schema v76 (no score) are left alone. Both take only <code>--workers</code> and the connection options. The admin Queue page starts either one from its Start a fill panel (ADM.129).</p>
+<p><code>planetgen fill-nebula-blocks</code> (MAP.172) makes the nebula totals of the Galaxy Map's blocks again (<code>nebula_block_stats</code>: for every block of the ladder, the nebulae in it, their volume, centroid, families, dominant class and cover) from the <code>nebula_field</code> table and the stored nebulae, in one transaction. <code>planetgen scatter --nebula-field</code> makes them with the field, and a <code>galaxy</code> run adds the nebulae it stored at its end; this is for a galaxy whose field was drawn before the totals existed, or after anything else changed the nebulae. It can be run again, and takes only <code>--workers</code> and the connection options.</p>
+<p><code>planetgen fill-block-totals</code> (MAP.258, MAP.259) makes the totals of the Galaxy Map's blocks again, in three tables: <code>galaxy_block_stats</code> (what each block's generated sectors hold, with their summed mass, DB.108: the sectors' own masses are made again first, and a sector that holds a body with no stored mass is listed in the log and left out of the sums), <code>region_stats</code> (DB.107: the sectors, share charted and extent of each named region, a 9-block that holds a generated sector) and <code>galaxy_block_lights</code> (the count, summed luminosity, center of light and mean temperature of the pre-placed bright stars and scattered phenomena nothing was built from). A <code>galaxy</code> run brings in the sectors it saved at its end, a scatter, a clear and <code>fill-map-luminosity</code> make the light totals at theirs; this is for a galaxy whose totals were never made, or after a run stopped before it finished. It can be run again (the light is made a unit of shells at a time and each unit is committed), and takes only <code>--workers</code> and the connection options.</p>
+<p>The scatter always leaves the sectors that are already filled out (they
+would never get their bright stars).</p>
+<p>The scatter can go down in stages. <code>scatter --band --down-to N</code> keeps every
+bright star already placed and adds only those from <code>N</code> up to (not
+including) the galaxy's star-fill level, the threshold already scattered
+(9000 by default), then lowers that level to <code>N</code>. So a quick test galaxy
+scattered at 9000 can later go down to 5000 without redrawing anything
+brighter:</p>
+<pre><code class="language-bash">planetgen scatter --band --down-to 5000
+</code></pre>
+<p>Sectors already filled get none of the new stars: their own systems were
+drawn below the old level, so they already hold stars that bright. Asking
+for a level at or above the current one does nothing and says so. The
+Generate page shows the current level and offers the same step as &quot;Add a
+dimmer step of bright stars&quot;.</p>
+<h2 id="exotic-phenomena-generation">Exotic Phenomena Generation</h2>
+<p><code>planetgen phenomenon</code> generates a single exotic stellar phenomenon on demand,
+independent of any one sector (see &quot;Sector-Level Exotic Phenomena&quot; above
+for the population every generated sector gets automatically):</p>
+<pre><code class="language-bash">planetgen phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field,quasar} [options]
+</code></pre>
+<p>Omitting <code>--type</code> picks uniformly at random among the first seven; a quasar is only made when asked for by name, and <code>--sector-id</code> only accepts a shell-0 (galactic core) sector for one, placing it at the galactic center; there is one per galaxy. <code>--anchor-system</code>
+(black hole/neutron star only) builds a full star system around the
+compact remnant instead of describing it standalone — real pulsar planets
+exist (PSR B1257+12) — reusing all of <code>planetgen system</code>'s own orbit-placement
+logic; since a compact remnant's near-zero luminosity naturally collapses
+the disk-physics planet-count estimate toward zero (matching the real
+rarity of confirmed planets around black holes/neutron stars), pass
+<code>--num-orbits</code> to force orbiting bodies. <code>--sector-id</code> (any type except an
+anchored one) links the generated phenomenon to an already galaxy-placed
+sector — for nebula/asteroid-field/black-hole/neutron-star, it also
+computes a real galaxy-frame position near that sector, instead of
+leaving it unplaced; other types are linked only (no placement columns of
+their own) — see <code>database-schema.md</code>'s &quot;v18&quot;/&quot;v21&quot; notes.
+<code>--name &lt;name&gt;</code> forces the phenomenon's name. <code>phenomenon</code> only generates and saves the phenomenon (PERF.124). A black hole or neutron star can bend the paths of the bodies around it, so after <code>--sector-id</code> run <code>planetgen settle --sector-id ID</code>, which saves the paths of that sector and the sectors around it (<code>settle</code> takes <code>--sector-id</code> in place of <code>--since</code>; the two cannot be combined). <code>--debug</code>/<code>--quiet</code>/<code>--silent</code>, and the
+<code>--mysql-*</code> connection options all work the same way they do on
+<code>planetgen system</code>.</p>
+<h2 id="population">Population</h2>
+<p><code>planetgen population</code> is an optional pass over what is already
+stored: it names the dominant species of every world with complex life,
+gives technological civilizations an age and an era (Industrial through
+Elder) and founds one polity per spacefaring species. Which systems each polity owns (reach up to 100 ly from its
+capital) is the <code>territories</code> pass, its own command (PERF.125). Neither runs on its own except as stages of a <code>galaxy</code> run.</p>
+<pre><code class="language-bash">planetgen population                     # scan what isn't scanned yet
+planetgen population --rescan            # forget everything and start over (new names, ages and borders)
+planetgen territories                    # work out who owns which system, from the polities stored (run after population)
+</code></pre>
+<p><code>planetgen sector</code> does not run it (PERF.124: <code>sector</code> only generates; the <code>--population</code> option is gone), and <code>planetgen galaxy</code> runs it, and then the territories pass, as stages. <code>--rescan</code> forgets the polities and with them the territories, so run <code>planetgen territories</code> after it. Each pass is a one-unit command of the work queue (<code>run-population</code>, <code>run-territories</code>). The install scripts offer it (y/N,
+default N after 30 seconds; <code>POPULATION=1</code> or <code>-Population</code> runs it
+without asking). The website hides species, polities and the Galaxy
+Map's Territories overlay until it has made something to show
+(<code>GET /api/population</code>). The <code>--mysql-*</code>, <code>--debug</code> and <code>--quiet</code>
+options work as on the other subcommands. Design and decisions:
+<a href="../design/habitability/population-and-politics.html"><code>design/habitability/population-and-politics.md</code></a>.</p>
+<h2 id="fingerprint">Fingerprint</h2>
+<p><code>planetgen fingerprint</code> prints a canonical SHA-256 digest of each
+sector's generated content, one line a sector (<code>shell band wedge digest</code>, unplaced sectors last), then the plan's digest and the
+region's. Two builds of one galaxy are the same when their digests
+match; a sector whose line differs is where they part. It writes
+nothing and isn't logged as a run.</p>
+<pre><code class="language-bash">planetgen fingerprint                      # the whole galaxy, plan included
+planetgen fingerprint --shell 3 --shell 4  # every sector in shells 3 and 4
+planetgen fingerprint --sector 12 3 0      # one sector: shell 12, band 3, wedge 0 (repeatable)
+</code></pre>
+<p>It compares what <a href="../design/generation/reproducible-galaxies.html"><code>design/generation/reproducible-galaxies.md</code></a>
+section 2 defines: every object's address, position, properties and
+name, with their child rows and the cell's bright stars and phenomenon
+scatter. Row ids, timestamps, each row's update clock, the nearest
+systems and the location text written from them, sector paths and
+stats, population data and bookkeeping are left out; a foreign key
+counts as what it points at (a sector's address, an object's unique
+ID). It reads the galaxy as stored; comparing a rebuild with the
+stored galaxy is internal testing only.</p>
+<h2 id="check-the-database">Check the database</h2>
+<p><code>planetgen check-db</code> looks for damage and changes nothing: the schema revision, table health (<code>CHECK TABLE</code>), rows without parents, ids, impossible values, sector counts and version keys. It ends with one pass or fail line per check, exits 1 when it found damage and 2 when a check could not run (DB.8, DB.21, PERF.126). The Generate page runs the same checks.</p>
+<p>Each check is a command of its own (<code>check-revision</code>, <code>check-tables</code>, <code>check-tables-extended</code>, <code>check-orphans</code>, <code>check-ids</code>, <code>check-values</code>, <code>check-counts</code>, <code>check-version-keys</code>, <code>check-storage</code>, <code>check-systems</code>, <code>check-object-index</code>; <code>planetgen commands</code> lists them). <code>check-db</code> only builds the list of them and the wrapper queues them one after the other as a check run on the Redis queue, so it needs Redis (and a worker running as part of it) like every queue run, never holds up a generation run and shows no banner to the site's visitors. Name the checks to run only those. <code>object-index</code> is not in the default list: it compares the object index with the tables (PERF.140) and warns when the index has not been built yet.</p>
+<pre><code class="language-bash">planetgen check-db                              # the default checks, the whole database
+planetgen check-db ids orphans                  # only those checks, in the order the list keeps
+planetgen check-db --shell 12                   # values, counts and version keys of one shell's sectors (repeatable)
+planetgen check-db --sector 12 3 0              # the same for one sector: shell 12, band 3, wedge 0 (repeatable)
+planetgen check-db systems --estimate-only      # print the time the systems check would take, then stop
+planetgen check-db tables-extended systems --yes   # the slow checks: CHECK TABLE ... EXTENDED, then every star system
+planetgen command-run check-ids '{&quot;database&quot;: {...}}'   # one check alone
+</code></pre>
+<ul>
+<li>Without a name the list is <code>revision tables orphans ids values counts version-keys storage</code>; <code>tables-extended</code> (<code>CHECK TABLE ... EXTENDED</code>) and <code>systems</code> (validates every star system) are the slow ones and run only when named.</li>
+<li><code>systems</code> is slow, so its time is estimated first and a yes is asked for; <code>--yes</code> goes ahead after the estimate without asking (needed off a terminal), and <code>--estimate-only</code> prints the estimate and stops (the Generate page uses it).</li>
+<li><code>--wide-binaries</code> (with <code>systems</code>): validates only the wide binaries (S-type pairs), to count the pairs whose orbits overlap (GEN.228).</li>
+<li><code>--shell</code> and <code>--sector</code> scope <code>values</code>, <code>counts</code>, <code>version-keys</code>, <code>storage</code> and <code>systems</code>; the other checks always look at the whole database.</li>
+</ul>
+<h2 id="version-keys">Version keys</h2>
+<p><code>planetgen versions</code> lists the version key each update recorded for the galaxy database, newest first (OPS.13): the release, the Python version, the operating system and the architecture that made the galaxy, in the 22 hex digits explained under <a href="#size-and-time-estimates">the galaxy seed</a>. It takes only <code>--mysql-*</code>, <code>--debug</code> and <code>--quiet</code>.</p>
+<h2 id="benchmark">Benchmark</h2>
+<p><code>planetgen benchmark</code> times a small galaxy from the plan to the finished fill in scratch databases and prints the time and database work of every stage, at each worker count asked, with an optional profile of the fill (PERF.31). It makes a scratch database and a scratch control database, runs the real <code>plan</code> and <code>galaxy</code> commands against them in child processes with a fixed seed, and drops both afterwards unless <code>--keep</code> is given; nothing is written to the real database.</p>
+<pre><code class="language-bash">planetgen benchmark                          # 2 sectors in shell 12, one worker
+planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
+</code></pre>
+<ul>
+<li><code>--sectors N</code>: the sectors the fill makes (2 by default). <code>--shell I</code>: the shell the fill starts in (12 by default; a lower shell is denser). <code>--max-shell I</code>: the plan's outermost shell (12 by default, a small galaxy). <code>--seed HEX</code>: the galaxy seed (32 hex digits).</li>
+<li><code>--workers N[,N...]</code>: the worker counts to run at, one run each (1 by default).</li>
+<li><code>--profile</code>: also profiles one single-worker fill and lists its costliest functions. <code>--keep</code>: leaves the scratch databases in place. <code>--output FILE</code>: writes the results to <code>FILE</code> as JSON.</li>
+<li><code>--suite</code>: the performance suite of every generation option instead (below).</li>
+</ul>
+<h3 id="the-performance-suite">The performance suite</h3>
+<p><code>planetgen benchmark --suite</code> (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where <code>planetgen benchmark</code> times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): <code>plan</code>, <code>scatter-mass</code>, <code>scatter-luminosity</code>, <code>scatter-phenomena</code>, <code>scatter-nebula-field</code>, <code>scatter-band</code>, <code>fill-nebula-blocks</code>, <code>fill</code> (one <code>planetgen galaxy --shell</code> run, with the time of each stage it records), <code>population</code>, <code>territories</code>, <code>rescore-habitability</code>, <code>fill-map-luminosity</code> (after emptying the column it fills) and <code>warm</code>.</p>
+<pre><code class="language-bash">planetgen benchmark --suite --size small --workers 3 --output small.json
+planetgen benchmark --suite --size medium --repeats 3 --output medium.json
+planetgen benchmark --suite --size small --steps plan,scatter-mass
+</code></pre>
+<ul>
+<li><code>--size tiny|small|medium|large</code>: the galaxy's stellar mass, which sets the clusters, shells and stars every step meets: <code>tiny</code> 2e6 solar masses (for tests), <code>small</code> 3e7, <code>medium</code> 4e9 (a default-size galaxy) and <code>large</code> 5e10 (Milky-Way size). <code>--mass M_SUN</code> and <code>--fill-sectors N</code> replace the size's own numbers. <code>--seed HEX</code> is the galaxy seed, fixed by default, so two runs make the same galaxy.</li>
+<li><code>--steps STEP[,STEP...]</code>: only these steps, in the suite's order; a step needs the ones before it to have run, so a list starts from <code>plan</code>.</li>
+<li><code>--repeats N</code>: runs the whole pipeline N times in fresh databases and reports each step's fastest, median and slowest run and the spread.</li>
+<li><code>--step-timeout MINUTES</code> (240): a step still running then is stopped and recorded as not finished; later steps are not run.</li>
+<li>Each step prints a line when it ends, so a run that is stopped (a container restart, a closed terminal) keeps what finished. A run in which a step failed, did not finish or was stopped leaves its scratch databases (<code>planetgen_suite_&lt;SUFFIX&gt;_r0</code> and <code>planetgen_suite_control_&lt;SUFFIX&gt;</code>, the suffix printed at the start). <code>--resume SUFFIX</code> carries on in them: give <code>--steps</code> the steps left to run (a step that was stopped in the middle may need <code>planetgen clear-scatter</code> of its kind first). Drop the two databases by hand when done.</li>
+<li>Each step records the wall time and its share of the run, the CPU the machine spent (less the database server's and Redis's own share), the statements and rows the database server counted, the peak memory of the generation processes (together and the largest), what it made (stars, systems, rows) and the time per thing made, and the stage rows the command stored.</li>
+</ul>
+<p>The suite stops the queue workers before and after each step, so every step starts with cold ones, and it turns the automatic cache warm-up off (<code>PLANETGEN_WARM_ON_CHANGE=0</code>). The machine must be the suite's alone while it runs: the CPU and database counters are the machine's, and the Redis queue is the real one. It needs Linux (<code>/proc</code>), the Redis queue and a database account that can create databases. The numbers of a run, the ranked costs and the optimizations they led to are in <a href="../design/generation/generation-performance.html">design/generation/generation-performance.md</a>.</p>
+<h2 id="warm-the-caches">Warm the caches</h2>
+<p><code>planetgen warm</code> builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in <a href="../design/operations/cache-warm-up.html">cache-warm-up.md</a>). <code>update.sh</code> runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by <code>planetgen commands</code> and runnable alone with <code>planetgen command-run KIND ARGS</code>: <code>warm-cluster-field</code> (the galaxy's cluster field: the mean system mass of each age worked out in small parts, then the field kept as a file in the state folder that the web reads; PERF.225), <code>warm-object-index</code> (the object index: one row per object of every kind the site lists, written when it changed since the last run; built whole after <code>planetgen orbits</code> or a new epoch, because those move objects between sectors without touching their rows' <code>modified_at</code>; PERF.140), <code>warm-galaxy-map</code> (the opening nodes and stage, the shape, the sector and phenomena lists), <code>warm-galaxy-nodes</code> (the Galaxy Map's sector-block nodes: every populated block of level 243 and above, cut into chunks of 64 nodes that the workers build; PERF.130, MAP.260), <code>warm-galaxy-deep-nodes</code> (the zoom run in to the galaxy's center, down to blocks of <code>tile_cache.warm_zoom_floor</code> shells; PERF.141, MAP.261), <code>warm-lists</code> (the first page of every list and its counts), <code>warm-sectors</code>, <code>warm-systems</code> and <code>warm-phenomena</code> (every page of that kind, nearest the galaxy center first, up to <code>page_cache.warm_max_objects</code> of each) and <code>warm-search</code>. <code>planetgen warm</code> only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with <code>end-map-rebuild-maintenance</code>, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.</p>
+<pre><code class="language-bash">planetgen warm [FAMILY|PHASE ...] [--cap N]
+</code></pre>
+<p>The warm-up runs in five phases (PERF.141): <code>opening</code> (<code>object-index</code>, <code>galaxy-map</code>, <code>lists</code>: the object index, the opening views and the first page of each list), <code>built-levels</code> (<code>galaxy-nodes</code>), <code>deep-nodes</code> (<code>galaxy-deep-nodes</code>), <code>objects</code> (<code>sectors</code>, <code>systems</code>, <code>phenomena</code>) and <code>search</code>. After each phase it prints one line: what it built, what was already stored, what the cache budget (<code>cache.max_mb</code>) or the cap left out, or <code>unchanged, nothing built</code> when the data under it has not changed since the last run. After a generation run, <code>planetgen orbits</code>, an edit or any other change that moves a data version tag it also starts by itself in the background (<code>planetgen warm --on-change DATABASE</code>, which waits <code>cache.warm_settle_seconds</code> for more changes and then warms once; off with <code>cache.warm_on_change</code>, never during an update). <code>FAMILY</code> is any of the families above and <code>PHASE</code> any of the phase names, a phase standing for all its families (the list is those, in order, whatever order they are named in); <code>--cap</code> overrides <code>page_cache.warm_max_objects</code>.</p>
+<h2 id="stop-everything">Stop everything</h2>
+<p><code>planetgen queue stop-all</code> (PERF.186) is the emergency stop, the same routine as the Stop everything button on the admin Queue page. It writes a hold in the state folder (<code>stopped.json</code>, which survives a restart of Redis, the web server and the host), cancels the Generate page's job and every live run, empties every queue, and ends every planetgen worker, job runner and command process on the host together with the processes they started (SIGTERM, then SIGKILL after five seconds, looking again for what the dying ones started). While the hold is on nothing starts: no worker, run, Generate job, orbital update or cache warm-up, and the site's map prefetch queues nothing; a worker that is still alive ends before it takes a job. <code>planetgen queue resume</code> lifts the hold (and the queue pause); <code>planetgen queue status</code> says whether it is on and how many planetgen processes run. Run it as root so every process can be ended; the pids it could not end are listed and the command exits 1. <code>--no-hold</code> ends everything but leaves no hold, which is what <code>sudo ./update.sh --kill-all</code> runs before the update guard. It works with no Redis answering, and <code>python3 -m planetgen.cli.queue stop-all</code> runs it with little else imported.</p>
+<h2 id="helper-tools">Helper tools</h2>
+<p>Besides <code>planetgen</code>, a few modules run on their own with <code>python3 -m</code>. Run them as the account that owns the install (the web server's user for <code>planetgen warm</code>, so Apache can read what it writes). <code>orbits</code>, <code>query</code>, <code>migrate</code>, <code>reset</code>, <code>forget_devices</code>, <code>reset_two_factor</code> and <code>accounts</code> take the same five database options: <code>--mysql-host</code>, <code>--mysql-port</code>, <code>--mysql-user</code>, <code>--mysql-password</code> and <code>--mysql-database</code>, each defaulting to its <code>PLANETGEN_MYSQL_*</code> variable (see <a href="config.html">config.md</a>). <code>worker</code>, <code>config</code>, <code>lockouts</code> and <code>lift_lockout</code> take no database options. <code>orbits</code> and <code>query</code> also take <code>--version</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>What it is for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>python3 -m planetgen.cli.orbits</code></td>
+<td>Moves every object that is due along its orbit.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.tiles</code></td>
+<td>Builds every node of the whole Galaxy Map into a new cache and swaps it in.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.worker</code></td>
+<td>Runs one queue worker.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.query</code></td>
+<td>Lists what is stored.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.migrate</code></td>
+<td>Brings the database up to the current schema.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.datasets</code></td>
+<td>Downloads the static data the generator reads (isochrone grids and the like) or says where each set stands.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.reset</code></td>
+<td>Empties the galaxy.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.lockouts</code></td>
+<td>Lists the login lockouts.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.lift_lockout</code></td>
+<td>Lifts a login lockout.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.forget_devices</code></td>
+<td>Revokes an admin's trusted-device cookies.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.reset_two_factor</code></td>
+<td>Turns off an admin's two-factor sign-in.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.accounts</code></td>
+<td>Makes an account the Owner (<code>--set-owner USER</code>).</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.config</code></td>
+<td>Checks, documents and edits the settings.</td>
+</tr>
+<tr>
+<td><code>python3 -m planetgen.cli.backup</code></td>
+<td>Takes, lists, verifies and restores backup archives.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="tiles">tiles</h3>
+<p>Builds the whole Galaxy Map's node cache from scratch (PERF.233): every node of every level of the whole galaxy (a block of each level that holds a generated sector or a placed object, and each generated sector), into a new cache beside the live one, swapped in when it is complete. The live cache keeps serving until the swap, a run that is killed leaves it as it was, and running it again picks up the nodes already built. The map's address space is 23.9 billion cells; only the populated part is a node. It builds a level at a time, biggest blocks first, <code>tile_cache.build_workers</code> processes at once (0 is one per core), with one progress line per level, builds with no cache budget and no pruning, and checks the data once more before the swap: a change meanwhile deletes just the nodes it touched, which are built again. It refuses to start unless twice the projected size (110 KB a sector node and 45 KB a block node at most) is free on the cache's disk, saying the figures (<code>--force</code> builds anyway). Run it as the web server's user so Apache can read what it writes. <code>--workers N</code> overrides the setting and <code>--no-swap</code> leaves the finished cache in the <code>.build</code> folder under the cache root. It exits 0 done, 1 failed, 75 when an update is running (nothing was built) and 130 when stopped. The maintenance example <code>examples/maintenance/planetgen-tiles@.timer</code> runs it nightly at 05:00 after the orbit update, then <code>planetgen warm</code> rebuilds the lists, objects and search. The sizes and times it was planned from are in <code>reports/perf233-tile-cache-cost-2026-11-04.md</code>. <code>cache.max_mb</code> no longer counts the nodes built ahead (this build's and the warm-up's): it is the allowance of the nodes visits asked for.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.tiles
+</code></pre>
+<h3 id="orbits">orbits</h3>
+<p>The positional update. Each planet, moon, star, binary pair, comet, facility and standalone phenomenon keeps its own clock (<code>epoch_unix</code>) and a time it next needs storing (<code>next_update_due</code>); a run moves only what is due, from its own epoch to now by the database server's clock, then refiles anything that drifted into another sector, refreshes containment (nebulae and remnants), nearest systems and location text, and recomputes the sector paths. A run prints how many years passed since the last one, what it moved and how many objects changed sector. It never moves anything backwards: if the server's clock went back it says so, moves nothing and restarts the clock. There is no <code>update-orbits</code> command; this is it. Run it from cron or by hand, as often as you like (a run with nothing due changes nothing):</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.orbits
+</code></pre>
+<h3 id="worker">worker</h3>
+<p>One RQ worker, at the lowered priority generation workers run at. The site and the generation runs start these themselves (<code>planetgen.queue.workers.ensure_workers</code>); run one by hand only to add capacity or to watch one. Redis is read from <code>--url</code>, else <code>PLANETGEN_REDIS_URL</code>, else <code>redis.url</code> in <code>config.json</code>.</p>
+<ul>
+<li><code>QUEUE ...</code>: the queues to serve, first one first (default: the interactive queue). A worker serves one kind of queue, the web queues or a run's own, never both. The site keeps lanes of its own: <code>planetgen-bulk</code> (a run's units, up to the admin's worker count), <code>planetgen-interactive</code> (short API jobs: <code>queue.interactive_workers</code> workers, outside that count, at a higher priority than the others) <code>planetgen-maintenance</code> (the units of the cache warm-up and the database check, and the tile prefetch and rebuild: while a generation run is live <code>queue.maintenance_workers</code> workers, taken out of the admin's worker count, with a generation worker finishing its unit and leaving when the lane needs its place; with no generation run live the whole count; PERF.150) and <code>planetgen-long</code> (API jobs expected to take longer than <code>queue.long_job_seconds</code>, a neighbourhood or a large settle: <code>queue.long_workers</code> workers), so a long job never holds the worker kept for short ones (PERF.151).</li>
+<li><code>--burst</code>: exit once the queues are empty.</li>
+<li><code>--idle-seconds &lt;int&gt;</code>: exit after this long without work (default 60; ignored with <code>--burst</code>).</li>
+<li><code>--name &lt;name&gt;</code>: the worker's name (default: RQ picks one).</li>
+<li><code>--url &lt;redis-url&gt;</code>: the Redis server.</li>
+</ul>
+<pre><code class="language-bash">python3 -m planetgen.cli.worker --burst
+</code></pre>
+<h3 id="query">query</h3>
+<p>Lists what is stored, read-only. The subcommands are <code>sectors</code> (the sectors with their size and system count), <code>systems</code>, <code>near</code>, <code>planets</code> and <code>moons</code>.</p>
+<ul>
+<li><code>sectors [--limit N] [--after ID]</code> and <code>systems [--star-type TYPE] [--sector-id ID] [--limit N] [--after ID]</code>: <code>--limit</code> sectors or systems at a time (default 100; <code>--limit 0</code> lists every one, which on a big galaxy reads them all), the sectors nearest the galactic core first and the systems by name. When more follow, the last line prints the <code>--after</code> to carry on with; a page starts after that row by key, so any page costs what the first does (PERF.211).</li>
+<li><code>near PLACE --distance PC [--kinds a,b] [--limit N] [--offset N]</code>: everything within a distance (at most 50 pc) of an object (<code>system:&lt;ID&gt;</code>, <code>planet:&lt;ID&gt;</code>, <code>nebula:&lt;ID&gt;</code> ...; a bare three-part ID is a system) or of a galaxy-frame point <code>x,y,z</code> in parsecs.</li>
+<li><code>planets</code> and <code>moons</code>: <code>[--class C] [--min-radius-km N] [--max-radius-km N] [--sector-id ID] [--system-id ID] [--limit N] [--after ID]</code>: they list in order of system name, system, orbit (a moon's planet's orbit, then its own), then ID, <code>--limit</code> planets or moons at a time (default 100; <code>--limit 0</code> lists every one, which on a big galaxy reads them all). When more follow, the last line prints the <code>--after</code> to carry on with; a page starts after that planet or moon by key, so any page costs what the first does (PERF.207).</li>
+</ul>
+<pre><code class="language-bash">python3 -m planetgen.cli.query sectors
+python3 -m planetgen.cli.query planets --class M --sector-id &lt;ID&gt;
+python3 -m planetgen.cli.query planets --limit 50 --after &lt;ID of the last planet shown&gt;
+</code></pre>
+<h3 id="migrate">migrate</h3>
+<p>Applies any schema migration the database is missing and does nothing if it is current. <code>install.sh</code> and <code>update.sh</code> run it, so you rarely need to. It shows a progress bar (a line per step when output is not a terminal). <code>--status</code> prints <code>&lt;current version&gt; &lt;target version&gt; &lt;pending steps&gt; &lt;database&gt;</code> and changes nothing, which is how <code>update.sh</code> decides whether to ask about the database. A database older than schema v61 is refused.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.migrate --status
+</code></pre>
+<h3 id="datasets">datasets</h3>
+<p>Downloads the static data files the generator reads (GEN.548) into a cache folder outside the checkout, <code>/var/cache/planetgen/datasets</code> (<code>PLANETGEN_DATA_DIR</code> moves it). <code>install.sh</code> and <code>update.sh</code> run <code>fetch</code> once at setup, as root, and make the folder readable for Apache's user; nothing downloads while the site or the generator runs. Each file is requested with the standard <code>User-Agent</code>, must have the size and sha256 the catalogue states, and is kept by an atomic rename, so an interrupted run leaves no half file. <code>fetch</code> prints one line per dataset and, under it, one line per file with its https URL and what happened to it: <code>fetched</code> (requested and kept), <code>kept</code> (already there with the right size and sha256, not requested again) or <code>failed</code> (with the reason); <code>update.sh</code> and <code>install.sh</code> show these lines. A dataset whose host does not answer, or whose file does not match, stays missing; <code>fetch</code> then prints the reason and exits 1, which the scripts report as a warning and not as a failure. <code>status</code> fetches nothing, says which datasets are present, prints the URL of every file that is missing, and exits 1 while one is missing. <strong>Bulk generation needs them (GEN.590):</strong> <code>galaxy</code>, <code>plan</code>, <code>population</code> and <code>sector --num-sectors</code> above 1 refuse to start while a dataset is missing, naming it and writing nothing, as with the math check; so do the Sector page's neighbourhood button and the Generate page's jobs, whose second step, &quot;Check the data&quot;, is <code>status</code> (before the reset, so nothing is wiped for a run that cannot start). <strong>The refusal names what to do:</strong> each missing dataset, why, every file to download with its URL, and the setup command (<code>python3 -m planetgen.cli.datasets fetch KEY</code>, which <code>update.sh</code> runs for you). <strong>Unless the run is told, in so many words, to disregard missing data (GEN.599):</strong> <code>--disregard-missing-data</code> on the command line, the &quot;Disregard missing data files&quot; box on the Generate page, <code>&quot;disregard_missing_data&quot;: true</code> in the neighbourhood request. The run then starts, prints which datasets are missing and the labelled fallback each takes (<code>status --disregard-missing-data</code> does the same and exits 0 for a dataset that has one), and hands the option to every worker through its run record; the command line is in the galaxy's run history, so a galaxy built that way can be told. The fallbacks: no main-sequence luminosity, temperature, radius or lifetime for a star (an open item on the star), the zero-temperature Chandrasekhar radius for a white dwarf with no layers, and the one [R0722] outer crust for a neutron star. Nothing falls back without the option.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.datasets fetch
+python3 -m planetgen.cli.datasets status
+</code></pre>
+<h3 id="reset">reset</h3>
+<p>Empties every generated table of the galaxy (<code>TRUNCATE</code>, so the schema stays), keeping <code>schema_migrations</code> and the id counters (<code>id_blocks</code>), so the next galaxy's ids carry on past the old one's. It never touches the control database (admin accounts, sessions, API keys, audit log). <strong>It cannot be undone.</strong> By default it asks you to type the database's name back; <code>--yes</code> skips that for scripts. Look first with <code>--dry-run</code>, which lists each table and its row count and changes nothing.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.reset --dry-run
+</code></pre>
+<h3 id="lockouts">lockouts</h3>
+<p>For an admin locked out of the site. It lists what is locked and does nothing else; the lockouts live in Redis, on the rate-limit storage (<code>ratelimit.storage_uri</code>, else <code>redis.url</code>).</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.lockouts
+</code></pre>
+<h3 id="lift_lockout">lift_lockout</h3>
+<p>Lifts login lockouts, on the same storage. One of these is needed:</p>
+<ul>
+<li><code>--ip ADDRESS</code>: lift one address (an IPv6 address by its /64).</li>
+<li><code>--user NAME</code>: lift one username.</li>
+<li><code>--all</code>: lift every lockout.</li>
+</ul>
+<p>Each lift is written to the activity log as <code>DB lockout.lift</code>.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
+</code></pre>
+<h3 id="forget_devices">forget_devices</h3>
+<p><code>forget_devices USER</code>: that admin's browsers lose their trusted-device cookies, so the next sign-in asks for the two-factor code again. Written to the activity log as <code>DB devices.revoke</code>.</p>
+<h3 id="accounts">accounts</h3>
+<p><code>accounts --set-owner USER</code>: makes that account the one Owner (USR.31), the old Owner becoming an admin. The Owner changes the Owner-tier settings (the mail server, the site's address, the From address) from the Settings page after typing the password again; this is the way back when that account is lost. Written to the activity log as <code>DB owner.set</code>. The rest of the accounts commands come with USR.26.</p>
+<h3 id="reset_two_factor">reset_two_factor</h3>
+<p><code>reset_two_factor USER</code>: turns off that admin's two-factor sign-in, for a lost phone and lost recovery codes. The admin signs in with the password and can set it up again. Written to the activity log as <code>DB totp.reset</code>.</p>
+<h3 id="config">config</h3>
+<p><code>config.json</code> is the one file that holds all program configuration, your own copy of <code>config.json.example</code>. <code>check</code> validates it the way the app reads it (an unknown key is an error) and exits 1 naming every field that does not fit. <code>docs</code> rewrites the generated parts, the option table in <a href="config.html">config.md</a>, <code>config.json.example</code> and <code>config.schema.json</code>, from the settings model; a test fails when they differ from what it would write, so run it after changing an option.</p>
+<p><code>get [OPTION]</code> prints the value that applies and where it comes from (default, <code>config.json</code> or an environment variable; a secret shows only <code>(set)</code> or <code>(empty)</code>). <code>set OPTION=VALUE ...</code> and <code>unset OPTION ...</code> change <code>config.json</code> through the same writer as the Admin settings page (<a href="config.html#saving-settings">config.md</a>): every value is checked first and one bad value saves nothing, the old file is backed up, and each change gets an audit row (when the control database is reachable) and an activity-log line. The command prints what needs a restart. A value is read as JSON for a number, <code>true</code> or a list and as text otherwise (<code>set site_name=&quot;My galaxy&quot; cache.max_mb=300</code>); <code>OPTION=-</code> reads it from standard input, which keeps a secret out of the shell history. <code>restore ARCHIVE</code> puts the settings of a backup archive back (<code>planetgen.cli.backup list</code> shows the archives), backing up the current file first. Every option may be set here, the database, the secrets and the Owner-only ones included, because whoever can run the command owns the server; the Admin page cannot change those. If <code>config.json</code> does not exist the command says so and creates nothing.</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.config check
+python3 -m planetgen.cli.config docs
+python3 -m planetgen.cli.config get cache.max_mb
+python3 -m planetgen.cli.config set cache.max_mb=300 site_name=&quot;My galaxy&quot;
+python3 -m planetgen.cli.config unset cache.max_mb
+python3 -m planetgen.cli.config restore 20261016T193012Z.tar.bz2
+</code></pre>
+<h3 id="backup">backup</h3>
+<p>Backup archives (ADM.87, <a href="config.html#backups">config.md</a>): one <code>.tar.bz2</code> per backup, holding a part per kind of data (<code>settings</code>, a copy of <code>config.json</code>; <code>parity</code>, a copy of the sector repair file, which <code>settings.backup_parity</code> switches off and <code>restore --part parity ARCHIVE</code> puts back, then checks against the database; the control database in 9.0). Run it as root or the web user (the archives are mode 0600).</p>
+<pre><code class="language-bash">python3 -m planetgen.cli.backup take                    # every part (--part NAME for some)
+python3 -m planetgen.cli.backup list                    # newest first, with each archive's parts
+python3 -m planetgen.cli.backup verify ARCHIVE          # check every hash
+python3 -m planetgen.cli.backup restore ARCHIVE         # the whole archive, or --part NAME for some
+python3 -m planetgen.cli.backup parts                   # the parts this build can back up
+</code></pre>
+<p>A restore verifies the archive, backs up what it is about to replace in a safety archive, skips and reports a part this build has no provider for, and writes an audit row. <code>settings.backups_kept</code> of the archives are kept.</p>
+<h2 id="planned-commands">Planned commands</h2>
+<p>Not built yet. Each names its TODO item and phase; the design is in
+<a href="../design/generation/reproducible-galaxies.html"><code>design/generation/reproducible-galaxies.md</code></a>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command or option</th>
+<th>Item</th>
+<th>Phase</th>
+<th>What it will do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planetgen repair-db</code></td>
+<td>DB.9</td>
+<td>1</td>
+<td>Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again.</td>
+</tr>
+<tr>
+<td><code>--resume</code></td>
+<td>PERF.30</td>
+<td>1</td>
+<td>Finish the runs an interrupted fill left, from the step each reached.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Work runs as RQ jobs on Redis from phase 0 (PERF.24), so <code>--workers</code> sets the RQ worker count.</p>
+<p>Phase 2 also adds a daily maintenance run, <code>scripts/maintenance.sh</code>, set up as a
+scheduled job by install and update (OPS.16, OPS.17): the positional
+update (<code>planetgen.cli.orbits</code>). (The daily settings-file merge and the
+18 backup slots, GEN.61 and OPS.18, were dropped on 2026-10-09.)</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

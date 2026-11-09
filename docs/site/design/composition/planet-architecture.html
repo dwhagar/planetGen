@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, TEST.395) - planetGen docs</title>
+<meta name="description" content="Status: wired into generation (StarSystem.planarchitecture, merge train 4, after GEN.950 and the star epoch GEN.932).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/planet-architecture.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/planet-architecture.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-planet-architecture-gen728-gen729-gen730-gen828-gen829-gen920-test395">The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, TEST.395)</h1><p class="meta">docs/design/composition/planet-architecture.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#decided">Decided</a></li><li style="margin-left:0px"><a href="#what-it-replaces">What it replaces</a></li><li style="margin-left:0px"><a href="#sources-all-in-physicsdataplanet_occurrencejson-each-band-read-or-2nd-hand">Sources (all in physics/data/planet_occurrence.json, each band READ or 2ND-HAND)</a></li><li style="margin-left:0px"><a href="#the-model-planet_architecturebuild">The model (planet_architecture.build)</a></li><li style="margin-left:0px"><a href="#calibration-re-run-on-the-wiring-with-gen950-n--1000-per-host-mass-seed-99-observed-in-brackets">Calibration (re-run on the wiring with GEN.950, n = 1000 per host mass, seed 99; observed in brackets)</a></li><li style="margin-left:0px"><a href="#known-weaknesses-tracked-not-hidden">Known weaknesses (tracked, not hidden)</a></li><li style="margin-left:0px"><a href="#stand-ins">Stand-ins</a></li><li style="margin-left:0px"><a href="#wiring-train-4">Wiring (train 4)</a></li><li style="margin-left:0px"><a href="#tests">Tests</a></li></ul></details>
+<p>Status: wired into generation (<code>StarSystem._plan_architecture</code>, merge train 4, after GEN.950 and the star epoch GEN.932). The pure modules are <code>physics/planet_architecture.py</code>, <code>physics/planet_occurrence.py</code>, <code>physics/kepler_multiplicity.py</code> and <code>physics/data/planet_occurrence.json</code>. The wiring replaced <code>estimate_num_objects</code>, the uniform spacing ratio (<code>PLANET_SPACING_RATIO_RANGE</code>), the first-slot habitable-zone fraction and the constant survival (<code>GIANT_IMPACT_SURVIVAL_FRACTION</code> 0.4). Written by the Planets 1 lane. Times EDT.</p>
+<h2 id="decided">Decided</h2>
+<ul>
+<li>Boss, 8:16 PM EDT 2026-10-29: build all of 8.1; the physics found in research wins; secondary sources are accepted by default; stand-ins are fine where they are indexed and registered (GEN.725, section 6.36 of the gap-filling plan).</li>
+<li>Lock-free first: the observed bands, the pure model, the harness and the tests merge on their own. The wiring changes generated output and waits for its train. At the wiring the architecture's own copy of the disc and gas numbers (the <code>ARCH_*</code> constants) became the mass law's (<code>PLANET_DISC_SOLIDS_ENHANCEMENT</code>, <code>PLANET_OUTER_GROWTH_*</code>, <code>GIANT_GAS_SURVIVAL_*</code>), and the sweep (L3) was run again on GEN.950's 182 K snow line and ice boost of 2.17.</li>
+</ul>
+<h2 id="what-it-replaces">What it replaces</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Today</th>
+<th>Fault found</th>
+<th>Replaced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A uniform planet count (<code>estimate_num_objects</code>), about 5 per Sun-like star and 8 per M dwarf</td>
+<td>60 percent of Sun-like stars had a planet of 1 Earth mass inside 1 AU; the surveys find 30 percent</td>
+<td>A Bernoulli draw for a Kepler-like inner system at the observed share, then a chain</td>
+</tr>
+<tr>
+<td>A uniform spacing ratio 1.3 to 1.8 (GEN.729)</td>
+<td>Spacing in mutual Hill radii depends on the masses; the observed mode is near 20 with 93 percent of pairs over 10</td>
+<td>Oligarch spacing in mutual Hill radii, thinned by instability</td>
+</tr>
+<tr>
+<td>A constant survival 0.4 of the oligarchs (GEN.730)</td>
+<td>No time or spacing dependence</td>
+<td>Pu and Wu 2015 survival law with event-driven collisions</td>
+</tr>
+<tr>
+<td>No hot Jupiters; 0.02 giants per Sun-like star at 2 to 8 AU (GEN.828, GEN.920)</td>
+<td>Observed 0.6 to 1.2 percent hot; 14 percent cold</td>
+<td>Giant gas outcome with metallicity, inward migration, hot-Jupiter migration</td>
+</tr>
+<tr>
+<td>No 2 to 20 Earth-mass population (GEN.829)</td>
+<td>Missing</td>
+<td>The inner chain's masses</td>
+</tr>
+</tbody>
+</table></div>
+<p>GEN.722 (radius valley) is already built on main (<code>radius_valley.py</code>, rows RV1 to RV4); it only needs closing.</p>
+<h2 id="sources-all-in-physicsdataplanet_occurrencejson-each-band-read-or-2nd-hand">Sources (all in <code>physics/data/planet_occurrence.json</code>, each band READ or 2ND-HAND)</h2>
+<p>[R4898]: 30 percent of Sun-like stars have Kepler-like planets, mean about 3, the transit multiplicity {1:432, 2:99, 3:42, 4:11, 5:3, 6:2}, the inclination law. [R4812] (2002.02840): about 75 percent of stars under 5000 K. [R4897] (2103.02127, review). Pu and Wu 2015 (1502.05449): survival law, eq. 11. [R4660] (1706.06204): peas in a pod, spacing mode near 20. [R3196] (1406.7356): inner edge, mass ratio. [R2172] (1005.3084): giants rise with mass and with 10^(1.2 [Fe/H]). [R1479] (2105.11584) and [R0960] (0803.3357): giant occurrence peaks at 1 to 3 AU. [R3499] (1712.04042): hot Jupiters go as 10^(3.4 [Fe/H]). [R1504] (2210.08313): 0.27 percent of early M dwarfs. [R4779] (1205.2273), [R0572] (2010.14812), [R1156] (1501.01623), [R0114] (1305.5262), [R3444] (1608.03621).</p>
+<h2 id="the-model-planet_architecturebuild">The model (<code>planet_architecture.build</code>)</h2>
+<ol>
+<li><strong>Disc scatter.</strong> The disc's solids scatter 0.7 dex [R0114].</li>
+<li><strong>Inner system.</strong> Whether the star has one: a Bernoulli draw at the share anchors (0.85 at 0.15 Msun, 0.75 at 0.6, 0.30 at 1.0 and 1.4, log-linear in mass; [R4812, R4898]). It starts with <code>1 + Poisson</code> oligarchs (the mean itself log-normal), a mass scale of its own (log-normal about the median, <code>INNER_SYSTEM_SCALE_SIGMA_DEX</code>, 0.4 dex, GEN.1335: with no spread every Sun-like system started at the same mass and the Earth-size planets the surveys count were missing), neighbours alike in mass about that scale (peas in a pod), the first at a period near 5 days [R3193, R3196], each next at a spacing in mutual Hill radii.</li>
+<li><strong>Outer chain.</strong> From 1.3 times 400 days outward, at the isolation mass of the feeding zone with a steep taper beyond <code>PLANET_OUTER_GROWTH_AU</code>.</li>
+<li><strong>Sculpting.</strong> Pu and Wu's law, <code>x = 0.5 K - 0.6 - 0.35 log10 tau</code>, survival <code>1 - exp(-x^2)</code>, zero below <code>K &lt; 1.2 + 0.7 log tau</code>. The earliest unstable pair merges (angular momentum conserved, mass retention 0.9) until every pair outlasts 1 Gyr.</li>
+<li><strong>Floors.</strong> Bodies lighter than 0.1 Earth masses (inside the snow line) or 0.60 (beyond) are debris. No chain starts, and no hot Jupiter settles, closer than the distance where a blackbody would be at the dust sublimation temperature (<code>DUST_SUBLIMATION_K</code>, 1500 K; <code>sublimation_au</code>), which keeps the luminous stars' planets out of the vapour of their own rock.</li>
+<li><strong>Gas.</strong> <code>planet_mass.gas_outcome</code> per core with an extra metallicity exponent.</li>
+<li><strong>Migration.</strong> Hot Jupiters at a share 0.0092 times 10^(2.2 [Fe/H]) of giants (period 1 to 10 d), clearing everything inside; other giants move in by e^-|N(0, 0.72)|, scattering planets within 8 mutual Hill radii. Giants move in on their own, so when two land within 8 mutual Hill radii the heavier throws the lighter out (<code>_scatter_crowded_giants</code>).</li>
+</ol>
+<p>A whole-disc oligarch chain alone gave about three times too many planets (tested), which is why the inner system is its own draw.</p>
+<h2 id="calibration-re-run-on-the-wiring-with-gen950-n--1000-per-host-mass-seed-99-observed-in-brackets">Calibration (re-run on the wiring with GEN.950, n = 1000 per host mass, seed 99; observed in brackets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Inner share</th>
+<th>Inner multiplicity</th>
+<th>Giants 2 to 8 AU</th>
+<th>Hot Jupiters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.3 Msun</td>
+<td>0.78 (0.75)</td>
+<td>3.0 (2.8)</td>
+<td>0.02</td>
+<td>0.4% (0.27%)</td>
+</tr>
+<tr>
+<td>0.6 Msun</td>
+<td>0.75</td>
+<td>3.1</td>
+<td>0.07</td>
+<td>0.5%</td>
+</tr>
+<tr>
+<td>1.0 Msun</td>
+<td>0.33 (0.30 +-0.03)</td>
+<td>3.2 (3.0 +-0.3)</td>
+<td>0.11 (0.141 +0.020 -0.018)</td>
+<td>1.0% (0.6 to 1.2%)</td>
+</tr>
+<tr>
+<td>1.3 Msun</td>
+<td>0.32 (0.35)</td>
+<td>2.8 (1.8)</td>
+<td>0.15</td>
+<td>0.9%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Hot Jupiters are compared on a mixture of metallicities (N(-0.03, 0.2) dex, the survey's), not at solar [Fe/H], because the rate rises with 10^(2.2 [Fe/H]). Spacing: median 14.6 mutual Hill radii, 93 percent of pairs over 10 (observed mode near 20, 93 percent). Giants rise 7 times between [Fe/H] -0.4 and +0.4; the 10^(1.2 [Fe/H]) law of [R2172] gives 9 over that range (tweak L3). A Sun-like star holds 6.8 planets on average, 0.11 of them giants between 2 and 8 AU: GEN.950's lower solids beyond the snow line took the cold giants from 0.17 to 0.11 at the same constants, and the re-tune brought back most of it.</p>
+<h2 id="known-weaknesses-tracked-not-hidden">Known weaknesses (tracked, not hidden)</h2>
+<ul>
+<li>Giants inside 2.5 AU and the exact metallicity slope are still loose. Giants between 2 and 8 AU are 0.11 per Sun-like star against 0.141 observed, the best the search found with the 182 K line. Several tuned constants sit near the edge of their search range (<code>PLANET_OUTER_GROWTH_AU</code> 11.4); a disc-evolution model (GEN.509, GEN.510) replaces them.</li>
+<li>Hot-Jupiter statistics need n of several thousand to test.</li>
+<li>The inner masses pile up near the inner core cap (<code>PLANET_INNER_CORE_MAX_EARTH</code> 12); warm super-Earths of 1 Earth mass or more are about 0.06 per star against 0.20 observed.</li>
+<li>An F-type host has a multiplicity (2.9) above the observed 1.8 of [R4812]; the multiplicity has no stellar-mass dependence yet.</li>
+<li>The transit multiplicity has more doubles than [R4898] (0.22 against 0.17), because the harness uses its inclination law and the model's singles are intrinsically fewer.</li>
+</ul>
+<h2 id="stand-ins">Stand-ins</h2>
+<p>Section 6.36 of <code>docs/design/research/gap-filling-plan.md</code>, rows PA1 to PA12, each with tier, tweak, falsifier test and what replaces it. The listing <code>stand-in-values.md</code> is regenerated from it.</p>
+<h2 id="wiring-train-4">Wiring (train 4)</h2>
+<p><code>StarSystem._plan_architecture</code> builds the <code>planet_architecture.Plan</code> for the star (the architecture cut to the planets the system holds, then further oligarchs for a system asked for more); <code>_generate_planets</code> takes the planet of slot <code>i</code> from it: its mass and formation distance, at the slot's distance (never inside the previous planet's orbit limit). <code>PLANETS</code> False gives none, <code>NUM_ORBITS</code> exactly that many, <code>MAX_PLANETS</code> True the most the disc holds (an inner system and a starting count two widths above the mean), False the fewest. SLOTS, FORCE_CLASS and HABITABLE_WORLD requests keep the formation law (<code>planet_mass.planet_mass</code>). A hot Jupiter keeps its formation distance for the composition and its final distance for the orbit. Planets inside the orbit floor of the star (<code>_orbit_floor_au</code>) are left out. A belt no longer takes the place of a planet in its slot (the slot roll and its constant <code>BELT_REPLACES_BELOW_EARTH</code>, row PA13, are gone: GEN.1068): every planned body is a planet, and the belts are the gaps and the unfinished tail of the finished chain (<code>belt_birth</code>, <code>belt_origin</code>). The architecture's own spacing is kept (the old <code>previous planet + 5 Hill radii</code> rule pushed planets outward and a census of 300 Sun-like systems showed it halving the giants); <code>validate_system</code> still enforces the stable spacing of the whole. Census after the fixes: the planets of the plan and of the finished systems agree (7.0 and 6.7 per Sun-like star; giants 0.19 in both; inner planets 59 of 59). The removed constants are <code>ARCH_*</code>, <code>PLANET_ASSEMBLY_SCATTER_DEX</code>, <code>GIANT_IMPACT_SURVIVAL_FRACTION</code>, <code>PLANET_SPACING_RATIO_RANGE</code>, <code>FIRST_PLANET_HZ_FRACTION_RANGE</code>, <code>INITIAL_PLANET_DISTANCE_FACTOR</code> and <code>PLANET_OCCURRENCE_REFERENCE_OBJECTS</code>; registry rows PM1, PM3, PM4, PM6 and PM7 are retired into PA1 and PA2. The change alters the plan stage: <code>--affects plan</code>, a new generator epoch, and the life, air and class shares move with it.</p>
+<h2 id="tests">Tests</h2>
+<p><code>test_planet_occurrence.py</code> (reader), <code>test_kepler_multiplicity.py</code> (harness), <code>test_planet_architecture.py</code> (law, model and the statistical falsifiers), <code>test_prevalence_occurrence.py</code> with <code>tests/audit/prevalence_occurrence.py</code> (TEST.395: the census against sourced bands widened by the sampling error of n systems; a miss carries its GEN item).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

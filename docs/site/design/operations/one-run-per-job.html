@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One wrapper run per Generate job (PERF.203) - planetGen docs</title>
+<meta name="description" content="Status: design note, not built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/one-run-per-job.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/one-run-per-job.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="one-wrapper-run-per-generate-job-perf203">One wrapper run per Generate job (PERF.203)</h1><p class="meta">docs/design/operations/one-run-per-job.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#where-it-stands">Where it stands</a></li><li style="margin-left:0px"><a href="#target">Target</a></li><li style="margin-left:0px"><a href="#the-pieces">The pieces</a></li><li style="margin-left:0px"><a href="#order-of-work">Order of work</a></li><li style="margin-left:0px"><a href="#risks-and-questions-for-boss">Risks and questions for Boss</a></li></ul></details>
+<p>Status: design note, not built. Owner: Aux 2 (lock-free). Prerequisite PERF.202 is done: every verb is a list of units run by <code>queue/wrapper.py</code>, and the tests/test_one_wrapper_run.py guard keeps <code>wrapper.run(</code> inside <code>generation/followed.py</code> and a short allowed list.</p>
+<h2 id="where-it-stands">Where it stands</h2>
+<p>The Generate page (<code>web/generate_page.py</code>, <code>_build_job_steps</code>) turns a form into a list of steps, each one command line: the data check, <code>reset</code>, <code>plan</code>, <code>sectors</code>, <code>link</code>, the scatter kinds, <code>backfill</code>, <code>settle</code>. <code>web/job_runner.py</code> runs them one after another as subprocesses, keeps <code>state.json</code>, <code>progress.json</code>, <code>output.log</code>, <code>records.log</code> and the step times, stops at the first failed step, and cancels the whole process tree. Each <code>planetgen ...</code> step starts its own wrapper run (<code>run_followed</code>), so one job leaves several rows in <code>generation_runs</code> and <code>jobs.job_runs(job_id)</code> lists them. <code>planetgen galaxy</code> already shows the target in small: it puts the followers of every stage it takes into one <code>run_followed</code>, so a galaxy is one run with one estimate.</p>
+<h2 id="target">Target</h2>
+<p>A job that generates is: the data check, an optional <code>reset</code> (neither is a generation run), then ONE <code>planetgen run-job &lt;spec&gt;</code> process that builds a follower for each selected command and calls <code>run_followed</code> once. The run record, the estimate and the stage list cover all of the selected commands. <code>job_runner</code> follows that one process and keeps every file the page reads. The API jobs (<code>queue/api_jobs.py</code>) build the same spec through the same function, so the page and the API cannot drift.</p>
+<h2 id="the-pieces">The pieces</h2>
+<ol>
+<li><strong>A job spec.</strong> A JSON list of <code>{command, argv}</code> (the argv the page builds today, so nothing about the forms changes). <code>generate_page</code> stops composing steps with subprocess labels and composes the spec instead; <code>step_stages</code> keeps working by asking each command for its stages (<code>stages.for_command</code>).</li>
+<li><strong>A follower list per command.</strong> Each verb already has a follower (PERF.172 and PERF.202). Add <code>commands.followers(command, args)</code>, one function that returns the list a verb runs, which <code>planetgen &lt;verb&gt;</code> and <code>run-job</code> both call, so the single-verb CLI is the one-element case. Per-follower args stay separate (<code>link</code> takes the sectors saved since the newest <code>sectors</code> run, <code>scatter</code> its kind); <code>plan_steps</code> is given the args of its own command, not the run's.</li>
+<li><strong>Start-time checks move to <code>prepare</code> hooks.</strong> What a verb checks before it starts today (the seed matches, a skeleton exists, the second scatter verb's refusal) must run when its stage begins, not when the process starts, because an earlier stage of the same run may make the thing true. <code>CommandSpec.prepare</code> already runs in a worker; the checks that raise from the starting process move there.</li>
+<li><strong>Block lights and repeated stages.</strong> <code>fill-map-luminosity</code> already appends a block-lights follower; two selected commands that both end in block lights run it once (dedupe by follower key in <code>run_followed</code>, keeping the last position).</li>
+<li><strong>job_runner.</strong> One step process instead of many, so <code>state.json[&quot;step&quot;]</code> becomes the stage the run reports. The page already numbers stages across the job (<code>STAGE_OFFSET_ENV</code>, <code>STAGE_TOTAL_ENV</code>); the run-job process emits its stage marks the same way, so the stage list, the bars and the elapsed times keep their shape. Step times by label (<code>step-times.json</code>) become stage times by follower label, read where <code>step_estimates</code> reads them. Cancel is unchanged: a signal to the process group.</li>
+<li><strong>Run history.</strong> <code>generation_runs</code> gets one row for the job's run (kind GENERATION, title the job's title, argv the spec); <code>finish_run</code> (the &quot;Finish the last run&quot; action) continues a stopped run from its stored spec instead of rebuilding the <code>later</code> steps (<code>finish_status</code>), which retires the <code>later</code> list.</li>
+<li><strong>Data gate.</strong> <code>generate.py main()</code> runs the data gate and <code>_note_data_changed</code> per command today; run-job does it once for the run and passes <code>--disregard-missing-data</code> through the spec.</li>
+</ol>
+<h2 id="order-of-work">Order of work</h2>
+<ol>
+<li><code>commands.followers</code> and the single-verb CLIs on top of it (no behaviour change; tests: each verb's run is unchanged).</li>
+<li>Start-time checks into <code>prepare</code> hooks, with a test per refused case that still refuses.</li>
+<li><code>run-job</code> with the spec, <code>run_followed</code> dedupe, and the allowed-list entry in <code>test_one_wrapper_run</code>.</li>
+<li><code>generate_page</code> and <code>api_jobs</code> build the spec; <code>job_runner</code> follows one process; the state, progress, log and step-time files are checked against the old job's by a test that runs a small galaxy both ways.</li>
+<li><code>finish_run</code> from the stored spec; remove <code>later</code>.</li>
+</ol>
+<p>Each step is its own PR and none changes stored generator output, so none needs a lock turn.</p>
+<h2 id="risks-and-questions-for-boss">Risks and questions for Boss</h2>
+<ul>
+<li>A failed command used to stop the job at that step with the earlier steps' runs saved. One run now fails as a whole: its finished stages keep their rows and &quot;Finish the last run&quot; resumes it, which is what stopped galaxies do today. This is the same behaviour from the page's point of view, but the run record says one failed run, not N runs and a failed one.</li>
+<li>The estimate is one number over the whole run (the galaxy's own already is) instead of a sum of step estimates; the page's remaining-time text reads the sum of stage estimates and is unchanged.</li>
+<li>Time: about five PRs, the largest being step 4. It does not change what is generated.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

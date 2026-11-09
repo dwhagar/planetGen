@@ -1,0 +1,1570 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Multi-star systems at scatter time: census, limits, probabilities and the stored tree - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-15, 5:51 PM EDT): probabilities accurate but &quot;no forced representation in a sector (except if one landed there in a scatter before generation)&quot;; stars and star-like objects (former stars, protostars) are generated, and &quot;if ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/multi-star-systems.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/multi-star-systems.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="multi-star-systems-at-scatter-time-census-limits-probabilities-and-the-stored-tree">Multi-star systems at scatter time: census, limits, probabilities and the stored tree</h1><p class="meta">docs/design/systems/multi-star-systems.md</p><details class="toc"><summary>On this page (40 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-boss-asked-and-how-it-fits-the-rules">1. What Boss asked and how it fits the rules</a></li><li style="margin-left:0px"><a href="#2-what-exists-today-and-what-a-scatter-row-is-s-c">2. What exists today and what a scatter row is [S, C]</a></li><li style="margin-left:0px"><a href="#3-how-many-multi-star-systems-exist-and-the-limits">3. How many multi-star systems exist, and the limits</a></li><li style="margin-left:14px"><a href="#31-the-census-as-the-earlier-note-has-it-and-what-is-new">3.1 The census, as the earlier note has it and what is new</a></li><li style="margin-left:14px"><a href="#32-the-extreme-members-of-each-kind-of-company-r-unless-noted">3.2 The extreme members of each kind of company [R unless noted]</a></li><li style="margin-left:14px"><a href="#33-the-theoretical-limits">3.3 The theoretical limits</a></li><li style="margin-left:0px"><a href="#4-probabilities">4. Probabilities</a></li><li style="margin-left:14px"><a href="#41-member-kinds-and-how-a-star-like-companion-gets-its-state">4.1 Member kinds and how a star-like companion gets its state</a></li><li style="margin-left:14px"><a href="#42-placed-star-the-mass-pass-and-the-luminosity-pass">4.2 Placed star (the mass pass and the luminosity pass)</a></li><li style="margin-left:14px"><a href="#43-placed-black-hole-59e7-stellar-rows-15e5-intermediate-mass-rows">4.3 Placed black hole (5.9e7 stellar rows, 1.5e5 intermediate-mass rows)</a></li><li style="margin-left:14px"><a href="#44-placed-neutron-star-white-dwarf-and-the-rest">4.4 Placed neutron star, white dwarf and the rest</a></li><li style="margin-left:14px"><a href="#45-promote-bound-compact-pairs-to-the-scatter">4.5 Promote bound compact pairs to the scatter</a></li><li style="margin-left:14px"><a href="#46-orbits-per-pairing">4.6 Orbits per pairing</a></li><li style="margin-left:0px"><a href="#5-the-stored-form">5. The stored form</a></li><li style="margin-left:0px"><a href="#6-the-generator-and-its-cost">6. The generator and its cost</a></li><li style="margin-left:14px"><a href="#61-one-function-two-call-sites">6.1 One function, two call sites</a></li><li style="margin-left:14px"><a href="#62-streams-and-determinism">6.2 Streams and determinism</a></li><li style="margin-left:14px"><a href="#63-bulk-screening">6.3 Bulk screening</a></li><li style="margin-left:14px"><a href="#64-density-bookkeeping-a-row-is-a-system">6.4 Density bookkeeping: a row is a system</a></li><li style="margin-left:14px"><a href="#65-cost-c">6.5 Cost [C]</a></li><li style="margin-left:0px"><a href="#7-motion-gen223-gen109-s-c">7. Motion (GEN.223, GEN.109) [S, C]</a></li><li style="margin-left:0px"><a href="#8-how-a-fill-reuses-the-members">8. How a fill reuses the members</a></li><li style="margin-left:0px"><a href="#9-audit-and-tests">9. Audit and tests</a></li><li style="margin-left:0px"><a href="#10-what-this-changes-in-the-earlier-notes-and-todo">10. What this changes in the earlier notes and TODO</a></li><li style="margin-left:0px"><a href="#11-proposed-todo-items">11. Proposed TODO items</a></li><li style="margin-left:0px"><a href="#12-decisions-for-boss-with-the-defaults-taken">12. Decisions for Boss, with the defaults taken</a></li><li style="margin-left:0px"><a href="#13-catalogue-of-system-types-boss-608-pm-edt-every-observed-and-theoretical-type">13. Catalogue of system types (Boss, 6:08 PM EDT: "every observed and theoretical type")</a></li><li style="margin-left:14px"><a href="#131-architecture-of-stellar-systems">13.1 Architecture of stellar systems</a></li><li style="margin-left:14px"><a href="#132-interacting-binaries-and-merger-products-stellar">13.2 Interacting binaries and merger products (stellar)</a></li><li style="margin-left:14px"><a href="#133-white-dwarf-systems">13.3 White-dwarf systems</a></li><li style="margin-left:14px"><a href="#134-compact-object-systems">13.4 Compact-object systems</a></li><li style="margin-left:14px"><a href="#135-substellar-companions-planetary-mass-companions-and-disks">13.5 Substellar companions, planetary-mass companions and disks</a></li><li style="margin-left:14px"><a href="#136-ejection-and-runaways">13.6 Ejection and runaways</a></li><li style="margin-left:14px"><a href="#137-tuning-the-emergent-types">13.7 Tuning the emergent types</a></li><li style="margin-left:0px"><a href="#14-what-changes-in-the-star-model-and-the-stored-form">14. What changes in the star model and the stored form</a></li><li style="margin-left:0px"><a href="#15-audit-extension-for-the-catalogue">15. Audit extension for the catalogue</a></li><li style="margin-left:0px"><a href="#16-decisions-that-this-section-changes">16. Decisions that this section changes</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Boss (2026-10-15, 5:51 PM EDT): probabilities accurate but &quot;no forced representation in a sector (except if one landed there in a scatter before generation)&quot;; stars and star-like objects (former stars, protostars) are generated, and &quot;if a star, black hole, neutron star, etc has a companion I want it generated at scatter time&quot;, including neutron stars with neutron stars, black holes with neutron stars, black holes with black holes and stars with neutron stars or black holes, because &quot;one of the points of our scattering is to represent gravity and such systems would definitely impact gravity&quot;. He asked for research into how many multi-star (or star-like object) stable systems exist, the theoretical limits, and the probability of each, then an expansion of our multi-star definitions.</p>
+<p>This note does that. It extends <a href="multistar-and-compact-systems.html">multistar-and-compact-systems.md</a> (the stability criteria, the 2 to 7 star hierarchy, the compact-primary rules; GEN.128 to GEN.130), <a href="phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a> (the kind list and the fill stages; GEN.250, GEN.251) and <a href="exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a> (Peters time, V404 Cygni, survival of wide companions). It does not repeat their numbers; it says where this note changes them (section 10).</p>
+<p>Informs: GEN.129, GEN.130, GEN.223, GEN.109, GEN.250, GEN.251, GEN.100, GEN.242, GEN.243, GEN.252, and the new items in section 11.</p>
+<p>Status: design, 2026-10-15; nothing here is built. Boss approved the plan at 6:08 PM EDT and widened it to every observed and theoretical type; section 13 onward is that catalogue. Where Boss's words leave a gap the note takes a default, marked &quot;Default&quot; and listed in section 12.</p>
+<p>Evidence tags: <strong>[S]</strong> seen in this repository or in a search-result summary (the papers themselves could not be opened: arXiv is unreachable from this environment, so every literature number is a snippet, never a table read from the paper); <strong>[C]</strong> computed in this session (scripts named in &quot;Evidence notes&quot;); <strong>[R]</strong> recalled, unconfirmed; <strong>[I]</strong> inferred, with the step shown. A figure keeps the tag of its weakest input. Times shown to Boss are US Eastern (EDT) only.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>The rule changes in one place.</strong> Boss's 5:39 PM EDT rule said scatters carry no systems, planets or moons. His 5:51 PM EDT message narrows that: a scatter row still carries <strong>no planets, moons or belts</strong>, but it <strong>does carry its star-like companions</strong> (stars, brown dwarfs, white dwarfs, neutron stars, black holes, pre-main-sequence stars), generated when the scatter is drawn. Planets, moons and belts stay fill-only.</li>
+<li><strong>A scatter row becomes a system key.</strong> Its point is the system's barycentre, its mass is the system's total mass, and its members and their orbits sit in two new child tables with one column per component and no JSON (section 5). A fill builds the system from those rows instead of drawing the companions again, so a companion that landed in a scatter is the companion the sector gets.</li>
+<li><strong>The cost is small.</strong> At the default galaxy the scatter holds about 1.13e6 star rows and 5.9e7 black-hole rows [C]. Companions add about 4.9e6 member rows (the placed object included) and 3.0e6 orbit nodes, roughly 0.6 GB against the 8 GB the base rows already need, and about half an hour of CPU at scatter time (section 6).</li>
+<li><strong>The census says what the probabilities are</strong> (section 4). Stars follow the existing O to M table: a scattered O or B star has a mean of 3.1 or 2.3 stars (the rows' mix gives 2.77 and 2.28) [S, C]. A black hole has a companion at about 1.25% (star 1.0%, black hole 0.2%, neutron star 0.05%), not the 10% to 30% the earlier note took from three Gaia systems [R, I]. A neutron star has a neutron-star companion at about 0.04% [C, I]. Every default is one number in one tuning dict, with a range.</li>
+<li><strong>Neutron-star pairs would be missed by the mass cut, so promote the pairs.</strong> A neutron star never passes the 14 solar mass cut, so a double neutron star would be a fill-time object. A pair is rare (about 1.7e5 of them in the default galaxy) [C, I], so the scatter places every bound compact pair (neutron star with neutron star, with black hole, black hole with black hole) whatever its mass, about 3e5 extra rows. Default on; Boss decides (section 4.5).</li>
+<li><strong>The theoretical limit is high; the observed one is 7 confirmed and 12 proposed.</strong> A hierarchy can in principle hold a dozen levels between a contact binary and the galaxy's tidal limit [C]; seven stars is the most confirmed, and ten candidates reach 12 [S]. <strong>The default cap is now 12</strong> (section 16), with the Galaxy holding about 1.1e6 eight-star and 1e2 twelve-star systems [C]. Young non-hierarchical groups (trapezia) decay in 1e4 to 4e4 years [S]; they are now stored while younger than their decay age, never after it. Compact members add three filters: survival of each collapse, the gravitational-wave merger time, and the relativistic quench of Kozai-Lidov cycles (section 3.3).</li>
+<li><strong>Motion needs almost nothing new</strong> (section 7). The barycentre point moves with the system's total mass (GEN.223); a member's position is a function of time computed on read from its stored phase, epoch and period, so the nightly update writes nothing per member.</li>
+<li><strong>Section 13 is the catalogue Boss asked for at 6:08 PM EDT</strong>: about sixty types in six families (architecture, interacting binaries and merger products, white dwarfs, compact objects, substellar companions and disks, runaways). Each has an observed rate with a tag, a theoretical rate where no observation exists, where it occurs, whether it is drawn at scatter (S) or fill (F), and the star-model change. Most types are not separate generators: a Roche-lobe classifier turns the drawn tree into contact, Algol, post-common-envelope, accreting and merger-product pairs, and a tuning dict aligns the result to the observed fractions (13.7).</li>
+<li><strong>Twenty proposed TODO items</strong> (section 11: eleven from the first note, nine from the catalogue) and ten rewordings of existing items. Eight decisions for Boss (section 12).</li>
+</ul>
+<h2 id="1-what-boss-asked-and-how-it-fits-the-rules">1. What Boss asked and how it fits the rules</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Boss's words (5:51 PM EDT)</th>
+<th>Meaning for the design</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;no forced representation in a sector (except if one landed there in a scatter before generation)&quot;</td>
+<td>A companion is drawn at its observed rate. A sector never gets a companion to fill a quota. A companion that a scatter placed is part of the system the fill builds.</td>
+</tr>
+<tr>
+<td>&quot;stars and star-like objects (former stars, protostars)&quot;</td>
+<td>A member's kind is one of: main-sequence star, giant or supergiant, white dwarf, neutron star, black hole, brown dwarf, pre-main-sequence star, protostar. White dwarfs, neutron stars and black holes are the &quot;former stars&quot;.</td>
+</tr>
+<tr>
+<td>&quot;if a star, black hole, neutron star, etc has a companion I want it generated at scatter time&quot;</td>
+<td>The scatter's placed object (a bright or massive star, a black hole, a neutron star when scattered, a planetary-nebula central star, an intermediate-mass black hole) rolls for companions in the scatter pass.</td>
+</tr>
+<tr>
+<td>neutron stars with neutron stars, black holes with neutron stars, other black holes, stars with neutron stars or black holes</td>
+<td>All five pairings are in the tables of section 4, each with a source and a range.</td>
+</tr>
+<tr>
+<td>&quot;spawn a research thread to find out how many multi-star (or star-like object) stable systems are there and what the theoretical limits are and probabilities of each&quot;</td>
+<td>Sections 3 and 4.</td>
+</tr>
+<tr>
+<td>&quot;expand our multi-star system definitions&quot;</td>
+<td>Sections 4 to 8: the member kinds, the tree, the stored form, the generator.</td>
+</tr>
+<tr>
+<td>&quot;represent gravity&quot;</td>
+<td>Section 7: the barycentre carries the total mass; the Hill-sphere rule of GEN.109 reads it.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The earlier decisions that still hold: scatters carry no planets, moons or belts; nebulae need stars and phenomena, never planets; planets and moons are made only when a sector is filled with everything; a fill represents every kind at its observed odds; redesign freely, the schema is not a constraint (Boss, 5:27 PM EDT).</p>
+<h2 id="2-what-exists-today-and-what-a-scatter-row-is-s-c">2. What exists today and what a scatter row is [S, C]</h2>
+<ul>
+<li><strong>Rows.</strong> <code>bright_stars</code> holds a star (full star record, a <code>seed</code>, a point in mpc); <code>phenomenon_scatter</code> holds <code>kind</code>, <code>subtype</code>, a point, a <code>seed</code>, <code>mass_solar</code>, <code>map_luminosity_sol</code> (<code>phenomenon_scatter.py:73</code>, <code>docs/reference/database-schema.md</code> 1795 and 1948). A row is a point and a seed. A fill later builds the object from the seed.</li>
+<li><strong>Companions today.</strong> A star pre-placed in <code>bright_stars</code> gets its companion at fill, when <code>_add_preplaced_systems</code> builds a <code>StarSystem</code> from the row (<code>run_sector.py:515</code>); <code>BinaryStarProxy</code> and <code>WideBinaryPair</code> draw one companion, close or wide, 0.5 each (<code>binary.py</code>, <code>wide_binary.py</code>). A scattered black hole or neutron star becomes a bare phenomenon (<code>run_sector.py:449</code>, <code>:454</code>) and <code>StarSystem.__init__</code> skips binary generation for a remnant (<code>system.py:255</code>).</li>
+<li><strong>GEN.129 and GEN.130 are unbuilt.</strong> There is no <code>orbit_nodes</code> table or tree generator in the code (a search of <code>src</code> finds neither; they exist only in the design notes and <code>TODO.md</code>). The tree generator of <code>multistar-and-compact-systems.md</code> 5.3 is therefore the thing this note puts at scatter time.</li>
+<li><strong>How many rows the scatter holds</strong> at the defaults (galaxy of 2.953e11 systems, stellar mass limit 14 solar masses, luminosity floor 9,000 solar luminosities, compact limit following the stellar limit) [C, from <code>star_population.mass_band_fraction</code>, <code>bright_band_fraction</code> and <code>phenomenon_scatter.share_above</code>]:</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scatter class</th>
+<th>Rows</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stars born at 14 solar masses or more (mass pass)</td>
+<td>5.24e5</td>
+<td><code>mass_band_fraction(14)</code> x systems</td>
+</tr>
+<tr>
+<td>Lighter stars at 9,000 solar luminosities or more (luminosity pass)</td>
+<td>6.03e5</td>
+<td><code>bright_band_fraction(9000, mass_range=(None, 14))</code></td>
+</tr>
+<tr>
+<td>Stellar black holes at 14 or more (40% of 5.0e-4 per star)</td>
+<td>5.90e7</td>
+<td><code>share_above</code> 0.4</td>
+</tr>
+<tr>
+<td>Intermediate-mass black holes</td>
+<td>1.48e5</td>
+<td>rate 5.0e-7 per star</td>
+</tr>
+<tr>
+<td>Planetary nebulae (white dwarf at the centre)</td>
+<td>2.95e4</td>
+<td></td>
+</tr>
+<tr>
+<td>Supernova remnants</td>
+<td>3.2e3</td>
+<td></td>
+</tr>
+<tr>
+<td>Neutron stars</td>
+<td>0 (all drawn at fill; they top out at 2.2 solar masses)</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The scatter therefore holds about 6.1e7 rows, 97% of them black holes. The star classes are small.</p>
+<h2 id="3-how-many-multi-star-systems-exist-and-the-limits">3. How many multi-star systems exist, and the limits</h2>
+<h3 id="31-the-census-as-the-earlier-note-has-it-and-what-is-new">3.1 The census, as the earlier note has it and what is new</h3>
+<p>The star numbers are in <code>multistar-and-compact-systems.md</code> 3.1 to 3.3 and stand ([R3646]: 56% single, 33% double, 8% triple, 3% higher among FGK dwarfs within 25 pc [S]; [R4384] [S]; [R3108]: 0.50 companions per solar-type primary rising to 2.1 for O stars [S]; the observational ceiling is seven stars, none certain [S]). New in this note, from search-result summaries [S]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Triple fraction of early B and O stars</td>
+<td>about 50% and 70%</td>
+<td>[R3108], as quoted in [R4203]</td>
+</tr>
+<tr>
+<td>Only 16 +- 8% of the stars that dominate the core-collapse supernova rate are single</td>
+<td></td>
+<td>[R3108]</td>
+</tr>
+<tr>
+<td>White dwarfs: share with a companion</td>
+<td>25% to 26% (232 white dwarfs within 25 pc: 74% single, 26% not); the 20 pc sample gives 32%</td>
+<td>Holberg et al.; [R4404]</td>
+</tr>
+<tr>
+<td>Black-widow and redback spiders</td>
+<td>41 confirmed and suspected in the field; with the redbacks they are about 80% of binary field millisecond pulsars with spin period under 2 ms; companion masses 0.07 to 0.1 solar masses are almost absent</td>
+<td>[R4279]</td>
+</tr>
+<tr>
+<td>Surviving the first supernova</td>
+<td>binary survival about 14% (+20, -10), neutron-star and black-hole remnants in similar numbers; 1% to 10% of core-collapse supernovae occur with a compact companion present</td>
+<td>[R4441]</td>
+</tr>
+<tr>
+<td>Fraction of massive-star binaries that end as a merging black-hole pair</td>
+<td>about one in eight interacting binaries massive enough to make black holes (COMPAS, low metallicity)</td>
+<td>[R4512]</td>
+</tr>
+<tr>
+<td>Gaia dormant neutron-star candidates</td>
+<td>21 astrometric binaries with solar-type stars and dark companions near 1.4 solar masses; Gaia NS1 (1.90 +- 0.04 solar masses, 731 d, a halo G star)</td>
+<td>El-Badry et al. ([R1239], 2405.00089)</td>
+</tr>
+<tr>
+<td>Gaia black holes with luminous companions at AU scales</td>
+<td>about 0.1% of Milky Way black holes (prediction of about 30 in Gaia DR4); up to about 900 detectable in the thin disc</td>
+<td>[R2463, R3233]</td>
+</tr>
+<tr>
+<td>Black-hole pairs in the Galaxy</td>
+<td>about 1.2e6 (cosmological simulation, mean system mass 28 solar masses)</td>
+<td>[R2539] as quoted in [R3348]</td>
+</tr>
+<tr>
+<td>Double neutron stars: merger rate per Milky Way</td>
+<td>42 (+30, -14) per Myr ([R3557], eight merging systems), 37 (+24, -11) [R3557], 32 (+19, -9); gravitational-wave based 5.3 (+17.6, -4.9) and 11.0 (+19.2, -8.2) per Myr</td>
+<td>[R3557], 2107.13307, 2402.04658, 2604.05059</td>
+</tr>
+<tr>
+<td>Local merger-rate density (GWTC-4.0, 90% intervals)</td>
+<td>binary neutron star 7.6 to 250 (published 8.8 to 250), neutron star with black hole 9.1 to 84 (9.3 to 86), binary black hole 14 to 26 (13 to 26), per Gpc^3 per year</td>
+<td>[R0006]</td>
+</tr>
+<tr>
+<td>Trapezium-type systems decay in</td>
+<td>1e4 to 4e4 years (bound ones); after two crossing times 41 of 100 still trapezia; the ejected star is usually the lightest</td>
+<td>[R0075], 1701.03440, 1908.11437</td>
+</tr>
+<tr>
+<td>Black-hole binaries in triples</td>
+<td>about half of those formed in the TSE model are in triples</td>
+<td>[R4203]</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-the-extreme-members-of-each-kind-of-company-r-unless-noted">3.2 The extreme members of each kind of company [R unless noted]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>System</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nu Scorpii, probably 7 stars; AR Cassiopeiae and 65 UMa candidates</td>
+<td>the stellar ceiling [S]</td>
+</tr>
+<tr>
+<td>PSR B1913+16 (Hulse and Taylor, 7.75 h) and the double pulsar PSR J0737-3039 (2.45 h, about 0.006 AU, merger in about 85 Myr)</td>
+<td>neutron star with neutron star exists; about twenty are known in the Galaxy [R], eight of them merge in a Hubble time [S: Pol et al.]</td>
+</tr>
+<tr>
+<td>GW170817 and GW190425</td>
+<td>binary neutron stars merging in other galaxies [R]</td>
+</tr>
+<tr>
+<td>Cygnus X-1 (a black hole of about 21 solar masses and an O9.7 supergiant of about 40, 5.6 d)</td>
+<td>black hole with a massive star [R]</td>
+</tr>
+<tr>
+<td>Gaia BH1, BH2, BH3 (periods about 186 d, 1,300 d, 4,250 d)</td>
+<td>dormant black hole with a star [S, <code>multistar-and-compact-systems.md</code> 7.2]</td>
+</tr>
+<tr>
+<td>Gaia NS1</td>
+<td>dormant neutron star with a star [S]</td>
+</tr>
+<tr>
+<td>PSR J0337+1715</td>
+<td>millisecond pulsar with a white dwarf (1.6 d) and a second white dwarf (327 d): a compact triple [S]</td>
+</tr>
+<tr>
+<td>V404 Cygni</td>
+<td>black hole with a star (6.5 d) and a tertiary at about 3,700 AU: a compact triple [S, <code>exotic-environments...</code> 2.3]</td>
+</tr>
+<tr>
+<td>PSR B1620-26 in M4</td>
+<td>pulsar and white dwarf with a planet: a captured circumbinary giant [S]</td>
+</tr>
+<tr>
+<td>Neutron star with black hole</td>
+<td>none known in the Galaxy; the gravitational-wave catalogue has several [R]</td>
+</tr>
+<tr>
+<td>Black hole with black hole</td>
+<td>none known in the Galaxy; a hundred and fifty gravitational-wave mergers [S: GWTC-4.0 has 158 events]</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-the-theoretical-limits">3.3 The theoretical limits</h3>
+<ol>
+<li><strong>Hierarchy depth.</strong> A level needs an outer-to-inner axis ratio of about 3 or more for equal masses (Mardling and Aarseth 2.9 to 3.3 coplanar [S, <code>multistar...</code> 5.1]) and observed period ratios are mostly above 10, i.e. axis ratios above about 4.6. The tightest stellar orbit is a contact binary at 0.01 AU and the widest bound orbit the generator keeps is 1e4 AU (20,000 AU for the root), a span of 1e6 to 2e6 in axis. A chain of axis ratio 3 fits <code>ln(1e6)/ln(3)</code> = 12.6 levels, and a ratio of 5 fits 8.6 [C]. So the stability criteria allow a chain of <strong>a dozen or more stars</strong>, and the earlier note's &quot;theory allows several hundred&quot; [S, [R1529]] needs branching. Nobody has seen more than seven. <s>Default: cap at seven</s> (<code>MAX_STARS</code>), superseded: the default cap is 12 (Boss, 2026-10-15, 6:08 PM EDT; the group cap stays 12, unified-star-like-objects.md).</li>
+<li><strong>Non-hierarchical systems do not last.</strong> Trapezia decay in 1e4 to 4e4 years; the lightest star is ejected and the rest harden [S]. A system older than a few times 1e5 years is therefore hierarchical or not bound. <strong>Rule: a stored tree is hierarchical.</strong> A trapezium-like group belongs to the protostar cores of GEN.241 (age under 1 Myr), where it may be drawn as a flagged &quot;decaying&quot; group later; not in this note's build.</li>
+<li><strong>Compact members add three filters</strong> that a star-only tree does not have:
+<ul>
+<li>
+<p><em>Survival of each collapse.</em> Mass loss unbinds a circular orbit when more than half the pre-collapse mass is lost (Blaauw) and a neutron star's natal kick (about 265 km/s) unbinds almost every wide orbit. A Monte Carlo of a black-hole progenitor (25 to 100 solar masses from the IMF) with a Sana period law and a thermal eccentricity, <strong>only the 17% of binaries that stay out of mass transfer</strong>, gives per massive primary [C, <code>mc2.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Black holes collapse directly above</th>
+<th>Companion stays bound as a star</th>
+<th>black hole pair</th>
+<th>black hole with neutron star</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>never (momentum-conserving kick)</td>
+<td>0.15%</td>
+<td>0.26%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>60 solar masses</td>
+<td>0.28%</td>
+<td>0.98%</td>
+<td>0</td>
+</tr>
+<tr>
+<td>40 solar masses</td>
+<td>0.70%</td>
+<td>2.4%</td>
+<td>0.001%</td>
+</tr>
+<tr>
+<td>25 solar masses</td>
+<td>2.2%</td>
+<td>5.4%</td>
+<td>0.002%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The result moves by 20 times with the one parameter nobody knows (where direct collapse starts), but its middle matches the censuses of 3.1 to within the same factor (section 4.4). It also shows that a neutron star's kick leaves <strong>no wide black-hole-with-neutron-star pair</strong>: those are made only in the interacting channel (tight orbits), which is why they sit at hundredths of an AU in the observed gravitational-wave population.</p>
+</li>
+<li>
+<p><em>Gravitational-wave merger time (Peters).</em> A bound compact pair must not already have merged. Circular orbits that merge in 13.8 Gyr: 0.022 AU (2 neutron stars), 0.046 AU (neutron star and 8 solar mass hole), 0.096 AU (10 + 10); with e = 0.9, 0.094, 0.197 and 0.41 AU [C]. A log-flat draw between 0.003 and 100 AU puts 19%, 26% and 33% of pairs inside these axes. <strong>Rule: reject a drawn compact pair whose Peters time at its axis and eccentricity is shorter than the system's age</strong> (a one-line test; already decided in GEN.130).</p>
+</li>
+<li>
+<p><em>Relativistic quench of Kozai-Lidov.</em> As GEN.129's extension already says: a Kozai screen rejects (or marks <code>kl_active</code>) an inner pair only when the mutual inclination is 39.2 to 140.8 degrees, the Kozai time is under the age and the Kozai time is under the inner orbit's relativistic precession period.</p>
+</li>
+</ul>
+</li>
+<li><strong>Compact members per system.</strong> Each collapse in a wide tree is survived with probability of order 0.15 [C, <code>mc.py</code>/<code>mc2.py</code>; Renzo et al. 14% [S]], so k compact members cost about 0.15^k. Two (a pair) are the observed maximum in a pair; the compact triples known (PSR J0337+1715, V404 Cygni) hold one or two compact members. <strong>Default: at most three compact members per tree</strong>, drawn with the product rule; a tree of four (two compact pairs) has a probability under 1e-6 of a black-hole row and is not special-cased.</li>
+</ol>
+<h2 id="4-probabilities">4. Probabilities</h2>
+<p>All defaults live in one dict, <code>MEMBER_STATE_BY_PLACED</code> (section 6), each with its range. The audit of section 9 counts every cell.</p>
+<h3 id="41-member-kinds-and-how-a-star-like-companion-gets-its-state">4.1 Member kinds and how a star-like companion gets its state</h3>
+<p>A member is drawn with an initial mass, then its state follows from the system's age with the same evolution code a single star uses (<code>physics/stellar_evolution.evolve_star</code>). A member lighter than the placed object (the usual case: the placed object is the heaviest) lives longer than it does, so it is alive: main sequence, giant, or <strong>pre-main-sequence</strong> if it is under 8 solar masses and its age is under its contraction time (<code>physics/pre_main_sequence.py</code>, GEN.242: derived from the energy a convective then radiative star releases, with its Hayashi temperature, birthline radius and energy factor <code>PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR</code> fitted to the BHAC15 tracks of [R0254] (GEN.529); 37 Myr for a solar mass, 340 Myr for 0.2 and 0.73 Gyr for 0.1, with no 10 Myr cap, so a red dwarf still shrinking at 100 Myr keeps its pre-main-sequence class; it replaces the older <code>31 Myr x m^-2.5</code> law, which gave 10 Gyr at 0.1 solar masses; this is what makes the companions of a 5 Myr-old O star young), or a <strong>protostar</strong> if the system is under 0.5 Myr (only inside the cores of GEN.241; a scatter row is never that young). A <strong>brown dwarf</strong> companion has the desert rule (under 1% inside 5 AU, a few per cent wide; GEN.252). A <strong>former star</strong> companion appears only through the explicit compact-companion probabilities below, because a companion that is heavier than the placed object at birth contradicts &quot;the placed object is the heaviest&quot;; the compact probabilities stand for the mass-transfer reversal and the heavier-companion cases together. A remnant is allowed only if its progenitor's lifetime is shorter than the system age and the placed object's lifetime is longer (for a living 14 to 25 solar mass star the window is its last third); the table value is the mean over all ages and the generator divides it by the window's share and applies it inside the window.</p>
+<h3 id="42-placed-star-the-mass-pass-and-the-luminosity-pass">4.2 Placed star (the mass pass and the luminosity pass)</h3>
+<p>The number of stars follows <code>multistar-and-compact-systems.md</code> 3.3, chosen by the placed star's <strong>initial mass</strong> class (O 16 and up, B 2.1 to 16, A 1.4 to 2.1, and so on). The rows' mix [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pass</th>
+<th>Rows</th>
+<th>Class mix</th>
+<th>Mean stars per system</th>
+<th>Companion rows added</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mass pass (14 solar masses and up)</td>
+<td>5.24e5</td>
+<td>O 61%, B 39%</td>
+<td>2.77</td>
+<td>9.3e5</td>
+</tr>
+<tr>
+<td>Luminosity pass (9,000 solar luminosities, lighter than 14)</td>
+<td>6.03e5</td>
+<td>B 100% (supergiants, bright giants and subgiants of 2.1 to 14 solar masses)</td>
+<td>2.28</td>
+<td>7.7e5</td>
+</tr>
+</tbody>
+</table></div>
+<p>Companion states (per system, on top of the tree's star count):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Placed object</th>
+<th>Compact companion</th>
+<th>Value and range</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Living star of 14 solar masses or more</td>
+<td>neutron star 0.2%, black hole 0.1%</td>
+<td>0.3% (0.05% to 2%)</td>
+<td>about 130 known high-mass X-ray binaries [R] against 5e5 such stars in the model, times a factor of 5 to 10 for quiet ones [I]; wide-channel survival of 0.15 to 2.2% of massive primaries before the first collapse [C] gives the ceiling</td>
+</tr>
+<tr>
+<td>Wolf-Rayet star (GEN.243)</td>
+<td>as above, companion is O or B in most cases</td>
+<td>companions 50% (WN) and 90% (WC) [S, Dsilva et al.]</td>
+<td>already in the Wolf-Rayet design</td>
+</tr>
+<tr>
+<td>Bright giant of 2 to 14 solar masses</td>
+<td>white dwarf 1%, neutron star or black hole 0.05%</td>
+<td>(0.2% to 5%)</td>
+<td>barium stars and symbiotic systems are all white-dwarf companions to giants [R]; wide neutron-star survival is near zero [C]</td>
+</tr>
+</tbody>
+</table></div>
+<p>A companion that is a brown dwarf or a low-mass star on an outer orbit comes from the tree. Planets, moons and belts are not drawn.</p>
+<h3 id="43-placed-black-hole-59e7-stellar-rows-15e5-intermediate-mass-rows">4.3 Placed black hole (5.9e7 stellar rows, 1.5e5 intermediate-mass rows)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Companion</th>
+<th>Probability for a stellar black hole of 14 solar masses or more</th>
+<th>Range</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>none</td>
+<td>98.75%</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>star (dormant Gaia-type, X-ray binary, wide)</td>
+<td>1.0%</td>
+<td>0.1% to 2.2%</td>
+<td>0.1% of black holes with a luminous companion at AU scales (Gaia prediction) [S]; wide-channel Monte Carlo 0.15% to 2.2% per massive primary [C]; the three Gaia systems are the only direct evidence [S]</td>
+</tr>
+<tr>
+<td>black hole</td>
+<td>0.20%</td>
+<td>0.017% to 2.4%</td>
+<td>tight pairs from the gravitational-wave rate: 1.1 to 2.2 per Myr per Milky Way, a stock of 8e3 to 1.7e4 pairs including wide ones [C], so 1.7e-4 to 3.3e-4 of 1e8 holes; the Lamberts simulation gives 1.2e6 pairs, 2.4% of holes [S]; Monte Carlo 0.26% to 5.4% [C]. The default is the geometric middle of the two</td>
+</tr>
+<tr>
+<td>neutron star</td>
+<td>0.05%</td>
+<td>0.0075% to 0.07%</td>
+<td>gravitational-wave rate of neutron-star black-hole mergers 0.8 to 7.4 per Myr, stock of 7.5e3 to 6.9e4 pairs [C]; the wide channel gives none [C]</td>
+</tr>
+</tbody>
+</table></div>
+<p>That is 1.25% with a companion (the earlier note's 10% to 30% [R] was an inference from three Gaia systems and does not match the censuses above or the black-hole count: 10% of 5.9e7 rows would be 6e6 dormant pairs for Gaia to have found only three). When a black hole has a companion, <strong>30% also have an outer third member</strong> (a star or a compact object) [I: about half of black-hole binaries are in triples in a population model, and observed massive stars are 50% to 70% triples, thinned by survival]; V404 Cygni is the model case. A black hole's tree obeys the Peters rule for any compact inner pair and the direct-collapse rule of <code>exotic-environments...</code> 2.3 for any companion beyond 1,000 AU.</p>
+<p>Intermediate-mass black hole: star companion 1% (a captured star in a cluster or a satellite), nothing else (default; no source). Hypervelocity stars: no companion (the Hills mechanism ejects one star of a disrupted binary) [R]. Supernova remnants: the core-collapse core is built at fill with the young-neutron-star company of 4.4; the 3.2e3 rows carry no companion now.</p>
+<h3 id="44-placed-neutron-star-white-dwarf-and-the-rest">4.4 Placed neutron star, white dwarf and the rest</h3>
+<p>Neutron stars are not scattered at the default cut, so these apply at fill and for the promoted pairs of 4.5. A neutron star's companion [multistar 7.3, unchanged except for the new pairs]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>No companion</th>
+<th>Companion</th>
+<th>New: compact companion</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Young neutron star</td>
+<td>97% to 99%</td>
+<td>1% to 3% (Be or main-sequence star; wide orbits unlikely)</td>
+<td>neutron star 0.04% (range 0.014% to 0.095%)</td>
+</tr>
+<tr>
+<td>Recycled millisecond pulsar (10% of pulsars)</td>
+<td>20% to 25%</td>
+<td>75% to 80% (white dwarf, spider, rare neutron star)</td>
+<td>the neutron-star share of those is part of the 0.04%</td>
+</tr>
+<tr>
+<td>Any neutron star</td>
+<td></td>
+<td></td>
+<td>black hole 0.0025% (range 7e-4% to 0.007%): the same pair as a black hole's 0.05% [C]</td>
+</tr>
+</tbody>
+</table></div>
+<p>The neutron-star number: 6.8e4 to 4.7e5 double neutron stars in the Galaxy (rate x 2.5 Gyr / 0.19 of orbits that merge in a Hubble time) is 1.4e-4 to 9.5e-4 of 1e9 neutron stars [C]; the default is their geometric middle (3.6e-4, rounded to 0.04%). Cross-check: 20 known double neutron stars among about 400 binary millisecond pulsars is 5%; with millisecond pulsars 0.2% of neutron stars and 78% in binaries, 5% of those gives 8e-5, and a second neutron star in the pair that is not itself recycled raises it to the same order [I].</p>
+<p>White dwarf: companion 30% (22% wide), per <code>multistar-and-compact-systems.md</code> 7.3; the new cross-check is Holberg's 26% [S]. Planetary-nebula central star: close companion 20% [R]. Neither is scattered except the planetary-nebula star (2.95e4 rows).</p>
+<h3 id="45-promote-bound-compact-pairs-to-the-scatter">4.5 Promote bound compact pairs to the scatter</h3>
+<p>Boss named neutron-star pairs. At the default cut they would never be scattered, because 2.8 solar masses is under the 14 solar mass cut: a pair's tidal sphere <code>1.44 pc x (2.8)^(1/3)</code> is 2.0 pc, inside one 4 pc sector (<code>phenomenon-scatter-mass-cut.md</code>: the cut falls where the sphere equals a sector edge), so the cut's logic says a fill covers them. That logic does not hold for what Boss wants (to see and navigate the compact binaries, to mark mergers, to have pulsars for timing), and the rows are cheap because the pairs are rare:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pair</th>
+<th>Probability per member</th>
+<th>Pairs in the default galaxy</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>neutron star with neutron star</td>
+<td>3.6e-4 (1.4e-4 to 9.5e-4) of 9.5e8</td>
+<td>1.7e5 (0.7e5 to 4.5e5)</td>
+</tr>
+<tr>
+<td>neutron star with black hole (below the cut)</td>
+<td>3e-4 of 8.9e7 sub-cut holes</td>
+<td>2.7e4</td>
+</tr>
+<tr>
+<td>black hole with black hole (both below the cut)</td>
+<td>0.2% of 8.9e7</td>
+<td>9e4</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Default: the scatter places every bound compact pair whatever its mass</strong> (about 3e5 rows, 0.5% of the black-hole rows). The below-cut fill draws then leave those objects out (section 6.4). Pairs with only one compact member (a neutron star with a star, a pulsar with a white dwarf) are not promoted: their mass is the neutron star's.</p>
+<h3 id="46-orbits-per-pairing">4.6 Orbits per pairing</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pairing</th>
+<th>Axis law</th>
+<th>Eccentricity</th>
+<th>Checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Star with star</td>
+<td>the truncated log-normal in period of <code>multistar</code> 4 (the O and B mean toward log P(d) = 3.5, Sana's <code>(log P)^-0.55</code> below that)</td>
+<td>circular under 7 d, thermal above, capped at <code>1 - (P/2 d)^(-2/3)</code></td>
+<td>Mardling-Aarseth, Eggleton-Kiseleva or the Equation 4 switch; Kozai screen</td>
+</tr>
+<tr>
+<td>Black hole or neutron star with a star, interacted (tight)</td>
+<td>log-uniform in period from 0.3 to 1e4 days [R: Gaia BH1 to BH3 are 186 to 4,250 d, X-ray binaries hours to days]</td>
+<td>circular under 7 d, else thermal</td>
+<td>Roche-lobe floor; the star's radius</td>
+</tr>
+<tr>
+<td>Compact pair, tight</td>
+<td>log-uniform in axis, 0.003 to 100 AU</td>
+<td>circular under 0.1 AU, else thermal</td>
+<td><strong>Peters time against the system age</strong>; relativistic Kozai quench</td>
+</tr>
+<tr>
+<td>Any wide companion (over 1,000 AU) of a collapsed object</td>
+<td>as stars</td>
+<td>as stars</td>
+<td><strong>only for a direct-collapse black hole</strong></td>
+</tr>
+<tr>
+<td>Tertiary of a compact binary</td>
+<td>as the star law, outer axis at least the Mardling-Aarseth minimum</td>
+<td>as stars</td>
+<td>the tree checks; V404 Cygni (axis ratio 25,700) passes</td>
+</tr>
+</tbody>
+</table></div>
+<p>As built (GEN.261, pinned by GEN.266's tests in <code>test_gen_compact_orbit_laws.py</code>): every row of this table is in <code>multistar._Builder</code> (<code>law</code>, <code>period_days</code>, <code>eccentricity</code>, <code>place</code>): a pairing of a compact object with a star uses the <code>interacted</code> law (<code>INTERACTED_PERIOD_DAYS</code>), a pairing of two compact objects the <code>compact-pair</code> law (<code>COMPACT_PAIR_AXIS_AU</code>, <code>COMPACT_PAIR_CIRCULAR_BELOW_AU</code>, the Peters filter), a wide companion of a hole that did not collapse directly is capped at <code>WIDE_COMPACT_AXIS_AU</code>, and every other pair, a tertiary included, takes the star law. The relativistic quench is in <code>stability.kozai_verdict</code>.</p>
+<h2 id="5-the-stored-form">5. The stored form</h2>
+<p>The placed object stays the scatter row (nothing about a row without companions changes). A row with companions gains columns and child rows:</p>
+<p><strong>On <code>bright_stars</code> and <code>phenomenon_scatter</code>:</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Null</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>member_count</code></td>
+<td>SMALLINT UNSIGNED</td>
+<td>nullable</td>
+<td>Number of members including the placed object; NULL for a single object.</td>
+</tr>
+<tr>
+<td><code>system_mass_solar</code></td>
+<td>DOUBLE</td>
+<td>nullable</td>
+<td>Sum of the member masses; NULL for a single object. The barycentre's mass. A reader uses <code>COALESCE(system_mass_solar, mass_solar)</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>The row's point, velocity, epoch and next-update columns (GEN.223's point structure) are the <strong>barycentre</strong>.</p>
+<p><strong><code>scatter_members</code></strong> (one row per member, the placed object included as member 0 so the tree is uniform):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td>TINYINT</td>
+<td>1 = <code>bright_stars</code>, 2 = <code>phenomenon_scatter</code>.</td>
+</tr>
+<tr>
+<td><code>source_id</code></td>
+<td>BIGINT UNSIGNED</td>
+<td>The row's id.</td>
+</tr>
+<tr>
+<td><code>member_no</code></td>
+<td>SMALLINT</td>
+<td>0 is the placed object. Primary key <code>(source, source_id, member_no)</code>.</td>
+</tr>
+<tr>
+<td><code>parent_node_no</code></td>
+<td>SMALLINT</td>
+<td>The orbit node this member is a child of.</td>
+</tr>
+<tr>
+<td><code>slot</code></td>
+<td>SMALLINT</td>
+<td>0 and 1 for a pair (<code>a</code>, <code>b</code>); 0 to N - 1 for a member of a <code>group</code> node (section 14).</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>VARCHAR(20), CHECK</td>
+<td><code>main-sequence</code>, <code>giant</code>, <code>white-dwarf</code>, <code>neutron-star</code>, <code>black-hole</code>, <code>brown-dwarf</code>, <code>pre-main-sequence</code>, <code>protostar</code>, plus the catalogue kinds <code>stripped-helium</code>, <code>thorne-zytkow</code>, <code>wolf-rayet</code> (section 14).</td>
+</tr>
+<tr>
+<td><code>state</code>, <code>flags</code></td>
+<td>VARCHAR(16), SMALLINT</td>
+<td>Added by the catalogue: the member's evolutionary state and its flag bits (section 14). Nullable. As built, <code>state</code> is the Yerkes class of a star (<code>V</code>, <code>III</code>, <code>VII</code>, ...), <code>PMS</code> for a pre-main-sequence star (the column is 16 characters wide), <code>protostar</code>, and NULL for a remnant or a brown dwarf.</td>
+</tr>
+<tr>
+<td><code>offset_*_au</code>, <code>velocity_*_kms</code>, <code>decay_age_yr</code></td>
+<td>DOUBLE</td>
+<td>Nullable; only the members of a <code>group</code> node (a young non-hierarchical system).</td>
+</tr>
+<tr>
+<td><code>mass_solar</code></td>
+<td>DOUBLE</td>
+<td>Current mass.</td>
+</tr>
+<tr>
+<td><code>initial_mass_solar</code></td>
+<td>DOUBLE</td>
+<td>Birth mass (the progenitor's for a remnant); a star's current state is rebuilt from it and the age.</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>BIGINT UNSIGNED</td>
+<td>The member's own build seed (details, planets later).</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong><code>scatter_nodes</code></strong> (N - 1 rows for N members), the same names and units as GEN.129's <code>orbit_nodes</code> so a fill copies column for column:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code>, <code>source_id</code>, <code>node_no</code></td>
+<td></td>
+<td>Primary key; <code>node_no</code> 1 is the root.</td>
+</tr>
+<tr>
+<td><code>parent_node_no</code>, <code>slot</code></td>
+<td></td>
+<td>NULL parent for the root. Children are found by their parent and slot (<code>slot</code> is SMALLINT, as on members).</td>
+</tr>
+<tr>
+<td><code>mass_solar</code></td>
+<td>DOUBLE</td>
+<td>The subtree's mass.</td>
+</tr>
+<tr>
+<td><code>separation_km</code>, <code>eccentricity</code>, <code>inclination_deg</code>, <code>ascending_node_deg</code>, <code>arg_periapsis_deg</code></td>
+<td>DOUBLE</td>
+<td>The pair's orbit (the relative orbit of child b about child a).</td>
+</tr>
+<tr>
+<td><code>mean_anomaly_deg</code>, <code>epoch_unix</code>, <code>period_years</code></td>
+<td>DOUBLE</td>
+<td>The phase at an epoch.</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>VARCHAR(16)</td>
+<td><code>close</code>, <code>wide</code>, <code>compact</code> or <code>group</code> (for naming and the checks).</td>
+</tr>
+<tr>
+<td><code>interaction</code></td>
+<td>VARCHAR(20)</td>
+<td>Added by the catalogue: <code>detached</code>, <code>semi-detached</code>, <code>contact</code>, <code>accreting</code>, <code>post-common-envelope</code>, <code>merger-product</code> (section 14).</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>TINYINT</td>
+<td>bit 0 interacted (drawn from the tight-channel law), bit 1 <code>kl_active</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<p>One column per component, no JSON. There is no foreign key (a row table of 6e7 entries with a polymorphic parent), so the build deletes the child rows of a built row in the same transaction, and a nightly check (extends <code>check-db</code>) counts child rows without a parent.</p>
+<p><code>phenomenon_scatter_classes</code> gains no column: a compact pair is counted under its placed object's class, with a <code>members</code> count in the Phenomena table.</p>
+<h2 id="6-the-generator-and-its-cost">6. The generator and its cost</h2>
+<h3 id="61-one-function-two-call-sites">6.1 One function, two call sites</h3>
+<p><code>draw_member_tree(placed, age, rng)</code> returns the members and nodes. It is GEN.129's hierarchy generator (design 5.1 to 5.3 of the earlier note: draw N from the O to M table, masses, shape, root separation, then each pair top-down under the stability criteria and the Kozai screen) with three additions: the <strong>member kinds</strong> and the compact-companion probabilities of section 4, the <strong>compact filters</strong> of 3.3 (Peters, quenched Kozai, wide-companion rule), and the <strong>state of each member</strong> at the system's age (4.1). The scatter pass calls it for every placed star and black hole, and the fill calls it for every object the fill creates (stage D's other systems, stage G's below-cut remnants), so the two places draw from one set of laws.</p>
+<h3 id="62-streams-and-determinism">6.2 Streams and determinism</h3>
+<p>The tree is drawn from <code>draw.bound(row.seed)</code> with the suffix <code>members</code>, in a fixed order (GEN.55, GEN.56): the existing rule that a new stage never moves an older stage's draws. The planets later come from the suffix <code>planets</code>. A re-plan with the same galaxy seed regenerates the same members; after a plan the stored members are authoritative, so a later change to the laws changes the next scatter, not the existing rows (no drift between a stored summary and a regeneration).</p>
+<p><strong>As built (GEN.262).</strong> <code>generation/scatter_companions.py</code> draws the tree from <code>draw.Stream(f&quot;{seed}:members&quot;)</code>: first the system's age (a compact object's from <code>COMPACT_REMNANT_AGE_RANGE_GY</code>, a planetary nebula's central white dwarf's progenitor and main-sequence life, a star's from its row), then <code>draw_member_tree</code>. The address is not an input, so a row gives the same members wherever it sits. The nodes' epoch is the orbit epoch when an orbit update has run and <code>tuning.SCATTER_PHASE_ORIGIN_UNIX</code> (2000-01-01) before that, never the database's clock, so two runs of one seed store the same nodes. The row draws of the passes are untouched: the passes yield exactly the rows they yielded before, and a tree is drawn from the row at the write.</p>
+<h3 id="63-bulk-screening">6.3 Bulk screening</h3>
+<p>A black-hole scatter row is made in bulk by numpy (<code>_band_rows</code>, about 1 microsecond a row). The companion decision must not turn that into a Python loop over 6e7 rows. Therefore the bulk pass draws <strong>one uniform per row</strong> from the shell's stream and compares it with the cumulative companion probability of the row's class (1.25%); only the hits (about 7.4e5 black-hole rows) call <code>draw_member_tree</code>.</p>
+<p><strong>As built (GEN.262).</strong> The uniform is not drawn from the shell's stream, because a new draw there would move every later draw of the shell (6.2's rule). It is a pure function of the row's seed, <code>scatter_companions.screen_unit(seed)</code>: the SplitMix64 finalizer over the seed and a per-question salt, integer arithmetic only, about a microsecond. A row it does not name costs that and a comparison with the class's total odds; a hit gets its companion state from the same uniform (<code>multistar.companion_state_at</code>) and calls <code>draw_member_tree(..., companion=state)</code>, so the tree takes the state the screen named. A neutron star is a millisecond pulsar when a second uniform of the seed is under <code>NEUTRON_STAR_PULSAR_CHANCE * PULSAR_MILLISECOND_CHANCE</code> (0.2%), and then takes the recycled-pulsar table. Star rows are not screened: their tree always runs, since most O and B stars have company (3.3). A planetary nebula's central star is a white dwarf of the <code>planetary-nebula-star</code> table; supernova remnants, hypervelocity stars, quasars and the nucleus carry no tree.</p>
+<h3 id="64-density-bookkeeping-a-row-is-a-system">6.4 Density bookkeeping: a row is a system</h3>
+<p>The rates in <code>PHENOMENON_DENSITY_PC3</code> count <strong>objects</strong>. A black-hole pair would be two objects and, if both were placed independently, a double count, and a pair of which one member is under the cut would be counted once by the scatter and once by the fill. Rules:</p>
+<ul>
+<li>A scatter row is a <strong>system keyed by its placed object</strong>: its rate is the object rate divided by <code>1 + p_placed</code>, where <code>p_placed</code> is the expected number of <strong>same-class</strong> companions per row (0.20% for a black hole; 0.04% for a neutron star), so the black-hole density is unchanged. The correction is 0.2%, below the rate uncertainty, but it is a rule so the audit can check it.
+<strong>As built (GEN.262):</strong> <code>phenomenon_scatter.row_density_divisor(kind, subtype)</code> is <code>1 + p_placed</code> (1.002 for a stellar black hole; 1 + 0.998 x 1.8e-4 + 0.002 x 2.0e-3 for a neutron star, from the table rather than the rounded 0.04%; 1 for every class whose companions are not of its own class, a planetary nebula's white dwarf included), and <code>_scattered_rates</code> divides each class's rate by it. The below-cut fill draw is unchanged for now: it builds no companions until stage G draws trees (GEN.251).</li>
+<li>A star row is keyed by its heaviest member, which is what the census (a per-primary census) counts already.</li>
+<li>The fill's below-cut draw for a class leaves out objects that are members of a placed system: the rate of the fill draw is the object rate times <code>(1 - p_member_of_placed)</code>, about 0.04% for neutron stars. Stated for the audit; it changes nothing a user sees.</li>
+<li>A promoted compact pair (4.5) is a row with the placed object the heavier member.</li>
+</ul>
+<h3 id="65-cost-c">6.5 Cost [C]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Count</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Star rows with companions (O 90%, B 75%; mass pass 61% O and 39% B gives 0.84 of its rows, luminosity pass 0.75)</td>
+<td>about 8.9e5 systems; 1.7e6 companions</td>
+<td>N = 2 to 4 in under 1 ms, N = 7 in 53 ms (average) [S, <code>multistar</code> 5.3]; about 1.2 ms mean, so <strong>about 20 CPU minutes</strong></td>
+</tr>
+<tr>
+<td>Black-hole rows with companions</td>
+<td>7.4e5 systems; 9.6e5 companions (7.4e5 plus 30% tertiaries)</td>
+<td>about 0.3 ms each, <strong>about 4 CPU minutes</strong></td>
+</tr>
+<tr>
+<td>Promoted compact pairs</td>
+<td>3e5 systems</td>
+<td><strong>about 2 CPU minutes</strong></td>
+</tr>
+<tr>
+<td>Member rows (companions 2.96e6 plus the 1.93e6 placed objects)</td>
+<td>about 4.9e6</td>
+<td>55 bytes each: 0.27 GB</td>
+</tr>
+<tr>
+<td>Node rows (one per companion)</td>
+<td>about 3.0e6</td>
+<td>110 bytes each: 0.33 GB</td>
+</tr>
+<tr>
+<td>Row columns</td>
+<td>6.1e7 rows</td>
+<td>a nullable DOUBLE and SMALLINT that are NULL cost under a byte each; under 0.1 GB</td>
+</tr>
+<tr>
+<td>Base rows today</td>
+<td>5.9e7 x 138 B + 1.1e6 star rows</td>
+<td>about 8 GB</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the scatter grows by about 7% in space (0.6 GB for the child tables) and by about half an hour of CPU in time. A cut that placed every neutron star (<code>--compact-min-mass 1</code>, 1.2e9 rows, 161 GB) would not be needed for neutron-star pairs because of 4.5.</p>
+<h2 id="7-motion-gen223-gen109-s-c">7. Motion (GEN.223, GEN.109) [S, C]</h2>
+<ul>
+<li><strong>The system is one object in space.</strong> The barycentre carries the position, velocity and epoch columns of GEN.223's point; <code>system_mass_solar</code> is its mass. The nightly update moves it with the rest of the galaxy. Nothing new in the update algorithm: the Hill-sphere influence rule of GEN.109 reads <code>system_mass_solar</code> and gets a more massive body where there is a pair.</li>
+<li><strong>No per-member writes.</strong> A member's position is <code>barycentre + offsets from the tree</code>, with each node's mean anomaly at time t computed as <code>mean_anomaly_deg + 360 (t - epoch_unix) / period_years</code> (mod 360) on read, as <code>positions_at</code> already does for a built pair. The nightly update therefore touches no <code>scatter_nodes</code> row; 3.0e6 node rows cost nothing per night. When a fill builds the system, the node rows copy to <code>orbit_nodes</code> with their epoch and phase, and the built system's own phase advance (<code>advance_orbital_phases</code>) takes over.</li>
+<li><strong>As built (GEN.265).</strong> <code>planetgen/physics/system_tree.py</code> computes every member's offset from the barycentre at any time from the stored nodes (Kepler's equation for each node, the two children either side of the node's centre in proportion to the other's mass, a <code>group</code> node's members flying straight from the node's epoch), and <code>planetgen/db/scatter_systems.py</code> stores, reads and places a tree under a scatter row (<code>member_positions_pc</code> is the barycentre's stored point plus the offsets). <code>store.advance_scatter_points</code> is unchanged: it moves the barycentre like any scatter point and never touches <code>scatter_members</code> or <code>scatter_nodes</code>. <code>scatter_systems.point_masses_solar</code> is the mass a point carries (<code>system_mass_solar</code>, else the object's own) for the influence rule of GEN.109.</li>
+<li><strong>The position resolution hides the tree.</strong> A stored point is in whole milliparsecs, 206 AU. The barycentre-to-primary offset of the widest tree (10,000 AU at a mass ratio 0.5) is 0.024 pc [C], 24 mpc, well inside a 4 pc sector and smaller than the mapping detail anyone looks at; a close tree is a fraction of one stored unit. The row's point is the barycentre and no member needs its own point until the system is built.</li>
+<li><strong>Natal velocities.</strong> A compact pair's centre-of-mass velocity is the placed object's (a black hole's is the galactic velocity of its class); the kick of the collapse that made a bound pair is already in the survival rule and does not add a second velocity.</li>
+<li><strong>Kozai-Lidov and secular effects</strong> inside the tree are ignored over game time, as <code>multistar</code> 6.4 decided; the quench rule only decides which trees are kept.</li>
+</ul>
+<h2 id="8-how-a-fill-reuses-the-members">8. How a fill reuses the members</h2>
+<p>The stages of <code>phenomena-catalogue-and-fill.md</code> 3 stay; this changes what stage A, B and C do:</p>
+<ul>
+<li><strong>Stage A and B (pre-placed stars and scattered rows become objects).</strong> The system is built from the stored members and nodes: the placed object is member 0, the others are built from their <code>seed</code> and <code>initial_mass_solar</code> and the system age, and the nodes are copied into <code>orbit_nodes</code>. <code>StarSystem</code> takes a <code>member_tree</code> argument that <strong>skips its own companion draw</strong> (today it draws one and skips it for a remnant, <code>system.py:255</code>). A failed build (no room) drops the outermost body and then, if need be, the outermost member, never the placed object, as the catalogue note says.</li>
+<li><strong>Stage C (the system pass) shrinks.</strong> It no longer draws companions for a scattered object: it draws <strong>planets, moons and belts only</strong>, per the kind's planet rules (no planets under 10 Myr, millisecond-pulsar planets at 0.7%, Holman-Wiegert zones taken from the stored nodes), from the stream <code>seed + planets</code>. For an object that has no stored members (a below-cut remnant, a fill-created star) the same stage draws the member tree first, with the same function, then the planets.</li>
+<li><strong>Stage D (the cell's other systems) and stage G (below-cut remnants)</strong> call <code>draw_member_tree</code> for every object they create, so a system made at fill has companions at the same odds as one made at scatter time.</li>
+<li><strong>Nothing is forced.</strong> No stage adds a companion to meet a quota. A sector holds, among the objects the fill creates, companions at the table rates; among the pre-placed ones, whatever the scatter drew.</li>
+<li><strong>Cleanup.</strong> A built row's <code>scatter_members</code> and <code>scatter_nodes</code> rows are deleted in the build's transaction; the built system's own tables are then the only record.</li>
+</ul>
+<h2 id="9-audit-and-tests">9. Audit and tests</h2>
+<p>Extends the representation audit of the catalogue note (TEST.160, TEST.161):</p>
+<ol>
+<li><strong>Companion states.</strong> Over a seeded scatter of at least 1e6 rows, the share of rows with each companion state (none, star, black hole, neutron star, white dwarf) lies within four Poisson sigma of the table; the mean stars per system of each class match <code>multistar</code> 3.3 within two sigma.</li>
+<li><strong>Row bookkeeping.</strong> Object density per class before and after members matches (the <code>1 + p_placed</code> rule); no object is both a row and a member.</li>
+<li><strong>Stability.</strong> Every stored tree passes Mardling-Aarseth, Eggleton-Kiseleva or Equation 4 (the switch), the Kozai screen and the Peters rule.</li>
+<li><strong>Determinism.</strong> Two scatters with the same seed store identical members; the planets of a built system do not change when the member laws change for the next scatter.</li>
+<li><strong>No planets in a scatter.</strong> Property test: nothing in <code>scatter_members</code> or <code>scatter_nodes</code> is a planet, moon or belt.</li>
+<li><strong>Fill reuse.</strong> The stars of a built system equal the stored members; the nodes equal the stored nodes; the child rows are gone after the build.</li>
+<li><strong>Motion.</strong> After a nightly update the barycentre point has moved and no <code>scatter_nodes</code> row has been written; a member's position at time t equals its position computed from the stored phase; a round trip of the point columns is exact (GEN.223's own test).</li>
+<li><strong>Examples as unit tests.</strong> The double pulsar (2.45 h, 1.34 + 1.25 solar masses) passes Peters (85 Myr is below a 10 Gyr age, so a drawn pair with that axis is <em>rejected</em> for an old system and accepted for a young one); V404 Cygni (9.7, 6.5 d and 10.6 at 3,731 AU) passes the stability test; a wide companion of 3,000 AU to a 14 solar mass hole that is not direct-collapse is rejected.</li>
+<li><strong>Census anchor test.</strong> Over the full default scatter the counts of stellar-mass black holes with a black-hole companion lie between the gravitational-wave stock and the Lamberts count (1.7e-4 to 2.4e-2 of holes).</li>
+</ol>
+<h2 id="10-what-this-changes-in-the-earlier-notes-and-todo">10. What this changes in the earlier notes and TODO</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>Was</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GEN.129</code> last paragraph (&quot;multi-star systems around a scattered object appear at sector fill only&quot;) and <code>GEN.130</code> last paragraph</td>
+<td>Remnant systems only at fill, by promotion through the scatter</td>
+<td>Companions at scatter; planets and moons at fill</td>
+</tr>
+<tr>
+<td><code>GEN.251</code> system pass</td>
+<td>Rolls one system (companions, planets, belts, moons, disk) for every scattered object at fill</td>
+<td>Rolls planets, moons, belts and disks only for scattered objects; companions come from the stored members. Objects made at fill still draw both</td>
+</tr>
+<tr>
+<td><code>phenomena-catalogue-and-fill.md</code> section 5</td>
+<td>Stellar black hole <code>P(system)</code> 0.20</td>
+<td>Companion 1.25% (star 1.0%, black hole 0.2%, neutron star 0.05%)</td>
+</tr>
+<tr>
+<td><code>phenomena-catalogue-and-fill.md</code> section 3 rule &quot;Never planets for a scatter row alone&quot;</td>
+<td>A scatter row stores a point and a seed</td>
+<td>A scatter row stores a point, a seed and its members; nothing with a planet, moon or belt</td>
+</tr>
+<tr>
+<td><code>multistar-and-compact-systems.md</code> 7.3, black-hole row</td>
+<td>&quot;10 to 30% [R]&quot; bound stellar companion</td>
+<td>1.25% in total (this note, 4.3); the other rows unchanged</td>
+</tr>
+<tr>
+<td><code>GEN.223</code></td>
+<td>Scatter placeholders get point columns</td>
+<td>The point is the barycentre of a system, with <code>system_mass_solar</code>; members need no nightly write</td>
+</tr>
+<tr>
+<td><code>GEN.109</code></td>
+<td>Mass of the body in the point-mass table</td>
+<td><code>COALESCE(system_mass_solar, mass_solar)</code></td>
+</tr>
+<tr>
+<td><code>exotic-environments...</code> Peters rule and wide-companion rule</td>
+<td>In GEN.130 slice (a)</td>
+<td>Moves into the generator of 6.1 (used by both call sites)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="11-proposed-todo-items">11. Proposed TODO items</h2>
+<p>The TODO thread numbers them and assigns the lanes. Items 1 to 11 are already filed (merged #1651): item 1 is GEN.260, 2 is GEN.261, 3 is GEN.262, 4 is GEN.263, 5 is GEN.264, 6 is GEN.265, 7 is GEN.266, 11 is GEN.267, 8 is UX.114, 9 is TEST.162 and 10 is DOC.50. Items 12 to 20 and the changed existing items are the catalogue's additions and wait for the TODO thread. Order is build order.</p>
+<ol>
+<li>
+<p><strong>Scatter member columns and tables</strong> (Core; with or immediately after the shared GEN.223 and GEN.230 migration): <code>member_count</code>, <code>system_mass_solar</code> on <code>bright_stars</code> and <code>phenomenon_scatter</code>, the <code>scatter_members</code> and <code>scatter_nodes</code> tables of section 5, the cleanup check in <code>check-db</code>. Prerequisites: GEN.223.</p>
+</li>
+<li>
+<p><strong>The member-tree generator</strong> (Core): <code>draw_member_tree</code> of section 6.1, i.e. GEN.129 steps (a) to (d) plus the member kinds, the companion-state dict <code>MEMBER_STATE_BY_PLACED</code>, pre-main-sequence and brown-dwarf states, and the compact filters (Peters, relativistic Kozai quench, direct-collapse wide-companion rule). Absorbs the code half of GEN.130 slice (a). Prerequisites: GEN.250.</p>
+</li>
+<li>
+<p><strong>Companions in the scatter passes</strong> (Core): the mass pass, luminosity pass and phenomenon pass draw members (stars, black holes, intermediate-mass black holes, planetary-nebula central stars), with the bulk screening of 6.3 and the <code>1 + p_placed</code> density bookkeeping of 6.4. Prerequisites: items 1 and 2.</p>
+</li>
+<li>
+<p><strong>Compact-pair promotion</strong> (Core; decision 3 below): scatter every bound compact pair whatever its mass, and remove its members from the fill's below-cut draws. Prerequisites: item 3.</p>
+</li>
+<li>
+<p><strong>Fill builds from stored members</strong> (Core): <code>StarSystem(member_tree=...)</code>, stage C reduced to planets, moons and belts, stage D and G call the generator, build deletes the child rows. Rescopes GEN.251. Prerequisites: items 1 to 3, GEN.251.</p>
+</li>
+<li>
+<p><strong>Nightly motion of a system</strong> (Core, with GEN.223): barycentre point with <code>system_mass_solar</code>; analytic member phase on read; no per-member writes; GEN.109 reads the system mass. Prerequisites: GEN.223, item 1.</p>
+</li>
+<li>
+<p><strong>Compact-binary rules</strong> (Core; replaces GEN.130 slices (a) and (b) in part): the orbit laws of 4.6 for black hole or neutron star with a star, tight compact pairs, tertiaries; pulsar-planet presets stay in GEN.130 slice (b). Prerequisites: item 2.</p>
+</li>
+<li>
+<p><strong>Scatter-row pages show members</strong> (Interface): the sector and bright-star pages list the stored members of an unbuilt row and the map shows a system mass; a <code>Members</code> column in the Phenomena table. Prerequisites: item 1.</p>
+</li>
+<li>
+<p><strong>Multiplicity audit</strong> (Quality): section 9 tests 1 to 9 in the test suite, with the admin report of the representation audit. Prerequisites: items 3 and 5.</p>
+</li>
+<li>
+<p><strong>Docs</strong> (Quality): <code>database-schema.md</code> (the two new tables, the two new columns), <code>multistar-and-compact-systems.md</code> 7.3 corrected, <code>phenomena-catalogue-and-fill.md</code> sections 3 and 5 corrected, a pointer from <code>interstellar-object-rates.md</code>.</p>
+</li>
+<li>
+<p><strong>Cap and directive</strong> (Core, small): <code>MAX_STARS</code> setting (default <strong>12</strong>, raised by the catalogue; section 16) and a <code>--stars N</code> directive, so a user may force N or raise the cap; a prevalence knob for the N &gt;= 5 columns, as GEN.129 already has.</p>
+<p><strong>As built (GEN.267), the settings and their plumbing; the host that reads them is GEN.630's.</strong> <code>SystemConfig.STARS</code> (None, or the forced count) and <code>SystemConfig.MAX_STARS</code> (<code>tuning.MAX_STARS_DEFAULT</code>, 12) travel in the config's JSON, the run's plan arguments and the <code>system_configs</code> row (migration 0134, schema v134: <code>stars</code>, <code>max_stars</code>, <code>prevalence_multi_star</code>), so a stored config regenerates with the same count. <code>--stars N</code> is for one system (<code>planetgen system</code>, the system file's <code>stars</code>; sector and galaxy runs refuse it), <code>--max-stars N</code> sets the cap for any run (the system file's <code>max_stars</code>, the Generate page's Most stars in a system), and <code>multi_star</code> is a prevalence feature (<code>--prevalence multi_star=PERCENT</code>, a Generate page field that starts at the usual share): <code>prevalence.multi_star_scale(config)</code> is the factor on the <code>star-count</code> table's five-or-more columns and on the 8-to-12 tail, which the host passes as <code>draw_member_tree(..., max_stars=config.MAX_STARS, n_stars=config.STARS, prevalence=multi_star_scale(config))</code>; -100 gives none. The refusals are <code>run_system.stars_problem</code> and <code>max_stars_problem</code>, in the command line and on a system file: a count under 1, a count over the cap (the message names <code>--max-stars</code>), a cap over <code>tuning.MAX_STARS_CEILING</code> (64, a stand-in: see below), <code>--stars 1</code> with <code>+binary_system</code> or <code>+wide_binary</code>, and two or more stars with <code>-binary_system</code>. <code>--stars 3</code> with <code>+binary_system</code> stands: the system has a companion, and what the rest of the tree is belongs to the host. The usual share of five or more stars, <code>tuning.PREVALENCE_DRAW_SHARES[&quot;multi_star&quot;]</code> = 0.46% of systems (0.44% before the mass ratios of GEN.951 moved the primary mass function), is the table's columns averaged over the primary mass function (GEN.928), because no run builds five stars until GEN.630 lands; remeasure it from generated systems then (a test holds the figure against the table until it is). The ceiling of 64 is a stand-in: a chain of axis ratio 3 fits a dozen levels in the span of axes (section 3 item 1), and branching could hold a few dozen. <code>StarSystem</code> does not read <code>STARS</code>, <code>MAX_STARS</code> or the prevalence yet, so a forced count changes nothing in a generated system until the host reads it; no generator epoch, because the defaults reproduce today's draws.</p>
+</li>
+</ol>
+<p><strong>Added by the catalogue (6:08 PM EDT)</strong>, in build order after item 2:</p>
+<ol start="12">
+<li><strong>System-type registry and rates dict</strong> (Core, with GEN.250): <code>SYSTEM_TYPE_RATES</code> of section 14, one entry per row of 13.1 to 13.6, plus the completeness test (every row has a generator and an audit count). Prerequisites: GEN.250.</li>
+<li><strong>Interaction states in the star model</strong> (Core): the Roche-lobe classifier, the <code>interaction</code> and member <code>state</code> and <code>flags</code> columns (migration folded into item 1), <code>mass_reversed</code>, <code>mass_gainer</code>, rejuvenated age, <code>stripped-helium</code>, <code>thorne-zytkow</code> and <code>wolf-rayet</code> kinds. Prerequisites: items 1 and 2.</li>
+<li><strong>Close-binary types</strong> (Core): contact, Algol, spectroscopic and eclipsing flags, the tertiary share of contact binaries, massive over-contact binaries, merger products (massive, field, double white dwarf bump), Be stars with stripped companions, the tight-tail weight of 13.7. Prerequisites: item 13.</li>
+<li><strong>White-dwarf binary types</strong> (Core; extends GEN.253): close double white dwarf, post-common-envelope pair, cataclysmic variable, AM CVn, symbiotic and barium stars, white dwarf with brown dwarf. Prerequisites: item 13, GEN.253.</li>
+<li><strong>Accreting compact binaries</strong> (Core; GEN.130 slice c): high-mass and low-mass X-ray binaries, Be/X-ray, microquasar flag, accretion luminosity and the Eddington limit, spider millisecond pulsars (black widow, redback) replacing the old 10% &quot;other&quot;. Prerequisites: items 7 and 13.</li>
+<li><strong>Young groups and trapezia</strong> (Core, with GEN.241 and GEN.244): the <code>group</code> node, offset and velocity columns, decay age, the decayed-remnant draw, and the sector-page lifetime note. Prerequisites: items 1 and 2.</li>
+<li><strong>Cluster-hosted compact binaries and runaway bookkeeping</strong> (Core; GEN.159 to GEN.164): cluster rates for black holes with stars and millisecond pulsars, <code>runaway_origin</code>, the compact companion left behind by a supernova runaway. Prerequisites: item 12.</li>
+<li><strong>Substellar and circumbinary types</strong> (Core; GEN.252, GEN.94, GEN.95): wide and close brown-dwarf companions, brown-dwarf pairs, planetary-mass companions, circumbinary disk descriptor and planet zone. Prerequisites: item 12.</li>
+<li><strong>Type audit and docs</strong> (Quality): section 15 tests 10 to 14, the catalogue table in <code>database-schema.md</code> and <code>multistar-and-compact-systems.md</code>, the <code>theoretical</code> flag shown on the sector page. Prerequisites: items 12 to 19.</li>
+</ol>
+<p><strong>Changed existing items</strong>: item 1 (the migration also adds <code>state</code>, <code>flags</code>, <code>interaction</code>, SMALLINT <code>slot</code>, the <code>group</code> offset and velocity columns); item 2 (the generator also produces the catalogue's types); item 11 (cap 12); GEN.129 (&quot;up to seven&quot; becomes &quot;up to twelve&quot; and the trapezia sentence); GEN.130 slice (c); GEN.242, GEN.243, GEN.252, GEN.253 (each gains a pointer to its catalogue rows); <code>phenomena-catalogue-and-fill.md</code> kind list (new kinds).</p>
+<h2 id="12-decisions-for-boss-with-the-defaults-taken">12. Decisions for Boss, with the defaults taken</h2>
+<ol>
+<li><strong>Black-hole companion fraction 1.25%, not 10% to 30%</strong> (4.3). The old number was an inference from three Gaia systems; the censuses support 1.25% (range 0.2% to 7%). Default: 1.25%. The tuning dict allows any value.</li>
+<li><strong>The cap is 12</strong> (3.3, 13.1, 16). <s>Seven stays the cap</s> [Edit 6:08 PM EDT catalogue]: ten candidate systems reach 12 and theory allows more. Default: cap 12, directive to raise it.</li>
+<li><strong>Promote every bound compact pair to the scatter</strong> (4.5): about 3e5 rows, makes neutron-star pairs exist at scatter time. If off, neutron-star pairs appear only when their sector fills. Default: on.</li>
+<li><strong>Young non-hierarchical groups are stored; old ones never</strong> (3.3, 13.1, 16). <s>Hierarchical trees only</s> [Edit catalogue]: a trapezium is drawn while younger than its decay age (1e4 to 4e4 yr), at fill in star-forming cores and rarely at scatter; an older group is replaced by its remnant. Default: on.</li>
+<li><strong>Delete a row's members and nodes when its sector builds it</strong> (8) rather than keeping two copies. Default: delete.</li>
+<li><strong>Pair rates from the middle of the evidence</strong> (4.3, 4.4): the black-hole pair rate is the geometric middle of the gravitational-wave stock and the Lamberts simulation, which differ by 80 times. If you want the lower or the higher end, it is one number. Default: middle (0.2%).</li>
+<li><strong>Emergent types, tuned to observation</strong> (13, 13.7): contact, Algol, post-common-envelope and accreting pairs come out of the Roche classifier, with one tuning knob per family so the audit counts match the observed fractions. Default: emergent plus tuning, not hand-set fractions.</li>
+<li><strong>Theoretical-only types are included and flagged</strong> (13.2, 13.4, 16): Thorne-Zytkow objects (100 in the Galaxy), magnetar binaries (0), quadruples with two compact pairs, planetary-mass companions. Default: generated at the predicted rate with <code>theoretical</code> shown on the page; set the rate to zero to remove one.</li>
+</ol>
+<h2 id="13-catalogue-of-system-types-boss-608-pm-edt-every-observed-and-theoretical-type">13. Catalogue of system types (Boss, 6:08 PM EDT: &quot;every observed and theoretical type&quot;)</h2>
+<p>Boss approved the plan and widened it: plan for every observed and theoretical type of multi-star or star-like-object system, build each into the generator, and match observed probabilities as closely as possible (&quot;observed are best, theoretical are good too&quot;). This section is that catalogue. The earlier sections stay the mechanism (a tree of pairs, a conditional-fraction dict, one generator for scatter and fill); this section lists what the mechanism must be able to produce.</p>
+<p><strong>How to read a row.</strong> <em>Observed</em> is the real rate with its tag and the <strong>default</strong> the generator takes, stated against a reference class (the set of objects the fraction applies to). <em>Theory</em> is the predicted rate where no observation exists, with a confidence (high, medium, low). <em>Where</em> is the population or region. <em>Generated and stored</em> says whether the type is drawn at scatter time (S) or only at fill (F) and which stored form it uses. <em>Star model</em> is what changes in the star model. Galaxy counts use the default galaxy of 2.953e11 systems [C]. Every default is an entry in the dict <code>SYSTEM_TYPE_RATES</code> (section 14), changeable without code.</p>
+<p><strong>Two mechanisms, not forty.</strong> Most types are not separate generators:</p>
+<ol>
+<li><strong>Emergent from geometry.</strong> After the tree draws a pair's axis, eccentricity and masses, a classifier computes each member's Roche-lobe filling factor at the system's age from the stellar evolution model and assigns the pair an <code>interaction</code> state: <code>detached</code>, <code>semi-detached</code> (Algol), <code>contact</code>, <code>accreting</code> (a white dwarf, neutron star or black hole receives mass: cataclysmic variable, AM CVn, X-ray binary), <code>post-common-envelope</code>, or <code>merger-product</code>. A pair's state is a function of its birth period and the evolution, so contact binaries, Algols and cataclysmic variables appear at the rate the period law and the evolution give, and the audit checks that rate against the observed one. Where the emergent rate falls short (it will, because the generator has no common envelope or magnetic braking), the <strong>tight-tail weight</strong> of the period law is raised until it matches (below, &quot;tuning&quot;).</li>
+<li><strong>Conditional fractions.</strong> Types that need a history the generator lacks (a post-common-envelope pair, a stripped star, a double white dwarf, a compact pair) are drawn as conditional fractions of their placed-object class (section 4), with the axis from a stated law and the Peters, Kozai and survival filters.</li>
+</ol>
+<h3 id="131-architecture-of-stellar-systems">13.1 Architecture of stellar systems</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Spectroscopic / close detached binary, a under 0.26 AU</td>
+<td>6.6% of binaries [C, log-normal period law] (<code>multistar</code> 4)</td>
+<td>high (period law is [R])</td>
+<td>everywhere; more in the thick disk and halo (close fraction 40% to 53% at [Fe/H] -1 to -3 [R])</td>
+<td>S and F, one node, kind <code>close</code>. Eclipsing is derived: the pair eclipses when the inclination is within <code>asin((R1+R2)/a)</code> of edge-on</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Intermediate binary, 0.26 to 50 AU</td>
+<td>43.3% of binaries [C]</td>
+<td>high</td>
+<td>everywhere</td>
+<td>S and F, node kind <code>close</code> or <code>wide</code> by the 50 AU rule</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Wide binary, 50 to 10,000 AU</td>
+<td>43.6% of binaries [C] (GEN.448: the wide range now runs from 0.25 AU to the derived limit; 43.6% is the share of the old 50 to 10,000 AU range)</td>
+<td>high</td>
+<td>disk; thinned in the bulge, clusters, halo (<code>multistar</code> 6.6)</td>
+<td>S and F, kind <code>wide</code>; planets of each star at fill</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Ultra-wide pair, 10,000 to 20,000 AU (0.05 to 0.1 pc)</td>
+<td>6.5% of binaries [C]; Gaia finds pairs to about 1 pc [R]</td>
+<td>medium: unbound by passing stars in 1 to 5 Gyr [R]</td>
+<td>disk only; fraction falls with density</td>
+<td>S and F, kind <code>wide</code>, flag <code>fragile</code>; the cap is 20,000 AU for the root, a directive raises it</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Triple 2+1 (a close pair with a wide third)</td>
+<td>8% of FGK, 22% of B, 30% of O (<code>multistar</code> 3.3); 50% and 70% for B and O in a recent summary [S]</td>
+<td>high</td>
+<td>everywhere; more in the young disk</td>
+<td>S and F, two nodes</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Quadruple 3+1 (a triple with a wide fourth)</td>
+<td>60% of quadruples [I]</td>
+<td>medium (shape split is a design choice)</td>
+<td>everywhere</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Quadruple 2+2 (two close pairs bound wide)</td>
+<td>40% of quadruples [I]; 4% of F and G systems [S, [R4384]]</td>
+<td>high for the 4%</td>
+<td>everywhere</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Quintuple to septuple</td>
+<td>N = 5, 6, 7: 2.4e-3, 2.9e-4, 3.0e-5 of systems [S, C]; seven-star systems confirmed: none; Nu Sco probable [S]; a septuple protostellar system in NGC 6334IN found in 2025 [S]</td>
+<td>high that they exist</td>
+<td>everywhere; richest in young massive regions</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Eight to twelve stars</td>
+<td>none confirmed; ten candidates with multiplicity up to 12 [S, [R1529]]; theory allows several hundred [S]</td>
+<td>medium (stability allows 12 or more levels, 3.3)</td>
+<td>young and massive regions</td>
+<td>S and F, same recursion. Tail: ratio 0.12 for N = 8 and 0.1 per step after: 1.1e6, 1.1e5, 1.1e4, 1.1e3 and 1.1e2 systems for N = 8 to 12 in the Galaxy [C]. <strong>Cap 12</strong> (decision 2)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Young non-hierarchical group (trapezium)</td>
+<td>412 catalogued trapezium-type multiples, about 10% true after projection, 3 to 5 per OB association; Orion's Trapezium has 4 to 5 members; most are expanding; lifetime 1e4 to 4e4 yr bound, 41 of 100 remain after two crossing times [S]. <strong>Default: 5% of massive (O and early B) systems younger than 0.3 Myr</strong> [I]</td>
+<td>high that they exist and decay</td>
+<td>star-forming cores, OB associations (GEN.241, GEN.244)</td>
+<td><strong>F</strong> in cores; <strong>S</strong> only for the few mass-pass stars younger than 0.3 Myr. Stored as a <code>group</code> root node whose members carry offset and velocity columns (section 5); no Kepler elements. A group older than its decay time is never drawn; see the next row</td>
+<td>members flagged <code>unstable</code>; the sector page shows the group with its remaining lifetime</td>
+</tr>
+<tr>
+<td>Decayed trapezium remnant</td>
+<td>the lightest member is ejected, the rest harden into a hierarchy [S]</td>
+<td>high</td>
+<td>clusters, associations, runaway stars</td>
+<td>the generator draws a group older than its decay time as its <strong>result</strong>: an ejected lightest star (a runaway row, below) plus a tighter hierarchical remnant</td>
+<td>the ejected star carries <code>runaway_origin</code> = dynamical</td>
+</tr>
+<tr>
+<td>Multiple with a circumbinary or circumstellar disk</td>
+<td>most stars under 3 Myr have disks [S]; Perseus protostars [S]</td>
+<td>high</td>
+<td>young</td>
+<td>F; descriptor on the node (GEN.242), no bodies</td>
+<td><code>disk</code> descriptor</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="132-interacting-binaries-and-merger-products-stellar">13.2 Interacting binaries and merger products (stellar)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Contact binary (W UMa, over-contact)</td>
+<td><strong>0.2% of FGK dwarfs</strong> (1/500); older estimate 1/130; up to 1/30 among blue stragglers [S]. Tertiary signature in 20 of 66 (30%) [S]; resolved tertiaries 9% of ellipsoidal binaries, 29% at the shortest periods, 65% at periods under 0.3 d [S]. Default tertiary 60%</td>
+<td>high; massive over-contact binaries exist (VFTS 352, V382 Cyg [R]) at a low rate, default 1% of O and B binaries [I, low]</td>
+<td>disk, older</td>
+<td>S (massive) and F. Emergent: both Roche fills at the age, tight tail of the period law, <code>interaction</code> = <code>contact</code>. A tertiary is drawn with 60% (the Kozai channel)</td>
+<td>contact flag, tidal locking, one shared envelope temperature</td>
+</tr>
+<tr>
+<td>Semi-detached (Algol)</td>
+<td><strong>0.1% to 0.2% of disk stars</strong>, a lower limit [S]. Among eclipsing binaries: 62% detached, 8% semi-detached, 23% contact, 7% uncertain (Kepler) [S]; the LMC mix is 63/25/6 [S]</td>
+<td>high</td>
+<td>disk, intermediate age</td>
+<td>S and F. Emergent: donor (subgiant, lighter) fills its lobe; the <em>mass-reversal</em> flag marks a donor that was the heavier at birth, which is how the companion of a living massive star becomes the lighter</td>
+<td><code>mass_reversed</code> flag; donor radius from the evolution model</td>
+</tr>
+<tr>
+<td>Blue straggler and merger product, field</td>
+<td>Triple mergers explain 20% to 25% of blue stragglers; 4% of simulated triples merge [S]; clusters 10% to 30% of cores [R]. <strong>Default: 0.5% of old and intermediate stars</strong> [I, low]</td>
+<td>medium</td>
+<td>old disk, thick disk, halo, clusters (GEN.162)</td>
+<td>F; a single star flagged <code>merger-product</code>, age rejuvenated (set to a fraction of the system age)</td>
+<td><code>merger-product</code>, rejuvenated age; a blue straggler in a cluster uses GEN.162</td>
+</tr>
+<tr>
+<td>Massive-star merger product and mass gainer</td>
+<td>about 20% of massive main-sequence stars have gained mass and about 8% are mergers [R]; 70% of O stars exchange mass with a companion [S]</td>
+<td>medium</td>
+<td>young, OB</td>
+<td>S: a massive row gets state <code>merger-product</code> with 8% and the tree has one star fewer; <code>mass_reversed</code> on 20% of its pairs</td>
+<td><code>merger-product</code>, <code>mass_gainer</code></td>
+</tr>
+<tr>
+<td>Hot subdwarf and stripped helium star</td>
+<td>most hot subdwarfs are in binaries or merger products [R]; stripped companions of Be stars [S]</td>
+<td>medium</td>
+<td>old disk (sdB), young (stripped)</td>
+<td>F; a conditional state of a post-common-envelope pair: companion mass 0.3 to 0.5 solar masses, <code>kind</code> = <code>stripped-helium</code></td>
+<td>new kind <code>stripped-helium</code> (hot, small)</td>
+</tr>
+<tr>
+<td>Be star</td>
+<td>about 20% of B stars [R]; the binary fraction of Be stars is lower than B stars below 0.04 arcsec and their companions are mostly stripped stars, white dwarfs or neutron stars [S]</td>
+<td>medium</td>
+<td>young disk</td>
+<td>S for mass-pass stars and F; flag <code>be</code> with a decretion disk; 30% have a stripped companion, a few a neutron star (Be/X-ray, below)</td>
+<td><code>be</code> flag</td>
+</tr>
+<tr>
+<td>Wolf-Rayet binary</td>
+<td>WN 52%, WC 90% [S, Dsilva]</td>
+<td>medium</td>
+<td>young</td>
+<td>S (the star is a mass-pass row, GEN.243) and F; companion O, B or compact</td>
+<td>W state</td>
+</tr>
+<tr>
+<td>Luminous blue variable and hypergiant</td>
+<td>tens in the Galaxy [R]</td>
+<td>low</td>
+<td>young</td>
+<td>S and F as massive stars</td>
+<td>GEN.246</td>
+</tr>
+<tr>
+<td>R Coronae Borealis and FK Comae stars</td>
+<td>a few hundred and a few dozen [R]</td>
+<td>low (merger of a white dwarf with a helium star; spun-up merger of a contact binary)</td>
+<td>old</td>
+<td>F, single, flagged</td>
+<td><code>merger-product</code> subtype</td>
+</tr>
+<tr>
+<td>Thorne-Zytkow object (a neutron star inside a giant)</td>
+<td><strong>none confirmed</strong>; HV 2112 and HV 11417 are candidates and HV 2112 is probably a normal AGB star [S]; 20 to 200 predicted [S, catalogue note]</td>
+<td>low (never observed)</td>
+<td>old</td>
+<td>F, flagged <code>theoretical</code>; default 100 in the Galaxy (3.4e-10 of systems): a giant with a neutron-star core, no planets, no companion</td>
+<td>new kind <code>thorne-zytkow</code> (a red supergiant with an exotic core)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>As built (GEN.270).</strong> Every close-binary type of this table is drawn inside <code>multistar.draw_member_tree</code>, so the scatter and GEN.631's fill read the same tree, and nothing is stored beyond the member flags and the interaction the tree already had (the new bits <code>MEMBER_R_CRB</code> 512 and <code>MEMBER_FK_COMAE</code> 1024 are in <code>scatter_members.flags</code>, a SMALLINT; the rejuvenated age is not stored, it is the system age times a fraction drawn from the member's seed).</p>
+<ul>
+<li><em>Contact and Algol.</em> The Roche classifier of GEN.269 decides them; GEN.270 adds the gates of the table's &quot;Where&quot; column (<code>_gate_forbids</code>, audit 11): a contact binary of a primary under the massive limit needs an age of 0.1 Gy or more (<code>tuning.YOUNG_POPULATION_MAX_AGE_GY</code>), an Algol needs less than 3 Gy (<code>OLD_POPULATION_MIN_AGE_GY</code>), and neither holds a brown dwarf, a pre-main-sequence star or a protostar (a contracting object fills its lobe without being an interacting binary). A pair the gate forbids is redrawn like any pair that fails a screen. <code>mass_reversed</code> goes on the donor of a semi-detached pair that was the heavier at birth; the lighter star is a <code>mass_gainer</code>. The tight tail is the knob <code>tight_tail_weight</code>, now applied in <code>_Builder.period_days</code>: it multiplies the density of periods under a day for primaries under the massive limit, and was calibrated to 6.0. Measured over 300,000 seeded systems: contact in 0.49% of FGK systems (window 0.2% to 0.77%) and Algol in 0.09% of a disk of constant star formation (0.05 to 10 Gy; the catalogue's 0.1% to 0.2% is a lower limit, and a higher weight puts more detached pairs under a day, 1.0% of systems at 6.0 and 1.35% at 8.0, so the lane stopped short of it).</li>
+<li><em>Contact tertiaries.</em> The stability screen leaves the inner pair of a hierarchy only short periods, so 88% of the contact binaries the draw makes already have a third star (94% before the mass ratios of GEN.951, 84% before GEN.652). <code>_contact_pair_alone</code> keeps the others of a tree whose contact pair holds the placed star with the odds <code>tuning.CONTACT_TERTIARY_KEEP_SHARE</code> (0.48, measured over 120,000 seeded systems of 0.8 to 1.2 solar masses at 5 Gy: 34% with none kept, 88% with all kept; it was 0.26 with 48% and 94% before GEN.951) and otherwise places the contact pair alone, on the orbit it was drawn on with its orientation redrawn; a forced star count is never touched. The share comes out at 60%.</li>
+<li><em>Eclipsing and spectroscopic.</em> Derived, never stored: <code>MemberTree.eclipsing_nodes()</code> (a pair whose inclination is within asin((R1 + R2) / a) of edge-on, <code>pair_eclipses</code>) and <code>MemberTree.spectroscopic_nodes()</code> (a pair closer than <code>tuning.SPECTROSCOPIC_MAX_AXIS_AU</code>, 0.26 AU). About 0.9% of systems have an eclipsing pair and 4% a spectroscopic one.</li>
+<li><em>Merger products and mass gainers.</em> <code>draw_merger_product</code> (knob <code>merger_product_fraction</code>): a young star of 9 solar masses or more (<code>MERGER_MASSIVE_MIN_MASS_SOL</code>, a stand-in for the O-star edge) is a merger product with 8% and its tree has one star fewer; any other star of 0.1 Gy or more is a blue straggler with 0.5%. Both carry <code>MEMBER_MERGER_PRODUCT</code> and a rejuvenated <code>effective_age_yr</code> (0.1 to 0.6 of the system age), and the state, the radius and the lifetime are those of the star at the effective age. <code>draw_mass_gainer</code> flags 20% of the young massive stars <code>mass_gainer</code>. The six uniforms of the star-type draws are taken first, in a fixed order (<code>STAR_TYPE_DRAWS</code>), so a later draw of the tree does not move with which type was chosen.</li>
+<li><em>Be stars.</em> <code>draw_be_star</code>: a B star younger than 0.1 Gy is a Be star with 20% (flag <code>be</code>); 30% of them have a stripped helium companion of 0.3 to 0.5 solar masses (<code>stripped-helium</code>, born 1.2 to 2.0 times the Be star's mass, radius from [R1875] for an sdB; period 30 to 1000 days, a stand-in) and the Be star is a <code>mass_gainer</code>. The hot subdwarfs of post-common-envelope pairs are GEN.271's.</li>
+<li><em>R Coronae Borealis, FK Comae and Thorne-Zytkow.</em> <code>draw_exotic_star</code>: an old giant (3 Gy or more) is one of them at the catalogue's Galaxy count divided by the old giants of the Galaxy (<code>OLD_GIANT_SYSTEM_SHARE</code>, 0.5% of systems, a stand-in). R CrB and FK Comae are flagged merger products; a Thorne-Zytkow object is a single member of kind <code>thorne-zytkow</code> flagged <code>theoretical</code>, with no companion.</li>
+<li><em>Generator epoch.</em> The period law, the gates and the new draws change generated output; epoch recorded in <code>tests/golden/epochs.json</code>.</li>
+</ul>
+<h3 id="133-white-dwarf-systems">13.3 White-dwarf systems</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>White dwarf with a companion</td>
+<td>25% to 26% (32% in the 20 pc sample) [S]; default 30% with 22% wide (<code>multistar</code> 7.3)</td>
+<td>high</td>
+<td>old and intermediate; halo, clusters</td>
+<td>F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Close double white dwarf</td>
+<td><strong>9.5% of white dwarfs</strong> within 4 AU [S, Maoz et al.]</td>
+<td>high</td>
+<td>old</td>
+<td>F: conditional fraction of a white dwarf; axis log-uniform 0.001 to 4 AU; Peters rule; two <code>white-dwarf</code> members</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Double white dwarf merger product</td>
+<td><strong>about 10% of white dwarfs</strong> form the high-mass bump; 26% to 54% of wide DWDs have a merger-product heavier star [S]</td>
+<td>medium</td>
+<td>old</td>
+<td>F: 10% of white dwarfs get a mass from the bump (0.8 to 1.1 solar masses), flagged <code>merger-product</code></td>
+<td>white-dwarf mass bump</td>
+</tr>
+<tr>
+<td>White dwarf plus main-sequence star, post-common-envelope pair</td>
+<td>most close white-dwarf binaries with a star are post-CE [R]; 22% wide, never interacted</td>
+<td>medium</td>
+<td>old</td>
+<td>F: <code>interaction</code> = <code>post-common-envelope</code>; axis 0.005 to 2 AU, log-uniform</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Cataclysmic variable (all)</td>
+<td><strong>4.8e-6 pc^-3</strong> from a 150 pc Gaia sample, 77% complete [S, [R3412]]; magnetic types 36% [S]. Per system: 3.4e-5; <strong>1.0e7</strong> in the Galaxy [C]; default 6.5e-4 of white dwarfs</td>
+<td>high for the density; population synthesis predicts more [S]</td>
+<td>old and intermediate; thick disk</td>
+<td>F: an <code>accreting</code> pair, orbital period 1.3 to 10 h (donor 0.1 to 0.8 solar masses). Subtypes (polar, intermediate polar, dwarf nova) by weights 36% magnetic</td>
+<td><code>accreting</code> state, accretion luminosity (GEN.130 slice c)</td>
+</tr>
+<tr>
+<td>AM Canum Venaticorum binary</td>
+<td><strong>5.5e-7 pc^-3</strong> (+-3.7) [S, Rodriguez et al.]; 3.9e-6 per system; <strong>1.2e6</strong> in the Galaxy [C]; default 7.5e-5 of white dwarfs</td>
+<td>medium</td>
+<td>old</td>
+<td>F: ultracompact pair, period 5 to 65 min, white dwarf plus helium donor of 0.01 to 0.1 solar masses</td>
+<td>kind <code>stripped-helium</code> donor</td>
+</tr>
+<tr>
+<td>Nova, symbiotic, Type Ia progenitor</td>
+<td>symbiotic: 276 confirmed [S]; predicted 3e3 to 4e5 by older work, 1.2e3 to 1.5e4 by population synthesis [S]. Default <strong>5e-6 of giants</strong> (4.2e3 in the Galaxy) [I, low]; barium and CH stars about 1% of G and K giants [R]</td>
+<td>symbiotic: low; Type Ia double-degenerate merger rate 9.7e-12 per white dwarf per year, 4.5 to 7 times the Type Ia rate [S]</td>
+<td>old giants; bulge</td>
+<td>F and S (the luminosity-pass giants): a giant with a white dwarf companion 1% (barium) and 5e-6 accreting (symbiotic). A Type Ia explosion is an event and out of scope</td>
+<td><code>accreting</code> flag on the white dwarf; barium abundance flag</td>
+</tr>
+<tr>
+<td>White dwarf plus brown dwarf</td>
+<td>rare; part of the brown-dwarf companion rate [R]</td>
+<td>low</td>
+<td>old</td>
+<td>F</td>
+<td>brown dwarf kind</td>
+</tr>
+<tr>
+<td>White dwarf with a planet or debris</td>
+<td>25% to 50% of cool white dwarfs polluted [S]; WD 1856+534 b [S]</td>
+<td>medium</td>
+<td>old</td>
+<td>F (planets, GEN.253)</td>
+<td>pollution flag</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>As built (GEN.271).</strong> The white-dwarf binary types are drawn inside <code>multistar.draw_member_tree</code> for a placed white dwarf, so the scatter and GEN.631's fill read the same tree. Nothing is stored beyond the member flags and the interaction the tree already had (the new bits <code>MEMBER_MAGNETIC</code> 2048, <code>MEMBER_BARIUM</code> 4096 and <code>MEMBER_SYMBIOTIC</code> 8192 are in <code>scatter_members.flags</code>, a SMALLINT).</p>
+<ul>
+<li><em>The odds of a companion.</em> <code>MEMBER_STATE_BY_PLACED[&quot;white-dwarf&quot;]</code> is now a star at 20.5% and a white dwarf at 9.5% (30% in all, as before; the white dwarf share is the Maoz 9.5% of close double white dwarfs, so every white dwarf companion is one of them). The scatter's bulk screen still draws only the state; <code>draw_white_dwarf_binary</code> then names the type of a star companion from one more uniform, at the rows' rates per white dwarf over the 20.5%: AM CVn 7.5e-5 (old population only), cataclysmic variable 6.5e-4 (not young), post-common-envelope pair <code>post_ce_fraction</code> times the white dwarf companions (10% of 30%; not young); the rest stay on the period law.</li>
+<li><em>Orbits.</em> A leaf carries an <code>orbit_au</code> span; a pair of two single members, one with it, has its axis log-uniform over the span in place of the period law (the stability screens, the Roche limit and the retries are unchanged). Close double white dwarf: 0.001 to 4 AU, and the Peters rule (<code>survives_gravitational_waves</code>, now applied to every pair of two white dwarfs) removes the pairs that would have merged by the age. Post-common-envelope: 0.005 to 2 AU; 5% (<code>HOT_SUBDWARF_POST_CE_SHARE</code>, a stand-in) of those have a stripped helium star (<code>stripped-helium</code>, 0.3 to 0.5 solar masses) in place of a main-sequence star (the table's hot subdwarf row).</li>
+<li><em>Cataclysmic variables and AM CVn.</em> The donor fills its lobe by <code>ACCRETING_FILL_FACTOR</code> (1.05), so the pair classifies <code>accreting</code> by the GEN.269 geometry: a main-sequence donor of 0.08 to 0.7 solar masses (a stand-in for the donor range; a draw whose period is outside 1.3 to 10 h is made again) and the white dwarf's <code>magnetic</code> flag at 36%; an AM CVn donor is a degenerate helium star of 0.009 to 0.13 solar masses (log-uniform; radius 0.03 solar radii at 0.05 solar masses, scaling as the mass to the power -1/3, a stand-in) with periods of 5 to 65 minutes. A white dwarf pair is <code>accreting</code> only through these two draws (the builder redraws a white dwarf pair that the period law or a span would put inside its lobe), so the types hold their rates: 6.5e-4 and 7.5e-5 of white dwarfs, measured over 300,000 seeded trees (195 and 23 pairs).</li>
+<li><em>Merger products.</em> <code>draw_white_dwarf_merger</code>: 10% of old white dwarfs (knob <code>merger_product_fraction</code>) carry <code>MEMBER_MERGER_PRODUCT</code> and a rejuvenated <code>effective_age_yr</code>. The 0.8 to 1.1 solar mass bump is not drawn here: a white dwarf's mass comes from the star model before the tree, and the tree keeps member 0 at that mass (open; filed).</li>
+<li><em>Barium and symbiotic giants.</em> <code>draw_giant_companion</code>: a giant born under 3 solar masses (<code>BARIUM_GIANT_MAX_INITIAL_MASS_SOL</code>, a stand-in for G and K) is symbiotic at 5e-6 and barium or CH at 1%; it gets a white dwarf born from a heavier star (<code>_remnant</code> with the giant's mass as the lowest progenitor) that has had time to form, on a log-uniform period of 80 to 10,000 days (barium) or 200 to 2,000 days (symbiotic), and carries the flag. The seventh of the star-type uniforms (<code>STAR_TYPE_DRAWS</code>) is taken for this.</li>
+<li><em>Generator epoch.</em> The new draws and the changed odds move generated output; epoch recorded in <code>tests/golden/epochs.json</code>.</li>
+</ul>
+<h3 id="134-compact-object-systems">13.4 Compact-object systems</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>High-mass X-ray binary (supergiant or Be)</td>
+<td>165 known (a 2022 catalogue) [S]; 64 Be/X-ray binaries in 2009, 42 confirmed neutron stars [S]; scale height 150 pc [S]. Default: the 0.3% compact companion of a living massive star (4.2), 40% of which accrete (Be/X-ray 60% of those)</td>
+<td>medium</td>
+<td>young disk, arms</td>
+<td>S and F; <code>accreting</code> pair; period days to years</td>
+<td><code>accreting</code>, X-ray luminosity</td>
+</tr>
+<tr>
+<td>Low-mass X-ray binary</td>
+<td>349 known [S]; peaks at the bulge [S]; black-hole low-mass binaries predicted at 1e2 to 1e5 and 1.2e5 black hole plus main-sequence binaries [S]. Default: neutron-star or black-hole companion of a low-mass star 5e-5 of neutron stars and 1e-3 of black holes (then an <code>accreting</code> fraction of 1%) [I, low]</td>
+<td>low</td>
+<td>bulge, old disk</td>
+<td>F; period hours to a day</td>
+<td><code>accreting</code></td>
+</tr>
+<tr>
+<td>Microquasar and ultraluminous X-ray source</td>
+<td>microquasars: several dozen [R]; ultraluminous sources are a super-Eddington accretor, mostly extragalactic [R]</td>
+<td>low</td>
+<td>young</td>
+<td>F, a flag on an <code>accreting</code> pair; jets along the spin axis (GEN.255)</td>
+<td>jet flag</td>
+</tr>
+<tr>
+<td>Pulsar with a white dwarf (millisecond pulsar)</td>
+<td>78% of millisecond pulsars have a companion (<code>multistar</code> 7.3); black widows and redbacks: 41 field spiders, about 80% of binary millisecond pulsars under 2 ms [S]; the companion mass gap 0.07 to 0.1 solar masses is empty [S]</td>
+<td>high</td>
+<td>old, bulge, clusters</td>
+<td>F; companion by class: white dwarf 80%, black widow (0.01 to 0.05 solar masses) 8%, redback (0.2 to 0.4) 4%, neutron star 5%, other 3% (replaces the earlier 10% &quot;other&quot;)</td>
+<td><code>stripped-helium</code> donors; spiders carry an ablation flag</td>
+</tr>
+<tr>
+<td>Pulsar with a main-sequence or Be star</td>
+<td>PSR B1259-63 (B2Ve, 3.4 yr, e high) and three others with massive companions [S]</td>
+<td>medium</td>
+<td>young</td>
+<td>F; part of the young neutron star's 1% to 3% companion</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Double neutron star</td>
+<td><strong>eight merging in a Hubble time, about twenty known</strong> [S, R]; stock of 6.8e4 to 4.7e5 in the Galaxy [C]; default 0.04% of neutron stars</td>
+<td>high that they exist; rate uncertain</td>
+<td>all</td>
+<td><strong>S</strong> (promoted pair) and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Neutron star with a black hole</td>
+<td>none known in the Galaxy; gravitational-wave rate 9 to 86 per Gpc^3 per year [S]; default 0.05% of black holes</td>
+<td>medium</td>
+<td>all</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Black hole with a black hole</td>
+<td>none known in the Galaxy; 13 to 26 per Gpc^3 per year [S]; default 0.2% of black holes</td>
+<td>medium</td>
+<td>all; more at low metallicity (halo, clusters, the Clouds)</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Dormant black hole with a star</td>
+<td><strong>Gaia BH1, BH2, BH3</strong> [S]; 0.1% of black holes with a luminous companion at AU scales [S]; default 1.0% of black holes</td>
+<td>medium</td>
+<td>disk and halo</td>
+<td>S and F</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Dormant neutron star with a star</td>
+<td><strong>Gaia NS1</strong> and 21 astrometric candidates near 1.4 solar masses [S]</td>
+<td>medium</td>
+<td>disk, halo</td>
+<td>S (rare) and F; part of the young-neutron-star companion share (1% to 3%)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Compact triples and quadruples</td>
+<td>PSR J0337+1715, V404 Cygni [S]; about half of black-hole binaries are in triples in a population model [S]. Default 30% of compact binaries have a third member</td>
+<td>medium; a quadruple with two compact pairs: low (probability under 1e-6)</td>
+<td>all</td>
+<td>S and F, same tree; at most three compact members</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Black hole or neutron star in a cluster</td>
+<td>NGC 3201: three detached black hole candidates (180 d, 4.3 to 7.7 solar masses minimum) and about 100 black holes in the cluster [S]; globular clusters hold <strong>340 millisecond pulsars</strong>, about half of all known [S]</td>
+<td>high</td>
+<td>globular clusters, young clusters</td>
+<td>F (clusters are fill-time, GEN.159 to GEN.164); cluster rates replace the field fractions: black hole with a star 10%, millisecond pulsar with a companion 80% with a higher neutron-star share, dynamical black-hole pairs from the cluster density</td>
+<td>cluster flag on the system</td>
+</tr>
+<tr>
+<td>Intermediate-mass black hole with a star</td>
+<td>candidates only [R]</td>
+<td>low</td>
+<td>clusters, satellites</td>
+<td>S, 1% (section 4.3)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Magnetar in a binary</td>
+<td>none confirmed [R]</td>
+<td>low</td>
+<td>young</td>
+<td>F, 0 by default</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Supermassive black-hole binary</td>
+<td>OJ 287 and others (extragalactic) [S]</td>
+<td>high</td>
+<td>other galaxies, nucleus of a merger</td>
+<td>not a star system; the nucleus text flag of <code>exotic-environments...</code> 2.4</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>As built (GEN.272).</strong> The accreting compact binaries are drawn inside <code>multistar.draw_member_tree</code>, so the scatter and the fill read the same tree. Nothing is stored beyond the member flags and the node flags the tree already had (the new member bits <code>MEMBER_MICROQUASAR</code> 16384 and <code>MEMBER_ABLATING</code> 32768 fill the SMALLINT of <code>scatter_members.flags</code>; the new node bits <code>NODE_WIND_FED</code> 4 and <code>NODE_DISC_FED</code> 8 are in the TINYINT of <code>scatter_nodes.flags</code>). The X-ray luminosity is derived and never stored (<code>MemberTree.x_ray_luminosities</code>, <code>physics/accretion.py</code>), as are the Be/X-ray, spider and dormant pairs (<code>be_xray_nodes</code>, <code>spider_nodes</code>, <code>dormant_nodes</code>). GEN.952: the members keep their radius (<code>scatter_members.radius_au</code>), so a page and the API give an accreting pair its X-ray luminosity, worked out on read by the same call <code>MemberTree.x_ray_luminosities</code> makes; it is still derived, not stored.</p>
+<ul>
+<li><em>Accreting is explicit.</em> A pair of a neutron star or a black hole with a single member is <code>accreting</code> only through the draws below (the builder redraws a pair that the period law would put inside the donor's lobe, as it does for a white dwarf), so each type holds its rate. <code>draw_accreting_compact</code> is the one place the shares are read.</li>
+<li><em>High-mass X-ray binaries.</em> The compact companion of a living massive star keeps its 0.3% (0.2% neutron star, 0.1% black hole); the tree draws three more uniforms for every star (<code>STAR_TYPE_DRAWS</code> is now 10): 40% of those companions accrete (knob <code>accreting_fraction</code>), and 60% of the accreting ones are Be/X-ray binaries (the donor flagged <code>be</code>, a decretion disc, period log-uniform over 10 to 300 days on the eccentric thermal law, young population only), the rest are wind-fed supergiant binaries (1.4 to 100 days). A period range whose closest axis would put the donor inside <code>MAX_FILL_FACTOR</code> of its lobe starts at the closest allowed axis and reaches at least four times past it.</li>
+<li><em>Low-mass X-ray binaries.</em> They are part of the <code>star</code> odds of a neutron star and a black hole, not an addition to them, so a black hole's 1.25% total stays: 5e-5 of neutron stars and 1e-3 of black holes over those odds (0.25% and 10% of the star companions, <code>draw_low_mass_xray_pair</code>; not a recycled pulsar and not the young population) have a low-mass donor (0.1 to 1.5 solar masses) on the interacted period law, and 1% of those accrete: the main-sequence donor fills its lobe at a period of 4 to 24 hours (<code>ACCRETING_FILL_FACTOR</code>), by <code>overflow</code>.</li>
+<li><em>Microquasars.</em> An accreting neutron star or black hole of either kind launches jets at <code>MICROQUASAR_SHARE_OF_XRAY_BINARIES</code> (10%, a stand-in from the several dozen microquasars against the 165 high-mass and 349 low-mass X-ray binaries): the flag <code>microquasar</code>, set on the accretor.</li>
+<li><em>Luminosity.</em> <code>L = eta Mdot c^2</code>, at most the accretor's Eddington limit (<code>4 pi G M m_p c / sigma_T</code>). A neutron star's <code>eta</code> is its surface potential, a black hole's <code>ACCRETION_EFFICIENCY_BLACK_HOLE</code> 0.1. A wind-fed pair captures the Bondi-Hoyle share of the donor's wind (loss rate 1e-6 solar masses a year at 1e5 solar luminosities, to the power 1.5 of the luminosity from <code>1.5 M^3.5</code>; speed 1.5 times the escape speed), a Be/X-ray pair the same from the disc (1e-8 solar masses a year at 20 km/s) at the closest approach, a lobe-filling donor its mass over 5e8 years (a main-sequence donor) or 1e7 (a giant). Over 40,000 seeded massive stars the median wind-fed pair shines at 4e36 erg/s and none above the limit.</li>
+<li><em>Millisecond pulsars.</em> The recycled pulsar's table now has the rows' classes as states: white dwarf 66.1%, black widow 6.24% (0.01 to 0.05 solar masses), redback 3.12% (0.2 to 0.4), other 2.34% (a star of 0.1 to 1 solar mass) and neutron star 0.2% (78% with a companion in all, as before). Spiders have periods of 0.1 to 1 day, are <code>detached</code>, and the pulsar carries <code>ablating</code>; the 0.07 to 0.1 solar mass gap stays empty because the two mass ranges do not reach it. The row's 5% neutron-star share is not drawn: the design note's 4.4 budget (the 0.04% of double neutron stars) leaves 0.2% of recycled pulsars, and five percent of them would make about ten times the double neutron stars the gravitational-wave rate allows; the white dwarf share took the difference.</li>
+<li><em>Dormant companions (Gaia kind).</em> A <code>detached</code> pair of a neutron star or black hole and a main-sequence star or giant, on the interacted law (0.3 to 1e4 days); <code>dormant_nodes</code> lists them.</li>
+<li><em>Compact triples.</em> The <code>compact-triple</code> row's 30% now applies to neutron stars as well as black holes (a third member, a compact object of either kind in 10% of them, else a star; at most three compact members). The quadruple with two compact pairs (theoretical, under 1e-6) is not drawn, and magnetar binaries stay at 0.</li>
+<li><em>Generator epoch.</em> The new draws, the pulsar table and the rule that a neutron star or black hole pair never accretes by geometry alone move generated output; epoch recorded in <code>tests/golden/epochs.json</code>.</li>
+</ul>
+<h3 id="135-substellar-companions-planetary-mass-companions-and-disks">13.5 Substellar companions, planetary-mass companions and disks</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Brown dwarf close companion</td>
+<td>under 0.6% inside 3 to 10 AU for Sun-like stars (the &quot;desert&quot;) [S]</td>
+<td>high</td>
+<td>everywhere</td>
+<td>S and F: kind <code>brown-dwarf</code> member; GEN.252</td>
+<td>L, T, Y states</td>
+</tr>
+<tr>
+<td>Brown dwarf wide companion</td>
+<td><strong>3.2%</strong> at 28 to 1,590 AU (6.8% in one thesis) [S]</td>
+<td>medium</td>
+<td>everywhere</td>
+<td>S and F, default 3.2%</td>
+<td>as above</td>
+</tr>
+<tr>
+<td>Brown dwarf pair or brown dwarf plus low-mass star</td>
+<td>about 15% of brown dwarfs are in pairs [R]</td>
+<td>medium</td>
+<td>everywhere</td>
+<td>F</td>
+<td>as above</td>
+</tr>
+<tr>
+<td>Planetary-mass companion (a few Jupiter masses, wide)</td>
+<td>directly imaged companions are a few per cent of young stars at tens to hundreds of AU [R]</td>
+<td>low</td>
+<td>young</td>
+<td>F, a member of kind <code>brown-dwarf</code> below 13 Jupiter masses, flagged <code>planetary-mass</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>Circumbinary planet</td>
+<td><strong>at least 10%</strong> of close eclipsing binaries host a planet above 6 Earth radii at periods under 300 d if coplanar (47% minimum if isotropic); giants are rare [S]</td>
+<td>medium</td>
+<td>everywhere</td>
+<td>F only (planets); Holman-Wiegert P-type zone from the node</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Circumbinary disk</td>
+<td>protostar binaries, post-AGB binaries, planetary-nebula binaries: disks but no planets [S]</td>
+<td>medium</td>
+<td>young, evolved</td>
+<td>F, a descriptor on the node, no bodies (<code>exotic-environments...</code> 1.3)</td>
+<td><code>disk</code></td>
+</tr>
+<tr>
+<td>Planet in a wide pair (S-type)</td>
+<td>planets known in wide binaries [S, <code>multistar</code> 5.6]</td>
+<td>high</td>
+<td>everywhere</td>
+<td>F only</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Rogue planet pair (a rogue and its moon, or two rogues)</td>
+<td>free-floating pairs reported [R, disputed]</td>
+<td>low</td>
+<td>clouds</td>
+<td>F, existing moon rule</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="136-ejection-and-runaways">13.6 Ejection and runaways</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Observed (default)</th>
+<th>Theory and confidence</th>
+<th>Where</th>
+<th>Generated and stored</th>
+<th>Star model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runaway star</td>
+<td><strong>10% to 30% of O stars and 5% to 10% of B stars</strong> [S, [R1558]]; a bow-shock survey finds 23% [S]</td>
+<td>two-thirds binary-supernova, one-third dynamical for massive runaways [S, Dray et al.] (disputed)</td>
+<td>young disk, clusters</td>
+<td>the existing runaway flag; new <code>runaway_origin</code> (supernova or dynamical) and, for the supernova channel, a <strong>compact companion left behind</strong> at the rate the survival rule gives</td>
+<td><code>runaway_origin</code></td>
+</tr>
+<tr>
+<td>Hypervelocity star</td>
+<td>1e3 to 1e4 [S]</td>
+<td>high</td>
+<td>halo</td>
+<td>existing scatter; single (the Hills mechanism)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Companion unbound by a collapse</td>
+<td>83% of non-interacting massive binaries are unbound by the first collapse [C]</td>
+<td>high</td>
+<td>young</td>
+<td>not stored; the survivor is an ordinary row, with a flag if it is a runaway</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>As built (GEN.327).</strong> <code>multistar.draw_young_group</code> draws the trapezium of the catalogue (<code>young-group</code>, 5% of the O and early-B stars, birth mass 9 solar masses and up, younger than <code>YOUNG_GROUP_AGE_MAX_YR</code> = 0.3 Myr), and <code>draw_member_tree(..., groups=True)</code> calls it first; only the bright-star scatter asks (<code>scatter_companions.star_tree</code>), because a system build holds pairs, not a group. A star that is not eligible draws nothing, so its tree is as before. The group has 3 to 5 stars and a <code>decay_age_yr</code> drawn log-uniform over 1e4 to 4e4 years. Younger than that, the tree is the group: one <code>group</code> node (separation = the group radius, period = the crossing time at the dispersion, no eccentricity) and its members, each with an <code>offset_au</code> from the centre and a <code>velocity_kms</code> (each component a draw of the dispersion), shifted so the centre of mass is at rest at the origin, and the group's decay age (the sixteen bits of the flags column are all taken, so a group member has no flag of its own: the node's kind and the decay age say it has not decayed). Older than that, the tree is the result: the lightest star other than the placed one is ejected, and the rest are drawn as a hierarchy no wider than <code>YOUNG_GROUP_REMNANT_MAX_AXIS_AU</code>. The ejected star is on <code>MemberTree.ejected</code>, flagged <code>runaway_dynamical</code>, and is <strong>not</strong> a row of its own: the runaway rows the scatter draws (<code>draw_runaway_origin</code>, 20% of O and 7.5% of B stars, a third by the dynamical channel) already carry the catalogue's share of ejected stars, and a row for each ejection would count them twice. Since 4e4 years is short against 0.3 Myr, most of the 5% leave a remnant and a stored group is rare. <code>scatter_members</code> stores the offset, velocity and decay columns (they were in the schema since migration 0104; the writer now fills them); a stored group is not built by a system build (<code>stored_trees.plan</code> takes only pair nodes, so the placed star is built alone as for any tree it cannot hold) until GEN.264 builds the stored members. The uncharted star page lists the group with the life it has left (decay age less the star's age), and <code>scatter_systems.groups_past_decay</code> is audit 14. The member count weights, the radius range, the dispersion (2.5 km/s) and the remnant axis cap (300 AU) are stand-ins (kind P) in <code>tuning.py</code>, each with its bracket: replace them when a count by size, the Trapezium's radius and its measured dispersion are read. GEN.328 draws the same group at fill (below).</p>
+<p><strong>As built (GEN.328).</strong> The fill draws the same group (<code>nebula_contents.member_group</code>, on a stream of the member's own seed, so every sector that reaches the member draws the same one) for each member of an emission region (D or E) or a field cloud that is an O or early-B star younger than <code>YOUNG_GROUP_AGE_MAX_YR</code>: <code>multistar.draw_young_group</code> at the <code>young-group</code> share. The protostars of a core are all under <code>PRE_MAIN_SEQUENCE_MAX_MASS_SOL</code> (8 solar masses), so a core holds no group, and the ages of an emission region (a uniform draw up to 10 or 20 Myr) leave only a few in a hundred members under 0.3 Myr: groups are rare at fill by the numbers of the catalogue, and a test forces the age to measure the share. A system build cannot hold a <code>group</code> node (<code>stored_trees</code> pairs, GEN.264 for the stored members), so a group that has not decayed is built as separate systems: the member keeps the point it was given, each mate is an ordinary young system of its own birth mass and the member's age at the point plus the difference of the two offsets (<code>run_sector.add_group_stars</code>), and each sector builds the stars whose points fall in its cube, so a group across a border is made once. The entries carry <code>group_seed</code> (the member's seed names the group), <code>group_decay_age_yr</code> and <code>group_offset_au</code>; they are in memory, as <code>system_seed</code> is, and the velocities of the group's tree are not used (a fill system holds no velocity of its own). A group older than its decay age is the hierarchy it left (<code>stored_trees.drawn</code> of the tree without its brown dwarfs and remnants) and marks no group; its ejected star is not a row, as at scatter. An emission region's reach (<code>emission_reach_pc</code>) grows by two radii of the widest group (<code>group_reach_pc</code>, 0.29 pc) so a neighbouring sector still finds a mate.</p>
+<p><strong>As built (GEN.329).</strong> The catalogue's rates are read from <code>SYSTEM_TYPE_RATES[&quot;runaway-star&quot;]</code> and <code>[&quot;unbound-by-collapse&quot;]</code>, and <code>multistar.draw_runaway_origin(initial_mass_sol, runaway_unit, origin_unit, bound_unit)</code> is the generator they name. An O star (birth mass 16 solar masses or more) is a runaway with the default 20% and a B star (2.1 to 16) with 7.5%, inside the catalogue's 10% to 30% and 5% to 10%; any other star has no observed rate and keeps the field roll of the fill. A runaway's <code>origin</code> is <code>supernova</code> for two thirds of them and <code>dynamical</code> for the rest, and a supernova runaway keeps a compact companion bound with the share the collapse leaves bound, 1 - 0.83 = 17%; the unbound 83% are not stored, the survivor is an ordinary row. The three uniforms are derived from the row's seed (<code>scatter_companions.runaway_draw</code>, three more salts of <code>screen_unit</code>), so the scatter that stores the star's tree and the fill that builds the star agree without storing the answer for a single star. A runaway's tree carries the flag of its channel on member 0 (<code>MEMBER_RUNAWAY_SUPERNOVA</code> 128, <code>MEMBER_RUNAWAY_DYNAMICAL</code> 256, in <code>scatter_members.flags</code>), and a supernova runaway that kept its companion has a neutron star or a black hole in it (<code>draw_member_tree(bound_runaway=True)</code>: the table of its class decides which, the progenitor is heavier than the runaway and has had time to collapse by the system's age; a runaway too young for any progenitor, such as a 20 solar mass star at 5 Myr, finds one in about a quarter of the draws). The fill (<code>run_sector._flag_scattered_runaway</code>) makes the system of a pre-placed O or B star a <code>runaway</code> from the same answer, its speed and direction drawn from a stream of the row's seed, and marks it decided so the field roll (<code>flag_fast_stars</code>) leaves it alone; the field roll gives the runaways it makes an origin too, by the same split. <code>StarSystem.runaway_origin</code> (serialization version 5) is stored in the flags of the runaway's first <code>stars</code> row (<code>insert_star(flags=...)</code>, the bit of its origin) and read back by <code>load_star_system</code>; a hypervelocity star has none and stays single (no tree is drawn for it). No schema change: <code>stars.flags</code> is the v104 column. Generator epoch 56.</p>
+<h3 id="137-tuning-the-emergent-types">13.7 Tuning the emergent types</h3>
+<p>Contact, Algol, post-common-envelope and accreting fractions come out of the period law, the Roche test and the evolution, and the first build will not match the observed fractions. The tuning dict has one knob per family, all against the audit counts in section 15:</p>
+<ul>
+<li><strong>tight-tail weight</strong> (default 6.0 as built, GEN.270; 1.0 is the plain draw): scales the share of pairs with a period under 1 day of primaries under the massive limit until the contact share is 0.2% of stars and the Algol share 0.1% to 0.2%;</li>
+<li><strong>post-CE fraction of white-dwarf companions</strong> (default 0.10, the Maoz 9.5% for double white dwarfs and a matching value for white dwarf plus star);</li>
+<li><strong>accreting fraction of compact companions</strong> (default 1% to 40% by class, rows above);</li>
+<li><strong>merger-product fractions</strong> (massive 8%, field 0.5%, white dwarf 10%).</li>
+</ul>
+<h2 id="14-what-changes-in-the-star-model-and-the-stored-form">14. What changes in the star model and the stored form</h2>
+<p><strong>Star model</strong> (<code>physics/stellar_evolution.py</code>, <code>Star</code>, <code>star_labels.py</code>; these are also the TODO items 13 to 16 below):</p>
+<ol>
+<li><strong>New <code>kind</code>s</strong>: <code>pre-main-sequence</code> (GEN.242), <code>protostar</code>, <code>brown-dwarf</code> with L, T, Y states (GEN.252, built: <code>brown-dwarf-state.md</code>), <code>stripped-helium</code> (hot subdwarf, helium star, helium donor), <code>thorne-zytkow</code>, <code>wolf-rayet</code> (GEN.243), <code>white-dwarf</code> subtypes (normal, polluted, merger-product, helium) and the compact kinds already there.</li>
+<li><strong>Interaction state on a pair</strong> (<code>scatter_nodes.interaction</code> and <code>orbit_nodes.interaction</code>): <code>detached</code>, <code>semi-detached</code>, <code>contact</code>, <code>accreting</code>, <code>post-common-envelope</code>, <code>merger-product</code>.</li>
+<li><strong>Per-member flags</strong> (<code>scatter_members.flags</code>): <code>mass_reversed</code>, <code>mass_gainer</code>, <code>merger_product</code>, <code>be</code>, <code>runaway_origin</code> (none, supernova, dynamical), <code>fragile</code> (ultra-wide), <code>theoretical</code>.</li>
+<li><strong>Roche geometry and accretion luminosity</strong>: Roche-lobe radius (Eggleton formula) and filling factor, mass-transfer luminosity <code>L = eta Mdot c^2</code> for accreting pairs (GEN.130 slice c), Eddington limit for the accretor.</li>
+<li><strong>Rejuvenated age</strong> for a merger product (an effective age field; the real system age stays).</li>
+<li><strong>Group nodes for non-hierarchical systems</strong>: a node of kind <code>group</code> with N members, each with an offset and a velocity at an epoch; its internal motion is a straight line until the decay time, then the generator's remnant. The nightly update does not integrate it (the system is young; at the decay time it is replaced by the remnant at the next fill or edit).</li>
+</ol>
+<p><strong>Stored form changes</strong> to section 5: <code>scatter_members.slot</code> and <code>scatter_nodes.slot</code> become SMALLINT (a group has N slots); <code>scatter_nodes.kind</code> gains <code>group</code> and <code>compact</code>; new nullable columns <code>interaction</code> (VARCHAR(20)) on nodes, <code>state</code>, <code>flags</code> (SMALLINT) and, for group members only, <code>offset_x_au</code>, <code>offset_y_au</code>, <code>offset_z_au</code>, <code>velocity_x_kms</code>, <code>velocity_y_kms</code>, <code>velocity_z_kms</code>, <code>decay_age_yr</code> on members. One column per component; no JSON. A group's lifetime is <code>decay_age_yr</code> and the audit rejects a stored group older than it.</p>
+<p><strong>The dict.</strong> <code>SYSTEM_TYPE_RATES</code> has one entry per row of 13.1 to 13.6: the reference class, the default, the low and high of the range, the evidence tag, the populations that may host it (the profile's <code>mix</code>), and the generator function. A completeness test (the same one the registry has, GEN.250) checks that every row of this catalogue has an entry, a generator and an audit count.</p>
+<h2 id="15-audit-extension-for-the-catalogue">15. Audit extension for the catalogue</h2>
+<p>Extends section 9:</p>
+<ol start="10">
+<li><strong>Type counts.</strong> Over a seeded fill of at least 1e6 systems per region class, each type's count lies within four Poisson sigma of the default (or, where the default has a range, within the range for the sample size): contact 0.2% of FGK, Algol 0.1% to 0.2%, cataclysmic variable 3.4e-5 of systems, AM CVn 3.9e-6, double white dwarf 9.5% of white dwarfs, brown dwarf wide companion 3.2%, runaway 10% to 30% of O stars.</li>
+<li><strong>Region gates.</strong> No type appears where its gate forbids it (a Be/X-ray binary in the halo, a trapezium older than its decay time).</li>
+<li><strong>N tail.</strong> The number of systems with N = 8 to 12 matches the tail table (1.1e6 to 1.1e2 in the default galaxy) within four sigma on a sample scaled to it.</li>
+<li><strong>Interaction consistency.</strong> Every <code>semi-detached</code> pair has a donor whose radius is at least its Roche lobe at the system age; every <code>contact</code> pair has both; no <code>accreting</code> pair has a non-compact receiver unless it is a mass gainer.</li>
+<li><strong>Group decay.</strong> Every stored <code>group</code> is younger than its <code>decay_age_yr</code>; a drawn group older than it is replaced by its remnant.</li>
+</ol>
+<h2 id="16-decisions-that-this-section-changes">16. Decisions that this section changes</h2>
+<ul>
+<li><strong>The cap is 12, not 7.</strong> Evidence: ten candidate systems with multiplicity up to 12 [S, [R1529]]; theory several hundred [S]; stability allows 12 or more levels (3.3); a septuple protostellar system found in 2025 [S]. At the tail table's ratio the Galaxy holds 1.1e6 eight-star systems and 1e2 twelve-star systems [C]. The earlier note's 7 was the <strong>confirmed</strong> ceiling; 12 is the highest <em>proposed</em>. The prevalence knob (GEN.129) scales the N &gt;= 5 columns, and a directive forces N.</li>
+<li><strong>Short-lived young groups are in.</strong> The earlier &quot;trees only&quot; default (decision 4) becomes: stored systems are hierarchical, <strong>except</strong> young non-hierarchical groups under their decay age (13.1), drawn at fill in star-forming cores and, rarely, at scatter. A group older than its decay age is never drawn; its remnant is.</li>
+<li><strong>Types are mostly emergent.</strong> The classifier of 13 produces contact, Algol, post-common-envelope and accreting pairs from geometry and evolution; the tuning dict aligns them to the observed fractions.</li>
+<li><strong>Observed rates are defaults; theoretical rates are marked.</strong> A type with no observation (Thorne-Zytkow, magnetar binary, quadruple with two compact pairs, planetary-mass companion beyond a few per cent) takes the predicted rate, carries the flag <code>theoretical</code>, and the page says so.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[R] items to confirm when paper access is allowed: the Kelvin-Helmholtz time; the number of known high-mass X-ray binaries (about 130); the luminosity and mass of Cygnus X-1; the double pulsar's period and merger time; the abundance of barium stars among giants (about 1%); the planetary-nebula central star close-binary fraction (20%); that Hills ejection leaves a hypervelocity star single; the density of Milky Way-equivalent galaxies used to turn gravitational-wave rates into per-galaxy rates (0.0116 per Mpc^3, 1.16e7 per Gpc^3); the [R2539] count of 1.2e6 black-hole pairs (read in a search-result summary of [R3348], not at source); the Gaia 0.1% prediction (a summary of [R3233]); every Gaia and pulsar orbital figure.</p>
+<p>Added by the catalogue: the symbiotic rate (5e-6 of giants, low), the field merger-product rate (0.5%), the massive over-contact rate (1%), the trapezium share (5% of young massive systems) and the Thorne-Zytkow count (100) are inferred, not observed; every Roche-classifier fraction depends on the tuning of 13.7.</p>
+<p>Weakest numbers: the black-hole pair, black-hole with neutron star and black-hole with star fractions (a range of 80, 90 and 20 times); the direct-collapse mass that drives the wide-channel Monte Carlo; the 30% tertiary share; the compact-companion share of massive stars (0.3%). All are single entries in the dict, and a changed value changes the next scatter only.</p>
+<p>[C] values come from scripts kept in the session scratchpad and not shipped: <code>counts.py</code>, <code>rows.py</code> (row counts and class mix from the repository's own <code>star_population</code> and <code>phenomenon_scatter</code> functions), <code>mc.py</code> and <code>mc2.py</code> (the survival Monte Carlo: Sana period law on 0.15 to 5.5 in log days, 90% of massive primaries with a companion, mass ratio uniform 0.05 to 1, thermal eccentricity above 7 days, instantaneous collapse on a random orbital phase with an isotropic Maxwellian kick, a system counted as interacting and excluded when its pericentre is under 9.3 AU, twice the 1,000 solar-radius giant phase), and <code>stock.py</code> (Peters axes and the stock of compact pairs from a merger rate: with a delay-time distribution proportional to 1/t between 50 Myr and 13.8 Gyr the unmerged tight pairs number the merger rate times 13.8 Gyr / ln(13.8 Gyr / 50 Myr) = 2.5 Gyr, and the share of a log-flat 0.003 to 100 AU draw that merges in a Hubble time is 0.19, 0.26 and 0.33). The Monte Carlo is a size check, not a population synthesis; it has no mass transfer, common envelope or tides.</p>
+<h2 id="sources">Sources</h2>
+<p>Seen in search-result summaries (no paper was opened): [R0006, R1076, R1105, R1239, R1381, R1709, R2407, R2463, R3233, R3557, R4039, R4441]; [binary black hole formation and metallicity][R4512]; [R3108, R3333]; [triple evolution (Toonen et al.)][R4404]; [R0074, R0075, R1363, R4203, R4279, R4386]. Repository files read: <code>generation/phenomenon_scatter.py</code>, <code>bright_stars.py</code>, <code>star_population.py</code>, <code>run_sector.py</code>, <code>system.py</code>, <code>binary.py</code>, <code>wide_binary.py</code>, <code>tuning.py</code>; <code>docs/reference/database-schema.md</code>, <code>docs/TODO.md</code> (GEN.129, GEN.130, GEN.223, GEN.250, GEN.251); the design notes linked above and <code>phenomenon-scatter-mass-cut.md</code>.</p>
+<p>Added for the catalogue (search-result summaries; no paper opened): cataclysmic variable space density from a 150 pc Gaia sample [R3412]; AM Canum Venaticorum space density (Rodriguez et al.); close double white dwarfs, 9.5% of white dwarfs (Maoz et al.); contact binary frequency and tertiaries (Rucinski; Tokovinin et al.; Kepler eclipsing-binary morphology); blue stragglers from triple mergers (Perets and Kratter; Naoz and Fabrycky); symbiotic star counts and predictions (Merc et al.; Lu et al.); Thorne-Zytkow candidates HV 2112 and HV 11417 (Beasor et al.); X-ray binary catalogues (Liu et al.; Avakyan et al.); spider millisecond pulsars; [R1529] on high-order multiples; the Nu Scorpii septuple and the NGC 6334IN protostellar septuple (2025); trapezium-type multiples (Allen et al.; Orion Trapezium decay); runaway O and B stars ([R1558]; Dray et al.); circumbinary planet occurrence (Armstrong et al.; Martin and Fabrycky); brown-dwarf companion statistics. Where a figure here has no link, it is a snippet read in a search, tagged [S], and the weakest ones are listed under Evidence notes.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

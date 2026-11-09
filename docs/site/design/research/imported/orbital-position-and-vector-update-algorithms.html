@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gravitational Vector Algorithm - planetGen docs</title>
+<meta name="description" content="To determine the spatial resolution (5) and required grid subdivision depth for a 10 light-year cubic sector, use an algorithm that converts your frame&#x27;s movement threshold into an acceleration limit (6) and balances it against both ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/orbital-position-and-vector-update-algorithms.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/orbital-position-and-vector-update-algorithms.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../orbits/course-routing.html">course-routing</a>, <a href="../../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core</a>, <a href="../../orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators</a>, <a href="../../orbits/orbital-updates.html">orbital-updates</a>.</p>
+</blockquote>
+<h1 id="gravitational-vector-algorithm">Gravitational Vector Algorithm</h1><p class="meta">docs/design/research/imported/orbital-position-and-vector-update-algorithms.md</p><details class="toc"><summary>On this page (20 headings)</summary><ul><li style="margin-left:14px"><a href="#mathematical-core">Mathematical Core</a></li><li style="margin-left:14px"><a href="#algorithm-implementation-pseudocode">Algorithm Implementation (Pseudocode)</a></li><li style="margin-left:14px"><a href="#example-output-scenario">Example Output Scenario</a></li><li style="margin-left:14px"><a href="#1-per-body-attributes-database-row-per-object">1. Per-Body Attributes (Database Row Per Object)</a></li><li style="margin-left:14px"><a href="#2-global-galactic-metadata-single-system-level-record">2. Global Galactic Metadata (Single System-Level Record)</a></li><li style="margin-left:14px"><a href="#3-spatial-index-data-octree-or-bvh-nodes">3. Spatial Index Data (Octree or BVH Nodes)</a></li><li style="margin-left:14px"><a href="#runtime-execution-flow-summary">Runtime Execution Flow Summary</a></li><li style="margin-left:14px"><a href="#core-variable-definitions">Core Variable Definitions</a></li><li style="margin-left:14px"><a href="#1-grid-size-scaling-71">1. Grid Size Scaling (71)</a></li><li style="margin-left:14px"><a href="#2-initial-generation-complexity-all-84-sectors">2. Initial Generation Complexity (All 84 Sectors)</a></li><li style="margin-left:14px"><a href="#3-event-driven-recalculation-complexity-dynamic-updates">3. Event-Driven Recalculation Complexity (Dynamic Updates)</a></li><li style="margin-left:14px"><a href="#algorithmic-optimization-strategies">Algorithmic Optimization Strategies</a></li><li style="margin-left:14px"><a href="#worst-case-scenario-setup">Worst-Case Scenario Setup</a></li><li style="margin-left:14px"><a href="#database-storage-footprint-comparison">Database Storage Footprint Comparison</a></li><li style="margin-left:14px"><a href="#detailed-breakdown-of-the-three-approaches">Detailed Breakdown of the Three Approaches</a></li><li style="margin-left:14px"><a href="#implementation-recommendation">Implementation Recommendation</a></li><li style="margin-left:14px"><a href="#mathematical-transformation--stencil-mapping">Mathematical Transformation &amp; Stencil Mapping</a></li><li style="margin-left:14px"><a href="#algorithmic-implementation">Algorithmic Implementation</a></li><li style="margin-left:14px"><a href="#computational-steps--boundary-mitigations">Computational Steps &amp; Boundary Mitigations</a></li><li style="margin-left:14px"><a href="#references">References</a></li></ul></details>
+<p>To determine the spatial resolution (<span class="math">\(\Delta r_{\text{sector}}\)</span>) and required grid subdivision depth for a 10 light-year cubic sector, use an algorithm that converts your frame's movement threshold into an acceleration limit (<span class="math">\(a_{\text{min}}\)</span>) and balances it against both <strong>background sector density</strong> and <strong>local mass clumping</strong>.</p>
+<h3 id="mathematical-core">Mathematical Core</h3>
+<ol>
+<li>
+<p><strong>Frame Acceleration Threshold (<span class="math">\(a_{\text{min}}\)</span>):</strong>
+<span class="math display">\[a_{\text{min}} = \frac{2 \cdot \Delta x_{\text{min}}}{(\Delta t)^2}\]</span></p>
+</li>
+<li>
+<p><strong>Sector Mean Mass Density (<span class="math">\(\rho_{\text{sector}}\)</span>):</strong>
+<span class="math display">\[\rho_{\text{sector}} = \frac{M_{\text{sector}}}{L_{\text{sector}}^3}\]</span></p>
+</li>
+<li>
+<p><strong>Background Gradient Resolution (<span class="math">\(\Delta r_{\text{bg}}\)</span>):</strong>
+<span class="math display">\[\Delta r_{\text{bg}} = \frac{a_{\text{min}}}{2 G \rho_{\text{sector}}}\]</span></p>
+</li>
+<li>
+<p><strong>Clumping Adjustment (<span class="math">\(\Delta r_{\text{local}}\)</span>):</strong>
+If a single massive body (<span class="math">\(M_{\text{max}}\)</span>) dominates the sector, its peak gradient sets a tighter resolution limit near its characteristic interaction radius (<span class="math">\(r_{\text{char}} \approx \sqrt[3]{M_{\text{max}} / \rho_{\text{sector}}}\)</span>):
+<span class="math display">\[\Delta r_{\text{local}} = \sqrt[3]{\frac{a_{\text{min}} \cdot r_{\text{char}}^3}{2 G M_{\text{max}}}}\]</span></p>
+</li>
+<li>
+<p><strong>Octree Grid Depth (<span class="math">\(D\)</span>):</strong>
+<span class="math display">\[D = \max\left(0, \left\lceil \log_2\left(\frac{L_{\text{sector}}}{\min(\Delta r_{\text{bg}}, \Delta r_{\text{local}})}\right) \right\rceil\right)\]</span></p>
+</li>
+</ol>
+<h3 id="algorithm-implementation-pseudocode">Algorithm Implementation (Pseudocode)</h3>
+<p>Python
+import math
+# Constants
+G = 6.67430e-11  # Gravitational constant (m^3 kg^-1 s^-2)
+LIGHT_YEAR_METERS = 9.461e15  # 1 Light Year in meters
+def calculate_sector_resolution(
+M_sector_kg: float,      # Total mass of all objects in the sector (kg)
+M_max_local_kg: float,  # Mass of the single heaviest object in sector (kg)
+L_sector_ly: float,     # Sector side length in light-years (e.g., 10.0)
+delta_x_min_m: float,   # Movement threshold limit (meters)
+delta_t_sec: float      # Frame update time interval (seconds)
+) -&gt; dict:
+# 1. Calculate minimum observable acceleration threshold for this frame
+a_min = (2.0 * delta_x_min_m) / (delta_t_sec ** 2)
+# 2. Compute sector volume and average mass density
+L_sector_m = L_sector_ly * LIGHT_YEAR_METERS
+V_sector = L_sector_m ** 3
+rho_sector = M_sector_kg / V_sector
+# Handle pure empty space edge case
+if rho_sector &lt;= 1e-30:
+return {
+&quot;a_min&quot;: a_min,
+&quot;spatial_resolution_m&quot;: L_sector_m,
+&quot;octree_depth&quot;: 0,
+&quot;grid_cells_per_side&quot;: 1
+}
+# 3. Calculate resolution limit based on continuous background density
+# Gradient = 2 * G * rho
+delta_r_bg = a_min / (2.0 * G * rho_sector)
+# 4. Adjust for localized mass clumping
+delta_r_effective = delta_r_bg
+if M_max_local_kg &gt; 0:
+r_char = (M_max_local_kg / rho_sector) ** (1.0 / 3.0)
+delta_r_local = ( (a_min * (r_char ** 3)) / (2.0 * G * M_max_local_kg) ) ** (1.0 / 3.0)
+delta_r_effective = min(delta_r_bg, delta_r_local)
+# Clamp effective resolution to not exceed sector size
+delta_r_effective = min(delta_r_effective, L_sector_m)</p>
+<pre><code>    # 5. Calculate Octree subdivision depth required for this sector
+    octree_depth = max(0, math.ceil(math.log2(L_sector_m / delta_r_effective)))
+    grid_cells_per_side = 2 ** octree_depth
+
+    return {
+        &quot;a_min_m_s2&quot;: a_min,
+        &quot;sector_density_kg_m3&quot;: rho_sector,
+        &quot;spatial_resolution_m&quot;: delta_r_effective,
+        &quot;spatial_resolution_ly&quot;: delta_r_effective / LIGHT_YEAR_METERS,
+        &quot;octree_depth&quot;: octree_depth,
+        &quot;grid_cells_per_side&quot;: grid_cells_per_side
+    }
+</code></pre>
+<h3 id="example-output-scenario">Example Output Scenario</h3>
+<p>For a <strong>10 ly sector</strong> (<span class="math">\(L_{\text{sector}} = 10 \text{ ly}\)</span>):</p>
+<ul>
+<li>
+<p><strong>Total Mass:</strong> <span class="math">\(M_{\text{sector}} = 5 \times 10^{30} \text{ kg}\)</span> (<span class="math">\(\approx 2.5 \text{ Solar Masses}\)</span>)</p>
+</li>
+<li>
+<p><strong>Update Interval:</strong> <span class="math">\(\Delta t = 1 \text{ year}\)</span> (<span class="math">\(\approx 3.15 \times 10^7 \text{ s}\)</span>)</p>
+</li>
+<li>
+<p><strong>Movement Limit:</strong> <span class="math">\(\Delta x_{\text{min}} = 10^9 \text{ m}\)</span> (<span class="math">\(\approx 0.0067 \text{ AU}\)</span>)</p>
+</li>
+</ul>
+<p><strong>Results:</strong></p>
+<ul>
+<li>
+<p><span class="math">\(a_{\text{min}} = 2.01 \times 10^{-6} \text{ m/s}^2\)</span></p>
+</li>
+<li>
+<p><span class="math">\(\rho_{\text{sector}} = 5.9 \times 10^{-21} \text{ kg/m}^3\)</span></p>
+</li>
+<li>
+<p><span class="math">\(\Delta r_{\text{effective}} \approx 2.55 \times 10^{24} \text{ m}\)</span> (Far larger than <span class="math">\(L_{\text{sector}}\)</span>)</p>
+</li>
+<li>
+<p><strong><code>octree_depth</code> = 0</strong> (The background vector gradient is so flat across 10 light-years that the entire sector can be evaluated as a single <span class="math">\(1 \times 1 \times 1\)</span> uniform gravitational cell without subdividing).</p>
+</li>
+</ul>
+<h1 id="gravitational-update-metadata">Gravitational Update Metadata</h1>
+<p>To run your orbital update script efficiently without scanning every object in the database, calculate and store data at three distinct levels during galaxy generation: <strong>Per-Body Attributes</strong>, <strong>Global Galactic Metadata</strong>, and <strong>Spatial Index Node Data</strong>.</p>
+<h3 id="1-per-body-attributes-database-row-per-object">1. Per-Body Attributes (Database Row Per Object)</h3>
+<p>For every generated star, planet, or black hole, store both state vectors and precalculated gravitational constants:</p>
+<ul>
+<li>
+<p><strong><code>id</code></strong> <em>(UUID / uint64)</em>: Unique entity identifier.</p>
+</li>
+<li>
+<p><strong><code>mass</code> (<span class="math">\(M\)</span>)</strong> <em>(float64)</em>: Physical mass in kg (or solar masses <span class="math">\(M_\odot\)</span>).</p>
+</li>
+<li>
+<p><strong><code>mu</code> (<span class="math">\(\mu = G \cdot M\)</span>)</strong> <em>(float64)</em>: Standard gravitational parameter. Pre-multiplying <span class="math">\(G \times M\)</span> at generation saves millions of floating-point multiplications per tick at runtime.</p>
+</li>
+<li>
+<p><strong><code>position</code> (<span class="math">\(\vec{p}\)</span>)</strong> <em>(Vector3 float64)</em>: Initial 3D spatial coordinates $(x, y, z)$.</p>
+</li>
+<li>
+<p><strong><code>velocity</code> (<span class="math">\(\vec{v}\)</span>)</strong> <em>(Vector3 float64)</em>: Initial velocity vector <span class="math">\((v_x, v_y, v_z)\)</span>.</p>
+</li>
+<li>
+<p><strong><code>tier</code> / <code>mass_class</code></strong> <em>(enum)</em>: Categorizes the object for hierarchical query routing:</p>
+</li>
+<li>
+<p><code>TIER_0</code> (Supermassive / Galactic Anchor): Central black holes (<span class="math">\(M &gt; 10^4 M_\odot\)</span>).</p>
+</li>
+<li>
+<p><code>TIER_1</code> (Major Mass): Giant stars, dense clusters (<span class="math">\(10 M_\odot &lt; M \le 10^4 M_\odot\)</span>).</p>
+</li>
+<li>
+<p><code>TIER_2</code> (Standard Mass): Main-sequence stars, brown dwarfs (<span class="math">\(M \le 10 M_\odot\)</span>).</p>
+</li>
+<li>
+<p><code>TIER_3</code> (Minor Mass): Planets, asteroids, spacecraft (negligible gravitational source, destination targets only).</p>
+</li>
+</ul>
+<h3 id="2-global-galactic-metadata-single-system-level-record">2. Global Galactic Metadata (Single System-Level Record)</h3>
+<p>Store high-level aggregates in a global configuration record so the update script can derive bounding limits instantly ($O(1)$) on startup:</p>
+<ul>
+<li>
+<p><strong><code>global_max_mass</code> (<span class="math">\(M_{\text{max}}\)</span>)</strong> <em>(float64)</em>: Mass of the heaviest single body in the entire galaxy. Used to establish absolute worst-case search radii (<span class="math">\(R_{\text{search}}\)</span>).</p>
+</li>
+<li>
+<p><strong><code>supermassive_registry</code></strong> <em>(Array of Object IDs)</em>: A direct list of all <code>TIER_0</code> bodies.</p>
+</li>
+<li>
+<p><em>Why:</em> Because supermassive bodies exert forces across light-years, the update script bypasses spatial tree queries for them and pulls them directly from this tiny array (typically 1–20 items) in $O(1)$ time.</p>
+</li>
+<li>
+<p><strong><code>spatial_bounds</code></strong> <em>(AABB - Axis Aligned Bounding Box)</em>: The global min/max coordinates enclosing the entire generated galaxy.</p>
+</li>
+</ul>
+<h3 id="3-spatial-index-data-octree-or-bvh-nodes">3. Spatial Index Data (Octree or BVH Nodes)</h3>
+<p>Build a 3D Octree (or Bounding Volume Hierarchy) over all objects at generation time. Each node in the spatial tree must store aggregated physics properties:</p>
+<ul>
+<li>
+<p><strong><code>node_bounds</code></strong> <em>(AABB)</em>: The spatial region covered by this octree node.</p>
+</li>
+<li>
+<p><strong><code>total_mass</code> (<span class="math">\(M_{\text{node}}\)</span>)</strong> <em>(float64)</em>: Sum of all masses within this node's volume.</p>
+</li>
+<li>
+<p><strong><code>center_of_mass</code> (<span class="math">\(\vec{p}_{\text{com}}\)</span>)</strong> <em>(Vector3 float64)</em>: Weighted center of mass:
+<span class="math display">\[\vec{p}_{\text{com}} = \frac{\sum (M_i \cdot \vec{p}_i)}{M_{\text{node}}}\]</span></p>
+</li>
+<li>
+<p><em>Why:</em> If a distant star cluster falls inside <span class="math">\(R_{\text{search}}\)</span> but is far away, the update script can treat the entire node as a single point-mass (<span class="math">\(M_{\text{node}}\)</span> at <span class="math">\(\vec{p}_{\text{com}}\)</span>) using Barnes-Hut approximation rather than processing thousands of individual stars.</p>
+</li>
+<li>
+<p><strong><code>max_child_mass</code> (<span class="math">\(M_{\text{node\_max}}\)</span>)</strong> <em>(float64)</em>: The largest individual mass located anywhere inside this subtree.</p>
+</li>
+<li>
+<p><em>Why (Branch Pruning):</em> During the spatial search for <span class="math">\(R_{\text{search}}\)</span>, if a tree node’s <span class="math">\(M_{\text{node\_max}}\)</span> produces an acceleration <span class="math">\(a = \frac{G M_{\text{node\_max}}}{r_{\text{min}}^2} &lt; a_{\text{min}}\)</span>, the algorithm prunes and skips that entire branch without inspecting its children.</p>
+</li>
+</ul>
+<h3 id="runtime-execution-flow-summary">Runtime Execution Flow Summary</h3>
+<p>With this stored structure, your orbital update script executes in three steps:</p>
+<ol>
+<li>
+<p><strong>Calculate Thresholds ($O(1)$):</strong> Derive <span class="math">\(a_{\text{min}} = \frac{2 \cdot \Delta x_{\text{min}}}{(\Delta t)^2}\)</span> for the active object's frame.</p>
+</li>
+<li>
+<p><strong>Pull Supermassive Bodies ($O(1)$):</strong> Evaluate forces from all IDs in <code>supermassive_registry</code>.</p>
+</li>
+<li>
+<p><strong>Query Spatial Tree (<span class="math">\(O(\log N + k)\)</span>):</strong> Traverse the Octree outward from the target object. Use <code>max_child_mass</code> to prune non-influential nodes, and use <code>center_of_mass</code> / <code>total_mass</code> to aggregate distant clusters into single vectors.</p>
+</li>
+</ol>
+<p>The computational complexity of generating and dynamically updating vector fields across <span class="math">\(X\)</span> cylindrical arc sectors is governed by the relationship between sector density, the number of vector cells generated (<span class="math">\(K_i\)</span>), and the number of mass sources (<span class="math">\(N_i\)</span>).</p>
+<h1 id="computational-complexity-of-vector-field-calculations">Computational Complexity of Vector Field Calculations</h1>
+<h3 id="core-variable-definitions">Core Variable Definitions</h3>
+<ul>
+<li>
+<p><strong><span class="math">\(X\)</span></strong>: Total number of sectors in the simulation.</p>
+</li>
+<li>
+<p><strong><span class="math">\(N_i\)</span></strong>: Number of discrete gravitational bodies in sector <span class="math">\(i\)</span>.</p>
+</li>
+<li>
+<p><strong><span class="math">\(s_V\)</span></strong>: Volume of the cylindrical arc sector (<span class="math">\(\text{m}^3\)</span>).</p>
+</li>
+<li>
+<p><strong><span class="math">\(s_d\)</span></strong>: Total mass in sector <span class="math">\(i\)</span> (<span class="math">\(\text{kg}\)</span>).</p>
+</li>
+<li>
+<p><strong><span class="math">\(\rho_i = \frac{s_d}{s_V}\)</span></strong>: Sector mass density (<span class="math">\(\text{kg/m}^3\)</span>).</p>
+</li>
+<li>
+<p><strong><span class="math">\(K_i\)</span></strong>: Total number of spatial vector field grid cells in sector <span class="math">\(i\)</span>.</p>
+</li>
+</ul>
+<h3 id="1-grid-size-scaling-71">1. Grid Size Scaling (<span class="math">\(K_i\)</span>)</h3>
+<p>The spatial resolution <span class="math">\(\Delta r\)</span> dictates the linear size of each vector cell:</p>
+<p><span class="math display">\[\Delta r = \frac{a_{\text{min}}}{2 G \rho_i} = \frac{a_{\text{min}} \cdot s_V}{2 G \cdot s_d}\]</span></p>
+<p>The total number of vector grid nodes <span class="math">\(K_i\)</span> in sector <span class="math">\(i\)</span> is the total sector volume divided by the cell volume <span class="math">\((\Delta r)^3\)</span>:</p>
+<p><span class="math display">\[K_i \approx \frac{s_V}{(\Delta r)^3} = \frac{8 G^3 \cdot s_d^3}{a_{\text{min}}^3 \cdot s_V^2}\]</span></p>
+<p><span class="math display">\[K_i \propto \frac{\rho_i^3 \cdot s_V}{a_{\text{min}}^3}\]</span></p>
+<h4 id="critical-takeaway-the-cubic-density-trap">Critical Takeaway: The &quot;Cubic Density Trap&quot;</h4>
+<p>Because <span class="math">\(K_i\)</span> scales with the <strong>cube of the mass density (<span class="math">\(\rho_i^3\)</span>)</strong>, doubling the mass inside a sector without changing its volume increases the required vector field grid resolution by <strong><span class="math">\(8\times\)</span></strong>.</p>
+<ul>
+<li>
+<p><strong>Sparse Sectors (<span class="math">\(\rho_i \approx 0\)</span>):</strong> <span class="math">\(\Delta r\)</span> is very large; <span class="math">\(K_i \approx 1\)</span>. The entire sector is represented by a single uniform vector cell.</p>
+</li>
+<li>
+<p><strong>Dense Sectors (Star Clusters):</strong> <span class="math">\(\Delta r\)</span> shrinks rapidly; <span class="math">\(K_i\)</span> expands to thousands or millions of vector nodes.</p>
+</li>
+</ul>
+<h3 id="2-initial-generation-complexity-all-84-sectors">2. Initial Generation Complexity (All <span class="math">\(X\)</span> Sectors)</h3>
+<p>Generating vector fields for all <span class="math">\(X\)</span> sectors depends on the method used to evaluate forces at each grid node:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Evaluation Method</strong></th>
+<th><strong>Time Complexity per Sector</strong></th>
+<th><strong>Total Complexity (X Sectors)</strong></th>
+<th><strong>Space Complexity</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Direct Particle Summation</strong></td>
+<td><span class="math">\(O(K_i \cdot N_i)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i \cdot N_i\right)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i\right)\)</span></td>
+</tr>
+<tr>
+<td><strong>Octree / Barnes-Hut</strong></td>
+<td><span class="math">\(O(K_i \log N_i)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i \log N_i\right)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i + N_i\right)\)</span></td>
+</tr>
+<tr>
+<td><strong>Grid-Based Poisson Solver (FFT)</strong></td>
+<td><span class="math">\(O(K_i \log K_i)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i \log K_i\right)\)</span></td>
+<td><span class="math">\(O\left(\sum_{i=1}^X K_i\right)\)</span></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>Memory Footprint:</strong> Storing a 3D vector field requires 3 64-bit floats per node (<span class="math">\(24 \text{ bytes/node}\)</span>). For <span class="math">\(K_i = 10^6\)</span> grid nodes, sector storage is <span class="math">\(\approx 24 \text{ MB}\)</span>.</li>
+</ul>
+<h3 id="3-event-driven-recalculation-complexity-dynamic-updates">3. Event-Driven Recalculation Complexity (Dynamic Updates)</h3>
+<p>When the object count changes in sector <span class="math">\(i\)</span> (e.g., an object crosses a boundary or spawns):</p>
+<h4 id="step-1-database-query--aggregate-update--99">Step 1: Database Query &amp; Aggregate Update — <span class="math">\(O(N_i)\)</span></h4>
+<p>Summing the new total mass <span class="math">\(s_d\)</span> from the database table takes <span class="math">\(O(N_i)\)</span> time (or $O(1)$ if using a database trigger/counter).</p>
+<h4 id="step-2-grid-array-re-allocation--102">Step 2: Grid Array Re-allocation — <span class="math">\(O(K_{i,\text{new}})\)</span></h4>
+<p>Recalculate <span class="math">\(\rho_{\text{new}}\)</span>, <span class="math">\(a_{\text{min}}\)</span>, and <span class="math">\(\Delta r_{\text{new}}\)</span>.</p>
+<ul>
+<li>If <span class="math">\(\Delta r\)</span> changes enough to alter the octree depth or array dimension, the engine reallocates memory for <span class="math">\(K_{i,\text{new}}\)</span> cells in <span class="math">\(O(K_{i,\text{new}})\)</span> time.</li>
+</ul>
+<h4 id="step-3-vector-re-computation--109">Step 3: Vector Re-computation — <span class="math">\(O(K_{i,\text{new}} \log N_{i,\text{new}})\)</span></h4>
+<p>Using a hierarchical spatial tree (Barnes-Hut) to compute new acceleration vectors for all <span class="math">\(K_{i,\text{new}}\)</span> cells:</p>
+<p><span class="math display">\[\text{Update Cost per Event} = O(N_i + K_{i,\text{new}} \log N_i)\]</span></p>
+<h3 id="algorithmic-optimization-strategies">Algorithmic Optimization Strategies</h3>
+<ol>
+<li>
+<p><strong>Local Partial Updates (Region-of-Interest Dirty Marking):</strong>
+When a single object is added/removed, do not recompute all <span class="math">\(K_i\)</span> nodes. Calculate its influence sphere <span class="math">\(R_{\text{search}} = \sqrt{\frac{G M}{a_{\text{min}}}}\)</span> and only update grid nodes falling inside <span class="math">\(R_{\text{search}}\)</span> (<span class="math">\(O(K_{\text{local}} \cdot \log N_i)\)</span>).</p>
+</li>
+<li>
+<p><strong>Density Cap / Minimum Cell Clamp:</strong>
+To prevent memory explosions in ultra-dense core sectors where <span class="math">\(\rho_i^3\)</span> spikes, enforce a maximum grid resolution <span class="math">\(K_{\text{max}}\)</span>. Once <span class="math">\(K_i &gt; K_{\text{max}}\)</span>, transition local space from a pre-baked vector grid to a <strong>procedural/analytical field evaluation</strong> computed on-the-fly per object.</p>
+</li>
+</ol>
+<h1 id="database-storage-methods">Database Storage Methods</h1>
+<h3 id="worst-case-scenario-setup">Worst-Case Scenario Setup</h3>
+<ul>
+<li>
+<p><strong>Sector Bounds:</strong> <span class="math">\(10 \times 10 \times 10 \text{ ly}^3\)</span> cube (<span class="math">\(V = 1,000 \text{ ly}^3 \approx 8.47 \times 10^{50} \text{ m}^3\)</span>).</p>
+</li>
+<li>
+<p><strong>Contents:</strong></p>
+</li>
+<li>
+<p>1 Supermassive Black Hole (SMBH like Sagittarius A*: <span class="math">\(M \approx 4.1 \times 10^6 M_\odot \approx 8.15 \times 10^{36} \text{ kg}\)</span>).</p>
+</li>
+<li>
+<p>50 Stars (<span class="math">\(M \approx 50 M_\odot \approx 10^{32} \text{ kg}\)</span>).</p>
+</li>
+<li>
+<p>500 Rogue Planets/Asteroids (<span class="math">\(M \approx 500 M_\oplus \approx 3 \times 10^{27} \text{ kg}\)</span>).</p>
+</li>
+<li>
+<p><strong>Move Limit (<span class="math">\(\Delta x_{\text{min}}\)</span>):</strong> <span class="math">\(0.01 \text{ pc} \approx 3.086 \times 10^{14} \text{ m}\)</span> (<span class="math">\(\approx 2,062 \text{ AU}\)</span>).</p>
+</li>
+<li>
+<p><strong>Update Interval (<span class="math">\(\Delta t\)</span>):</strong> <span class="math">\(1 \text{ year} \approx 3.15 \times 10^7 \text{ seconds}\)</span>.</p>
+</li>
+<li>
+<p><strong>Frame Threshold (<span class="math">\(a_{\text{min}}\)</span>):</strong> <span class="math">\(a_{\text{min}} = \frac{2 \cdot \Delta x_{\text{min}}}{(\Delta t)^2} \approx 0.62 \text{ m/s}^2\)</span>.</p>
+</li>
+</ul>
+<p>Near the SMBH (at <span class="math">\(r \approx 0.01 \text{ pc}\)</span>), the local tidal acceleration gradient is steep (<span class="math">\(\frac{da}{dr} = \frac{2 G M}{r^3} \approx 3.7 \times 10^{-17} \text{ s}^{-2}\)</span>). To maintain vector accuracy near the black hole without exceeding <span class="math">\(a_{\text{min}}\)</span>, the required grid cell resolution drops to <strong><span class="math">\(\Delta r \approx 0.18 \text{ AU} \approx 2.7 \times 10^{10} \text{ meters}\)</span></strong>.</p>
+<h3 id="database-storage-footprint-comparison">Database Storage Footprint Comparison</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Storage Strategy</strong></th>
+<th><strong>Spatial Resolution</strong></th>
+<th><strong>Number of Stored Nodes/Rows</strong></th>
+<th><strong>Database Footprint</strong></th>
+<th><strong>Feasibility</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Naive Uniform 3D Vector Grid</strong></td>
+<td>Fixed <span class="math">\(\Delta r = 0.18 \text{ AU}\)</span> across all <span class="math">\(10 \text{ ly}\)</span></td>
+<td><span class="math">\(4.3 \times 10^{19}\)</span> grid cells</td>
+<td><strong><span class="math">\(\sim 1.03 \text{ Zettabytes (ZB)}\)</span></strong></td>
+<td><strong>Impossible</strong> (Exceeds global internet capacity)</td>
+</tr>
+<tr>
+<td><strong>2. Adaptive Octree Vector Field</strong></td>
+<td>Variable (<span class="math">\(0.18 \text{ AU}\)</span> near SMBH to <span class="math">\(2.5 \text{ ly}\)</span> in void)</td>
+<td><span class="math">\(\sim 10^6\)</span> active nodes</td>
+<td><strong><span class="math">\(\sim 32 \text{ Megabytes (MB)}\)</span></strong></td>
+<td><strong>Highly Efficient</strong></td>
+</tr>
+<tr>
+<td><strong>3. Analytical Point-Mass Table</strong></td>
+<td>Exact mathematical position vectors (No pre-baked grid)</td>
+<td>551 object rows</td>
+<td><strong><span class="math">\(\sim 70.5 \text{ Kilobytes (KB)}\)</span></strong></td>
+<td><strong>Optimal for DB Storage</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="detailed-breakdown-of-the-three-approaches">Detailed Breakdown of the Three Approaches</h3>
+<h4 id="approach-1-naive-uniform-3d-grid-zettabyte-scale">Approach 1: Naive Uniform 3D Grid (Zettabyte Scale)</h4>
+<p>If you force a uniform spatial grid across the entire 10 ly cube fine enough to resolve space near the SMBH (<span class="math">\(\Delta r = 0.18 \text{ AU}\)</span>):</p>
+<ul>
+<li>
+<p><strong>Grid Resolution:</strong> <span class="math">\(\frac{10 \text{ ly}}{0.18 \text{ AU}} \approx 3.5 \times 10^6\)</span> cells per axis.</p>
+</li>
+<li>
+<p><strong>Total Cells:</strong> <span class="math">\((3.5 \times 10^6)^3 \approx 4.3 \times 10^{19}\)</span> cells.</p>
+</li>
+<li>
+<p><strong>Storage Calculation:</strong> At 24 bytes per node (<span class="math">\(3 \times \text{float64}\)</span> for <span class="math">\(\vec{a}\)</span>), storing this sector requires:
+<span class="math display">\[4.3 \times 10^{19} \times 24 \text{ bytes} \approx 1.03 \times 10^{21} \text{ bytes} \approx \mathbf{1.03 \text{ Zettabytes}}\]</span></p>
+</li>
+</ul>
+<h4 id="approach-2-adaptive-octree-vector-field-megabyte-scale">Approach 2: Adaptive Octree Vector Field (Megabyte Scale)</h4>
+<p>In an adaptive octree, 99.9% of the <span class="math">\(10 \text{ ly}\)</span> sector is empty space and remains at level 0 or 1. The tree only subdivides down to level 22 in the immediate vicinity of the SMBH and local star systems:</p>
+<ul>
+<li>
+<p><strong>Active Subdivided Nodes:</strong> <span class="math">\(\sim 1,000,000\)</span> nodes.</p>
+</li>
+<li>
+<p><strong>Node Metadata:</strong> 24 bytes (<span class="math">\(\vec{a}\)</span> vector) + 8 bytes (child node pointers/index) = 32 bytes/node.</p>
+</li>
+<li>
+<p><strong>Storage Calculation:</strong>
+<span class="math display">\[1,000,000 \times 32 \text{ bytes} \approx \mathbf{32 \text{ Megabytes}}\]</span></p>
+</li>
+</ul>
+<h4 id="approach-3-analytical-point-mass-table-kilobyte-scale">Approach 3: Analytical Point-Mass Table (Kilobyte Scale)</h4>
+<p>Rather than pre-baking vector field cells in the database, store raw entity records and evaluate the gravitational gradient analytically on demand:</p>
+<ul>
+<li>
+<p><strong>Database Records:</strong> <span class="math">\(1 \text{ SMBH} + 50 \text{ Stars} + 500 \text{ Planets} = 551 \text{ rows}\)</span>.</p>
+</li>
+<li>
+<p><strong>Row Size:</strong> 128 bytes (Entity ID, Class, Position <code>Vector3</code>, Mass <code>float64</code>, Velocity <code>Vector3</code>).</p>
+</li>
+<li>
+<p><strong>Storage Calculation:</strong>
+<span class="math display">\[551 \text{ rows} \times 128 \text{ bytes} \approx \mathbf{70.5 \text{ Kilobytes}}\]</span></p>
+</li>
+</ul>
+<h3 id="implementation-recommendation">Implementation Recommendation</h3>
+<p>Do not store pre-calculated vector field grids in your database for galactic core sectors.</p>
+<p>Store the <strong>Analytical Point-Mass Table (~70 KB)</strong> in the database. When an object enters the sector, load those 551 entities into memory and compute the SMBH gradient analytically (<span class="math">\(\vec{a} = -\frac{GM}{r^3}\vec{r}\)</span>) alongside a dynamic, temporary <strong>in-memory Octree (~32 MB in RAM)</strong> that is discarded when the sector unloads.</p>
+<h1 id="analytical-point-mass-table-computation">Analytical Point-Mass Table Computation</h1>
+<pre><code># ==============================================================================
+# RECOMPUTE SECTOR POINT-MASS TABLE ALGORITHM
+# Executed during: Sector Generation, Object Migration, Spawning, Destruction
+# ==============================================================================
+
+CONSTANT G = 6.67430e-11  # Gravitational Constant (m^3 kg^-1 s^-2)
+CONSTANT SOLAR_MASS = 1.989e30  # kg
+
+# Enum for Hierarchical Query Routing
+
+ENUM MassTier:
+    TIER_0_SUPERMASSIVE  # &gt; 10,000 M_sun (SMBH, Galactic Core Anchors)
+    TIER_1_MAJOR          # 10 - 10,000 M_sun (Giant Stars, Black Holes)
+    TIER_2_STANDARD       # 0.001 - 10 M_sun (Main Sequence Stars, Brown Dwarfs)
+    TIER_3_MINOR          # &lt; 0.001 M_sun (Planets, Asteroids, Spacecraft)
+
+FUNCTION RecomputeSectorPointMassTable(sector_id, trigger_event):
+    &quot;&quot;&quot;
+    Recomputes the lightweight Point-Mass Table and metadata for a 10 ly sector.
+    Pre-calculates gravitational constants (mu = G*M) and updates tier routing.
+    &quot;&quot;&quot;
+    # --------------------------------------------------------------------------
+    # STEP 1: Fetch Sector Bounding Geometry &amp; Frame Parameters
+    # --------------------------------------------------------------------------
+    sector = DB.FetchSectorConfig(sector_id)
+    volume_m3 = sector.volume_m3                  # s_V (Sector Volume)
+    delta_x_min = sector.move_limit_meters        # e.g., 0.01 pc = 3.086e14 m
+    delta_t = sector.update_interval_seconds      # e.g., 1 year = 3.15e7 s
+
+    # Derive minimum acceleration threshold for this sector's frame
+    # a_min = 2 * delta_x_min / (delta_t^2)
+    a_min = (2.0 * delta_x_min) / (delta_t ** 2)
+
+    # --------------------------------------------------------------------------
+    # STEP 2: Query All Entities Currently Belonging to the Sector
+    # --------------------------------------------------------------------------
+    raw_entities = DB.QueryEntitiesInSectorBounds(sector_id)
+
+    processed_point_masses = []
+    supermassive_registry = []
+
+    total_sector_mass = 0.0
+    max_mass_in_sector = 0.0
+
+    # --------------------------------------------------------------------------
+    # STEP 3: Process Entities &amp; Compute Gravitational Constants
+    # --------------------------------------------------------------------------
+    FOR EACH entity IN raw_entities:
+        mass = entity.mass
+
+        # Omit zero/negative mass objects
+        IF mass &lt;= 0.0:
+            CONTINUE
+
+        # Pre-calculate Standard Gravitational Parameter (mu = G * M)
+        # Saves 1 floating-point multiplication per entity per tick in RAM
+        mu = G * mass
+
+        # Categorize entity into mass tiers for hierarchical query routing
+        tier = ClassifyMassTier(mass)
+
+        IF tier == MassTier.TIER_0_SUPERMASSIVE:
+            supermassive_registry.Append(entity.id)
+
+        # Accumulate sector aggregate statistics
+        total_sector_mass += mass
+        IF mass &gt; max_mass_in_sector:
+            max_mass_in_sector = mass
+
+        # Construct database record
+        # Note: TIER_3 (minor) entities are destinations only and do not exert
+        # significant gravitational pull on other bodies across sector distances.
+        point_mass_record = {
+            &quot;entity_id&quot;: entity.id,
+            &quot;sector_id&quot;: sector_id,
+            &quot;mass&quot;: mass,
+            &quot;mu&quot;: mu,                                # Precomputed G * M
+            &quot;position&quot;: entity.position,             # Vector3(x, y, z)
+            &quot;velocity&quot;: entity.velocity,             # Vector3(vx, vy, vz)
+            &quot;tier&quot;: tier,
+            &quot;is_source&quot;: (tier &lt;= MassTier.TIER_2_STANDARD) # True if exerts gravity
+        }
+
+        processed_point_masses.Append(point_mass_record)
+
+    # --------------------------------------------------------------------------
+    # STEP 4: Compute Sector Density &amp; Spatial Grid Depth Hints
+    # --------------------------------------------------------------------------
+    sector_density = total_sector_mass / volume_m3   # s_d / s_V
+
+    # Calculate recommended Octree depth if this sector is instantiated in RAM
+    IF sector_density &gt; 0.0:
+        delta_r_bg = a_min / (2.0 * G * sector_density)
+        suggested_octree_depth = Clamp(
+            Ceil(Log2(sector.bounding_length_meters / delta_r_bg)),
+            MIN_DEPTH=0,
+            MAX_DEPTH=16
+        )
+    ELSE:
+        delta_r_bg = sector.bounding_length_meters
+        suggested_octree_depth = 0
+
+    # --------------------------------------------------------------------------
+    # STEP 5: Atomic Database Sync Transaction
+    # --------------------------------------------------------------------------
+    DB.BeginTransaction()
+    TRY:
+        # 1. Update Sector Metadata
+        DB.UpdateSectorMetadata(sector_id, {
+            &quot;total_mass&quot;: total_sector_mass,
+            &quot;max_mass&quot;: max_mass_in_sector,
+            &quot;mass_density&quot;: sector_density,
+            &quot;acceleration_threshold&quot;: a_min,
+            &quot;supermassive_registry&quot;: supermassive_registry,
+            &quot;suggested_octree_depth&quot;: suggested_octree_depth,
+            &quot;last_updated_timestamp&quot;: CurrentTimestamp()
+        })
+
+        # 2. Overwrite Point-Mass Table Rows for this Sector
+        DB.DeletePointMassesBySector(sector_id)
+        DB.BatchInsertPointMasses(processed_point_masses)
+
+        DB.CommitTransaction()
+
+    CATCH Exception e:
+        DB.RollbackTransaction()
+        LogErrors(&quot;Failed to update Point-Mass Table for Sector: &quot; + sector_id, e)
+        RETURN FALSE
+
+    # --------------------------------------------------------------------------
+    # STEP 6: Invalidate &amp; Signal RAM Cache (If Sector Currently Active)
+    # --------------------------------------------------------------------------
+    IF RAMCache.IsSectorLoaded(sector_id):
+        RAMCache.MarkSectorDirty(sector_id, processed_point_masses, suggested_octree_depth)
+
+    RETURN TRUE
+
+# ------------------------------------------------------------------------------
+# HELPER: Classify Mass Tier
+# ------------------------------------------------------------------------------
+
+FUNCTION ClassifyMassTier(mass_kg):
+    IF mass_kg &gt;= 10000.0 * SOLAR_MASS:
+        RETURN MassTier.TIER_0_SUPERMASSIVE
+    ELSE IF mass_kg &gt;= 10.0 * SOLAR_MASS:
+        RETURN MassTier.TIER_1_MAJOR
+    ELSE IF mass_kg &gt;= 0.001 * SOLAR_MASS:
+        RETURN MassTier.TIER_2_STANDARD
+    ELSE:
+        RETURN MassTier.TIER_3_MINOR
+</code></pre>
+<h1 id="position-and-vector-update">Position and Vector Update</h1>
+<pre><code># ==============================================================================
+# ORBITAL UPDATE ALGORITHM: POSITION &amp; VECTOR UPDATE FOR AN ARBITRARY OBJECT
+# Integrates trajectories using Velocity Verlet based on top influencers
+# ==============================================================================
+
+CONSTANT G = 6.67430e-11  # Gravitational constant (m^3 kg^-1 s^-2)
+CONSTANT MAX_INFLUENCERS = 10  # Top N gravitational sources to sum
+
+FUNCTION UpdateObjectTrajectoryAndPose(target_entity_id, current_sector_id, delta_t):
+    &quot;&quot;&quot;
+    Updates position and velocity vectors for a single object using Velocity Verlet
+    integration and point-mass table data fetched from the database.
+    &quot;&quot;&quot;
+
+    # --------------------------------------------------------------------------
+    # STEP 1: Fetch Object State, Sector Metadata, and Point-Mass Sources
+    # --------------------------------------------------------------------------
+    target = DB.GetEntity(target_entity_id)
+    sector = DB.GetSectorMetadata(current_sector_id)
+
+    # Query point-mass source records for this sector (Tier 0, 1, 2)
+    point_masses = DB.GetGravitationalSourcesBySector(current_sector_id)
+
+    a_min = sector.acceleration_threshold  # Frame acceleration cutoff limit
+
+    # --------------------------------------------------------------------------
+    # STEP 2: Compute Initial Net Acceleration Vector a(t) at Position p(t)
+    # --------------------------------------------------------------------------
+    a_current = ComputeNetAcceleration(
+        target.position, 
+        target_entity_id, 
+        sector, 
+        point_masses, 
+        a_min
+    )
+
+    # --------------------------------------------------------------------------
+    # STEP 3: Velocity Verlet Integration Scheme
+    # --------------------------------------------------------------------------
+
+    # 3a. Half-step Velocity Update: v(t + dt/2) = v(t) + a(t) * (dt / 2)
+    v_half = target.velocity + (a_current * (0.5 * delta_t))
+
+    # 3b. Full-step Position Update: p(t + dt) = p(t) + v(t + dt/2) * dt
+    p_new = target.position + (v_half * delta_t)
+
+    # 3c. Compute New Acceleration Vector a(t + dt) at Position p(t + dt)
+    a_new = ComputeNetAcceleration(
+        p_new, 
+        target_entity_id, 
+        sector, 
+        point_masses, 
+        a_min
+    )
+
+    # 3d. Full-step Velocity Update: v(t + dt) = v(t + dt/2) + a(t + dt) * (dt / 2)
+    v_new = v_half + (a_new * (0.5 * delta_t))
+
+    # --------------------------------------------------------------------------
+    # STEP 4: Boundary Evaluation &amp; Persistence
+    # --------------------------------------------------------------------------
+    IF IsPointInsideSector(p_new, current_sector_id):
+
+        # O(1) Local Update Path: Entity remained inside the sector
+        DB.UpdateEntityPose(target_entity_id, p_new, v_new)
+
+        IF RAMCache.IsSectorLoaded(current_sector_id):
+            RAMCache.UpdateEntityPose(target_entity_id, p_new, v_new)
+
+    ELSE:
+        # O(N) Sector Boundary Crossing / Migration Path
+        new_sector_id = FindSectorContainingPoint(p_new)
+
+        # Transfer ownership &amp; update pose
+        DB.TransferEntitySector(target_entity_id, current_sector_id, new_sector_id)
+        DB.UpdateEntityPose(target_entity_id, p_new, v_new)
+
+        # Trigger point-mass table and metadata recomputation for affected sectors
+        RecomputeSectorPointMassTable(current_sector_id, trigger_event=&quot;ENTITY_DEPARTED&quot;)
+        RecomputeSectorPointMassTable(new_sector_id, trigger_event=&quot;ENTITY_ARRIVED&quot;)
+
+
+# ==============================================================================
+# HELPER: Compute Net Acceleration Vector Sum
+# ==============================================================================
+FUNCTION ComputeNetAcceleration(eval_pos, target_id, sector, point_masses, a_min):
+    &quot;&quot;&quot;
+    Evaluates net gravitational acceleration acting on eval_pos from the 
+    top 10 strongest influencers exceeding a_min threshold.
+    &quot;&quot;&quot;
+    net_acceleration = Vector3(0.0, 0.0, 0.0)
+    candidate_influencers = []
+
+    # Maximum bounding search radius derived from heaviest body in sector
+    R_search = Sqrt((G * sector.max_mass) / a_min)
+
+    # --------------------------------------------------------------------------
+    # 1. Filter and Rank Candidate Influencers
+    # --------------------------------------------------------------------------
+    FOR EACH body IN point_masses:
+        # Skip self or non-gravitational entities
+        IF body.entity_id == target_id OR NOT body.is_source:
+            CONTINUE
+
+        r_vec = body.position - eval_pos
+        dist = r_vec.Length()
+
+        # Softening factor to prevent division by zero / singularity
+        IF dist &lt; 1.0:
+            dist = 1.0
+
+        # Check if within worst-case search radius
+        IF dist &lt;= R_search:
+            # Individual acceleration magnitude: a_i = mu / r^2
+            a_individual = body.mu / (dist * dist)
+
+            # Always force Tier 0 Supermassive bodies, filter lower tiers by a_min
+            IF body.tier == MassTier.TIER_0_SUPERMASSIVE OR a_individual &gt;= a_min:
+                candidate_influencers.Append({
+                    &quot;body&quot;: body,
+                    &quot;r_vec&quot;: r_vec,
+                    &quot;dist&quot;: dist,
+                    &quot;pull_magnitude&quot;: a_individual
+                })
+
+    # --------------------------------------------------------------------------
+    # 2. Sort by Gravitational Pull &amp; Select Top N (10)
+    # --------------------------------------------------------------------------
+    SortDescendingByField(candidate_influencers, &quot;pull_magnitude&quot;)
+    top_influencers = TakeFirst(candidate_influencers, MAX_INFLUENCERS)
+
+    # --------------------------------------------------------------------------
+    # 3. Vector Superposition Summation
+    # --------------------------------------------------------------------------
+    FOR EACH item IN top_influencers:
+        body = item.body
+        r_vec = item.r_vec
+        dist = item.dist
+
+        # Acceleration vector: a_vec = (G * M / r^3) * r_vec = (mu / r^
+3) * r_vec
+        acc_vector = r_vec * (body.mu / (dist ** 3))
+        net_acceleration += acc_vector
+
+    RETURN net_acceleration
+</code></pre>
+<h1 id="final-design-of-vector-generation-for-orbital-updates">Final Design of Vector Generation for Orbital Updates</h1>
+<p>To evaluate the net gravitational vector <span class="math">\(\vec{a}_{\text{net}}\)</span> at an arbitrary Cartesian point <span class="math">\(\vec{p} = (x, y, z)\)</span>, the algorithm transforms the coordinates into the cylindrical sector addressing scheme <span class="math">\((r, \theta, z)\)</span>, identifies overlapping and neighboring sectors across non-aligned radial shells, merges their discrete point-mass records into an active in-memory frame, and computes the integrated acceleration using physical cutoff thresholds.</p>
+<h3 id="mathematical-transformation--stencil-mapping">Mathematical Transformation &amp; Stencil Mapping</h3>
+<ol>
+<li><strong>Cartesian to Cylindrical Coordinates:</strong></li>
+</ol>
+<p><span class="math display">\[r = \sqrt{x^2 + y^2}, \quad \theta = \text{atan2}(y, x) \pmod{2\pi}, \quad z = z\]</span></p>
+<p>If <span class="math">\(\theta &lt; 0\)</span>, wrap <span class="math">\(\theta \leftarrow \theta + 2\pi\)</span>.</p>
+<ol start="2">
+<li><strong>Ring and Column Indexing:</strong>
+Given radial thickness <span class="math">\(\Delta r = 11.5\text{ ly}\)</span> and column layer height <span class="math">\(\Delta z = 11.5\text{ ly}\)</span>:</li>
+</ol>
+<p><span class="math display">\[i_r = \lfloor r / \Delta r \rfloor, \quad k_z = \lfloor z / \Delta z \rfloor\]</span></p>
+<ol start="3">
+<li><strong>Azimuthal Quantization (<span class="math">\(N_\theta\)</span> in multiples of 6):</strong>
+The number of sectors per ring is:</li>
+</ol>
+<p><span class="math display">\[N_\theta(i_r) = \max\left(6, \; 6 \cdot \text{round}\left(\frac{2 \pi (i_r + 0.5)\Delta r}{6 \cdot 11.5}\right)\right)\]</span></p>
+<p>The angular width of a sector at ring <span class="math">\(i_r\)</span> is <span class="math">\(\Delta \theta(i_r) = \frac{2\pi}{N_\theta(i_r)}\)</span>.</p>
+<p>The azimuthal index is <span class="math">\(j_\theta = \lfloor \theta / \Delta \theta(i_r) \rfloor \pmod{N_\theta(i_r)}\)</span>.</p>
+<ol start="4">
+<li><strong>Multi-Ring Neighborhood Resolution:</strong>
+Because radial shells do not share a 1-to-1 boundary:</li>
+</ol>
+<ul>
+<li>
+<p><strong>Vertical (<span class="math">\(z\)</span>):</strong> Always includes layers <span class="math">\(\{k_z - 1, k_z, k_z + 1\}\)</span>.</p>
+</li>
+<li>
+<p><strong>Local Ring (<span class="math">\(i_r\)</span>):</strong> The target sector <span class="math">\(j_\theta\)</span> and its immediate angular neighbors:
+<span class="math display">\[\{(j_\theta - 1) \pmod{N_\theta(i_r)}, \; j_\theta, \; (j_\theta + 1) \pmod{N_\theta(i_r)}\}\]</span></p>
+</li>
+<li>
+<p><strong>Adjacent Rings (<span class="math">\(i_r - 1\)</span> and <span class="math">\(i_r + 1\)</span>):</strong> Calculate the angular range covered by the target sector extended by a buffer <span class="math">\(\delta \theta\)</span>:
+<span class="math display">\[[\theta_{\min}, \theta_{\max}] = [j_\theta \Delta\theta(i_r) - \delta\theta, \; (j_\theta + 1)\Delta\theta(i_r) + \delta\theta]\]</span>
+Map <span class="math">\([\theta_{\min}, \theta_{\max}]\)</span> to the neighboring ring's division count <span class="math">\(N_\theta(i_r \pm 1)\)</span> to retrieve all intersecting azimuthal indices.</p>
+</li>
+</ul>
+<h3 id="algorithmic-implementation">Algorithmic Implementation</h3>
+<pre><code class="language-python">Python
+    import math
+
+    # Universal Physical Constants
+    G = 6.67430e-11             # m^3 kg^-1 s^-2
+    LIGHT_YEAR_METERS = 9.461e15 # 1 Light Year in meters
+    DELTA_R_LY = 11.5            # Radial sector thickness
+    DELTA_Z_LY = 11.5            # Vertical column thickness
+    TARGET_ARC_LY = 11.5         # Target arc length along meridian
+
+    def cartesian_to_cylindrical(x: float, y: float, z: float):
+        r = math.sqrt(x * x + y * y)
+        theta = math.atan2(y, x)
+        if theta &lt; 0.0:
+            theta += 2.0 * math.pi
+        return r, theta, z
+
+    def get_ring_divisions(ring_idx: int) -&gt; int:
+        &quot;&quot;&quot;Computes N_theta quantized in multiples of 6.&quot;&quot;&quot;
+        if ring_idx &lt;= 0:
+            return 6
+        r_mid = (ring_idx + 0.5) * DELTA_R_LY
+        divisions = 6 * round((2.0 * math.pi * r_mid) / (6.0 * TARGET_ARC_LY))
+        return max(6, int(divisions))
+
+    def resolve_neighbor_sectors(eval_pos_m: tuple, a_min: float, db) -&gt; list:
+        &quot;&quot;&quot;    Identifies all candidate cylindrical arc sectors whose volumes    fall within the maximum potential interaction range.    &quot;&quot;&quot;
+        x_ly = eval_pos_m[0] / LIGHT_YEAR_METERS
+        y_ly = eval_pos_m[1] / LIGHT_YEAR_METERS
+        z_ly = eval_pos_m[2] / LIGHT_YEAR_METERS
+
+        r_ly, theta, _ = cartesian_to_cylindrical(x_ly, y_ly, z_ly)
+
+        # 1. Determine local sector coordinates
+        ring_idx = int(math.floor(r_ly / DELTA_R_LY))
+        col_idx = int(math.floor(z_ly / DELTA_Z_LY))
+
+        n_theta_local = get_ring_divisions(ring_idx)
+        d_theta_local = (2.0 * math.pi) / n_theta_local
+        azimuth_idx = int(math.floor(theta / d_theta_local)) % n_theta_local
+
+        # Fetch heaviest local/adjacent body to scale boundary search margin
+        local_meta = db.fetch_sector_metadata(ring_idx, azimuth_idx, col_idx)
+        r_search_m = math.sqrt((G * local_meta.max_mass) / a_min)
+        r_search_ly = r_search_m / LIGHT_YEAR_METERS
+
+        # Angular search buffer based on search radius
+        delta_theta_buffer = (r_search_ly / max(1.0, r_ly)) if r_ly &gt; 0.0 else math.pi
+
+        target_sector_keys = []
+
+        # 2. Iterate adjacent rings (r - 1, r, r + 1)
+        min_ring = max(0, ring_idx - 1)
+        max_ring = ring_idx + 1
+
+        # Vertical columns (z - 1, z, z + 1)
+        col_candidates = [col_idx - 1, col_idx, col_idx + 1]
+
+        theta_start = theta - delta_theta_buffer
+        theta_end = theta + delta_theta_buffer
+
+        for r_i in range(min_ring, max_ring + 1):
+            n_theta_r = get_ring_divisions(r_i)
+            d_theta_r = (2.0 * math.pi) / n_theta_r
+
+            # Find intersecting azimuthal sectors in ring r_i
+            j_min = int(math.floor(theta_start / d_theta_r))
+            j_max = int(math.floor(theta_end / d_theta_r))
+
+            for j in range(j_min, j_max + 1):
+                azimuth_wrapped = j % n_theta_r
+                for c_k in col_candidates:
+                    target_sector_keys.append((r_i, azimuth_wrapped, c_k))
+
+        # Remove duplicates
+        return list(set(target_sector_keys))
+
+    def calculate_gravitational_vector(
+        eval_pos_m: tuple,     a_min: float,     max_influencers: int,     db
+    ) -&gt; tuple:
+        &quot;&quot;&quot;    Computes net gravitational acceleration at eval_pos_m by joining point-mass    tables of overlapping/neighboring cylindrical sectors.    &quot;&quot;&quot;
+        # --------------------------------------------------------------------------
+        # STEP 1: Global Tier 0 Anchors (Supermassive Black Holes)
+        # --------------------------------------------------------------------------
+        candidate_influencers = []
+        tier_0_bodies = db.fetch_global_tier_0_registry()
+
+        for body in tier_0_bodies:
+            dx = body.pos_x - eval_pos_m[0]
+            dy = body.pos_y - eval_pos_m[1]
+            dz = body.pos_z - eval_pos_m[2]
+            dist_sq = dx * dx + dy * dy + dz * dz
+            dist = math.sqrt(dist_sq)
+
+            # Softening parameter to prevent division by zero near cores
+            dist_clamped = max(dist, 1.0)
+            a_mag = body.mu / (dist_clamped * dist_clamped)
+
+            candidate_influencers.append({
+                &quot;dx&quot;: dx, &quot;dy&quot;: dy, &quot;dz&quot;: dz,
+                &quot;dist&quot;: dist_clamped,
+                &quot;mu&quot;: body.mu,
+                &quot;pull_mag&quot;: a_mag
+            })
+
+        # --------------------------------------------------------------------------
+        # STEP 2: Resolve Stencil and Combine Point-Mass Tables
+        # --------------------------------------------------------------------------
+        active_sector_keys = resolve_neighbor_sectors(eval_pos_m, a_min, db)
+        point_mass_records = db.fetch_point_masses_for_sectors(active_sector_keys)
+
+        # --------------------------------------------------------------------------
+        # STEP 3: Distance Evaluation and Threshold Filtering
+        # --------------------------------------------------------------------------
+        for body in point_mass_records:
+            if not body.is_source:
+                continue
+
+            dx = body.pos_x - eval_pos_m[0]
+            dy = body.pos_y - eval_pos_m[1]
+            dz = body.pos_z - eval_pos_m[2]
+            dist_sq = dx * dx + dy * dy + dz * dz
+            dist = math.sqrt(dist_sq)
+
+            dist_clamped = max(dist, 1.0)
+            a_mag = body.mu / (dist_clamped * dist_clamped)
+
+            # Retain candidate if above threshold
+            if a_mag &gt;= a_min:
+                candidate_influencers.append({
+                    &quot;dx&quot;: dx, &quot;dy&quot;: dy, &quot;dz&quot;: dz,
+                    &quot;dist&quot;: dist_clamped,
+                    &quot;mu&quot;: body.mu,
+                    &quot;pull_mag&quot;: a_mag
+                })
+
+        # --------------------------------------------------------------------------
+        # STEP 4: Rank Influencers &amp; Linear Superposition Sum
+        # --------------------------------------------------------------------------
+        candidate_influencers.sort(key=lambda item: item[&quot;pull_mag&quot;], reverse=True)
+        top_influencers = candidate_influencers[:max_influencers]
+
+        ax_net = 0.0
+        ay_net = 0.0
+        az_net = 0.0
+
+        for item in top_influencers:
+            factor = item[&quot;mu&quot;] / (item[&quot;dist&quot;] ** 3)
+            ax_net += item[&quot;dx&quot;] * factor
+            ay_net += item[&quot;dy&quot;] * factor
+            az_net += item[&quot;dz&quot;] * factor
+
+        return ax_net, ay_net, az_net
+</code></pre>
+<h3 id="computational-steps--boundary-mitigations">Computational Steps &amp; Boundary Mitigations</h3>
+<ul>
+<li>
+<p><strong>Cross-Sector Ingestion:</strong> Rather than evaluating each sector as an isolated volume, <code>fetch_point_masses_for_sectors</code> extracts records from the 25–33 overlapping sectors and processes them in a single array.</p>
+</li>
+<li>
+<p><strong>No Coordinate Offsets Needed:</strong> Even though sectors are tracked via cylindrical addressing <span class="math">\((i_r, j_\theta, k_z)\)</span>, all body positions and velocities are stored in global Cartesian coordinates $(x, y, z)$, allowing direct vector subtraction.</p>
+</li>
+<li>
+<p><strong>Singularity Mitigation:</strong> A numerical softening threshold (<code>dist_clamped = max(dist, 1.0)</code>) prevents infinite force spikes during close encounters between bodies.</p>
+</li>
+<li>
+<p><strong>Core vs. Disk Scaling:</strong> Near the core where <span class="math">\(r \to 0\)</span>, <span class="math">\(N_\theta = 6\)</span> causes sectors to converge as wedges. The angular search window <span class="math">\(\delta\theta\)</span> broadens automatically, safely aggregating inner ring boundaries without edge-case failure. At larger radii (<span class="math">\(r &gt; 20{,}000\text{ ly}\)</span>), <span class="math">\(\delta\theta\)</span> narrows to a small arc matching the local <span class="math">\(11.5\text{ ly}\)</span> curvature.</p>
+</li>
+</ul>
+<h3 id="references">References</h3>
+<ul>
+<li>
+<p>[R0135]</p>
+</li>
+<li>
+<p>[R1936]</p>
+</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

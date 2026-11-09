@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy Map performance (MAP.249) - planetGen docs</title>
+<meta name="description" content="The Galaxy Map&#x27;s node path is held to a budget by tests/testwebbrowsermapperf.py.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/galaxy-map-performance.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/galaxy-map-performance.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-map-performance-map249">Galaxy Map performance (MAP.249)</h1><p class="meta">docs/design/interface/galaxy-map-performance.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#the-benchmark">The benchmark</a></li><li style="margin-left:0px"><a href="#the-limits">The limits</a></li><li style="margin-left:0px"><a href="#what-the-run-found-40-steps-46000-star-galaxy">What the run found (40 steps, 46,000-star galaxy)</a></li><li style="margin-left:0px"><a href="#where-the-main-threads-time-goes">Where the main thread's time goes</a></li></ul></details>
+<p>The Galaxy Map's node path is held to a budget by <code>tests/test_web_browser_map_perf.py</code>. This page says what it
+measures, the numbers it found, and where the time goes.</p>
+<h2 id="the-benchmark">The benchmark</h2>
+<p><code>large_site</code> (<code>tests/map_site_support.py</code>) serves a synthetic galaxy of 46,000 stars: an exponential disc (scale length
+2,800 pc, 350 pc thick), 40 clusters of 300 stars and a core cluster of 4,000 stars (scale 25 pc) at the dive's target,
+beside the fixture's own few hundred. Every node lists its brightest stars up to the real budget (<code>NODE_STARS</code> 96, a
+sector <code>NODE_SECTOR_STARS</code> 300) and carries the glow of all the stars in its block, so each level of the dive loads what a
+real galaxy's would, with the table scan replaced by a block index so the fixture server is no part of the figures.</p>
+<p>The test opens the Galaxy Map, centres on the core cluster and then, step by step:</p>
+<ol>
+<li>zooms in with the mouse wheel (400 delta a step) from 18,600 pc down to the closest view, 2 pc, through the 81, 27, 9,
+3 and 1 levels;</li>
+<li>at the 3-block level, 60 pc from the target, jumps the centre six times round a circle of 150 pc and back;</li>
+<li>climbs out with Escape, one level a press, to the whole galaxy.</li>
+</ol>
+<p>After each step it waits for the view to settle (no flight, no node request in the air, no change to the star buffer for
+400 ms) and records what the step cost: the time to settle, the node requests and bytes, the stars written and moved in the
+buffer and the syncs that did it, the frames' median and longest interval and the longest task on the page's thread.
+Setting <code>PLANETGEN_MAP_PERF_REPORT=&lt;file&gt;</code> writes every step's figures as JSON; <code>PLANETGEN_MAP_PERF_PROFILE=&lt;file&gt;</code> runs the
+dive under the browser's sampling profiler and writes the 30 functions with the most self time.</p>
+<h2 id="the-limits">The limits</h2>
+<p>A step fails the test when it passes any of these. Counts and bytes are held close (the dive measured less than a third
+of each); milliseconds are under software WebGL (SwiftShader) on a lane machine, so they are held at five times what was
+measured or more, to catch a stall and not to rank two builds.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Figure, per step</th>
+<th>Measured at most</th>
+<th>Limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Node requests</td>
+<td>8</td>
+<td>12</td>
+</tr>
+<tr>
+<td>Node bytes</td>
+<td>261 kB</td>
+<td>1 MB</td>
+</tr>
+<tr>
+<td>Time to settle (including the 400 ms quiet)</td>
+<td>3.2 s</td>
+<td>15 s</td>
+</tr>
+<tr>
+<td>Longest task on the page's thread</td>
+<td>154 ms</td>
+<td>1.5 s</td>
+</tr>
+<tr>
+<td>Longest frame interval</td>
+<td>217 ms</td>
+<td>2 s</td>
+</tr>
+<tr>
+<td>Stars written or moved, against the buffer after the step</td>
+<td>1.3 times</td>
+<td>2 times</td>
+</tr>
+</tbody>
+</table></div>
+<p>The test also fails when the dive never passes through the 81, 27, 9, 3 and 1 levels. A new Boss sighting of lag is filed as
+its own bug, not folded in here.</p>
+<h2 id="what-the-run-found-40-steps-46000-star-galaxy">What the run found (40 steps, 46,000-star galaxy)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Steps</th>
+<th>Slowest settle</th>
+<th>Most requests</th>
+<th>Bytes in all</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Open and centre</td>
+<td>1</td>
+<td>3.0 s</td>
+<td>8</td>
+<td>261 kB</td>
+</tr>
+<tr>
+<td>Dive in</td>
+<td>26</td>
+<td>3.2 s</td>
+<td>8</td>
+<td>1.8 MB</td>
+</tr>
+<tr>
+<td>Flight across a level</td>
+<td>7</td>
+<td>1.2 s</td>
+<td>3</td>
+<td>278 kB</td>
+</tr>
+<tr>
+<td>Climb out</td>
+<td>7</td>
+<td>3.1 s</td>
+<td>8</td>
+<td>515 kB</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>A step that crosses a coarse level takes 3 s to settle</strong>, and most of that is the nodes arriving one after another: up
+to eight syncs of the star buffer in one step, each as another node lands. Below the 27 level a step settles in about
+a second, and in 0.4 s (the quiet wait alone) from the 3 level down.</li>
+<li><strong>Stars written per step stay inside the buffer.</strong> The climb is the heaviest (1.3 times the buffer), as each level
+it climbs to replaces nearly every star on screen; the dive and the flight rewrite only the chunks that came or went.</li>
+<li><strong>The page's thread is mostly idle</strong>: the longest task was 154 ms and the longest frame 217 ms (the frames are
+software-rendered, with a median of 33 to 67 ms).</li>
+</ul>
+<h2 id="where-the-main-threads-time-goes">Where the main thread's time goes</h2>
+<p>Under the sampling profiler (the busy time of the dive, flight and climb, the idle time left out), about half the page's
+own time was the node path's bookkeeping, not drawing:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Self time (ms)</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>733</td>
+<td><code>consider</code> in <code>nodeCut</code> (<code>galaxynodecut.js</code>), the cut's per-block test</td>
+</tr>
+<tr>
+<td>706</td>
+<td><code>formatDrillKey</code> (<code>galaxyprisms.js</code>), the block's key built with <code>Array.join</code> for every block of every cut</td>
+</tr>
+<tr>
+<td>693</td>
+<td>the garbage collector</td>
+</tr>
+<tr>
+<td>498 and 330</td>
+<td><code>Map.get</code> and <code>Map.put</code>, the node cache (<code>memoryGet</code> re-inserts on every hit: 386)</td>
+</tr>
+<tr>
+<td>415</td>
+<td>the cut's sort comparator (<code>galaxynodecut.js:254</code>)</td>
+</tr>
+<tr>
+<td>294</td>
+<td><code>geometry</code> (<code>galaxynodecut.js</code>), a block's box worked out again at every cut</td>
+</tr>
+<tr>
+<td>178</td>
+<td><code>parseNodeKey</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>That is 4.1 s of 7.9 s in the listed functions. Causes, in the order they would pay back: the cut builds the key string
+of every block it considers (and parses it again to settle it) where the block could carry it; <code>geometry</code> is worked out
+again for the same blocks at each cut; <code>memoryGet</code> moves an entry on each hit even when it is already the newest. None of
+this is a fault in what the user sees (the longest task is 154 ms), so the fix is a separate item once a sighting needs it.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
