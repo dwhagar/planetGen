@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3734] - 2026-11-09
+
+**Headline:** A running generation job now links to the systems it has made so far.
+
+### Changed
+- **New admin page "Generated so far" (ADM.151, on the ADM.150 data read), `/admin/generated`.** It lists the sectors, systems, planets and moons a generation run has made, newest first, one tab per kind, from a start time (`?since=`, by default the start of the latest galaxy run). The job panel links to it as "Made so far this run", because the Galaxy Map is closed while a run goes. The API has `GET /api/generated` for it; it reads only the rows made since by the key, so it is quick on any galaxy and is never cached.
+
 ## [8.0.3733] - 2026-11-09
 
 **Headline:** The admin pages lose the Compact checkbox and the Show on Galaxy Map button on generate jobs.
