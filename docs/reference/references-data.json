@@ -281430,6 +281430,32 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2606.11330": {
+   "arxiv": "2606.11330",
+   "authors": [
+    [
+     "Marston",
+     "N. T."
+    ],
+    [
+     "Becker",
+     "J."
+    ],
+    [
+     "Howe",
+     "A. R."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Do Super-Puffs Defy Core Accretion? Population-Wide Interior Structure Constraints",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2606.12851": {
    "arxiv": "2606.12851",
    "authors": [
@@ -282725,7 +282751,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5217,
+ "id_next": 5218,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -289019,6 +289045,7 @@
   "arxiv:2605.00100": "R4903",
   "arxiv:2605.03099": "R1396",
   "arxiv:2606.07511": "R0869",
+  "arxiv:2606.11330": "R5217",
   "arxiv:2606.12851": "R0382",
   "arxiv:2606.23483": "R0186",
   "arxiv:2606.30722": "R0901",

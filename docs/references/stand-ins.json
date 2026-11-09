@@ -28603,7 +28603,7 @@
             ],
             [
               "The range it moves in",
-              "Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days; the survey catalogues say sub-Saturn mass and density about 0.3 or less (Marston, Becker and Howe 2026, arXiv 2606.11330, abstract read, no number); 30 is the top of the radius law (LOPEZ_MAX_MASS_EARTH)"
+              "Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days; the survey catalogues say sub-Saturn mass and density about 0.3 or less ([R5217], abstract read, no number); 30 is the top of the radius law (LOPEZ_MAX_MASS_EARTH)"
             ],
             [
               "Where it holds",
@@ -58349,7 +58349,7 @@
             ],
             [
               "What replaces it",
-              "the second-order secular theory (Brouwer and van Woerkom 1950 reach beyond the first order)"
+              "the second-order secular theory (it reaches beyond the first order)"
             ],
             [
               "Evidence",

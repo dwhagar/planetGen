@@ -46,7 +46,7 @@ start only: a planet is a super-puff by its mass and density (`is_super_puff`), 
 
 CLASS_MAX_MASS_EARTH = 30.0
 """float: The heaviest planet that is a super-puff (GEN.1470, row PF1): the top of the range of the radius law (`LOPEZ_MAX_MASS_EARTH`), which is also the sub-Saturn mass of the
-super-puffs of the survey catalogues (Marston, Becker and Howe 2026, arXiv 2606.11330, abstract read: "sub-Saturn mass planets with extremely low bulk densities"; no number is in the
+super-puffs of the survey catalogues ([R5217], abstract read: "sub-Saturn mass planets with extremely low bulk densities"; no number is in the
 abstract, so the 30 is the law's). A planet of 10 to 30 Earth masses under the density edge is a puff the start gate never made but the tide or the young age can."""
 
 DENSITY_RANGE_G_CM3 = (0.03, 0.1)
