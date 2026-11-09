@@ -68,6 +68,10 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "sky_suns"): CHANCE,
     ("moons", "sky_suns"): "a moon is not given the suns of the sky (GEN.1458)",
     ("rogue_planets", "sky_suns"): "a rogue planet has no star (GEN.1458)",
+    # GEN.1484: the light a circumbinary planet keeps after its stars eclipse each other; a small galaxy may hold no planet of a close pair, a moon and a rogue planet are given none
+    ("planets", "light_factor"): CHANCE,
+    ("moons", "light_factor"): "a moon keeps all its planet's light (GEN.1484)",
+    ("rogue_planets", "light_factor"): "a rogue planet has no star (GEN.1484)",
     # The latitude bands are stored only for a rogue planet whose air was solved (about 1 Earth mass or less); the rest hold the placeholder 100 kPa, no star and no bands. The
     # moved sample of the Train 21 galaxy holds 13 rocky rogues, all heavier than 2 Earth masses, so it is chance whether one is light enough (main's holds 2 of 29).
     **{("rogue_planets", name): CHANCE for name in (*regional_temperature.FIELDS, *SOLVED_AIR_ONLY)},

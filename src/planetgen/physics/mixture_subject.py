@@ -27,7 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
-from planetgen.physics import radiation_field
+from planetgen.physics import eclipses, radiation_field
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -167,7 +167,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["xuv_index"] = index
     if getattr(star, "log_lx_lbol", None) is not None:
         quantities["log_lx_lbol"] = star.log_lx_lbol
-    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
+    flux = (climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)) * (eclipses.light_factor_of(body) or 1.0)     # GEN.1441, GEN.1484
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
         teq = climate_draws.equilibrium_temperature_k(albedo, flux)

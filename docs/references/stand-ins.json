@@ -59491,7 +59491,7 @@
           "fields": [
             [
               "What it is",
-              "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+              "only a circumbinary planet's light is cut by the eclipse shares (GEN.1484, stored light_factor); for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light and are not applied, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
             ],
             [
               "The range it moves in",
@@ -59522,7 +59522,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+          "what": "only a circumbinary planet's light is cut by the eclipse shares (GEN.1484, stored light_factor); for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light and are not applied, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
         }
       ],
       "slug": "6-249-stand-ins-of-the-eclipses-of-a-star-by-a-body-of-the-system",
