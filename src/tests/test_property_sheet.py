@@ -371,9 +371,19 @@ def test_a_belt_with_ice_lists_the_isotopes_of_its_ices_and_one_without_does_not
         conn.close()
     wet = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[0])}/sheet").get_json())
     dry = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[1])}/sheet").get_json())
-    assert 5e-5 < wet["isotope_ice_d_h"]["raw"] < 1e-3 and 1.0 / wet["isotope_ice_n15"]["raw"] < 441.0
-    assert wet["isotope_ice_d_h"]["text"].startswith("D/H ")
+    assert 5e-5 < wet["isotope_D/H"]["raw"] < 1e-3 and wet["isotope_count"]["raw"] > 0
+    assert wet["isotope_D/H"]["text"].startswith("D/H ")
     assert not set(sheet.ISOTOPE_KEYS) & set(dry)
+
+
+def test_an_interstellar_comet_and_field_list_isotopes_from_their_ice_and_galactic_radius_and_a_body_with_no_ice_does_not():
+    """GEN.1487: a body with no host star takes the gas [Fe/H] of its galactic radius; the lines are the same record as a planet's."""
+    for kind in ("interstellar_comet", "asteroid_field"):
+        wet = sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": 8000.0})
+        assert {key for key, *_ in wet} >= {"isotope_D/H", "isotope_count"}
+        assert wet == sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": 8000.0})
+        assert sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.0, "galactic_radius_pc": 8000.0}) == []
+        assert sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": None}) == []
 
 
 def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():

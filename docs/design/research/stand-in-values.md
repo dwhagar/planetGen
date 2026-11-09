@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1464 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1467 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1438 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1441 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 70 | 23 | 6 | 1 | 0 | 100 |
-| T6 | 170 | 104 | 27 | 76 | 0 | 377 |
+| T6 | 173 | 104 | 27 | 76 | 0 | 380 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 814 | 298 | 71 | 236 | 45 | 1464 |
+| All | 817 | 298 | 71 | 236 | 45 | 1467 |
 
 ## How the labels were given
 
@@ -1947,6 +1947,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO15 | T | T1 | L0 | isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's | m of 0 to 10 | rocky bodies with air | a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent | the geomagnetic cutoff integrated over the body (`R_c` from the dipole) | the polar and global values of tritium ([R5204: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none | predicted only | - | - |
 | ISO16 | T | T6 | L3 | isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean | 10 to 100 | bodies with a surface ocean | an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54 | the body's own dissolved inorganic carbon | the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet | predicted only | - | no data |
 | ISO17 | T | T6 | L1 | isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point) | 25 to 40 K | comets of any star | a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity | the comet's own formation distance and the disk model | comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174] | predicted only | - | - |
+| ISO18 | T | T6 | L0 | isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements | the five ices of `disk_condensation.masses_percent` | small bodies with a stored ice fraction and no stored species | a comet whose measured NH3, CO2, CH4, N2 or CO share differs from the budget's by over a factor of 3 | the species shares stored for each small body (comets carry a free-text summary only) | the budget is the disk model's own; the ices a stored summary names are not parsed | predicted only | - | - |
+| ISO19 | T | T6 | L0 | isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it | 0 to 1 K | belts at their snow line | a belt at the snow line whose ice is measured dry | a budget that carries the partial freeze at the line | water condenses below the line only, so a body at the line holds its water; the width is a numerical choice | predicted only | - | - |
+| ISO20 | T | T6 | L0 | isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at `COMET_ICE_K` like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age | the formation temperature 20 to 182 K; the gas gradient of `nebula_composition` | interstellar comets and fields (GEN.1487) | a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2 | the disk the body was thrown out of, once stored | an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

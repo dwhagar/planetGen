@@ -44477,6 +44477,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements"
+            ],
+            [
+              "The range it moves in",
+              "the five ices of disk_condensation.masses_percent"
+            ],
+            [
+              "Where it holds",
+              "small bodies with a stored ice fraction and no stored species"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose measured NH3, CO2, CH4, N2 or CO share differs from the budget's by over a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the species shares stored for each small body (comets carry a free-text summary only)"
+            ],
+            [
+              "Evidence",
+              "the budget is the disk model's own; the ices a stored summary names are not parsed"
+            ]
+          ],
+          "id": "ISO18",
+          "key": "6.236:ISO18",
+          "kind": "T",
+          "slug": "6-236-iso18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1 K"
+            ],
+            [
+              "Where it holds",
+              "belts at their snow line"
+            ],
+            [
+              "What would show it wrong",
+              "a belt at the snow line whose ice is measured dry"
+            ],
+            [
+              "What replaces it",
+              "a budget that carries the partial freeze at the line"
+            ],
+            [
+              "Evidence",
+              "water condenses below the line only, so a body at the line holds its water; the width is a numerical choice"
+            ]
+          ],
+          "id": "ISO19",
+          "key": "6.236:ISO19",
+          "kind": "T",
+          "slug": "6-236-iso19",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at COMET_ICE_K like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age"
+            ],
+            [
+              "The range it moves in",
+              "the formation temperature 20 to 182 K; the gas gradient of nebula_composition"
+            ],
+            [
+              "Where it holds",
+              "interstellar comets and fields (GEN.1487)"
+            ],
+            [
+              "What would show it wrong",
+              "a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the disk the body was thrown out of, once stored"
+            ],
+            [
+              "Evidence",
+              "an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored"
+            ]
+          ],
+          "id": "ISO20",
+          "key": "6.236:ISO20",
+          "kind": "T",
+          "slug": "6-236-iso20",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at COMET_ICE_K like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",
