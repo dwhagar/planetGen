@@ -13422,11 +13422,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
   Filed by the TODO thread.
 
-- [ ] **GEN.1488 Isotope record for star surfaces**
-  Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Stars get a surface isotope record (the natural mix of the elements the surface holds, from the star's metallicity and age) in the same record the bodies carry. Reuse isotope_record.py and the isotope table. Decided with Lane 14 (2026-11-09): derived at view time from stored values through the same record_of and fractionation law, not stored, so it is lock-free (generation output unchanged, no migration, no epoch).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock-free. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1487.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1489 Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air**
   Lane 14's note (2026-11-09): isotope_record.py names this as left out of the isotope work that merged in Train 20 (PR 5786) and it had no item number. Extends the cosmogenic steady-state inventory of GEN.1421 to airless surfaces and ocean-covered surfaces (shielding by water) and adds beryllium-10 and aluminium-26 in air, from the cosmic-ray flux on the body. Reuse the GEN.1421 inventory, the radiation field of GEN.1441 and isotope_record.py. The result is part of the stored isotope record, so it is a lock item (epoch, golden).
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: none. Related: GEN.1377, GEN.1420, GEN.1421, GEN.1490.
@@ -13450,6 +13445,11 @@ clears each one.
 - [ ] **GEN.1493 The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed**
   Found by Lane 22 in GEN.1453 (2026-11-09). Today a planet's late accretion is one Solar-System number (0.7 percent of its mass times mass^-1/3, GEN.739) worked out inside the planet's atmosphere draw, which runs before the system adds its belts, so a belts-and-giants influx cannot feed the air. Slice A (the derived influx index of every planet, GEN.1440 with GEN.1453) comes first. Do: design first (a note under docs/design/), then the build: let the atmosphere draw read the influx from the system's belt and comet reservoirs, shielded or scattered by the giants and stirred by a companion, in place of the single late-accretion number, without a second path; a lone star with the Solar System's architecture must stay inside the published range. This reorders the planet and belt draws, so it is a lock item with a wide epoch (--affects plan, scatter, fill). Reuse the slice A influx function; stand-ins registered in GEN.725.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, design first; lock item for a later train. Prerequisites: GEN.1453. Related: GEN.1440, GEN.1453, GEN.739.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1494 Giant planet density read: is the generated giants' median density (1.4 to 1.8 g/cm3) too dense against observed giants**
+  Found by Lane 04 while fixing the giants test (PR 5863, 2026-11-09): the generated giants' median density runs 1.4 to 1.8 g/cm3 against 1.3 for the Solar System giants, and the test ceiling was set at Neptune's 1.64 plus 0.4. Do: a read, no build: compare the density distribution of generated giants by mass band and by equilibrium temperature with the measured exoplanet giants (radius-mass relations of the Kepler and TESS samples, the inflated hot Jupiters of GEN.1470 and GEN.1480 kept separate), report whether the generated median is inside the observed spread (widest-range rule), and file a fix item only if it is not. Reuse the existing giant density tests and the radius-valley sweep.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 21 (planet types), lock-free read. Prerequisites: none. Related: GEN.1470, GEN.1480, GEN.920.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
