@@ -15,7 +15,8 @@ The cloud cover is not drawn here: `aerosols.BODY_FIELDS` already stores it (`cl
 
 import numpy as np
 
-from planetgen.physics import aerosols, air_column, atmosphere_colour, giant_colour, photometry, surface_composition
+from planetgen.physics import (aerosols, air_column, atmosphere_colour, giant_colour, photometry, sulfur_cloud_set, sulfuric_cloud,
+                               surface_composition)
 
 BODY_FIELDS = ("atmosphere_colour",)
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and `moons` (DB.96)."""
@@ -52,6 +53,14 @@ def ground_albedo(body):
     return np.interp(_CENTERS, surface_composition.BAND_CENTERS_NM, blended)
 
 
+def _acid_absorption(body, column):
+    """The absorption optical depth of the acid cloud's ultraviolet absorber on the colour bands (GEN.1425 V10), or `None` for a body with no acid cloud."""
+    tau, cover, _radius = sulfuric_cloud.of_body(body)
+    if tau <= 0.0 or cover <= 0.0:
+        return None
+    return sulfur_cloud_set.absorber_band(tau, column.fraction("SO2"), [nm / 1000.0 for nm in _CENTERS], body.aerosol_draw)
+
+
 def _solid_colour(body):
     temperature = getattr(getattr(body, "star", None), "temperature", None)
     if not temperature or not photometry.gives_visible_light(temperature):
@@ -60,7 +69,7 @@ def _solid_colour(body):
     if column is None:
         return None
     stored = aerosols.of_body(body)
-    haze, dust, cloud = aerosols.colour_layers(stored, _CENTERS)
+    haze, dust, cloud = aerosols.colour_layers(stored, _CENTERS, _acid_absorption(body, column))
     result = atmosphere_colour.atmosphere_colour(
         column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
         ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover,

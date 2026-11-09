@@ -597,6 +597,15 @@ subtree as one point) are the registry rows RF1 to RF5 of section 6.239 of the g
 Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
 largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
 
+**As built (GEN.1442).** The rest of the radiation reads the same field. `magnetism.update_exposure` stores the XUV flux, the cumulative XUV index and the flare index of
+a body as the host's value plus the other stars' parts (`radiation_field.companion_part`); the free-space particle dose adds each star's `sqrt(N33 w) / d^2`
+(`radiation.companion_free_sep_msv_yr`); the far-ultraviolet of the haze and methane law adds each star's (`aerosols.far_uv_of`, the chromospheric share weighted by
+the light); the DNA dose and UV index at the ground add each star's own spectrum through the one air and ozone column (`body_radiation.companion_spectra`); and the loss
+of air and of envelope follow each star's XUV decay through time (`thermosphere._mixed_history`, `envelope_escape.envelope_left_earth(emitters=)`, the
+`host_distance_au` and `xuv_companions` quantities of the recipe subject), the host's XUV taking its own distance now that the light is the whole system's. A lone star
+keeps its numbers to the last digit. Limits are registry rows DS1 to DS4 of section 6.241 of the gap plan (the ozone fit by the host's colour, coplanar and shadow-free
+doses).
+
 **As built (GEN.1458).** The other stars of a system are suns of their own in a planet's sky. `physics/sky_suns.py` takes the spin axis and the orbit's normal (both already stored in the system's frame), builds the planet's equinox frame and gives each other star its unit direction in it (from the star's place at the orbit nodes' epoch, `radiation_field.Companion.offset_au`) and its share of the mean light. A star's declination is then `sin(tilt) uy + cos(tilt) uz`, fixed through the year, and its light falls on other latitudes than the host's: the year's mean at a latitude (`regional_temperature._annual_insolation`), the bands, and the cell-by-cell day (`surface_cycle.cosine_zenith`, the hour angle of a fixed star being the host's plus the host's right ascension less its own) sum the shares of the suns that are up. A planet stores the result as `sky_suns` (JSON, migration 0236), so a row re-scored from the database gives the same temperatures; a lone star and a moon store none. Limits are registry rows SS1 to SS3 (section 6.242 of the gap plan): the direction is the host-centered one, the share is the mean one, and moons and ring shadows read the host's sun alone until their slices (GEN.1461 day share, GEN.1462 eclipses).
 
 ### 6.6 Placement by population (GEN.103)

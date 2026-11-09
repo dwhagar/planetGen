@@ -186,3 +186,54 @@ def test_inputs_the_model_cannot_use_are_refused():
         ss.seasonal_swing([0.0], 23.44, 0.1, 288.0, 1361.0, 1.0, 1.013e5, 9.81, 0.7, 1.0)
     with pytest.raises(ss.SeasonalSwingError):
         ss.seasonal_swing([0.0], 23.44, 0.1, 288.0, 1361.0, 0.3, 1.013e5, 9.81, 1.5, 1.0)
+
+
+def _anderson_with_the_whole_gram_matrix_each_pass(step, start):
+    """`ss._anderson` as it was before PERF.249: the whole Gram matrix of the held differences formed anew at every pass. The oracle."""
+    from planetgen.util import detmath
+    state = start
+    updated = step(state)
+    shape, size = updated.shape, updated.size
+    delta_f, delta_g = np.empty((ss.ANDERSON_DEPTH, size)), np.empty((ss.ANDERSON_DEPTH, size))
+    count, previous_f, previous_g, passes = 0, None, None, 1
+    for passes in range(1, ss.NONLINEAR_PASSES + 1):
+        change = (updated - state).ravel()
+        if float(np.max(np.abs(change))) < ss.NONLINEAR_TOLERANCE_K:
+            return updated, passes, True
+        current_g = updated.ravel()
+        if previous_f is not None:
+            slot = count % ss.ANDERSON_DEPTH
+            np.subtract(change, previous_f, out=delta_f[slot])
+            np.subtract(current_g, previous_g, out=delta_g[slot])
+            count += 1
+        previous_f, previous_g = change, current_g
+        used = min(count, ss.ANDERSON_DEPTH)
+        if used:
+            matrix = delta_f[:used]
+            gram = detmath.matmul(matrix, matrix.T)
+            gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
+            mixed = current_g - detmath.matmul(gamma, delta_g[:used])
+        else:
+            mixed = current_g
+        state = np.maximum(mixed.reshape(shape), ss.FLOOR_K)
+        updated = step(state)
+    return updated, passes, False
+
+
+@pytest.mark.parametrize("seed", range(6))
+def test_the_anderson_mixing_keeps_the_gram_matrix_row_by_row_with_the_bits_of_forming_it_whole(seed):
+    """PERF.249: a pass writes one slot of the held differences, so only that slot's row and column of their Gram matrix are formed; the fixed point, the passes made and whether it
+    settled are those of forming the whole matrix every pass, bit for bit, past the pass where the slots wrap (depth 6, a stiff map that needs the passes)."""
+    rng = np.random.default_rng(seed)
+    cells = int(rng.integers(200, 3000))
+    coupling = rng.uniform(0.6, 0.97, size=cells)
+    target = rng.uniform(200.0, 320.0, size=cells)
+    skew = rng.uniform(-0.3, 0.3, size=cells)
+
+    def step(temperature):
+        return target + coupling * (temperature - target) + skew * np.sin(temperature * 0.05) * 30.0 * (1.0 - coupling)
+
+    start = np.full(cells, 250.0)
+    got, want = ss._anderson(step, start.copy()), _anderson_with_the_whole_gram_matrix_each_pass(step, start.copy())
+    assert got[0].tobytes() == want[0].tobytes() and got[1:] == want[1:]
+    assert got[1] > ss.ANDERSON_DEPTH + 1        # the slots wrapped: the row of an overwritten slot was formed against every row held

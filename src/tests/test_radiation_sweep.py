@@ -159,7 +159,8 @@ def dose_problems(body, is_moon):
     if not low * (1.0 - 1e-9) <= gcr <= high * (1.0 + 1e-9):
         problems.append(f"cosmic-ray dose {gcr:.4g} is outside {low:.4g} to {high:.4g}, what the column and the field give")
     star = body.star
-    free = rad.free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), getattr(body, "_star_distance_au", None), getattr(star, "flare_alpha", None))
+    free = rad.free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), getattr(body, "_star_distance_au", None), getattr(star, "flare_alpha", None)) \
+        + rad.companion_free_sep_msv_yr(star, getattr(body, "_star_distance_au", None))       # GEN.1442: the particles of the other stars too
     if not math.isclose(sep, rad.sep_dose_msv_yr(free, column, cutoff), rel_tol=1e-6, abs_tol=1e-12):
         problems.append(f"stellar-particle dose {sep:.4g} is not what the column, the field and the flares give")
     return problems

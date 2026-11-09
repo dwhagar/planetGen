@@ -74,7 +74,7 @@ main{padding:16px 16px 60px}}
 <td>Mantle redox</td>
 <td><code>mantle_redox</code> (reduced, intermediate, oxidized) and <code>mantle_delta_iw</code></td>
 <td>stored</td>
-<td>porphyry (oxidised), chromitite and diamond (reduced), sulfide saturation</td>
+<td>porphyry (oxidized), chromitite and diamond (reduced), sulfide saturation</td>
 </tr>
 <tr>
 <td>Water</td>
@@ -156,7 +156,7 @@ main{padding:16px 16px 60px}}
 <ol>
 <li><strong>Magmatic</strong> (chromitite, Ni-Cu-PGE sulfide, Fe-Ti-V oxide): needs a large volume of mafic or ultramafic magma, and for the sulfide type a crustal sulfur source. They exist with or without plate tectonics: a stagnant-lid body gets them from plume or impact melt, so the gate is magma volume (heat flow and mass), not the lid.</li>
 <li><strong>Hydrothermal</strong> (porphyry, VMS, orogenic, epithermal, SEDEX and MVT): need liquid water in the crust and a heat engine. Porphyry, orogenic and epithermal need a <strong>mobile lid</strong> (arcs, collision, shear zones); VMS needs seafloor spreading, so a mobile lid <em>and</em> an ocean; SEDEX and MVT need a sedimentary basin with brines, so liquid water and a surface. A stagnant-lid or dry body has none.</li>
-<li><strong>Sedimentary and weathering</strong> (BIF, phosphorite, evaporite, laterite and bauxite, placer, roll-front uranium): need surface liquid water and time; BIF needs an Fe(II) ocean that is partly oxidised (an oxygen source); phosphorite needs a productive sea (life); laterite and bauxite need a warm wet climate and a stable surface.</li>
+<li><strong>Sedimentary and weathering</strong> (BIF, phosphorite, evaporite, laterite and bauxite, placer, roll-front uranium): need surface liquid water and time; BIF needs an Fe(II) ocean that is partly oxidized (an oxygen source); phosphorite needs a productive sea (life); laterite and bauxite need a warm wet climate and a stable surface.</li>
 </ol>
 <p>Pegmatite, carbonatite, kimberlite and unconformity uranium have their own gates (section 5): continental crust and granite production; a carbonated mantle and rifting; a thick old craton with carbon at depth and low oxygen fugacity; an old basin over reduced basement.</p>
 <h2 id="4-the-three-derived-fields">4. The three derived fields</h2>
@@ -187,7 +187,7 @@ main{padding:16px 16px 60px}}
 <td>1</td>
 <td>Porphyry Cu-Mo-Au</td>
 <td>magmatic-hydrothermal</td>
-<td>mobile, liquid water, <code>mantle_redox</code> oxidised (fO2 at or above FMQ+1 to +2), crust thickness enough for a 1 to 4 km intrusion, star Cu</td>
+<td>mobile, liquid water, <code>mantle_redox</code> oxidized (fO2 at or above FMQ+1 to +2), crust thickness enough for a 1 to 4 km intrusion, star Cu</td>
 <td>Cu 0.3 to 1.0 percent, Au 0.1 to 1 g/t, Mo 0.01 to 0.05 percent</td>
 <td>1e8 to 1e10 t ore</td>
 <td>chalcopyrite, bornite, molybdenite, pyrite</td>
@@ -317,7 +317,7 @@ main{padding:16px 16px 60px}}
 <td>14</td>
 <td>Unconformity-related U</td>
 <td>basinal brine, redox boundary</td>
-<td>old basin over reduced basement (craton share and age window), oxidising brines</td>
+<td>old basin over reduced basement (craton share and age window), oxidizing brines</td>
 <td>U3O8 1 to 20 percent</td>
 <td>1e4 to 1e6 t U</td>
 <td>uraninite, coffinite</td>
@@ -327,7 +327,7 @@ main{padding:16px 16px 60px}}
 <td>15</td>
 <td>Roll-front U</td>
 <td>groundwater redox front</td>
-<td>oxidising groundwater, reductant (organics or sulfide), uranium-bearing volcanic or granitic source</td>
+<td>oxidizing groundwater, reductant (organics or sulfide), uranium-bearing volcanic or granitic source</td>
 <td>U3O8 0.05 to 0.3 percent</td>
 <td>1e3 to 1e5 t U</td>
 <td>uraninite, coffinite</td>
@@ -583,16 +583,16 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <ul>
-<li><strong>Open point 1 (decided).</strong> The abiotic oxygen route is not a gate for the iron formation: ultraviolet oxidation of Fe(II) and hydrogen-escape oxygen make too little oxidised iron to lay a formation, and the oxygen of escape goes to the air, not the deep ocean. The oxygen source is the first photosynthesis of the body's own timeline.</li>
+<li><strong>Open point 1 (decided).</strong> The abiotic oxygen route is not a gate for the iron formation: ultraviolet oxidation of Fe(II) and hydrogen-escape oxygen make too little oxidized iron to lay a formation, and the oxygen of escape goes to the air, not the deep ocean. The oxygen source is the first photosynthesis of the body's own timeline.</li>
 <li><strong>Evaporite key.</strong> <code>key_element</code> is <code>salt</code> and <code>grade</code> is the dominant salt's share of the dried salts (the column is 8 characters; the salt itself is <code>surface_composition.dried_salts</code> of the body). A page that names the salt reads that function.</li>
 <li><strong>Left for later.</strong> The abiotic Precambrian chert (it rides with the iron formation), biogenic oxygen's feedback on the iron supply, the sulfidic-ocean exclusion beyond the ocean class (an acid sulfate ocean has none), and economic enrichment of the iron formation to 55 to 65 percent (the stored grade is the protore's).</li>
 </ul>
 <h2 id="13-build-notes-gen1381-hydrothermal-and-sedimentary-hosted-slice-physicshydrothermal_depositspy">13. Build notes: GEN.1381 (hydrothermal and sedimentary-hosted slice, <code>physics/hydrothermal_deposits.py</code>)</h2>
 <p>Built: rows 1 to 5 and 15 (porphyry, VMS, SEDEX and MVT, orogenic gold, epithermal, roll-front uranium) as rows of the same three child tables, so the slice stores no column and needs no migration. They are assessed after the life pass, next to the sedimentary slice, with its record, count law and status flag (<code>sedimentary_deposits.assess</code>). The stand-ins are HT1 to HT7 in section 6.224 of <code>gap-filling-plan.md</code>. How the points of section 10 and the design stand:</p>
 <ul>
-<li><strong>Gates.</strong> A mobile lid and liquid water for the four arc types; an oxidised mantle and a crust of 20 km for porphyry; a liquid ocean and heat flow of 0.3 of the Earth's for VMS; land, an ocean, a crust sulfur index of 0.3 and 0.5 Gyr of sediment for SEDEX and MVT; a granitoid share and 25 km of crust for orogenic gold; processed mantle of 0.2 of the reference for epithermal; oxygen over 1000 Pa, land, granite and a reductant (sulfur or life) for roll-front uranium. The oxygen-fugacity offset between the FMQ and iron-wuestite buffers (point 2) is still not used: the stored <code>mantle_redox</code> class is the gate.</li>
+<li><strong>Gates.</strong> A mobile lid and liquid water for the four arc types; an oxidized mantle and a crust of 20 km for porphyry; a liquid ocean and heat flow of 0.3 of the Earth's for VMS; land, an ocean, a crust sulfur index of 0.3 and 0.5 Gyr of sediment for SEDEX and MVT; a granitoid share and 25 km of crust for orogenic gold; processed mantle of 0.2 of the reference for epithermal; oxygen over 1000 Pa, land, granite and a reductant (sulfur or life) for roll-front uranium. The oxygen-fugacity offset between the FMQ and iron-wuestite buffers (point 2) is still not used: the stored <code>mantle_redox</code> class is the gate.</li>
 <li><strong>Grade.</strong> Held to the concentration factor times the crustal mean. Copper and zinc scale with the star's Cu/Fe and Zn/Fe over the reference mix's (<code>ore_deposits.over_iron</code>); gold and lead are not in the star set and follow the iron until GEN.1371 lands. Uranium comes from the body's own <code>c_u0_ppm</code> times the crust's 80-fold enrichment. VMS and SEDEX are graded on zinc, the key metal of their ranges.</li>
-<li><strong>Left for later.</strong> Lead, silver, molybdenum and the by-product metals of each type (one key element each, as the magmatic slice has); the abiotic route to the oxidising groundwater of the uranium type; the platinum-group co-products. Stagnant-lid bodies get no arc types, as the design says; the SEDEX type does not need the lid.</li>
+<li><strong>Left for later.</strong> Lead, silver, molybdenum and the by-product metals of each type (one key element each, as the magmatic slice has); the abiotic route to the oxidizing groundwater of the uranium type; the platinum-group co-products. Stagnant-lid bodies get no arc types, as the design says; the SEDEX type does not need the lid.</li>
 </ul>
 <h2 id="14-build-notes-gen1423-carbide-slice-physicscarbide_depositspy">14. Build notes: GEN.1423 (carbide slice, <code>physics/carbide_deposits.py</code>)</h2>
 <p>Built: two mineral rows for a carbon-rich body, as rows of the same three child tables (no column, no migration): <code>moissanite_crust</code> (the SiC of the carbon rock) and <code>cohenite_metal</code> (Fe<sub>3</sub>C in the carbon-saturated metal). They are assessed after the ore pass and before the life pass's deposits, on streams of their own, and only when the body's rock is carbon rock (a star at C/O 0.8 or more, [R0455]); a silicate body has both <code>absent_by_state</code>.</p>
