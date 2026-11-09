@@ -13448,7 +13448,7 @@ clears each one.
 
 - [ ] **OPS.139 Heartbeat part 6: the admin Queue page shows each live unit's last beat age, counter, phase, rate and state badge**
   Boss, 5:16 PM EST on 2026-11-09 ('implement the heartbeat as described'); research in reports/heartbeat-research-2026-11-09.md. Detail: per-unit rows on the existing admin_queue.html from the API of OPS.138 (last beat age, done of estimate, phase, rate, state badge: working, slow, waiting, quiet, looping, dead); the run line keeps 'last heard from'; flags show in the run log and the error.log tail the admin already shows. No new page. Build together with PERF.147 (the progress bar with ETA reads the same counter and estimate; build once, let both read it). Done: the page shows the rows for a running galaxy. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 11 (with PERF.147). Prerequisites: OPS.138. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 13 (admin, with PERF.147; Lane 11 is not running, Boss priority). Prerequisites: OPS.138. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
   Filed by the TODO thread. Top priority (Boss: he wants to finally generate a full galaxy).
 
 - [ ] **OPS.140 Heartbeat part 7: the stuck action: dump the stack, stop the unit, requeue once, then fail with the dump; the time limit becomes a backstop only**
@@ -13473,7 +13473,7 @@ clears each one.
 
 - [ ] **OPS.144 Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it**
   Boss, 5:16 PM EST on 2026-11-09 ('admin panel needs a button to resume a run, it doesn't have one now, and we need a flag that tells us if a run was killed so we know when to show it'). Read first, then build on it: resume of a stopped run already exists as finish-run (PERF.182; generation/finish_run.py: plan, last_incomplete, FINISHABLE, REWIND_WITH; the Generate page's 'Finish the last run' and the typed command 'finish run'); the admin Queue page only has the queue pause and stop-all resumes (queue-resume, queue-resume-all). Do: (1) run record: a stored field killed (with by, at and reason: heartbeat stuck, memory kill, stop-all, admin cancel, process death) set by every path that ends a run without finishing it, reusing runrecord and the existing stop paths; the heartbeat items OPS.140 and OPS.141 set it when they stop or fail a unit; (2) admin Queue page: a Resume run button shown when the newest run has killed set and finish_run.plan says it can be finished, with the reason shown; it calls the same finish_run code as the Generate page (reuse, add no second resume path), confirmation like the other queue actions, and the API gets the action; (3) the Generate page's Finish button reads the same flag. Done: a run killed by stop-all, by a heartbeat stop and by a dead process each shows the button on the admin page; Resume carries it on from the first unfinished stage; a finished run shows no button; tests. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 11 (admin, with OPS.139) or Lane 13. Prerequisites: none. Related: PERF.182, OPS.139, OPS.140, OPS.141, ADM.148.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 13 (admin, with OPS.139; Boss priority, first after OPS.134). Prerequisites: none. Related: PERF.182, OPS.139, OPS.140, OPS.141, ADM.148.
   Filed by the TODO thread. Top priority (Boss).
 
 - [ ] **GEN.1506 The Auto level of the Rogues dial means Few, not Normal**
