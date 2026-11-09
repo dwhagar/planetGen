@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -625,7 +625,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
     distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
     planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
-    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance)     # GEN.1441: the host's light and every other star's, by position
+    planet.light_factor = eclipses.light_factor_of(planet)       # GEN.1484: the share of its light a circumbinary planet keeps after its two stars eclipse each other; None for every other body
+    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * (planet.light_factor or 1.0)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
     albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,

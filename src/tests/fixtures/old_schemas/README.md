@@ -119,3 +119,4 @@ Commit each file came from:
 - v233: train 18 after GEN.1367's migration 0233 (phosphorus budget columns), before GEN.1380 ore deposit tables (0234)
 - v234: train 18 after GEN.1380's migration 0234 (ore deposit tables), before GEN.1377 and GEN.1420 isotope record tables (0235)
 - v235: after GEN.1377 and GEN.1420's migration 0235 (isotope record tables), before GEN.1458 sky_suns column (0236)
+- v240: train 21 after the effect ledger tables (0240), before GEN.1484 light_factor column (0241)
