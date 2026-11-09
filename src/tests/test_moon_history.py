@@ -78,7 +78,7 @@ def test_the_ring_of_a_fallen_moon_is_disrupted_moon_spread_for_the_time_since_a
 
 def test_every_planet_with_moons_ends_with_moons_it_can_keep():
     """Over generated systems: a moon that stays is outside its planet's Roche limit for its own density and inside the stable Hill fraction, its period and
-    distance agree, a planet that lost moons to the Roche limit has a ring of disrupted moon whenever it has one, and the planet's day is a real one."""
+    distance agree, a planet that lost moons to the Roche limit has a ring of one of the three origins whenever it has one (a dust ring only when it is the dusty kind), and the planet's day is a real one."""
     seen_moons = seen_fallen = 0
     for system in _systems():
         for planet in system.planets:
@@ -88,7 +88,11 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
             if fallen:
                 seen_fallen += 1
                 if planet.ring_kind is not None:
-                    assert planet.ring_origin in ("disrupted_moon", "captured_body") and planet.ring_age_yr > 0.0
+                    # The origin is the largest of the ring's events (`ring_origin.ring_origin`), and the steady dust ring of the small moons near the planet (GEN.1233, origin
+                    # `moon_erosion`) is one of them: a fallen moon's ring spreads thin with the time since, and a faint dust ring can outweigh what is left of it (one planet of this sample,
+                    # a dusty ring of 1e8 kg after Train 21 changed what the seeds draw). So the origin is one of the three, and a `moon_erosion` ring is a dusty one.
+                    assert planet.ring_origin in rings.ORIGINS and planet.ring_age_yr > 0.0
+                    assert planet.ring_origin != "moon_erosion" or planet.ring_kind == "dusty"
                     assert planet.ring_mass_kg <= rings.MAX_MASS_OVER_PLANET * planet.mass * (1.0 + 1e-9)
             assert planet.rotation_period_hours > 0.0
             for moon in planet.moons:
