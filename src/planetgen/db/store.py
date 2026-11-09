@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import effect_ledger, isotope_record, ore_deposits
+from planetgen.physics import body_history, effect_ledger, isotope_record, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -4728,8 +4728,8 @@ def _system_velocity_kms(conn, star_system, sector_id, position_pc):
 def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfig,
                        sector_id=None, position=None, location=None) -> int:
     """
-    Inserts a full `StarSystem` (`_insert_star_system_rows`) and then its effect ledger (`system.effect_ledger`, GEN.1465), whose rows name the bodies by the
-    rows they were just saved as.
+    Inserts a full `StarSystem` (`_insert_star_system_rows`) and then its effect ledger (`system.effect_ledger`, GEN.1465) and the numbers its planets' and
+    moons' history left (`insert_body_history`, GEN.1497), whose rows name the bodies by the rows they were just saved as.
 
     Returns:
         int: The new `star_systems.id`.
@@ -4737,7 +4737,31 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
+        insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
+
+
+def insert_body_history(conn, star_system_id, star_system, saved):
+    """
+    Writes the numbers the history of a system's planets and moons left (GEN.1497, `physics/body_history.py`): their birth orbit and spin, the capture draws of the
+    spin and the formula version, one row a body that has any.
+
+    Args:
+        conn (Connection): An open connection.
+        star_system_id (int): The system's `star_systems.id`.
+        star_system (StarSystem): The saved system.
+        saved (dict): `id(object)` to `(table, row id)` of the system's bodies (`object_rows.logged_rows`).
+
+    Returns:
+        int: The number of rows written.
+    """
+    bodies = [body for planet in star_system.all_planets if planet.body_type != "a" for body in (planet, *getattr(planet, "moons", ()))]
+    rows = body_history.rows(star_system_id, bodies, saved)
+    columns = body_history.ROW_FIELDS
+    if rows:
+        marks = ", ".join("?" for _ in columns)
+        conn.executemany(f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+    return len(rows)
 
 
 def insert_effect_ledger(conn, star_system_id, ledger, saved, floor=None):
