@@ -2,7 +2,7 @@
 
 ### Added
 
-- `galaxy_block_light_parts` table (migration 0236): the light sums of each sector cell that holds an unbuilt bright star or scattered phenomenon, added to by `store.insert_bright_stars` and `store.insert_phenomenon_scatter` in the transaction that writes the rows.
+- `galaxy_block_light_parts` table (migration 0239): the light sums of each sector cell that holds an unbuilt bright star or scattered phenomenon, added to by `store.insert_bright_stars` and `store.insert_phenomenon_scatter` in the transaction that writes the rows.
 - `db.block_lights.roll`, `parts_current`, `sync_cells`, `forget_parts`: the block light stage rolls the parts up (the same rows a rebuild from the objects gives) and checks them against the scatter first, making them again from the objects when they differ (a galaxy scattered before v236, a prune).
 
 ### Changed

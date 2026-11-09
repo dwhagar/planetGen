@@ -1,6 +1,6 @@
 """The stamp of the formula that scored each star system (GEN.1479).
 
-Schema v236. `system_summary` has a narrow row for each star system: `habitability_stamp`, the stamp of the code that scored the system's planets and moons
+Schema v238. `system_summary` has a narrow row for each star system: `habitability_stamp`, the stamp of the code that scored the system's planets and moons
 (`db/derived_stamp.py`). `rescore-habitability` takes the systems whose stamp is NULL or not the running code's and leaves the others alone. Every system already stored
 starts with no stamp, so the first run after this scores them all once (it is what the unmigrated run did every time); a table already there is kept and
 the rows are not duplicated, so a stopped run can be started again. A side table because `star_systems` has a FULLTEXT key, and adding a column there copies every row.
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0236"
-down_revision = "0235"
+revision = "0238"
+down_revision = "0237"
 branch_labels = None
 depends_on = None
 

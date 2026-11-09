@@ -1952,7 +1952,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_lights (
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- galaxy_block_light_parts (v236, GEN.1476): the same sums `galaxy_block_lights` holds, for each sector cell (`shell_index`, `band_index`, `wedge_index`)
+-- galaxy_block_light_parts (v239, GEN.1476): the same sums `galaxy_block_lights` holds, for each sector cell (`shell_index`, `band_index`, `wedge_index`)
 -- that holds a bright star no system was built around or a scattered phenomenon not yet built. The two scatter writers (`store.insert_bright_stars`,
 -- `store.insert_phenomenon_scatter`) add each batch's sums to its cells in the transaction that writes the rows (`db/block_lights.note_rows`), so the
 -- block light totals are rolled up from these rows (`block_lights.roll`) and the uncharted sector index takes its cells from them, and neither reads the two
@@ -5171,7 +5171,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
 
 
 -- ---------------------------------------------------------------------
--- galaxy_totals and sector_facets (v236, DB.121): the galaxy's counts, kept as they change instead of counted again when a sector is
+-- galaxy_totals and sector_facets (v237, DB.121): the galaxy's counts, kept as they change instead of counted again when a sector is
 -- added (`db.galaxy_counts`). `sector_facets` holds, for each sector whose stats are filled, one row for each of its `total` counts (systems,
 -- stars, planets, moons, belts and habitable worlds) and one for each value of each facet the lists and the search page offer (a star's
 -- spectral and Yerkes class, a planet's or moon's class, body type and life class, a system's binary state and octant); it is keyed by the
@@ -5227,7 +5227,7 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
         FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- effect_ledger (v236, GEN.1465): for every body of a system and every effect that acts on it (`physics/effect_ledger.py` `EFFECTS`: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing,
+-- effect_ledger (v240, GEN.1465): for every body of a system and every effect that acts on it (`physics/effect_ledger.py` `EFFECTS`: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing,
 -- 6 precession, 7 eccentricity perturbation), the share of each source's contribution in the largest source's (1.0 for the largest). `body_type` and `source_type` are the kind table's code
 -- (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars), `body_id` and `source_id` its row id. A source whose share is under
 -- `tuning.EFFECT_LEDGER_FLOOR` (1e-3; the gravity effects keep only the largest source) is not a row of its own: the (body, effect) has one summary row with `source_type` 0 and `source_id` 0, whose `share` is the sum of the shares under the floor, `n_below`
@@ -5251,7 +5251,7 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 
 
 -- ---------------------------------------------------------------------
--- system_summary (v236, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
+-- system_summary (v238, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
 -- own rows, so the jobs that refresh them (`rescore-habitability`) take only the systems that are not current. `habitability_stamp` is the stamp
 -- of the code that scored the system's planets and moons (`db/derived_stamp.py`: a hash of the physics source, so a changed formula is a different
 -- stamp); NULL until the system is scored. Written by the system save and by `store.refresh_habitability`. It is a side table, not columns of

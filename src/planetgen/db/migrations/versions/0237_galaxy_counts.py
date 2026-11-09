@@ -1,6 +1,6 @@
 """The galaxy's counts, kept as they change (DB.121).
 
-Schema v236. `sector_facets` holds, for each generated sector, its `total` counts (systems, stars, planets, moons, belts, habitable worlds) and the count of each value of each
+Schema v237. `sector_facets` holds, for each generated sector, its `total` counts (systems, stars, planets, moons, belts, habitable worlds) and the count of each value of each
 facet the lists and the search page offer, keyed by the sector's address; `galaxy_totals` is the one row that is their sum plus the mass and luminosity of `sector_stats`
 (`db.galaxy_counts`). Both are new tables: nothing is added to `star_systems`, whose FULLTEXT key makes any added column copy the whole table.
 
@@ -12,8 +12,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0236"
-down_revision = "0235"
+revision = "0237"
+down_revision = "0236"
 branch_labels = None
 depends_on = None
 

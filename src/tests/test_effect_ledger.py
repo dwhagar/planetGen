@@ -2,7 +2,7 @@
 
 """
 GEN.1465: the effect ledger. The pure part (shares, the floor and its summary row), the codes against the kind tables and the unit registry, and the table
-(a system saved with a ledger keeps its rows, a system deleted takes them, migration 0236 gives a v235 galaxy the empty table and a second run changes nothing).
+(a system saved with a ledger keeps its rows, a system deleted takes them, migration 0240 gives a v239 galaxy the empty table and a second run changes nothing).
 """
 
 import pytest
@@ -158,8 +158,8 @@ def test_a_system_with_no_contributions_writes_no_ledger_rows(mysql_config):
 
 
 @pytest.mark.fresh_database
-def test_a_v235_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 235)
+def test_a_v239_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
+    load_old_schema(mysql_config, 239)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert "effect_ledger" not in {next(iter(row.values())) for row in conn.execute("SHOW TABLES").fetchall()}

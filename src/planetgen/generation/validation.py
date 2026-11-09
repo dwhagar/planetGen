@@ -230,7 +230,7 @@ def _shift_belt(belt, amount):
 
 
 def belt_needs_pushing(belt, last):
-    """Whether `space_orbits` would push `belt` outward past `last`, the body just inside it: its centre is closer to a belt's outer edge than `MIN_ASTEROID_BELT_SEPARATION`, or to a planet's
+    """Whether `space_orbits` would push `belt` outward past `last`, the body just inside it: its center is closer to a belt's outer edge than `MIN_ASTEROID_BELT_SEPARATION`, or to a planet's
     apoapsis than that planet's `min_orbit_distance`. The one rule the spacing pass and the secular exchange (`StarSystem._secular_exchange`) share."""
     if last.body_type == 'a':
         return _below(belt.distance - last.upper_limit, tuning.MIN_ASTEROID_BELT_SEPARATION)
