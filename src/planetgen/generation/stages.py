@@ -85,6 +85,11 @@ PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomen
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
 
+BRIGHT_CLEAR_STAGE = {"mass": Stage("mass-clear", "Clear the earlier bright stars"),
+                      "luminosity": Stage("luminosity-clear", "Clear the earlier bright stars of the luminosity pass")}
+"""dict: The emptying of the bright stars before a scatter draws them again, by the scatter's first pass (OPS.123: the `clear-bright-stars`
+command, once the `prepare` of the shell scatter commands): the whole scatter before a mass pass, the luminosity pass alone before that."""
+
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
 """Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
 run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
@@ -94,6 +99,7 @@ def galaxy_stages(args):
     """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
     return sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
+        BRIGHT_CLEAR_STAGE["mass"],
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
@@ -139,7 +145,7 @@ def scatter_stages(args):
     if kind == "phenomena":
         return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
     if kind in ("mass", "luminosity"):
-        return [SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+        return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
     if kind == "nebula-field":
         return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
     return [SCATTER_STAGE[kind]]
