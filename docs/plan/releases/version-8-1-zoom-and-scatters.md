@@ -488,6 +488,15 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1473 | Build the drift and evaporation model of water and let a giant's envelope C/O follow it | GEN.1472 | Lane 14, 2026-11-08; lock item. |
 | GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | Lane 21, 2026-11-08; lock item. |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) |  | Lane 21, 2026-11-09; waits for a source. |
+| GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild |  | Boss 8:37 PM EST on 2026-11-08; Lane 12 with Lane 13. |
+| GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) |  | Generation rescan audit, 2026-11-09. |
+| GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) |  | Generation rescan audit, 2026-11-09. |
+| GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) |  | Generation rescan audit, 2026-11-09. |
+| GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | Generation rescan audit, 2026-11-09. |
+| OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
+| PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | Generation rescan audit, 2026-11-09. |
+| PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) |  | Generation rescan audit, 2026-11-09. |
+| DB.121 | Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9) |  | Generation rescan audit, 2026-11-09. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
