@@ -485,7 +485,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre and add one stand-in, the envelope share m of bulk heavy elements (m = 0.1 first) | GEN.1363, GEN.1406 | Lane 14, 2026-11-08; lock item, Train 21 or 22. |
 | GEN.1472 | Design note for the drift and evaporation of water in the disc (cold finger at the snow line) | GEN.1471, GEN.1396 | Lane 14, 2026-11-08; Boss lowered the research bar. |
 | GEN.1473 | Build the drift and evaporation model of water and let a giant's envelope C/O follow it | GEN.1472 | Lane 14, 2026-11-08; lock item. |
-| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | Lane 21, 2026-11-08; lock item. |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) |  | Lane 21, 2026-11-09; waits for a source. |
 | GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild |  | Boss 8:37 PM EST on 2026-11-08; Lane 12 with Lane 13. |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) |  | Generation rescan audit, 2026-11-09. |
