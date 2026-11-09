@@ -58,7 +58,7 @@ from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history,
-    remnant_mass, remnant_progenitors, roche, stability, stellar_abundances, stellar_composition)
+    remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -1092,15 +1092,19 @@ class _Builder:
             left, right, m_left, m_right, total = drawn
             core = None
             rng = self.rng
-            inclination = math.acos(1.0 - 2.0 * rng.random())
             node = 2.0 * math.pi * rng.random()
             arg = 2.0 * math.pi * rng.random()
             anomaly = 2.0 * math.pi * rng.random()
+            inclination = None
             mutual = None
             a_hi = ROOT_MAX_AXIS_AU
             stable_at = None
             if parent is not None:
-                mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
+                # The tilt against the pair it orbits is drawn from the alignment law at that pair's axis (GEN.1500), then turned
+                # by the node drawn above about the pair's normal into this orbit's own inclination and node.
+                tilt = star_orbit_alignment.draw_mutual_inclination(rng, parent[0])
+                inclination, node = star_orbit_alignment.compose_plane(parent[2], parent[3], tilt, node)
+                mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])   # what a reader derives from the stored plane
                 a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual,
                                                 safety=STABILITY_MARGIN)
 
@@ -1127,6 +1131,10 @@ class _Builder:
                 if axis > a_hi:
                     draw.redrawn("pair.axis_out_of_range")
                     continue
+            if parent is None:
+                # The first companion's tilt against the plane of its star's planets, from the law at its own axis (GEN.1500); the
+                # draw has to wait for the axis, and nothing before it reads a root orbit's tilt.
+                inclination = star_orbit_alignment.draw_mutual_inclination(rng, axis)
             if fixed is None:
                 limit = self._eccentricity_limit(axis, peri_floor, apocenter_limit, stable_at)
                 if limit < 0.0:
