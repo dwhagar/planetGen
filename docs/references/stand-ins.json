@@ -44899,6 +44899,234 @@
           "tweak": "L1",
           "unread": null,
           "what": "isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 10Be 0.029 atoms/cm2/s (global mean, modern dipole, 650 MV)"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.04"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air, as ISO12 and ISO13"
+            ],
+            [
+              "What would show it wrong",
+              "a global 10Be production outside 0.02 to 0.04 at 650 MV"
+            ],
+            [
+              "What replaces it",
+              "the same yield functions of the body's own air"
+            ],
+            [
+              "Evidence",
+              "[R5203: Table 1] (2.9e-2); the range 0.02 to 0.04 is quoted in the literature for earlier models"
+            ]
+          ],
+          "id": "ISO29",
+          "key": "6.236:ISO29",
+          "kind": "T",
+          "slug": "6-236-iso29",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 10Be 0.029 atoms/cm2/s (global mean, modern dipole, 650 MV)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 26Al 1280 atoms/cm2/a (4.06e-5 per second), from argon; EARTH_TARGETS_PER_G Ar 1.94e20"
+            ],
+            [
+              "The range it moves in",
+              "1600 to 4400 atoms/cm2/a in older estimates"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air"
+            ],
+            [
+              "What would show it wrong",
+              "a global 26Al production under 1000 or over 4500 atoms/cm2/a"
+            ],
+            [
+              "What replaces it",
+              "a yield function for argon"
+            ],
+            [
+              "Evidence",
+              "[R5215: Sec. 3, Table 3] gives 1280 (against 1600 and 4400 earlier); the argon share of the air is 1.288 percent by mass"
+            ]
+          ],
+          "id": "ISO30",
+          "key": "6.236:ISO30",
+          "kind": "T",
+          "slug": "6-236-iso30",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 26Al 1280 atoms/cm2/a (4.06e-5 per second), from argon; EARTH_TARGETS_PER_G Ar 1.94e20"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ROCK_ATTENUATION_G_CM2 160: the attenuation length of the nucleon cascade in rock, and the depth of the surface layer the isotopes mix into"
+            ],
+            [
+              "The range it moves in",
+              "150 to 170 g/cm2"
+            ],
+            [
+              "Where it holds",
+              "rock surfaces"
+            ],
+            [
+              "What would show it wrong",
+              "a measured attenuation length outside 140 to 180 g/cm2"
+            ],
+            [
+              "What replaces it",
+              "a depth profile of the body's own surface"
+            ],
+            [
+              "Evidence",
+              "the figure of the exposure-dating texts (read on a course text, no registry entry)"
+            ]
+          ],
+          "id": "ISO31",
+          "key": "6.236:ISO31",
+          "kind": "T",
+          "slug": "6-236-iso31",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ROCK_ATTENUATION_G_CM2 160: the attenuation length of the nucleon cascade in rock, and the depth of the surface layer the isotopes mix into"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.LUNAR_BE10_ATOMS_PER_G 1.05e10: the saturated 10Be of a surface rock with no air and no field"
+            ],
+            [
+              "The range it moves in",
+              "9.6 to 11.2 dpm/kg, 8 to 14 in a core"
+            ],
+            [
+              "Where it holds",
+              "bodies with no air and no field"
+            ],
+            [
+              "What would show it wrong",
+              "a lunar surface sample whose 10Be lies outside 8 to 14 dpm/kg"
+            ],
+            [
+              "What replaces it",
+              "a production model by composition and solar activity"
+            ],
+            [
+              "Evidence",
+              "[R5216]: 10Be of 9.6 to 11.2 dpm/kg in basalt 74275 and 8 to 14 in the core; the half-life 1.386 Myr is [R5215: Sec. 2]"
+            ]
+          ],
+          "id": "ISO32",
+          "key": "6.236:ISO32",
+          "kind": "T",
+          "slug": "6-236-iso32",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.LUNAR_BE10_ATOMS_PER_G 1.05e10: the saturated 10Be of a surface rock with no air and no field"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ROCK_AL26_OVER_BE10_PRODUCTION 6.75: 26Al atoms made per 10Be in a rock surface"
+            ],
+            [
+              "The range it moves in",
+              "6 to 7.5"
+            ],
+            [
+              "Where it holds",
+              "rock surfaces"
+            ],
+            [
+              "What would show it wrong",
+              "a production ratio outside 6 to 7.5 in a lunar or terrestrial sample"
+            ],
+            [
+              "What replaces it",
+              "the composition-dependent yields of Si and O"
+            ],
+            [
+              "Evidence",
+              "the standard value of the exposure-dating literature, recalled and not opened; the Fink et al. paper [R5216] gives no 26Al activity in the pages read"
+            ]
+          ],
+          "id": "ISO33",
+          "key": "6.236:ISO33",
+          "kind": "T",
+          "slug": "6-236-iso33",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ROCK_AL26_OVER_BE10_PRODUCTION 6.75: 26Al atoms made per 10Be in a rock surface"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.REGOLITH_BERYLLIUM_G_G 1.5e-6 and DEFAULT_ROCK_AL2O3 0.15: the beryllium and (where the body stores none) the aluminium oxide of the surface rock"
+            ],
+            [
+              "The range it moves in",
+              "Be 1 to 3 ppm; Al2O3 10 to 20 percent"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a measured surface rock outside these ranges"
+            ],
+            [
+              "What replaces it",
+              "the body's own rock composition, once Be is stored"
+            ],
+            [
+              "Evidence",
+              "the continental crust's values, taken for every rocky body; no source opened"
+            ]
+          ],
+          "id": "ISO34",
+          "key": "6.236:ISO34",
+          "kind": "T",
+          "slug": "6-236-iso34",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.REGOLITH_BERYLLIUM_G_G 1.5e-6 and DEFAULT_ROCK_AL2O3 0.15: the beryllium and (where the body stores none) the aluminium oxide of the surface rock"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",

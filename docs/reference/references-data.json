@@ -88480,6 +88480,53 @@
    "volume": "286",
    "year": 2009
   },
+  "10.1016/j.epsl.2009.08.030": {
+   "authors": [
+    [
+     "Auer",
+     "M."
+    ],
+    [
+     "Wagenbach",
+     "D."
+    ],
+    [
+     "Wild",
+     "E. M."
+    ],
+    [
+     "Wallner",
+     "A."
+    ],
+    [
+     "Priller",
+     "A."
+    ],
+    [
+     "Miller",
+     "H."
+    ],
+    [
+     "Schlosser",
+     "C."
+    ],
+    [
+     "Kutschera",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2009.08.030",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "453",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Cosmogenic 26Al in the atmosphere and the prospect of a 26Al/10Be chronometer to date old ice",
+   "type": "journal-article",
+   "volume": "287",
+   "year": 2009
+  },
   "10.1016/j.epsl.2010.01.020": {
    "authors": [
     [
@@ -102025,6 +102072,45 @@
    "type": "journal-article",
    "volume": "61",
    "year": 1997
+  },
+  "10.1016/s0016-7037(98)00134-3": {
+   "authors": [
+    [
+     "Fink",
+     "D."
+    ],
+    [
+     "Klein",
+     "J."
+    ],
+    [
+     "Middleton",
+     "R."
+    ],
+    [
+     "Vogt",
+     "S."
+    ],
+    [
+     "Herzog",
+     "G."
+    ],
+    [
+     "Reedy",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(98)00134-3",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "2389",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "41Ca, 26Al, and 10Be in lunar basalt 74275 and 10Be in the double drive tube 74002/74001",
+   "type": "journal-article",
+   "volume": "62",
+   "year": 1998
   },
   "10.1016/s0016-7037(98)00293-2": {
    "authors": [
@@ -282639,7 +282725,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5215,
+ "id_next": 5217,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283179,6 +283265,7 @@
   "10.1016/j.epsl.2009.01.040": "R2382",
   "10.1016/j.epsl.2009.03.002": "R0086",
   "10.1016/j.epsl.2009.07.022": "R0628",
+  "10.1016/j.epsl.2009.08.030": "R5215",
   "10.1016/j.epsl.2010.01.020": "R2625",
   "10.1016/j.epsl.2010.11.030": "R3832",
   "10.1016/j.epsl.2011.01.015": "R3338",
@@ -283569,6 +283656,7 @@
   "10.1016/s0016-7037(67)80014-0": "R2566",
   "10.1016/s0016-7037(96)00385-7": "R0512",
   "10.1016/s0016-7037(97)00304-9": "R0821",
+  "10.1016/s0016-7037(98)00134-3": "R5216",
   "10.1016/s0016-7037(98)00293-2": "R4210",
   "10.1016/s0019-1035(03)00002-2": "R2262",
   "10.1016/s0019-1035(03)00043-5": "R0895",
