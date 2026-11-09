@@ -9,7 +9,7 @@ import importlib
 
 import pytest
 
-from planetgen.db import edits, gravity_sources, sector_paths, store, system_summary
+from planetgen.db import alembic_runner, edits, gravity_sources, sector_paths, store, system_summary
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -103,5 +103,22 @@ def test_the_migrations_statement_gives_the_figures_the_save_does(mysql_config):
     try:
         row = conn.execute(migration.SELECT.replace(":low", "?").replace(":high", "?"), (system_id, system_id)).fetchone()
         assert list(row.values())[1:] == pytest.approx([_stored(conn, system_id)[name] for name in system_summary.COLUMNS], rel=1e-12)
+    finally:
+        conn.close()
+
+
+def test_the_migrations_whole_statement_fills_every_system(mysql_config):
+    import sqlalchemy as sa
+    ids = [_save(mysql_config, seed) for seed in (1, 2)]
+    migration = importlib.import_module("planetgen.db.migrations.versions.0237_system_summary_figures")
+    conn = store.get_connection(mysql_config)
+    try:
+        expected = {system_id: _stored(conn, system_id) for system_id in ids}
+        with conn:
+            conn.execute(f"UPDATE system_summary SET {', '.join(f'{name} = NULL' for name in system_summary.COLUMNS)}")
+        with alembic_runner._engine(mysql_config).begin() as sa_conn:      # the statement uses named binds, as the migration's connection does
+            sa_conn.execute(sa.text(migration.statement()), {"low": min(ids), "high": max(ids)})
+        for system_id in ids:
+            assert _stored(conn, system_id) == pytest.approx(expected[system_id], rel=1e-12)
     finally:
         conn.close()

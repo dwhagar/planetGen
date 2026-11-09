@@ -40,15 +40,18 @@ SELECT = (
     " FROM star_systems ss WHERE ss.id BETWEEN :low AND :high")
 
 
+def statement():
+    """The statement that writes the figures of the systems with ids `:low` to `:high`."""
+    names = ", ".join(name for name, _ in COLUMNS)
+    updates = ", ".join(f"{name} = VALUES({name})" for name, _ in COLUMNS)
+    return f"INSERT INTO system_summary (star_system_id, {names}) {SELECT} ON DUPLICATE KEY UPDATE {updates}"
+
+
 def upgrade():
     connection = op.get_bind()
     for name, definition in COLUMNS:
         helpers.add_column_instant(connection, "system_summary", name, definition)
-    top = connection.execute(sa.text("SELECT COALESCE(MAX(id), 0) FROM star_systems")).scalar()
-    names = ", ".join(name for name, _ in COLUMNS)
-    updates = ", ".join(f"{name} = VALUES({name})" for name, _ in COLUMNS)
+    top = int(connection.execute(sa.text("SELECT COALESCE(MAX(id), 0) FROM star_systems")).scalar())
     for low in range(1, top + 1, BATCH):
-        connection.execute(sa.text(
-            f"INSERT INTO system_summary (star_system_id, {names}) {SELECT} ON DUPLICATE KEY UPDATE {updates}"),
-            {"low": low, "high": low + BATCH - 1})
+        connection.execute(sa.text(statement()), {"low": low, "high": low + BATCH - 1})
         alembic_runner.report_progress("System figures", min(low + BATCH - 1, top), top)
