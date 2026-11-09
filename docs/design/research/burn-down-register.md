@@ -293,3 +293,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.229:CG2 | no data | - | L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would |
 | 6.236:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
 | 6.236:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |
+| 6.236:ISO16 | no data | - | L3, the carbon of an ocean world's air and surface ocean over the air's is the Earth's single value; the body's dissolved carbon is not stored |

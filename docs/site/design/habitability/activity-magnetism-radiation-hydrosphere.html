@@ -630,7 +630,7 @@ half of it perpendicular to the spin, turning at the planet's synodic rotation; 
 core answer, and the moment is stored as <code>induced_moment_a_m2</code>, 5e17 A m2 for a dry Earth-mass planet at 1 AU against the dynamo's 8e22. A giant has none.
 The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.</p>
 <h3 id="36-where-the-dipole-points-gen1350">3.6 Where the dipole points (GEN.1350)</h3>
-<p>The size of a field was stored; its direction was not. <code>physics/magnetic_geometry.py</code> draws, from a stream of the body's own (nothing of the run's stream moves), the angle between the dipole's axis and the spin axis (<code>dipole_tilt_deg</code>, folded into 0 to 90 degrees) and whether the dipole is off centre (<code>dipole_offset_class</code>, <code>centred</code> or <code>offset</code>, over 0.15 radii) for a planet, moon or rogue planet with a field:</p>
+<p>The size of a field was stored; its direction was not. <code>physics/magnetic_geometry.py</code> draws, from a stream of the body's own (nothing of the run's stream moves), the angle between the dipole's axis and the spin axis (<code>dipole_tilt_deg</code>, folded into 0 to 90 degrees) and whether the dipole is off center (<code>dipole_offset_class</code>, <code>centered</code> or <code>offset</code>, over 0.15 radii) for a planet, moon or rogue planet with a field:</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -644,7 +644,7 @@ The numbers it adds are small beside a dynamo, and matter for a body whose dynam
 <tr>
 <td>dipole-dominated rocky core, gas giant</td>
 <td>Rayleigh, scale 6 degrees</td>
-<td>centred</td>
+<td>centered</td>
 <td>Earth 11, Jupiter 9.6, Ganymede 4, Saturn under 0.1</td>
 </tr>
 <tr>
@@ -812,7 +812,7 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.</p>
 8 pc roughly doubles biologically active UV by ozone loss; the rate within
 8 pc at the Sun is about 1.5 per Gyr [S]. Rule: lethal events per Gyr within
 radius r = <code>1.5 * (r / 8 pc)^3 * (Sigma_SFR(R) / Sigma_SFR(8 kpc))</code>; near the
-Galactic centre about 250x higher [R/C]. [R1649]: the inner
+Galactic center about 250x higher [R/C]. [R1649]: the inner
 Galaxy sterilizes more planets, yet a habitable planet is still 10x likelier
 there than in the outer Galaxy [S]. [R2702]: the Galactic
 habitable zone is an annulus 7 to 9 kpc wide [S].</li>
@@ -825,11 +825,11 @@ beamed burst within about 2 kpc at one per 0.5 Gyr at the Sun [S], so
 <code>activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR</code> = 2 per Gyr; long bursts need
 low-metal massive stars ([S]), so the rate falls off
 outward with the supernova scale length (1.45 kpc) but is not raised toward
-the metal-rich centre.</li>
+the metal-rich center.</li>
 <li><strong>AGN and quasars.</strong> No source found. A 1e44 erg/s X-ray source on for 1 Myr
 delivers 2.7e5 J/m2 at 3 kpc [C], so a luminous nucleus within a few kpc
 destroys unshielded ozone. <strong>Built (GEN.189) as a design estimate, not a
-measurement:</strong> the Fermi bubbles and the X-ray echoes of the Galactic Centre
+measurement:</strong> the Fermi bubbles and the X-ray echoes of the Galactic Center
 clouds (Su et al. 2010; [R3573] [S]) show Seyfert-like activity in
 the last few Myr, so <code>activity.AGN_EPISODES_PER_GYR</code> = 10 (1e44 erg/s for 1
 Myr every 100 Myr) within <code>AGN_LETHAL_RADIUS_PC</code> = 2.9 kpc, where one episode
@@ -960,7 +960,7 @@ and a third exceed 1 percent.</p>
 the layer is 746 km deep at 11 GPa, not 1,047 km, and the table below (a fixed 1,050 kg/m3 and [R4585]'s linear liquidus) is
 5 to 25 percent too deep. <code>physics/water_layer.py</code> integrates the column from the surface down with the density of the 300 K isotherm
 of water (IAPWS-95 liquid, then the ice VI, VII and X reference points of the materials table), the gravity of the mass below the
-level, and the area that grows toward the centre; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
+level, and the area that grows toward the center; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
 of an Earth or 5 Earth masses (its two x = 0.2 rows were recomputed from the code by DOC.79 on 2026-10-25 and are test targets like the rest). The liquid
 stops at the liquidus of the bottom temperature, the melting curves of ice III, V and VI recomputed from the Journaux splines (part C
 2.3: 210 MPa at 251.2 K, 350 at 256.2, 620 at 272.1, 800 at 286.8, 1000 at 300.4, 1500 at 327, 2000 at 347, 2200 at 353.8); below it
@@ -1137,13 +1137,13 @@ pressure and shallower than the 5.2 limit. Deeper ones are ice-sealed
 (<a href="atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a>
 4.3).</p>
 <h3 id="56-aquifers-gen654">5.6 Aquifers (GEN.654)</h3>
-<p>A world with no liquid at its surface (hydrosphere <code>dry</code>, <code>ice</code> or <code>vapour</code>) can hold liquid water in the pores of its crust, where
+<p>A world with no liquid at its surface (hydrosphere <code>dry</code>, <code>ice</code> or <code>vapor</code>) can hold liquid water in the pores of its crust, where
 the heat flow puts the temperature between the freezing point and the hottest water life can use. The model is <code>physics/aquifers.py</code>,
 one column of crust, no draw:</p>
 <ul>
 <li>The geotherm is T(z) = T_surface + q z / k with the stored internal heat flux q (plus an icy moon's tide) and
 k = 2 W/m/K (<code>tuning.AQUIFER_CONDUCTIVITY_W_M_K</code>; [R0824], at second hand). The 273.15 K level lies at (273.15 - T_surface) k / q
-(about 4 km on a Mars with 30 mW/m2); on a warm surface water boils away until the hydrostatic pressure over it exceeds its vapour
+(about 4 km on a Mars with 30 mW/m2); on a warm surface water boils away until the hydrostatic pressure over it exceeds its vapor
 pressure.</li>
 <li>The water-bearing layer ends where the geotherm reaches 122 C (<code>tuning.AQUIFER_LIFE_MAX_K</code>, [R4295]) or where the pores close:
 porosity falls as 0.2 exp(-z/K), K = 2.82 km scaled by Mars's gravity over the body's (<code>tuning.AQUIFER_POROSITY_*</code>), and is gone under 0.01.</li>

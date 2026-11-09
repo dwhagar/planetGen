@@ -14,7 +14,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, giant_draw, giant_radius, interior_heat, orbit_elements, planets, tidal_heating
+from planetgen.physics import constants, giant_draw, giant_radius, interior_heat, orbit_elements, planets, radiation_field, tidal_heating
 from planetgen.util import draw
 from tests import class_support
 
@@ -46,7 +46,7 @@ def _table_radius_km(planet):
     mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
     core = giant_radius.table_core_mass_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
     distance_km = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity) * constants.AU_TO_KM
-    light = planet.star.luminosity / (4.0 * math.pi * distance_km ** 2) / 1e6
+    light = radiation_field.starlight_w_m2(planet.star, distance_km / constants.AU_TO_KM)       # GEN.1441: every star of the system lights the giant
     return giant_radius.radius_km(mass_earth, core, light / giant_radius.flux_w_m2(1.0), planet.star.age)
 
 

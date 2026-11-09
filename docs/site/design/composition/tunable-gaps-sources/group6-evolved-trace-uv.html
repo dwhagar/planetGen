@@ -84,7 +84,7 @@ main{padding:16px 16px 60px}}
 <td>j4</td>
 <td>Pluto/Triton-like frost</td>
 <td>(c)</td>
-<td>Derive: vapour-pressure equilibrium + retention</td>
+<td>Derive: vapor-pressure equilibrium + retention</td>
 <td>Yes: [0, 1]; Solar System only (KBO retention model gives a physical bracket)</td>
 </tr>
 <tr>
@@ -96,7 +96,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>l1</td>
-<td>Silicate-vapour exosphere</td>
+<td>Silicate-vapor exosphere</td>
 <td>(c) for the weight, derivable</td>
 <td>Derive from P_eq vs exosphere criterion; threshold is a design constant</td>
 <td>Threshold 1e-6 bar +- 0.5 dex has no data; Koester fraction is NOT the tuning constraint</td>
@@ -319,7 +319,7 @@ main{padding:16px 16px 60px}}
 <td>[R3946]</td>
 </tr>
 <tr>
-<td>Mars-like CO<sub>2</sub>-N2-Ar, Titan, Pluto: vapour pressure, Jeans retention</td>
+<td>Mars-like CO<sub>2</sub>-N2-Ar, Titan, Pluto: vapor pressure, Jeans retention</td>
 <td>volatile retention vs size and temperature (&quot;[R3948]&quot;)</td>
 <td>SNIPPET; successors [R0552, R2176] verified by title only</td>
 <td>NOT READ</td>
@@ -330,7 +330,7 @@ main{padding:16px 16px 60px}}
 <p><strong>Knobs (point 4).</strong> If the generator keeps a draw for the residual after the physics gate: knob w_retain in [0, 1] (log-uniform not appropriate because 0 is allowed; use uniform). For j1 the physical gate parameters are S_eff,runaway(M, Teff) with target 1.05 to 1.19 (READ, Kopparapu) and a 3-D alternative of about 1.10 (Leconte, abstract). The water-loss knob is the EUV exposure (group p) and initial water (group 2). The O<sub>2</sub>-sink knob (fraction of O<sub>2</sub> absorbed by the surface) is unsourced except by assumption in Luger and Barnes; bracket [0, 1]. Over what range the targets hold: Kopparapu 2600 to 7200 K, 0.1 to 5 Me.</p>
 <p><strong>Consistency test (point 5).</strong> Simulated: fraction of zone-h planets with thick CO<sub>2</sub> or O<sub>2</sub> atmospheres at T-1 b and c insolation (Teq 391 to 400 K for b), compared with &quot;no thick atmosphere&quot; for two planets; tolerance is a binomial limit on N=2, so the test is &quot;population must not forbid 0 of 2 with high probability&quot;. A selection model is needed: transit geometry and the JWST target list (nearby M dwarfs, short periods).</p>
 <p><strong>No-fixed-content flags (point 6).</strong> j2 to j4 are Solar System-only constraints (Mars, Titan, Pluto). The 97:3 CO<sub>2</sub>:N<sub>2</sub> split ([R4154], READ in part 08) is a magma-ocean calculation, not a Venus copy, but Venus is the test point. The &quot;[R3945] crust composition&quot; speciation (section 2.4) is Earth-only.</p>
-<p><strong>Group for a builder (point 7).</strong> Builder A: j1, j5, m2 (and the abiotic part of m3) share one model: runaway gate, water loss, O<sub>2</sub> build-up, and a photochemistry look-up of O<sub>3</sub> columns. j2 to j4 form a second small builder (retention and vapour pressure) with no tuning data.</p>
+<p><strong>Group for a builder (point 7).</strong> Builder A: j1, j5, m2 (and the abiotic part of m3) share one model: runaway gate, water loss, O<sub>2</sub> build-up, and a photochemistry look-up of O<sub>3</sub> columns. j2 to j4 form a second small builder (retention and vapor pressure) with no tuning data.</p>
 <h3 id="22-l1-to-l3-white-dwarf-and-pulsar-planet-options">2.2 l1 to l3: white dwarf and pulsar planet options</h3>
 <p><strong>Ensemble (point 1).</strong></p>
 <div class="table"><table>
@@ -438,10 +438,10 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <p><strong>Physical bracket (point 2).</strong>
-l1: P_eq(Ts) of the silicate vapour at the surface temperature (i6 formula from the part 09 table, [R2380] READ in part 09, not re-read here). The exosphere criterion (collision-free above a column) is a physics statement, not a probability. l3: survival requires an initial orbit outside the engulfment radius, with tides and mass loss ([R4532], READ). Pulsar planets: atmosphere survival from the energy-limited escape and wind stripping calculation of Patruno and Kama (READ).</p>
+l1: P_eq(Ts) of the silicate vapor at the surface temperature (i6 formula from the part 09 table, [R2380] READ in part 09, not re-read here). The exosphere criterion (collision-free above a column) is a physics statement, not a probability. l3: survival requires an initial orbit outside the engulfment radius, with tides and mass loss ([R4532], READ). Pulsar planets: atmosphere survival from the energy-limited escape and wind stripping calculation of Patruno and Kama (READ).</p>
 <p><strong>Verdict (point 3).</strong></p>
 <ul>
-<li><strong>Is the polluted-WD fraction the right tuning constraint for l1? No.</strong> [R2415] measures the fraction of white dwarfs that accrete rocky debris (27 to about 50 percent for 20 to 200 Myr cooling ages, Teff below 23000 K, A-type progenitors). It tunes the upstream gate &quot;this WD hosts rocky bodies that reach it&quot; (and, with debris-disk lifetimes, the number of exposed rocky bodies). It says nothing on whether an exposed body keeps a silicate-vapour exosphere. l1 is a deterministic function of Ts through P_eq, so the draw should be removed or kept only as a width on the threshold (0.5 dex DESIGN), with no data to tune it. Verdict for l1 and l2: (c) as probabilities, derivable from physics.</li>
+<li><strong>Is the polluted-WD fraction the right tuning constraint for l1? No.</strong> [R2415] measures the fraction of white dwarfs that accrete rocky debris (27 to about 50 percent for 20 to 200 Myr cooling ages, Teff below 23000 K, A-type progenitors). It tunes the upstream gate &quot;this WD hosts rocky bodies that reach it&quot; (and, with debris-disk lifetimes, the number of exposed rocky bodies). It says nothing on whether an exposed body keeps a silicate-vapor exosphere. l1 is a deterministic function of Ts through P_eq, so the draw should be removed or kept only as a width on the threshold (0.5 dex DESIGN), with no data to tune it. Verdict for l1 and l2: (c) as probabilities, derivable from physics.</li>
 <li><strong>l3: (b).</strong> Constraints: one hot giant (WD 1856 b), one cold giant (Blackman), transit upper limits (hot Jupiters &lt; 1.5 % of 1148 K2 WDs; 0.8 percent transit fraction of 313 polluted WDs, both short-period only), and a prediction of more than half of WDs hosting Jovian companions (2ND-HAND). The c[0, 0.1] prior is not supported as a number: the right quantity is P(survive) = P(initial a above the engulfment radius of the progenitor, after tides) x occurrence of giants around 1 to 8 Msun progenitors. This should be derived in the generator from its own giant occurrence (group 1 table f) and Veras' engulfment rule. Bracket-only draw: the widest defensible upper value is the published prediction (&gt; 0.5, 2ND-HAND); the transit limits constrain only P &lt; 27 d.</li>
 <li><strong>Pulsar planets: (c).</strong> No observation of any pulsar planet atmosphere exists; the record has 3 to 5 planetary systems around about 3000 neutron stars (Patruno: roughly 3000 known; 2200 young pulsars, 400 millisecond pulsars, READ). The only physics is Patruno and Kama's survival calculation. A pulsar-planet atmosphere should be derived (escape against X-ray and wind), not drawn.</li>
 </ul>

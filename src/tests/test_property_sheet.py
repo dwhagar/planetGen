@@ -355,6 +355,27 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         assert any(row["stored"] for row in rows.values()), kind
 
 
+def test_a_belt_with_ice_lists_the_isotopes_of_its_ices_and_one_without_does_not(client, mysql_config):
+    """GEN.1420: the D/H and 15N/14N of a belt's ices are worked out from its stored ice share, distance and the star's [Fe/H] and age."""
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        ids = []
+        for ice in (0.3, 0.0):
+            conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density, composition_summary, ice_mass_fraction,"
+                         " formation_snow_line_au) VALUES (?, 90, 6e8, 5e8, 7e8, 'typical', 'ice', ?, 2.7)", (system_id, ice))
+            ids.append(conn.execute("SELECT MAX(id) AS id FROM asteroid_belts").fetchone()["id"])
+        store.assign_uids(conn, system_ids=[system_id])
+        conn.commit()
+    finally:
+        conn.close()
+    wet = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[0])}/sheet").get_json())
+    dry = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[1])}/sheet").get_json())
+    assert 5e-5 < wet["isotope_ice_d_h"]["raw"] < 1e-3 and 1.0 / wet["isotope_ice_n15"]["raw"] < 441.0
+    assert wet["isotope_ice_d_h"]["text"].startswith("D/H ")
+    assert not set(sheet.ISOTOPE_KEYS) & set(dry)
+
+
 def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():
     for kind, keys in sheet.GLANCE.items():
         have = {spec.key for spec in sheet.SPECS[kind]}

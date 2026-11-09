@@ -9,8 +9,10 @@ air from sulfur dioxide, an oxidiser and water, and the droplets stand where the
 and a mass limit but no saturation crossing.
 
 * **Supply.** The gates of `acid_medium` (sulfur dioxide, an oxidiser, a trace of water): an air without sulfur gets no acid cloud.
-* **Base.** The first level going up the dry adiabat (`aerosols.profile`) cooler than `base_temperature_k`; the ground where the
-  ground already is. An air that stays warmer than that all the way up has no cloud.
+* **Base.** The warmest level going up the dry adiabat (`aerosols.profile`) where sulfuric acid condenses out of the air's own acid vapor and
+  water (`sulfur_cloud_set.acid_cloud_of_column`, the GEN.1424 curves of `sulfuric_vapor`), so the base moves with the air's sulfur and water (a drier
+  air condenses cooler, a sulfur-richer one warmer); the ground where the ground already is. The same window gives the acid's strength. An air whose
+  acid never condenses has no cloud.
 * **Limit.** All the sulfur dioxide above the base made into acid, `m = x_SO2 P_base M_acid / (M g)` kg per m2. The depth of a cloud of
   that mass in droplets of radius `r` is `3 Q m / (4 rho r)` (`aerosols.CLOUD_Q_EXT`).
 * **Draw.** The depth is uniform on the published Venus total (20 to 30), the droplet radius log-uniform on the published mode radii
@@ -25,7 +27,7 @@ import os
 
 import numpy as np
 
-from planetgen.physics import acid_medium, aerosols, elements
+from planetgen.physics import acid_medium, aerosols, air_column, elements, sulfur_cloud_set
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfuric_cloud.json")
 ACID_MOLAR_MASS_KG_MOL = 0.098079
@@ -69,16 +71,19 @@ def skin_k(energy_flux_w_m2):
     return acid_medium.skin_k({"energy_flux_w_m2": energy_flux_w_m2}, None)
 
 
-def base_pressure_pa(column, temperature_k, skin=None):
-    """The pressure of the cloud base, Pa, or `None` when the air has none (nothing to make the acid, or never cool enough). `skin` is the
-    temperature the air turns isothermal at (`skin_k`), else the grey factor of the ground temperature."""
+def window(column, temperature_k, skin=None):
+    """The `sulfur_cloud_set.Cloud` (base temperature, base and top pressure, strength) of the air's acid cloud, or `None` when the air has no acid
+    cloud: it lacks the sulfur, an oxidiser or the water (`supplied`), or its acid does not condense anywhere in its profile (GEN.1424)."""
     if not supplied(column):
         return None
-    pressure, temperature = aerosols.profile(column, temperature_k, skin_k=skin)
-    cool = np.nonzero(temperature <= number("base_temperature_k"))[0]
-    if len(cool) == 0:
-        return None
-    return float(pressure[cool[0]])
+    return sulfur_cloud_set.acid_cloud_of_column(column, temperature_k, skin)
+
+
+def base_pressure_pa(column, temperature_k, skin=None):
+    """The pressure of the cloud base, Pa, or `None` when the air has none. `skin` is the temperature the air turns isothermal at (`skin_k`), else
+    the grey factor of the ground temperature."""
+    found = window(column, temperature_k, skin)
+    return None if found is None else found.base_pressure_pa
 
 
 def acid_column_limit_kg_m2(column, temperature_k, skin=None):
@@ -126,3 +131,28 @@ def of_draw(column, temperature_k, aerosol_draw, skin=None):
     radius = radius_um(aerosol_draw)
     tau, cover = draw(column, temperature_k, (aerosol_draw * GOLDEN) % 1.0, aerosol_draw, skin)
     return tau, cover, radius
+
+
+def of_body(body):
+    """`(tau_550, cloud_cover, radius_um)` of the acid cloud of a planet or moon from its stored values (its air, surface temperature, greenhouse
+    factor and `aerosol_draw`); `(0, 0, 0)` for a body with no air or no stored aerosols."""
+    temperature = getattr(body, "surface_temperature", None)
+    draw_value = getattr(body, "aerosol_draw", None)
+    column = air_column.column_of(body)
+    if column is None or not temperature or draw_value is None:
+        return 0.0, 0.0, 0.0
+    return of_draw(column, temperature, draw_value, aerosols.skin_of(body))
+
+
+def infrared_cloud(column, temperature_k, aerosol_draw, skin=None):
+    """
+    `(tau_550, radius_um, base_temperature_k, weight_percent)` for `radiative_convective.solve(cloud=...)`: the acid cloud's depth and droplet radius
+    from the stored `aerosol_draw` (`of_draw`) and the base temperature and strength its air's acid fixes (`window`); `None` without an acid cloud.
+    """
+    found = window(column, temperature_k, skin)
+    if found is None:
+        return None
+    tau, _cover, radius = of_draw(column, temperature_k, aerosol_draw, skin)
+    if tau <= 0.0:
+        return None
+    return tau, radius, found.base_temperature_k, found.weight_percent

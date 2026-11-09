@@ -72,7 +72,7 @@ main{padding:16px 16px 60px}}
 <td>Tables 1 and 3: the mass function of each morphological class, which gives the family fractions</td>
 </tr>
 <tr>
-<td>[R2558], GAMA bulges, discs and spheroids</td>
+<td>[R2558], GAMA bulges, disks and spheroids</td>
 <td>1607.01096</td>
 <td>Table of fits <code>R_e = a (M*/1e10)^b</code> by Hubble type and by component</td>
 </tr>
@@ -82,9 +82,9 @@ main{padding:16px 16px 60px}}
 <td>Early-type fit and scatter, and a probable misprint in its Table 1 (section 6.3)</td>
 </tr>
 <tr>
-<td>[R1656], bulge-to-disc ratios</td>
+<td>[R1656], bulge-to-disk ratios</td>
 <td>0805.3565</td>
-<td>Tables 3 and 4: S0 and spiral bulge and disc parameters by type</td>
+<td>Tables 3 and 4: S0 and spiral bulge and disk parameters by type</td>
 </tr>
 <tr>
 <td>[R1267], ATLAS3D III</td>
@@ -291,7 +291,7 @@ main{padding:16px 16px 60px}}
 <li><strong>Below 1e9</strong> (under Kelvin's limit) the family is <code>irregular</code> or <code>dwarf_spheroid</code>. The dwarf spheroid share is the isolated-dwarf quenched fraction of ELVES-Field (2602.16778 abstract): essentially zero above 1e7 solar and about 30 percent below it [V]. As a step: <code>p(dwarf_spheroid) = 0.30</code> below 1e7 and <code>0</code> from 1e7 to 1e9 [P for the shape of the step; the two levels are V]. Between 1e9 and 3e9 the Kelvin fractions apply with the rules above.</li>
 </ul>
 <p>The quenched fraction rests on a few dozen isolated dwarfs (&quot;the statistics on the quenched fraction are rather poor&quot;, the paper), so R2 asks for a better one.</p>
-<p><strong>What the shape stand-in in GEN.401 becomes.</strong> <code>shape_draw.py</code> today reads Kelvin's Table 1 (a cumulative fraction above a bound) as a local fraction to choose the spiral's stage (early or late). GEN.382 replaces it with this law: the spiral's Hubble stage <code>T</code> is drawn within its class (Sa from the S0-Sa share, Sb to Sc from Sab-Scd, Sd to Sm from Sd-Irr), uniformly over the stages of the class [P], and the bulge-to-disc ratio is that stage's median (section 6.1).</p>
+<p><strong>What the shape stand-in in GEN.401 becomes.</strong> <code>shape_draw.py</code> today reads Kelvin's Table 1 (a cumulative fraction above a bound) as a local fraction to choose the spiral's stage (early or late). GEN.382 replaces it with this law: the spiral's Hubble stage <code>T</code> is drawn within its class (Sa from the S0-Sa share, Sb to Sc from Sab-Scd, Sd to Sm from Sd-Irr), uniformly over the stages of the class [P], and the bulge-to-disk ratio is that stage's median (section 6.1).</p>
 <h2 id="6-the-shape-table">6. The shape table</h2>
 <p><em>Feeds</em> names the component of the density model (<code>galaxy/density.py</code>, GEN.379) or the stored value that takes the number.</p>
 <h3 id="61-spiral-family-built-in-gen401-extended-by-gen382">6.1 Spiral family (built in GEN.401, extended by GEN.382)</h3>
@@ -311,7 +311,7 @@ main{padding:16px 16px 60px}}
 <td>Disk scale length</td>
 <td>late-type size-mass relation <code>R50 = gamma M^alpha (1 + M/M0)^(beta - alpha)</code> (gamma 0.10, alpha 0.14, beta 0.39, M0 3.98e10), <code>Rd = R50 / 1.678</code></td>
 <td>3e9 to 2e11; scatter 0.20 dex falling to 0.15 dex</td>
-<td>[R4048], as in GEN.368 row 4 (Boss chose Shen, 10:09 PM EDT on 2026-10-16) [V]. Cross-check: [R2558] final z = 0 discs <code>R_e = 5.141 (M/1e10)^0.274</code> kpc [V], 8.0 kpc at 5e10 against Shen's 3.9: the two differ by 2, as in GEN.368 Q5 (Lange fits r-band elliptical-aperture sizes, Shen z-band circular ones)</td>
+<td>[R4048], as in GEN.368 row 4 (Boss chose Shen, 10:09 PM EDT on 2026-10-16) [V]. Cross-check: [R2558] final z = 0 disks <code>R_e = 5.141 (M/1e10)^0.274</code> kpc [V], 8.0 kpc at 5e10 against Shen's 3.9: the two differ by 2, as in GEN.368 Q5 (Lange fits r-band elliptical-aperture sizes, Shen z-band circular ones)</td>
 <td>thin disk length</td>
 </tr>
 <tr>
@@ -336,7 +336,7 @@ main{padding:16px 16px 60px}}
 <td>bulge, bar</td>
 </tr>
 <tr>
-<td>Bulge-to-disc <code>log10(B/D)</code></td>
+<td>Bulge-to-disk <code>log10(B/D)</code></td>
 <td>median of the stage with the table's half widths: Sa -0.34 (+0.40 -0.32), Sab -0.54 (+0.53 -0.41), Sb -0.60 (+0.28 -0.49), Sbc -0.82 (+0.28 -0.42), Sc -1.06 (+0.43 -0.34), Scd -1.23 (+0.75 -0.28), Sd -1.06 (+0.16 -0.50), Sdm -1.49, Sm -1.57, Irr -1.39 (the last three from 4, 2 and 1 galaxies)</td>
 <td><code>B/T = 1 / (1 + 1/(B/D))</code>; K-band flux ratios</td>
 <td>[R1656: Table 4], read from the LaTeX source [V]. GEN.401 uses the two class medians, T = 1 to 3 (-0.51) and T = 6 to 9 (-1.19), also in the table [V]</td>
@@ -387,13 +387,13 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Disk length</td>
-<td>the early-type disc component relation <code>R_e,disc = 4.55 (M_disc/1e10)^0.247</code> kpc with <code>M_disc = (1 - B/T) M*</code>, <code>Rd = R_e,disc / 1.678</code></td>
+<td>the early-type disk component relation <code>R_e,disk = 4.55 (M_disk/1e10)^0.247</code> kpc with <code>M_disk = (1 - B/T) M*</code>, <code>Rd = R_e,disk / 1.678</code></td>
 <td>scatter 0.15 dex [P: the late-type disk scatter, no S0 value read]</td>
-<td>[R2556, R2558] [V]. Cross-check: Graham and Worley's S0 disc length <code>h = 2.83 (+3.10 -1.10)</code> kpc, 2.60 for the class T &lt;= 0, against 2.5 kpc from the relation at <code>B/T = 0.30</code> and <code>M* = 1e10</code> [C]</td>
+<td>[R2556, R2558] [V]. Cross-check: Graham and Worley's S0 disk length <code>h = 2.83 (+3.10 -1.10)</code> kpc, 2.60 for the class T &lt;= 0, against 2.5 kpc from the relation at <code>B/T = 0.30</code> and <code>M* = 1e10</code> [C]</td>
 <td>thin disk length</td>
 </tr>
 <tr>
-<td>Bulge-to-disc</td>
+<td>Bulge-to-disk</td>
 <td><code>log10(B/D) = -0.37 (+0.40 -0.35)</code> for T &lt;= 0 (S0 and S0/a alone: -0.54 and -0.31); <code>B/T</code> about 0.30</td>
 <td></td>
 <td>[R1656: Table 4] [V]</td>
@@ -466,12 +466,12 @@ main{padding:16px 16px 60px}}
 <td>Axis ratios</td>
 <td>two modes. Fast rotators (flat): intrinsic <code>q</code> Gaussian with mean 0.25 to 0.33 and sigma 0.11 to 0.14, <code>p = 0.99</code> (oblate). Slow rotators (round): <code>q</code> Gaussian with mean 0.61 to 0.66 and sigma 0.08 to 0.09, <code>p</code> from <code>ln(1 - p)</code> between -5 and -3 (0.95 to 0.99, mildly triaxial)</td>
 <td><code>q</code> cut to 0.05 to 1</td>
-<td>[R4654]: direct inversion 0.25 (sigma 0.14) and 0.63 (0.09), the 2-D triaxial fit 0.33 (0.11) and 0.66 (0.08), after removing four counter-rotating discs 0.61 (0.09); the fits are kept as a bracket [V]. <code>p</code> for slow rotators is only bracketed (&quot;very strong indications that they are (mildly) triaxial&quot;; the best fit sits at the grid edge, <code>mu_Y = -5</code>) [V]</td>
+<td>[R4654]: direct inversion 0.25 (sigma 0.14) and 0.63 (0.09), the 2-D triaxial fit 0.33 (0.11) and 0.66 (0.08), after removing four counter-rotating disks 0.61 (0.09); the fits are kept as a bracket [V]. <code>p</code> for slow rotators is only bracketed (&quot;very strong indications that they are (mildly) triaxial&quot;; the best fit sits at the grid edge, <code>mu_Y = -5</code>) [V]</td>
 <td>spheroid axis ratios</td>
 </tr>
 <tr>
 <td>Slow-rotator share</td>
-<td>14 percent of the early-type sample overall; 4 of the 36 slow rotators are low-mass counter-rotating discs (<code>Mdyn &lt; 10^10.5</code>) and the other 32 have <code>Mdyn &gt; 10^10.5</code>; about one fourth of early-type galaxies above <code>10^11.5</code> are fast</td>
+<td>14 percent of the early-type sample overall; 4 of the 36 slow rotators are low-mass counter-rotating disks (<code>Mdyn &lt; 10^10.5</code>) and the other 32 have <code>Mdyn &gt; 10^10.5</code>; about one fourth of early-type galaxies above <code>10^11.5</code> are fast</td>
 <td>no value below 10^10</td>
 <td>[R1267] abstract [V]. The law against mass is a figure in the paper: placeholder logistic in <code>log M*</code>, zero at 1e10, 0.75 at 10^11.5 [P], R6</td>
 <td>spheroid axis ratios</td>
@@ -795,7 +795,7 @@ main{padding:16px 16px 60px}}
 </tbody>
 </table></div>
 <p>The migration gives every existing galaxy the <code>spiral</code> family and these defaults, so no stored density changes. The component masses (<code>component_masses</code>, GEN.379) are calculated, not stored. A family that has no thick disk, bar or spheroid stores amplitude 0; an amplitude of 0 removes the component exactly.</p>
-<p>As built (GEN.379): <code>galaxy/density.py</code> <code>density_components(shape)</code> returns the density model as a list of <code>DensityComponent</code>s in a fixed order (<code>thin_disk</code>, <code>thick_disk</code>, <code>bulge</code>, <code>halo</code>, <code>nuclear_cluster</code>, <code>nuclear_disc</code>), each with its population, amplitude, mass (the model's units, in closed form) and <code>mass_solar</code> (the share of <code>structure.stellar_mass_solar</code>; the six sum to it), and the scale lengths, heights, bar angle and halo slopes that shape it. <code>component_masses(shape)</code> returns the six <code>mass_solar</code> values by name, which is where the potential (GEN.338) reads its bulge, disk and halo masses from; the numerical integral the earlier <code>component_masses</code> was is now <code>integrated_masses</code>, kept for the math check and the tests. <code>component_values(position, shape)</code> and <code>component_arrays(x, y, z, shape)</code> give each component's value at a point or at arrays of points, and <code>relative_density</code>, <code>population_densities</code>, <code>population_densities_array</code> and <code>total_density_array</code> sum and split those, so there is one place that knows each component's formula; a component with amplitude 0 is exactly 0. Today's spiral gives today's density to the last digit (<code>src/tests/fixtures/density_identity.json</code> holds the density, the population split and the array forms of six shapes at 24 points, made before the rewrite) and the array forms run as fast as before. Closed-form masses agree with a quadrature of each profile to 1e-6 (the nuclear cluster's profile is held flat inside its softening radius, which keeps <code>softened_mass_fraction</code> of its nominal mass, 78 percent for the reference cluster: about one part in ten thousand of the galaxy's stars). <code>get_galaxy_shape</code> reads the DB.66 columns into <code>GalaxyShape</code> (<code>family</code>, <code>bar_present</code>, <code>bar_axis_ratio_b</code>, <code>bar_axis_ratio_c</code>, <code>bar_angle_rad</code>, <code>thick_disk_amplitude</code>, the spheroid numbers and <code>body_clump_share</code>) and <code>save_galaxy_shape</code> writes them. A NULL bar or thick disk number stays <code>None</code> on the shape and the structure draw's value stands; a number pins it, in the shape and in its <code>structure</code>. The Sersic spheroid (GEN.381) adds its own component to the list; no family draws one yet, so a stored spheroid amplitude above 0 is refused with a message until GEN.381 builds the component.</p>
+<p>As built (GEN.379): <code>galaxy/density.py</code> <code>density_components(shape)</code> returns the density model as a list of <code>DensityComponent</code>s in a fixed order (<code>thin_disk</code>, <code>thick_disk</code>, <code>bulge</code>, <code>halo</code>, <code>nuclear_cluster</code>, <code>nuclear_disk</code>), each with its population, amplitude, mass (the model's units, in closed form) and <code>mass_solar</code> (the share of <code>structure.stellar_mass_solar</code>; the six sum to it), and the scale lengths, heights, bar angle and halo slopes that shape it. <code>component_masses(shape)</code> returns the six <code>mass_solar</code> values by name, which is where the potential (GEN.338) reads its bulge, disk and halo masses from; the numerical integral the earlier <code>component_masses</code> was is now <code>integrated_masses</code>, kept for the math check and the tests. <code>component_values(position, shape)</code> and <code>component_arrays(x, y, z, shape)</code> give each component's value at a point or at arrays of points, and <code>relative_density</code>, <code>population_densities</code>, <code>population_densities_array</code> and <code>total_density_array</code> sum and split those, so there is one place that knows each component's formula; a component with amplitude 0 is exactly 0. Today's spiral gives today's density to the last digit (<code>src/tests/fixtures/density_identity.json</code> holds the density, the population split and the array forms of six shapes at 24 points, made before the rewrite) and the array forms run as fast as before. Closed-form masses agree with a quadrature of each profile to 1e-6 (the nuclear cluster's profile is held flat inside its softening radius, which keeps <code>softened_mass_fraction</code> of its nominal mass, 78 percent for the reference cluster: about one part in ten thousand of the galaxy's stars). <code>get_galaxy_shape</code> reads the DB.66 columns into <code>GalaxyShape</code> (<code>family</code>, <code>bar_present</code>, <code>bar_axis_ratio_b</code>, <code>bar_axis_ratio_c</code>, <code>bar_angle_rad</code>, <code>thick_disk_amplitude</code>, the spheroid numbers and <code>body_clump_share</code>) and <code>save_galaxy_shape</code> writes them. A NULL bar or thick disk number stays <code>None</code> on the shape and the structure draw's value stands; a number pins it, in the shape and in its <code>structure</code>. The Sersic spheroid (GEN.381) adds its own component to the list; no family draws one yet, so a stored spheroid amplitude above 0 is refused with a message until GEN.381 builds the component.</p>
 <h2 id="11-research-requests">11. Research requests</h2>
 <p>Relations no paper read here gives. Each stays a labelled placeholder until answered; none blocks the build.</p>
 <div class="table"><table>

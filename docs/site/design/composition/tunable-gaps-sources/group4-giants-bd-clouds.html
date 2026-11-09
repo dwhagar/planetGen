@@ -162,9 +162,9 @@ main{padding:16px 16px 60px}}
 <p>Physical bracket. Atmospheric Z cannot exceed bulk Zp, and Zp is at most 1 (TF19, READ). The design range [-0.5, 2.0] dex is exceeded by LExACoM ([M/H] from -1.99 to +2.63, COMPUTED, mixed C/H, O/H, (O+C)/H definitions).</p>
 </li>
 <li>
-<p>Verdict. The 0.26 dex is the intrinsic scatter of Mz at fixed mass in the Mz-M fit (COMPUTED: log10 1.82 = 0.260 dex, band 0.25 to 0.27), not of the Zpl/Zstar fit that gives f5 its centre. Chachan says the scatter of Zp/Z* is no smaller than that of Zp (0.67 vs 0.66 multiplicative, 0.22 to 0.29 dex under a lognormal or small-sigma reading, COMPUTED), so 0.26 dex is a sound proxy for the bulk scatter. But the generator needs the atmosphere. Retrievals add two things: the atmospheric trend is steeper (ExoComp text: -1 to -2 dex per dex of mass; Solar System shallowest at -1.13 +-0.09; the O/H fits print -1.80 +-0.36 transit and -1.81 +-0.16 eclipse, column assignment inferred from a garbled table) against the bulk exponent -0.45 +-0.09; and the scatter about the trend is large. From the CSV (COMPUTED, my linear fit of [M/H] on log10 M, one row per planet): all 69 slope -0.32, residual 0.80 dex; transit 27 slope -0.64, 0.94 dex; eclipse 18 slope -1.30, 0.74 dex; direct imaging 24 slope -0.22, 0.41 dex; mean quoted error 0.2 to 0.5 dex, naive intrinsic scatter 0.36 to 0.85 dex. The design width 0.3 dex fits the bulk scatter but is 1.5 to 3 times narrower than the retrieved atmospheric scatter.</p>
-<p>Verdict: (a) if f5 is redefined as bulk Z (centre C25, width 0.22 to 0.29 dex); (b) for atmospheric m, with f (0.2, Jupiter and Saturn only) replaced by a distribution tuned to LExACoM.</p>
-<p>Design note corrected: part 09 f5 says &quot;[R0710] gives lower Z for sub-Saturns&quot;. The paper says sub-Saturns (&lt; 0.3 MJ) have high bulk Zp, 0.2 or more, not a selection effect. C25 agrees with T16 at 0.1 MJ (Zp/Z* 29.3 vs 27.3, COMPUTED) and is 1.4 to 1.6 times lower from 0.3 to 3 MJ (12.0 vs 16.7 at 0.3; 5.9 vs 9.7 at 1; 4.2 vs 5.9 at 3), rejoining at 10 MJ (3.56 vs 3.4). C25 supersedes T16 for the centre above 0.3 MJ.</p>
+<p>Verdict. The 0.26 dex is the intrinsic scatter of Mz at fixed mass in the Mz-M fit (COMPUTED: log10 1.82 = 0.260 dex, band 0.25 to 0.27), not of the Zpl/Zstar fit that gives f5 its center. Chachan says the scatter of Zp/Z* is no smaller than that of Zp (0.67 vs 0.66 multiplicative, 0.22 to 0.29 dex under a lognormal or small-sigma reading, COMPUTED), so 0.26 dex is a sound proxy for the bulk scatter. But the generator needs the atmosphere. Retrievals add two things: the atmospheric trend is steeper (ExoComp text: -1 to -2 dex per dex of mass; Solar System shallowest at -1.13 +-0.09; the O/H fits print -1.80 +-0.36 transit and -1.81 +-0.16 eclipse, column assignment inferred from a garbled table) against the bulk exponent -0.45 +-0.09; and the scatter about the trend is large. From the CSV (COMPUTED, my linear fit of [M/H] on log10 M, one row per planet): all 69 slope -0.32, residual 0.80 dex; transit 27 slope -0.64, 0.94 dex; eclipse 18 slope -1.30, 0.74 dex; direct imaging 24 slope -0.22, 0.41 dex; mean quoted error 0.2 to 0.5 dex, naive intrinsic scatter 0.36 to 0.85 dex. The design width 0.3 dex fits the bulk scatter but is 1.5 to 3 times narrower than the retrieved atmospheric scatter.</p>
+<p>Verdict: (a) if f5 is redefined as bulk Z (center C25, width 0.22 to 0.29 dex); (b) for atmospheric m, with f (0.2, Jupiter and Saturn only) replaced by a distribution tuned to LExACoM.</p>
+<p>Design note corrected: part 09 f5 says &quot;[R0710] gives lower Z for sub-Saturns&quot;. The paper says sub-Saturns (&lt; 0.3 MJ) have high bulk Zp, 0.2 or more, not a selection effect. C25 agrees with T16 at 0.1 MJ (Zp/Z* 29.3 vs 27.3, COMPUTED) and is 1.4 to 1.6 times lower from 0.3 to 3 MJ (12.0 vs 16.7 at 0.3; 5.9 vs 9.7 at 1; 4.2 vs 5.9 at 3), rejoining at 10 MJ (3.56 vs 3.4). C25 supersedes T16 for the center above 0.3 MJ.</p>
 </li>
 <li>
 <p>Knobs.</p>
@@ -181,7 +181,7 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>bulk centre</td>
+<td>bulk center</td>
 <td>Zp/Z* = 2.6/Mp + 3.3; MZ = 14.7 + 0.09 (Mp - 14.7)</td>
 <td>a +-0.3, b +-0.5, Mcore +1.8/-1.6, fZ +-0.01; 0.03 to 12 MJ</td>
 <td>C25 READ</td>
@@ -271,20 +271,20 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>[R3294] (candidate &quot;[R3294]&quot; is a proceeding, 1306.4836, SNIPPET); [R4326] (candidate &quot;[R4327]&quot; is [R4327], not read)</td>
 <td>F and G dwarfs; 55 Cnc</td>
-<td>thin-disc stars have higher C/O than thick-disc and halo at equal [O/H]; the [O I] 6300 line is blended with Ni I in metal-rich stars (55 Cnc 1.12 falls to 0.78 +-0.08 with other lines)</td>
+<td>thin-disk stars have higher C/O than thick-disk and halo at equal [O/H]; the [O I] 6300 line is blended with Ni I in metal-rich stars (55 Cnc 1.12 falls to 0.78 +-0.08 with other lines)</td>
 <td>READ (abstracts)</td>
 </tr>
 </tbody>
 </table></div>
 <p>The 34 percent vs sub-percent conflict. Both numbers are READ but measure different things with different method quality. DM2010 used one oxygen line that [R4326] shows is blended at high metallicity; B&amp;F use hundreds of lines and drop it; SA18, a larger HARPS sample, finds none above 0.8. B&amp;F's &quot;&lt; 0.13 percent&quot; is the carbon-rich fraction; their READ maximum of 0.66 gives zero stars above 0.8 in 849, so an upper limit of 3/849 = 0.35 percent at 95 percent (COMPUTED). DM2010's 34 percent is superseded on method grounds, and the design range [0.0013, 0.34] for f_tail takes its two ends from this disagreement; the upper end should be dropped as a stellar number.</p>
 <p>Ensemble (planets). LExACoM, 69 unique planets (DATA, COMPUTED): C/O median 0.57, sd 0.27; transit 27 planets median 0.42 sd 0.38, eclipse 18 median 0.69 sd 0.18, direct imaging 24 median 0.58 sd 0.12. ExoComp text (66 planets): medians 0.350 (transit), 0.59 (direct), 0.7 (eclipse), sd about 0.2, K-S p 0.011 and 0.012 for transit against direct and eclipse; none above 1 at 1 sigma except TOI-5205 b (1.3 +-0.4). Design bins (&lt;0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, &gt;=1.0) hold 12, 43, 8, 3, 3 of 69 planets (0.174, 0.623, 0.116, 0.043, 0.043), against the design example 0.106, 0.747, 0.117, 0.009, 0.021.</p>
-<p>Planet-minus-star offset (2ND-HAND via [R0901]): for six planets shared with [R0735] (HST and Spitzer free retrievals) every planet exceeds its star, median +0.43 +-0.13; for directly imaged planets [R0218] median -0.04 +-0.04. WASP-77A b alone has 0.59 +-0.08 (Line 2021, [R2701], READ), 0.36 +0.10/-0.09 (August 2023, 2ND-HAND) and a host star at 0.44 +0.07/-0.08, an offset of -0.08 to +0.15 for one planet. The offset has no single distribution (0.2 to 0.5 by geometry). The design core centre 0.55 rests on one planet (Line, N=1).</p>
+<p>Planet-minus-star offset (2ND-HAND via [R0901]): for six planets shared with [R0735] (HST and Spitzer free retrievals) every planet exceeds its star, median +0.43 +-0.13; for directly imaged planets [R0218] median -0.04 +-0.04. WASP-77A b alone has 0.59 +-0.08 (Line 2021, [R2701], READ), 0.36 +0.10/-0.09 (August 2023, 2ND-HAND) and a host star at 0.44 +0.07/-0.08, an offset of -0.08 to +0.15 for one planet. The offset has no single distribution (0.2 to 0.5 by geometry). The design core center 0.55 rests on one planet (Line, N=1).</p>
 <ol start="2">
 <li>
 <p>Physical bracket. C/O is bounded by 0 and about 1 for accretion including oxygen-bearing solids; 3 of 69 planets have a value at or above 1, all with errors reaching below 1.</p>
 </li>
 <li>
-<p>Verdict. (a) for the stellar C/O distribution (three independent analyses agree on no tail above 0.8). (b) for planets: centre, width and tail can be tuned to LExACoM only to its pooled statistics, with a 0.2 to 0.3 geometry systematic in the median. The stellar catalogue does not fix the planet tail: the planet fraction above 0.8 is 6/69 = 0.087 (Wilson 95 percent 0.040 to 0.177), or 3/69 = 0.043 (0.015 to 0.120) if the 1-sigma lower bound must exceed 0.8 (COMPUTED). Both intervals exclude the design ends 0.0013 and 0.34. The C/O above 0.8 is carried by hot and ultra-hot planets (WASP-121 b, WASP-19 b, HD 149026 b, HIP 67522 b, HR 8799 e), so it mixes chemistry, retrieval systematics and formation.</p>
+<p>Verdict. (a) for the stellar C/O distribution (three independent analyses agree on no tail above 0.8). (b) for planets: center, width and tail can be tuned to LExACoM only to its pooled statistics, with a 0.2 to 0.3 geometry systematic in the median. The stellar catalogue does not fix the planet tail: the planet fraction above 0.8 is 6/69 = 0.087 (Wilson 95 percent 0.040 to 0.177), or 3/69 = 0.043 (0.015 to 0.120) if the 1-sigma lower bound must exceed 0.8 (COMPUTED). Both intervals exclude the design ends 0.0013 and 0.34. The C/O above 0.8 is carried by hot and ultra-hot planets (WASP-121 b, WASP-19 b, HD 149026 b, HIP 67522 b, HR 8799 e), so it mixes chemistry, retrieval systematics and formation.</p>
 </li>
 <li>
 <p>Knobs and targets.</p>
@@ -301,7 +301,7 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>stellar centre, width</td>
+<td>stellar center, width</td>
 <td>median, sd</td>
 <td>0.47 and 0.07 (B&amp;F); 0.45 to 0.50 and 0.10 to 0.13 (SA18); 0.468 and 0.143 (Hypatia)</td>
 <td>READ, 2ND-HAND</td>
@@ -319,7 +319,7 @@ main{padding:16px 16px 60px}}
 <td>2ND-HAND</td>
 </tr>
 <tr>
-<td>planet core centre</td>
+<td>planet core center</td>
 <td>median of 69</td>
 <td>0.57 (0.42 transit, 0.69 eclipse, 0.58 direct)</td>
 <td>COMPUTED</td>
@@ -343,7 +343,7 @@ main{padding:16px 16px 60px}}
 <p>Consistency test. Compare simulated fractions in the five bins and the median with the counts above (binomial, N=69, tolerance from the Wilson intervals); on the stellar side compare host C/O with B&amp;F (median 0.47, sd 0.07, none above 0.66). Hot-Jupiter hosts are metal rich and C/O rises with [Fe/H] (rms 0.06), so sample hosts by [Fe/H].</p>
 </li>
 <li>
-<p>Flags. The core centre 0.55 and the solar 0.589 are Solar System anchors; LExACoM and the stellar catalogues replace them.</p>
+<p>Flags. The core center 0.55 and the solar 0.589 are Solar System anchors; LExACoM and the stellar catalogues replace them.</p>
 </li>
 <li>
 <p>Group. Builder A with f5 (one table, one loader).</p>
@@ -516,7 +516,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>At 1500 K, CH<sub>4</sub>/CO is 7e-9 at 1 mbar and 7e-3 at 1 bar, so below about 1 bar the gas is CO-dominated at 1500 K. The 1500 K edge of h1/h2 is therefore the equilibrium CH<sub>4</sub>-to-CO line at about 5 to 10 bar; at photospheric pressures (0.01 to 0.1 bar) the line sits near 900 to 1000 K, and quenching (part 05 s7.3) decides what is seen. The 2200 K edge of h2/h3 corresponds to only 1 to 4 percent H<sub>2</sub>O depletion at 1 mbar to 0.01 bar; real thermal dissociation (half the water) lies at 2570 to 3600 K for 1 mbar to 1 bar, and observed depletion in ultra-hot Jupiters also involves H- opacity and ionisation, which this subset cannot do (Ti+ and Mg+ absent). The dayside is hotter than Teq. The edge is a pressure-dependent output; a fixed 2200 K is not supported by the computed table.</p>
+<p>At 1500 K, CH<sub>4</sub>/CO is 7e-9 at 1 mbar and 7e-3 at 1 bar, so below about 1 bar the gas is CO-dominated at 1500 K. The 1500 K edge of h1/h2 is therefore the equilibrium CH<sub>4</sub>-to-CO line at about 5 to 10 bar; at photospheric pressures (0.01 to 0.1 bar) the line sits near 900 to 1000 K, and quenching (part 05 s7.3) decides what is seen. The 2200 K edge of h2/h3 corresponds to only 1 to 4 percent H<sub>2</sub>O depletion at 1 mbar to 0.01 bar; real thermal dissociation (half the water) lies at 2570 to 3600 K for 1 mbar to 1 bar, and observed depletion in ultra-hot Jupiters also involves H- opacity and ionization, which this subset cannot do (Ti+ and Mg+ absent). The dayside is hotter than Teq. The edge is a pressure-dependent output; a fixed 2200 K is not supported by the computed table.</p>
 <ol start="3">
 <li>
 <p>Verdict. Derive, do not draw. The &quot;weights&quot; Phi((T-1500)/100) and Phi((T-2200)/100) have no probabilistic content. What can be tuned are the physical inputs (P-T profile, Z, C/O).</p>
