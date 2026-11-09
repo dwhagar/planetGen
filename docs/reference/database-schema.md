@@ -2026,6 +2026,22 @@ row per sector address a backfill reached or a fill generated. See
 | `total_mass_kg` | DOUBLE | nullable | The summed mass (kg) of the bodies in it (v162, DB.108); 0 for a generated sector with none, NULL before a fill or when a body has no stored mass. See "v168 (DB.108)". |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
+### `effect_ledger`
+
+Added in v236 (GEN.1465). For every body of a system and every effect that acts on it, the share of each source's contribution in the largest source's (1.0 for the largest); it changes no result (`physics/effect_ledger.py`, `reports/gen1465-effect-ledger-design-2026-11-08.md`). The effects: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing, 6 precession, 7 eccentricity perturbation. Every source is computed; a source whose share is under `tuning.EFFECT_LEDGER_FLOOR` (1e-3, 0.1 percent) is not a row of its own but is added to the (body, effect) summary row. The five gravity effects (tide, heating, secular, precession, eccentricity) store only their largest source and the summary row; the other sources are recomputed on demand from stored masses and orbits.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL | The system the receiving body is in; FK -> `star_systems.id` (`ON DELETE CASCADE`). First in the primary key, so a system's rows sit together. |
+| `body_type`, `source_type` | TINYINT UNSIGNED | NOT NULL | The receiving body's and the source's kind table (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars); `source_type` 0 on the summary row. |
+| `body_id`, `source_id` | BIGINT UNSIGNED | NOT NULL | Their row ids in those tables; `source_id` 0 on the summary row. |
+| `effect` | TINYINT UNSIGNED | NOT NULL | The effect's code. |
+| `share` | FLOAT | NOT NULL | The source's contribution over the largest source's (CHECK 0 or more); on the summary row, the sum of the shares under the floor. |
+| `n_below` | INT UNSIGNED | nullable | Summary row only: how many sources were under the floor. |
+| `largest_value` | DOUBLE | nullable | Summary row only: the largest source's contribution in the effect's own unit (CHECK over 0). |
+
+Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id)`; no other index. Left out of the fingerprint (it records, it does not decide). A galaxy made before v236 has no rows, which reads as no ledger.
+
 ### `chart_ledger`
 
 Added in v201 (GEN.1127). One row for each sector cell that has been charted, keyed by the cell's address (`shell_index`, `band_index`, `wedge_index`, not `sectors.id`, so a row survives a sector row that is replaced). A cell is a whole sector, so it is charted or it is not; the uncharted remainder is every cell with no row. It replaces `sector_stats.filled_at` (dropped in v200), so there is one record of the charted state. Written by the save of a sector, cleared when a sector is deleted (`db/chart_ledger.py`).

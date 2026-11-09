@@ -3827,3 +3827,11 @@ Which planet holds a short-period comet on its orbit (`physics/comet_control.py`
 | CT3 | T | T6 | L0 | a Jupiter-family comet is drawn again up to `tuning.COMET_CEILING_ATTEMPTS` times (perihelion, eccentricity, inclination) until it is in the range; with none it is of another family (weights of the other classes); a star with no giant draws as before | `COMET_CEILING_ATTEMPTS` | all stars | a star with no giant whose measured short-period comets are fewer than the family's weight | a capture rate from the giant's cross-section | design; reuse of the redraw loop of `StarSystem._generate_comets` |
 | CT4 | T | T6 | L0 | the companion star's tide on the orbits is the `ceiling_au` cut already in place (GEN.228, GEN.591); the galactic tide on the far cloud is not in this slice (GEN.1466) | none | wide pairs | a comet reservoir of a wide pair that reaches past the ceiling | a tide integrated on the orbit | reuse of the ceiling; design |
 
+
+### 6.252 Stand-ins of the effect ledger (GEN.1465)
+
+The effect ledger changes no result; the floor under which a source is summed and not written as its own row limits storage only (every source is computed).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value |

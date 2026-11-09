@@ -529,6 +529,25 @@ edit_journal = sa.Table(
 )
 
 
+effect_ledger = sa.Table(
+    'effect_ledger',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('effect', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('share', mysql.FLOAT(), nullable=False),
+    sa.Column('n_below', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('largest_value', mysql.DOUBLE(), nullable=True),
+    sa.CheckConstraint('(`share` >= 0)', name='effect_ledger_chk_1'),
+    sa.CheckConstraint('((`largest_value` is null) or (`largest_value` > 0))', name='effect_ledger_chk_2'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_effect_ledger_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 facilities = sa.Table(
     'facilities',
     metadata,

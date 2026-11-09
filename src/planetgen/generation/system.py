@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -331,6 +331,7 @@ class StarSystem:
         self.primary_star = self.star # For single star systems, the primary is the star
         self.placed_star = self.star
         self.planets = []
+        self.effect_ledger = effect_ledger.EffectLedger()  # GEN.1465: what each effect's code computed per body and source; written by `store.insert_star_system`, not read back
         self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
@@ -582,6 +583,7 @@ class StarSystem:
                 self.unmet_requirements.remove(wanted)
         if self._drop_barred_bodies():    # GEN.1275
             self._refresh_wobble()
+        self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
         # see names/bodies.py.
@@ -615,6 +617,26 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    def _fill_light_ledger(self):
+        """
+        Notes in the effect ledger (GEN.1465) what each star puts on each planet and moon as light and as far ultraviolet: the parts of the field at the
+        distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
+        air-solved distance (a belt) has none.
+        """
+        for obj in self.all_planets:
+            for body in (obj, *getattr(obj, "moons", ())):
+                distance = getattr(body, "_air_light_au", None)
+                host = getattr(body, "star", None)
+                if not distance or host is None:
+                    continue
+                field = radiation_field.field_at(host, distance)
+                stars = {companion.member_no: companion.star for companion in radiation_field.companions_of(host)}
+                stars[None] = host
+                for effect, band in (("light", field.bolometric_w_m2), ("uv", field.far_uv_ratio)):
+                    for member_no, value in band.by_source.items():
+                        if value > 0.0 and member_no in stars:
+                            self.effect_ledger.add(effect, body, stars[member_no], value)
 
     @property
     def all_planets(self):
