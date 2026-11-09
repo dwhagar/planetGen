@@ -26055,6 +26055,26 @@
       "kind": "paper",
       "label": "Dauphas and Morbidelli 2014",
       "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans"
+    },
+    "R5215": {
+      "kind": "paper",
+      "label": "Auer et al. 2009",
+      "title": "Cosmogenic 26Al in the atmosphere and the prospect of a 26Al/10Be chronometer to date old ice"
+    },
+    "R5216": {
+      "kind": "paper",
+      "label": "Fink et al. 1998",
+      "title": "41Ca, 26Al, and 10Be in lunar basalt 74275 and 10Be in the double drive tube 74002/74001"
+    },
+    "R5217": {
+      "kind": "paper",
+      "label": "Marston et al. 2026",
+      "title": "Do Super-Puffs Defy Core Accretion? Population-Wide Interior Structure Constraints"
+    },
+    "R5218": {
+      "kind": "paper",
+      "label": "Levison and Duncan 1997",
+      "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets"
     }
   }
 }

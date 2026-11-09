@@ -109,7 +109,8 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     temperature = subject.get("formation_temperature_k")
     if temperature is None:
         return None
-    return disk_condensation.envelope_c_over_o(temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
+    return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
+                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
 
 
 def _disk_enrichments(subject, log_enrichment_over_host):
@@ -510,7 +511,7 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     c_over_o = recipe.values.get("f7")
     disk = _disk_c_over_o(subject, log_enrichment - fe_h)
     if disk is not None:       # GEN.1363 part C: the C/O of the disk where it formed, spread as the recipe's row f7 spreads it (the history of what the giant swallowed)
-        c_over_o = disk if c_over_o is None else disk * c_over_o / disk_condensation.RECIPE_C_OVER_O_CENTER
+        c_over_o = disk if c_over_o is None else disk * (c_over_o / disk_condensation.RECIPE_C_OVER_O_MEDIAN) ** disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT
     if c_over_o is not None:
         constants_drawn["c_over_o"] = c_over_o
     lithium_burned = family == "brown-dwarf" and burned_lithium(subject.get("mass_jupiter"))

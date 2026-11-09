@@ -529,6 +529,25 @@ edit_journal = sa.Table(
 )
 
 
+effect_ledger = sa.Table(
+    'effect_ledger',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('effect', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('share', mysql.FLOAT(), nullable=False),
+    sa.Column('n_below', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('largest_value', mysql.DOUBLE(), nullable=True),
+    sa.CheckConstraint('(`share` >= 0)', name='effect_ledger_chk_1'),
+    sa.CheckConstraint('((`largest_value` is null) or (`largest_value` > 0))', name='effect_ledger_chk_2'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_effect_ledger_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 facilities = sa.Table(
     'facilities',
     metadata,
@@ -685,6 +704,27 @@ field_members = sa.Table(
     sa.Column('status', sa.String(16), nullable=False),
     sa.Index('uq_field_members_field_rank', 'field_id', 'member_rank', unique=True),
     sa.ForeignKeyConstraint(['field_id'], ['asteroid_fields.id'], name='fk_field_members_field', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_block_light_parts = sa.Table(
+    'galaxy_block_light_parts',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('star_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('star_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpz', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lt', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('point_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpz', mysql.DOUBLE(), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -1424,6 +1464,7 @@ moons = sa.Table(
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
@@ -2518,6 +2559,7 @@ planets = sa.Table(
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('reflex_offset_x_km', mysql.DOUBLE(), nullable=True),
@@ -3260,6 +3302,7 @@ rogue_planets = sa.Table(
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
     sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
     sa.Column('moon_origin', sa.String(8), nullable=True),
     sa.Column('moon_disk_lifetime_myr', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_disk_alpha_over_f', mysql.DOUBLE(), nullable=True),
@@ -3490,6 +3533,37 @@ sector_stats = sa.Table(
     sa.Column('total_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_sector_stats_level', 'bright_level_sol'),
+    mysql_engine="InnoDB",
+)
+
+
+sector_facets = sa.Table(
+    'sector_facets',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('facet', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('value', sa.String(40), primary_key=True, nullable=False),
+    sa.Column('n', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Index('idx_sector_facets_facet', 'facet', 'value', 'n'),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_totals = sa.Table(
+    'galaxy_totals',
+    metadata,
+    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('systems', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('stars', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('planets', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('moons', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('belts', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -4032,6 +4106,16 @@ system_owners = sa.Table(
     sa.Index('idx_system_owners_polity', 'polity_id'),
     sa.ForeignKeyConstraint(['polity_id'], ['polities.id'], name='fk_system_owners_polity', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_owners_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+system_summary = sa.Table(
+    'system_summary',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('habitability_stamp', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_summary_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 

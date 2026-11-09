@@ -39,7 +39,8 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -330,6 +331,7 @@ class StarSystem:
         self.primary_star = self.star # For single star systems, the primary is the star
         self.placed_star = self.star
         self.planets = []
+        self.effect_ledger = effect_ledger.EffectLedger()  # GEN.1465: what each effect's code computed per body and source; written by `store.insert_star_system`, not read back
         self.architectures = []  # GEN.1111: `[(star, Architecture)]` of the plan each star's planets were built from, one per star in the order they were first planned; not stored (see `ejected_losses`). A list and not a dict keyed by `id(star)`: an address in a key made the sector differ from run to run (TEST.569)
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
@@ -507,9 +509,9 @@ class StarSystem:
         with log.timed_phase("comet generation"):
             wide = self.binary_type == "wide"
             self.comets = self._generate_comets(
-                self.star, validation.orbit_ceiling_au(self.primary_star) if wide else None)
+                self.star, validation.orbit_ceiling_au(self.primary_star) if wide else None, self.planets)
             self.secondary_comets = self._generate_comets(
-                self.secondary_star, validation.orbit_ceiling_au(self.secondary_star)) if wide else []
+                self.secondary_star, validation.orbit_ceiling_au(self.secondary_star), self.secondary_planets) if wide else []
             # A wide pair a few AU apart leaves each star a stable limit under any comet's orbit (GEN.448): a forced
             # comet then has no room, like a forced habitable world or belt.
             if self.system_config.COMETS is True and not (self.comets or self.secondary_comets):
@@ -583,6 +585,7 @@ class StarSystem:
                 self.unmet_requirements.remove(wanted)
         if self._drop_barred_bodies():    # GEN.1275
             self._refresh_wobble()
+        self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
         # see names/bodies.py.
@@ -616,6 +619,26 @@ class StarSystem:
         self._name = value
         if self.binary_type != "wide":
             self.star.name = value
+
+    def _fill_light_ledger(self):
+        """
+        Notes in the effect ledger (GEN.1465) what each star puts on each planet and moon as light and as far ultraviolet: the parts of the field at the
+        distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
+        air-solved distance (a belt) has none.
+        """
+        for obj in self.all_planets:
+            for body in (obj, *getattr(obj, "moons", ())):
+                distance = getattr(body, "_air_light_au", None)
+                host = getattr(body, "star", None)
+                if not distance or host is None:
+                    continue
+                field = radiation_field.field_at(host, distance)
+                stars = {companion.member_no: companion.star for companion in radiation_field.companions_of(host)}
+                stars[None] = host
+                for effect, band in (("light", field.bolometric_w_m2), ("uv", field.far_uv_ratio)):
+                    for member_no, value in band.by_source.items():
+                        if value > 0.0 and member_no in stars:
+                            self.effect_ledger.add(effect, body, stars[member_no], value)
 
     @property
     def all_planets(self):
@@ -722,8 +745,25 @@ class StarSystem:
             orbits = planet_zones.companion_orbits(ledger.zone((kind, number)), ledger.nodes, ledger.members)
         except ValueError:
             orbits = []
-        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity)
+        offsets = self._offsets_from_host(ledger, kind, number)
+        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity,
+                                                                None if offsets is None else offsets.get(member_no))
                                       for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
+
+    def _offsets_from_host(self, ledger, kind, number):
+        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);
+        the host of a P-type zone is the center of mass of the pair of its node. `None` when the tree cannot give positions."""
+        try:
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+            if kind == planet_zones.P_TYPE:
+                pair = [member for member in ledger.members if member.parent_node_no == number]
+                total = sum(member.mass_solar for member in pair)
+                origin = tuple(sum(member.mass_solar * places[member.member_no][axis] for member in pair) / total for axis in range(3))
+            else:
+                origin = places[number]
+        except (ValueError, KeyError, ZeroDivisionError, IndexError):
+            return None
+        return {member_no: tuple(place[axis] - origin[axis] for axis in range(3)) for member_no, place in places.items()}
 
     def pair_node_no(self):
         """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both
@@ -793,7 +833,7 @@ class StarSystem:
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
-    def _generate_comets(self, star, ceiling_au=None):
+    def _generate_comets(self, star, ceiling_au=None, planets=()):
         """
         Rolls this star's own native comet population (see
         `cometData.Comet` -- contrast the always-standalone, unbound
@@ -830,6 +870,9 @@ class StarSystem:
                  orbit stays inside the star's own Hill sphere
                  (`validation.orbit_ceiling_au`, GEN.591) and a parabolic
                  comet leaves it by design.
+            planets (list, optional): This star's planets and belts as they are final (GEN.1457). The most massive giant among them
+                 (`comet_control.controlling_giant_au`) is the planet the Jupiter-family comets belong to: their orbits are drawn
+                 about it (`Comet`'s `giant_au`). A star with no giant draws its comets as before.
 
         Returns:
             list: Newly generated `Comet` objects, zero or more.
@@ -844,14 +887,15 @@ class StarSystem:
 
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = _kg_to_msun(star.mass)
+        giant_au = comet_control.controlling_giant_au(planets)
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
-            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star) for _ in range(count)]
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star, giant_au=giant_au) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star)
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star, giant_au=giant_au)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
@@ -2166,6 +2210,36 @@ class StarSystem:
         Blue or Green (GEN.1250, GEN.1275, GEN.1387: a rating from the conditions, never a list of class letters; life on a world a human cannot live on is not barred)."""
         return habitable_request.meets(body) or habitability.is_habitable(getattr(body, "phi4", None))
 
+    def _secular_exchange(self):
+        """
+        GEN.1450: every star's planets take the orbits the Laplace-Lagrange exchange (`physics.secular_chain`) leaves them at the star's final age (`planets.secular_exchange`). It is
+        kept only where the spacing and the moons' stable range still hold with the new eccentricities, judged against the problems the system already had; `self.secular_outcomes`
+        counts what became of each star's planets (a record for the census, not stored).
+        """
+        self.secular_outcomes = {}
+        for star, planets in validation.star_lists(self):
+            bodies = [p for p in planets if p.body_type != 'a']
+            baseline = {tuple(problem) for problem in self._planet_problems(planets)}
+
+            def keeps(group, baseline=baseline):
+                return all(tuple(problem) in baseline for problem in self._planet_problems(group))
+
+            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
+            self.secular_outcomes[star.name] = outcome
+            if outcome != "unchanged":
+                log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
+
+    @staticmethod
+    def _planet_problems(planets):
+        """The problems of one star's planets for the secular exchange to compare: their spacing and each planet with its moons."""
+        problems = list(validation.check_orbit_spacing(planets))
+        problems.extend(validation.Problem("belt", f"the belt at {belt.distance:.6g} AU would be pushed outward") for last, belt in zip(planets, planets[1:])
+                        if belt.body_type == 'a' and validation.belt_needs_pushing(belt, last))
+        for planet in planets:
+            if planet.body_type != 'a':
+                problems.extend(validation.check_lunar_system(planet))
+        return problems
+
     def _settle_to_final_age(self):
         """
         Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
@@ -2177,6 +2251,7 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":

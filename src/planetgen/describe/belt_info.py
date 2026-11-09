@@ -10,6 +10,7 @@ size table of everything not stored, the density factor and the totals. `GET /ap
 """
 
 from planetgen.db import store
+from planetgen.generation import belt as belt_generation
 from planetgen.galaxy import object_uid
 from planetgen.physics import belt_ledger, radiogenic
 from planetgen.physics import unit_registry as units
@@ -48,9 +49,11 @@ def belt_page_record(belt, star, object_id):
     """The `belt_page.BeltRecord` of a stored `belt` going round `star`: its members' masses are the ledger's stored bodies and its remainder is the belt's mass less theirs."""
     masses = tuple(float(member["mass_kg"]) for member in belt.members)
     belt_mass = float(belt.mass_kg)
-    law = belt_ledger.ICY_LAW if belt.distance >= star.snow_line_au else belt_ledger.ROCKY_LAW
+    ratio = belt_generation.ring_light_ratio(star, belt.lower_limit, belt.upper_limit)     # GEN.1444: the ring's light, the companions' too, as the belt was made under
+    law = belt_generation.size_law(belt.distance, star.snow_line_au, ratio)
     ledger = belt_ledger.Ledger(masses, belt_mass, max(belt_mass - sum(masses), 0.0), len(masses), False, law)
-    return page_data.BeltRecord(object_id, belt.lower_limit, belt.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
+    return page_data.BeltRecord(object_id, belt.lower_limit, belt.upper_limit, units.convert(star.mass, "kg", "Msun"),
+                                belt_generation.lit_luminosity_w(star, belt.lower_limit, belt.upper_limit),
                                 _al26_ratio(belt.system_config, star), ledger, (), fates=belt.scatter_fates)
 
 

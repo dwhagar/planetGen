@@ -90,8 +90,9 @@ PLANET_CORE_SATURATION_SHARPNESS = 4.0
 GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
 # How many times the minimum-mass nebula's solids the mass law assumes: below one, because the oligarchs are spaced wide and the
 # isolation mass goes as the spacing to the 3/2 (`OLIGARCH_SEPARATION_MEDIAN`); the Kepler systems need several times the nebula
-# in all ([R0771], recalled). A planetGen stand-in (tier T6, tweak L3), tuned to the observed occurrence.
-PLANET_DISK_SOLIDS_ENHANCEMENT = 0.4647
+# in all ([R0771], recalled). A planetGen stand-in (tier T6, tweak L2), tuned to the published share of Sun-like stars with a giant at 2 to 8 AU [R1479]: 0.4647 gave 0.105 after
+# the inner systems lost mass (GEN.1406), 0.58 gives 0.127 against 0.141 +-0.019 (registry row PA1).
+PLANET_DISK_SOLIDS_ENHANCEMENT = 0.58
 # How the solids the planets are built from scale with the star's mass, as a power of the mass in suns. Shallower than the
 # dust mass of the disk (`DISK_MASS_STELLAR_MASS_EXPONENT`, which sets how many objects a disk can hold): the planets of M dwarfs
 # are about as many as those of Sun-like stars ([R1156, R2021], recalled), as pebble drift
@@ -164,8 +165,10 @@ INNER_COUNT_SIGMA_LN = 0.8
 # radii, 1 to 10 Earth masses ([R4897], read). The scale goes as the star's mass to the exponent (a planet-to-star
 # mass ratio about constant: [R3193, R3196]), as the disk's scatter to the exponent (a heavy disk builds heavy planets and giants:
 # Zhu and Wu 2018) and as 10 to the exponent times [Fe/H] (the occurrence of sub-Neptunes doubles over 0.8 dex, [R3499],
-# [R3499], read). Planetgen stand-ins (tier T6, tweak L3).
-INNER_PLANET_MASS_EARTH = 3.631
+# [R3499], read). Planetgen stand-ins (tier T6, tweak L3). GEN.1406: the median scale 3.631 put the rocky peak of the radius histogram at 1.5 to 1.75 Earth radii where the
+# California-Kepler Survey finds it, 1.3 and 2.4 Earth radii [R1478: Abstract], and left only 5.5 percent of Sun-like stars an Earth-size planet; 2.5 Earth masses puts a
+# rocky 1.35 Earth-radius core at its median and gives 15 percent of FGK stars one against 16.5 +-3.6 [R1459: Abstract] (registry row PA4).
+INNER_PLANET_MASS_EARTH = 2.5
 INNER_PLANET_MASS_STELLAR_EXPONENT = 0.6357
 INNER_PLANET_MASS_DISK_EXPONENT = 0.01653
 INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
@@ -498,6 +501,14 @@ ASTEROID_COMPONENTS = [
 list: A comprehensive list of various components that can be found in asteroids.
 This is a vocabulary of names the materials table resolves (a belt's or field's composition is drawn from asteroid taxa, GEN.442 and GEN.477).
 """
+
+# --- The effect ledger (GEN.1465) ---
+# The share of the largest source, under which a source is not written as its own ledger row but added to its (body, effect)
+# summary row (every source is computed whatever this is; it limits storage only). A value under 1e-37 stores every source
+# (a FLOAT cannot hold less); Boss can change it here, and the stored galaxy keeps the floor it was made with in the summary.
+# Boss chose 0.1 percent (8:37 PM EST 11-08): the sources of light and UV that give a thousandth or more of the largest are stored. The five gravity
+# effects (`effect_ledger.ON_DEMAND_EFFECTS`) ignore it: they store only the largest source and a summary and compute the rest on demand.
+EFFECT_LEDGER_FLOOR = 1e-3
 
 # --- Space Sector Generation Parameters ---
 
