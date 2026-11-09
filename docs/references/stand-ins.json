@@ -56255,8 +56255,8 @@
       "title": "Stand-ins of the superionic boundaries of water and ammonia"
     },
     {
-      "key": "6.253",
-      "number": "6.253",
+      "key": "6.257",
+      "number": "6.257",
       "rows": [
         {
           "burn_down": null,
@@ -56287,9 +56287,9 @@
             ]
           ],
           "id": "FW1",
-          "key": "6.253:FW1",
+          "key": "6.257:FW1",
           "kind": "P",
-          "slug": "6-253-fw1",
+          "slug": "6-257-fw1",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -56325,9 +56325,9 @@
             ]
           ],
           "id": "FW2",
-          "key": "6.253:FW2",
+          "key": "6.257:FW2",
           "kind": "P",
-          "slug": "6-253-fw2",
+          "slug": "6-257-fw2",
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
@@ -56335,7 +56335,7 @@
           "what": "tuning.FLAVOR_CHANCE_PLANET 0.05: the chance a planet or moon shows a flavor line"
         }
       ],
-      "slug": "6-253-stand-ins-of-the-flavor-tree-s-line-weights-and-chances",
+      "slug": "6-257-stand-ins-of-the-flavor-tree-s-line-weights-and-chances",
       "title": "Stand-ins of the flavor tree's line weights and chances"
     },
     {
