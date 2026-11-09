@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Filling the voids on the spherical grid, again (GEN.102) - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-07 11:47Z): &quot;Investigate filling all void space (space that plots to have a 0 or nearly 0 star density) at once, since those sectors have the least in them, we can afford to fill them.&quot; The first answer (sampling-backfill-a...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/void-fill-census.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/void-fill-census.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="filling-the-voids-on-the-spherical-grid-again-gen102">Filling the voids on the spherical grid, again (GEN.102)</h1><p class="meta">docs/design/generation/void-fill-census.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#short-answer">Short answer</a></li><li style="margin-left:0px"><a href="#1-how-it-was-counted-c">1. How it was counted [C]</a></li><li style="margin-left:0px"><a href="#2-inside-the-outline">2. Inside the outline</a></li><li style="margin-left:0px"><a href="#3-time-and-storage">3. Time and storage</a></li><li style="margin-left:0px"><a href="#4-what-is-new-the-space-beyond-the-outline">4. What is new: the space beyond the outline</a></li><li style="margin-left:0px"><a href="#5-recommendation">5. Recommendation</a></li><li style="margin-left:0px"><a href="#6-what-this-does-not-settle">6. What this does not settle</a></li></ul></details>
+<p>Boss (2026-10-07 11:47Z): &quot;Investigate filling all void space (space that plots to have a 0 or nearly 0 star density) at
+once, since those sectors have the least in them, we can afford to fill them.&quot; The first answer
+(<a href="sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a> section 5, 2026-10-09) counted the old ring grid and
+recommended against a pre-fill. The grid has since become spherical shells, bands and wedges (GEN.235), the reach is 262 kpc
+with a halo (GEN.234, GEN.301), and a cell over the star ceiling is only partly filled (GEN.281). This note does the count
+again on today's grid and says what changes.</p>
+<p>Informs: GEN.102, GEN.276, GEN.301.
+Status: research, 2026-10-16. Evidence tags: [C] computed here and re-runnable, [S] read from the repository, [R] recalled and
+unconfirmed.</p>
+<h2 id="short-answer">Short answer</h2>
+<p>The recommendation stands: do not pre-fill voids; keep the fill on visit (<code>ensure_sector_generated</code>). The count barely
+moved, and a new fact makes the question larger than it was. Inside the outline a &quot;void&quot; costs the same fixed time per
+cell as any other, so it is the worst place to spend a pre-fill. Beyond the outline there are 1.2 x 10^15 cells and no
+cell holds even one expected system, so filling &quot;all the space&quot; cell by cell cannot be done at any price and the halo has to come from the
+region and scatter paths (GEN.301, GEN.276). Nothing below is a fixed number: it is the census of the galaxy the
+generator makes from today's shape defaults, and it is re-run from the shape.</p>
+<h2 id="1-how-it-was-counted-c">1. How it was counted [C]</h2>
+<p>The shape is the generator's present default (<code>planetgen generate</code> shape options: disk scale length 2600 pc, height 300
+pc, bulge 1580 pc and amplitude 3.11, two arms, 15 degree pitch, arm and inter-arm density 1.4 and 0.6, nuclear amplitude 1)
+with no components, since the globular clusters and satellites are drawn from the galaxy seed and add systems only in
+their own cubes. Those defaults are Milky Way scale numbers; when the shape is derived from the seed
+(the no-fixed-content rule) this census is re-run on the derived shape and the table below changes with it.</p>
+<ul>
+<li>The outline is <code>skeleton.build_shell_extents</code>: 3,763 shells (the last is 3,762, 15 kpc out), 2.418 x 10^10 candidate cells.</li>
+<li><code>E</code> (systems per cell at density 1) is 6.306. A cell's expected systems are <code>E * relative_density * (cell volume / edge^3)</code>.</li>
+<li>3,000 cells were drawn uniformly from the outline (<code>GalaxyBounds.random_address</code>, seed 102), and the density was read at each
+cell's center. Sampling error on the shares is about one percentage point.</li>
+<li>Beyond the outline: 24 radial shells from 15 kpc to the 262 kpc reach, 400 random directions each.</li>
+</ul>
+<p>Re-run with <code>/mnt/project-files/galaxy-studies/gen102-void-census/voids.py</code> and <code>halo.py</code> from a checkout (a few seconds).</p>
+<h2 id="2-inside-the-outline">2. Inside the outline</h2>
+<p>Density quantiles (1.0 is the calibration point): minimum 0.072, 1% 0.085, 5% 0.119, median 0.42, 95% 7.0, 99% 35. As
+before, nothing inside the outline is near zero: a cell is kept only if its best longitude reaches 1/E = 0.159.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>&quot;Void&quot; definition</th>
+<th>Share of cells</th>
+<th>Cells</th>
+<th>Systems per cell</th>
+<th>Share of all systems</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>density below 0.1</td>
+<td>2.4%</td>
+<td>5.9 x 10^8</td>
+<td>0.55</td>
+<td>0.10%</td>
+</tr>
+<tr>
+<td>expected systems below 1</td>
+<td>13.3%</td>
+<td>3.2 x 10^9</td>
+<td>0.78</td>
+<td>0.80%</td>
+</tr>
+<tr>
+<td>expected systems below 2</td>
+<td>40.3%</td>
+<td>9.8 x 10^9</td>
+<td>1.21</td>
+<td>3.8%</td>
+</tr>
+<tr>
+<td>the whole outline</td>
+<td>100%</td>
+<td>2.4 x 10^10</td>
+<td>12.9</td>
+<td>100% (3.1 x 10^11 systems)</td>
+</tr>
+</tbody>
+</table></div>
+<p>These agree with the first count (12.4% of cells below one expected system, 0.77% of systems), so the change of grid did
+not change the answer. The sparse cells sit at a median radius of 12 to 14 kpc and a height of 0.4 to 0.6 kpc: the outer disk
+between the arms. About 14% of all cells draw no system at all (the mean of exp(-expected)).</p>
+<h2 id="3-time-and-storage">3. Time and storage</h2>
+<p>The cost model is the timing report's (PR #657): about 40 ms fixed per cell and about 16.4 ms per system on one worker, 1.87
+times faster on four [S, <code>/mnt/project-files/bright-star-timing/report.md</code>]. Storage is about 40 KB per system
+(not re-measured). The Generate page's own estimate (<code>generation/stats.estimate</code>) uses the server's recorded speeds and,
+before any run, 0.2 s and 48 KB per system, so a fresh server would quote the last two columns' larger figures.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fill</th>
+<th>Cells</th>
+<th>Systems</th>
+<th>One worker</th>
+<th>Four workers</th>
+<th>Storage</th>
+<th>At the page's default speed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>density below 0.1</td>
+<td>5.9 x 10^8</td>
+<td>3.2 x 10^8</td>
+<td>333 days</td>
+<td>0.5 years</td>
+<td>13 TB</td>
+<td>about 2 years</td>
+</tr>
+<tr>
+<td>expected systems below 1</td>
+<td>3.2 x 10^9</td>
+<td>2.5 x 10^9</td>
+<td>5.4 years</td>
+<td>2.9 years</td>
+<td>100 TB</td>
+<td>about 16 years</td>
+</tr>
+<tr>
+<td>expected systems below 2</td>
+<td>9.8 x 10^9</td>
+<td>1.2 x 10^10</td>
+<td>18.5 years</td>
+<td>9.9 years</td>
+<td>470 TB</td>
+<td>about 75 years</td>
+</tr>
+<tr>
+<td>the whole outline</td>
+<td>2.4 x 10^10</td>
+<td>3.1 x 10^11</td>
+<td>193 years</td>
+<td>103 years</td>
+<td>12.5 PB</td>
+<td>not computed</td>
+</tr>
+</tbody>
+</table></div>
+<p>Time is a fixed cost per cell, so a sparse cell costs 70 to 90 ms per system against 16 for an ordinary one. Boss's premise,
+that the sparsest cells are the cheapest to fill, does not hold on the cost model.</p>
+<h2 id="4-what-is-new-the-space-beyond-the-outline">4. What is new: the space beyond the outline</h2>
+<p>The halo is in the density now. Its relative density is 4 x 10^-4 at 15 kpc, 5 x 10^-5 at 30 kpc, 2 x 10^-7 at 100 kpc and
+3 x 10^-9 at 262 kpc, all under the outline's threshold of 0.159, so none of it is a candidate cell [C].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Beyond 15 kpc, to the 262 kpc reach</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cells</td>
+<td>1.18 x 10^15</td>
+</tr>
+<tr>
+<td>Systems in all of it</td>
+<td>5.2 x 10^9 (1.6 x 10^9 of them the halo, the rest the disk's outer edge)</td>
+</tr>
+<tr>
+<td>Systems per cell</td>
+<td>4.4 x 10^-6 on average, and under 1 in every one (a cell with one would be inside the outline)</td>
+</tr>
+<tr>
+<td>A cell-by-cell fill at 40 ms a cell</td>
+<td>about 1.5 million years on one worker</td>
+</tr>
+</tbody>
+</table></div>
+<p>So there are two different questions. The sparse rim inside the outline is a question of how much cost to pay
+(section 3). The space outside it is not a fill at all: nearly every cell is empty, and the 5 billion systems it holds have to be placed
+by drawing the count for a region and then the positions, which is what the block-first draw and the region query do
+(sampling-backfill-and-resume.md sections 2 to 4; GEN.276, GEN.301). That path never visits an empty cell. A pre-fill of
+the outer space is not on the table, and the outline keeps it out of the candidate cells, so nothing needs to change.</p>
+<h2 id="5-recommendation">5. Recommendation</h2>
+<ol>
+<li><strong>Do not pre-fill the sparse rim.</strong> Keep the fill on visit. It costs nothing until someone looks, and a visited sparse cell is
+saved and marked generated even when it draws no system (GEN.76, <code>run_galaxy.ensure_sector_generated</code>).</li>
+<li><strong>The old open question is answered.</strong> &quot;Unfilled&quot; and &quot;filled and empty&quot; can already be told apart: a filled cell has a
+<code>sectors</code> row (unique on shell, band and wedge) whether or not it holds a system, so &quot;empty needs no row&quot; is not needed
+to save writes and would lose that.</li>
+<li><strong>Define a void as expected systems below 1</strong>, which matches the existing rule that a cell needs one expected system to
+qualify, and not as &quot;near zero&quot;. It is 13% of the outline's cells and 0.8% of its systems.</li>
+<li><strong>If the rim is wanted anyway,</strong> the only lever is the fixed cost per cell (the timing report's three levers could roughly
+halve the 40 ms), and the first target is density below 0.1 (333 days on one worker, 13 TB), not the whole rim.</li>
+<li><strong>The halo comes from regions,</strong> not cells (section 4). That is GEN.301's work and needs no void rule.</li>
+</ol>
+<h2 id="6-what-this-does-not-settle">6. What this does not settle</h2>
+<ul>
+<li>The census uses today's shape defaults. When the shape is derived from the seed, the shares move; the shape of the
+answer (a fixed cost per cell, a thin sparse rim, a huge empty outside) does not.</li>
+<li>The per-system cost and the 40 KB are the timing report's, not re-measured since the cell star ceiling and the orbit
+passes landed. A fresh timing run on the current build would tighten the third table. This is a test candidate.</li>
+<li>Boss's question (default no): do you still want the sparse rim filled?</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

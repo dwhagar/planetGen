@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AD1 (visible methane and ammonia absorption of giant planets): sources check - planetGen docs</title>
+<meta name="description" content="Filed by the TODO thread on 2026-10-17 at about 1:58 PM EDT (as this thread&#x27;s clock reads).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/ad1-methane-sources-check-2026-10-17.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/ad1-methane-sources-check-2026-10-17.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="ad1-visible-methane-and-ammonia-absorption-of-giant-planets-sources-check">AD1 (visible methane and ammonia absorption of giant planets): sources check</h1><p class="meta">docs/design/research/ad1-methane-sources-check-2026-10-17.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#1-verdict">1. Verdict</a></li><li style="margin-left:0px"><a href="#2-what-could-be-reached-from-here-measured-in-this-lane">2. What could be reached from here (measured in this lane)</a></li><li style="margin-left:0px"><a href="#3-what-was-downloaded-and-what-it-covers">3. What was downloaded and what it covers</a></li><li style="margin-left:14px"><a href="#31-pds-volume-gbat_0001-read">3.1 PDS volume gbat_0001 (READ)</a></li><li style="margin-left:14px"><a href="#32-oxford-kt-2010-k-tables-read">3.2 Oxford K&amp;T 2010 k-tables (READ)</a></li><li style="margin-left:14px"><a href="#33-other-free-items-found">3.3 Other free items found</a></li><li style="margin-left:0px"><a href="#4-the-notes-claims-one-by-one">4. The note's claims, one by one</a></li><li style="margin-left:14px"><a href="#41-bibliographic-facts-crossref-read">4.1 Bibliographic facts (Crossref, READ)</a></li><li style="margin-left:14px"><a href="#42-data-hosts-and-files">4.2 Data hosts and files</a></li><li style="margin-left:14px"><a href="#43-kt-2010-ad1-content">4.3 K&amp;T 2010 (AD1) content</a></li><li style="margin-left:14px"><a href="#44-r2258-and-1998-read-in-the-pds-ascii-copies">4.4 [R2258] and 1998 (READ in the PDS ASCII copies)</a></li><li style="margin-left:14px"><a href="#45-uranus-numbers-and-filter-coefficients">4.5 Uranus numbers and filter coefficients</a></li><li style="margin-left:0px"><a href="#5-what-this-means-for-ad1-for-the-todo-thread-and-the-lanes">5. What this means for AD1 (for the TODO thread and the lanes)</a></li><li style="margin-left:0px"><a href="#6-not-done">6. Not done</a></li></ul></details>
+<p>Filed by the TODO thread on 2026-10-17 at about 1:58 PM EDT (as this thread's clock reads). The data folder is outside the repository: the build fetches it (gap plan section 4.11). Summary and the item notes are in docs/TODO.md (GEN.531, GEN.422).</p>
+<p>Date: 2026-10-17, checked between 1:40 PM and 1:50 PM EDT as the lane clock reported (lane clocks drift). Read-only research, no repo change. Boss's pasted note (AI-written, 1:38 PM EDT) was treated as a list of unverified leads. Downloaded data and its README: <code>/mnt/project-files/data/ad1-methane/</code> (README in the same folder). AD1 as the plan states it: <code>docs/design/research/gap-filling-plan.md</code> row AD1, &quot;band strengths of CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>O in giants, Karkoschka tables not extracted&quot;, feeds GEN.422 and atmosphere colour; stand-in is neighbouring-band strengths with 10 percent.</p>
+<p>Labels: <strong>READ</strong> = the file or paper text was opened here; <strong>2ND-HAND</strong> = read in a paper or code that cites the original; <strong>NOT REACHED</strong> = no reachable page gave it. Verdicts on the note's claims: verified, partly verified, contradicted, not found.</p>
+<h2 id="1-verdict">1. Verdict</h2>
+<ol>
+<li><strong>AD1 for methane can be filled from free data, and the data downloaded.</strong> Two independent routes, both READ and consistent with each other:
+<ul>
+<li><strong>The K&amp;T 2010 band model itself</strong>, as k-tables by Patrick Irwin (Oxford), 14 May 2010: 3689 wavelengths, 400 nm to 5.0 micron, κ at 100, 198 and 296 K plus the line-spacing ratio, and correlated-k values on a 10 pressure by 11 temperature grid (1e-8 to 10 atm, 50 to 300 K). The count matches the paper's own abstract (&quot;for each of ~3700 wavelengths, we present a temperature dependence&quot;).</li>
+<li><strong>[R2258] and 1998 as NASA PDS tables</strong> (300 to 1050 nm, one effective cold methane spectrum, plus full-disk albedos of Jupiter, Saturn, Uranus, Neptune and Titan).</li>
+</ul>
+</li>
+<li><strong>The note's catalogue id is wrong.</strong> The Karkoschka data is PDS volume <strong>gbat_0001</strong>, not go_0016 (go_0016 to go_0022 are Galileo orbiter images). It holds both the 1993 data (1994 paper) and the 1995 data (1998 paper); the NMSU web pages cite only the 1994 paper.</li>
+<li><strong>Not covered by any free source found: ammonia and water coefficients in the visible.</strong> K&amp;T 2010 is methane only. [R2259] gives ammonia only as band depths in Jupiter's albedo (equivalent widths 0.05, 0.32, 0.62, 0.81 nm for the 552, 645, 790 and 930 nm bands, read from Fig. 5); no coefficient table. Water: the 1994 suggestion of a 930 nm water band was withdrawn in 1998 (the band is probably ammonia). AD1 stays partly open for NH<sub>3</sub> and H<sub>2</sub>O.</li>
+<li><strong>Gaps in the methane data:</strong> 5.0 to 5.5 micron (the paper says its data reach 5.5; the Oxford tables stop at 2000 cm-1 = 5.0 micron); below 450 nm every coefficient sits at a 1e-5 floor in the tables (65 wavenumbers), so the true weak absorption there is not resolved; the Oxford page says its K&amp;T tables are &quot;not yet fully verified&quot;; [R2099] reports K&amp;T 2010 models 1.4 to 1.8 micron less well than the WKMC-80K line list (outside the visible).</li>
+<li><strong>Several of the note's details are wrong</strong> (section 4): Neptune paper citation, the eleventh data set, PMC5105178 is not a different paper, one pressure level in the filter table, the Uranus methane range.</li>
+</ol>
+<h2 id="2-what-could-be-reached-from-here-measured-in-this-lane">2. What could be reached from here (measured in this lane)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Host</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>atmos.nmsu.edu</code>, <code>pds-atmospheres.nmsu.edu</code></td>
+<td>reachable; full PDS tree downloadable</td>
+</tr>
+<tr>
+<td><code>users.ox.ac.uk/~atmp0035</code> (Irwin's page)</td>
+<td>reachable; all k-table files downloaded (4 files, 10 to 19 MB each)</td>
+</tr>
+<tr>
+<td><code>github.com</code> through <code>git clone</code> / <code>git ls-remote</code></td>
+<td>reachable (NEMESIS cloned, 1.1 GB, not kept); the github.com web pages and <code>api.github.com</code> return 403; <code>raw.githubusercontent.com</code> reachable</td>
+</tr>
+<tr>
+<td><code>arxiv.org</code> (abs and PDF)</td>
+<td>reachable; <code>export.arxiv.org/api/query</code> returned an empty answer</td>
+</tr>
+<tr>
+<td><code>api.crossref.org</code>, <code>doi.org</code></td>
+<td>reachable; doi.org redirects to ScienceDirect</td>
+</tr>
+<tr>
+<td><code>eutils.ncbi.nlm.nih.gov</code></td>
+<td>reachable and returns the <strong>full text XML of PMC articles</strong>; the <code>pmc.ncbi.nlm.nih.gov</code> web pages return a reCAPTCHA wall</td>
+</tr>
+<tr>
+<td><code>www.ebi.ac.uk/europepmc/webservices/rest/</code></td>
+<td>reachable (full text XML, supplementary file bundles); <code>europepmc.org/articles/...</code> returns 403</td>
+</tr>
+<tr>
+<td><code>api.semanticscholar.org</code></td>
+<td>reachable, rate limited (429 after a few calls); abstracts of Elsevier papers elided</td>
+</tr>
+<tr>
+<td><code>experts.arizona.edu</code></td>
+<td>reachable; carries the <strong>full abstracts</strong> of K&amp;T 2009 and K&amp;T 2010</td>
+</tr>
+<tr>
+<td><code>hitran.org</code>, <code>exomol.com</code>, <code>archive.stsci.edu</code></td>
+<td>front pages reachable (not used); <code>www.mast.stsci.edu</code> no connection; Zenodo web search reachable, <code>api.zenodo.org</code> no connection</td>
+</tr>
+<tr>
+<td>refused</td>
+<td>ScienceDirect (403), ADS (405), MDPI (403, so [R4753] not read), science.org (403), NASA PSG (<code>psg.gsfc.nasa.gov</code> answers &quot;unsupported command / browser&quot;; its data not reachable), <code>lpl.arizona.edu/~erich</code> (404)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Note for other lanes: this list differs from the atmosphere check of 10-17 (that lane found github.com, PMC, NIST and Crossref refused); the proxy rules seem to have changed between lanes. The PMC route that works is <code>eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&amp;id=PMCnnnn&amp;rettype=xml</code> (full text, CC-licensed articles).</p>
+<h2 id="3-what-was-downloaded-and-what-it-covers">3. What was downloaded and what it covers</h2>
+<p>All under <code>/mnt/project-files/data/ad1-methane/</code>; the README there has source URLs, sizes, sha256 and terms.</p>
+<h3 id="31-pds-volume-gbat_0001-read">3.1 PDS volume gbat_0001 (READ)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Rows</th>
+<th>Range</th>
+<th>Resolution</th>
+<th>Source paper</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>data/1993.tab</code></td>
+<td>1750</td>
+<td>300.4 to 1000.0 nm</td>
+<td>0.4 nm sampling, 1 nm</td>
+<td>[R2258] (ESO, 23 to 26 July 1993)</td>
+</tr>
+<tr>
+<td><code>data/1995low.tab</code></td>
+<td>1875</td>
+<td>300.4 to 1050.0 nm</td>
+<td>0.4 nm sampling, 1 nm</td>
+<td>[R2259] (ESO, 6 to 10 July 1995)</td>
+</tr>
+<tr>
+<td><code>data/1995high.tab</code></td>
+<td>4750</td>
+<td>520.1 to 995.0 nm</td>
+<td>0.1 nm sampling, 0.4 nm</td>
+<td>[R2259] (Jupiter, Saturn, Uranus)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Columns: vacuum wavelength (nm), air wavelength (nm), methane absorption coefficient (<strong>1/(km-amagat)</strong>), then full-disk albedos (Jupiter at 9.8 deg phase in 1993 and 6.8 deg in 1995; Saturn; Uranus and Neptune geometric; Titan). Methane k is zero below 405.6 nm (1993) and 401.2 nm (1995 low), and reaches 44 (1993), 47 (1995 low) and 51.6 (1995 high) 1/km-am at the strongest bands. It is <strong>one effective cold-temperature spectrum</strong> (&quot;the corresponding temperature may be near 100 K&quot;, 1994 paper), so no pressure or temperature dependence.</p>
+<p>Sample rows (copied data, <code>1995low.tab</code>: vac nm, air nm, k, Jupiter, Saturn, Uranus, Neptune, Titan):</p>
+<pre><code> 300.4  300.31 .0000 .2128 .2532 .5306 .6933 .0431
+ 675.2  675.00 .0169 .5456 .5903 .3694 .2720 .2930
+1049.6 1049.29 .2599 .4007 .5402 .0710 .0441 .1779
+</code></pre>
+<p>The papers themselves (1994 and 1998, ASCII) are in the same volume's <code>document/</code> folder, so the numbers in section 4 for those two were checked against the full text.</p>
+<h3 id="32-oxford-kt-2010-k-tables-read">3.2 Oxford K&amp;T 2010 k-tables (READ)</h3>
+<p>Header: &quot;k-table for [R2265] band model, Patrick Irwin, AOPP, University of Oxford 14th May 2010&quot;. Files <code>ch4_karkoschka_vis.par</code> (19300 to 25000 cm-1, 400 to 518 nm, 25 cm-1 step, 50 cm-1 FWHM, 229 wavenumbers) and <code>ch4_karkoschka_IR.par</code> (2000 to 19295 cm-1, 518 nm to 5.0 micron, 5 cm-1 step, 10 cm-1 FWHM, 3460 wavenumbers). Together 3689 wavelengths. Units &quot;(km-amagat)^-1&quot;.</p>
+<ul>
+<li><strong>Grid:</strong> 10 g-ordinates; pressures 1e-8, 1e-7 ... 10 atm (10 values); temperatures 50 to 300 K in 25 K steps (11 values); each (wavenumber, temperature) block carries the band-model line and 10 pressure rows of 10 k values plus the transmission fitting error.</li>
+<li><strong>Band-model line:</strong> wavenumber, wavelength (nm), κ(100 K), κ(198 K), κ(296 K), δ/α_D0. This is exactly the input the K&amp;T Voigt-Goody model needs (open-access equations 1 to 5, READ; NEMESIS <code>tkark.f</code> implements it, READ). Sample (copied data, extracted CSV; wavenumber cm-1, nm, κ100, κ198, κ296, δ/α_D0):</li>
+</ul>
+<pre><code>19300.00, 517.99, 0.90E-03, 0.19E-02, 0.41E-02, 8.0
+16100.00, 620.95, 0.561, 0.532, 0.505, 8.0
+ 2000.00, 4998.64, 0.0476, 0.0471, 0.0383, 17741
+</code></pre>
+<p>(<code>ch4_karkoschka_tomasko2010_band_parameters.csv</code> has all 3689 rows.)</p>
+<ul>
+<li><strong>Strength across the range:</strong> median κ(100 K) 2.2e-2 (500 to 700 nm), 0.54 (700 to 1000 nm), 7.5 (1.0 to 1.5 micron), 34 (1.5 to 2.5), 7.4 (2.5 to 5.0); largest 2.25e5 1/km-am near 3.27 micron.</li>
+<li><strong>Cross-check against the PDS tables:</strong> κ(100 K) against the 1995 low-resolution PDS k at the same wavelengths, where both exceed 0.001: correlation of the logarithms 0.97 (500 to 700 nm), 0.995 (700 to 900 nm), 0.998 (900 to 1050 nm); median ratio within 0.04 dex (about 10 percent) in all three ranges. At the band centers: 619 nm 0.719 against 0.720, 727 nm 4.75 against 3.93, 790 nm 0.569 against 0.571, 890 nm 20.3 against 24.3. So the Oxford tables and [R2259] agree (the 2010 abstract says its coefficients below 1000 nm are &quot;generally close to [R2259]&quot;), which supports reading the Oxford files as the real K&amp;T 2010 parameters; this is a consistency test, not proof of provenance.</li>
+</ul>
+<p>Whether the Oxford tables are the paper's own supplementary values: the paper's abstract speaks of about 3700 wavelengths and [R0852] thank Karkoschka and Tomasko for &quot;machine-readable tabulations ... in the Supplementary Materials&quot; of K&amp;T 2010 (READ, PMC6157968); the Oxford file has 3689 wavelengths with three-digit values. The supplement itself is on ScienceDirect and was <strong>not reached</strong>.</p>
+<h3 id="33-other-free-items-found">3.3 Other free items found</h3>
+<ul>
+<li><strong>NEMESIS repository</strong> (cloned with git): <code>raddata/karkoschka.dat</code> = the 1993 PDS methane column to 1000 nm (identical except the last row), extended to 1060 nm; <code>tkark.f</code> = K&amp;T transmission; no K&amp;T 2010 k-table inside (README: tables &quot;under embargo ... available on a common server at some point&quot;). NEMESIS README also says the visible ammonia bands (552, 645 nm) were originally modelled from [R2777] and that this is &quot;obsolete by newer ammonia line data&quot; (those line data embargoed); Lutz and Owen was not looked up.</li>
+<li><strong>Oxford ammonia tables</strong> on the same page: [R2095] (JQSRT 62, 193), 4000 to 11000 cm-1 (0.91 to 2.5 micron), self-broadened; and two tables at 25025 to 34975 cm-1 (286 to 400 nm). Neither reaches the 552, 645, 790 nm bands. Not downloaded.</li>
+<li><strong>[R4109, R4110]</strong> ([R4110], READ abstract): 6195 methane features in Titan ESPRESSO spectra (R about 190000), detection limit about 0.02 km-am^-1, comparison with experimental data at similar temperature; and <strong>[R3752]</strong> [R3752]: an empirical high-resolution optical methane line list (RRS-2026) from the same Titan data. Not needed for band strengths; useful as an independent check at 380 to 790 nm.</li>
+<li><strong>[R4186]</strong> (Icarus 215, 292; [R4186], READ): independent Uranus methane retrieval, see section 4.</li>
+</ul>
+<h2 id="4-the-notes-claims-one-by-one">4. The note's claims, one by one</h2>
+<h3 id="41-bibliographic-facts-crossref-read">4.1 Bibliographic facts (Crossref, READ)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim in the note</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>K&amp;T 2010: Icarus 205(2), 674 to 694, [R2265], Feb 2010, Karkoschka and Tomasko, title as given</td>
+<td><strong>Verified</strong> (Crossref; Semantic Scholar record agrees, CorpusId 120940761 and id cd062ae0 verified; 148 citations there, 141 in Crossref, 140 Scopus on the Arizona page; the note's &quot;148 to 176&quot; upper end not found)</td>
+</tr>
+<tr>
+<td>[R2258]: Icarus 111(1), 174 to 192, [R2258], sole author, title as given</td>
+<td><strong>Verified</strong> (Crossref; 297 citations there, the note's &quot;over 360&quot; not found)</td>
+</tr>
+<tr>
+<td>K&amp;T 2009 Uranus: Icarus 202(1), 287 to 309, [R2263], July 2009, Karkoschka and Tomasko</td>
+<td><strong>Verified</strong> (Crossref)</td>
+</tr>
+<tr>
+<td>[R2259]: Icarus 133(1), 134 to 146, [R2259], May 1998</td>
+<td><strong>Verified</strong> (Crossref and the paper's own header)</td>
+</tr>
+<tr>
+<td>K&amp;T 2011 Neptune: &quot;Icarus 212(2), 762 to 778, April 2011&quot;</td>
+<td><strong>Contradicted.</strong> Crossref: [R2266], Icarus <strong>211</strong>(1), <strong>780 to 797</strong>, January 2011. (The title &quot;The haze and methane distributions on Neptune from HST-STIS spectroscopy&quot; is right.)</td>
+</tr>
+<tr>
+<td>&quot;Accepted July 2009&quot; for K&amp;T 2010</td>
+<td>Not found (the DOI string carries 2009 but no acceptance date was read)</td>
+</tr>
+<tr>
+<td>Corpus/S2 ids for 1994 and 1998</td>
+<td>Not checked</td>
+</tr>
+<tr>
+<td>[R2101]: JGR Planets 127(6), e2022JE007189, PMC9286428</td>
+<td><strong>Verified</strong> (Crossref and PMC XML; CC BY 4.0)</td>
+</tr>
+<tr>
+<td>[R4753]: Remote Sensing 15(3), 702</td>
+<td><strong>Verified</strong> as a citation (Crossref: title &quot;Deep Clouds on Jupiter&quot;, published 25 January 2023). Its content (the note says it details the K&amp;T k-table parameterization) was <strong>not read</strong>: MDPI refuses</td>
+</tr>
+<tr>
+<td>[R0855] Science Advances, PMC6157968</td>
+<td><strong>Verified</strong> (Crossref: Sci. Adv. 4(9), eaas9593, 7 September 2018; the DOI the note's text implies, &quot;aas9930&quot;, is not it; CC BY-NC)</td>
+</tr>
+<tr>
+<td>[R2099] ([R2099]/2017)</td>
+<td><strong>Verified</strong> (READ): Irwin, Wong, Simon, Orton, Toledo, &quot;HST/WFC3 observations of Uranus' 2014 storm clouds and comparison with VLT/SINFONI and IRTF/SpeX&quot;, submitted to Icarus</td>
+</tr>
+<tr>
+<td>[R3752] and 2509.06496 [R4109, R4110]</td>
+<td><strong>Verified</strong> as papers (READ abstracts). &quot;6195 lines&quot; is Sithajan's figure; &quot;378.2 to 788.7 nm&quot; not found in the abstracts</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-data-hosts-and-files">4.2 Data hosts and files</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PDS dataset <strong>go_0016</strong> = &quot;Spectra of methane, jovian planets and Titan&quot;</td>
+<td><strong>Contradicted.</strong> go_0016 to go_0022 are Galileo orbiter images. The volume is <strong>gbat_0001</strong> (catalogue text: &quot;Spectrophotometry of the Jovian Planets and Titan&quot;), data set id <code>ESO-J/S/N/U-SPECTROPHOTOMETER-4-V2.0</code>, whose catalogue summary says July 1995 data (the 1998 paper); it also contains the 1993 table</td>
+</tr>
+<tr>
+<td><code>atmos.nmsu.edu/planetary_datasets/jupiter_infrared.html</code> serves the file</td>
+<td><strong>Verified</strong>; but that page and the saturn, uranus, neptune and titan pages each serve <strong>one planet</strong> (four columns, 1993 data, cited as [R2258]); the combined 8-column tables are in the PDS volume</td>
+</tr>
+<tr>
+<td>&quot;Tab-delimited&quot;, wavelength starting 300.31 to 300.4 nm</td>
+<td>Partly: fixed-width, space separated; vacuum 300.4 nm and air 300.31 nm both appear in the first row</td>
+</tr>
+<tr>
+<td>Methane k in (km-am)^-1 with albedos of five bodies</td>
+<td><strong>Verified</strong> for the PDS volume</td>
+</tr>
+<tr>
+<td>&quot;Also cross-indexed in HITRAN-2024&quot;</td>
+<td>Not checked (not needed)</td>
+</tr>
+<tr>
+<td>NEMESIS includes the K&amp;T 2010 k-tables</td>
+<td><strong>Partly verified.</strong> The NEMESIS repository (git) does <strong>not</strong> contain them. The tables are on Irwin's Oxford page (<code>ch4_karkoschka_*.par.gz</code>), downloaded here. NEMESIS carries <code>karkoschka.dat</code> (the 1993 PDS column) and the <code>tkark.f</code> band-model routine</td>
+</tr>
+<tr>
+<td>NASA PSG incorporates Karkoschka cross-sections</td>
+<td><strong>Not found</strong> (PSG host answers only &quot;unsupported command / browser&quot;)</td>
+</tr>
+<tr>
+<td>MAST holds the 19 August 2002 STIS cube of Uranus</td>
+<td>Not checked (the 2009 abstract confirms the observation date; MAST host not reachable: <code>www.mast.stsci.edu</code> no connection, <code>archive.stsci.edu</code> front page only)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="43-kt-2010-ad1-content">4.3 K&amp;T 2010 (AD1) content</h3>
+<p>Abstract read in full (University of Arizona repository, <a href="https://experts.arizona.edu/en/publications/methane-absorption-coefficients-for-the-jovian-planets-from-labor/">experts.arizona.edu</a>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;We use 11 data sets of methane transmission measurements within 0.4 to 5.5 micron&quot;</td>
+<td><strong>Verified</strong> (word for word)</td>
+</tr>
+<tr>
+<td>Eight laboratory data sets; two Huygens spectrometer sets ([R4394], PSS 56, 624)</td>
+<td><strong>Verified</strong></td>
+</tr>
+<tr>
+<td>&quot;The eleventh data set incorporates planetary reflectance and transmission constraints from HST and earlier ground-based spectrophotometry&quot;</td>
+<td><strong>Contradicted.</strong> The abstract: &quot;The last data set is a set of <strong>new Jupiter images by the Hubble Space Telescope to measure atmospheric transmission with Ganymede as the light source</strong>&quot;</td>
+</tr>
+<tr>
+<td>Below 1000 nm results are close to [R2259] and add temperature and pressure dependence; 882 to 902 nm inconsistency with laboratory data</td>
+<td><strong>Verified</strong> (abstract). The note omits the inconsistency; it matters for AD1 near the 890 nm band (the PDS and Oxford values differ by 20 percent there, section 3.2)</td>
+</tr>
+<tr>
+<td>Parameterised with a correlated-k distribution and a Voigt-Goody band model</td>
+<td><strong>Partly verified.</strong> The paper provides band-model coefficients: for each of about 3700 wavelengths a temperature dependence (abstract); the Voigt-Goody formula with κ(ν,100), κ(ν,198), κ(ν,296) is printed in open-access [R0855] (eq. 1 to 5). The <strong>correlated-k tables were computed by Irwin</strong> (14 May 2010), not published in the paper itself</td>
+</tr>
+<tr>
+<td>Huygens data cover 0.48 to 1.6 micron; Titan 70 to 94 K</td>
+<td>Not found (abstract says &quot;similar temperatures as many observations of Saturn, Uranus, Neptune and Titan&quot;)</td>
+</tr>
+<tr>
+<td>Huygens data confirm [R2096] at laboratory temperatures; Irwin's extrapolation to Titan's low temperatures predicts coefficients up to 100 times too low</td>
+<td>Not in the note; stated in the abstract and relevant: <strong>do not extrapolate Irwin's 2006 temperature dependence to cold giants</strong></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="44-r2258-and-1998-read-in-the-pds-ascii-copies">4.4 [R2258] and 1998 (READ in the PDS ASCII copies)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1994: full-disk albedo spectra of the jovian planets and Titan, ESO July 1993, 300 to 1000 nm, 1 nm</td>
+<td><strong>Verified</strong> (plus S/N about 1000, 2 percent relative and 4 percent absolute accuracy, 40 to 60 Raman features per planet, three new weak bands on Uranus and Neptune)</td>
+</tr>
+<tr>
+<td>1998: ESO July 1995, 300 to 1050 nm, 0.4 nm between 520 and 995 nm and 1 nm elsewhere, 4 percent calibration, UBV, methane and ammonia bands, temperature</td>
+<td><strong>Verified</strong> (abstract, word for word). New 930 nm band &quot;probably due to ammonia&quot;</td>
+</tr>
+<tr>
+<td>Both abstracts open with the same phrase</td>
+<td><strong>Verified</strong> (both start &quot;Full-disk albedo spectra of the jovian planets and Titan were derived from observations at the European Southern Observatory in July ...&quot;)</td>
+</tr>
+<tr>
+<td>Methane coefficients are in km-amagat^-1, derived indirectly</td>
+<td><strong>Verified</strong> (PDS label: &quot;the indirect determination ... is described by [R2264] ICARUS 97, 161-181&quot;, a paper not checked here)</td>
+</tr>
+<tr>
+<td>1994 strong Jupiter band &quot;possibly water&quot;</td>
+<td><strong>Verified</strong> (abstract); <strong>withdrawn in 1998</strong> (930 nm band probably ammonia; most of its lines are not water lines)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="45-uranus-numbers-and-filter-coefficients">4.5 Uranus numbers and filter coefficients</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uranus CH<sub>4</sub> mole fraction at low and equatorial latitudes 3.2 to 4.0 percent (&quot;0.04 plus or minus 0.01&quot;)</td>
+<td><strong>Partly verified.</strong> K&amp;T 2009 abstract (READ): &quot;The methane mixing ratio varied between <strong>0.014 and 0.032 from high to low southern latitudes</strong>&quot;. 3.2 percent is K&amp;T's low-latitude figure; <strong>4 percent is not K&amp;T 2009's</strong> but the deep value of Voyager occultation Model F [R2699] and of [R4186] (&quot;a methane mixing ratio near 4% at 5 deg S&quot;, READ). &quot;0.04 plus or minus 0.01&quot; not found. Under the widest-range rule the usable bracket is 1.4 to 4 percent, with sources named</td>
+</tr>
+<tr>
+<td>About 1.4 percent over the southern polar region</td>
+<td><strong>Verified</strong> (0.014, K&amp;T 2009 abstract)</td>
+</tr>
+<tr>
+<td>&quot;Roughly double the about 2 percent from Voyager 2 radio occultation&quot;</td>
+<td><strong>Partly verified.</strong> [R2699]'s preferred Model D had 2.3 percent but Model F had 4 percent (READ in [R4186]). &quot;Voyager gave 2 percent and K&amp;T found double&quot; is not what the sources say</td>
+</tr>
+<tr>
+<td>Poleward of 30 to 45 degrees depletion</td>
+<td>Not found in the abstract (the abstract gives a trend from low to high southern latitudes and an aerosol enhancement at 45 deg S); [R4186] finds a model fit 30 deg S to 20 deg N with one profile and an increasing upper-tropospheric depletion closer to the pole</td>
+</tr>
+<tr>
+<td>Aerosol opacity jumps by about 100 per bar near 1.2 to 2.0 bar</td>
+<td><strong>Partly verified.</strong> Abstract: &quot;Below the 1.2 bar level, the aerosol opacity increased some 100 fold&quot;. &quot;Per bar&quot; and &quot;2.0 bar&quot; not found</td>
+</tr>
+<tr>
+<td>Effective coefficients per HST filter (the note's table)</td>
+<td>The numbers exist in <strong>Table 1 of [R3900]</strong> (PMC5105178, READ), a Saturn paper that cites the K&amp;T and Karkoschka coefficients (refs 33 to 35). <strong>Verified:</strong> F410M 410.8 nm k_eff 7.2e-5 1/km-am, P(tau=1) 1.210 bar; FQ937N 937.7 nm k_eff 0.0397, 24.866 bar; F225W 237.8 nm k_eff below 1e-6; FQ727N 727.7 nm k_eff 3.2302, 0.993 bar. <strong>Contradicted:</strong> the note puts 0.515 bar on F225W; the table has 0.112 bar for F225W and 0.515 bar for F336W. Full table: F225W 237.8 nm &lt;1e-6, 0.112 bar; F336W 335.9 &lt;1e-6, 0.515; F410M 410.8, 7.2e-5, 1.210; F502N 501.0, 0.0017, 2.760; F547M 545.2, 0.0221, 3.815; F689M 688.0, 0.2456, 5.772; FQ727N 727.7, 3.2302, 0.993; FQ750N 750.2, 0.0211, 13.183; FQ889N 889.4, 23.733, 0.138; FQ937N 937.7, 0.0397, 24.866. These are <strong>effective coefficients for Saturn's atmosphere</strong> (Rayleigh plus CH<sub>4</sub> optical depth one), not new K&amp;T data; use as a check only</td>
+</tr>
+<tr>
+<td>[R0855]: Jovian methane absorption inside MODTRAN, forcing 0.026 W/m2 global, +0.25 W/m2 localised (10 times), 2.75 times over 88 percent of Earth</td>
+<td><strong>Verified</strong> (READ, PMC6157968). Detail: MODTRAN version 5.3.0.0 with DISORT; the two line-by-line calculations are HITRAN-based and the K&amp;T Voigt-Goody one; the equation set 1 to 5 is the open description of how to use κ at 100, 198 and 296 K</td>
+</tr>
+<tr>
+<td>[R2101: Fig. 1] re-plots K&amp;T 2009 STIS Uranus spectra (0.3 to 1.0 micron)</td>
+<td><strong>Partly verified.</strong> Figure 1 shows the visible and near-infrared spectra of both planets; the text says the 2002 STIS Uranus data are those of K&amp;T 2009 (READ). The re-plot not inspected</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-what-this-means-for-ad1-for-the-todo-thread-and-the-lanes">5. What this means for AD1 (for the TODO thread and the lanes)</h2>
+<ul>
+<li><strong>Methane (CH<sub>4</sub>):</strong> the data exists in two free forms. For the atmosphere-colour work (reflected visible light of a giant, 0.4 to 1.0 micron), <code>κ(ν, T)</code> from the three-temperature band parameters with the Voigt-Goody formula ([R0855] eq. 1 to 5) gives absorption as a function of path, pressure, temperature and methane fraction, replacing the &quot;neighbouring band 10 percent&quot; stand-in; the PDS single-spectrum table (<code>gbat_0001</code>) is the simpler form and a test value. Source rules apply: where Oxford and PDS differ (890 nm band, up to 20 percent; weak bands below 700 nm, up to about 0.15 dex) both are verified, K&amp;T 2010 is the newer, so it wins, and the PDS spread is the width for the draw.</li>
+<li><strong>Build-time download (Boss's decision of 2026-10-17):</strong> both hosts answered here (<code>atmos.nmsu.edu</code>, <code>users.ox.ac.uk</code>); no licence text on either page, the PDS volume is public. The Oxford IR table is 19 MB compressed (68 MB text); the band-parameter CSV is 0.24 MB and holds everything the Voigt-Goody route needs. The Oxford page says &quot;not yet fully verified&quot; for these tables, and its host is a personal academic page (a stability risk): a build-time fetch should fall back to the labelled stand-in. For offline tests a few rows of the CSV are enough.</li>
+<li><strong>Ammonia and water:</strong> AD1 remains open for the visible NH<sub>3</sub> bands (552, 645, 790, 930, 1030 nm) and H<sub>2</sub>O; the only free numbers are the four equivalent widths above (read from a figure, labelled). The [R2095] NH<sub>3</sub> tables start at 910 nm (partly overlapping the 930 and 1030 nm bands, a lead, not read). The stand-in for ammonia stays.</li>
+<li><strong>Not usable under NO FIXED CONTENT:</strong> fitting a given planet's measured albedo (the PDS albedo columns are Jupiter, Saturn, Uranus, Neptune and Titan data). The methane coefficients are physical data (laboratory plus Huygens), the albedo columns are not to be copied into the generator.</li>
+<li><strong>Citation fixes for the plan files:</strong> the AD1 source is [R2265], Icarus 205(2), 674 to 694; the Neptune paper is Icarus 211(1), 780 to 797 (2011), [R2266]; the Uranus paper is Icarus 202(1), 287 to 309 (2009); the dataset is PDS gbat_0001, not go_0016; the filter-table source is [R3900] (Nature Communications 7, 13262).</li>
+<li><strong>Free routes found for other gaps:</strong> the [R0855] text (CC BY-NC) prints the full Voigt-Goody temperature interpolation; [R4109, R4110] and [R3752] give an empirical Titan methane line list at 380 to 790 nm; <code>eutils.ncbi.nlm.nih.gov</code> and the Europe PMC REST host both return full text of open-access papers.</li>
+</ul>
+<h2 id="6-not-done">6. Not done</h2>
+<ul>
+<li>K&amp;T 2010 supplement itself (ScienceDirect refused) and [R4753] (MDPI refused) were not read; the Oxford file is the nearest copy found.</li>
+<li>Raw STIS cubes at MAST, PSG data, and [R2264] were not looked up.</li>
+<li>The Oxford tables were cross-checked only against the PDS tables, not against laboratory data or Huygens.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

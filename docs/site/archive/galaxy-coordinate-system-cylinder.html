@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy coordinate system and sector grid (cylindrical grid) - planetGen docs</title>
+<meta name="description" content="Historical: superseded by the spherical sector grid (shells, bands and wedges) on 2026-10-15, schema v91.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/archive/galaxy-coordinate-system-cylinder.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="archive/galaxy-coordinate-system-cylinder.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-coordinate-system-and-sector-grid-cylindrical-grid">Galaxy coordinate system and sector grid (cylindrical grid)</h1><p class="meta">docs/archive/galaxy-coordinate-system-cylinder.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-galaxy-frame">1. The galaxy frame</a></li><li style="margin-left:0px"><a href="#2-the-cylindrical-sector-grid">2. The cylindrical sector grid</a></li><li style="margin-left:0px"><a href="#3-sector-size-4-pc">3. Sector size: 4 pc</a></li><li style="margin-left:0px"><a href="#4-the-outline-layers-and-columns">4. The outline: layers and columns</a></li><li style="margin-left:0px"><a href="#5-things-that-move">5. Things that move</a></li><li style="margin-left:0px"><a href="#6-migrations-that-cleared-sectors">6. Migrations that cleared sectors</a></li><li style="margin-left:0px"><a href="#7-why-it-works-this-way">7. Why it works this way</a></li><li style="margin-left:14px"><a href="#alternatives-considered-and-rejected">Alternatives considered and rejected</a></li><li style="margin-left:0px"><a href="#open-questions-still-standing">Open questions still standing</a></li></ul></details>
+<blockquote>
+<p><strong>Historical: superseded by the spherical sector grid (shells, bands and
+wedges) on 2026-10-15, schema v91.</strong> Boss decided the move on 2026-10-15
+06:39Z; the current design is
+<a href="../design/galaxy/galaxy-coordinate-system.html"><code>../galaxy-coordinate-system.md</code></a> and its
+plan is <a href="../design/galaxy/spherical-sector-coordinates.html"><code>../spherical-sector-coordinates.md</code></a>.
+Everything below describes the cylindrical grid as it was built: the
+cylindrical grid arrived in 6.0.0 (schema v32), the 4 pc edge and aligned
+layers in 7.0.0 (schema v33), and the hybrid master-wedge slot counts in
+7.13.0 (schema v35). Its code (<code>geometry.py</code>'s grid, <code>galaxySkeleton.py</code>,
+the <code>galaxy_layer</code> and <code>galaxy_column</code> tables) is gone or being replaced.
+Kept for the reasoning.</p>
+</blockquote>
+<p>The spherical-shell design that the cylinder replaced in 6.0.0 (shells,
+Fibonacci slots, Voronoi prisms, the <code>sector_vertices</code> and
+<code>galaxy_shell_band</code> tables) is kept in
+<a href="galaxy-coordinate-system-shells.html"><code>galaxy-coordinate-system-shells.md</code></a>.</p>
+<h2 id="1-the-galaxy-frame">1. The galaxy frame</h2>
+<ul>
+<li>Origin at the galactic center, <code>(0, 0, 0)</code>. The quasar, when a galaxy has
+one, sits in ring 0, layer 0, slot 0.</li>
+<li>Right-handed axes: <code>X</code> and <code>Y</code> in the galactic plane, <code>+Z</code> toward galactic
+north. <code>+X</code> is the zero meridian (slot boundaries are counted
+counterclockwise from it). This is a generation-space convention and does
+not match any real sky frame.</li>
+<li>Galaxy-scale distances are stored in parsecs (<code>_pc</code> columns); positions
+inside a sector in milliparsecs (<code>_mpc</code>); bodies inside a system in km
+(shown in AU). <code>planetgen/physics/units.py</code> has <code>mpc_to_pc</code>, <code>pc_to_mpc</code>,
+<code>pc_to_ly</code> and <code>ly_to_pc</code>.</li>
+</ul>
+<h2 id="2-the-cylindrical-sector-grid">2. The cylindrical sector grid</h2>
+<p>Every galaxy-placed sector is one cell of a cylindrical grid around the
+galactic axis. With edge <code>e</code>:</p>
+<ul>
+<li><strong>Ring <code>i</code></strong> (<code>sectors.ring_index</code>, <code>i &gt;= 0</code>): cylindrical radius <code>R</code> in
+<code>[i*e, (i+1)*e)</code>. A sector's center sits on the ring's centerline,
+<code>(i + 1/2) * e</code>.</li>
+<li><strong>Layer <code>j</code></strong> (<code>sectors.layer_index</code>, any integer): height <code>z</code> in
+<code>[(j - 1/2)*e, (j + 1/2)*e)</code>, so layer 0 is centered on the plane.</li>
+<li><strong>Slot <code>k</code></strong> (<code>sectors.ring_slot_index</code>): one of <code>N_i</code> equal wedges,
+counterclockwise from <code>+X</code>.</li>
+</ul>
+<p><code>N_i</code> follows the hybrid master-wedge rule (7.13.0, schema v35, Boss's
+choice of 2026-09-30):</p>
+<ul>
+<li><code>c_i = 2*pi*(i + 1/2)</code> is the ring's centerline circumference in edges.</li>
+<li><code>M_i</code> (<code>ring_master_count</code>) is 3 at the center and doubles (6, 12, ...,
+1,536 at the default galaxy's edge) at the first ring where
+<code>c_i &gt;= 2 * M * 8</code>, that is where each doubled wedge would still hold 8
+slots. The doublings happen at rings 8, 15, 31, 61, 122, 244, 489, 978
+and 1,956.</li>
+<li><code>N_i = M_i * round(c_i / M_i)</code>, never less than <code>M_i</code>: 3, 9, 15, 21, 27,
+36, 42, 48, 54, ...</li>
+</ul>
+<p>Each slot's centerline arc stays within 0.94 to 1.06 of <code>e</code>, and the total
+count is within 0.1% of plain rounding. Because every <code>N_i</code> is a multiple of
+<code>M_i</code> and <code>M_i</code> only grows outward, every master line is a slot boundary in
+every ring from where it starts out to the edge. The Galaxy Map cuts its
+wedge lines and blocks on these lines. <code>static/galaxyprisms.js</code> mirrors
+<code>ring_sector_count</code> and <code>ring_master_count</code>.</p>
+<p><strong>Aligned columns.</strong> <code>N_i</code> depends only on the ring, so every layer cuts
+ring <code>i</code> the same way: cell <code>(i, j, k)</code> sits directly above <code>(i, j-1, k)</code>.</p>
+<p><strong>Exact tiling.</strong> The cells tile space with no gaps and no overlaps, and
+every lookup is closed form: <code>sector_address_at</code> maps a point to its cell,
+<code>neighbor_addresses</code> lists the face neighbors (two slots along the ring, the
+cells above and below, and the one or two overlapping slots in each
+neighboring ring, three for ring 0 into ring 1), and
+<code>enumerate_sectors_within_radius</code> walks only the cells near a point. A
+cell's center, corners and volume are computed, so only the address and
+center are stored (<code>uq_sectors_address</code> makes the address unique).</p>
+<p>A cell therefore has 6 to 8 face neighbors (4 to 6 in its own layer), and the
+arc limit above is about the slot, not the spacing: centers of face neighbors
+are 0.87 to 1.38 edges apart (0.87 in ring 0, up to 1.38 across rings). The
+cells do not map one-to-one onto a cubic lattice, so an order that walks
+&quot;voxels&quot; cannot address them. How to fill a region in order, and what fills
+the core, is in <a href="../design/galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>.</p>
+<p><strong>Local frame.</strong> A sector's local axes (<code>sector_orientation</code>) are <code>+X</code>
+radially outward from the galactic axis, <code>+Y</code> toward increasing angle and
+<code>+Z</code> galactic north. System and phenomenon offsets
+(<code>star_systems.position_x/y/z_mpc</code> and the phenomenon equivalents) use this
+frame, and generation samples them inside the real cell (<code>SectorCell</code>), not
+a cube. The octant label (<code>star_systems.quadrant</code>, and since schema v41 the
+same label on every placed phenomenon) comes from this frame.</p>
+<p><strong>Designations.</strong> <code>provisional_sector_designation</code> packs
+<code>ring &lt;&lt; 33 | (layer + 4096) &lt;&lt; 20 | slot</code> and prints it as hex;
+<code>parse_sector_designation</code> reverses it. Layers run from -4096 to 4095.</p>
+<p><strong>Zones.</strong> The Galaxy pages group sectors in Zones of
+<code>ZONE_RING_WIDTH = round(100 ly / 13.05 ly) = 8</code> rings
+(<code>planetgen/web/maps/galaxymap.py</code>).</p>
+<h2 id="3-sector-size-4-pc">3. Sector size: 4 pc</h2>
+<p><code>program_constants.DEFAULT_SECTOR_EDGE_PC = 4</code> (13.05 ly), used by the
+generator, the skeleton, the Galaxy pages and the Galaxy Map. <code>planetgen plan</code> has no edge option. It replaced 11.5 ly (3.53 pc) in 7.0.0.</p>
+<p>The edge sets where the galaxy ends, because a sector exists only where it
+expects at least one star (<code>predicted_star_count &gt;= 1</code>), and a bigger cell
+holds more stars at the same density. At the default Milky Way shape:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Edge</th>
+<th>Stars per sector at local density</th>
+<th>Radius reached</th>
+<th>Layers</th>
+<th>Candidate sectors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11.5 ly (old)</td>
+<td>4.3</td>
+<td>46,900 ly</td>
+<td>681</td>
+<td>14.9 billion</td>
+</tr>
+<tr>
+<td>2 pc</td>
+<td>0.8</td>
+<td>31,300 ly</td>
+<td>893</td>
+<td>28.2 billion</td>
+</tr>
+<tr>
+<td>3 pc</td>
+<td>2.7</td>
+<td>42,400 ly</td>
+<td>743</td>
+<td>18.6 billion</td>
+</tr>
+<tr>
+<td><strong>4 pc</strong></td>
+<td><strong>6.3</strong></td>
+<td><strong>50,300 ly</strong></td>
+<td><strong>635</strong></td>
+<td><strong>12.3 billion</strong></td>
+</tr>
+<tr>
+<td>5 pc</td>
+<td>12.3</td>
+<td>56,400 ly</td>
+<td>557</td>
+<td>8.6 billion</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-the-outline-layers-and-columns">4. The outline: layers and columns</h2>
+<p>The layers run from <code>+317</code> to <code>-317</code> at the default shape. Each layer runs
+from ring 0 out to the last ring that could still expect a star. A sector
+center's highest possible density over angle is
+<code>bulge(r_3d) + disk(R) * f_z(z) * (1 + arm_amplitude)</code>, which falls as <code>R</code>
+and <code>|z|</code> grow, so each layer's rings are one unbroken run from ring 0 and
+each layer reaches no farther than the one below it (toward the plane).</p>
+<p><code>planetgen plan</code> stores:</p>
+<ul>
+<li><code>galaxy_shape</code>: one row with the shape parameters, <code>edge_pc</code>,
+<code>expected_system_count_at_density_1</code>, <code>outer_ring_index</code>, and (schema v43)
+the bright-star threshold and seed.</li>
+<li><code>galaxy_layer</code>: <code>(layer_index, outer_ring_index)</code>, one row per layer
+(<code>galaxySkeleton.build_layer_extents</code>).</li>
+<li><code>galaxy_column</code>: <code>(ring_index, layer_index_min, layer_index_max)</code>, one row
+per ring.</li>
+</ul>
+<p>The build takes a few milliseconds. A sector inside its layer's extent may
+still fall short (an inter-arm trough); that exact check is one density call
+when the sector is visited.</p>
+<p><strong>Validation before generation.</strong> Every <code>planetgen galaxy</code> mode (a ring, a
+slot, a neighborhood, a random start) and visit-time generation
+(<code>generate.ensure_sector_generated</code>) ask <code>galaxySkeleton.GalaxyBounds.contains</code>
+first. An address outside is refused with the reason, even with <code>--density</code>
+or <code>--num-systems</code>. A neighborhood near the edge leaves out the sectors past
+it. A random start draws a uniformly random sector from inside the outline
+(<code>GalaxyBounds.random_address</code>). <code>planetgen galaxy</code> refuses to run before
+<code>planetgen plan</code>.</p>
+<p><strong>Bright stars (schema v43, 7.38.0).</strong> <code>planetgen plan</code> also places every
+star at or above <code>BRIGHT_STAR_MIN_LUMINOSITY_SOL</code> at a fixed point in its
+sector, in <code>bright_stars</code>, before any sector is filled. The default is
+1,000 L_sun (raised from 500 by GEN.30 on 2026-10-01, with the dimmer stars
+filled in near generated sectors by the mass rings of GEN.187, <code>BRIGHT_STAR_BACKFILL_RING_MASSES_SOL</code>; the default
+shape drew 26.9 million of them in the 2026-10-08 timing run). Filling the
+sector later builds a full system around each of them. Since 7.40.1,
+<code>planetgen plan --bright-star-min-luminosity</code> accepts down to 100 (about 220
+million stars and 35 GB in a Milky Way, against about 60 million and 10 GB
+at the old 500); white dwarfs are never pre-placed. The Galaxy Map draws
+them from 7.42.0, so the arms show before any sector is filled. How much of
+a planet's naked-eye sky these stars and the mass-ring backfill cover is in
+<a href="../design/orbits/sky-view.html">sky-view.md</a> section 3.</p>
+<p><strong>Adding a system to a stored sector (7.43.0).</strong> <code>POST /api/systems</code> with
+a <code>sector_id</code> places a new system in an existing sector
+(<code>_db.add_system_to_sector</code>): at a given position inside it, or else
+clear of the other systems' Hill spheres, with its location, containment and
+nearest systems filled in like a generated one.</p>
+<h2 id="5-things-that-move">5. Things that move</h2>
+<ul>
+<li><strong>Hill spheres follow the real radius.</strong> <code>Star.calculate_system_perimeter</code>
+takes <code>galactic_center_dist_ly</code>, threaded from the owning sector's
+<code>galactic_radius_pc</code> (5.3.6). The fixed <code>GALACTIC_CENTER_DISTANCE_LY</code>
+(Sol's distance) is used only for a system generated outside the galaxy.</li>
+<li><strong>Galactic orbits.</strong> Since 7.37.0 <code>planetgen.cli.orbits</code> turns every system,
+phenomenon and stand-alone facility along its galactic orbit, moves
+anything that drifts into another generated sector over to it, then
+recomputes containment and the stored nearest systems (<code>nearest_systems</code>,
+schema v41).</li>
+</ul>
+<h2 id="6-migrations-that-cleared-sectors">6. Migrations that cleared sectors</h2>
+<p>Shell addresses had no matching cell, so <code>_migrate_v31_to_v32</code> deleted every
+galaxy-placed sector with its systems and phenomena. The v33 edge change did
+the same and rebuilt the skeleton at 4 pc. The v35 slot rule deleted the
+sectors in every ring whose slot count changed (all but 15 rings). Sectors
+never placed in the galaxy were kept each time.</p>
+<h2 id="7-why-it-works-this-way">7. Why it works this way</h2>
+<ul>
+<li><strong>Cylinders instead of spherical shells (6.0.0).</strong> The first design
+(2026-09, &quot;Track C&quot;) placed cube sectors on concentric spherical shells
+with Fibonacci-sphere slots. A cube cannot tile a sphere, so it needed a
+per-sector Voronoi prism (<code>sector_vertices</code>), a Fibonacci-number neighbor
+search and a per-shell band cache (<code>galaxy_shell_band</code>), and most shell
+slots sat far off the disk. The release note gives the reason for the
+switch: sectors now &quot;follow the flat disk instead of a ball&quot;. The grid
+also tiles exactly, makes every lookup closed form, and let the
+<code>sector_vertices</code> and <code>galaxy_shell_band</code> tables be dropped (CHANGELOG
+6.0.0).</li>
+<li><strong>Rings as wide as layers are tall.</strong> One edge sets ring width, layer
+height and slot arc, so every cell is close to an <code>edge_pc</code> cube
+(<code>galaxyGeometry</code> module docstring), like the cube sectors before it. No
+further reason is recorded.</li>
+<li><strong>Aligned layers (7.0.0).</strong> The 6.0.0 grid used a multiple of 4 slots per
+ring; 7.0.0 made the count <code>round(2*pi*(i + 1/2))</code>, the same on every
+layer, so sectors line up in vertical columns and the skeleton is one
+row per layer (CHANGELOG 7.0.0, commit d9ed2b7).</li>
+<li><strong>4 pc edge (7.0.0).</strong> A whole number of parsecs, and at the default shape
+it puts the galaxy's edge at about 50,000 ly, the real Milky Way disk's
+radius. 2 pc was rejected because a local-density sector would average
+under one star, so ordinary solar-neighborhood space would not qualify.
+11.5 ly was the older, arbitrary default.</li>
+<li><strong>Master wedges (7.13.0, MAP.33).</strong> Plain rounding gave slot boundaries
+that did not line up from ring to ring, so the Galaxy Map's large blocks
+could not be cut on shared lines. Multiples of a doubling master count make
+every master line a slot boundary out to the edge, while arcs stay
+within about 6% of an edge and the total count is unchanged. Boss chose this hybrid on
+2026-09-30.</li>
+<li><strong>Validate before generating (7.0.0, commit c4b4e6e).</strong> Earlier random
+starts drew from a fixed 15,000 pc cylinder 2,000 pc tall and could land
+outside the galaxy; checking afterwards wasted generation. Storing the
+outline lets every path refuse a bad address up front.</li>
+<li><strong>Parsecs for galaxy scale.</strong> Milliparsecs give 8-digit numbers across the
+galaxy, and light-years would need an AU round trip to compare with the
+<code>_mpc</code> sector columns. Parsecs stay in the same unit family as
+milliparsecs (original design, section 2).</li>
+<li><strong>Store the address and center only.</strong> Position, density and outline are
+pure functions of the address, so storing them would only copy a formula's
+output (original design, section 10). <code>galactic_radius_pc</code> is stored
+anyway so &quot;sectors within R of the core&quot; can use an index.</li>
+<li><strong>Lazy generation.</strong> At about 12.3 billion candidate cells, generating
+everything up front is not possible. Sectors are generated when visited or
+asked for.</li>
+</ul>
+<h3 id="alternatives-considered-and-rejected">Alternatives considered and rejected</h3>
+<ul>
+<li>Spherical shells with Fibonacci slots and Voronoi prisms (built in 5.3.6,
+replaced in 6.0.0; see the archive copy).</li>
+<li>A per-sector plan table of every qualifying sector, about 10.5 billion
+rows and about 1 TB (see <code>archive/galaxy-disk-density-rev2.md</code>).</li>
+<li>A k-d tree or octree over sector addresses: not needed, since every lookup
+is closed form.</li>
+<li>2 pc, 3 pc and 5 pc edges (table in section 3).</li>
+<li>A staggered &quot;brick&quot; layer pattern: rejected for direct vertical columns.
+The reason recorded is only that columns line up; nothing more is written
+down.</li>
+</ul>
+<h2 id="open-questions-still-standing">Open questions still standing</h2>
+<ul>
+<li><strong>One galaxy per database.</strong> There is no <code>galaxy_id</code>. Several galaxies in
+one database would need one on every galaxy table. The plan for other
+galaxies (GEN.9) recommends keeping it that way: a second galaxy is a
+second database, and the neighbours are rows of one new table. See
+<a href="../design/galaxy/multiple-galaxies.html">multiple-galaxies.md</a>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -8,3 +8,4 @@
 - The number of inner systems and planets per host are unchanged. Every system with an inner planet is redrawn, so every golden file moves; lock item.
 
 generation-output: changed
+generation-affects: fill

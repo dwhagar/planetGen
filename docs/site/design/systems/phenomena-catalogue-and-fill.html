@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phenomena catalogue and the fill rules - planetGen docs</title>
+<meta name="description" content="One master list of every kind of object the generator has, has designed, or should have: what is observed, what the generator does now, whether the kind may have a star system and with what probability, what it must carry inside it, wher...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/phenomena-catalogue-and-fill.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/phenomena-catalogue-and-fill.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="phenomena-catalogue-and-the-fill-rules">Phenomena catalogue and the fill rules</h1><p class="meta">docs/design/systems/phenomena-catalogue-and-fill.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-the-rules-boss-2026-10-15">1. The rules (Boss, 2026-10-15)</a></li><li style="margin-left:0px"><a href="#2-how-a-fill-works-today-s">2. How a fill works today [S]</a></li><li style="margin-left:0px"><a href="#3-the-fill-as-it-should-run">3. The fill, as it should run</a></li><li style="margin-left:14px"><a href="#as-built-gen251">As built (GEN.251)</a></li><li style="margin-left:0px"><a href="#4-the-catalogue">4. The catalogue</a></li><li style="margin-left:14px"><a href="#41-stars-and-stellar-states-what-a-systems-stars-can-be">4.1 Stars and stellar states (what a system's stars can be)</a></li><li style="margin-left:14px"><a href="#42-compact-remnants">4.2 Compact remnants</a></li><li style="margin-left:14px"><a href="#43-small-bodies-and-debris">4.3 Small bodies and debris</a></li><li style="margin-left:14px"><a href="#44-nebulae-and-gas">4.4 Nebulae and gas</a></li><li style="margin-left:14px"><a href="#45-groupings-and-components">4.5 Groupings and components</a></li><li style="margin-left:14px"><a href="#46-flags-derived-values-and-effects-not-objects">4.6 Flags, derived values and effects (not objects)</a></li><li style="margin-left:14px"><a href="#47-skipped-with-the-reason">4.7 Skipped, with the reason</a></li><li style="margin-left:14px"><a href="#48-member-kinds-and-system-types-added-by-the-catalogue-of-multi-star-types">4.8 Member kinds and system types added by the catalogue of multi-star types</a></li><li style="margin-left:0px"><a href="#5-the-system-rule-for-every-kind">5. The system rule for every kind</a></li><li style="margin-left:0px"><a href="#6-one-registry">6. One registry</a></li><li style="margin-left:0px"><a href="#7-representation-how-all-types-is-kept-true">7. Representation: how "all types" is kept true</a></li><li style="margin-left:0px"><a href="#8-proposed-todo-items">8. Proposed TODO items</a></li><li style="margin-left:0px"><a href="#9-decisions-and-defaults">9. Decisions and defaults</a></li><li style="margin-left:0px"><a href="#notes-folded-in">Notes folded in</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>One master list of every kind of object the generator has, has designed, or should have: what is observed, what the generator does now, whether the kind may have a star system and with what probability, what it must carry inside it, where it occurs in the sphere profile, whether it comes from a scatter or from a sector fill, and the fill-time rule that keeps every kind represented. It folds in the earlier notes (listed under &quot;Notes folded in&quot;) and the whole-sphere design in <a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a>.</p>
+<p>Informs: GEN.100, GEN.113, GEN.114, GEN.128 to GEN.130, GEN.153 to GEN.155, GEN.159 to GEN.164, GEN.233 to GEN.249, and the new items in section 8.</p>
+<p>Status: design, 2026-10-15; nothing here is built. The rules in section 1 are Boss's of 2026-10-15; the defaults chosen where they leave a gap are marked &quot;Default&quot; and listed in section 9.</p>
+<p>Evidence tags: <strong>[S]</strong> seen in this repository or in a search-result summary (the papers themselves were not opened; the environment cannot reach arXiv or journals); <strong>[C]</strong> computed with the repository's own code in this session; <strong>[R]</strong> recalled and unconfirmed; <strong>[I]</strong> inferred, with the step shown. A figure keeps the tag of its weakest input. Times shown to Boss are US Eastern (EDT) only.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Scatters never carry planets or moons.</strong> Bright and mass stars, neutron stars, black holes, remnants, planetary nebulae and hypervelocity stars are scatter rows: a point, a seed and a kind, nothing around them. Nebulae need stars and phenomena, never planets.</li>
+<li><strong>A fill makes everything.</strong> When a sector is filled, every object already in it that can have a system rolls for one, and every object a fill creates rolls for its own, with the observed probability of that kind (section 5). The roll uses the object's own seed, so the answer is the same whenever and in whatever order sectors are filled.</li>
+<li><strong>Today only stars get this.</strong> The fill already builds a full system (companion, planets, moons) around each pre-placed bright star (<code>run_sector.py:515</code>), but a scattered black hole or neutron star becomes a bare phenomenon (<code>run_sector.py:449</code>, <code>:454</code>), and a system around one exists only through the <code>--anchor-system</code> option (<code>run_phenomenon.py:70</code>). That is the gap the system pass closes. The cost is tiny: about 0.002 extra systems per local sector, 0.03% of the 6.3 a sector holds [C].</li>
+<li><strong>One registry.</strong> The kind list is now spread over five places (<code>SECTOR_PHENOMENON_KINDS</code>, <code>SCATTERED_KINDS</code>, <code>PHENOMENON_DENSITY_PC3</code>, <code>KIND_CODES</code>, the class pages). Section 6 puts every column of this catalogue in one table that the code reads, with a completeness test, so a kind cannot exist without a rate, a gate, a builder, an ID code and a page.</li>
+<li><strong>&quot;All types represented&quot; is audited, not forced.</strong> Forcing every kind into every sector would distort the observed rates. Instead a statistical audit fills sample sectors in each kind of region and compares each kind's count with its expected count (section 7).</li>
+<li><strong>The catalogue</strong> (section 4) has 57 entries in six families: 28 built, 20 designed and already filed in TODO (GEN.130, GEN.153 to GEN.164, GEN.233 to GEN.249), 7 new here, and 2 not objects at all; a further 11 kinds are deliberately skipped (section 4.7). Nine items are proposed in section 8.</li>
+</ul>
+<h2 id="1-the-rules-boss-2026-10-15">1. The rules (Boss, 2026-10-15)</h2>
+<ol>
+<li>Scatters and backscatters (bright stars, massive stars, neutron stars, black holes and the rest) get no systems, no planets and no moons. Planets and moons are not generated when a sector is not being filled with everything.</li>
+<li>Nebulae need stars and phenomena inside them, not planets.</li>
+<li>When a sector is filled, or whenever a star system would be generated, all types of objects are represented. If the sector already holds phenomena that could have a system of planets, generate one if it gets one, with probabilities from real observations, like everything else.</li>
+<li>When a new object that could have a system is generated during a sector fill, generate its system.</li>
+<li>Go through all the notes about phenomena and rebuild the list and its generation: this note.</li>
+<li>Standing rules that still hold: redesign freely (no backward compatibility), no change to anything but docs in this research thread, and TODO.md is edited only by the TODO thread.</li>
+</ol>
+<h2 id="2-how-a-fill-works-today-s">2. How a fill works today [S]</h2>
+<p><code>generate_sector</code> (<code>run_sector.py:531</code>) runs, for a galaxy-placed sector, in this order:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>What</th>
+<th>Where</th>
+<th>Planets and moons?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>every pre-placed bright or massive star gets a full system, built from the row's own seed, at its stored point</td>
+<td><code>_add_preplaced_systems</code>, <code>run_sector.py:515</code></td>
+<td>yes: companion, planets, moons</td>
+</tr>
+<tr>
+<td>2</td>
+<td>every scattered phenomenon row becomes its object: black hole, neutron star, supernova remnant, planetary nebula (with its own new central white dwarf system), hypervelocity star (an ordinary young system), the galactic nucleus</td>
+<td><code>add_scattered_phenomena</code>, <code>run_sector.py:402</code>; <code>_build_scattered</code>, <code>:433</code></td>
+<td>only the planetary-nebula white dwarf and the hypervelocity star are systems; black holes and neutron stars are bare</td>
+</tr>
+<tr>
+<td>3</td>
+<td>the sector's other systems, <code>--density</code> many, ages from the cell's population mix, below the bright-star threshold</td>
+<td><code>generate_sector</code>, <code>run_sector.py:531</code> onward</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>4</td>
+<td>the per-star Poisson rolls for kinds that are not scattered: rogue planets, brown dwarfs, comets, asteroid fields (rate 0), and in a stand-alone sector all of them</td>
+<td><code>generate_sector_phenomena</code>, <code>run_sector.py:146</code>, over <code>SECTOR_PHENOMENON_KINDS</code> (<code>:50</code>)</td>
+<td>a rogue planet keeps a moon with probability 0.2 (<code>SYSTEM_PASS_ODDS</code>)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>molecular clouds come from the seeded <code>nebula_field</code>, not from a roll</td>
+<td><code>generate_sector_phenomena</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>6</td>
+<td>emission and reflection nebulae grow around the sector's own hot stars</td>
+<td><code>add_star_hosted_nebulae</code>, <code>run_sector.py:262</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>7</td>
+<td>neutron stars and black holes below the scatter's mass cut, rolled in the sector</td>
+<td><code>add_below_cut_remnants</code>, <code>:463</code></td>
+<td>none</td>
+</tr>
+<tr>
+<td>8</td>
+<td>runaway and hypervelocity flags</td>
+<td><code>flag_fast_stars</code>, <code>:302</code></td>
+<td>n/a</td>
+</tr>
+<tr>
+<td>9</td>
+<td>the galactic nucleus, in one sector only</td>
+<td><code>add_galactic_nucleus</code>, <code>:357</code></td>
+<td>none (a quiescent supermassive hole, or a quasar with 10% chance)</td>
+</tr>
+</tbody>
+</table></div>
+<p>What is missing against the rules of section 1:</p>
+<ul>
+<li><strong>Step 2 gives no system to a black hole or neutron star.</strong> The rules for their company are written (<code>multistar-and-compact-systems.md</code> 7.3 and 7.6, refined in <code>exotic-environments-planets-and-compact-binaries.md</code> 2.1) but GEN.129 and GEN.130 are open, and <code>StarSystem.__init__</code> skips binary generation whenever it is handed a remnant (<code>system.py:255</code>).</li>
+<li><strong>Steps 4 to 8 draw on the sector's one stream in a fixed order</strong>, so adding a kind (say Wolf-Rayet nebulae) in the middle shifts every draw after it. The scattered objects avoid this by being built from their own seeds (<code>_seeded_build</code>, <code>run_sector.py:394</code>).</li>
+<li><strong>No step checks representation</strong>: nothing says a kind with a rate and a builder actually appears at its rate.</li>
+<li><strong>The star census has no way to hold</strong> a Wolf-Rayet star, a protostar, a brown dwarf companion, a pulsar-bearing binary or a symbiotic star. The model's living-star shares are 94.2% main sequence, 5.2% white dwarf, 0.31% subgiant, 0.27% giant, about 0 supergiant [C, 60,000 draws of <code>sample_living_star</code>], and 0.63% of all stars born have collapsed to a neutron star or black hole [C], which matched the 0.5% and 0.1% that <code>PHENOMENON_DENSITY_PC3</code> held before the GEN.100 retune (the retuned shares are 0.4% and 0.05%, section 5).</li>
+</ul>
+<h2 id="3-the-fill-as-it-should-run">3. The fill, as it should run</h2>
+<p>Each stage draws on its own stream (<code>seed(sector) + stage name</code>), so adding a stage or a kind never moves another stage's draws. The new stages are marked <strong>new</strong>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>What</th>
+<th>Planets and moons</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td>pre-placed stars: ordinary systems (as step 1 above)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>B</td>
+<td>scattered rows become objects, each from its own seed (as step 2)</td>
+<td>no</td>
+</tr>
+<tr>
+<td>C <strong>new</strong></td>
+<td><strong>system pass</strong>: every object from A and B whose kind has a system model rolls once, on its own seed, for a system (companions, planets, belts, moons, disk), and gets it (section 5)</td>
+<td>by kind</td>
+</tr>
+<tr>
+<td>D</td>
+<td>the cell's other systems, the whole star-state spectrum of section 4.1</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>E</td>
+<td>per-star kinds not scattered (rogue planets, brown dwarfs, comets) and the <strong>system pass</strong> for the ones that can have a moon or companion</td>
+<td>by kind</td>
+</tr>
+<tr>
+<td>F</td>
+<td>field nebulae, then hosted nebulae, each <strong>making its required stars as real systems inside its bounds</strong> (GEN.241); a star made for a nebula has belts at most, as the planet rules for stars under 10 Myr already say (<code>system.py:1024</code>, <code>PLANET_MIN_STAR_AGE_GY = 0.01</code>)</td>
+<td>belts only</td>
+</tr>
+<tr>
+<td>G</td>
+<td>below-cut remnants (same as B and C)</td>
+<td>by kind</td>
+</tr>
+<tr>
+<td>H</td>
+<td>flags, then the nucleus</td>
+<td>none</td>
+</tr>
+<tr>
+<td>J <strong>new</strong></td>
+<td>the neutron stars and black holes the galaxy ejected (GEN.238), a count per kind from the sector profile; runs after G</td>
+<td>none (a kick strips the planets)</td>
+</tr>
+<tr>
+<td>I <strong>new</strong></td>
+<td><strong>audit hooks</strong>: counters per kind per stage, read by the audit of section 7</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rules inside the stages:</p>
+<ul>
+<li><strong>Never planets for a scatter row alone.</strong> A scatter row stores a point and a seed. Nothing with a planet or moon is stored until its sector is filled. The pages of an unfilled sector show the row, not a system.</li>
+<li><strong>Order of the system pass inside C.</strong> Stars first (they already are systems), then compact remnants, then the rest, so that a remnant's companion is placed with the Hill spheres of the pre-placed stars in view, as <code>add_scattered_phenomena</code> already does by placing scattered objects before the sector's own systems (<code>run_sector.py:402</code>).</li>
+<li><strong>No room.</strong> A system that does not fit drops its outermost body first, then its companion; the object itself always stays (the same rule <code>generate_sector</code> uses for a full cube).</li>
+<li><strong>The same seed gives the same system</strong> whatever order sectors are filled, because the roll uses <code>draw.bound(row.seed)</code> with a stage-tagged suffix, the way <code>_add_preplaced_systems</code> does.</li>
+</ul>
+<h3 id="as-built-gen251">As built (GEN.251)</h3>
+<ul>
+<li><strong>Streams.</strong> <code>generation/fill_stages.py</code> names the stages (<code>pre-placed</code>, <code>scattered</code>, <code>system-pass</code>, <code>systems</code>, <code>per-star-kinds</code>, <code>nebulae</code>, <code>below-cut</code>, <code>ejecta</code>, <code>flags</code>, and <code>clouds</code>, GEN.357: what the cloud a placed system sits in does to it, one stream per placement) and draws one 64-bit base from the sector's stream when <code>generate_sector</code> begins; a stage binds <code>draw.Stream(f&quot;{base}:{stage}&quot;)</code>, and a stage that holds several independent parts binds one stream per part (<code>per-star-kinds:&lt;kind&gt;</code>, <code>nebulae:&lt;kind or hosted&gt;</code>, <code>flags:nucleus</code>, <code>flags:fast-stars</code>, <code>systems:fallback</code>, <code>system-pass:below-cut</code>). A piece called by hand on a sector no fill began on keeps the stream it has. The same galaxy seed gives a sector different contents than it did on one stream; redrawn sectors under a directive differ from each other because each attempt draws its own base.</li>
+<li><strong>Stage I.</strong> <code>sector.stage_counts</code> holds the objects each stage made by <code>(stage, kind)</code>: star systems in A and D, scattered rows by kind in B, kinds in E to G, the fast-star count in H, and in C the objects rolled (<code>key</code>), those that became systems (<code>key:system</code>) and those whose planet model put no planet in them (<code>key:empty</code>). The representation audit (section 7, item 4) reads them; <code>fill_stages.describe</code> prints them.</li>
+<li><strong>The system pass.</strong> <code>generation/system_pass.py</code> rolls the objects of B and G (compact remnants first) on <code>draw.Stream(f&quot;{seed}:system-pass&quot;)</code>; <code>seed</code> is the scatter row's seed, or for a below-cut remnant <code>f&quot;{below_cut.seed}:{n}&quot;</code>, <code>n</code> its place in the stage's draws, counted whether or not it found room. The odds are the rows of the host tables (<code>generation/phenomena/hosts.py</code>, GEN.552) by object key (<code>remnant-satellites</code>: <code>neutron-star:millisecond</code> 0.7% planets; <code>planet-satellites</code>: <code>rogue-planet</code> 20% moons, rolled when the planet is made). A hit builds <code>StarSystem(compact_remnant=...)</code> on the same stream and replaces the bare object with it at its point; the system's galactic Hill sphere is its primary's, the one the object was placed with, and the planet model keeps every body inside its orbit ceiling, so every system fits and the drop-the-outermost-body rule never fires. A hit whose planet model puts no planet in the system keeps the bare object. The pulsar type used is that of the object as built from the row's seed; GEN.264 reconciles it with the stored members. Companions, belts, disks and the other models are not rolled here: companions are drawn at scatter time (GEN.262) and built from the stored members at fill (GEN.264); a planetary nebula's circumbinary disk and a pulsar's planet count (the planet model gives a recycled pulsar as many as ten) belong to GEN.130.</li>
+<li><strong>Built (GEN.320): the stars a nebula needs.</strong> <code>generation/nebula_contents.py</code>. A hosted nebula's roll (chance, class, age) runs on a stream seeded from the host star's own mass, age and temperature (<code>hosted_seed</code>), so the same star gets the same nebula whether the sector pre-places it or a fill makes it. A field cloud draws its members from a seed of its own (<code>cloud_seed</code>: the galaxy seed and the cloud's center in millipc): a Bok globule (P) holds one protostar in 30% of clouds, a star-forming core (Q) a zero-truncated Poisson count of mean 2 capped at 4 (<code>tuning.NEBULA_CLOUD_PROTOSTARS</code>), each of IMF mass under 8 solar masses and under 0.5 Myr old, placed in a Gaussian clump a third of the cloud's radius wide. Every sector the cloud reaches draws the same members and builds only the ones inside its own cell (<code>add_cloud_protostars</code>, stage F), so a cloud across a border is built once. Each member is an ordinary young system (GEN.242: protostar, disk, Perseus companions) with no planets. A planetary nebula's central star takes a close companion in 20% (<code>tuning.PLANETARY_NEBULA_COMPANION_CHANCE</code>, [R: 15 to 20% of central stars are close binaries]). A massive member of an emission region (an O or early B younger than 0.3 Myr) is in a young group at the catalogue's 5%, its mates built as systems of their own (GEN.328, <code>multi-star-systems.md</code> 13.1). The members of the C and G nebulae's companies belong to GEN.241, and a pre-placed star's nebula shown from its scatter row is a remainder (TODO).</li>
+<li><strong>Built (GEN.530): a waiting star's hosted nebula is read from its row.</strong> <code>nebula_contents.row_nebula</code> rolls <code>hosted_nebula_of</code> on the four numbers a row holds (<code>row_star</code>: type, age, mass, temperature), the same a built star carries, with the <code>&quot;nebula&quot;</code> factor of the row's cell (<code>db/hostednebula.py</code>), so the nebula is the one the sector builds. The uncharted star's page names it (<code>hosted_nebula</code>) and the uncharted sector's scene draws it at the star (<code>hosted_nebulae</code>, linking to the star's page); a star built into a system lists none, the system's own phenomenon holds it. The Galaxy Map's tiles are not changed: they list scattered phenomena by their own rows, and a hosted nebula has none until it is built.</li>
+<li><strong>Built (GEN.321): the ionizing members of emission regions D and E.</strong> <code>nebula_contents.emission_members</code>. The region's <code>hosts</code> text counts its stars of 5.5 solar masses and up by spectral type (<code>physics/hii.cluster_hosts</code>); the seed star is one of them, so the members are the text less one star of the seed's type. Each member is a mass from the IMF within its type's range (<code>hii.mass_range_of_type</code>, the log-midpoints to the neighbouring anchor types; a draw whose star would be dead at the nebula's age is made again, the text having counted survivors), the nebula's age, and a point in a Plummer sphere about the seed star of half-mass radius 1 pc (D) or 2 pc (E) (<code>tuning.NEBULA_CLUSTER_HALF_MASS_PC</code>) from the table and scale of the satellites' profile (<code>physics/component_profiles</code>, GEN.237), redrawn while it lies outside the nebula's radius. The seed is the galaxy's and the seed star's point in millipc (<code>emission_seed</code>), so the members are a function of the galaxy, the nebula and that point alone. A sector builds those whose points fall in its cube (<code>run_sector.add_emission_members</code>, stage F, each an ordinary young system as in GEN.320), from two lists: the regions its own stars light (<code>add_star_hosted_nebulae</code>'s <code>hosts_out</code>) and the regions the pre-placed hot stars (O and B0 to B2) of the sectors around it light, read from their <code>bright_stars</code> rows within the Plummer cut radius plus the sector's reach (<code>run_galaxy._emission_hosts</code>, <code>FillContext.emission_hosts</code>): each row is rolled as its own sector rolls it (<code>nebula_contents.row_host</code>, with that sector's <code>&quot;nebula&quot;</code> factor), whether or not that sector was filled. The hosted roll's seed now takes mass, age and temperature as floats, so a star made in a fill (whole-kelvin integer temperature) and its stored row (a float) roll the same. Not covered: a hot star the scatter did not place (a B1 or B2 star under the luminosity floor of its tier) is no row, so its region's members fall in its own sector alone. A region's seed star must still be the host the sector's fill made; its stars below 5.5 solar masses stay the sector's background density (the default of the design note).</li>
+<li><strong>Not built here.</strong> The members of the C and G nebulae's companies (GEN.241) and the companion draw for objects made at fill (stages D and G, GEN.264).</li>
+</ul>
+<h2 id="4-the-catalogue">4. The catalogue</h2>
+<p>Columns. <strong>Status</strong>: built, filed (TODO id), new (proposed in section 8), skip. <strong>Observed</strong>: the real count or rate with its tag. <strong>Now</strong>: what the generator does. <strong>System?</strong>: probability that the object has a bound companion or planets, with the rule. <strong>Carries</strong>: objects the kind must hold. <strong>Profile</strong>: what drives its rate in the sphere profile (<code>mix</code> populations, <code>gas</code>, <code>kind_factors</code>; section 5.3 of the whole-sphere note). <strong>Where</strong>: scatter (S), fill (F), field (D, derived from a seed), flag, or component.</p>
+<p>Counts per local sector use a 64 pc^3 cell with 8 stars [S: <code>interstellar-object-rates.md</code>].</p>
+<h3 id="41-stars-and-stellar-states-what-a-systems-stars-can-be">4.1 Stars and stellar states (what a system's stars can be)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Status</th>
+<th>Observed</th>
+<th>Now</th>
+<th>System?</th>
+<th>Carries</th>
+<th>Profile</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main-sequence star O to M</td>
+<td>built</td>
+<td>the bulk</td>
+<td>94.2% of living stars [C]</td>
+<td>companion by class: O 0.90, early B 0.84, mid B 0.76, B 0.65, A 0.55, F 0.47, G 0.44, K 0.40, M 0.26 (<code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS</code>) then shared between close, inner and outer separations by Moe and Di Stefano's lines (GEN.448); planets by the planet model</td>
+<td>none</td>
+<td><code>mix</code></td>
+<td>S for bright and mass, F otherwise</td>
+</tr>
+<tr>
+<td>Subgiant, giant, supergiant</td>
+<td>built</td>
+<td>giants about 1% of field stars [R]</td>
+<td>0.58% giant or subgiant, about 0 supergiant [C]</td>
+<td>as above; planets inside twice the giant's radius engulfed (<code>GIANT_ENGULFMENT_RADIUS_FACTOR</code>)</td>
+<td>none</td>
+<td>old and intermediate</td>
+<td>F; bright ones S</td>
+</tr>
+<tr>
+<td>White dwarf</td>
+<td>built</td>
+<td>about 6 to 10% of stars [R]</td>
+<td>5.2% [C]</td>
+<td>companion about 30% (22% wide) [S: multi-star 7.3]; surviving planets outside 1.5 AU (<code>WD_PROGENITOR_ENGULFMENT_AU</code>) with orbits widened by the mass ratio; metal pollution of 25 to 50% of cool ones [S] unbuilt</td>
+<td>none</td>
+<td>old share, so halo and clusters have them</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Hot central white dwarf</td>
+<td>built</td>
+<td>1 per planetary nebula</td>
+<td>O3VII to B0VII, mass 1.1 to 1.44 (GEN.149 fixes it)</td>
+<td>close companion about 20% [R: 15 to 20% of central stars are close binaries]; circumbinary disk only if close binary, never planets (<code>exotic-environments...</code> 1.3)</td>
+<td>itself</td>
+<td>old share</td>
+<td>made with its nebula</td>
+</tr>
+<tr>
+<td>Brown dwarf as a star's companion or primary</td>
+<td><strong>new</strong></td>
+<td>free-floating 1 per 4.7 stars [S]; companions to Sun-like stars under 1% inside 5 AU, a few % wide (the brown dwarf desert) [R]</td>
+<td>only as a free-floating row</td>
+<td>its own companion probability 0.15 for the pair [R]</td>
+<td>none</td>
+<td><code>mix</code></td>
+<td>F</td>
+</tr>
+<tr>
+<td>Pre-main-sequence star, T Tauri, Herbig Ae/Be</td>
+<td>filed GEN.242</td>
+<td>every star still contracting: 1.1e-4 of stars are under 10 Myr (2.8 stars/yr x 10 Myr = 2.8e7) [C], and since GEN.529 removed the 10 Myr cap about 3.6% of the disk's draw are red dwarfs younger than their contraction time (0.1 to 0.7 Gyr)</td>
+<td>none; the model has no such state</td>
+<td>companion 0.33 (Class II, six systems) rising to 0.57 (Class 0) [S: Perseus survey]; disk fraction falls from about 0.8 at 1 Myr to 0.1 at 5 to 6 Myr [R]; no planets</td>
+<td>a disk descriptor</td>
+<td>young share</td>
+<td>F, inside nebulae</td>
+</tr>
+<tr>
+<td>Protostar, Class 0/I</td>
+<td>filed GEN.242</td>
+<td>about 1.4e6 in the Galaxy (2.8 stars/yr x 0.5 Myr) [C, R inputs] against the 2.6e5 the P and Q cores of GEN.241 give: 5x short</td>
+<td>none</td>
+<td>multiplicity 0.57 Class 0, 0.23 Class I, companion star fraction 1.2 and 0.23 [S]</td>
+<td>a disk</td>
+<td><code>gas</code> and young share</td>
+<td>F, inside P and Q cores and embedded in M clouds</td>
+</tr>
+<tr>
+<td>Wolf-Rayet star</td>
+<td>filed GEN.243</td>
+<td>1,200 +- 100 expected, 642 known [S]; the model reproduces 1,180 [C]</td>
+<td>none</td>
+<td>WN 0.52, WC 0.9 (capped from 0.96) [S: Dsilva et al.]; planets none (under 10 Myr)</td>
+<td>its ring nebula 40% [R, I]</td>
+<td>young share only</td>
+<td>S via the mass pass; F</td>
+</tr>
+<tr>
+<td>Luminous blue variable, hypergiant</td>
+<td>filed GEN.246</td>
+<td>tens in the Galaxy [R]; Eta Carinae-class events 0.09 of the core-collapse rate [S]</td>
+<td>none</td>
+<td>as massive stars (binary 0.9)</td>
+<td>an ejecta nebula</td>
+<td>young share</td>
+<td>S, rare</td>
+</tr>
+<tr>
+<td>Be star, carbon star, Mira, S-type</td>
+<td>filed GEN.249</td>
+<td>Be about 20% of B stars [R]</td>
+<td>none</td>
+<td>ordinary</td>
+<td>a decretion disk (Be)</td>
+<td>intermediate and old</td>
+<td>F, attribute</td>
+</tr>
+<tr>
+<td>Blue straggler</td>
+<td>filed GEN.162</td>
+<td>10 to 30% of cluster cores [R]</td>
+<td>none</td>
+<td>binary origin</td>
+<td>none</td>
+<td><code>cluster</code></td>
+<td>F</td>
+</tr>
+<tr>
+<td>Runaway star</td>
+<td>built</td>
+<td>1 to 2% of stars above 30 km/s [S]</td>
+<td>flag on an ordinary system</td>
+<td>ordinary</td>
+<td>none</td>
+<td><code>mix</code></td>
+<td>flag</td>
+</tr>
+<tr>
+<td>Hypervelocity star</td>
+<td>built</td>
+<td>1e3 to 1e4 [S]</td>
+<td>scatter row, an ordinary young system at fill</td>
+<td>ordinary</td>
+<td>none</td>
+<td>r^-2 law</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Thorne-Zytkow object</td>
+<td>skip</td>
+<td>20 to 200 predicted, none confirmed [S]</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-compact-remnants">4.2 Compact remnants</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Status</th>
+<th>Observed</th>
+<th>Now</th>
+<th>System?</th>
+<th>Carries</th>
+<th>Profile</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Neutron star, isolated, young pulsar</td>
+<td>built</td>
+<td>about 1e9 neutron stars [S]; 1e5 beamed pulsars [R]</td>
+<td>5.6e-4 pc^-3; pulsar chance 0.02 (<code>NEUTRON_STAR_PULSAR_CHANCE</code>)</td>
+<td>companion 1 to 3%; planets none (needs a disrupted white dwarf) [S: multi-star 7.3, exotic 2.1]</td>
+<td>none</td>
+<td><code>mix</code>; the thicker layer of <code>compact-remnant-regions.md</code> is a proposal, not built</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Neutron star, millisecond pulsar</td>
+<td>built</td>
+<td>about 600 known; field MSPs mostly with a white dwarf companion [R]</td>
+<td>10% of pulsars (<code>PULSAR_MILLISECOND_CHANCE</code>)</td>
+<td>companion 75 to 80%; planets 0.7% (upper bound 1%): disk planets 25%, captured giant 25% in clusters only, ablated companion 50% [S: exotic 2.1]</td>
+<td>the companion</td>
+<td>old and bulge, clusters</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Magnetar</td>
+<td>filed GEN.153</td>
+<td>17 expected, about 30 known [S, R]</td>
+<td>not built</td>
+<td>none</td>
+<td>a young remnant under 3e4 yr</td>
+<td>young share, thin layer</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Stellar black hole</td>
+<td>built</td>
+<td>about 1e8 [S]</td>
+<td>7e-5 pc^-3 (superseded by the metallicity-dependent density of GEN.563, black-hole-density.md); the stellar class is 5e-4 per star, 40% of it above 14 solar masses</td>
+<td>companion 1.25%, not 10 to 30% (Boss, 2026-10-15, 6:08 PM EDT, multi-star-systems.md; Gaia BH1, BH2, BH3 [S, low confidence]); planets of the companion only inside the Holman-Wiegert limit; none in the hole's own disk; 0.1% have an accretion disk (<code>BLACK_HOLE_ACCRETION_DISK_CHANCE</code>)</td>
+<td>none</td>
+<td>thick layer, rising toward the core</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Intermediate-mass black hole</td>
+<td>built</td>
+<td>a handful of candidates, none confirmed in the field [R]</td>
+<td>3e-6 of black holes (<code>BLACK_HOLE_INTERMEDIATE_MASS_CHANCE</code>, GEN.259: Boss, decision card, 2026-10-16, &quot;hundreds, as the observations suggest&quot;), about 300 in the Galaxy of 1e8 black holes; it was 0.1%, about 1e5, four orders above the candidates</td>
+<td>none</td>
+<td>none</td>
+<td><code>cluster</code>, halo</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Supermassive black hole, quasar</td>
+<td>built</td>
+<td>one per galaxy</td>
+<td>one in the core cell, quasar with chance 0.1</td>
+<td>none: no stellar system, no blanets [S: exotic 2.4]</td>
+<td>the S-star cluster as text (GEN.155)</td>
+<td>the nucleus</td>
+<td>F, one sector</td>
+</tr>
+<tr>
+<td>Active X-ray binary, microquasar</td>
+<td>filed with GEN.130 and GEN.247</td>
+<td>several dozen to 1,000 microquasars [R]</td>
+<td>none</td>
+<td>by definition a binary: a donor at hours to a day</td>
+<td>an accretion disk, jets</td>
+<td>young for high-mass, old for low-mass</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Nuclear star cluster</td>
+<td>filed GEN.155</td>
+<td>one, 2.5e7 solar masses [R]</td>
+<td>none</td>
+<td>its stars are ordinary</td>
+<td>the supermassive hole</td>
+<td>the nucleus</td>
+<td>F</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="43-small-bodies-and-debris">4.3 Small bodies and debris</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Status</th>
+<th>Observed</th>
+<th>Now</th>
+<th>System?</th>
+<th>Carries</th>
+<th>Profile</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rogue planet, six mass bins</td>
+<td>built</td>
+<td>5.6 terrestrial per star, giants 0.028 [S]</td>
+<td>about 58 per local sector</td>
+<td>a moon with probability 0.2</td>
+<td>none</td>
+<td>per star</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Rogue brown dwarf</td>
+<td>built</td>
+<td>0.03 pc^-3 [S]</td>
+<td>built</td>
+<td>none</td>
+<td>none</td>
+<td>per star</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Interstellar comet</td>
+<td>built</td>
+<td>1e15 pc^-3 real, 0.007 pc^-3 kept as rows [S]</td>
+<td>rows plus a computed count</td>
+<td>none</td>
+<td>none</td>
+<td>per star</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Asteroid field</td>
+<td>built, rate 0</td>
+<td>disperses in 1e6 to 1e7 yr [S]</td>
+<td>hand-made only</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>hand-made</td>
+</tr>
+<tr>
+<td>Debris belt in a system</td>
+<td>built</td>
+<td>all stars with planets</td>
+<td>in the planet draw</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>the star</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Debris disk around A and F stars</td>
+<td>filed GEN.245</td>
+<td>about 20% of A and Sun-like stars [R]</td>
+<td>none</td>
+<td>n/a (a descriptor)</td>
+<td>dust radius and mass</td>
+<td>intermediate</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Protoplanetary disk descriptor</td>
+<td><strong>new</strong>, inside GEN.242</td>
+<td>most stars under 3 Myr [R]</td>
+<td>none</td>
+<td>n/a</td>
+<td>disk mass and radius</td>
+<td>young</td>
+<td>F</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="44-nebulae-and-gas">4.4 Nebulae and gas</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Status</th>
+<th>Observed</th>
+<th>Now</th>
+<th>Needs inside</th>
+<th>System?</th>
+<th>Profile</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Warm neutral and ionized medium, A and B</td>
+<td>built as background</td>
+<td></td>
+<td>not generated</td>
+<td>none</td>
+<td>none</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Emission C, D, E, G</td>
+<td>built; stars real in GEN.241</td>
+<td>about 8,000 catalogued [S]; 67,500 hosted in the model (270,000 O stars x 0.25) [I]</td>
+<td>host-first; members text only</td>
+<td>O or early-B star; D and E their cluster members (42 and 549 on average)</td>
+<td>members are stars with belts at most</td>
+<td>young share</td>
+<td>F, host first</td>
+</tr>
+<tr>
+<td>Reflection F</td>
+<td>built</td>
+<td>about 150 within a few kpc [S]</td>
+<td>host-first</td>
+<td>a B or A star</td>
+<td>belts at most</td>
+<td>young and intermediate</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Planetary H to L</td>
+<td>built; GEN.149 fixes the star</td>
+<td>about 20,000 [S]</td>
+<td>own white dwarf, always</td>
+<td>one hot white dwarf</td>
+<td>see 4.1</td>
+<td>old share</td>
+<td>S, made with its star</td>
+</tr>
+<tr>
+<td>Giant molecular cloud M</td>
+<td>built</td>
+<td>about 8,100 to 9,700 [S]; the generator keeps 102,000</td>
+<td>field</td>
+<td>none; embedded protostars not built, shortfall accepted (GEN.258)</td>
+<td>none</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Dark cloud N</td>
+<td>built</td>
+<td></td>
+<td>field</td>
+<td>none</td>
+<td>none</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Bok globule P</td>
+<td>built</td>
+<td>3.2e5 small globules [R]</td>
+<td>field</td>
+<td>protostar in 30% [I]</td>
+<td>protostar systems</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Star-forming core Q</td>
+<td>built</td>
+<td></td>
+<td>field</td>
+<td>1 to 4 protostars</td>
+<td>protostar systems</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Supernova remnant R to V, W</td>
+<td>built</td>
+<td>400 to 3,000 visible [S]</td>
+<td>1.5e-9 pc^-3</td>
+<td>core-collapse: a neutron star or black hole in 60%; Type Ia none</td>
+<td>none</td>
+<td>young share (core collapse), old share (Type Ia)</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Wolf-Rayet ring X</td>
+<td>filed GEN.243</td>
+<td>tens of rings; 40% of WR stars [R, I]</td>
+<td>none</td>
+<td>its W star</td>
+<td>the W star's companion</td>
+<td>young</td>
+<td>F, host first</td>
+</tr>
+<tr>
+<td>Pulsar wind nebula</td>
+<td>built as morphology</td>
+<td>Crab and others [S]</td>
+<td>morphology plerion</td>
+<td>its pulsar</td>
+<td>none</td>
+<td>young</td>
+<td>S</td>
+</tr>
+<tr>
+<td>Superbubble, Local Bubble</td>
+<td><strong>new</strong></td>
+<td>Local Bubble 100 to 200 pc; superbubbles fill about 12% of the disk [S]</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td><code>gas</code>, young</td>
+<td>D</td>
+</tr>
+<tr>
+<td>High-velocity clouds, Magellanic Stream</td>
+<td>filed GEN.239</td>
+<td>[S]</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>halo</td>
+<td>component</td>
+</tr>
+<tr>
+<td>Herbig-Haro and protostellar jets</td>
+<td><strong>new</strong></td>
+<td>up to 150,000 [S]</td>
+<td>none</td>
+<td>its protostar</td>
+<td>none</td>
+<td><code>gas</code></td>
+<td>D</td>
+</tr>
+<tr>
+<td>Microquasar and pulsar jets</td>
+<td><strong>new</strong>, needs the spin axis (GEN.104)</td>
+<td>[S]</td>
+<td>none</td>
+<td>its source</td>
+<td>none</td>
+<td>per source</td>
+<td>F</td>
+</tr>
+<tr>
+<td>Fermi bubbles</td>
+<td><strong>new</strong>, map overlay</td>
+<td>two lobes, about 8 kpc [R]</td>
+<td>none</td>
+<td>the nucleus</td>
+<td>none</td>
+<td>nucleus</td>
+<td>map only</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="45-groupings-and-components">4.5 Groupings and components</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Status</th>
+<th>Observed</th>
+<th>System?</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Globular cluster</td>
+<td>filed GEN.159 to GEN.164, GEN.209</td>
+<td>157 in the Milky Way [R]</td>
+<td>members are ordinary systems with the hard-orbit planet cut and type-B pulsar planets</td>
+<td><code>cluster</code> population</td>
+</tr>
+<tr>
+<td>Young open cluster, OB association</td>
+<td>filed GEN.244</td>
+<td>about 3,000 catalogued, total in the tens of thousands [R]</td>
+<td>members ordinary, age gates</td>
+<td>young; feeds D and E members</td>
+</tr>
+<tr>
+<td>Satellite and dwarf galaxy</td>
+<td>filed GEN.237</td>
+<td>about 60 within 300 kpc [R]</td>
+<td>members ordinary</td>
+<td>a component</td>
+</tr>
+<tr>
+<td>Tidal stream</td>
+<td>filed GEN.248</td>
+<td>Sagittarius and others [S]</td>
+<td></td>
+<td>an elongated density term</td>
+</tr>
+<tr>
+<td>Stellar halo, thick disk</td>
+<td>filed GEN.234</td>
+<td>1.5e9 solar masses halo [S]</td>
+<td>members ordinary, old</td>
+<td>halo population</td>
+</tr>
+<tr>
+<td>Neighbour galaxies</td>
+<td>filed GEN.157</td>
+<td>about 25 real [R]</td>
+<td>n/a</td>
+<td>catalogue file</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="46-flags-derived-values-and-effects-not-objects">4.6 Flags, derived values and effects (not objects)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Status</th>
+<th>Rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Runaway and hypervelocity flags</td>
+<td>built</td>
+<td>flag on an ordinary system</td>
+</tr>
+<tr>
+<td>Einstein radius on compact-object pages</td>
+<td>filed GEN.154</td>
+<td>derived from mass and distance</td>
+</tr>
+<tr>
+<td>Radiation hazard score</td>
+<td><strong>new</strong>, part of GEN.114</td>
+<td>derived from distance to O/B, Wolf-Rayet, remnants and magnetars</td>
+</tr>
+<tr>
+<td>Fast radio burst flag</td>
+<td>skip as an object</td>
+<td>a flag on a magnetar</td>
+</tr>
+<tr>
+<td>Interstellar debris count</td>
+<td>built</td>
+<td>computed on the sector page</td>
+</tr>
+<tr>
+<td>Dark matter and gas medium</td>
+<td>filed in the profile (whole-sphere note)</td>
+<td>profile fields</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="47-skipped-with-the-reason">4.7 Skipped, with the reason</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Subspace anomalies (rifts, tears, interphase, sandbars, Omega, anti-time, implosion rings)</td>
+<td>no physical basis; a lore decision for Boss, default off (<code>anomalies.md</code>, Tier 3)</td>
+</tr>
+<tr>
+<td>Wormholes, cosmic strings, quantum filaments</td>
+<td>not observed; strings excluded by pulsar timing [S]</td>
+</tr>
+<tr>
+<td>Dark matter nebulae and a Dark Matter Anomaly object</td>
+<td>dark matter does not clump on 10 ly scales [R]; the profile carries the background</td>
+</tr>
+<tr>
+<td>Quark stars</td>
+<td>no candidate [R]</td>
+</tr>
+<tr>
+<td>Thorne-Zytkow objects</td>
+<td>none confirmed [S]; Boss's 6:08 PM EDT widening puts them back as a flagged theoretical type (100 in the Galaxy), see 4.8</td>
+</tr>
+<tr>
+<td>Stellar mergers and red novae</td>
+<td>transients; 5e-12 per sector per year [C]</td>
+</tr>
+<tr>
+<td>Gamma-ray and fast radio bursts</td>
+<td>transients with no persistent object</td>
+</tr>
+<tr>
+<td>Great Attractor, Bootes void</td>
+<td>beyond the galaxy; at most flavor text</td>
+</tr>
+<tr>
+<td>Blanets (planets around a supermassive hole)</td>
+<td>no confirmed one; no stellar system has a supermassive primary (<code>exotic-environments...</code> 2.4)</td>
+</tr>
+<tr>
+<td>Kilonovae, compact-object mergers</td>
+<td>out of scope (needs a binary-evolution code)</td>
+</tr>
+<tr>
+<td>Free-floating asteroid fields</td>
+<td>disperse in 1e6 to 1e7 years; rate 0 stands</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="48-member-kinds-and-system-types-added-by-the-catalogue-of-multi-star-types">4.8 Member kinds and system types added by the catalogue of multi-star types</h3>
+<p>Boss (2026-10-15, 6:08 PM EDT) widened the multi-star plan to every observed and theoretical type of multi-star or star-like-object system. <a href="multi-star-systems.html">multi-star-systems.md</a> sections 13 to 16 hold that catalogue (about sixty types, each with its observed or theoretical rate, where it occurs, and whether it is drawn at scatter time or at fill). It adds these to the kind list of the registry (GEN.250), with their rates in <code>SYSTEM_TYPE_RATES</code> (GEN.268):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind or node</th>
+<th>Status</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>stripped-helium</code> (hot subdwarf, helium star, helium donor)</td>
+<td>filed GEN.269</td>
+<td>post-common-envelope pairs, AM CVn donors, Be companions</td>
+</tr>
+<tr>
+<td><code>thorne-zytkow</code></td>
+<td>filed GEN.269, flagged <code>theoretical</code>, 100 in the Galaxy</td>
+<td>a giant with a neutron-star core, single</td>
+</tr>
+<tr>
+<td><code>wolf-rayet</code> as a star kind</td>
+<td>filed GEN.269 on GEN.243's W state</td>
+<td>young massive stars and their companions</td>
+</tr>
+<tr>
+<td><code>group</code> node (young non-hierarchical group)</td>
+<td>filed GEN.273</td>
+<td>trapezia under their decay age</td>
+</tr>
+<tr>
+<td><code>compact</code> node (a tight compact pair promoted to the scatter)</td>
+<td>filed GEN.260</td>
+<td>GEN.263</td>
+</tr>
+<tr>
+<td>interaction states on a pair (detached, semi-detached, contact, accreting, post-common-envelope, merger-product)</td>
+<td>filed GEN.269</td>
+<td>the Roche classifier</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-the-system-rule-for-every-kind">5. The system rule for every kind</h2>
+<p>A kind may have a system if its row in sections 4.1 to 4.4 gives a probability. The roll and what it builds:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Object</th>
+<th>P(system)</th>
+<th>What the system holds</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ordinary star</td>
+<td>by spectral class (0.26 to 0.90), then wide 0.5</td>
+<td>companion, planets, belts, moons</td>
+<td>existing model</td>
+</tr>
+<tr>
+<td>Star under 10 Myr (nebula member, protostar, Wolf-Rayet, T Tauri)</td>
+<td>as its class, higher when younger</td>
+<td>companion, belts, a disk descriptor; <strong>no planets</strong></td>
+<td><code>system.py:1024</code>; Perseus survey</td>
+</tr>
+<tr>
+<td>White dwarf</td>
+<td>0.30</td>
+<td>main-sequence or white dwarf companion; surviving planets</td>
+<td>multi-star 7.3</td>
+</tr>
+<tr>
+<td>Planetary-nebula central star</td>
+<td>0.20</td>
+<td>close companion; circumbinary disk, no planets</td>
+<td>exotic 1.3; [R]</td>
+</tr>
+<tr>
+<td>Young neutron star</td>
+<td>0.02</td>
+<td>Be or main-sequence companion</td>
+<td>multi-star 7.3</td>
+</tr>
+<tr>
+<td>Millisecond pulsar</td>
+<td>0.78</td>
+<td>white dwarf or ablated companion; planets 0.007</td>
+<td>multi-star 7.3; exotic 2.1</td>
+</tr>
+<tr>
+<td>Stellar black hole</td>
+<td>0.0125</td>
+<td>Sun-like or giant companion at 1 to 20 AU; wide tertiary only for direct-collapse holes</td>
+<td>multi-star 7.3; exotic 2.3</td>
+</tr>
+<tr>
+<td>Magnetar, intermediate-mass hole, supermassive hole, quasar</td>
+<td>0</td>
+<td>none</td>
+<td></td>
+</tr>
+<tr>
+<td>Rogue planet</td>
+<td>moon 0.2</td>
+<td>one captured moon</td>
+<td><code>hosts.PLANET_SATELLITES</code></td>
+</tr>
+<tr>
+<td>Rogue brown dwarf</td>
+<td>0</td>
+<td>none</td>
+<td></td>
+</tr>
+<tr>
+<td>Comet, asteroid field</td>
+<td>0</td>
+<td>none</td>
+<td></td>
+</tr>
+<tr>
+<td>Nebula</td>
+<td>0 for planets</td>
+<td>its required stars (section 4.4)</td>
+<td>rule 2</td>
+</tr>
+</tbody>
+</table></div>
+<p>The expected cost of the new system pass for a local sector (64 pc^3) is: neutron stars 0.036 x 0.0215 plus black holes 0.0045 x 0.0125 plus a planetary-nebula term below 1e-6: about 0.0008 extra systems against 6.3 [C]. White dwarfs are ordinary stars of stage D and add nothing. In the halo and clusters the same fractions apply to a far smaller count.</p>
+<p>Where the observed probability is poorly known (the black-hole companion fraction rests on three Gaia systems), the table gives 1.25% for the black-hole companion fraction (Boss, 2026-10-15, 6:08 PM EDT, multi-star-systems.md, in place of the earlier note's 10 to 30%) and the build keeps it in one tuning dict so it can be changed without code.</p>
+<h2 id="6-one-registry">6. One registry</h2>
+<p>Today a kind is defined in <code>SECTOR_PHENOMENON_KINDS</code> (<code>run_sector.py:50</code>), <code>SCATTERED_KINDS</code> (<code>phenomenon_scatter.py:55</code>), <code>PHENOMENON_DENSITY_PC3</code> (<code>tuning.py:2726</code>), <code>KIND_CODES</code> (<code>names/object_id.py:36</code>, six bits, codes 12 to 63 free), the class pages (<code>classref</code>), the marker list of MAP.132, and the pre-placed passes. Proposed: one table, <code>phenomena/registry.py</code>, one row per kind, with these columns (the same columns as section 4):</p>
+<p><code>kind</code>, <code>family</code>, <code>status</code>, <code>rate</code> (density, scaling law, and the profile fields that drive it), <code>gate</code> (which populations and <code>gas</code> allow it), <code>mode</code> (scatter, fill, field, flag, component), <code>builder</code>, <code>host</code> (the host class, GEN.552: what can accompany and orbit it; <code>generation/phenomena/hosts.py</code>), <code>carries</code> (required objects and their builder), <code>id_code</code>, <code>page_class</code>, <code>marker</code>, <code>evidence_note</code>.</p>
+<p>The scatter lists, the fill stages, the rate tables, the ID codes and the class pages are generated from it. Completeness test: every row has every column; every <code>builder</code>, <code>system_model</code> and <code>carries</code> resolves; no ID code repeats; no code path creates an object of a kind that is not in the table. Adding a kind is then one row, a builder and a test.</p>
+<h2 id="7-representation-how-all-types-is-kept-true">7. Representation: how &quot;all types&quot; is kept true</h2>
+<p>Interpretation (Default): &quot;all types represented&quot; means every kind in the registry has a working generation path at its observed frequency in every region where it occurs, and the generator can prove it. It does not mean every sector holds every kind, which would put Wolf-Rayet stars in the halo and a supernova remnant in every cell. If Boss means the stronger reading, the change is a per-kind minimum in the registry and I will cost it.</p>
+<p>The audit, run in the test suite and as an admin report:</p>
+<ol>
+<li><strong>Completeness.</strong> The registry test of section 6.</li>
+<li><strong>Expected counts.</strong> For each region class of the profile (core, bar, thin disk arm, thin disk interarm, thick disk, halo, Magellanic-type satellite, globular cluster core, intergalactic floor) the registry gives the expected count of each kind in a sector from its rate and gate.</li>
+<li><strong>Observed counts.</strong> Fill a fixed set of seeded sectors in each region class (the same seeds every run) and count each kind by stage.</li>
+<li><strong>Compare.</strong> Each kind's total must lie within Poisson bounds of its expectation (four sigma), and any kind with an expected total of 20 or more over the set must appear at least once. The report lists kinds that never appear, kinds that appear where their gate forbids (a Wolf-Rayet nebula in the halo), and kinds whose count is out of bounds.</li>
+<li><strong>Systems.</strong> For every kind with a system model, the fraction of its objects that got a system must match the table of section 5.</li>
+<li><strong>Required contents.</strong> Every hosted nebula holds its host; every planetary nebula its white dwarf; every core-collapse remnant a compact core at the stated share; every D or E region its members inside its radius; every Wolf-Rayet nebula a W star.</li>
+</ol>
+<p>The set is sized to run in a few minutes; the full-galaxy rates are checked once per release by the full run that already exists.</p>
+<h2 id="8-proposed-todo-items">8. Proposed TODO items</h2>
+<p>Existing items stay as filed (GEN.153 to GEN.164, GEN.209, GEN.233 to GEN.249, GEN.130, GEN.114). New or re-scoped items; the TODO thread numbers them and assigns lanes. Order is build order.</p>
+<ol>
+<li><strong>Phenomena registry</strong> (Core; first): section 6, with the completeness test; the existing lists read from it; no behaviour change.</li>
+<li><strong>Fill stages with their own streams and the system pass</strong> (Core; after 1): section 3 and 5. Rescopes GEN.130: GEN.130's slices (a) to (c) become the contents of the system pass for compact remnants, while this item builds the machinery and the white-dwarf, planetary-nebula-star and rogue-planet rows.</li>
+<li><strong>Compact-remnant systems</strong> (Core; after 2; this is GEN.130 reworded): companions and pulsar planets by the probabilities of section 5, the kick-and-survival check, Holman-Wiegert zones.</li>
+<li><strong>Representation audit</strong> (Quality; after 2): section 7, with the admin report.</li>
+<li><strong>Brown dwarfs as stars</strong> (Core; later): an L/T/Y state for companions and primaries, from <code>ROGUE_BROWN_DWARF_*</code> cooling, with the brown-dwarf-desert companion rule. Built as GEN.252 (<code>brown-dwarf-state.md</code>): the state and the free-floating row's type; the companion rows are GEN.275's.</li>
+<li><strong>White-dwarf pollution flag and cool-white-dwarf presets</strong> (Core; later): 25 to 50% of cool white dwarfs polluted [S]; part of the GEN.130 white-dwarf row.</li>
+<li><strong>The anomalies of GEN.114, one item per kind</strong> (Core and Interface; later): superbubble field, Herbig-Haro and microquasar and pulsar jets (spin axes exist), radiation hazard score, Fermi-bubble overlay. GEN.114 is the umbrella that never got split.</li>
+<li><strong>Protostars in giant molecular clouds</strong> (Core; with GEN.241): the P and Q cores give 2.6e5 protostars against 1.4e6 expected [C]; embedded Q-type groups in M clouds make up the rest. Default: accept the 5x shortfall for the first release. <strong>Decided (GEN.258, closed by the TODO thread's answer of 12:17 PM EDT 2026-10-23, the open-question defaults being Decided since 2026-10-17):</strong> the shortfall of about 1.14e6 protostars (1.4e6 expected against 2.6e5, 5.4 times short) is accepted for the first release and the embedded groups are not built; building them would add about 11 protostars to each of the generator's 102,000 M clouds and a rescatter. The yield is measured by the representation audit of a whole fill (TEST.160 does not count the cloud's protostars against 1.4e6); a later item reopens this by changing <code>tuning.NEBULA_CLOUD_PROTOSTARS</code> or adding the groups in <code>nebula_contents.py</code>.</li>
+<li><strong>Docs</strong> (Quality): the catalogue pointers in <code>interstellar-object-rates.md</code>, <code>anomalies.md</code>, <code>multistar-and-compact-systems.md</code> and <code>nebula-and-asteroid-field-classes.md</code> so they say where each kind now lives.</li>
+</ol>
+<h2 id="9-decisions-and-defaults">9. Decisions and defaults</h2>
+<p>Defaults the build proceeds on, each reversible:</p>
+<ol>
+<li><strong>Representation means audited frequency</strong>, not a guaranteed instance in every sector (section 7).</li>
+<li><strong>System probabilities</strong> are the earlier notes' numbers (section 5); the black-hole companion fraction, 1.25% (Boss, 2026-10-15, 6:08 PM EDT; the earlier 0.20 is replaced), is the weakest.</li>
+<li><strong>Planetary-nebula central star companion 0.20</strong> [R], unsourced beyond recall.</li>
+<li><strong>Protostar shortfall accepted</strong> for the first release (item 8).</li>
+<li><strong>Skips</strong> of section 4.7 stand; the subspace anomalies stay a lore decision, default off.</li>
+<li><strong>Registry first</strong> in the build order, because every later item adds rows to it.</li>
+</ol>
+<h2 id="notes-folded-in">Notes folded in</h2>
+<p><code>interstellar-object-rates.md</code>, <code>compact-remnant-regions.md</code>, <code>multistar-and-compact-systems.md</code>, <code>exotic-environments-planets-and-compact-binaries.md</code>, <code>anomalies.md</code> (GEN.113), <code>nebula-and-asteroid-field-classes.md</code>, <code>nebula-density-vs-reality.md</code>, <code>globular-clusters.md</code>, <code>phenomenon-scatter-mass-cut.md</code>, <code>intergalactic-and-halo-contents.md</code>, the research files <code>11-nebula-planets-and-required-stars.md</code> and <code>20-anomalies-and-asteroid-fields.md</code> (in /mnt/project-files/research), and the TODO items named in the tables.</p>
+<h2 id="sources">Sources</h2>
+<p>See the sources of each folded note. Added for this note (search-result summaries only): [R4379], <a href="https://cris.iucc.ac.il/en/publications/the-multiplicity-of-galactic-wolf-rayet-stars/">Galactic Wolf-Rayet multiplicity</a>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,1078 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sampling, backfill, void filling, resumable runs and directives - planetGen docs</title>
+<meta name="description" content="How to draw stars for a large volume without visiting every cell (the exact block-first draw that replaces GEN.42&#x27;s &quot;drop sectors by probability&quot;), the tests that prove a draw exact and reject the drop-and-boost form, what the backfill c...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/sampling-backfill-and-resume.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/sampling-backfill-and-resume.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="sampling-backfill-void-filling-resumable-runs-and-directives">Sampling, backfill, void filling, resumable runs and directives</h1><p class="meta">docs/design/generation/sampling-backfill-and-resume.md</p><details class="toc"><summary>On this page (33 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#findings-in-short">Findings in short</a></li><li style="margin-left:0px"><a href="#1-what-is-exact-and-what-is-not">1. What is exact and what is not</a></li><li style="margin-left:0px"><a href="#2-the-block-first-draw">2. The block-first draw</a></li><li style="margin-left:14px"><a href="#21-procedure">2.1 Procedure</a></li><li style="margin-left:14px"><a href="#22-what-the-draws-must-be-keyed-by">2.2 What the draws must be keyed by</a></li><li style="margin-left:14px"><a href="#23-cost-of-keyed-randomness">2.3 Cost of keyed randomness</a></li><li style="margin-left:14px"><a href="#24-code-sketch">2.4 Code sketch</a></li><li style="margin-left:0px"><a href="#3-tests-that-reject-drop-and-boost">3. Tests that reject drop-and-boost</a></li><li style="margin-left:14px"><a href="#31-why-the-literal-pass-is-detectably-wrong">3.1 Why the literal pass is detectably wrong</a></li><li style="margin-left:14px"><a href="#32-the-tests">3.2 The tests</a></li><li style="margin-left:14px"><a href="#33-done-test-for-gen42-and-gen43">3.3 Done-test for GEN.42 and GEN.43</a></li><li style="margin-left:0px"><a href="#4-what-the-backfill-costs-and-the-verdicts">4. What the backfill costs, and the verdicts</a></li><li style="margin-left:14px"><a href="#41-benchmark-per-cell-against-block-first-c">4.1 Benchmark: per cell against block-first (C)</a></li><li style="margin-left:14px"><a href="#42-the-real-backfill-and-a-python-prototype">4.2 The real backfill and a Python prototype</a></li><li style="margin-left:14px"><a href="#43-the-real-run-against-mariadb-1011">4.3 The real run against MariaDB 10.11</a></li><li style="margin-left:14px"><a href="#44-verdicts">4.4 Verdicts</a></li><li style="margin-left:0px"><a href="#5-gen102-filling-the-near-zero-density-space">5. GEN.102: filling the near-zero-density space</a></li><li style="margin-left:14px"><a href="#51-arithmetic-for-the-default-galaxy">5.1 Arithmetic for the default galaxy</a></li><li style="margin-left:14px"><a href="#52-time-and-storage">5.2 Time and storage</a></li><li style="margin-left:14px"><a href="#53-recommendation">5.3 Recommendation</a></li><li style="margin-left:0px"><a href="#6-gen99-backfilling-a-nebulas-volume">6. GEN.99: backfilling a nebula's volume</a></li><li style="margin-left:0px"><a href="#7-resumable-runs-perf29-and-perf30">7. Resumable runs: PERF.29 and PERF.30</a></li><li style="margin-left:14px"><a href="#71-what-exists">7.1 What exists</a></li><li style="margin-left:14px"><a href="#72-recommended-design">7.2 Recommended design</a></li><li style="margin-left:0px"><a href="#8-gen96-directives">8. GEN.96: directives</a></li><li style="margin-left:14px"><a href="#81-what-the-numbers-say">8.1 What the numbers say</a></li><li style="margin-left:14px"><a href="#82-methods">8.2 Methods</a></li><li style="margin-left:14px"><a href="#83-recommendation">8.3 Recommendation</a></li><li style="margin-left:0px"><a href="#9-gen97-n-random-neighbourhoods">9. GEN.97: N random neighbourhoods</a></li><li style="margin-left:0px"><a href="#10-reconciliation-with-earlier-documents">10. Reconciliation with earlier documents</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How to draw stars for a large volume without visiting every cell (the exact
+block-first draw that replaces GEN.42's &quot;drop sectors by probability&quot;), the
+tests that prove a draw exact and reject the drop-and-boost form, what the
+backfill costs, the arithmetic behind GEN.102 (fill the voids) and its
+recommendation, a resumable-run design (PERF.29, PERF.30), and the sampling
+rules for generation directives (GEN.96) and random neighbourhood centers
+(GEN.97). The grid is in <a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>,
+the density in <a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>, the per-unit
+seeds in <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 3 and
+<a href="generation-determinism.html">generation-determinism.md</a>, and fill order and
+region enumeration in <a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>.</p>
+<p>The cost of the queue that runs these tasks, canceling a task mid-run, and the time-left estimate for a long backfill are in <a href="../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a>.</p>
+<p>Informs: GEN.40, GEN.41, GEN.42, GEN.43, GEN.96, GEN.97, GEN.99, GEN.102, PERF.18, PERF.29, PERF.30 (and the GEN.39 rule that one seed gives the same stars wherever a run lands)</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Built (GEN.308): the block-first draw of section 2 is <code>bright_stars.block_candidates</code>, with <code>block_bound</code>, <code>cell_band_rate</code> and <code>candidate_stream</code>; the block is a band's 256 wedges (<code>BLOCK_WEDGES</code>), its bound has the halo's own share added to the other populations' largest, and the count is <code>util/poisson.py</code>'s exact <code>poisson_count</code>.</p>
+<p>Built (GEN.309, generator epoch 75): <code>backfill_cells</code> and <code>backfill_mass_cells</code> take the candidate path for a block and a band whose bound is under <code>CANDIDATE_PATH_BOUND</code> (0.05 stars a cell, that is, fewer candidates than about 5 percent of the block's cells), else the per-cell path as before (<code>bright_stars.candidate_path</code>). The choice reads the block's bound alone, so a cell gets the same stars whichever cells its block a run reaches, in whatever order, split or sub-region (<code>tests/test_backfill_block_path.py</code>). A candidate picks its population in proportion to the cell's per-population rates and draws its star from <code>candidate_stream</code>. The sector drivers (<code>run_plan._draw_sector_bands</code>, <code>_draw_sector_masses</code>) pass a memo that keeps each block's bound and candidates, each cell's densities (read only for a cell a candidate fell in) and each band's population shares for the whole draw, so a sparse sector costs a lookup. Measured on the Milky Way shape with 52,390 sparse cells of the halo and the far edge (floor 100 L_sun): 3.9 ms a cell before and 0.19 ms with the memo; most of it is the shares being kept per draw instead of worked out per sector, and the bound is loose (a cell's mean rate is 2 to 9 percent of it in the test galaxy), so there are 10 to 50 candidates per star kept. The backfill still visits and records every sector (each one's level is stored, GEN.44); weeding sectors out before it is GEN.40.</p>
+<p>Built (VIEW.41): <code>bright_stars.luminosity_sphere_batches</code> and <code>mass_sphere_batches</code> list, a few hundred at a time, every cell within a radius that the draw has anything to do in, by these same blocks, walking the rows a sphere crosses (<code>spherical.sphere_rows</code>); the cell draw is handed only those cells (charting does this, <code>sky_charting.draw_tier</code>), and the stars are exactly the cell draw's. Measured in reports/system-sky-sphere-draw-2026-11-05.md: 2.8 billion cells out to 3,500 pc in 281 seconds for the brightest band.</p>
+<p>Evidence tags: [C] computed in this research and re-runnable (scripts named
+under Sources), [S] read from the repository or a downloaded package, [R]
+recalled and unconfirmed. The research environment could read only
+search-result text, not papers, and its web-search budget was spent, so every
+claim about the outside world is [R] and listed under Evidence notes. Another
+thread is tuning the black hole and neutron star rates; nothing here touches
+those.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li><strong>GEN.40 (Boss, 2026-10-01 22:22Z):</strong> use the star density calculation to
+weed out sectors so &quot;the back fill would literally have less work to do&quot;,
+without over-filtering, &quot;because bright stars in odd places is really neat and
+realistic&quot;. <strong>PERF.18 (2026-10-01 22:13Z):</strong> parallelise the backfill on the
+work queue.</li>
+<li><strong>GEN.44 (Boss, 2026-10-02 03:25Z):</strong> every sector stores its backfill level
+(-1 untouched, the lowest L_sun reached, 0 generated); built, PR #425.</li>
+<li><strong>GEN.96, GEN.97, GEN.99 (Boss, 2026-10-03 05:38Z):</strong> an Override button with
+directives (density, at least x stars of a type, at least x habitable worlds);
+&quot;x number of random neighborhoods&quot;; a nebula that needs certain stars triggers
+a volume backfill down to 750 L_sun with skewed probabilities, and existing
+backfilled stars are regenerated in place with a similar luminosity if
+possible, otherwise left alone.</li>
+<li><strong>GEN.102, PERF.29, PERF.30 (Boss, 2026-10-07 11:47Z):</strong> &quot;Investigate filling
+all void space (space that plots to have a 0 or nearly 0 star density) at once,
+since those sectors have the least in them, we can afford to fill them&quot;; record
+which sectors &quot;might be only partially filled by identifying what runs haven't
+been made yet&quot;; finish a block or sector &quot;on next start&quot;.</li>
+<li><strong>GEN.39 (Boss, 2026-10-02):</strong> a unit's numbers depend only on the galaxy seed
+and its address, never on run order or worker count.</li>
+</ul>
+<h2 id="findings-in-short">Findings in short</h2>
+<ol>
+<li><strong>GEN.42's drop-and-boost pass is not needed and the literal version is
+wrong.</strong> Dropping 90% of cells and boosting survivors by 10 keeps the mean
+but gives dispersion 1.136 (theory 1.144) and a multiplicity chi-square of
+743,000 on 14 degrees of freedom. Exact methods pass. The saving Boss wants
+exists exactly as a block-first draw (section 2); GEN.43 then holds by
+construction.</li>
+<li><strong>At today's run sizes speed is not the problem.</strong> A 100 ly backfill (1,800
+sectors) costs 2 ms per sector warm, 0.06 ms of it for draws. The first
+backfill in a process costs 5 s (40 s with no ceiling) to build
+<code>_bright_table</code>, and a forked RQ work horse loses that cache every job
+(PERF.18).</li>
+<li><strong>GEN.102: nothing inside the outline is near zero density.</strong> The default
+galaxy has 23,920,622,421 sectors and about 3.0 x 10^11 systems; the lowest
+density is 0.069. The 12.4% of sectors with under one expected system hold
+0.77% of systems and would take about 5 years of one worker. Do not
+pre-fill (section 5).</li>
+<li><strong>PERF.29 and PERF.30:</strong> paths and the backfill around a run take &quot;which
+sectors&quot; from the dead process's <code>started_at</code>. Add a transactional pending
+mask and resume by re-running the unfinished <code>generation_runs</code> command
+(section 7).</li>
+<li><strong>GEN.96:</strong> 24.5% of systems have a habitable world. Star-count directives are
+exact by truncated Poisson inversion; habitable-world directives need bounded
+whole-sector rejection with the attempt in the seed key (section 8).</li>
+<li><strong>GEN.97:</strong> plain rejection on density is unbiased (about 77 proposals per
+center); density-weighted centers cost 14 times more to fill (section 9).</li>
+<li>Earlier figures this supersedes (500 L_sun, 61 million stars, 88 billion
+systems, the timing report's &quot;26B&quot; column, &quot;cost per cell is unmeasured&quot;) are
+in section 10.</li>
+</ol>
+<h2 id="1-what-is-exact-and-what-is-not">1. What is exact and what is not</h2>
+<p>Poisson facts [R, Kingman, <em>Poisson Processes</em>, 1993; Devroye, <em>Non-Uniform
+Random Variate Generation</em>, 1986]:</p>
+<ul>
+<li>Counts in disjoint regions are independent and Poisson with mean equal to the
+integral of the intensity: cell i holds Poisson(lambda_i) stars, lambda_i = E x
+rho_i x (share of stars in the band), E = 6.306 systems per sector at density 1.</li>
+<li><strong>Marking:</strong> labelling each point by type with probabilities p_t gives
+independent Poisson processes with intensities p_t x lambda. This makes &quot;at
+least N stars of a type&quot; exact (section 8) and GEN.99 safe (section 6).</li>
+<li><strong>Given a count n, the points are i.i.d. with density proportional to the
+intensity,</strong> so a block's count can be drawn first.</li>
+<li><strong>Thinning</strong>
+[R]: simulate a homogeneous process at an upper bound and keep a point at x
+with probability lambda(x) / bound. Exact; cost is proportional to bound x
+volume, so the bound must be tight. <strong>Skip-ahead</strong> is the same idea with
+exponential gaps between candidates.</li>
+<li><strong>Bernoulli is not Poisson.</strong> Bernoulli(lambda) never gives two stars in a cell;
+Poisson gives P(2) = lambda^2 / 2. <code>backfill_cells</code> draws Poisson counts, so
+Poisson is what a faster method must match.</li>
+<li><strong>Bounds, not sums, make it cheap.</strong> The project already has one:
+<code>skeleton.bound_relative_density_at(shape, r, z)</code> is the maximum over angle of
+the density at a ring and layer and cuts the galaxy's outline
+(<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a> section 3). Inversion of
+cumulative counts and Walker/Vose alias tables [R]
+were considered; the first ties results to a region's total, the second needs
+a set-up pass over every cell, so neither suits a sparse region.</li>
+</ul>
+<h2 id="2-the-block-first-draw">2. The block-first draw</h2>
+<h3 id="21-procedure">2.1 Procedure</h3>
+<p>For one band (<code>canonical_bands</code>, eight to a decade) and one block, a (ring,
+layer, 256-slot chunk):</p>
+<ol>
+<li><code>bound = E x bound_relative_density_at(shape, ring radius, layer z) x s_max</code>,
+<code>s_max</code> the largest population share of the band (the stellar halo, GEN.234, replaced the
+flat floor GEN.78 put under it). Valid because every cell of the block
+sits at the ring radius and layer height the bound is evaluated at.</li>
+<li>Draw the candidate count n ~ Poisson(bound x cells in the chunk) from one
+keyed uniform by inversion.</li>
+<li>Each candidate gets a uniform slot in the chunk and an acceptance uniform u;
+keep it when <code>u x bound</code> is below the cell's true rate (<code>E x sum over populations of density_p x share_p</code>). A block with no candidates costs one hash.</li>
+<li>Pick a kept candidate's population last, in proportion to the per-population
+rates, and draw its star from a stream keyed by (block key, candidate index).</li>
+</ol>
+<p>The pre-placed scatter works the same way per ring and angle bin. <strong>Choose per
+block:</strong> use the candidate path when expected candidates are under about 5% of
+the block's cells, the per-cell path otherwise. Both are exact, and in the bulge,
+where a quarter of cells hold a star, per-cell wins (the prototype was 10 times
+slower there, section 4.2). One process per population with its own bound would
+cut candidates 5 to 10 times.</p>
+<h3 id="22-what-the-draws-must-be-keyed-by">2.2 What the draws must be keyed by</h3>
+<p>Block-first sampling meets GEN.39 if and only if:</p>
+<ol>
+<li>The block grid is fixed globally, independent of the run's region; a region
+only chooses which blocks to read and filters candidates by cell and tier.</li>
+<li>Nothing sequential crosses block boundaries.</li>
+<li>Star parameters come from a stream keyed by (block key, candidate index).</li>
+<li>The bound depends on the block, not the region, and float sums are not
+reduced in a partition-dependent order (<code>planetgen/util/detmath.py</code>,
+<a href="generation-determinism.html">generation-determinism.md</a> section 3).</li>
+</ol>
+<p>Tested in C: both block methods give bit-identical star lists processed in
+index order, in random order, split among four workers, or restricted to a
+sub-region (5 seeds each) [C, <code>determ.py</code>]. TEST.77's golden galaxy should
+include one block-first backfill once it lands.</p>
+<h3 id="23-cost-of-keyed-randomness">2.3 Cost of keyed randomness</h3>
+<p>CPU time per keyed uniform [C, <code>micro.py</code>, <code>micro2.py</code>]: <code>draw.Stream(str)</code>
+(<code>random.Random(str)</code>: SHA-512 plus Mersenne Twister seeding, the current
+per-cell, per-band cost) 9.5 us; <code>random.Random(int)</code> 7.8 us; SHA-256 to a float
+1.3 us; numpy <code>Philox</code> constructor 14 us, then 38 ns per number; a splitmix64
+finaliser in C 1.9 ns. A Mersenne Twister is the wrong tool for one tiny
+decision per cell. In Python use SHA-256 for the one or two decisions per block
+and a <code>random.Random</code> only for blocks with candidates. Philox and Threefry
+(Salmon et al., &quot;Parallel random numbers: as easy as 1, 2, 3&quot;, SC11, 2011) [R]
+suit C or numpy. <code>exp</code> and <code>log</code> can differ in the last bit between machines, a
+probability of about 10^-16 per decision of flipping an acceptance test, which
+TEST.77 watches for.</p>
+<h3 id="24-code-sketch">2.4 Code sketch</h3>
+<p>Distilled from <code>proto_bf.py</code> (112 lines, on the project's real geometry); not
+in the repository.</p>
+<pre><code class="language-python">def block_candidates(seed, band, ring, layer, chunk, cells, bound):
+    key = sha256(f&quot;{seed}:bf:{band}:{ring}:{layer}:{chunk}&quot;)   # one hash per block
+    n = poisson_inv(bound * cells, uniform(key, 0))            # split means above 30
+    for i in range(n):
+        slot = chunk * 256 + min(int(uniform(key, 1 + 3 * i) * cells), cells - 1)
+        yield slot, uniform(key, 2 + 3 * i), uniform(key, 3 + 3 * i)
+# caller keeps (slot, u_accept, u_pop) when u_accept * bound &lt; rate(slot, band);
+# the population is the categorical on the per-population rates, using u_pop
+</code></pre>
+<p><code>poisson_inv</code> must split a mean above about 30. The first C version capped
+inversion at 60 events while block means reach 350; the harness showed a mean z
+of -290 at once, which is why section 3's tests are the done-test.</p>
+<h2 id="3-tests-that-reject-drop-and-boost">3. Tests that reject drop-and-boost</h2>
+<h3 id="31-why-the-literal-pass-is-detectably-wrong">3.1 Why the literal pass is detectably wrong</h3>
+<p>Keeping each cell with probability q and drawing survivors from Poisson(lambda /
+q) is a zero-inflated Poisson. The mean is right, the variance is not:</p>
+<pre><code>var(count in a cell)   = lambda + lambda^2 (1/q - 1)
+dispersion of a region = 1 + (1/q - 1) x sum(lambda^2) / sum(lambda)
+P(2 stars in a cell)   = q x (lambda/q)^2 / 2 = lambda^2 / (2q)    # 1/q times the true lambda^2 / 2
+</code></pre>
+<p>For the test field below sum(lambda^2) / sum(lambda) is 0.01605, so q = 0.1
+predicts 1.144 [C]; the harness measured 1.136 over 3,000 replicates. Stars
+clump (survivors hold ten times their share). A cell's chance of exactly one
+star falls (lambda x exp(-lambda/q) against lambda x exp(-lambda)) and of two or
+more rises, so the pass keeps the expected count but not the distribution GEN.43
+asks to preserve. The eye misses this at lambda of 10^-3; the tests below do not.</p>
+<h3 id="32-the-tests">3.2 The tests</h3>
+<p>Field: 64^3 = 262,144 cells, lambda from 1.9 x 10^-4 to 0.086 (mean 1.14 x 10^-3,
+total 300), 4,096-cell blocks, 3,000 replicates per run [C, <code>harness.py</code>]. Per
+run: (a) replicate totals against Poisson(total): mean z, dispersion, chi-square
+on 20 equiprobable bins; (b) per-chunk counts against expectation (128 chunks);
+(c) multiplicity chi-square (0, 1, 2, 3 or more stars per cell) per half-decade
+stratum of lambda against exact Poisson probabilities; (d) KS test of pooled
+positions in cumulative-intensity coordinates.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Runs</th>
+<th>p-values below 0.05</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per-cell Poisson (reference)</td>
+<td>4</td>
+<td>1 of 20</td>
+<td>matches</td>
+</tr>
+<tr>
+<td>Block skip-ahead (exponential gaps at the bound, thin)</td>
+<td>4</td>
+<td>0 of 20</td>
+<td>matches</td>
+</tr>
+<tr>
+<td>Block count-then-distribute (Poisson candidate count, uniform positions, thin)</td>
+<td>6</td>
+<td>3 of 30, none repeated on other seeds</td>
+<td>matches</td>
+</tr>
+<tr>
+<td>Drop 90% of cells, boost survivors x10 (literal GEN.42)</td>
+<td>1</td>
+<td>3 of 5</td>
+<td><strong>rejected</strong>: mean right (z = +0.14, spatial p = 0.77), dispersion 1.136 (p &lt; 0.001), multiplicity chi-square 743,172 on 14</td>
+</tr>
+</tbody>
+</table></div>
+<p>The three exact methods gave 70 p-values, 4 under 0.05 (3.5 expected by chance).
+Also checked [C, <code>trunc.py</code>]: truncated-Poisson inversion matches whole-count
+rejection (chi-square 23.0 on 16, p = 0.12); marking gives independent type
+counts (correlation -0.001); &quot;at least K of type T&quot; by truncated inversion plus
+an independent Poisson for the rest matches joint rejection (means 8.085 and
+8.094).</p>
+<h3 id="33-done-test-for-gen42-and-gen43">3.3 Done-test for GEN.42 and GEN.43</h3>
+<p>On the real <code>backfill_cells</code>, when block-first lands:</p>
+<ol>
+<li>Stratified multiplicity and per-stratum chi-square against Poisson over 3,000
+or more replicates of a small region, including the lowest-lambda strata
+(GEN.43's &quot;bright stars in odd places&quot;); it has the power to catch 743,000.</li>
+<li>Assert <code>rate &lt;= bound</code> for every cell of the region, so a wrong bound fails
+loudly instead of biasing quietly.</li>
+<li>Same star list in index order, random order, four workers, and as a sub-region
+of a larger one (section 2.2).</li>
+<li>Compare with the existing per-cell path as well as with theory.</li>
+</ol>
+<h2 id="4-what-the-backfill-costs-and-the-verdicts">4. What the backfill costs, and the verdicts</h2>
+<h3 id="41-benchmark-per-cell-against-block-first-c">4.1 Benchmark: per cell against block-first (C)</h3>
+<p>C, <code>-O2</code>, one thread, 16^3 blocks, mean lambda 1.14 x 10^-3 [C, <code>bench.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Cells</th>
+<th>Stars</th>
+<th>Per-cell with density</th>
+<th>Block skip-ahead</th>
+<th>Block count + distribute</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.8 x 10^5</td>
+<td>~1,000</td>
+<td>35 ms</td>
+<td>0.7 ms</td>
+<td>0.6 ms</td>
+</tr>
+<tr>
+<td>9.0 x 10^7</td>
+<td>104,000</td>
+<td>3.77 s</td>
+<td>17 ms</td>
+<td>14 ms</td>
+</tr>
+<tr>
+<td>1.02 x 10^9</td>
+<td>1.17 x 10^6</td>
+<td>42.6 s</td>
+<td>0.141 s</td>
+<td>0.123 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Block methods are 300 to 350 times faster at 10^9 cells because they evaluate
+density only at candidates (1.48 million for 1.17 million stars, 79% accepted).
+Scaled to 23.9 billion cells: about 1,000 s per-cell in C, 3.4 s block-first. In
+Python the real <code>backfill_cells</code> costs 58 us per cell (three bands), about 16
+days, dominated by <code>population_densities</code> (5.7 us), <code>relative_density</code> (2.8 us)
+and stream creation (9.5 us per cell and band) [C, <code>micro3.py</code>].</p>
+<h3 id="42-the-real-backfill-and-a-python-prototype">4.2 The real backfill and a Python prototype</h3>
+<p><code>backfill_cells</code> against <code>proto_bf.py</code> (block-first on the real geometry, with
+<code>bound_relative_density_at</code>, <code>_densities</code> and <code>canonical_bands</code> unchanged). 100
+ly sphere, tiers 100/250/500/750 L_sun, ceiling 1000 L_sun [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>Cells</th>
+<th>Expected stars</th>
+<th>Real mean (30 runs)</th>
+<th>Prototype mean (400 runs)</th>
+<th>Prototype dispersion / chi-square p</th>
+<th>CPU real</th>
+<th>CPU prototype</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Solar radius (8.2 kpc, in plane)</td>
+<td>1,804</td>
+<td>5.70</td>
+<td>6.00</td>
+<td>5.64</td>
+<td>1.03 / 0.64</td>
+<td>105 ms</td>
+<td>31 ms</td>
+</tr>
+<tr>
+<td>Bulge edge (2 kpc)</td>
+<td>1,847</td>
+<td>162.6</td>
+<td>163.6</td>
+<td>161.8</td>
+<td>0.98 / 0.70</td>
+<td>71 ms</td>
+<td>748 ms</td>
+</tr>
+<tr>
+<td>Outer disk (13 kpc, 600 pc up)</td>
+<td>1,844</td>
+<td>0.58</td>
+<td>0.43</td>
+<td>not run</td>
+<td></td>
+<td>60 ms</td>
+<td>11 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>The prototype reproduces the expected count, a Poisson dispersion of 1 and the
+radial distribution (shell p = 0.97 and 0.72). Work by center [C, <code>tiers_tbl.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Center</th>
+<th>Density</th>
+<th>Cells</th>
+<th>Expected stars</th>
+<th>Cells per star</th>
+<th>P(cell gets a star)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Outer disk</td>
+<td>0.14</td>
+<td>1,844 (98 inside the outline)</td>
+<td>0.58</td>
+<td>3,174</td>
+<td>0.0003</td>
+</tr>
+<tr>
+<td>Solar radius</td>
+<td>1.55</td>
+<td>1,804</td>
+<td>5.70</td>
+<td>317</td>
+<td>0.0032</td>
+</tr>
+<tr>
+<td>Bulge edge</td>
+<td>33</td>
+<td>1,847</td>
+<td>162.6</td>
+<td>11</td>
+<td>0.088</td>
+</tr>
+<tr>
+<td>Bulge, 500 pc</td>
+<td>141</td>
+<td>1,895</td>
+<td>716.8</td>
+<td>2.6</td>
+<td>0.38</td>
+</tr>
+</tbody>
+</table></div>
+<p>At the solar center the outermost tier (50 to 100 ly, floor 750) is 88% of the
+cells and 72% of the stars (1,584 cells, 4.09 stars of 5.70).</p>
+<h3 id="43-the-real-run-against-mariadb-1011">4.3 The real run against MariaDB 10.11</h3>
+<p>Scratch database, default plan, no ceiling, 4-core box at load 15 to 25 (wall
+noisy, CPU steadier) [C, <code>dbbf2.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Sectors</th>
+<th>Stars</th>
+<th>Wall</th>
+<th>CPU</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>First backfill in the process (cold)</td>
+<td>1,800</td>
+<td>10</td>
+<td>44 s</td>
+<td>40 s</td>
+</tr>
+<tr>
+<td>Warm</td>
+<td>1,800</td>
+<td>13</td>
+<td>4.0 s</td>
+<td>2.7 s</td>
+</tr>
+<tr>
+<td>Warm</td>
+<td>1,804</td>
+<td>7</td>
+<td>3.4 s</td>
+<td>2.6 s</td>
+</tr>
+<tr>
+<td>Warm, bulge edge</td>
+<td>1,847</td>
+<td>186</td>
+<td>4.1 s</td>
+<td>2.8 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Warm, under cProfile (3.9 s): <code>backfill_cells</code> 2.3 s (58,118 <code>random.Random</code>
+constructions, 32 per cell, because with no ceiling the bands run open-ended;
+with a 1000 L_sun ceiling about 3 per cell and about 0.1 s) and 3,642 SQL
+statements about 1.5 s. So <strong>about 2 ms per sector warm</strong>, about 0.8 ms of it
+SQL, with one <code>sector_stats</code> row written per visited sector
+(<code>lock_sector_stats</code>). The cold start is the surprise: <code>_bright_table</code> (an
+<code>lru_cache</code> in <code>generation/star_population.py</code>) costs about 0.15 s per distinct
+(band edge, population): 5 s with the ceiling (9 edges x 4 populations), 40 s
+without (34 edges). RQ forks one work horse per job (<code>queue/redisqueue.py</code>
+<code>worker_class</code>; <code>SpawnWorker</code> where there is no fork loses the cache too), so
+every queued backfill job pays it again [S].</p>
+<h3 id="44-verdicts">4.4 Verdicts</h3>
+<p><strong>GEN.41.</strong> At the solar center the backfill visits 1,804 sectors for 5.7 stars
+(317 per star), at the bulge edge 11, at the core 2.6. A perfect pre-pass cuts
+visits by 99.7% at solar density but saves only about 0.1 s of a 3.4 s run (the
+rest is SQL and the ledger) plus the avoidable cold start. <strong>GEN.42 as written:
+no-go.</strong> It is inexact, saves little at sphere sizes, and the large savings (the
+ledger and the visits) come from exact block-first.</p>
+<p><strong>GEN.42.</strong> Replace with an optional exact block-first draw for a run over about
+10^5 cells or one dominated by its sparsest tier. A literal drop pass would have
+to be exact thinning of the candidate process, which is skip-ahead.</p>
+<p><strong>GEN.43.</strong> Satisfied by construction: every cell keeps its own mean, and
+the outline minimum of 0.069 (and, beyond it, the stellar halo, GEN.234) mean no
+cell has zero density. The test is section 3.3.</p>
+<p><strong>PERF.18.</strong></p>
+<ul>
+<li>Make the task a chunk of many thousands of cells, not one 1,800-cell sphere:
+queue and fork overhead (tens of ms) equals a sphere's draw time. Discovery
+currently enumerates a 60-fold redundant cell list around every generated
+center (<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section
+3.5); enumerate once around the run's boundary.</li>
+<li>Pre-warm <code>bright_star_fraction</code> for every canonical band edge in the worker
+parent before it forks, or compute the tables at plan time and store them (they
+must be identical on every machine). This is the largest saving found.</li>
+<li>Determinism is already right: stars are keyed per (seed, cell, band).</li>
+<li>Draws (0.06 ms per cell) parallelise nothing worth having; SQL (0.8 ms per
+sector) and neighbour locks cap the gain at 1.87 times for 2 to 4 workers
+(timing report section 4). Measure again with PERF.31 before promising speed.</li>
+<li>In-request backfills should queue and return a job id; a web request should
+never pay the 5 s cold start.</li>
+</ul>
+<h2 id="5-gen102-filling-the-near-zero-density-space">5. GEN.102: filling the near-zero-density space</h2>
+<h3 id="51-arithmetic-for-the-default-galaxy">5.1 Arithmetic for the default galaxy</h3>
+<p>Outline: 2,041 layers (+-1,020), outer ring 3,763, <strong>23,920,622,421 sectors</strong>
+(<code>candidate_sector_count</code>). E = 6.306, mean density 1.995, so about <strong>3.01 x
+10^11 systems</strong>. Stars at or above 1000 L_sun: 2.70 x 10^7, matching the
+26,925,945 the timing run wrote [C, <code>outline.py</code>, <code>void.py</code>, <code>void2.py</code>,
+<code>galaxy_totals.py</code>: 4 x 10^7 sampled cells inside the outline, a numpy replica of
+<code>relative_density</code> matching it to 10^-15].</p>
+<p>Density quantiles inside the outline (1.0 is the solar neighbourhood): minimum
+0.069, 1% 0.087, 5% 0.119, median 0.42, 95% 7.0. <strong>Nothing is near zero.</strong> The
+outline keeps a cell if its density bound reaches 1/E = 0.1586, so the actual
+density is at worst about 0.069; the 10^-3 floor is reached only outside the
+galaxy, where no sector exists.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>&quot;Void&quot; definition</th>
+<th>Share of sectors</th>
+<th>Sectors</th>
+<th>Systems in them</th>
+<th>Share of all systems</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>density below 0.1</td>
+<td>2.44%</td>
+<td>5.8 x 10^8</td>
+<td>3.2 x 10^8 (0.56 per sector)</td>
+<td>0.11%</td>
+</tr>
+<tr>
+<td>expected systems below 1 (density below 0.1586)</td>
+<td>12.4%</td>
+<td>2.97 x 10^9</td>
+<td>2.3 x 10^9 (0.78 per sector)</td>
+<td>0.77%</td>
+</tr>
+<tr>
+<td>expected systems below 2</td>
+<td>40.4%</td>
+<td>9.7 x 10^9</td>
+<td>not computed</td>
+<td>3.9%</td>
+</tr>
+</tbody>
+</table></div>
+<p>Density below 0.1 sits at a median radius of 13.4 kpc (10th to 90th percentile
+10.1 to 14.7) and height 0.44 kpc (0.08 to 0.96): the between-arms outer disk and
+thick-disk fringe, not the halo. Below 1/E: 7.1 to 14.4 kpc, 0.1 to 1.4 kpc up.</p>
+<h3 id="52-time-and-storage">5.2 Time and storage</h3>
+<p>Cost model from the timing report: about 40 ms fixed per sector plus about 16.4
+ms per ordinary system (3.4 s for 205 systems, less the fixed part); 1.87 times
+faster at 2 to 4 workers on its 4-core box. Storage about 40 KB per system (the
+pre-placement plan's 3.5 PB for 88 billion systems; not re-measured) [R].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fill</th>
+<th>Sectors</th>
+<th>Systems</th>
+<th>One worker</th>
+<th>At 1.87 x</th>
+<th>Storage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>density below 0.1</td>
+<td>5.8 x 10^8</td>
+<td>3.2 x 10^8</td>
+<td>about 330 days</td>
+<td>about 175 days</td>
+<td>about 13 TB</td>
+</tr>
+<tr>
+<td>expected systems below 1</td>
+<td>2.97 x 10^9</td>
+<td>2.3 x 10^9</td>
+<td>5.0 years</td>
+<td>2.7 years</td>
+<td>about 92 TB</td>
+</tr>
+<tr>
+<td>the whole galaxy</td>
+<td>2.39 x 10^10</td>
+<td>3.0 x 10^11</td>
+<td>about 185 years</td>
+<td>about 100 years</td>
+<td>about 12 PB</td>
+</tr>
+</tbody>
+</table></div>
+<p>Boss's premise (&quot;those sectors have the least in them, so we can afford to fill
+them&quot;) fails on the cost model: time is a fixed cost per sector, not per star. A
+sparse sector costs 70 to 90 ms per system against 16 for an ordinary one.</p>
+<h3 id="53-recommendation">5.3 Recommendation</h3>
+<p>Do not pre-fill voids. Keep lazy fill on visit (<code>ensure_sector_generated</code>,
+<code>generation/run_galaxy.py</code>), which costs nothing until someone looks. If the
+sparse rim is wanted for completeness, the only lever is a smaller fixed cost:
+the timing report's levers (17.6 ms of serialised neighbour-lock steps, the
+second uid pass, one registry upsert per sector) could plausibly halve the 40
+ms, making the density-below-0.1 fill about 5 months of single-worker time. About
+57% of those sectors are empty (exp(-0.56)), so &quot;empty needs no row&quot; would save
+those writes, but then &quot;unfilled&quot; and &quot;filled and empty&quot; must be told apart (a
+<code>sector_stats</code> row or an interval ledger). Define the threshold as expected
+systems below 1, matching the existing rule <code>predicted_star_count &gt;= 1</code>, not
+&quot;near zero&quot;.</p>
+<h2 id="6-gen99-backfilling-a-nebulas-volume">6. GEN.99: backfilling a nebula's volume</h2>
+<p>A giant H II complex is at most about 200 ly radius (about 15,000 sectors,
+<a href="../systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>); at
+58 us per cell that is about 1 s of draws, so exactness and &quot;similar luminosity&quot;
+matter, not speed.</p>
+<ul>
+<li><strong>Skew the marks, never the intensity.</strong> A cell's star count is Poisson(lambda)
+whatever the type law; draw each star's type from a tilted law p'(t) proportional
+to p(t) x w_t. Counts stay natural and only labels change. A weight of about 40
+to 50 on the required types turns the natural 8% O/B share of stars at 750
+L_sun and above [R, from the pre-placement plan] into about 80% (odds 0.087 to
+4).</li>
+<li><strong>Redrawing existing stars in place</strong> conditions each on its own luminosity:
+draw the new type from p'(t | L within a tolerance of L_old) proportional to
+p(t, L) x w_t; if the support is empty leave the star alone, as Boss's rule
+says. Key the draw by (star seed, nebula id) so a second nebula over the same
+stars gives a defined result.</li>
+<li>The 750 L_sun floor uses the same band machinery, so a nebula larger than the
+sphere tiers can share the block-first draw.</li>
+</ul>
+<h2 id="7-resumable-runs-perf29-and-perf30">7. Resumable runs: PERF.29 and PERF.30</h2>
+<p><strong>Status (2026-10-29): not built, dropped.</strong> Boss decided there is no automatic resume after an interruption (2026-10-14, PERF.86): an admin starts or cancels a run, and PERF.29 and PERF.30 are dropped. What the rebuilt queue does instead (built by PERF.95 to PERF.100, PERF.107 and PERF.108): a run's record lives in Redis and a unit that fails or whose worker is killed ends the run, naming the unit (<code>queue/units.py</code>); a rerun of the same command picks up where the stored sectors leave off, because the sector fill skips sectors that exist and each unit writes only its own sectors in its own transactions. The post-steps that name their sectors by when they were saved (links, settle, backfill) now read the database's clock at the start of the run (<code>since</code>) and cut their units from it, so they cover the sectors a run made, not a restarted run's. A new run does not pick up what an interrupted one still owed those steps: that is the gap 7.1 describes, and nothing closes it. The text below is the research as written and the <code>RQExecutor</code> it names is gone.</p>
+<h3 id="71-what-exists">7.1 What exists</h3>
+<p>A sector save is <strong>one transaction</strong> (<code>save_sector</code> inside <code>conn.batched()</code>:
+sector row, systems, names, <code>sector_stats</code> row last, one commit by the caller), so
+a half-written sector rolls back [S]. Everything after it is a separate pass:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Where its state lives today</th>
+<th>Survives a crash?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>sector, systems, phenomena</td>
+<td>the sector row (atomic)</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>bright-star level</td>
+<td><code>sector_stats.bright_level_sol</code> (-1 untouched, L_sun, 0 generated), written with the stars in one chunk transaction (<code>BACKFILL_CHUNK_SECTORS</code> = 200)</td>
+<td>yes; <code>_draw_sector_bands</code> also wipes stray stars of a sector with no level</td>
+</tr>
+<tr>
+<td>paths</td>
+<td><code>sector_paths</code> rows; which sectors need them is <code>created_at &gt;= started_at</code> of the <strong>running process</strong> (<code>sector_ids_since</code>, <code>db/sector_paths.py</code>)</td>
+<td><strong>no</strong>: a restart gets a new <code>started_at</code></td>
+</tr>
+<tr>
+<td>backfill around the run</td>
+<td><code>backfill_after_run</code> uses <code>store.sector_centers_since(started_at)</code></td>
+<td><strong>no</strong>, same reason</td>
+</tr>
+<tr>
+<td>population</td>
+<td><code>population_state.scanned_planet_id</code> (a global watermark)</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div>
+<p>The gap is exactly the post-steps whose &quot;which sectors&quot; lives only in memory. The
+run history exists (DB.6): <code>generation_runs</code> holds the seeds, version key and
+<code>outcome</code> (<code>ok</code>, <code>failed</code>, <code>interrupted</code>), <code>generation_run_arguments</code> the command
+line; a run killed hard leaves <code>finished_at</code> and <code>outcome</code> NULL [S, <code>db/store.py</code>].</p>
+<p>Patterns [R]: idempotent units keyed by address; a watermark for ordered work
+(the population pass); a transactional outbox (write the intent in the same
+transaction as its effect); at-least-once delivery with idempotent handlers.
+Minecraft stores a per-chunk <code>Status</code> so a half-generated chunk continues from
+its status on the next load [R, names vary by version]; the bright-star level is
+such a ladder, but PlanetGen's other steps are not (paths need neighbours'
+final contents, population is global), so a bitmask fits.</p>
+<p><strong>RQ semantics</strong> [S, <code>rq</code> 2.12.0 wheel, <code>registry.py</code>]: a job whose worker died
+stops heartbeating; <code>StartedJobRegistry.cleanup()</code> finds the expired entry and, if
+<code>retries_left &gt; 0</code>, calls <code>job.retry()</code>, otherwise files it as <code>AbandonedJobError</code>.
+The project's <code>RQExecutor</code> (since removed, OPS.66; a unit is now an RQ job queued by <code>queue/units.py</code> with <code>retry=rq.Retry(max=1)</code>) enqueued with <code>retry=rq.Retry(max=TASK_RETRIES)</code>,
+<code>job_timeout=-1</code>, and treated a dead worker as <code>WorkerDied</code>. Retry reruns the
+whole job, so every task must be idempotent: sector fills skip existing
+addresses and a backfill chunk rechecks its levels under the row lock. The lock
+pins rq 2.12.0 for Python 3.10 and later, 2.8.0 for 3.9; only 2.12.0 was read.</p>
+<h3 id="72-recommended-design">7.2 Recommended design</h3>
+<ol>
+<li><strong>PERF.29: a <code>sector_pending(ring, layer, slot, mask, run_id)</code> table.</strong> The
+sector save inserts its row in the same transaction, with a bit for each step
+still owed (paths, backfill tier, population, later steps); each step clears
+its bit in the same transaction as its effect. Rows exist only while work is
+owed, so the table stays small at 24 billion sectors, and &quot;every partly filled
+sector and what it needs&quot; is a <code>SELECT</code>. Where a step has a natural artifact
+(bright level, population watermark) derive it rather than store a copy; use
+the mask for steps with none (paths, the pending backfill request with its
+tier parameters). GEN.44's level rule stays the summary.</li>
+<li><strong>PERF.30: re-run the unfinished command.</strong> Dropped (Boss, 2026-10-14, 9:24 AM EDT, PERF.86: there is no automatic resume after an interruption; PERF.29 and PERF.30 are dropped, see redis-and-the-work-queue.md); the recommendation below is kept as the research. A run is unfinished when its
+<code>generation_runs</code> row has <code>finished_at IS NULL</code> or <code>outcome</code> is <code>failed</code> or
+<code>interrupted</code>; <code>--resume</code> re-runs its stored arguments and run seed (no new
+outcome value is needed). The fill skips existing sectors, then drains
+<code>sector_pending</code>. The address sequence is a pure function of the arguments
+(order changes only what exists when a run stops,
+<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section 2.5), so
+a rerun reaches the same units. An integer frontier can report progress, but
+correctness should rest on per-unit existence checks because with parallel
+workers the done set is a prefix plus stragglers.</li>
+<li><strong>Failure-mode tests:</strong> kill between sector commit and settle; inside a
+backfill chunk (levels and stars stay consistent, as now); a forked work
+horse (RQ retries); a duplicate task (the unique address index and row lock
+make the second a no-op); a clock change (never use time as the frontier).</li>
+<li><strong>Not checked:</strong> whether the uid claim and name-registry confirmation (#657)
+sit inside the sector transaction. If either is a separate commit, a crash
+leaves an orphan reservation that the DB check (DB.8,
+<a href="../operations/db-check-and-parity-repair.html">db-check-and-parity-repair.md</a>) should find.</li>
+</ol>
+<h2 id="8-gen96-directives">8. GEN.96: directives</h2>
+<h3 id="81-what-the-numbers-say">8.1 What the numbers say</h3>
+<p>On 6,000 systems from <code>StarSystem(SystemConfig())</code> [C, <code>hab2.py</code>]: habitable
+worlds per system 0: 75.5%, 1: 18.95%, 2: 3.8%, 3: 1.2%, 4: 0.4%, 5: 0.1%; <strong>at
+least one: 24.5%</strong>, mean 0.325. A system takes about 20 ms to generate; forcing a
+habitable world (<code>HABITABLE_WORLD = True</code>, already in <code>StarSystem</code>) costs 29 ms and
+never failed in 600 systems. A sector's count is a compound Poisson (systems ~
+Poisson(n), each with the counts above); P(at least N) by exact recursion matches
+simulation (0.327 against 0.3265 at n = 6.3, N = 3) [C, <code>hab_math.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Expected systems in the sector</th>
+<th>N &gt;= 1</th>
+<th>N &gt;= 2</th>
+<th>N &gt;= 3</th>
+<th>N &gt;= 5</th>
+<th>N &gt;= 8</th>
+<th>N &gt;= 10</th>
+<th>Mean worlds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.35 (sparse rim)</td>
+<td>0.082</td>
+<td>0.021</td>
+<td>0.0071</td>
+<td>0.0007</td>
+<td>0.0001</td>
+<td>0</td>
+<td>0.11</td>
+</tr>
+<tr>
+<td>2.0</td>
+<td>0.387</td>
+<td>0.155</td>
+<td>0.064</td>
+<td>0.010</td>
+<td>0.0008</td>
+<td>0.0002</td>
+<td>0.65</td>
+</tr>
+<tr>
+<td>6.3 (density 1)</td>
+<td>0.786</td>
+<td>0.530</td>
+<td>0.327</td>
+<td>0.104</td>
+<td>0.014</td>
+<td>0.0036</td>
+<td>2.05</td>
+</tr>
+<tr>
+<td>12.6</td>
+<td>0.954</td>
+<td>0.845</td>
+<td>0.692</td>
+<td>0.381</td>
+<td>0.107</td>
+<td>0.039</td>
+<td>4.10</td>
+</tr>
+<tr>
+<td>32</td>
+<td>0.9996</td>
+<td>0.997</td>
+<td>0.989</td>
+<td>0.939</td>
+<td>0.738</td>
+<td>0.548</td>
+<td>10.4</td>
+</tr>
+</tbody>
+</table></div>
+<p>Attempts for 99% success at per-attempt success p: 0.5: 7; 0.2: 21; 0.05: 90;
+0.01: 459; 0.001: 4,603.</p>
+<h3 id="82-methods">8.2 Methods</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Directive</th>
+<th>Method</th>
+<th>Exact?</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>must have density d</td>
+<td>set the density multiplier</td>
+<td>by definition</td>
+<td>none (<code>--density</code> exists)</td>
+</tr>
+<tr>
+<td>at least N stars (systems)</td>
+<td>truncated Poisson by inversion</td>
+<td>exact conditional law</td>
+<td>O(mean), no rejection</td>
+</tr>
+<tr>
+<td>at least N stars of type T</td>
+<td>split the Poisson by type (independent counts): type-T count by truncated inversion, rest ordinary</td>
+<td>exact conditional law</td>
+<td>O(mean); needs a per-system forced type (<code>SystemConfig.STAR_TYPE</code> exists)</td>
+</tr>
+<tr>
+<td>at least N habitable worlds</td>
+<td><strong>bounded whole-sector rejection</strong></td>
+<td>exact (a normal sector, given the event)</td>
+<td>1/P builds on average, K at most</td>
+</tr>
+<tr>
+<td>same, fallback</td>
+<td>forced top-up: swap habitable-free systems for <code>HABITABLE_WORLD = True</code> systems until N</td>
+<td>no: over-represents forced systems</td>
+<td>one build plus (N - H) x 29 ms</td>
+</tr>
+</tbody>
+</table></div>
+<p>Truncated inversion: <code>F = poisson_cdf(N - 1, lam); k = poisson_ppf(F + (1 - F) * u, lam)</code>
+with u from the unit's stream, giving k &gt;= N.</p>
+<p>Rejection generates in memory and saves only the winner (a save is 40 ms plus
+about 16 ms per system and must not be paid per attempt). At density 1: N = 3 3.1
+attempts, 0.4 s; N = 5 9.6 attempts, 1.2 s; N = 8 71 attempts, 9 s; N = 10 278
+attempts (K for 99%: 1,280), 35 s. Sparse sector (0.35 systems), N = 1: 12
+attempts, 0.1 s; N = 3: 141 attempts (K 650), 1 s.</p>
+<h3 id="83-recommendation">8.3 Recommendation</h3>
+<ul>
+<li>Attempt 0 draws from the sector's plain unit seed, so no override means exactly
+the natural sector and a natural sector that already meets the directive is
+untouched. Attempt a &gt;= 1 uses <code>SHA-256(galaxy seed || &quot;sector:addr&quot; || &quot;:d:&quot; || H(canonical directive JSON) || &quot;:a:&quot; a)</code>.</li>
+<li>Try up to K attempts (default 200, user-settable), then the forced top-up for
+habitable-world directives, then report <code>met_naturally</code>, <code>met_after_k_attempts</code>,
+<code>met_forced</code> or <code>unmet</code> with the best achieved values.</li>
+<li>Store the attempt number, directive and mode with the sector (or as a GEN.59
+net-difference entry, <a href="generation-determinism.html">generation-determinism.md</a>
+section 6): the sector is no longer a pure function of seed and address, and
+without the record <code>reproduce</code> (OPS.12) cannot rebuild it.</li>
+<li>Refuse an impossible request up front from the table above instead of burning K
+attempts.</li>
+</ul>
+<p><strong>Built (GEN.180).</strong> The forced top-up is <code>--min-habitable N</code> on one more build of the
+sector (<code>run_sector._forced_args</code>), seeded from its own stream
+(<code>&quot;sector-directive-forced&quot;</code>), not a swap of systems in a finished sector: the swap would have
+to move a system's position and Hill sphere and redo its object ids, while <code>--min-habitable</code>
+already forces <code>HABITABLE_WORLD</code> into N of the sector's systems and gives the sector at least N
+systems. It is tried once, after K draws, only for a <code>habitable</code> minimum; the other
+minimums are exact by rejection only. <code>directives.impossible</code> judges a request before any
+drawing: a minimum is refused when a sector reaches it with probability under
+<code>tuning.DIRECTIVE_IMPOSSIBLE_BELOW</code> (1e-9) and the forced fill (which needs that many
+systems) cannot reach it either, from the Poisson tail of the system count and, for habitable
+worlds, Panjer's recursion over <code>HABITABLE_COUNT_PMF</code> (the 6,000-system table of 8.1; the
+function reproduces the table's rows). The count is <code>--num-systems</code> exactly, or about
+<code>--density</code> times the sector's expected systems for a <code>sector</code> run, or the densest sector the
+model has (<code>tuning.PEAK_RELATIVE_DENSITY</code>, 160, above the 154.2 of the center) for a <code>galaxy</code>
+or <code>sectors</code> run. The Generate page's override section reaches the same refusal, as its
+estimate runs the command line's validation.</p>
+<p>Not recommended: generating each system conditional on a pre-drawn habitable
+count. It is exact and cheaper, but the pmf depends on star type, age and the
+nebula, so the table would be rebuilt for every setting.</p>
+<h2 id="9-gen97-n-random-neighbourhoods">9. GEN.97: N random neighbourhoods</h2>
+<ul>
+<li><strong>Unbiased density-weighted centers.</strong> Propose a cell uniformly (cells are
+within about 6% of equal volume; for exactness weight by pi x (2i + 1) x edge^3 /
+slots(i)), accept with probability (rho / rho_max)^gamma, rho_max = 154.2.
+gamma = 0 is uniform by volume (what <code>GalaxyBounds.random_address</code> does,
+<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section 3.5), 1 is
+proportional to star density. Acceptance at gamma = 1 is 1.29%, about 77
+proposals per center at about 10 us each. Never clip rho at a cap: it biases
+the weighting.</li>
+<li><strong>Cost depends on gamma, not on the sampler.</strong> Systems in a 100 ly neighbourhood
+(1,887 cells) [C, <code>centers.py</code>]; time is 40 ms per sector plus 16.4 ms per system:</li>
+</ul>
+<div class="table"><table>
+<thead>
+<tr>
+<th>gamma</th>
+<th>Mean density at center</th>
+<th>Systems per neighbourhood</th>
+<th>One worker</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>2.0</td>
+<td>2.4 x 10^4</td>
+<td>about 8 min</td>
+</tr>
+<tr>
+<td>0.25</td>
+<td>4.1</td>
+<td>4.9 x 10^4</td>
+<td>about 15 min</td>
+</tr>
+<tr>
+<td>0.5</td>
+<td>8.7</td>
+<td>1.0 x 10^5</td>
+<td>about 29 min</td>
+</tr>
+<tr>
+<td>1</td>
+<td>28.1</td>
+<td>3.4 x 10^5</td>
+<td>about 1.6 h</td>
+</tr>
+</tbody>
+</table></div>
+<p>At gamma = 1 about 40% of centers land in the 1.7% of sectors with density
+above 20 (the bulge). Default gamma = 0: the least surprising reading and the
+cheapest.</p>
+<ul>
+<li><strong>Qualifying criteria</strong>, in this order: inside the outline; the whole
+neighbourhood inside (3% of uniform centers have a 100 ly sphere crossing the
+edge, 7% at 250 ly); density at least 1/E (the project's &quot;predicted star count
+<blockquote>
+<p>= 1&quot;); optionally not within r of a filled sector (one indexed box query on
+<code>idx_sectors_center</code> per accepted candidate).</p>
+</blockquote>
+</li>
+<li><strong>No overlap, by dart throwing.</strong> Keep a hash grid of cell size 2r over accepted
+centers and reject a candidate closer than 2r plus a margin (Poisson-disk
+sampling; [R0539], SIGGRAPH sketches) [R]. A 100 ly neighbourhood excludes
+9.7 x 10^5 pc^3 and random sequential packing fills about 30% of the volume, so
+it succeeds for up to about 4.8 x 10^5 centers (3.0 x 10^4 at 250 ly) galaxy-wide
+and 3.4 x 10^4 in the bulge alone. Cap attempts at 200 x N and report a shortfall.</li>
+<li><strong>Determinism.</strong> Candidate j draws from a stream keyed by (galaxy seed, run
+seed, &quot;neighbourhood&quot;, j), so the accepted list depends only on the seed and the
+arguments. If the filled-space test is on, record the chosen centers in the
+<code>generation_runs</code> row (or its arguments) so <code>--resume</code> and <code>reproduce</code> replay
+the same list.</li>
+</ul>
+<h2 id="10-reconciliation-with-earlier-documents">10. Reconciliation with earlier documents</h2>
+<p>The earlier documents are not edited here except where stated.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Earlier statement</th>
+<th>Where</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;26B (x966)&quot; column: 16 days scatter, 38 years bright-only fill</td>
+<td><code>bright-star-timing/report.md</code></td>
+<td>It scales the 26.9 million bright stars by 966 and matches nothing in this galaxy (23.9 billion sectors, 3.0 x 10^11 systems, 2.70 x 10^7 stars at 1000 L_sun). Drop or relabel it; a whole-galaxy fill is about 185 years on one worker (section 5.2). The 26.9 million column stands.</td>
+</tr>
+<tr>
+<td>500 L_sun, about 61 million stars, 88.2 billion systems, 9.6 GB table, 15 s scatter, 3.5 PB</td>
+<td><code>bright-star-preplacement-plan.md</code> section 2; <code>star-fix-spec.md</code> (&quot;~88 billion systems&quot;)</td>
+<td>1000 L_sun since GEN.30; 26.9 million stars; table 7.4 GB (4.4 data, 3.0 index, about 164 bytes per row); scatter 24 min on 4 workers (74.6 CPU-min). GEN.118 and GEN.119 raised the galaxy to about 3.4 times as many systems, 3.0 x 10^11, so 12 PB at 40 KB per system. The plan's mix and algorithm are otherwise as built.</td>
+</tr>
+<tr>
+<td>&quot;The backfill's cost per cell is unmeasured&quot;</td>
+<td><a href="../orbits/sky-view.html">sky-view.md</a> section 3.2</td>
+<td>Measured: 0.06 ms per cell for draws with a ceiling, 2 ms per sector warm with SQL, 5 s cold start (section 4.3). Its option (b), ring-by-ring angle bins, is the block-first idea; use section 2 for the keying rules.</td>
+</tr>
+<tr>
+<td><code>bright_star_blocks</code> as the backfill ledger</td>
+<td><code>docs/plan/notes.md</code> (GEN.44 note)</td>
+<td>Replaced by <code>sector_stats</code> (one row per sector, schema v53: <code>bright_level_sol</code>, <code>level_before_fill_sol</code>, expected and actual counts). <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> does not name <code>bright_star_blocks</code> (checked 2026-10-09). OPS.25 records the dropped table.</td>
+</tr>
+<tr>
+<td>The backfill is <code>backfill_bright_stars_around</code> in <code>generate.py</code> and <code>brightStars.backfill_cells</code>, &quot;a Poisson draw for every unfilled sector of every block in range&quot;</td>
+<td><code>docs/TODO.md</code> GEN.40</td>
+<td>Now <code>generation/run_galaxy.py</code> and <code>generation/bright_stars.py</code>; since GEN.44 it draws cell by cell in chunks of 200 sectors (<code>run_plan._draw_sector_bands</code>) with a row lock per chunk.</td>
+</tr>
+<tr>
+<td>Space with &quot;0 or nearly 0&quot; density</td>
+<td><code>docs/TODO.md</code> GEN.102</td>
+<td>None inside the outline (minimum 0.069); use expected systems below 1 (section 5).</td>
+</tr>
+<tr>
+<td>Drop sectors &quot;so the region probability matches&quot;</td>
+<td><code>docs/TODO.md</code> GEN.42, GEN.43</td>
+<td>Matching the mean is not enough; each cell's distribution must be kept (section 3). Superseded by the block-first draw.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-checked and standing: E = 6.31 and the outline in
+<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>; 26.9 million at 1000 L_sun in
+<a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>; the 1,886-cell 100 ly
+backfill in <a href="../orbits/sky-view.html">sky-view.md</a> (1,800 to 1,895 depending on the center).</p>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>Computed [C] with scripts in the research scratchpad <code>r13</code>: outline and sector
+count (<code>outline.py</code>); void counts and locations (<code>void.py</code>, <code>void2.py</code>); exactness
+tests, benchmark and determinism (<code>samp.c</code>, <code>harness.py</code>, <code>bench.py</code>, <code>determ.py</code>,
+<code>trunc.py</code>); prototype and real backfill (<code>proto_bf.py</code>, <code>proto_test.py</code>,
+<code>realbf2.py</code>, <code>tiers_tbl.py</code>); the MariaDB run (<code>dbbf2.py</code>, scratch 10.11.14,
+default shape, shared host); habitable-world statistics (<code>hab2.py</code>, <code>hab_math.py</code>);
+centers (<code>centers.py</code>); star totals (<code>galaxy_totals.py</code>). The dispersion formula
+(section 3.1) and the time columns in sections 5.2 and 9 were recomputed in the
+integration pass.</p>
+<p>Recalled [R], to verify when paper access is allowed (the research environment
+could read only search-result text): [R0539]; the Minecraft chunk status list and neighbour-radius rule (idea high
+confidence, names medium); the outbox and idempotent-handler patterns; the 40 KB
+per system storage figure and the 8% O/B share at 750 L_sun and above (both from
+the pre-placement plan, not re-measured).</p>
+<p>Not verified: uid claim and name confirmation inside the sector transaction
+(section 7.2); database cost at scale (the run is 1,800 sectors on a shared 4-core
+box); block-first in the bulge (worse there, by design); <code>SpawnWorker</code> behaviour
+on macOS.</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li><code>rq</code> 2.12.0 wheel from PyPI: <code>rq/registry.py</code> <code>StartedJobRegistry.cleanup</code>,
+<code>rq/job.py</code> <code>retry</code>, <code>requeue</code>.</li>
+<li>Repository files read: <code>src/planetgen/generation/{bright_stars,run_galaxy,run_plan,star_population,system}.py</code>,
+<code>galaxy/{density,geometry,skeleton,seed,drill}.py</code>, <code>util/draw.py</code>,
+<code>queue/{redisqueue,work}.py</code>, <code>db/{models,store,control_schema,sector_paths}.py</code>,
+<code>tuning.py</code>; the design documents linked above.</li>
+<li><code>/mnt/project-files/bright-star-timing/report.md</code> (PR #657, GEN.72, 2026-10-08) and
+<code>/mnt/project-files/galaxy-studies/{bright-star-preplacement-plan,star-fix-spec}.md</code>.</li>
+<li>NLTK <code>words</code> corpus from raw.githubusercontent.com/nltk/nltk_data (only so the
+project code would import in the scratch environment). No web search results
+were used.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

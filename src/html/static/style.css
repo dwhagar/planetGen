@@ -4059,9 +4059,8 @@ body.app {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* ADM.92: the admin shell -- the rail of destinations, the search box and the density switch above every admin
-   page. The rail wraps on a phone; compact density (the default; `data-density="roomy"` on the body turns it off)
-   tightens the panels and forms under it. */
+/* ADM.92: the admin shell -- the rail of destinations, the search box above every admin page. The rail wraps on
+   a phone; the panels and forms under it are tightened. */
 .app .admin-shell {
   display: flex;
   flex-wrap: wrap;
@@ -4077,7 +4076,7 @@ body.app {
 }
 
 /* UX.142: on a window with room for it, the shell stays under the held site header while a long admin page scrolls, so
-   the rail, the search and the density switch are always in view. A phone or a short window keeps it in the flow
+   the rail and the search are always in view. A phone or a short window keeps it in the flow
    (it would take too much of the window). adminshell.js sets --site-header-h. */
 @media (min-width: 700px) and (min-height: 600px) {
   .app .admin-shell {
@@ -4130,12 +4129,6 @@ body.app {
   min-width: 0;
 }
 
-.app .admin-density {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .app .admin-results {
   list-style: none;
   margin: 1rem 0 0;
@@ -4151,17 +4144,17 @@ body.app {
   display: block;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) .panel {
+.app main:has(.admin-shell) .panel {
   padding: 0.75rem 1rem;
   margin-bottom: 0.75rem;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) h2 {
+.app main:has(.admin-shell) h2 {
   margin: 0 0 0.5rem;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) td,
-.app:not([data-density="roomy"]) main:has(.admin-shell) th {
+.app main:has(.admin-shell) td,
+.app main:has(.admin-shell) th {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
 }

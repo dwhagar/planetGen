@@ -16,7 +16,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
 from planetgen.physics import icy_tide, interior_heat, tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
-from planetgen.physics import planets as planet_physics
+from planetgen.physics import planets as planet_physics, radiation_field
 from planetgen.util import draw
 from tests.tide_support import rocky
 
@@ -248,7 +248,7 @@ def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions
     assert insolation.companion_swing(1.0, 1.0, 0.5, 20.0, 30.0, 0.1) > circle
     # the in-phase sum: peak over trough of both lights, against the mean of both
     host, companion = 1.0 / 1.0 ** 2, 0.5
-    mean = host * oe.mean_flux_factor(0.1) + companion * insolation.mean_inverse_square(25.0, 0.2)
+    mean = host * oe.mean_flux_factor(0.1) + companion * radiation_field.mean_inverse_square(1.0, 25.0, 0.2)
     peak = host / 0.9 ** 2 + companion / 20.0 ** 2
     trough = host / 1.1 ** 2 + companion / 30.0 ** 2
     assert insolation.companion_swing(1.0, 1.0, 0.5, 20.0, 30.0, 0.1) == pytest.approx((peak - trough) / mean)

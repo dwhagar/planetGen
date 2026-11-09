@@ -30,6 +30,7 @@ import concurrent.futures
 import multiprocessing
 
 from planetgen.db import kind_tables, point_columns
+from planetgen.galaxy import cellkey
 from planetgen.galaxy import spherical as geometry
 from planetgen.physics import sector_path as sp
 from planetgen.physics import unit_registry as units
@@ -74,28 +75,78 @@ def _neighbour_centers(conn, sector, edge_pc):
     return {row["id"]: _center(row) for row in rows}
 
 
+_MASS_LOOKUP_SECTORS = 400
+"""int: Sectors named in one lookup of their point masses."""
+
+
+def _read_masses(conn, centers):
+    """
+    `{sector id: (systems, black holes, neutron stars)}`, each a list of `PointMass`es (metres, kilograms) keyed
+    `(table, id)` and in id order, for the sectors `centers` (`{sector id: center_pc}`) names: every star system with a
+    place, black hole and neutron star in them. One lookup per kind for each `_MASS_LOOKUP_SECTORS` sectors.
+    """
+    found = {sector_id: ([], [], []) for sector_id in centers}
+    ids = sorted(centers)
+    for start in range(0, len(ids), _MASS_LOOKUP_SECTORS):
+        batch = ids[start:start + _MASS_LOOKUP_SECTORS]
+        marks = ", ".join("?" for _ in batch)
+        for row in conn.execute(
+            f"SELECT ss.id, ss.sector_id, ss.position_x_mpc AS x, ss.position_y_mpc AS y, ss.position_z_mpc AS z,"
+            f" SUM(s.mass_kg) AS mass_kg FROM star_systems ss JOIN stars s ON s.star_system_id = ss.id"
+            f" WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL"
+            f" GROUP BY ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc"
+            f" ORDER BY ss.sector_id, ss.id", batch
+        ).fetchall():
+            point = geometry.local_to_galaxy_pc(centers[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0,
+                                                                             row["z"] / 1000.0))
+            found[row["sector_id"]][0].append(
+                sp.PointMass(tuple(c * _PC for c in point), row["mass_kg"], ("star_systems", row["id"])))
+        for kind, table in ((1, "black_holes"), (2, "neutron_stars")):
+            for row in conn.execute(
+                f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, mass_solar FROM {table}"
+                f" WHERE sector_id IN ({marks}) AND center_x_pc IS NOT NULL ORDER BY sector_id, id", batch
+            ).fetchall():
+                found[row["sector_id"]][kind].append(
+                    sp.PointMass(tuple(row[f"center_{axis}_pc"] * _PC for axis in "xyz"),
+                                 _msun_to_kg(row["mass_solar"]), (table, row["id"])))
+    return found
+
+
+def _mass_table(found, ids):
+    """The `MassTable` of the sectors `ids` from `_read_masses`' `found`: their systems, then black holes, then neutron stars, each in sector then id order."""
+    ordered = sorted(ids)
+    return sp.MassTable([mass for kind in range(3) for sector_id in ordered for mass in found[sector_id][kind]])
+
+
 def _point_masses(conn, centers):
     """Every star system, black hole and neutron star in the sectors `centers`
     names, as `PointMass`es (metres, kilograms) keyed `(table, id)`."""
-    ids = sorted(centers)
-    marks = ", ".join("?" for _ in ids)
-    masses = []
-    for row in conn.execute(
-        f"SELECT ss.id, ss.sector_id, ss.position_x_mpc AS x, ss.position_y_mpc AS y, ss.position_z_mpc AS z,"
-        f" SUM(s.mass_kg) AS mass_kg FROM star_systems ss JOIN stars s ON s.star_system_id = ss.id"
-        f" WHERE ss.sector_id IN ({marks}) AND ss.position_x_mpc IS NOT NULL GROUP BY ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc", ids
-    ).fetchall():
-        point = geometry.local_to_galaxy_pc(centers[row["sector_id"]], (row["x"] / 1000.0, row["y"] / 1000.0,
-                                                                         row["z"] / 1000.0))
-        masses.append(sp.PointMass(tuple(c * _PC for c in point), row["mass_kg"], ("star_systems", row["id"])))
-    for table in ("black_holes", "neutron_stars"):
-        for row in conn.execute(
-            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, mass_solar FROM {table}"
-            f" WHERE sector_id IN ({marks}) AND center_x_pc IS NOT NULL", ids
-        ).fetchall():
-            masses.append(sp.PointMass(tuple(row[f"center_{axis}_pc"] * _PC for axis in "xyz"),
-                                       _msun_to_kg(row["mass_solar"]), (table, row["id"])))
-    return sp.MassTable(masses)
+    return _mass_table(_read_masses(conn, centers), centers)
+
+
+class _Neighbourhoods:
+    """
+    The neighbourhoods of a batch of sectors, read once (GEN.1477): `{sector id: {neighbour id: center_pc}}` as
+    `_neighbour_centers` finds them, and the point masses of the union of every neighbourhood read a single time,
+    so the 125 or so sectors around a sector are not read again for each of the sectors that share them. A
+    sector's `MassTable` is built from the same sectors in the same order as `_point_masses` would, so the
+    paths are bit-identical to a read of its own.
+    """
+
+    def __init__(self, conn, sectors):
+        self.centers = {}
+        union = {}
+        for sector in sectors:
+            if sector["center_x_pc"] is None or sector["shell_index"] is None or not sector["edge_mpc"]:
+                continue
+            around = _neighbour_centers(conn, sector, sector["edge_mpc"] / 1000.0)
+            self.centers[sector["id"]] = around
+            union.update(around)
+        self.found = _read_masses(conn, union)
+
+    def masses(self, sector_id):
+        """The `MassTable` around sector `sector_id`, which was among the batch's sectors."""
+        return _mass_table(self.found, self.centers[sector_id])
 
 
 def _bodies(conn, sector_id, center):
@@ -152,7 +203,7 @@ def _integrate_bodies_in_pool(pool, bodies, masses, address, edge_pc):
     return [result for future in futures for result in future.result()]
 
 
-def compute_sector_paths(conn, sector_id, pool=None):
+def compute_sector_paths(conn, sector_id, pool=None, neighbourhoods=None):
     """
     Rewrites the saved path of every star system, rogue planet and
     interstellar comet in sector `sector_id`: the sector's earlier paths
@@ -164,6 +215,9 @@ def compute_sector_paths(conn, sector_id, pool=None):
         pool (concurrent.futures.Executor, optional): A process pool to
             integrate a crowded sector's bodies in (`settle_sectors` makes
             one for `workers` above 1); the paths saved are the same.
+        neighbourhoods (_Neighbourhoods, optional): The neighbourhoods
+            `settle_sectors` read once for a batch of sectors including this one
+            (GEN.1477); read for this sector alone when not given.
 
     Returns:
         int: How many paths were saved (0 for a sector that is not a placed
@@ -177,8 +231,9 @@ def compute_sector_paths(conn, sector_id, pool=None):
     if sector["center_x_pc"] is None or sector["shell_index"] is None or not sector["edge_mpc"]:
         return 0
     edge_pc = sector["edge_mpc"] / 1000.0
-    centers = _neighbour_centers(conn, sector, edge_pc)
-    masses = _point_masses(conn, centers)
+    if neighbourhoods is None:
+        neighbourhoods = _Neighbourhoods(conn, [sector])
+    masses = neighbourhoods.masses(sector_id)
     address = (sector["shell_index"], sector["band_index"], sector["wedge_index"])
     results = _integrate_bodies_in_pool(pool, _bodies(conn, sector_id, _center(sector)), masses, address, edge_pc)
     _save_paths(conn, sector_id, results)
@@ -252,6 +307,30 @@ def sectors_to_settle(conn, sector_ids):
     return sorted(wanted)
 
 
+SETTLE_BATCH = 100
+"""int: Sectors whose neighbourhoods `settle_sectors` reads together (GEN.1477); a batch of sectors that sit together
+(`sectors_in_cell_order`) shares most of its neighbours, so the point masses around them are read about once each."""
+
+
+def sectors_in_cell_order(conn, sector_ids):
+    """
+    `sector_ids` in the order of their centers' cell keys (a Morton curve, `galaxy/cellkey.py`), so that sectors that are
+    neighbours in space are neighbours in the list and a chunk cut from it reads a small set of neighbourhoods
+    (GEN.1477). Sectors with no center come last, in id order; ties break on id.
+    """
+    ids = sorted(set(sector_ids))
+    placed = {}
+    for start in range(0, len(ids), _ROWS_PER_LOOKUP):
+        batch = ids[start:start + _ROWS_PER_LOOKUP]
+        marks = ", ".join("?" for _ in batch)
+        for row in conn.execute(
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id IN ({marks})"
+            " AND center_x_pc IS NOT NULL", batch).fetchall():
+            placed[row["id"]] = _center(row)
+    keyed = sorted(placed, key=lambda sector_id: (cellkey.cell_key(*placed[sector_id]) or 0, sector_id))
+    return keyed + [sector_id for sector_id in ids if sector_id not in placed]
+
+
 def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
     """
     Recomputes the saved paths of `sector_ids` and the sectors around them
@@ -288,11 +367,16 @@ def settle_sectors(conn, sector_ids, on_progress=None, expand=True, workers=1):
         pool = concurrent.futures.ProcessPoolExecutor(max_workers=workers,
                                                       mp_context=multiprocessing.get_context("spawn"))
     try:
-        for done, sector_id in enumerate(sectors, start=1):
-            saved += compute_sector_paths(conn, sector_id, pool)
-            conn.commit()
-            if on_progress is not None:
-                on_progress(done, len(sectors))
+        done = 0
+        for start in range(0, len(sectors), SETTLE_BATCH):
+            batch = sectors[start:start + SETTLE_BATCH]
+            neighbourhoods = _Neighbourhoods(conn, [_sector(conn, sector_id) for sector_id in batch])
+            for sector_id in batch:
+                saved += compute_sector_paths(conn, sector_id, pool, neighbourhoods)
+                conn.commit()
+                done += 1
+                if on_progress is not None:
+                    on_progress(done, len(sectors))
     finally:
         if pool is not None:
             pool.shutdown()

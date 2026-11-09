@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
@@ -54,7 +54,6 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
-from planetgen.util import generator_epoch
 from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
@@ -1183,6 +1182,59 @@ def _class_clause(alias, codes, clauses, params):
         clauses.append(parts[0])
     elif parts:
         clauses.append("(" + " OR ".join(parts) + ")")
+
+
+GENERATED_KINDS = ("sectors", "systems", "planets", "moons")
+"""tuple[str]: What `generated_since` lists (ADM.150)."""
+
+
+_MYSQL_LAST_UNIX_SECOND = 32536799999  # FROM_UNIXTIME's upper limit (year 3001)
+
+
+def generated_since(conn, kind, since, limit=50, offset=0):
+    """
+    The sectors, systems, planets or moons made at or after `since` (Unix seconds), newest first (ADM.150: what a generation run has
+    made so far, for the admin page that follows a run).
+
+    Ids rise with creation, so the start is found once: the newest system (or sector) made *before* `since`, walking the
+    primary key down from the top, which reads only the rows made since. Everything after that id is the answer, a range of the key, so the
+    read costs the rows made, not the size of the galaxy. A planet or a moon is as new as its system; one with no system (a free planet's
+    moon, a rogue) is not listed.
+
+    Returns:
+        dict: `kind`, `total` and `items` (`limit` of them from `offset`). Every item has `kind`, `id` and `name`; a sector or system has
+            `created` (Unix seconds), a system `sector_id` and `sector_name`, a planet or moon `planet_class`, `radius_km`,
+            `star_system_id` and `system_name`, a moon also `planet_name`.
+    """
+    if kind not in GENERATED_KINDS:
+        raise ValueError(f"unknown kind {kind!r}")
+    if since > _MYSQL_LAST_UNIX_SECOND:
+        # FROM_UNIXTIME gives NULL for times past its range (year 3001 at the widest, 2038 on older builds), which would make `created_at < NULL` match nothing and list everything.
+        return {"kind": kind, "total": 0, "items": []}
+    table = "sectors" if kind == "sectors" else "star_systems"
+    previous = conn.execute(f"SELECT id FROM {table} WHERE created_at < FROM_UNIXTIME(?) ORDER BY id DESC LIMIT 1", (since,)).fetchone()
+    start = previous["id"] if previous is not None else 0
+    page = [start, int(limit), int(offset)]
+    if kind == "sectors":
+        total = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT id, name, UNIX_TIMESTAMP(created_at) AS created FROM sectors WHERE id > ? "
+                            "ORDER BY id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "systems":
+        total = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT ss.id, ss.name, ss.sector_id, sec.name AS sector_name, UNIX_TIMESTAMP(ss.created_at) AS created "
+                            "FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id WHERE ss.id > ? "
+                            "ORDER BY ss.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "planets":
+        total = conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT p.id, p.name, p.planet_class, p.radius_km, p.star_system_id, ss.name AS system_name "
+                            "FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE p.star_system_id > ? "
+                            "ORDER BY p.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    else:
+        total = conn.execute("SELECT COUNT(*) AS n FROM moons WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT m.id, m.name, m.planet_class, m.radius_km, m.star_system_id, ss.name AS system_name, p.name AS planet_name "
+                            "FROM moons m JOIN star_systems ss ON ss.id = m.star_system_id LEFT JOIN planets p ON p.id = m.planet_id "
+                            "WHERE m.star_system_id > ? ORDER BY m.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    return {"kind": kind, "total": total, "items": [{"kind": kind[:-1], **dict(row)} for row in rows]}
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
@@ -4465,45 +4517,6 @@ def galaxy_placed_sectors(conn):
     ]
 
 
-MADE_SECTOR_LIMIT = 2000
-"""int: Most sectors `sectors_made` returns by address: a bigger run is shown
-by its first sectors (the response still says the real total)."""
-
-
-
-
-
-def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
-    """
-    The galaxy-placed sectors created from `since` to `until` (Unix
-    seconds; `until=None` means now) -- what a generate job made, for the
-    Galaxy Map's "Show on Galaxy Map" (ADM.31).
-
-    Returns:
-        dict: `total` (how many), `items` (up to `limit`, lowest id first:
-            `id`, `name`, `x`/`y`/`z` pc, `shell_index`, `band_index`,
-            `wedge_index`).
-    """
-    where = "center_x_pc IS NOT NULL AND UNIX_TIMESTAMP(created_at) >= ?"
-    params = [since]
-    if until is not None:
-        where += " AND UNIX_TIMESTAMP(created_at) <= ?"
-        params.append(until)
-    total = conn.execute(f"SELECT COUNT(*) AS n FROM sectors WHERE {where}", params).fetchone()["n"]
-    rows = conn.execute(
-        "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index "
-        f"FROM sectors WHERE {where} ORDER BY id LIMIT ?", [*params, int(limit)],
-    ).fetchall()
-    return {
-        "total": total,
-        "items": [
-            {"id": r["id"], "name": r["name"], "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-             "shell_index": r["shell_index"], "band_index": r["band_index"], "wedge_index": r["wedge_index"]}
-            for r in rows
-        ],
-    }
-
-
 def galaxy_density_shape(conn):
     """
     The galaxy's stored density-skeleton shape (the singleton
@@ -6659,9 +6672,14 @@ def galaxy_content_state(conn):
       depend on the shape, every node's `stars` on the scatter, so a new
       `base` means every page and count cached by the stamp is stale.
     - `tile_base`: the same without the release: the shape, the scatter's
-      seed, the naming key, `TILE_FORMAT` and the generator epoch. The
-      stored nodes follow this one, so a release that changes neither the
-      node format nor what the generator makes keeps every stored node
+      seed, the naming key, `TILE_FORMAT` and the epoch each scatter was
+      drawn under (OPS.133). The running generator epoch is not in it: a
+      node is read from stored rows (the plan row, whose own epoch is in
+      the shape, the scatter, each sector's figures), so a new epoch
+      changes no node until something is regenerated, and a regenerated
+      sector bumps its own `modified_at` and so its own nodes. The stored
+      nodes follow this one, so a release or an epoch that changes
+      neither the node format nor a stored row keeps every stored node
       (PERF.133).
     - `deletions`/`sector_max_id`: the deletion epoch (`store.
       note_sector_deleted`, PERF.38: it goes up with every sector deleted,
@@ -6701,7 +6719,7 @@ def galaxy_content_state(conn):
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "scatter_epochs": scatter_epochs(conn),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
@@ -6762,7 +6780,7 @@ def galaxy_changes(conn, since=None):
 
     Deletions leave no row behind, so a deleted sector can't be located;
     the deletion epoch moves, and the answer is `full` instead. So is a new
-    shape, node format or generator epoch (`tile_base`), an unreadable `since`, or more than
+    shape, node format or scatter epoch (`tile_base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors. A new release alone (`base`) makes `full` true for what is cached by
     `stamp` (pages, counts) but not `tile_full`, which is what the stored nodes follow (PERF.133).
 
@@ -6804,7 +6822,7 @@ def galaxy_changes(conn, since=None):
     if previous is None or previous["tile_base"] != state["tile_base"]:
         return everything()
     if previous["base"] != state["base"]:
-        # A release that changes neither the node format nor the generator epoch: whatever else is cached by
+        # A release that changes neither the node format nor a stored row: whatever else is cached by
         # `stamp` (pages, counts) is stale, the stored nodes are not (PERF.133). The nodes that changed are
         # still listed below.
         result["full"] = True

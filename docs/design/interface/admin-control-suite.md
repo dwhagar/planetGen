@@ -39,7 +39,7 @@ Method note: this is a design review from established products and published int
 5. **Safe things are cheap, dangerous things are far.** Check, add sectors and settings changes sit up front. Reset and New galaxy are last, red and need the typed database name.
 6. **The running job follows the admin.** A thin strip on every admin page; the full log opens from it.
 7. **Everything works without script;** script adds the palette, live counts and the strip's live updates.
-8. **Compact by default,** one density toggle, remembered in this browser.
+8. **Compact always;** no density switch (removed, 2026-11-08).
 
 ### 0.3 The suite
 
@@ -197,7 +197,7 @@ Principles: organise by what the admin wants to do, one running job always visib
 ### Frame (every Generate screen)
 
 1. **Status strip**: database name, "Planned, edge at shell N" or "Not planned yet", sector count, scatter state. It replaces the badges and the Galaxy shells fold (the shell table moves behind a "Galaxy at a glance" link).
-2. **Current job panel**, pinned under the strip on every Generate page while a job runs: title, "step 3 of 6", one overall progress bar with the estimate to finish, Cancel, and the log as a collapsed terminal (Copy and Download stay). When idle, it shows the last job's result in one line with "Show on Galaxy Map", "Full output" and "Run again with the same settings".
+2. **Current job panel**, pinned under the strip on every Generate page while a job runs: title, "step 3 of 6", one overall progress bar with the estimate to finish, Cancel, and the log as a collapsed terminal (Copy and Download stay). When idle, it shows the last job's result in one line with "Full output" and "Run again with the same settings".
 3. Forms stay usable while a job runs. Only the final Run button is disabled, with the reason beside it ("Generate sectors is running; Cancel it or wait"). This replaces "the forms unlock when the job finishes" (answer 10: queue one next job, item K9).
 
 ### Start screen: six task cards
@@ -311,7 +311,7 @@ The S and G items below are the children of ADM.100 and ADM.99. The K items are 
 | 10 | While a job runs | **Queue one next job** (not the recommended option): forms stay usable and Run queues one job behind the running one |
 | 11 | Run again and recipes | Run again from History plus named recipes saved per admin in the control database |
 | 12 | Add sectors modes | Two choices with a four-tab place picker |
-| 13 | Density | Compact by default with a toggle, remembered in this browser |
+| 13 | Density | Compact always; the toggle was removed (2026-11-08) |
 
 Decided without a card: Owner-only options stay hidden with the unchangeable ones until the Owner account exists; Shoelace where it fits (UX.49) and native HTML elsewhere; scatter limits, prevalence, overrides, robots and page-cache internals are Advanced; Reset and New galaxy always need the typed database name.
 
@@ -331,7 +331,7 @@ Consequences of answer 10 (new work): the job runner today allows exactly one ac
 - **Settings words and groups (ADM.101)** are in `util/settings.py` (`opt()` takes `label`, `summary`, `group`, and optionally `control`, `advanced`, `choice_labels` and `slider`); `util/settings_view.py` turns them into the groups and controls the page draws.
 - **Settings page (ADM.102 to ADM.106)**: `web/settings_page.py`, `templates/admin_settings.html`, `static/settingspage.js`.
 - **Registry (ADM.118)**: `web/adminregistry.py`. Pages and exempt routes are declared there (a test fails for an `/admin` page route in neither); settings entries are built from the settings model; tasks are added when the Generate cards exist.
-- **Shell (ADM.92)**: `templates/base.html` draws the rail, the search box and the Compact switch above every page whose `section` is in `adminregistry.SECTION_DESTINATION`. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.
+- **Shell (ADM.92)**: `templates/base.html` draws the rail, and the search box above every page whose `section` is in `adminregistry.SECTION_DESTINATION`. The rail is a bar across the top of the page (it wraps on a phone), not a side column. The Account page wears it too (ADM.93), except while the seeded credentials still have to be changed.
 - **Job strip (ADM.119)**: `templates/partials/admin_jobstrip.html`, `static/adminjobstrip.js`, fed by the `strip` field of `/admin/generate/status`.
 - **Search and palette (ADM.120), keys (ADM.122)**: `web/admin_search_page.py` (`/admin/search`, `/admin/palette.json`) and `static/adminpalette.js`.
 - **Queue the next jobs (ADM.123, PERF.154)**: `web/jobs.py` (`submit`, `queue_next`, `queued_jobs`, `promote_queued`, `discard_queued`). The waiting jobs are entries of the one waiting list in Redis (`queue/runline.py`, up to `queue.max_waiting`, 8 by default, shared with the runs that wait for the machine); a job's recipe is the jobs directory's `queued-<ticket>.json`, mode 0600 like `job.json`, because it holds the database environment, which does not go into Redis. They start in the order they arrived, one at a time, started by `job_runner.run` when a job ends and by any strip poll. It starts after a succeeded or cancelled job and is held after a failed or interrupted one (Start now or Discard); a failed start also holds it.

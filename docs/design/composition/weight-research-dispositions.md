@@ -1,6 +1,6 @@
 # Weight research dispositions: what GEN.480 to GEN.494 and GEN.501 found for the 43 open atmosphere rows
 
-Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23). Source of the findings: `docs/design/composition/tunable-gaps.md` section 3 and the worker reports in `docs/design/composition/tunable-gaps-sources/`, `docs/design/boss-papers-2026-10-17.md` and `docs/design/open-gaps-closest-laws-2026-10-17.md`; nothing in this note is a new reading of a paper. What this note adds is the decision for each row, written into the machine columns (`scripts/atmosphere_recipes_data.py`) and the data file the loader reads.
+Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23). Source of the findings: `docs/design/composition/tunable-gaps.md` section 3 and the worker reports in `docs/design/composition/tunable-gaps-sources/`, `docs/design/research/boss-papers-2026-10-17.md` and `docs/design/research/open-gaps-closest-laws-2026-10-17.md`; nothing in this note is a new reading of a paper. What this note adds is the decision for each row, written into the machine columns (`scripts/atmosphere_recipes_data.py`) and the data file the loader reads.
 
 ## 1. The rule applied
 
@@ -57,4 +57,4 @@ The photolysis lifetime of NH3 (`physics/data/photolysis_lifetimes.json`) uses a
 - Rows marked `tunable` need a target in `physics/data/tuning_targets.json` (GEN.503). Only a3 and a4 are tunable today. Each builder marks its rows tunable when it adds the targets.
 - The selection models (GEN.504 to GEN.508) are the dependency for the tunable rows whose published statistic comes from a biased sample (a3, a4 need GEN.508; the radius valley needs GEN.504).
 - a1: the Sossi floor (-2) and the white-dwarf centre (-1.25) are on different redox scales (core formation against surface magma ocean). The mass-law floor is therefore left as shipped, and GEN.513 tests the conversion before moving it.
-- A stand-in whose value is a bracket is drawn at the widest bracket with the stand-in label (registry in `docs/design/gap-filling-plan.md` section 6); nothing here is a default until a builder registers it.
+- A stand-in whose value is a bracket is drawn at the widest bracket with the stand-in label (registry in `docs/design/research/gap-filling-plan.md` section 6); nothing here is a default until a builder registers it.

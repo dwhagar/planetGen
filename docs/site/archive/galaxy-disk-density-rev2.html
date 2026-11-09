@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy Disk/Spiral Density — Design Proposal (Revision 2: Preplanned Sector Table) - planetGen docs</title>
+<meta name="description" content="Status: superseded, not built as designed here.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/archive/galaxy-disk-density-rev2.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="archive/galaxy-disk-density-rev2.html"><a href="../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Historical: superseded by the stored skeleton in version 5.4.8 (schema
+v8) and by the cylindrical grid in 6.0.0 (schema v32).</strong> This revision
+proposed a <code>galaxy_sector_plan</code> table holding every qualifying sector
+(about 10.5 billion rows, about 1 TB) and a resumable <code>galaxyPlan.py</code>
+build into SQLite. It was never built: a sector's position and density
+are pure functions of its address, so only a small skeleton is stored
+(<code>galaxy_shell_band</code> in v8, then <code>galaxy_layer</code> and <code>galaxy_column</code> from
+7.0.0). The shell addressing it relies on was replaced in 6.0.0, and the
+database moved to MySQL in 5.5.0. The density model of section 1 is still
+in use and is described, with the current parameters, in
+<code>docs/design/galaxy/galaxy-disk-density.md</code>.</p>
+</blockquote>
+<hr />
+<h1 id="galaxy-diskspiral-density--design-proposal-revision-2-preplanned-sector-table">Galaxy Disk/Spiral Density — Design Proposal (Revision 2: Preplanned Sector Table)</h1><p class="meta">docs/archive/galaxy-disk-density-rev2.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#0-decisions-carried-over-from-the-user">0. Decisions carried over from the user</a></li><li style="margin-left:0px"><a href="#1-density-model-unchanged-shape-tuned-parameters">1. Density model (unchanged shape, tuned parameters)</a></li><li style="margin-left:14px"><a href="#normalization-made-explicit">Normalization, made explicit</a></li><li style="margin-left:14px"><a href="#parameters-milky-way-scale-tuned-during-this-design-pass">Parameters (Milky-Way-scale, tuned during this design pass)</a></li><li style="margin-left:0px"><a href="#2-the-occupancy-threshold--deterministic-not-probabilistic">2. The occupancy threshold — deterministic, not probabilistic</a></li><li style="margin-left:0px"><a href="#3-finding-the-edge-shell-by-shell-without-visiting-every-slot">3. Finding the edge, shell by shell, without visiting every slot</a></li><li style="margin-left:0px"><a href="#4-sequential-sector-index">4. Sequential sector index</a></li><li style="margin-left:0px"><a href="#5-feasibility-investigation--real-measurements-not-estimates">5. Feasibility investigation — real measurements, not estimates</a></li><li style="margin-left:0px"><a href="#6-schema-new-galaxy_sector_plan-table">6. Schema: new galaxy_sector_plan table</a></li><li style="margin-left:0px"><a href="#7-galaxyplanpy--the-batch-build-tool">7. galaxyPlan.py — the batch build tool</a></li><li style="margin-left:0px"><a href="#8-galaxygenpy-changes-consume-the-plan-instead-of-computing-occupancy">8. galaxyGen.py changes: consume the plan instead of computing occupancy</a></li><li style="margin-left:0px"><a href="#9-open-questions-carried-forward">9. Open questions carried forward</a></li><li style="margin-left:0px"><a href="#10-testing-plan">10. Testing plan</a></li></ul></details>
+<p><strong>Status:</strong> superseded, not built as designed here. The density model
+itself (section 1) is implemented as described
+(<code>planetgen/galaxy/density.py</code>). The preplanned-table idea this
+revision's title refers to -- persisting every one of ~10.5 billion
+qualifying sectors' position/density up front in a <code>galaxy_sector_plan</code>
+table (section 6, ~1 TB per section 5's own measurement) -- was not built:
+a sector's position, density, and vertices are all pure deterministic
+functions of its <code>(shell_index, shell_slot_index)</code> address and this
+model's own shape parameters, so none of it needs persisting per sector at
+all. What was actually built instead -- a singleton shape row plus one row
+per shell recording a <em>candidate</em> slot-index band, ~4,000 rows total for a
+real Milky-Way-scale galaxy -- is documented in
+<code>docs/design/galaxy/galaxy-coordinate-system.md</code> section 9's storage-analysis
+addendum, <code>planetgen/galaxy/skeleton.py</code>, and <code>galaxyPlan.py</code>. Kept
+here for the density model itself (still accurate) and as a record of the
+storage-cost reasoning that led to the smaller design actually shipped;
+section 5's feasibility numbers and section 6's schema no longer describe
+what's in the database.</p>
+<p><strong>Scope:</strong> unchanged from revision 1 (a density model over galaxy-frame
+position; how many sectors that implies and where; how <code>--density</code> gets
+scaled at actual generation time). What's new in this revision: the density
+model is evaluated and stored for <em>every</em> address that clears a real
+threshold, in a new table, before any actual sector content exists — not
+computed ad hoc per address at generation time.</p>
+<h2 id="0-decisions-carried-over-from-the-user">0. Decisions carried over from the user</h2>
+<ul>
+<li><strong>Preplan every sector, stored in its own table.</strong> Not computed on the fly
+during <code>galaxyGen.py --shell</code>/<code>--center-sector</code> runs — a new table holds
+one row per qualifying address, built by a dedicated batch pass before any
+actual content generation happens.</li>
+<li><strong>Gate at &quot;predicted less than 1 star possible,&quot; evaluated per sector,
+stopping outward once a radial shell no longer clears it.</strong> This replaces
+revision 1's probabilistic occupancy gate with a hard deterministic
+threshold: a sector's own <code>expected_system_count() * relative_density</code>
+must be <code>&gt;= 1</code> to exist in the plan at all (§2). Once an entire shell
+cannot clear this bar anywhere in it, radial generation stops (§3) — this
+<em>is</em> the galaxy's edge, derived from the model rather than picked as an
+arbitrary radius.</li>
+<li><strong>Every planned sector gets a sequential index</strong> (§4).</li>
+<li><strong>Assume a spiral galaxy similar to the Milky Way</strong> — real-astronomy-scale
+parameters (§1), not arbitrary ones.</li>
+</ul>
+<h2 id="1-density-model-unchanged-shape-tuned-parameters">1. Density model (unchanged shape, tuned parameters)</h2>
+<p>Same exponential-disk-plus-bulge-plus-spiral-arm model as revision 1 (see
+that revision's §1 for the full derivation; restated concretely here with
+final parameter choices and the normalization made explicit, which revision
+1 had left underspecified):</p>
+<pre><code>r_cyl = sqrt(x^2 + y^2)
+r_3d  = sqrt(x^2 + y^2 + z^2)          # galaxyGeometry.galactic_radius_pc
+theta = atan2(y, x)
+
+rho_bulge(r_3d)          = bulge_amplitude * exp(-r_3d / bulge_scale_radius_pc)
+rho_disk_radial(r_cyl)   = exp(-r_cyl / disk_scale_length_pc)
+f_z(z)                   = 1 / cosh(z / disk_scale_height_pc)^2
+theta_arm(r_cyl)         = spiral_reference_angle_rad
+                           + ln(r_cyl / disk_scale_length_pc) / tan(pitch_angle_rad)
+arm_factor(r_cyl, theta) = 1 + arm_amplitude * cos(arm_count * (theta - theta_arm(r_cyl)))
+
+raw_density(x, y, z) = rho_bulge(r_3d)
+                        + rho_disk_radial(r_cyl) * f_z(z) * arm_factor(r_cyl, theta)
+
+relative_density(x, y, z) = K_NORM * raw_density(x, y, z)
+</code></pre>
+<h3 id="normalization-made-explicit">Normalization, made explicit</h3>
+<p>Revision 1 said parameters were &quot;chosen so <code>relative_density = 1.0</code>&quot; at
+Sol's position without naming the actual multiplier that requires. There is
+one: <code>K_NORM = 1 / raw_density(R_sun_pc, 0, theta_interarm)</code>, evaluated at
+Sol's real galactocentric radius (<code>R_sun_pc = utils.ly_to_pc( physical_constants.GALACTIC_CENTER_DISTANCE_LY)</code>, ~7,910 pc) and at the
+<strong>inter-arm minimum</strong> azimuth at that radius (<code>theta</code> where <code>arm_factor</code>
+hits its floor <code>1 - arm_amplitude</code>) — chosen deliberately, not arbitrarily:
+it's the popular-astronomy fact that the Sun sits between two spiral arms
+(the Local/Orion Spur, not on Perseus or Sagittarius), and it's the
+conservative calibration choice (if <code>relative_density = 1.0</code> on-arm
+instead, everything off-arm at the same radius would read as
+sub-realistic, which is backwards for &quot;how dense is a typical patch of the
+solar neighborhood&quot;). <code>K_NORM</code> is <strong>computed at runtime from the other
+constants</strong>, never hardcoded — it must be re-derived automatically if any
+of the shape parameters below ever change.</p>
+<h3 id="parameters-milky-way-scale-tuned-during-this-design-pass">Parameters (Milky-Way-scale, tuned during this design pass)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Constant</th>
+<th>Value</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>disk_scale_length_pc</code></td>
+<td>2,800</td>
+<td><code>R_sun_pc / disk_scale_length_pc ~= 2.8</code>, matching the real Milky Way's ratio</td>
+</tr>
+<tr>
+<td><code>disk_scale_height_pc</code></td>
+<td>350</td>
+<td>Between real thin-disk (~300 pc) and thick-disk (~900-1,000 pc)</td>
+</tr>
+<tr>
+<td><code>bulge_scale_radius_pc</code></td>
+<td>200</td>
+<td>See note below — smaller than revision 1's first guess (500 pc)</td>
+</tr>
+<tr>
+<td><code>bulge_amplitude</code></td>
+<td>1.0</td>
+<td>See note below — smaller than revision 1's first guess (5.0)</td>
+</tr>
+<tr>
+<td><code>arm_count</code></td>
+<td>2</td>
+<td>Grand-design two-arm spiral</td>
+</tr>
+<tr>
+<td><code>pitch_angle_deg</code></td>
+<td>15</td>
+<td>Typical grand-design spiral pitch (real spirals run ~10-25 deg)</td>
+</tr>
+<tr>
+<td><code>arm_amplitude</code></td>
+<td>0.4</td>
+<td>Arm/inter-arm contrast <code>(1+0.4)/(1-0.4) = 2.33x</code></td>
+</tr>
+<tr>
+<td><code>spiral_reference_radius_pc</code></td>
+<td>= <code>disk_scale_length_pc</code></td>
+<td>Arbitrary but fixed anchor for <code>theta_arm</code></td>
+</tr>
+<tr>
+<td><code>spiral_reference_angle_rad</code></td>
+<td>0.0</td>
+<td>Arbitrary fixed orientation</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Why the bulge parameters shrank from revision 1's first guess</strong>: this
+design pass's own feasibility investigation (§5) found that
+<code>bulge_amplitude = 5</code>, <code>bulge_scale_radius_pc = 500</code> makes the bulge term
+<em>alone</em> (independent of disk position, since it only depends on <code>r_3d</code>)
+exceed the 1-star-per-sector threshold out to shell ~836 (<code>r ~= 2,950 pc</code>)
+— meaning <em>every</em> direction in <em>every</em> shell inside that radius trivially
+qualifies, not just a thin disk plane. That's a real &quot;the galaxy has a
+genuinely 3D bright core, not just a flat disk&quot; fact, not a bug — but it
+also means no phi-band pruning is possible anywhere inside that radius
+(every one of those shells' full <code>N_k</code> slots must be visited, since every
+one of them is a real qualifying sector needing its own stored density
+value). At <code>bulge_amplitude = 1.0</code>, <code>bulge_scale_radius_pc = 200</code>, that
+&quot;trivially-solid&quot; region shrinks to shell ~241 (<code>r ~= 850 pc</code>, cumulative
+~60 million slots) — still a real, physically sensible bright bulge core,
+just sized so the rest of the galaxy's pruning (§3) actually pays off. Both
+values are still tunable by eye once implemented; this is the pair that
+made the batch build tractable, not a rigorously derived astrophysical fit.</p>
+<h2 id="2-the-occupancy-threshold--deterministic-not-probabilistic">2. The occupancy threshold — deterministic, not probabilistic</h2>
+<p>Revision 1 proposed a hash-based Bernoulli roll to decide occupancy,
+because it was treating &quot;gate&quot; as a soft probability. This revision's
+brief is a hard, physical criterion instead, which is simpler and needs no
+randomness at all:</p>
+<pre><code>E = SpaceSector(edge_ly=DEFAULT_SECTOR_EDGE_LY).expected_system_count()   # at density=1
+    # = DEFAULT_SECTOR_EDGE_LY^3 * LOCAL_STELLAR_DENSITY_LY3 ~= 4.32 systems/sector
+
+predicted_star_count(position) = E * relative_density(position)
+
+qualifies(position)  &lt;=&gt;  predicted_star_count(position) &gt;= 1.0
+</code></pre>
+<p>A sector's fate is a fixed fact of its position, computed once, exactly —
+not a coin flip. This is strictly simpler than revision 1's design and
+directly matches the brief (&quot;gate density at a predicted less than 1 star
+possible per sector&quot;).</p>
+<h2 id="3-finding-the-edge-shell-by-shell-without-visiting-every-slot">3. Finding the edge, shell by shell, without visiting every slot</h2>
+<p>Brute-force enumeration (evaluate every one of a shell's <code>N_k</code> slots to see
+which qualify) is correct but far too slow at outer shells — see §5's
+numbers. Two facts, both already true of this model, make targeted pruning
+possible:</p>
+<ol>
+<li>
+<p><strong>The bulge term is constant across an entire shell</strong> (it depends only
+on <code>r_3d</code>, which every slot in shell <code>k</code> shares: <code>r_3d = r_k</code>). So
+<code>bulge_alone(k) = K_NORM * bulge_amplitude * exp(-r_k / bulge_scale_radius_pc)</code>
+is one number per shell. If <code>bulge_alone(k) &gt;= THRESHOLD_RHO</code>
+(<code>= 1/E</code>), <strong>the entire shell qualifies, unconditionally</strong> — no pruning
+needed or possible there; every slot's own exact density must still be
+computed and stored (for the weighting value, §6), so this is a real
+<code>O(N_k)</code> cost for shells this deep in the core, not a shortcut.</p>
+</li>
+<li>
+<p><strong>Past that regime, the true per-<code>theta</code> maximum at a given <code>(k, phi)</code>
+is exact and cheap</strong>: <code>arm_factor</code>'s own maximum over <code>theta</code> is exactly
+<code>1 + arm_amplitude</code>, independent of <code>theta</code> itself, so fixing it there
+gives an exact (not merely conservative) upper bound on density at that
+<code>phi</code>:</p>
+<pre><code>bound(k, phi) = K_NORM * (
+    bulge_alone(k)
+    + (1 + arm_amplitude) * exp(-r_k*sin(phi)/disk_scale_length_pc)
+                           * f_z(r_k*cos(phi))
+)
+</code></pre>
+<p>For each shell past the solid-core regime, sample <code>bound(k, phi)</code> on a
+fixed grid across <code>phi in [0, pi]</code> (500 points; this design pass used
+200 for speed and found it adequate, but recommends 500 for the real
+implementation as cheap extra safety margin — the grid is evaluated once
+per shell, ~4,000 shells total, trivial either way) and keep the
+contiguous run of grid points (plus one grid-step of padding on each
+side, the same safety-margin pattern <code>galaxyGeometry._candidate_shell_range</code>
+already uses) where it clears <code>THRESHOLD_RHO</code>. Feed that <code>[phi_min, phi_max]</code> into the <em>already-existing</em>
+<code>galaxyGeometry._slot_index_bounds_for_phi_range</code> (built for the
+neighborhood-query primitive, reused as-is here) to get the actual slot
+index range to visit. Every visited slot still gets its <em>exact</em> position
+and density computed and checked — the grid band is a safe (possibly
+slightly wider than necessary) net, never a final answer on its own.</p>
+<p><strong>Known imprecision, accepted deliberately</strong>: this is a grid scan, not a
+closed-form inversion (this design pass found the true qualifying region
+isn't always a single band centered on the disk plane — for some
+mid-range shells, a <em>second</em> small qualifying patch exists near the
+poles too, since a slot there trades a favorable <code>r_cyl -&gt; 0</code> against an
+unfavorable large <code>|z|</code>, and depending on the shell radius either term
+can win). A fixed grid handles this correctly (it doesn't assume
+unimodality) but could in principle miss an extremely narrow qualifying
+sliver that falls entirely between two grid points, right at the
+galaxy's outer edge where the qualifying band is thinnest. Accepted as a
+bounded, cosmetic imprecision (a handful of borderline sectors at the
+very edge, not a systemic error) rather than solved with exact root
+isolation, which would need calculus this model's shape doesn't obviously
+guarantee is well-behaved everywhere.</p>
+</li>
+</ol>
+<p><strong>Stopping the outward scan</strong>: once a shell's grid scan finds no point
+anywhere that clears the bar, both density terms are past their peak and
+monotonically falling with radius, so every shell beyond it is empty too —
+but as insurance against the imprecision just noted, the real
+implementation should confirm a <strong>run of consecutive empty shells</strong> (e.g.
+50) before concluding the edge has been reached, rather than stopping at
+the very first one.</p>
+<h2 id="4-sequential-sector-index">4. Sequential sector index</h2>
+<p>Every row inserted into the plan table (§6) gets <code>sector_index</code>, a dense
+<code>1..N</code> integer assigned in the same canonical order the build walks: shell
+<code>0, 1, 2, ...</code> outward, and within each shell in ascending
+<code>shell_slot_index</code> order. This makes <code>sector_index</code> a stable &quot;the Nth
+star-bearing sector outward from the core&quot; address — meaningful on its own
+(a lower index is always closer to the galactic center) and stable across
+a resumed/re-run build (§7), since it's assigned in a fixed traversal
+order, never renumbered.</p>
+<h2 id="5-feasibility-investigation--real-measurements-not-estimates">5. Feasibility investigation — real measurements, not estimates</h2>
+<p>Run as part of this design pass (see the session's own benchmarking, not
+reproduced as scripts here, but summarized because the numbers drove every
+decision above):</p>
+<ul>
+<li><strong>Full content generation</strong> (<code>sectorGen.py</code>, real systems/planets, 1,000
+sectors measured): <strong>22.9 ms/sector, 87.8 KB/sector</strong> in the database.
+Confirms generating actual content for the whole plan is never on the
+table (see below) — expected, and fine, since a galaxy is always mostly
+unvisited.</li>
+<li><strong>Total addressable slots</strong>, shells 0 through the computed edge (~4,100
+with revision-1-era parameters): <strong>~289 billion.</strong></li>
+<li><strong>Qualifying sectors</strong> (properly weighted by true per-shell slot counts,
+not naive uniform shell sampling, which badly overestimates the
+fraction): <strong>~3.6% -&gt; ~10.5 billion</strong> sectors predicted to hold at least
+one star.</li>
+<li><strong>Brute-force compute</strong> (evaluate every one of the 289 billion
+addresses): ~293 hours single-core. Not viable.</li>
+<li><strong>With §3's pruning</strong>: total addresses actually needing evaluation drops
+to an <em>exact</em> (not sampled) <strong>12.62 billion</strong> — a ~23x reduction — and
+the pruning decision itself (which shells/bands to visit) costs under a
+second for the whole galaxy.</li>
+<li><strong>With NumPy vectorization</strong> of the density formula: <strong>241 ns/candidate</strong>
+vs. ~3,000 ns in a pure-Python loop (~12x). Combined with pruning:
+<strong>12.62B x 241ns ~= 51 minutes, single core</strong> — and this step is
+embarrassingly parallel (every candidate is independent), so it drops
+further with more cores.</li>
+<li><strong>SQLite bulk-insert tuning</strong> (<code>journal_mode=OFF</code>, <code>synchronous=OFF</code>
+during the one-time build, index created <em>after</em> loading instead of
+during): <strong>3.6 us/row vs. 5.3 us/row</strong> (~1.5x). This step does <em>not</em>
+parallelize as easily — SQLite allows one writer at a time — so
+inserting ~10.5 billion rows this way is genuinely the long pole: <strong>~6.5-
+10.5 hours, serialized</strong>, on top of the sub-hour compute step.</li>
+<li><strong>Storage</strong>: ~80 bytes/row measured -&gt; <strong>~830 GB-1 TB</strong> for the full
+table (before accounting for the post-build index's own size). This
+number is <strong>not reducible by any of the above</strong> — it's a direct
+consequence of a 3.5-pc sector next to a ~13,500 pc galaxy radius, not an
+algorithm inefficiency.</li>
+</ul>
+<p><strong>Bottom line, and the basis for building the full table anyway (§0)</strong>:
+what looked like a 12+ day, clearly-infeasible job at first estimate is a
+several-hour-to-overnight batch job once pruned and vectorized, requiring
+~1 TB of free disk. Compute is no longer the constraint; one long,
+necessarily-serialized write pass and the disk budget are.</p>
+<h2 id="6-schema-new-galaxy_sector_plan-table">6. Schema: new <code>galaxy_sector_plan</code> table</h2>
+<pre><code class="language-sql">CREATE TABLE IF NOT EXISTS galaxy_sector_plan (
+    sector_index              INTEGER PRIMARY KEY,   -- see section 4
+    shell_index               INTEGER NOT NULL,
+    shell_slot_index          INTEGER NOT NULL,
+    center_x_pc               REAL NOT NULL,
+    center_y_pc               REAL NOT NULL,
+    center_z_pc               REAL NOT NULL,
+    galactic_radius_pc        REAL NOT NULL,
+    predicted_relative_density REAL NOT NULL,
+    predicted_star_count      REAL NOT NULL,          -- E * predicted_relative_density, cached
+                                                       -- to avoid re-deriving E at query time
+    generated_sector_id       INTEGER REFERENCES sectors(id),  -- NULL until galaxyGen.py
+                                                                -- actually generates this one
+    UNIQUE (shell_index, shell_slot_index)
+);
+-- Created only after the bulk build finishes (see section 7) -- incremental
+-- index maintenance during a multi-billion-row insert is the ~1.5x this
+-- design pass measured leaving on the table otherwise.
+CREATE INDEX IF NOT EXISTS idx_galaxy_sector_plan_shell ON galaxy_sector_plan(shell_index);
+CREATE INDEX IF NOT EXISTS idx_galaxy_sector_plan_ungenerated
+    ON galaxy_sector_plan(shell_index) WHERE generated_sector_id IS NULL;
+</code></pre>
+<p><code>PRAGMA user_version</code> moves to the next version past whatever Track C left
+it at, per <code>docs/reference/database-schema.md</code>'s existing history-entry convention.</p>
+<p><strong>A sector's own <code>center_x/y/z_pc</code>/<code>galactic_radius_pc</code> columns (already on
+<code>sectors</code> since Track C) are left as-is, populated the same way they are
+today once a plan row is actually generated</strong> — genuinely redundant with
+the plan row's own copy of the same numbers, but changing <code>sectors</code>' shape
+or how existing code (the web UI, <code>planetgen.db.query</code>) reads it is out of scope
+here; duplication is the accepted cost of not touching that surface.</p>
+<h2 id="7-galaxyplanpy--the-batch-build-tool">7. <code>galaxyPlan.py</code> — the batch build tool</h2>
+<p>New root-level script, alongside <code>sectorGen.py</code>/<code>systemGen.py</code>/
+<code>galaxyGen.py</code>, whose only job is building (or resuming) the plan table —
+it never generates sector <em>content</em>, only the census of where content
+<em>could</em> go:</p>
+<ul>
+<li>Creates <code>galaxy_sector_plan</code> (and its schema-version bump) if missing.</li>
+<li><strong>Resumable by construction</strong>: on start, reads
+<code>MAX(shell_index)</code> already present and continues the outward shell scan
+from there — an interrupted multi-hour run loses at most the
+in-progress shell, not prior work. <code>sector_index</code> continuation follows
+from <code>MAX(sector_index)</code> the same way, preserving section 4's ordering
+guarantee across a resume.</li>
+<li>Per shell: the solid-core fast path or the pruned-band scan (§3),
+computed via NumPy in one vectorized batch per shell rather than a
+Python-level loop per slot (§5's 12x).</li>
+<li><strong>Write mode</strong>: <code>PRAGMA journal_mode=WAL</code> + <code>synchronous=NORMAL</code> as the
+default (crash-safe, still fast) with commits every shell (bounding
+how much a crash mid-shell can lose); an opt-in <code>--unsafe-fast</code> flag
+drops to <code>journal_mode=OFF</code>/<code>synchronous=OFF</code> for a known-safe
+environment willing to trade crash resilience for the last ~1.5x, per
+§5's measurement. Indexes are created once, after the scan finishes
+entirely (or is deliberately stopped early via <code>--max-shell</code>, for
+testing on a laptop-sized slice before committing to the full run).</li>
+<li>Progress output every shell (or every N seconds): current shell index,
+cumulative sector count, elapsed time — this is a multi-hour job that
+should never run silently.</li>
+</ul>
+<h2 id="8-galaxygenpy-changes-consume-the-plan-instead-of-computing-occupancy">8. <code>galaxyGen.py</code> changes: consume the plan instead of computing occupancy</h2>
+<p><code>--shell K</code> and <code>--center-sector ID --radius-pc R</code> keep their existing
+meaning, but stop calling <code>galaxyGeometry.sector_position_pc</code>/
+<code>shell_sector_count</code> directly to decide <em>what exists</em> — that question is
+already answered, once, by the plan table:</p>
+<pre><code class="language-sql">-- --shell K, not-yet-generated slots:
+SELECT * FROM galaxy_sector_plan
+WHERE shell_index = :k AND generated_sector_id IS NULL;
+</code></pre>
+<p>For <code>--center-sector</code>, <code>galaxyGeometry.enumerate_sectors_within_radius</code>
+still finds the <em>candidate</em> <code>(shell_index, shell_slot_index)</code> addresses
+near the center sector (unchanged, still needed since that primitive
+searches by geometry, not by plan membership) — the result is then
+filtered against <code>galaxy_sector_plan</code> by <code>(shell_index, shell_slot_index)</code>;
+a candidate with no matching plan row simply isn't a real sector (its
+predicted density never cleared the threshold) and is skipped, same as
+today's &quot;already occupied&quot; skip, just checking plan membership instead of
+<code>sectors</code> occupancy.</p>
+<p>For each plan row actually generated: <code>sectorGen.generate_sector(args, galactic_center_dist_ly=..., density_multiplier=plan_row.predicted_relative_density)</code>
+(the same hook revision 1 proposed, unchanged — §1's density value is what
+flows into it), then <code>UPDATE galaxy_sector_plan SET generated_sector_id = :id WHERE sector_index = :sector_index</code>.</p>
+<p>No hash-based occupancy roll remains anywhere in this design — revision
+1's <code>_occupancy_roll</code> is dropped entirely, superseded by §2's deterministic
+threshold decided once at plan-build time.</p>
+<h2 id="9-open-questions-carried-forward">9. Open questions carried forward</h2>
+<ol>
+<li><strong>Sharded/parallel plan build.</strong> §5 measured the insert step as the
+long pole specifically because SQLite allows one writer per file, not
+because parallel <em>computation</em> isn't possible. Building into <code>N</code>
+separate files (one per worker, sharded by shell range) in parallel and
+merging them afterward (via <code>ATTACH</code> + bulk <code>INSERT ... SELECT</code>, likely
+far faster than the row-by-row Python API this design pass benchmarked)
+could cut the ~6.5-10.5 hour insert step significantly, at real added
+implementation complexity this design pass didn't measure. Left for a
+follow-up if the single-writer build proves too slow in practice.</li>
+<li><strong>Exact final qualifying count and edge shell</strong> depend on the precise
+<code>K_NORM</code>/bulge/disk constants finally chosen (§1's table is this pass's
+recommendation, not yet locked in) — §5's ~10.5 billion and ~4,100-shell
+figures came from evaluating this design's own formulas during the
+investigation and will shift somewhat (not by orders of magnitude) once
+the real implementation calibrates <code>K_NORM</code> at the precise inter-arm
+point specified in §1 rather than the placeholder calibration this
+pass's benchmarks used.</li>
+<li>Everything revision 1's own §6 open questions listed (thin/thick disk
+split, metallicity-vs-radius gradients) still applies unchanged.</li>
+</ol>
+<h2 id="10-testing-plan">10. Testing plan</h2>
+<ul>
+<li><code>src/tests/test_galaxy_density.py</code>: <code>relative_density</code>/<code>raw_density</code>
+hand-checked at exact points (bulge center, solar calibration point
+evaluating to exactly <code>1.0</code>, on-arm vs. inter-arm contrast, in-plane vs.
+off-plane falloff), <code>K_NORM</code>'s derivation, <code>expected_star_count</code>
+threshold arithmetic.</li>
+<li><code>src/tests/test_galaxy_plan_geometry.py</code>: the solid-core fast path and
+grid-band scan against small, hand-verifiable shells (a shell forced
+fully solid; a shell with a known, checkable band; a shell confirmed
+empty) — plus a slow/regression test comparing pruned output against
+brute-force full-shell enumeration on a handful of small shells, to
+guard the pruning's correctness (never excluding a true qualifier).</li>
+<li><code>src/tests/test_galaxy_plan.py</code>: <code>galaxyPlan.py</code> end-to-end on a small
+<code>--max-shell</code> slice — resumability (kill mid-build, restart, confirm no
+gaps/duplicates in <code>sector_index</code>), schema creation, index-after-build
+ordering.</li>
+<li><code>galaxyGen.py</code>'s existing <code>test_galaxy_gen.py</code> gains coverage for
+plan-table consumption (a shell with some plan rows already generated,
+some not; a <code>--center-sector</code> search whose candidates only partially
+exist in the plan).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

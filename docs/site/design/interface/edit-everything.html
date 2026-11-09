@@ -1,0 +1,206 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Edit everything: the admin changes anything and the world adjusts after a plan is approved - planetGen docs</title>
+<meta name="description" content="Status (2026-10-16): plan; not built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/edit-everything.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/edit-everything.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="edit-everything-the-admin-changes-anything-and-the-world-adjusts-after-a-plan-is-approved">Edit everything: the admin changes anything and the world adjusts after a plan is approved</h1><p class="meta">docs/design/interface/edit-everything.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-idea-in-one-paragraph">1. The idea in one paragraph</a></li><li style="margin-left:0px"><a href="#2-the-parts">2. The parts</a></li><li style="margin-left:0px"><a href="#3-the-headline-cases">3. The headline cases</a></li><li style="margin-left:0px"><a href="#4-decisions-and-their-reasons">4. Decisions and their reasons</a></li><li style="margin-left:0px"><a href="#5-phases-and-threads-version-86">5. Phases and threads (version 8.6)</a></li><li style="margin-left:0px"><a href="#6-open-questions-each-with-a-default-work-goes-ahead-on-the-default">6. Open questions (each with a default; work goes ahead on the default)</a></li></ul></details>
+<p><strong>Status (2026-10-16):</strong> plan; not built. This is the design of the 8.6 headline (ADM.57). It builds on what exists: the admin edits in <code>planetgen/admin/edits.py</code> (ADM.6, ADM.7, ADM.8: regenerate or remove a body, change a class, change a single star), their writer in <code>planetgen/db/edits.py</code>, <code>validation.stabilize_star_system</code> (moves bodies until a system validates, never removes them) and the activity log.</p>
+<p>Boss (2026-10-16, 1:07 PM EDT): &quot;the admin has complete control they can edit and change anything how they want. They can move stars in a sector, change orbits in a system, change densities for a sector or region, regenerate any star they want to any specification they want. The world will adjust to what the admin wants. That means if I want to change an A to an M planet the system will figure out how to rearrange the star system to make that happen but it will get approval for the new generation plan first. In regen screens the admin should also be able to select aspects they want to keep and what they want regenerated.&quot;</p>
+<p><strong>As built (ADM.58, the plan engine as a library).</strong> <code>planetgen/admin/plans.py</code> holds the plan and nothing else: it reads no database and writes nothing. A <code>World</code> is the loaded <code>StarSystem</code>s, where each sits in its sector and the current edit-version stamp of every object; a <code>Ref</code> names an object (system, star, planet, moon or belt) and a <code>Plan</code> is an ordered list of five operations (<code>Move</code>, <code>SetAspect</code>, <code>Regenerate</code>, <code>Add</code>, <code>Remove</code>), each serialised in the versioned envelope of <code>StarSystem.to_dict()</code> (API.13). <code>simulate</code> applies the operations, in order, to copies of the systems with the edit functions of <code>admin/edits.py</code>, drawing from a stream seeded by the plan's seed and the operation's place, so the same plan on the same stored state is the same plan. <code>compute_effect</code> diffs the copies against the stored systems into <code>Change</code> rows (one per field, <code>*</code> for an object added or removed, <code>indirect</code> for an object no operation was aimed at: a neighbour the spacing pass pushed, a moon renamed with its planet) with a sentence per operation and the layout problems that are new as warnings. An operation that cannot be applied raises <code>PlanError</code> and the plan stays as it was. The states are <code>draft</code>, <code>requested</code>, <code>proposed</code>, <code>approved</code>, <code>applied</code>, <code>undone</code>, <code>stale</code>, <code>rejected</code> and <code>withdrawn</code>, moved only along <code>TRANSITIONS</code>, each move recording who and in which role; only an admin proposes, approves, rejects, applies or undoes (an admin approves their own plan), anyone submits a request. A proposed or approved plan is stale when an object it touches has another stamp than when it was proposed; the nightly orbital update moves no stamp. A move remembers what it started from, <code>Plan.drift</code> shows what an update moved since, and <code>Plan.rebase</code> plans again from the new values (an approved plan goes back to proposed). A proposed plan keeps the systems as they will be (<code>Plan.outcomes</code>) so the apply step (ADM.60) writes what the admin was shown. What the first version leaves to later items: the aspect catalogue (ADM.62; <code>register_aspect</code> is where an aspect joins the three of now), a regeneration that redraws the name or the orbit, and the rearranger (ADM.75).</p>
+<h2 id="1-the-idea-in-one-paragraph">1. The idea in one paragraph</h2>
+<p>Every admin change, small or large, becomes a <strong>plan</strong>: an ordered list of operations on stored objects. The planner computes the whole effect (every row that changes, including the bodies that have to move so the system stays valid), shows it, and nothing is written until the admin <strong>approves</strong>. An approved plan is applied as one visible job, journaled, and can be undone. The admin steers regeneration with <strong>aspects</strong>: for each aspect of an object (a star's class, a planet's orbit, a system's bodies) the admin marks keep, regenerate, or set to a value, and a <strong>lock</strong> is a keep mark that stays.</p>
+<h2 id="2-the-parts">2. The parts</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+<th>Items</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Change plan</td>
+<td>Operations, the effect diff, the states draft, requested, proposed, approved, applied, undone, stale, rejected, withdrawn, and the stale check (an object changed since the plan was proposed)</td>
+<td>ADM.58, DB.36, ADM.59</td>
+</tr>
+<tr>
+<td>Apply, undo, audit</td>
+<td>One queue job, one transaction per sector, a journal row and an activity-log entry per operation, undo as the inverse plan from the stored before values; refuses while the update guard is on</td>
+<td>ADM.60</td>
+</tr>
+<tr>
+<td>Aspect catalogue</td>
+<td>Data: every stored column belongs to one aspect, each aspect names the generation input that draws it, what it derives from and what depends on it</td>
+<td>ADM.62, ADM.63</td>
+</tr>
+<tr>
+<td>Keep or regenerate</td>
+<td>Resolves the admin's marks into the redraw set, the fixed inputs and the conflicts (a kept radius with a regenerated class is a conflict to show)</td>
+<td>ADM.64</td>
+</tr>
+<tr>
+<td>Locks</td>
+<td>A standing keep mark on an object or one aspect; shown on the pages and maps; every plan refuses to change a locked aspect unless the plan lifts the lock</td>
+<td>DB.37, ADM.65</td>
+</tr>
+<tr>
+<td>Unit finalizer</td>
+<td>Validates a system or sector, writes it in one transaction, auto-fixes only a clashing name and derived columns, or rejects with reasons; plan apply and upload verification both end here (shared with 8.9)</td>
+<td>ADM.82</td>
+</tr>
+<tr>
+<td>Recipe schema</td>
+<td>For each aspect a fixed value, a range or &quot;draw it&quot;; the regeneration specification and generate-by-recipe are the same schema (shared with 8.9)</td>
+<td>API.28</td>
+</tr>
+<tr>
+<td>Journal replay</td>
+<td>The generated sector stays the base (GEN.57); the journal of applied operations replays over it after a rebuild from the seed (DB.17) or from parity (DB.9), so the rebuilt sector equals the edited one</td>
+<td>ADM.61, TEST.177</td>
+</tr>
+<tr>
+<td>Regions</td>
+<td>A region (sphere, box, shell, band, wedge, set of sectors), a selection tool, and density overrides for any region</td>
+<td>GEN.302, MAP.212, DB.38, ADM.73</td>
+</tr>
+<tr>
+<td>Rearranger</td>
+<td>The planner that makes a system valid again around a change to a planet, moon, belt or star, with the fewest changes</td>
+<td>ADM.75, ADM.76</td>
+</tr>
+<tr>
+<td>Screens</td>
+<td>Approval, before-and-after diagram, plan history with undo, the keep-or-regenerate matrix, the specification form, and one regen screen per kind</td>
+<td>ADM.66 to ADM.70, ADM.77 to ADM.81</td>
+</tr>
+<tr>
+<td>Editors</td>
+<td>Move a system or phenomenon, edit an orbit, adjust the world to a density change, regenerate a sector or region</td>
+<td>ADM.71, ADM.72, ADM.74, ADM.80</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-headline-cases">3. The headline cases</h2>
+<p><strong>Change an A planet into an M planet.</strong> The admin opens the planet, chooses class M in the regen screen and leaves the rest as marked. <code>rearrange</code> (ADM.75) takes the change and the keep marks: it asks which bodies conflict with an M planet at that distance (spacing, Hill spheres, the habitable zone, moons that cannot be kept), picks the smallest set of moves, resizes and regenerations that restore validity, and returns a plan. The approval screen shows the system before and after (ADM.67). Approve, and the job applies it.</p>
+<p><strong>Move a star in a sector.</strong> A plan operation by coordinates (the three coordinate forms of ADM.32), by drag on the Sector Map, or to the emptiest spot. It checks every Hill sphere and cover list, updates sector membership, and moves nothing else unless the admin approves that too.</p>
+<p><strong>Change an orbit.</strong> The elements of a body (distance, eccentricity, inclination and angles) with the moons following; the velocity-vector edit of ADM.36 is the same operation in another form. The next orbital update starts from the stored result (8.3).</p>
+<p><strong>Change a density.</strong> The admin selects a region, sets a multiplier (0.1 to 10) and previews it. If the region already holds systems, the world adjusts through a plan that adds systems from the fill, or removes the fewest, never a locked, named or populated one without approval (ADM.74).</p>
+<p><strong>Regenerate to a specification.</strong> A specification form, generated from the aspect catalogue, plus the keep-or-regenerate matrix: keep the name, the position and one chosen planet, redraw the rest. The same component serves the object, system, sector and region screens.</p>
+<h2 id="4-decisions-and-their-reasons">4. Decisions and their reasons</h2>
+<ul>
+<li><strong>One mechanism for every edit.</strong> Moves, orbits, densities and regenerations all produce plans, so approval, history, undo and audit are written once. The cost is that a one-field edit also goes through a plan; the screen approves a one-operation plan in one click.</li>
+<li><strong>The planner never applies.</strong> A plan is data until approved; applying re-checks it is not stale. Two admins cannot silently overwrite each other.</li>
+<li><strong>Rearrange by fewest changes, deterministically.</strong> The planner draws from the object's own seed stream, so the same request on the same stored state gives the same plan. Alternatives (two or three candidate plans to choose from) are a later idea (S<sub>8</sub>.6-b).</li>
+<li><strong>Edits live in the database as a journal over the generated base.</strong> GEN.59 (admin changes as a net difference) and GEN.61 (a daily merge into a JSON file) were dropped on 2026-10-09; this keeps the journal in the database and uses it only so repair and regeneration give the edited rows back. A journal row that no longer applies after a generator epoch change is listed, never dropped.</li>
+<li><strong>Aspects are data.</strong> A new column added to a body appears in the matrix, the specification form and the generic field editor (ADM.81) without a new screen; a test fails if a stored column belongs to no aspect.</li>
+<li><strong>Locks are the long-lived keep marks.</strong> A regeneration of a sector keeps locked objects and aspects without the admin re-marking them every time.</li>
+<li><strong>The update guard applies.</strong> Applying a plan refuses while maintenance is on, an update is running or the orbital update runs, as OPS.41, OPS.53 and OPS.54 do for other admin jobs.</li>
+<li><strong>Build once what 8.9 (generate anywhere) also needs</strong> (Boss, 1:33 PM EDT). Two pieces were in both: the check-and-write of a unit (API.8 and plan apply) and the recipe (API.18 and the specification form). They are built here, as ADM.82 and API.28, and API.8 and API.18 in 8.9 keep only what is upload- or route-specific. A plan operation uses the upload envelope (<code>StarSystem.to_dict()</code>, API.13), the region object (GEN.302) is also what galaxy-scale recipes (API.19) apply to, and apply will refuse a sector an upload run has claimed (API.10).</li>
+<li><strong>Migrations are separate items.</strong> DB.36, DB.37 and DB.38 are migration-only items for Core 1; the code that uses the tables follows in later phases.</li>
+</ul>
+<h2 id="5-phases-and-threads-version-86">5. Phases and threads (version 8.6)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Theme</th>
+<th>Threads</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Plan model, aspects and regions</td>
+<td>Admin shell and audit; Existing admin editors; Change plans (with the unit finalizer); Aspects (with the recipe schema); Regions</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Interfaces: approval, locks, regen screens, density overrides</td>
+<td>Approval and history; Locks and regen screens; Density overrides</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Editors that make plans</td>
+<td>Move and orbit; Density plans; The rearranger</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Regeneration and editing any field</td>
+<td>Regenerate objects; Regenerate regions; Edit any field</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Close-out: proof, help and the headline</td>
+<td>Proof and help, then ADM.35 and ADM.57</td>
+</tr>
+</tbody>
+</table></div>
+<p>A blocker of an item sits in an earlier phase or earlier in its own thread; the threads of one phase are independent, so they can be built side by side.</p>
+<h2 id="6-open-questions-each-with-a-default-work-goes-ahead-on-the-default">6. Open questions (each with a default; work goes ahead on the default)</h2>
+<ul>
+<li><strong>Undo window.</strong> Undo is allowed while no newer plan touched the same objects. Default: yes; a later plan on the same objects blocks the undo and says which.</li>
+<li><strong>Who may approve.</strong> Decided (Boss, 2026-10-16, 1:43 PM and 1:49 PM EDT): admins need no approval; an admin approves their own plan at the time, so they confirm rather than request, there is no second approver and the preview stays. Any admin may confirm a plan another admin proposed. Requests from users and moderators are the 10.0 roles (see <a href="roles-and-requests.html">roles-and-requests.md</a>): the <code>requested</code> state, the requester and approver fields and the approval screen are built here so 10.0 adds no plan table.</li>
+<li><strong>Removal in a density plan.</strong> The planner may remove generated, unnamed, unpopulated systems without asking per system, inside the approved plan. Default: yes, listed on the approval screen with counts per sector.</li>
+<li><strong>Specification form limits.</strong> The form accepts any value the generator can draw plus &quot;force&quot; values the generator would not draw (as ADM.6 does for classes). Default: forced values allowed, marked on the plan as forced.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

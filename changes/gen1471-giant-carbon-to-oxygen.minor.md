@@ -8,3 +8,4 @@
 - The metal inventory of the envelope is unchanged; only the carbon and oxygen split uses the share. Registry rows DSC7 (re-based), DSC8 and DSC9 in section 6.213.
 
 generation-output: changed
+generation-affects: fill

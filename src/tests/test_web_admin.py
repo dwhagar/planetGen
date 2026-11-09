@@ -1008,11 +1008,11 @@ def test_lift_lockout_needs_an_admin(client, fake, token):
 
 
 def test_every_admin_page_wears_the_shell_with_search(client, fake):
-    """ADM.92: the rail, the search box and the density switch above the page."""
+    """ADM.92: the rail and the search box above the page."""
     _logged_in(client, fake)
     for path in ("/admin", "/admin/stats", "/admin/queue"):
         html = client.get(path).get_data(as_text=True)
-        assert 'data-admin-shell' in html and 'action="/admin/search"' in html and "data-admin-density" in html
+        assert 'data-admin-shell' in html and 'action="/admin/search"' in html
 
 
 def test_the_search_page_finds_pages_and_needs_a_login(client, fake):
@@ -1099,3 +1099,9 @@ def test_admin_stats_shows_the_seconds_per_object(client, fake):
     assert "<td>binary star</td>" in html and "10.0%" in html and "40 \u00b5s" in html
     fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": []}
     assert "Seconds per object" not in client.get("/admin/stats").get_data(as_text=True)
+
+
+def test_the_generated_page_needs_an_admin(client, fake):
+    """ADM.151: `/admin/generated` sends a visitor to sign in."""
+    response = client.get("/admin/generated")
+    assert response.status_code == 302 and "/login" in response.headers["Location"]

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>planetGen documentation - planetGen docs</title>
+<meta name="description" content="Where everything under docs/ lives.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="./index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/README.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="./" data-here="README.html"><a href="./index.html">Site index</a></nav>
+<main>
+<h1 id="planetgen-documentation">planetGen documentation</h1><p class="meta">docs/README.md</p>
+<p>Where everything under <code>docs/</code> lives. Pages written by hand and pages built by scripts are in separate folders.</p>
+<h2 id="start-here">Start here</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Page</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="repo/README.html">../README.md</a></td>
+<td>The project overview and quick start</td>
+</tr>
+<tr>
+<td><a href="repo/INSTALL.html">../INSTALL.md</a></td>
+<td>Installing and updating planetGen</td>
+</tr>
+<tr>
+<td><a href="index.html">site/index.html</a></td>
+<td>The documentation website: every Markdown file as a web page with a menu, search and rendered formulas (the GitHub Pages site; built by <code>scripts/build_docs_site.py</code>)</td>
+</tr>
+<tr>
+<td><a href="../index.html">index.html</a></td>
+<td>The generated index of every HTML page (the GitHub Pages entry point; built by <code>scripts/build_docs_index.py</code>)</td>
+</tr>
+<tr>
+<td><a href="TODO.html">TODO.md</a></td>
+<td>Every open work item, in full. Edited only by the TODO thread</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="folders">Folders</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Folder</th>
+<th>What it holds</th>
+<th>Written by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/reference">reference/</a></td>
+<td>How to use and configure the program: <a href="reference/api.html">api.md</a> (JSON API), <a href="reference/cli.html">cli.md</a> (every command), <a href="reference/config.html">config.md</a> (<code>config.json</code>; one block is generated by <code>planetgen config docs</code>), <a href="reference/database-schema.html">database-schema.md</a>, <a href="reference/html-interface.html">html-interface.md</a> (the web pages), <a href="reference/system-file-format.html">system-file-format.md</a> and <a href="reference/example-systems.html">example-systems.md</a>, <a href="reference/atmosphere-data-model.html">atmosphere-data-model.md</a> (what a body stores about its air and where each value comes from), <a href="reference/bulk-composition-data-model.html">bulk-composition-data-model.md</a> (what a body is made of in bulk and how its mass, radius, density and gravity follow), <a href="reference/atmosphere-colour.html">atmosphere-colour.md</a> (how a body's atmosphere colour is worked out), <a href="reference/testing.html">testing.md</a>, <a href="reference/ci-runners.html">ci-runners.md</a></td>
+<td>hand</td>
+</tr>
+<tr>
+<td><a href="../REFERENCES.md">REFERENCES.md</a> and <a href="../REFERENCES.html">REFERENCES.html</a></td>
+<td>Every paper, dataset and catalog the project builds on, in AAS/ADS style with links; written by <code>scripts/build_references.py</code></td>
+<td>generated</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/deployment">deployment/</a></td>
+<td>Putting it on a server: <a href="deployment/README.html">README.md</a> is the start, then Apache, nginx, Caddy, macOS, PaaS and fail2ban guides, <a href="deployment/server-checklist.html">server-checklist.md</a> and <a href="deployment/WINDOWS.html">WINDOWS.md</a></td>
+<td>hand</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/design">design/</a></td>
+<td>Design notes, one folder per topic; <a href="design/README.html">design/README.md</a> lists every note with its status. Folders: <code>architecture/</code>, <code>galaxy/</code>, <code>systems/</code>, <code>generation/</code>, <code>composition/</code>, <code>habitability/</code>, <code>orbits/</code>, <code>interface/</code>, <code>operations/</code>, <code>research/</code> (with <code>research/imported/</code>, Boss's own research documents)</td>
+<td>hand</td>
+</tr>
+<tr>
+<td><a href="plan/README.html">plan/</a></td>
+<td>The plan (<a href="plan/README.html">README.md</a> names the one source for each kind of fact): <a href="plan/release-roadmap.html">release-roadmap.md</a>, <a href="plan/lanes.html">lanes.md</a> (what each build lane is doing), <a href="plan/notes.html">notes.md</a> (decisions for Boss), <a href="plan/execution-notes.html">execution-notes.md</a>, <a href="plan/progress-ledger.html">progress-ledger.md</a>, <a href="plan/issue-groups.html">issue-groups.md</a>, <a href="plan/todo-number-map.html">todo-number-map.md</a> (old numbers and the next free ID of each category), <a href="plan/intergalactic-space-plan.html">intergalactic-space-plan.md</a>; <code>releases/</code> has one file per version</td>
+<td>hand (TODO thread)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/generated">generated/</a></td>
+<td>Pages built by scripts, never edited by hand: the plan pages, the code map, and the code inventories (every database column and API route). See <a href="generated/README.html">generated/README.md</a></td>
+<td>script</td>
+</tr>
+<tr>
+<td><a href="history/README.html">history/</a></td>
+<td>The record of what was chosen, dropped and how the work moved: timeline, release headlines by month, Boss's decisions by month, every item's life, what was retired or closed, and each design note's items. A snapshot built from git by <code>scripts/build_history.py</code> (DOC.117)</td>
+<td>script (snapshot)</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/docs/archive">archive/</a></td>
+<td>Designs and reviews that were replaced; kept as history</td>
+<td>hand</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="where-does-a-new-file-go">Where does a new file go</h2>
+<ul>
+<li>A design note: the topic folder under <code>design/</code>, plus a row in <a href="design/README.html">design/README.md</a>.</li>
+<li>A guide to using or running the program: <code>reference/</code> or <code>deployment/</code>.</li>
+<li>A planning note: <code>plan/</code>. A page a script builds: its script writes it into <code>generated/</code>.</li>
+<li>A note about a design that was replaced: <code>archive/</code>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

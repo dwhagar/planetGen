@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data catalog: what data and tables the project already holds - planetGen docs</title>
+<meta name="description" content="Written by the TODO thread, 2026-10-29 (Boss, 8:51 PM EDT: every TODO item and every thread must know what data we already have, in case it helps what they are doing).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/data-catalog.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/data-catalog.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="data-catalog-what-data-and-tables-the-project-already-holds">Data catalog: what data and tables the project already holds</h1><p class="meta">docs/design/research/data-catalog.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-ranked-by-usefulness-how-many-wrong-or-hand-tuned-things-it-can-fix-then-how-ready-it-is">1. Ranked by usefulness (how many wrong or hand-tuned things it can fix, then how ready it is)</a></li><li style="margin-left:0px"><a href="#2-setup-datasets-s-the-six-updatesh-fetches">2. Setup datasets (S): the six update.sh fetches</a></li><li style="margin-left:0px"><a href="#3-held-in-the-project-files-p">3. Held in the project files (P)</a></li><li style="margin-left:0px"><a href="#4-tables-in-the-repo-r">4. Tables in the repo (R)</a></li><li style="margin-left:0px"><a href="#5-what-we-do-not-hold-fetch-or-second-hand-needed">5. What we do NOT hold (fetch or second-hand needed)</a></li><li style="margin-left:0px"><a href="#6-items-that-need-no-data">6. Items that need no data</a></li></ul></details>
+<p>Written by the TODO thread, 2026-10-29 (Boss, 8:51 PM EDT: every TODO item and every thread must know what data we already have, in case it helps what they are doing). Built from the data-use audit (<code>/mnt/project-files/reports/data-use-audit-2026-10-29.md</code>, which holds the measurements and the import graph), <code>/mnt/project-files/data</code>, the setup fetch registry (<code>src/planetgen/datasets/catalogue.py</code>), <code>src/planetgen/physics/data/</code>, the <code>*-files</code> folders under <code>/mnt/project-files/reports/</code>, and the tables the code carries in Python.</p>
+<p><strong>Required reading for every lane before hand-tuning a number or searching for a source.</strong> If a dataset below could serve your item, use it first (Boss's source rules of 8:16 PM EDT 2026-10-29: physics wins, secondary sources are accepted, a registered stand-in is fine). If you use a held dataset that a fresh server does not have, add its setup catalogue entry in the same change (raw datasets never go in the repo; the licence line in <code>DATA-LICENSE.md</code> is Boss's).</p>
+<p>Where things live: <strong>S</strong> = downloaded by <code>update.sh</code> into <code>/var/cache/planetgen/datasets</code> (exists on every fresh server); <strong>P</strong> = held only in <code>/mnt/project-files</code> (NOT on a fresh server: a code reader needs a setup entry first); <strong>R</strong> = a table in the repo (always there).</p>
+<h2 id="1-ranked-by-usefulness-how-many-wrong-or-hand-tuned-things-it-can-fix-then-how-ready-it-is">1. Ranked by usefulness (how many wrong or hand-tuned things it can fix, then how ready it is)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rank</th>
+<th>Data</th>
+<th>Where</th>
+<th>Status</th>
+<th>Serves</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>ExoMol correlated-k tables (H<sub>2</sub>O, CO<sub>2</sub>, CH<sub>4</sub>) and HITRAN collision-induced absorption</td>
+<td>S, 1,453 MB downloaded, 6 MB kept</td>
+<td>built, merged, <strong>read by nothing</strong></td>
+<td>GEN.850, GEN.851, GEN.852, GEN.972 to GEN.975, GEN.752</td>
+</tr>
+<tr>
+<td>2</td>
+<td>MIST v1.2 isochrones, all 25 columns and every phase (setup keeps 6 columns of the main sequence only)</td>
+<td>S, 221.5 MB</td>
+<td>post-main-sequence and pre-main-sequence rows are read and discarded at setup</td>
+<td>GEN.935, GEN.940, GEN.947, GEN.939, GEN.941, GEN.943, GEN.744, GEN.922 and GEN.927 to GEN.931 (checks), GEN.942</td>
+</tr>
+<tr>
+<td>3</td>
+<td>[R0254] (BHAC15) isochrone table</td>
+<td>S, setup entry and reader <code>planetgen.datasets.baraffe_isochrones</code> (#3808)</td>
+<td>reader built, not yet read by the generator; three constants still fitted by hand</td>
+<td>GEN.936, GEN.948, GEN.947</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Exoplanet occurrence and mass-radius data (Kepler DR25 and Exoplanet Archive fits, the 2,000-system class distribution check)</td>
+<td>R (4 harness JSONs), P (<code>reports/data/planet-class-distribution</code>)</td>
+<td>harness only</td>
+<td>GEN.728, GEN.729, GEN.730, GEN.722, GEN.828, GEN.829, GEN.920, TEST.395, GEN.753</td>
+</tr>
+<tr>
+<td>5</td>
+<td>NOAA SWPC proton events above 10 MeV 1976 to 2017 (265 events by Sources 1's count) and 47 Tylka and Dietrich events, SEP band parameters [R4478]</td>
+<td>S, setup entry and reader <code>planetgen.datasets.noaa_proton_events</code> (#3808); the SEP band file stays in <code>reports/secondhand-citations-2026-10-24-files/</code></td>
+<td>reader built, not yet read by the generator (GEN.747)</td>
+<td>GEN.747, GEN.746, GEN.749</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Neutron star matter: 21 equations of state [R2834] and outer-crust compositions [R4028]</td>
+<td>S, 2.0 MB</td>
+<td>read by tests only</td>
+<td>GEN.743, GEN.968, GEN.969, GEN.937</td>
+</tr>
+<tr>
+<td>7</td>
+<td>[R1827] (2010 edition) globular clusters, 157 clusters</td>
+<td>S, setup entry and reader <code>planetgen.datasets.harris_clusters</code> (#3808)</td>
+<td>reader built, not yet read by the generator (GEN.297)</td>
+<td>GEN.297, GEN.209, GEN.531 family, cluster laws in <code>tuning.py</code></td>
+</tr>
+<tr>
+<td>8</td>
+<td>AD1 methane and ammonia tables: [R2265] k-tables, PDS gbat_0001, NMSU planetary datasets</td>
+<td>P, <code>data/ad1-methane/</code> (about 19 MB)</td>
+<td>not read; licence entry is Boss's</td>
+<td>GEN.949, GEN.594</td>
+</tr>
+<tr>
+<td>9</td>
+<td>[R0535] (1,615 stars, 15 elements)</td>
+<td>P, <code>reports/gap-filling-plan-2026-10-17-files/brewer2016_vizier_J_ApJS_225_32.tsv</code></td>
+<td>fitted to trends and a 4 by 4 matrix only</td>
+<td>TEST.456, GEN.465 family, star abundance items</td>
+</tr>
+<tr>
+<td>10</td>
+<td>[R2726] condensation tables (Table 11), [R4658] chondrite groups, UNSCEAR 2008 extracts</td>
+<td>P, <code>design-drafts/gen465-second-pass/</code></td>
+<td>read once by a research pass</td>
+<td>GEN.950, GEN.468, GEN.473 to GEN.477</td>
+</tr>
+<tr>
+<td>11</td>
+<td>MIST phase durations at 4 [Fe/H] (derived)</td>
+<td>P, <code>reports/best-guess-standins-2026-10-24-files/mist_post_main_sequence_durations.csv</code></td>
+<td>not read</td>
+<td>GEN.935, GEN.940</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Second-hand citation files: [R1464] buffers, JPL 19-5 rate lines, Leiden solar photo rates</td>
+<td>P, <code>reports/secondhand-citations-2026-10-24-files/</code></td>
+<td>photolysis lifetimes JSON exists, its module has no caller</td>
+<td>GEN.794, GEN.748, GEN.746 to GEN.749, GEN.854, atmosphere chemistry items</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Courteau, Comeron, Pizzella and VizieR galaxy tables (c18 tableb and tablec, p05 tables, digitised figures of [R0338] occupation, the [R3209] cluster table, [R1169])</td>
+<td>P, <code>reports/vizier-courteau-comeron-2026-10-17-files/</code></td>
+<td>used for the galaxy-laws research</td>
+<td>GEN.612 to GEN.618, GEN.531 family, GEN.380 to GEN.387 (galaxy types), GEN.535, GEN.536</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Bern population synthesis ([R4529], Zenodo 10527170, 31,868 planets), as a binned fit</td>
+<td>R (<code>ngpps_formation_water.json</code>)</td>
+<td>used well, as a test target</td>
+<td>GEN.849, GEN.510, water delivery rows b2 and b3</td>
+</tr>
+<tr>
+<td>15</td>
+<td>[R0308] white dwarf cooling sequences</td>
+<td>S, 2.5 MB</td>
+<td>used (cooling, radius); 9 of 16 numbers</td>
+<td>GEN.742 (done), GEN.743 (helium-core and ONe layers)</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Ozone cross sections, MPI-Mainz atlas</td>
+<td>S, 126.3 MB; 4 of 5,756 files kept</td>
+<td>used</td>
+<td>GEN.748, GEN.746</td>
+</tr>
+<tr>
+<td>17</td>
+<td>[R1429, R2741, R4881] tables</td>
+<td>P (<code>reports/bulk-composition-sources-check-2026-10-17/</code>), R (<code>giant_radius_tables.py</code>)</td>
+<td>Fortney transcribed and used; the others as laws or checks</td>
+<td>GEN.733, GEN.964, GEN.965, GEN.809 to GEN.811, GEN.816, GEN.784</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-setup-datasets-s-the-six-updatesh-fetches">2. Setup datasets (S): the six <code>update.sh</code> fetches</h2>
+<p>All are in <code>src/planetgen/datasets/catalogue.py</code>, fetched by <code>planetgen datasets fetch</code>, with the exact size and sha256 in the entry. A &quot;transient&quot; piece is deleted after setup reduces it. Readers are in <code>src/planetgen/datasets/</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dataset</th>
+<th>Downloaded</th>
+<th>Kept</th>
+<th>Reader module</th>
+<th>Read by (generator)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MIST v1.2 isochrones [R0773, R1150]</td>
+<td>221.5 MB</td>
+<td><code>main_sequence.npz</code> about 4 MB, 340,000 rows, 6 of 25 columns, phase 0 only</td>
+<td><code>datasets/isochrones.py</code></td>
+<td><code>physics/main_sequence.py</code>, <code>stellar_composition.py</code></td>
+</tr>
+<tr>
+<td>[R0308] white dwarf sequences</td>
+<td>2.5 MB</td>
+<td>the archive, 46 files</td>
+<td><code>datasets/white_dwarf_models.py</code></td>
+<td><code>stellar_evolution.py</code>, <code>stellar_composition.py</code></td>
+</tr>
+<tr>
+<td>Neutron star matter (21 EOS, 20 crust models)</td>
+<td>2.0 MB</td>
+<td>the files</td>
+<td><code>datasets/neutron_star_matter.py</code></td>
+<td>crust only, on demand; EOS by tests</td>
+</tr>
+<tr>
+<td>Ozone cross sections (MPI-Mainz)</td>
+<td>126.3 MB</td>
+<td><code>ozone_uv.npz</code></td>
+<td><code>datasets/ozone_uv.py</code></td>
+<td><code>uv_cross_sections.py</code>, <code>body_radiation.py</code>, <code>atmospheric_radiation.py</code></td>
+</tr>
+<tr>
+<td>ExoMolOP correlated-k tables</td>
+<td>1,257.8 MB</td>
+<td><code>ir_ktables.npz</code> about 6 MB</td>
+<td><code>datasets/ir_ktables.py</code></td>
+<td><code>line_opacity.py</code>, only by <code>radiative_convective.py</code>, which nothing calls</td>
+</tr>
+<tr>
+<td>HITRAN CIA, 11 pair files</td>
+<td>195.4 MB</td>
+<td><code>ir_cia.npz</code></td>
+<td><code>datasets/hitran_cia.py</code></td>
+<td>same chain, not wired</td>
+</tr>
+</tbody>
+</table></div>
+<p>Setup entries built by Sources 1 (#3808, 9:18 PM EDT 10-29, as the lane reported): <code>planetgen.datasets.harris_clusters</code> (GEN.297), <code>noaa_proton_events</code> (GEN.747), <code>baraffe_isochrones</code> (GEN.936 and GEN.948); registry rows SC4 to SC6. Section 3 rows for these three are now S, not P.</p>
+<p>Setup entry built by Star 1 (GEN.943): <code>planetgen.datasets.mamajek_sequence</code>, the Pecaut and Mamajek mean dwarf spectral-type sequence (version 2022.04.16, 56 kB, 67 whole-number types O3V to M9V), read by <code>stellar_evolution.spectral_letter_and_subclass</code>; registry row PS12.</p>
+<p>Wiring rule (Sources 1, GEN.754): a new lock-free module, dataset reader, data file or registry row that nothing reads yet needs one line in <code>docs/design/research/wiring-register.md</code> naming its open wiring item (<code>python scripts/wiring_guard.py --check</code>); a new L3 or L4 registry row needs a line in <code>docs/design/research/burn-down-register.md</code>.</p>
+<h2 id="3-held-in-the-project-files-p">3. Held in the project files (P)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data</th>
+<th>Path under <code>/mnt/project-files</code></th>
+<th>What it is</th>
+<th>Could feed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1827]</td>
+<td><code>data/harris/mwgc.dat</code></td>
+<td>157 Milky Way globular clusters, about 50 columns</td>
+<td>cluster mass, radius and metallicity laws (GEN.297, GEN.209)</td>
+</tr>
+<tr>
+<td>[R0254]</td>
+<td><code>data/gen549-baraffe2015/BHAC15_iso.2mass</code></td>
+<td>pre-main-sequence and low-mass isochrones by age and mass, down into the brown dwarfs</td>
+<td>GEN.936, GEN.948, GEN.947</td>
+</tr>
+<tr>
+<td>AD1 methane</td>
+<td><code>data/ad1-methane/</code> (README, <code>oxford-karkoschka-ktables</code>, <code>pds-gbat_0001</code>, <code>nmsu-planetary-datasets</code>)</td>
+<td>3,689-wavelength methane k-tables at 100, 198, 296 K; giant-planet spectra and absorption tables</td>
+<td>giant visible colour (GEN.949), the AD1 fallback (GEN.594)</td>
+</tr>
+<tr>
+<td>NOAA proton events</td>
+<td><code>reports/best-guess-standins-2026-10-24-files/noaa_swpc_proton_events_gt10MeV_1976_2017.csv</code></td>
+<td>255 events</td>
+<td>SEP rates and Weibull parameters (GEN.747)</td>
+</tr>
+<tr>
+<td>MIST phase durations</td>
+<td><code>reports/best-guess-standins-2026-10-24-files/mist_post_main_sequence_durations.csv</code></td>
+<td>phase lengths at 4 [Fe/H]</td>
+<td>GEN.935, GEN.940</td>
+</tr>
+<tr>
+<td>[R1464], JPL 19-5, [R4478]</td>
+<td><code>reports/secondhand-citations-2026-10-24-files/</code></td>
+<td>oxygen buffers, photo-reaction rate lines, solar photo rates at 1 AU, SEP band parameters</td>
+<td>photolysis, redox, SEP (GEN.794, GEN.748, GEN.747)</td>
+</tr>
+<tr>
+<td>[R0535]</td>
+<td><code>reports/gap-filling-plan-2026-10-17-files/brewer2016_vizier_J_ApJS_225_32.tsv</code></td>
+<td>1,615 stars, 15 element abundances</td>
+<td>star composition draw and TEST.456</td>
+</tr>
+<tr>
+<td>Gap plan scripts</td>
+<td><code>reports/gap-filling-plan-2026-10-17-files/</code> (<code>acc.py</code>, <code>arx.py</code>, <code>water_share.py</code>, <code>ws_stars.py</code>, <code>brewer_fit.py</code>)</td>
+<td>the fills tested in the 10-17 plan</td>
+<td>GEN.950, GEN.468 and the registry</td>
+</tr>
+<tr>
+<td>VizieR galaxy tables</td>
+<td><code>reports/vizier-courteau-comeron-2026-10-17-files/</code></td>
+<td>Courteau and Comeron tables (c18), [R3540] (p05), digitised occupation and size figures (pms01: blf20 occupation, [R1169, R3209] cluster table)</td>
+<td>galaxy laws, halo and dwarf laws</td>
+</tr>
+<tr>
+<td>Gemini batch check</td>
+<td><code>reports/gemini-batch1-check-2026-10-17-files/</code></td>
+<td>the verification outputs for the first unverified batch</td>
+<td>tier checks only (LEAD material)</td>
+</tr>
+<tr>
+<td>Bern analysis scripts</td>
+<td><code>reports/gen481-files/</code>, <code>reports/gen802-files/</code></td>
+<td>analysis and fit of the formation-water statistics</td>
+<td>GEN.849, GEN.510</td>
+</tr>
+<tr>
+<td>Planet class distribution check</td>
+<td><code>reports/data/planet-class-distribution/</code> (<code>classes.py</code>, JSON, summary)</td>
+<td>2,000 generated systems by class and mass bin</td>
+<td>GEN.828, GEN.829, TEST.395</td>
+</tr>
+<tr>
+<td>Life chemistry review</td>
+<td><code>reports/life-chemistry-review-2026-10-28-files/</code></td>
+<td>population analyses behind the life classes</td>
+<td>GEN.862 to GEN.894, TEST.435, TEST.436</td>
+</tr>
+<tr>
+<td>Eccentricity-first probes</td>
+<td><code>reports/gen842-eccentricity-first-2026-10-29-files/</code>, <code>reports/gen842/</code>, <code>reports/gen842-tides-2026-10-29/</code></td>
+<td>prototype patch and measurement scripts for the giant radius, spin and tide censuses</td>
+<td>GEN.961, GEN.976, GEN.953 to GEN.960, GEN.978, GEN.979</td>
+</tr>
+<tr>
+<td>Boss's papers</td>
+<td><code>reports/boss-papers-2026-10-17-files/</code> and <code>docs/design/research/boss-papers-2026-10-17.md</code></td>
+<td>optics, sulfuric acid forcing, radiation and comets, mantle and crust, galaxy disk and halo</td>
+<td>atmosphere, radiation, comet and galaxy items</td>
+</tr>
+<tr>
+<td>Papers Boss cannot access</td>
+<td>list in <code>reports/secondhand-citations-2026-10-24.md</code></td>
+<td>second-hand values for Fray and Schmitt, ICRP 103, [R4392, R4394], [R0210, R1464, R1953, R3417], JPL 19-5, [R0443], Huebner</td>
+<td>any item that would cite them: use the second-hand value (a secondary source is accepted)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-tables-in-the-repo-r">4. Tables in the repo (R)</h2>
+<p><code>src/planetgen/physics/data/*.json</code> (30 files, all small). Read by the live generator: <code>age_needs</code>, <code>atmosphere_recipes</code> (101 KB), <code>brown_dwarf_teff_map</code>, <code>clathrate_brine</code>, <code>comet_population</code>, <code>compaction_table</code>, <code>decay_series</code>, <code>elements</code>, <code>gases</code> (232 KB), <code>isotopes</code> (129 KB), <code>life_classes</code>, <code>life_class_text</code>, <code>life_ledger</code>, <code>life_supply</code>, <code>materials</code> (160 KB), <code>nasa_glenn_species</code>, <code>ozone_chappuis</code>, <code>planet_classes</code>, <code>proton_range</code>, <code>saturation_pressure</code>, <code>tuning_targets</code>, <code>white_dwarf_mass_radius</code>. Read only by the tuning harness (by design): <code>comet_admission</code>, <code>jwst_selection</code>, <code>kepler_recovery</code>, <code>mass_radius_sample</code>, <code>wd_pollution_sample</code>. Read by modules nothing calls: <code>design_flags</code> (<code>mixture_trace.py</code>, GEN.479), <code>photolysis_lifetimes</code> (<code>photolysis.py</code>). Read by tests only, as a validation target: <code>ngpps_formation_water</code>.</p>
+<p>Tables in Python: <code>physics/giant_radius_tables.py</code> ([R1429] radii, all three tables), <code>tuning.py</code> (4,275 lines: the anchors, ranges and laws, most with their source in the docstring), <code>tests/data/prevalence_expectations.json</code> (the researched prevalence ranges the census checks), the ozone Chappuis table in <code>ozone_chappuis.json</code>, the unit registry (<code>GEN.568</code>).</p>
+<p>The <strong>stand-in registry</strong> (<code>docs/design/research/stand-in-values.md</code>, 316 rows, GEN.725) lists every registered stand-in with its source, tier, tweak level and the item that replaces it: 216 at L0, 18 at L1, 10 at L2, 55 at L3, 17 at L4. Check it before adding a constant: the number may already be there with a source.</p>
+<p>Design research with data in its text: <code>docs/design/research/gap-filling-plan.md</code> (every filled gap with its source and fill), <code>docs/design/research/open-gaps-closest-laws-2026-10-17.md</code>, <code>docs/design/research/ad1-methane-sources-check-2026-10-17.md</code>, <code>docs/design/research/imported/</code> (Boss's imported research notes on habitability, radiation, toxicity, orbital algorithms).</p>
+<h2 id="5-what-we-do-not-hold-fetch-or-second-hand-needed">5. What we do NOT hold (fetch or second-hand needed)</h2>
+<p>Occurrence data as a setup dataset (the Exoplanet Archive tables are fitted into JSONs, not held), hydrogen-helium equation of state tables (GEN.964), BT-Settl and MUSCLES spectra (GEN.970), AP-8 and AE-8 radiation belt models, measured rotation periods of any rocky exoplanet (none exist), radiation shower simulations for GEN.746 (second-hand only). For the Solar System, statistics are allowed as a check but nothing fixed is copied (NO FIXED CONTENT).</p>
+<h2 id="6-items-that-need-no-data">6. Items that need no data</h2>
+<p>UX, MAP, NAV, API, DB, OPS, SEC, PERF, ADM, POP, VIEW, USR and DOC items (interface, storage, speed, security, docs) do not use these datasets and carry no &quot;Data we hold&quot; note. Each open GEN and TEST item that a dataset above could serve carries a one-line &quot;Data we hold&quot; note in docs/TODO.md.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

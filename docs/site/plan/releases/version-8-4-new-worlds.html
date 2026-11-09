@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 8.4: New worlds and the first settlements - planetGen docs</title>
+<meta name="description" content="Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-8-4-new-worlds.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-8-4-new-worlds.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-84-new-worlds-and-the-first-settlements">Version 8.4: New worlds and the first settlements</h1><p class="meta">docs/plan/releases/version-8-4-new-worlds.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-new-worlds">Phase 1: New worlds</a></li><li style="margin-left:14px"><a href="#planet-classes">Planet classes</a></li><li style="margin-left:14px"><a href="#nebula-conditions-on-planets">Nebula conditions on planets</a></li><li style="margin-left:14px"><a href="#asteroid-fields">Asteroid fields</a></li><li style="margin-left:14px"><a href="#wiring-stored-outputs">Wiring stored outputs</a></li><li style="margin-left:14px"><a href="#edit-everything-foundations-change-plans-and-regions-spread-back-from-86">Edit everything foundations: change plans and regions (spread back from 8.6)</a></li><li style="margin-left:0px"><a href="#phase-2-settlements-and-nation-states">Phase 2: Settlements and nation-states</a></li><li style="margin-left:14px"><a href="#settlements">Settlements</a></li><li style="margin-left:14px"><a href="#console-look-panels-dialogs-and-the-status-chip">Console look: panels, dialogs and the status chip</a></li><li style="margin-left:14px"><a href="#resource-pages">Resource pages</a></li></ul></details>
+<p>Rebuilt on 2026-10-16 as a version map (Boss, 1:07 PM EDT: one version per headline, phases inside a version, blockers one phase earlier).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 8.4</p>
+<p>Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cores work 8.1 only; nothing in this version is started or owned until then, except the gates already running for UX.140, UX.128 and NAV.17).</p>
+<h2 id="goal">Goal</h2>
+<p>The composition suite (the bulk composition of every body, surfaces and small bodies, the one atmosphere mixture, ozone, haze, dust and cloud, and the consistency proofs) moved into 8.1 phases 6 to 9 on Boss's word (5:48 PM EDT 2026-10-23: build it now, testing mode). The habitability pages moved into 8.1 phase 5 (5:38 PM EDT). What stays here: the planet class refactor around the habitability index (classes R to Z), nebula conditions on planets, asteroid fields as object systems and Proposed by the TODO thread; not yet approved by Boss.</p>
+<h2 id="phase-1-new-worlds">Phase 1: New worlds</h2>
+<p>Planet classes, nebula conditions and asteroid fields (the habitability pages moved into 8.1 by Boss, 5:38 PM EDT 2026-10-23).</p>
+<p>Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).</p>
+<h3 id="planet-classes">Planet classes</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="nebula-conditions-on-planets">Nebula conditions on planets</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.358</td>
+<td>GEN.94's rules and the four exotic-environment additions reach planet formation</td>
+<td></td>
+<td>Split from GEN.95.</td>
+</tr>
+<tr>
+<td>GEN.95</td>
+<td>Nebula conditions applied when planets and surfaces are generated</td>
+<td>GEN.358</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="asteroid-fields">Asteroid fields</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.360</td>
+<td>Asteroid fields and belts render from their uid: one seeded generator in a shared asteroidfield.js for dust, rocks and heroes</td>
+<td></td>
+<td>Split from GEN.112, plan approved by Boss 3:00 PM EDT.</td>
+</tr>
+<tr>
+<td>GEN.361</td>
+<td>The asteroid field page has a 3D view</td>
+<td>GEN.360</td>
+<td>Split from GEN.112, plan approved by Boss 3:00 PM EDT.</td>
+</tr>
+<tr>
+<td>GEN.362</td>
+<td>Rocks are instanced meshes in chunks with three levels of detail, within a frame budget</td>
+<td>GEN.361</td>
+<td>Split from GEN.112, plan approved by Boss 3:00 PM EDT.</td>
+</tr>
+<tr>
+<td>GEN.363</td>
+<td>Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements</td>
+<td>GEN.362</td>
+<td>Split from GEN.112, plan approved by Boss 3:00 PM EDT.</td>
+</tr>
+<tr>
+<td>GEN.1228</td>
+<td>Hematite (the oxidized ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="wiring-stored-outputs">Wiring stored outputs</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+</table></div>
+<h3 id="edit-everything-foundations-change-plans-and-regions-spread-back-from-86">Edit everything foundations: change plans and regions (spread back from 8.6)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.59</td>
+<td>Change plan store: save, load and list plans, and mark them stale</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.82</td>
+<td>Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons</td>
+<td></td>
+<td>Shared with 8.9 (API.8)</td>
+</tr>
+<tr>
+<td>ADM.60</td>
+<td>Apply, undo and audit a plan: one job, one activity-log entry per operation</td>
+<td>ADM.59, ADM.82</td>
+<td>Uses the update guard (OPS.41, OPS.53, OPS.54)</td>
+</tr>
+<tr>
+<td>ADM.61</td>
+<td>Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity</td>
+<td>ADM.60, DB.17</td>
+<td>Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database</td>
+</tr>
+<tr>
+<td>GEN.302</td>
+<td>A region object: a sphere, box, shell, band, wedge or set of sectors, and the systems and phenomena inside it</td>
+<td></td>
+<td>Reads by the cell key built in 8.1</td>
+</tr>
+<tr>
+<td>MAP.212</td>
+<td>A region selection tool on the Galaxy Map and the Sector Map, for admin actions</td>
+<td>GEN.302</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-settlements-and-nation-states">Phase 2: Settlements and nation-states</h2>
+<p>Nation-states, the capital and ten largest cities, and the station and space port scatter for every planet with a technological civilization at a sufficient tech level, all fixed until 9.2 (Boss, 9:27 PM EDT 2026-10-24).</p>
+<h3 id="settlements">Settlements</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>POP.17</td>
+<td>Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated</td>
+<td>DB.103, GEN.774, POP.30</td>
+<td>Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2.</td>
+</tr>
+<tr>
+<td>POP.18</td>
+<td>Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant</td>
+<td>POP.17</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.19</td>
+<td>Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land</td>
+<td>POP.17</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.20</td>
+<td>Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation</td>
+<td>POP.18, POP.19</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.21</td>
+<td>Station and space port scatter: orbital stations, space ports and starbases placed for each nation and polity from the tech gate, as stored facilities</td>
+<td>POP.20</td>
+<td>Carves the station part out of POP.11.</td>
+</tr>
+<tr>
+<td>POP.47</td>
+<td>Station and vessel places are physics-checked: a station or ship is placed only in orbit inside the stable fraction of the body's Hill radius, at a Lagrange point, in a belt or at rest at a point in a frame, and an unstable orbit is refused</td>
+<td>POP.21</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.22</td>
+<td>The settlements stage: its own command, its place in the galaxy run and the rescan rules</td>
+<td>POP.21</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.23</td>
+<td>Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links</td>
+<td>POP.22</td>
+<td></td>
+</tr>
+<tr>
+<td>TEST.381</td>
+<td>First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp</td>
+<td>POP.23, POP.27</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.46</td>
+<td>Politics constants as settings and registry rows: the reach cap (100 ly), the hysteresis margin, the contested ratio, the cohesion gain and loss, the split threshold and the city growth spread, each with tier and tweak level in GEN.725</td>
+<td>POP.27</td>
+<td></td>
+</tr>
+<tr>
+<td>DB.110</td>
+<td>Storage for dynamic politics: the journal table (what, old value, new value, cause, step number), lock flags on polities, nations and cities, and a cohesion column on polities, with units</td>
+<td>DB.104</td>
+<td></td>
+</tr>
+<tr>
+<td>POP.40</td>
+<td>Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1)</td>
+<td>POP.17</td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT.</td>
+</tr>
+<tr>
+<td>POP.41</td>
+<td>Facility ratings (health, housing, maintenance, resources) read the host's dose, pressure, air and temperature (G1, step 2)</td>
+<td></td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT.</td>
+</tr>
+<tr>
+<td>POP.42</td>
+<td>Facility need and upkeep read the equipment kit the host requires (eq_body_<em>, eq_rad_suit</em>, eq_gas_filter, eq_co2_scrub, eq_dust, eq_supply*, eq_shelter*, outside_hours) (G1, step 3)</td>
+<td>POP.41</td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT.</td>
+</tr>
+<tr>
+<td>POP.43</td>
+<td>Settlement and facility pages say why: the species traits and the host's dose, air and kit behind each rating (G1, step 4)</td>
+<td>POP.40, POP.42</td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.38, Boss 10:35 PM EDT.</td>
+</tr>
+<tr>
+<td>POP.44</td>
+<td>Register the facility constants (<em>WEIGHTS, FACILITY_HOST_RICHNESS, FACILITY_KIND_SIZE, FACILITY_RATING</em>*) in the GEN.725 registry with tier and tweak level (G6, step 1)</td>
+<td></td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.39, Boss 10:35 PM EDT.</td>
+</tr>
+<tr>
+<td>POP.45</td>
+<td>A facility's richness reads the host's stored composition and resource scores instead of a per-type constant (G6, step 2)</td>
+<td>POP.44, GEN.799</td>
+<td>Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain POP.39, Boss 10:35 PM EDT.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="console-look-panels-dialogs-and-the-status-chip">Console look: panels, dialogs and the status chip</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.268</td>
+<td>Console look on panels, dialogs and the one status chip (with its symbol or word), by tokens only</td>
+<td>UX.132</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="resource-pages">Resource pages</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.223</td>
+<td>Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score</td>
+<td>GEN.799</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+<tr>
+<td>TEST.386</td>
+<td>First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp</td>
+<td>MAP.312, UX.223</td>
+<td>Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
