@@ -772,7 +772,7 @@ The life of every PERF item that a commit title names, from the git history as o
 - 2026-10-18: PERF.107: the link and settle stages, the start and single sectors on the queue; tests expect the run's failure
 - 2026-10-18: PERF.107: tests for the sector units, the design paragraph and the change note
 - 2026-10-18: PERF.107, PERF.108: tests follow the sector units (the fuzz stub, the resume undo keeps the inline queue, the inline-command checks use run-population)
-- 2026-10-18: PERF.107: a SIGTERM ends a run as cancelled; the galaxy tests no longer read the old lease and queue node
+- 2026-10-18: PERF.107: a SIGTERM ends a run as canceled; the galaxy tests no longer read the old lease and queue node
 - 2026-10-21: Retire PERF.107, PERF.108, GEN.591, GEN.318, GEN.130; note GEN.553 slice 2; epochs 37 to 39 (#2309)
 
 ## PERF.108

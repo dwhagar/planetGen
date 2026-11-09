@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 178 | 20 | 11 | 1 | 0 | 210 |
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
-| T3 | 102 | 45 | 9 | 10 | 0 | 166 |
+| T3 | 102 | 46 | 9 | 10 | 0 | 167 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 68 | 23 | 6 | 1 | 0 | 98 |
 | T6 | 164 | 104 | 27 | 76 | 0 | 371 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 804 | 297 | 71 | 237 | 45 | 1454 |
+| T9 | 41 | 16 | 5 | 90 | 34 | 186 |
+| All | 804 | 298 | 71 | 236 | 45 | 1454 |
 
 ## How the labels were given
 
@@ -493,7 +493,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BO1 | P | T2 | L3 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | RECALLED ([R1859], about 1e13 mol C a year) | predicted only | - | no data |
 | BO2 | P | T3 | L3 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | RECALLED ([R1980] few 1e12) | predicted only | - | no data |
-| BO3 | P | T9 | L3 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen | 3e21 to 1e22 | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay | needed output (the first oxygen followed the first oxygenic photosynthesis by 0.3 to 1 Gyr) | predicted only | - | no data |
+| BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | no data |
 | BO4 | P | T6 | L3 | biogenic_oxygen.LIGHT_EXPONENT 0.5 and LIGHT_RANGE (0, 2): production goes as the active light to this power | 0.3 to 1.0 | worlds with a sunlit sea | test_biogenic_oxygen.test_the_sea_makes_nothing_outside_its_liquid_range_and_most_near_the_reference | a measured productivity against light | design (production saturates) | predicted only | - | no data |
 | BO5 | T | T4 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | RECALLED (about half a heterotroph's) | predicted only | - | - |
 | BO6 | P | T6 | L3 | biogenic_oxygen.OCEAN_SPAN_K (258, 275, 315, 343): where the liquid range's factor rises to 1 and falls to 0 | a few K each | worlds with a sunlit sea | the same | a measured temperature range of marine production | design | predicted only | - | no data |

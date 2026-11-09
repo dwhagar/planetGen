@@ -503,7 +503,7 @@ The life of every DOC item that a commit title names, from the git history as of
 
 - 2026-10-31: File GEN.1211 hot thin-air class (letter waits on Boss) and DOC.85 class table refresh; GEN.1207 note (#4476)
 - 2026-10-31: DOC.85: refresh the planet class table in the system file guide (#4499)
-- 2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavour branch head (#4501)
+- 2026-10-31: docs: retire DOC.85 (PR 4499), record the GEN.1212 flavor branch head (#4501)
 
 ## DOC.86
 
@@ -655,8 +655,8 @@ The life of every DOC item that a commit title names, from the git history as of
 - 2026-11-04: File TEST.567 and DOC.103, retire DOC.102 (#4813)
 - 2026-11-04: DOC.103: American spelling of stored values, API keys and names (migration, epoch, API version 13)
 - 2026-11-04: DOC.103: the re-runnable sweep script (apply, check) and its check in the spelling test
-- 2026-11-04: DOC.103: spelling test reads the tree through the sweep script; cancelling in the word list
-- 2026-11-04: Retire TEST.576, note on DOC.103 for the stored disc sentence, fix a time stamp the citation lock read as a source (#4897)
+- 2026-11-04: DOC.103: spelling test reads the tree through the sweep script; canceling in the word list
+- 2026-11-04: Retire TEST.576, note on DOC.103 for the stored disk sentence, fix a time stamp the citation lock read as a source (#4897)
 - 2026-11-04: DOC.103: merge main; belt origin sentences move to disk in the migration; KNOWN of the plain-words test emptied
 - ...
 - 2026-11-04: Merge star2-gen1232a (GEN.1232a) into train 10: migration 0210, DOC.103 moves to 0211

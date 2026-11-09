@@ -103,9 +103,9 @@ holds <code>2 * h + 1</code> ordinary bands). A cap holds about 2.9 edge cubes.<
 <p><strong>One wedge rule everywhere (Boss, 2026-10-15 07:17Z).</strong> Every band of every
 shell has <code>W = 6 * m</code> wedges, where <code>m</code> is the number whose prime factors are
 only 2, 3, 5 and 7 that is nearest (in ratio) to
-<code>2 * pi * R * sin(phi) / (6 * e)</code>, <code>phi</code> being the band's centre colatitude,
+<code>2 * pi * R * sin(phi) / (6 * e)</code>, <code>phi</code> being the band's center colatitude,
 and <code>m</code> is at least 1 (<code>spherical.wedge_count</code>). The wedge's arc at the
-band's centre therefore stays near one edge, and the six meridians that cut
+band's center therefore stays near one edge, and the six meridians that cut
 every cap's rim are wedge boundaries in every band. The rule never looks at
 the outline, the window or the neighbouring shell, so every lookup stays
 closed form. Measured on shell 3,000 (plan section 2): arcs 0.981 to 1.019 of
@@ -150,7 +150,7 @@ radially outward from the galactic axis, <code>+Y</code> toward increasing longi
 offsets (<code>star_systems.position_x/y/z_mpc</code> and the phenomenon equivalents) use
 this frame, and generation samples them inside the real cell (<code>SectorCell</code>:
 cube root for the radius, uniform in the cosine of the colatitude, uniform in
-longitude; a cap samples a disc), not a cube. The octant label
+longitude; a cap samples a disk), not a cube. The octant label
 (<code>star_systems.quadrant</code>, and on every placed phenomenon) comes from this
 frame.</p>
 <p><strong>Designations.</strong> <code>provisional_sector_designation</code> packs the address into the
@@ -254,7 +254,7 @@ nearest systems filled in like a generated one.</p>
 <ul>
 <li><strong>Hill spheres follow the real radius.</strong> <code>Star.calculate_system_perimeter</code>
 takes <code>galactic_center_dist_ly</code>, threaded from the owning sector's
-<code>galactic_radius_pc</code>. A system generated outside the galaxy is taken at the radius that holds half of the disc's stars
+<code>galactic_radius_pc</code>. A system generated outside the galaxy is taken at the radius that holds half of the disk's stars
 (<code>galaxy.scales.default_galactocentric_pc</code>, GEN.404).</li>
 <li><strong>Galactic orbits.</strong> <code>planetgen.cli.orbits</code> turns every system, phenomenon
 and stand-alone facility along its galactic orbit, moves anything that

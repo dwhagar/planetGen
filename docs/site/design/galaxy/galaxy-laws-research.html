@@ -43,7 +43,7 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/galaxy/galaxy-laws-research.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="gen406-galaxy-laws-research-stellar-halo-populations-thick-disk-satellites-and-clusters">GEN.406 galaxy laws research: stellar halo, populations, thick disk, satellites and clusters</h1><p class="meta">docs/design/galaxy/galaxy-laws-research.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#how-to-read-the-tables">How to read the tables</a></li><li style="margin-left:0px"><a href="#0-summary-for-todo">0. Summary for TODO</a></li><li style="margin-left:0px"><a href="#q1-stellar-halo-mass-against-galaxy-stellar-mass-gen401-gen403-gen386">Q1. Stellar halo mass against galaxy stellar mass (GEN.401, GEN.403, GEN.386)</a></li><li style="margin-left:0px"><a href="#q2-halo-metallicity-and-its-offset-gen405-gen369">Q2. Halo metallicity and its offset (GEN.405, GEN.369)</a></li><li style="margin-left:0px"><a href="#q3-velocity-dispersion-by-component-gen401-gen403-gen447-gen369">Q3. Velocity dispersion by component (GEN.401, GEN.403, GEN.447, GEN.369)</a></li><li style="margin-left:0px"><a href="#q4-ages-by-component-gen386-gen401-gen403-gen369">Q4. Ages by component (GEN.386, GEN.401, GEN.403, GEN.369)</a></li><li style="margin-left:0px"><a href="#q5-thick-disc-scaling-and-thin-disc-height-by-age-gen401">Q5. Thick disc scaling and thin disc height by age (GEN.401)</a></li><li style="margin-left:0px"><a href="#q6-reionization-cutoff-mass-and-the-dwarf-end-row-10-gen369-gen403">Q6. Reionization cutoff mass and the dwarf end (row 10; GEN.369, GEN.403)</a></li><li style="margin-left:0px"><a href="#q7-size-of-dwarfs-and-satellites-row-10-gen369-gen401">Q7. Size of dwarfs and satellites (row 10; GEN.369, GEN.401)</a></li><li style="margin-left:0px"><a href="#q8-globular-cluster-system-radial-profile-and-the-dwarf-end-of-the-count-row-9-gen403-gen297">Q8. Globular cluster system radial profile and the dwarf end of the count (row 9; GEN.403, GEN.297)</a></li><li style="margin-left:0px"><a href="#conflicts-between-sources-verified-wins-on-contradiction-both-are-verified-where-marked">Conflicts between sources (verified wins on contradiction; both are verified where marked)</a></li><li style="margin-left:0px"><a href="#requests-for-bosss-research-list">Requests for Boss's research list</a></li><li style="margin-left:0px"><a href="#what-was-not-read">What was not read</a></li><li style="margin-left:0px"><a href="#where-each-number-goes">Where each number goes</a></li></ul></details>
+<h1 id="gen406-galaxy-laws-research-stellar-halo-populations-thick-disk-satellites-and-clusters">GEN.406 galaxy laws research: stellar halo, populations, thick disk, satellites and clusters</h1><p class="meta">docs/design/galaxy/galaxy-laws-research.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#how-to-read-the-tables">How to read the tables</a></li><li style="margin-left:0px"><a href="#0-summary-for-todo">0. Summary for TODO</a></li><li style="margin-left:0px"><a href="#q1-stellar-halo-mass-against-galaxy-stellar-mass-gen401-gen403-gen386">Q1. Stellar halo mass against galaxy stellar mass (GEN.401, GEN.403, GEN.386)</a></li><li style="margin-left:0px"><a href="#q2-halo-metallicity-and-its-offset-gen405-gen369">Q2. Halo metallicity and its offset (GEN.405, GEN.369)</a></li><li style="margin-left:0px"><a href="#q3-velocity-dispersion-by-component-gen401-gen403-gen447-gen369">Q3. Velocity dispersion by component (GEN.401, GEN.403, GEN.447, GEN.369)</a></li><li style="margin-left:0px"><a href="#q4-ages-by-component-gen386-gen401-gen403-gen369">Q4. Ages by component (GEN.386, GEN.401, GEN.403, GEN.369)</a></li><li style="margin-left:0px"><a href="#q5-thick-disk-scaling-and-thin-disk-height-by-age-gen401">Q5. Thick disk scaling and thin disk height by age (GEN.401)</a></li><li style="margin-left:0px"><a href="#q6-reionization-cutoff-mass-and-the-dwarf-end-row-10-gen369-gen403">Q6. Reionization cutoff mass and the dwarf end (row 10; GEN.369, GEN.403)</a></li><li style="margin-left:0px"><a href="#q7-size-of-dwarfs-and-satellites-row-10-gen369-gen401">Q7. Size of dwarfs and satellites (row 10; GEN.369, GEN.401)</a></li><li style="margin-left:0px"><a href="#q8-globular-cluster-system-radial-profile-and-the-dwarf-end-of-the-count-row-9-gen403-gen297">Q8. Globular cluster system radial profile and the dwarf end of the count (row 9; GEN.403, GEN.297)</a></li><li style="margin-left:0px"><a href="#conflicts-between-sources-verified-wins-on-contradiction-both-are-verified-where-marked">Conflicts between sources (verified wins on contradiction; both are verified where marked)</a></li><li style="margin-left:0px"><a href="#requests-for-bosss-research-list">Requests for Boss's research list</a></li><li style="margin-left:0px"><a href="#what-was-not-read">What was not read</a></li><li style="margin-left:0px"><a href="#where-each-number-goes">Where each number goes</a></li></ul></details>
 <p>Status: research. Written 2026-10-17 by the GEN.406 research thread (read-only: no code, no TODO.md, no docs/plan edits) and filed by the TODO thread on 2026-10-17 at about 10:42 AM EDT (the thread finished at 10:38 AM EDT as it reported). The numbers go to GEN.401, GEN.403, GEN.405 and GEN.369 (GEN.386, GEN.447 and GEN.280 also read some of them); the fifteen requests at the end are GEN.531.</p>
 <p>Scope, from the GEN.406 entry in docs/TODO.md and section 5.13.6 of docs/design/galaxy/intergalactic-and-halo-contents.md: the stellar halo fraction (replaces <code>HALO_MASS_SOLAR</code> 1.5e9 and <code>HALO_SYSTEM_FRACTION</code>, <code>tuning.py:919-921</code>), the population ages and velocity dispersions by component (the TODO text cites <code>tuning.py:608-614</code> and <code>800</code>; on the branch read they are <code>STELLAR_POPULATION_AGE_RANGES_GY</code> and <code>STELLAR_POPULATION_DISPERSION_KMS</code>), the thick disk scaling, and the open rows of the laws table: the reionization cutoff mass and the satellite size-luminosity fit (row 10), the cluster radial profile (row 9) and the halo metallicity offset (row 13). The numbers feed GEN.401, GEN.403, GEN.405 and GEN.369 (GEN.386, GEN.447 and GEN.280 also read some of them).</p>
 <p>Rules applied (Boss): no fixed content and nothing copied from the Milky Way or Solar System; Milky Way numbers appear only as check targets. A draw only where the science gives a distribution. Every paper below was downloaded from arXiv on 2026-10-17 and read as full text unless the row says &quot;abstract only&quot;. Nothing was taken from ADS, A&amp;A, OUP, Science, ScienceDirect, Annual Reviews, Europe PMC or LPI. The standing rule is followed: verified and partly verified material is usable unless contradictory, a verified source wins on contradiction, recall-only figures are placeholders and labelled so.</p>
@@ -64,7 +64,7 @@ main{padding:16px 16px 60px}}
 <li><strong>Dispersions and ages become laws with sources for most components.</strong> Young stars: the gas dispersion. Disk: central σz from Vc [R2917]. Bulge: from the black hole relation already verified or from Vc/σ0 = 2(1 - B/T). Halo: from the Jeans equation. Clusters and satellites: from the enclosed mass [R4736]. Not sourced: the normalisation of the age-velocity relation for other galaxies (R4) and nuclear populations (R9).</li>
 <li><strong>Thick disk:</strong> mass ratio to the thin disk, length ratio and height ratio have laws [R4824], and the youngest thick disk age has a law [R0860]. Two source conflicts are named below; the build needs a choice (defaults proposed).</li>
 <li><strong>Satellites and clusters:</strong> a size law in stellar mass ([R0655], V, with scatter), an occupation draw for the cutoff ([R0338], V for the edges, width a placeholder), and a cluster system radius law with a conflict between two papers.</li>
-<li><strong>Halo metallicity offset:</strong> [R1816] gives a rough fit and an eye-scaled offset of -0.6 dex; the offset against the host's own centre is about -0.9 dex (D). A physical rule from [R1168] is given as the alternative.</li>
+<li><strong>Halo metallicity offset:</strong> [R1816] gives a rough fit and an eye-scaled offset of -0.6 dex; the offset against the host's own center is about -0.9 dex (D). A physical rule from [R1168] is given as the alternative.</li>
 <li><strong>Inconsistency in the code itself:</strong> the population scale heights (50/300, 150/300, 1) and the dispersions (15, 25, 50) cannot both hold if height goes as dispersion squared. GEN.401 should take both from one law (see Q4).</li>
 </ol>
 <h2 id="q1-stellar-halo-mass-against-galaxy-stellar-mass-gen401-gen403-gen386">Q1. Stellar halo mass against galaxy stellar mass (GEN.401, GEN.403, GEN.386)</h2>
@@ -82,7 +82,7 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td>Total stellar halo mass of six discs, M* = 3.8 to 8.0e10</td>
+<td>Total stellar halo mass of six disks, M* = 3.8 to 8.0e10</td>
 <td>M_halo = 4.53, 2.69, 1.14, 2.24, 3.47, 6.41 e9 for M* = 5.5, 5.3, 5.6, 8.0, 3.8, 4.5 e10 (NGC 253, 891, 3031, 4565, 4945, 7814)</td>
 <td>43 percent per galaxy; fractions span 2 to 14 percent</td>
 <td>H17 [R1816: Table 1], abstract</td>
@@ -130,7 +130,7 @@ main{padding:16px 16px 60px}}
 <td>check only</td>
 </tr>
 <tr>
-<td>Outer (accreted-light) fraction against M*, disc-dominated galaxies (C &lt; 2.6)</td>
+<td>Outer (accreted-light) fraction against M*, disk-dominated galaxies (C &lt; 2.6)</td>
 <td>rises from 2 to 25 percent over M* = 1e10 to 10^11.4. Log-log slope of f = 0.79 (computed here: log10(25/2) over 1.4 dex). High-concentration galaxies 30 to 70 percent</td>
 <td>stack means; no per-galaxy scatter</td>
 <td>[R1169] abstract and Fig 16; the H17 section 7.3 adjustment (-0.1 dex for the bluer outer M/L, -0.1 dex light-to-accreted offset from Illustris mocks) matches GHOSTS at 5e10</td>
@@ -170,7 +170,7 @@ main{padding:16px 16px 60px}}
 <td>R1</td>
 </tr>
 <tr>
-<td>Ellipticals and bulge-dominated discs above 1e11</td>
+<td>Ellipticals and bulge-dominated disks above 1e11</td>
 <td>accreted share 30 to 70 percent [R1169] and 8 to 38 percent (Rodriguez-Gomez, 1e11). The H17 method is stated to be unsuited to bulge-dominated galaxies</td>
 <td></td>
 <td>H17 section 7.1; [R1169] abstract</td>
@@ -261,7 +261,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <p><strong>Two candidate laws for GEN.405 (both labelled):</strong> (a) H17's fit against M_halo (the one printed equation; range 5e8 to 1e10 only; scatter 0.2 dex assumed from the galaxy relation). (b) A physical rule from D'Souza and Bell: [Fe/H]halo = MZR(M*_progenitor) - 0.15 with M*_progenitor about M_acc/(1 to 2), plus the z of accretion shift, scatter 0.2 dex (D, from V statements). <strong>Default proposed: (a) where the halo mass is inside its range, (b) outside it.</strong> The baseline question (-0.6 against -0.9) is GEN.405's choice; (a) has the baseline built in.</p>
 <h2 id="q3-velocity-dispersion-by-component-gen401-gen403-gen447-gen369">Q3. Velocity dispersion by component (GEN.401, GEN.403, GEN.447, GEN.369)</h2>
-<p>Replaces <code>STELLAR_POPULATION_DISPERSION_KMS</code> (young 15, intermediate 25, old 50, bulge 120, halo 120, cluster 8, satellite 25, nuclear cluster 150, nuclear disc 80 km/s).</p>
+<p>Replaces <code>STELLAR_POPULATION_DISPERSION_KMS</code> (young 15, intermediate 25, old 50, bulge 120, halo 120, cluster 8, satellite 25, nuclear cluster 150, nuclear disk 80 km/s).</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -276,14 +276,14 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>Young stars (replaces 15)</td>
-<td>6.5 ± 1 km/s since GEN.532, sourced by GEN.536 (CO line widths: [R3114] 7.3 ± 1.7, Sun 2020 6.3 to 7.5 mass-weighted and 4.4 to 4.9 area-weighted, [R2830] 7.1 to 7.8 near the [R0625] 12.0 ± 3.9 as an upper bound; young disc 66 pc for a 300 pc old disc, inside the 35 to 70 pc of Milky Way young objects, GEN.1182); the atomic reading below gave a young disc 0.40 of the old one's height and twice the molecular clouds the catalogues hold). The gas dispersion they are born from: HI line width at r25 = 10 ± 2 km/s, equal in 11 THINGS discs, with a systematic decline outward; thermal floor about 8 km/s</td>
+<td>6.5 ± 1 km/s since GEN.532, sourced by GEN.536 (CO line widths: [R3114] 7.3 ± 1.7, Sun 2020 6.3 to 7.5 mass-weighted and 4.4 to 4.9 area-weighted, [R2830] 7.1 to 7.8 near the [R0625] 12.0 ± 3.9 as an upper bound; young disk 66 pc for a 300 pc old disk, inside the 35 to 70 pc of Milky Way young objects, GEN.1182); the atomic reading below gave a young disk 0.40 of the old one's height and twice the molecular clouds the catalogues hold). The gas dispersion they are born from: HI line width at r25 = 10 ± 2 km/s, equal in 11 THINGS disks, with a systematic decline outward; thermal floor about 8 km/s</td>
 <td>± 2 km/s</td>
 <td>[R4298] abstract</td>
 <td>V (abstract; radial decline in figures)</td>
 <td>GEN.447, GEN.386</td>
 </tr>
 <tr>
-<td>Disc as a whole, central vertical dispersion</td>
+<td>Disk as a whole, central vertical dispersion</td>
 <td>σz,0 = (0.248 ± 0.038) V(2.2 h_R); σ_LOS,0 = (0.285 ± 0.051) V(2.2 h_R). The ± is the RMS scatter of the ratio (about 15 percent)</td>
 <td>about 15 percent</td>
 <td>[R2917] abstract (4), Fig 15 (30 spirals); slope</td>
@@ -299,15 +299,15 @@ main{padding:16px 16px 60px}}
 <td>GEN.447</td>
 </tr>
 <tr>
-<td>Thin disc age-velocity relation σ ∝ t^β</td>
-<td>β_z = 0.5 ± 0.1 observed (low-alpha disc, 65,719 APOGEE-Gaia stars). Simulated discs: β_z 0.45 to 0.53, β_R 0.24 to 0.31, σz/σR about 0.5 to 0.6</td>
+<td>Thin disk age-velocity relation σ ∝ t^β</td>
+<td>β_z = 0.5 ± 0.1 observed (low-alpha disk, 65,719 APOGEE-Gaia stars). Simulated disks: β_z 0.45 to 0.53, β_R 0.24 to 0.31, σz/σR about 0.5 to 0.6</td>
 <td>± 0.1</td>
-<td>[R2795] section 4, Fig 6 (Milky Way); [R0201] section 4, Fig 3 (generic simulated discs)</td>
+<td>[R2795] section 4, Fig 6 (Milky Way); [R0201] section 4, Fig 3 (generic simulated disks)</td>
 <td>V</td>
 <td>GEN.447</td>
 </tr>
 <tr>
-<td>Thick disc: flat relation, constant axis ratio</td>
+<td>Thick disk: flat relation, constant axis ratio</td>
 <td>σz/σR = 0.64 ± 0.04, β_z = 0.02 (+0.12, -0.03) (age errors flatten it)</td>
 <td>± 0.04</td>
 <td>[R2795] abstract, section 4 (one galaxy)</td>
@@ -332,7 +332,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Bulge central dispersion (replaces 120)</td>
-<td>log(Vc/σ0) = 0.63 - 0.11 C28, C28 = 5 log(r80/r20). For spirals Vc/σ0 = 2(1 - B/T); pure discs Vc about 2σ0; massive spheroids Vc about √2 σ0</td>
+<td>log(Vc/σ0) = 0.63 - 0.11 C28, C28 = 5 log(r80/r20). For spirals Vc/σ0 = 2(1 - B/T); pure disks Vc about 2σ0; massive spheroids Vc about √2 σ0</td>
 <td>not printed</td>
 <td>[R0908] (astro-ph/0610721) Eq 5, section 3 (ApJ 655, L21; the samples are 154 spirals, 24 ellipticals, 54 lenticulars and 11 dwarfs, no 64)</td>
 <td>V (law); scatter not found (R5)</td>
@@ -395,7 +395,7 @@ main{padding:16px 16px 60px}}
 <td>R9</td>
 </tr>
 <tr>
-<td>Nuclear cluster and nuclear disc dispersions (replace 150 and 80)</td>
+<td>Nuclear cluster and nuclear disk dispersions (replace 150 and 80)</td>
 <td><strong>not found.</strong> Use the cluster law above with the nuclear cluster mass of row 8 and an assumed size</td>
 <td></td>
 <td></td>
@@ -404,9 +404,9 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p><strong>Proposed build (V and D pieces only):</strong> young σ = 10 ± 2 km/s (the gas); older thin-disc stars σz(t) = σz,0 (t/t_ref)^β with β drawn 0.5 ± 0.1, σR = σz/(0.5 to 0.6), where t_ref is the light-weighted mean age of the disc (no source sets it, R4); thick disc σz = 0.64 σR with a flat age relation; bulge from Vc/σ0 = 2(1 - B/T) or the black hole relation; halo from the Jeans equation; clusters and satellites from the enclosed mass.</p>
+<p><strong>Proposed build (V and D pieces only):</strong> young σ = 10 ± 2 km/s (the gas); older thin-disk stars σz(t) = σz,0 (t/t_ref)^β with β drawn 0.5 ± 0.1, σR = σz/(0.5 to 0.6), where t_ref is the light-weighted mean age of the disk (no source sets it, R4); thick disk σz = 0.64 σR with a flat age relation; bulge from Vc/σ0 = 2(1 - B/T) or the black hole relation; halo from the Jeans equation; clusters and satellites from the enclosed mass.</p>
 <h2 id="q4-ages-by-component-gen386-gen401-gen403-gen369">Q4. Ages by component (GEN.386, GEN.401, GEN.403, GEN.369)</h2>
-<p>Replaces <code>STELLAR_POPULATION_AGE_RANGES_GY</code> (young 0 to 0.1, intermediate 0.1 to 3, old 3 to 10, bulge 8 to 12, halo 10 to 13, cluster 10 to 13, satellite 0.5 to 13, nuclear cluster 3 to 12, nuclear disc 4 to 12 Gyr). The young, intermediate and old bins are slices of the thin disc's star formation history and need no law of their own: they follow the age-velocity relation above and the main-sequence star formation ([R4167], row 14). The laws below set where the other components sit.</p>
+<p>Replaces <code>STELLAR_POPULATION_AGE_RANGES_GY</code> (young 0 to 0.1, intermediate 0.1 to 3, old 3 to 10, bulge 8 to 12, halo 10 to 13, cluster 10 to 13, satellite 0.5 to 13, nuclear cluster 3 to 12, nuclear disk 4 to 12 Gyr). The young, intermediate and old bins are slices of the thin disk's star formation history and need no law of their own: they follow the age-velocity relation above and the main-sequence star formation ([R4167], row 14). The laws below set where the other components sit.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -428,8 +428,8 @@ main{padding:16px 16px 60px}}
 <td>GEN.401, GEN.402, GEN.386</td>
 </tr>
 <tr>
-<td>Bulge and disc mass-weighted ages by type</td>
-<td>bulges of Sa to Sb and cores of E to S0: mass-weighted about 10 Gyr, above solar metallicity; Sc to Sd bulges younger (figure only). Disc mass-weighted age at 1.5 half-light radii: 7 Gyr (E to S0) down to 4.5 Gyr (Sbc). Hubble type, not mass, drives the galaxy average</td>
+<td>Bulge and disk mass-weighted ages by type</td>
+<td>bulges of Sa to Sb and cores of E to S0: mass-weighted about 10 Gyr, above solar metallicity; Sc to Sd bulges younger (figure only). Disk mass-weighted age at 1.5 half-light radii: 7 Gyr (E to S0) down to 4.5 Gyr (Sbc). Hubble type, not mass, drives the galaxy average</td>
 <td>figure only</td>
 <td>González [R1059, R1631] section 6.2; companion proceedings [R1059]</td>
 <td>V (10, 7, 4.5 Gyr); figure-only (rest)</td>
@@ -444,7 +444,7 @@ main{padding:16px 16px 60px}}
 <td>GEN.386, GEN.401</td>
 </tr>
 <tr>
-<td>Youngest thick disc stars (equivalently when the thin disc starts building)</td>
+<td>Youngest thick disk stars (equivalently when the thin disk starts building)</td>
 <td>τ(Gyr) = 104 - 22.15 x + 1.237 x², x = log M*(z=0): 5.2, 8.6, 11.7 Gyr at 3e9, 5e10, 2e11. Text: 4 to 6 Gyr below 1e10, about 10 Gyr for Milky Way-like galaxies. A prediction from the hot-component mass, mass functions and number-density matching, tested on 2 spirals (holds) and 6 lenticulars (fails, they are older)</td>
 <td>1-sigma bands in Fig 3 only</td>
 <td>[R0860] Eqs 1 to 4, sections 2 to 4</td>
@@ -452,7 +452,7 @@ main{padding:16px 16px 60px}}
 <td>GEN.386, GEN.401</td>
 </tr>
 <tr>
-<td>Hot component (thick disc plus classical bulge) mass</td>
+<td>Hot component (thick disk plus classical bulge) mass</td>
 <td>log M_h = 0.489 + 0.9161 log M*; M_h/M* = 0.49, 0.39, 0.35 at the three masses (124 S4G edge-ons)</td>
 <td>not printed</td>
 <td>[R0860] Eq 1</td>
@@ -460,16 +460,16 @@ main{padding:16px 16px 60px}}
 <td>GEN.401, GEN.386</td>
 </tr>
 <tr>
-<td>Thick disc ages in individual galaxies</td>
-<td>ESO 533-4 youngest 7 to 9 Gyr; NGC 4111 5; NGC 4710 4 to 5; NGC 5422 10; Fornax S0s 10 to 11 Gyr. No spectroscopic thick-disc ages for field galaxies below 1e10</td>
+<td>Thick disk ages in individual galaxies</td>
+<td>ESO 533-4 youngest 7 to 9 Gyr; NGC 4111 5; NGC 4710 4 to 5; NGC 5422 10; Fornax S0s 10 to 11 Gyr. No spectroscopic thick-disk ages for field galaxies below 1e10</td>
 <td></td>
 <td>[R0860] section 3; [R2272] abstract; [R3531, R3532] not read</td>
 <td>V (Comerón, Kasparova); partly (Pinna)</td>
 <td>GEN.386</td>
 </tr>
 <tr>
-<td>Oldest thin and thick disc stars</td>
-<td><strong>not found.</strong> Proposal: thin disc 0 to τ(M*), thick disc τ(M*) to the first-disc epoch; the upper limit has no source</td>
+<td>Oldest thin and thick disk stars</td>
+<td><strong>not found.</strong> Proposal: thin disk 0 to τ(M*), thick disk τ(M*) to the first-disk epoch; the upper limit has no source</td>
 <td></td>
 <td></td>
 <td>not found</td>
@@ -508,7 +508,7 @@ main{padding:16px 16px 60px}}
 <td>GEN.369</td>
 </tr>
 <tr>
-<td>Nuclear cluster and nuclear disc ages</td>
+<td>Nuclear cluster and nuclear disk ages</td>
 <td><strong>not found.</strong> GEN.280's windows (3 to 12, 4 to 12 Gyr) stay labelled recalled</td>
 <td></td>
 <td></td>
@@ -517,7 +517,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<h2 id="q5-thick-disc-scaling-and-thin-disc-height-by-age-gen401">Q5. Thick disc scaling and thin disc height by age (GEN.401)</h2>
+<h2 id="q5-thick-disk-scaling-and-thin-disk-height-by-age-gen401">Q5. Thick disk scaling and thin disk height by age (GEN.401)</h2>
 <p>[R4824] (astro-ph/0508460, 34 edge-on galaxies, Vc about 50 to 250 km/s) is the only source with formulas; [R0865] ([R0865], 141 S4G edge-ons) has a better point-spread-function treatment but prints ranges only.</p>
 <div class="table"><table>
 <thead>
@@ -541,7 +541,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>Same, newer fits</td>
-<td>0.2 &lt; M_T/M_t &lt; 1 for vc above 120 km/s and up to about 3 below 120; low-mass galaxies have thick discs comparable to or more massive than the thin; 17 of 141 show no thick disc</td>
+<td>0.2 &lt; M_T/M_t &lt; 1 for vc above 120 km/s and up to about 3 below 120; low-mass galaxies have thick disks comparable to or more massive than the thin; 17 of 141 show no thick disk</td>
 <td>Spearman values in Table 2</td>
 <td>[R0865] section 8, conclusions</td>
 <td>V (ranges only)</td>
@@ -564,7 +564,7 @@ main{padding:16px 16px 60px}}
 <td>GEN.401</td>
 </tr>
 <tr>
-<td>Thin disc height by age</td>
+<td>Thin disk height by age</td>
 <td>no galaxy-independent source. Derived: h_z(t)/h_z(old) = (σz(t)/σz(old))², from Σ_dyn ∝ σz² (quoted in [R2917] section 8.3) with β_z = 0.5</td>
 <td></td>
 <td>[R2917] plus [R2795]</td>
@@ -580,11 +580,11 @@ main{padding:16px 16px 60px}}
 <tr>
 <th>M* (solar)</th>
 <th>Vf (km/s)</th>
-<th>thick-disc youngest age (Gyr)</th>
+<th>thick-disk youngest age (Gyr)</th>
 <th>M_h/M*</th>
 <th>M_thick/M_thin</th>
 <th>h_R,thick/h_R,thin</th>
-<th>disc σz,0 (km/s)</th>
+<th>disk σz,0 (km/s)</th>
 <th>halo σr at α = 3.5 (km/s)</th>
 <th>spheroid σ from M* (km/s)</th>
 <th>spheroid age, high/low density (Gyr)</th>
@@ -757,7 +757,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p><strong>Proposed draw (placeholder for the width):</strong> for a field dwarf, f_gal as the same erf in log10 M200 (Msun/h) with centre 9.4 and width 0.25 dex. Gives 0.0001 at 3e8, 0.023 at 10^8.9, 0.5 at 10^9.4, 0.88 at 5e9, 0.99 at 1e10 (computed here). Centre and edges are V; the 0.25 dex is chosen to meet the paper's two edges. Its Fig 10 curve is not printed as numbers (R2). <strong>Mass-definition warning:</strong> the papers use M200 in Msun/h (Benitez-Llambay), a virial mass in Msun/h (Okamoto) and the Bryan and Norman peak mass with h = 0.7 (Nadler); the mass chain of GEN.400 uses 200c with h = 0.671. The conversions are a factor 1.0 to 1.5, small against the spreads but not zero.</p>
+<p><strong>Proposed draw (placeholder for the width):</strong> for a field dwarf, f_gal as the same erf in log10 M200 (Msun/h) with center 9.4 and width 0.25 dex. Gives 0.0001 at 3e8, 0.023 at 10^8.9, 0.5 at 10^9.4, 0.88 at 5e9, 0.99 at 1e10 (computed here). Center and edges are V; the 0.25 dex is chosen to meet the paper's two edges. Its Fig 10 curve is not printed as numbers (R2). <strong>Mass-definition warning:</strong> the papers use M200 in Msun/h (Benitez-Llambay), a virial mass in Msun/h (Okamoto) and the Bryan and Norman peak mass with h = 0.7 (Nadler); the mass chain of GEN.400 uses 200c with h = 0.671. The conversions are a factor 1.0 to 1.5, small against the spreads but not zero.</p>
 <h2 id="q7-size-of-dwarfs-and-satellites-row-10-gen369-gen401">Q7. Size of dwarfs and satellites (row 10; GEN.369, GEN.401)</h2>
 <div class="table"><table>
 <thead>
@@ -812,7 +812,7 @@ main{padding:16px 16px 60px}}
 <td>GEN.369 (one relation, no type split)</td>
 </tr>
 <tr>
-<td>The disc line it must meet (row 4)</td>
+<td>The disk line it must meet (row 4)</td>
 <td>[R4048] (astro-ph/0301527): R(kpc) = γ M^α (1 + M/M0)^(β - α), α = 0.14, β = 0.39, γ = 0.10, M0 = 3.98e10; scatter 0.20 dex at small M falling to 0.15 dex at large M</td>
 <td></td>
 <td>row 4 (carried), abstract (scatter re-read)</td>
@@ -877,7 +877,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p><strong>Proposed law:</strong> r_e from M* by the all-satellite Carlsten fit with 0.18 dex, joined to the Shen disc law at log M* = 8.5. Extended to log M* = 4 the fit gives 115 pc (200 pc at 5), inside Simon's range for ultrafaints (P, extrapolation of a verified law). No M_V conversion is needed (the generator holds stellar mass; the only M*/L_V printed in the papers read is 1.2 for an old dwarf, a placeholder). The halo route and Kravtsov differ by about four times (conflict 4 below).</p>
+<p><strong>Proposed law:</strong> r_e from M* by the all-satellite Carlsten fit with 0.18 dex, joined to the Shen disk law at log M* = 8.5. Extended to log M* = 4 the fit gives 115 pc (200 pc at 5), inside Simon's range for ultrafaints (P, extrapolation of a verified law). No M_V conversion is needed (the generator holds stellar mass; the only M*/L_V printed in the papers read is 1.2 for an old dwarf, a placeholder). The halo route and Kravtsov differ by about four times (conflict 4 below).</p>
 <h2 id="q8-globular-cluster-system-radial-profile-and-the-dwarf-end-of-the-count-row-9-gen403-gen297">Q8. Globular cluster system radial profile and the dwarf end of the count (row 9; GEN.403, GEN.297)</h2>
 <div class="table"><table>
 <thead>
@@ -1068,24 +1068,24 @@ main{padding:16px 16px 60px}}
 <li><em><em>Scatter in M</em> at fixed halo mass in the dwarf range.</em>* Fitts ± 0.5 dex at 1e10; Nadler below 0.19 dex (95 percent, prior driven); Moster 0.15 dex (not valid at the dwarf end). Not resolved. Default: 0.5 dex field, 0.19 dex satellites.</li>
 <li><strong>Cluster system size against halo mass.</strong> Hudson and Robison R_e,GCS ∝ R200^2.63; Forbes ∝ R200^1. At Milky Way mass they differ by 2.6 times (3.3 against 8.6 kpc; observed 4.1). At 1e11 the steep law gives 0.44 kpc, smaller than a dwarf's light radius, so it fails if extrapolated down. Default: Hudson and Robison near its range, the dwarf ratio below, the unsourced join in between.</li>
 <li><strong>Satellite size against halo size.</strong> Kravtsov's 0.015 R200 (150 pc at 10 kpc) is about 4 times Nadler's fitted 37 pc; Jiang's 0.02 sits with Kravtsov. Kravtsov and Jiang calibrate at 1e8 to 1e11 stellar mass; the faint satellites prefer a lower amplitude. The stellar-mass route (Carlsten) avoids the question.</li>
-<li><strong>Thick disc mass ratio at high mass.</strong> Yoachim and Dalcanton 0.06 to 0.14 at Vc = 180 to 255; [R0865] states 0.2 to 1 above 120 km/s. They agree below 120. Comerón's fit has the better point-spread function; Yoachim's is the only formula. Superseded (Boss, 2026-10-17, 12:02 PM EDT, widen and keep both; GEN.532): the mass ratio against Vc is widened between the Yoachim and Dalcanton trend and the [R0865] fit (log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc), found in VizieR J/A+A/610/A5, gap-filling-plan.md section 4.9), and the height ratio is drawn from 2.5 to 4.2.</li>
-<li><strong>Thick disc length against thin.</strong> The code's 0.769 (thick shorter) is Milky Way star counts; Yoachim and Dalcanton find thick longer in all but 5 galaxies, ratio about 1 to 1.2, and [R0865] finds that many up-bending breaks are a thin-thick superposition. The external-galaxy sources agree and disagree with the Milky Way number. Superseded (gap-filling-plan.md, 2026-10-17, 1:16 PM EDT; GEN.532): the length ratio is the [R0865] fit (median 1.46), not 1.15 (Vc/100)^-0.2.</li>
-<li><strong>Thick disc ages.</strong> [R0860] predicts 10 Gyr for massive spirals and 4 to 6 below 1e10; lenticulars violate it (measured 4 to 11 Gyr). One formula cannot cover both; the first family is spiral-like, so use the formula with a wide scatter and note the S0 failure.</li>
+<li><strong>Thick disk mass ratio at high mass.</strong> Yoachim and Dalcanton 0.06 to 0.14 at Vc = 180 to 255; [R0865] states 0.2 to 1 above 120 km/s. They agree below 120. Comerón's fit has the better point-spread function; Yoachim's is the only formula. Superseded (Boss, 2026-10-17, 12:02 PM EDT, widen and keep both; GEN.532): the mass ratio against Vc is widened between the Yoachim and Dalcanton trend and the [R0865] fit (log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc), found in VizieR J/A+A/610/A5, gap-filling-plan.md section 4.9), and the height ratio is drawn from 2.5 to 4.2.</li>
+<li><strong>Thick disk length against thin.</strong> The code's 0.769 (thick shorter) is Milky Way star counts; Yoachim and Dalcanton find thick longer in all but 5 galaxies, ratio about 1 to 1.2, and [R0865] finds that many up-bending breaks are a thin-thick superposition. The external-galaxy sources agree and disagree with the Milky Way number. Superseded (gap-filling-plan.md, 2026-10-17, 1:16 PM EDT; GEN.532): the length ratio is the [R0865] fit (median 1.46), not 1.15 (Vc/100)^-0.2.</li>
+<li><strong>Thick disk ages.</strong> [R0860] predicts 10 Gyr for massive spirals and 4 to 6 below 1e10; lenticulars violate it (measured 4 to 11 Gyr). One formula cannot cover both; the first family is spiral-like, so use the formula with a wide scatter and note the S0 failure.</li>
 <li><strong>Spheroid age.</strong> Thomas (light-weighted, 6 to 10 Gyr, depends on mass) against González Delgado (mass-weighted, about 10 Gyr, depends on type). The generator draws star ages, so the mass-weighted quantity is the right one. Default: about 10 Gyr mass-weighted for bulges of early spirals and early types, younger for late types; Thomas's laws as the mass trend.</li>
 <li><strong>Halo age.</strong> The code's 10 to 13 Gyr is a Milky Way style; [R1815] finds massive haloes younger (t90 about 6 Gyr) in a tentative six-point trend.</li>
-<li><strong>Halo metallicity baseline.</strong> -0.6 dex against the relation at the halo mass (H17) against about -0.9 against the host centre (computed here). Hydro and semi-analytic models differ in slope (D'Souza and Bell Fig 10).</li>
+<li><strong>Halo metallicity baseline.</strong> -0.6 dex against the relation at the halo mass (H17) against about -0.9 against the host center (computed here). Hydro and semi-analytic models differ in slope (D'Souza and Bell Fig 10).</li>
 <li><strong>Halo fractions.</strong> Dragonfly (0.9 percent, light beyond 5 half-mass radii, three non-detections) against GHOSTS (2 to 14 percent). H17 reconciles them as a total halo with limits, but the definitions differ. Hydro runs overpredict by up to ten times.</li>
 <li><strong>Specific mass of the cluster system.</strong> η = 2.9e-5 to 6e-5 in four papers (row 9). Even at the dwarf end the Local Volume sits 0.3 dex below Virgo at fixed mass, an environment factor of 2 the generator has no input for.</li>
 </ol>
 <h2 id="requests-for-bosss-research-list">Requests for Boss's research list</h2>
 <p>Nothing below could be found in a reachable source. Each names the paper or dataset and the quantity.</p>
 <ul>
-<li><em><em>R1. Observed stellar halo mass against M</em> for 3e9 to 3e10 Msun</em>* (GEN.401). A table or fitted relation of accreted halo mass against M* from star counts or deep imaging of lower-mass discs and dwarfs (GHOSTS-like, Dragonfly, Magellanic analogues). No observational source reached below 3.8e10. Fallback: the Illustris or EAGLE median accreted fraction curve, labelled simulation only.</li>
+<li><em><em>R1. Observed stellar halo mass against M</em> for 3e9 to 3e10 Msun</em>* (GEN.401). A table or fitted relation of accreted halo mass against M* from star counts or deep imaging of lower-mass disks and dwarfs (GHOSTS-like, Dragonfly, Magellanic analogues). No observational source reached below 3.8e10. Fallback: the Illustris or EAGLE median accreted fraction curve, labelled simulation only.</li>
 <li><strong>R2. Numeric curves from three figures.</strong> [R3790] Fig 3 (median ex situ fraction against M*, from 1e9, with 16 to 84 percent); [R1169] Fig 16 (accreted light fraction against M*, bins from 1e10 to 1e12); [R0338] Fig 10 (occupation fraction against log M200 at z = 0, the model curve and the simulation circles, so the draw can be a table instead of the 0.25 dex erf). Digitised values or the authors' data.</li>
-<li><strong>R3. Thick disc fits that print formulas.</strong> The newer [R0865] (and the 2011/2012 S4G papers) thick/thin mass and length ratios as functions of Vc or M*, to settle conflicts 5 and 6; only ranges were readable in the paper's text. Answered on 2026-10-17 at 11:40 AM EDT: the [R0865] fit is in VizieR J/A+A/610/A5 (vizier-courteau-comeron.md; gap-filling-plan.md section 4.9).</li>
-<li><strong>R4. Normalisation of the disc age-velocity relation for other galaxies</strong> (GEN.447, GEN.401). σz and σR against age as a function of Vc, or for simulated discs, giving σ(t_ref) and t_ref. Candidates not reached: [R0202] (not found by title search), [R4043] (GALAH, not located).</li>
+<li><strong>R3. Thick disk fits that print formulas.</strong> The newer [R0865] (and the 2011/2012 S4G papers) thick/thin mass and length ratios as functions of Vc or M*, to settle conflicts 5 and 6; only ranges were readable in the paper's text. Answered on 2026-10-17 at 11:40 AM EDT: the [R0865] fit is in VizieR J/A+A/610/A5 (vizier-courteau-comeron.md; gap-filling-plan.md section 4.9).</li>
+<li><strong>R4. Normalisation of the disk age-velocity relation for other galaxies</strong> (GEN.447, GEN.401). σz and σR against age as a function of Vc, or for simulated disks, giving σ(t_ref) and t_ref. Candidates not reached: [R0202] (not found by title search), [R4043] (GALAH, not located).</li>
 <li><strong>R5. Scatter of the [R0908] Vc-σ0 relation</strong> (Eq 5): the RMS of log(Vc/σ0). Not printed in the text read; possibly in the figure. The Courteau data file would settle it; the VizieR search of 2026-10-17 did not find it (vizier-courteau-comeron.md), and the raw scatter of two source samples is 0.104 to 0.123 dex.</li>
-<li><strong>R6. Oldest thick disc age and the first-disc epoch</strong> (GEN.386). Thick-disc stellar age distributions (start and end) against host mass. [R0860] gives only the youngest. [R0349, R1863] give the Milky Way only and were not read; the [R3531] MUSE star formation histories (A&amp;A 625 A95, 623 A19) would give the S0 range: please check they are reachable.</li>
+<li><strong>R6. Oldest thick disk age and the first-disk epoch</strong> (GEN.386). Thick-disk stellar age distributions (start and end) against host mass. [R0860] gives only the youngest. [R0349, R1863] give the Milky Way only and were not read; the [R3531] MUSE star formation histories (A&amp;A 625 A95, 623 A19) would give the S0 range: please check they are reachable.</li>
 <li><strong>R7. Radius ratio of metal-poor to metal-rich cluster systems</strong> (GEN.403). R_e(blue)/R_e(red) against galaxy mass: [R1410, R3749], or [R2269] ([R2269], read only qualitatively).</li>
 <li><strong>R8. Cluster systems at intermediate masses</strong> (GEN.403). Measured system radii for spirals and lower-mass early types, log M* 8.5 to 10.3, to replace the placeholder join: [R1811], or [R1539] half-number radii.</li>
 <li><strong>R9. Extragalactic cluster half-light radius against mass, cluster ages against host mass, and nuclear populations</strong> (GEN.297, GEN.403, GEN.280). [R2193] (ACS Virgo Cluster Survey half-light radii; the title search found nothing), E-MOSAICS age distributions against host mass (Pfeffer or Kruijssen), and nuclear star cluster ages and dispersions against host mass ([R3273], may hold ages; not opened in this pass).</li>
@@ -1109,7 +1109,7 @@ main{padding:16px 16px 60px}}
 <tbody>
 <tr>
 <td>GEN.401 (shape of the stars)</td>
-<td>halo fraction law (Q1), thick disc mass, length and height ratios (Q5), disc and bulge dispersions (Q3), dwarf-disc size join (Q7), heights from the dispersion law (Q5)</td>
+<td>halo fraction law (Q1), thick disk mass, length and height ratios (Q5), disk and bulge dispersions (Q3), dwarf-disk size join (Q7), heights from the dispersion law (Q5)</td>
 </tr>
 <tr>
 <td>GEN.403 (cluster count)</td>
@@ -1125,7 +1125,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>GEN.386 (population mix by family)</td>
-<td>thick disc end age, bulge and disc ages by type (Q4)</td>
+<td>thick disk end age, bulge and disk ages by type (Q4)</td>
 </tr>
 <tr>
 <td>GEN.447 (multistar limit)</td>

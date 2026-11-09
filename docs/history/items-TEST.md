@@ -79,14 +79,14 @@ The life of every TEST item that a commit title names, from the git history as o
 
 2026-10-01 to 2026-10-01; 2 commits; not open.
 
-- 2026-10-01: Work queue failure paths and cancelling a run (TEST.20, TEST.21)
+- 2026-10-01: Work queue failure paths and canceling a run (TEST.20, TEST.21)
 - 2026-10-01: TODO: retire ADM.10-12, TEST.20, TEST.21, TEST.40, TEST.41 (PRs #285, #294, #302, #305)
 
 ## TEST.21
 
 2026-10-01 to 2026-10-01; 2 commits; not open.
 
-- 2026-10-01: Work queue failure paths and cancelling a run (TEST.20, TEST.21)
+- 2026-10-01: Work queue failure paths and canceling a run (TEST.20, TEST.21)
 - 2026-10-01: TODO: retire ADM.10-12, TEST.20, TEST.21, TEST.40, TEST.41 (PRs #285, #294, #302, #305)
 
 ## TEST.37
@@ -948,7 +948,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-10-16 to 2026-10-17; 5 commits; not open.
 
 - 2026-10-16: TODO: file TEST.174 (sector page accessibility test flake) (#1812)
-- 2026-10-17: TEST.174, TEST.197: the a11y page test ignores a request the page cancelled itself
+- 2026-10-17: TEST.174, TEST.197: the a11y page test ignores a request the page canceled itself
 - 2026-10-17: TODO: GEN.319 retired, GEN.528 filed, TEST.174 sighting (#2004)
 - 2026-10-17: TODO: GEN.242 retired, GEN.529 filed, TEST.174 sighting (#2010)
 - 2026-10-17: TODO: retire GEN.469 (#2139); file GEN.546 and GEN.547 (its follow-ups); sighting on TEST.174 (#2140)
@@ -1074,7 +1074,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-10-16 to 2026-10-17; 2 commits; not open.
 
 - 2026-10-16: Retire DB.54 (#1887); file TEST.197 and TEST.198; migration order 0101 to 0104 (#1888)
-- 2026-10-17: TEST.174, TEST.197: the a11y page test ignores a request the page cancelled itself
+- 2026-10-17: TEST.174, TEST.197: the a11y page test ignores a request the page canceled itself
 
 ## TEST.198
 
@@ -1191,8 +1191,8 @@ The life of every TEST item that a commit title names, from the git history as o
 - 2026-10-17: TODO: retire GEN.447 to GEN.449 and MAP.245, file GEN.541, TEST.196 and TEST.213 notes (#2104)
 - 2026-10-17: TODO: TEST.213 passes on main after #2103, Bug Hunt drops its test change (#2111)
 - 2026-10-17: TODO: retire the stellar bundle (#2112) and TEST.213; GEN.321 stays with Core 3 (#2115)
-- 2026-10-18: TEST.213: the system-disc test asks for the share its loop stops at
-- 2026-10-18: The second system-disc test asks for the share its loop stops at (TEST.213 sibling)
+- 2026-10-18: TEST.213: the system-disk test asks for the share its loop stops at
+- 2026-10-18: The second system-disk test asks for the share its loop stops at (TEST.213 sibling)
 
 ## TEST.214
 
@@ -1317,7 +1317,7 @@ The life of every TEST item that a commit title names, from the git history as o
 
 2026-10-17 to 2026-10-17; 1 commits; open.
 
-- 2026-10-17: TODO: file GEN.542 (star_type_by_radius script) and TEST.228 (dark-cloud centre check) (#2120)
+- 2026-10-17: TODO: file GEN.542 (star_type_by_radius script) and TEST.228 (dark-cloud center check) (#2120)
 
 ## TEST.229
 
@@ -3145,7 +3145,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-10-29 to 2026-10-29; 3 commits; not open.
 
 - 2026-10-29: docs: UX.205 and MAP.301 retired, TEST.457 and TEST.458 filed (#3758)
-- 2026-10-29: TEST.458: Reset view, fly-to and centring end a zoom-distance goal; scale-line test waits out the opening flight (#3771)
+- 2026-10-29: TEST.458: Reset view, fly-to and centering end a zoom-distance goal; scale-line test waits out the opening flight (#3771)
 - 2026-10-29: docs: TEST.458 merged and retired (#3772)
 
 ## TEST.459
@@ -3962,7 +3962,7 @@ The life of every TEST item that a commit title names, from the git history as o
 
 2026-11-04 to 2026-11-04; 2 commits; not open.
 
-- 2026-11-04: TEST.563: a belt stores the mass its disc left it (the stated zero was from before the belt ledger) (#4791)
+- 2026-11-04: TEST.563: a belt stores the mass its disk left it (the stated zero was from before the belt ledger) (#4791)
 - 2026-11-04: File GEN.1247; retire TEST.563 and TEST.565 (#4796)
 
 ## TEST.564
@@ -4069,7 +4069,7 @@ The life of every TEST item that a commit title names, from the git history as o
 
 - 2026-11-04: File TEST.576 and GEN.1251 to GEN.1253 (#4891)
 - 2026-11-04: TEST.576: plain-words corpus of sixteen systems; the Formerly line drops the epoch; Largest body label (#4896)
-- 2026-11-04: Retire TEST.576, note on DOC.103 for the stored disc sentence, fix a time stamp the citation lock read as a source (#4897)
+- 2026-11-04: Retire TEST.576, note on DOC.103 for the stored disk sentence, fix a time stamp the citation lock read as a source (#4897)
 
 ## TEST.577
 
@@ -4471,7 +4471,7 @@ The life of every TEST item that a commit title names, from the git history as o
 2026-11-05 to 2026-11-05; 3 commits; not open.
 
 - 2026-11-05: TODO: TEST.631 density components test red on main (#5235)
-- 2026-11-05: TEST.631: record the density identity fixture again for the inside-out thin disc (#5238)
+- 2026-11-05: TEST.631: record the density identity fixture again for the inside-out thin disk (#5238)
 - 2026-11-05: TEST.631: American spelling in the density identity test's notes (#5248)
 
 ## TEST.632

@@ -6,7 +6,7 @@ The life of every VIEW item that a commit title names, from the git history as o
 
 2026-10-17 to 2026-10-17; 1 commits; not open.
 
-- 2026-10-17: TODO: file GEN.544 (disc vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
+- 2026-10-17: TODO: file GEN.544 (disk vertical profile) and GEN.545 (mean system mass) from Core 1's GEN.404 findings; note the Einstein radius on VIEW.1 (#2131)
 
 ## VIEW.5
 
