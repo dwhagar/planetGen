@@ -131,14 +131,14 @@ def test_the_settle_stage_is_cut_into_static_chunks_that_save_the_same_paths(mys
     assert _path_rows(mysql_config) == once, "the paths are those of the one-unit stage"
 
 
-def test_a_settle_that_names_no_sector_is_one_empty_unit(monkeypatch):
+def test_a_settle_that_names_no_sector_is_one_empty_unit(mysql_config, monkeypatch):
     from planetgen.generation import run_galaxy
 
     expansion = run_galaxy.expand_save_sector_paths({"database": {}, "sector_ids": [], "expand": False, "workers": 3})
     assert [args["sector_ids"] for args, _cost in expansion.units] == [[]] and expansion.plan == {"sectors": 0}
     monkeypatch.setattr(run_galaxy, "SETTLE_UNIT_SECTORS", 2)
     expansion = run_galaxy.expand_save_sector_paths(
-        {"database": {}, "sector_ids": [9, 3, 5, 1, 7, 5], "expand": False, "workers": 3})
+        {"database": wrapper.database_args(mysql_config), "sector_ids": [9, 3, 5, 1, 7, 5], "expand": False, "workers": 3})
     assert [args["sector_ids"] for args, _cost in expansion.units] == [[1, 3], [5, 7], [9]]
     assert [cost for _args, cost in expansion.units] == [2.0, 2.0, 1.0]
 
