@@ -3,6 +3,7 @@ The stand-in sensitivity harness (GEN.1311, scripts/stand_in_sensitivity.py): re
 block and puts it back, and sorts every registry row into overridable or not with a reason. No system is generated here.
 """
 
+import math
 import pathlib
 import sys
 
@@ -68,3 +69,16 @@ def test_compare_pairs_bodies_and_counts_a_changed_structure():
     summary = harness.summarize(totals)
     assert summary["temperature_k"]["rms"] == pytest.approx(10.0)
     assert summary["gravity_g"]["moved"] == 0.0
+
+
+def test_combine_pools_the_passes_and_counts_a_resumed_row_once():
+    def row(fill_id, rms, moved, structure=0):
+        return {"fill_id": fill_id, "low": {"quantities": {"temperature_k": {"rms": rms, "moved": moved}}, "structure": structure},
+                "high": {"quantities": {"temperature_k": {"rms": rms / 2, "moved": moved}}, "structure": 0}}
+    first = {"results": [row("A1", 3.0, 0.5), row("A1", 3.0, 0.5), row("B1", 1.0, 0.1, structure=2)]}
+    second = {"results": [row("A1", 4.0, 0.7)]}
+    matrix = harness.combine([first, second])
+    assert set(matrix) == {"A1", "B1"}
+    assert matrix["A1"]["quantities"]["temperature_k"]["rms"] == pytest.approx(math.sqrt((9.0 + 16.0) / 2))
+    assert matrix["A1"]["quantities"]["temperature_k"]["passes"] == 2 and matrix["A1"]["passes"] == 2
+    assert matrix["B1"]["structure"] == 2
