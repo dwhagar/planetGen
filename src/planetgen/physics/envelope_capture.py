@@ -64,7 +64,7 @@ none: at 3 the median start of a 1 Earth-mass planet is 0.2 percent of its mass 
 
 PUFF_MIN_MASS_EARTH = 2.0
 """float: STAND-IN EC8 (T4, L0, registry 6.206): the lightest planet that can start as a super-puff, the lower edge of Lee and Chiang's class (2 to 6 Earth masses, [R2609]);
-the heaviest is `super_puff.MAX_MASS_EARTH` (row PF1)."""
+the heaviest is `super_puff.START_MAX_MASS_EARTH` (row PF1)."""
 
 _kg_to_mearth = units.converter("kg", "Mearth")
 _kg_to_msun = units.converter("kg", "Msun")
@@ -95,9 +95,9 @@ def period_days(body):
 
 
 def puff_eligible(mass_earth, period_d):
-    """Whether a planet can start as a super-puff: a sub-Neptune of `PUFF_MIN_MASS_EARTH` to `super_puff.MAX_MASS_EARTH` Earth masses with a period inside
-    the outer edge of `super_puff.PERIOD_RANGE_D` (the Kepler sub-Neptunes the occurrence share counts)."""
-    return PUFF_MIN_MASS_EARTH <= mass_earth <= super_puff.MAX_MASS_EARTH and period_d <= super_puff.PERIOD_RANGE_D[1]
+    """Whether a planet can start as a super-puff: a sub-Neptune of `PUFF_MIN_MASS_EARTH` to `super_puff.START_MAX_MASS_EARTH` Earth masses with a period inside
+    `super_puff.START_MAX_PERIOD_D` (the Kepler sub-Neptunes the occurrence share counts)."""
+    return PUFF_MIN_MASS_EARTH <= mass_earth <= super_puff.START_MAX_MASS_EARTH and period_d <= super_puff.START_MAX_PERIOD_D
 
 
 def draw_puff_start(mass_earth, period_d):
