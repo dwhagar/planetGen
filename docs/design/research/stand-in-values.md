@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1468 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1470 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1442 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1444 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
 | T3 | 104 | 46 | 9 | 10 | 0 | 169 |
 | T4 | 73 | 11 | 3 | 21 | 10 | 118 |
-| T5 | 70 | 23 | 6 | 1 | 0 | 100 |
+| T5 | 72 | 23 | 6 | 1 | 0 | 102 |
 | T6 | 170 | 104 | 27 | 76 | 0 | 377 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 818 | 298 | 71 | 236 | 45 | 1468 |
+| All | 820 | 298 | 71 | 236 | 45 | 1470 |
 
 ## How the labels were given
 
@@ -2572,6 +2572,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE8 | D | T5 | L0 | planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
 | DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
+
+## 6.243 Stand-ins of the spacing of orbits against every neighbour
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T5 | L0 | planets.update_hill_sphere / orbits.calculate_hill_sphere: the Hill radius of a planet is the circular one of its semi-major axis, `min_orbit_distance` is five of it | the Hill radius at periapsis is smaller by (1 - e) (0.7 of it at e = 0.3) | planets with eccentricity under 0.5 | a census in which releasing the belt keep-out to the periapsis Hill radius moves a belt or a planet by more than a tenth of its distance | none; the circular radius is the larger, so it only widens the keep-out, and the planet-planet spacing already uses the apoapsis and periapsis (`clearance_ledger.planet_exclusion`) and a moon's limit already carries the planet's eccentricity (`clearance_ledger.moon_hill_fraction`, [R1138]) | physics: the two other places an eccentric orbit enters the keep-out already do; the circular radius is the conservative one, so nothing is let through by it | predicted only | - | - |
+| SP2 | P | T5 | L0 | validation._cross_star_threshold_au: the keep-out between two bodies of the two stars of a wide pair is Gladman's mutual Hill factor of the pair, at the stars' closest approach, with no secular pumping of the outer planet | the factor (`constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR`) | wide pairs with the companion beyond about 50 AU | a companion at a few hundred AU that pumps an outer planet's eccentricity past the gap by the Kozai-Lidov law | the pumping of GEN.1447 (Lane 23) | the existing criterion of the cross-star check, kept as it was; only the set of pairs it is applied to changed (GEN.1460) | predicted only | - | - |
 
 ## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
 
