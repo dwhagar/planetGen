@@ -19,14 +19,14 @@ Rules (names as `RULES` lists them):
 - `ozone`: no oxygen, no ozone; with oxygen the column is at most the fit's median times the top of its spread (the abiotic branch's top
   below the fit), and at least the median times the bottom of the spread in a body that has not lost air.
 - `aerosol-cloud`, `aerosol-haze`, `aerosol-dust`, `aerosol-airless`: the cloud depth and cover, the haze, the dust and the airless body's
-  none follow `physics.aerosols`.
+  none follow `physics.aerosols` (the stored cloud depth is the condensate cloud's and the acid cloud's, `sulfuric_cloud.of_body`).
 - `text-gases`: every gas the stored phrase names is in the composition table and the mixture, and the table's shares make one.
 """
 
 import math
 
 from planetgen.describe import build as describe_build
-from planetgen.physics import aerosols, air_column, atmosphere, constants, gases, ozone, orbit_elements, radiation, radiation_field, surface_air
+from planetgen.physics import aerosols, air_column, atmosphere, constants, gases, ozone, orbit_elements, radiation, radiation_field, sulfuric_cloud, surface_air
 from tests.audit.sweep import Rule, broken_copy
 from tests.test_atmosphere_text_consistency import _text_names
 
@@ -201,16 +201,19 @@ def _check_aerosol_cloud(entry):
     column = _column(body)
     if column is None or body.tau_cloud is None:
         return []
-    tau, cover = body.tau_cloud, body.cloud_cover
+    acid, acid_cover, _radius = sulfuric_cloud.of_body(body)      # the stored depth is the condensate cloud's and the acid cloud's (GEN.1019), the cover the larger of the two
+    tau, cover = body.tau_cloud - acid, body.cloud_cover
     most = aerosols.cloud_depth_limit(column, body.surface_temperature, aerosols.CLOUD_RADIUS_UM[0])
     if most <= 0.0:
-        return [] if tau == 0.0 and cover == 0.0 else [f"no condensate but a cloud of depth {tau!r}, cover {cover!r}"]
+        if math.isclose(body.tau_cloud, acid, rel_tol=1e-9, abs_tol=1e-12) and math.isclose(cover, acid_cover, rel_tol=1e-9, abs_tol=1e-12):
+            return []
+        return [f"no condensate but a cloud of depth {body.tau_cloud!r}, cover {cover!r} (the acid cloud makes {acid!r}, cover {acid_cover!r})"]
     least = min(aerosols.CLOUD_TAU_FLOOR, aerosols.cloud_depth_limit(column, body.surface_temperature, aerosols.CLOUD_RADIUS_UM[1]))
     problems = []
     if not least * (1.0 - 1e-6) <= tau <= most * (1.0 + 1e-6):
-        problems.append(f"cloud depth {tau!r} outside [{least!r}, {most!r}]")
-    if not aerosols.CLOUD_COVER_RANGE[0] <= cover <= aerosols.CLOUD_COVER_RANGE[1]:
-        problems.append(f"cloud cover {cover!r} outside {aerosols.CLOUD_COVER_RANGE}")
+        problems.append(f"cloud depth {tau!r} outside [{least!r}, {most!r}] beside an acid cloud of {acid!r}")
+    if not (aerosols.CLOUD_COVER_RANGE[0] <= cover <= aerosols.CLOUD_COVER_RANGE[1] or (acid > 0.0 and math.isclose(cover, acid_cover, rel_tol=1e-9))):
+        problems.append(f"cloud cover {cover!r} outside {aerosols.CLOUD_COVER_RANGE} and not the acid cloud's {acid_cover!r}")
     return problems
 
 
@@ -218,8 +221,9 @@ def _break_aerosol_cloud(entry):
     column = _column(entry.body)
     if column is None or entry.body.tau_cloud is None:
         return None
+    acid = sulfuric_cloud.of_body(entry.body)[0]
     most = aerosols.cloud_depth_limit(column, entry.body.surface_temperature, aerosols.CLOUD_RADIUS_UM[0])
-    return broken_copy(entry.body, tau_cloud=most * 10.0 + 1.0, cloud_cover=entry.body.cloud_cover or 0.5)
+    return broken_copy(entry.body, tau_cloud=most * 10.0 + 1.0 + acid, cloud_cover=entry.body.cloud_cover or 0.5)
 
 
 def _check_aerosol_haze(entry):

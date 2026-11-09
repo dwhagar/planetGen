@@ -2,6 +2,67 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3793] - 2026-11-09
+
+**Headline:** A running unit's state (working, slow, waiting, quiet, looping or dead) is now one tested rule set, and a unit whose counter is moving is never judged for killing.
+
+### Added
+- **The heartbeat judge (OPS.137).** `queue/beatjudge.py` turns a unit's beat record, its command's recorded gaps and a clock into a state with the rules of the heartbeat research: dead after 30 s without a beat, waiting on the gate or the sky lock, quiet when the counter stands still past `max(5 min, 5 x the longest recorded gap)`, looping when the count runs past 3 or 10 times its estimate, goes backward or restarts a phase, and slow below a third of the expected rate. Only dead and quiet may be acted on. Nothing calls it yet; the beat record (OPS.136) and the follower (OPS.138) come next.
+
+generation-affects: none
+
+## [8.0.3792] - 2026-11-09
+
+**Headline:** The atmosphere sweep's cloud rule counts the sulfuric acid cloud that the stored cloud depth and cover already include.
+
+### Changed
+
+- `tests/audit/sweep_atmosphere.py` rule `aerosol-cloud` compared the stored `tau_cloud` and `cloud_cover` with the condensate cloud alone. Since `draw_aerosols` adds the acid cloud (GEN.1019, `sulfuric_cloud.of_draw`: its depth adds to the condensate cloud's and its cover is the larger of the two), a hot wet-carbon-dioxide world with no condensate (sweep body `F5V/Nh9`, 1950 K) was reported as "no condensate but a cloud of depth 22.8". The rule now takes the acid cloud from the stored values (`sulfuric_cloud.of_body`), checks the condensate part of the depth against its limits and accepts the acid cloud's cover. Its breaker adds the acid depth so it still breaks the rule. The generator is unchanged.
+- `test_every_body_of_the_sweep_obeys_every_rule` stays red on the `temperature` rule for eleven bodies until the GEN.1450 secular exchange refreshes the air of a planet whose eccentricity moves by any amount (a separate defect, handed to its owner).
+
+generation-affects: none
+
+## [8.0.3791] - 2026-11-09
+
+**Headline:** The spin test marks the three seeds that expose GEN.1504 as strict expected failures until the secular exchange keeps the spin tilt in step with the orbit.
+
+### Changed
+
+- `tests/test_spin.py::test_every_generated_system_body_spins` seeds 0, 4 and 5 fail since the Train 21 merge (GEN.1450): `planets.secular_exchange` changes `orbital_inclination_deg` and `orbital_ascending_node_deg` but not the stored spin tilt and axis, so `axial_tilt_deg` no longer matches the orbit normal. They are marked `xfail(strict=True)` naming GEN.1504, so the day the defect is fixed they report as passes and the marks must go in the same PR. Seeds 1, 2 and 3 still run as plain tests. No other test is touched and the generator is unchanged.
+
+generation-affects: none
+
+## [8.0.3790] - 2026-11-09
+
+**Headline:** the sensitivity harness runs resumably over many systems and seeds and pools them into one matrix, and the class sweep tool gains the no-cap fudge sweep.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py` (GEN.1312): `screen --checkpoint FILE` appends each finished row and a rerun skips them (a lane machine restarts), `--movers-of FILE` runs only the rows an earlier screening moved, and `combine` pools the passes of several seeds into the stand-in by end-result matrix (root mean square movement per quantity, the share of bodies moved, the rows that changed a system's body count).
+- `src/tests/class_fit_cli.py --fudge`: the no-cap fudge sweep of the fudge-table plan (section 4c and 4d): per body the class that needs the fewest values moved and then the smallest move in shoulder widths, the share of bodies fitting fully, the share placed against the cap, the quantities stretched and the letters that change.
+
+generation-affects: none
+
+## [8.0.3789] - 2026-11-09
+
+**Headline:** The moon-history test accepts a dust ring as the origin of the ring of a planet that lost a moon, as the ring code has always allowed.
+
+### Changed
+
+- `tests/test_moon_history.py::test_every_planet_with_moons_ends_with_moons_it_can_keep` asserted that a planet with fallen moons and a ring had a ring of origin `disrupted_moon` or `captured_body`. The origin is the largest event of the ring (`ring_origin.ring_origin`), and the steady dust ring of the small moons near the planet (GEN.1233, `moon_erosion`) is one of the events: a fallen moon's ring spreads thin with the time since and a faint dust ring can outweigh it. The Train 21 merge changed what the 16 seeds draw, and one planet now has a dusty ring of 1e8 kg after a fallen moon. The test accepts the three origins (`rings.ORIGINS`) and requires a `moon_erosion` ring to be a dusty one. The ring code is unchanged.
+
+generation-affects: none
+
+## [8.0.3788] - 2026-11-09
+
+**Headline:** The deferred-sectors test of a single sector that exists generates 3 systems, not the 353 the wide galaxy's density gives (a test-only change).
+
+### Changed
+- **`test_a_single_sector_that_exists_is_not_cut_again_and_one_beyond_the_reach_is_refused` sets `args.num_systems = 3` before it generates the sector.** The test only needs the sector to exist so that the cut leaves it out, but at the density the wide galaxy gives address (1, 0, 0) it built 353 full systems, about 15 minutes on a gate machine, over the gate's 900 s timeout. It was not a hang and no code changed: it passes alone on main in 888 s, and now in 15 s. The command line refuses `--num-systems` with an address, so the test sets it on the parsed arguments after the cut.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3787] - 2026-11-09
 
 **Headline:** The effect ledger no longer stores a row for a body that has only one star sending it light, and an edit of a system clears the system's ledger rows. A default system now keeps about 2.4 light and ultraviolet rows on average, not 4 for every body.

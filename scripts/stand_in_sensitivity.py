@@ -328,19 +328,28 @@ def _evaluate(task):
     return result
 
 
-def screen(rows, systems, seed, jobs, progress=print):
+def screen(rows, systems, seed, jobs, progress=print, checkpoint=None):
     """The screening pass over the overridable `rows` (`classify_rows`): the baseline, then every row at both ends. Returns `{"baseline": ..., "results": [...]}`."""
     global _BASELINE, _SETTINGS
     _BASELINE, _SETTINGS = read_sample(systems, seed), (systems, seed)
     tasks = [(row["fill_id"], row["target"]) for row in rows if "target" in row]
-    progress(f"baseline: {sum(len(s) for s in _BASELINE)} bodies in {systems} systems; {len(tasks)} constants, two ends each, {jobs} jobs")
+    order = {fill_id: n for n, (fill_id, _) in enumerate(tasks)}
     results = []
+    if checkpoint and os.path.exists(checkpoint):
+        with open(checkpoint, encoding="utf-8") as handle:
+            results = [json.loads(line) for line in handle if line.strip()]
+        done = {result["fill_id"] for result in results}
+        tasks = [task for task in tasks if task[0] not in done]
+        progress(f"  resuming: {len(done)} rows already in {checkpoint}")
+    progress(f"baseline: {sum(len(s) for s in _BASELINE)} bodies in {systems} systems; {len(tasks)} constants, two ends each, {jobs} jobs")
     with Pool(jobs) as pool:
         for count, result in enumerate(pool.imap_unordered(_evaluate, tasks, chunksize=1), 1):
             results.append(result)
+            if checkpoint:
+                with open(checkpoint, "a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(result) + "\n")
             if count % 20 == 0 or count == len(tasks):
                 progress(f"  {count} of {len(tasks)} done")
-    order = {fill_id: n for n, (fill_id, _) in enumerate(tasks)}
     results.sort(key=lambda result: order[result["fill_id"]])
     return {"bodies": sum(len(s) for s in _BASELINE), "systems": systems, "seed": seed, "results": results}
 
@@ -409,21 +418,66 @@ def report(rows, screened):
     return "\n".join(lines)
 
 
+def combine(screens):
+    """
+    The stand-in by end-result matrix from several screening passes (`--out` files, one per seed): `{fill_id: {"quantities": {quantity: {"rms", "moved", "bodies"}}, "structure": n, "errors": [...]}}`.
+    A row's movement in a quantity is the root mean square over every pair of every pass, taken at the end that moves it more; `moved` is the share of paired bodies that moved; a row that
+    appears twice in one pass (a resumed run) counts once, the later entry. `bodies` is how many pairs the row's passes held.
+    """
+    matrix = {}
+    for screened in screens:
+        by_row = {}
+        for result in screened["results"]:
+            by_row[result["fill_id"]] = result
+        for fill_id, result in by_row.items():
+            entry = matrix.setdefault(fill_id, {"quantities": {}, "structure": 0, "errors": [], "passes": 0})
+            entry["passes"] += 1
+            entry["structure"] += result["low"]["structure"] + result["high"]["structure"]
+            entry["errors"] += result.get("errors", [])
+            for quantity in set(result["low"]["quantities"]) | set(result["high"]["quantities"]):
+                ends = [result[end]["quantities"].get(quantity) for end in ("low", "high")]
+                ends = [end for end in ends if end]
+                best = max(ends, key=lambda end: end["rms"])
+                held = entry["quantities"].setdefault(quantity, {"sum_sq": 0.0, "moved": 0.0, "n": 0})
+                held["sum_sq"] += best["rms"] ** 2
+                held["moved"] += best["moved"]
+                held["n"] += 1
+    for entry in matrix.values():
+        entry["quantities"] = {quantity: {"rms": math.sqrt(held["sum_sq"] / held["n"]), "moved": held["moved"] / held["n"], "passes": held["n"]}
+                               for quantity, held in entry["quantities"].items()}
+    return matrix
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0], formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="command", required=True)
     rows_parser = sub.add_parser("rows", help="list the rows and whether each can be overridden")
     rows_parser.add_argument("--json")
+    combine_parser = sub.add_parser("combine", help="pool several screening passes (one per seed) into the stand-in by end-result matrix")
+    combine_parser.add_argument("passes", nargs="+", help="the --out files of the passes")
+    combine_parser.add_argument("--out", required=True, help="write the matrix as JSON")
     screen_parser = sub.add_parser("screen", help="the screening pass")
     screen_parser.add_argument("--systems", type=int, default=DEFAULT_SYSTEMS)
     screen_parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     screen_parser.add_argument("--jobs", type=int, default=4)
     screen_parser.add_argument("--only", help="comma-separated fill ids")
+    screen_parser.add_argument("--movers-of", help="a screening JSON (--out of an earlier pass): run only the rows that moved a quantity or changed a system's bodies there")
     screen_parser.add_argument("--limit", type=int, help="run only the first N overridable rows (a trial)")
     screen_parser.add_argument("--out", help="write the results as JSON")
+    screen_parser.add_argument("--checkpoint", help="a JSON-lines file each finished row is appended to; a rerun with the same file skips the rows already in it")
     screen_parser.add_argument("--report", help="write the markdown report")
     args = parser.parse_args(argv)
 
+    if args.command == "combine":
+        screens = []
+        for path in args.passes:
+            with open(path, encoding="utf-8") as handle:
+                screens.append(json.load(handle)["screened"])
+        matrix = combine(screens)
+        with open(args.out, "w", encoding="utf-8") as handle:
+            json.dump(matrix, handle, indent=1, sort_keys=True)
+        print(f"{len(matrix)} rows from {len(screens)} passes")
+        return 0
     rows = classify_rows(read_rows())
     if args.command == "rows":
         counts = collections.Counter("overridable" if "target" in row else row["reason"] for row in rows)
@@ -437,11 +491,16 @@ def main(argv=None):
     if args.only:
         wanted = set(args.only.split(","))
         chosen = [row for row in rows if row["fill_id"] in wanted]
+    if args.movers_of:
+        with open(args.movers_of, encoding="utf-8") as handle:
+            earlier = json.load(handle)["screened"]["results"]
+        movers = {result["fill_id"] for result in earlier if not moves_nothing(result)}
+        chosen = [row for row in chosen if row["fill_id"] in movers]
     overridable = [row for row in chosen if "target" in row]
     if args.limit:
         overridable = overridable[:args.limit]
-    screened = screen(overridable, args.systems, args.seed, args.jobs)
-    text = report(rows if not args.only and not args.limit else overridable, screened)
+    screened = screen(overridable, args.systems, args.seed, args.jobs, checkpoint=args.checkpoint)
+    text = report(rows if not (args.only or args.limit or args.movers_of) else overridable, screened)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as handle:
             json.dump({"rows": rows, "screened": screened}, handle, indent=1)

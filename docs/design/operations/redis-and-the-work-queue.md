@@ -459,6 +459,12 @@ behind small ones. `queue/scheduler.py` answers which waiting job goes next, on 
 * **What it does not do.** It does not run anything by itself and does not change what a run generates (the work seed is independent of the order and
   of how many jobs run at once). The weights are a first setting (`LANE_WEIGHT`, `FAIR_PENALTY`, `AGING_BOUND_SECONDS`): the order of the classes is the rule.
 
+### 5.16 The heartbeat judge (OPS.137, Boss 5:16 PM EST on 2026-11-09)
+
+`queue/beatjudge.py` is one pure function, `judge(beat, history, now)`, from a unit's beat record (beat time, start, `done` of `estimate`, the time `done` last changed, phase, `waiting_on`, phase restarts), the history of its command (longest gap between counter changes, expected seconds) and a clock on the Redis server's time to a verdict: working, slow, waiting, quiet, looping or dead. No Redis, no clock of its own, so a test drives every rule with a fake one. The rules are in the research report (`reports/heartbeat-research-2026-11-09.md`): dead is no beat for 30 s; waiting is `waiting_on` set, with a 30 minute limit that flags but never judges quiet; quiet is a fresh beat with the counter unchanged for more than `max(5 min, 5 x the longest recorded gap)` (doubled on a starved host); looping is `done` over 3 (flag) or 10 (suspect) times the estimate, the count going backward inside one phase, or one phase restarting more than 3 times; slow is a rate under a third of the expected one, with a projected finish.
+
+Boss's rule is built in: **only dead and quiet are `actionable`**. A unit whose counter is moving is never judged for killing, at any rate and any size over its estimate (the 11-08 failure was a sky cell killed at 10 times a sector unit's average while it was working); looping and slow are flags for a person. A unit that reports no counter is working until it is dead. `agreed(previous, current)` is the "two checks in a row" rule the follower (OPS.138) uses before it acts. The beat record is written by OPS.136 and the longest gaps by OPS.135; the follower runs the judge and logs each change once in OPS.138.
+
 ## 6. Decisions for Boss
 
 Each has a default; the default is what a "yes" means.
