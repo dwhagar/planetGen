@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3769] - 2026-11-09
+
+**Headline:** The trojan swarm of a giant now shrinks or vanishes when another giant or a companion star leaves its Lagrange points unstable.
+
+### Changed
+- **Trojans keep only the part every neighbour leaves stable (GEN.1455).** The swept disk's `trojans` share was a flat 0.2 percent for every giant. `trojans.surviving_share` now multiplies it by a stable share against each other giant (separation in mutual Hill radii, `1 - exp(-ramp (x - 1))` past 3.46 of them) and against a companion star (its stability limit `Star.a_crit_au` against twice the giant's distance). The part lost goes to the ejected share, so the shares still add to one. A giant alone around a lone star keeps the swarm of before to the last digit (tests `test_trojan_neighbours.py`, census `tests/audit/trojan_census.py`). Reused, not rebuilt: the swarm share and the scatter split (`scatter.SWEPT_SPLIT`, `scatter_shares`), the stability limit the clearance ledger sets, and the giants `belt_birth._fates` already lists. Stand-ins TJ6 to TJ8. In a census of 960 seeds, 17 of the 22 outer-disk swarms drawn had their share cut by a neighbour (none of the 5 swarms of a lone giant at a lone star; 3 lost over half), but every one of the 22 held a swept share of 0.0 before as well, because the belt lies beyond the giant's zone, so no stored value moved in the sample (report `reports/gen1455-trojan-census-2026-11-09.md`). The law matters where a belt overlaps a giant's zone and for the swarm draw of GEN.1150, which the trojan bodies still wait for. No migration.
+
+generation-affects: fill, population
+
+generation-output: changed
+
 ## [8.0.3768] - 2026-11-09
 
 **Headline:** A belt that lies near a companion star now holds only the solids of the disk the companion left it, not those of the whole disk.
