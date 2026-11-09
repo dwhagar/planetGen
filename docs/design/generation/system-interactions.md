@@ -38,7 +38,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | Impact and comet flux | The host star's debris disk and its own belts; no scattering by other giants, no companion-stirred cloud | GEN.1453 |
 | Obliquity and spin-orbit secular drift | Torques of the host star and own moons; no sibling planet or companion | GEN.1454 |
 | Trojan and Lagrange stability | One planet with its star | GEN.1455 |
-| Ejection and scattering | The star's disk and a rate; no giant or companion scatterer | GEN.1456 |
+| Ejection and scattering | The scatterer of a thrown or swept planet is the planet of the highest Safronov number among all whose reach holds it, not the recorded neighbour alone; a companion star ejects nothing, since planets form inside its stability limit and the eccentric-giant kick tail is not modelled (rogue-ejection-kick.md) | GEN.1456 (built) |
 | Comet orbits | Two-body about the host | GEN.1457 |
 | Seasonal swing, eclipses and a moon's extra night | One sun's declination; a moon darkened by its planet only | GEN.1458, GEN.1461, GEN.1462 |
 | Settled eccentricity | Tidal wearing-down by the host; no pumping set against it | GEN.1459 |
