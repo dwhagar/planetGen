@@ -477,17 +477,21 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1470 | Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug) |  | Lane 14, 2026-11-08. |
 | GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre and add one stand-in, the envelope share m of bulk heavy elements (m = 0.1 first) | GEN.1363, GEN.1406 | Lane 14, 2026-11-08; lock item, Train 21 or 22. |
-| GEN.1472 | Design note for the drift and evaporation of water in the disc (cold finger at the snow line) | GEN.1471, GEN.1396 | Lane 14, 2026-11-08; Boss lowered the research bar. |
-| GEN.1473 | Build the drift and evaporation model of water and let a giant's envelope C/O follow it | GEN.1472 | Lane 14, 2026-11-08; lock item. |
+| GEN.1473 | Build the drift and evaporation model of water and let a giant's envelope C/O follow it |  | Lane 14, 2026-11-08; lock item. |
 | GEN.1475 | Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first) |  | Lane 21, 2026-11-09; waits for a source. |
 | GEN.1476 | Running block totals kept in the database as objects are scattered, at every level (sector, system, region), so no second pass over the galaxy and no block-light rebuild |  | Boss 8:37 PM EST on 2026-11-08; Lane 12 with Lane 13. |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) |  | Generation rescan audit, 2026-11-09. |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) |  | Generation rescan audit, 2026-11-09. |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) |  | Generation rescan audit, 2026-11-09. |
 | GEN.1480 | XUV atmosphere loss uses the tide-inflated radius, not the uninflated one (follow-up of GEN.1470) | GEN.1470 | Generation rescan audit, 2026-11-09. |
-| GEN.1481 | Sky backfill and ring walks: cut the cell visits (8.3e9 at a 7.5 sky) by pruning mass rings by block or a recursive Poisson split (audit C11) |  | Generation rescan audit, 2026-11-09. |
 | GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | Generation rescan audit, 2026-11-09. |
 | GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | Lane 15 finding in GEN.1462, 2026-11-09. |
+| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | Lane 13 read for GEN.1481, 2026-11-09. |
+| GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | Lane 13 read for GEN.1481, 2026-11-09. |
+| GEN.1487 | Isotope record for comets, interstellar comets and belt members, from the ice fractionation law already built | none | Lane 14 isotope leftovers, 2026-11-09. |
+| GEN.1488 | Isotope record for star surfaces | none | Lane 14 isotope leftovers, 2026-11-09. |
+| GEN.1489 | Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air | none | Lane 14 isotope leftovers, 2026-11-09. |
+| GEN.1490 | Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244 | none | Lane 14 isotope leftovers, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | Generation rescan audit, 2026-11-09. |
 | DB.121 | Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9) |  | Generation rescan audit, 2026-11-09. |
