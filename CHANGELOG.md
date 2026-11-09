@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3763] - 2026-11-09
+
+**Headline:** The repair test reads the inserted-row count as a whole number, so "90 inserted" no longer fails the check for "0 inserted".
+
+### Changed
+
+- `tests/test_repair.py`: the check that the reason does not say "0 inserted" matched inside "90 inserted" now that the repaired sector reports 90 rows; it uses a word boundary (`\b0 inserted`).
+
+generation-output: unchanged
+
+## [8.0.3762] - 2026-11-09
+
+**Headline:** A design note says how the air could read the belts, comets and giants of its own system for its late accretion; nothing is built.
+
+### Changed
+
+- New design note `docs/design/composition/late-accretion-from-the-system.md` (GEN.1493): why the single late-accretion number cannot see the system, the order options, a recommended second pass at the end of a planet's making, and the slices of the build. It finds that slice A's cross-section is the geometry of a single pass of a stream and cannot give a veneer, so the build needs a collision-probability law with focusing.
+- Nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3761] - 2026-11-09
 
 **Headline:** Emptying the earlier nebula field is a step of its own in a run, no longer a hook of the nebula draw (OPS.123 slice 3, nebula-field verb).
