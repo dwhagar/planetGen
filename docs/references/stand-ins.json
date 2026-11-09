@@ -58773,6 +58773,166 @@
       ],
       "slug": "6-248-stand-ins-of-the-day-with-every-sun",
       "title": "Stand-ins of the day with every sun"
+    },
+    {
+      "key": "6.249",
+      "number": "6.249",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "circular orbits, the observer a point, the blocker and the star as flat disks, one crossing per synodic period (two per period for the stars of a close pair)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "blockers whose orbit is much smaller than the observer's distance from the star, or a pair seen from well outside it"
+            ],
+            [
+              "What would show it wrong",
+              "a blocker so close that the observer is inside its penumbra, or an eccentric orbit whose crossing speed differs by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "the crossing speed from the orbits' true anomalies"
+            ],
+            [
+              "Evidence",
+              "derived: the Moon touches the Sun for 1.5e-4 of the time and covers 3.6e-5 of its light; Venus crosses the Sun for Earth 2.4e-5 of the time (eight transits of about six hours in 243 years)"
+            ]
+          ],
+          "id": "EC1",
+          "key": "6.249:EC1",
+          "kind": "P",
+          "slug": "6-249-ec1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "circular orbits, the observer a point, the blocker and the star as flat disks, one crossing per synodic period (two per period for the stars of a close pair)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the height of a crossing above the line to the star is beta_max sin(u) with u uniform: a node phase that is uniform in time, beta_max the mutual inclination's reach at the blocker's distance"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "orbits whose nodes precess through many turns in the age of the system"
+            ],
+            [
+              "What would show it wrong",
+              "a pair of orbits locked in nodal phase (resonant or tidally aligned)"
+            ],
+            [
+              "What replaces it",
+              "the node phase from the stored ascending nodes"
+            ],
+            [
+              "Evidence",
+              "derived: a tilted circular orbit crosses the line to the star at a height that goes as the sine of the phase along it"
+            ]
+          ],
+          "id": "EC2",
+          "key": "6.249:EC2",
+          "kind": "P",
+          "slug": "6-249-ec2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the height of a crossing above the line to the star is beta_max sin(u) with u uniform: a node phase that is uniform in time, beta_max the mutual inclination's reach at the blocker's distance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the two stars of a close pair are taken in the pair's own plane at the stored separation and period, each in front of the other half the time, and the light lost is the mean of the two covered shares weighted by the light of the star behind"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "detached pairs with circular orbits"
+            ],
+            [
+              "What would show it wrong",
+              "a contact or semidetached pair whose stars are not spheres"
+            ],
+            [
+              "What replaces it",
+              "the stars' shapes (GEN.597 Roche lobes)"
+            ],
+            [
+              "Evidence",
+              "derived from the geometry of two spheres seen from afar"
+            ]
+          ],
+          "id": "EC3",
+          "key": "6.249:EC3",
+          "kind": "P",
+          "slug": "6-249-ec3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the two stars of a close pair are taken in the pair's own plane at the stored separation and period, each in front of the other half the time, and the light lost is the mean of the two covered shares weighted by the light of the star behind"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4"
+            ],
+            [
+              "Where it holds",
+              "the planets and moons of the census"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose sibling covers more than 1e-3 of its light"
+            ],
+            [
+              "What replaces it",
+              "the shares applied to the light of a circumbinary planet and stored in the effect ledger (GEN.1465)"
+            ],
+            [
+              "Evidence",
+              "measured here: reports/gen1462-eclipse-census-2026-11-09.md"
+            ]
+          ],
+          "id": "EC4",
+          "key": "6.249:EC4",
+          "kind": "T",
+          "slug": "6-249-ec4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no stored value reads the eclipse shares yet: for 93 percent of planets the sibling planets and moons cover under 1e-4 of the light, while a circumbinary planet loses a median 3e-4 and up to 1.9 percent (census of 56)"
+        }
+      ],
+      "slug": "6-249-stand-ins-of-the-eclipses-of-a-star-by-a-body-of-the-system",
+      "title": "Stand-ins of the eclipses of a star by a body of the system"
     }
   ]
 }
