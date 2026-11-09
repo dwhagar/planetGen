@@ -55,7 +55,7 @@ def equilibrium_temperature_k(insolation):
     return TEQ_OVER_INSOLATION_FOURTH * insolation ** 0.25
 
 
-def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None):
+def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, radius_ratio=None):
     """
     The envelope the planet still has at `age_gy`, Earth masses (0 when it has fallen under `BARE_BELOW` of the planet's mass).
 
@@ -67,6 +67,10 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
         age_gy (float): The age.
         teq_k (float, optional): The equilibrium temperature; from the insolation when not given. It is held to the 300 to 2,000 K of the
             fit of Kubyshkina et al. (a colder planet loses little in any case).
+        radius_ratio (callable, optional): `(mass_earth, envelope_fraction, radius_earth) -> ratio`, the factor a tide puts on the radius of the
+            law at that step (GEN.1480: the rate goes as about R^4 to R^6 on the XUV branch and R^10 on the boil-off one, so a planet the
+            obliquity tide has inflated loses its envelope faster, and the loss has to see the radius the planet really has). None, the
+            default, leaves the radius as the law gives it, as every caller without a tide wants.
     """
     f_env0 = min(f_env0, MAX_ENVELOPE)
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
@@ -88,6 +92,8 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
         flux_erg_cm2_s = activity.coronal_xuv_at(host_mass_solar, age, luminosity_w) / area * 1e3
         mass = core_mass_earth + envelope
         radius = bulk_structure.envelope_radius_earth(mass, envelope / mass, insolation, age)
+        if radius_ratio is not None:
+            radius *= radius_ratio(mass, envelope / mass, radius)
         rate = thermosphere.hydro_based_mass_loss_g_s(mass, radius, teq, distance_au, flux_erg_cm2_s) * 1e-3 / earth_kg
         step = min(AGE_STEP * t, end - t)
         if rate > 0.0:

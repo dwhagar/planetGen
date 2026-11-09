@@ -109,6 +109,32 @@ def test_the_obliquity_tide_inflates_a_hot_tilted_planet_and_not_an_upright_or_u
     assert 1.02 * plain[1] < tilted[1] <= super_puff.TIDAL_MAX_RATIO * plain[1] * (1 + 1e-9)
 
 
+def test_the_loss_follows_the_inflated_radius_and_the_ratio_is_returned(young_sun):
+    """GEN.1480: a tilted, hot planet keeps no more envelope than the same planet upright, and `kept_with_tide` says it was inflated."""
+    old_sun = young_sun
+    old_sun.age = 6.0
+    upright = envelope_capture.kept_with_tide(_tilted(8.0, 0.1, old_sun, 0.0), 0.2, tides=True)
+    tilted = envelope_capture.kept_with_tide(_tilted(8.0, 0.1, old_sun, 60.0), 0.2, tides=True)
+    assert upright is not None and upright[2] == 1.0
+    assert tilted is None or (tilted[0] <= upright[0] * (1 + 1e-9) and tilted[2] >= 1.0)
+    plain = envelope_capture.kept_with_tide(_body(8.0, 0.1, old_sun), 0.2)
+    assert plain is not None and plain[2] == 1.0 and plain[:2] == envelope_capture.kept(_body(8.0, 0.1, old_sun), 0.2)
+
+
+def test_a_tilted_planet_in_the_tide_range_loses_strictly_more_envelope_than_an_untilted_one(young_sun):
+    old_sun = young_sun
+    old_sun.age = 8.0
+    found = None
+    for mass, distance in ((6.0, 0.15), (7.0, 0.14), (9.0, 0.13), (5.0, 0.16), (10.0, 0.12), (6.0, 0.2)):
+        flat = envelope_capture.kept_with_tide(_body(mass, distance, old_sun), 0.2, tides=True)
+        tilted = envelope_capture.kept_with_tide(_tilted(mass, distance, old_sun, 60.0), 0.2, tides=True)
+        if flat is not None and tilted is not None and tilted[2] > 1.0:
+            found = (flat, tilted)
+            break
+    assert found is not None, "no planet of the grid is inflated and old enough to lose envelope"
+    assert found[1][0] < found[0][0]
+
+
 def test_a_cold_planet_has_no_obliquity_tide_whatever_its_tilt(young_sun):
     cold = _tilted(5.0, 0.8, young_sun, 60.0)          # about 1.5 Earth fluxes
     assert envelope_capture.kept(cold, 0.41, tides=True)[1] == pytest.approx(envelope_capture.kept(cold, 0.41)[1])
