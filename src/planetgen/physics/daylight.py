@@ -56,7 +56,7 @@ YEAR_SAMPLES = 720
 
 DAY_SUN_W_M2 = 0.036
 """float: The light, W/m2, that makes a star a sun of the day (GEN.1461): civil twilight, 3.4 lux of the 1.3e5 lux of the Sun at Earth (2.6e-5 of its 1361 W/m2); a star that gives a body less than
-this does not make a day of its own (a stand-in, section 6.243 of the gap plan)."""
+this does not make a day of its own (a stand-in, section 6.247 of the gap plan)."""
 
 SKY_YEAR_SAMPLES = 36
 """int: The points of the circular year the suns' places are worked at when more than one sun counts (GEN.1461)."""

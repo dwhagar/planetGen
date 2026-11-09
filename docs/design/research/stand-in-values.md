@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1465 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1479 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1439 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1453 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 178 | 20 | 11 | 1 | 0 | 210 |
+| T1 | 181 | 20 | 11 | 1 | 0 | 213 |
 | T2 | 138 | 59 | 1 | 1 | 0 | 199 |
-| T3 | 103 | 46 | 9 | 10 | 0 | 168 |
-| T4 | 72 | 11 | 3 | 21 | 10 | 117 |
-| T5 | 68 | 23 | 6 | 1 | 0 | 98 |
-| T6 | 166 | 104 | 27 | 76 | 0 | 373 |
+| T3 | 105 | 46 | 9 | 10 | 0 | 170 |
+| T4 | 73 | 11 | 3 | 21 | 10 | 118 |
+| T5 | 70 | 23 | 6 | 1 | 0 | 100 |
+| T6 | 172 | 104 | 27 | 76 | 0 | 379 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 815 | 298 | 71 | 236 | 45 | 1465 |
+| All | 829 | 298 | 71 | 236 | 45 | 1479 |
 
 ## How the labels were given
 
@@ -2558,7 +2558,31 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DS3 | T | T6 | L0 | a companion's XUV history follows the same decay law as a host of its mass and luminosity (`activity.coronal_xuv_at`, its stored `log_lx_lbol` where it has one), starting from the system's age | none | main-sequence and giant companions | a companion much younger or older than the host, or a remnant with a stored XUV history of its own | the companion's own stored age and spin history | derived: the host's law; remnants without a stored XUV power give none (RF5) | predicted only | - | - |
 | DS4 | P | T7 | L0 | the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux | none | clear-sky doses | a body whose air cuts the stars' light differently by incidence angle | a per-star zenith angle | derived: the kernel is run once per star with the same column and the sums of its linear outputs (DNA dose, UV index) are taken | predicted only | - | - |
 
-## 6.242 Stand-ins of the other suns in a planet's sky
+## 6.242 Stand-ins of the drift and evaporation of the ices in the disk
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DE1 | T | T3 | L0 | planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc | normalization 1e-5 to 1e-3; exponents fixed by the form | a viscous disc of 0.01 to 0.1 solar masses | a measured pebble flux (drift in resolved discs), or a disc model with a different age law | a chemistry and pebble-flux model such as the CHEMCOMP code of [R5210] | form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1) | predicted only | - | - |
+| DE2 | T | T3 | L0 | planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3) | 60 to 250 AU at 1 Myr | a disc of 10 to 300 AU | a resolved disc whose dust ring front moves at another pace | as DE1 | [R5211], recalled; the number is computed from the two recalled efficiencies | predicted only | - | - |
+| DE3 | P | T6 | L0 | planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER`) | step against a decay of one growth time at the edge | all discs; the M dwarf rows are suspect (0.017 Myr) | an M dwarf disc with pebbles at 1 Myr or more | a gradual decay law from a disc model | my simplest form that conserves the dust; speculative, section 4 of the note | predicted only | - | - |
+| DE4 | P | T6 | L0 | planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio | t_nu 0.2 to 2 Myr | a Sun-like disc | accretion rates at 1 to 2 Myr outside 3e-9 to 3e-8 solar masses per year | a measured accretion history by mass | standard viscous disc theory; the numbers are mine, sized to 1e-8 solar masses per year at 1 to 2 Myr | predicted only | - | - |
+| DE5 | P | T6 | L0 | planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag | alpha 1e-4 to 1e-2 | gas between a line and a place inside it | a measured turbulence of discs far from 1e-3 | a viscous-spreading model of the lines | steady-disc theory, alpha from the observed range; the boxcar is my simplest form, speculative | predicted only | - | - |
+| DE6 | T | T6 | L0 | planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged | 0.35 to 0.95 | the water line, other lines when asked | a measured ice-to-rock ratio just outside a snow line | a diffusion model of the line | [R5209] abstract read: local vapor enhanced by more than an order of magnitude under nominal conditions, solids enhanced outside the front; the band width (a gas scale height) is mine | predicted only | - | - |
+| DE7 | D | T5 | L0 | planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L) | none | all ices | none: it follows from the front | none | geometry of the front, section 2.1 of the note | predicted only | - | - |
+| DE8 | D | T5 | L0 | planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
+| DE9 | P | T6 | L0 | planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
+| DE10 | P | T6 | L0 | planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
+
+## 6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SE1 | T | T1 | L0 | MgSiO3 post-perovskite dissociates to Mg2SiO4 (I-42d) + MgSi2O5 at 0.75 TPa: a watch entry, no density step | the pressure: 0.75 TPa; Clapeyron slope -10 MPa/K at 5,000 K; the sequence holds to 10,000 K, while another study predicts a different sequence above about 6,000 K | mantles of rocky planets with a central pressure over 0.75 TPa (about 5 Earth masses and more) | a measurement or a second calculation that puts the first dissociation outside 0.6 to 0.9 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE2 | T | T1 | L0 | MgSi2O5 dissociates to Mg2SiO4 + SiO2 (Fe2P-type) at 1.31 TPa: a watch entry, no density step | the pressure: 1.31 TPa; Clapeyron slope +6 MPa/K at 5,000 K | mantles with a central pressure over 1.31 TPa (about 8 Earth masses and more) | a second calculation outside 1.1 to 1.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1] | predicted only | - | - |
+| SE3 | T | T1 | L0 | Mg2SiO4 + SiO2 dissociates to CsCl-type MgO + SiO2 at 3.10 TPa: a watch entry, no density step | the pressure: 3.10 TPa (3 TPa at low temperature in the summary); Clapeyron slope -92 MPa/K at 5,000 K | mantles with a central pressure over 3 TPa (planets of about 15 Earth masses and more) | a second calculation outside 2.5 to 3.5 TPa | a table of the density of the products at each step | PREDICTED. READ [R5213: Section 3.1, Section 5] | predicted only | - | - |
+| SE4 | P | T4 | L0 | bulk_structure mantle table (`_MANTLE_RHO` to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is | none | rocky planets of 0.1 to 20 Earth masses | a radius of an Earth-like 5 to 10 Earth-mass planet more than 1 percent from the curve of Zeng's tables, or a measured mass and radius of such a planet that the table cannot reach | SE1 to SE3 with a density of the products | the solver against Zeng's tables: Earth-like -0.2 percent at 5 and -0.1 percent at 10 Earth masses (computed here); the tables were read from lweb.cfa.harvard.edu/~lzeng/planetmodels.html, not registered | predicted only | - | - |
+
+## 6.246 Stand-ins of the other suns in a planet's sky
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -2566,7 +2590,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SS2 | P | T7 | L0 | the share of each source's light is its mean part of the field (GEN.1441) and does not vary through the year | none | circular and moderately eccentric planet orbits | a planet whose distance from the host changes its share of the source's light by tens of percent through the year | the share worked at each step | derived: the source's light is the time-averaged `1/d^2` of the field; the host's `(a/r)^2` swing is kept in the host's own term | predicted only | - | - |
 | SS3 | T | T6 | L0 | a source with a share under `sky_suns.MIN_SHARE` = 1e-4 of the light is left out; moons, rogue planets and rings (the shade of a ring takes the host's sun only) read the host's sun alone | 1e-4 | all planets of a system with companions | a moon or a ringed planet whose seasons a companion decides | suns for moons (the moon's own axis against the planet's orbit) and the ring's shadow for every sun | design: the temperature changes by under one part in 10^4 below the share; moons and rings are the next slices | predicted only | - | - |
 
-## 6.243 Stand-ins of the day with every sun
+## 6.247 Stand-ins of the day with every sun
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -2575,7 +2599,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DY3 | P | T7 | L0 | each counted sun stands where the planet's place against it puts it, the planet taken on its circle of mean flux at the year's longitude and the companion fixed at its offset from the host at the orbit nodes' epoch | none | a companion whose period is longer than the planet's year | a companion whose orbit moves it by tens of degrees in the planet's year | the companion at its own place for each step of the year | derived: the planet-to-companion direction is the offset plus the planet's displacement from the host, which this keeps; the companion's period is at least `(R / d)^1.5` of the planet's | predicted only | - | - |
 | DY4 | P | T7 | L0 | a moon reads its planet's suns and the parent's shadow as before (the share of the moon's day the planet takes is multiplied on the union), its own spin axis against the planet's orbit decides the arcs | none | a moon that stands in no sibling's shadow | a moon whose sibling blocks one of two suns (GEN.1462) | the eclipse calendar of GEN.1462 | design: the shadow share is the parent's disk against the star in the union's mean | predicted only | - | - |
 
-## 6.244 Stand-ins of the eclipses of a star by a body of the system
+## 6.248 Stand-ins of the eclipses of a star by a body of the system
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

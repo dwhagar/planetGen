@@ -32,7 +32,7 @@ The orbits are circular and the observer is taken as a point, as everywhere in t
 cases are the Moon and the Sun for the Earth (the Moon touches the Sun's disk for 1.5e-4 of the time and covers 3.6e-5 of its light on average, from `5.1` degrees of inclination) and the transits of
 Venus (eight in 243 years, about six hours each, 2.4e-5 of the time).
 
-Stand-ins are the rows EC1 to EC3 of section 6.244 of the gap plan.
+Stand-ins are the rows EC1 to EC3 of section 6.248 of the gap plan.
 """
 
 import math
