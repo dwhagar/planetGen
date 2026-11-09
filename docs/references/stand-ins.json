@@ -12161,11 +12161,7 @@
           "what": "biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
