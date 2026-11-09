@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3736] - 2026-11-09
+
+**Headline:** The proof tests for the generation-rescan chain have their harness, and the first run already found that today's block-light refresh differs from a rebuild by one unit in the last place.
+
+### Changed
+
+- **Harness for the rescan-chain proofs (`tests/rescan_proof_support.py`, `tests/test_rescan_proofs.py`).** Rows compared as bytes (a float as its eight bytes) with the first difference named; a small seeded galaxy of three neighbouring sectors with bright stars and scattered phenomena (reusing `_save` of `test_sector_paths_db` and `_store_objects` of `test_block_lights`); a row-trigger touch log that counts every row a job processes, even one rewritten with the same value; the settled paths as bytes, and the rows the link stage writes (GEN.1482). Three proofs are in place: the block lights equal a rebuild after a delete and a regenerate (GEN.1476), a rescore run again touches no row (GEN.1479), and the settled paths are the same bytes every run (the harness for GEN.1477, whose own test settles with the neighbourhood read per sector and shared and compares). The first two are strict expected failures that name their item, because they fail today for the reasons the items fix: after a sector is deleted the stored block lights differ from a rebuild by one unit in the last place in star_luminosity_sol, star_lpy and star_lpz of every row (the refresh adds a block's sums in another order), and a second rescore touches all 34 scored bodies of the small galaxy. When the item lands the test passes and the strict mark fails the run until it is removed.
+
+generation-output: unchanged
+
 ## [8.0.3735] - 2026-11-09
 
 **Headline:** A hypergiant system is bounded by a test, the belt-and-habitable-world cases of the heaviest stars no longer pass the 900 s limit, and the seasonal swing's cheaper fixed point has a byte-for-byte proof.
