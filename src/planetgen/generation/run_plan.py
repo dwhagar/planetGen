@@ -2187,7 +2187,7 @@ class NebulaFieldFollower(followed.Follower):
     """
     The nebula field as a stage of a run (DB.24): the `draw-nebula-field` command draws every kept cloud of classes M and N
     of the galaxy's molecular cloud field from the seed, a unit per slab of field cells (`draw_nebula_field_unit`), after
-    the earlier table was emptied (`prepare_draw_nebula_field`). A nebula already stored from the field is linked back to
+    the earlier table was emptied (`empty_nebula_field_unit`, a stage of its own). A nebula already stored from the field is linked back to
     its row afterwards, and the Galaxy Map's nebula block totals are made again from the new field
     (`conclude_draw_nebula_field`).
 
@@ -2228,11 +2228,19 @@ class NebulaFieldFollower(followed.Follower):
         log.normal(f"Made {conclusion['blocks']:,} nebula block totals.")
 
 
-def prepare_draw_nebula_field(params):
+def expand_empty_nebula_field(params):
+    """The `empty-nebula-field` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def empty_nebula_field_unit(params, report):
     """
-    The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table. A galaxy with
-    no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an
-    earlier stage of the same run may be what builds the plan).
+    The `empty-nebula-field` command's unit (OPS.123; the `prepare` of `draw-nebula-field` before it, PERF.172): empties the earlier
+    table before the nebula field is drawn again. A galaxy with no outline has nothing to draw and nothing is emptied (PERF.203, checked
+    here and not when the run starts, because an earlier stage of the same run may be what builds the plan).
+
+    Returns:
+        dict: `emptied`, whether the table was emptied.
 
     Raises:
         RuntimeError: The galaxy's skeleton has never been built.
@@ -2241,10 +2249,19 @@ def prepare_draw_nebula_field(params):
     try:
         if store.get_galaxy_shape(conn) is None:
             raise RuntimeError(SKELETON_NEVER_BUILT)
-        if _outline(conn):
+        emptied = bool(_outline(conn))
+        if emptied:
             store.clear_nebula_field(conn)
     finally:
         conn.close()
+    return {"emptied": emptied}
+
+
+class EmptyNebulaFieldFollower(followed.Follower):
+    """The emptying of the nebula field table as a stage of a run (OPS.123): the `empty-nebula-field` command, one unit, before the draw."""
+
+    key = "nebula-clear"
+    label = "Clear the earlier nebula field"
 
 
 def conclude_draw_nebula_field(params, plan, results, seconds):
@@ -2816,7 +2833,7 @@ def redraw_nebula_field(args):
 def planned_nebula_field(args):
     """The nebula field table drawn again as a `followed.Planned`; its result is the rows written."""
     follower = NebulaFieldFollower(args)
-    return followed.Planned([follower], "Nebula field", lambda: follower.written)
+    return followed.Planned([EmptyNebulaFieldFollower(args), follower], "Nebula field", lambda: follower.written)
 
 
 def expand_refresh_block_lights(params):
@@ -3025,7 +3042,7 @@ def phenomena_followers(args, refuse=None, tag=""):
     book = _PhenomenaBook()
     followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
-                 NebulaFieldFollower(args)]
+                 EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return followers, book
 
 
@@ -3311,7 +3328,7 @@ def run_scatter(args):
     elif kind == "phenomena":
         scatter_phenomena(args, refuse=kind)
     elif kind == "nebula-field":
-        stages.enter(NEBULA_DRAW_KEY)
+        stages.enter("nebula-clear")
         redraw_nebula_field(args)
     else:
         scatter_bright_stars(args, passes=(kind,), refuse=kind)
