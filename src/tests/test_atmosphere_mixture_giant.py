@@ -230,17 +230,25 @@ def test_the_giant_mixture_is_deterministic_and_sums_to_one():
     assert all(st.SPECIES and value > 0 for value in first.mole_fractions.values())
 
 
+def made_median_keeps_the_disk(subject, recipe, disk):
+    from planetgen.physics import disk_condensation
+    median = dataclasses.replace(recipe, values={**recipe.values, "f7": disk_condensation.RECIPE_C_OVER_O_MEDIAN})
+    with draw.bound(6):
+        return mg.giant_mixture(subject, median).constants["c_over_o"] == pytest.approx(disk, rel=1e-6)
+
+
 def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_the_recipe():
     from planetgen.physics import disk_condensation
     subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disk_carbon=1.0, disk_oxygen=1.0)
     with draw.bound(5):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
-    disk = disk_condensation.envelope_c_over_o(100.0, recipe.values["f5"])
-    for f7 in (0.57, 0.4, 1.2):
+    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"])      # GEN.1471: the envelope carries a share of the bulk metals
+    for f7 in (disk_condensation.RECIPE_C_OVER_O_MEDIAN, 0.4, 1.2):
         shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
         with draw.bound(6):
             made = mg.giant_mixture(subject, shifted)
-        assert made.constants["c_over_o"] == pytest.approx(disk * f7 / 0.57, rel=1e-6)
+        assert made.constants["c_over_o"] == pytest.approx(disk * (f7 / disk_condensation.RECIPE_C_OVER_O_MEDIAN) ** disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT, rel=1e-6)
+    assert made_median_keeps_the_disk(subject, recipe, disk)
     bare = dataclasses.replace(recipe, values={**recipe.values, "f7": 0.9})
     with draw.bound(6):
         no_disk = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), bare)

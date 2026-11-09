@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1433 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1435 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1407 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1409 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 102 | 46 | 9 | 10 | 0 | 167 |
 | T4 | 72 | 11 | 3 | 21 | 10 | 117 |
 | T5 | 64 | 23 | 6 | 1 | 0 | 94 |
-| T6 | 159 | 102 | 28 | 74 | 0 | 363 |
+| T6 | 159 | 102 | 30 | 74 | 0 | 365 |
 | T7 | 37 | 17 | 9 | 31 | 0 | 94 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 91 | 34 | 187 |
-| All | 787 | 294 | 72 | 235 | 45 | 1433 |
+| All | 787 | 294 | 74 | 235 | 45 | 1435 |
 
 ## How the labels were given
 
@@ -2041,7 +2041,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DSC4 | P | T3 | L1 | disk_condensation.CH4_SHARE_OF_VOLATILE_CARBON 0.042: methane over methane plus CO plus CO2 of comet 67P | 0.01 to 0.2 | the volatile carbon of a disc | a second comet or a disc measurement of methane | the carbon chemistry of a disc | 67P CH4 0.34, CO 3.1 and CO2 4.7 percent of water, [R3835: Table 2], read; one comet taken for the disc | predicted only | - | - |
 | DSC5 | P | T3 | L3 | disk_condensation.NITROGEN_AS_N2 0.6 and NITROGEN_AS_SALTS 0.1; the rest ammonia hydrate | N2 0.4 to 0.9; salts 0.05 to 0.3 | the nitrogen of a disc | measured N2 or ammonium in a disc or comet | a nitrogen chemistry model | most nitrogen is N2 and unobserved, the salts a minority (the Rosetta result cited second-hand, [R3321]); the split is recalled | predicted only | - | no data |
 | DSC6 | P | T3 | L2 | disk_condensation.SULFUR_AS_H2S 0.3: the sulfur in H2S ice; the rest is troilite in the rock | 0.1 to 0.5 | a Sun-like disc | a comet with a different H2S over water | a sulfur chemistry model | 67P H2S 1.1 percent of water against 3.5 percent for all the sulfur over the water, [R3835: Table 2], read | predicted only | - | - |
-| DSC7 | P | T3 | L2 | disk_condensation.RECIPE_C_OVER_O_CENTER 0.57: a giant's C/O is its disc's value times the recipe's drawn `f7` over 0.57, the center of f7's core | spread of f7 (core 0.15 dex, tail to 1.5) | giants with a disc (not a brown dwarf or a rogue) | a retrieved sample whose C/O spread around the disc value is narrower | a model of what a giant swallows after the disc has set the place | f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); the disc value (median near 0.34 for the G2V giants sampled) sits below that median, so this keeps the spread and lets the disc set the center | predicted only | - | - |
+| DSC7 | P | T3 | L2 | disk_condensation.RECIPE_C_OVER_O_MEDIAN 0.511 (worked out by `recipe_c_over_o_median` from the shape of f7): a giant's C/O is its disc's value times the recipe's drawn `f7` over this median, to the power of DSC8 | spread of f7 (core 0.21 dex, cut to 0.2 to 0.8, tail to 1.5) | giants with a disc (not a brown dwarf or a rogue) | a retrieved sample whose C/O spread around the disc value is narrower | a model of what a giant swallows after the disc has set the place | f7's core and tail are fitted to LExACoM's 69 giants (median 0.57, 6 above 0.8, 12 below 0.35); GEN.1471: the ratio is taken to the median of the draw, 0.511, not to the core's center 0.57 (the core is cut at 0.8, so the draw's median is below it and the old ratio lowered every giant by a sixth), so the spread is kept and the disc sets the center | predicted only | - | - |
+| DSC8 | P | T6 | L2 | disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT 0.5: the power of the ratio of f7 to its median that multiplies the disc's C/O | 0 to 1 | giants with a disc | a retrieved sample whose C/O spread is narrower than the disc's own (exponent 0) or wider than the sum of both (exponent 1) | a model of what a giant swallows after the disc has set the place | the recipe's spread (what a giant swallowed) and the disc's own (the star's C/O, the place) overlap; GEN.1471 over 347 G2V giants with the share of DSC9: exponent 0.5 puts 16 percent under 0.35 where LExACoM has 12 of 69 (17 percent), the full power 20 to 26 percent | predicted only | - | - |
+| DSC9 | P | T6 | L2 | disk_condensation.ENVELOPE_METAL_SHARE 0.06: the share of a giant's bulk heavy-element enrichment (f5) that its envelope carries when its C/O is set | 0.03 to 0.3 | giants with a disc | a retrieved sample whose C/O median is below 0.5 or above 0.65 once the share is changed within the range | a model of how well a giant's metals are mixed (an interior and envelope model) | [R4350: Abstract] (read): the bulk metallicity is an upper limit on the atmosphere's, and comparing the two measures how well mixed the metals are; [R4663: Abstract] (read): the water abundance of gas giants is substellar, "low oxygen abundances relative to other elements"; tuned to LExACoM's median 0.57 and 17 percent under 0.35 [R5]: the whole bulk enrichment (18 times the star's for the median giant) is 90 percent solids of C/O 0.44 whatever the amount, so the enrichment range is not what moves the median and the share is; 0.06 gives 0.57 and 16 percent on the 347 giants it was chosen on and 0.59 and 14 percent on 331 fresh ones; the tail above 0.8 (22 to 26 percent against 4 to 9) stays: a gas-dominated giant takes the water-frozen gas C/O of 0.89 and the model has no drift and evaporation of water between | predicted only | - | - |
 
 ## 6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs
 
