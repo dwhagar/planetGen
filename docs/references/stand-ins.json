@@ -59811,7 +59811,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1492",
+          "unread": null,
           "what": "the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit)"
         },
         {
@@ -59887,7 +59887,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1492",
+          "unread": null,
           "what": "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
         }
       ],
