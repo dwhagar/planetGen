@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.296 |
+| UX | UX.297 |
 | MAP | MAP.412 |
 | NAV | NAV.78 |
-| GEN | GEN.1470 |
+| GEN | GEN.1475 |
 | PERF | PERF.256 |
 | DB | DB.121 |
-| API | API.43 |
-| ADM | ADM.151 |
-| SEC | SEC.47 |
-| TEST | TEST.710 |
-| USR | USR.32 |
+| API | API.48 |
+| ADM | ADM.154 |
+| SEC | SEC.48 |
+| TEST | TEST.713 |
+| USR | USR.33 |
 | OPS | OPS.133 |
-| DOC | DOC.118 |
+| DOC | DOC.120 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
 
@@ -571,6 +571,11 @@ Parents marked "new parent" had no old number of their own.
 | API.40 | Audit every link to a system or body page for row ids that should be object IDs | none | done, PR #4975 |
 | API.41 | Headline of 8.9: remote build: build a galaxy on a local machine, upload it and have the server verify it, with backups and repair as the second feature | none | open |
 | API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | open |
+| API.47 | The linked-sites list for the third project: each linked site has a kind (wiki, surface later) and the body page shows each kind in its own labelled block | API.45 | open |
+| API.46 | GET /api/objects/<ref>/linked-pages: the wiki pages about an object, asked of the wiki lazily and returned short | API.45 | open |
+| API.45 | The lookup client: one place that knows the contract GET <site>/api/v1/links?ref=..., with timeout, Redis cache, negative cache, breaker and a batch call | ADM.153 | open |
+| API.44 | The short address /o/<Object ID> that finds the kind and redirects, and one stable answer from /api/objects/<ref> that tells 'no longer charted' from 'wrong map'; check the anonymous read rule | none | open |
+| API.43 | A galaxy key and the site identity call: a short key made from the galaxy seed and the ID layout, stored with the galaxy and never changeable by hand, and GET /api/site returning it with the base address and API version | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -2237,6 +2242,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1467 | Mutual tides, spin and apsidal precession between the stars of a binary or triple | none | open |
 | GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) | GEN.1460 | open |
 | GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives | none | open |
+| GEN.1470 | Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug) | none | open |
+| GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre (divide by the drawn f7 median) and add one stand-in, the share m of bulk heavy elements the envelope carries (m = 0.1 first) | GEN.1363, GEN.1406 | open |
+| GEN.1472 | Design note for the drift and evaporation of water in the disc: how ice-rich solids drift in, evaporate at the snow line, and change the gas carbon-to-oxygen ratio by place and age | GEN.1471, GEN.1396 | open |
+| GEN.1473 | Build the drift and evaporation model of water in the disc and let the giant's envelope carbon-to-oxygen ratio follow it, so the over-0.8 tail of the giants falls toward the retrieved 4 to 9 percent | GEN.1472 | open |
+| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | open |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | open |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | open |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) | GEN.1399 | open |
@@ -2275,7 +2285,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today | none | open |
 | OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) | none | open |
 | OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook | none | open |
-| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | open |
+| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site | none | done, PR #5763 |
 | OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it | none | open |
 | OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) | none | open |
 | UX.288 | planetgen system --output <bad path> prints a Python traceback (bug) | none | done, PR #5688 |
@@ -2306,9 +2316,12 @@ Parents marked "new parent" had no old number of their own.
 | ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | open |
 | ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | open |
 | ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | open |
-| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | open |
-| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | open |
-| ADM.150 | An admin-requested list of the systems made so far in a generation run, as a job on the new task system (admin may wait for it) | none | open |
+| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests | none | done, PR #5795 |
+| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) | none | done, PR #5795 |
+| ADM.150 | The data side of the admin view of a run in progress: a job on the new task system that returns the sectors and systems made so far (admin may wait for it) | none | done, PR #5795 |
+| ADM.151 | A special admin search page to view the sectors, systems, planets and moons generated so far in the run in progress | ADM.150 | done, PR #5795 |
+| ADM.153 | The wiki settings section in config.json: switch, base and API addresses, write-only API key, link label, timeouts and cache lives, with the request-forgery guard; fix the stale doc line | none | open |
+| ADM.152 | An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit | SEC.47 | open |
 | MAP.407 | A database with only migration bookkeeping answers 404 'no page at this address' on every page instead of saying there is no galaxy yet (bug, low) | none | done, PR #5688 |
 | MAP.408 | The Galaxy Map key has no line for the globular cluster layer (bug) | none | done, PR #5688 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
@@ -3273,6 +3286,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.29 | Vessel and station objects: add, move along a course and list, with ownership | none | open |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | none | open |
 | USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 | none | done, PR #3083 |
+| USR.32 | Optional account sync between PlanetGen and the wiki site (spakr): one sign-in for both, as a later feature | SEC.47, USR.28 | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
@@ -3702,16 +3716,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | open |
 | DOC.111 | The link-neighbors command is in no document | none | done, PR #5755 |
 | DOC.112 | The /references/data page shows H2O, CO2, CH4, N2 and O2 without the formula written out | none | done, PR #5767 |
-| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | open |
+| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps | none | done, PR #5751 |
 | DOC.114 | Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text | none | open |
 | DOC.115 | One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept | DOC.114 | open |
-| DOC.116 | A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/ | none | open |
+| DOC.116 | A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/ | none | done, PR #5791 |
 | DOC.117 | History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents | DOC.114 | open |
+| DOC.119 | A request to the spakr owner: a typed planetgen_ref field on place pages, a links lookup for public pages with a batch form, and an API version header | none | open |
+| DOC.118 | A developer page for spakr's author: the identifier spec, the galaxy key, the stability rules, the site and object calls, the integration key rules and the lookup contract | none | open |
 | SEC.42 | Hardening after 8.1: pin and limit the workflows, harden the gunicorn unit, parse the SVG check with defusedxml | none | done, PR #5457 |
 | SEC.45 | A worker-side allowlist of the functions a queue job may name, so a Redis user without the password cannot get a worker to run an arbitrary function | none | done, PR #5468 |
 | SEC.46 | Accept /home and /Users in the config.json folder check, for installs in a home folder on a shared machine (SEC.44 follow-up, Boss) | none | done, PR #5444 |
 | SEC.43 | An Update button in the admin pages: update.sh runs as root from a request file, never from a root shell | none | done, PR #5426 |
 | SEC.44 | Root reads folder paths from the web-editable config.json and chowns them: a web-user compromise can pick a path root then changes | none | done, PR #5442 |
+| SEC.47 | Integration keys: issue, hash, scope, rotate and revoke an API key made by the PlanetGen owner for a linked site, limited to read-only calls on the object API and the site identity call | USR.28 | open |
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
@@ -4408,6 +4425,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.707 | test_no_todo_codes_shown fails on main: the string at planetgen/physics/surface_composition.py line 150 shows the code GEN.1366 to the visitor | none | done, PR #5765 |
 | TEST.708 | test_references_method fails on main: the property sheet has a group named Dust that the area list in the test does not hold | none | done, PR #5765 |
 | TEST.709 | test_api_life_air test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made is flaky: it draws unseeded systems in a 40-try loop and sometimes finds no methane row | none | done, PR #5758 |
+| TEST.710 | Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL | UX.296 | open |
+| TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
+| TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -4550,6 +4570,7 @@ Each citation below resolves to one item by its date.
 | UX.287 | Sensor view: magnetic field lines drawn for a planet, moon, star or neutron star from its stored field strength and dipole orientation, when it has a field | none | open |
 | UX.294 | Seven JS files format numbers by hand (toLocaleString, toExponential, toPrecision): move them to numberformat.js and unitladder.js | none | done, PR #5755 |
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting | none | open |
+| UX.296 | The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link | API.46 | open |
 
 ### Code tags `TODO(<area> #N)`
 

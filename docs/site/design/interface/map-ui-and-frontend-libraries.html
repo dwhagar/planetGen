@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Map interface and front-end libraries - planetGen docs</title>
+<meta name="description" content="How the browser side of planetGen should look and behave next, and what the vendored front-end libraries cost to keep: the health of Shoelace, three.js, Xterm.js and TanStack, the form-field work, the pilot-console look and its measured ...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/map-ui-and-frontend-libraries.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/map-ui-and-frontend-libraries.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="map-interface-and-front-end-libraries">Map interface and front-end libraries</h1><p class="meta">docs/design/interface/map-ui-and-frontend-libraries.md</p><details class="toc"><summary>On this page (34 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#1-front-end-library-health">1. Front-end library health</a></li><li style="margin-left:14px"><a href="#11-what-is-vendored">1.1 What is vendored</a></li><li style="margin-left:14px"><a href="#12-shoelace-is-finished-but-nothing-breaks">1.2 Shoelace is finished but nothing breaks</a></li><li style="margin-left:14px"><a href="#13-threejs">1.3 three.js</a></li><li style="margin-left:14px"><a href="#14-vendored-version-lock-file-recommended">1.4 Vendored-version lock file (recommended)</a></li><li style="margin-left:0px"><a href="#2-form-fields-ux49">2. Form fields (UX.49)</a></li><li style="margin-left:0px"><a href="#3-the-pilots-starmap-console-ux43-ux42-ux76">3. The pilot's starmap console (UX.43, UX.42, UX.76)</a></li><li style="margin-left:14px"><a href="#31-references-and-what-to-take">3.1 References and what to take</a></li><li style="margin-left:14px"><a href="#32-design-rules">3.2 Design rules</a></li><li style="margin-left:14px"><a href="#33-token-table-measured">3.3 Token table (measured)</a></li><li style="margin-left:14px"><a href="#34-wcag-22-aa-checklist-applied">3.4 WCAG 2.2 AA checklist applied</a></li><li style="margin-left:14px"><a href="#35-ux76-status">3.5 UX.76 status</a></li><li style="margin-left:0px"><a href="#4-nebulae-with-soft-boundaries-map142">4. Nebulae with soft boundaries (MAP.142)</a></li><li style="margin-left:14px"><a href="#41-how-nebulae-were-drawn-before-map142">4.1 How nebulae were drawn before MAP.142</a></li><li style="margin-left:14px"><a href="#42-techniques-compared">4.2 Techniques compared</a></li><li style="margin-left:14px"><a href="#43-keeping-the-extent-readable">4.3 Keeping the extent readable</a></li><li style="margin-left:14px"><a href="#44-colours-per-class-colour-blind-safety-dark-nebulae">4.4 Colours per class, colour-blind safety, dark nebulae</a></li><li style="margin-left:14px"><a href="#45-recommendation">4.5 Recommendation</a></li><li style="margin-left:0px"><a href="#5-interaction">5. Interaction</a></li><li style="margin-left:14px"><a href="#51-select-mode-map122">5.1 Select mode (MAP.122)</a></li><li style="margin-left:14px"><a href="#52-picking-70000-to-1000000-points">5.2 Picking 70,000 to 1,000,000 points</a></li><li style="margin-left:14px"><a href="#53-double-click-map140">5.3 Double-click (MAP.140)</a></li><li style="margin-left:14px"><a href="#54-context-rendering-map121-map141">5.4 Context rendering (MAP.121, MAP.141)</a></li><li style="margin-left:14px"><a href="#55-mini-map-as-a-second-camera-map75">5.5 Mini map as a second camera (MAP.75)</a></li><li style="margin-left:14px"><a href="#56-star-point-rendering">5.6 Star point rendering</a></li><li style="margin-left:14px"><a href="#57-habitable-worlds-colouring-map143">5.7 Habitable-worlds colouring (MAP.143)</a></li><li style="margin-left:14px"><a href="#58-superbubbles-map236">5.8 Superbubbles (MAP.236)</a></li><li style="margin-left:0px"><a href="#6-bookmarks-and-charted-regions-ux45-to-ux48">6. Bookmarks and charted regions (UX.45 to UX.48)</a></li><li style="margin-left:0px"><a href="#7-job-logs-progress-and-warnings-adm22-adm40-ux3">7. Job logs, progress and warnings (ADM.22, ADM.40, UX.3)</a></li><li style="margin-left:0px"><a href="#8-admin-editable-expected-density-map119">8. Admin-editable expected density (MAP.119)</a></li><li style="margin-left:0px"><a href="#9-bosss-uploaded-ux-documents-what-still-holds">9. Boss's uploaded UX documents: what still holds</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How the browser side of planetGen should look and behave next, and what the
+vendored front-end libraries cost to keep: the health of Shoelace, three.js,
+Xterm.js and TanStack, the form-field work, the pilot-console look and its
+measured colour tokens, soft nebula edges, Select mode and picking, the mini
+map, bookmarks and charted regions, job warnings and logs, and the admin
+density control. It adds measured numbers to the plan in
+<a href="../architecture/library-migration.html">library-migration.md</a> and to the map plans in
+<a href="galaxy-drilldown-navigation.html">galaxy-drilldown-navigation.md</a>.</p>
+<p>Informs: UX.3, UX.40, UX.41, UX.42, UX.43, UX.45, UX.46, UX.47, UX.48, UX.49,
+UX.76, MAP.75, MAP.102, MAP.119, MAP.121, MAP.122, MAP.132, MAP.139, MAP.140,
+MAP.141, MAP.142, MAP.143</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [S] seen in a search result or a raw file (URL in Sources), [C]
+computed or measured with a script or a registry read on 2026-10-09, [R]
+recalled and unconfirmed. The research environment could read search-result
+text and raw files but not papers or the full vendor sites, so every [R] item
+is listed under Evidence notes to check when paper access is allowed.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Boss (2026-10-03 05:38Z): move to third-party libraries; Shoelace, TanStack,
+Xterm.js and three.js are vendored as ES module builds served by Flask, with no
+bundler and no CDN at runtime (<a href="../architecture/library-migration.html">library-migration.md</a>,
+section 5).</li>
+<li>Boss (2026-10-07 11:47Z), UX.43: &quot;All design elements should be built from the
+ground up to look like, as much as possible, a starmap and navigational system
+that a space pilot might use.&quot;</li>
+<li>Boss (2026-10-07 11:47Z), MAP.122: a &quot;Select Mode&quot; at all galactic views,
+defaulting to Galaxy (wedges, blocks, slabs), with a Star mode where stars are
+selectable and can be bookmarked or made a waypoint.</li>
+<li>Boss (2026-10-07 11:47Z), UX.46 and UX.48: wiping a galaxy wipes all bookmarks;
+each cluster of contiguous generated content gets a bookmark that zooms to show
+all its sectors and highlights the region's shape.</li>
+<li>Boss (2026-10-03 05:38Z), MAP.121: sectors between the camera and the sector in
+view fade, &quot;the more they obstruct the view the more invisible they become&quot;;
+neighbours are dimmed without comets or rogue planets. Boss (2026-10-07 16:27Z):
+one map engine for sectors, galaxy and systems.</li>
+<li>Boss (2026-10-03 05:38Z), MAP.119: expected star density is editable by admins,
+static for users and guests, and an edit applies to the current view (a slab or
+block). Boss (2026-10-08 01:59Z), MAP.132: blocks are never fully opaque.</li>
+<li>Boss (2026-10-09 00:25Z to 00:44Z), MAP.140 to MAP.143: double-click goes to the
+selected object; faint context around the selection; fuzzy, gaseous nebula
+edges; colouring by habitable locations.</li>
+<li>Boss (2026-10-01), UX.3: a banner to every visitor while a background job
+changes the galaxy, with an ETA rounded up to the next hour.</li>
+</ul>
+<h2 id="1-front-end-library-health">1. Front-end library health</h2>
+<h3 id="11-what-is-vendored">1.1 What is vendored</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Library</th>
+<th>Vendored</th>
+<th>Latest on npm (published)</th>
+<th>Status</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>@shoelace-style/shoelace</td>
+<td>2.20.1</td>
+<td>2.20.1 (2025-03-11)</td>
+<td>README: &quot;Shoelace is sunset. There is no active development&quot; [S]; no registry deprecation [C]</td>
+<td>Final release; MIT; <code>npm audit</code> on the pinned set (Shoelace, three, xterm, TanStack) found 0 vulnerabilities [C]</td>
+</tr>
+<tr>
+<td>three</td>
+<td>0.186.0 (r186)</td>
+<td>0.186.1 (2026-09-24)</td>
+<td>none</td>
+<td>About one minor every 2 months (0.183 Feb 2026, 0.184 Apr, 0.185 Jun, 0.186 Sep) [C]</td>
+</tr>
+<tr>
+<td>@xterm/xterm, @xterm/addon-fit</td>
+<td>6.0.0, 0.11.0</td>
+<td>6.0.0 (2025-12-22), 0.11.0; beta 6.1.0-beta.304 (2026-08-30)</td>
+<td>old <code>xterm</code> and <code>xterm-addon-fit</code> packages are deprecated [C]</td>
+<td>Vendored names are already the current ones</td>
+</tr>
+<tr>
+<td>@tanstack/table-core</td>
+<td>8.21.3</td>
+<td>9.2.8 (2026-10-08)</td>
+<td>v8 is no longer <code>latest</code> [C]</td>
+<td>Stay on 8 until a feature needs 9</td>
+</tr>
+<tr>
+<td>@tanstack/virtual-core</td>
+<td>3.13.12</td>
+<td>3.17.11 (2026-09-14)</td>
+<td>none</td>
+<td>Four minors behind; low risk</td>
+</tr>
+<tr>
+<td>three-mesh-bvh</td>
+<td>not vendored, not imported anywhere in <code>src/html/static</code></td>
+<td>0.9.16 (2026-10-08)</td>
+<td>none</td>
+<td>Dropped for picking, section 5.2</td>
+</tr>
+</tbody>
+</table></div>
+<p>Source for every row: <code>registry.npmjs.org/&lt;package&gt;</code> JSON [C]. The Shoelace
+README also says issues belong on Web Awesome and that the package stays
+available under MIT; the Font Awesome blog posts agree that 2.20.1 is the last
+release [S]. The Shoelace 2.20.1 files bundle Lit 3 (lit-html 3.2.1, lit-element
+4.1.1, reactive-element 2.0.4 in the vendored chunks) plus floating-ui and
+tinycolor [C]. Their licences are [R] (MIT or BSD-3); <code>vendor/shoelace/LICENSE.md</code>
+covers Shoelace only, so the notices file should list the bundled ones.</p>
+<h3 id="12-shoelace-is-finished-but-nothing-breaks">1.2 Shoelace is finished but nothing breaks</h3>
+<p>Do not migrate now. The successor, Web Awesome (<code>@awesome.me/webawesome</code>
+3.14.0, 2026-09-24), is active and MIT in its free tier (copyright Fonticons;
+every version since 3.0.0-beta.1 is MIT in the registry [S][C]; 3.0.0 final
+2025-10-28, then 3.1 to 3.14 every 2 to 4 weeks). It has 73 free components
+including input, select, checkbox, switch, textarea, dialog, drawer, dropdown,
+tab-group, tree, toast and progress-bar, a <code>shoelace</code> theme file to ease
+migration, and a <code>native.css</code> for plain elements [C]. The paid Pro tier adds
+components such as a date picker and data grid; the site needs none, and
+current Pro prices were not found. Costs found by reading the 3.14.0 tarball:</p>
+<ul>
+<li>Size: <code>dist</code> is 13 MB unpacked against 8 MB for Shoelace [C]; only imported
+components ship, as now.</li>
+<li>Icons break the CSP. The default icon library fetches from
+<code>https://ka-f.fontawesome.com/releases/v7.3.0/svgs/...</code> [C], and the &quot;system&quot;
+icons are <code>data:</code> URIs. The site sends <code>default-src 'self'</code>, so both must be
+saved as local files, which is what <code>shoelaceicons.js</code> and
+<code>scripts/vendor_shoelace.py</code> already do for Shoelace.</li>
+<li>Themes use CSS relative colour syntax (<code>oklch(from currentColor ...)</code>) [C],
+which needs a recent browser (about Chrome 119, Safari 16.4, Firefox 128 [R]).
+The site's browser baseline is not written down.</li>
+<li>Tags become <code>wa-*</code>, &quot;primary&quot; becomes &quot;brand&quot;, and the token set is new
+(<code>--wa-*</code>) [R for exact renames; the migration guide could not be fetched].
+<code>shoelace-theme.css</code> derives every <code>--sl-color-*</code> from the site tokens and
+would be rewritten, not just renamed.</li>
+</ul>
+<p>Size of a migration today: 39 <code>&lt;sl-*&gt;</code> tags in 9 files under <code>src/planetgen</code>
+(14 sl-button, 7 sl-menu-item, 7 sl-dialog, 5 sl-dropdown, 4 sl-menu, 1
+sl-icon-button, 1 sl-divider) plus 2 in JavaScript [C]. UX.49 as written adds
+about 14 selects, 5 textareas and 20-odd visible inputs. The migration is cheap
+now and gets dearer with each added form field.</p>
+<p>Alternatives looked at [C unless noted]: Material Web 2.5.0 (README: &quot;maintenance
+mode pending new maintainers&quot; [S]), Lion <code>@lion/ui</code> 0.21.1 (unstyled, small
+community [R]), Spectrum Web Components 1.12.4 and Carbon web components 2.65.0
+(heavy, strong house looks), Pico CSS 2.1.1 (native elements only, no menus or
+dialogs), Open Props 1.7.23 (variables only, useful as a token source). None
+beats staying on Shoelace or moving to Web Awesome; native elements styled by
+the site tokens remain the best choice for accessibility and no-JS behaviour.</p>
+<p>Recommendation: keep Shoelace for the components in use; re-evaluate Web
+Awesome when Shoelace develops a real problem (browser break, advisory) or when
+the UX.43 restyle makes Shoelace's token model the obstacle. If the move is
+wanted at all, do it inside UX.43: one restyle, one rename.</p>
+<h3 id="13-threejs">1.3 three.js</h3>
+<ul>
+<li><strong>Imports.</strong> <code>three.module.js</code> imports <code>three.core.js</code> since r171 [S]. The
+repo bundles both into one file with esbuild and loads it by relative path
+with <code>?v=</code>, with no import map. That is right here: an import map is inline
+JSON, which <code>default-src 'self'</code> blocks (the CSP consequence is inferred; the
+inline-JSON rule is [S]). Keep relative imports.</li>
+<li><strong>Reproducible [C].</strong> <code>npm pack three@0.186.0</code>, then
+<code>esbuild --bundle --minify --format=esm package/build/three.module.js</code> with
+esbuild 0.28.2 gives SHA-256
+<code>fba62dfd6f0cdf58c9647d9cfe6e83cec5cf98eb24a7677ad116f4c0fca33902</code>, identical
+to <code>static/vendor/three.module.min.js</code> (742,188 bytes). Stay on r186; 0.186.1
+is a patch.</li>
+<li><strong>Tree shaking is not worth a build step [C].</strong> The code names 41 <code>THREE.*</code>
+symbols. A bundle of only those is 562,098 bytes (140 KB gzip) against 742,188
+(189 KB gzip), because <code>WebGLRenderer</code> dominates. Gzip or brotli on the front
+end matters more.</li>
+<li><strong>Deprecations in r186 [C].</strong> <code>Clock</code> (since r183; &quot;This module has been
+deprecated. Please use THREE.Timer instead.&quot; in the vendored file),
+<code>Source</code> renamed <code>TextureSource</code> (r186), <code>Matrix3.scale/rotate/translate</code>
+(r185), <code>ColorManagement.fromWorkingColorSpace/toWorkingColorSpace</code> (r177),
+<code>PCFSoftShadowMap</code> (unused). Only <code>Clock</code> is used, at
+<code>phenomenonrender.js:528</code>. Replace it with <code>THREE.Timer</code> before the next bump.</li>
+<li><strong>WebGPU.</strong> The manual describes <code>WebGPURenderer</code> as the modern renderer with
+automatic WebGL 2 fallback, and says larger features are no longer added to
+<code>WebGLRenderer</code> [S]. The engine is raw GLSL <code>ShaderMaterial</code> code (stars,
+cloud volumes, glow) that would need a rewrite to TSL. No benefit justifies
+that for 70,000 points and a few volumes. Revisit only if a target browser
+drops WebGL.</li>
+<li><strong>Notes for new shaders.</strong> The Galaxy Map renderer uses
+<code>logarithmicDepthBuffer: true</code> (<code>galaxymap3d.js:592</code>) and caps pixel ratio at
+2 (line 593). Every custom shader needs the <code>logdepthbuf_*</code> chunks as the star
+shader has, and log depth disables early-z, which matters for overdraw.
+<code>Data3DTexture</code> and <code>readRenderTargetPixelsAsync</code> exist in r186 [C].</li>
+</ul>
+<h3 id="14-vendored-version-lock-file-recommended">1.4 Vendored-version lock file (recommended)</h3>
+<p>Facts [C]: <code>three</code> has registry signatures but no provenance attestation (as do
+Shoelace, xterm and addon-fit); the two TanStack packages carry SLSA
+provenance. <code>vendor/THIRD_PARTY_NOTICES.txt</code> records versions and rebuild
+commands but no hash, no esbuild version and no check that the files on disk
+match.</p>
+<p>Add <code>static/vendor/VENDORED.json</code>, written by <code>scripts/vendor_shoelace.py</code> and a
+new small <code>scripts/vendor_other.py</code> (three, xterm, tanstack): per package, the
+version, npm <code>dist.integrity</code>, <code>built_with</code> (for example <code>esbuild 0.28.2</code>),
+licence and the SHA-256 of each shipped file. A pytest hashes every file under
+<code>vendor/</code> and fails on a mismatch or an unlisted file; a vendor bump regenerates
+the lock; the notices file names the esbuild version. Subresource Integrity adds
+nothing for same-origin files; the lock catches accidental edits and shows a
+reviewer exactly what changed. Optional CI step: <code>npm pack &lt;pkg&gt;@&lt;version&gt;</code>,
+compare <code>dist.integrity</code>, rebuild, compare hashes (done by hand for three), and
+run <code>npm audit</code> on a throwaway lock built from <code>VENDORED.json</code> (0 findings
+today).</p>
+<h2 id="2-form-fields-ux49">2. Form fields (UX.49)</h2>
+<p>Size is not the issue. Added to <code>COMPONENTS</code> [C, same import-closure rule as
+<code>scripts/vendor_shoelace.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Added</th>
+<th>Extra files</th>
+<th>Extra raw</th>
+<th>Extra gzip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>input</td>
+<td>6</td>
+<td>28.5 KB</td>
+<td>6.9 KB</td>
+</tr>
+<tr>
+<td>select and option</td>
+<td>12</td>
+<td>52.0 KB</td>
+<td>13.0 KB</td>
+</tr>
+<tr>
+<td>checkbox</td>
+<td>6</td>
+<td>16.3 KB</td>
+<td>4.6 KB</td>
+</tr>
+<tr>
+<td>textarea</td>
+<td>6</td>
+<td>20.8 KB</td>
+<td>5.5 KB</td>
+</tr>
+<tr>
+<td>radio-group and radio</td>
+<td>11</td>
+<td>25.2 KB</td>
+<td>7.4 KB</td>
+</tr>
+<tr>
+<td>input, select, option, checkbox, textarea together</td>
+<td>25</td>
+<td>108.0 KB</td>
+<td>26.9 KB</td>
+</tr>
+</tbody>
+</table></div>
+<p>The current set is 63 files, 244 KB raw, 69 KB gzip. The risks are behavioural:</p>
+<ol>
+<li><strong>No-JS and first paint.</strong> An <code>sl-input</code> that is undefined, or with scripts
+blocked, does not exist, and <code>shoelace-theme.css</code> already hides undefined
+components. The site is server-rendered and forms post normally; a vanished
+field is worse than a plain input.</li>
+<li><strong>Autofill and password managers</strong> work less reliably inside a shadow root
+[R]. Sign-in, account, 2FA (<code>autocomplete=&quot;one-time-code&quot;</code>) and new-password
+fields should stay native.</li>
+<li><strong>Server-side validation errors</strong> (ADM.21's Pydantic errors list every field)
+must show against the right field. <code>sl-input</code> has <code>setCustomValidity</code> and
+<code>help-text</code>, but the Jinja <code>field()</code> macros (<code>generate.html</code>,
+<code>generate_system.html</code>) need a second code path.</li>
+<li><strong>Border contrast.</strong> Shoelace's input border is <code>--sl-color-neutral-300</code>;
+with the site's token mapping that is 1.78:1 against the page in the light
+theme and 2.70:1 in dark [C]. WCAG 1.4.11 needs 3:1. Set
+<code>--sl-input-border-color</code> to the new <code>--line</code> token (section 3.3), 3.4:1 or
+better.</li>
+<li><strong>Other Shoelace states against the site tokens [C].</strong> Default button hover
+5.5 (light) and 5.9 (dark); primary button 5.08 and 5.84, its hover 4.23 and
+5.02; placeholder 4.41 and 5.76; menu-item focus 5.08 and 5.84; icon button
+5.71 and 8.04. Two light-theme values fail 4.5: primary hover and the
+placeholder. Fix by lowering the <code>primary-500</code> mix or darkening the
+placeholder token. These were measured before UX.76 landed (section 3.5) and
+should be rechecked.</li>
+<li><strong>Tests.</strong> The browser test UX.49 asks for fills each kind and submits;
+Playwright pierces open shadow roots [R].</li>
+</ol>
+<p>Recommended re-scope (for Boss to confirm, since his wording is &quot;every text
+box&quot;): one token-styled look for all fields; <code>sl-select</code> and
+<code>sl-checkbox</code>/<code>sl-switch</code> where their features (clearable, listbox) earn it;
+hidden, submit, password and one-time-code fields stay native. If UX.49 is done
+on Shoelace, accept a later <code>sl-</code> to <code>wa-</code> rename; if as native controls, the
+question is deferred.</p>
+<h2 id="3-the-pilots-starmap-console-ux43-ux42-ux76">3. The pilot's starmap console (UX.43, UX.42, UX.76)</h2>
+<h3 id="31-references-and-what-to-take">3.1 References and what to take</h3>
+<ul>
+<li><strong>Elite Dangerous</strong> [S]: one dominant HUD hue (orange) with blue highlights, a
+colour matrix to recolour; avoid hue-only status (players with colour
+deficiency report hostile, neutral and friendly look alike).</li>
+<li><strong>Glass-cockpit alerting</strong> [S, FAA AC 25-11, EASA]: red is warning (act now),
+amber is caution, advisory is any colour except red or green; white for general
+data. Magenta, cyan and green symbology meanings are [R].</li>
+<li><strong>NASA Open MCT</strong> [S, raw SCSS, Apache-2.0]: dark neutral chrome, one key colour
+<code>#0099cc</code>, status colours kept for status (info <code>#60ba7b</code>, alert <code>#ffb66c</code>,
+error <code>#da0004</code>), 12 px type, 2 to 4 px radii. Avoid its low-contrast greys
+(<code>#aaa</code> on <code>#393939</code> is 4.4:1 [C]).</li>
+<li><strong>Game and desktop planetarium maps</strong> (Star Citizen, Starfield, Stellaris,
+Celestia, SpaceEngine, Gaia Sky, Stellarium Web) [R, no sources retrieved]:
+dark field, thin line art, glowing selected markers, haloed labels, scale
+readouts; avoid ornament that costs legibility and endless animation.</li>
+<li><strong>LCARS</strong>: nothing literal; the name, colour set, elbow bars and font are
+protected trade dress [R, not legal advice].</li>
+<li><strong>B612 Mono</strong>: designed for cockpit displays, SIL OFL 1.1, <code>@fontsource/b612-mono</code>
+5.3.0, Latin woff2 19 KB per weight [C]; the Airbus and ENAC origin is [R].</li>
+</ul>
+<p>Adopt the aviation meanings (red critical, amber caution or selected, green
+nominal, cyan interactive, magenta planned route, white general data) and always
+pair a colour with a symbol or word.</p>
+<h3 id="32-design-rules">3.2 Design rules</h3>
+<ul>
+<li><strong>Layout.</strong> A chart-table instrument panel: a dark &quot;space&quot; field (the map canvas,
+already <code>#05070c</code> or <code>#05070d</code> in both themes) inside chrome of 1 px hairline
+borders, a corner tick or chamfer (not rounded 10 px cards) and a small-caps
+header strip. Keep the functional layout; add a few shared components (panel
+header, readout row, status chip, tick scale).</li>
+<li><strong>Type.</strong> <code>system-ui</code> for sentences; readouts, coordinates, designations and
+table numerals in a monospace with <code>font-variant-numeric: tabular-nums slashed-zero</code> (candidate B612 Mono self-hosted, <code>ui-monospace</code> fallback). Labels
+11 to 12 px uppercase, 0.06 to 0.1em tracking, under about 24 characters; form
+inputs 16 px so iOS does not zoom.</li>
+<li><strong>Lines and glow.</strong> 1 px hairlines for panels and grids; 1.5 to 2 px for selection
+and route; a 2 px focus ring with 2 px offset. Decorative grids may be low
+contrast (WCAG 1.4.11 exempts decoration); any line that conveys state must reach
+3:1. Glow (<code>drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 55%, transparent))</code>) only on interactive state, never on text, and contrast is judged
+without it.</li>
+<li><strong>Motion.</strong> Transitions 120 to 200 ms; pulses only under
+<code>prefers-reduced-motion: no-preference</code>, period at least 1.5 s, stopping after a
+few cycles (WCAG 2.3.1). <code>nebulaview.js</code> already gates its auto-turn; make that
+the shared pattern.</li>
+<li><strong>Icons and density.</strong> Keep the 24x24 stroke-2 <code>currentColor</code> sprite (<code>icons.svg</code>,
+UX.28), <code>aria-hidden</code> with a text label on the button. Label:value pairs, numbers
+right-aligned, units muted at 85% size, at most 7 +/- 2 readouts per panel before
+a Details fold (MAP.139), one primary action per panel.</li>
+<li><strong>Wording (UX.42).</strong> The same panel header carries the in-universe names
+(&quot;Chart&quot;, &quot;Charted only&quot;); schedule UX.42 with UX.43 so each page is touched once.
+Admin pages may stay plain.</li>
+</ul>
+<h3 id="33-token-table-measured">3.3 Token table (measured)</h3>
+<p>The site's current <code>style.css</code> tokens are <code>--bg</code>, <code>--bg-elevated</code>, <code>--bg-subtle</code>
+(dark: <code>#23253470</code>, with alpha), <code>--text</code>, <code>--text-muted</code>, <code>--border</code>,
+<code>--accent</code>, <code>--accent-contrast</code>, <code>--link</code>, <code>--link-visited</code> and <code>--error</code>
+(current dark values: <code>--bg #14151e</code>, <code>--accent #8891f5</code>). The table keeps those
+names so <code>shoelace-theme.css</code> follows automatically, and adds the console
+tokens. <code>--line</code> is new and stricter than <code>--border</code>: <code>--border</code> stays for
+decorative dividers, <code>--line</code> is for control borders and state lines. Contrast
+is the WCAG 2.x relative-luminance ratio [C]; &quot;checks&quot; give text on bg, panel,
+raised.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Token</th>
+<th>Dark</th>
+<th>Light (&quot;daylight chart&quot;)</th>
+<th>Role</th>
+<th>Dark checks</th>
+<th>Light checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--bg</code></td>
+<td><code>#05080d</code></td>
+<td><code>#e9eef3</code></td>
+<td>page, map space</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>--bg-elevated</code></td>
+<td><code>#0b121b</code></td>
+<td><code>#f6f8fa</code></td>
+<td>panels</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>--bg-raised</code></td>
+<td><code>#121c28</code></td>
+<td><code>#ffffff</code></td>
+<td>menus, dialogs, inputs</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>--text</code></td>
+<td><code>#d9e6f2</code></td>
+<td><code>#12202c</code></td>
+<td>body</td>
+<td>15.8 / 14.8 / 13.5</td>
+<td>14.2 / 15.6 / 16.6</td>
+</tr>
+<tr>
+<td><code>--text-muted</code></td>
+<td><code>#93a9bd</code></td>
+<td><code>#44596b</code></td>
+<td>secondary</td>
+<td>8.3 / 7.8 / 7.1</td>
+<td>6.2 / 6.8 / 7.3</td>
+</tr>
+<tr>
+<td><code>--text-faint</code></td>
+<td><code>#7a93a9</code></td>
+<td><code>#4e6377</code></td>
+<td>units, captions</td>
+<td>6.3 / 5.9 / 5.4</td>
+<td>5.3 / 5.8 / 6.2</td>
+</tr>
+<tr>
+<td><code>--line</code></td>
+<td><code>#4b6b88</code></td>
+<td><code>#6f8599</code></td>
+<td>control borders, state lines</td>
+<td>3.37 on panel</td>
+<td>3.59 on panel</td>
+</tr>
+<tr>
+<td><code>--grid</code></td>
+<td><code>#16222f</code></td>
+<td><code>#d3dde6</code></td>
+<td>decorative grid</td>
+<td>1.25 (decor)</td>
+<td>1.18 (decor)</td>
+</tr>
+<tr>
+<td><code>--accent</code> / <code>--link</code></td>
+<td><code>#4dd0e6</code></td>
+<td><code>#00667d</code></td>
+<td>interactive, hover ring</td>
+<td>11.0 / 10.3 / 9.4</td>
+<td>5.6 / 6.2 / 6.6</td>
+</tr>
+<tr>
+<td><code>--accent-contrast</code></td>
+<td><code>#04121a</code></td>
+<td><code>#ffffff</code></td>
+<td>text on accent fill</td>
+<td>10.4 on accent</td>
+<td>6.6 on accent</td>
+</tr>
+<tr>
+<td><code>--link-visited</code></td>
+<td><code>#bfa8ff</code></td>
+<td><code>#6a3fa5</code></td>
+<td>visited links</td>
+<td>9.8 / 9.2</td>
+<td>6.3 / 6.9</td>
+</tr>
+<tr>
+<td><code>--sel</code></td>
+<td><code>#ffb347</code></td>
+<td><code>#8a4b00</code></td>
+<td>selection, caution</td>
+<td>11.3 / 10.6 / 9.7</td>
+<td>5.8 / 6.4 / 6.8</td>
+</tr>
+<tr>
+<td><code>--route</code></td>
+<td><code>#ff7fd0</code></td>
+<td><code>#9d2b84</code></td>
+<td>planned course</td>
+<td>8.8 / 8.2 / 7.5</td>
+<td>5.8 / 6.3 / 6.8</td>
+</tr>
+<tr>
+<td><code>--ok</code></td>
+<td><code>#5fd68f</code></td>
+<td><code>#16703f</code></td>
+<td>nominal, charted</td>
+<td>11.0 / 10.3 / 9.4</td>
+<td>5.3 / 5.8 / 6.1</td>
+</tr>
+<tr>
+<td><code>--error</code></td>
+<td><code>#ff6b6b</code></td>
+<td><code>#b42318</code></td>
+<td>critical</td>
+<td>7.2 / 6.8 / 6.2</td>
+<td>5.6 / 6.2 / 6.6</td>
+</tr>
+<tr>
+<td><code>--focus</code></td>
+<td><code>#ffd166</code></td>
+<td><code>#7a3e00</code></td>
+<td>focus ring (2 px, 2 px offset)</td>
+<td>13.0 on panel</td>
+<td>7.8 on panel</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every text pair is at least 4.5:1 and every control border at least 3:1 in both
+themes [C]. Further measurements [C]:</p>
+<ul>
+<li>Hover fill <code>color-mix(accent 14%, panel)</code> keeps body text at 11.3 (dark) and
+12.7 (light). A pressed fill at 24% keeps text at 8.8 and 10.8, but
+accent-coloured text on it is only 4.27 in light, so pressed states use
+<code>--text</code>, not <code>--accent</code>.</li>
+<li>On the always-dark map background <code>#05080d</code>, in both themes: selection 11.3,
+route 8.8, hover cyan 11.0, ok 11.0, critical 7.2, label text 15.8, muted
+label 8.3.</li>
+<li>A focus ring over a cyan-filled button is 1.27, which is why the 2 px offset
+gap is required.</li>
+<li>Colour-blind check of the semantic set (CAM02-UCS delta E; below about 10 is
+hard to tell apart [R]): minimum pair differences 21 normal, 11.5 protan (cyan
+against text), 6.4 deutan (cyan against magenta), 4.7 tritan (cyan against
+green); red against green under deutan is 9.3. So the route is also dashed or
+thicker; critical is red plus an icon and a word; selection is a ring; the
+legend lists names, not only swatches. Amber is shared by selection and
+caution; they never appear in the same place (a ring on the map, a banner with
+icon and text elsewhere), as in aviation's single amber.</li>
+</ul>
+<h3 id="34-wcag-22-aa-checklist-applied">3.4 WCAG 2.2 AA checklist applied</h3>
+<p>[S] for the criterion list (Deque, BOIA: 2.4.11, 2.5.7, 2.5.8 and 3.3.8 are AA,
+4.1.1 was removed); exact wording [R].</p>
+<ul>
+<li>1.4.3 and 1.4.11: every text pair above 4.5, control borders (<code>--line</code>) at 3.4 or
+better, icons in <code>currentColor</code> of text tokens.</li>
+<li>1.4.1 not colour alone: dashed route, icon plus word for critical, selection
+ring, named legend.</li>
+<li>1.4.12 text spacing: no fixed-height label boxes. 2.3.1: pulses at 1.5 s or
+slower; reduced motion gates all decorative motion.</li>
+<li>2.4.11 focus not obscured: sticky map controls must not cover focused fields.</li>
+<li>2.5.7 dragging: move up and down buttons for bookmark order; a number field
+beside any slider. 2.5.8 target size: the 44 px coarse-pointer rule stays.</li>
+<li>3.3.8 accessible authentication: unchanged.</li>
+</ul>
+<h3 id="35-ux76-status">3.5 UX.76 status</h3>
+<p>UX.76 (icons and highlights follow the theme) is done in PR #800. The cause was
+a CSS cascade fault, not an icon-fill or token fault: <code>a.btn:visited</code> is as
+specific as the secondary-button rules, so a visited secondary link kept the
+primary button's dark text on a clear background. The fix pins
+<code>a.btn.btn-secondary</code> (and its <code>:visited</code>) to <code>var(--accent)</code>, the active
+variant to <code>var(--text)</code>, and makes the secondary hover an inset accent ring.
+<code>src/tests/test_web_browser_colors.py</code> renders one of each button look under all
+four combinations of OS scheme and <code>data-theme</code>, forces hover and focus through
+the DevTools protocol, and checks computed contrast (text 4.5:1, icons 3:1).
+The research suspects about the alpha-bearing dark <code>--bg-subtle</code>, runtime
+elements with no background and a missing <code>currentColor</code> were not needed. Three
+items remain worth carrying into UX.43: the vendored-SVG check (every file under
+<code>vendor/shoelace/assets</code> and <code>icons.svg</code> contains <code>currentColor</code>) is not in that
+test; the two light-theme Shoelace failures in section 2 are not exercised by
+it; and <code>--bg-subtle</code> still carries alpha, so a background that depends on what
+lies behind it can recur.</p>
+<h2 id="4-nebulae-with-soft-boundaries-map142">4. Nebulae with soft boundaries (MAP.142)</h2>
+<h3 id="41-how-nebulae-were-drawn-before-map142">4.1 How nebulae were drawn before MAP.142</h3>
+<p>(Historical: MAP.142 parts 2 to 4 replaced the per-ID mesh and the sphere with each nebula's own cloud of points, drawn by the volume layer on the Galaxy Map, the Sector Map and the nebula page; <code>nebulamesh.js</code> is removed.)</p>
+<ul>
+<li><strong>Galaxy Map (<code>galaxymap3d.js</code>).</strong> Each nebula or remnant is a <code>THREE.Sprite</code> with
+a 128 px radial-gradient texture (<code>cloudTexture</code>; diffuse alpha 0.47 at the centre,
+0.14 at 0.75 R, 0 at R). At 20 px radius or more (<code>NEBULA_MESH_MIN_PX</code>) it fetches
+<code>GET /galaxy/nebula/&lt;id&gt;/shape?lod=low</code> and draws the marching-cubes mesh instead
+(<code>buildNebulaMesh</code>: <code>MeshBasicMaterial</code>, <code>DoubleSide</code>, <code>depthWrite: false</code>,
+<code>depthTest: false</code>, opacity = edge opacity x 0.55). That flat shell is the hard edge
+Boss reported.</li>
+<li><strong>Sector Map (<code>sectorscene.js</code>).</strong> A <code>BackSide</code> sphere with <code>alpha = (1 - exp(-density * path / (2R))) * maxAlpha</code>, <code>path</code> being the chord through a uniform
+sphere: soft toward the middle, a sharp limb, blind to the irregular shape.</li>
+<li><strong>Nebula page (<code>nebulaview.js</code>).</strong> The nebula's own cloud of points (MAP.142, the same volume layer as the maps) with dimmed stars.</li>
+<li><strong>Colours.</strong> <code>NEBULA_LOOKS</code> (core/edge opacity): diffuse <code>#e3a6c8</code> 0.47/0.14, emission
+<code>#ff6f91</code> 0.69/0.25, reflection <code>#6fa8ff</code> 0.63/0.22, planetary <code>#5be8c9</code> 0.66/0.24,
+dark <code>#1c1c24</code> 0.91/0.56, shared with <code>starmap.py</code>.</li>
+<li><strong>Shape.</strong> <code>planetgen/galaxy/nebula_shape.py</code>: metaballs with kernel <code>(1 - d^2/r^2)^2</code>,
+domain-warped, marching cubes (<code>MESH_LODS</code> low 10, full 28 cells per axis). The scalar
+field <code>F</code> exists server side but is not served.</li>
+</ul>
+<h3 id="42-techniques-compared">4.2 Techniques compared</h3>
+<ul>
+<li>Instanced soft-noise sprites or a point cloud with radial falloff: good edges, fill-rate
+bound, need a scatter inside the shape. Celestia's nebulae work this way; early add-ons
+suffered huge overdraw, and additive blending cannot make dark dust [S].</li>
+<li>Fullscreen 3D-noise ray-march: excellent, but 128 steps x 7 evaluations per pixel is the
+literature's quality target [S]; Gaia Sky does it on desktop [S]. Not for this site.</li>
+<li>Ray-march a bounded proxy (front faces of the bounding mesh) through a small 3D texture
+of the real field: excellent, covered pixels only, 16 to 24 taps. Recommended for the
+focused nebula.</li>
+<li>Nested translucent iso-shells (iso x 1.0, 0.7, 0.5) with an edge-fade shader: good,
+about 6 fragments per pixel worst case, reuses marching cubes and the mesh loader.</li>
+<li>Today's gradient sprite: perfectly soft, wrong shape; keep it below about 20 px.</li>
+</ul>
+<p>Cost [C]: pixel ratio is capped at 2, so the worst case is 8.29 Mpx (4K at ratio 1, or
+1080p at ratio 2) and 1.32 Mpx for a 390x844 phone. A 16-step ray-march over every pixel
+is 133 M samples per frame on 4K (8.0 G/s at 60 fps) and 21 M on the phone (1.3 G/s). No
+GPU was available, so &quot;heavy on integrated and phone GPUs&quot; is [R]. Ray-march only the
+covered pixels of the proxy, cap at 24 steps, stop at alpha 0.98, and render at half
+resolution when one nebula covers over half the canvas (quarter resolution shows [S]).</p>
+<h3 id="43-keeping-the-extent-readable">4.3 Keeping the extent readable</h3>
+<p>Projected opacity for a radial profile is <code>1 - exp(-k N(b))</code>, <code>N(b)</code> the column density at
+impact parameter <code>b</code>. Central alpha 0.45, <code>b</code> in units of the bounding radius R [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>b at 50% of peak</th>
+<th>b at 10%</th>
+<th>Visible edge (alpha 5%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Uniform sphere (Sector Map today)</td>
+<td>0.905</td>
+<td>0.998</td>
+<td>0.997 (sharp limb)</td>
+</tr>
+<tr>
+<td>smoothstep 0.6R to R</td>
+<td>0.706</td>
+<td>0.875</td>
+<td>0.869</td>
+</tr>
+<tr>
+<td>smoothstep 0.3R to R</td>
+<td>0.588</td>
+<td>0.821</td>
+<td>0.812</td>
+</tr>
+<tr>
+<td>Metaball kernel (1 - r^2)^2</td>
+<td>0.538</td>
+<td>0.801</td>
+<td>0.791</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>A 0.6R to R falloff shrinks the visible edge to 0.87R, so a cloud whose sphere is its
+stated <code>radius_ly</code> looks about 13% smaller. Define the extent as the 50% contour
+instead, with a soft band symmetric about it (50% at R, 10% at about 1.1 R, 90% at
+about 0.85 R), so today's hard outline is the 50% contour and soft and hard views agree.</li>
+<li>The metaball kernel has a closed-form line integral, <code>N(b) = (16/15)(1 - b^2)^2.5</code>,
+checked against quadrature [C]: one <code>pow</code> in GLSL, no loop, no lookup. For an irregular
+shape use the real field.</li>
+<li>Serve a 24^3 or 32^3 grid of <code>F</code> as 8-bit (13.8 KB or 32.8 KB) from a new endpoint beside
+<code>/shape</code> (<code>NebulaShape.field</code> already evaluates it; derived data, so reproducibility is
+unaffected), as a <code>THREE.Data3DTexture</code>. Density: <code>d = smoothstep(iso*0.55, iso*1.45, F)</code>.</li>
+<li>Fade shells by view, alpha x <code>smoothstep(0.0, 0.35, abs(dot(n, v)))</code>, so the grazing
+silhouette dies away; the mesh has no normals yet (<code>computeVertexNormals</code> on load, or
+<code>dFdx</code>/<code>dFdy</code>).</li>
+<li>Keep the near fade (<code>CLOUD_NEAR_FADE [1.2, 2.0]</code> R) and the Sector scene's <code>BackSide</code>
+handling of the inside view.</li>
+</ul>
+<h3 id="44-colours-per-class-colour-blind-safety-dark-nebulae">4.4 Colours per class, colour-blind safety, dark nebulae</h3>
+<p>Composited core colour against the map background <code>#05070c</code> [C]: diffuse 2.92 (under
+3:1), emission 4.02, reflection 3.82, planetary 6.03, remnant 3.40, dark 1.17
+(effectively invisible on an empty map). Pairwise colour difference (CAM02-UCS, 100%
+severity): lowest 16.1 in normal vision, 6.8 under protanomaly (diffuse and emission), 8.7
+and 10.8 under deuteranomaly, 8.3 under tritanomaly [C]. An Okabe-Ito-based set (diffuse
+<code>#CC79A7</code>, emission <code>#E8602C</code>, reflection <code>#56B4E9</code>, planetary <code>#2FD9A8</code>, remnant <code>#F0E442</code>)
+lifts the normal minimum to 24.1 and protanomaly to 17.1 but leaves deuteranomaly at 8.8 and
+tritanomaly at 7.5 [C]. Hue alone cannot carry the class; add a cue that survives greyscale:</p>
+<ul>
+<li>Emission: warm pink-red with faint filament texture. Reflection: blue, smoother, lower
+contrast. Planetary: a bright thin shell, dim interior, central point. Remnant: the thin
+shell with an orange or cyan rim. Diffuse: pale mauve, the faintest, with a 3:1 floor
+where selectable.</li>
+<li>Dark (absorbing): not a near-black translucent shell. Draw an occluder in the density pass
+(multiplicative blending <code>dst * (1 - a)</code>, darkening background nebulae and stars behind)
+plus a thin dashed <code>--text-muted</code> outline so it can be found. It is the only class with a
+different blend mode.</li>
+<li>Emission is additive in galaxy view (no sorting); other classes use normal alpha;
+<code>depthWrite: false</code> throughout. Selection and hover use a ring, not a colour change.</li>
+</ul>
+<h3 id="45-recommendation">4.5 Recommendation</h3>
+<ol>
+<li>Galaxy Map: keep the sprite until 20 px; above that draw three nested iso-shells with the
+edge-fade shader (the server serves <code>lod=low</code> at iso 1.0, 0.7 and 0.5, about three times
+the current mesh bytes), fading in over 20 to 40 px so nothing pops.</li>
+<li>Sector Map and nebula page: for the focused nebula, a bounded ray-march of the
+<code>Data3DTexture</code>, 16 steps, with the soft band; neighbours stay sprites or shells. Keep the
+analytic sphere shader as the first-frame and no-3D-texture fallback.</li>
+<li>MAP.132's markers cover the far zoom; sprites fade in between 1 and 4 px of radius (<code>cloudSizeShare</code>, MAP.155).</li>
+<li>Tests: a node test of the closed-form profile (the 50% radius is exactly R for a symmetric
+band) and a browser test that screenshot alpha at 0.85 R, R and 1.2 R is above, near and
+below 50% of peak.</li>
+</ol>
+<h2 id="5-interaction">5. Interaction</h2>
+<h3 id="51-select-mode-map122">5.1 Select mode (MAP.122)</h3>
+<ul>
+<li><strong>Control.</strong> A two-option segmented control, &quot;Galaxy | Stars&quot;, as
+<code>role=&quot;radiogroup&quot;</code> (Shoelace <code>sl-radio-group</code> with <code>sl-radio-button</code>, or two
+native radios styled as a segment). A toggle button hides which mode is on; a
+radiogroup shows both. Default Galaxy (Boss).</li>
+<li><strong>State.</strong> In the URL (<code>select=stars</code>), so a view is shareable and back and
+forward restore it; &quot;every galaxy view&quot; then reads one parameter. A
+single-key shortcut, if added, fires only while the map has focus, as keys 1
+to 9 do now (WCAG 2.1.4).</li>
+<li><strong>Feedback.</strong> A cursor change, a pill on the map (&quot;Selecting stars&quot;) and the
+hint line. On touch, a tap selects and shows the info panel.</li>
+<li><strong>Reach.</strong> 10 px for a mouse, 22 px radius for touch (a 44 px target; WCAG 2.5.8
+needs 24 px). When two or more candidates fall inside the reach, show a short
+disambiguation list (the stage view already handles &quot;choices&quot;) instead of
+guessing the nearest.</li>
+<li><strong>Boundary (MAP.141).</strong> Drop candidates outside the galaxy outline in the same
+filter that applies <code>enabled()</code> to picker layers (<code>createPicker</code> in
+<code>mappick.js</code>).</li>
+<li><strong>Layers.</strong> Star mode adds a <code>points</code> layer at higher priority; Galaxy mode
+keeps today's order, in which stars deliberately cannot take the click
+(MAP.101). Star picks offer Bookmark and Waypoint (Boss); waypoints are the
+ones <a href="../orbits/course-routing.html">course-routing.md</a> section 4a describes.</li>
+</ul>
+<p><strong>As built (MAP.122, 2026-10-29).</strong> The Galaxy | Stars control and <code>select=stars</code> were dropped: stars are
+pickable in the one mode (MAP.304). What shipped is the reach (10 px mouse, 22 px touch, by the last pointer's
+type), the short list of the nearest stars within reach under the panel of a crowded pick, and a ☆ on the star's
+panel that saves its system (a star in unmade space has none). A charted star's system id rides in the packed
+node's JSON as <code>systems</code>, beside <code>names</code>, because the columns carry only the charted flag. The Waypoint button is
+NAV.49's.</p>
+<h3 id="52-picking-70000-to-1000000-points">5.2 Picking 70,000 to 1,000,000 points</h3>
+<p>Node 22, one thread, Xeon 2.8 GHz; a browser is of the same order. The
+benchmark varies up to about 30% between runs [C, <code>pickbench.mjs</code>].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>70,000 pts</th>
+<th>100,000</th>
+<th>1,000,000</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current style: <code>Vector3.project(camera)</code> per entry plus <code>Math.hypot</code> (<code>mapcore.nearestOnScreen</code>)</td>
+<td>18 ms</td>
+<td>25-33 ms</td>
+<td>262-318 ms</td>
+<td>Allocation-free but object-heavy</td>
+</tr>
+<tr>
+<td>Typed-array loop, pre-multiplied matrix, no objects</td>
+<td>5.4 ms</td>
+<td>5.8-8.3 ms</td>
+<td>107 ms</td>
+<td>Easy win</td>
+</tr>
+<tr>
+<td><code>Raycaster</code> on <code>Points</code></td>
+<td>5.1 ms</td>
+<td>7-13 ms</td>
+<td>56-91 ms</td>
+<td>Threshold in world units, not pixels</td>
+</tr>
+<tr>
+<td><code>PointsBVH</code> (three-mesh-bvh 0.9.16)</td>
+<td>2.0 ms</td>
+<td>1.3-1.6 ms</td>
+<td>3.6-3.9 ms</td>
+<td>Build 0.6 s at 70k, 0.5-0.7 s at 100k, 3.5-4.4 s at 1M, on the main thread</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>With the 70,000-star cap per view (MAP.109; 45,000 since MAP.249), 5 ms on a click is fine, and the
+pick runs on a press, not every move. For hover, throttle to one query per
+frame while the pointer is still, or show the tooltip for the nearest star
+within reach after the pointer rests for 80 ms.</li>
+<li>If hover must be smooth: when the camera changes, project all stars once into
+a <code>Float32Array</code> and bin into 32 px cells; a query then touches about 9 cells.
+The 5 ms projection is paid per camera change, not per query.</li>
+<li>Raycaster and BVH use a world-space threshold; stars here are drawn a fixed
+number of pixels wide (<code>sizeAttenuation</code> off), so the equivalent threshold is
+<code>reachPx * distance * 2 tan(fov/2) / canvasHeight</code> and changes with distance.
+A screen-space test is simpler and exact.</li>
+<li><strong>Drop <code>three-mesh-bvh</code>.</strong> The build costs more than the pick saves, PointsBVH
+supports neither worker build nor serialisation [S, its README], tiles stream
+in and out (<code>setStars</code> rebuilds), and the stars are not pickable today. MAP.102
+(done, PR #574) shipped tiles and camera-relative rendering with no BVH import
+anywhere in <code>src/html/static</code>. Use a plain <code>Raycaster</code> for the few-thousand-
+triangle nebula meshes.</li>
+<li><strong>GPU colour-id picking</strong> (id pass to a 1x1 target through
+<code>camera.setViewOffset</code>, read back with <code>readRenderTargetPixelsAsync</code>, as in
+the three.js <code>webgl_interactive_cubes_gpu.html</code> example [S]) costs one extra
+draw of the points and an asynchronous readback, with no CPU loop. It wins
+above about 300,000 points or when picking must respect occlusion or exact
+sprite shape. Not timed (no GPU); the id shader needs the same <code>logdepthbuf</code>
+chunks as the star shader. Not needed below the cap.</li>
+</ul>
+<h3 id="53-double-click-map140">5.3 Double-click (MAP.140)</h3>
+<ul>
+<li>Do not depend on <code>dblclick</code>; touch behaviour varies (iOS Safari double-tap
+zoom, <code>touch-action</code>) [R]. The canvas already uses <code>touch-action: none</code> and
+its own pointer events (<code>createPointerControl</code> in <code>mapcontrol.js</code>,
+<code>clickOn: &quot;pointerup&quot;</code>). Add a recogniser there: a second <code>pointerup</code> within
+350 ms and 24 px of the first, on the same object, fires
+<code>onDoubleClick(event, pointerType)</code>. 24 px is the WCAG minimum target size, so
+a double-tap on a small target tolerates the same slop.</li>
+<li>Conflict with MAP.113 (PR #584: Escape or a click on the selected object
+clears the selection). In a double-click the first click clears and the second
+re-selects, so &quot;double-click on a selected object&quot; never sees a selected
+object. Fix: when a click hits the selected object, wait 350 ms before
+clearing; a second click in the window cancels the clear and goes. Selecting
+an unselected object stays instant. Cost: 350 ms delay when deselecting by
+click. The no-delay alternative (clear at once, remember the object for 350
+ms, reselect on the second click) flickers the ring and panel.</li>
+<li>Offer the same action without a gesture: a &quot;Go to&quot; button in the info panel
+(MAP.139's Details link) and Enter on the focused selection. A double-tap is
+a single-pointer gesture and allowed by WCAG 2.5.1, but nothing should be
+reachable only by it. The single click keeps selecting; the double-click goes
+to the next stage down or the object's page.</li>
+</ul>
+<h3 id="54-context-rendering-map121-map141">5.4 Context rendering (MAP.121, MAP.141)</h3>
+<ul>
+<li><strong>Faint neighbours.</strong> Alpha by distance from the focus, <code>a = a0 * exp(-d / lambda)</code> with <code>lambda</code> about one region width, floor 0.08 so the ring stays
+visible, ceiling 0.3; additive for stars, normal alpha for fills. A sector's
+26 neighbours (3x3x3 minus itself) are 26 small draws. Comets, rogue planets
+and asteroid fields are left out (Boss).</li>
+<li><strong>Above and below.</strong> The same rule on the z axis, in the same style as the
+sides, pickable with a cheaper hit test (a box test per neighbour region, not
+the star list).</li>
+<li><strong>Blockers</strong> (Boss: &quot;the more they obstruct the view the more invisible they
+become&quot;). With <code>s</code> the segment from the camera to the focus centre, <code>p</code> a
+neighbour's centre, <code>t</code> its projection parameter on <code>s</code> and <code>dist</code> the distance
+from <code>p</code> to <code>s</code>: if <code>0 &lt; t &lt; 1</code> and <code>dist &lt; r_p + r_focus</code>, <code>fade = smoothstep(r_p, r_p + r_focus, dist)</code>, and opacity multiplies by <code>fade</code>
+(<code>fade = 0</code> means the neighbour lies exactly on the line of sight). Pure CPU,
+once per frame, tens of regions. Use <code>depthWrite: false</code> and sort by distance
+from the camera; with so few translucent layers the ordering error is small.</li>
+<li>One shared function, <code>contextOpacity(region, focus, camera)</code>, in the common
+engine piece MAP.121 calls for, not three copies.</li>
+</ul>
+<h3 id="55-mini-map-as-a-second-camera-map75">5.5 Mini map as a second camera (MAP.75)</h3>
+<ul>
+<li>One renderer, two passes: <code>renderer.autoClear = false</code>; main pass over the full
+canvas; then <code>setScissorTest(true)</code>, <code>setViewport(x, y, w, h)</code>,
+<code>setScissor(x, y, w, h)</code> (CSS pixels, origin bottom left), <code>clearDepth()</code>, render
+with the mini camera, <code>setScissorTest(false)</code>. The three.js <code>webgl_camera.html</code>
+example does this [S], and <code>systemmap.js</code> already scissors sub-viewports.</li>
+<li>Limit the mini camera with <code>camera.layers</code> (galaxy outline, a coarse star layer,
+current block and slab outlines) and skip the pass when neither camera nor
+selection changed (dirty flag).</li>
+<li>Hit testing: a transparent <code>div</code> with <code>role=&quot;group&quot;</code> over the region runs its own
+pick against slab geometry; do not route clicks through the main camera. The slab
+buttons stay as the keyboard path (MAP.54).</li>
+<li>A 2D SVG or canvas mini map is simpler to make accessible and costs no GL pass; it
+is the fallback if the scissor path proves fiddly (log-depth buffer, DPR,
+resize). On phones the mini map sits below the map, as a second small canvas.</li>
+</ul>
+<h3 id="56-star-point-rendering">5.6 Star point rendering</h3>
+<p>The pipeline is sound (one <code>THREE.Points</code>, custom <code>ShaderMaterial</code>, pixel
+<code>gl_PointSize</code>, camera-relative positions). Per-star attributes are 13 floats =
+52 bytes [C], 3.6 MB at 70,000 stars; quantising colour, scalars and flags gives
+about 20 to 24 bytes (1.5 MB), an optional saving for phones and tile swaps. Above
+about 1e6 points use level of detail by tile (MAP.102, MAP.116), not a faster
+picker. Overdraw is the real cost: cap the glow quad for faint stars.</p>
+<p>Filed as MAP.147 (Boss, 2026-10-09 22:41Z): it starts with a measurement of the current payload and a comparison of options by Research Lane 3.</p>
+<h3 id="57-habitable-worlds-colouring-map143">5.7 Habitable-worlds colouring (MAP.143)</h3>
+<p>Use a single-hue sequential ramp that survives greyscale (cividis or viridis style
+[R]) in 4 to 5 bins with a legend; a sector with zero habitable worlds has no fill,
+not the darkest bin. Blocks are never fully opaque (Boss, MAP.132).</p>
+<h3 id="58-superbubbles-map236">5.8 Superbubbles (MAP.236)</h3>
+<p>Boss (2026-10-16): the superbubbles need better definition to the bounds and should be slightly more transparent. A bubble was
+three faint great circles (opacity 0.14), so its bound read as two crossing ellipses and the inside had no edge. It is now its
+sphere, drawn from the inside of its far wall (back faces only, so a camera outside sees one layer and a camera inside the bubble,
+as the Sun is, sees the shell round it): a faint even fill (0.06 in the dark theme, 0.07 in the light) and a crisp rim about two
+pixels wide where the sphere meets the line of sight, at 0.7 and 0.75, so the true silhouette is the bound. The colour is #6fb3d8
+on the dark map and the darker #1f6a99 on the light one. The look lives in <code>static/superbubble.js</code> (the numbers and the shader
+text, held by <code>tests/js/superbubble.test.mjs</code>); <code>galaxymap3d.js</code> builds one object per bubble at its centre (MAP.240) sharing one
+material, and <code>canvas.galaxyBubbleLook()</code> reports the look to the browser test, which reads the rim against the fill in a
+screenshot in both themes. The layer's toggle, hover and key row are MAP.234 and MAP.235.</p>
+<h2 id="6-bookmarks-and-charted-regions-ux45-to-ux48">6. Bookmarks and charted regions (UX.45 to UX.48)</h2>
+<p>Behaviour that stays valid is in <a href="galaxy-drilldown-navigation.html">galaxy-drilldown-navigation.md</a>
+section 8.2 (MAP.23, NAV.40, MAP.81): the breadcrumb star and page buttons, the Bookmarks
+<code>&lt;details&gt;</code> menu, in-place rename (Enter saves, Escape cancels), delete, keys 1 to 9 while the map
+has focus (not from a text box or select), the NAV page's Bookmarks select, and bookmarks that
+carry a course pick (<code>data-pick</code>, <code>data-keep-name</code>, <code>data-keep-value</code>, <code>data-nav-url</code>).
+<code>static/bookmarks.js</code> keeps per-browser <code>localStorage</code> under <code>planetgen.bookmarks.&lt;db name&gt;</code>, up to
+100 entries <code>{name, kind, value, created, url?, sectorId?}</code>, identified by kind and value, with
+every storage access wrapped, and wires whatever a page has without inline script (CSP). The new
+items build on it.</p>
+<ul>
+<li><strong>UX.46 stamp.</strong> The TODO says &quot;stamped with the galaxy seed&quot;. The seed alone is not enough: an
+admin may regenerate the same seed, and <code>kind: &quot;system&quot;</code> bookmarks store database ids
+(<code>system:12</code>) that restart after a wipe, so old ids would point at different objects. Stamp with
+the seed plus a per-wipe instance id (for example <code>seed_hex + &quot;:&quot; + created_at_epoch</code>, or a random
+64-bit id written at wipe or creation). <code>galaxy_shape</code> has <code>galaxy_seed BINARY(16)</code> but no
+<code>created_at</code> or instance column (checked in <code>models.py</code>), so one small migration is needed. A page
+load that finds a mismatch drops the list (Boss's rule); offering a &quot;recovered&quot; export first is
+optional.</li>
+<li><strong>UX.47 manager page.</strong> Sort by name, kind, date added and distance from the current position;
+inline rename; groups; delete with a 5-second &quot;Deleted. Undo&quot; toast rather than a confirm; open
+on map; export and import.
+<ul>
+<li>Order: a plain list with move up and move down buttons meets WCAG 2.5.7 (TanStack Table is
+overkill for 100 rows); drag handles are an optional enhancement (SortableJS 1.15.7, MIT, last
+published 2026-02-11 [C], or Pointer Events). Announce moves in an <code>aria-live=&quot;polite&quot;</code> region.</li>
+<li>Groups: one level of named <code>&lt;details&gt;</code> sections, a bookmark in at most one, a &quot;Move to group&quot;
+menu per row.</li>
+<li>Export and import: JSON <code>{&quot;format&quot;: &quot;planetgen-bookmarks&quot;, &quot;version&quot;: 1, &quot;galaxy&quot;: &quot;&lt;stamp&gt;&quot;, &quot;groups&quot;: [...], &quot;bookmarks&quot;: [...]}</code>, a Blob download and an <code>&lt;input type=&quot;file&quot;&gt;</code>. Validate on
+import, because <code>urlOf</code> returns <code>entry.url</code> straight into an <code>href</code>: cap size (1 MB), count and
+string lengths, take <code>kind</code> from a whitelist, check <code>value</code> against <code>ENDPOINT_RE</code> or a
+stage-URL pattern, accept <code>url</code> only as a same-origin relative path (<code>/galaxy</code>, <code>/system</code>...).
+CSP blocks a <code>javascript:</code> URL, but an off-site link is still an open-redirect nuisance. A stamp
+mismatch on import asks the user.</li>
+<li>Show the count against the 100 cap (localStorage allows about 5 MB; 1,000 entries are about
+150 KB).</li>
+</ul>
+</li>
+<li><strong>UX.48 charted regions.</strong> Derived from the database, so not in localStorage: serve them from
+<code>GET /api/galaxy/regions</code> (cached, invalidated when a generation run ends) and list them in a
+read-only &quot;Charted regions&quot; section, with a local rename alias only.
+<ul>
+<li>Contiguity: face adjacency (6-connected) on the cylindrical sector lattice (ring, layer, slot;
+slot wraps; neighbouring rings can have different slot counts), so adjacency comes from
+<code>planetgen.galaxy</code> helpers, not index arithmetic. Edge-only or corner-only contact is not one
+region (26-connectivity is the alternative).</li>
+<li>Maintenance: incremental union-find as sectors are charted; regions only merge, keeping the
+older id and any rename. A wipe drops everything with the galaxy.</li>
+<li>Outline: collect faces between a charted sector and a non-charted neighbour, emit each face's
+four edges, drop edges whose two boundary faces are coplanar (interior seams); the rest is the
+silhouette. Draw as <code>LineSegments</code> in <code>--sel</code>, 2 px, dashed on the far side.</li>
+<li>Fit: bounding sphere <code>R</code>, camera distance <code>R / sin(fov/2) * 1.15</code> along the current view
+direction, clamped to zoom limits; reuse MAP.78's per-level fit. With many regions draw only the
+focused one and the one under the pointer.</li>
+</ul>
+</li>
+</ul>
+<h2 id="7-job-logs-progress-and-warnings-adm22-adm40-ux3">7. Job logs, progress and warnings (ADM.22, ADM.40, UX.3)</h2>
+<p>Built and still correct: a running job's output streams over Server-Sent Events
+into an Xterm.js terminal (<code>static/joblog.js</code>; scrollback 20,000 lines, <code>&lt;pre&gt;</code>
+fallback), with progress in a native <code>&lt;progress&gt;</code> (<code>partials/job_status.html</code>).
+The stream route (<code>generate_page.generate_job_stream</code>) sends <code>log</code> events whose id
+is the byte offset reached, <code>state</code> events when the job view changes, and <code>done</code>.
+It closes after <code>STREAM_SECONDS = 40</code> because Apache's <code>WSGIDaemonProcess request-timeout</code> (60 s in <code>examples/apache/planetgen.conf.example</code>) restarts the
+daemon for a longer request; <code>EventSource</code> reconnects with <code>Last-Event-ID</code>, so
+nothing is lost. A first connection replays at most the last 256 KB; keep-alives go
+out every 15 s. Since the browser reports each deliberate close as an error,
+<code>connectionnote.js</code> (<code>quietReconnect</code>, ADM.40) shows &quot;Connection lost;
+reconnecting...&quot; only after a grace period. &quot;Copy log&quot; fetches the full output from
+the download route (ADM.25).</p>
+<p>UX.3 (the banner for every visitor, ETA rounded up to the hour) is not built. Its
+2026-10-07 plan reads the RQ job's published progress (ADM.22), not
+<code>progress.json</code>. Carry from the job pages: single-line messages, a failed job's log
+stays open until the user continues, tracebacks in full with a Copy button, and
+ETA wording that follows ADM.39's time-left estimate so the banner and the queue
+page agree. The TODO's open points (every page or only map and list pages;
+command-line runs; wording with no ETA yet) are unchanged by this research.</p>
+<h2 id="8-admin-editable-expected-density-map119">8. Admin-editable expected density (MAP.119)</h2>
+<p><code>galaxy_shape.expected_system_count_at_density_1</code> (E, 6.31 systems for a 4 pc
+sector at relative density 1) calibrates the whole galaxy: a sector qualifies when
+<code>E * relative_density(center) &gt;= 1</code> (<a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>),
+and a qualifying sector's own <code>relative_density</code> is its <code>--density</code> multiplier at
+fill. <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a> requires that seed plus
+version key plus recorded admin changes rebuild the same galaxy, with changes stored
+as a net difference by stable address, not database id. So:</p>
+<ol>
+<li>Never edit E or the skeleton. The admin edits a per-region multiplier <code>m</code>
+(default 1.0) applied to the <code>--density</code> used when sectors there are filled.</li>
+<li>Overrides are append-only data: <code>density_overrides(id, scope_kind, scope_address, multiplier, created_at, admin_id, reason, supersedes_id)</code>. A change inserts a
+row, undo inserts the reverse, nothing is updated in place. The scope is an
+address (block or slab by ring or layer range), never a database id.</li>
+<li>Every filled sector records <code>density_multiplier_used</code> and <code>override_id</code>;
+reproduction replays the override rows in order, then regenerates.</li>
+<li>Only unfilled sectors are affected (&quot;later fills use&quot; it); the UI says how many
+sectors in view are filled and unaffected.</li>
+<li>The galaxy's record carries the rows (reproducibility doc, section 7) as part of
+the net difference: a new admin change kind for GEN.59 and GEN.61.</li>
+<li>Range 0.1 to 10 on a log scale, beyond that a typed override with a warning;
+store a decimal string or rational.</li>
+<li>Write an entry to the admin activity log (<code>planetgen.admin.activity_log</code>).</li>
+</ol>
+<p>Presentation: guests and users see a static readout (&quot;Expected density: 6.3 systems
+per 4 pc sector (x1.0)&quot;). Admins also get a number field, a native log-scale
+<code>&lt;input type=&quot;range&quot;&gt;</code> (<code>sl-range</code> is not vendored; the number field is the WCAG
+2.5.7 non-drag alternative), &quot;Reset to 1.0&quot; and quick steps (x0.5, x2). The map
+re-colours with the draft multiplier at once, since the client computes density
+analytically for the block colours (<code>galaxymap3d.js</code>), with a preview line (&quot;Expected
+systems in view: 1.9 million to 3.8 million (+100%); 0 filled sectors affected, 412
+unfilled&quot;). Applying is a deliberate <code>sl-dialog</code> confirm listing scope, old and new
+value and counts; undo by a session toast plus a history list with a Revert button.
+An existing override shows as a chip (&quot;x2.0 by Boss, 2026-10-09&quot;); overlapping scopes
+resolve narrowest-wins and the dialog says so.</p>
+<h2 id="9-bosss-uploaded-ux-documents-what-still-holds">9. Boss's uploaded UX documents: what still holds</h2>
+<p>&quot;Web UX Development Notes.md&quot; (architecture proposal) and &quot;Web UX and Job Management
+Guide.md&quot; (migration guide) are generic. Neither mentions Select mode, bookmarks or
+job warnings, so the procedures below are those that bear on libraries, logs,
+progress and the 3D view. The source documents are not edited.</p>
+<p>Still valid and in use:</p>
+<ul>
+<li>Xterm.js fed by Server-Sent Events instead of polling, with a buffer limit and a
+plain fallback (Notes section 3, Guide Phase 2; section 7 above).</li>
+<li>A native <code>&lt;progress&gt;</code> with ARIA instead of hand-built DOM updates (Notes section 4).</li>
+<li>Jinja renders a structural shell with <code>data-*</code> attributes and static scripts hydrate
+it (Guide &quot;Integration&quot;): <code>data-bookmark-*</code>, <code>data-job-*</code>, <code>data-bookmarks-menu</code>,
+the data tables. Keep the pattern for new components.</li>
+<li>TanStack Table with Virtual (UX.41, PR #606) and Shoelace (UX.40) as proposed.</li>
+<li>Camera-relative rendering against float32 jitter (Notes section 2, Guide &quot;Coordinate
+frame shift&quot;): MAP.102, <code>starFrame</code>.</li>
+<li>Standalone ES module builds rather than a runtime bundler (Guide &quot;Asset bundling&quot;):
+esbuild is used only offline to bundle three and TanStack into single files.</li>
+</ul>
+<p>Superseded or done differently:</p>
+<ul>
+<li>Guide Phase 1 and its SQLite section (<code>ProcessPoolExecutor</code>, WAL, a status queue):
+Boss chose RQ on Redis (<a href="../architecture/library-migration.html">library-migration.md</a> section 3), and
+the database is MySQL or MariaDB, so SQLite locking and &quot;SQLite query overhead&quot; do
+not apply.</li>
+<li>Guide Phase 2 step 1 (a <code>queue.Queue</code> per job id in <code>log.py</code>): an in-process queue
+does not cross the processes Apache and the RQ workers run in. The log is a file the
+stream route reads by byte offset.</li>
+<li>Guide &quot;WSGI starvation&quot; (eventlet or gevent workers): deployment is Apache with
+threaded mod_wsgi daemons plus the 40 s stream cycle.</li>
+<li>OGC 3D Tiles, <code>3d-tiles-renderer</code>, <code>three-mesh-bvh</code> and a BVH export from
+<code>galaxyGeometry.py</code> (Notes section 2, Guide Phase 4): tiles with level of detail
+and camera-relative rendering shipped as MAP.102 without either library; a BVH was
+measured and rejected for picking (section 5.2).</li>
+<li>Notes claim that Xterm.js gives &quot;WebGL/Canvas virtual scrolling ... steady 60 FPS
+regardless of throughput&quot;: only <code>xterm.mjs</code> and the fit addon are vendored, with no
+WebGL renderer addon, and the 20,000-line scrollback is the real limit. Unverified.</li>
+<li>File names (<code>sectormap.js</code>, <code>workQueue.py</code>, <code>galaxyGeometry.py</code>) predate the
+reorganisation; use the <code>planetgen.*</code> paths in
+<a href="../architecture/library-migration.html">library-migration.md</a> section 6.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[C] results rest on scripts and registry reads dated 2026-10-09. The Node
+benchmark is single-thread V8, not a browser, and varies by up to about 30%
+between runs. Contrast numbers use the WCAG relative-luminance formula and sRGB
+<code>color-mix</code> emulation for Shoelace's derived tokens; they are not screenshots.
+The environment could read search-result text and raw files only, not papers or
+the Web Awesome migration guide.</p>
+<p>[R] items to verify when paper access is allowed:</p>
+<ul>
+<li>iOS Safari and Android Chrome <code>dblclick</code> behaviour on touch with
+<code>touch-action: none</code> (the design avoids relying on it).</li>
+<li>Aviation meanings of magenta, cyan, green and white (AC 25-11 / 25.1322 text
+not retrieved; red, amber and advisory rules were seen).</li>
+<li>B612's Airbus and ENAC origin (licence and file sizes are [C]).</li>
+<li>Design traits of Star Citizen, Starfield, Mass Effect, Stellaris, Celestia,
+SpaceEngine, Gaia Sky, Stellarium Web and Universe Sandbox.</li>
+<li>GPU timings: ray-march and id-pick cost, mobile texture rates, the 64 px
+point-size limit.</li>
+<li>Browser baselines for CSS relative colour syntax (Web Awesome themes) and
+import-map integrity.</li>
+<li>Web Awesome Pro pricing and the exact <code>sl-</code> to <code>wa-</code> renames.</li>
+<li>Licences of the packages inside the Shoelace bundle (Lit, floating-ui,
+tinycolor).</li>
+<li>The accessible palette as the palette origin, and &quot;below delta E 10 is hard to
+tell apart&quot;.</li>
+<li>Autofill behaviour inside shadow roots; Playwright piercing of open shadow
+roots.</li>
+<li>The cividis or viridis ramp as colour-vision safe, for MAP.143.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>npm registry JSON read 2026-10-09 (<code>https://registry.npmjs.org/&lt;name&gt;</code>) for
+Shoelace, Web Awesome, three, @xterm/xterm, @xterm/addon-fit, the old xterm
+packages, @tanstack/table-core and virtual-core, three-mesh-bvh, @material/web,
+@lion/ui, Spectrum, Carbon, Pico, Open Props, sortablejs and
+@fontsource/b612-mono; tarballs of three 0.186.0 and 0.186.1, Web Awesome
+3.14.0, Shoelace 2.20.1 and b612-mono 5.3.0 unpacked and read.</li>
+<li>Raw GitHub: <code>shoelace-style/shoelace</code> README (sunset notice),
+<code>shoelace-style/webawesome</code> README and LICENSE.md, <code>material-components/material-web</code>
+README, <code>gkjohnson/three-mesh-bvh</code> README, <code>mrdoob/three.js</code> examples
+<code>webgl_interactive_cubes_gpu.html</code> and <code>webgl_camera.html</code>, <code>nasa/openmct</code>
+<code>_constants-espresso.scss</code> and <code>_constants-snow.scss</code>.</li>
+<li>Search results: https://blog.fontawesome.com/introducing-web-awesome/ ;
+https://blog.fontawesome.com/how-does-web-awesome-stack-up-against-shoelace/ ;
+https://threejs.org/manual/en/webgpurenderer ;
+https://discourse.threejs.org/t/three-js-now-imports-three-core-js/75187 ;
+https://sbcode.net/threejs/importmap/ ;
+https://celestiaproject.space/forum/viewtopic.php?p=86447 ;
+https://tonisagrista.com/blog/2024/rendering-aurorae-nebulae/ ;
+[R4381] ; Frontier forum HUD colour threads ;
+https://www.faa.gov/sites/faa.gov/files/AC25-11.pdf and EASA alerting documents ;
+https://dequeuniversity.com/resources/wcag-2.2 ;
+https://www.boia.org/blog/whats-new-in-wcag-2.2-new-success-criteria-for-digital-accessibility ;
+https://ntrs.nasa.gov/api/citations/20160006385/downloads/20160006385.pdf .</li>
+<li>Repo files read: the map, bookmark, job-log and theme files under
+<code>src/html/static/</code>, <code>vendor/THIRD_PARTY_NOTICES.txt</code>, <code>scripts/vendor_shoelace.py</code>,
+<code>planetgen/galaxy/nebula_shape.py</code>, <code>planetgen/web/__init__.py</code> (CSP),
+<code>planetgen/web/generate_page.py</code>, <code>planetgen/db/models.py</code>,
+<code>src/tests/test_web_browser_colors.py</code>. The research scripts (contrast, colour
+blindness, nebula profile, Shoelace size, picking benchmark, tree-shake test)
+lived in the research session's scratchpad, not in the repo.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

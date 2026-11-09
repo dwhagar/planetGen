@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sector Baseline and Volume Calibration - planetGen docs</title>
+<meta name="description" content="According to canonical lore and official reference guides, a standard Federation sector is defined as a volume of space approximately 20 light-years across.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/star-trek-anomaly-probabilities.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/star-trek-anomaly-probabilities.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../systems/anomalies.html">anomalies</a>.</p>
+</blockquote>
+<h1 id="sector-baseline-and-volume-calibration">Sector Baseline and Volume Calibration</h1><p class="meta">docs/design/research/imported/star-trek-anomaly-probabilities.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#reconciling-real-science-with-star-trek-canon">Reconciling Real Science with Star Trek Canon</a></li><li style="margin-left:0px"><a href="#sector-encounter-probabilities-by-anomaly-category">Sector Encounter Probabilities by Anomaly Category</a></li><li style="margin-left:14px"><a href="#sector-encounter-probability-table">Sector Encounter Probability Table</a></li><li style="margin-left:0px"><a href="#game-engine-implementation-blueprint">Game Engine Implementation Blueprint</a></li><li style="margin-left:14px"><a href="#path-intersection-encounter-equation">Path-Intersection Encounter Equation</a></li><li style="margin-left:14px"><a href="#sector-modifier-modulations">Sector Modifier Modulations</a></li></ul></details>
+<p>According to canonical lore and official reference guides, a standard Federation sector is defined as a volume of space approximately <strong>20 light-years across</strong>. Modeled as a standard cubic spatial grid block, the baseline volume (<span class="math">\(V_{\text{sector}}\)</span>) of a single sector is:</p>
+<p><span class="math display">\[V_{\text{sector}} = (20\text{ light-years})^3 = 8,000\text{ cubic light-years}\]</span></p>
+<p>For comparison, a typical sector near the galactic plane contains approximately 6 to 10 star systems, while inter-arm regions or sectors towards the galactic halo have significantly lower star densities.</p>
+<h2 id="reconciling-real-science-with-star-trek-canon">Reconciling Real Science with Star Trek Canon</h2>
+<p>In real-world astrophysics, space is extremely empty, but interstellar gas clouds and plasma fields occupy significant volume fractions of the galactic disk. Conversely, macro topological defects (like cosmic strings) and black holes are exceptionally rare.</p>
+<p>In <em>Star Trek</em> canon, the Enterprise or Voyager encounters a major spatial anomaly roughly once every 3 to 5 star-dates (an encounter rate of approximately <span class="math">\(15\%\)</span> to <span class="math">\(25\%\)</span> per explored sector). To build a scientifically grounded game engine, we introduce a <strong>narrative inflation multiplier (<span class="math">\(K_{\text{lore}}\)</span>)</strong> that scales real-world spatial densities (<span class="math">\(\rho_{\text{real}}\)</span>) into engaging gameplay probabilities (<span class="math">\(P_{\text{game}}\)</span>):</p>
+<p><span class="math display">\[P_{\text{encounter}} = 1 - \exp\left(-\lambda_{\text{sector}}\right)\]</span></p>
+<p><span class="math display">\[\lambda_{\text{sector}} = V_{\text{sector}} \cdot \rho_{\text{real}} \cdot K_{\text{lore}}\]</span></p>
+<h2 id="sector-encounter-probabilities-by-anomaly-category">Sector Encounter Probabilities by Anomaly Category</h2>
+<p>Below is the derived probability distribution per standard <span class="math">\(8,000\text{ light-years}^3\)</span> sector, divided by physical class, galactic location, and underlying scientific volume filling factors.</p>
+<h3 id="sector-encounter-probability-table">Sector Encounter Probability Table</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th><strong>Anomaly Class</strong></th>
+<th><strong>Underlying Scientific Filling Factor (fV​) / Density</strong></th>
+<th><strong>Pure Scientific Probability (per sector)</strong></th>
+<th><strong>Star Trek Lore-Adjusted Game Probability</strong></th>
+<th><strong>Primary Galactic Location</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Astrophysical Gas Nebulae</strong> <em>(Emission, Dark, Planetary)</em></td>
+<td><span class="math">\(f_V \approx 0.01 - 0.02\)</span> (<span class="math">\(1\%\)</span> to <span class="math">\(2\%\)</span> volume filling in galactic disk).<br><br><br></td>
+<td><span class="math">\(1.0\%\)</span> to <span class="math">\(2.0\%\)</span></td>
+<td><strong><span class="math">\(15.0\%\)</span> to <span class="math">\(25.0\%\)</span></strong></td>
+<td>Spiral arms, stellar nurseries, galactic plane.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Volatile / Chemical Nebulae</strong> <em>(Azure / Class 11, Sirillium)</em></td>
+<td>Rare molecular cloud subtypes; <span class="math">\(f_V &lt; 0.001\)</span>.<br><br><br></td>
+<td><span class="math">\(\sim 0.1\%\)</span></td>
+<td><strong><span class="math">\(3.0\%\)</span> to <span class="math">\(5.0\%\)</span></strong></td>
+<td>Dense ISM pockets, stellar formation boundaries.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Ion &amp; Plasma Storms</strong></td>
+<td>Interstellar magnetic turbulence &amp; warm ionized medium (<span class="math">\(f_V \approx 0.20 - 0.30\)</span>).<br><br><br></td>
+<td><span class="math">\(20.0\%\)</span> to <span class="math">\(30.0\%\)</span> (low severity)</td>
+<td><strong><span class="math">\(10.0\%\)</span> to <span class="math">\(15.0\%\)</span></strong> (hazardous severity)</td>
+<td>Magnetically active stellar sectors, OB associations.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Singularities &amp; Gravimetric Shear</strong> <em>(Black Holes, DMA, Kerr Metrics)</em></td>
+<td><span class="math">\(\sim 10^8\)</span> stellar black holes in <span class="math">\(10^{12}\text{ ly}^3\)</span> galactic volume.</td>
+<td><span class="math">\(\sim 0.08\%\)</span></td>
+<td><strong><span class="math">\(1.0\%\)</span> to <span class="math">\(2.0\%\)</span></strong></td>
+<td>Galactic core, globular clusters, dense binary systems.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Subspace Rifts &amp; Tears</strong> <em>(Weapon-induced, Warp-stress)</em></td>
+<td>Non-existent in standard cosmology; dependent on warp traffic in lore.<br><br><br></td>
+<td><span class="math">\(0.0\%\)</span></td>
+<td><strong><span class="math">\(0.5\%\)</span> to <span class="math">\(3.0\%\)</span></strong></td>
+<td>High-traffic warp corridors, former warzones.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Topological Defects</strong> <em>(Quantum Filaments, Cosmic Strings)</em></td>
+<td>GUT cosmic string density <span class="math">\(\Omega_{\text{string}} &lt; 10^{-5}\)</span>.<br><br><br></td>
+<td><span class="math">\(&lt; 0.0001\%\)</span></td>
+<td><strong><span class="math">\(0.1\%\)</span> to <span class="math">\(0.5\%\)</span></strong></td>
+<td>Deep space inter-arm regions, cosmic void boundaries.<br><br><br></td>
+</tr>
+<tr>
+<td><strong>Catastrophic Anomalies</strong> <em>(Omega Destabilization, Anti-Time)</em></td>
+<td>Theoretical spatial collapse mechanics.<br><br><br></td>
+<td><span class="math">\(0.0\%\)</span></td>
+<td><strong><span class="math">\(&lt; 0.01\%\)</span></strong> (Special Event)</td>
+<td>Sealed research sectors, extreme temporal anomalies.<br><br><br></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="game-engine-implementation-blueprint">Game Engine Implementation Blueprint</h2>
+<p>To calculate dynamic encounters while a starship traverses a sector along a travel path vector <span class="math">\(\mathbf{r}(t)\)</span> over transit distance <span class="math">\(L_{\text{transit}}\)</span>:</p>
+<h3 id="path-intersection-encounter-equation">Path-Intersection Encounter Equation</h3>
+<p><span class="math display">\[\lambda_{\text{path}} = A_{\text{sensor}} \cdot L_{\text{transit}} \cdot \rho_{\text{sector}}\]</span></p>
+<p>where <span class="math">\(A_{\text{sensor}} = \pi R_{\text{sensor}}^2\)</span> is the cross-sectional area of the vessel's long-range sensor sweep radius (<span class="math">\(R_{\text{sensor}} \approx 1\text{ to }3\text{ light-years}\)</span> in canonical Star Trek scanning limits).</p>
+<p>The probability <span class="math">\(P\)</span> of triggering at least one anomaly encounter during a transit across a <span class="math">\(20\text{ light-year}\)</span> sector is modeled via a Poisson distribution:</p>
+<p><span class="math display">\[P(\text{encounter}) = 1 - e^{-\lambda_{\text{path}}}\]</span></p>
+<h3 id="sector-modifier-modulations">Sector Modifier Modulations</h3>
+<p>To make spatial generation scientifically believable in your game engine:</p>
+<ol>
+<li>
+<p><strong>Galactic Latitude Modifier (<span class="math">\(\mu_{\text{lat}}\)</span>)</strong>: Scale nebulae and plasma storm probabilities down exponentially as the sector moves away from the galactic plane (<span class="math">\(z &gt; 300\text{ light-years}\)</span>).</p>
+</li>
+<li>
+<p><strong>Warp Traffic Stress Factor (<span class="math">\(\mu_{\text{warp}}\)</span>)</strong>: Scale subspace rifts and metric tears linearly with the sector's historical warp traffic density.</p>
+</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Slow page requests as jobs (PERF.105) - planetGen docs</title>
+<meta name="description" content="Informs: PERF.105, UX.118, PERF.104 (the page cache), PERF.86 (Redis rules), PERF.99 Status: built (Core 2, 2026-10-17): the mechanism (PERF.105) and the loading state on the Phenomena list and the Search page (UX.118).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/slow-page-answers.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/slow-page-answers.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="slow-page-requests-as-jobs-perf105">Slow page requests as jobs (PERF.105)</h1><p class="meta">docs/design/operations/slow-page-answers.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#the-problem">The problem</a></li><li style="margin-left:0px"><a href="#design">Design</a></li><li style="margin-left:0px"><a href="#redis-keys-all-with-a-ttl-perf86">Redis keys (all with a TTL, PERF.86)</a></li><li style="margin-left:0px"><a href="#the-loading-state-ux118">The loading state (UX.118)</a></li></ul></details>
+<p>Informs: PERF.105, UX.118, PERF.104 (the page cache), PERF.86 (Redis rules), PERF.99
+Status: built (Core 2, 2026-10-17): the mechanism (PERF.105) and the loading state on the Phenomena list and the Search page (UX.118). Nothing here changes a table; no migration.</p>
+<h2 id="the-problem">The problem</h2>
+<p>A page whose answer reads a big table (the whole list of one phenomenon kind, a wide search) builds it inside the web request. The request holds one of the five web threads for as long as the query runs, the visitor sees a blank tab, and two visitors asking for the same thing run the same query twice. The page cache (PERF.104) already holds finished answers under the tags of the data they read; what is missing is a way to <em>produce</em> a slow one without holding a request.</p>
+<h2 id="design">Design</h2>
+<p><strong>A page opts in; a miss that the cost rule calls slow becomes a job.</strong> A route that expects slow answers runs inside <code>slowpages.allow_pending()</code>. Inside it, <code>apiclient</code> reads the page cache as always; on a miss it asks the cost rule (below) once, and if the request is slow it does not build the answer: it asks <code>pagejobs.ensure</code> for the job and raises <code>slowpages.Pending</code>, carrying the job's status. The page catches it, shows its loading state (UX.118) and polls <code>GET /api/page-jobs/&lt;id&gt;</code>. When the state is <code>succeeded</code> the page asks again and the answer is in the cache. Outside <code>allow_pending</code>, and in the job itself, a miss is built in the request exactly as before, so nothing changes for a page that does not opt in.</p>
+<p><strong>The job builds through the page's own path.</strong> <code>pagejobs.build_answer</code> is an RQ job on the interactive queue (the warm-up's queue, <code>api_jobs.submit</code>). It makes the request through the site's own app (<code>apiclient.fetch_target</code>), the way the warm-up does, so the answer is stored by the same <code>begin</code>/<code>put</code> as any cached answer: under the tags it read, in Redis (<code>planetgen:page:&lt;db&gt;:&lt;digest&gt;</code>), where every web process finds it. An edit that bumps one of those tags (an API write, the population pass, the orbital update, the content stamp) makes the stored answer stale and the next request queues a new job; nothing here keeps its own copy or its own expiry.</p>
+<p><strong>One request, one job.</strong> <code>planetgen:slowjob:&lt;db&gt;:&lt;digest of the request&gt;</code> holds the id of the job building that request, claimed with <code>SET NX</code>, so visitors in other web processes, asking in the same moment, attach to one job (<code>ensure</code> returns the same id to all). A finished job is replaced when the answer it stored has since been invalidated. A failed or cancelled job is shown to the visitors who ask for the same request for <code>SLOW_PAGE_FAILED_SECONDS</code> (30 s), so a failing request is not re-queued by every page load, then replaced; a page's Retry replaces it at once (<code>ensure(..., retry=True)</code>).</p>
+<p><strong>The cost rule, in one place</strong> (<code>slowpages.cost</code>). A request is slow when:</p>
+<ol>
+<li>its last build took longer than <code>tuning.SLOW_PAGE_SECONDS</code> (3 s). Every cached build records its time in Redis (<code>planetgen:slowtime:...</code>, kept a week). A measured time beats any estimate, so a request that turned out quick is quick from then on, and one that turned out slow is slow whatever the tables hold; or</li>
+<li>it has never been timed, and the tables its route reads in full (<code>slowpages.PATH_TABLES</code>: the phenomena list reads the scatter and every phenomenon table, the search the systems, bright stars and phenomena) hold more than <code>tuning.SLOW_PAGE_ROW_BUDGET</code> (2,000,000) rows by the database's own estimate (<code>GET /api/table-estimates</code>, from <code>information_schema</code>, instant, within some tens of percent; kept a minute per process).</li>
+</ol>
+<p>The expected time of a request nothing has timed is its rows over <code>SLOW_PAGE_ROWS_PER_SECOND</code> (250,000); that is the first guess at the progress bar's ETA and is replaced by the measured time after the first build. A route that reads one page of an indexed table does not list its table, or does not opt in.</p>
+<p><strong>Progress is an estimate, and says so.</strong> The answer is one query, so there is no step to count. The status gives <code>done</code> of <code>total</code> rows with <code>estimated: true</code>: the elapsed share of the expected time, never past 95 %, so it cannot read as finished before the answer is stored; <code>eta_seconds</code> is the time left, or <code>null</code> once the expected time has passed (&quot;still working&quot;). At <code>succeeded</code>, <code>done == total</code> and the ETA is 0. UX.118 draws this as a progress bar whose text says it is an estimate. A real count would need the query split into steps (PERF.99 does that for the lists it can page through); then the same fields carry the real numbers.</p>
+<p><strong>On the queue page and cancellable.</strong> The job is a node of kind <code>slow-page</code> (&quot;Slow page answer&quot;) on <code>/admin/queue</code> beside the warm-up's, with one result line (the request, the bytes, the seconds). An admin cancels it there, or with <code>POST /api/page-jobs/&lt;id&gt;/cancel</code> (admin only): a job that has not started is removed from the queue, one that has not begun its query stops, and a query already running finishes (MySQL cannot be asked to stop it from here) and its answer stays in the cache, because it is correct, but the job reports <code>cancelled</code>. A visitor's own Cancel only stops that page from waiting; every visitor shares the job, and one anonymous visitor must not cancel it for the rest (the API takes no anonymous write but sign-in).</p>
+<p><strong>Redis down, or an update running: build it in the request, and say so.</strong> <code>ensure</code> raises <code>NoQueue</code>; <code>slowpages.pending_for</code> returns nothing, <code>apiclient</code> builds the answer in the request as it did before, the log says why, and <code>slowpages.take_notice()</code> gives the page one sentence to show (&quot;This page is slow to build and the work queue is not available, so it was built while you waited.&quot;). A page cache that cannot reach Redis is already a plain miss, so the page is slower, never wrong.</p>
+<p><strong>With the early refresh (PERF.110).</strong> A costly cached answer is fetched again shortly before it expires, by one reader at a time (<code>pagecache.ResponseCache._refresh_early</code>); that reader's cache read is a miss. On a page that opted in and a request that is slow, that miss queues the job like any other, so the early refresh of a slow answer is built on the queue, not in a request; the visitor of that moment sees the loading state for the length of the build. Every other reader is still served the old copy until the new one is stored.</p>
+<h2 id="redis-keys-all-with-a-ttl-perf86">Redis keys (all with a TTL, PERF.86)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Holds</th>
+<th>Kept</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planetgen:slowjob:&lt;db&gt;:&lt;digest&gt;</code></td>
+<td>the id of the job building that request</td>
+<td>1 h (30 s once failed or cancelled)</td>
+</tr>
+<tr>
+<td><code>planetgen:slowmeta:&lt;id&gt;</code></td>
+<td>the request, estimated rows and seconds, created, started, finished, cancel flag, queue job id</td>
+<td>1 h</td>
+</tr>
+<tr>
+<td><code>planetgen:slowtime:&lt;db&gt;:&lt;digest&gt;</code></td>
+<td>how long the last build took, seconds</td>
+<td>7 days</td>
+</tr>
+<tr>
+<td><code>planetgen:slowanswer:&lt;db&gt;:&lt;digest&gt;</code></td>
+<td>the answer itself, written by a finished job only when the page cache would not take it</td>
+<td>5 min</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>A finished job always ends the wait (UX.234).</strong> The page cache refuses an answer fetched while data changed (<code>put</code> compares the data counter it saw at <code>begin</code>) and stops adding to Redis once Redis is 70 % full, and a job runs in a worker process whose own copy no web process sees. A job whose answer the cache refused used to leave the cache empty: the visitor's next ask missed, the cost rule still said slow, and a new job was queued for the same request, for ever (Boss, an M class planet search while a fill ran). <code>ResponseCache.put</code> now says whether the answer reached Redis; when it did not, <code>apiclient</code> keeps the body under <code>planetgen:slowanswer:</code> for <code>tuning.SLOW_PAGE_DELIVER_SECONDS</code>, and a page that opted in reads it on a miss, before it asks the cost rule. It is read only while the cache has no copy, so an answer the cache took is served from the cache as before; a kept answer can be as old as the data change that made the cache refuse it, for five minutes at most.</p>
+<p><strong>A page asks for all its slow answers before it waits (UX.234).</strong> The Search page needs eight answers (the facets and each result panel), each its own request and job. It asks for all eight, collects the <code>Pending</code> of each that is slow, and raises the first only after the last is asked, so the eight jobs run side by side and the wait is the slowest, not the sum; waiting for one at a time let the first answers go stale before the last was built.</p>
+<h2 id="the-loading-state-ux118">The loading state (UX.118)</h2>
+<p><strong>A route marks itself slow with one decorator.</strong> <code>@slow_route(title, section, breadcrumbs, description)</code> (<code>web/lib/slowroute.py</code>) runs the view inside <code>allow_pending</code>. When the view raises <code>Pending</code>, the visitor gets the page's own frame (header, title, breadcrumbs) with a panel in place of the content: a progress bar, one line of status, Stop waiting. The answer is <code>202</code>, <code>Cache-Control: no-store</code>, <code>X-Robots-Tag: noindex</code>, so nothing keeps or indexes a waiting page. <code>/phenomena</code> and <code>/search</code> are the first users; another slow list takes it by adding the decorator and listing its tables in <code>slowpages.PATH_TABLES</code>.</p>
+<p><strong><code>static/slowload.js</code> polls and swaps.</strong> It asks <code>GET /api/page-jobs/&lt;id&gt;</code> every second and draws the estimate in the site's own units (<code>numberformat.js</code> for the counts, <code>unitladder.js</code> for the time left): &quot;About 30% (an estimate: 300 of 1,000 rows), about 5 s left.&quot; A job still queued leaves the bar without a value (&quot;Waiting for a worker to start building this page.&quot;); one past its expected time says &quot;still working&quot;. When the job has succeeded it fetches the same address again and puts the finished page's content in place of the panel without a page load (<code>&lt;main&gt;</code> replaced, the title updated, the finished page's own module scripts loaded, so its table starts). If that page is waiting for another job (a search asks for several answers: the facets, then each panel) the panel switches to that job's progress and carries on. A job that expired (404) is answered by asking for the page itself.</p>
+<p><strong>Failed, cancelled, stopped.</strong> A failed job shows its error and Try again; a job an administrator cancelled says so and offers the same. Try again asks for the page with <code>X-Slow-Retry: 1</code>, which replaces the failed job at once. Stop waiting stops this page polling and nothing else (the job is shared); Check again picks it up.</p>
+<p><strong>Accessible and quiet.</strong> The bar is a <code>&lt;progress&gt;</code> named by the panel's heading and described by the status line, which is a polite live region; the error is an alert. The text carries the same information as the bar. For a reader who asked for less motion a bar with no value (the moving kind) is hidden and the words stand alone. The panel wraps at phone width. Without JavaScript the page refreshes itself every five seconds (<code>&lt;noscript&gt;</code>) until the answer is there.</p>
+<p><strong>When the queue can't take it,</strong> the page is built in the request and shows a line at the top saying so (<code>slow_notice</code>, from <code>slowpages.take_notice</code>).</p>
+<p><strong>Route timing.</strong> A search for a new name has never been timed, and the row estimate alone would queue every one. So a request not timed itself takes the slowest build of any request on its route in the last ten minutes (<code>planetgen:slowpath:...</code>): a route that has been quick lately is quick for a new request, one that was slow lately is slow. The row estimate decides only a route nothing has been timed on.</p>
+<p><strong>Not here.</strong> The table's own scrolling and sorting fetch pages of rows from a data route that is not marked slow (it builds in the request, as before, and keeps its busy handling, UX.96); marking it needs <code>datatable.js</code> to wait on a job, which is a later item. Splitting a list into counted steps is PERF.99.</p>
+<p><strong>The warm-up never waits (PERF.156).</strong> The cache warm-up visits pages to fill the cache, and a visit that answered <code>202</code> would be a visit that cached nothing and counted as a failure. <code>slow_route</code> runs the view as it is, with no <code>allow_pending</code>, when the app is the warm-up's (<code>config.WARMUP</code>), so a slow page is built inside the warm-up's own request, and its unit ends with the answer cached.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

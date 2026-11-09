@@ -80,14 +80,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.1390 | Generation sanity reds: moon history, class_sample P, daylight, prevalence habitable_world, climate sweep, atmosphere_state, biogenic oxygen, orbit_elements, life_schedule, population_streams, moon_disk_zone, sweep_bulk, forced_star (a subdwarf comes out V), invalid slot type (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | TEST.696 | Browser test failures: Help menu expectation (9 of 10), plane view and side strip clicks 'not visible', edit menu dialog never opens, fixture maps (9 of 227), generate flow phone-light, map card, density, hover, key, galaxy closed (bug) |  | Bug Hunt first pass, 2026-11-07. |
 | PERF.254 | Memory governor for the generation run: admit and shed workers from the live free memory, learn each stage's worker size, and measure the cut of a stage as its own step |  | Boss, 2026-11-08. |
-| DOC.113 | Design note: break every run into small queued jobs that spawn subjobs, with a memory claim and declared previous steps |  | Boss, 2026-11-08 (proposed). |
 | DOC.114 | Full refresh of all documents of all types against main: READMEs, design notes, plan files, reports, change notes, generated pages and help text |  | Boss, 2026-11-08. |
 | DOC.115 | One unified planning source: the plan files consolidated so that docs/TODO.md stays the item list and every other plan file points at it, with item numbers and links kept |  | Boss, 2026-11-08. |
-| DOC.116 | A script that builds HTML pages from the docs directory for GitHub Pages: scripts/build_docs_site.py writes docs/site/ |  | Boss, 2026-11-08. |
 | DOC.117 | History sweep: read every commit, item, choice, issue and pull request, alive or dead, and add past choices, rejected paths and trends to the design documents |  | Boss, 2026-11-08. |
-| ADM.148 | Remove the admin Compact density checkbox: it does nothing, so remove its code, css and tests |  | Boss, 2026-11-08. |
-| ADM.149 | Remove the Show on Galaxy Map button on the generate job pages and the dead chain behind it (made_url, /api/galaxy/made, the galaxy ?made= view and the map JS) |  | Boss, 2026-11-08. |
-| ADM.150 | An admin-requested list of the systems made so far in a generation run, as a job on the new task system (admin may wait for it) |  | Boss, 2026-11-08. |
 | OPS.122 | Job model: a job record with declared dependencies, subjob spawning and a per-job memory claim, replacing the stage barrier |  | Boss, 2026-11-08 (proposed). |
 | OPS.123 | Stage opening (the cut), conclude and finish hooks become single-purpose commands of their own instead of running inside the last unit's horse |  | Boss, 2026-11-08 (proposed). |
 | OPS.124 | Memory broker: a per-job memory claim, measured and adjusted by load (PERF.254 step 1 becomes its first form) |  | Boss, 2026-11-08 (proposed). |
@@ -96,7 +91,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.127 | Migrate the run stage by stage to the job model, each stage compared byte for byte with today |  | Boss, 2026-11-08 (proposed). |
 | OPS.128 | Run planner: every task is planned first as a stored sequence of single-purpose commands for every start path, then executed (takes over the job spec of PERF.203) |  | Boss, 2026-11-08 (proposed). |
 | OPS.129 | Split the bundled commands into single-purpose commands: the phenomena finish (about five), run-population (about four) and every other prepare, expand, finish and conclude hook |  | Boss, 2026-11-08 (proposed). |
-| OPS.130 | Fair-share task scheduler for the job system: every job that can run gets a turn, site-serving work goes first, no starvation, and no command (the warm-up included) blocks the site |  | Boss, 2026-11-08 (proposed). |
 | OPS.131 | Independence harness for overlapping jobs: each command declares its reads and writes, a SQL tap test fails any command that touches an undeclared table, and a pair overlaps only after a test proves it |  | Boss, 2026-11-08 (proposed). |
 | OPS.132 | Overlap rollout: per-pair overlap PRs (first the commands that need only the skeleton: sectors, mass scatter, phenomena) and narrower edges (link and settle per sector, backfill per cell) |  | Boss, 2026-11-08 (proposed). |
 
@@ -489,6 +483,11 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1467 | Mutual tides, spin and apsidal precession between the stars of a binary or triple |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1469 | Companion truncation of the planet-forming disk: read how a companion star limits the disk and the planet masses and architecture the host's disk gives |  | Boss, 2026-11-08, approved for Train 21. |
+| GEN.1470 | Obliquity-tide inflation (GEN.1347) makes puffed planets of 8 to 10 Earth radii at 0.04 to 0.06 g/cc that the super-puff type check does not recognise (bug) |  | Lane 14, 2026-11-08. |
+| GEN.1471 | Fix a gas giant's carbon-to-oxygen ratio centre and add one stand-in, the envelope share m of bulk heavy elements (m = 0.1 first) | GEN.1363, GEN.1406 | Lane 14, 2026-11-08; lock item, Train 21 or 22. |
+| GEN.1472 | Design note for the drift and evaporation of water in the disc (cold finger at the snow line) | GEN.1471, GEN.1396 | Lane 14, 2026-11-08; Boss lowered the research bar. |
+| GEN.1473 | Build the drift and evaporation model of water and let a giant's envelope C/O follow it | GEN.1472 | Lane 14, 2026-11-08; lock item. |
+| GEN.1474 | Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities | GEN.1450 | Lane 21, 2026-11-08; lock item. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1460 | Orbit spacing and Hill checks against every neighbour: the Hill radius at periapsis, all neighbours not the last only, and the other star's planets | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |

@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Giant planet, ice giant and brown dwarf interiors: the layers, metallic hydrogen, helium rain and the core (GEN.641) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-23): research note for GEN.641 and the design GEN.642 (draw and describe) and DB.89 (store) build from.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/giant-interiors.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/giant-interiors.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="giant-planet-ice-giant-and-brown-dwarf-interiors-the-layers-metallic-hydrogen-helium-rain-and-the-core-gen641">Giant planet, ice giant and brown dwarf interiors: the layers, metallic hydrogen, helium rain and the core (GEN.641)</h1><p class="meta">docs/design/composition/giant-interiors.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-exists-at-main-802042">1. What exists at main 8.0.2042</a></li><li style="margin-left:0px"><a href="#2-what-the-sources-say">2. What the sources say</a></li><li style="margin-left:14px"><a href="#21-hydrogen-molecular-to-metallic">2.1 Hydrogen: molecular to metallic</a></li><li style="margin-left:14px"><a href="#22-helium-rain">2.2 Helium rain</a></li><li style="margin-left:14px"><a href="#23-the-core-compact-dilute-or-both">2.3 The core: compact, dilute, or both</a></li><li style="margin-left:14px"><a href="#24-ice-giants">2.4 Ice giants</a></li><li style="margin-left:14px"><a href="#25-brown-dwarfs">2.5 Brown dwarfs</a></li><li style="margin-left:0px"><a href="#3-the-layers-a-giant-gets">3. The layers a giant gets</a></li><li style="margin-left:0px"><a href="#4-the-draws">4. The draws</a></li><li style="margin-left:14px"><a href="#41-where-the-layers-sit">4.1 Where the layers sit</a></li><li style="margin-left:14px"><a href="#42-metallic-hydrogen-and-helium">4.2 Metallic hydrogen and helium</a></li><li style="margin-left:14px"><a href="#43-the-core">4.3 The core</a></li><li style="margin-left:14px"><a href="#44-ice-giants">4.4 Ice giants</a></li><li style="margin-left:14px"><a href="#45-brown-dwarfs">4.5 Brown dwarfs</a></li><li style="margin-left:0px"><a href="#5-what-gets-stored-and-described">5. What gets stored and described</a></li><li style="margin-left:0px"><a href="#6-test-targets-never-presets">6. Test targets (never presets)</a></li><li style="margin-left:0px"><a href="#7-decisions">7. Decisions</a></li><li style="margin-left:0px"><a href="#8-gaps">8. Gaps</a></li><li style="margin-left:0px"><a href="#9-sources-fetched-for-this-note">9. Sources fetched for this note</a></li><li style="margin-left:0px"><a href="#10-wired-into-the-generator-gen460-gen642-generator-epoch-80">10. Wired into the generator (GEN.460, GEN.642; generator epoch 80)</a></li><li style="margin-left:0px"><a href="#11-the-structure-from-the-equation-of-state-gen733">11. The structure from the equation of state (GEN.733)</a></li><li style="margin-left:0px"><a href="#12-the-internal-heat-gen810">12. The internal heat (GEN.810)</a></li></ul></details>
+<p><strong>Status (2026-10-23):</strong> research note for GEN.641 and the design GEN.642 (draw and describe) and DB.89 (store) build from. Boss, 6:01 PM EDT 2026-10-23: gas giants get a full composition, including liquid or metallic hydrogen and helium, whether there is a rocky core, and what it is made of. The kernel is wired into the generator since generator epoch 80 (GEN.460, GEN.642; section 10); DB.89 (the layer table) is next. Sibling notes: <a href="bulk-composition.html">bulk-composition.md</a> (decisions 20 to 24, 34: the envelope, the heavy-element mass law, the radius tables), <a href="composition-model.html">composition-model.md</a>, <a href="body-composition-parts/C-volatile-and-giants.html">body-composition-parts/C-volatile-and-giants.md</a> (the radius laws and the Fortney tables). The whole-body totals stay as GEN.428 stores them (<code>envelope_mass_fraction</code>, <code>envelope_helium_fraction</code>, <code>envelope_z_fraction</code>); this note adds the interior inside them.</p>
+<p>Verification states follow the rule of 3:02 AM EDT 2026-10-17: <strong>READ</strong> (the paper's text was read for the number), <strong>READ (abstract)</strong>, <strong>2ND-HAND</strong> (a number the read papers quote from another paper, which was not opened), <strong>STAND-IN</strong> (a Solar System fit or a placeholder, flagged, with the item that replaces it), <strong>OPEN</strong> (no source; a seeded range is used and flagged). Conflicts follow Boss's rules (bulk-composition.md section 11): verified wins; two verified in doubt, the newest wins; both in question, the widest range wins. Nothing is fixed per planet and nothing is copied from the Solar System as a preset: Jupiter, Saturn, Uranus and Neptune are test targets (section 6).</p>
+<h2 id="1-what-exists-at-main-802042">1. What exists at main 8.0.2042</h2>
+<ul>
+<li>A giant has a class letter and a composition text; no layer, no core mass, no helium split. <code>generation/planet.py</code> writes flavour text about a &quot;liquid metallic state&quot; using the n = 1 polytrope central pressure P_c = pi G M^2 / (8 R^4) (<code>physics/constants.py</code> line 195) and one fixed <code>HYDROGEN_METALLIZATION_PRESSURE_PA = 1e11</code> (&quot;a narrative milestone, not a claim of precision&quot;). Nothing stores it.</li>
+<li>The shared materials table (<code>physics/data/materials.json</code>, GEN.427) has the rows <code>hydrogen</code>, <code>helium</code>, <code>rock</code>, <code>iron</code>, <code>iron_epsilon</code>, <code>water_liquid</code>, <code>ice_vii</code>, <code>ice_x</code> (the row named &quot;ice X (and superionic water above about 100 GPa and 2000 K)&quot;) and the other ices. It has no row for metallic hydrogen; section 5 adds the layer states, not a new material, because metallic hydrogen is hydrogen at a pressure.</li>
+<li>Decisions 20 to 24 and 34 of bulk-composition.md fix the envelope fraction, the heavy-element mass M_Z law (Chachan mean, Thorngren selectable), a core drawn log-uniform 5 to 20 Earth masses (decision 22, OPEN) and the Fortney radius tables. They treat a giant as a core plus one homogeneous envelope. The sources below show that picture is out of date; section 3 replaces decision 22.</li>
+</ul>
+<h2 id="2-what-the-sources-say">2. What the sources say</h2>
+<p>All numbers are for the four Solar System giants, which are the only ones measured, so each is a constraint on a law, not a preset.</p>
+<h3 id="21-hydrogen-molecular-to-metallic">2.1 Hydrogen: molecular to metallic</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source, state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Insulating molecular liquid to metallic liquid, above about 1 Mbar at high temperature</td>
+<td>stated as the general picture</td>
+<td>[R1893], section 2.0.1: READ</td>
+</tr>
+<tr>
+<td>Crossover in Jupiter's conditions, pure H and H-He mixture of proto-solar composition, 6000 K isotherm, quantum Monte Carlo</td>
+<td>0.4 to 0.6 Mbar (40 to 60 GPa); helium delays metallization by about 70 GPa at 1500 K and 30 GPa at 6000 K</td>
+<td>[R2966], abstract and section 3; [R1894] section 3: READ</td>
+</tr>
+<tr>
+<td>Older and other estimates</td>
+<td>liquid-liquid transition at 1 to 2 Mbar below a critical temperature of about 2000 to 5000 K; experiment 1.4 Mbar</td>
+<td>[R1038] section 3: READ; Weir via [R1892, R1894]: 2ND-HAND</td>
+</tr>
+<tr>
+<td>Magnetic field generation in Jupiter</td>
+<td>starts near 140 GPa</td>
+<td>[R1892, R1894] section 1: READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rule 3 (widest range) gives the <strong>molecular-to-metallic pressure P_MM drawn log-uniform from 0.4 to 2 Mbar</strong> once per body (decision D1). The fixed 1 Mbar constant of <code>constants.py</code> goes (no shim).</p>
+<h3 id="22-helium-rain">2.2 Helium rain</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source, state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Helium is immiscible in metallic hydrogen below a temperature that rises with pressure; droplets fall and release gravitational energy</td>
+<td>the mechanism</td>
+<td>[R4220], via [R1893] section 2.0.1 and [R2852]: 2ND-HAND</td>
+</tr>
+<tr>
+<td>Onset for a proto-solar adiabat (Y = 0.27) with the [R3973] phase curve</td>
+<td>about 5500 K at 2 Mbar, for a one-bar temperature T1 = 149 K</td>
+<td>[R2852: Figure 1]: READ</td>
+</tr>
+<tr>
+<td>That curve taken at face value</td>
+<td>Jupiter (T1 = 166 K) is 500 K or more too warm to demix, yet its atmosphere is helium-depleted; good solutions need the phase curve shifted warmer (delta T_phase up to about 400 K explored)</td>
+<td>the same paper, section 4: READ</td>
+</tr>
+<tr>
+<td>Jupiter's atmosphere</td>
+<td>Y / (X + Y) = 0.234 (Galileo) against proto-solar 0.2745; &quot;modest&quot; differentiation, begins at about 3.5 Gyr</td>
+<td>[R1893: Figure 4] caption: READ; Galileo value 2ND-HAND</td>
+</tr>
+<tr>
+<td>Saturn's atmosphere</td>
+<td>predicted Y = 0.07 +/- 0.01 (He/H2 = 0.036 +/- 0.006); begins at about 1.3 Gyr; the luminosity from rain extends the cooling time to the solar age</td>
+<td>[R2852] abstract: READ</td>
+</tr>
+<tr>
+<td>Where it happens</td>
+<td>from the 2 Mbar level, at about 80 percent of Jupiter's radius and 55 percent of Saturn's, with a continuous helium gradient below</td>
+<td>[R2852: Figure 3] caption: READ</td>
+</tr>
+<tr>
+<td>Saturn's deep interior</td>
+<td>a helium-rich shell (Y near 1 at the bottom) above the heavy-element core, inner boundary near 35 percent of Saturn's radius</td>
+<td>the same, Figure 3 and section 2: READ; [R1893] section 3.1.2: READ</td>
+</tr>
+<tr>
+<td>Neon follows helium</td>
+<td>neon differentiation may have added luminosity</td>
+<td>[R2852] abstract: READ (abstract)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cooler planets differentiate earlier and deeper: a Saturn-mass planet at a given age rains more than a Jupiter-mass one. The phase diagram is the weakest input: [R1895] say it is &quot;very difficult to determine the critical line of a mixture at megabar pressures and many thousands of degrees&quot;.</p>
+<h3 id="23-the-core-compact-dilute-or-both">2.3 The core: compact, dilute, or both</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source, state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The old picture (pure heavy-element core under one homogeneous envelope)</td>
+<td>&quot;no longer valid&quot;; gravity data need a deep region enriched in heavy elements with a gradient, a &quot;fuzzy&quot; or &quot;dilute&quot; core</td>
+<td>[R1895] sections 1 and 2: READ</td>
+</tr>
+<tr>
+<td>Jupiter's dilute core</td>
+<td>mass about 100 Earth masses (a third of Jupiter), H-He-dominated, heavy-element fraction about 20 percent; small-core solutions extend to about 20 percent of Jupiter's mass</td>
+<td>[R1895] section 2.4 and Figure 2: READ; [R2013] abstract: READ (abstract)</td>
+</tr>
+<tr>
+<td>Jupiter, other models</td>
+<td>dilute core out to 60 to 75 percent of the radius; region between 0.1 and 2 Mbar with an entropy and composition change; outer envelope near solar Z</td>
+<td>[R1038] abstract and Figures 3 to 4: READ</td>
+</tr>
+<tr>
+<td>Jupiter's total heavy elements</td>
+<td>18 to 45 Earth masses (adiabatic about 20, non-adiabatic up to 60)</td>
+<td>[R1893] section 3.1.1; [R1895] section 2.1: READ</td>
+</tr>
+<tr>
+<td>Saturn's dilute core</td>
+<td>stable region out to 0.59 +/- 0.01 R_S, 55.1 +/- 1.7 Earth masses of which 17.4 +/- 1.2 are rock and ice (Z about 0.32 there); central density about 6 g/cm3; up to 80 percent heavy elements in the inner part</td>
+<td>[R2851] text: READ; [R1893] section 3.1.2: READ</td>
+</tr>
+<tr>
+<td>Saturn, compact-core models</td>
+<td>pure core of 15 to 18 Earth masses with under 5 Earth masses in the envelope; 4-layer fit 12 to 18 Earth masses total</td>
+<td>Ni 2020, via [R1893]: 2ND-HAND</td>
+</tr>
+<tr>
+<td>A compact pure heavy-element core</td>
+<td>&quot;a few Earth masses at most&quot; for Jupiter; may not exist; invisible to gravity (a 5 Earth-mass core adds about 1e-4 of the moment of inertia); formation models predict it, and convective mixing or a giant impact could erase it</td>
+<td>[R1895] section 2.3: READ</td>
+</tr>
+<tr>
+<td>Why the core is dilute</td>
+<td>four candidate origins: evaporated accreted solids mixing in (confined to about the inner 20 Earth masses by runaway gas accretion), giant impacts, convective erosion, and delayed runaway accretion at about 100 Earth masses</td>
+<td>[R1895] section 3: READ</td>
+</tr>
+<tr>
+<td>What it is made of</td>
+<td>water and rock mix with metallic hydrogen in all proportions at these temperatures; gravity cannot tell water from rock; rocks may sink deeper than water during accretion, so a compact core is rock-and-iron rich and the ice mixes higher up</td>
+<td>[R1895] section 4 (&quot;Differentiation&quot;, &quot;The chemical composition of heavy elements&quot;): READ; 2ND-HAND</td>
+</tr>
+<tr>
+<td>Temperature</td>
+<td>central temperature about 20,000 K adiabatic, 35,000 K for superadiabatic (Jupiter); 10 Mbar region 9,500 to 13,000 K; boundary 1 to 2 Mbar at 5,000 to 9,000 K; heavy-element mass and central temperature trade off</td>
+<td>[R1893] section 3.1.1; [R1038: Figure 4]: READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conflict (rule 3): compact core 0 to a few Earth masses [R1895] against 15 to 18 (Saturn, 2ND-HAND). <strong>The compact core is drawn between 0 and 20 Earth masses</strong> (the older decision 22 range of 5 to 20 reaches the Saturn value; the lower end now includes none), D3.</p>
+<h3 id="24-ice-giants">2.4 Ice giants</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source, state</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H/He share of the mass</td>
+<td>about 10 to 20 percent [R1892]; up to about 2 Earth masses in three-layer models</td>
+<td>[R1893] section 3.2: READ</td>
+</tr>
+<tr>
+<td>Heavy-element share</td>
+<td>Uranus 76 to 90 percent, Neptune 77 to 90 percent, depending on whether the heavy element is rock (SiO<sub>2</sub>) or water</td>
+<td>[R1889, R1890, R1891] via [R1893]: READ</td>
+</tr>
+<tr>
+<td>Structure</td>
+<td>three layers (rock core, water-rich mantle, H/He envelope) or gradients with no distinct layers; outer envelope Z up to 0.17 (Voyager rotation) or 0.08 (revised), inner envelope Z about 0.9; solar-Z envelopes also fit</td>
+<td>[R1893]: 2ND-HAND</td>
+</tr>
+<tr>
+<td>Rock to water ratio</td>
+<td>unknown: at most about 2; 0.05 to 0.38 maximum for non-adiabatic empirical models; solar 1/2; carbon-rich planetesimals give more methane and water than rock ([R2827]: methane planets)</td>
+<td>[R1893] sections 3.2.1 and 3.2.2: READ; each paper 2ND-HAND</td>
+</tr>
+<tr>
+<td>Is the hydrogen metallic</td>
+<td>the adiabats cross the molecular-to-metallic line, but &quot;it is unclear whether H-He exist in the planetary deep interiors&quot;</td>
+<td>[R1893: Figure 1] caption: READ. Estimate here: the pressure at the base of a 2 Earth-mass envelope on a 13 Earth-mass core is about 21 GPa (0.2 Mbar), below P_MM, so no metallic layer (a thin-shell estimate, <code>G M_core M_env / (4 pi R_core^4)</code>, COMPUTED)</td>
+</tr>
+<tr>
+<td>Water in the deep interior</td>
+<td>superionic ice (ice XVIII) at 100 to 400 GPa and 2000 to 3000 K; solid oxygen lattice, mobile protons; the generator needs its density and that it is solid</td>
+<td>C-volatile-and-giants.md section 2.3 ([R1457] via Zeng and Sasselov): READ (abstract), 2ND-HAND</td>
+</tr>
+<tr>
+<td>Low luminosity</td>
+<td>composition gradients and thermal boundary layers; central temperatures 5,000 to 6,500 K adiabatic, above 20,000 K non-adiabatic</td>
+<td>[R1893] section 3.2.1: READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="25-brown-dwarfs">2.5 Brown dwarfs</h3>
+<p>A brown dwarf is fully convective and partially degenerate ([R0707], astro-ph/0006383, sections 2 and 3: READ for the degeneracy parameter psi running from about 2 to 0.05 and the central density rising as mass falls toward the hydrogen-burning limit). Its central pressure is hundreds to thousands of times P_MM, so only a thin outer layer is molecular; it forms from a collapsing cloud with no solid core, so its heavy-element mass fraction is the star's metallicity Z with no compact core (D6). Whether helium rain occurs inside cool T and Y dwarfs is OPEN (no source was read); the same rule as section 2.2 applies if it does, with T1 replaced by the effective temperature, and is <strong>not</strong> switched on for brown dwarfs until a source is read (GEN.641 follow-up).</p>
+<h2 id="3-the-layers-a-giant-gets">3. The layers a giant gets</h2>
+<p>Layers are listed outside in. A layer has a kind, a pressure at its top and bottom, a share of the whole body's mass, the mass fractions of its materials (rows of the shared materials table) and a state.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Kind key</th>
+<th>Material rows</th>
+<th>State</th>
+<th>Present when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Molecular envelope</td>
+<td><code>molecular_envelope</code></td>
+<td><code>hydrogen</code>, <code>helium</code> (Y_out), heavy elements Z_out</td>
+<td>molecular fluid</td>
+<td>always for a giant</td>
+</tr>
+<tr>
+<td>Metallic envelope</td>
+<td><code>metallic_envelope</code></td>
+<td><code>hydrogen</code>, <code>helium</code> (Y_in), heavy elements Z_mid</td>
+<td>metallic fluid</td>
+<td>envelope base pressure above P_MM</td>
+</tr>
+<tr>
+<td>Helium rain zone</td>
+<td><code>helium_gradient</code></td>
+<td>as above with Y rising inward</td>
+<td>metallic fluid, gradient</td>
+<td>T1 below the onset (section 4.2)</td>
+</tr>
+<tr>
+<td>Helium shell</td>
+<td><code>helium_shell</code></td>
+<td><code>helium</code>, <code>hydrogen</code></td>
+<td>metallic fluid</td>
+<td>strong depletion only (section 4.2)</td>
+</tr>
+<tr>
+<td>Dilute core</td>
+<td><code>dilute_core</code></td>
+<td><code>hydrogen</code>, <code>helium</code>, <code>rock</code>, <code>iron</code>, <code>water_liquid</code> or <code>ice_x</code>, other ices</td>
+<td>metallic fluid with heavy elements, gradient</td>
+<td>mass above the compact core and M_Z large enough (section 4.3)</td>
+</tr>
+<tr>
+<td>Compact core</td>
+<td><code>compact_core</code></td>
+<td><code>rock</code> (silicate), <code>iron</code>, with the ice share the draw gives</td>
+<td>molten or solid</td>
+<td>drawn (D3)</td>
+</tr>
+<tr>
+<td>Ice mantle (ice giants)</td>
+<td><code>ice_mantle</code></td>
+<td><code>water_liquid</code> or <code>ice_x</code> (superionic), <code>ammonia</code>, <code>methane</code> per the ice set of GEN.428, <code>rock</code> share</td>
+<td>ionic or superionic fluid</td>
+<td>envelope fraction below one half</td>
+</tr>
+<tr>
+<td>Rock core (ice giants)</td>
+<td><code>rock_core</code></td>
+<td><code>rock</code>, <code>iron</code></td>
+<td>molten or solid</td>
+<td>always for an ice giant</td>
+</tr>
+</tbody>
+</table></div>
+<p>An ice giant uses <code>molecular_envelope</code>, <code>ice_mantle</code> and <code>rock_core</code> and has a <code>metallic_envelope</code> only if its envelope base pressure passes P_MM. A gas giant uses <code>molecular_envelope</code>, <code>metallic_envelope</code>, optionally the helium layers, <code>dilute_core</code> and optionally <code>compact_core</code>. Which of the two a body is follows from the envelope fraction f_env (a gas giant above one half, an ice giant below; Helled and Fortney's 10 to 20 percent for the Solar System ice giants) and not from a class letter (GEN.645).</p>
+<h2 id="4-the-draws">4. The draws</h2>
+<p>Every number below is OPEN or STAND-IN unless it names a source; each draw is a gated GEN.472 table row set, registered as <code>giant-*</code>, with the bracket it comes from. The draw order is fixed (a reorder is an epoch change) and follows GEN.428 and GEN.460: M, M_Z, f_env and Y_proto come first (decisions 20, 21, 24).</p>
+<h3 id="41-where-the-layers-sit">4.1 Where the layers sit</h3>
+<p>The hydrostatic profile of the layers is the n = 1 polytrope that the repo already uses for the central pressure: P(xi)/P_c = (sin xi / xi)^2 with xi = pi r / R, and the mass inside xi is M (sin xi - xi cos xi)/pi, P_c = pi G M^2 / (8 R^4). It is a rough shape for a hydrogen-helium sphere, good enough to place layer boundaries to a few percent of the radius (COMPUTED here: for Jupiter's mass and radius the 2 Mbar level falls at 0.81 R_J and 16 percent of the mass lies above it, against 0.8 to 0.9 R_J in Debras and Chabrier; for Saturn 0.59 R_S against 0.55 in Mankovich and Fortney). It is the stand-in of a run without the downloaded tables; with them the profile is the structure of section 11. For an envelope under 30 percent of the mass (ice giants, sub-Saturns) the shell formula <code>P_base = G M_core M_env / (4 pi R_core^4)</code> replaces it, because the mass is in the core. The radius R is the one GEN.429 and GEN.460 derive, so the layers never change mass or radius.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Pressure</th>
+<th>Mass above, Jupiter</th>
+<th>Mass above, Saturn</th>
+<th>Radius, Jupiter</th>
+<th>Radius, Saturn</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.4 Mbar</td>
+<td>lowest P_MM</td>
+<td>0.039</td>
+<td>0.165</td>
+<td>0.907 R</td>
+<td>0.801 R</td>
+</tr>
+<tr>
+<td>1 Mbar</td>
+<td>middle</td>
+<td>0.088</td>
+<td>0.332</td>
+<td>0.859 R</td>
+<td>0.700 R</td>
+</tr>
+<tr>
+<td>2 Mbar</td>
+<td>highest P_MM and the rain onset</td>
+<td>0.156</td>
+<td>0.534</td>
+<td>0.807 R</td>
+<td>0.588 R</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="42-metallic-hydrogen-and-helium">4.2 Metallic hydrogen and helium</h3>
+<ul>
+<li><strong>P_MM</strong> log-uniform 0.4 to 2 Mbar, drawn once (D1). The molecular envelope is the mass above it; the metallic envelope is the rest of the envelope down to the dilute core.</li>
+<li><strong>Helium split.</strong> Rain is active when the planet's one-bar temperature T1 (the stored equilibrium plus internal heat; the body's own value, never a Solar System number) is below the onset T1_on (STAND-IN, D2). The onset is the one number the sources cannot give: the phase curve says 149 K unshifted and Jupiter shows depletion at 166 K, so the phase curve must sit warmer (Mankovich and Fortney section 4). Two measured points give a straight line between them: Y_out / Y_proto = 0.85 at T1 = 166 K (Jupiter) and 0.26 at T1 = 140 K (Saturn), reaching 1 at 172.6 K and held at 0.26 below 140 K. These two points are the only calibration; they are flagged in the gap plan registry as a stand-in that GEN.641's follow-up replaces with the Schottler and Redmer curve and the stored adiabat (the curve is Figure 1 of Mankovich and Fortney; the paper itself is to be fetched).</li>
+<li><strong>Mass balance.</strong> Helium is conserved: Y_proto M_env = Y_out M_mol + Y_in M_met + M_He,shell, so the helium removed from the molecular envelope reappears below it. The metallic envelope gets the removed helium as a gradient (Y_in rising inward, the <code>helium_gradient</code> layer) while Y_out / Y_proto stays above 0.5; below 0.5 half of the removed helium goes into a <code>helium_shell</code> between the rain zone and the dilute core (the Saturn picture, &quot;inevitably forms a helium-rich shell&quot;, STAND-IN D2).</li>
+<li><strong>Neon</strong> follows helium in the sources; it is not a layer here (OPEN, no number).</li>
+</ul>
+<h3 id="43-the-core">4.3 The core</h3>
+<ul>
+<li><strong>Compact core mass M_cc</strong>, log-uniform from 0.5 to 20 Earth masses with probability 0.5 that none exists, capped at M_Z (D3, OPEN: the probability is a placeholder; Helled and Stevenson say it is unknown and that gravity cannot see it).</li>
+<li><strong>Dilute core mass M_dil</strong>: log-uniform from 20 to 100 Earth masses (the delayed-runaway mass of Venturini and Helled at the high end, both 2ND-HAND through Helled and Stevenson), capped at 0.65 M (Saturn's 55 of 95 Earth masses is 0.58, READ). Below M = 30 Earth masses there is no separate dilute core and the heavy elements are a gradient through the whole body (the ice-giant picture).</li>
+<li><strong>Heavy-element budget.</strong> M_Z (GEN.460) is split: Z_out M_mol in the outer envelope (Z_out = Z_env from decision 21), M_cc in the compact core, and the rest in the dilute core and the metallic envelope. The dilute core's mean Z_dil is that rest over M_dil and must fall between Z_out and 0.8 (Saturn's inner part, READ); if it does not, M_dil is moved inside its bracket until it does, and when no value fits the planet has no dilute core and the heavy elements are spread through the metallic envelope. Z rises inward through the dilute core; the shape of the gradient is OPEN (a linear rise from Z_out at its top is the placeholder) and only the mean, which the budget fixes, is a constraint.</li>
+<li><strong>What the heavy elements are made of.</strong> The rock-to-ice split of the heavy elements comes from the formation branch GEN.428 stored: a body born beyond the snow line takes the water share W of its solids (decision 2, 0.14 to 0.39 of the solids) and the ice set of decision 18; a body born inside takes none. The compact core takes the rock and iron first (rocks sink deeper than water, Helled and Stevenson section 4), and the ice goes outward first: the molecular envelope (which holds it as vapour), then the metallic envelope, then the dilute core. Rock and iron that the compact core cannot hold fill the dilute core, then the deep metallic envelope. Heavy elements the dilute core cannot hold (it takes at most 80 percent of its mass) enrich the deep envelope, never the atmosphere, whose metallicity the caller fixed. The iron-to-rock split of the refractory part is the star's, as for a terrestrial planet (GEN.428's <code>metal_mass_fraction</code> over <code>rock_mass_fraction</code>, CMF 0.2917 for solar abundances).</li>
+<li><strong>Temperature</strong> is not drawn or stored (OPEN): the boundary temperatures of Debras and Chabrier (5,000 to 9,000 K at 1 to 2 Mbar, 9,500 to 13,000 K at 3 to 7 Mbar, 19,000 to 30,000 K at 40 Mbar) are test targets, not inputs.</li>
+</ul>
+<h3 id="44-ice-giants">4.4 Ice giants</h3>
+<ul>
+<li>f_env is GEN.428's; the H/He share is 0.05 to 0.20 of the mass (Helled and Fortney 10 to 20 percent for Uranus and Neptune; widest range with the three-layer fits that give 1 to 2 Earth masses).</li>
+<li><strong>Rock fraction of the heavy elements</strong> 0.05 to 0.67 ([R4880] high; rule 3 widest, OPEN). Water, ammonia and methane share the rest by the ice set (GEN.428), which already follows Marboeuf's table; the carbon-rich option of [R2827] (methane above water) is a table row with weight set by the share of refractory organics, OPEN.</li>
+<li>Mantle water is <code>water_liquid</code> above a drawn depth and <code>ice_x</code> (superionic) when the layer's pressure exceeds 100 GPa; the radius does not change (the radius tables already carry it, decision 12).</li>
+<li>A gradient (no distinct layers) is the default representation of Z; the three layers are the rows a description names.</li>
+</ul>
+<h3 id="45-brown-dwarfs">4.5 Brown dwarfs</h3>
+<p>One envelope: molecular above P_MM, metallic below, Z the star's metallicity, no compact core, no dilute core (D6). The molecular layer is thin, because the central pressure is far above P_MM; its mass share is computed when GEN.642 is built (an n = 3/2 polytrope for the degenerate range), not in this note. Helium is the proto-solar Y of the natal gas (stellar-composition.md) until a source for cool-dwarf helium rain is read.</p>
+<h2 id="5-what-gets-stored-and-described">5. What gets stored and described</h2>
+<ul>
+<li><strong>Summary columns</strong> on the planet and moon tables (DB.89, lane I's BulkFractions extends): <code>core_mass_earth</code> (compact core, 0 if none), <code>dilute_core_mass_earth</code>, <code>metallization_pressure_gpa</code> (P_MM), <code>helium_depletion</code> (Y_out / Y_proto, 1 when no rain), <code>has_helium_shell</code> (bool). All numeric columns are declared in <code>db/column_units.py</code> in the same PR.</li>
+<li><strong>Layer rows</strong> (built, schema v154): <code>planet_interior_layers</code> and <code>moon_interior_layers</code>, one row per layer outside in, with <code>layer_index</code>, <code>kind</code>, <code>state</code>, <code>top_pressure_gpa</code>, <code>bottom_pressure_gpa</code>, <code>top_radius_fraction</code>, <code>bottom_radius_fraction</code>, <code>mass_earth</code> and the mass of each material in Earth masses (<code>hydrogen</code>, <code>helium</code>, <code>iron</code>, <code>rock</code>, <code>water_liquid</code>, <code>ice_x</code>, <code>nh3_ice</code>, <code>ch4_ice</code>). The tables are separate from the mixture child table of GEN.428, which was not extended. The body carries them as <code>interior_layers</code> (a list of flat dicts, <code>giant_interior.body_values</code>) and <code>giant_interior.interior_of</code> rebuilds the <code>GiantInterior</code>. A recalculation never redraws a stored layer (F10).</li>
+<li><strong>Description</strong> (GEN.642, one writer with GEN.430; the numbers are an illustration of the wording, not a draw): &quot;A gas giant of 1.0 Jupiter masses. Its outer 6 percent is molecular hydrogen with helium at 85 percent of the natal share; below 0.9 Mbar the hydrogen is metallic. About 40 Earth masses of heavier elements are spread through a dilute core that reaches 25 percent of the mass; the heavy elements there are rock and iron with 5 percent water ice. No compact core.&quot; Thresholds by fixed rules, as GEN.430.</li>
+</ul>
+<h2 id="6-test-targets-never-presets">6. Test targets (never presets)</h2>
+<p>Each target is met by some draw inside the allowed distributions, not by one draw, and lives in test files only.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Tolerance</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Jupiter-class mass and age: P_MM level at 0.80 to 0.93 R, dilute core 15 to 35 percent of the mass, Z_out under 0.1, total heavy elements 18 to 60 Earth masses</td>
+<td>inside the bracket</td>
+<td>[R1038, R1895]</td>
+</tr>
+<tr>
+<td>Saturn-class (95 Earth masses, T1 near 140 K): Y_out / Y_proto 0.15 to 0.4, a helium shell present in some draws, dilute core out to 0.4 to 0.65 R</td>
+<td>inside the bracket</td>
+<td>[R2851, R2852]</td>
+</tr>
+<tr>
+<td>Uranus and Neptune class: H/He 0.05 to 0.20, no metallic layer, Z 0.75 to 0.95, rock fraction of Z 0.05 to 0.67</td>
+<td>inside the bracket</td>
+<td>[R1892]</td>
+</tr>
+<tr>
+<td>Layer masses sum to 1 and layer pressures are monotone; layer heavy-element masses sum to M_Z (1e-9)</td>
+<td>exact</td>
+<td>invariants</td>
+</tr>
+<tr>
+<td>Helium is conserved across the layers (1e-9)</td>
+<td>exact</td>
+<td>invariants</td>
+</tr>
+<tr>
+<td>A giant with envelope under one half has no <code>metallic_envelope</code> unless its base pressure passes P_MM</td>
+<td>exact</td>
+<td>section 3</td>
+</tr>
+<tr>
+<td>Same seed, same layers; a recalculation changes none (F10)</td>
+<td>exact</td>
+<td>bulk-composition.md section 8</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-decisions">7. Decisions</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>State</th>
+<th>Used meanwhile, source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D1</td>
+<td>The molecular-to-metallic pressure is drawn per body, log-uniform 0.4 to 2 Mbar; the fixed 1 Mbar goes</td>
+<td>Default taken</td>
+<td>[R2966] (0.4 to 0.6), [R1038] (1 to 2), rule 3 widest</td>
+</tr>
+<tr>
+<td>D2</td>
+<td>Helium rain by the one-bar temperature: a line through two measured points, a helium shell at strong depletion</td>
+<td>STAND-IN, flagged in the gap plan registry</td>
+<td>[R2852] give the mechanism and the 149 K unshifted onset; the line and the shell rule are placeholders until the Schottler and Redmer curve and the adiabat replace them</td>
+</tr>
+<tr>
+<td>D3</td>
+<td>Compact core 0 to 20 Earth masses, probability 0.5 of none, replaces decision 22's 5 to 20</td>
+<td>Open</td>
+<td>[R1895] (a few Earth masses, may not exist)</td>
+</tr>
+<tr>
+<td>D4</td>
+<td>A dilute core of 20 to 100 Earth masses, at most 0.65 of the mass, gradient in Z</td>
+<td>Default taken</td>
+<td>[R1038, R1895, R2851]</td>
+</tr>
+<tr>
+<td>D5</td>
+<td>Rock and iron to the compact core first, then the dilute core; ice outward first (molecular envelope, metallic envelope, dilute core); split from GEN.428's formation branch</td>
+<td>Default taken</td>
+<td>[R1895] section 4</td>
+</tr>
+<tr>
+<td>D6</td>
+<td>A brown dwarf has no compact or dilute core; metallic envelope below P_MM; no helium rain until a source is read</td>
+<td>Default taken, rain open</td>
+<td>[R0707]</td>
+</tr>
+<tr>
+<td>D7</td>
+<td>The layer pressures come from the n = 1 polytrope (shell formula under 30 percent envelope) until GEN.460's tables supply real profiles; with the hydrogen-helium download the structure of section 11 replaces it (GEN.733), and the polytrope is the fallback of a run that disregards missing data</td>
+<td>STAND-IN</td>
+<td><code>constants.py</code> line 195; COMPUTED checks in 4.1</td>
+</tr>
+<tr>
+<td>D8</td>
+<td>Layer rows live in the composition child table with a layer index; summary columns extend BulkFractions</td>
+<td>Default taken</td>
+<td>contracts file of lane I, section 1.1</td>
+</tr>
+<tr>
+<td>D9</td>
+<td>Whole-body accounting: heavy elements in envelope layers count as <code>envelope_z</code> of the envelope; heavy elements in core layers count as metal, rock, water and ice; all hydrogen and helium (the dilute core's too) is envelope; the helium share is Y/(X+Y) of the hydrogen and helium</td>
+<td>Default taken</td>
+<td>Lane I's <code>BulkFractions</code> contract</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="8-gaps">8. Gaps</h2>
+<ol>
+<li><strong>The [R3973] phase curve</strong> are not in hand; their data (Figure 1 of Mankovich and Fortney is a plot of them) would replace D2's line. To fetch.</li>
+<li><strong>Equation-of-state tables</strong> for hydrogen-helium: the [R0708] tables are downloaded since GEN.733 (section 11); the polytrope stays as the fallback of a run that disregards missing data (D7).</li>
+<li><strong>Cool brown dwarf helium rain</strong>, neon rain, and the helium content of Y dwarfs: no source read.</li>
+<li><strong>The probability of a compact core</strong> and the gradient shape in the dilute core: no source; the placeholders are flagged.</li>
+<li><strong>[R2966] crossover</strong> is at 6000 K; the pressure at 3000 to 5000 K has no number in the read papers, so the bracket 0.4 to 2 Mbar is temperature-independent.</li>
+<li><strong>Exoplanet giants</strong>: inflated hot Jupiters may have a radiative layer or a different entropy; none of the sources read covers them (GEN.460's inflation row stays the radius authority).</li>
+<li><strong>Hot and warm Jupiters' T1 for the rain test</strong>: the equilibrium temperature with internal heat, not the Solar System's 166 K; the stored <code>temperature</code> is a surface value and the one-bar value needs the greenhouse and internal-heat terms of the atmosphere lane.</li>
+</ol>
+<h2 id="9-sources-fetched-for-this-note">9. Sources fetched for this note</h2>
+<p>[R1893] ([R1893], full), 2403.11657 ([R1895], full), 1912.01009 ([R2852], abstract, Figures 1 and 3, sections 2 to 4), 1901.05697 ([R1038], abstract and structure figures), 1709.08648 ([R2966], abstract and metallization text), 2006.12219 ([R1894], sections 3 and 4), 2104.13385 ([R2851], abstract and mass numbers), 2302.09082 ([R2013], abstract), 1010.5546 ([R1889, R1891], summary), astro-ph/0006383 ([R0707], degeneracy sections). Raw papers stay out of the repository (Boss, 2026-10-17).</p>
+<h2 id="10-wired-into-the-generator-gen460-gen642-generator-epoch-80">10. Wired into the generator (GEN.460, GEN.642; generator epoch 80)</h2>
+<p><code>physics/giant_draw.py::draw_giant</code> runs once a giant's mass is settled (<code>planets.apply_giant</code>). The order is part of the epoch:
+the envelope's metallicity (a multiple of the star's Z, log-uniform, <code>ENVELOPE_Z</code>, stand-in), the heavy-element mass M_Z (class J:
+[R0710] with its scatter; classes I and T: a uniform share of the mass, <code>HEAVY_FRACTION</code>, stand-in), the radius (the
+Fortney tables where <code>giant_radius.in_range</code> and <code>covers</code> hold, plus the Sestovic inflation, kept in the class's radius range; else
+the anchored relation of GEN.34), then the interior (<code>draw_interior</code>) whose whole-body totals become the stored bulk composition.</p>
+<p>Stand-ins, each named in <code>giant_draw</code>: the envelope metallicity range, the I and T heavy-element shares, the water share of the
+heavy elements beyond the snow line and the ammonia and methane proportions to it, the single Bond albedo (Li et al. 2018's 0.503),
+the own heat flux (the cooling law through Jupiter and Neptune of <code>rogue_surface.giant_internal_flux_w_m2</code>, <code>giant_draw.own_flux_w_m2</code>, GEN.816: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age; it has no helium-rain share until GEN.810, so a Saturn-like giant comes out near 115 K against 134 K) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
+125 K). A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
+is stored (DB.89, <code>giant_interior.body_values</code>); the old stand-in envelope and core shares (<code>bulk_draw.draw_giant</code>) are removed.</p>
+<p><strong>Settled once the age and the orbit are final (GEN.961, GEN.976).</strong> The draw above reads the star's age and the starlight of the circle at the
+semi-major axis, and the star's age rises when the planets are in (<code>Star.adjust_age_for_planets</code>; the eccentricity is drawn after the
+radius, which it needs). Left alone, 28 percent of the table-sized giants of 138 measured had a stored radius over 1 percent too large and
+the worst 9.3 percent. After the age is final and the placed bodies are trimmed, the &quot;giant settle pass&quot; of <code>StarSystem</code>
+(<code>planets.settle_giant</code>, <code>giant_draw.settle</code>) takes the table radius again at the final age and the mean light of the orbit
+(<code>orbit_elements.flux_distance_au</code>, no draw), and a giant that it moves by more than <code>SETTLE_TOLERANCE</code> (0.1 percent) has its volume,
+density, gravity, interior (layers, bulk composition and text, one-bar temperature at the mean light) and air made again. The star's ratios,
+the envelope's Z and the heavy-element mass are the draws it keeps (<code>DrawnGiant</code>); the interior and the air are drawn from streams of the giant's own
+(<code>giant_draw.settle_stream</code>, keyed by its mass, distance, star and the age and radius it settles from), so the run's stream does not move and
+a system whose planets the age did not move is bit-identical. Giants the tables do not size (ice giants, giants under 17 Earth masses, a
+given radius, a moon) are not touched. A moon that the smaller giant can no longer hold (larger than <code>planet.radius / 10**(1/3)</code>, or outside the range of orbits the new radius and scale height leave) is dropped (<code>drop_unstable_moons</code>). A moon's tide does not read its parent's radius (<code>tidal_heating.forcing_of</code>: the host's mass, the moon's distance and eccentricity; GEN.987, tested), so the moons' heat needs nothing more. The tides of every planet's and captured moon's orbit are taken again at the final age in the same pass (<code>planets.settle_orbit</code>, GEN.985; the birth eccentricity is kept with the body, the position and velocity are made again on the new ellipse, a planet's moons are told). Not settled, and filed: the air, class, dose and spin of a rocky planet or moon (GEN.992 and the notes of GEN.955; <code>reports/gen961-stale-age-audit-2026-10-30.md</code>, <code>reports/gen986-final-age-rocky-planets-2026-10-30.md</code>).</p>
+<h2 id="11-the-structure-from-the-equation-of-state-gen733">11. The structure from the equation of state (GEN.733)</h2>
+<p>The pressure at a layer boundary is read from a hydrostatic profile (section 4.1), which was the n = 1 polytrope for a gas giant, the
+n = 3/2 polytrope for a brown dwarf and three layers of constant density for an ice giant (D7). A polytrope has one index for the
+whole body where the real fluid goes from an ideal molecular gas to a degenerate metal, so the profile now comes from the equations
+of hydrostatic balance, <code>dP/dm = -G m / (4 pi r^4)</code> and <code>dr/dm = 1 / (4 pi r^2 rho)</code>, integrated inward from the one-bar level in ln P
+(<code>physics/giant_structure.py</code>).</p>
+<p><strong>The density.</strong> The hydrogen and helium of the envelope come from the (T, P) tables of [R0708] (DirEOS2021,
+registry fill GS1; <code>datasets/hhe_eos.py</code>, downloaded by <code>update.sh</code>): the mixture of helium share 0.275 with the helium-hydrogen
+interaction, moved to the body's helium share by the ideal volume law (GS3). The temperature at each pressure is on an adiabat, a
+line of the table's entropy (the tables' adiabatic gradient carries numerical noise, GS6). The heavy elements are the repository's
+own curves (iron's Vinet fit, the silicate mantle table, the water isotherm of <code>bulk_structure</code>, GS4), as a core, an ice mantle and
+a share of the envelope mixed in by the ideal volume law (GS2).</p>
+<p><strong>What fixes the entropy.</strong> The radius is GEN.460's and is kept. The generator's one-bar temperature comes from the starlight, and
+an irradiated or inflated giant is not on the adiabat that temperature starts, so the model takes the one-bar temperature of the
+adiabat that closes it on the radius (<code>fit_adiabat</code>, about ten integrations, 10 to 40 ms a giant) and reports it (<code>Profile.adiabat_1bar_k</code>).
+The generator's own one-bar temperature is only the fit's starting point. A radius no adiabat in 30 to 8000 K closes (a body too
+light or too dense for it) takes the nearest adiabat, says it did not close (<code>Profile.closed</code>) and the layers use the fractions of
+the radius it did close at.</p>
+<p><strong>Checks against the sky</strong> (the real tables, <code>tests/test_datasets_real.py</code>): Uranus and Neptune close on one-bar adiabats of 50 to
+100 K for the heavy-element masses and ice shares of the interior models (measured 76 and 72 K); Jupiter and Saturn close with their
+radii; a 40 Jupiter-mass brown dwarf reaches the degenerate regime at the centre. Where the tables matter most is a Saturn-like body,
+whose envelope is far from n = 1: the mass above 100 GPa is 31 percent of the body against the polytrope's 37 percent and the
+central pressure is ten times higher.</p>
+<p><strong>Without the download.</strong> A run told to disregard missing data (GEN.599) takes the profiles of section 4.1 and records it
+(<code>fetch.stand_ins_used</code>); any other run is refused (GEN.590), like the other datasets.</p>
+<p><strong>Limits</strong> (registry 6.134): the heavy elements are a core and a uniformly mixed envelope with no dilute core or helium gradient
+inside the structure (GS2); one natal helium share for the body (GS3); ammonia and methane ice take water's density (GS4); the
+adiabat of a body under 100 K is carried up the molecular gas's own (GS5); the tables' unphysical regions are read as they stand
+(GS6); the centre is closed as a sphere (GS7).</p>
+<h2 id="12-the-internal-heat-gen810">12. The internal heat (GEN.810)</h2>
+<p>A giant's own heat (<code>physics/giant_heat.py</code>, registry 6.135) is stored as its <code>internal_heat_flux_w_m2</code>, the heat it radiates per square metre of
+its 1 bar surface, and has two parts. The <strong>base</strong> is the cooling law of <code>rogue_surface.giant_internal_flux_w_m2</code> (GEN.816: luminosity as the mass to the 1.65 below a Jupiter mass, the age to
+the -1.3), the same law the one-bar temperature in <code>giant_draw</code> is made from before the interior exists. The <strong>helium rain</strong> is read back from what the interior stored: every layer's
+helium against the natal share of its hydrogen and helium says which layers lost helium (the envelope above) and which gained it (the
+helium-enriched zone, the shell, the dilute core); the potential at each layer's half-mass radius follows from the layers' stored radii
+and masses (each a shell of uniform density, exactly the potential of a uniform sphere for one layer); the energy is the mass that sank
+times the potential it fell through; half of it leaves as heat (GH2), over the star's age (GH3). Nothing is added when the helium did not
+rain (<code>helium_depletion</code> is 1), and a giant whose helium went to a shell radiates more than one whose helium stayed in a gradient, because
+the shell is deeper.</p>
+<p>A Saturn-like giant (95 Earth masses, 140 K at one bar) lands at about 2.4 W/m2 against the 1.88 W/m2 measured (the base 1.1 and the rain 1.3: with
+the share at 0.3, the low end of GH2's knob, it is 1.85), a Jupiter-like one at 5.7 against 5.4, and a Neptune-like one at 0.43 against 0.43; none is fitted. The rain's heat is not fed back to the one-bar temperature that decided the rain (GH4). An ice giant
+radiates the base only, which is what the law through Neptune gives it.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

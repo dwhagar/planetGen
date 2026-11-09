@@ -1,0 +1,396 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Papers Boss should try to download himself (publishers our environment cannot reach) - planetGen docs</title>
+<meta name="description" content="Status: reference list.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/papers-to-fetch.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/papers-to-fetch.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="papers-boss-should-try-to-download-himself-publishers-our-environment-cannot-reach">Papers Boss should try to download himself (publishers our environment cannot reach)</h1><p class="meta">docs/design/research/papers-to-fetch.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#a-the-nine-papers-asked-for-first">A. The nine papers asked for first</a></li><li style="margin-left:0px"><a href="#b-other-papers-the-three-files-could-not-read-for-the-same-reason">B. Other papers the three files could not read for the same reason</a></li><li style="margin-left:0px"><a href="#c-needed-but-doi-not-confirmed-or-not-looked-up">C. Needed but DOI not confirmed or not looked up</a></li><li style="margin-left:0px"><a href="#d-not-needed-although-the-brief-named-sossi-etc">D. Not needed, although the brief named "Sossi etc."</a></li><li style="margin-left:0px"><a href="#e-findings-worth-passing-on">E. Findings worth passing on</a></li></ul></details>
+<p>Status: reference list. Written 2026-10-17 by a helper for the coordinator (Boss asked at 11:24 AM EDT for the papers he can download himself; the coordinator posted the list at 11:32 AM EDT as it reported) and filed by the TODO thread on 2026-10-17. The DOIs come from Crossref lookups made through a summarising tool, so a spot check of a few DOIs is cheap; free-copy links are OpenAlex's and were not all opened. Nothing in the plan or the build items becomes verified until a thread reads the file: the labelled stand-ins stay meanwhile. Section E lists papers the earlier files called unreachable that are on arXiv, so a research thread can read them without Boss. It supports section 8 of <a href="gap-filling-plan.html">gap-filling-plan.md</a> and the request list GEN.531. Update (12:10 to 12:13 PM EDT): Boss uploaded 28 distinct papers from this list and said it is the last batch he expects; they are filed in <a href="boss-papers-2026-10-17.html">boss-papers-2026-10-17.md</a>; still missing are the paid-only papers (Fray and Schmitt, ICRP 103 in full, Karkoschka, Tomasko, Ayers), [R0443], JPL Evaluation 19, Stixrude Part I, [R1489, R1953, R2726, R3417] and 2022, [R0349, R3532] (its section 5).</p>
+<p>Written 2026-10-17. Sources: <code>gap-filling-plan-2026-10-17.md</code> (section 8 item 5, gap rows BC3, BC4, BC7, BC12, BC13, AD4, AD7, AD8, plus the R-table of section 3), <code>atmosphere-composition-research-2026-10-17.md</code> (section 6 and section 5), <code>gen-406-galaxy-research-2026-10-17.md</code> (requests R1 to R15). Nothing else in the folder was searched. No paper text was taken from a refused publisher.</p>
+<p>How each field was obtained:</p>
+<ul>
+<li><strong>Citation and DOI</strong>: Crossref API (<code>api.crossref.org/works?query.bibliographic=...</code>, or a direct <code>/works/&lt;doi&gt;</code> lookup to confirm a DOI). A DOI is listed only when Crossref returned a record whose title and year match the paper. Otherwise the cell says &quot;DOI not confirmed&quot;. The Crossref calls went through the WebFetch tool (Bash curl to Crossref was denied by the permission classifier), so each response was transcribed by a small model asked to quote verbatim. DOIs, titles, years and pages agreed across repeated queries, but a spot check of a few DOIs by Boss is cheap.</li>
+<li><strong>Free copy and preprint links</strong>: OpenAlex API (<code>api.openalex.org</code>, keyed by the confirmed DOI) and arXiv API searches. &quot;bronze&quot; means the publisher serves a free-to-read PDF without a licence. Links are OpenAlex's, not opened by me unless stated.</li>
+<li>&quot;Gap ids&quot; are the ids of the gap-filling plan (BC, AD, GR) and the GEN items it names.</li>
+</ul>
+<h2 id="a-the-nine-papers-asked-for-first">A. The nine papers asked for first</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Paper</th>
+<th>Gap ids and what we need (one line)</th>
+<th>Full citation</th>
+<th>DOI (Crossref)</th>
+<th>Where to try, free copy</th>
+<th>Edition ambiguity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Stixrude and Lithgow-Bertelloni</td>
+<td>BC3 (GEN.425): per-phase mantle mineral equation-of-state parameters, to replace the 2ND-HAND copy; test = density at 100 GPa within 2 percent</td>
+<td>Stixrude, L. and Lithgow-Bertelloni, C. (2005) Thermodynamics of mantle minerals - I. Physical properties. Geophys. J. Int. 162, 610-632. Part II: (2011) Thermodynamics of mantle minerals - II. Phase equilibria. Geophys. J. Int. 184, 1180-1213</td>
+<td>Part I [R4231]; Part II [R4232]</td>
+<td>doi.org links. Part I is bronze open access: publisher PDF <code>https://academic.oup.com/gji/article-pdf/162/2/610/5963861/162-2-610.pdf</code>; author copies <code>https://hdl.handle.net/2027.42/73485</code> (Michigan Deep Blue) and <code>http://discovery.ucl.ac.uk/8891/</code>. Part II: closed, author copy <code>http://discovery.ucl.ac.uk/1301735/</code>. No arXiv version (arXiv search returned 0)</td>
+<td>YES. Our files give no year or part. Part I (2005) has the formalism; Part II (2011) has the parameter database; Part III (2024, GJI 237, 1699-1733, [R4233]) also exists. Which one the 2ND-HAND copy came from is not stated. Fetch I and II</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Palme and O'Neill</td>
+<td>BC4 (GEN.428): bulk-silicate-Earth major oxides and K, Th, U abundances (the &quot;Earth mantle&quot; row of the composition kernel)</td>
+<td>Palme, H. and O'Neill, H. St. C. (2014) Cosmochemical estimates of mantle composition. In: Treatise on Geochemistry, 2nd ed., Elsevier, pp. 1-39. First edition: (2003/2004) same title, pp. 1-38</td>
+<td>2nd ed. [R3417]; 1st ed. [R3416] (Crossref returned no volume for either; Crossref dates the 1st ed. 2007)</td>
+<td>doi.org. OpenAlex: closed at the publisher; two ANU Open Research submitted-version records <code>http://hdl.handle.net/1885/58632</code> and <code>http://hdl.handle.net/1885/86665</code> (not opened; may be the chapter)</td>
+<td>YES. Two editions, numbers differ slightly. Files give no year. Prefer the 2014 edition unless the 2ND-HAND source says otherwise</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Rudnick and Gao</td>
+<td>BC4 (GEN.428): upper, middle, lower and bulk continental-crust oxides and K, Th, U (crust rows)</td>
+<td>Rudnick, R. L. and Gao, S. (2014) Composition of the continental crust. In: Treatise on Geochemistry, 2nd ed., Elsevier, pp. 1-51. First edition: (2003), pp. 1-64</td>
+<td>2nd ed. [R3842]; 1st ed. [R3841] (no volume returned by Crossref)</td>
+<td>doi.org. OpenAlex: closed, no repository copy listed</td>
+<td>YES, same two-edition problem; no year in our files. Prefer 2014</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Fray and Schmitt</td>
+<td>BC12 (GEN.470, 497): temperature validity window of each sublimation-pressure fit (H<sub>2</sub> and He have none above critical points; solid H<sub>2</sub> below 13.96 K). BC7 (GEN.442, 457): solid ice densities</td>
+<td>Fray, N. and Schmitt, B. (2009) Sublimation of ices of astrophysical interest: A bibliographic review. Planet. Space Sci. 57, 2053-2080</td>
+<td>[R1445]</td>
+<td>doi.org. OpenAlex: closed; a HAL record exists <code>https://insu.hal.science/insu-00388027</code> (flagged not open by OpenAlex, but try it). No arXiv version (search returned 0)</td>
+<td>No. The atmosphere file cites PSS 57, 2053. Only one paper matches</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Tabazadeh</td>
+<td>AD7 (GEN.471, 491): H<sub>2</sub>SO<sub>4</sub>-H2O vapour pressure and composition against weight percent and temperature</td>
+<td>Tabazadeh, A., Toon, O. B., Clegg, S. L. and Hamill, P. (1997) A new parameterization of H<sub>2</sub>SO<sub>4</sub>/H2O aerosol composition: Atmospheric implications. Geophys. Res. Lett. 24, 1931-1934</td>
+<td>[R4289]</td>
+<td>doi.org. OpenAlex: bronze open access, <code>https://onlinelibrary.wiley.com/doi/pdfdirect/10.1029/97GL01879</code> (try this first; Wiley may still block our proxy, Boss's browser should not)</td>
+<td>Mild. Files say only &quot;[R4289]&quot;. This is the 1997 GRL paper that matches the topic. Tabazadeh also wrote other H<sub>2</sub>SO<sub>4</sub> papers (for example 1994); not confirmed that no other 1997 paper is meant</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Zeleznik</td>
+<td>AD7: thermodynamic properties of aqueous sulfuric acid to 350 K (activities, vapour pressures)</td>
+<td>Zeleznik, F. J. (1991) Thermodynamic properties of the aqueous sulfuric acid system to 350 K. J. Phys. Chem. Ref. Data 20, 1157-1200</td>
+<td>[R4877]</td>
+<td>doi.org. OpenAlex: closed, no repository copy</td>
+<td>No (year 1991 from the atmosphere file matches)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>JPL 19-5 (JPL kinetics evaluation No. 19)</td>
+<td>AD8 (GEN.496, 501): Troe falloff parameters (k0, kinf, Fc with N = 1) for all termolecular reactions, ClO + O, ClO + NO, ClO + ClO rows, photolysis cross sections. Test = JPL rates within a factor 2 of NIST values</td>
+<td>Burkholder, J. B., Sander, S. P., Abbatt, J. P. D., Barker, J. R., Cappa, C., Crounse, J. D., Dibble, T. S., Huie, R. E., Kolb, C. E., Kurylo, M. J., Orkin, V. L., Percival, C. J., Wilmouth, D. M. and Wine, P. H. (2020) Chemical Kinetics and Photochemical Data for Use in Atmospheric Studies, Evaluation No. 19, JPL Publication 19-5. Jet Propulsion Laboratory, Pasadena, CA. (14 authors confirmed on NTRS; NTRS prints them in reverse order, the Burkholder-first order is the usual JPL convention and is from my recall)</td>
+<td>DOI not confirmed (Crossref has no record; NTRS lists none)</td>
+<td>The JPL Publication site <code>http://jpldataeval.jpl.nasa.gov</code> (named in the NTRS abstract; our environment gets a DNS or 502 error, the atmosphere file says refused). NTRS record <code>ntrs.nasa.gov</code>, id 20210006316, dated 2020-05-01: metadata only, no download, &quot;protected by copyright, furnished with U.S. government purpose use rights&quot;. Whether the JPL site serves the PDF free is expected but not verified by us</td>
+<td>Mild. Evaluation 19 is the one the files name. Evaluation 18 (JPL 15-10) is the previous one: the atmosphere file says ClO + O and ClO + NO were last evaluated in 10-6 and the ClO dimer in 15-10, so Boss may want 15-10 and 10-6 too</td>
+</tr>
+<tr>
+<td>8</td>
+<td>ICRP 103</td>
+<td>BC13 (GEN.436, 444): radiation weighting factors wR and tissue weighting factors wT (and the dose limits). Atmosphere file says wR, wT already &quot;confirmed&quot; second-hand</td>
+<td>ICRP (2007) The 2007 Recommendations of the International Commission on Radiological Protection. ICRP Publication 103. Ann. ICRP 37 (2-4). Editor J. Valentin. (published for ICRP by Elsevier; online by SAGE)</td>
+<td>Whole publication: DOI not confirmed. Only the front-matter piece is confirmed: [R0002], &quot;Preface, Executive Summary and Glossary&quot;, Ann. ICRP 37 (2-4), pp. 9-34</td>
+<td>ICRP page <code>https://www.icrp.org/publication.asp?id=ICRP%20Publication%20103</code> (reachable). Free copy: only the &quot;Free extract&quot; <code>https://www.icrp.org/docs/ICRP_Publication_103-Annals_of_the_ICRP_37(2-4)-Free_extract.pdf</code> (35 pages, I opened it: abstract, editorial, table of contents, preface, executive summary, glossary, report pp. 1-34). It does NOT contain the weighting-factor tables: those are in section 4 &quot;Quantities used in radiological protection&quot; (pp. 61-78 per its table of contents), outside the extract. Full text: SAGE (paid or library). A shorter &quot;users edition&quot; also exists per the extract's cover</td>
+<td>Mild. Not &quot;Publication 103 vs 60&quot; confusion; also note ICRP 147 (2021) updates dose quantities and is bronze open access (<code>[R4979]</code>); our files do not ask for it</td>
+</tr>
+<tr>
+<td>9</td>
+<td>King</td>
+<td>AD4 (GEN.422): King correction factor for Rayleigh scattering, i.e. the depolarization-based factor (6+3rho)/(6-7rho). The numbers we actually need (rho of SO<sub>2</sub>, H<sub>2</sub>S) are in [R0443], row B1 below</td>
+<td>King, L. V. (1923) On the complex anisotropic molecule in relation to the dispersion and scattering of light. Proc. R. Soc. Lond. A 104, 333-357 (a short Nature note also exists: King, Nature 111, 667, 1923, [R2361])</td>
+<td>[R2360]</td>
+<td>doi.org. OpenAlex: open access (diamond), free at the publisher <code>[R2360]</code>; may be fetchable by us too</td>
+<td>YES. Our files say only &quot;King factors&quot; and &quot;King's originals&quot; with no paper or year. I assume [R2360, R2361] Proc. R. Soc. A, the standard citation for the factor. Not confirmed from the files</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="b-other-papers-the-three-files-could-not-read-for-the-same-reason">B. Other papers the three files could not read for the same reason</h2>
+<p>Status, 1:57 PM EDT on 2026-10-17: B5 and B6 (AD1): methane no longer needs the paid papers, the free Oxford k-tables of [R2265] and the PDS volume gbat_0001 hold the data (partly verified; ad1-methane-sources-check-2026-10-17.md). Ammonia and water in the visible stay open as labelled stand-ins. Boss, 3:07 PM EDT on 2026-10-18: he has already provided all the AD1 data he can, so no AD1 paper (B5, B6) is a request to him any more; the same holds for the other paid papers on his earlier list ([R0210], ICRP 103): their gaps stay labelled stand-ins.</p>
+<p>Selection rule: the file says the paper was not read, second-hand only, or behind a refused publisher, and a number is wanted from it. Each has a Crossref-confirmed DOI unless stated.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Paper</th>
+<th>Gap ids and what we need</th>
+<th>Citation</th>
+<th>DOI</th>
+<th>Where to try, free copy</th>
+<th>Ambiguity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>B1</td>
+<td>[R0443]</td>
+<td>AD4: depolarization ratios of SO<sub>2</sub>, H<sub>2</sub>S (removes the +-5 to 9 percent generic Rayleigh error)</td>
+<td>Bogaard, M. P., Buckingham, A. D., Pierens, R. K. and White, A. H. (1978) Rayleigh scattering depolarization ratio and molecular polarizability anisotropy for gases. J. Chem. Soc., Faraday Trans. 1, 74, 3008</td>
+<td>[R0443]</td>
+<td>doi.org. Closed, no repository copy</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B2</td>
+<td>[R4138]</td>
+<td>AD4: measured Rayleigh cross sections and King factors of N<sub>2</sub>, O<sub>2</sub>, CO<sub>2</sub> etc.</td>
+<td>Sneep, M. and Ubachs, W. (2005) Direct measurement of the Rayleigh scattering cross section in various gases. J. Quant. Spectrosc. Radiat. Transfer 92, 293-310</td>
+<td>[R4138]</td>
+<td>doi.org. Closed at publisher; author copies <code>https://research.vu.nl/en/publications/3ef95b10-8161-4bac-be50-1271995e81e8</code> and <code>http://hdl.handle.net/1871/27277</code> (OpenAlex, not opened)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B3</td>
+<td>[R0282]</td>
+<td>AD4: Rayleigh cross section and King factor of air</td>
+<td>Bates, D. R. (1984) Rayleigh scattering by air. Planet. Space Sci. 32, 785-790</td>
+<td>[R0282]</td>
+<td>doi.org. Closed</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B4</td>
+<td>[R0575]</td>
+<td>AD4: Table 3 Rayleigh optical depths (Earth tau_R test value stays computed)</td>
+<td>Bucholtz, A. (1995) Rayleigh-scattering calculations for the terrestrial atmosphere. Appl. Opt. 34, 2765</td>
+<td>[R0575]</td>
+<td>doi.org (Optica, captcha). Closed; OpenAlex lists a PubMed record 21052423</td>
+<td>Note a 1998 comment and reply exist (Appl. Opt. 37, 428 and 430)</td>
+</tr>
+<tr>
+<td>B5</td>
+<td>[R2258]</td>
+<td>AD1 (GEN.422, colour): CH<sub>4</sub> visible absorption of the giants</td>
+<td>Karkoschka, E. (1994) Spectrophotometry of the Jovian planets and Titan at 300- to 1000-nm wavelength: The methane spectrum. Icarus 111, 174-192</td>
+<td>[R2258]</td>
+<td>doi.org. Closed</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B6</td>
+<td>[R2263] and 2010</td>
+<td>AD1: CH<sub>4</sub> (and NH<sub>3</sub>) visible absorption coefficients</td>
+<td>(2010) Methane absorption coefficients for the jovian planets from laboratory, Huygens, and HST data. Icarus 205, 674-694. And (2009) The haze and methane distributions on Uranus from HST-STIS spectroscopy. Icarus 202, 287-309</td>
+<td>[R2263, R2265]</td>
+<td>doi.org. Both closed</td>
+<td>YES. Files write &quot;2009, 2010&quot; with no titles. The 2010 absorption-coefficient paper is the likely one; the 2009 Uranus paper is the other candidate</td>
+</tr>
+<tr>
+<td>B7</td>
+<td>[R4394]</td>
+<td>AD2 (GEN.423): Titan haze tables 2 and 3 and phase functions</td>
+<td>Tomasko, M. G., Doose, L., Engel, S. et al. (2008) A model of Titan's aerosols based on measurements made inside the atmosphere. Planet. Space Sci. 56, 669-707</td>
+<td>[R4394]</td>
+<td>doi.org. Closed. (Sister paper on DISR methane absorption: PSS 56, 624-647, [R4392])</td>
+<td>Mild: PSS 56, 669 as in the file matches this one</td>
+</tr>
+<tr>
+<td>B8</td>
+<td>[R4743]</td>
+<td>AD2: Mars dust single-scattering albedo and index by wavelength</td>
+<td>Wolff, M. J., Smith, M. D., Clancy, R. T. et al. (2009) Wavelength dependence of dust aerosol single scattering albedo as observed by the Compact Reconnaissance Imaging Spectrometer. J. Geophys. Res. Planets 114 (article number not returned by Crossref)</td>
+<td>[R4743]</td>
+<td>doi.org. Closed</td>
+<td>Mild: the file says &quot;[R4743] spectral albedo and index tables&quot;; this title matches</td>
+</tr>
+<tr>
+<td>B9</td>
+<td>[R0210]</td>
+<td>AD7: H<sub>2</sub>SO<sub>4</sub> vapour pressure by weight percent</td>
+<td>Ayers, G. P., Gillett, R. W. and Gras, J. L. (1980) On the vapor pressure of sulfuric acid. Geophys. Res. Lett. 7, 433-436</td>
+<td>[R0210]</td>
+<td>doi.org. Closed</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B10</td>
+<td>[R3229]</td>
+<td>AD3 (GEN.413, 414, greenhouse forcing law; atmosphere file section 6 item 5)</td>
+<td>Myhre, G., Highwood, E. J., Shine, K. P. and Stordal, F. (1998) New estimates of radiative forcing due to well mixed greenhouse gases. Geophys. Res. Lett. 25, 2715-2718</td>
+<td>[R3229]</td>
+<td>doi.org. Closed</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B11</td>
+<td>[R1843]</td>
+<td>AD5 (GEN.436, 444): Mars surface dose from RAD</td>
+<td>Hassler, D. M., Zeitlin, C., Wimmer-Schweingruber, R. F. et al. (2014) Mars' surface radiation environment measured with the Mars Science Laboratory's Curiosity rover. Science 343 (6169), article 1244797</td>
+<td>[R1843] (confirmed by direct Crossref lookup)</td>
+<td>doi.org (Science is refused here). Free copy not checked</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B12</td>
+<td>[R3206]</td>
+<td>AT.k7, GEN.488, 495: comet per-species abundances</td>
+<td>Mumma, M. J. and Charnley, S. B. (2011) The chemical composition of comets: emerging taxonomies and natal heritage. Annu. Rev. Astron. Astrophys. 49, 471-524</td>
+<td>[R3206]</td>
+<td>doi.org. Closed (Annual Reviews)</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B13</td>
+<td>[R2726]</td>
+<td>BC1 (GEN.428, 468, 410): condensation temperatures (the file says &quot;IOP full text refused&quot;, although the atmosphere file lists IOPscience as reachable, so retry it)</td>
+<td>Lodders, K. (2003) Solar System abundances and condensation temperatures of the elements. Astrophys. J. 591, 1220-1247</td>
+<td>[R2726]</td>
+<td>doi.org. OpenAlex: bronze, <code>https://iopscience.iop.org/article/10.1086/375492/pdf</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>B14</td>
+<td>[R0390]</td>
+<td>BC7 (GEN.442, 457): ice compaction and density law</td>
+<td>Bierson, C. J. and Nimmo, F. (2019) Using the density of Kuiper Belt Objects to constrain their composition and formation history. Icarus 326, 10-17</td>
+<td>[R0390]</td>
+<td>doi.org. OpenAlex: author copy in PubMed Central <code>https://www.ncbi.nlm.nih.gov/pmc/articles/7058130</code> (PMC is reachable for us, so we may fetch it ourselves). A 2020 corrigendum exists: Icarus 351, 113955, [R0391]</td>
+<td>Mild: the plan says &quot;Bierson and Nimmo&quot; with no year or title</td>
+</tr>
+<tr>
+<td>B15</td>
+<td>[R1953]</td>
+<td>AT.a1, a2 (GEN.482, 498): carbon solubility and oxidation law of the later mantle</td>
+<td>Hirschmann, M. M. (2012) Magma ocean influence on early atmosphere mass and composition. Earth Planet. Sci. Lett. 341-344, 48-57</td>
+<td>[R1953]</td>
+<td>doi.org. Closed</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B16</td>
+<td>[R1491] and 2021</td>
+<td>AT.a1, a2: same</td>
+<td>(a) Gaillard, F. and Scaillet, B. (2014) A theoretical framework for volcanic degassing chemistry in a comparative planetology perspective and implications for planetary atmospheres. Earth Planet. Sci. Lett. 403, 307-316. (b) Gaillard, F. et al. (2022; online 2021) Redox controls during magma ocean degassing. Earth Planet. Sci. Lett. 577, 117255</td>
+<td>(a) [R1491]; (b) [R1488]</td>
+<td>doi.org. (a) closed, author copy <code>https://insu.hal.science/insu-01056954</code>. (b) bronze open access, author copies <code>https://hal.science/hal-04691847</code> and <code>https://insu.hal.science/insu-03383209</code></td>
+<td>YES. The file says &quot;[R1491] and 2021&quot; with no titles. (a) and (b) are my best matches, not confirmed from the files</td>
+</tr>
+<tr>
+<td>B17</td>
+<td>[R0202]</td>
+<td>GR4 (R4, GEN.447, 401): age-velocity relation normalisation in simulated discs</td>
+<td>Aumer, M. and Binney, J. J. (2009) Kinematics and history of the solar neighbourhood revisited. Mon. Not. R. Astron. Soc. 397, 1286-1301</td>
+<td>[R0202]</td>
+<td><strong>[R0202]</strong> (OpenAlex). We can read it ourselves</td>
+<td>No. The galaxy file said &quot;not found by title search&quot;</td>
+</tr>
+<tr>
+<td>B18</td>
+<td>[R1863]</td>
+<td>GR6 (R6, GEN.386): Milky Way thick-disc age distribution</td>
+<td>Haywood, M., Di Matteo, P., Lehnert, M. D. et al. (2013) The age structure of stellar populations in the solar vicinity. Astron. Astrophys. 560, A109</td>
+<td>[R1863]</td>
+<td><strong>[R1863]</strong>; publisher PDF bronze free</td>
+<td>No</td>
+</tr>
+<tr>
+<td>B19</td>
+<td>[R0349]</td>
+<td>GR6: thick-disc ages</td>
+<td>Bensby, T., Feltzing, S. and Oey, M. S. (2014) Exploring the Milky Way stellar disk. Astron. Astrophys. 562, A71</td>
+<td>[R0349]</td>
+<td><strong>[R0349]</strong>; publisher PDF bronze free</td>
+<td>Mild: the file gives no title; this is the [R0349] A&amp;A paper Crossref returns for those words</td>
+</tr>
+<tr>
+<td>B20</td>
+<td>[R3531] and 2019b</td>
+<td>GR6 (R6): S0 thick-disc star formation histories</td>
+<td>(a) Pinna, F., Falcon-Barroso, J., Martig, M. et al. (2019) The Fornax 3D project: Unveiling the thick disk origin in FCC 170; possible signs of accretion. Astron. Astrophys. 623, A19. (b) (2019) The Fornax 3D project: Thick disks in a cluster environment. Astron. Astrophys. 625, A95</td>
+<td>(a) [R3532]; (b) [R3531]</td>
+<td>(a) <strong>[R3532]</strong>, (b) <strong>[R3531]</strong>; both publisher PDFs bronze free</td>
+<td>No. The galaxy file cites A&amp;A 623 A19 and 625 A95, which these match. Gap plan said &quot;not located&quot;; they are located now</td>
+</tr>
+<tr>
+<td>B21</td>
+<td>[R1670]</td>
+<td>GR15 (R15, GEN.369): occupation fraction and its width</td>
+<td>Most likely: Graus, A. S., Bullock, J. S., Kelley, T. et al. (2019) How low does it go? Too few Galactic satellites with standard reionization quenching. Mon. Not. R. Astron. Soc. 488, 4585-4595. The other 2019 Graus paper is (2019) A predicted correlation between age gradient and star formation history in FIRE dwarf galaxies. MNRAS 490, 1186-1201</td>
+<td>[R1670] (likely) and [R1669]</td>
+<td><strong>[R1670]</strong> (likely paper) and <strong>[R1669]</strong> (the FIRE paper, which is probably &quot;the different paper&quot; the GEN.406 thread found)</td>
+<td>YES. The files say only &quot;[R1669, R1670] (occupation fraction, cited by Nadler for the erf form)&quot;. The &quot;How low does it go&quot; title is my inference from its topic; I did not open it</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="c-needed-but-doi-not-confirmed-or-not-looked-up">C. Needed but DOI not confirmed or not looked up</h2>
+<ul>
+<li><strong>JPL 19-5</strong> and <strong>ICRP 103 (whole)</strong>: see table A, DOI not confirmed.</li>
+<li>Named in the atmosphere file and not looked up here (no title or year in the files, or lower priority): [R0879, R3308, R3452] (the file marks these NOT REACHED), [R1144, R3326], Dello [R0436, R1063, R2040, R2047, R2050, R2137, R2274, R2279, R3480, R3945, R4415, R4860, R4883]. Boss can ask for any of these as a second batch.</li>
+</ul>
+<h2 id="d-not-needed-although-the-brief-named-sossi-etc">D. Not needed, although the brief named &quot;Sossi etc.&quot;</h2>
+<ul>
+<li><strong>[R4154]</strong> is already READ in full (atmosphere file finding 12). Crossref: Sossi, P. A., Burnham, A. D., Badro, J. et al. (2020) Redox state of Earth's magma ocean and its Venus-like early atmosphere. Sci. Adv. 6, eabd1387, [R4154] It is open access (publisher PDF, PubMed Central 7688334, OSTI 1729695), so Boss need not fetch it.</li>
+<li>Galaxy requests R1, R2, R3, R5, R7 to R14 point at papers on arXiv or at data (digitised figures, the Courteau 64-galaxy table, Comeron fit equations), not at refused publishers; they are not listed here.</li>
+</ul>
+<h2 id="e-findings-worth-passing-on">E. Findings worth passing on</h2>
+<ol>
+<li><strong>Several galaxy papers the files call &quot;not located&quot; have arXiv copies</strong>: [R0202] (0905.2512), [R1863] (1305.4663), [R0349] (1309.2631), [R3531] and b (1901.04310, 1904.01260), [R1669, R1670] (1808.03654 and 1901.05487). A research thread can read these without Boss (GR4, GR6 and GR15 move from class B to class A).</li>
+<li><strong>The files' &quot;refused&quot; list is partly stale</strong>: [R2726] (IOP, bronze PDF), [R4289] (Wiley, bronze PDF), [R2360, R2361] (Royal Society, open), [R4231] (OUP, bronze PDF) have free publisher copies per OpenAlex. Whether our proxy can reach them is untested here; Boss's browser can.</li>
+<li><strong>King versus Bogaard</strong>: the number we need for AD4 (rho of SO<sub>2</sub> and H<sub>2</sub>S) comes from [R0443], not [R2360, R2361].</li>
+<li><strong>ICRP free extract is not enough</strong>: it ends at the glossary (report p. 34), before the wR and wT tables.</li>
+<li>Nothing in the repository was changed by the lookup. Only the report file was written.</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

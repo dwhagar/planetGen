@@ -1,0 +1,626 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Life class rules - planetGen docs</title>
+<meta name="description" content="Generated from src/planetgen/physics/data/lifeclasses.json by scripts/buildlifeclassrules.py; do not edit by hand.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/life-class-rules.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/life-class-rules.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="life-class-rules">Life class rules</h1><p class="meta">docs/design/habitability/life-class-rules.md</p><details class="toc"><summary>On this page (20 headings)</summary><ul><li style="margin-left:0px"><a href="#the-classes">The classes</a></li><li style="margin-left:0px"><a href="#what-each-class-needs">What each class needs</a></li><li style="margin-left:0px"><a href="#what-each-class-lives-on">What each class lives on</a></li><li style="margin-left:0px"><a href="#why-each-number-is-what-it-is">Why each number is what it is</a></li><li style="margin-left:14px"><a href="#class-1a-oxygenic-light-eaters-visible-pigment-chlorophyll-a">Class 1a: Oxygenic light-eaters: visible pigment (Chlorophyll a)</a></li><li style="margin-left:14px"><a href="#class-1b-oxygenic-light-eaters-blue-and-uv-adapted-blue-optimized-porphyrins">Class 1b: Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)</a></li><li style="margin-left:14px"><a href="#class-1c-oxygenic-light-eaters-far-red-chlorophyll-d-and-f">Class 1c: Oxygenic light-eaters: far-red (chlorophyll d and f)</a></li><li style="margin-left:14px"><a href="#class-2-anoxygenic-light-eaters-bacteriochlorophylls">Class 2: Anoxygenic light-eaters (Bacteriochlorophylls)</a></li><li style="margin-left:14px"><a href="#class-3a-hydrogen-eaters-geochemical-hydrogen-serpentinisation-vents">Class 3a: Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)</a></li><li style="margin-left:14px"><a href="#class-3b-hydrogen-eaters-radiolytic-hydrogen-and-sulfate-deep-crust-aquifers">Class 3b: Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)</a></li><li style="margin-left:14px"><a href="#class-4a-sulfur-iron-and-nitrogen-eaters-oxygen-as-the-oxidant">Class 4a: Sulfur, iron, and nitrogen eaters: oxygen as the oxidant</a></li><li style="margin-left:14px"><a href="#class-4b-sulfur-iron-and-nitrogen-eaters-nitrate-and-nitrogen-oxides-as-the-oxidant">Class 4b: Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant</a></li><li style="margin-left:14px"><a href="#class-4c-sulfur-iron-and-nitrogen-eaters-chlorate-and-perchlorate-as-the-oxidant">Class 4c: Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant</a></li><li style="margin-left:14px"><a href="#class-5a-acid-world-life-cloud-deck-plankton">Class 5a: Acid-world life: cloud-deck plankton</a></li><li style="margin-left:14px"><a href="#class-5b-acid-world-life-pool-and-crust-mats">Class 5b: Acid-world life: pool and crust mats</a></li><li style="margin-left:14px"><a href="#class-6-dense-co2-life">Class 6: Dense-CO2 life</a></li><li style="margin-left:14px"><a href="#class-7-cold-hydrocarbon-sea-life">Class 7: Cold hydrocarbon-sea life</a></li><li style="margin-left:14px"><a href="#class-8-ammonia-water-life">Class 8: Ammonia-water life</a></li><li style="margin-left:14px"><a href="#class-9-silicon-bearing-life-in-acid">Class 9: Silicon-bearing life in acid</a></li><li style="margin-left:0px"><a href="#classes-that-do-not-drink-water">Classes that do not drink water</a></li></ul></details>
+<p>Generated from <code>src/planetgen/physics/data/life_classes.json</code> by <code>scripts/build_life_class_rules.py</code>; do not edit by hand. The classifier (<code>planetgen.physics.life_classes</code>, GEN.886) reads that file and nothing else; the design is <a href="life-classes.html">life-classes.md</a>. Every number in the file carries a source tier (T1 to T9) and a tweak level (L0 to L4) (see <a href="../research/stand-in-values.html">stand-in-values.md</a>).</p>
+<p>Rule file version 1. Reference star 5772 K, reference band 400 to 700 nm.</p>
+<h2 id="the-classes">The classes</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Name</th>
+<th>Drinks</th>
+<th>Eats</th>
+<th>Breathes</th>
+<th>Gives off</th>
+<th>Reaches</th>
+<th>Tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1a</td>
+<td>Oxygenic light-eaters: visible pigment (Chlorophyll a)</td>
+<td>water</td>
+<td>light 400 to 700 nm, carbon dioxide, and water, plus nitrogen, phosphorus, and iron</td>
+<td>oxygen once it exists (aerobes); before that nothing</td>
+<td>oxygen (net, after the sinks fill) and buried organic carbon; methane only through a small food web</td>
+<td>Animals</td>
+<td>T1</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)</td>
+<td>water</td>
+<td>light 300 to 500 nm, carbon dioxide, and water</td>
+<td>oxygen once it exists</td>
+<td>oxygen and buried organic carbon</td>
+<td>Animals</td>
+<td>T6</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>Oxygenic light-eaters: far-red (chlorophyll d and f)</td>
+<td>water</td>
+<td>light 700 to 800 nm and beyond, carbon dioxide, and water</td>
+<td>oxygen once it exists</td>
+<td>oxygen and buried organic carbon</td>
+<td>Animals</td>
+<td>T5</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Anoxygenic light-eaters (Bacteriochlorophylls)</td>
+<td>water</td>
+<td>near-infrared light 800 to 1050 nm, carbon dioxide and a donor: hydrogen, ferrous iron or hydrogen sulfide</td>
+<td>nothing (anaerobes); free oxygen poisons them</td>
+<td>sulfate, sulfur, Fe(III), organic carbon; methane from their food web</td>
+<td>Microbial mats; animals only if another oxidant source exists</td>
+<td>T1</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)</td>
+<td>water</td>
+<td>hydrogen from rock and water, and carbon dioxide</td>
+<td>carbon dioxide (methanogens, acetogens)</td>
+<td>methane and acetate</td>
+<td>Microbial</td>
+<td>T2</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)</td>
+<td>water</td>
+<td>hydrogen from the radiolysis of water, and carbon dioxide or sulfate</td>
+<td>carbon dioxide or sulfate</td>
+<td>methane, acetate, sulfide</td>
+<td>Microbial</td>
+<td>T2</td>
+</tr>
+<tr>
+<td>4a</td>
+<td>Sulfur, iron, and nitrogen eaters: oxygen as the oxidant</td>
+<td>water</td>
+<td>hydrogen sulfide, ferrous iron, ammonium, or methane</td>
+<td>oxygen</td>
+<td>sulfate, Fe(III), nitrogen, carbon dioxide</td>
+<td>Animals (chemosymbiotic tubeworm, clam and mussel communities)</td>
+<td>T2</td>
+</tr>
+<tr>
+<td>4b</td>
+<td>Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant</td>
+<td>water</td>
+<td>hydrogen sulfide, ferrous iron, ammonium, or methane</td>
+<td>nitrate and nitrogen oxides</td>
+<td>sulfate, Fe(III), nitrogen, carbon dioxide</td>
+<td>Animals (small)</td>
+<td>T2</td>
+</tr>
+<tr>
+<td>4c</td>
+<td>Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant</td>
+<td>water</td>
+<td>hydrogen sulfide, ferrous iron, ammonium, or methane</td>
+<td>chlorate and perchlorate</td>
+<td>sulfate, Fe(III), nitrogen, carbon dioxide, chloride</td>
+<td>Microbial; animals are doubtful</td>
+<td>T8</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>Acid-world life: cloud-deck plankton</td>
+<td>concentrated sulfuric acid (81 to 100 percent)</td>
+<td>reduced sulfur, organic carbon, blue, and UV light</td>
+<td>the acid itself (reduced to SO<sub>2</sub> and sulfur); traces of oxygen</td>
+<td>SO<sub>2</sub>, sulfur, carbon dioxide, water</td>
+<td>Mats and aerial plankton; at most simple colonial forms</td>
+<td>T6</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>Acid-world life: pool and crust mats</td>
+<td>concentrated sulfuric acid</td>
+<td>reduced sulfur, organic carbon</td>
+<td>the acid itself</td>
+<td>SO<sub>2</sub>, sulfur, carbon dioxide, water</td>
+<td>Mats</td>
+<td>T6</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Dense-CO2 life</td>
+<td>liquid or supercritical carbon dioxide</td>
+<td>hydrogen as fuel</td>
+<td>carbon dioxide (the solvent is the oxidant)</td>
+<td>methane, water (which separates out)</td>
+<td>Microbial, at most mats</td>
+<td>T7</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Cold hydrocarbon-sea life</td>
+<td>liquid methane and ethane</td>
+<td>hydrogen and acetylene (hydrogenation)</td>
+<td>nothing</td>
+<td>methane</td>
+<td>Microbial mats</td>
+<td>T8</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Ammonia-water life</td>
+<td>water with ammonia</td>
+<td>hydrogen and chemical gradients in cold alkaline brine</td>
+<td>carbon dioxide or carbonate</td>
+<td>methane, nitrogen</td>
+<td>Microbial</td>
+<td>T8</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Silicon-bearing life in acid</td>
+<td>concentrated sulfuric acid</td>
+<td>as Class 5a and 5b, with organosilicon chemistry</td>
+<td>the acid itself</td>
+<td>SO<sub>2</sub>, silica (solid SiO<sub>2</sub>)</td>
+<td>Microbial</td>
+<td>T9</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-each-class-needs">What each class needs</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Solvent</th>
+<th>Energy</th>
+<th>Gates (all must hold)</th>
+<th>Windows</th>
+<th>Supply</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1a</td>
+<td>water (factor 1)</td>
+<td>light, 400 to 700 nm, efficiency 1</td>
+<td>hydrosphere in surface ocean, hycean; pressure_pa &gt;= 10.0; co2_partial_pa &gt;= 5.0; band_light_vs_earth &gt;= 0.01</td>
+<td>temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>water (factor 1)</td>
+<td>light, 300 to 500 nm, efficiency 1</td>
+<td>hydrosphere in surface ocean, hycean; pressure_pa &gt;= 10.0; co2_partial_pa &gt;= 5.0; band_light_vs_earth &gt;= 0.01</td>
+<td>temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>water (factor 1)</td>
+<td>light, 700 to 800 nm, efficiency 0.8</td>
+<td>hydrosphere in surface ocean, hycean; pressure_pa &gt;= 10.0; co2_partial_pa &gt;= 5.0; band_light_vs_earth &gt;= 0.01</td>
+<td>temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>2</td>
+<td>water (factor 1)</td>
+<td>light, 800 to 1050 nm, efficiency 0.8</td>
+<td>hydrosphere in surface ocean, hycean; pressure_pa &gt;= 10.0; co2_partial_pa &gt;= 5.0; band_light_vs_earth &gt;= 0.01; o2_partial_pa &lt; 3000.0</td>
+<td>temperature_k 255 to 370 (falls off over 15 below, 15 above)</td>
+<td>donor_supply (full at 0.05 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>water (factor 1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>pressure_pa &gt;= 0.0</td>
+<td>habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>h2_supply (full at 0.3 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>water (factor 1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>pressure_pa &gt;= 0.0</td>
+<td>habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>radiolytic_h2_supply (full at 0.1 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>4a</td>
+<td>water (factor 1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>o2_partial_pa &gt;= 100.0</td>
+<td>habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>donor_supply (full at 0.05 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>4b</td>
+<td>water (factor 1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>pressure_pa &gt;= 0.0</td>
+<td>habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>nitrate_supply (full at 0.3 of Earth's, placeholder 0.3); donor_supply (full at 0.05 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>4c</td>
+<td>water (factor 1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>pressure_pa &gt;= 0.0</td>
+<td>habitat_temperature_k 255 to 395 (falls off over 15 below, 15 above)</td>
+<td>perchlorate_supply (full at 0.1 of Earth's, placeholder 0.1); donor_supply (full at 0.05 of Earth's, placeholder 1)</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>sulfuric (factor 0.1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>acid_medium &gt;= 1.0</td>
+<td>none</td>
+<td>sulfur_supply (full at 0.1 of Earth's, placeholder 0.5)</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>sulfuric (factor 0.1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>acid_medium &gt;= 2.0</td>
+<td>temperature_k 283 to 373 (falls off over 15 below, 15 above)</td>
+<td>sulfur_supply (full at 0.1 of Earth's, placeholder 0.5)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>co2 (factor 0.1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>share_co2 &gt;= 0.5; pressure_pa &gt;= 518000.0; co2_phase in liquid, supercritical</td>
+<td>temperature_k 217 to 400 (falls off over 20 below, 40 above)</td>
+<td>h2_supply (full at 0.3 of Earth's, placeholder 0.5)</td>
+</tr>
+<tr>
+<td>7</td>
+<td>hydrocarbon (factor 0.2)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>none</td>
+<td>temperature_k 90 to 190 (falls off over 10 below, 10 above); pressure_pa 50000 to 500000 (falls off over 30000 below, 300000 above)</td>
+<td>hydrogen_acetylene_supply (full at 0.3 of Earth's, placeholder 0.5)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>ammonia_water (factor 0.1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>ammonia_water_mass_fraction &gt;= 0.1</td>
+<td>habitat_temperature_k 176 to 273 (falls off over 10 below, 10 above)</td>
+<td>h2_supply (full at 0.3 of Earth's, placeholder 0.5)</td>
+</tr>
+<tr>
+<td>9</td>
+<td>sulfuric (factor 0.1)</td>
+<td>chemical (internal and tidal heat)</td>
+<td>acid_medium &gt;= 2.0; silicon_rich_crust &gt;= 1.0</td>
+<td>temperature_k 283 to 363 (falls off over 15 below, 10 above)</td>
+<td>sulfur_supply (full at 0.1 of Earth's, placeholder 0.5)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-each-class-lives-on">What each class lives on</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Metabolism, oxidant and first step</th>
+<th>Colour in visible light</th>
+<th>Outside visible light</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1a</td>
+<td>oxygenic; breathes o2 (yield from the air); first step x1</td>
+<td>Green</td>
+<td>Near-infrared edge (Canonical Vegetation Red Edge / VRE)</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>oxygenic; breathes o2 (yield from the air); first step x1</td>
+<td>Red, Orange, Yellow, Biofluorescent Green, Biofluorescent Red</td>
+<td>Blue-shifted vegetation edge, Strong UV absorption</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>oxygenic; breathes o2 (yield from the air); first step x1</td>
+<td>Black, Deep Red</td>
+<td>Far-red edge near 750 nm</td>
+</tr>
+<tr>
+<td>2</td>
+<td>anoxygenic; breathes none (yield 0.11); first step x0.6</td>
+<td>None (Black)</td>
+<td>Deep infrared edge (&gt; 1.0 µm)</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>hydrogenotroph; breathes co2 (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>hydrogenotroph; breathes sulfate (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>4a</td>
+<td>chemolithotroph; breathes o2 (yield from the air); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>4b</td>
+<td>chemolithotroph; breathes nitrate (yield 0.6); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>4c</td>
+<td>chemolithotroph; breathes perchlorate (yield 0.5); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>acidophile; breathes acid (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>acidophile; breathes acid (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>6</td>
+<td>hydrogenotroph; breathes co2 (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>7</td>
+<td>hydrogenator; breathes none (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>8</td>
+<td>hydrogenotroph; breathes co2 (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+<tr>
+<td>9</td>
+<td>acidophile; breathes acid (yield 0.11); first step x1</td>
+<td>none</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="why-each-number-is-what-it-is">Why each number is what it is</h2>
+<h3 id="class-1a-oxygenic-light-eaters-visible-pigment-chlorophyll-a">Class 1a: Oxygenic light-eaters: visible pigment (Chlorophyll a)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water; the index's own L_solv (water activity and chaotropicity) applies</li>
+<li>energy light: T1, L0. A star spectrum rich in 400 to 700 nm: F, G, K and bright early M; the Sun's share of photons in the band is the reference (efficiency 1)</li>
+<li>gate hydrosphere: T9, L3. Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light</li>
+<li>gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)</li>
+<li>gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)</li>
+<li>gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model</li>
+<li>window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>life oxygenic: T1, L0. Chlorophyll a splits water and makes the oxygen; the first step to light is the reference 1 (physics/life_timeline.py, GEN.750)</li>
+<li>note: Class 1a on an Earth-like world is exactly today's PHI_bio (life-classes.md 8.1). The old oxygen gate of Chlorophyll a is gone: Class 1 makes the oxygen (GEN.855).</li>
+</ul>
+<h3 id="class-1b-oxygenic-light-eaters-blue-and-uv-adapted-blue-optimized-porphyrins">Class 1b: Oxygenic light-eaters: blue and UV adapted (Blue-Optimized Porphyrins)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy light: T7, L3. Hot bright stars: late B to F; a UV shield from fluorescent proteins (life-classes.md 3.1); tier T6 to T7: a reasoned invention</li>
+<li>gate hydrosphere: T9, L3. Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light</li>
+<li>gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)</li>
+<li>gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)</li>
+<li>gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model</li>
+<li>window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>life oxygenic: T6, L3. A blue-tuned porphyrin that still splits water: the same oxygenic metabolism and first step as 1a</li>
+</ul>
+<h3 id="class-1c-oxygenic-light-eaters-far-red-chlorophyll-d-and-f">Class 1c: Oxygenic light-eaters: far-red (chlorophyll d and f)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy light: T7, L3. K and M stars; an efficiency penalty for the lower photon energy: the chemistry is T5, the penalty 0.8 is T7 (life-classes.md 3.1)</li>
+<li>gate hydrosphere: T9, L3. Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light</li>
+<li>gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)</li>
+<li>gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)</li>
+<li>gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model</li>
+<li>window temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>life oxygenic: T5, L3. Chlorophylls d and f still split water: the same metabolism and first step as 1a</li>
+</ul>
+<h3 id="class-2-anoxygenic-light-eaters-bacteriochlorophylls">Class 2: Anoxygenic light-eaters (Bacteriochlorophylls)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy light: T7, L3. Near-infrared light, 800 to 1050 nm; the lower photon energy costs efficiency (T7)</li>
+<li>gate hydrosphere: T9, L3. Sunlit water: an open surface ocean or a hycean sea (life-classes.md 3.1, Class 1 and 2 window); under ice or in an aquifer there is no light</li>
+<li>gate pressure_pa: T9, L3. The pigments that harvest light need air (10 Pa or more), the gate the old LIFE_CHEMICALS table used (GEN.92, GEN.647)</li>
+<li>gate co2_partial_pa: T7, L3. Carbon dioxide at least about 5 Pa for a carbon fixer (life-classes.md 3.1, Class 1 window)</li>
+<li>gate band_light_vs_earth: T7, L3. Light in the pigment's band at least 1 percent of Earth's (life-classes.md 3.1); the 0.01 percent allowance for deep microbes waits for the habitat-depth model</li>
+<li>gate o2_partial_pa: T9, L3. Free oxygen below 3 kPa (3 percent of an Earth atmosphere) poisons an anoxygenic or hydrogen-eating microbe: the existing gate (life-classes.md 3.1, Class 2 window), now a pressure (GEN.1321)</li>
+<li>window temperature_k: T7, L3. Habitat 255 to 370 K (life-classes.md 3.1, Class 2 window)</li>
+<li>supply donor_supply: T9, L4. The donor supply (hydrogen, Fe2+ or H<sub>2</sub>S delivered, GEN.887) must reach a twentieth of Earth's for the class to be fully supported; its mats are donor-limited to about 1 percent of an oxygenic biosphere per unit of Earth's supply (life-classes.md 4: 1e-4 to 1e-2 of today's biosphere)</li>
+<li>life anoxygenic: T7, L3. Anoxygenic photosynthesis needs one reaction center and no water splitting, so it comes first (0.6); its respiration is anaerobic, about a ninth of the aerobic yield (Gale and Wandel, read in the review)</li>
+</ul>
+<h3 id="class-3a-hydrogen-eaters-geochemical-hydrogen-serpentinisation-vents">Class 3a: Hydrogen eaters: geochemical hydrogen (serpentinisation, vents)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water in contact with rock (ocean, ice-covered ocean or aquifer)</li>
+<li>energy chemical: T9, L3. The share of the body's heat flow that life can use (CHEMICAL_SHARE), as the index already scores sub-ice life; no light needed</li>
+<li>gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air</li>
+<li>window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>supply h2_supply: T9, L4. Hydrogen from serpentinisation (GEN.887): a world gives enough at 0.3 of Earth's</li>
+<li>life hydrogenotroph: T7, L3. Methanogens and acetogens breathe carbon dioxide: the anaerobic yield 0.11; chemistry needs no light step, so the first step is the reference 1</li>
+</ul>
+<h3 id="class-3b-hydrogen-eaters-radiolytic-hydrogen-and-sulfate-deep-crust-aquifers">Class 3b: Hydrogen eaters: radiolytic hydrogen and sulfate (deep crust, aquifers)</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water in contact with rock</li>
+<li>energy chemical: T9, L3. The share of the body's heat flow that life can use; radiogenic heat and dose make the hydrogen</li>
+<li>gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air</li>
+<li>window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>supply radiolytic_h2_supply: T9, L4. Radiolytic hydrogen (GEN.887): a tenth of Earth's is enough</li>
+<li>life hydrogenotroph: T7, L3. Sulfate reducers of the deep crust: the anaerobic yield 0.11, first step 1</li>
+</ul>
+<h3 id="class-4a-sulfur-iron-and-nitrogen-eaters-oxygen-as-the-oxidant">Class 4a: Sulfur, iron, and nitrogen eaters: oxygen as the oxidant</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy chemical: T9, L3. The energy of the fuel meeting the oxidant, scored on the share of the heat flow life can use</li>
+<li>gate o2_partial_pa: T9, L3. An oxygen sea: oxygen at least 100 Pa (0.1 percent of an Earth atmosphere) for the oxidant to reach the vents (life-classes.md 3.1, Class 4 window), now a pressure (GEN.1321)</li>
+<li>window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>supply donor_supply: T9, L4. The reduced fuel supply (H<sub>2</sub>S, Fe2+, NH<sub>4</sub>+, CH<sub>4</sub>, GEN.887): a twentieth of Earth's is enough</li>
+<li>life chemolithotroph: T2, L2. Sulfur, iron and nitrogen oxidisers breathe oxygen: the yield follows the oxygen of the air (as Class 1); first step 1</li>
+</ul>
+<h3 id="class-4b-sulfur-iron-and-nitrogen-eaters-nitrate-and-nitrogen-oxides-as-the-oxidant">Class 4b: Sulfur, iron, and nitrogen eaters: nitrate and nitrogen oxides as the oxidant</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy chemical: T9, L3. The energy of the fuel meeting the oxidant</li>
+<li>gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air</li>
+<li>window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>supply nitrate_supply: T9, L4. Nitrate delivery (GEN.887): the abiotic supply of an anoxic ocean, 0.3 of Earth's, is enough</li>
+<li>supply donor_supply: T9, L4. The reduced fuel supply: a twentieth of Earth's is enough</li>
+<li>life chemolithotroph: T6, L4. Denitrification yields about 0.6 of aerobic respiration per electron (recalled); first step 1</li>
+</ul>
+<h3 id="class-4c-sulfur-iron-and-nitrogen-eaters-chlorate-and-perchlorate-as-the-oxidant">Class 4c: Sulfur, iron, and nitrogen eaters: chlorate and perchlorate as the oxidant</h3>
+<ul>
+<li>solvent water: T9, L3. Liquid water</li>
+<li>energy chemical: T9, L3. The energy of the fuel meeting the oxidant</li>
+<li>gate pressure_pa: T9, L3. Any pressure: a deep ocean or aquifer is not exposed to the air</li>
+<li>window habitat_temperature_k: T7, L3. Mean habitat 255 to 395 K for microbes (life-classes.md 3.1, Class 1 window); smooth falloff outside like the index's own terms</li>
+<li>supply perchlorate_supply: T9, L4. Perchlorate delivery (GEN.887): the slow supply of a salt-free ocean, 0.1 of Earth's nitrate, is enough</li>
+<li>supply donor_supply: T9, L4. The reduced fuel supply: a twentieth of Earth's is enough</li>
+<li>life chemolithotroph: T8, L4. Chlorate and perchlorate respiration is nearly as energetic as nitrate; first step 1</li>
+</ul>
+<h3 id="class-5a-acid-world-life-cloud-deck-plankton">Class 5a: Acid-world life: cloud-deck plankton</h3>
+<ul>
+<li>solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; the existing SOLVENT_FACTOR of sulfuric acid, 0.1 (planetGen's choice)</li>
+<li>energy chemical: T9, L3. Chemical energy of the acid medium; light too in the cloud layer</li>
+<li>gate acid_medium: T6, L4. A liquid sulfuric acid cloud layer (acid_medium level 1) or a pool (level 2): physics/acid_medium.py (GEN.888) reads the sulfur dioxide, oxidiser, and water of the air and the temperature profile</li>
+<li>supply sulfur_supply: T9, L4. Reduced sulfur (GEN.894): the air's sulfur dioxide over Venus's 150 ppm (physics/life_supply.py sulfur_supply); full score at a tenth of Venus's</li>
+<li>life acidophile: T6, L4. The acid itself is the oxidant: the anaerobic yield 0.11 (the climates report's own bookkeeping, no source gives rates)</li>
+</ul>
+<h3 id="class-5b-acid-world-life-pool-and-crust-mats">Class 5b: Acid-world life: pool and crust mats</h3>
+<ul>
+<li>solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1</li>
+<li>energy chemical: T9, L3. Chemical energy of the acid medium</li>
+<li>gate acid_medium: T6, L4. A liquid sulfuric acid pool at the ground (acid_medium level 2, physics/acid_medium.py, GEN.888); a cloud layer alone is Class 5a's</li>
+<li>window temperature_k: T6, L3. Warm dry ground, acid pools 283 to 373 K (life-classes.md 3.1, Class 5b window)</li>
+<li>supply sulfur_supply: T9, L4. As Class 5a</li>
+<li>life acidophile: T6, L4. As 5a</li>
+</ul>
+<h3 id="class-6-dense-co2-life">Class 6: Dense-CO2 life</h3>
+<ul>
+<li>solvent co2: T9, L3. Liquid or supercritical CO<sub>2</sub> as the solvent; no existing factor, 0.1 like the other strange solvents (planetGen's choice)</li>
+<li>energy chemical: T9, L3. Chemical energy of hydrogen fuel, scored on the share of the heat flow life can use</li>
+<li>gate share_co2: T7, L3. A dense CO<sub>2</sub> air or sea: carbon dioxide at least half of the air (life-classes.md 3.1, Class 6 window)</li>
+<li>gate pressure_pa: T2, L0. Liquid CO<sub>2</sub> needs above 5.2 bar (the triple point is 5.18 bar)</li>
+<li>gate co2_phase: T2, L0. The CO<sub>2</sub> is liquid or supercritical at the surface</li>
+<li>window temperature_k: T8, L3. Liquid below 304 K, supercritical above that, and about 73 bar (life-classes.md 3.1)</li>
+<li>supply h2_supply: T9, L4. Hydrogen as fuel (GEN.887): enough at 0.3 of Earth's</li>
+<li>life hydrogenotroph: T8, L4. Carbon dioxide is the solvent and the oxidant: the anaerobic yield 0.11</li>
+</ul>
+<h3 id="class-7-cold-hydrocarbon-sea-life">Class 7: Cold hydrocarbon-sea life</h3>
+<ul>
+<li>solvent hydrocarbon: T9, L3. The existing SOLVENT_FACTOR of a hydrocarbon sea, 0.2 (planetGen's choice); the index's <code>solvent()</code> rule says when a methane sea exists</li>
+<li>energy chemical: T9, L3. Chemical energy of hydrogen and acetylene, scored on the share of the heat flow life can use</li>
+<li>window temperature_k: T8, L3. 90 to 190 K (life-classes.md 3.1, Class 7 window)</li>
+<li>window pressure_pa: T8, L3. N<sub>2</sub> and CH<sub>4</sub> air around 1.5 bar (life-classes.md 3.1, Class 7 window)</li>
+<li>supply hydrogen_acetylene_supply: T9, L4. Hydrogen and acetylene from the haze (GEN.887): enough at 0.3 of the methane share that gives the full supply</li>
+<li>life hydrogenator: T8, L4. Hydrogenation of acetylene gives about the anaerobic yield 0.11</li>
+</ul>
+<h3 id="class-8-ammonia-water-life">Class 8: Ammonia-water life</h3>
+<ul>
+<li>solvent ammonia_water: T9, L3. Water with ammonia as the liquid; 0.1 like the other strange solvents (planetGen's choice)</li>
+<li>energy chemical: T9, L3. Chemical energy of hydrogen and gradients, scored on the share of the heat flow life can use</li>
+<li>gate ammonia_water_mass_fraction: T8, L3. Ammonia at least 10 percent of the water mass (life-classes.md 3.1, Class 8 window); physics/strange_solvents.py works it out from the body's ice and water shares (GEN.894)</li>
+<li>window habitat_temperature_k: T8, L3. 176 to 273 K: the water-ammonia eutectic is about 176 K (recalled)</li>
+<li>supply h2_supply: T9, L4. Hydrogen (GEN.887): enough at 0.3 of Earth's</li>
+<li>life hydrogenotroph: T8, L4. Carbonate or carbon dioxide as the oxidant: the anaerobic yield 0.11</li>
+</ul>
+<h3 id="class-9-silicon-bearing-life-in-acid">Class 9: Silicon-bearing life in acid</h3>
+<ul>
+<li>solvent sulfuric: T9, L3. Concentrated sulfuric acid as the liquid; SOLVENT_FACTOR 0.1</li>
+<li>energy chemical: T9, L3. Chemical energy of the acid medium</li>
+<li>gate acid_medium: T6, L4. A liquid sulfuric acid pool at the ground (acid_medium level 2): the silica deposits need a surface in contact with the acid</li>
+<li>gate silicon_rich_crust: T9, L4. A silicon-rich crust: the rock's molar Mg/Si at or under 1 (physics/strange_solvents.py, GEN.894)</li>
+<li>window temperature_k: T9, L3. As Class 5; silicones resist 98 percent acid at 90 C (life-classes.md 3.1, read in the climates report)</li>
+<li>supply sulfur_supply: T9, L4. As Class 5a</li>
+<li>life acidophile: T9, L4. As Class 5</li>
+</ul>
+<h2 id="classes-that-do-not-drink-water">Classes that do not drink water</h2>
+<p>The hydrogen inventory of the chemistry term is held at 1 Earth units: T9, L4. The index's chemistry term needs carbon, nitrogen, and hydrogen in Earth units, and hydrogen comes from the water; a class that does not drink water gets its hydrogen from the supply term (GEN.887), so its inventory is held at this floor, and phosphate is the index's NON_AQUEOUS_PHOSPHATE_UMOL_L.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

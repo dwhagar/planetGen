@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>One galaxy-wide object store, region work units, and sectors as a navigation table (GEN.1118) - planetGen docs</title>
+<meta name="description" content="Status: final enough to file from (5:44 PM EDT 2026-10-30).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/region-object-store.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/region-object-store.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="one-galaxy-wide-object-store-region-work-units-and-sectors-as-a-navigation-table-gen1118">One galaxy-wide object store, region work units, and sectors as a navigation table (GEN.1118)</h1><p class="meta">docs/design/systems/region-object-store.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#1-short-answers">1. Short answers</a></li><li style="margin-left:0px"><a href="#2-what-the-code-does-today-the-facts-the-answers-rest-on">2. What the code does today (the facts the answers rest on)</a></li><li style="margin-left:0px"><a href="#3-determinism-unit-of-work-versus-unit-of-randomness">3. Determinism: unit of work versus unit of randomness</a></li><li style="margin-left:0px"><a href="#4-region-work-units-bands-within-the-sphere">4. Region work units: bands within the sphere</a></li><li style="margin-left:0px"><a href="#5-consistency-between-adjacent-regions">5. Consistency between adjacent regions</a></li><li style="margin-left:0px"><a href="#6-the-sector-table-the-charted-flag-and-the-uncharted-boundary">6. The sector table, the charted flag and the uncharted boundary</a></li><li style="margin-left:0px"><a href="#7-every-object-in-the-sector-where-it-ends-up">7. Every object in the sector where it ends up</a></li><li style="margin-left:14px"><a href="#72-generating-an-uncharted-sector-that-already-has-residents">7.2 Generating an uncharted sector that already has residents</a></li><li style="margin-left:14px"><a href="#73-names-and-ids-may-change-every-designation-is-unique-forever-boss-528-pm-edt">7.3 Names and IDs may change; every designation is unique forever (Boss, 5:28 PM EDT)</a></li><li style="margin-left:0px"><a href="#8-rogues-from-real-donors-stored-where-they-land-gen1111-replaces-the-virtual-donor-design">8. Rogues from real donors, stored where they land (GEN.1111, replaces the virtual-donor design)</a></li><li style="margin-left:14px"><a href="#81-how-a-donor-writes-into-other-sectors">8.1 How a donor writes into other sectors</a></li><li style="margin-left:14px"><a href="#82-what-this-does-to-determinism">8.2 What this does to determinism</a></li><li style="margin-left:14px"><a href="#83-the-consequence-to-know-about">8.3 The consequence to know about</a></li><li style="margin-left:14px"><a href="#84-cost-and-the-other-drift-items">8.4 Cost and the other drift items</a></li><li style="margin-left:14px"><a href="#85-three-stage-rogue-spread-and-the-rogues-level-boss-536-pm-edt-replaces-the-single-spread-tweak">8.5 Three-stage rogue spread and the Rogues level (Boss, 5:36 PM EDT; replaces the single spread tweak)</a></li><li style="margin-left:0px"><a href="#9-rogue-landing-phases">9. Rogue-landing phases</a></li><li style="margin-left:0px"><a href="#10-migration-testing-mode-no-shims-new-epoch-wiped-database-allowed">10. Migration (testing mode: no shims, new epoch, wiped database allowed)</a></li><li style="margin-left:0px"><a href="#11-proposed-items-working-titles-todo-assigns-numbers-and-owners">11. Proposed items (working titles; TODO assigns numbers and owners)</a></li><li style="margin-left:0px"><a href="#12-questions-for-boss">12. Questions for Boss</a></li><li style="margin-left:0px"><a href="#13-not-verified">13. Not verified</a></li><li style="margin-left:0px"><a href="#14-built">14. Built</a></li></ul></details>
+<p>Status: final enough to file from (5:44 PM EDT 2026-10-30). Items filed as GEN.1123 to GEN.1129, TEST.501, with GEN.1111, GEN.1120 and GEN.1121 reworded. Boss's answers on tiles, bands, rogue ID after a move and the top-up ceiling are open, so the defaults of section 12 are taken. Section 11's item numbers are the working titles: 1 and 2 are GEN.1127, 3 is GEN.1111, 3b is GEN.1120 with GEN.1124 to GEN.1126, 3c is GEN.1121, 4 is GEN.1128, 5 is TEST.501. Item 6 (cross-face separation) waits on GEN.1006 and item 7 (partial sectors) is only built if Boss asks.</p>
+<p>Design study, written about 5:35 PM EDT 2026-10-30 as the lane reported. Research only, nothing built. Tags: <strong>[S]</strong> read in the repository, <strong>[C]</strong> computed here by arithmetic from numbers in the repo, <strong>[I]</strong> inferred, <strong>[U]</strong> not measured or not read.</p>
+<p>Boss's ideas, in order: (1) 5:15 PM EDT, store everything in one database so an object's place does not matter, sectors and regions are for navigation and are calculated when asked; build a whole region from one starting draw regardless of sectors, work units as bands within the sphere; a sector table with a charted flag and an uncharted boundary in spherical coordinates from the sector centre. (2) 5:16 PM EDT, a rogue body is stored in the sector where it ends up, that sector listed uncharted, and this applies to every object. (3) 5:18 PM EDT, generate the sectors rogues land in as a way to fill out the universe: charted sphere first, then phases that chart the sectors the earlier phase's rogues landed in, admin choosing how many phases.</p>
+<h2 id="1-short-answers">1. Short answers</h2>
+<ol>
+<li><strong>The store is already one store.</strong> Every positioned table carries galaxy-frame coordinates and a generated <code>cell_key</code> (Morton key, 0.25 pc cubes) with a covering index, and &quot;what is within r of here&quot; never reads <code>sectors</code> [S: <code>db/near.py</code>, <code>db/region.py</code>, spherical-region-queries.md section 6]. <code>star_systems.sector_id</code> is nullable with <code>ON DELETE SET NULL</code>. Two things still tie an object to its birth sector: <code>rogue_planets.sector_id</code> is <code>ON DELETE CASCADE</code> (deleting a sector deletes a rogue that may have drifted in), and the object ID's serial is the object's generation rank inside its birth sector [S: object-id-options.md section 3, <code>store._claim_object_ids</code>]. Both are fixable and the first is a one-line schema change.</li>
+<li><strong>Uncharted space already holds known-unknowns.</strong> <code>bright_stars</code> (every star above the luminosity floor, placed galaxy-wide by shell, with <code>star_system_id</code> NULL until a sector builds it), <code>phenomenon_scatter</code>, <code>galaxy_block_lights</code> and <code>sector_stats.level_before_fill_sol</code> are exactly &quot;we know what might be there, not what is there&quot; for stars and phenomena [S]. Boss's idea 2 extends that pattern to rogues. That is the new part, and it is cheap.</li>
+<li><strong>The region is a request, the tile is the unit of randomness.</strong> Determinism (one seed, same objects whatever order regions are charted) requires every draw to be keyed by a fixed global tile and candidate index, never by the region's start point. A region started from a random point is then only a choice of which fixed tiles to run, and &quot;bands within the sphere&quot; is a fine way to cut that list into work units (section 4). If the start point seeded the draw, two overlapping regions would disagree in the overlap.</li>
+<li><strong>Recommended tile: keep the sector (whole sectors) for 8.1; do not make partial sectors.</strong> Partial sectors need the sector fill to stop placing systems sequentially (it rejects against what is already placed in the sector, <code>SpaceSector._random_position</code> [S]) and the object serial to stop being &quot;rank in the sector&quot;. That is a rewrite of the fill and the ID rule, and it buys only an exactly-spherical region edge, which rounding the region up to whole sectors gives to within 4 pc. Section 6 says what to do if Boss wants partial sectors anyway.</li>
+<li><strong>Charted flag: derived, not drawn.</strong> A <code>chart_ledger</code> of charted tiles (run, epoch, time) is the record; a sector's charted state and its uncharted remainder are computed from it. A stored spherical boundary per sector is not needed when tiles are whole sectors (a sector is wholly charted or wholly not), and is awkward when they are not (section 6).</li>
+<li><strong>Boss's decision, 5:23 PM EDT: rogues come only from generated systems, and an uncharted sector stores every scatter and rogue object exactly as a charted one would.</strong> This replaces virtual donors (GEN.1111 returns to real donors) and removes the rogue-landing phases entirely. Section 8 is rewritten for it. The one consequence to read first: the rogue population a region has is only what the charted stars have ejected (section 8.3).</li>
+<li><strong>Generating an uncharted sector</strong> fills around its existing residents and never moves or changes one (section 7.2). That is what <code>add_preplaced_system</code> already does for bright stars, so it is an extension, not a new mechanism.</li>
+</ol>
+<h2 id="2-what-the-code-does-today-the-facts-the-answers-rest-on">2. What the code does today (the facts the answers rest on)</h2>
+<ul>
+<li><strong>Two generators, one pipeline</strong> [S]. A galaxy-wide, object-first scatter (<code>generation/bright_stars.py</code>, <code>object_first.py</code>): per shell chunk one Poisson count from a certified density bound, each candidate gets band, wedge and point, kept with probability true density over bound. Then a per-sector fill (<code>run_sector.py</code>, <code>galaxy/sector.py</code>): a Poisson count of dimmer systems for the sector, positions sampled uniformly in the sector's volume and rejected against systems already placed there (<code>_random_position</code>, Hill sphere separation); the sector fill first builds a system around each pre-placed bright star it contains.</li>
+<li><strong>Determinism rules already written</strong> [S: sampling-backfill-and-resume.md 2.2]: the block grid must be fixed globally, nothing sequential may cross block boundaries, star parameters come from a stream keyed by (block key, candidate index), and &quot;a region only chooses which blocks to read&quot;. That document tested bit-identical lists when processed in any order, split among four workers, or restricted to a sub-region.</li>
+<li><strong>Cross-sector coupling is small</strong> [S]. Hill-sphere separation is enforced only inside a sector (<code>_massive_neighbors</code> reads the sector's own entries and phenomena). The one place a sector reads its neighbours is emission nebulae lit by pre-placed hot stars in neighbouring sectors (<code>neighbour_hosts</code>). Names and object-ID collision numbers are ranked by sector address whichever sector saves first (<code>_rank_chain</code>, GEN.307), so they are already order independent.</li>
+<li><strong>Extended objects</strong> (nebulae, remnants, asteroid fields) are stored by their centre's sector and found with the widest placed radius [S]; they are the existing answer to &quot;an object crosses a boundary&quot;.</li>
+<li><strong>Work units are not the sector</strong> [S]: <code>generate_sectors_unit</code>, <code>expand_generate_sectors</code> and the queue already batch sectors into units, and <code>galaxy/drill.py</code> defines nested blocks of 243, 81, 27, 9, 3 and 1 sectors (<code>galaxy_block_stats</code>). The execution side of &quot;work units&quot; exists.</li>
+<li><strong>Charting state exists in pieces</strong> [S]: <code>sectors</code> rows exist only for generated sectors, <code>sector_stats.filled_at</code>, <code>generation_runs</code>, <code>scatter_epochs</code>, <code>region_stats</code>, <code>galaxy_block_stats</code> and <code>galaxy_block_lights</code>.</li>
+</ul>
+<h2 id="3-determinism-unit-of-work-versus-unit-of-randomness">3. Determinism: unit of work versus unit of randomness</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Unit of randomness (the tile)</th>
+<th>Unit of work (the region run)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed by</td>
+<td>the galaxy's grid, never by a request</td>
+<td>the request (start point, radius, phases)</td>
+</tr>
+<tr>
+<td>Seed</td>
+<td>galaxy seed, version key, tile key; per object the candidate index</td>
+<td>none of its own</td>
+</tr>
+<tr>
+<td>Overlaps</td>
+<td>cannot overlap</td>
+<td>may overlap freely; a tile already in <code>chart_ledger</code> at this epoch is skipped</td>
+</tr>
+<tr>
+<td>Order</td>
+<td>irrelevant</td>
+<td>irrelevant</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rule for the build: <strong>nothing in a draw may read a region parameter, the run id, the arrival order, or whether a neighbour tile exists.</strong> The start point of Boss's &quot;random draw&quot; only picks the first tile; if &quot;starting location for our random draw&quot; meant seeding the stream from it, that has to become &quot;choose the first tile from it&quot;.</p>
+<p>Things that today depend on arrival and must be keyed before regions can run in any order [S]: the serial in the object ID (rank within the sector, assigned by the one worker that owns the sector, which stays correct while the tile is a whole sector); field-drawn serials for nebulae (already keyed); <code>id_counters</code> for run-time births (unaffected, they only grow).</p>
+<h2 id="4-region-work-units-bands-within-the-sphere">4. Region work units: bands within the sphere</h2>
+<p>Two readings of &quot;bands within the sphere&quot;, both fine:</p>
+<ul>
+<li><strong>A. Bands of the galaxy's own grid.</strong> The region is the set of whole sectors a sphere around the start touches; a work unit is a run of wedges inside one (shell, band) arc, sized so a unit takes a few minutes. This is what <code>drill.py</code> blocks and the existing scatter chunks already are. Cost of a sphere in sectors [C]: radius 50 pc touches about 8,200 sectors, 100 pc about 65,000, 200 pc about 523,000 (volume over 64 pc³, before rounding up at the surface).</li>
+<li><strong>B. Concentric radial bands around the start point.</strong> Easier to explain (&quot;the inner 20 pc first&quot;), gives a natural progress and resume order, but the tiles inside are still the fixed grid sectors, so it is only an ordering.</li>
+</ul>
+<p><strong>Recommendation: A for the units, B as the ordering</strong> (nearest bands first so a user can look while the outer bands run). Width of a unit: one block of 27 sectors (about 1,700 pc³) is a reasonable first guess [I]; size it from measured seconds per sector (PERF items own that number, not re-measured here) so a unit is minutes, not hours, because a unit is also the retry and resume grain (the resumable-run design in sampling-backfill-and-resume.md section 7).</p>
+<p>What a region run gains over sector-by-sector, given tiles stay sectors: one density sweep for the whole region (the <code>_BatchDensity</code> pass in <code>run_galaxy.py</code> already shares it), one pass of the cross-face checks (section 5), one <code>chart_ledger</code> write per unit, and one place for the &quot;how far do you want to spread&quot; setting.</p>
+<h2 id="5-consistency-between-adjacent-regions">5. Consistency between adjacent regions</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Thing that crosses a boundary</th>
+<th>Today</th>
+<th>With region runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Systems and their members (AU scale)</td>
+<td>belong to the cell of the barycentre; members never leave it in practice [I]</td>
+<td>same; ownership by barycentre</td>
+</tr>
+<tr>
+<td>Hill-sphere separation between systems (about 1 pc scale [I, 4 pc sector, Hill radii of order a pc])</td>
+<td>enforced inside a sector only [S]; across faces not enforced</td>
+<td>enforce across faces with a <strong>priority rule</strong>: a candidate is dropped if a higher-priority candidate (lower key) is closer than the required separation, where candidates come from the keyed draw of the neighbour tile, not from what is stored. A pure function, so order independent, at the cost of drawing the one-sector halo of candidates (about 3 x the draws at the surface of a region, none inside it). Optional; the current code does without it</td>
+</tr>
+<tr>
+<td>Emission nebulae lit by neighbours</td>
+<td><code>neighbour_hosts</code> read from <code>bright_stars</code> of neighbours</td>
+<td>unchanged; the scatter is global</td>
+</tr>
+<tr>
+<td>Extended objects (nebulae, remnants, asteroid fields)</td>
+<td>stored by centre sector, found by widest radius</td>
+<td>unchanged; ownership by centre, so a region that charts a sector gets objects whose centre is in it</td>
+</tr>
+<tr>
+<td>Stars already pre-placed</td>
+<td>global scatter</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Rogue planets</td>
+<td>drawn per sector</td>
+<td>real donors write the rogue into the sector where it lands (section 8)</td>
+</tr>
+<tr>
+<td>Names and collision numbers</td>
+<td>ranked by address</td>
+<td>unchanged</td>
+</tr>
+</tbody>
+</table></div>
+<p>Nothing found in the repo requires reading a neighbour's <em>accepted</em> objects, which is what would make order matter. That is the property to protect with a test: charting two adjacent regions in either order gives the same fingerprint (the per-sector digests of GEN.58 already exist for this; a new test charts A then B and B then A and compares the region digest).</p>
+<h2 id="6-the-sector-table-the-charted-flag-and-the-uncharted-boundary">6. The sector table, the charted flag and the uncharted boundary</h2>
+<p><strong>Tiles are whole sectors (recommended).</strong> Then:</p>
+<ul>
+<li><code>chart_ledger(tile address, epoch, run_id, charted_at)</code> is the truth; <code>sectors</code> keeps its role (name, centre, edge, stats) and <code>sector_stats.filled_at</code> is already this for filled sectors.</li>
+<li>A sector is <strong>charted</strong> if its tile is in the ledger at the current epoch, otherwise <strong>uncharted</strong>. No partial state, so no boundary to store.</li>
+<li>A block of sectors is charted when all its sectors are (<code>galaxy_block_stats</code> already counts them). &quot;Fully within a previously charted area&quot; is therefore a count comparison, which is how the Galaxy Map decides today [S: <code>region_stats</code>, <code>galaxy_block_stats</code>].</li>
+<li>The uncharted sector still lists what is known there: pre-placed bright stars, scattered phenomena, rogues that landed (section 7), all by position query.</li>
+</ul>
+<p><strong>If Boss wants partial sectors</strong> (a region edge cutting a sector), then:</p>
+<ol>
+<li>The fill must be re-keyed: candidates drawn per fixed sub-tile (for example the 1 pc cube of the 0.25 pc cell grid, or a Morton block), kept or dropped by the priority rule of section 5, serial = (sub-tile key, candidate index) instead of rank. That is the block-first design already specified; it is not what the sector fill does [S].</li>
+<li>The ID serial rule changes (the 28-bit serial is &quot;rank in sector&quot;; a partial sector needs a rank that does not depend on which part was charted first, which is the keyed index above). Object IDs of everything already generated change at the new epoch (testing mode allows it, no shim).</li>
+<li>The uncharted part is the sector minus the union of charted sub-tiles. <strong>Spherical coordinates from the centre</strong> work only if the uncharted part is star-shaped about the centre. A sphere clipped to a cube is convex, but the uncharted remainder of a cube around a charted sphere that contains the centre is the cube minus a ball, which is star-shaped about the centre only when the ball is centred there; in general it is not. A stored polar function r(theta, phi) per sector would be wrong for those. The exact record is the sub-tile list, and a polar sketch can be derived from it for display. <strong>Recommendation if partial sectors are built: store sub-tile coverage (a bitmap of 64 sub-tiles of 1 pc, 8 bytes per sector), derive any boundary from it.</strong></li>
+</ol>
+<h2 id="7-every-object-in-the-sector-where-it-ends-up">7. Every object in the sector where it ends up</h2>
+<p>Yes, as ownership by position, already how the data is laid out:</p>
+<ul>
+<li><strong>What belongs to a sector</strong> is the answer to a position query on the sector's bounds, computed when asked. <code>sector_id</code> stays only as a cached birth sector for fast joins and for the ID prefix (the ID names the birth place and never changes, object-id-options.md principle 1); it never decides visibility or deletion.</li>
+<li><strong>Change:</strong> <code>rogue_planets.sector_id</code> loses <code>ON DELETE CASCADE</code> (and every table like it is audited); deleting or regenerating a sector removes only objects whose <em>birth</em> tile is that sector and whose record says generated-by-it, never residents who drifted in.</li>
+<li><strong>A rogue that ends up in an uncharted sector is a full row</strong> (Boss, 5:23 PM EDT): same table, same columns, same body chain as a rogue in a charted sector (GEN.1112 train 19), stored with its position. The sector gets a <code>sectors</code> row on demand with the charted flag off. There are no stubs and no second table.</li>
+</ul>
+<h3 id="72-generating-an-uncharted-sector-that-already-has-residents">7.2 Generating an uncharted sector that already has residents</h3>
+<ul>
+<li>The residents (rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there) are <strong>immutable</strong>: position and attributes are kept.</li>
+<li>The fill treats them as already placed: they count as obstacles in the Hill-sphere placement (<code>_massive_neighbors</code> gains them) and are not drawn again. Rogues do not count toward the sector's system count (they are not systems), so the Poisson draw of systems is unchanged by them.</li>
+<li>The sector's own systems are drawn as today; their rogues leave for other sectors (section 8).</li>
+<li>Object-ID collision numbers are ranked by sector address, so a later-saved lower-address sector can bump a stored object's number up (<code>_rank_chain</code>). A resident's name can then change once. If &quot;same attributes&quot; must include the name, the rank rule has to stop moving stored objects; flagged in the questions.</li>
+</ul>
+<h3 id="73-names-and-ids-may-change-every-designation-is-unique-forever-boss-528-pm-edt">7.3 Names and IDs may change; every designation is unique forever (Boss, 5:28 PM EDT)</h3>
+<p>Decision: an object may change its name and its ID, but it stores the history of its previous designations, and its current ID is always completely unique. This reverses the &quot;assigned once, never recomputed&quot; principle in object-id-options.md (principle 1) and makes the collision bump of <code>_rank_chain</code> legal (a stored object moving up a number is an ordinary rename).</p>
+<p>Design:</p>
+<ul>
+<li>
+<p>Every object keeps its <strong>internal row id</strong> (stable, never shown). Name and <code>uid</code> are attributes.</p>
+</li>
+<li>
+<p>A <code>designations</code> table, one row per designation an object has ever had: <code>designation</code> (the name or the uid in text form, UNIQUE across the whole galaxy), <code>table</code>, <code>object_row_id</code>, <code>kind</code> (name or uid), <code>valid_from_epoch</code>, <code>retired_epoch</code> (NULL while current), <code>reason</code> (collision bump, regeneration, moved, admin rename). A retired designation <strong>stays reserved</strong>, so it is never given to another object: uniqueness holds over current and past designations together.</p>
+</li>
+<li>
+<p>Lookup by an old designation (URL, bookmark, API, search) resolves through this table to the current object and returns a redirect, so nothing breaks when a name changes.</p>
+</li>
+<li>
+<p>The object page lists the previous designations.</p>
+</li>
+<li>
+<p>Fingerprints (GEN.58) digest the current designation only; the history is a separate digest, so a rename does not read as a changed object.</p>
+</li>
+<li>
+<p>An object moved by the nightly orbital update keeps its birth-position ID unless Boss wants rogue IDs to follow the current position; if so, the move writes a history row (cost: one row per ID change, moves that change the ID are rare, 1.2 in 10,000 for the cell key [S: region doc 6.6]; the 76-bit position ID changes far less often than the cell).</p>
+</li>
+<li>
+<p>Migration: backfill one current row per existing object; no old data to translate (testing mode).</p>
+</li>
+<li>
+<p><strong>Every object in the galaxy, same rule:</strong> stars and phenomena already follow it (scatter tables with <code>star_system_id</code>/<code>built_at</code> NULL until built). Comets, asteroid fields, interstellar objects follow the same pattern when their items land; no new rule needed.</p>
+</li>
+</ul>
+<h2 id="8-rogues-from-real-donors-stored-where-they-land-gen1111-replaces-the-virtual-donor-design">8. Rogues from real donors, stored where they land (GEN.1111, replaces the virtual-donor design)</h2>
+<p>Rule (Boss, 5:23 PM EDT): a rogue exists only because a generated system ejected it. When a system is built, its ejection events are drawn from its own seed, each rogue is drifted by the closed form (rogue-planet-drift.md section 3), and the rogue is saved at the place it ends up, in that sector, charted or not.</p>
+<h3 id="81-how-a-donor-writes-into-other-sectors">8.1 How a donor writes into other sectors</h3>
+<ol>
+<li>The donor's events are a pure function of the donor's seed: ejection time, kick, mass, moons kept, destination position. So the <strong>set of rogues a given system produces is deterministic</strong> and the same whatever else is charted.</li>
+<li>The destination sector is found by <code>address_at</code> (closed form). Its row is created if missing (charted off). The rogue is saved with position, ID from that position, and a link to the donor record (donor system uid, ejection time, speed), so the object page can say where it came from.</li>
+<li>A donor 7 kpc from its landing is far outside any charted region, so the write goes to isolated rows. Per charted sector about 37 rogues leave at solar density [C: 5.8 per star x 6.4 systems], each into a different sector [drift doc], so a 65,000 sector sphere writes about 2.4 million rogue rows and as many sector rows. Storage, not compute, is the cost: each rogue is a full body with moons (section 8.4).</li>
+<li><strong>Idempotence:</strong> regenerating a donor sector must not duplicate its rogues. Each rogue row carries the donor's uid and event index; saving a donor first deletes the rogues it made (by that key) then writes them again. Deleting a sector deletes the rogues its systems ejected, not the ones that landed in it (the cascade change in section 7).</li>
+<li>A donor's destination can fall in a charted sector. That is the same write; the sector is simply already filled, and the rogue is added to its residents. The rogue count of a charted sector is therefore not fixed at its charting time (it grows as donors are charted). Fingerprints (GEN.58) must either exclude rogues whose donor is outside the sector or digest them separately; otherwise a sector's digest changes when an unrelated region is charted.</li>
+</ol>
+<h3 id="82-what-this-does-to-determinism">8.2 What this does to determinism</h3>
+<p>Each rogue is deterministic. <strong>Which rogues exist in a place depends on which donor sectors are charted</strong>: that is Boss's rule and it is physically honest (we only know the rogues of stars we generated). The test is: chart A then B, or B then A, and the <em>union</em> of objects is identical; and a sector's own systems and its own ejected rogues are identical in both. A sector's digest is split into &quot;made here&quot; and &quot;arrived here&quot;.</p>
+<h3 id="83-the-consequence-to-know-about">8.3 The consequence to know about</h3>
+<p>Nearly all rogues in a charted sphere would physically have come from stars outside it (the median rogue is 7 kpc from its donor, and only 1.5% land within 100 pc [S: drift doc]). With rogues only from generated systems, a charted sphere of radius 100 pc holds only the rogues its own stars ejected and that did not leave, about 1.5% of its charted stars' yield [C], plus ones from other charted regions. So <strong>the rogue population of a region is a tiny fraction of the physical one until most of the galaxy is charted</strong>, and the rogue count in a sector says more about what is charted than about the sector. This matches the rule as given; if the shown rogue density should look physical, a smooth &quot;expected rogues&quot; number can be shown beside the real count (no objects). Listed as a question.</p>
+<h3 id="84-cost-and-the-other-drift-items">8.4 Cost and the other drift items</h3>
+<ul>
+<li>Per donor: the events (cheap) plus one full rogue body per event through the same chain as a planet and moons (GEN.557). The body chain, not the drift, is the cost; a sphere of 8,200 sectors (50 pc) writes about 300,000 rogue bodies [C].</li>
+<li>GEN.1114 (closed-form drift) is needed as designed. GEN.1115 (smoothed density) is no longer needed by the sector draw; it stays useful only for the low-zoom map's expected-count display. GEN.1116 (regenerate a donor on demand) is replaced by a real link to the donor system. GEN.1113 (kick research) is unchanged.</li>
+<li>Kick direction decided (Boss, 5:29 PM EDT): isotropic, and the rogue's velocity is built from the origin planet's actual motion: the donor star's galactic velocity, plus the planet's orbital velocity vector at the moment of ejection (from the stored orbit, not a random draw), plus the scattering kick. The ejection vector therefore follows the planet's own movement; the kick is added to it, not applied perpendicular to galactic motion. Needs the orbit state at the ejection time from the architecture's ejection event (GEN.728 path); the &quot;virtual donors&quot; question is answered by this decision.</li>
+</ul>
+<h3 id="85-three-stage-rogue-spread-and-the-rogues-level-boss-536-pm-edt-replaces-the-single-spread-tweak">8.5 Three-stage rogue spread and the Rogues level (Boss, 5:36 PM EDT; replaces the single spread tweak)</h3>
+<p>Boss's rule, in order, for every sector that is generated:</p>
+<p><strong>Stage 0, residents come off the budget.</strong> Whatever the sector already holds when it is generated (arrived rogues, pre-placed bright stars, scattered phenomena, belts' parents, extended objects whose centre lies there) is subtracted from the sector's calculated mass before anything is drawn, in every phase of sector generation (the mass-backfill rings, the system draw, phenomena, remnants, belts). Today the expected figures live in <code>sector_stats</code> (<code>expected_systems</code>, <code>bright_mass_sol</code>, <code>total_mass_kg</code>, <code>max_mass_kg</code>) [S]; a resident-mass subtraction is the one new input. The residents themselves are untouched (section 7.2).</p>
+<p><strong>Stage 1, real physics, rogues end up where they end up.</strong> The sector's own systems eject rogues with the donor's real motion (section 8.4 below) and the unscaled closed-form drift (f = 1). Each rogue is saved in the sector where it lands, charted or not (section 8.1). Nothing is tweaked here, so on its own this gives a sparse, physical rogue population (section 8.3).</p>
+<p><strong>Stage 2, the rest of the sector's own build.</strong> Systems, black holes, neutron stars, pulsars, asteroid belts and the rogues that arrived in stage 1 of other sectors' builds are all in place.</p>
+<p><strong>Stage 3, the top-up, runs once per region run, after every sector of the region has finished stages 0 to 2 (Boss, 5:37 PM EDT).</strong> It is the last pass of the run, so the sector's mass shortfall is measured against everything the whole region naturally produced, including all rogues that landed from other sectors of the same run. Compare the sector's expected mass with what it actually holds (residents plus everything drawn). The shortfall is made up by a second round of ejections: <strong>the sector's own systems donate another phase of rogues</strong>, placed inside the sector. Here, and only here, the tweak is used so the rogues land in the sector: the displacement is scaled by the stand-in f so they stay inside (f about 0.014 for a 100 pc scale is no longer the question; inside one 4 pc sector the placement is simply uniform in the sector, with f an implementation detail). Once placed, each rogue is <strong>given a realistic velocity and ejection history as if it came from another sector</strong>: a velocity drawn from the physical distribution (donor-frame isotropic kick added to the galactic motion, as in 8.4) and an apparent origin (distance and direction back along its drifted path, ejection age) that the object page shows as &quot;ejected about N Gyr ago from about D pc away&quot;. No donor row is claimed (the apparent origin is not a real system), so there is no fake link: the record says <code>origin: apparent</code>, with the sector's own system recorded as the donor of the mass only.</p>
+<p>Rules around it:</p>
+<ul>
+<li><strong>The dropdown shows only the words</strong> None, Few, Normal, Many; the per-star numbers are internal tuning values, never displayed (Boss, 5:39 PM EDT: the levels' numbers are accepted).</li>
+<li><strong>Cap by the Rogues level (a ceiling, so the top-up never adds too many).</strong> The selector (None, Few, Normal, Many) sets the rogue amount the top-up may reach, so the shortfall never makes more than the level allows: None = 0 rogues, Few 2.5, Normal 4.3, Many 10 terrestrial rogues per star [S: observed 0.5 to 1.4 per pc³, 2 to 10 per star, 5.8 default; Normal is on the low side as Boss asked, Few below the observed range]. The shortfall is the mass the sector is missing, the level is the ceiling. If Boss means the shortfall may exceed the level, say so in the answers.</li>
+<li><strong>Pass structure.</strong> The region run has a barrier: stages 0 to 2 for all units, then the top-up units. Each top-up unit is a block of sectors (same blocks as section 4), reads the final stored state, and writes its rogues; a sector's <code>chart_ledger</code> row gets <code>topped_up_at</code>. A later run does not top up a sector again (a sector keeps one top-up); rogues that arrive in it later from newly charted donors simply add to it. If a run is stopped before the barrier, resume restarts at stage 3 only after stages 0 to 2 are complete for the whole set.</li>
+<li><strong>Order dependence is stated, not hidden.</strong> A sector's top-up depends on what had arrived before the end of its region run. Once generated its content is fixed (stored, residents never move), so a regenerated sector from the same stored state gives the same result, but charting two regions in the other order gives a different top-up. The order test in section 5 compares the union of real-donor objects only; the top-up is checked as &quot;same state in, same objects out&quot;.</li>
+<li><strong>The tweak stays one registered stand-in</strong> (GEN.725, L3, burn-down line), now confined to stage 3 and to the placement; the physics of stage 1 is untouched. Boss wants to play with it: it is a single tuning value <code>ROGUE_TOPUP_PLACEMENT</code> plus the Rogues level table, both in <code>tuning.py</code>, read from the version key.</li>
+<li><strong>Where the selector lives:</strong> a row in <code>galaxy/dials.py</code> (flag, Generate field, help and the CLI table generated from it) and a sector option that overrides it for that sector, recorded on the sector like <code>density_multiplier_used</code> and <code>override_id</code> (DB.60) [S].</li>
+<li><strong>Remainder goes to asteroid fields (Boss, 5:41 PM EDT).</strong> If the cap leaves mass unmatched, the rest is made up as interstellar asteroid fields in the sector, in the same last pass, using the field machinery (interstellar-asteroid-fields.md: ledger, mass cut rule, <code>&lt;parent ID&gt;.&lt;rank hex&gt;</code> designation, field radius from age). The fields get the same treatment as the rogues: placed inside the sector, then a realistic origin and velocity as if from elsewhere (apparent origin, marked). Fields retire past 1 ly as in that design. These top-up fields are a distinct, lighter kind (Boss, 5:42 PM EDT): smaller bodies, lower density, spread over a larger volume, and not given a full body history like a field with a real parent. Origin is a stand-in 'unbound remnant' (no collision event claimed), registered in GEN.725 (accepted). Sizes, density and spread are tuning values for the field items to set.</li>
+<li><strong>Rogue mass mix:</strong> the existing mass bins (96% terrestrial, 4% gas giant) pick each rogue's mass; the rogue chain is the full planet chain (train 19).</li>
+</ul>
+<p>What changes in the earlier sections: 8.3's &quot;tiny fraction&quot; holds for stage 1 only; with stage 3 a sector's rogue count reaches its level whatever is charted nearby, so the sector info box can show the count and the real/apparent split.</p>
+<h2 id="9-rogue-landing-phases">9. Rogue-landing phases</h2>
+<p>Cut by Boss, 5:23 PM EDT. Nothing is built for them. To fill out the universe, grow the charted sphere by shells (<code>--grow-shells K</code>, cost about r squared: roughly 3,100 sectors for the first 4 pc shell around a 50 pc sphere [C]); charting a landed rogue's sector remains possible by hand, the same as any sector.</p>
+<h2 id="10-migration-testing-mode-no-shims-new-epoch-wiped-database-allowed">10. Migration (testing mode: no shims, new epoch, wiped database allowed)</h2>
+<ol>
+<li><strong>Epoch with no generation change</strong> (schema only): drop the cascade, add <code>chart_ledger</code>, backfill the ledger from <code>sector_stats.filled_at</code>. Alembic migration; update.sh applies it.</li>
+<li><strong>Rogue rows written position-owned</strong> with the GEN.1111 train (rogue train 19): <code>rogue_planets</code> gets the donor link and event index columns.</li>
+<li><strong>If partial sectors are chosen</strong> (section 6): a generation epoch changes the fill to keyed sub-tiles and the serial rule; every generated sector regenerates (wipe and regenerate, allowed). Sized as its own train after 8.1's physics build because it moves every ID.</li>
+<li>Nothing keeps the old shape: no dual-write, no compat view; the old <code>sector_id</code> cascade is removed in step 1.</li>
+</ol>
+<h2 id="11-proposed-items-working-titles-todo-assigns-numbers-and-owners">11. Proposed items (working titles; TODO assigns numbers and owners)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>chart_ledger</code> table, ledger written by sector fill units, charted state derived from it, backfilled from <code>sector_stats.filled_at</code></td>
+<td>none</td>
+<td>Core 5 (sectors and fill)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Remove <code>ON DELETE CASCADE</code> on position-owned objects (rogues first, audit every table with <code>sector_id</code>), regeneration deletes by birth tile only</td>
+<td>none</td>
+<td>Core 5 with the DB lane</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Rogue rows written by the donor into the sector where they land (full body, sector row created uncharted, donor link and event index, delete-and-rewrite on regeneration), fingerprint split into made here and arrived here</td>
+<td>GEN.1114, 1 and 2</td>
+<td>Planets 1 (GEN.1111 train)</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>Rogues dial (None, Few, Normal, Many): <code>dials.py</code> row, Generate form and CLI, sector override recorded like DB.60, level table, stage 3 top-up with the placement stand-in registered in GEN.725 (L3), resident mass subtracted from the sector budget in every generation phase</td>
+<td>3</td>
+<td>Planets 1 and the dials owner</td>
+</tr>
+<tr>
+<td>3c</td>
+<td><code>designations</code> table, redirect on old designations, history on the object page, collision bump writes history</td>
+<td>none</td>
+<td>Core 5 with the DB lane</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Region run command: sphere to whole sectors to units of a block, nearest bands first, <code>--grow-shells K</code></td>
+<td>1</td>
+<td>Core 5 and Core 1</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Order-independence test: chart A then B, B then A, compare region digests; and chart a region twice, no change</td>
+<td>1</td>
+<td>Core 1 (reproducible galaxies)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Optional cross-face separation by priority rule (section 5)</td>
+<td>4, a design decision</td>
+<td>Core 5, decide after the overlap-free work (GEN.1006) lands</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Only if Boss wants partial sectors: keyed sub-tile fill, serial rule change, sub-tile coverage bitmap</td>
+<td>1 to 5</td>
+<td>own train, moves every ID</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="12-questions-for-boss">12. Questions for Boss</h2>
+<ol>
+<li><strong>Tiles:</strong> keep whole sectors as the unit of randomness and round a region up to whole sectors (recommended, small), or build partial sectors with sub-tile coverage (exact sphere edge, moves every object ID)?</li>
+<li><strong>Rogue levels:</strong> accepted by Boss, 5:39 PM EDT; shown to users as words only.</li>
+<li><strong>Top-up ceiling:</strong> may the stage 3 shortfall be filled only up to the Rogues level (my reading), or by any amount needed to reach the sector's expected mass?</li>
+<li><strong>Bands:</strong> the galaxy's own (shell, band) arcs cut into units (reading A, recommended), or concentric radial bands around the start (reading B, used only as the run order)?</li>
+<li><strong>Rogue IDs after a move:</strong> keep the ID from the birth position (recommended) or let it follow the current position, with history?</li>
+</ol>
+<h2 id="13-not-verified">13. Not verified</h2>
+<ul>
+<li>Seconds per sector and per unit (PERF items own this; the unit size is a guess).</li>
+<li>Whether every table with <code>sector_id</code> can drop its cascade without breaking a test or an admin tool (the audit is item 2).</li>
+<li>Hill separation across faces is currently unenforced; I did not measure how many systems would be dropped or moved by the priority rule.</li>
+<li>The rogue yield (5.8 per star) and the 7 kpc median come from stand-ins and a simulation in the drift study; the phase growth factor is only as good as they are.</li>
+<li>Partial-sector serial design is outlined, not designed.</li>
+</ul>
+<h2 id="14-built">14. Built</h2>
+<p><strong>GEN.1128, first slice.</strong> <code>galaxy/region_run.py</code> is the plan of a region run, pure (no stream, no database): <code>plan(center_pc, radius_pc, edge_pc, block_sectors, grow_shells, skip)</code> takes the sectors a sphere touches (<code>Region</code>, reach = radius + <code>grow_shells</code> edges + the 0.75 edge allowance, so a sphere that touches a sector holds it) and cuts each (shell, band) arc into units of at most 27 consecutive wedges, nearest first; <code>skip</code> takes charted sectors out and splits the arcs they sat in, which is how a stopped run resumes and how an overlapping region costs only its new sectors; <code>next_units</code> is the stage barrier of 8.5 (every generate unit first, then the top-up units when a run has a stage 3); <code>cost</code> reports sectors, units, shells and the volume estimate (8,181 sectors for 50 pc at a 4 pc edge, the plan holds 10,395 with the allowance, in 530 units; one 4 pc shell around 50 pc adds 2,528). Tests: <code>tests/test_region_run.py</code>. The command that runs the units, and the chart ledger write (GEN.1127), follow.</p>
+<p><strong>GEN.1128, second slice.</strong> <code>planetgen sectors --around X Y Z --radius-pc R [--grow-shells K] [--unit-sectors N]</code> is the command: a mode of the sector stage (<code>run_galaxy._region_plan</code>, <code>_expand_region</code>), one unit of work per region unit, nearest first, units re-cut at each stage open less the sectors saved (a rerun resumes). <code>tests/test_region_mode.py</code>. The chart ledger write waits for GEN.1127; the stage 3 call rides GEN.1120.</p>
+<p><strong>GEN.1120, stage 3 and the Rogues level (Planets 1, 11-04, build only).</strong> The lever <code>--rogues none, few, normal, many</code> (<code>galaxy/dials.py</code>, Auto normal) is kept with the plan's pins (<code>galaxy_shape_pins</code>, the choice's place in the row's list, so no schema) and may be given again for one run of <code>sectors --around</code>. At the end of a region run <code>run_galaxy._topup_region</code> calls <code>generation/topup_stage.topup_region</code> over the region's charted sectors. For each sector that has no top-up yet (<code>chart_ledger.topped_up_at</code>) it takes the expected mass (<code>profile.expected_systems</code> times the mean system mass of the cell's populations), less the mass the sector holds now (<code>sector_mass.sector_mass_kg</code>, which counts every system, phenomenon and arrived rogue stored in it), as the shortfall, plans the rogues (<code>physics/rogue_topup.plan</code>), builds each through the planet chain against a starless host made from one of the sector's own stars with the planned mass, age and apparent origin (<code>generation/rogue_topup_build</code>, saved with no donor and a note that says the origin is apparent), and turns what the level leaves over into light asteroid fields (<code>physics/topup_field.plan</code>, <code>generation/field_topup_build</code>, saved with their mass; the field keeps its rms speed, age, shape, largest piece and origin sentence in the <code>asteroid_fields</code> columns of GEN.1103). The donor's mass is taken from at most <code>MAX_HOSTS</code> (8) of the sector's systems (a stand-in: only the star's mass, snow line and age matter).</p>
+<p><em>Stage 0 as built (GEN.1124).</em> The big residents already come off the draw in the fill (<code>FillContext</code>: the pre-placed bright stars down to the cell's level and the unbuilt scattered phenomena), and the held mass in stage 3 counts everything stored in the sector, including rogues and fields that arrived. The rogues and asteroid fields filed in a sector but born in another (<code>store.arrived_residents</code>: a rogue a neighbour's system threw into it) now also come off the system draw's mean, as a share of the sector's calculated mass (<code>resident_mass.resident_share</code>, read through <code>FillContext.resident_share</code> in <code>run_sector</code>); a sector holding none draws exactly as before, and a capped cell takes nothing off. The effect is tiny by physics (a rogue or field resident weighs about 3e-6 of a solar mass-system per Earth mass, so even the Many level, 10 a star, is under 1e-4 of a sector's stellar mass), so it is kept for the sake of the budget being right, not for the output. Open for Boss and TODO: the per-sector level override, which needs a <code>sectors</code> column (not built).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

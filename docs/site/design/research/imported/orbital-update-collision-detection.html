@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orbital update collision detection - planetGen docs</title>
+<meta name="description" content="Orbital update collision detection">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/orbital-update-collision-detection.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/orbital-update-collision-detection.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<p class="meta">docs/design/research/imported/orbital-update-collision-detection.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:14px"><a href="#mathematical-foundation-of-continuous-collision-detection">Mathematical Foundation of Continuous Collision Detection</a></li><li style="margin-left:14px"><a href="#algorithmic-implementation">Algorithmic Implementation</a></li><li style="margin-left:14px"><a href="#pipeline-integration--momentum-conservation">Pipeline Integration &amp; Momentum Conservation</a></li><li style="margin-left:14px"><a href="#refrences">Refrences</a></li></ul></details><blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../orbits/collisions-and-mergers.html">collisions-and-mergers</a>, <a href="../../orbits/course-avoidance.html">course-avoidance</a>, <a href="../../orbits/orbital-updates.html">orbital-updates</a>.</p>
+</blockquote>
+<p>To prevent the &quot;bullet through paper&quot; tunneling problem during large update steps (<span class="math">\(\Delta t\)</span>), you must replace instantaneous distance checks with <strong>Continuous Collision Detection (CCD)</strong> based on <strong>Swept-Sphere Capsule Intersections</strong> and <strong>Adaptive Time-to-Impact Bisection</strong> [R1483, R1936].</p>
+<h3 id="mathematical-foundation-of-continuous-collision-detection">Mathematical Foundation of Continuous Collision Detection</h3>
+<p>Consider two bodies moving over the integration interval <span class="math">\(\tau \in [0, \Delta t]\)</span> with initial positions <span class="math">\(\vec{p}_1(0), \vec{p}_2(0)\)</span> and average velocities <span class="math">\(\vec{v}_1, \vec{v}_2\)</span> [R1936].</p>
+<ol>
+<li>
+<p><strong>Relative Trajectory Vector:</strong>
+Define the relative displacement and velocity vectors:
+<span class="math display">\[\Delta \vec{p}_0 = \vec{p}_1(0) - \vec{p}_2(0), \quad \Delta \vec{v} = \vec{v}_1 - \vec{v}_2\]</span>
+The relative separation vector as a function of time <span class="math">\(\tau\)</span> is:
+<span class="math display">\[\vec{r}(\tau) = \Delta \vec{p}_0 + \Delta \vec{v} \cdot \tau\]</span></p>
+</li>
+<li>
+<p><strong>Squared Separation Function:</strong>
+<span class="math display">\[S(\tau) = \Vert{}\vec{r}(\tau)\Vert{}^2 = \Vert{}\Delta \vec{v}\Vert{}^2 \tau^2 + 2 (\Delta \vec{p}_0 \cdot \Delta \vec{v}) \tau + \Vert{}\Delta \vec{p}_0\Vert{}^2\]</span>
+Let <span class="math">\(A = \Vert{}\Delta \vec{v}\Vert{}^2\)</span>, <span class="math">\(B = 2(\Delta \vec{p}_0 \cdot \Delta \vec{v})\)</span>, and <span class="math">\(C = \Vert{}\Delta \vec{p}_0\Vert{}^2\)</span>.</p>
+</li>
+<li>
+<p><strong>Time of Closest Approach (<span class="math">\(\tau_{\text{min}}\)</span>):</strong>
+Setting the first derivative <span class="math">\(\frac{d S}{d\tau} = 2 A \tau + B = 0\)</span> yields the time of closest approach:
+<span class="math display">\[\tau_{\text{min}} = -\frac{\Delta \vec{p}_0 \cdot \Delta \vec{v}}{\Vert{}\Delta \vec{v}\Vert{}^2} = -\frac{B}{2A}\]</span></p>
+</li>
+</ol>
+<ul>
+<li>
+<p>If <span class="math">\(\tau_{\text{min}} &lt; 0\)</span>, the objects are diverging from the start of the tick.</p>
+</li>
+<li>
+<p>If <span class="math">\(\tau_{\text{min}} &gt; \Delta t\)</span>, closest approach does not occur until after the current frame.</p>
+</li>
+<li>
+<p>The constrained minimum separation time within this frame is:
+<span class="math display">\[\tau^* = \text{clamp}(\tau_{\text{min}}, 0, \Delta t)\]</span></p>
+</li>
+</ul>
+<ol start="4">
+<li><strong>Collision Threshold Evaluation:</strong>
+Given physical radii <span class="math">\(R_1\)</span> and <span class="math">\(R_2\)</span>, contact occurs if the minimum separation distance is less than or equal to the collision cross-section:
+<span class="math display">\[S(\tau^*) \le (R_1 + R_2)^2\]</span>
+If this inequality holds and <span class="math">\(B^2 - 4A(C - (R_1 + R_2)^2) \ge 0\)</span>, the exact moment of physical surface contact (<span class="math">\(\tau_{\text{impact}}\)</span>) is the smallest positive real root [R1483, R2065]:
+<span class="math display">\[\tau_{\text{impact}} = \frac{-B - \sqrt{B^2 - 4A(C - (R_1 + R_2)^2)}}{2A}\]</span></li>
+</ol>
+<h3 id="algorithmic-implementation">Algorithmic Implementation</h3>
+<p>Below is the concrete algorithm to insert directly into your step-by-step update pipeline:</p>
+<pre><code class="language-python">Python
+    import math
+    def check_continuous_collision(
+        p1: tuple, v1: tuple, r1: float,    p2: tuple, v2: tuple, r2: float,    delta_t: float
+    ) -&gt; tuple[bool, float]:
+        &quot;&quot;&quot;    Evaluates whether two moving spherical bodies intersect during time interval delta_t.    Returns (collided: bool, time_of_impact: float).    &quot;&quot;&quot;
+        # Relative initial displacement and velocity
+        dx = p1[0] - p2[0]
+        dy = p1[1] - p2[1]
+        dz = p1[2] - p2[2]
+
+        dvx = v1[0] - v2[0]
+        dvy = v1[1] - v2[1]
+        dvz = v1[2] - v2[2]
+
+        # Quadratic coefficients: A*tau^2 + B*tau + C = (R1 + R2)^2
+        A = dvx * dvx + dvy * dvy + dvz * dvz
+        B = 2.0 * (dx * dvx + dy * dvy + dz * dvz)
+        C = dx * dx + dy * dy + dz * dz
+
+        combined_radius = r1 + r2
+        radius_sq = combined_radius * combined_radius
+
+        # Already intersecting at start of frame
+        if C &lt;= radius_sq:
+            return True, 0.0
+
+        # Relative velocity is zero (parallel trajectories)
+        if A &lt;= 1e-18:
+            return False, delta_t
+
+        # Discriminant for intersection with the combined bounding sphere
+        discriminant = B * B - 4.0 * A * (C - radius_sq)
+
+        if discriminant &lt; 0.0:
+            # Trajectories do not intersect the collision envelope
+            return False, delta_t
+
+        # Smallest positive root represents entry point into collision sphere
+        sqrt_disc = math.sqrt(discriminant)
+        t_entry = (-B - sqrt_disc) / (2.0 * A)
+
+        # Check if contact occurs within the discrete tick [0, delta_t]
+        if 0.0 &lt;= t_entry &lt;= delta_t:
+            return True, t_entry
+
+        return False, delta_t
+</code></pre>
+<h3 id="pipeline-integration--momentum-conservation">Pipeline Integration &amp; Momentum Conservation</h3>
+<p>To apply this without adding an <span class="math">\(O(N^2)\)</span> global check across all bodies, test for collisions <strong>only against candidate gravitational influencers</strong> already identified in your sector stencil query [R1936]:</p>
+<pre><code class="language-python">Python
+    def integrate_and_resolve_collisions(target, candidate_influencers, delta_t, db):
+        earliest_collision = None
+        first_impact_time = delta_t
+        partner_entity = None
+        # 1. Evaluate Continuous Collision Detection across Top Influencers
+        for body in candidate_influencers:
+            collided, t_hit = check_continuous_collision(
+                target.position, target.velocity, target.radius,
+                body.position, body.velocity, body.radius,
+                delta_t
+            )
+            if collided and t_hit &lt; first_impact_time:
+                first_impact_time = t_hit
+                earliest_collision = body
+
+        # 2. Execution Branch
+        if earliest_collision is not None:
+            # Advance both bodies to the exact moment of collision tau_impact
+            p_target_contact = target.position + target.velocity * first_impact_time
+            p_body_contact = earliest_collision.position + earliest_collision.velocity * first_impact_time
+
+            # Conservation of Momentum: Inelastic Merger Coalescence
+            total_mass = target.mass + earliest_collision.mass
+            v_merged = (target.velocity * target.mass + earliest_collision.velocity * earliest_collision.mass) / total_mass
+            new_radius = (target.radius**3 + earliest_collision.radius**3) ** (1.0 / 3.0)
+
+            # Update primary entity and remove consumed entity
+            db.update_entity_state(
+                entity_id=target.id,
+                position=p_target_contact,
+                velocity=v_merged,
+                mass=total_mass,
+                radius=new_radius
+            )
+            db.delete_entity(earliest_collision.id)
+
+            # Trigger point-mass and sector metadata rebuilds
+            db.mark_sector_dirty(target.sector_id)
+            return
+
+        # 3. Standard Non-Colliding Verlet Integration Path
+        # (Execute normal half-step velocity and full-step position updates)
+        target.update_verlet_trajectory(delta_t)
+
+This ensures that regardless of whether time steps are one day or ten years, objects moving faster than their own radii will cleanly trigger a collision at the exact time fraction $\tau_{\text{impact}} \in [0, \Delta t]$ rather than tunneling past each other undetected [R1483, R1936].
+</code></pre>
+<h3 id="refrences">Refrences</h3>
+<ul>
+<li>[R1936]</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

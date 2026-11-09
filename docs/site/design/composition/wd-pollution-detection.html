@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The white-dwarf pollution detection model (GEN.508) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-23 by lane M.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/wd-pollution-detection.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/wd-pollution-detection.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-white-dwarf-pollution-detection-model-gen508">The white-dwarf pollution detection model (GEN.508)</h1><p class="meta">docs/design/composition/wd-pollution-detection.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-is-measured-and-what-is-reported">1. What is measured, and what is reported</a></li><li style="margin-left:0px"><a href="#2-the-model">2. The model</a></li><li style="margin-left:0px"><a href="#3-what-the-model-shows-computed-test_wd_pollutionpy">3. What the model shows (COMPUTED, test_wd_pollution.py)</a></li><li style="margin-left:0px"><a href="#4-what-it-does-not-do">4. What it does not do</a></li><li style="margin-left:0px"><a href="#5-use">5. Use</a></li></ul></details>
+<p>Status: built 2026-10-23 by lane M. Code <code>src/planetgen/physics/wd_pollution.py</code>, data <code>src/planetgen/physics/data/wd_pollution_sample.json</code>, tests <code>src/tests/test_wd_pollution.py</code>. It is the selection model <code>wd-pollution-detection</code> of the tuning harness (GEN.503, <code>docs/design/composition/tunable-gaps.md</code> section 4) and serves the redox builder B5 (GEN.513) for rows a3 and a4.</p>
+<h2 id="1-what-is-measured-and-what-is-reported">1. What is measured, and what is reported</h2>
+<p>A polluted white dwarf with oxygen, magnesium, silicon and iron measured gives the oxygen fugacity of the body that fell on it: dIW = 2 log10(x_FeO / x_Fe,metal) with x_Fe,metal = 0.85 ([R1152], equations 3 and 4; [R1152]). The abundances have errors, and the papers propagate them by Monte Carlo draws; a draw with a negative FeO mole fraction is unphysical. The rule they report by ([R1152] section 2.3, applied again in [R1153]):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Negative draws</th>
+<th>Reported</th>
+<th>Stars</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>under 16.5 percent</td>
+<td>median and both bounds (<code>both</code>)</td>
+<td>16</td>
+</tr>
+<tr>
+<td>16.5 to 50 percent</td>
+<td>median and an upper bound (<code>upper</code>)</td>
+<td>6</td>
+</tr>
+<tr>
+<td>50 percent or more</td>
+<td>an upper limit only (<code>limit</code>)</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+<p>So a body with little FeO next to the abundance error is reported with a large error, or not at all. The 22 medians (mean -1.248, median -1.256, sample sd 0.447, recomputed from the two tables) are a sample cut by this rule and scattered by the measurement, and the tuned width of rows a3 and a4 must be compared with that sample and not with the bodies.</p>
+<p>The earlier worker report (<code>tunable-gaps-sources/group3-redox-wd-radio.md</code>) counted 7 of 24 without a lower bound; the two tables give 8 (six with a median and an upper bound, two upper limits). The 24 rows, with the effective temperature of each star, are in the data file; Table 1 of [R1152] holds 16 stars and Table 4 of [R1153] holds 8 (temperatures from its Table 2).</p>
+<h2 id="2-the-model">2. The model</h2>
+<ol>
+<li>The abundance error on x_FeO is absolute: the measured fraction is <code>x_meas = x_true + sigma z0</code>, <code>z0</code> a standard normal, and <code>sigma</code> is log-normal across stars. A star with little FeO is therefore the one that is flagged.</li>
+<li>The two parameters of <code>ln sigma</code> are fitted by maximum likelihood to the sample. The 16 stars with both bounds give <code>sigma</code> as half the spread of x_FeO between the 1-sigma bounds. A star with a median and an upper bound has at least 16.5 percent negative draws, so its <code>sigma</code> is at least <code>x / 0.974</code> (the normal quantile of 16.5 percent). A star with a limit only has no median to give a bound: it takes the largest bound of the others, a convention that says only that its error is large. Result: ln sigma has mean -2.18 and standard deviation 1.01 (a typical error of 0.11 in x_FeO, a factor 2.7 per sigma). Fitted to the 16 stars with both bounds alone the parameters are -2.75 and 0.52: that fit leaves out the stars whose error was large, so it is the optimistic bracket (<code>BOUNDED_ERROR_MODEL</code>).</li>
+<li>The reported value is <code>2 log10(x_meas / 0.85)</code> with the class the rule gives from <code>x_meas / sigma</code>. A <code>limit</code> has no value, and the selection model <code>reported_median</code> keeps <code>both</code> and <code>upper</code> stars.</li>
+<li><code>expected_sample(mean, sd)</code> gives the sample a population N(mean, sd) shows, by quadrature over the body, the error of the star and the realisation of the abundances: no random numbers and no seed.</li>
+</ol>
+<p>Validity: effective temperature 10,120 to 21,200 K; DA, DB and DZ atmospheres; bodies whose oxygen is measured.</p>
+<h2 id="3-what-the-model-shows-computed-test_wd_pollutionpy">3. What the model shows (COMPUTED, <code>test_wd_pollution.py</code>)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population N(-1.25, 0.2)</th>
+<th>Both</th>
+<th>Upper</th>
+<th>Limit</th>
+<th>Mean of reported</th>
+<th>Sd of reported</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Published sample (24 stars)</td>
+<td>0.667</td>
+<td>0.250</td>
+<td>0.083</td>
+<td>-1.248</td>
+<td>0.447</td>
+</tr>
+<tr>
+<td>Whole-sample error model</td>
+<td>0.719</td>
+<td>0.177</td>
+<td>0.104</td>
+<td>-1.230</td>
+<td>0.654</td>
+</tr>
+<tr>
+<td>Bounded-stars error model</td>
+<td>0.916</td>
+<td>0.066</td>
+<td>0.018</td>
+<td>-1.302</td>
+<td>0.471</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The whole-sample model recovers the published classes inside their 2-sigma Wilson intervals and the mean inside 2 standard errors; that is the Done test. The bounded-stars model cannot: it gives 1.8 percent limits where 2 of 24 were seen and 7 percent upper bounds where 6 of 24 were.</li>
+<li>The spread of the reported medians is explained by the measurement. At zero intrinsic width the two models give 0.419 (bounded) and 0.625 (whole sample) against the published 0.447 (standard error about 0.07). The published value lies between the two, so the intrinsic width of the bodies is <strong>not identified by the sample</strong>: the bounded model needs about 0.15, the whole-sample model a width of zero (it overshoots). A width of 0.45, the recipe value of rows a3 and a4, is too wide in both. The crude intrinsic estimate of the worker report (0.22, from 13 well-constrained stars) is the same order.</li>
+<li>The centre: a population whose reported mean is -1.248 has a true centre of -1.27 (whole-sample model) to -1.20 (bounded model) at a width of 0.15, so the centre -1.25 survives the selection to within the standard error 0.10.</li>
+</ul>
+<h2 id="4-what-it-does-not-do">4. What it does not do</h2>
+<ul>
+<li>The shipped rows a3 and a4 were retuned with this model (GEN.513, <code>docs/design/composition/wd-redox-tuning.md</code>): the width 0.45 became 0.22 and the four targets now name this model. The conversion between the core-formation dIW of the white dwarfs and the surface magma-ocean scale of row a1 is not tested.</li>
+<li>The settling of elements out of the atmosphere ([R1152] section 3.2 and Figs. 8 to 11) is not modelled: a DB observed long after accretion has waned can show a more reduced body than fell on it (the papers' time-dependent model, diffusion times, is the reference). The model's case is a body observed in its build-up or steady-state phase; a tuned width is an upper bound where the sample may hold stars observed later.</li>
+<li>The detection of pollution itself (which white dwarfs are polluted, 27 to about 50 percent, [R2415]) gates &quot;rocky debris exists&quot; and is not part of this selection: every simulated body is one that fell.</li>
+<li>The convention for the two limit stars' error and the Gaussian form of the abundance error are model choices; the fit changes if either is dropped (the two brackets above).</li>
+</ul>
+<h2 id="5-use">5. Use</h2>
+<pre><code>sampler = wd_pollution.observed_sampler(lambda i: draw.gauss(mu, sd))
+items = tuning_harness.simulate(target, sampler, 2000)        # target: selection_model &quot;wd-pollution-detection&quot;, field &quot;diw&quot;
+tuning_harness.compare(target, items)
+</code></pre>
+<p>The harness imports the module the first time a target names the model (<code>tuning_harness.selection_model</code>).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1072,3 +1072,99 @@ def admin_stats():
         "admin_stats.html", flashed=True, title="Server & Database Stats", section="admin_stats",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Stats")], **context,
     )
+
+
+# ---------------------------------------------------------------------
+# /admin/generated (ADM.151)
+# ---------------------------------------------------------------------
+
+GENERATED_PAGE_SIZE = 50
+"""int: Rows to a page of the Generated so far list."""
+
+GENERATED_TABS = (("sectors", "Sectors"), ("systems", "Systems"), ("planets", "Planets"), ("moons", "Moons"))
+"""tuple: The kinds the page lists, `(kind, label)`, in tab order."""
+
+GENERATED_DEFAULT_LOOKBACK_SECONDS = 24 * 3600
+"""int: How far back the list begins when no galaxy run is on record and the address names no time."""
+
+
+def _generated_since(args):
+    """The Unix time the list begins at: `?since=`, else the start of the latest galaxy run, else a day ago."""
+    try:
+        value = float(args.get("since") or "")
+        if value >= 0 and value < float("inf"):
+            return int(value)
+    except ValueError:
+        pass
+    from planetgen.web import generate_page, jobs
+
+    try:
+        recent = jobs.list_jobs(limit=20)
+    except OSError:
+        recent = []
+    for job in recent:
+        if job.get("kind") in generate_page.MAKES_SYSTEMS_KINDS and job.get("started_at"):
+            return int(job["started_at"])
+    return int(time.time()) - GENERATED_DEFAULT_LOOKBACK_SECONDS
+
+
+def _generated_row(item):
+    """One row of the Generated so far table: the cells (`text`, and `href` for a link) for `item`."""
+    from planetgen.web.system_pages import object_url
+
+    row = [{"text": item["name"], "href": object_url(item["kind"], item["id"])}]
+    if item["kind"] == "sector":
+        return row
+    if item["kind"] == "system":
+        row.append({"text": item["sector_name"], "href": page_url("sector", sector_id=item["sector_id"])}
+                   if item.get("sector_id") else {"text": "Standalone"})
+        return row
+    row.append({"text": item["system_name"], "href": page_url("system", system_id=item["star_system_id"])})
+    if item["kind"] == "moon":
+        row.append({"text": item.get("planet_name") or "–"})
+    row.append({"text": item.get("planet_class") or "–"})
+    row.append({"text": f"{format_number(round(item['radius_km']))} km"})
+    return row
+
+
+GENERATED_HEADS = {
+    "sectors": ("Sector",),
+    "systems": ("System", "Sector"),
+    "planets": ("Planet", "System", "Class", "Radius"),
+    "moons": ("Moon", "System", "Planet", "Class", "Radius"),
+}
+"""dict: The column headings of each kind's table."""
+
+
+@bp.route("/admin/generated")
+def admin_generated():
+    """
+    Generated so far (ADM.151): the sectors, systems, planets and moons a generation run has made, newest first, from a start time
+    (`?since=`, Unix seconds; the start of the latest galaxy run when absent), one kind to a tab (`?kind=`) and 50 to a page (`?page=`).
+    The job panel links here while a run goes, because the Galaxy Map is closed then. The list reads only the rows made since, by the key
+    (`db.query.generated_since`), so it is quick and always current.
+    """
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    kind = request.args.get("kind") if request.args.get("kind") in dict(GENERATED_TABS) else "systems"
+    since = _generated_since(request.args)
+    try:
+        page = max(1, int(request.args.get("page") or 1))
+    except ValueError:
+        page = 1
+    found = apiclient.get_generated(db_name(), kind, since, limit=GENERATED_PAGE_SIZE, offset=(page - 1) * GENERATED_PAGE_SIZE)
+    last = max(1, -(-found["total"] // GENERATED_PAGE_SIZE))
+
+    def address(**changes):
+        return page_url("admin_generated", **{"kind": kind, "since": since, **changes})
+
+    return _render(
+        "admin_generated.html", title="Generated so far", section="admin_generated",
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Generated so far")],
+        tabs=[{"kind": name, "label": label, "url": address(kind=name, page=None), "current": name == kind} for name, label in GENERATED_TABS],
+        heads=GENERATED_HEADS[kind], rows=[_generated_row(item) for item in found["items"]], total=found["total"], kind=kind,
+        since=since, page=page, last=last,
+        previous_url=address(page=page - 1) if page > 1 else None, next_url=address(page=page + 1) if page < last else None,
+        everything_url=address(since=0, page=None),
+    )

@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Running CI on your own computers (optional) - planetGen docs</title>
+<meta name="description" content="The CI workflow runs on a schedule (main, and every dev- branch) and when started by hand (Actions &gt; CI &gt; Run workflow); never on a push or a pull request, and never on a claude/ or claude- branch.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/ci-runners.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/ci-runners.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="running-ci-on-your-own-computers-optional">Running CI on your own computers (optional)</h1><p class="meta">docs/reference/ci-runners.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#what-runs-where">What runs where</a></li><li style="margin-left:0px"><a href="#security">Security</a></li><li style="margin-left:0px"><a href="#linux-runner">Linux runner</a></li><li style="margin-left:0px"><a href="#macos">macOS</a></li><li style="margin-left:0px"><a href="#the-installer-jobs">The installer jobs</a></li><li style="margin-left:0px"><a href="#several-runners-and-adding-a-machine">Several runners, and adding a machine</a></li><li style="margin-left:0px"><a href="#upkeep">Upkeep</a></li><li style="margin-left:0px"><a href="#troubleshooting">Troubleshooting</a></li></ul></details>
+<p>The CI workflow runs on a schedule (main, and every dev-* branch) and when
+started by hand (Actions &gt; CI &gt; Run workflow); never on a push or a pull
+request, and never on a claude/* or claude-* branch. When it runs, it uses GitHub's machines by default (<code>ubuntu-latest</code>,
+<code>macos-latest</code>), and nothing in this guide is needed for
+it to work. Self-hosted runners are <strong>off by default</strong>. This guide is for
+turning them back on later: it covers what each machine needs, how to
+register it, and the security settings to apply first.</p>
+<h2 id="what-runs-where">What runs where</h2>
+<p>Self-hosted runners are used only when the repository variable
+<code>SELF_HOSTED</code> is set to <code>true</code> (Settings &gt; Secrets and variables &gt; Actions</p>
+<blockquote>
+<p>Variables). With it unset, or set to anything else, every job runs on
+GitHub's machines and the <code>RUNNER_*</code> variables below are ignored, so a
+leftover variable can't leave jobs queued for a computer that no longer
+exists.</p>
+</blockquote>
+<p>With <code>SELF_HOSTED</code> set to <code>true</code>, each job picks its runner from the
+variable in the table. The value is JSON: either a list of labels, such as
+<code>[&quot;self-hosted&quot;, &quot;Linux&quot;]</code>, or a GitHub-hosted runner name in quotes, such
+as <code>&quot;ubuntu-latest&quot;</code>. If the variable is unset, the job uses the
+self-hosted default in the table.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Jobs</th>
+<th>Default when <code>SELF_HOSTED</code> is <code>true</code></th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RUNNER_LINUX</code></td>
+<td>tests (four legs: MySQL 8.0 and MySQL 8.4 with Redis, plus the 2- and 4-worker generation legs), browser checks, dependency audit, deep fuzz, release note, version stamp</td>
+<td><code>[&quot;self-hosted&quot;, &quot;Linux&quot;]</code></td>
+<td>Linux with Docker</td>
+</tr>
+<tr>
+<td><code>RUNNER_LINUX_INSTALLERS</code></td>
+<td><code>install.sh</code> and <code>update.sh</code> on Linux against a live database</td>
+<td><code>&quot;ubuntu-latest&quot;</code></td>
+<td>Linux with Docker; see <a href="#the-installer-jobs">The installer jobs</a></td>
+</tr>
+<tr>
+<td><code>RUNNER_MACOS_INSTALLERS</code></td>
+<td><code>install.sh</code> on macOS</td>
+<td><code>&quot;macos-latest&quot;</code></td>
+<td>see <a href="#macos">macOS</a></td>
+</tr>
+</tbody>
+</table></div>
+<p>A job runs on any online runner that has <strong>all</strong> of its labels. You can
+have several Linux runners: jobs spread across them, and a runner takes
+one job at a time. To go back to GitHub's machines, delete <code>SELF_HOSTED</code>
+or set it to <code>false</code>.</p>
+<p>A pull request from a fork always runs on GitHub's machines, whatever the
+variables say (see <a href="#security">Security</a>).</p>
+<h2 id="security">Security</h2>
+<p>This repository is <strong>public</strong>. Anyone can fork it and open a pull request,
+and a workflow runs whatever code that pull request contains. On a
+self-hosted runner, that code would run on your computer. Set these up
+before you register a runner:</p>
+<ol>
+<li><strong>Fork pull requests.</strong> The workflows already send pull requests from
+forks to GitHub-hosted runners. As a second guard, go to Settings &gt;
+Actions &gt; General &gt; &quot;Approval for running fork pull request workflows
+from contributors&quot; and choose <strong>Require approval for all external
+contributors</strong>. Nothing from a fork then runs until you approve it.</li>
+<li><strong>Use a dedicated account.</strong> Run the runner as its own user (for
+example <code>gha</code>), never your everyday login or an administrator. On
+Linux, membership of the <code>docker</code> group gives that user root-equivalent
+access to the machine, so a spare machine or a VM is better than your
+desktop.</li>
+<li><strong>Keep secrets off the machine.</strong> Don't leave SSH keys, cloud
+credentials, browser profiles or a <code>config.json</code> with real database
+passwords in that user's home directory. The jobs need no secrets.</li>
+<li><strong>Leave workflow permissions as they are</strong> (Settings &gt; Actions &gt;
+General &gt; Workflow permissions). Only <code>stamp-version.yml</code> writes to the
+repository (it commits the release), and it asks for that permission
+itself.</li>
+<li><strong>Check which repositories a runner serves.</strong> A runner added under this
+repository's Settings &gt; Actions &gt; Runners only takes jobs from this
+repository.</li>
+</ol>
+<h2 id="linux-runner">Linux runner</h2>
+<p>Tested on Ubuntu 22.04 and 24.04 and Debian 12. Any 64-bit distribution
+with Docker works, but see &quot;setup-python can't find 3.12&quot; under
+<a href="#troubleshooting">Troubleshooting</a> for distributions other than
+Ubuntu.</p>
+<ol>
+<li>
+<p><strong>Create the runner user and install the basics</strong> (as an administrator):</p>
+<pre><code class="language-sh">sudo adduser --disabled-password --gecos &quot;&quot; gha
+sudo apt-get update
+sudo apt-get install -y git curl tar unzip docker.io python3-venv
+sudo usermod -aG docker gha
+</code></pre>
+</li>
+<li>
+<p><strong>Register the runner.</strong> In GitHub, go to Settings &gt; Actions &gt; Runners</p>
+<blockquote>
+<p>New self-hosted runner &gt; Linux, and run the commands it shows as
+<code>gha</code> (<code>sudo -iu gha</code>). Use a folder of its own, such as
+<code>~/actions-runner</code>. When <code>./config.sh</code> asks:</p>
+</blockquote>
+<ul>
+<li>name: something you'll recognise, such as <code>linux-box-1</code>;</li>
+<li>labels: press Enter. The default labels are <code>self-hosted</code>, <code>Linux</code>
+and <code>X64</code> (or <code>ARM64</code>), which is what the workflows ask for;</li>
+<li>work folder: press Enter (<code>_work</code>).</li>
+</ul>
+<p>The token on that page is only valid for an hour. If it expires, reload
+the page for a new one.</p>
+</li>
+<li>
+<p><strong>Install it as a service</strong>, so it starts at boot (as an administrator,
+from the runner folder):</p>
+<pre><code class="language-sh">cd /home/gha/actions-runner
+sudo ./svc.sh install gha
+sudo ./svc.sh start
+</code></pre>
+<p>It should now show as <strong>Idle</strong> under Settings &gt; Actions &gt; Runners.</p>
+</li>
+<li>
+<p><strong>Chromium's system libraries</strong> for the browser checks (once, as an
+administrator). The job installs the browser itself, but it needs root
+for the system libraries and skips that step when <code>sudo</code> asks for a
+password:</p>
+<pre><code class="language-sh">python3 -m venv /tmp/pw &amp;&amp; /tmp/pw/bin/pip install playwright
+sudo /tmp/pw/bin/python -m playwright install-deps chromium
+rm -rf /tmp/pw
+</code></pre>
+</li>
+</ol>
+<p>The jobs set up everything else themselves:</p>
+<ul>
+<li><strong>Python</strong>: <code>actions/setup-python</code> downloads 3.12 and 3.13 into the
+runner's tool cache (<code>_work/_tool</code>) the first time they are needed.</li>
+<li><strong>The database and Redis</strong>: each test job starts its own MySQL
+container and a <code>redis:7</code> container (the work queue and rate
+limits need it) on free ports, so jobs don't collide. A MySQL server
+you already run on port 3306 is fine too.</li>
+<li><strong>Packages</strong>: each job installs into its own virtualenv, which is
+deleted when the job ends.</li>
+<li><strong>NLTK's <code>words</code> corpus</strong>: downloaded once to <code>~/nltk_data</code>.</li>
+</ul>
+<h2 id="macos">macOS</h2>
+<p>No job needs a Mac by default. The only macOS job, the installer check,
+stays on GitHub's machines (see the next section). A Mac runner is set up
+the same way as Linux, using the macOS download on the New self-hosted
+runner page and <code>./svc.sh install</code> without a user name. It has no Docker
+service containers, so it can't take the Linux test jobs.</p>
+<h2 id="the-installer-jobs">The installer jobs</h2>
+<p><code>linux-update</code> and <code>macos-installers</code> run
+<code>install.sh</code> and <code>update.sh</code> with sudo (<code>linux-update</code> against a MySQL service container, through a
+fresh install, an update with nothing new, a migration, a database newer
+than the code, an unreachable server and a failed migration). They copy
+planetGen into system folders, install packages, register launchd
+daemons, and start a web server on port 8000. On GitHub's machines all of that is thrown away
+after the job. On your own computer it stays, and the next run trips over
+it. Keep their variables unset unless you have a machine you're happy to
+wipe, such as a VM you restore to a snapshot after each run.</p>
+<h2 id="several-runners-and-adding-a-machine">Several runners, and adding a machine</h2>
+<ul>
+<li><strong>A new machine</strong> (your third one, say): follow the section for its OS.
+It joins the pool as soon as it shows Idle; nothing in the workflows
+changes.</li>
+<li><strong>Several runners on one machine</strong>: register each in its own folder
+(<code>~/actions-runner-1</code>, <code>~/actions-runner-2</code>) with its own name, and
+install each as its own service. Jobs on one machine don't collide: each
+database container gets its own port, and each job has its own
+virtualenv and work folder. The test job uses every core (<code>pytest -n auto</code>), so two test jobs on one machine each run at about half speed.</li>
+<li><strong>Different labels</strong>: if a runner has extra or different labels, set
+<code>RUNNER_LINUX</code> to the list of labels to require,
+for example <code>[&quot;self-hosted&quot;, &quot;Linux&quot;, &quot;X64&quot;, &quot;fast&quot;]</code>.</li>
+</ul>
+<h2 id="upkeep">Upkeep</h2>
+<ul>
+<li>The runner updates itself.</li>
+<li><code>actions/checkout</code> cleans the work folder at the start of every job.
+Docker images and stopped containers do pile up, so run <code>docker system prune -af</code> now and then (or weekly from cron).</li>
+<li>Runners stay registered (persistent). GitHub also supports <code>--ephemeral</code>
+runners that take one job and then unregister, which isolates jobs
+further, but something then has to re-register them after every job.
+That isn't needed for this repository.</li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>What you see</th>
+<th>Cause and fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A job sits in &quot;Queued&quot; forever</td>
+<td>No online runner has all of its labels. Compare the job's labels (shown on the job page) with Settings &gt; Actions &gt; Runners. Fix the runner's labels, set the matching <code>RUNNER_*</code> variable, or set it to <code>&quot;ubuntu-latest&quot;</code> to use GitHub's machines.</td>
+</tr>
+<tr>
+<td>Runner shows Offline</td>
+<td>The service isn't running. Run <code>sudo ./svc.sh status</code>, then <code>start</code>.</td>
+</tr>
+<tr>
+<td><code>docker: command not found</code>, or <code>permission denied</code> on <code>/var/run/docker.sock</code></td>
+<td>Install Docker and add the runner user to the <code>docker</code> group, then restart the service (<code>sudo ./svc.sh stop &amp;&amp; sudo ./svc.sh start</code>).</td>
+</tr>
+<tr>
+<td>A service container never becomes healthy</td>
+<td>Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run <code>docker pull mysql:8.0</code> (or <code>mysql:8.4</code>, <code>redis:7</code>) by hand as the runner user to see the error.</td>
+</tr>
+<tr>
+<td>setup-python can't find 3.12 or 3.13</td>
+<td>Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM.</td>
+</tr>
+<tr>
+<td>Hundreds of jobs queued, new ones wait for hours</td>
+<td>Runs queued before the runners came online are worked through oldest first. Cancel the stale ones: Actions tab &gt; filter &quot;is:queued&quot; &gt; open each run &gt; Cancel workflow run.</td>
+</tr>
+<tr>
+<td>Old pull requests' &quot;Release note&quot; check fails saying the PR &quot;changes the version&quot;</td>
+<td>A run that waited in the queue was comparing against today's main. Fixed: the check now compares against the base the run started from. Re-run it, or ignore it on merged PRs.</td>
+</tr>
+<tr>
+<td>The browser job fails with missing <code>.so</code> libraries</td>
+<td>Chromium's system libraries aren't installed. See step 4 under <a href="#linux-runner">Linux runner</a>.</td>
+</tr>
+<tr>
+<td>Disk full</td>
+<td>Run <code>docker system prune -af</code> and empty <code>_work/_tool</code> of Python versions you no longer need.</td>
+</tr>
+<tr>
+<td>Port 8000 already in use on an installer job</td>
+<td>That job ran on your own machine before and its web server is still running. Stop it and keep the installer jobs on GitHub's machines.</td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

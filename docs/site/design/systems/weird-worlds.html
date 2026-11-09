@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weird worlds: physically plausible oddities for the generator - planetGen docs</title>
+<meta name="description" content="Status: plan (research and design; Boss 4:15 PM EDT 2026-10-30 said yes to the named Odd line, tilt-driven climate and Venus-type spin first, and the weirdness dial; build items filed in section 6 as the weird worlds goal #4117).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/weird-worlds.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/weird-worlds.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="weird-worlds-physically-plausible-oddities-for-the-generator">Weird worlds: physically plausible oddities for the generator</h1><p class="meta">docs/design/systems/weird-worlds.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-idea-in-one-paragraph">1. The idea in one paragraph</a></li><li style="margin-left:0px"><a href="#2-what-the-generator-already-makes-so-we-only-add-what-is-missing-repo">2. What the generator already makes (so we only add what is missing) [REPO]</a></li><li style="margin-left:0px"><a href="#3-the-catalogue">3. The catalogue</a></li><li style="margin-left:14px"><a href="#31-orbit-and-spin">3.1 Orbit and spin</a></li><li style="margin-left:14px"><a href="#32-bulk-composition-and-interior">3.2 Bulk composition and interior</a></li><li style="margin-left:14px"><a href="#33-air-climate-surface">3.3 Air, climate, surface</a></li><li style="margin-left:14px"><a href="#34-not-weirdness-left-out-on-purpose">3.4 Not weirdness, left out on purpose</a></li><li style="margin-left:0px"><a href="#4-the-mechanism">4. The mechanism</a></li><li style="margin-left:14px"><a href="#41-one-table-of-oddity-rows-same-shape-as-the-existing-tables">4.1 One table of oddity rows, same shape as the existing tables</a></li><li style="margin-left:14px"><a href="#42-where-it-runs">4.2 Where it runs</a></li><li style="margin-left:14px"><a href="#43-rate-rule-tails-not-coin-flips">4.3 Rate rule: tails, not coin flips</a></li><li style="margin-left:14px"><a href="#44-randomness-and-determinism">4.4 Randomness and determinism</a></li><li style="margin-left:14px"><a href="#45-what-is-stored-and-shown">4.5 What is stored and shown</a></li><li style="margin-left:14px"><a href="#46-sources-and-stand-ins">4.6 Sources and stand-ins</a></li><li style="margin-left:0px"><a href="#5-tests-every-weird-outcome-stays-physical">5. Tests: every weird outcome stays physical</a></li><li style="margin-left:0px"><a href="#6-proposed-todo-items-for-the-todo-thread-to-file">6. Proposed TODO items (for the TODO thread to file)</a></li><li style="margin-left:14px"><a href="#non-lock-any-waiting-lane-one-at-a-time-on-its-own-branch">Non-lock (any waiting lane, one at a time on its own branch)</a></li><li style="margin-left:14px"><a href="#lock-one-train-each-after-the-non-lock-parts">Lock (one train each, after the non-lock parts)</a></li><li style="margin-left:0px"><a href="#7-open-choices-for-boss">7. Open choices for Boss</a></li><li style="margin-left:0px"><a href="#8-added-417-pm-edt-2026-10-30-boss-the-core-levers-and-giants">8. Added 4:17 PM EDT 2026-10-30 (Boss): the core levers, and giants</a></li><li style="margin-left:14px"><a href="#81-the-core-levers-what-an-oddity-may-change">8.1 The core levers (what an oddity may change)</a></li><li style="margin-left:14px"><a href="#82-giant-planet-oddities-neptune-uranus-jupiter-saturn-type">8.2 Giant planet oddities (Neptune, Uranus, Jupiter, Saturn type)</a></li><li style="margin-left:0px"><a href="#9-rings-boss-417-pm-edt-2026-10-30">9. Rings (Boss, 4:17 PM EDT 2026-10-30)</a></li><li style="margin-left:14px"><a href="#91-what-is-built-repo-physicsringspy-planetary-ringsmd-gen732">9.1 What is built [REPO: physics/rings.py, planetary-rings.md, GEN.732]</a></li><li style="margin-left:14px"><a href="#92-what-is-missing-and-the-fix-rings-follow-from-history-as-oddities">9.2 What is missing, and the fix: rings follow from history, as oddities</a></li><li style="margin-left:14px"><a href="#93-changes-this-implies">9.3 Changes this implies</a></li><li style="margin-left:14px"><a href="#94-added-todo-items">9.4 Added TODO items</a></li></ul></details>
+<p>Status: plan (research and design; Boss 4:15 PM EDT 2026-10-30 said yes to the named Odd line, tilt-driven climate and Venus-type spin first, and the weirdness dial; build items filed in section 6 as the weird worlds goal #4117). Written 4:09 PM EDT 2026-10-30 as the lane reported. No generator code changed. Asked for by Boss (4:09 PM EDT 2026-10-30): &quot;account for weirdness, the very odd things that could happen, strange combinations of factors and surface conditions, thrown in based on the physics so that they aren't fantastical and are plausible.&quot;</p>
+<p>Related and not repeated here: GEN.1034 (ocean tides, exotic liquids), <code>docs/design/habitability/life-classes.md</code> (nine life classes), <code>docs/design/composition/dry-carbon-model.md</code>, <code>docs/design/composition/planet-architecture.md</code>.</p>
+<p>Evidence tags: [S] the paper or object is well known and the number is as published as far as recalled; [R] recalled, no paper opened in this research (web search returned only link lists, no text, so every rate below is [R] unless it comes from a repo file); [C] computed from repo values; [REPO] read in the repo this session. Source tiers use GEN.725 (T1 to T9, L0 to L4). Every number marked [R] must be confirmed by the lane that builds it, and any value that stays unconfirmed is registered as a stand-in (T2 or T3, L0 to L1).</p>
+<h2 id="1-the-idea-in-one-paragraph">1. The idea in one paragraph</h2>
+<p>Do not paint weirdness on the finished planet. Make each oddity a <strong>cause</strong> that enters at an input of the existing chain (orbit, spin, bulk composition, history, moon set), then let the solvers already built (interior heat, tides, air, hydrosphere, climate, class, life) produce the odd surface. A planet is then weird because of what happened to it, and the class letter, the air and the life scores follow from the physics the same way as for any body. The one exception is a small set of <strong>bistable</strong> states (snowball or warm, runaway or temperate, collapsed or kept air) where the same inputs allow two outcomes, and a history draw picks one.</p>
+<h2 id="2-what-the-generator-already-makes-so-we-only-add-what-is-missing-repo">2. What the generator already makes (so we only add what is missing) [REPO]</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Oddity</th>
+<th>Already in the generator</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Rocky planet spin axis isotropic, so Uranus-like tilts are common</td>
+<td>yes</td>
+<td><code>spin.py</code> (obliquity <code>sin(e)/2</code>), <code>impact_spin.py</code></td>
+</tr>
+<tr>
+<td>Tidal locking, 3:2 type resonances</td>
+<td>yes</td>
+<td><code>tidal_spin.py</code> (GEN.731)</td>
+</tr>
+<tr>
+<td>Tidal heating from stored eccentricity, melt, heat pipe, icy flux</td>
+<td>yes</td>
+<td><code>tidal_heating.py</code> (GEN.737)</td>
+</tr>
+<tr>
+<td>Captured and retrograde moons, impact and ring moons</td>
+<td>yes</td>
+<td><code>moon_composition.py</code>, <code>moon_orbits.py</code></td>
+</tr>
+<tr>
+<td>Hot Jupiters, inward migration, scattering</td>
+<td>yes</td>
+<td><code>planet_architecture.py</code></td>
+</tr>
+<tr>
+<td>Radius valley, envelope loss, stripped cores</td>
+<td>yes</td>
+<td><code>radius_valley.py</code>, <code>envelope_escape.py</code></td>
+</tr>
+<tr>
+<td>Lava worlds and rock-vapour air</td>
+<td>yes</td>
+<td><code>mixture_lava.py</code></td>
+</tr>
+<tr>
+<td>Carbon-rich dry worlds</td>
+<td>yes</td>
+<td><code>dry_carbon.py</code></td>
+</tr>
+<tr>
+<td>Rogue planets, pulsar and white dwarf planets</td>
+<td>yes</td>
+<td><code>rogue_surface.py</code>, <code>pulsar_planets.py</code>, <code>white_dwarf_planets</code></td>
+</tr>
+<tr>
+<td>Circumbinary zones, close binary types</td>
+<td>descriptor and zone only</td>
+<td><code>multistar.py</code></td>
+</tr>
+<tr>
+<td>Stagnant vs mobile lid</td>
+<td>yes</td>
+<td><code>interior_heat.py</code> (GEN.721)</td>
+</tr>
+<tr>
+<td>Ammonia-water and silicon-rich bodies</td>
+<td>yes</td>
+<td><code>strange_solvents.py</code></td>
+</tr>
+<tr>
+<td>Hycean-like ocean worlds</td>
+<td>classes O and N</td>
+<td><code>planet_classes.json</code></td>
+</tr>
+<tr>
+<td>Ice-albedo climate feedback</td>
+<td>not yet (GEN.972)</td>
+<td>open item</td>
+</tr>
+<tr>
+<td>Eccentricity drawn per body</td>
+<td>yes, but no high-e tail from scattering or Kozai on purpose</td>
+<td>GEN.727</td>
+</tr>
+</tbody>
+</table></div>
+<p>Gaps that matter for weirdness: (a) <strong>climate has no obliquity term</strong> (the swing of the starlight follows from eccentricity only and is the stored <code>flux_variation</code>; class Q was retired in GEN.1135 [REPO, condition-based-planet-classes.md]), so a 98 degree tilt is stored but changes nothing a reader would see; (b) no Venus-type retrograde end state for thick-air slow rotators; (c) no collisional mantle stripping that gives iron-rich Mercury-type worlds; (d) no resonant-chain heating coupling; (e) no disintegrating or Roche-overflow bodies; (f) no super-puff tail; (g) no abiotic-oxygen path checked end to end; (h) no bistability.</p>
+<h2 id="3-the-catalogue">3. The catalogue</h2>
+<p>Columns: what it is and the real examples; the trigger from inputs we already store; the rate (conditional on the trigger unless said otherwise); what it changes. &quot;Cov&quot; says whether the generator already covers it (Y), partly (P) or not (N).</p>
+<h3 id="31-orbit-and-spin">3.1 Orbit and spin</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Oddity and real cases</th>
+<th>Trigger (stored inputs)</th>
+<th>Rate [R]</th>
+<th>Effect</th>
+<th>Cov</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W1</td>
+<td><strong>Extreme obliquity seasons.</strong> Uranus 98 deg, Mars chaotic 0 to 60 deg over Myr [R2571], Earth without the Moon ([R2710] say milder than first thought)</td>
+<td>any rocky planet without a large moon, or in a spin-orbit secular resonance; tilt already drawn</td>
+<td>tilts over 60 deg are about 13 percent of isotropic draws [C: <code>1 - cos 60</code>] already</td>
+<td>seasonal temperature swing from the tilt, polar summer hotter than the equator, wet-bulb and ice limits by season</td>
+<td>P (tilt exists, climate ignores it)</td>
+</tr>
+<tr>
+<td>W2</td>
+<td><strong>Venus-type retrograde slow rotator.</strong> Venus 243 d retrograde, thermal tide against core-mantle friction gives four spin equilibria for a thick-air planet ([R0896], 2003, Nature 411 and Icarus)</td>
+<td>rocky, air above about 10 bar, orbit where the torques balance, not locked</td>
+<td>the equilibrium is reached by some fraction of such planets; the share is unknown, say 25 percent as a stand-in (T4, L3)</td>
+<td>slow rotation, no tide lock, very long day on a thick air planet</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W3</td>
+<td><strong>Highly eccentric orbit.</strong> HD 80606 b e = 0.93, HD 20782 b e = 0.95, Mercury 0.2, Pluto 0.25</td>
+<td>giants after scattering, planets in packed chains, Kozai-Lidov with an outer companion</td>
+<td>about 10 percent of RV giants beyond 1 AU have e above 0.5 [R, [R4719] review]</td>
+<td>years of 200 K swings, flash-heated atmosphere, the stored <code>flux_variation</code> already carries the flux swing (class Q retired, GEN.1135)</td>
+<td>P</td>
+</tr>
+<tr>
+<td>W4</td>
+<td><strong>Polar and retrograde orbits (stellar obliquity).</strong> hot Jupiters round hot stars (above 6,250 K) are often misaligned, polar peak near 90 deg ([R0060], 2021); Kepler-56 ; HAT-P-7b retrograde</td>
+<td>hot Jupiter, host above 6,250 K, or an outer stellar or giant companion</td>
+<td>misaligned fraction of hot Jupiters about a third [R], most for hot hosts</td>
+<td>orbital inclination to host equator; moons' stability (Hill); mostly flavour plus a stored angle</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W5</td>
+<td><strong>Resonant chain with forced eccentricity.</strong> TRAPPIST-1 seven planets in a Laplace chain, Kepler-223, TOI-178, Io-Europa-Ganymede</td>
+<td>3 or more planets with period ratios inside 5 percent of 3:2, 4:3, 5:3, 2:1</td>
+<td>about 1 to 2 percent of Kepler multis are in chains with an excess just wide of resonance [R, [R1311, R1605]]</td>
+<td>forced e of 0.001 to 0.01 gives Io-like tidal heating for rock planets close to the star (feeds <code>tidal_heating</code> as it does for moons)</td>
+<td>P (no resonance detection)</td>
+</tr>
+<tr>
+<td>W6</td>
+<td><strong>Circumbinary world with two suns.</strong> Kepler-16b, 34b, 35b, 38b, 47b c d, TOI-1338b</td>
+<td>close binary host with period under about 40 d, planet beyond the Holman-Wiegert limit</td>
+<td>at least 10 percent of close eclipsing binaries host a planet above 6 Earth radii inside 300 d if coplanar [REPO, multi-star-systems.md]</td>
+<td>flux varies with the binary phase; double sunset text; zone from the pair</td>
+<td>P</td>
+</tr>
+<tr>
+<td>W7</td>
+<td><strong>Co-orbital (Trojan) companions and horseshoes.</strong> Jupiter Trojans, Janus and Epimetheus, the asteroid 2010 TK7</td>
+<td>giant planet with a planet or moon at L4 or L5, mass ratio under 0.038 (Gascheau-Routh)</td>
+<td>no confirmed exoplanet case; Solar System only</td>
+<td>a stored companion at 60 deg; low priority</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W8</td>
+<td><strong>Double planets and binary dwarfs.</strong> Pluto-Charon (barycentre outside Pluto), Earth-Moon 1:81</td>
+<td>impact or capture origin moon with mass ratio above about 0.1</td>
+<td>rare</td>
+<td>mutual tidal lock, both faces fixed</td>
+<td>Y (origin &quot;binary&quot;)</td>
+</tr>
+<tr>
+<td>W9</td>
+<td><strong>Moon spiralling in, then a ring.</strong> Triton retrograde decay, Phobos about 30 to 50 Myr from Roche, ring-moon cycling [R1927]</td>
+<td><code>moon_orbits.py</code> result with decay inside the planet's life</td>
+<td>follows from the existing evolution</td>
+<td>a ring from a disrupted moon, a planet briefly with a ring</td>
+<td>P</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="32-bulk-composition-and-interior">3.2 Bulk composition and interior</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Oddity and real cases</th>
+<th>Trigger</th>
+<th>Rate [R]</th>
+<th>Effect</th>
+<th>Cov</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W10</td>
+<td><strong>Iron-rich Mercury type.</strong> Mercury core 0.7 by mass fraction, K2-229 b, Kepler-107 b and c density contrast [R0456], giant impact mantle stripping [R0351, R2866]</td>
+<td>rocky inner chain, high collision count in <code>planet_architecture</code>, mass under about 5 Earth</td>
+<td>a few percent of super-Earths are iron-enhanced outliers [R, [R0032, R3545]]</td>
+<td>bulk density, thin crust, big magnetic field, little air</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W11</td>
+<td><strong>Coreless or iron-poor world.</strong> composition tracks the host's Fe/Mg [R3978] with scatter</td>
+<td>host Fe/Mg tail</td>
+<td>tail of the stellar distribution already drawn</td>
+<td>low density, weak dynamo</td>
+<td>P</td>
+</tr>
+<tr>
+<td>W12</td>
+<td><strong>Carbon planet.</strong> C/O above 0.8 in a few percent of stars ([R0535], already in repo), 55 Cnc e carbon claim now doubtful</td>
+<td>host C/O tail</td>
+<td>about 3 percent of hosts [R]</td>
+<td>graphite, SiC, diamond crust, no water</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>W13</td>
+<td><strong>Lava ocean planet with rock-vapour air.</strong> 55 Cnc e, K2-141 b (supersonic Na, SiO winds, [R3282]), CoRoT-7 b, TOI-561 b dense volatile air over magma (Hu 2024)</td>
+<td>locked, equilibrium T above about 1,500 K</td>
+<td>covered</td>
+<td>night side freezes the vapour; day side evaporates</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>W14</td>
+<td><strong>Disintegrating planet.</strong> Kepler-1520 b (KIC 12557548 b), K2-22 b, KOI-2700 b: dust tails, mass loss up to about 1 Earth mass per Gyr [R3666, R3903]</td>
+<td>rocky, under about 0.1 Earth mass, period under 1 d, magma ocean</td>
+<td>three in a Kepler and K2 sample of order 1e5 stars, so about 1e-5 per star, 1 in 1,000 ultra-short-period planets [R]</td>
+<td>tail of dust, deep transit, mass declining, planet dies in Gyr</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W15</td>
+<td><strong>Super-puff.</strong> Kepler-51 b c d (below 0.1 g/cc, 5 to 9 Earth radii, 2 to 8 Earth masses), Kepler-79, Kepler-87 c, WASP-107 b ([R2609, R2674, R3079] tides on inflated young planets)</td>
+<td>gas dwarf or ice giant, mass under 10 Earth, young age under 1 Gyr, orbit 10 to 100 d, hazes</td>
+<td>under 1 percent of sub-Neptunes [R]</td>
+<td>huge radius, density 0.03 to 0.1; fades as the star ages</td>
+<td>built (GEN.1343; the tidal inflation of its radius waits for a drawn obliquity (GEN.1347))</td>
+</tr>
+<tr>
+<td>W16</td>
+<td><strong>Helium-rich envelope.</strong> after photoevaporation H escapes first, leaving He-dominated air (Hu 2015, [R2840])</td>
+<td>sub-Neptune, strong XUV history, envelope loss above 90 percent</td>
+<td>follows from the existing escape model if it fractionates</td>
+<td>He-dominated air, no hydrogen</td>
+<td>P (check)</td>
+</tr>
+<tr>
+<td>W17</td>
+<td><strong>Very low or very high water.</strong> Kepler-138 d, TOI-1452 b water-rich candidates; desiccated cores</td>
+<td>disc ice share tail</td>
+<td>already in mass fractions</td>
+<td>ocean world vs dust world</td>
+<td>Y</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-air-climate-surface">3.3 Air, climate, surface</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Oddity and real cases</th>
+<th>Trigger</th>
+<th>Rate [R]</th>
+<th>Effect</th>
+<th>Cov</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W18</td>
+<td><strong>Eyeball and nightside ice-trap worlds.</strong> [R2201, R2605, R3518] (3D, thick air heat transport), [R2448]</td>
+<td>locked, cool star, ocean</td>
+<td>all locked rocky planets in the zone</td>
+<td>one open sea under the sub-stellar point, rest ice; or air freezes out on the night side</td>
+<td>P (<code>day-and-night.md</code>)</td>
+</tr>
+<tr>
+<td>W19</td>
+<td><strong>Atmospheric collapse.</strong> N<sub>2</sub> or CO<sub>2</sub> freeze on the dark side of a locked planet when the air is thin [R2201, R4772]</td>
+<td>locked, pressure under about 0.1 to 0.3 bar</td>
+<td>all thin-air locked planets</td>
+<td>air lost to nightside caps; day side bare</td>
+<td>N</td>
+</tr>
+<tr>
+<td>W20</td>
+<td><strong>Snowball and warm bistability.</strong> [R0580, R1969, R3518, R4008]; runaway greenhouse boundary [R2281]</td>
+<td>ice-albedo feedback, flux within about 5 percent of the inner edge or outer edge of the ecosphere</td>
+<td>width of the bistable window about 10 to 20 percent in flux for an Earth twin [R]</td>
+<td>same inputs, ice-covered or ocean-covered by a history draw; exit needs a CO<sub>2</sub> build-up</td>
+<td>N (waits for GEN.972)</td>
+</tr>
+<tr>
+<td>W21</td>
+<td><strong>Abiotic oxygen planet.</strong> [R2769] (water loss in the pre-main-sequence phase of an M dwarf leaves hundreds of bar O<sub>2</sub>), [R4771] (O<sub>2</sub>-Ar air), [R3946] (magma ocean oxidation)</td>
+<td>M dwarf host, planet in the ecosphere now, pre-main-sequence luminous phase, low non-condensable gas</td>
+<td>large share of M dwarf HZ planets lose water; fate depends on sinks [R]</td>
+<td>O<sub>2</sub> air with no life; oxygen is not a biosignature; life scores must not read O<sub>2</sub> alone</td>
+<td>P (<code>biogenic_oxygen</code>, <code>mixture_escape</code>; check path)</td>
+</tr>
+<tr>
+<td>W22</td>
+<td><strong>Ultra-hot giant weather.</strong> WASP-76 b iron rain [R1227], WASP-121 b stratosphere and vanadium oxide, HD 189733 b silicate and glass clouds, HAT-P-7 b corundum clouds, KELT-9 b dayside 4,600 K with H<sub>2</sub> dissociated and ionised iron, WASP-12 b egg shape and orbital decay (about -29 ms per yr)</td>
+<td>giant at equilibrium T above 1,500 K, locked</td>
+<td>all such giants</td>
+<td>condensate lists, transit asymmetry, dark side cloud rain; WASP-12 b type Roche overflow at the rarest end</td>
+<td>P (cloud table; check rows)</td>
+</tr>
+<tr>
+<td>W23</td>
+<td><strong>Dark planet.</strong> TrES-2 b albedo about 0.01</td>
+<td>hot giant with alkali and TiO absorption, no cloud</td>
+<td>rare</td>
+<td>very dark albedo, hot day side</td>
+<td>P (<code>aerosols</code>)</td>
+</tr>
+<tr>
+<td>W24</td>
+<td><strong>Volcanic, tidal heated worlds.</strong> Io (about 2 W/m2 average, mean surface heat flow 2.5), Europa, Enceladus plumes, Triton nitrogen geysers, TRAPPIST-1 b c; [R3464]</td>
+<td>forced e from resonance, a close giant, or W5</td>
+<td>follows from W5 and moons</td>
+<td>sulfur or sulfate air, molten patches, plumes, sealed oceans</td>
+<td>Y for moons, N for planets</td>
+</tr>
+<tr>
+<td>W25</td>
+<td><strong>Titan and Pluto type air.</strong> methane cycle on a cold moon, haze-covered</td>
+<td>cold, mass and escape allow N<sub>2</sub></td>
+<td>derived outputs already</td>
+<td>covered</td>
+<td>Y</td>
+</tr>
+<tr>
+<td>W26</td>
+<td><strong>Hycean worlds.</strong> K2-18 b, TOI-270 d ([R2804]; the DMS claim is contested, Taylor, Welbanks and others)</td>
+<td>sub-Neptune, 1.5 to 2.6 Earth radii, ocean under hydrogen air</td>
+<td>about a third of observed sub-Neptunes in the ecosphere may qualify [R]</td>
+<td>covered by O and N plus envelope</td>
+<td>P</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="34-not-weirdness-left-out-on-purpose">3.4 Not weirdness, left out on purpose</h3>
+<p>Fiction rules: warp, subspace, exotic matter; detections still disputed with no physics (exomoon Kepler-1625 b-i is a candidate only, so no rate); Dyson swarms (KIC 8462852 is dust); phosphine on Venus (design flag, not an oddity).</p>
+<h2 id="4-the-mechanism">4. The mechanism</h2>
+<h3 id="41-one-table-of-oddity-rows-same-shape-as-the-existing-tables">4.1 One table of oddity rows, same shape as the existing tables</h3>
+<p>A data file <code>physics/data/oddities.json</code> read by <code>physics/oddities.py</code>, rows like <code>planet_classes.json</code> and <code>moon_composition.py</code>'s <code>Possibility</code> rows. Each row has:</p>
+<ul>
+<li><code>id</code> (W-number kept), <code>name</code>, <code>kind</code> (planet, moon, giant, rogue, small body, star system);</li>
+<li><code>requires</code>: conditions on stored values only (mass, orbit, age, host type, eccentricity, composition), the same style as <code>planet_classes.json</code>;</li>
+<li><code>rate</code>: the chance given the trigger, a number with source, tier and tweak level, registered in GEN.725;</li>
+<li><code>apply</code>: a <strong>named effect</strong> on one input of the chain (for example &quot;set eccentricity to a draw from a Rayleigh tail&quot;, &quot;strip mantle fraction f&quot;, &quot;set spin to the retrograde equilibrium&quot;), never an output;</li>
+<li><code>limits</code>: the invariants that must hold afterwards (section 5);</li>
+<li><code>source</code> and <code>text</code>: one reading sentence for the page (&quot;This world turns backwards because ...&quot;).</li>
+</ul>
+<h3 id="42-where-it-runs">4.2 Where it runs</h3>
+<p>At the end of the architecture and bulk steps, before the air solver: oddity rows modify inputs, then interior heat, tides, air, hydrosphere, climate, class and life are computed as they are for every body. Bistable rows (W19, W20) run after the climate solver: it hands back both branches and <code>oddities.pick_branch</code> takes one by a history draw. The class letter stays derived (<code>classify</code> is unchanged, no oddity names a class).</p>
+<h3 id="43-rate-rule-tails-not-coin-flips">4.3 Rate rule: tails, not coin flips</h3>
+<p>An oddity is a <strong>rate on a gated population</strong>, never a global percentage. Example: W10 applies only to rocky planets under 5 Earth masses in a chain where <code>planet_architecture</code> recorded at least one merger, at the literature share of such planets. If the gate is not met the rate is zero. Where the trigger already makes the outcome (W5 resonance gives tidal heating), no extra draw is made.</p>
+<h3 id="44-randomness-and-determinism">4.4 Randomness and determinism</h3>
+<p>All draws go through <code>util.draw</code> with one <strong>sub-stream per oddity id</strong> keyed on the body, so adding or removing a row never changes any other draw (<code>test_order_independence</code> and the golden seed keep holding). A world-level <strong>weirdness dial</strong> (default 1.0, per-oddity override like <code>PHENOMENON_RATE_SCALE</code>) scales every rate, 0 turns all off. The generator epoch rises when rows are wired.</p>
+<h3 id="45-what-is-stored-and-shown">4.5 What is stored and shown</h3>
+<p>A text column <code>oddities</code> (comma list of ids) on planets and moons, new numeric columns in <code>db/column_units.py</code>, and a line in the object page: &quot;Odd: retrograde rotation (Venus type)&quot;, with the cause sentence. Admin and API can force an oddity for a body (like <code>FORCE_CLASS</code>) for tests and for Boss's own checks.</p>
+<h3 id="46-sources-and-stand-ins">4.6 Sources and stand-ins</h3>
+<p>Secondary sources accepted (Boss's rule of 8:16 PM EDT 2026-10-29). Every rate and threshold not read from a paper is a GEN.725 row with tier and tweak level. The weakest here: W2 share (T4, L3), W15 share, W20 window width (T6, L3), W4 fraction. Each carries the falsifier &quot;replace when a survey statistic is read&quot;.</p>
+<h2 id="5-tests-every-weird-outcome-stays-physical">5. Tests: every weird outcome stays physical</h2>
+<p>A <strong>plausibility harness</strong> (<code>src/tests/oddity_plausibility_cli.py</code>, modelled on <code>physical_plausibility_cli.py</code> and <code>phenomena_plausibility.py</code>) forces each oddity on a sample of bodies (n 200 per row, fixed seed) and asserts the row's invariants plus the general ones:</p>
+<p>General, for every body of every oddity:</p>
+<ol>
+<li>Energy: surface temperature within the band the flux, albedo, greenhouse and internal heat allow; tidal power never above the orbital energy available over the body's age (<code>tidal_heating</code>).</li>
+<li>Structure: radius inside the composition curves for its mass (mass-radius sample) except where the row says how far it may leave them (super-puff, W15, bounded by [R2741] envelope scaling).</li>
+<li>Stability: Hill and mutual Hill separation hold; no orbit below the Roche limit unless the row is W9 or W14 and the body is flagged as dying.</li>
+<li>Air: pressure under the retention cap (<code>surface_pressure</code>), mixture sums to 1, no species above its limit (<code>species_limits</code>).</li>
+<li>Class is derived and total; the life scores do not read an oddity name.</li>
+<li>No NaN, no negative mass, unit registry satisfied.</li>
+</ol>
+<p>Row-specific: W2 spin period over 20 d and sign negative; W5 forced e under the value that keeps the chain stable; W10 core fraction under 0.85 (iron plus thin mantle; no body denser than pure iron at its mass); W14 mass loss rate times age under the body's mass; W16 H mass fraction under 1e-3; W20 ice albedo branch is energy-consistent, and a snowball needs CO<sub>2</sub> to exit.</p>
+<p>Rate tests (census, in the prevalence suite): the share of each oddity among its gated population within the literature range; and an <strong>isolation test</strong>: turning the dial to 0 changes no draw other than the oddity's own outputs.</p>
+<p><strong>Built (TEST.490, TEST.494).</strong> <code>src/tests/oddity_plausibility_cli.py</code> (the harness) and <code>src/tests/test_oddity_plausibility.py</code> (its tests). <code>force(row, number)</code> draws a gated body with the generator, calls the row's effect from <code>EFFECTS</code> with the row's own stream, and <code>run_row</code> checks the six general invariants (<code>general_failures</code>), the row's own <code>limits</code> (<code>oddities.limit_failures</code>) and the ring list of 9.3 (<code>ring_failures</code>: ring mass under 1e-4 of the planet, outer edge inside the Roche limit to the ring law's margin of 1.1 unless the body carries R4, optical depth within what the formula gives for the ring's mass, edges and kind, no ring inside 0.1 AU, ring plane in the equator, no ring field on a body with no ring). A module that implements a row registers its effect in <code>EFFECTS</code>; GEN.1047's wiring then replaces <code>force</code> with the generator's own forcing. The stub rows S1 to S3 pass; the broken rows B1 to B9 and R91 to R95 each break one invariant and the tests require that invariant to report. The isolation tests show a roll reads nothing from the run's stream at any dial, the dial at 0 turns the row off without moving its own draw, and one row's draw does not move when another is rolled. Two findings while building it: the generator stores air thinner than 1 Pa (0.015 Pa on non-G2V hosts), so the air invariant is &quot;not negative&quot; and the weight cap, not the 1 Pa floor of <code>test_planets</code>; and a gas-partial dict holds pascals that sum to the pressure, not fractions that sum to 1.</p>
+<h2 id="6-proposed-todo-items-for-the-todo-thread-to-file">6. Proposed TODO items (for the TODO thread to file)</h2>
+<p>Lock means changes generated output and waits for a train (an epoch). Non-lock work merges alone.</p>
+<h3 id="non-lock-any-waiting-lane-one-at-a-time-on-its-own-branch">Non-lock (any waiting lane, one at a time on its own branch)</h3>
+<ol>
+<li><strong>W-core: oddity table and loader</strong> (<code>oddities.py</code>, <code>oddities.json</code>, row schema, tier and tweak fields, registry rows in GEN.725), no wiring. Tests: schema, every row has a source, gate and limits.</li>
+<li><strong>W-harness: oddity plausibility harness</strong> (section 5), run on forced draws with a stub effect; the invariants for the general list first.</li>
+<li><strong>W-rates: confirm the [R] rates</strong> for W3, W4, W5, W10, W14, W15, W20 against papers (secondary accepted), write the literature table with sources, register the stand-ins.</li>
+<li><strong>W2 module</strong>: Venus-type spin equilibrium ([R0895] torque balance), pure function, tests on Venus, Earth, Mercury.</li>
+<li><strong>W10 module</strong>: collisional mantle stripping ([R0351, R2866] scaling) to a core fraction, pure function, tests on Mercury and Kepler-107 b c.</li>
+<li><strong>W14 module</strong>: mass-loss and lifetime of a disintegrating rocky planet [R3487], pure function, tests on Kepler-1520 b.</li>
+<li><strong>W15 module</strong>: super-puff radius and fade with age [R2609, R3079]. Built, and wired in GEN.1343: one sub-Neptune core in 20 (2 to 10 Earth masses, inside 100 days) starts with an envelope of 7 to 45 percent (<code>envelope_capture.draw_puff_start</code>, rows PF2, PF3, EC8); the XUV loss and the age term of the envelope law fade it; a transitional planet under 0.1 g/cc in the period range is typed a super-puff (<code>planet_type</code>). In 800 systems of four star types, 0.84 percent of the sub-Neptunes inside 100 days pass the gate (the design table says under 1 percent); nearly all are younger than 1 Gyr, because the XUV loss starts at 1 Gyr, and the start share (0.05, a stand-in) moves that count little: started all, 11 percent of the puffs end under 0.1 g/cc and 2 of 40 are older than 1 Gyr. The older ones the surveys find (Kepler-79 d, Kepler-27 b, Kepler-31 c) need the tidal inflation, which waits for a drawn obliquity (GEN.1347).</li>
+<li><strong>W5 module</strong>: detect resonant chains from the stored periods and compute forced e (Goldreich and Soter, Murray and Dermott), tests on TRAPPIST-1 and the Laplace moons.</li>
+<li><strong>W19 module</strong>: nightside collapse threshold for a locked planet [R2605, R4772].</li>
+<li><strong>W21 audit</strong>: end-to-end check that M dwarf water loss can leave O<sub>2</sub> air and that life scores do not read O<sub>2</sub> alone (test only, a bug filed if it fails).</li>
+<li><strong>W16 audit</strong>: does <code>envelope_escape</code> fractionate He; add the fractionation if not (pure module).</li>
+<li><strong>Climate obliquity term</strong> (W1): a seasonal swing from the stored tilt in <code>regional_temperature</code>; module and tests lock-free, wiring below.</li>
+<li><strong>W20 design</strong>: the two-branch climate output (waits for GEN.972 ice-albedo).</li>
+</ol>
+<h3 id="lock-one-train-each-after-the-non-lock-parts">Lock (one train each, after the non-lock parts)</h3>
+<ol start="14">
+<li>Wire the table and the dial; epoch; stored <code>oddities</code> column; page line; API field.</li>
+<li>Wire W2, W10, W15 (bulk and spin inputs).</li>
+<li>Wire W5 resonance heating and W3 and W4 tails in <code>planet_architecture</code>.</li>
+<li>Wire W14 with its dying-planet flag, plus W9 rings from decayed moons.</li>
+<li>Wire W1 climate term, W19 and W20 bistable branches.</li>
+<li>Census re-baseline for every oddity share (TEST item) and the prevalence suite rows.</li>
+</ol>
+<p>Overlap checks for TODO: GEN.1034 (ocean tides, exotic liquids) is separate; GEN.972 is a prerequisite for W20; GEN.1006 (overlap-free systems) is a prerequisite for W5 and W7; the planet-architecture weaknesses list (more warm super-Earths wanted) interacts with W10.</p>
+<h2 id="7-open-choices-for-boss">7. Open choices for Boss</h2>
+<ol>
+<li>Should rare oddities be visible on the page as a named &quot;Odd&quot; line, or only show in the property sheet? Recommended: a named line with the cause sentence, because it teaches the reader the physics.</li>
+<li>Which first: W1 (climate from tilt, common) or W10 and W2 (rare, striking)? Recommended: W1 and W2 first, because they change every visit to a map.</li>
+<li>Is a global weirdness dial wanted in settings? Recommended yes, default 1.</li>
+</ol>
+<h2 id="8-added-417-pm-edt-2026-10-30-boss-the-core-levers-and-giants">8. Added 4:17 PM EDT 2026-10-30 (Boss): the core levers, and giants</h2>
+<h3 id="81-the-core-levers-what-an-oddity-may-change">8.1 The core levers (what an oddity may change)</h3>
+<p>An oddity row may only change one of these inputs. Everything else follows from the solvers.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Lever</th>
+<th>What it is</th>
+<th>Oddities that use it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L1 Spin axis and rate</td>
+<td>tilt, retrograde sign, period</td>
+<td>W1, W2, G1, G2, G6</td>
+</tr>
+<tr>
+<td>L2 Orbit</td>
+<td>eccentricity, inclination to host equator, resonance, binary host</td>
+<td>W3, W4, W5, W6, W7</td>
+</tr>
+<tr>
+<td>L3 Bulk composition</td>
+<td>core fraction, water, carbon, ice mix, envelope share</td>
+<td>W10, W11, W12, W15, W16, G3, G4</td>
+</tr>
+<tr>
+<td>L4 Interior heat and structure</td>
+<td>internal flux, tidal power, dynamo, lid regime</td>
+<td>W5, W24, G2, G5, G7</td>
+</tr>
+<tr>
+<td>L5 History</td>
+<td>collisions, migration, mass loss, age at which an event hit</td>
+<td>W10, W14, W16, W21, G1, G2</td>
+</tr>
+<tr>
+<td>L6 Moon and ring set</td>
+<td>moon origin, retrograde moons, rings</td>
+<td>W8, W9, G1, G8</td>
+</tr>
+<tr>
+<td>L7 Air state (bistable only)</td>
+<td>which branch of snowball or warm, collapsed or kept</td>
+<td>W19, W20</td>
+</tr>
+</tbody>
+</table></div>
+<p>The dial (section 4.4) scales how often a qualifying body gets an oddity. The gates are: host type and mass, body mass and kind, age, orbit, and the history record. So &quot;the core things&quot; are the seven levers plus those gates.</p>
+<h3 id="82-giant-planet-oddities-neptune-uranus-jupiter-saturn-type">8.2 Giant planet oddities (Neptune, Uranus, Jupiter, Saturn type)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Oddity and real cases</th>
+<th>Trigger</th>
+<th>Lever</th>
+<th>Rate [R]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G1</td>
+<td><strong>Giant-impact tilt.</strong> Uranus 98 deg, with its tilted ring and moon system aligned to the tilt ([R3149, R4118] says a moon-disrupting or two-impact path; [R2300])</td>
+<td>ice giant or gas dwarf, mass 5 to 30 Earth, outer chain with a recorded merger</td>
+<td>L1, L5, L6</td>
+<td>tilt above 60 deg is a minority for giants (Rayleigh 15 deg today); a tail of about 1 in 5 ice giants in the Solar System, unknown elsewhere, stand-in T4 L3</td>
+</tr>
+<tr>
+<td>G2</td>
+<td><strong>Cold or hot ice-giant interior.</strong> Uranus heat flux about 0.04 W/m2 against Neptune 0.43 (Uranus emits almost no internal heat, Neptune about 2.6 times what it absorbs); explanations: layered interior and suppressed convection ([R2523]; GEN.1033 is already filing the heat spread)</td>
+<td>ice giant</td>
+<td>L4, L5</td>
+<td>spread already owned by GEN.1033, do not duplicate; oddity row only sets the extreme tail</td>
+</tr>
+<tr>
+<td>G3</td>
+<td><strong>Non-dipolar, off-centre field.</strong> Uranus and Neptune fields tilted 59 and 47 deg and offset by 0.3 and 0.55 radii, from a dynamo in a thin ionic-water shell</td>
+<td>ice giant</td>
+<td>L4</td>
+<td>follows from shell structure; one row for the field shape</td>
+</tr>
+<tr>
+<td>G4</td>
+<td><strong>Superionic and diamond-rain interiors.</strong> superionic water and ammonia are built (GEN.1422: <code>physics/superionic.py</code> reads the boundary table at the bottom of an ice giant's mantle, [R5181, R3081, R5172]); carbon rain stays a registry note</td>
+<td>ice giant, deep layers</td>
+<td>L3, L4</td>
+<td>superionic part derived and built, diamond rain not built</td>
+</tr>
+<tr>
+<td>G5</td>
+<td><strong>Fast winds and giant storms.</strong> Neptune 2,100 km/h, Great Dark Spot, Jupiter's Red Spot, Saturn's hexagon and Great White Storm</td>
+<td>any giant</td>
+<td>L4</td>
+<td>derived flavour from heat and spin, not a draw</td>
+</tr>
+<tr>
+<td>G6</td>
+<td><strong>Seasonal giants.</strong> Uranus season 21 years with 98 deg tilt; Saturn tilt 27 deg with ring shadow</td>
+<td>tilted giant</td>
+<td>L1</td>
+<td>follows from W1 climate term</td>
+</tr>
+<tr>
+<td>G7</td>
+<td><strong>Hot Neptune desert and chthonian cores.</strong> few Neptunes inside 3 d [R2963], stripped giant cores</td>
+<td>giant inside the desert</td>
+<td>L3, L5</td>
+<td>covered by <code>envelope_escape</code>; oddity is the survivor outlier (LTT 9779 b survives in the desert)</td>
+</tr>
+<tr>
+<td>G8</td>
+<td><strong>Odd ring and moon systems.</strong> Saturn's rings (young or old, debated), Chariklo rings, J1407b giant ring system, Neptune's Triton captured retrograde moon, Uranus' dark rings</td>
+<td>any giant</td>
+<td>L6</td>
+<td>rings partly covered (<code>rings.py</code>), captured moons covered</td>
+</tr>
+<tr>
+<td>G9</td>
+<td><strong>Super-Jupiters and brown-dwarf edge giants.</strong> HAT-P-2 b, Kepler-39 b, 10 to 13 Jupiter masses, direct-imaged HR 8799 and Beta Pic b in wide orbits</td>
+<td>high-metallicity or massive disc</td>
+<td>L3</td>
+<td>within existing mass tail; check ceiling</td>
+</tr>
+<tr>
+<td>G10</td>
+<td><strong>Helium rain, Saturn extra heat.</strong> Saturn's excess heat from helium sedimentation [R4220]</td>
+<td>gas giant 0.2 to 1 Jupiter mass, age over 2 Gyr</td>
+<td>L4</td>
+<td>derived from interior model</td>
+</tr>
+<tr>
+<td>G11</td>
+<td><strong>Dark and reflective giants.</strong> TrES-2 b dark, Kepler-7 b bright clouds</td>
+<td>hot giant</td>
+<td>L3</td>
+<td>W23</td>
+</tr>
+</tbody>
+</table></div>
+<p>Most G rows are derived outputs, not draws. Only G1 and the survivor outliers need a rate row.</p>
+<h2 id="9-rings-boss-417-pm-edt-2026-10-30">9. Rings (Boss, 4:17 PM EDT 2026-10-30)</h2>
+<h3 id="91-what-is-built-repo-physicsringspy-planetary-ringsmd-gen732">9.1 What is built [REPO: <code>physics/rings.py</code>, <code>planetary-rings.md</code>, GEN.732]</h3>
+<p>One summed ring system per body (kind, origin, inner and outer radius, mass, optical depth, ice share). Roche limit and snow line are physics; <strong>whether a body has a ring is a draw</strong>: a giant always has one (kinds dusty : narrow : broad = 1 : 2 : 1, the Solar System's four), a rocky or dwarf planet 1 percent, rogues too. All numbers are stand-ins BC20 to BC23. The painter (MAP.275) draws from the stored fields.</p>
+<h3 id="92-what-is-missing-and-the-fix-rings-follow-from-history-as-oddities">9.2 What is missing, and the fix: rings follow from history, as oddities</h3>
+<p>The ring draw is independent of the planet's history, so every giant has a ring and rings never explain anything. Make a ring an <strong>outcome of the L6 lever (moon and ring set)</strong> and let oddities use it:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Ring oddity and real cases</th>
+<th>Trigger</th>
+<th>Rate [R]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R1</td>
+<td><strong>Ring from a disrupted moon.</strong> Saturn ([R0637]; young rings 100 to 400 Myr per Cassini mass, contested), Phobos about 30 to 50 Myr from disruption, ring-moon cycling [R1927]</td>
+<td>moon inspiral below the Roche limit (W9)</td>
+<td>follows from <code>moon_orbits</code>; replaces the always-a-ring rule</td>
+</tr>
+<tr>
+<td>R2</td>
+<td><strong>Ring from a captured comet.</strong> [R1140]</td>
+<td>comet passing inside the Roche limit</td>
+<td>rare</td>
+</tr>
+<tr>
+<td>R3</td>
+<td><strong>Rings aligned with a tilt.</strong> Uranus rings and moons lie in the 98 deg equator (G1)</td>
+<td>giant-impact tilt</td>
+<td>by construction: ring plane = equator; the regular moons are set in it too (GEN.1352: their inclination is kept against the planet's equator and <code>planets.orient_moons</code> turns their orbits onto its spin axis)</td>
+</tr>
+<tr>
+<td>R4</td>
+<td><strong>Rings beyond the Roche limit.</strong> Quaoar ring at 7.4 radii [R3155], Haumea, Chariklo, Chiron</td>
+<td>small body with a spin-orbit resonance to a satellite or fast spin</td>
+<td>rare, no rate; stand-in T4</td>
+</tr>
+<tr>
+<td>R5</td>
+<td><strong>Shepherded and eccentric rings, arcs.</strong> Uranus epsilon ring, Neptune's Adams arcs held by Galatea, Saturn's F ring</td>
+<td>narrow ring plus an inner moon</td>
+<td>derived flavour</td>
+</tr>
+<tr>
+<td>R6</td>
+<td><strong>Dark or bright rings.</strong> Saturn 90 to 99 percent ice, Uranus and Neptune dark</td>
+<td>snow line, ring age, pollution</td>
+<td>derived from ice share and age</td>
+</tr>
+<tr>
+<td>R7</td>
+<td><strong>Giant ring systems on super-Saturns.</strong> J1407b about 0.6 AU [R2847]; rings as a cause of super-puff radii ([R3536], now disfavoured for Kepler-51)</td>
+<td>low-mass young giant with many moons</td>
+<td>a few named cases, no rate</td>
+</tr>
+<tr>
+<td>R8</td>
+<td><strong>Ring shadow climate.</strong> ring shades the winter hemisphere and the moons</td>
+<td>broad ring plus tilt</td>
+<td>derived from W1 plus the ring</td>
+</tr>
+<tr>
+<td>R9</td>
+<td><strong>Ring lifetime near a star.</strong> rings of close planets are short lived [R3957]</td>
+<td>planet inside about 0.1 AU</td>
+<td>gate: no ring</td>
+</tr>
+<tr>
+<td>R10</td>
+<td><strong>Propeller moons and gaps.</strong> Saturn's propellers, Encke gap</td>
+<td>broad ring with an embedded moon</td>
+<td>painter flavour</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="93-changes-this-implies">9.3 Changes this implies</h3>
+<ul>
+<li>The ring draw becomes conditional on moon history (R1, R2), so a giant with no disrupted moon or capture has no ring, and Saturn-like broad rings are the tail. &quot;Four of four in the Solar System&quot; is a single-system anchor, so BC20 is registered T4 L3 and replaced by Cassini ring age and disruption rates.</li>
+<li>A ring stores its <strong>age</strong>; ice share and darkness follow from pollution over time (R6).</li>
+<li>Ring plane is the equator, so oddities that move the spin (G1, W1, W2) move the ring.</li>
+<li>Invariants for the harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth from the formula (an output), no ring inside 0.1 AU.</li>
+</ul>
+<p><strong>Built (GEN.1057, wiring).</strong> R1, R2, R4 and R9 are wired in <code>rings.apply</code> (a ring from <code>moon_history</code>'s fallen moons and <code>ring_origin</code>'s comet passages; a dwarf planet's resonance ring; no ring inside 0.1 AU); a ring stores its age (<code>ring_age_yr</code>, schema v187). BC20 and BC22 are replaced (kind from mass, <code>rings.KIND_MASS_LIMITS_KG</code>). R6 (GEN.1055) is wired in <code>rings.apply</code> (<code>rings.darken</code>): the stored <code>ring_ice_fraction</code> is the share the ring has now, after the dark dust that fell on it over its age (<code>physics/ring_darkening.py</code>, stand-ins RGD1 to RGD4, section 6.148 of the gap-filling plan), so a thin old ring is dark and Saturn's rings keep over 90 percent ice; the reflectance follows from the share (<code>ring_darkening.albedo</code>). R8 (GEN.1055), <code>ring_darkening.shadow_transmission</code> (the share of sunlight that reaches a latitude through the rings), is read by <code>latitude_bands.ring_shade</code>: each band of a ringed, tilted rocky planet keeps the insolation-weighted mean of that share over its latitudes and the year, and its temperature follows. The world's own mean is not lowered (it is solved before the ring is drawn), so the shade moves heat between the bands, cooler behind the ring and warmer at the poles; a moon's ring does not shade its bands, because a moon's bands are made before its ring is drawn.</p>
+<h3 id="94-added-todo-items">9.4 Added TODO items</h3>
+<p>Non-lock: (20) ring origin from moon decay and comet passage, pure function, tests on Saturn and Phobos; (21) ring age and pollution darkening; (22) R4 resonance rings for small bodies, Quaoar and Haumea tests; (23) ring invariants in the plausibility harness. Lock: (24) wire conditional rings (epoch, replaces the BC20 draw); (25) wire ring age, R4, R9; (26) census re-baseline for ring shares.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

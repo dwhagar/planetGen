@@ -1,0 +1,1330 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part 09: weighted composition tables (draw tables for the generator) - planetGen docs</title>
+<meta name="description" content="Design requirement (project owner): for every composition category there is a table of options with weighted probabilities; each row has a class gate; the generator draws among the rows that pass the gate with weights normalised to 100 p...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/09-weighted-composition-tables.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-09-weighted-composition-tables-draw-tables-for-the-generator">Part 09: weighted composition tables (draw tables for the generator)</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md</p><details class="toc"><summary>On this page (23 headings)</summary><ul><li style="margin-left:0px"><a href="#1-schema">1. Schema</a></li><li style="margin-left:0px"><a href="#2-category-tables">2. Category tables</a></li><li style="margin-left:14px"><a href="#a-mantle-redox-magma-ocean-stage-later-upper-mantle">a. Mantle redox (magma-ocean stage, later upper mantle)</a></li><li style="margin-left:14px"><a href="#b-delivered-volatile-inventory-dry--low--high-and-water-mass-fraction-with-snow-line-dependence">b. Delivered volatile inventory (dry / low / high) and water mass fraction, with snow-line dependence</a></li><li style="margin-left:14px"><a href="#c-outgassed-atmosphere-regime-for-rocky-bodies-l2-under-the-redox-class">c. Outgassed atmosphere regime for rocky bodies (L2 under the redox class)</a></li><li style="margin-left:14px"><a href="#d-atmospheric-retention-regime-airless-exosphere-thin-moderate-dense-and-primary-hhe">d. Atmospheric retention regime (airless, exosphere, thin, moderate, dense) and primary H/He</a></li><li style="margin-left:14px"><a href="#e-sub-neptune--super-earth-envelope-l1-regime-l2-metallicity">e. Sub-Neptune / super-Earth envelope (L1 regime, L2 metallicity)</a></li><li style="margin-left:14px"><a href="#f-giant-planets-temperature-regime-metallicity-bins-co-bins-carbon-carrier">f. Giant planets: temperature regime, metallicity bins, C/O bins, carbon carrier</a></li><li style="margin-left:14px"><a href="#g-brown-dwarf-spectral-type-sequence-bd-free-floating-13-to-80-mj">g. Brown dwarf spectral-type sequence (BD; free-floating, 13 to 80 MJ)</a></li><li style="margin-left:14px"><a href="#h-hot-and-ultra-hot-jupiters">h. Hot and ultra-hot Jupiters</a></li><li style="margin-left:14px"><a href="#i-lava-world-vapor-regimes">i. Lava-world vapor regimes</a></li><li style="margin-left:14px"><a href="#j-frost-equilibrium-and-evolved-atmospheres-titan--pluto--venus--mars-like">j. Frost-equilibrium and evolved atmospheres (Titan-, Pluto-, Venus-, Mars-like)</a></li><li style="margin-left:14px"><a href="#k-comet-and-kbo-coma-volatile-classes-ratios-to-water">k. Comet and KBO coma volatile classes (ratios to water)</a></li><li style="margin-left:14px"><a href="#l-white-dwarf-and-pulsar-planet-options">l. White-dwarf and pulsar planet options</a></li><li style="margin-left:14px"><a href="#m-trace-and-minor-gas-presence-binary-rows-present-with-probability-w-absent-with-1-w">m. Trace and minor gas presence (binary rows: present with probability w, absent with 1-w)</a></li><li style="margin-left:14px"><a href="#n-clouds-hazes-and-dust-by-temperature-window-and-class">n. Clouds, hazes and dust by temperature window and class</a></li><li style="margin-left:14px"><a href="#o-ground-radioisotope-abundance-regimes-by-host-part-07">o. Ground radioisotope abundance regimes by host (part 07)</a></li><li style="margin-left:14px"><a href="#p-host-star-uv-regime-ozone-and-photochemistry">p. Host-star UV regime (ozone and photochemistry)</a></li><li style="margin-left:0px"><a href="#3-formula-quick-list-for-the-coder">3. Formula quick list for the coder</a></li><li style="margin-left:0px"><a href="#4-no-sourced-weights-yet">4. No sourced weights yet</a></li><li style="margin-left:0px"><a href="#5-conflicts-between-the-repo-and-part-05-and-inside-part-05">5. Conflicts between the repo and part 05 (and inside part 05)</a></li><li style="margin-left:0px"><a href="#6-recalled--to-verify">6. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#7-cross-links">7. Cross-links</a></li></ul></details>
+<p>Design requirement (project owner): for every composition category there is a table of options with weighted probabilities; each row has a class gate; the generator draws among the rows that pass the gate with weights normalised to 100 percent; a weight may be a function of star, formation distance, mass, temperature, pressure, redox and age; every weight carries its source. Rows without a sourced weight are marked <code>DESIGN Rn</code> with the nearest physical bracket so the generator can use a seeded range meanwhile. This part restates the recipes of part 05 (sections 2 to 13), part 06 (clouds, hazes, dust) and part 07 (ground radioisotopes) in that format, plus part 04 for escape and UV. Labels READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED are those of <code>_worker-rules.md</code>. Solar System bodies appear only as TEST calibration points. Nothing in the repo was edited.</p>
+<h2 id="1-schema">1. Schema</h2>
+<p><strong>Columns.</strong> <code>id | option | gate | weight w | weight source | status | notes</code>. The category is the section heading. Status is one of: <strong>SOURCED</strong> (the gate edges or weight numbers are taken directly from a read source), <strong>DERIVED</strong> (computed from a physical formula given in the row or a cited part), <strong>DESIGN Rn</strong> (no sourced weight; the bracket is in the weight column and <code>Rn</code> is the research item of section 4). A weight source ends in its verification label.</p>
+<p><strong>Symbols.</strong> M mass (Earth masses; MJ Jupiter masses), R radius (Earth radii), Teq, Ts, Tday (K), P (bar), x = a_form / a_snow, Phi standard normal CDF, N(m,s) normal, LN(med,s) log-normal with log10 x ~ N(log10 med, s), LU[a,b] log-uniform, c[lo,hi] a DESIGN constant, dIW log10 fO2 above the iron-wuestite buffer, X = xuv_index (insolation S times the star's cumulative-XUV ratio to the Sun's).</p>
+<p><strong>Gate vocabulary (names the real repo classes; <code>src/planetgen/tuning.py</code> PLANET_CLASSES, read in full).</strong> The repo has 20 classes: A B C D E F G H I J K L M N O P Q S T V. Type t (terrestrial): A B C D E F G H K L M N O P Q S V. Type g: I J T. Zone flags h (hot), e (ecosphere), c (cold), r (rogue-eligible): A,B hot only; C,D h e c r; E F G H K L M N O P Q V e only; I e c r; J h e c r; S h e c r; T c r. <code>HABITABLE_PLANET_CLASSES</code> = E F G H K L M O P Q V. <code>MOON_BLACKLIST</code> = Q S V. Shorthands used below: ROCKY = the 17 type-t letters; AIR = A B E F G H K L M N O P Q V (repo atmosphere text present); NOAIR = C D S (atmosphere None); GIANT = I J T; ROGUE = r flag (C D I J S T); BD = free-floating brown dwarf (rogue <code>mass_bin</code> 'brown-dwarf', 13 to 80 MJ, no class letter); COMET (bound or interstellar), AST (asteroid-field family: carbonaceous, stony, metallic, icy, basaltic, mixed, dust, collisional), WD and PSR hosts (white dwarf; <code>neutron-star:millisecond</code>). <code>[P]</code> after a letter (e.g. R[P]) marks a planned letter that is NOT in PLANET_CLASSES but is specified in <code>docs/design/habitability/atmospheres-retention-and-classes.md</code> (R sub-Neptune, U icy dwarf, W small ocean body, X ocean world, Y Titan-like, Z lifeless temperate). Physical clauses: M, R, Teq, P, T, host SpT, zone, age.</p>
+<p><strong>Corrected (GEN.840, the class cut-over GEN.646).</strong> The machine gates of the rows no longer name class letters: the class is derived from the finished body (<code>planet_classes.classify</code>), so it cannot be an input of the draw that finishes the body. A row names the kinds of body it supports (<code>terrestrial</code>, <code>giant</code>, <code>brown-dwarf</code>, <code>asteroid</code>, <code>comet</code>; a planet or moon is <code>terrestrial</code> or <code>giant</code> by its stored body type) and the stored conditions that must also hold. In the vocabulary above, read ROCKY as the kind terrestrial; AIR as terrestrial with a surface pressure of at least 1e-4 bar (10 Pa, the line under which <code>classify</code> calls a body airless); GIANT as the kind giant; LAVA as terrestrial with the zone and temperature conditions of the row; a sub-Neptune as a giant of 1 to 30 Earth masses (the envelope rows e and the flag d7 are giant rows, so a terrestrial body keeps no envelope until the formation module makes it a giant); the water-delivery rows b1 to b5 and b6 support terrestrial bodies and giants of at most 35 Earth masses (the classifier's ice-giant limit). A letter in the gate text of a row below is the old wording and is kept only as the history of the row.</p>
+<p><strong>Usability rule (Boss, 3:02 AM EDT).</strong> A row built on verified or partly verified material is usable if nothing verified contradicts it; where it is contradicted the verified source wins. Rows whose only support is RECALLED, SNIPPET, UNSUPPORTED or NOT REACHED stay DESIGN rows with a seeded bracket. See the master file section 9.</p>
+<p><strong>Combining a conditional weight with the gate.</strong> For a row i with input vector x: W_i = g_i(x) * w_i(x), where g_i is 1 if every clause of the gate holds, else 0. An edge clause written <code>T&gt;=T0 (s)</code> is softened to Phi((T-T0)/s) instead of 0/1 (only rows that list s). A <code>Phi-window (s)</code> weight on a range lo to hi is Phi((hi-T)/s) - Phi((lo-T)/s) (a missing end drops its term). Rows whose gates overlap share probability in the overlap (examples c, j).</p>
+<p><strong>Normalisation.</strong> p_i = W_i / sum_j W_j over the rows of that table. If the sum is 0 the table's fallback is used (the airless / bare / absent row; stated per table). <strong>Hierarchy:</strong> a table marked <code>L2, parent=id</code> is drawn only after its parent row won; joint p = p(parent) * p(row | parent). A weight may call another table's probability, written p[id]; draw order: host star, a, b, d, c, e, f, g, h, i, j, k, l, then m, n, o, p (m to p read earlier draws).</p>
+<p><strong>Continuous quantities.</strong> A PARAM row gives dist, parameters and truncation, e.g. dIW ~ N(mu, s). The same quantity as a BINS table: p_k = [Phi((hi_k-mu)/s) - Phi((lo_k-mu)/s)] / [Phi((hi-mu)/s) - Phi((lo-mu)/s)] over the truncated range; for LN use log10 edges; for LU p_k = ln(hi_k/lo_k)/ln(hi/lo). Either form may be coded; both are given for metallicity (f6) and carbon-to-oxygen ratio (f7).</p>
+<p><strong>DESIGN rows.</strong> The weight is a constant c[lo,hi]; the seeded draw picks c log-uniform in the bracket (uniform if lo=0) before normalising. Worked examples use the geometric midpoint, stated.</p>
+<p><strong>Seeded draw.</strong> u from the project's single seeded random wrapper; take the first row whose cumulative p is at least u; a PARAM row uses further seeded draws. No other random source.</p>
+<h2 id="2-category-tables">2. Category tables</h2>
+<h3 id="a-mantle-redox-magma-ocean-stage-later-upper-mantle">a. Mantle redox (magma-ocean stage, later upper mantle)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a1</td>
+<td>Magma-ocean-stage fO2 (PARAM)</td>
+<td>ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01)</td>
+<td>dIW ~ N(mu, sigma); mu = clamp(-2+1.25(log10 M+2), -2, 0.5) + clamp(log10 M, 0, 0.7324); sigma = 0.5 + 0.4 clamp(log10 M+1, 0, 1) (GEN.482b); floor on sigma 0.22 = 4 log10(1+0.005/0.037)</td>
+<td>anchors [R4154] via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN</td>
+<td>DERIVED</td>
+<td>sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced</td>
+</tr>
+<tr>
+<td>a2</td>
+<td>Later upper mantle (PARAM)</td>
+<td>ROCKY with air; tectonic or long-lived</td>
+<td>dIW ~ N(3.5+2 clamp(log10 M, -3, 0), 1.0), clip [-6,6]; the draw takes max(a2, a1) (GEN.482b)</td>
+<td>repo <code>atmosphere.py</code> REDOX_* ([D] fitted by eye to Moon, Mars, Earth)</td>
+<td>DERIVED</td>
+<td>far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me</td>
+</tr>
+<tr>
+<td>a3</td>
+<td>Building-block redox (PARAM)</td>
+<td>AST, C, D, small bodies</td>
+<td>dIW ~ U[-1.4, 0]</td>
+<td>[R3944: Table 2] via part 05 s3.2: EH about -1, eucrite -1.4 to -0.8, ranking CI&gt;CV&gt;H&gt;EH (READ); uniform shape DESIGN</td>
+<td>DESIGN R3</td>
+<td>bracket sourced, shape not</td>
+</tr>
+<tr>
+<td>a4</td>
+<td>White-dwarf debris (PARAM)</td>
+<td>host WD, rocky</td>
+<td>dIW ~ N(-1, 0.5), bracket [-1.37, -0.6]</td>
+<td>[R1154] data (READ); center and width RECALLED design (part 05 s10)</td>
+<td>DESIGN R10</td>
+<td></td>
+</tr>
+<tr>
+<td>a5</td>
+<td>Redox class R (reduced)</td>
+<td>ROCKY, any dIW</td>
+<td>Phi((0-dIW)/0.5)</td>
+<td>cut 0: [R2686] classes (READ) and part 05 s3.4 crossovers (COMPUTED); width 0.5 DESIGN</td>
+<td>DERIVED</td>
+<td>parent of c1, c2</td>
+</tr>
+<tr>
+<td>a6</td>
+<td>Redox class I (intermediate)</td>
+<td>same</td>
+<td>1 - w[a5] - w[a7]</td>
+<td>same</td>
+<td>DERIVED</td>
+<td>parent of c3</td>
+</tr>
+<tr>
+<td>a7</td>
+<td>Redox class O (oxidized)</td>
+<td>same</td>
+<td>Phi((dIW-2.5)/0.5)</td>
+<td>cut 2.5: H<sub>2</sub>S/SO2 crossover near +3 at 1200 K (COMPUTED, part 05 s3.4); equals repo REDOX_OXIDIZED_DELTA_IW</td>
+<td>DERIVED</td>
+<td>parent of c4</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example a (COMPUTED, Python).</strong> Planet M=1.0: a1 mu=+0.50; integrating a5 to a7 over the draw N(0.5,0.5) gives a5 R 0.240, a6 I 0.758, a7 O 0.002; the later stage a2 (mu 3.5, s 1.0) gives a5 R 0.001, a6 I 0.185, a7 O 0.814. Planet M=0.05: a1 mu=-1.13, classes a5 R 0.944, a6 I 0.056; later stage mu=0.90: a5 R 0.211, a6 I 0.713, a7 O 0.076. For a single drawn dIW=+0.5: R 0.159, I 0.841, O 0.000.</p>
+<h3 id="b-delivered-volatile-inventory-dry--low--high-and-water-mass-fraction-with-snow-line-dependence">b. Delivered volatile inventory (dry / low / high) and water mass fraction, with snow-line dependence</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>b1</td>
+<td>Dry delivery (H<sub>2</sub>O about 0, CO<sub>2</sub> 0.018 to 0.1 wt%)</td>
+<td>ROCKY, MOON, ROGUE; x known</td>
+<td>1 - P(not dry); x = a_form/a_snow; a_snow = sqrt(L_form/Lsun) (278.6/T_snow)^2 AU, T_snow=170 K gives 2.69 AU; P(not dry) a logit in ln x, log10 M and a hinge at x = 0.6 (the three nested events of <code>ngpps_formation_water.json</code>)</td>
+<td>classes and wt%: [R3378: Table 1] (READ), except the dry CO<sub>2</sub>: the delivered 0.6 wt% is replaced by a log bracket from the stored 0.018 to the High case's 0.1 wt%, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, <code>volatile-inventory-against-planet-totals.md</code>); the weight is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, <code>ngpps_formation_water.json</code>; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)</td>
+<td>DERIVED</td>
+<td>a_snow ranges 1.8 to 3.4 AU over the bracket</td>
+</tr>
+<tr>
+<td>b2</td>
+<td>Low delivery (H<sub>2</sub>O 0.05, CO<sub>2</sub> 0.01 wt%)</td>
+<td>same</td>
+<td>P(not dry) - P(high or rich)</td>
+<td>[R3378: Table 1] (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, <code>ngpps_formation_water.json</code>; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN)</td>
+<td>DERIVED</td>
+<td>stored in mantle 0.015 and 0.0022 wt%</td>
+</tr>
+<tr>
+<td>b3</td>
+<td>High delivery (H<sub>2</sub>O 0.5, CO<sub>2</sub> 0.1 wt%)</td>
+<td>same</td>
+<td>P(high or rich) - P(rich) + (1 - c) P(rich)</td>
+<td>[R3378: Table 1] (READ); weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, <code>ngpps_formation_water.json</code>; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c is the plateau of b4</td>
+<td>DERIVED</td>
+<td>stored 0.045 and 0.005 wt%; D_H2O 0.01</td>
+</tr>
+<tr>
+<td>b4</td>
+<td>Water-rich, ocean world (&gt;=10 wt% water)</td>
+<td>ROCKY, S, V, or sub-Neptune (I, R[P])</td>
+<td>c P(rich), c in [0,1], 1 as fitted</td>
+<td>hycean needs &gt;=10 wt% water ([R2804] READ); refractories &gt;50 wt% of solids caps water+ices at 50 wt% ([R4335] READ); the water fraction f &gt;= 0.1 share is weight: the Bern NGPPS population against the formation distance and the mass (10506 planets of 0.5 to 30 Earth masses; COMPUTED, GEN.802, <code>ngpps_formation_water.json</code>; the class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN); c bracketed 0 to 1 because published shares run from 3 percent [R3801] to 87 percent</td>
+<td>DERIVED</td>
+<td>feeds e3, e4</td>
+</tr>
+<tr>
+<td>b5</td>
+<td>Continuous H<sub>2</sub>O fraction given b2 or b3 (PARAM)</td>
+<td>b2 or b3 won</td>
+<td>log10 W_H2O ~ U[log10 5e-4, log10 5e-3]</td>
+<td>part 05 s3.1 rule between Ortenzi cases (READ values, rule DESIGN)</td>
+<td>DESIGN R2</td>
+<td>bins low/high 50/50</td>
+</tr>
+<tr>
+<td>b6</td>
+<td>Ejected rogue, water-rich</td>
+<td>ROGUE</td>
+<td>chance 0.35 (terrestrial), 0.8 (sub-Neptune); fraction LU[1e-4, 0.1]</td>
+<td>repo <code>tuning.py</code> ROGUE_WATER_* ([D] defaults)</td>
+<td>DESIGN R2</td>
+<td>Earth oceans 2.3e-4</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example b (COMPUTED).</strong> L=1 Lsun, a_snow 2.686 AU, c = sqrt(0.05*0.4) = 0.141. Formed at 1.2 AU (x=0.447, s=0.118): b1 dry 0.7782, b2 low 0.2077, b3 high 0.0139, b4 water-rich 0.0002. Formed at 4.03 AU (x=1.5, s=0.734): b1 dry 0.0671, b2 low 0.3701, b3 high 0.5099, b4 water-rich 0.0529.</p>
+<h3 id="c-outgassed-atmosphere-regime-for-rocky-bodies-l2-under-the-redox-class">c. Outgassed atmosphere regime for rocky bodies (L2 under the redox class)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>c1</td>
+<td>R, hot: H<sub>2</sub>-H2O-CO (CO<sub>2</sub>, H<sub>2</sub>S)</td>
+<td>L2, parent=a5; T&gt;=950 K (s 50)</td>
+<td>1</td>
+<td>speciation at 1200 K, 1 bar, dIW 0: H<sub>2</sub> .48 H<sub>2</sub>O .30 CO .11 CO<sub>2</sub> .051 H<sub>2</sub>S .033 (part 05 s3.4, COMPUTED)</td>
+<td>DERIVED</td>
+<td>CH<sub>4</sub> 1.7e-5 there</td>
+</tr>
+<tr>
+<td>c2</td>
+<td>R, cool and dense: CH<sub>4</sub>-H2O-NH3-H2</td>
+<td>L2, parent=a5; T&lt;=1100 K (s 50); P&gt;=10</td>
+<td>1</td>
+<td>CH<sub>4</sub> about 0.24 at 1000 K 100 bar; NH<sub>3</sub> .015 to .02 at 800 K 100 bar (part 05 s3.4, COMPUTED)</td>
+<td>DERIVED</td>
+<td>Ar_40 rule in c5</td>
+</tr>
+<tr>
+<td>c3</td>
+<td>I: H<sub>2</sub>O-CO2 (CO, N<sub>2</sub>)</td>
+<td>L2, parent=a6</td>
+<td>1</td>
+<td>[R3945: Table 3]: H<sub>2</sub>O 49 to 80 %, CO<sub>2</sub> 12 to 42 %, 1000 K, 100 bar and 2000 K (part 05 s3.4, READ)</td>
+<td>DERIVED</td>
+<td>crust gives HF, HCl (m5, m6)</td>
+</tr>
+<tr>
+<td>c4</td>
+<td>O: H<sub>2</sub>O-CO2-SO2</td>
+<td>L2, parent=a7</td>
+<td>1</td>
+<td>BSE 62 % H<sub>2</sub>O, 20 % SO<sub>2</sub>, 12 % CO<sub>2</sub> ([R3945], READ); dIW+4 at 1200 K 1 bar: H<sub>2</sub>O .78 CO<sub>2</sub> .16 SO<sub>2</sub> .021 (COMPUTED)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>c5</td>
+<td>After cooling: H<sub>2</sub>O condensed, CO<sub>2</sub>-N2 residual</td>
+<td>after c1 to c4; Ts&lt;647 K (RECALLED T_crit of water) and ocean mass</td>
+<td>1</td>
+<td>[R4154]: CO-rich gas then CO<sub>2</sub>-N2 near 97:3 once H<sub>2</sub>O condenses; about 99 % of H<sub>2</sub>O and 35 % of CO<sub>2</sub> dissolve in the melt, N<sub>2</sub> about 0 % (part 08 s2, READ)</td>
+<td>DERIVED</td>
+<td>Ar_40 rule: n = f_degas f_Ar K40 (exp(lam t)-1), f_degas LU[0.05,0.7] (part 05 s3.6; DESIGN R3)</td>
+</tr>
+<tr>
+<td>c6</td>
+<td>Steam atmosphere kept</td>
+<td>Ts&gt;=647 K</td>
+<td>1 - w[c5]</td>
+<td>same</td>
+<td>DERIVED</td>
+<td>fallback row</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example c (COMPUTED).</strong> dIW=+0.5, Ts=1000 K, P=100 bar. L1 (a5/a6/a7) = 0.159 / 0.841 / 0.000. L2 for R: c1 gate Phi((1000-950)/50) = 0.841, c2 gate Phi((1100-1000)/50) = 0.977 (P&gt;=10 passes), so p(c1|R) = 0.463, p(c2|R) = 0.537; joint c1 0.073, c2 0.085, c3 0.841.</p>
+<h3 id="d-atmospheric-retention-regime-airless-exosphere-thin-moderate-dense-and-primary-hhe">d. Atmospheric retention regime (airless, exosphere, thin, moderate, dense) and primary H/He</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>d1</td>
+<td>Airless</td>
+<td>ROCKY, MOON, AST</td>
+<td>P_K(r&gt;30)</td>
+<td>shoreline S_cs = K v^4, K LU[3.0e-4, 6.6e-4] fitted to 13 bodies (docs/design/habitability/atmospheres-retention-and-classes.md s3.1, [C]); underlying [R4862] (SNIPPET)</td>
+<td>DERIVED</td>
+<td>fallback row</td>
+</tr>
+<tr>
+<td>d2</td>
+<td>Trace or exosphere (outgassed only)</td>
+<td>same</td>
+<td>P_K(2.5&lt;r&lt;=30)</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>d3</td>
+<td>Tenuous</td>
+<td>same</td>
+<td>P_K(1&lt;r&lt;=2.5)</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>d4</td>
+<td>Moderate</td>
+<td>same</td>
+<td>P_K(0.7&lt;r&lt;=1)</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>d5</td>
+<td>Dense</td>
+<td>same</td>
+<td>P_K(r&lt;=0.7)</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>d6</td>
+<td>Pressure cap of the winning row (PARAM)</td>
+<td>d1 to d5</td>
+<td>P_max = 0, 1e-5, 0.01, 0.1 bar for d1, d2, d3, d4; none for d5; P = min(supply, P_max, vapor)</td>
+<td>smooth caps suggested in the project doc s3.6 (values DESIGN)</td>
+<td>DESIGN R4</td>
+<td></td>
+</tr>
+<tr>
+<td>d7</td>
+<td>Primary H/He kept (flag outside the d1 to d5 draw)</td>
+<td>M 1 to 30, lambda_H2=2.016 amu v_esc^2/(2 k T_exo)&gt;=30 (T_exo = Teq + min(1500, 750 sqrt(F_xuv_rel)) K)</td>
+<td>goes to table e (e1 or e2)</td>
+<td>same doc s3.2 and s3.4 ([C])</td>
+<td>DERIVED</td>
+<td>gate only</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example d (COMPUTED).</strong> r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K log-uniform, so P_K(r in [r0,r1]) is the log-length of the K interval. Planet M=0.3, R=0.68 gives v=7.43 km/s. Sun-like host with X=1.5: d5 dense 0.000, d4 moderate 0.372, d3 tenuous 0.628, d2 trace 0.000, d1 none 0.000. Same planet, M-dwarf host with X=15 (the doc's factor of 10 in XUV exposure): d5 dense 0.000, d4 moderate 0.000, d3 tenuous 0.000, d2 trace 1.000, d1 none 0.000.</p>
+<h3 id="e-sub-neptune--super-earth-envelope-l1-regime-l2-metallicity">e. Sub-Neptune / super-Earth envelope (L1 regime, L2 metallicity)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>e1</td>
+<td>Bare rock (envelope stripped)</td>
+<td>S, V, I, T, R[P]; M 1 to 30; not d1-only</td>
+<td>(1-p[b4]) (share lost); share lost = 1 - envelope left / f_env0 M, the envelope left from the hydro-based loss rate of [R2512] integrated over the star's XUV history from the onset age (GEN.822); f_env0=c[0.05,0.2]</td>
+<td>hydro-based rate: [R2512] (READ); XUV history: Johnstone-type decay of <code>activity</code> (DESIGN); onset age and f_env0 tuned to the radius valley (GEN.509, GEN.822)</td>
+<td>DERIVED</td>
+<td>envelope fraction 0.5 to 10 % of mass</td>
+</tr>
+<tr>
+<td>e2</td>
+<td>H/He envelope retained</td>
+<td>same</td>
+<td>(1-p[b4]) (1 - share lost)</td>
+<td>same</td>
+<td>DERIVED</td>
+<td>goes to e5, e6</td>
+</tr>
+<tr>
+<td>e3</td>
+<td>Water world, steam/ocean, no H<sub>2</sub> envelope</td>
+<td>same, p[b4]&gt;0</td>
+<td>p[b4] (1-eta), eta=c[0.1,0.5]</td>
+<td>TEST: GJ 9827 d H2O&gt;31 % (READ)</td>
+<td>DESIGN R1</td>
+<td></td>
+</tr>
+<tr>
+<td>e4</td>
+<td>Hycean (H<sub>2</sub> &lt;=0.1 wt%, water &gt;=10 wt%, bottom 300 to 400 K)</td>
+<td>same</td>
+<td>p[b4] eta</td>
+<td>[R2804] (READ)</td>
+<td>DESIGN R1</td>
+<td>radii up to 2.6 R_E at 10 M_E</td>
+</tr>
+<tr>
+<td>e5</td>
+<td>Envelope metal mass fraction Z (BINS)</td>
+<td>L2, parent=e2</td>
+<td>LU[0.01, 0.6]: bins 0.01-0.03, 0.03-0.1, 0.1-0.3, 0.3-0.6</td>
+<td>bracket from TEST planets: GJ 1214b &gt;100x solar, TOI-270 d 58 wt%, K2-18b near solar to tens of x (READ); occurrence-weighted distribution NOT REACHED</td>
+<td>DESIGN R1</td>
+<td>mean molecular weight mu = 2.4 + 3.1 log10(Z/0.01)/log10(58) (matches 2.4 and 5.5, part 05 s5)</td>
+</tr>
+<tr>
+<td>e6</td>
+<td>L2 carbon carrier CH<sub>4</sub> vs CO<sub>2</sub>/CO</td>
+<td>parent=e2</td>
+<td>CH<sub>4</sub>: Phi((500-Teq)/100)</td>
+<td>CH<sub>4</sub> to CO near 500 K (400 to 600) for planets, [R4863] (READ); width = quoted half-range</td>
+<td>DERIVED</td>
+<td>N as N<sub>2</sub>; NH<sub>3</sub> not seen (K2-18b)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example e (COMPUTED).</strong> M=5, core R=5^0.27=1.54, S=100: f_lost = 0.0156 of the planet mass. With f_env0=0.03 the ratio is 0.520. Formed at x=1.5 (p[b4] = 0.053), eta = 0.224 (bracket midpoint): e1 0.492, e2 0.455, e3 0.041, e4 0.012. L2 (e5) bin probabilities 0.268, 0.294, 0.268, 0.169 with mean mu 2.82, 3.70, 4.58, 5.26.</p>
+<h3 id="f-giant-planets-temperature-regime-metallicity-bins-co-bins-carbon-carrier">f. Giant planets: temperature regime, metallicity bins, C/O bins, carbon carrier</h3>
+<p>Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks them 2ND-HAND at best), so the regimes below follow part 05 s7.4.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>f1</td>
+<td>Cold giant, ice-giant envelope (H<sub>2</sub>O, NH<sub>3</sub>, H<sub>2</sub>S cloud-depleted; CH<sub>4</sub> 5e-4 m)</td>
+<td>GIANT; Teq&lt;200 K</td>
+<td>Phi-window (s 100 K)</td>
+<td>boundaries 200, 700, 1300 from part 05 s7.4 (COMPUTED/design) and [R0608]: NH<sub>3</sub> clouds about 200 K, water cloud about 350 K, N<sub>2</sub> to NH<sub>3</sub> about 700 K (READ); width DESIGN</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>f2</td>
+<td>Warm giant, 200 to 700 K (CO quench-set 1e-9 to 1e-5)</td>
+<td>GIANT</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>f3</td>
+<td>T-like, 700 to 1300 K (CH<sub>4</sub>, NH<sub>3</sub> 1.2e-4 m, Na, K gas above clouds)</td>
+<td>GIANT, BD</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>f4</td>
+<td>Hot, Teq&gt;=1300 K (go to table h; BD to table g)</td>
+<td>GIANT zone h</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>f5</td>
+<td>Metallicity m (PARAM)</td>
+<td>GIANT</td>
+<td>log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0]</td>
+<td>center: [R4352] Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design)</td>
+<td>DERIVED</td>
+<td>[R0710] gives lower Z for sub-Saturns</td>
+</tr>
+<tr>
+<td>f6</td>
+<td>Metallicity bins of f5 (BINS)</td>
+<td>same</td>
+<td>edges log10 m = -0.5, 0, 0.5, 1.0, 1.5, 2.0</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>f7</td>
+<td>C/O (PARAM, mixture)</td>
+<td>GIANT, BD</td>
+<td>(1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03</td>
+<td>stellar C/O median 0.47 with no star above 0.8 (N=849; recounted on the full 1,592-star Brewer and Fischer table on the [R0168] scale: median 0.49, 0.9 percent above 0.8, 97.5th percentile 0.68); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, READ, gave 0.15) (READ, COMPUTED)</td>
+<td>DERIVED R5</td>
+<td>bins &lt;0.35, 0.35-0.7, 0.7-0.8, 0.8-1.0, &gt;1.0</td>
+</tr>
+<tr>
+<td>f8</td>
+<td>Carbon carrier CH<sub>4</sub> vs CO</td>
+<td>GIANT, BD</td>
+<td>CH<sub>4</sub>: Phi((T_trans-T)/100); T_trans 500 (planets), 1100 (BD)</td>
+<td>[R4863] (READ); generator should evaluate the quench formula t_q with its own g, m, Kzz instead</td>
+<td>DERIVED</td>
+<td>HCN, C<sub>2</sub>H<sub>2</sub> appear at C/O&gt;=1 ([R2801, R2803] READ)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example f (COMPUTED).</strong> Giant M=0.3 MJ, Teq=950 K. L1: f2 warm 0.0062, f3 T-like 0.9936, f4 hot (to h) 0.0002. Zpl/Zstar = 16.7 (log10 = 1.222). Metallicity bins (sigma 0.3): 0.000, 0.008, 0.223, 0.596, 0.173; with sigma 0.26: 0.000, 0.003, 0.194, 0.662, 0.141. C/O bins with f_tail 0.03: 0.2-0.35: 0.106, 0.35-0.7: 0.747, 0.7-0.8: 0.117, 0.8-1.0: 0.009, 1.0-1.5: 0.021. An unmodified log-normal (0.55, 0.15 dex) would put 0.139 above 0.8; see conflicts.</p>
+<h3 id="g-brown-dwarf-spectral-type-sequence-bd-free-floating-13-to-80-mj">g. Brown dwarf spectral-type sequence (BD; free-floating, 13 to 80 MJ)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>g1</td>
+<td>Young hot, late-M-like</td>
+<td>BD; Teff 2200 to 2950 K</td>
+<td>Phi-window (s 100 K)</td>
+<td>cap 2950 K = the BHAC15 temperature of the hydrogen-burning limit at its peak (<code>substellar_ceiling.HOTTEST_K</code>, GEN.494); lower edge DESIGN</td>
+<td>DESIGN R15</td>
+<td></td>
+</tr>
+<tr>
+<td>g2</td>
+<td>L dwarf: H<sub>2</sub>O, CO (5e-4 m), Na, K, FeH, CrH; Fe and silicate clouds</td>
+<td>BD; 1300 to 2200 K</td>
+<td>Phi-window</td>
+<td>part 05 s7.4 (COMPUTED); [R0608] (READ)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>g3</td>
+<td>T dwarf: CH<sub>4</sub>, H<sub>2</sub>O, NH<sub>3</sub>, Na, K; sulfide and salt clouds</td>
+<td>BD; 700 to 1300 K</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>g4</td>
+<td>Late T, NH<sub>3</sub>-rich (T8 to Y0 at 460 to 686 K), water cloud near 350 K deeper</td>
+<td>BD; 460 to 686 K</td>
+<td>Phi-window</td>
+<td>the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K ([R2374: Table 13], 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494)</td>
+<td>DERIVED R15</td>
+<td></td>
+</tr>
+<tr>
+<td>g5</td>
+<td>Y dwarf: CH<sub>4</sub>, water cloud</td>
+<td>BD; Teff&lt;500 K</td>
+<td>Phi-window</td>
+<td>part 05 s7.4</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>g6</td>
+<td>Carbon carrier CH<sub>4</sub> vs CO</td>
+<td>BD</td>
+<td>CH<sub>4</sub>: Phi((1100-Teff)/100)</td>
+<td>[R4863] 1100+-100 K (READ)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example g (COMPUTED).</strong> M=40 MJ, age 3 Gyr: Teff from L = 4e-5 Lsun (t/Gyr)^-1.3 (M/0.05 Msun)^2.64 (repo ROGUE_BROWN_DWARF_*, citing Burrows and Liebert; 2ND-HAND), radius 1 RJ, gives Teff = 848 K. Table: g3 T 0.9310, g4 T/Y 0.0687, g5 Y 0.0002. P(CH<sub>4</sub> is the carbon carrier) = 0.994.</p>
+<h3 id="h-hot-and-ultra-hot-jupiters">h. Hot and ultra-hot Jupiters</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>h1</td>
+<td>Warm-like, quench-enhanced CH<sub>4</sub>, NH<sub>3</sub>, HCN</td>
+<td>GIANT zone h; Tday&lt;1500 K</td>
+<td>Phi-window (s 100 K)</td>
+<td>part 05 s8 recipe; [R3177] (READ)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>h2</td>
+<td>CO + H<sub>2</sub>O + H<sub>2</sub>; CO<sub>2</sub> rises with m</td>
+<td>Tday 1500 to 2200 K</td>
+<td>Phi-window</td>
+<td>the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness)</td>
+<td>DERIVED R6</td>
+<td></td>
+</tr>
+<tr>
+<td>h3</td>
+<td>Thermally dissociated: H, OH, H-, Na, K, Fe, Mg, SiO, ions</td>
+<td>Tday&gt;2200 K</td>
+<td>Phi-window</td>
+<td>the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518) (COMPUTED, DESIGN softness)</td>
+<td>DERIVED R6</td>
+<td>no mole fractions without FastChem or GGchem</td>
+</tr>
+<tr>
+<td>h4</td>
+<td>TiO/VO gas kept (leaky cold trap)</td>
+<td>h2 or h3; grain radius a (um)</td>
+<td>P(log Kzz &gt;= Kmin(a)); Kzz ~ LU[1e7, 1e11]; log Kmin = 7.48 + 3.52 (log10 a + 1)/2</td>
+<td>a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519) (READ, COMPUTED)</td>
+<td>DERIVED R6</td>
+<td>TiO above 2000 to 2300 K, VO above 1700 to 1900 K</td>
+</tr>
+<tr>
+<td>h5</td>
+<td>C/O&gt;=1 branch (HCN, C<sub>2</sub>H<sub>2</sub>; TiO, VO depleted)</td>
+<td>all h</td>
+<td>p[f7 bins &gt;=1.0]</td>
+<td>[R2801, R2803] (READ)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example h (COMPUTED).</strong> Tday=2500 K: h2 CO-H2O 0.0013, h3 dissociated 0.9987. Tday=2150 K: h2 CO-H2O 0.6915, h3 dissociated 0.3085. TiO/VO kept for 1 um grains: log Kmin = 9.24, p = 0.440.</p>
+<h3 id="i-lava-world-vapor-regimes">i. Lava-world vapor regimes</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>i1</td>
+<td>Type I: Na, O<sub>2</sub>, O, Fe</td>
+<td>ROCKY zone h (A, B, S, C); Tp&lt;2033 K (s 60)</td>
+<td>Phi-window</td>
+<td>[R3059] text boundaries (READ); s covers the caption list, which differs by 2 to 155 K</td>
+<td>SOURCED</td>
+<td>prior if Tp undrawn: 189 of 193 Kepler candidates (0.979)</td>
+</tr>
+<tr>
+<td>i2</td>
+<td>Type II: + SiO, Mg</td>
+<td>2033 to 2588 K</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>SOURCED</td>
+<td>3 of 193 (0.016)</td>
+</tr>
+<tr>
+<td>i3</td>
+<td>Type III: O<sub>2</sub>, O, SiO columns equal</td>
+<td>2588 to 2890 K</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>SOURCED</td>
+<td>0 of 193</td>
+</tr>
+<tr>
+<td>i4</td>
+<td>Type IV: SiO &gt; O<sub>2</sub></td>
+<td>2890 to 3168 K</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>SOURCED</td>
+<td>1 of 193 (0.005)</td>
+</tr>
+<tr>
+<td>i5</td>
+<td>Type V: SiO, O, O<sub>2</sub>, Na</td>
+<td>Tp&gt;3168 K</td>
+<td>Phi-window</td>
+<td>same</td>
+<td>SOURCED</td>
+<td>0 of 193</td>
+</tr>
+<tr>
+<td>i6</td>
+<td>Bare silicate vapor (volatile-free melt) vs volatile-bearing CO<sub>2</sub>/CO</td>
+<td>ROCKY zone h, 1&lt;=M&lt;=10</td>
+<td>volatile-bearing c[0.1,0.9], bare 1-c</td>
+<td>2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511) (READ, COMPUTED)</td>
+<td>DERIVED R7</td>
+<td>P_eq: log10 P = k1 exp(k2 Ts), small vapor fraction k1=-34.7, k2=-0.00112 ([R2380], 1400 to 2800 K, READ)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example i (COMPUTED).</strong> Tp=2060 K: i1 I 0.326, i2 II 0.674; P_eq = 3.5e-04 bar. Tp=2500 K: i2 II 0.929, i3 III 0.071; P_eq = 7.8e-03 bar.</p>
+<h3 id="j-frost-equilibrium-and-evolved-atmospheres-titan--pluto--venus--mars-like">j. Frost-equilibrium and evolved atmospheres (Titan-, Pluto-, Venus-, Mars-like)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>j1</td>
+<td>Venus-like dense CO<sub>2</sub>-N2 (97:3), SO<sub>2</sub> trace</td>
+<td>N, V, A, S[with air]; S_eff above the runaway limit (1.04 to 1.11 for a Sun-like star); dIW&gt;=1; water lost</td>
+<td>c[0.1,1]</td>
+<td>CO<sub>2</sub>-N2 ratio: [R4154] (part 08 s2, READ); runaway limit [R2446]/2014 ([R] in project doc); prior DESIGN</td>
+<td>DESIGN R8</td>
+<td>S_eff limit depends on Teff (Kopparapu polynomial)</td>
+</tr>
+<tr>
+<td>j2</td>
+<td>Mars-like thin CO<sub>2</sub>-N2-Ar</td>
+<td>K, L, U[P]; M&lt;0.5; 1&lt;r&lt;=2.5 (d3); 190&lt;=Ts&lt;=270 K</td>
+<td>c[0.1,1]</td>
+<td>same CO<sub>2</sub>-N2 ratio at lower pressure (Sossi, READ); TEST Mars CO<sub>2</sub> .96 N<sub>2</sub> .019 Ar .019</td>
+<td>DESIGN R8</td>
+<td></td>
+</tr>
+<tr>
+<td>j3</td>
+<td>Titan-like N<sub>2</sub>-CH4 (N<sub>2</sub> 0.5 to 2 bar)</td>
+<td>Y[P], MOON; 57&lt;=Ts&lt;=125 K (s 5), r&lt;0.7, S&lt;=0.02, R 1500 to 4000 km</td>
+<td>c[0.1,1]</td>
+<td>T window: N<sub>2</sub> ice p_sat 30.6 to 62.2 K for 1e-7 to 0.1 bar (part 06 s2.4, 2ND-HAND); TEST Titan CH<sub>4</sub> 1.5 to 5.7 % ([R3289], READ)</td>
+<td>DESIGN R8</td>
+<td></td>
+</tr>
+<tr>
+<td>j4</td>
+<td>Pluto/Triton-like frost equilibrium: N<sub>2</sub> &gt;99 %, CH<sub>4</sub> 0.3 %, CO 0.05 %</td>
+<td>D, C, U[P]; 30&lt;=Ts&lt;=67 K (s 5), r&lt;1</td>
+<td>c[0.1,1]</td>
+<td>p_i = chi_i p_sat,i(Ts) (Raoult); TEST values ([R3186] 2ND-HAND); N<sub>2</sub>/CO/CH4 vapor-pressure relations not reached</td>
+<td>DESIGN R8</td>
+<td>CO column vs near-surface ratio differ 8x</td>
+</tr>
+<tr>
+<td>j5</td>
+<td>Abiotic O<sub>2</sub> world (10 to 100+ bar O<sub>2</sub>, or CO build-up)</td>
+<td>Z[P]; host M dwarf, age&gt;1 Gyr, HZ, 0.3&lt;=M&lt;=5</td>
+<td>c[0.05,0.5]</td>
+<td>[R2769] via [R3014, R3016] (2ND-HAND): 240 bar O<sub>2</sub> per ocean; [R1511] cap 50 % CO<sub>2</sub> loss (READ)</td>
+<td>DESIGN R8</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example j (COMPUTED).</strong> R=2500 km, Ts=61 K, r=0.5, S=0.012, all priors at the midpoint 0.316: gates j3 and j4 both pass (edge overlap 57 to 67 K): j3 Titan-like 0.471, j4 frost-eq 0.529. (This reproduces the transition region where N<sub>2</sub> is neither thick nor frozen out.)</p>
+<h3 id="k-comet-and-kbo-coma-volatile-classes-ratios-to-water">k. Comet and KBO coma volatile classes (ratios to water)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k1</td>
+<td>CO<sub>2</sub>-dominated coma</td>
+<td>COMET active (perihelion&lt;3 AU, repo threshold), icy AST</td>
+<td>0.5</td>
+<td>13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520) (READ)</td>
+<td>DERIVED R9</td>
+<td></td>
+</tr>
+<tr>
+<td>k2</td>
+<td>CO-dominated coma</td>
+<td>same</td>
+<td>1/3</td>
+<td>9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ)</td>
+<td>DERIVED R9</td>
+<td>Hale-Bopp CO 23 %, Hyakutake 18.2 % of H<sub>2</sub>O (READ)</td>
+</tr>
+<tr>
+<td>k3</td>
+<td>Comparable CO<sub>2</sub> and CO</td>
+<td>same</td>
+<td>0.1</td>
+<td>3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520) (READ)</td>
+<td>DERIVED R9</td>
+<td>the three weights sum to 0.93; normalised</td>
+</tr>
+<tr>
+<td>k4</td>
+<td>CO<sub>2</sub>/H2O (PARAM)</td>
+<td>all k</td>
+<td>LN(0.12, 0.5 dex)</td>
+<td>geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED)</td>
+<td>DERIVED R9</td>
+<td></td>
+</tr>
+<tr>
+<td>k5</td>
+<td>CO/H2O (PARAM)</td>
+<td>all k</td>
+<td>LN(0.03, 0.6 dex), range 0.005 to 0.23</td>
+<td>geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520) (READ, COMPUTED)</td>
+<td>DERIVED R9</td>
+<td></td>
+</tr>
+<tr>
+<td>k6</td>
+<td>CH<sub>3</sub>OH, NH<sub>3</sub>, HCN to H<sub>2</sub>O (PARAM)</td>
+<td>all k</td>
+<td>LU[0.002, 0.026], LU[0.001, 0.0073], LU[0.0009, 0.0029]</td>
+<td>[R4704] cross-comet ranges (READ)</td>
+<td>SOURCED</td>
+<td>log-uniform shape DESIGN</td>
+</tr>
+<tr>
+<td>k7</td>
+<td>Single-comet species: CH<sub>4</sub> 3.4e-3, C<sub>2</sub>H<sub>6</sub> 2.9e-3, H<sub>2</sub>CO 3.2e-3, H<sub>2</sub>S 1.1e-2, N<sub>2</sub> 8.9e-4, O<sub>2</sub> 3.1e-2, OCS 4.1e-4, SO<sub>2</sub> 1.3e-3, Ar 5.8e-6, Kr 4.9e-7, Xe 2.4e-7, Ne &lt;5e-8</td>
+<td>all k</td>
+<td>LN(67P value, 0.6 dex)</td>
+<td>CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO and H<sub>2</sub>S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N<sub>2</sub>, O<sub>2</sub>, OCS, SO<sub>2</sub>, Ar, Kr and Xe are from one comet (67P, [R3835]) with a design width of 0.6 dex and stay stand-in values (GEN.520) (READ, DESIGN width)</td>
+<td>DERIVED R9</td>
+<td>O<sub>2</sub> presence probability unsourced</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example k (COMPUTED).</strong> Class table normalised: k1 CO<sub>2</sub>-dominated 0.536, k2 CO-dominated 0.357, k3 comparable 0.107. CO<sub>2</sub>/H2O bins (&lt;0.03, 0.03-0.1, 0.1-0.3, &gt;0.3): 0.114, 0.323, 0.350, 0.213.</p>
+<h3 id="l-white-dwarf-and-pulsar-planet-options">l. White-dwarf and pulsar planet options</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>l1</td>
+<td>Rocky body with silicate-vapor exosphere (Na, SiO, Mg, Fe)</td>
+<td>host WD or PSR; rocky</td>
+<td>Phi((log10 P_eq(Ts) + 6)/0.5), P_eq from i6 formula</td>
+<td>[R2380] (READ); threshold 1e-6 bar and width DESIGN</td>
+<td>DESIGN R10</td>
+<td>composition via a4</td>
+</tr>
+<tr>
+<td>l2</td>
+<td>Airless</td>
+<td>same</td>
+<td>1 - w[l1]</td>
+<td>complement of l1</td>
+<td>DESIGN R10</td>
+<td>fallback row</td>
+</tr>
+<tr>
+<td>l3</td>
+<td>Surviving H/He giant</td>
+<td>host WD, GIANT</td>
+<td>c[0,0.1]</td>
+<td>no more than 1 percent of white dwarfs should host close-in giants ([R3224], three giants, read in the abstract and discussion, and as [R4532] quotes it; READ); the bracket 0 to 0.1 holds the wider orbits that survive</td>
+<td>DESIGN R10</td>
+<td>composition via tables f and g</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example l (COMPUTED).</strong> WD host, Ts=1800 K: P_eq = 2.39e-05 bar; w[l1] = 0.997. No sourced composition exists for pulsar-planet atmospheres.</p>
+<h3 id="m-trace-and-minor-gas-presence-binary-rows-present-with-probability-w-absent-with-1-w">m. Trace and minor gas presence (binary rows: present with probability w, absent with 1-w)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>m1</td>
+<td>O<sub>3</sub>, O<sub>2</sub>-supported</td>
+<td>O2&gt;=1e-3 PAL (any host)</td>
+<td>1</td>
+<td>column LU[192, 279] DU at 100 % PAL, Sun (Kozakis fit via project doc 2ND-HAND; [R0875], READ); 18 DU at 0.1 % PAL</td>
+<td>SOURCED</td>
+<td>M-dwarf columns larger [R3999]</td>
+</tr>
+<tr>
+<td>m2</td>
+<td>O<sub>3</sub>, abiotic without O<sub>2</sub></td>
+<td>O2&lt;1e-3 PAL; CO<sub>2</sub>-rich, H<sub>2</sub>-poor, M or K host</td>
+<td>c[0.1,0.6]</td>
+<td>O<sub>3</sub> about 10 % of Earth column ([R1137], 2ND-HAND); O3&gt;1 ppm ([R1511], READ)</td>
+<td>DESIGN R11</td>
+<td></td>
+</tr>
+<tr>
+<td>m3</td>
+<td>N<sub>2</sub>O</td>
+<td>HAB with life_chemical, or SEP-driven weakly reducing air</td>
+<td>c[0.05,0.5]</td>
+<td>TEST ~400 ppbv ([R0052] READ); presence unsourced</td>
+<td>DESIGN R11</td>
+<td>longer lifetime around M dwarfs</td>
+</tr>
+<tr>
+<td>m4</td>
+<td>PH<sub>3</sub></td>
+<td>ROCKY with air</td>
+<td>c[0,0.05]</td>
+<td>TEST 20 ppb Venus claim ([R1672] READ); lifetime hours ([R4163], READ)</td>
+<td>DESIGN R11</td>
+<td></td>
+</tr>
+<tr>
+<td>m5</td>
+<td>HCl</td>
+<td>c1 to c4; crust-like inventory</td>
+<td>c[0.1,0.5]</td>
+<td>1.4 % at 1000 K 100 bar, crust composition ([R3945] READ)</td>
+<td>DESIGN R11</td>
+<td></td>
+</tr>
+<tr>
+<td>m6</td>
+<td>HF</td>
+<td>same</td>
+<td>c[0.1,0.5]</td>
+<td>4.5 % at 1000 K 1e-6 bar, crust composition (READ)</td>
+<td>DESIGN R11</td>
+<td></td>
+</tr>
+<tr>
+<td>m7</td>
+<td>Na gas</td>
+<td>f2, f3, h, i, BD; T in the 0.1-1 bar layer</td>
+<td>Phi((T-962)/33)</td>
+<td>Na<sub>2</sub>S T_cond 929 to 996 K at 0.1 to 1 bar (part 06 s2.6, COMPUTED from READ fit); Na 1.66e-6 per H times m</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>m8</td>
+<td>K gas</td>
+<td>same</td>
+<td>Phi((T-775)/26)</td>
+<td>KCl T_cond 749 to 801 K (part 06 s2.6); K 1.17e-7 per H times m</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>m9</td>
+<td>OCS (COS)</td>
+<td>gas has CO and H<sub>2</sub>S</td>
+<td>log10 K = -1.477 + 4/T (CO+H<sub>2</sub>S=COS+H<sub>2</sub>)</td>
+<td>part 05 s3.3 (COMPUTED from NASA polynomials)</td>
+<td>DERIVED</td>
+<td>formation equilibrium, not a probability</td>
+</tr>
+<tr>
+<td>m10</td>
+<td>Radon-222</td>
+<td>ROCKY with air and solid ground</td>
+<td>1</td>
+<td>flux J = C_Ra f rho_b sqrt(lam D_e), f 0.05 to 0.7 (UNSCEAR 2008, READ); D_e unsourced</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>m11</td>
+<td>NO<sub>2</sub>, CH<sub>3</sub>Cl</td>
+<td>HAB with life, or lightning</td>
+<td>c[0,0.3]</td>
+<td>NOT REACHED [R1813]</td>
+<td>DESIGN R11</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example m (COMPUTED).</strong> Warm giant, T(0.1 to 1 bar)=900 K, m=10: m7 Na present with p=0.030 (Na is in the cloud), m8 K present p=1.000, m9 K_eq(COS) = 0.034 at 900 K.</p>
+<h3 id="n-clouds-hazes-and-dust-by-temperature-window-and-class">n. Clouds, hazes and dust by temperature window and class</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>n1</td>
+<td>Oxide, silicate, iron clouds: Al-Ti oxides 1850-2000 K; Fe 1690-1840; forsterite 1597-1698; enstatite 1513-1597; Cr 1416-1521; MnS 1271-1343</td>
+<td>GIANT, BD, i-types; profile crosses window</td>
+<td>1</td>
+<td>T_cond fits [R4561] (READ), part 06 s2.6 (COMPUTED)</td>
+<td>DERIVED</td>
+<td>10^4/T_cond = 5.44-0.48 logP-0.48[Fe/H] (Fe)</td>
+</tr>
+<tr>
+<td>n2</td>
+<td>Na<sub>2</sub>S 929-996 K; KCl/ZnS 749-801 K</td>
+<td>same</td>
+<td>1</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>n3</td>
+<td>NH<sub>4</sub>SH 189-223 K (0.1-10 bar); H<sub>2</sub>S ice 105-128 K only if NH<sub>3</sub> absent</td>
+<td>GIANT, BD, f1, f2</td>
+<td>1</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>n4</td>
+<td>Water cloud or ice 161-253 K (pp 1e-9 to 1e-3 bar)</td>
+<td>any with H<sub>2</sub>O</td>
+<td>1</td>
+<td>same</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>n5</td>
+<td>CO<sub>2</sub> ice 114-195 K; NH<sub>3</sub> ice 135-179 K; CH<sub>4</sub> ice 53-90 K; N<sub>2</sub> ice 31-62 K, CO ice 34-66 K</td>
+<td>cold GIANT, K, Y[P], D, comets</td>
+<td>1</td>
+<td>part 06 s2.4, s2.6 (2ND-HAND ice curves)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>n6</td>
+<td>Silicate-dominated aerosol</td>
+<td>GIANT, BD, hot rocky</td>
+<td>Phi((Teq-950)/100)</td>
+<td>crossover Teq about 950 K, [R1513] (READ); width DESIGN</td>
+<td>DESIGN R12</td>
+<td></td>
+</tr>
+<tr>
+<td>n7</td>
+<td>Photochemical haze (tholin, soot)</td>
+<td>carbon-bearing air</td>
+<td>(1 - w[n6]) * y; yield y = LU[0.01, 1]; monomer 1 to 50 nm, 1.0 g/cm3</td>
+<td>lab rates span 250x ([R2009] READ); haze threshold CH<sub>4</sub>/CO2 0.1 to 0.2 ([R0156] READ)</td>
+<td>DESIGN R12</td>
+<td>near zero for carbon-free gas, lower in H<sub>2</sub> gas</td>
+</tr>
+<tr>
+<td>n8</td>
+<td>Mineral dust (Mars-type, r_eff 1 to 2 um)</td>
+<td>ROCKY with air and surface wind u*&gt;u*_t</td>
+<td>1 if u*&gt;u*_t</td>
+<td>threshold from Shao-Lu and Iversen-White formulas (READ, COMPUTED to 1.6x of [R2426])</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>n9</td>
+<td>S<sub>8</sub> / H<sub>2</sub>SO<sub>4</sub> aerosol</td>
+<td>outgassing S flux &gt;=100x Earth volcanic (N<sub>2</sub>, CO<sub>2</sub> air); Earth flux in H<sub>2</sub> air</td>
+<td>1</td>
+<td>Hu 2013 (READ); H<sub>2</sub>SO<sub>4</sub>-H2O vapor curve NOT REACHED</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example n (COMPUTED).</strong> Giant with profile 300 to 2000 K and Teq=800 K: windows crossed (n1, n2): Al-Ti oxides, Fe, forsterite, enstatite, Cr, MnS, Na<sub>2</sub>S, KCl/ZnS; n3 to n5 are below 300 K and absent. Aerosol dominance: n6 silicate 0.067, n7 haze 0.933 (before the yield factor).</p>
+<h3 id="o-ground-radioisotope-abundance-regimes-by-host-part-07">o. Ground radioisotope abundance regimes by host (part 07)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>o1</td>
+<td>Thorium (and U) scale, thin-disk Sun-like host (PARAM)</td>
+<td>host thin disk, FGK; rocky</td>
+<td>log10 f_Th ~ N(0.08, 0.058), f relative to BSE</td>
+<td>[R0479]: [Th/H] mean +0.080, scatter 0.058 dex, 53 solar twins (READ)</td>
+<td>SOURCED</td>
+<td>BSE: U 0.020, Th 0.077, K 280 ppm ([R2987] READ)</td>
+</tr>
+<tr>
+<td>o2</td>
+<td>Other populations (thick disk, halo, young, M host)</td>
+<td>not o1</td>
+<td>log10 f ~ U[-0.23, +0.40]</td>
+<td>[R4469]: 59 to 251 % of solar (READ); shape DESIGN</td>
+<td>DESIGN R13</td>
+<td></td>
+</tr>
+<tr>
+<td>o3</td>
+<td>K/U (mass)</td>
+<td>ROCKY</td>
+<td>LU[8.9e3, 1.4e4]</td>
+<td>crust 8900 to 11800, BSE 1.4e4 ([R2987, R4726], READ); volatile-depleted bodies lower, NOT REACHED</td>
+<td>DESIGN R13</td>
+<td></td>
+</tr>
+<tr>
+<td>o4</td>
+<td>Th/U</td>
+<td>ROCKY</td>
+<td>U[3.8, 4.5]</td>
+<td>BSE 3.77, crust 4.0 to 4.5 (READ); stellar Th/U vs cosmic age NOT REACHED</td>
+<td>DESIGN R13</td>
+<td></td>
+</tr>
+<tr>
+<td>o5</td>
+<td>Heating vs age</td>
+<td>ROCKY</td>
+<td>h(t)/h(4.5 Gyr) = sum s_i exp(lam_i (4.5 - t)), shares U238 .384, U235 .016, Th .402, K40 .193</td>
+<td>[R2987] shares and half-lives (READ); COMPUTED</td>
+<td>DERIVED</td>
+<td>Al-26 adds 4.2e-7 W/kg for the first 20 Myr (RECALLED Al)</td>
+</tr>
+<tr>
+<td>o6</td>
+<td>Al-26 early heating present</td>
+<td>planetesimals formed within a few Myr</td>
+<td>c[0.1,1]</td>
+<td>26Al/27Al 5.25e-5 ([R2987] READ); presence in a given system unsourced; <code>birth_radioisotopes.py</code> (GEN.476) gives the share of stars born above the melting ratio: 12 percent (6 to 20)</td>
+<td>DESIGN R13</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example o (COMPUTED).</strong> Thin-disk Sun-like host. Bins f&lt;0.7, 0.7 to 1.4, &gt;1.4: 0.0000, 0.8729, 0.1271. Heating at age 3 Gyr relative to 4.5 Gyr: 1.432 (part 07 table: 1.43); at 8 Gyr 0.589. Heat per kg of rock = 98.29 U + 26.18 Th + 3.387e-3 K (uW/kg per kg/kg, [R2987]).</p>
+<h3 id="p-host-star-uv-regime-ozone-and-photochemistry">p. Host-star UV regime (ozone and photochemistry)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>id</th>
+<th>option</th>
+<th>gate</th>
+<th>weight w (symbols above)</th>
+<th>weight source</th>
+<th>status</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>p1</td>
+<td>F/G, quiescent: strong NUV, FUV/NUV(280-400 nm) about 1e-3</td>
+<td>host F, G; age&gt;tau_sat</td>
+<td>1</td>
+<td>band fluxes at S=1 (part 04 s2.3, COMPUTED from MUSCLES-type DATA); Sun FUV/NUV 9.8e-4; F-star FUV NOT REACHED</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>p2</td>
+<td>K, quiescent</td>
+<td>host K</td>
+<td>1</td>
+<td>K2V 1.9e-3 (same)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>p3</td>
+<td>M, post-saturation: FUV and Ly-alpha dominated</td>
+<td>host M; age&gt;tau_sat</td>
+<td>1</td>
+<td>M1.5 1.2e-2, M2.5 1.6e-2, M4 2.7e-2 to 3.6e-2, TRAPPIST-1 (M8) 0.60 (same); O<sub>3</sub> lifetime 0.8 to 2 h vs 124 s for the Sun</td>
+<td>DERIVED</td>
+<td>long CH<sub>4</sub>, N<sub>2</sub>O, CH<sub>3</sub>Cl lifetimes ([R3999] READ)</td>
+</tr>
+<tr>
+<td>p4</td>
+<td>M, saturated and flaring (L_X/L_bol 10^-3.14 for early M)</td>
+<td>host M; age&lt;tau_sat; tau_sat = LU[0.162, 2] Gyr</td>
+<td>1</td>
+<td>tau_sat 162 Myr early M ([R2118: Table 2], READ) vs 2 Gyr project stand-in</td>
+<td>DERIVED</td>
+<td>proton ozone loss only if no magnetosphere ([R4000] READ)</td>
+</tr>
+<tr>
+<td>p5</td>
+<td>Young star (any type), age&lt;0.1 Gyr</td>
+<td>age&lt;0.1 Gyr</td>
+<td>1</td>
+<td>1-1180 A flux 110x the 4.57 Gyr value at 0.1 Gyr ([R3753], READ)</td>
+<td>DERIVED</td>
+<td></td>
+</tr>
+<tr>
+<td>p6</td>
+<td>Rotation track (L2 on p4, p5, solar mass): slow / median / fast</td>
+<td>any</td>
+<td>percentile of the initial rotation distribution uniform 0.02 to 0.98</td>
+<td>an observed distribution has uniform percentiles by construction, so the draw carries no weights of its own; the saturation time follows the percentile and the mass: [R2183: Fig. 10] read at the 5th, 50th and 95th percentiles for 0.1 to 1.2 solar masses (<code>saturation_time.py</code>; matches Tu 2015 at one solar mass, 5.2, 22.8 and 297 Myr against 5.7, 23 and 226) (READ) (GEN.493)</td>
+<td>DERIVED R14</td>
+<td>L_X at 100 Myr differs 200x</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Example p (COMPUTED).</strong> M1.5 host, planet age 1 Gyr. [R2118]: L_X/L_bol = 10^-3.14 (t/tau_sat)^-1.18 with tau_sat = 0.162 Gyr gives 8.47e-05 (the paper's table value is 8.5e-5). With tau_sat ~ LU[0.162, 2] Gyr, the chance that age 1 Gyr is still saturated is ln(2/1)/ln(2/0.162) = 0.276: p4 0.276, p3 0.724.</p>
+<h2 id="3-formula-quick-list-for-the-coder">3. Formula quick list for the coder</h2>
+<p>dIW_class cuts: a5, a7. Snow line: a_snow = sqrt(L/Lsun) (278.6/T_snow)^2 AU. Shoreline: r = X/(K v^4), v = 11.186 sqrt(M/R) km/s, K ~ LU[3.0e-4, 6.6e-4]. Envelope loss: f_lost = eps pi R^3 E_cum S/(G M^2). Metallicity: log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3). Brown dwarf: L = 4e-5 Lsun (t/Gyr)^-1.3 (M/0.05 Msun)^2.64, Teff = (L/(4 pi R^2 sigma))^(1/4), R = 1 RJ. Lava vapor: log10 P_eq = k1 exp(k2 Ts) (k1 -34.7, -60.1, -60.2; k2 -0.00112, -0.00122, -0.00101 for vapor fraction &lt;0.01, about 0.5, &gt;0.9). Quench: part 05 s7.3. Condensation: part 05 s7.2, part 06 s2.1.</p>
+<p><strong>Row counts (parsed from the tables above):</strong> 104 rows: SOURCED 8, DERIVED 48, DESIGN 48.</p>
+<h2 id="4-no-sourced-weights-yet">4. No sourced weights yet</h2>
+<p>Every DESIGN row, grouped by the research that would source it. Until then the generator draws the bracket in the row's weight column with the seeded draw.</p>
+<ul>
+<li><strong>R1</strong> (b4, e3, e4, e5): Occurrence-weighted distribution of bare rock / H/He envelope / water-rich worlds and of envelope metal fraction by radius, mass and insolation: radius-valley occurrence [R1478], Owen and Wu 2017 (READ in part 04), mass-radius population fits, JWST sub-Neptune retrievals.</li>
+<li><strong>R2</strong> (b1, b2, b3, b4, b5, b6): Volatile delivery versus formation distance: population-synthesis tables of water mass fraction against a_form ([R4335] data; 2015 [R4336] body unread), nebula water partial pressure and T_snow versus time (sets the snow-line law), mapping to Ortenzi's Dry/Low/High classes.</li>
+<li><strong>R3</strong> (a1, a2, a3): Magma-ocean fO2 prior against mass and the later-mantle oxidation law: [R4154] data (part 08), [R1491] and 2021, [R1953] (graphite, C solubility), degassed 40Ar fraction by tectonic regime, redox of small-body building blocks.</li>
+<li><strong>R4</strong> (d6): Cosmic-shoreline constants and pressure caps by regime: [R4862] (fetch via export.arxiv.org), [R3037], XUV histories ([R2183], part 04).</li>
+<li><strong>R5</strong> (f7): Giant-planet C/O and C-rich host fraction: [R0535] [R0536] (PDF downloaded, body unread), Delgado [R1060] sample selection, [R4663] retrieval spread, [R4352] scatter of Zpl/Zstar.</li>
+<li><strong>R6</strong> (h2, h3, h4): Hot-Jupiter thermochemistry above 2200 K (FastChem or GGchem tables), [R4527] body, a Kzz distribution, edges of the 1500 and 2200 K regimes.</li>
+<li><strong>R7</strong> (i6): Lava-world vapor: [R3059] numeric Type I to V tables, [R3943], LavAtmos [R4488], and the fraction of lava worlds that keep volatiles (JWST 55 Cnc e and other targets).</li>
+<li><strong>R8</strong> (j1, j2, j3, j4, j5): Evolved and frost atmospheres: [R1445, R1708] vapor pressures (N<sub>2</sub>, CO, CH<sub>4</sub>, CO<sub>2</sub>), Kopparapu c and d coefficients and the 5 and 0.1 Earth-mass sets, occurrence of Titan-, Pluto-, Venus-like bodies, abiotic-O2 frequency ([R2769] body).</li>
+<li><strong>R9</strong> (k1, k2, k3, k4, k5, k7): Comet coma classes and ratios: Harrington [R3535] full per-comet table (the class fractions here are a SNIPPET), [R0436, R3206], Dello [R0048, R1063], and a second comet with O<sub>2</sub>, noble gases, N<sub>2</sub>.</li>
+<li><strong>R10</strong> (a4, l1, l2, l3): White-dwarf and pulsar planets: [R4532] body, polluted-WD debris compositions beyond Doyle's six, atmospheres of pulsar planets (none found).</li>
+<li><strong>R11</strong> (m2, m3, m4, m5, m6, m11): Trace gases: [R1813] NOx and N<sub>2</sub>O, [R1137] numeric abiotic O<sub>3</sub>, [R0233] PH<sub>3</sub>, other [R3945] inventories (HCl, HF by composition), lightning yields.</li>
+<li><strong>R12</strong> (n6, n7): Clouds and hazes: [R1513] width of the 950 K crossover, [R2009] yield against T and C/O, H<sub>2</sub>SO<sub>4</sub>-H2O vapor curve, perchlorate and carbonate decomposition equilibria.</li>
+<li><strong>R13</strong> (o2, o3, o4, o6): Radioisotopes: Th, U, K against [Fe/H] and Galactic population (Frebel and Hill cosmochronometers), K volatile depletion by body class, [R4687] oceanic crust, 26Al abundance spread between systems.</li>
+<li><strong>R14</strong> (p6): Initial-rotation distribution to weight Tu 2015 tracks, and tau_sat against stellar mass for M dwarfs (MUSCLES-type samples).</li>
+<li><strong>R15</strong> (g1, g4): Brown-dwarf type-Teff relation and the T/Y boundary near 500 to 700 K from an observational compilation; hot young end above 2200 K.</li>
+</ul>
+<h2 id="5-conflicts-between-the-repo-and-part-05-and-inside-part-05">5. Conflicts between the repo and part 05 (and inside part 05)</h2>
+<ol>
+<li><strong>Class letters.</strong> <code>PLANET_CLASSES</code> has 20 classes (A B C D E F G H I J K L M N O P Q S T V). R and W were removed (comment at <code>tuning.py</code> line 1601, which also names four removed classes without letters); U, X, Y, Z are absent. The design doc plans R, U, W, X, Y, Z and retiring T. Part 05's columns are regimes, not letters; mapping used here: RR and RO = redox rows a5 to a7 on ROCKY; LV = A, B, S, C in zone h (table i); SN = I, T, V and R[P]; WW = O and X[P]; GG = I, J, T; HJ = J zone h; CM = COMET and icy AST.</li>
+<li><strong>I and T overlap.</strong> I (15,000 to 50,000 km, 2.4 to 7.8 R_E) and T (15,000 to 55,000 km) cover the same sizes; part 05's sub-Neptune regime (1.6 to 3.2 R_E) is only the low end of I, and V (10,000 to 15,000 km, 1.6 to 2.4 R_E) straddles the radius valley while the repo calls it rocky. The design doc's rocky test is R&lt;=1.12 M^0.27.</li>
+<li><strong>NOAIR classes.</strong> C, D and S have <code>atmosphere</code> None in every zone; <code>CLASS_MIXES</code> has no key for them, so a pressure would fall to DEFAULT_MIX (N<sub>2</sub> .78, O<sub>2</sub> .2). Table d can give them trace or tenuous air (part 04 and the design doc say a 2 to 10 Earth-mass rock in e or c is far inside the shoreline).</li>
+<li><strong>Free O<sub>2</sub> without life.</strong> CLASS_MIXES has O<sub>2</sub> 0.10 (G), 0.25 (H), 0.30 (L), 0.22 (O, P), 0.15 (Q), 0.08 (V). Abiotic O<sub>2</sub> needs water loss around M or K stars (part 04 s3.6); PLANET_CLASS_MAX_LIFE_STAGE caps G at photosynthesis but no rule ties O<sub>2</sub> to life stage. L has Ar 0.60, far above the radiogenic budget (Earth: Ar 0.93 % with about 43 % of 40Ar degassed, part 07 s2.10).</li>
+<li><strong>E and F.</strong> Text and mixes (E: H<sub>2</sub>O .55, CH<sub>4</sub> .25, NH<sub>3</sub> balance; F: CO<sub>2</sub> .60, CH<sub>4</sub> .20, NH<sub>3</sub> balance) put NH<sub>3</sub> and CH<sub>4</sub> in 340 to 400 K air; NH<sub>3</sub> appears in part 05 only at 800 K and 100 bar for dIW&lt;=1 and is photolysed fast (part 04); redox rows a5 to a7 should select these mixes.</li>
+<li><strong>N.</strong> Text says &quot;dense, reducing mix of CO<sub>2</sub> and sulfides&quot;; CLASS_MIXES is oxidized (CO<sub>2</sub> .965, SO<sub>2</sub> 1.5e-4, H<sub>2</sub>S 1e-4). Sulfur is H<sub>2</sub>S only below dIW about +2.5 (part 05 s3.4). There is no hot-zone Venus-like letter (N is e only; A, B are small).</li>
+<li><strong>I, J, T mixes.</strong> One CH<sub>4</sub> 3e-3, H<sub>2</sub>O 1e-3, H<sub>2</sub>S 1e-4 (T: CH<sub>4</sub> .02) for every zone. Part 05 s7.4: CH<sub>4</sub> holds carbon only below about 500 K; J in zone h is a hot Jupiter (CO, tables h); H<sub>2</sub>O and H<sub>2</sub>S are cloud-depleted in cold giants.</li>
+<li><strong>Redox.</strong> Repo mean dIW 3.5 + 2 log10 M (a2) against magma-ocean +0.5 at 1 Earth mass (a1, Sossi); REDOX_OXIDIZED_DELTA_IW=2.5 equals the a7 cut (consistent). Meteoritic dIW is -1.4 to 0.</li>
+<li><strong>Brown dwarfs</strong> have no class letter (planet_class NULL; rogue-eligible letters are C D I J S T only); their type must come from Teff (table g). Part 05 s7.4 leaves 500 to 700 K uncovered (row g4 added).</li>
+<li><strong>Part 05 C/O recipe.</strong> C/O = 0.55 * 10^N(0, 0.15) truncated to [0.2, 1.5] puts 13.9 % above 0.8 (COMPUTED), not the intended 2 to 5 %; row f7 truncates the core at 0.8 and adds an explicit tail.</li>
+<li><strong>Part 05 s4 lava boundaries.</strong> It states the I/II boundary differs by &quot;up to 130 K (2033 vs 2096)&quot;; the difference is 63 K, and the caption list has five numbers for four boundaries (2735 vs 2890 differ by 155 K). Rows i1 to i5 use the text edges with width 60 K.</li>
+<li><strong>HABITABLE_PLANET_CLASSES</strong> (E F G H K L M O P Q V) is a life flag, not an atmosphere regime; N has no life_chemical and is excluded; Q is zone e only. Moons draw any letter except Q, S, V, so Titan-like moons have no letter before Y.</li>
+<li><strong>Shoreline status.</strong> The project's K window and r thresholds are fitted to 13 Solar System bodies ([C] in the design doc) and the cited paper is SNIPPET only, so table d is DERIVED from a calibration, not a published fit.</li>
+</ol>
+<h2 id="6-recalled--to-verify">6. Recalled / to verify</h2>
+<p>RECALLED or SNIPPET values used: T_crit of water 647 K (c5, c6); the K window 3.0e-4 to 6.6e-4 and r thresholds (design doc fit, [R4862] SNIPPET); 278.6 K blackbody constant (design doc; 278.3 K for S0=1361); Kopparapu runaway limit 1.04 to 1.11 (design doc [R]); Harrington Pinto class fractions and median CO<sub>2</sub>/H2O 0.12 (SNIPPET); width 0.3 dex on metallicity, C/O 0.55 and 0.15 dex, dIW N(-1, 0.5) for WD debris (part 05 s15); all edge widths (100 K, 60 K, 50 K, 0.5 dIW) and priors c[.] are DESIGN choices, not measurements; Al 2.35 wt% for 26Al heating (part 07).</p>
+<h2 id="7-cross-links">7. Cross-links</h2>
+<p>Part 05 (recipes restated here), part 06 s2.1 to 2.11 (rows n1 to n9, i), part 07 s2.9 to 2.10 and F10 to F12 (rows o), part 04 s2.3, s3, s4.5 (rows p, m1, m2, d). Repo: <code>src/planetgen/physics/atmosphere.py</code> CLASS_MIXES and REDOX_<em>, <code>tuning.py</code> PLANET_CLASSES, ROGUE_</em> constants, COMET_* constants.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

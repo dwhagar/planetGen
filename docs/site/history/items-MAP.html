@@ -1,0 +1,2412 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Items: MAP, Maps - planetGen docs</title>
+<meta name="description" content="The life of every MAP item that a commit title names, from the git history as of 27813f061: first and last date, whether it is open in docs/TODO.md now, and its commit titles in order (the pull request numbers are the GitHub pull requests).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/history/items-MAP.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="history/items-MAP.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="items-map-maps">Items: MAP, Maps</h1><p class="meta">docs/history/items-MAP.md</p><details class="toc"><summary>On this page (339 headings)</summary><ul><li style="margin-left:0px"><a href="#map2">MAP.2</a></li><li style="margin-left:0px"><a href="#map3">MAP.3</a></li><li style="margin-left:0px"><a href="#map15">MAP.15</a></li><li style="margin-left:0px"><a href="#map17">MAP.17</a></li><li style="margin-left:0px"><a href="#map22">MAP.22</a></li><li style="margin-left:0px"><a href="#map23">MAP.23</a></li><li style="margin-left:0px"><a href="#map30">MAP.30</a></li><li style="margin-left:0px"><a href="#map45">MAP.45</a></li><li style="margin-left:0px"><a href="#map46">MAP.46</a></li><li style="margin-left:0px"><a href="#map49">MAP.49</a></li><li style="margin-left:0px"><a href="#map50">MAP.50</a></li><li style="margin-left:0px"><a href="#map51">MAP.51</a></li><li style="margin-left:0px"><a href="#map52">MAP.52</a></li><li style="margin-left:0px"><a href="#map53">MAP.53</a></li><li style="margin-left:0px"><a href="#map54">MAP.54</a></li><li style="margin-left:0px"><a href="#map55">MAP.55</a></li><li style="margin-left:0px"><a href="#map56">MAP.56</a></li><li style="margin-left:0px"><a href="#map57">MAP.57</a></li><li style="margin-left:0px"><a href="#map58">MAP.58</a></li><li style="margin-left:0px"><a href="#map59">MAP.59</a></li><li style="margin-left:0px"><a href="#map60">MAP.60</a></li><li style="margin-left:0px"><a href="#map61">MAP.61</a></li><li style="margin-left:0px"><a href="#map62">MAP.62</a></li><li style="margin-left:0px"><a href="#map63">MAP.63</a></li><li style="margin-left:0px"><a href="#map64">MAP.64</a></li><li style="margin-left:0px"><a href="#map65">MAP.65</a></li><li style="margin-left:0px"><a href="#map66">MAP.66</a></li><li style="margin-left:0px"><a href="#map67">MAP.67</a></li><li style="margin-left:0px"><a href="#map68">MAP.68</a></li><li style="margin-left:0px"><a href="#map69">MAP.69</a></li><li style="margin-left:0px"><a href="#map70">MAP.70</a></li><li style="margin-left:0px"><a href="#map71">MAP.71</a></li><li style="margin-left:0px"><a href="#map74">MAP.74</a></li><li style="margin-left:0px"><a href="#map76">MAP.76</a></li><li style="margin-left:0px"><a href="#map77">MAP.77</a></li><li style="margin-left:0px"><a href="#map78">MAP.78</a></li><li style="margin-left:0px"><a href="#map79">MAP.79</a></li><li style="margin-left:0px"><a href="#map80">MAP.80</a></li><li style="margin-left:0px"><a href="#map81">MAP.81</a></li><li style="margin-left:0px"><a href="#map82">MAP.82</a></li><li style="margin-left:0px"><a href="#map83">MAP.83</a></li><li style="margin-left:0px"><a href="#map84">MAP.84</a></li><li style="margin-left:0px"><a href="#map85">MAP.85</a></li><li style="margin-left:0px"><a href="#map86">MAP.86</a></li><li style="margin-left:0px"><a href="#map87">MAP.87</a></li><li style="margin-left:0px"><a href="#map88">MAP.88</a></li><li style="margin-left:0px"><a href="#map89">MAP.89</a></li><li style="margin-left:0px"><a href="#map90">MAP.90</a></li><li style="margin-left:0px"><a href="#map91">MAP.91</a></li><li style="margin-left:0px"><a href="#map92">MAP.92</a></li><li style="margin-left:0px"><a href="#map93">MAP.93</a></li><li style="margin-left:0px"><a href="#map94">MAP.94</a></li><li style="margin-left:0px"><a href="#map95">MAP.95</a></li><li style="margin-left:0px"><a href="#map96">MAP.96</a></li><li style="margin-left:0px"><a href="#map97">MAP.97</a></li><li style="margin-left:0px"><a href="#map98">MAP.98</a></li><li style="margin-left:0px"><a href="#map99">MAP.99</a></li><li style="margin-left:0px"><a href="#map100">MAP.100</a></li><li style="margin-left:0px"><a href="#map101">MAP.101</a></li><li style="margin-left:0px"><a href="#map102">MAP.102</a></li><li style="margin-left:0px"><a href="#map103">MAP.103</a></li><li style="margin-left:0px"><a href="#map104">MAP.104</a></li><li style="margin-left:0px"><a href="#map105">MAP.105</a></li><li style="margin-left:0px"><a href="#map106">MAP.106</a></li><li style="margin-left:0px"><a href="#map107">MAP.107</a></li><li style="margin-left:0px"><a href="#map108">MAP.108</a></li><li style="margin-left:0px"><a href="#map109">MAP.109</a></li><li style="margin-left:0px"><a href="#map110">MAP.110</a></li><li style="margin-left:0px"><a href="#map111">MAP.111</a></li><li style="margin-left:0px"><a href="#map112">MAP.112</a></li><li style="margin-left:0px"><a href="#map113">MAP.113</a></li><li style="margin-left:0px"><a href="#map115">MAP.115</a></li><li style="margin-left:0px"><a href="#map116">MAP.116</a></li><li style="margin-left:0px"><a href="#map117">MAP.117</a></li><li style="margin-left:0px"><a href="#map118">MAP.118</a></li><li style="margin-left:0px"><a href="#map121">MAP.121</a></li><li style="margin-left:0px"><a href="#map122">MAP.122</a></li><li style="margin-left:0px"><a href="#map123">MAP.123</a></li><li style="margin-left:0px"><a href="#map124">MAP.124</a></li><li style="margin-left:0px"><a href="#map125">MAP.125</a></li><li style="margin-left:0px"><a href="#map126">MAP.126</a></li><li style="margin-left:0px"><a href="#map127">MAP.127</a></li><li style="margin-left:0px"><a href="#map128">MAP.128</a></li><li style="margin-left:0px"><a href="#map129">MAP.129</a></li><li style="margin-left:0px"><a href="#map130">MAP.130</a></li><li style="margin-left:0px"><a href="#map131">MAP.131</a></li><li style="margin-left:0px"><a href="#map132">MAP.132</a></li><li style="margin-left:0px"><a href="#map133">MAP.133</a></li><li style="margin-left:0px"><a href="#map134">MAP.134</a></li><li style="margin-left:0px"><a href="#map135">MAP.135</a></li><li style="margin-left:0px"><a href="#map136">MAP.136</a></li><li style="margin-left:0px"><a href="#map137">MAP.137</a></li><li style="margin-left:0px"><a href="#map138">MAP.138</a></li><li style="margin-left:0px"><a href="#map139">MAP.139</a></li><li style="margin-left:0px"><a href="#map141">MAP.141</a></li><li style="margin-left:0px"><a href="#map142">MAP.142</a></li><li style="margin-left:0px"><a href="#map143">MAP.143</a></li><li style="margin-left:0px"><a href="#map146">MAP.146</a></li><li style="margin-left:0px"><a href="#map147">MAP.147</a></li><li style="margin-left:0px"><a href="#map148">MAP.148</a></li><li style="margin-left:0px"><a href="#map149">MAP.149</a></li><li style="margin-left:0px"><a href="#map150">MAP.150</a></li><li style="margin-left:0px"><a href="#map151">MAP.151</a></li><li style="margin-left:0px"><a href="#map152">MAP.152</a></li><li style="margin-left:0px"><a href="#map153">MAP.153</a></li><li style="margin-left:0px"><a href="#map154">MAP.154</a></li><li style="margin-left:0px"><a href="#map155">MAP.155</a></li><li style="margin-left:0px"><a href="#map156">MAP.156</a></li><li style="margin-left:0px"><a href="#map157">MAP.157</a></li><li style="margin-left:0px"><a href="#map158">MAP.158</a></li><li style="margin-left:0px"><a href="#map159">MAP.159</a></li><li style="margin-left:0px"><a href="#map160">MAP.160</a></li><li style="margin-left:0px"><a href="#map161">MAP.161</a></li><li style="margin-left:0px"><a href="#map162">MAP.162</a></li><li style="margin-left:0px"><a href="#map163">MAP.163</a></li><li style="margin-left:0px"><a href="#map164">MAP.164</a></li><li style="margin-left:0px"><a href="#map165">MAP.165</a></li><li style="margin-left:0px"><a href="#map166">MAP.166</a></li><li style="margin-left:0px"><a href="#map167">MAP.167</a></li><li style="margin-left:0px"><a href="#map168">MAP.168</a></li><li style="margin-left:0px"><a href="#map169">MAP.169</a></li><li style="margin-left:0px"><a href="#map170">MAP.170</a></li><li style="margin-left:0px"><a href="#map171">MAP.171</a></li><li style="margin-left:0px"><a href="#map172">MAP.172</a></li><li style="margin-left:0px"><a href="#map173">MAP.173</a></li><li style="margin-left:0px"><a href="#map174">MAP.174</a></li><li style="margin-left:0px"><a href="#map175">MAP.175</a></li><li style="margin-left:0px"><a href="#map176">MAP.176</a></li><li style="margin-left:0px"><a href="#map177">MAP.177</a></li><li style="margin-left:0px"><a href="#map178">MAP.178</a></li><li style="margin-left:0px"><a href="#map179">MAP.179</a></li><li style="margin-left:0px"><a href="#map180">MAP.180</a></li><li style="margin-left:0px"><a href="#map181">MAP.181</a></li><li style="margin-left:0px"><a href="#map182">MAP.182</a></li><li style="margin-left:0px"><a href="#map184">MAP.184</a></li><li style="margin-left:0px"><a href="#map185">MAP.185</a></li><li style="margin-left:0px"><a href="#map186">MAP.186</a></li><li style="margin-left:0px"><a href="#map187">MAP.187</a></li><li style="margin-left:0px"><a href="#map188">MAP.188</a></li><li style="margin-left:0px"><a href="#map189">MAP.189</a></li><li style="margin-left:0px"><a href="#map190">MAP.190</a></li><li style="margin-left:0px"><a href="#map191">MAP.191</a></li><li style="margin-left:0px"><a href="#map194">MAP.194</a></li><li style="margin-left:0px"><a href="#map195">MAP.195</a></li><li style="margin-left:0px"><a href="#map196">MAP.196</a></li><li style="margin-left:0px"><a href="#map197">MAP.197</a></li><li style="margin-left:0px"><a href="#map198">MAP.198</a></li><li style="margin-left:0px"><a href="#map199">MAP.199</a></li><li style="margin-left:0px"><a href="#map200">MAP.200</a></li><li style="margin-left:0px"><a href="#map201">MAP.201</a></li><li style="margin-left:0px"><a href="#map202">MAP.202</a></li><li style="margin-left:0px"><a href="#map203">MAP.203</a></li><li style="margin-left:0px"><a href="#map204">MAP.204</a></li><li style="margin-left:0px"><a href="#map205">MAP.205</a></li><li style="margin-left:0px"><a href="#map206">MAP.206</a></li><li style="margin-left:0px"><a href="#map207">MAP.207</a></li><li style="margin-left:0px"><a href="#map208">MAP.208</a></li><li style="margin-left:0px"><a href="#map209">MAP.209</a></li><li style="margin-left:0px"><a href="#map210">MAP.210</a></li><li style="margin-left:0px"><a href="#map211">MAP.211</a></li><li style="margin-left:0px"><a href="#map213">MAP.213</a></li><li style="margin-left:0px"><a href="#map214">MAP.214</a></li><li style="margin-left:0px"><a href="#map215">MAP.215</a></li><li style="margin-left:0px"><a href="#map217">MAP.217</a></li><li style="margin-left:0px"><a href="#map219">MAP.219</a></li><li style="margin-left:0px"><a href="#map220">MAP.220</a></li><li style="margin-left:0px"><a href="#map222">MAP.222</a></li><li style="margin-left:0px"><a href="#map223">MAP.223</a></li><li style="margin-left:0px"><a href="#map224">MAP.224</a></li><li style="margin-left:0px"><a href="#map225">MAP.225</a></li><li style="margin-left:0px"><a href="#map226">MAP.226</a></li><li style="margin-left:0px"><a href="#map227">MAP.227</a></li><li style="margin-left:0px"><a href="#map228">MAP.228</a></li><li style="margin-left:0px"><a href="#map229">MAP.229</a></li><li style="margin-left:0px"><a href="#map230">MAP.230</a></li><li style="margin-left:0px"><a href="#map231">MAP.231</a></li><li style="margin-left:0px"><a href="#map233">MAP.233</a></li><li style="margin-left:0px"><a href="#map234">MAP.234</a></li><li style="margin-left:0px"><a href="#map235">MAP.235</a></li><li style="margin-left:0px"><a href="#map236">MAP.236</a></li><li style="margin-left:0px"><a href="#map237">MAP.237</a></li><li style="margin-left:0px"><a href="#map239">MAP.239</a></li><li style="margin-left:0px"><a href="#map240">MAP.240</a></li><li style="margin-left:0px"><a href="#map241">MAP.241</a></li><li style="margin-left:0px"><a href="#map243">MAP.243</a></li><li style="margin-left:0px"><a href="#map244">MAP.244</a></li><li style="margin-left:0px"><a href="#map245">MAP.245</a></li><li style="margin-left:0px"><a href="#map246">MAP.246</a></li><li style="margin-left:0px"><a href="#map247">MAP.247</a></li><li style="margin-left:0px"><a href="#map248">MAP.248</a></li><li style="margin-left:0px"><a href="#map249">MAP.249</a></li><li style="margin-left:0px"><a href="#map250">MAP.250</a></li><li style="margin-left:0px"><a href="#map251">MAP.251</a></li><li style="margin-left:0px"><a href="#map252">MAP.252</a></li><li style="margin-left:0px"><a href="#map253">MAP.253</a></li><li style="margin-left:0px"><a href="#map254">MAP.254</a></li><li style="margin-left:0px"><a href="#map255">MAP.255</a></li><li style="margin-left:0px"><a href="#map256">MAP.256</a></li><li style="margin-left:0px"><a href="#map257">MAP.257</a></li><li style="margin-left:0px"><a href="#map258">MAP.258</a></li></ul></details>
+<p>The life of every MAP item that a commit title names, from the git history as of <code>27813f061</code>: first and last date, whether it is open in <a href="../TODO.html">docs/TODO.md</a> now, and its commit titles in order (the pull request numbers are the GitHub pull requests). An item not open in TODO.md has shipped, been closed as a finding or been dropped; <a href="dropped-and-closed.html">dropped-and-closed.md</a> lists the closings.</p>
+<h2 id="map2">MAP.2</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO MAP.2.1.3 (bug), GEN.9, ADM.4: big wedge picks, multi-galaxy plan, collapsible Generate page</li>
+<li>2026-10-01: TODO ADM.4: MAP.2.3 is the Sector Map pick mode</li>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+</ul>
+<h2 id="map3">MAP.3</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+</ul>
+<h2 id="map15">MAP.15</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+<li>2026-10-01: Slab slider, unit ladders, Sector Map points of light, bookmarks (MAP.30, UX.13, UX.14, MAP.15, MAP.23, MAP.22) (#234)</li>
+</ul>
+<h2 id="map17">MAP.17</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: Galaxy Map: top-down drill-down by quarter, layer and arc (MAP.17, 18, 19, 44, 26) (#208)</li>
+</ul>
+<h2 id="map22">MAP.22</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+<li>2026-10-01: Slab slider, unit ladders, Sector Map points of light, bookmarks (MAP.30, UX.13, UX.14, MAP.15, MAP.23, MAP.22) (#234)</li>
+</ul>
+<h2 id="map23">MAP.23</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+<li>2026-10-01: Slab slider, unit ladders, Sector Map points of light, bookmarks (MAP.30, UX.13, UX.14, MAP.15, MAP.23, MAP.22) (#234)</li>
+</ul>
+<h2 id="map30">MAP.30</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire MAP.2, MAP.22, MAP.23, MAP.3, MAP.30, MAP.15, UX.13, UX.14 (PR #234)</li>
+<li>2026-10-01: Slab slider, unit ladders, Sector Map points of light, bookmarks (MAP.30, UX.13, UX.14, MAP.15, MAP.23, MAP.22) (#234)</li>
+</ul>
+<h2 id="map45">MAP.45</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: Sector Map: draw only a sector's own point objects, make rogue planets easy to find (MAP.45, MAP.46)</li>
+</ul>
+<h2 id="map46">MAP.46</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: Sector Map: draw only a sector's own point objects, make rogue planets easy to find (MAP.45, MAP.46)</li>
+</ul>
+<h2 id="map49">MAP.49</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: System Map draws planet orbits inside asteroid belts (MAP.49)</li>
+<li>2026-10-01: System Map: belt rings no longer cover planet orbits (MAP.49)</li>
+<li>2026-10-01: TODO number map: MAP.49 and MAP.50 done in PR #204</li>
+</ul>
+<h2 id="map50">MAP.50</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: names run off the edge of the map (MAP.50)</li>
+<li>2026-10-01: System Map: names stay inside the map's frame (MAP.50)</li>
+<li>2026-10-01: TODO number map: MAP.49 and MAP.50 done in PR #204</li>
+</ul>
+<h2 id="map51">MAP.51</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: Galaxy Map: draw generated systems' stars, fainter as you zoom in (MAP.51) (#214)</li>
+<li>2026-10-01: Galaxy Map: draw stars over the drill-down's blocks (MAP.51 follow-up) (#218)</li>
+</ul>
+<h2 id="map52">MAP.52</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.52 (Galaxy Map highlight bug; 40-degree wedge around the cursor)</li>
+<li>2026-10-01: TODO: MAP.52 wedge width is a 40-degree target snapped to center-to-edge lines</li>
+<li>2026-10-01: Galaxy Map: 3D galaxy with an arc pick, one scale line, controls menu (MAP.85, MAP.52, MAP.55, MAP.60) (#369)</li>
+</ul>
+<h2 id="map53">MAP.53</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.53 (rotate and fit the zoomed wedge) and MAP.54 (slab leader lines instead of the slider)</li>
+<li>2026-10-01: TODO: add MAP.55 (Galaxy Map button menu); MAP.53 rotation center and MAP.54 off-screen default</li>
+<li>2026-10-02: Galaxy Map: slab buttons with leader lines, whole-stage fit, slab-only lines (MAP.54, MAP.76, MAP.53, MAP.78, MAP.77) (#410)</li>
+</ul>
+<h2 id="map54">MAP.54</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.53 (rotate and fit the zoomed wedge) and MAP.54 (slab leader lines instead of the slider)</li>
+<li>2026-10-01: TODO: add MAP.55 (Galaxy Map button menu); MAP.53 rotation center and MAP.54 off-screen default</li>
+<li>2026-10-02: Galaxy Map: slab buttons with leader lines, whole-stage fit, slab-only lines (MAP.54, MAP.76, MAP.53, MAP.78, MAP.77) (#410)</li>
+</ul>
+<h2 id="map55">MAP.55</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.55 (Galaxy Map button menu); MAP.53 rotation center and MAP.54 off-screen default</li>
+<li>2026-10-01: Galaxy Map: 3D galaxy with an arc pick, one scale line, controls menu (MAP.85, MAP.52, MAP.55, MAP.60) (#369)</li>
+</ul>
+<h2 id="map56">MAP.56</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.56 (drop the 3x3 block pick; select slab, zoom, select segment)</li>
+<li>2026-10-02: Galaxy Map: arc, slab, segment ladder replaces the 3x3 region pick (MAP.56) (#408)</li>
+<li>2026-10-02: TODO: retire MAP.56 (PR #408) (#411)</li>
+</ul>
+<h2 id="map57">MAP.57</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: retire TEST.42-54 (PR #293); add bugs GEN.31, GEN.32, MAP.57</li>
+<li>2026-10-02: System Map: fit the whole scene, radius and mass in the side panel, no NaN in the SVG (MAP.57, MAP.88, MAP.92) (#405)</li>
+<li>2026-10-02: TODO: retire MAP.57, MAP.88, MAP.92 (PR #405); System Map lane done (#407)</li>
+</ul>
+<h2 id="map58">MAP.58</h2>
+<p>2026-10-01 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.58 (zoom limits) and MAP.59 (show a slab as a slab)</li>
+<li>2026-10-09: TODO: close MAP.58 as superseded by MAP.125; drop the run-update.sh reminders (#756)</li>
+</ul>
+<h2 id="map59">MAP.59</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add MAP.58 (zoom limits) and MAP.59 (show a slab as a slab)</li>
+<li>2026-10-01: TODO: MAP.59 Boss's answers (wire ghost, isometric mini map, both heights); add MAP.60 (one scale line)</li>
+</ul>
+<h2 id="map60">MAP.60</h2>
+<p>2026-10-01 to 2026-10-01; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: MAP.59 Boss's answers (wire ghost, isometric mini map, both heights); add MAP.60 (one scale line)</li>
+<li>2026-10-01: Galaxy Map: 3D galaxy with an arc pick, one scale line, controls menu (MAP.85, MAP.52, MAP.55, MAP.60) (#369)</li>
+</ul>
+<h2 id="map61">MAP.61</h2>
+<p>2026-10-01 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add NAV.3-6 (shared picker, saved courses, course on the map, gravity-aware courses), MAP.61 (one map engine), MAP.62 (3D system view)</li>
+<li>2026-10-08: Sector Map: no tint over sector space, outlines only (MAP.61) (#629)</li>
+<li>2026-10-08: Plan: retire MAP.61; MAP.67 stays open under MAP.62 (#630)</li>
+</ul>
+<h2 id="map62">MAP.62</h2>
+<p>2026-10-01 to 2026-10-08; 4 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: add NAV.3-6 (shared picker, saved courses, course on the map, gravity-aware courses), MAP.61 (one map engine), MAP.62 (3D system view)</li>
+<li>2026-10-08: Plan: retire MAP.61; MAP.67 stays open under MAP.62 (#630)</li>
+<li>2026-10-08: MAP.62 and MAP.125: Boss has given the go (#667)</li>
+<li>2026-10-08: Retire MAP.62, MAP.67, MAP.70 to MAP.74; file TEST.109 (#674)</li>
+</ul>
+<h2 id="map63">MAP.63</h2>
+<p>2026-10-02 to 2026-10-02; 1 commits; not open.</p>
+<ul>
+<li>2026-10-02: MAP.63: shared map helpers in static/mapcore.js</li>
+</ul>
+<h2 id="map64">MAP.64</h2>
+<p>2026-10-02 to 2026-10-02; 1 commits; not open.</p>
+<ul>
+<li>2026-10-02: MAP.64: one camera and input controller for both maps</li>
+</ul>
+<h2 id="map65">MAP.65</h2>
+<p>2026-10-08 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: One picking, hover and info-panel layer for the Galaxy and Sector Maps (MAP.65)</li>
+<li>2026-10-07: Retire MAP.65 (done in PR #521) (#530)</li>
+</ul>
+<h2 id="map66">MAP.66</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Open a generated sector in place on the Galaxy Map (MAP.66) (#548)</li>
+<li>2026-10-08: Retire MAP.66 (PR #548); the sector page embed rides with MAP.68 (#570)</li>
+</ul>
+<h2 id="map67">MAP.67</h2>
+<p>2026-10-08 to 2026-10-08; 4 commits; not open.</p>
+<ul>
+<li>2026-10-08: Sector page's map is the Galaxy Map engine locked to its sector (MAP.67, MAP.68) (#573)</li>
+<li>2026-10-08: Retire MAP.68 (PR #573); narrow MAP.67 to the system and body URL forms (#575)</li>
+<li>2026-10-08: Plan: retire MAP.61; MAP.67 stays open under MAP.62 (#630)</li>
+<li>2026-10-08: Retire MAP.62, MAP.67, MAP.70 to MAP.74; file TEST.109 (#674)</li>
+</ul>
+<h2 id="map68">MAP.68</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire MAP.66 (PR #548); the sector page embed rides with MAP.68 (#570)</li>
+<li>2026-10-08: Sector page's map is the Galaxy Map engine locked to its sector (MAP.67, MAP.68) (#573)</li>
+<li>2026-10-08: Retire MAP.68 (PR #573); narrow MAP.67 to the system and body URL forms (#575)</li>
+</ul>
+<h2 id="map69">MAP.69</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: System scene endpoint with orbit elements for the 3D view (MAP.69) (#668)</li>
+<li>2026-10-08: Retire MAP.69; close TEST.107 (not reproducible) (#669)</li>
+</ul>
+<h2 id="map70">MAP.70</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Positions at any time with a time clock (MAP.70) (#670)</li>
+<li>2026-10-08: Retire MAP.62, MAP.67, MAP.70 to MAP.74; file TEST.109 (#674)</li>
+</ul>
+<h2 id="map71">MAP.71</h2>
+<p>2026-10-08 to 2026-10-08; 1 commits; not open.</p>
+<ul>
+<li>2026-10-08: 3D system view: scale modes, free camera, time control, page switch (MAP.71 to MAP.74) (#673)</li>
+</ul>
+<h2 id="map74">MAP.74</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: 3D system view: scale modes, free camera, time control, page switch (MAP.71 to MAP.74) (#673)</li>
+<li>2026-10-08: Retire MAP.62, MAP.67, MAP.70 to MAP.74; file TEST.109 (#674)</li>
+<li>2026-10-08: Record Boss's MAP.74 answer: system pages open in 3D (#675)</li>
+</ul>
+<h2 id="map76">MAP.76</h2>
+<p>2026-10-02 to 2026-10-02; 1 commits; not open.</p>
+<ul>
+<li>2026-10-02: Galaxy Map: slab buttons with leader lines, whole-stage fit, slab-only lines (MAP.54, MAP.76, MAP.53, MAP.78, MAP.77) (#410)</li>
+</ul>
+<h2 id="map77">MAP.77</h2>
+<p>2026-10-01 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: file Galaxy Map slab-division and whole-wedge zoom bugs (MAP.77, MAP.78)</li>
+<li>2026-10-02: Galaxy Map: slab buttons with leader lines, whole-stage fit, slab-only lines (MAP.54, MAP.76, MAP.53, MAP.78, MAP.77) (#410)</li>
+</ul>
+<h2 id="map78">MAP.78</h2>
+<p>2026-10-01 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: file Galaxy Map slab-division and whole-wedge zoom bugs (MAP.77, MAP.78)</li>
+<li>2026-10-02: Galaxy Map: slab buttons with leader lines, whole-stage fit, slab-only lines (MAP.54, MAP.76, MAP.53, MAP.78, MAP.77) (#410)</li>
+</ul>
+<h2 id="map79">MAP.79</h2>
+<p>2026-10-01 to 2026-10-08; 4 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: file Boss's navigation and Sector Map bugs (MAP.79-80, NAV.29-32)</li>
+<li>2026-10-01: Docs: Boss's answers on MAP.79 (toggle and dim) and MAP.80 (a fix)</li>
+<li>2026-10-08: MAP.79: per-kind show/hide buttons on the shared map scene (#577)</li>
+<li>2026-10-08: Retire MAP.79 (PR #577); narrow MAP.113, note MAP.123 progress (#578)</li>
+</ul>
+<h2 id="map80">MAP.80</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: Docs: Boss's answers on MAP.79 (toggle and dim) and MAP.80 (a fix)</li>
+<li>2026-10-02: MAP.80: every star of a sector at sector zoom, plus black holes, neutron stars and quasars</li>
+<li>2026-10-02: TODO: retire MAP.80 (PR #429) (#430)</li>
+</ul>
+<h2 id="map81">MAP.81</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: Boss's decisions on MAP.81, DB.2, GEN.46 and API.6; file API.15 (API call log) in phase 1 (#336)</li>
+<li>2026-10-02: MAP.81: bookmark keys are plain 1 to 9 while the Galaxy Map has focus</li>
+<li>2026-10-02: Tests follow MAP.87's halo light and MAP.81/MAP.83's new defaults</li>
+</ul>
+<h2 id="map82">MAP.82</h2>
+<p>2026-10-01 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file Boss's list (UX.24-33, MAP.82-86, GEN.44-47), arc-pick notes, and phase plans in docs/plan (#329)</li>
+<li>2026-10-02: MAP.82, MAP.83, MAP.84: rogue planets faint until marked; the toggle shows when on</li>
+</ul>
+<h2 id="map83">MAP.83</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: MAP.82, MAP.83, MAP.84: rogue planets faint until marked; the toggle shows when on</li>
+<li>2026-10-02: Tests follow MAP.87's halo light and MAP.81/MAP.83's new defaults</li>
+</ul>
+<h2 id="map84">MAP.84</h2>
+<p>2026-10-02 to 2026-10-02; 1 commits; not open.</p>
+<ul>
+<li>2026-10-02: MAP.82, MAP.83, MAP.84: rogue planets faint until marked; the toggle shows when on</li>
+</ul>
+<h2 id="map85">MAP.85</h2>
+<p>2026-10-01 to 2026-10-01; 1 commits; not open.</p>
+<ul>
+<li>2026-10-01: Galaxy Map: 3D galaxy with an arc pick, one scale line, controls menu (MAP.85, MAP.52, MAP.55, MAP.60) (#369)</li>
+</ul>
+<h2 id="map86">MAP.86</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: MAP.86: Galaxy Map sectors and blocks colored by their sector stats</li>
+<li>2026-10-02: TODO: retire MAP.86 (PR #432); Sector stats lane done, Sector and system pages running (#433)</li>
+</ul>
+<h2 id="map87">MAP.87</h2>
+<p>2026-10-01 to 2026-10-02; 4 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file MAP.87 (brighter dim stars on the Sector Map, bug) into phase 2 (#330)</li>
+<li>2026-10-01: TODO: MAP.87 covers the Galaxy Map too (one shared brightness curve) (#331)</li>
+<li>2026-10-02: MAP.87: draw faint stars brighter on the Sector Map and Galaxy Map</li>
+<li>2026-10-02: Tests follow MAP.87's halo light and MAP.81/MAP.83's new defaults</li>
+</ul>
+<h2 id="map88">MAP.88</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file MAP.88 (System Map runs off its edge, bug) into phase 1 (#332)</li>
+<li>2026-10-02: System Map: fit the whole scene, radius and mass in the side panel, no NaN in the SVG (MAP.57, MAP.88, MAP.92) (#405)</li>
+<li>2026-10-02: TODO: retire MAP.57, MAP.88, MAP.92 (PR #405); System Map lane done (#407)</li>
+</ul>
+<h2 id="map89">MAP.89</h2>
+<p>2026-10-01 to 2026-10-09; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file MAP.89 (System Map fitted orbit spacing with a gap floor) into phase 1 (#333)</li>
+<li>2026-10-01: TODO: MAP.89 decided, fitted orbit spacing with 12 px gap, no toggle (#334)</li>
+<li>2026-10-09: Retire MAP.89 on Boss's word and add the Phase 1+ execution plan (#781)</li>
+</ul>
+<h2 id="map90">MAP.90</h2>
+<p>2026-10-01 to 2026-10-01; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file the debug-mode bug hunt (PERF.21-23, GEN.48-54, ADM.16, TEST.74-76, MAP.90, UX.34, OPS.9); parallel path tops phase 1 (#335)</li>
+<li>2026-10-01: Give a subnormal view radius the finest tile level (MAP.90) (#365)</li>
+<li>2026-10-01: TODO: retire MAP.90 (PR #365) (#366)</li>
+</ul>
+<h2 id="map91">MAP.91</h2>
+<p>2026-10-01 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-01: TODO: file MAP.91, hovering a slab highlights the whole slab (Boss 03:52Z) (#379)</li>
+<li>2026-10-02: MAP.91: picking a slab lights and outlines the whole slab (#395)</li>
+<li>2026-10-02: TODO: retire GEN.51 (PR #398) and MAP.91 (PR #395) (#400)</li>
+</ul>
+<h2 id="map92">MAP.92</h2>
+<p>2026-10-02 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: add UX.36, MAP.92 to MAP.95 (number format, side panel, breadcrumb) (#386)</li>
+<li>2026-10-02: System Map: fit the whole scene, radius and mass in the side panel, no NaN in the SVG (MAP.57, MAP.88, MAP.92) (#405)</li>
+<li>2026-10-02: TODO: retire MAP.57, MAP.88, MAP.92 (PR #405); System Map lane done (#407)</li>
+</ul>
+<h2 id="map93">MAP.93</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: NAV.40, MAP.93, MAP.94, NAV.31: bookmarks while picking, one-line breadcrumb, phone Steps button, pick-mode hover (#399)</li>
+<li>2026-10-02: TODO: retire NAV.40, MAP.93, MAP.94, NAV.31 (PR #399); Galaxy Map follow-ups lane done (#402)</li>
+</ul>
+<h2 id="map94">MAP.94</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: NAV.40, MAP.93, MAP.94, NAV.31: bookmarks while picking, one-line breadcrumb, phone Steps button, pick-mode hover (#399)</li>
+<li>2026-10-02: TODO: retire NAV.40, MAP.93, MAP.94, NAV.31 (PR #399); Galaxy Map follow-ups lane done (#402)</li>
+</ul>
+<h2 id="map95">MAP.95</h2>
+<p>2026-10-02 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: add UX.36, MAP.92 to MAP.95 (number format, side panel, breadcrumb) (#386)</li>
+<li>2026-10-08: One Admin menu per screen, Current button on the Galaxy Map (ADM.34, MAP.95) (#562)</li>
+<li>2026-10-08: Retire ADM.34 and MAP.95 (PR #562); UX.37 has no prerequisites left (#563)</li>
+</ul>
+<h2 id="map96">MAP.96</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file MAP.96 (free rotation) and MAP.97 (camera presets per zoom step), Boss 05:12Z (#396)</li>
+<li>2026-10-02: Galaxy Map: turn freely any way, top-down for galaxy and slab, isometric for a block (MAP.96, MAP.97) (#413)</li>
+</ul>
+<h2 id="map97">MAP.97</h2>
+<p>2026-10-02 to 2026-10-02; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file MAP.96 (free rotation) and MAP.97 (camera presets per zoom step), Boss 05:12Z (#396)</li>
+<li>2026-10-02: Galaxy Map: turn freely any way, top-down for galaxy and slab, isometric for a block (MAP.96, MAP.97) (#413)</li>
+</ul>
+<h2 id="map98">MAP.98</h2>
+<p>2026-10-02 to 2026-10-02; 4 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file GEN.65 (web-only generation error, high priority, held) and MAP.98 (slab lines to nearest prism edge) (#417)</li>
+<li>2026-10-02: Galaxy Map slab buttons: nearest-edge lines, one-line labels, fit the window (MAP.98, MAP.100, MAP.99)</li>
+<li>2026-10-02: TODO: MAP.98 lines end at the nearest point of the nearest prism edge (Boss 08:35Z) (#421)</li>
+<li>2026-10-02: TODO: retire MAP.98, MAP.99, MAP.100 (PR #422); Routing groundwork running (#423)</li>
+</ul>
+<h2 id="map99">MAP.99</h2>
+<p>2026-10-02 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file MAP.99 (slab buttons split/shrink/drop) and MAP.100 (one-line slab labels) (#418)</li>
+<li>2026-10-02: Galaxy Map slab buttons: nearest-edge lines, one-line labels, fit the window (MAP.98, MAP.100, MAP.99)</li>
+<li>2026-10-02: TODO: retire MAP.98, MAP.99, MAP.100 (PR #422); Routing groundwork running (#423)</li>
+</ul>
+<h2 id="map100">MAP.100</h2>
+<p>2026-10-02 to 2026-10-02; 3 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file MAP.99 (slab buttons split/shrink/drop) and MAP.100 (one-line slab labels) (#418)</li>
+<li>2026-10-02: Galaxy Map slab buttons: nearest-edge lines, one-line labels, fit the window (MAP.98, MAP.100, MAP.99)</li>
+<li>2026-10-02: TODO: retire MAP.98, MAP.99, MAP.100 (PR #422); Routing groundwork running (#423)</li>
+</ul>
+<h2 id="map101">MAP.101</h2>
+<p>2026-10-02 to 2026-10-03; 2 commits; not open.</p>
+<ul>
+<li>2026-10-02: TODO: file MAP.101 (stars take the click on the Galaxy Map), high priority (#424)</li>
+<li>2026-10-03: Galaxy Map: stars no longer take the click (MAP.101) (#431)</li>
+</ul>
+<h2 id="map102">MAP.102</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Galaxy Map stars drawn camera-relative (MAP.102 part 1) (#574)</li>
+<li>2026-10-08: Retire MAP.102 and MAP.109 (PRs #574, #603) (#604)</li>
+</ul>
+<h2 id="map103">MAP.103</h2>
+<p>2026-10-08 to 2026-10-08; 5 commits; not open.</p>
+<ul>
+<li>2026-10-08: MAP.103 part 1: the Galaxy Map draws a nebula from its shape mesh (#583)</li>
+<li>2026-10-08: MAP.103 part 2: the Sector Map draws a nebula from its shape mesh (#588)</li>
+<li>2026-10-08: File TEST.102 (flaky population pass test); reword MAP.103 for the System Map (#589)</li>
+<li>2026-10-08: MAP.103 part 3 and MAP.104: nebula wash on the System Map; nebulae over unfilled sectors tested (#592)</li>
+<li>2026-10-08: Retire MAP.103 and MAP.104 (PR #592) (#593)</li>
+</ul>
+<h2 id="map104">MAP.104</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: MAP.103 part 3 and MAP.104: nebula wash on the System Map; nebulae over unfilled sectors tested (#592)</li>
+<li>2026-10-08: Retire MAP.103 and MAP.104 (PR #592) (#593)</li>
+</ul>
+<h2 id="map105">MAP.105</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: MAP.105 + UX.38: the nebula page shows its shape in 3D; the remnant diagram's - works (#590)</li>
+<li>2026-10-08: Retire MAP.105 and UX.38 (PR #590) (#591)</li>
+</ul>
+<h2 id="map106">MAP.106</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Test that the Galaxy Map breadcrumb matches its URL's view (MAP.106) (#586)</li>
+<li>2026-10-08: Retire MAP.106 (PR #586) (#587)</li>
+</ul>
+<h2 id="map107">MAP.107</h2>
+<p>2026-10-07 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-07: Pick from the stage that is drawn, not the one loading (MAP.107) (#537)</li>
+<li>2026-10-07: Retire MAP.107 (done in PR #537); note MAP.108 part 1 and new flake sightings (#538)</li>
+</ul>
+<h2 id="map108">MAP.108</h2>
+<p>2026-10-07 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-07: Retire MAP.107 (done in PR #537); note MAP.108 part 1 and new flake sightings (#538)</li>
+<li>2026-10-08: Retire TEST.94 to TEST.101 (PR #549) and close MAP.108 as not reproducible (#550)</li>
+</ul>
+<h2 id="map109">MAP.109</h2>
+<p>2026-10-07 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-07: TODO: file Boss's three Galaxy Map problems (MAP.109, MAP.116, new MAP.127) (#459)</li>
+<li>2026-10-08: Galaxy Map: a stated cap on the stars one view can fetch, with a test (MAP.109) (#603)</li>
+<li>2026-10-08: Retire MAP.102 and MAP.109 (PRs #574, #603) (#604)</li>
+</ul>
+<h2 id="map110">MAP.110</h2>
+<p>2026-10-07 to 2026-10-07; 3 commits; not open.</p>
+<ul>
+<li>2026-10-07: Note on MAP.110 that PR #491 fixed only the crossing lines (#500)</li>
+<li>2026-10-07: Keep Galaxy Map slab buttons in slab-number order (MAP.110) (#520)</li>
+<li>2026-10-07: Retire MAP.110 (done in PR #520) (#524)</li>
+</ul>
+<h2 id="map111">MAP.111</h2>
+<p>2026-10-07 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-07: Charted only: dim uncharted stars and outline charted blocks (MAP.111) (#531)</li>
+<li>2026-10-07: Retire MAP.111 (done in PR #531); file TEST.98 to TEST.101 (#532)</li>
+</ul>
+<h2 id="map112">MAP.112</h2>
+<p>2026-10-07 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-07: Charted only no longer stops picking (MAP.112) (#541)</li>
+<li>2026-10-07: Retire MAP.112 (done in PR #541) (#542)</li>
+</ul>
+<h2 id="map113">MAP.113</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire MAP.79 (PR #577); narrow MAP.113, note MAP.123 progress (#578)</li>
+<li>2026-10-08: Sector map: Escape or a click on the selection clears it (MAP.113) (#584)</li>
+<li>2026-10-08: Retire MAP.113 (PR #584) (#585)</li>
+</ul>
+<h2 id="map115">MAP.115</h2>
+<p>2026-10-08 to 2026-10-08; 1 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire MAP.116, MAP.115 and GEN.117 (PRs #598, #600, #601) (#602)</li>
+</ul>
+<h2 id="map116">MAP.116</h2>
+<p>2026-10-07 to 2026-10-08; 4 commits; not open.</p>
+<ul>
+<li>2026-10-07: TODO: file Boss's three Galaxy Map problems (MAP.109, MAP.116, new MAP.127) (#459)</li>
+<li>2026-10-07: TODO: GEN.117 is the Galaxy Map's brightest-first tile picking; fix with MAP.116 (#483)</li>
+<li>2026-10-08: Galaxy Map: strict star budget per zoom level, shared out by sector (MAP.116) (#601)</li>
+<li>2026-10-08: Retire MAP.116, MAP.115 and GEN.117 (PRs #598, #600, #601) (#602)</li>
+</ul>
+<h2 id="map117">MAP.117</h2>
+<p>2026-10-07 to 2026-10-07; 1 commits; not open.</p>
+<ul>
+<li>2026-10-07: Bug fixes, lane 2 batch 1 (OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44, MAP.118) (#457)</li>
+</ul>
+<h2 id="map118">MAP.118</h2>
+<p>2026-10-07 to 2026-10-07; 1 commits; not open.</p>
+<ul>
+<li>2026-10-07: Bug fixes, lane 2 batch 1 (OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44, MAP.118) (#457)</li>
+</ul>
+<h2 id="map121">MAP.121</h2>
+<p>2026-10-07 to 2026-10-28; 10 commits; not open.</p>
+<ul>
+<li>2026-10-07: TODO: fold MAP.127 into MAP.121 (one map engine for every map) (#460)</li>
+<li>2026-10-10: TODO: retire MAP.149 (PR #1141); MAP.121 and MAP.141 built in part (#1142)</li>
+<li>2026-10-28: MAP.121 (part): step to the neighbouring region at the window's own level (#3391)</li>
+<li>2026-10-28: Docs: MAP.121 first part merged (#3391) (#3392)</li>
+<li>2026-10-28: Docs: retire GEN.841, TEST.410, MAP.319; file TEST.417; MAP.121 scope (#3407)</li>
+<li>2026-10-28: Docs: retire UX.212 (#3423); TEST.420 ids; MAP.121 and API.33 notes (#3425)</li>
+<li>2026-10-28: MAP.121: step buttons and keys open the sector beside an opened sector (#3427)</li>
+<li>2026-10-28: Docs: retire TEST.419 (#3428); MAP.121 progress; file GEN.844 (#3429)</li>
+<li>2026-10-28: MAP.121: step buttons and keys go from an open system to the nearest system that way (#3430)</li>
+<li>2026-10-28: Docs: retire MAP.121 (#3430); file MAP.329 (#3431)</li>
+</ul>
+<h2 id="map122">MAP.122</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire DOC.48; file prevalence suite parts TEST.431-433; rescope MAP.122 (#3538)</li>
+<li>2026-10-28: MAP.122: bookmark a picked star, 10/22 px reach and a choice list for crowded clicks; charted stars carry their system id in packed nodes (#3553)</li>
+<li>2026-10-28: Docs: retire MAP.122 (merged as #3553) (#3554)</li>
+</ul>
+<h2 id="map123">MAP.123</h2>
+<p>2026-10-08 to 2026-10-09; 6 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire MAP.79 (PR #577); narrow MAP.113, note MAP.123 progress (#578)</li>
+<li>2026-10-08: Hide stars by class and set a luminosity floor on the maps (MAP.123) (#704)</li>
+<li>2026-10-08: MAP.123: highlight phenomena kinds and keep view filters in stage bookmarks (#721)</li>
+<li>2026-10-08: TODO: retire GEN.70 (PR #731), progress notes on ADM.18 and MAP.123 (#732)</li>
+<li>2026-10-09: Apply the star class and luminosity filters to the Galaxy Map's tile stars (MAP.123) (#753)</li>
+<li>2026-10-09: TODO: retire MAP.123 (PR #753) (#754)</li>
+</ul>
+<h2 id="map124">MAP.124</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Galaxy Map opens zoomed in on the charted space (MAP.124) (#696)</li>
+<li>2026-10-08: TODO: retire MAP.124 (PR #696) (#698)</li>
+</ul>
+<h2 id="map125">MAP.125</h2>
+<p>2026-10-08 to 2026-10-09; 6 commits; not open.</p>
+<ul>
+<li>2026-10-08: MAP.62 and MAP.125: Boss has given the go (#667)</li>
+<li>2026-10-08: Open a star system in place on the Galaxy Map (MAP.125, part 1) (#678)</li>
+<li>2026-10-08: Retire UX.75; MAP.125 progress line (#680)</li>
+<li>2026-10-08: Galaxy Map wheel zoom between sector and system; ?object= for bodies (MAP.125, parts 2-3) (#683)</li>
+<li>2026-10-08: Retire MAP.125 (#684)</li>
+<li>2026-10-09: TODO: close MAP.58 as superseded by MAP.125; drop the run-update.sh reminders (#756)</li>
+</ul>
+<h2 id="map126">MAP.126</h2>
+<p>2026-10-08 to 2026-10-08; 2 commits; not open.</p>
+<ul>
+<li>2026-10-08: Draw the selected body's orbit bright in its frame of reference (MAP.126) (#686)</li>
+<li>2026-10-08: TODO: retire MAP.126 (PR #686) (#687)</li>
+</ul>
+<h2 id="map127">MAP.127</h2>
+<p>2026-10-07 to 2026-10-07; 2 commits; not open.</p>
+<ul>
+<li>2026-10-07: TODO: file Boss's three Galaxy Map problems (MAP.109, MAP.116, new MAP.127) (#459)</li>
+<li>2026-10-07: TODO: fold MAP.127 into MAP.121 (one map engine for every map) (#460)</li>
+</ul>
+<h2 id="map128">MAP.128</h2>
+<p>2026-10-07 to 2026-10-08; 4 commits; not open.</p>
+<ul>
+<li>2026-10-07: File sector and block coloring items DB.14 and MAP.128-MAP.132 (Boss 2026-10-08) (#527)</li>
+<li>2026-10-08: Color sectors by star age, density and luminosity from raw sector stats (DB.14, MAP.128-130) (#556)</li>
+<li>2026-10-08: Retire DB.14, MAP.129, MAP.130 (PR #556); narrow MAP.128 to the Sector Map (#557)</li>
+<li>2026-10-08: Close MAP.128: sector space is not tinted; MAP.131 is Galaxy Map only (#596)</li>
+</ul>
+<h2 id="map129">MAP.129</h2>
+<p>2026-10-08 to 2026-10-08; 1 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire DB.14, MAP.129, MAP.130 (PR #556); narrow MAP.128 to the Sector Map (#557)</li>
+</ul>
+<h2 id="map130">MAP.130</h2>
+<p>2026-10-08 to 2026-10-08; 1 commits; not open.</p>
+<ul>
+<li>2026-10-08: Retire DB.14, MAP.129, MAP.130 (PR #556); narrow MAP.128 to the Sector Map (#557)</li>
+</ul>
+<h2 id="map131">MAP.131</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: Close MAP.128: sector space is not tinted; MAP.131 is Galaxy Map only (#596)</li>
+<li>2026-10-08: Galaxy Map Color by switch with a legend (MAP.131) (#692)</li>
+<li>2026-10-08: TODO: retire MAP.131 (PR #692) (#693)</li>
+</ul>
+<h2 id="map132">MAP.132</h2>
+<p>2026-10-07 to 2026-10-07; 1 commits; not open.</p>
+<ul>
+<li>2026-10-07: File sector and block coloring items DB.14 and MAP.128-MAP.132 (Boss 2026-10-08) (#527)</li>
+</ul>
+<h2 id="map133">MAP.133</h2>
+<p>2026-10-08 to 2026-10-08; 3 commits; not open.</p>
+<ul>
+<li>2026-10-08: TODO: file MAP.133 (Galaxy Map shows no bulge bright stars, bug) (#695)</li>
+<li>2026-10-08: Pick the Galaxy Map's bright stars per population so the bulge shows (MAP.133) (#722)</li>
+<li>2026-10-08: TODO: retire MAP.133 (PR #722) (#726)</li>
+</ul>
+<h2 id="map134">MAP.134</h2>
+<p>2026-10-09 to 2026-10-09; 3 commits; not open.</p>
+<ul>
+<li>2026-10-09: TODO: file MAP.134 (build the Galaxy Map opening view ahead of time) (#757)</li>
+<li>2026-10-09: Build the Galaxy Map's opening view ahead of time on every update (MAP.134) (#764)</li>
+<li>2026-10-09: TODO: retire MAP.134 (PR #764) (#765)</li>
+</ul>
+<h2 id="map135">MAP.135</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: Galaxy Map: an arc and a slab show their bounds in the info panel (MAP.135) (#788)</li>
+<li>2026-10-09: Retire MAP.135; file ADM.45 (prevalence shares); write Boss's answers into their items; open decisions cleared (#789)</li>
+</ul>
+<h2 id="map136">MAP.136</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; not open.</p>
+<ul>
+<li>2026-10-09: Map bugs: binary picks, rogue planet defaults, Center control; class list order (MAP.136-138, UX.77) (#797)</li>
+<li>2026-10-09: Retire MAP.136, MAP.137, MAP.138 and UX.77 (PR #797) (#798)</li>
+</ul>
+<h2 id="map137">MAP.137</h2>
+<p>2026-10-09 to 2026-10-09; 1 commits; not open.</p>
+<ul>
+<li>2026-10-09: Retire MAP.136, MAP.137, MAP.138 and UX.77 (PR #797) (#798)</li>
+</ul>
+<h2 id="map138">MAP.138</h2>
+<p>2026-10-09 to 2026-10-09; 1 commits; not open.</p>
+<ul>
+<li>2026-10-09: Retire MAP.136, MAP.137, MAP.138 and UX.77 (PR #797) (#798)</li>
+</ul>
+<h2 id="map139">MAP.139</h2>
+<p>2026-10-14 to 2026-10-22; 4 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: add the #758 screenshot findings to MAP.139 (#1258)</li>
+<li>2026-10-22: Core 2 takes UX.143, MAP.254 and UX.144; MAP.254 needs MAP.139; MAP.195 parked (#2422)</li>
+<li>2026-10-22: One shared info box on the maps with a View button (MAP.139, MAP.254) (#2468)</li>
+<li>2026-10-22: Docs: retire MAP.139 (#2468) and GEN.617 (#2469); narrow MAP.254; file DB.85 (#2470)</li>
+</ul>
+<h2 id="map141">MAP.141</h2>
+<p>2026-10-10 to 2026-11-06; 2 commits; open.</p>
+<ul>
+<li>2026-10-10: TODO: retire MAP.149 (PR #1141); MAP.121 and MAP.141 built in part (#1142)</li>
+<li>2026-11-06: docs: retire 50 built items; MAP.141 and MAP.156 move to 8.2 (#5500)</li>
+</ul>
+<h2 id="map142">MAP.142</h2>
+<p>2026-11-04 to 2026-11-04; 7 commits; not open.</p>
+<ul>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: MAP.142: nebula edges by family (#4845)</li>
+<li>2026-11-04: MAP.142 part 1: per-nebula volume endpoint (#4900)</li>
+<li>2026-11-04: MAP.142 part 2: Sector Map draws each nebula from its own points (#4918)</li>
+<li>2026-11-04: MAP.142 part 3: the nebula page draws the nebula from its own points (#5024)</li>
+<li>2026-11-04: MAP.142 part 4: retire the nebula shape mesh (#5029)</li>
+<li>2026-11-04: TODO: retire MAP.142 (#5030)</li>
+</ul>
+<h2 id="map143">MAP.143</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.143: Galaxy Map Color by Habitable worlds (schema v139 habitable_worlds per sector and block); map fixture site answers the nebula cover (#2742)</li>
+<li>2026-10-24: Docs: file object detail pages UX.168 to UX.179; MAP.143 merged (#2742); migration 0139 taken; 833 of 1257 (#2859)</li>
+</ul>
+<h2 id="map146">MAP.146</h2>
+<p>2026-10-09 to 2026-10-23; 7 commits; not open.</p>
+<ul>
+<li>2026-10-09: File MAP.146: zoom drill-down centered on the clicked point (#872)</li>
+<li>2026-10-09: Rewrite MAP.146 as the fly-through umbrella; file MAP.148 to MAP.152 (#880)</li>
+<li>2026-10-09: Move the fly-through Galaxy Map (MAP.146 to MAP.155) into Phase 1 as the headline of 8.1 (#883)</li>
+<li>2026-10-16: TODO: MAP.152 and MAP.146 go to Core 2 (Boss, 11:32 AM EDT) (#1822)</li>
+<li>2026-10-16: Put Core 2's queue in Boss's order: MAP.152, MAP.146, then PERF.105 and UX.118 (#1830)</li>
+<li>2026-10-23: Docs: TEST.281 (#2619) and GEN.628 (#2620, epoch 53) retired; GEN.633 backfill order dependence and TEST.289 filed; MAP.146 children all done (#2621)</li>
+<li>2026-10-23: Docs: MAP.146 verified and retired; ADM.125 is control schema v17, not an Alembic migration (#2622)</li>
+</ul>
+<h2 id="map147">MAP.147</h2>
+<p>2026-10-09 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-09: File MAP.147: the Galaxy Map wire format (#873)</li>
+<li>2026-10-09: MAP.147 measured facts; split into MAP.157 to MAP.160 (#890)</li>
+<li>2026-10-10: TODO: NAV items to Bugfixes lane 2, MAP.147 to Foundations lane 2 (#1135)</li>
+</ul>
+<h2 id="map148">MAP.148</h2>
+<p>2026-10-09 to 2026-10-10; 6 commits; not open.</p>
+<ul>
+<li>2026-10-09: Rewrite MAP.146 as the fly-through umbrella; file MAP.148 to MAP.152 (#880)</li>
+<li>2026-10-09: File MAP.153 to MAP.155 from the zoom star visibility note; link to MAP.148 (#881)</li>
+<li>2026-10-09: Record that the rank fade is stage 1 and MAP.148 the end state (#885)</li>
+<li>2026-10-10: TODO: note MAP.163/164 follow-ups on MAP.148 (#1036)</li>
+<li>2026-10-10: Galaxy Map star visibility law: apparent-magnitude opacity, flux brightness, histogram limit (MAP.148) (#1160)</li>
+<li>2026-10-10: TODO: retire MAP.148 (PR #1160); reorganize the Foundations lane queues (#1162)</li>
+</ul>
+<h2 id="map149">MAP.149</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: Galaxy Map near field: depth fade, focus tube, drawing from inside a block, picking that matches (MAP.149) (#1141)</li>
+<li>2026-10-10: TODO: retire MAP.149 (PR #1141); MAP.121 and MAP.141 built in part (#1142)</li>
+</ul>
+<h2 id="map150">MAP.150</h2>
+<p>2026-10-10 to 2026-10-14; 5 commits; not open.</p>
+<ul>
+<li>2026-10-10: Galaxy Map wheel zooms toward the cursor (MAP.150, first stage) (#1182)</li>
+<li>2026-10-10: TODO: record MAP.150 first stage (PR #1182) (#1184)</li>
+<li>2026-10-14: Galaxy Map zooms where you click: plain galaxy, click-centered windows (MAP.150, MAP.151d part 2) (#1382)</li>
+<li>2026-10-14: Retire MAP.150 (#1382); add MAP.197 (#1398)</li>
+<li>2026-10-14: Record the MAP.152 plan change; drop retired MAP.150 from the lane (#1441)</li>
+</ul>
+<h2 id="map151">MAP.151</h2>
+<p>2026-10-14 to 2026-10-15; 4 commits; not open.</p>
+<ul>
+<li>2026-10-14: Note the MAP.151 and MAP.152 split (#1306)</li>
+<li>2026-10-14: TODO: MAP.151 landing steps note (#1322)</li>
+<li>2026-10-14: TODO: file DB.25 and TEST.145; MAP.151 notes #1335 (#1336)</li>
+<li>2026-10-15: Retire MAP.151 (PR #1539) (#1540)</li>
+</ul>
+<h2 id="map152">MAP.152</h2>
+<p>2026-10-09 to 2026-10-16; 11 commits; not open.</p>
+<ul>
+<li>2026-10-09: Rewrite MAP.146 as the fly-through umbrella; file MAP.148 to MAP.152 (#880)</li>
+<li>2026-10-14: Note the MAP.151 and MAP.152 split (#1306)</li>
+<li>2026-10-14: MAP.152: choose the Galaxy Map's tiles by distance and fade stars by distance (#1439)</li>
+<li>2026-10-14: Note MAP.152 server part (PR #1439) (#1440)</li>
+<li>2026-10-14: Record the MAP.152 plan change; drop retired MAP.150 from the lane (#1441)</li>
+<li>2026-10-15: MAP.152: the wheel carries the zoom across every stage, in and out (#1704)</li>
+<li>2026-10-16: TODO: MAP.152 and MAP.146 go to Core 2 (Boss, 11:32 AM EDT) (#1822)</li>
+<li>2026-10-16: Put Core 2's queue in Boss's order: MAP.152, MAP.146, then PERF.105 and UX.118 (#1830)</li>
+<li>2026-10-16: MAP.152: a sector's scene fades in as the camera comes up to it (#1832)</li>
+<li>2026-10-16: MAP.152: a star's system fades in as its disk comes to about 20 pixels (#1838)</li>
+<li>2026-10-16: TODO: retire MAP.152 (#1832, #1838) (#1841)</li>
+</ul>
+<h2 id="map153">MAP.153</h2>
+<p>2026-10-09 to 2026-10-10; 5 commits; not open.</p>
+<ul>
+<li>2026-10-09: File MAP.153 to MAP.155 from the zoom star visibility note; link to MAP.148 (#881)</li>
+<li>2026-10-09: Record Boss's zoom visibility decisions on MAP.153 and MAP.155 (#884)</li>
+<li>2026-10-10: Queue: GEN.170, API.9 and MAP.153 first (#983)</li>
+<li>2026-10-10: Stars fade in with the zoom: a birth radius from each star's rank in its tile list (MAP.153) (#998)</li>
+<li>2026-10-10: Retire MAP.153 (PR #998); file GEN.189 (#999)</li>
+</ul>
+<h2 id="map154">MAP.154</h2>
+<p>2026-10-14 to 2026-10-14; 2 commits; not open.</p>
+<ul>
+<li>2026-10-14: List the bright stars of every tile by one key so the lists are nested (MAP.154) (#1303)</li>
+<li>2026-10-14: Retire MAP.154 (#1303) (#1304)</li>
+</ul>
+<h2 id="map155">MAP.155</h2>
+<p>2026-10-09 to 2026-10-14; 5 commits; not open.</p>
+<ul>
+<li>2026-10-09: File MAP.153 to MAP.155 from the zoom star visibility note; link to MAP.148 (#881)</li>
+<li>2026-10-09: Move the fly-through Galaxy Map (MAP.146 to MAP.155) into Phase 1 as the headline of 8.1 (#883)</li>
+<li>2026-10-09: Record Boss's zoom visibility decisions on MAP.153 and MAP.155 (#884)</li>
+<li>2026-10-14: Fade point objects, nebula sprites and new stars in with the zoom (MAP.155) (#1253)</li>
+<li>2026-10-14: TODO: retire PERF.80, GEN.200, MAP.155; file TEST.143 and TEST.144 (#1254)</li>
+</ul>
+<h2 id="map156">MAP.156</h2>
+<p>2026-10-09 to 2026-11-06; 3 commits; open.</p>
+<ul>
+<li>2026-10-09: File MAP.156: view one layer or a range of layers top-down (#888)</li>
+<li>2026-10-09: Record Boss's approval of the MAP.156 default (#889)</li>
+<li>2026-11-06: docs: retire 50 built items; MAP.141 and MAP.156 move to 8.2 (#5500)</li>
+</ul>
+<h2 id="map157">MAP.157</h2>
+<p>2026-10-09 to 2026-10-10; 4 commits; not open.</p>
+<ul>
+<li>2026-10-09: MAP.147 measured facts; split into MAP.157 to MAP.160 (#890)</li>
+<li>2026-10-09: Wire format detail on MAP.157 to MAP.160; file MAP.161 (first-visit load) (#891)</li>
+<li>2026-10-10: Trim the Galaxy Map tile JSON and serve it from stored bytes (MAP.157) (#1112)</li>
+<li>2026-10-10: TODO: retire MAP.157 (PR #1112) (#1115)</li>
+</ul>
+<h2 id="map158">MAP.158</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: Keep Galaxy Map tiles in IndexedDB and prefetch more gently (MAP.158) (#1123)</li>
+<li>2026-10-10: TODO: retire MAP.158 (PR #1123) (#1124)</li>
+</ul>
+<h2 id="map159">MAP.159</h2>
+<p>2026-10-14 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Record MAP.159 omission follow-up as MAP.195 (#1293)</li>
+<li>2026-10-14: Send the Galaxy Map's tiles packed, about 20 bytes a star (MAP.159) (#1305)</li>
+<li>2026-10-14: TODO: documentation sweep filed as DOC.18 to DOC.44; retire MAP.159 (#1305) (#1327)</li>
+</ul>
+<h2 id="map160">MAP.160</h2>
+<p>2026-10-09 to 2026-10-09; 2 commits; open.</p>
+<ul>
+<li>2026-10-09: MAP.147 measured facts; split into MAP.157 to MAP.160 (#890)</li>
+<li>2026-10-09: Wire format detail on MAP.157 to MAP.160; file MAP.161 (first-visit load) (#891)</li>
+</ul>
+<h2 id="map161">MAP.161</h2>
+<p>2026-10-09 to 2026-10-10; 4 commits; not open.</p>
+<ul>
+<li>2026-10-09: Wire format detail on MAP.157 to MAP.160; file MAP.161 (first-visit load) (#891)</li>
+<li>2026-10-09: Move MAP.161 (first-visit script load) to Phase 1 (#892)</li>
+<li>2026-10-10: Preload the Galaxy Map's modules so a first visit loads them in parallel (MAP.161) (#1129)</li>
+<li>2026-10-10: TODO: retire MAP.161 (PR #1129) (#1130)</li>
+</ul>
+<h2 id="map162">MAP.162</h2>
+<p>2026-10-10 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-10: File GEN.187, MAP.162 and UX.87 from new issues #952, #928 and #929 (#961)</li>
+<li>2026-10-10: Open a sector nothing was generated in when a scatter placed objects there, marked uncharted (MAP.162) (#1085)</li>
+<li>2026-10-10: TODO: retire MAP.162 (PR #1085) (#1086)</li>
+</ul>
+<h2 id="map163">MAP.163</h2>
+<p>2026-10-10 to 2026-10-10; 6 commits; not open.</p>
+<ul>
+<li>2026-10-10: File MAP.163; GEN.188 and MAP.163 on Bugfixes lane 2; TEST.120 owner (#996)</li>
+<li>2026-10-10: TODO: retire OPS.40 and GEN.188, file TEST.122, note MAP.163 cause, fix default values in the scatter design note (#1009)</li>
+<li>2026-10-10: Galaxy Map: per-zoom brightness scale, purple/dark-blue compact objects, scattered ones in tiles (MAP.163, MAP.164) (#1029)</li>
+<li>2026-10-10: TODO: retire MAP.163 and MAP.164, file MAP.165 (#1030)</li>
+<li>2026-10-10: Galaxy Map: brightness slider follows the stars the view actually carries (MAP.163 follow-up) (#1035)</li>
+<li>2026-10-10: TODO: note MAP.163/164 follow-ups on MAP.148 (#1036)</li>
+</ul>
+<h2 id="map164">MAP.164</h2>
+<p>2026-10-10 to 2026-10-10; 4 commits; not open.</p>
+<ul>
+<li>2026-10-10: File GEN.190 (empty Phenomena table) and MAP.164 (phenomena on the map) (#1004)</li>
+<li>2026-10-10: Galaxy Map: per-zoom brightness scale, purple/dark-blue compact objects, scattered ones in tiles (MAP.163, MAP.164) (#1029)</li>
+<li>2026-10-10: TODO: retire MAP.163 and MAP.164, file MAP.165 (#1030)</li>
+<li>2026-10-10: Galaxy Map: nucleus quasar and built nucleus visible from the galaxy view (MAP.164 follow-up) (#1032)</li>
+</ul>
+<h2 id="map165">MAP.165</h2>
+<p>2026-10-10 to 2026-10-10; 4 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: retire MAP.163 and MAP.164, file MAP.165 (#1030)</li>
+<li>2026-10-10: TODO: retire UX.91 (PR #1104); lane 2 gets MAP.165 then ADM.49 (#1105)</li>
+<li>2026-10-10: Size scattered black holes and neutron stars on the map by their stored mass (MAP.165) (#1110)</li>
+<li>2026-10-10: TODO: retire MAP.165 (PR #1110) (#1111)</li>
+</ul>
+<h2 id="map166">MAP.166</h2>
+<p>2026-10-10 to 2026-10-10; 3 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: file MAP.166, detail GEN.195 (#1042)</li>
+<li>2026-10-10: Say &quot;every star&quot; on the slider only when the view is complete (MAP.166) (#1070)</li>
+<li>2026-10-10: Docs: retire MAP.166 (PR #1070) (#1071)</li>
+</ul>
+<h2 id="map167">MAP.167</h2>
+<p>2026-10-10 to 2026-11-05; 2 commits; open.</p>
+<ul>
+<li>2026-10-10: TODO: gravity map (seminal feature of 9.0): GEN.198, TEST.131, PERF.72, GEN.199, MAP.167-170, API.24, UX.94 (#1167)</li>
+<li>2026-11-05: TODO: MAP.167 total field, TEST.627/628, GEN.1285 scope, 8.1 Physics rectification split (#5222)</li>
+</ul>
+<h2 id="map168">MAP.168</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: MAP.168: the Sector Map Gravity layer (#5267)</li>
+<li>2026-11-05: TODO: retire TEST.498, TEST.632, API.24, MAP.168; TEST.633 filed; wiring lines for the gravity kernel move to MAP.169 (#5268)</li>
+</ul>
+<h2 id="map169">MAP.169</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: retire TEST.498, TEST.632, API.24, MAP.168; TEST.633 filed; wiring lines for the gravity kernel move to MAP.169 (#5268)</li>
+<li>2026-11-05: MAP.169: the System Map Gravity layer (#5274)</li>
+<li>2026-11-05: TODO: retire MAP.169 (#5275)</li>
+</ul>
+<h2 id="map170">MAP.170</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; open.</p>
+<ul>
+<li>2026-11-07: Record Boss's answers (GEN.1022, 1151, 40, 229, 157, 1110, TEST.168, MAP.170, NAV.70, PERF.204); retire GEN.371; file GEN.1347 (#5558)</li>
+</ul>
+<h2 id="map171">MAP.171</h2>
+<p>2026-10-10 to 2026-10-10; 1 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: file map luminosity items (GEN.200, DB.23, GEN.201, MAP.171) and PERF.73, retire PERF.63 (PR #1174) (#1176)</li>
+</ul>
+<h2 id="map172">MAP.172</h2>
+<p>2026-10-10 to 2026-10-22; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: TODO: file the 14 nebula visibility items (DB.24, MAP.172-182, GEN.202, TEST.135) (#1183)</li>
+<li>2026-10-22: MAP.172: the nebula aggregates of the block ladder (migration 0116) (#2431)</li>
+</ul>
+<h2 id="map173">MAP.173</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.173: a map node lists the groups of the nebulae inside it (nebula_regions) (#3609)</li>
+<li>2026-10-28: Retire MAP.173 (merged as #3609); MAP.176 to Core 3 (#3610)</li>
+</ul>
+<h2 id="map174">MAP.174</h2>
+<p>2026-10-23 to 2026-10-23; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: MAP.174: the nebula cover of every cell in the Galaxy Map's stage and window statistics</li>
+<li>2026-10-23: MAP.174: the API route snapshot lists /api/galaxy/nebula-cover</li>
+<li>2026-10-23: Docs: retire MAP.174 (#2694) and GEN.638 (#2695), file TEST.298 and OPS.63, Setup script lane (#2697)</li>
+</ul>
+<h2 id="map175">MAP.175</h2>
+<p>2026-10-10 to 2026-10-10; 2 commits; not open.</p>
+<ul>
+<li>2026-10-10: Nebula colours per theme: every family reaches 3:1 on both themes (MAP.175) (#1203)</li>
+<li>2026-10-10: TODO: retire MAP.175 (PR #1203), add TEST.138 (#1205)</li>
+</ul>
+<h2 id="map176">MAP.176</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.173 (merged as #3609); MAP.176 to Core 3 (#3610)</li>
+<li>2026-10-28: MAP.176: the Galaxy Map draws the groups of nebulae each node lists, a soft sprite per group in its dominant family's colour with a ring, 600 at most, a Menu layer per family (#3623)</li>
+<li>2026-10-28: Retire MAP.176 (merged as #3623); MAP.339 to Core 3 (#3626)</li>
+</ul>
+<h2 id="map177">MAP.177</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.177 Galaxy Map: color by nebula cover (#4994)</li>
+<li>2026-11-04: TODO: retire TEST.584, MAP.177, NAV.65, NAV.66, MAP.380 (#4999)</li>
+</ul>
+<h2 id="map178">MAP.178</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.178 Galaxy Map draws the seed's field clouds one by one (#5021)</li>
+<li>2026-11-04: TODO: retire MAP.178, MAP.180, MAP.181, GEN.1214 and GEN.1215 (#5023)</li>
+</ul>
+<h2 id="map179">MAP.179</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.179 Scattered nebulae as markers from level 8 (#5027)</li>
+<li>2026-11-04: TODO: retire MAP.179, TEST.581 and TEST.583 (#5028)</li>
+</ul>
+<h2 id="map180">MAP.180</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.180 Hover, click and keyboard path for groups of nebulae (#5022)</li>
+<li>2026-11-04: TODO: retire MAP.178, MAP.180, MAP.181, GEN.1214 and GEN.1215 (#5023)</li>
+</ul>
+<h2 id="map181">MAP.181</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.181 Dust umber with a light rim for the dark nebulae (#4998)</li>
+<li>2026-11-04: TODO: retire MAP.178, MAP.180, MAP.181, GEN.1214 and GEN.1215 (#5023)</li>
+</ul>
+<h2 id="map182">MAP.182</h2>
+<p>2026-10-15 to 2026-10-15; 1 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: Core order (spherical grid first, then the whole sphere), GEN.242, GEN.243, MAP.182 folded into GEN.241, early alpha schema rule (#1640)</li>
+</ul>
+<h2 id="map184">MAP.184</h2>
+<p>2026-10-14 to 2026-10-14; 2 commits; not open.</p>
+<ul>
+<li>2026-10-14: Remove the Sector Map's redundant Mark rogue planets button (MAP.184) (#1282)</li>
+<li>2026-10-14: Retire MAP.184 (#1282) and MAP.186 (#1283) (#1286)</li>
+</ul>
+<h2 id="map185">MAP.185</h2>
+<p>2026-10-14 to 2026-10-14; 2 commits; not open.</p>
+<ul>
+<li>2026-10-14: Draw a quiescent black hole as a lit purple point in the Sector Map (MAP.185) (#1279)</li>
+<li>2026-10-14: Retire GEN.206 (#1278) and MAP.185 (#1279) (#1281)</li>
+</ul>
+<h2 id="map186">MAP.186</h2>
+<p>2026-10-14 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: add the #1215 screenshot findings to MAP.186 (#1257)</li>
+<li>2026-10-14: Draw a binary pair in the same place on the Galaxy Map and the Sector Map (MAP.186) (#1283)</li>
+<li>2026-10-14: Retire MAP.184 (#1282) and MAP.186 (#1283) (#1286)</li>
+</ul>
+<h2 id="map187">MAP.187</h2>
+<p>2026-10-14 to 2026-10-14; 5 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: add the #1211 screenshot findings to MAP.187 (#1256)</li>
+<li>2026-10-14: TODO: link the new research notes to MAP.187, GEN.208 and GEN.207 (#1262)</li>
+<li>2026-10-14: Keep stars out of the near-field window and soften its edge (MAP.187) (#1288)</li>
+<li>2026-10-14: Retire MAP.187 (#1288) and MAP.188 (#1289) (#1290)</li>
+<li>2026-10-14: Add MAP.202 borders nearly invisible unless selecting; MAP.187 and MAP.188 confirmed (#1418)</li>
+</ul>
+<h2 id="map188">MAP.188</h2>
+<p>2026-10-14 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Keep the blocks along any ray from adding up to an opaque grid (MAP.188) (#1289)</li>
+<li>2026-10-14: Retire MAP.187 (#1288) and MAP.188 (#1289) (#1290)</li>
+<li>2026-10-14: Add MAP.202 borders nearly invisible unless selecting; MAP.187 and MAP.188 confirmed (#1418)</li>
+</ul>
+<h2 id="map189">MAP.189</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.190 as done; open-on rule moves to MAP.336 and MAP.189 (#3549)</li>
+</ul>
+<h2 id="map190">MAP.190</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.190 as done; open-on rule moves to MAP.336 and MAP.189 (#3549)</li>
+</ul>
+<h2 id="map191">MAP.191</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: MAP.191: default Galaxy Map view shades only with nebulae (#4847)</li>
+<li>2026-11-04: Retire MAP.191, MAP.222 (#4856)</li>
+</ul>
+<h2 id="map194">MAP.194</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: close MAP.195 as measured and not built; MAP.194 note (#5065)</li>
+</ul>
+<h2 id="map195">MAP.195</h2>
+<p>2026-10-14 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Record MAP.159 omission follow-up as MAP.195 (#1293)</li>
+<li>2026-10-22: Core 2 takes UX.143, MAP.254 and UX.144; MAP.254 needs MAP.139; MAP.195 parked (#2422)</li>
+<li>2026-11-05: TODO: close MAP.195 as measured and not built; MAP.194 note (#5065)</li>
+</ul>
+<h2 id="map196">MAP.196</h2>
+<p>2026-10-14 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: TODO: retire TEST.125, TEST.142, TEST.143; MAP.151a done; add MAP.196 (#1314)</li>
+<li>2026-10-14: MAP.196: the Galaxy Map link reads system= and object= as printed object IDs (#1331)</li>
+<li>2026-10-14: TODO: retire MAP.196 (#1331) (#1332)</li>
+</ul>
+<h2 id="map197">MAP.197</h2>
+<p>2026-10-14 to 2026-10-14; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Retire MAP.150 (#1382); add MAP.197 (#1398)</li>
+<li>2026-10-14: MAP.197: remove the drill container code the map flip left unused (#1455)</li>
+<li>2026-10-14: TODO: retire MAP.197 (PR #1455), add TEST.154 (#1456)</li>
+</ul>
+<h2 id="map198">MAP.198</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.198, MAP.199, MAP.200 galaxy-map selection bugs to the TODO list (#1415)</li>
+<li>2026-10-15: MAP.198: outline the whole block a click would open and shade it (#1470)</li>
+<li>2026-10-15: TODO: retire MAP.198 (PR #1470) (#1471)</li>
+</ul>
+<h2 id="map199">MAP.199</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.198, MAP.199, MAP.200 galaxy-map selection bugs to the TODO list (#1415)</li>
+<li>2026-10-15: MAP.199: Galaxy Map zoom and turning share one center, and Shift-click chooses it (#1513)</li>
+<li>2026-10-15: Retire MAP.199 (PR #1513) (#1514)</li>
+</ul>
+<h2 id="map200">MAP.200</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.198, MAP.199, MAP.200 galaxy-map selection bugs to the TODO list (#1415)</li>
+<li>2026-10-15: MAP.200: Galaxy Map zoom slider and direction star (#1556)</li>
+<li>2026-10-15: TODO: retire MAP.200 (#1556) (#1557)</li>
+</ul>
+<h2 id="map201">MAP.201</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.201 unfilled selected sector stays highlighted bug (#1417)</li>
+<li>2026-10-15: MAP.201: a selected unfilled sector stays outlined (#1494)</li>
+<li>2026-10-15: TODO: retire MAP.201 (PR #1494) (#1495)</li>
+</ul>
+<h2 id="map202">MAP.202</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.202 borders nearly invisible unless selecting; MAP.187 and MAP.188 confirmed (#1418)</li>
+<li>2026-10-15: MAP.202: Galaxy Map block lines nearly invisible unless a block is being chosen (#1490)</li>
+<li>2026-10-15: TODO: retire MAP.202 (PR #1490) (#1491)</li>
+</ul>
+<h2 id="map203">MAP.203</h2>
+<p>2026-10-14 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-14: Add MAP.203 sector view star size matches the Galaxy Map (#1421)</li>
+<li>2026-10-15: Sector view: draw stars and phenomena like the Galaxy Map (MAP.203) (#1519)</li>
+<li>2026-10-15: Retire MAP.203 (PR #1519) (#1521)</li>
+</ul>
+<h2 id="map204">MAP.204</h2>
+<p>2026-10-15 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file MAP.204 (Boss bug) (#1502)</li>
+<li>2026-10-15: TODO: ladder timing decided, MAP.205 prerequisites, MAP.204 to Foundations Maps (#1558)</li>
+<li>2026-10-15: MAP.204: browser test for picking and outlining blocks under the galactic plane (#1692)</li>
+</ul>
+<h2 id="map205">MAP.205</h2>
+<p>2026-10-15 to 2026-10-15; 8 commits; not open.</p>
+<ul>
+<li>2026-10-15: Reword GEN.224 and MAP.205 per Boss's wedge and ladder answers (#1544)</li>
+<li>2026-10-15: TODO: ladder timing decided, MAP.205 prerequisites, MAP.204 to Foundations Maps (#1558)</li>
+<li>2026-10-15: TODO: lane names, MAP.205/206 built in parallel on a branch (#1559)</li>
+<li>2026-10-15: TODO: UX.112 closes the site only while maps update; MAP.205/206 clear it (#1568)</li>
+<li>2026-10-15: TODO: record the Galaxy Map's post-switch state on MAP.205 (#1615)</li>
+<li>2026-10-15: MAP.205, MAP.206: draw the Galaxy Map on shells, bands and wedges (#1612)</li>
+<li>2026-10-15: TODO: retire MAP.205, MAP.206 (#1612), file GEN.231 and GEN.232, Interface lane remap (#1632)</li>
+<li>2026-10-15: Docs: describe the Galaxy Map on shells as built (MAP.205, MAP.206 follow-up) (#1633)</li>
+</ul>
+<h2 id="map206">MAP.206</h2>
+<p>2026-10-15 to 2026-10-15; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: MAP.205, MAP.206: draw the Galaxy Map on shells, bands and wedges (#1612)</li>
+<li>2026-10-15: TODO: retire MAP.205, MAP.206 (#1612), file GEN.231 and GEN.232, Interface lane remap (#1632)</li>
+<li>2026-10-15: Docs: describe the Galaxy Map on shells as built (MAP.205, MAP.206 follow-up) (#1633)</li>
+</ul>
+<h2 id="map207">MAP.207</h2>
+<p>2026-10-15 to 2026-10-17; 3 commits; open.</p>
+<ul>
+<li>2026-10-15: TODO: file the intergalactic and halo items (GEN.233-239, UX.113, MAP.207, DOC.48); GEN.230 layout is 96-bit (#1635)</li>
+<li>2026-10-15: TODO: reconcile the whole-sphere train (GEN.240, GEN.241, API.27, TEST.159; amend GEN.233-239, UX.113, MAP.207, DOC.48) (#1638)</li>
+<li>2026-10-17: TODO: retire GEN.238 and GEN.298 (#2132); file PERF.135 (jump box for the Uncharted and Phenomena tables); free MAP.207 (#2134)</li>
+</ul>
+<h2 id="map208">MAP.208</h2>
+<p>2026-10-15 to 2026-10-16; 4 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file MAP.208 (stars as points of light), Core 2 next after GEN.269 (#1743)</li>
+<li>2026-10-15: TODO: MAP.208 covers all phenomena, brightness by mass compared with stars (#1744)</li>
+<li>2026-10-16: MAP.208: stars and phenomena are points of light, growing only near a sector (#1774)</li>
+<li>2026-10-16: TODO: retire MAP.208 (#1774) (#1775)</li>
+</ul>
+<h2 id="map209">MAP.209</h2>
+<p>2026-10-15 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file MAP.209 and MAP.210 (map bugs from Boss), Core 2 (#1747)</li>
+<li>2026-10-16: MAP.209, MAP.210: browser tests for opening a sector with the flight playing and picking its stars (#1776)</li>
+<li>2026-10-16: TODO: MAP.209 and MAP.210 not reproduced, status and what is needed from Boss (#1777)</li>
+<li>2026-10-28: Docs: retire MAP.209, MAP.210; file TEST.419; MAP.248 and MAP.249 notes (#3417)</li>
+</ul>
+<h2 id="map210">MAP.210</h2>
+<p>2026-10-15 to 2026-10-28; 6 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file MAP.209 and MAP.210 (map bugs from Boss), Core 2 (#1747)</li>
+<li>2026-10-16: MAP.209, MAP.210: browser tests for opening a sector with the flight playing and picking its stars (#1776)</li>
+<li>2026-10-16: TODO: MAP.209 and MAP.210 not reproduced, status and what is needed from Boss (#1777)</li>
+<li>2026-10-23: The star selection browser tests wait for the camera and cover a far sector (MAP.210, TEST.281) (#2619)</li>
+<li>2026-10-23: Docs: retire TEST.291 (#2669), MAP.210 observation (#2670)</li>
+<li>2026-10-28: Docs: retire MAP.209, MAP.210; file TEST.419; MAP.248 and MAP.249 notes (#3417)</li>
+</ul>
+<h2 id="map211">MAP.211</h2>
+<p>2026-10-15 to 2026-10-16; 3 commits; not open.</p>
+<ul>
+<li>2026-10-15: TODO: file UX.117, MAP.211 (bugs) and PERF.104 (site cache warm-up) (#1751)</li>
+<li>2026-10-16: MAP.211: scattered and hypervelocity objects get an information page (#1787)</li>
+<li>2026-10-16: TODO: retire MAP.211 (#1787) (#1788)</li>
+</ul>
+<h2 id="map213">MAP.213</h2>
+<p>2026-10-30 to 2026-10-30; 5 commits; not open.</p>
+<ul>
+<li>2026-10-30: MAP.213 slice A: the 3D system view draws a tree of stars node by node (#4065)</li>
+<li>2026-10-30: TODO: MAP.213 slice A merged; PERF.218 seen again by Core 3 (#4066)</li>
+<li>2026-10-30: MAP.213: further stars on the System Map turn to a free direction when their own line is full (#4073)</li>
+<li>2026-10-30: MAP.213 slice C: the system page lists the orbits of its stars (#4107)</li>
+<li>2026-10-30: TODO: retire MAP.213 (#4073, #4107), drop TEST.488 as duplicate, file TEST.489 (#4108)</li>
+</ul>
+<h2 id="map214">MAP.214</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; not open.</p>
+<ul>
+<li>2026-10-28: Docs: retire MAP.241 (#3412), MAP.214; fold MAP.237 into MAP.316 (#3413)</li>
+</ul>
+<h2 id="map215">MAP.215</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: MAP.215: stars, glows and regions take the hue of a nebula in front (#4846)</li>
+<li>2026-11-04: Retire MAP.215, TEST.333, TEST.297 (#4848)</li>
+</ul>
+<h2 id="map217">MAP.217</h2>
+<p>2026-10-16 to 2026-10-17; 6 commits; not open.</p>
+<ul>
+<li>2026-10-16: MAP.217 (in progress): maplayers.js registry and its tests</li>
+<li>2026-10-16: MAP.217: kinds of object on the Galaxy and Sector Maps come from the layer registry</li>
+<li>2026-10-16: MAP.217: legend line and test hook on the Galaxy and Sector Maps, browser test</li>
+<li>2026-10-16: MAP.217: test the System Map's layer containers</li>
+<li>2026-10-17: MAP.217: release note</li>
+<li>2026-10-17: TODO: MAP.217 retired (#2007)</li>
+</ul>
+<h2 id="map219">MAP.219</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.219: Galaxy Map marker layer (black holes first) (#2860)</li>
+<li>2026-10-24: Retire MAP.219 (#2860); counts at 856 of 1268 (#2887)</li>
+</ul>
+<h2 id="map220">MAP.220</h2>
+<p>2026-10-24 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.220: Galaxy Map markers for star systems with a habitable world (habitable_systems table, schema v148, tile section worlds) (#2943)</li>
+<li>2026-10-24: Record #2943 (MAP.220 habitable half); next free migration 0149 (#2944)</li>
+<li>2026-10-28: MAP.220: optional Galaxy Map markers for chosen planet classes (#3547)</li>
+<li>2026-10-28: Retire MAP.220 (merged as #3547); file TEST.434; migration 0172 taken (#3548)</li>
+</ul>
+<h2 id="map222">MAP.222</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: MAP.222: nebula group window on the Galaxy Map (#4854)</li>
+<li>2026-11-04: Retire MAP.191, MAP.222 (#4856)</li>
+</ul>
+<h2 id="map223">MAP.223</h2>
+<p>2026-11-06 to 2026-11-06; 2 commits; not open.</p>
+<ul>
+<li>2026-11-06: MAP.223: choosing a globular cluster on the Galaxy Map opens a window on its own sphere (#5341)</li>
+<li>2026-11-06: File GEN.1306; retire MAP.223, MAP.381, TEST.651 (#5344)</li>
+</ul>
+<h2 id="map224">MAP.224</h2>
+<p>2026-11-05 to 2026-11-06; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: MAP.224 branch note, file Sector Map cluster labels (#5057)</li>
+<li>2026-11-06: MAP.224: a cluster's page lists its stars and the uncharted rest, a star names its cluster, the Galaxy Map names clusters (#5337)</li>
+<li>2026-11-06: Retire MAP.224 (#5337) and TEST.647 (#5339) (#5340)</li>
+</ul>
+<h2 id="map225">MAP.225</h2>
+<p>2026-10-17 to 2026-10-17; 6 commits; not open.</p>
+<ul>
+<li>2026-10-17: MAP.225: the wheel zooms toward the point under the pointer</li>
+<li>2026-10-17: MAP.225: release note names what stays open</li>
+<li>2026-10-17: MAP.225: help text and the pulsar test follow the wheel</li>
+<li>2026-10-17: MAP.225: the stage view's wheel test follows the wheel toward the pointer</li>
+<li>2026-10-17: Docs: retire MAP.225 (wheel part, #2031), MAP.227 and MAP.228 (#2032); file the rest of MAP.225 as MAP.245 (#2034)</li>
+<li>2026-10-17: Docs: TEST.213 bisected to MAP.225 (anchor on the choice mesh); file TEST.225 from Bug Hunt (#2088)</li>
+</ul>
+<h2 id="map226">MAP.226</h2>
+<p>2026-10-16 to 2026-10-16; 2 commits; not open.</p>
+<ul>
+<li>2026-10-16: MAP.226: double-click flight to a star, cloud or body, with Go to and Enter (#1859)</li>
+<li>2026-10-16: Retire MAP.226 and record the satellite derivation chain (#1862)</li>
+</ul>
+<h2 id="map227">MAP.227</h2>
+<p>2026-10-17 to 2026-10-17; 4 commits; not open.</p>
+<ul>
+<li>2026-10-17: MAP.227: the camera names its container</li>
+<li>2026-10-17: MAP.227/228: the sector label sits over the map, an open sector's trail is its own window's, browser tests follow the camera address</li>
+<li>2026-10-17: MAP.227: the release note says what the trail follows</li>
+<li>2026-10-17: Docs: retire MAP.225 (wheel part, #2031), MAP.227 and MAP.228 (#2032); file the rest of MAP.225 as MAP.245 (#2034)</li>
+</ul>
+<h2 id="map228">MAP.228</h2>
+<p>2026-10-17 to 2026-10-17; 5 commits; not open.</p>
+<ul>
+<li>2026-10-17: MAP.228: the camera in the address (work in progress)</li>
+<li>2026-10-17: MAP.228: the camera in the address</li>
+<li>2026-10-17: MAP.228: the back and forward browser test reads stages from the page</li>
+<li>2026-10-17: MAP.228: the formatting test allows the camera's ten digits; the back-and-forward test waits for the trail to land</li>
+<li>2026-10-17: Docs: retire MAP.225 (wheel part, #2031), MAP.227 and MAP.228 (#2032); file the rest of MAP.225 as MAP.245 (#2034)</li>
+</ul>
+<h2 id="map229">MAP.229</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; not open.</p>
+<ul>
+<li>2026-10-24: Retire MAP.229, MAP.230, MAP.233, MAP.268 (#2980) (#2982)</li>
+</ul>
+<h2 id="map230">MAP.230</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; not open.</p>
+<ul>
+<li>2026-10-24: Retire MAP.229, MAP.230, MAP.233, MAP.268 (#2980) (#2982)</li>
+</ul>
+<h2 id="map231">MAP.231</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.231: the System Map and the 3D system view name their bodies through the label engine; the sector page gets the Labels group (#3001)</li>
+<li>2026-10-24: Retire MAP.231 (#3001); Core 2 starts MAP.290 (#3002)</li>
+</ul>
+<h2 id="map233">MAP.233</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; not open.</p>
+<ul>
+<li>2026-10-24: Retire MAP.229, MAP.230, MAP.233, MAP.268 (#2980) (#2982)</li>
+</ul>
+<h2 id="map234">MAP.234</h2>
+<p>2026-10-16 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: MAP.234/MAP.235 Galaxy Map key and superbubble layer; GEN.103 odds form decided (#1894)</li>
+<li>2026-10-30: MAP.234: the Galaxy Map has a Key naming what it draws (#3978)</li>
+<li>2026-10-30: TODO: retire MAP.234 (#3978) (#3979)</li>
+</ul>
+<h2 id="map235">MAP.235</h2>
+<p>2026-10-16 to 2026-10-16; 1 commits; open.</p>
+<ul>
+<li>2026-10-16: TODO: MAP.234/MAP.235 Galaxy Map key and superbubble layer; GEN.103 odds form decided (#1894)</li>
+</ul>
+<h2 id="map236">MAP.236</h2>
+<p>2026-10-16 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: MAP.236-238 Boss's Galaxy Map notes (superbubble look, invisible Charted only, colour highlight) (#1895)</li>
+<li>2026-10-29: MAP.236: a superbubble is its sphere, a faint fill and a crisp rim, in both themes (#3739)</li>
+<li>2026-10-29: Docs: retire MAP.236 (Aux 3, #3739); file GEN.933, GEN.934 (unified mass rules) (#3740)</li>
+</ul>
+<h2 id="map237">MAP.237</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; not open.</p>
+<ul>
+<li>2026-10-28: Docs: retire MAP.241 (#3412), MAP.214; fold MAP.237 into MAP.316 (#3413)</li>
+</ul>
+<h2 id="map239">MAP.239</h2>
+<p>2026-10-16 to 2026-10-17; 6 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: file the GEN.372 audit's items (MAP.239/240, GEN.374-376, DB.65, TEST.200/201); GEN.109 precision note (#1899)</li>
+<li>2026-10-17: MAP.239: the tile root is the 262 kpc reach</li>
+<li>2026-10-17: MAP.239: the stale level-13 tile cases in test_tilecache and test_api name the first level past the tile tree</li>
+<li>2026-10-17: MAP.239: the finest-tiles test names the finest level, not 12</li>
+<li>2026-10-17: MAP.239: the star fade test stays within the cut it has loaded</li>
+<li>2026-10-17: TODO: retire MAP.239 (#2152) (#2153)</li>
+</ul>
+<h2 id="map240">MAP.240</h2>
+<p>2026-10-24 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: retire MAP.267 (#3114), MAP.240 progress (#3115)</li>
+<li>2026-10-28: MAP.240: browser buffers built as offsets from an origin of their own (blocks, outlines, frame, dots, bubbles, made rings, course) (#3605)</li>
+<li>2026-10-28: Retire MAP.240 (merged as #3605); file TEST.442 (#3606)</li>
+</ul>
+<h2 id="map241">MAP.241</h2>
+<p>2026-10-16 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: MAP.241 stars glow brighter, not bigger (Boss) (#1900)</li>
+<li>2026-10-28: MAP.241: stars glow brighter, not bigger; one star look for both maps (#3412)</li>
+<li>2026-10-28: Docs: retire MAP.241 (#3412), MAP.214; fold MAP.237 into MAP.316 (#3413)</li>
+</ul>
+<h2 id="map243">MAP.243</h2>
+<p>2026-10-16 to 2026-10-18; 5 commits; not open.</p>
+<ul>
+<li>2026-10-16: TODO: file MAP.243, the halo select-and-enter bug on the Galaxy Map (#1922)</li>
+<li>2026-10-17: Docs: fold MAP.246 into MAP.243 (Bug Hunt reproduction on Boss's seed), split MAP.247 from MAP.245, OPS.60/61 to Bug Hunt (#2094)</li>
+<li>2026-10-17: MAP.243: stars and objects beyond the galaxy's outline can be picked and zoomed to</li>
+<li>2026-10-17: TODO: file GEN.561 (gear follows words), DOC.69 build notes, UX.109 global-document note, board: MAP.243 gate started (#2173)</li>
+<li>2026-10-18: TODO: MAP.243 retired (#2199), TEST.235 sighting, architecture map regenerated (#2200)</li>
+</ul>
+<h2 id="map244">MAP.244</h2>
+<p>2026-10-23 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-23: MAP.244 System Map glow from the atmosphere colour of the body's own air and star (#2805)</li>
+<li>2026-10-23: Docs: MAP.244 merged (#2805), retired; board times corrected (#2807)</li>
+</ul>
+<h2 id="map245">MAP.245</h2>
+<p>2026-10-17 to 2026-10-17; 6 commits; not open.</p>
+<ul>
+<li>2026-10-17: Docs: retire MAP.225 (wheel part, #2031), MAP.227 and MAP.228 (#2032); file the rest of MAP.225 as MAP.245 (#2034)</li>
+<li>2026-10-17: Docs: MAP.246 seed, MAP.245 anchor case, TEST.213 cause (Bug Hunt) (#2081)</li>
+<li>2026-10-17: MAP.245: the wheel zoom clears the star it zooms toward, and a double click on empty space flies half way</li>
+<li>2026-10-17: Docs: fold MAP.246 into MAP.243 (Bug Hunt reproduction on Boss's seed), split MAP.247 from MAP.245, OPS.60/61 to Bug Hunt (#2094)</li>
+<li>2026-10-17: TODO: retire GEN.447 to GEN.449 and MAP.245, file GEN.541, TEST.196 and TEST.213 notes (#2104)</li>
+<li>2026-10-17: TODO: TEST.126 sighting from Core 2's MAP.245 gate (#2105)</li>
+</ul>
+<h2 id="map246">MAP.246</h2>
+<p>2026-10-17 to 2026-10-17; 3 commits; not open.</p>
+<ul>
+<li>2026-10-17: Docs: file MAP.246 (a group of stars above the disk cannot be reached or selected, Boss 3:09 PM EDT) (#2079)</li>
+<li>2026-10-17: Docs: MAP.246 seed, MAP.245 anchor case, TEST.213 cause (Bug Hunt) (#2081)</li>
+<li>2026-10-17: Docs: fold MAP.246 into MAP.243 (Bug Hunt reproduction on Boss's seed), split MAP.247 from MAP.245, OPS.60/61 to Bug Hunt (#2094)</li>
+</ul>
+<h2 id="map247">MAP.247</h2>
+<p>2026-10-17 to 2026-10-18; 4 commits; not open.</p>
+<ul>
+<li>2026-10-17: Docs: fold MAP.246 into MAP.243 (Bug Hunt reproduction on Boss's seed), split MAP.247 from MAP.245, OPS.60/61 to Bug Hunt (#2094)</li>
+<li>2026-10-17: MAP.247: the wheel's point on empty space is where the column of stars passes the threshold</li>
+<li>2026-10-18: MAP.247: a pointer on the cross zooms about the cross</li>
+<li>2026-10-18: TODO: MAP.247 retired (#2229), global documents rebuilt (#2230)</li>
+</ul>
+<h2 id="map248">MAP.248</h2>
+<p>2026-10-17 to 2026-10-28; 3 commits; open.</p>
+<ul>
+<li>2026-10-17: Docs: halo and intergalactic switch for 8.5 (GEN.537/538, MAP.248, UX.137, TEST.226) and robust tile caching for 8.2 (PERF.129-134) (#2097)</li>
+<li>2026-10-17: Docs: 8.5 switch reworked into a plan configuration with two switches, halo and satellite galaxies (GEN.537-540, MAP.248, UX.137, TEST.226) (#2098)</li>
+<li>2026-10-28: Docs: retire MAP.209, MAP.210; file TEST.419; MAP.248 and MAP.249 notes (#3417)</li>
+</ul>
+<h2 id="map249">MAP.249</h2>
+<p>2026-10-17 to 2026-10-28; 12 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: file MAP.249 (galaxy map lag) and MAP.250 (halo and satellite stars cut first) (#2116)</li>
+<li>2026-10-18: TODO: MAP.249 profile result from Core 2 (#2231)</li>
+<li>2026-10-18: TODO: MAP.249 option 1 measured, recommendation changed to cache warming first (#2232)</li>
+<li>2026-10-18: TODO: Boss's MAP.249 card recorded (Both, cut payload first), PERF.130 to PERF.132 follow it (#2246)</li>
+<li>2026-10-18: MAP.249: coarser, narrower distance cut for the Galaxy Map (#2263)</li>
+<li>2026-10-18: docs: MAP.249 payload cut merged (#2263), file TEST.251 (#2264)</li>
+<li>2026-10-18: docs: retire PERF.130 (#2276), MAP.249 notes the cache warming step (#2279)</li>
+<li>2026-10-22: MAP.249: a zoom no longer walks every drawn star for each missing tile or for an unchanged view; guards for the tiles per view (#2414)</li>
+<li>2026-10-22: MAP.249: code side merged (#2414), item stays open for Boss's trace (#2415)</li>
+<li>2026-10-28: Docs: retire MAP.209, MAP.210; file TEST.419; MAP.248 and MAP.249 notes (#3417)</li>
+<li>2026-10-28: MAP.249: benchmark of the Galaxy Map's node path over a large synthetic galaxy (#3420)</li>
+<li>2026-10-28: Docs: retire MAP.249 (#3420); file PERF.200; list the performance note in the design README (#3421)</li>
+</ul>
+<h2 id="map250">MAP.250</h2>
+<p>2026-10-17 to 2026-10-17; 4 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: file MAP.249 (galaxy map lag) and MAP.250 (halo and satellite stars cut first) (#2116)</li>
+<li>2026-10-17: MAP.250: the halo and the satellite galaxies are the lowest priority of every star budget</li>
+<li>2026-10-17: TODO: MAP.250 cut order decided, satellite galaxies before halo (Boss 6:57 PM EDT) (#2118)</li>
+<li>2026-10-17: TODO: retire MAP.250 (#2155) (#2158)</li>
+</ul>
+<h2 id="map251">MAP.251</h2>
+<p>2026-10-17 to 2026-10-21; 10 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: retire GEN.314 (#2125); file TEST.230, TEST.231, MAP.251, MAP.252 and GEN.543 (#2126)</li>
+<li>2026-10-17: TODO: MAP.251 and MAP.252 order amended by Boss; lane findings and states (#2127)</li>
+<li>2026-10-18: MAP.251: a cut list keeps the brightest bands whole and thins the cut band evenly across space</li>
+<li>2026-10-18: MAP.251 note: say what is covered</li>
+<li>2026-10-18: MAP.251: the best tenth of a cut list is kept whatever the band</li>
+<li>2026-10-18: Combine MAP.251</li>
+<li>2026-10-18: Merge the MAP.251, MAP.252 and TEST.238 work</li>
+<li>2026-10-18: docs: retire MAP.252, TEST.223, TEST.238 (#2252), MAP.251 stays open in part, Blocker 1 gate restarts (#2254)</li>
+<li>2026-10-21: MAP.251: the on-screen star limit follows the cut order: halo and satellite-galaxy stars are judged dimmer, so the limit takes them first (#2375)</li>
+<li>2026-10-21: Docs: retire MAP.251 (#2375), record galaxy types Q2/Q3 and the GEN.457 porosity taper (#2376)</li>
+</ul>
+<h2 id="map252">MAP.252</h2>
+<p>2026-10-17 to 2026-10-18; 11 commits; not open.</p>
+<ul>
+<li>2026-10-17: TODO: retire GEN.314 (#2125); file TEST.230, TEST.231, MAP.251, MAP.252 and GEN.543 (#2126)</li>
+<li>2026-10-17: MAP.252 in the change note</li>
+<li>2026-10-17: TODO: MAP.251 and MAP.252 order amended by Boss; lane findings and states (#2127)</li>
+<li>2026-10-18: Combine MAP.252</li>
+<li>2026-10-18: Combine OPS.60/61, MAP.252 step 1, TEST.225, TEST.236, TEST.245</li>
+<li>2026-10-18: MAP.252 step 1 note: the graded order is still to come</li>
+<li>2026-10-18: MAP.252: the dim of an uncharted object follows the cut order and the distance</li>
+<li>2026-10-18: MAP.252: docs and note for the graded dim</li>
+<li>2026-10-18: Merge the MAP.251, MAP.252 and TEST.238 work</li>
+<li>2026-10-18: TODO: #2227 retired (OPS.60, OPS.61, TEST.225, TEST.236, TEST.245), MAP.252 step 1 and TEST.223 cause recorded, global documents rebuilt (#2228)</li>
+<li>2026-10-18: docs: retire MAP.252, TEST.223, TEST.238 (#2252), MAP.251 stays open in part, Blocker 1 gate restarts (#2254)</li>
+</ul>
+<h2 id="map253">MAP.253</h2>
+<p>2026-10-18 to 2026-10-18; 1 commits; open.</p>
+<ul>
+<li>2026-10-18: TODO: file the System plan (TEST.241, GEN.576 to GEN.580, DB.78, MAP.253, TEST.242, DOC.71), edits to GEN.552/GEN.315/GEN.264, design note from Boss's nine cards (#2185)</li>
+</ul>
+<h2 id="map254">MAP.254</h2>
+<p>2026-10-21 to 2026-10-22; 7 commits; not open.</p>
+<ul>
+<li>2026-10-21: TODO: UX.142 (viewers fit the window), UX.143, UX.144 (item pages and their location), MAP.254 (one info box) for 8.2 (Boss, 6:10 and 6:12 PM EDT) (#2353)</li>
+<li>2026-10-22: Core 2 takes UX.143, MAP.254 and UX.144; MAP.254 needs MAP.139; MAP.195 parked (#2422)</li>
+<li>2026-10-22: One shared info box on the maps with a View button (MAP.139, MAP.254) (#2468)</li>
+<li>2026-10-22: Docs: retire MAP.139 (#2468) and GEN.617 (#2469); narrow MAP.254; file DB.85 (#2470)</li>
+<li>2026-10-22: docs: Core 2 picked the MAP.254 remainder (Boss, 3:08 PM EDT), Performance thread recorded on PERF.146 (#2507)</li>
+<li>2026-10-22: Browser check of the System Map's View button for a star and a moon (MAP.254) (#2514)</li>
+<li>2026-10-22: docs: MAP.254 retired (#2514), TEST.275 third sighting, UX.129 and NAV.17 confirmed for Core 2, PERF.123 cards recorded (#2515)</li>
+</ul>
+<h2 id="map255">MAP.255</h2>
+<p>2026-10-22 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-22: docs: GEN.311, GEN.269 retired (#2481), epoch 50 taken, MAP.255 filed (#2482)</li>
+<li>2026-10-30: MAP.255: the browser places stars from the scene's tree of orbits (#4015)</li>
+<li>2026-10-30: TODO: retire MAP.255 (merged #4015), file TEST.474 (bright-star fixture red) (#4017)</li>
+</ul>
+<h2 id="map256">MAP.256</h2>
+<p>2026-10-23 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: Boss's live bugs (MAP.256, MAP.257, UX.149), ADM.128, retire GEN.267, record #2703 (#2705)</li>
+<li>2026-10-24: MAP.256: the Galaxy Map's selection is shown once, over the map (#2852)</li>
+<li>2026-10-24: Docs: MAP.256 merged (#2852), retired; file TEST.317 (sector reach test flaky under load); 830 of 1239 (#2853)</li>
+</ul>
+<h2 id="map257">MAP.257</h2>
+<p>2026-10-23 to 2026-11-06; 3 commits; open.</p>
+<ul>
+<li>2026-10-23: Docs: Boss's live bugs (MAP.256, MAP.257, UX.149), ADM.128, retire GEN.267, record #2703 (#2705)</li>
+<li>2026-10-23: Docs: composition and sky colour suite into 8.1 (lanes J to M), MAP.257 split into MAP.258 to MAP.268 (nodes first), PERF.173, Map nodes lane, messaging rule (#2709)</li>
+<li>2026-11-06: docs: ADM.136 moves into 8.1; oxygen rulings read together; MAP.257 stays open as minor (#5499)</li>
+</ul>
+<h2 id="map258">MAP.258</h2>
+<p>2026-10-23 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: composition and sky colour suite into 8.1 (lanes J to M), MAP.257 split into MAP.258 to MAP.268 (nodes first), PERF.173, Map nodes lane, messaging rule (#2709)</li>
+<li>2026-10-24: MAP.258: the block ladder runs up to a root of three blocks (schema v146) (#2896)</li>
+<li>2026-10-24: Retire MAP.258 (#2896), file MAP.289; next free migration 0147 (#2914)</li>
+</ul>
+<h2 id="map259">MAP.259</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.259, MAP.260: block light totals and the sector-block node read (schema v147) (#2937)</li>
+<li>2026-10-24: Retire MAP.259, MAP.260 (#2937) and GEN.632 (#2938); next free migration 0148 and epoch 77 (#2939)</li>
+</ul>
+<h2 id="map260">MAP.260</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.259, MAP.260: block light totals and the sector-block node read (schema v147) (#2937)</li>
+<li>2026-10-24: Retire MAP.259, MAP.260 (#2937) and GEN.632 (#2938); next free migration 0148 and epoch 77 (#2939)</li>
+</ul>
+<h2 id="map261">MAP.261</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.261, MAP.262: the map draws sector-block nodes by projected size and the cube tiles are retired (API version 8) (#3070)</li>
+<li>2026-10-24: docs: retire MAP.261, MAP.262, TEST.343, GEN.674; file TEST.354 and GEN.751 (#3073)</li>
+</ul>
+<h2 id="map262">MAP.262</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.261, MAP.262: the map draws sector-block nodes by projected size and the cube tiles are retired (API version 8) (#3070)</li>
+<li>2026-10-24: docs: retire MAP.261, MAP.262, TEST.343, GEN.674; file TEST.354 and GEN.751 (#3073)</li>
+</ul>
+<h2 id="map263">MAP.263</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.263: the wheel carries on from one stage to the next with no gate, flight or reset (#2888)</li>
+<li>2026-10-24: Retire MAP.263 (#2888); file TEST.329 (#2889)</li>
+</ul>
+<h2 id="map264">MAP.264</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.264: nothing is clipped to the window when you zoom (#2903)</li>
+<li>2026-10-24: Retire MAP.264 (#2903) (#2904)</li>
+</ul>
+<h2 id="map265">MAP.265</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.265: cells are a tool, not a stage (#2941)</li>
+<li>2026-10-24: Retire MAP.265 (#2941) (#2942)</li>
+</ul>
+<h2 id="map266">MAP.266</h2>
+<p>2026-10-24 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.266: the unresolved glow, a soft light from the node aggregates that hands over to stars without a pop (#3088)</li>
+<li>2026-10-29: Docs: retire PERF.201 (#3633), file MAP.346, notes on TEST.388/441, MAP.266 to Aux 7 (#3634)</li>
+<li>2026-10-29: Docs: retire MAP.266 (already shipped as #3088) (#3635)</li>
+</ul>
+<h2 id="map267">MAP.267</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.267: one star buffer filled node by node, positions as relative-to-eye pairs (#3114)</li>
+<li>2026-10-24: docs: retire MAP.267 (#3114), MAP.240 progress (#3115)</li>
+</ul>
+<h2 id="map268">MAP.268</h2>
+<p>2026-10-23 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: composition and sky colour suite into 8.1 (lanes J to M), MAP.257 split into MAP.258 to MAP.268 (nodes first), PERF.173, Map nodes lane, messaging rule (#2709)</li>
+<li>2026-10-24: MAP.268: the label engine and the Galaxy Map's names (#2980)</li>
+<li>2026-10-24: Retire MAP.229, MAP.230, MAP.233, MAP.268 (#2980) (#2982)</li>
+</ul>
+<h2 id="map269">MAP.269</h2>
+<p>2026-10-23 to 2026-10-23; 1 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: UX.149 merged (#2767), file MAP.269 (stars do not glow), UX.148 note (#2769)</li>
+</ul>
+<h2 id="map270">MAP.270</h2>
+<p>2026-10-23 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: GEN.450 merged (#2776, epoch 64), file GEN.669 residuals and the body-rendering items MAP.270 to MAP.278, DB.96, GEN.670, TEST.308, UX.158 (#2777)</li>
+<li>2026-10-24: Docs: file the class design steps C6 to C16 (GEN.681 to GEN.690, TEST.314, TEST.315), retire C1, C2, C4 (#2781), UX.148 and MAP.270 (#2838); 821 of 1233 (#2840)</li>
+</ul>
+<h2 id="map271">MAP.271</h2>
+<p>2026-10-24 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.271, MAP.272, MAP.273: body look record, shared painter, solid-world ocean/land/ice painter</li>
+<li>2026-10-23: Docs: MAP.271, MAP.272, MAP.273 merged (#2789), retired (#2792)</li>
+</ul>
+<h2 id="map272">MAP.272</h2>
+<p>2026-10-24 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.271, MAP.272, MAP.273: body look record, shared painter, solid-world ocean/land/ice painter</li>
+<li>2026-10-23: Docs: MAP.271, MAP.272, MAP.273 merged (#2789), retired (#2792)</li>
+</ul>
+<h2 id="map273">MAP.273</h2>
+<p>2026-10-24 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.271, MAP.272, MAP.273: body look record, shared painter, solid-world ocean/land/ice painter</li>
+<li>2026-10-23: Docs: MAP.271, MAP.272, MAP.273 merged (#2789), retired (#2792)</li>
+</ul>
+<h2 id="map274">MAP.274</h2>
+<p>2026-10-31 to 2026-10-31; 2 commits; not open.</p>
+<ul>
+<li>2026-10-31: MAP.274: the land colour of a solid world comes from its stored ground types (lab reflectance), not its temperature (#4543)</li>
+<li>2026-10-31: Retire MAP.274 (#4544)</li>
+</ul>
+<h2 id="map275">MAP.275</h2>
+<p>2026-11-04 to 2026-11-05; 7 commits; not open.</p>
+<ul>
+<li>2026-11-04: Retire GEN.670, assign MAP.275 to Core 2 (#4826)</li>
+<li>2026-11-04: MAP.275 part 1: rings from the stored ring, with colour from the ice share and resonance gaps (#4882)</li>
+<li>2026-11-04: MAP.275: the ring stand-in rows are section 6.170 and RNG1 to RNG8 (#4883)</li>
+<li>2026-11-04: MAP.275 part 3: a body hotter than 800 K glows by its own heat (#4885)</li>
+<li>2026-11-04: MAP.275 part 2: giant bands from the equator and storms by the deformation radius (#4889)</li>
+<li>2026-11-04: Retire MAP.275, GEN.375 (#4892)</li>
+<li>2026-11-05: Train 10: burn-down lines for the ring-picture rows (MAP.275) and the rogues lever, registry docs rebuilt</li>
+</ul>
+<h2 id="map276">MAP.276</h2>
+<p>2026-10-24 to 2026-10-23; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.276: star painter, blackbody colour, luminosity glow</li>
+<li>2026-10-23: Docs: PERF.115 to PERF.117 and MAP.276 merged, retired (#2796)</li>
+</ul>
+<h2 id="map277">MAP.277</h2>
+<p>2026-10-31 to 2026-10-31; 2 commits; not open.</p>
+<ul>
+<li>2026-10-31: MAP.277: the glow of an atmosphere and the terminator follow the air (pressure, gravity, gases) (#4515)</li>
+<li>2026-10-31: docs: retire MAP.277 (PR 4515), file TEST.528 and UX.254 (#4517)</li>
+</ul>
+<h2 id="map278">MAP.278</h2>
+<p>2026-10-23 to 2026-10-23; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: GEN.450 merged (#2776, epoch 64), file GEN.669 residuals and the body-rendering items MAP.270 to MAP.278, DB.96, GEN.670, TEST.308, UX.158 (#2777)</li>
+<li>2026-10-24: MAP.278: phenomena painted from stored data (rogue planet, comet, black hole, neutron star, asteroid grains)</li>
+<li>2026-10-23: Docs: MAP.278 merged (#2798), body-rendering lane finished, follow-ups MAP.286, MAP.287, TEST.311 (#2802)</li>
+</ul>
+<h2 id="map279">MAP.279</h2>
+<p>2026-10-23 to 2026-10-31; 4 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: body-rendering items placed by version (Boss's plan, 10:26 PM EDT), build lane row, new items MAP.279 to MAP.285 and DB.99, TEST.308 dropped (#2782)</li>
+<li>2026-10-31: MAP.279: lumpy meshes for moons and asteroids that are not round (#4572)</li>
+<li>2026-10-31: Retire MAP.279 (#4572); file MAP.363 object page lump (#4573)</li>
+<li>2026-10-31: MAP.279: lumpymesh.js imports its sibling with the page's version query (#4583)</li>
+</ul>
+<h2 id="map285">MAP.285</h2>
+<p>2026-10-23 to 2026-10-23; 1 commits; open.</p>
+<ul>
+<li>2026-10-23: Docs: body-rendering items placed by version (Boss's plan, 10:26 PM EDT), build lane row, new items MAP.279 to MAP.285 and DB.99, TEST.308 dropped (#2782)</li>
+</ul>
+<h2 id="map286">MAP.286</h2>
+<p>2026-10-23 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: MAP.278 merged (#2798), body-rendering lane finished, follow-ups MAP.286, MAP.287, TEST.311 (#2802)</li>
+<li>2026-10-29: MAP.286: supernova remnant shells on the Sector Map are painted from the remnant's age (#3746)</li>
+<li>2026-10-29: docs: MAP.286 merged, UX.186 to Core 3, GEN.951 filed, Bug 2 accepted GEN.945/TEST.455 (#3749)</li>
+</ul>
+<h2 id="map287">MAP.287</h2>
+<p>2026-10-23 to 2026-10-24; 4 commits; not open.</p>
+<ul>
+<li>2026-10-23: Docs: MAP.278 merged (#2798), body-rendering lane finished, follow-ups MAP.286, MAP.287, TEST.311 (#2802)</li>
+<li>2026-10-24: docs: file the four wiring items (GEN.759-762), trim GEN.737, assign MAP.287 and DB.96 (#3100)</li>
+<li>2026-10-24: MAP.287: the 3D system view draws its bodies from the look record and the shared painters (#3130)</li>
+<li>2026-10-24: docs: retire GEN.762, GEN.756, GEN.757, MAP.287, MAP.291; file SEC.34, SEC.35 and lane findings (#3133)</li>
+</ul>
+<h2 id="map288">MAP.288</h2>
+<p>2026-10-24 to 2026-10-24; 4 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: file MAP.288 (no side info panel on the galaxy and sector views) (#2835)</li>
+<li>2026-10-24: Record Boss's A1 B1 C1 on the object detail pages (UX.168 to UX.179, MAP.288) (#2872)</li>
+<li>2026-10-24: MAP.288: every map shows a pick as one popup in the map window, no side panel (#2875)</li>
+<li>2026-10-24: Retire GEN.412 and MAP.288; file GEN.700, GEN.701, TEST.325 (#2876)</li>
+</ul>
+<h2 id="map289">MAP.289</h2>
+<p>2026-10-24 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: Retire MAP.258 (#2896), file MAP.289; next free migration 0147 (#2914)</li>
+<li>2026-10-29: MAP.289: the warm-up counts an answer built only when the API answered (#3743)</li>
+<li>2026-10-29: Docs: retire MAP.289 (Aux 4, #3743); file GEN.945, TEST.455, GEN.946 (hand-tuned constants chain) (#3744)</li>
+</ul>
+<h2 id="map290">MAP.290</h2>
+<p>2026-10-24 to 2026-10-24; 4 commits; not open.</p>
+<ul>
+<li>2026-10-24: Note GEN.332 slice 1 (#2981), file MAP.290, renumber lane K to epoch 83 (#2983)</li>
+<li>2026-10-24: Retire MAP.231 (#3001); Core 2 starts MAP.290 (#3002)</li>
+<li>2026-10-24: MAP.290: the 2D System Map draws each star beyond the pair as a marker that opens a scene of its own with its planets (#3054)</li>
+<li>2026-10-24: Docs: retire GEN.272 and MAP.290; file GEN.724 and UX.186; record epoch order (#3056)</li>
+</ul>
+<h2 id="map291">MAP.291</h2>
+<p>2026-10-24 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: retire GEN.709 and TEST.130, file PERF.181 (critical OOM) and MAP.291, epoch 85 taken (#3018)</li>
+<li>2026-10-24: MAP.291: the Galaxy Map's window fills the page width and the height the browser window leaves (#3132)</li>
+<li>2026-10-24: docs: retire GEN.762, GEN.756, GEN.757, MAP.287, MAP.291; file SEC.34, SEC.35 and lane findings (#3133)</li>
+</ul>
+<h2 id="map292">MAP.292</h2>
+<p>2026-10-24 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: file MAP.292 (zoom stuck) and PERF.182 (finish an incomplete run) (#3019)</li>
+<li>2026-10-24: MAP.292: the Galaxy Map's scroll zooms toward what is drawn and goes on while the next window arrives (#3104)</li>
+<li>2026-10-24: docs: retire MAP.292 (#3104) (#3106)</li>
+</ul>
+<h2 id="map293">MAP.293</h2>
+<p>2026-10-24 to 2026-10-24; 2 commits; not open.</p>
+<ul>
+<li>2026-10-24: MAP.293, MAP.294: the relative-to-eye lines go into the star shader, not the block prism shader (#3167)</li>
+<li>2026-10-24: Docs: retire MAP.293 and MAP.294 (#3167) (#3168)</li>
+</ul>
+<h2 id="map294">MAP.294</h2>
+<p>2026-10-24 to 2026-10-24; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: retire UX.190 to UX.194; file MAP.294 (#3122, #3134) (#3135)</li>
+<li>2026-10-24: MAP.293, MAP.294: the relative-to-eye lines go into the star shader, not the block prism shader (#3167)</li>
+<li>2026-10-24: Docs: retire MAP.293 and MAP.294 (#3167) (#3168)</li>
+</ul>
+<h2 id="map295">MAP.295</h2>
+<p>2026-10-24 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: file the map UX chain (TEST.368, MAP.295 to MAP.304); fold GEN.564 into GEN.764 (#3146)</li>
+<li>2026-10-25: MAP.295, MAP.296: the Galaxy Map's system card fits the map and lists the nearest systems, each a link (#3299)</li>
+<li>2026-10-25: Docs: MAP.295 and MAP.296 merged (#3299), TEST.394 filed (#3301)</li>
+</ul>
+<h2 id="map296">MAP.296</h2>
+<p>2026-10-25 to 2026-10-25; 2 commits; not open.</p>
+<ul>
+<li>2026-10-25: MAP.295, MAP.296: the Galaxy Map's system card fits the map and lists the nearest systems, each a link (#3299)</li>
+<li>2026-10-25: Docs: MAP.295 and MAP.296 merged (#3299), TEST.394 filed (#3301)</li>
+</ul>
+<h2 id="map297">MAP.297</h2>
+<p>2026-10-25 to 2026-10-25; 2 commits; not open.</p>
+<ul>
+<li>2026-10-25: MAP.297, MAP.304: no sector boxes on the Galaxy Map; stars take a click (panel) and a double click (fly) (#3284)</li>
+<li>2026-10-25: Docs: retire MAP.297, MAP.304, file TEST.390 (#3285)</li>
+</ul>
+<h2 id="map298">MAP.298</h2>
+<p>2026-10-25 to 2026-10-25; 2 commits; not open.</p>
+<ul>
+<li>2026-10-25: MAP.298: names on every visible star and object, a click on a name selects and flies to it (#3316)</li>
+<li>2026-10-25: Docs: MAP.323 filed, MAP.298 (#3316) and GEN.760 (#3317) merged, epoch 107 (#3318)</li>
+</ul>
+<h2 id="map299">MAP.299</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: MAP.299: names keep a buffer (grid reaches the buffer, real font widths, whole pixels), the buffer is a setting, the brighter or heavier keeps its name (#3754)</li>
+<li>2026-10-29: docs: MAP.299 retired, OPS.72-74 to Aux 3, UX.186/UX.205 out of Core 5's chain (#3757)</li>
+</ul>
+<h2 id="map300">MAP.300</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: MAP.300: the wheel zooms in on any star the map draws, so one star of a dense cluster can be singled out (#3751)</li>
+<li>2026-10-29: docs: MAP.300 merged and retired, UX.205 to Aux 7 (#3752)</li>
+</ul>
+<h2 id="map301">MAP.301</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: MAP.301: wheel zoom heads for the densest layer of stars in front of the zoom direction (#3756)</li>
+<li>2026-10-29: docs: UX.205 and MAP.301 retired, TEST.457 and TEST.458 filed (#3758)</li>
+</ul>
+<h2 id="map302">MAP.302</h2>
+<p>2026-10-29 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: docs: MAP.302 to Aux 3, map labelling status (#3780)</li>
+<li>2026-10-30: MAP.302: a browser test finds one of every kind the opened sector holds, drawn, named and picked (#3945)</li>
+<li>2026-10-30: TODO: retire MAP.302 (#3945) and MAP.352 (#3946) (#3947)</li>
+</ul>
+<h2 id="map303">MAP.303</h2>
+<p>2026-10-28 to 2026-10-29; 5 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.305, MAP.303: system_interests table (habitable Yellow or better, gas giant), node interests, a marker kind per reason, infobox lists every reason (#3453)</li>
+<li>2026-10-28: Retire MAP.305, note on MAP.303 (#3495)</li>
+<li>2026-10-28: MAP.303: inhabited, habitable and gas giant points of interest begin on (#3496)</li>
+<li>2026-10-28: File UX.234 (Boss bug: M class planet search loops on preparing), retire MAP.303 (#3497)</li>
+<li>2026-10-29: TEST.444: the POI key test follows the markers beginning on and merging (MAP.303, MAP.305, MAP.321) (#3643)</li>
+</ul>
+<h2 id="map304">MAP.304</h2>
+<p>2026-10-24 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: file the map UX chain (TEST.368, MAP.295 to MAP.304); fold GEN.564 into GEN.764 (#3146)</li>
+<li>2026-10-25: MAP.297, MAP.304: no sector boxes on the Galaxy Map; stars take a click (panel) and a double click (fly) (#3284)</li>
+<li>2026-10-25: Docs: retire MAP.297, MAP.304, file TEST.390 (#3285)</li>
+</ul>
+<h2 id="map305">MAP.305</h2>
+<p>2026-10-24 to 2026-10-29; 6 commits; not open.</p>
+<ul>
+<li>2026-10-24: docs: file the point-of-interest mark and its filters (MAP.305 to MAP.307) (#3147)</li>
+<li>2026-10-28: MAP.305, MAP.303: system_interests table (habitable Yellow or better, gas giant), node interests, a marker kind per reason, infobox lists every reason (#3453)</li>
+<li>2026-10-28: Retire MAP.330; record MAP.305/303 progress (#3455)</li>
+<li>2026-10-28: MAP.305 step 2: crowded points of interest merge into one mark with a count (#3494)</li>
+<li>2026-10-28: Retire MAP.305, note on MAP.303 (#3495)</li>
+<li>2026-10-29: TEST.444: the POI key test follows the markers beginning on and merging (MAP.303, MAP.305, MAP.321) (#3643)</li>
+</ul>
+<h2 id="map306">MAP.306</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.306: Points of interest menu group, each kind shown, pulled forward or hidden (#3501)</li>
+<li>2026-10-28: Retire MAP.306; file TEST.426 (#3502)</li>
+</ul>
+<h2 id="map307">MAP.307</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: docs: file the point-of-interest mark and its filters (MAP.305 to MAP.307) (#3147)</li>
+</ul>
+<h2 id="map308">MAP.308</h2>
+<p>2026-10-24 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: file MAP.308 (planet moon system map) (#3172)</li>
+<li>2026-10-25: MAP.308: a planet with moons has its own moon system map on one linear scale (#3327)</li>
+<li>2026-10-25: Docs: retire MAP.308 (#3327), file TEST.396 (fuzz web routes red on main) (#3328)</li>
+</ul>
+<h2 id="map309">MAP.309</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: file the world population and trade routes tree (POP.29-POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382) (#3204)</li>
+</ul>
+<h2 id="map310">MAP.310</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: file the world population and trade routes tree (POP.29-POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382) (#3204)</li>
+</ul>
+<h2 id="map311">MAP.311</h2>
+<p>2026-10-24 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-24: Docs: file UX.214, MAP.311, POP.37, ADM.132 from the habitability and life score use audit (#3213)</li>
+<li>2026-10-24: Docs: owners for UX.214, MAP.311, ADM.132; POP.37 into 8.1 (#3214)</li>
+<li>2026-10-28: MAP.311: optional Galaxy Map markers for worlds with life, sentient life and a civilization (#3562)</li>
+<li>2026-10-28: Retire MAP.311 and TEST.438 (merged as #3562); file TEST.440, MAP.343, MAP.344 (#3564)</li>
+</ul>
+<h2 id="map312">MAP.312</h2>
+<p>2026-10-24 to 2026-10-24; 1 commits; open.</p>
+<ul>
+<li>2026-10-24: Docs: retire TEST.375, drop TEST.374; file the resource locations tree (GEN.798-799, DB.106, MAP.312-313, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34) (#3219)</li>
+</ul>
+<h2 id="map314">MAP.314</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: Name charted regions on the Galaxy Map by zoom (MAP.314) (#3432)</li>
+<li>2026-10-28: Docs: retire MAP.314 (#3432), GEN.832 (#3433), TEST.397, TEST.415 (#3434)</li>
+</ul>
+<h2 id="map315">MAP.315</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.315: the Galaxy Map info card names the region a pick lies in, each name flying to its block (#3403)</li>
+<li>2026-10-28: Docs: retire MAP.315 (#3403); lock registry: Math 1 holds, Math 2 queued (#3404)</li>
+</ul>
+<h2 id="map316">MAP.316</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Docs: retire MAP.241 (#3412), MAP.214; fold MAP.237 into MAP.316 (#3413)</li>
+<li>2026-10-28: MAP.316: the charted regions are the galactic-level nodes: soft spheres colored by share charted, named, a Menu list, the region frame in galactic view (#3445)</li>
+<li>2026-10-28: Retire MAP.316 and MAP.327 (#3446)</li>
+</ul>
+<h2 id="map317">MAP.317</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.317: domain-sliced label budget, names only for what is drawn, world names (#3395)</li>
+<li>2026-10-28: Docs: retire MAP.317 (#3395); file TEST.414 (#3397)</li>
+</ul>
+<h2 id="map318">MAP.318</h2>
+<p>2026-10-28 to 2026-10-28; 2 commits; not open.</p>
+<ul>
+<li>2026-10-28: Population as a metric slot on the server (MAP.318) (#3483)</li>
+<li>2026-10-28: Retire MAP.318, note on POP.30 (#3485)</li>
+</ul>
+<h2 id="map319">MAP.319</h2>
+<p>2026-10-25 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-25: MAP.319: flyToFit frames a star system, a planet with moons or a nebula to fill the view (#3312)</li>
+<li>2026-10-25: Docs: MAP.319 part merged (#3312), TEST.394 finding (#3314)</li>
+<li>2026-10-28: MAP.319: a charted region's node carries its extent and the info card's region button frames it (#3406)</li>
+<li>2026-10-28: Docs: retire GEN.841, TEST.410, MAP.319; file TEST.417; MAP.121 scope (#3407)</li>
+</ul>
+<h2 id="map320">MAP.320</h2>
+<p>2026-10-25 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: POI icon items MAP.320 to MAP.322 and DB.108, regions plan priority; retire TEST.370, TEST.390 (#3295)</li>
+<li>2026-10-25: Docs: retire GEN.738, file TEST.391, MAP.320 gains sector and region icons, asteroid fields by volume (#3296)</li>
+<li>2026-10-28: MAP.320: seven point-of-interest symbols, their colour tokens, a key, and the habitable-world marker drawn with its symbol (#3415)</li>
+<li>2026-10-28: Docs: retire DB.45 (#3414), MAP.320 (#3415); file TEST.418, UX.233 (#3416)</li>
+</ul>
+<h2 id="map321">MAP.321</h2>
+<p>2026-10-28 to 2026-10-29; 10 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.321 (part 1): uninhabitable worlds and asteroid fields as interest reasons; a star's mark carries its best world's symbol (#3458)</li>
+<li>2026-10-28: Record MAP.321 part 1 (#3458), migration 0166 taken (#3459)</li>
+<li>2026-10-28: MAP.321 (a): inhabited worlds as an interest reason, first in the order; colony changes keep a system's rows right (#3463)</li>
+<li>2026-10-28: MAP.321 (b): planets, moons and belts carry their own symbols inside an open system; test_api node keys follow interests (#3468)</li>
+<li>2026-10-28: Record MAP.321 parts a and b (#3470)</li>
+<li>2026-10-28: MAP.321 (c): a charted region with an inhabited world carries the inhabited symbol at its middle (#3480)</li>
+<li>2026-10-28: Retire GEN.769-773 and GEN.831, file TEST.424, record MAP.321 c (#3481)</li>
+<li>2026-10-28: MAP.321 (d): an inhabited token is always a candidate for a name, ahead of a habitable one (#3482)</li>
+<li>2026-10-28: Retire MAP.321 (#3484)</li>
+<li>2026-10-29: TEST.444: the POI key test follows the markers beginning on and merging (MAP.303, MAP.305, MAP.321) (#3643)</li>
+</ul>
+<h2 id="map322">MAP.322</h2>
+<p>2026-10-25 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: POI icon items MAP.320 to MAP.322 and DB.108, regions plan priority; retire TEST.370, TEST.390 (#3295)</li>
+<li>2026-10-28: MAP.322: name the heaviest sectors first (#3513)</li>
+<li>2026-10-28: Retire MAP.322 (#3514)</li>
+</ul>
+<h2 id="map323">MAP.323</h2>
+<p>2026-10-25 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: MAP.323 filed, MAP.298 (#3316) and GEN.760 (#3317) merged, epoch 107 (#3318)</li>
+<li>2026-10-25: MAP.323, MAP.325: legend stacks above the scale; info card at a reading size with a More fold (#3331)</li>
+<li>2026-10-25: Docs: retire MAP.323 and MAP.325 (#3331), red map tests noted (#3333)</li>
+</ul>
+<h2 id="map324">MAP.324</h2>
+<p>2026-10-25 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: MAP.324 filed (the star glow floods the Galaxy Map) (#3319)</li>
+<li>2026-10-25: MAP.324: the unresolved glow fades as stars resolve and never adds up to white (#3359)</li>
+<li>2026-10-25: Docs: retire MAP.324 (#3359) (#3360)</li>
+</ul>
+<h2 id="map325">MAP.325</h2>
+<p>2026-10-25 to 2026-10-25; 4 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: MAP.325 filed (the infobox is too dense for a readable font) (#3320)</li>
+<li>2026-10-25: Docs: file MAP.326 and MAP.327, MAP.325 darker background, pragmatic-tweak rule, retire DB.102 (#3324)</li>
+<li>2026-10-25: MAP.323, MAP.325: legend stacks above the scale; info card at a reading size with a More fold (#3331)</li>
+<li>2026-10-25: Docs: retire MAP.323 and MAP.325 (#3331), red map tests noted (#3333)</li>
+</ul>
+<h2 id="map326">MAP.326</h2>
+<p>2026-10-25 to 2026-10-25; 3 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: file MAP.326 and MAP.327, MAP.325 darker background, pragmatic-tweak rule, retire DB.102 (#3324)</li>
+<li>2026-10-25: MAP.326: the wheel reaches the star under the pointer and opens its system (#3345)</li>
+<li>2026-10-25: Docs: retire MAP.326 (#3345), red map tests noted (#3346)</li>
+</ul>
+<h2 id="map327">MAP.327</h2>
+<p>2026-10-25 to 2026-10-28; 4 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: file MAP.326 and MAP.327, MAP.325 darker background, pragmatic-tweak rule, retire DB.102 (#3324)</li>
+<li>2026-10-28: MAP.327: the opened sector is framed, the rest dimmed, a labelled icon on each wall that faces a neighbour (#3422)</li>
+<li>2026-10-28: Docs: MAP.327 sector part done (#3422); file TEST.420 (#3424)</li>
+<li>2026-10-28: Retire MAP.316 and MAP.327 (#3446)</li>
+</ul>
+<h2 id="map328">MAP.328</h2>
+<p>2026-10-25 to 2026-10-28; 9 commits; not open.</p>
+<ul>
+<li>2026-10-25: Docs: file MAP.328 (slow axial rotation of rendered objects and stars) (#3326)</li>
+<li>2026-10-25: MAP.328: bodies turn slowly on their axes (shared spin.js, system map spheres and 3D system view) (#3337)</li>
+<li>2026-10-25: Docs: MAP.328 part merged (#3337) (#3338)</li>
+<li>2026-10-28: MAP.328: the rendered example on object pages turns on its axis, with a Spin switch (#3408)</li>
+<li>2026-10-28: Docs: MAP.328 object-page part done (#3408) (#3409)</li>
+<li>2026-10-28: MAP.328: the stars and bodies of a system opened in the sector turn on their axes, with the Menu's Spin switch (#3447)</li>
+<li>2026-10-28: File GEN.846 (star rotation period), note MAP.328 progress, mark Aux 10 retired (#3448)</li>
+<li>2026-10-28: UX.215-UX.222, MAP.328: planet page redesign and the turning rendered example (#3573)</li>
+<li>2026-10-28: Retire UX.215-UX.222 and MAP.328 (merged as #3573); file TEST.441; Aux 6 retired (#3574)</li>
+</ul>
+<h2 id="map329">MAP.329</h2>
+<p>2026-10-28 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Docs: retire MAP.121 (#3430); file MAP.329 (#3431)</li>
+<li>2026-10-29: MAP.329: system steps cross the sector's edge to the nearest system that way (#3789)</li>
+<li>2026-10-29: docs: MAP.329 retired, four new lanes recorded (#3792)</li>
+</ul>
+<h2 id="map330">MAP.330</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Record Boss's retirement order and the pool of released items; file MAP.330 (star glow halos too big) (#3437)</li>
+<li>2026-10-28: MAP.330: the star glow fades out from 30 px radius on a steeper curve and is gone by 130 px (#3454)</li>
+<li>2026-10-28: Retire MAP.330; record MAP.305/303 progress (#3455)</li>
+</ul>
+<h2 id="map331">MAP.331</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: File MAP.331 (wireframe cube legend) (#3509)</li>
+<li>2026-10-28: MAP.331: legend line for the charted-region outline (#3535)</li>
+<li>2026-10-28: Retire MAP.331 (merged as #3535) and TEST.368 (already on main as #3171) (#3536)</li>
+</ul>
+<h2 id="map332">MAP.332</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: File MAP.332 (info card clipped) (#3512)</li>
+<li>2026-10-28: MAP.332: the info card sizes to its content up to the map window's height (#3533)</li>
+<li>2026-10-28: Retire MAP.332 (merged as #3533); record lock-free assignments for waiting lanes (#3534)</li>
+</ul>
+<h2 id="map333">MAP.333</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire UX.235, GEN.721/735/759/767/763; file zoom redesign MAP.333-338, UX.236, black hole MAP.339-342; lock to Aux 14 (#3516)</li>
+<li>2026-10-28: MAP.333: zoom redesign Z0, fly-tos land where asked, one global log slider, every control crosses levels (#3556)</li>
+<li>2026-10-28: Docs: retire MAP.333, file TEST.437 to TEST.439 (reds), record the GEN.750 timing proposal (#3557)</li>
+</ul>
+<h2 id="map334">MAP.334</h2>
+<p>2026-10-28 to 2026-10-28; 1 commits; not open.</p>
+<ul>
+<li>2026-10-28: MAP.334: zoom redesign Z1, one absolute zoom range in every stage, the nearest thing along the ray sets the step (#3569)</li>
+</ul>
+<h2 id="map335">MAP.335</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: MAP.335: zoom redesign Z2, sector and system scenes are chosen from the camera, with a new /galaxy/near read (#3647)</li>
+<li>2026-10-29: Docs: retire MAP.335 (#3647), file TEST.445 (#3648)</li>
+</ul>
+<h2 id="map336">MAP.336</h2>
+<p>2026-10-28 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.190 as done; open-on rule moves to MAP.336 and MAP.189 (#3549)</li>
+<li>2026-10-29: MAP.336: zoom redesign Z3, one Go to, find a place, and the log ruler (#3778)</li>
+<li>2026-10-29: docs: MAP.336 merged and retired, TEST.459 filed (#3779)</li>
+</ul>
+<h2 id="map337">MAP.337</h2>
+<p>2026-10-30 to 2026-10-31; 4 commits; not open.</p>
+<ul>
+<li>2026-10-30: MAP.337 step 1: delete the Galaxy Map's wheel stage-crossing code (#4119)</li>
+<li>2026-10-31: MAP.337 step 2: every Go to is a camera flight (#4417)</li>
+<li>2026-10-31: MAP.337 steps 3 and 4: history entries keep the camera address only; dead stage code removed (#4423)</li>
+<li>2026-10-31: Retire MAP.337 (#4424)</li>
+</ul>
+<h2 id="map338">MAP.338</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire TEST.468, TEST.469; MAP.338 plan note (#4426)</li>
+<li>2026-10-31: Galaxy Map: nearest view 1e-12 pc, system drawn from the eye's own frame (MAP.338) (#4444)</li>
+<li>2026-10-31: Retire MAP.338 and TEST.496 (#4445)</li>
+</ul>
+<h2 id="map339">MAP.339</h2>
+<p>2026-10-28 to 2026-10-29; 4 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire UX.235, GEN.721/735/759/767/763; file zoom redesign MAP.333-338, UX.236, black hole MAP.339-342; lock to Aux 14 (#3516)</li>
+<li>2026-10-28: Retire MAP.176 (merged as #3623); MAP.339 to Core 3 (#3626)</li>
+<li>2026-10-29: MAP.339: black holes by a near-field rule (reach, rising mass floor, rank by mass over distance squared, cap by screen area, map.blackHoleDensity preference) (#3636)</li>
+<li>2026-10-29: Docs: retire MAP.339 (#3636), MAP.340 to Core 3, UX.236 note (#3637)</li>
+</ul>
+<h2 id="map340">MAP.340</h2>
+<p>2026-10-29 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire MAP.339 (#3636), MAP.340 to Core 3, UX.236 note (#3637)</li>
+<li>2026-10-29: MAP.340: crowded black holes merge into one mark with a count badge, a list card and a Zoom in on them button (#3640)</li>
+<li>2026-10-29: Docs: retire MAP.340, TEST.442, MAP.346; MAP.341 to Core 3; file TEST.444 (#3641)</li>
+</ul>
+<h2 id="map341">MAP.341</h2>
+<p>2026-10-29 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire MAP.340, TEST.442, MAP.346; MAP.341 to Core 3; file TEST.444 (#3641)</li>
+<li>2026-10-29: MAP.341: markers outside an opened sector dim to 0.3 like the stars; the black hole hover test steps clear of a name label (TEST.445) (#3652)</li>
+<li>2026-10-29: Docs: retire MAP.341 (#3652), MAP.342 to Core 3 (#3653)</li>
+</ul>
+<h2 id="map342">MAP.342</h2>
+<p>2026-10-29 to 2026-10-29; 2 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire MAP.341 (#3652), MAP.342 to Core 3 (#3653)</li>
+<li>2026-10-29: Docs: drop MAP.342, retire PERF.98, PERF.100 to Aux 2 (#3655)</li>
+</ul>
+<h2 id="map343">MAP.343</h2>
+<p>2026-10-28 to 2026-10-28; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.311 and TEST.438 (merged as #3562); file TEST.440, MAP.343, MAP.344 (#3564)</li>
+<li>2026-10-28: MAP.343: body-level life, sentient, civilization and class symbols inside an open system (#3576)</li>
+<li>2026-10-28: Retire MAP.343 (merged as #3576) (#3577)</li>
+</ul>
+<h2 id="map344">MAP.344</h2>
+<p>2026-10-28 to 2026-10-29; 3 commits; not open.</p>
+<ul>
+<li>2026-10-28: Retire MAP.311 and TEST.438 (merged as #3562); file TEST.440, MAP.343, MAP.344 (#3564)</li>
+<li>2026-10-29: MAP.344: the civilization marker gains a technology band (#3659)</li>
+<li>2026-10-29: Docs: retire MAP.344 (#3659), DOC.20 to Aux 4, migration 0174 taken (#3660)</li>
+</ul>
+<h2 id="map345">MAP.345</h2>
+<p>2026-10-28 to 2026-10-29; 4 commits; not open.</p>
+<ul>
+<li>2026-10-28: File the life class system: GEN.886 to GEN.894, UX.237, API.37, MAP.345; design doc; GEN.874 and GEN.885 folded in (#3565)</li>
+<li>2026-10-29: MAP.345: search filter for the life classes a world supports, with a minimum score (#3829)</li>
+<li>2026-10-29: Docs: retire MAP.345; file MAP.351 for the map half (#3830)</li>
+<li>2026-10-29: Fix the reds after MAP.345: the facet list test, a stray life value in /api/search, the browser search stub (#3856)</li>
+</ul>
+<h2 id="map346">MAP.346</h2>
+<p>2026-10-29 to 2026-10-29; 4 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire PERF.201 (#3633), file MAP.346, notes on TEST.388/441, MAP.266 to Aux 7 (#3634)</li>
+<li>2026-10-29: Docs: MAP.346 covered by TEST.442 (#3638)</li>
+<li>2026-10-29: TEST.442, MAP.346: the browser map reds, and no contents menu on the wide Galaxy Map page (#3639)</li>
+<li>2026-10-29: Docs: retire MAP.340, TEST.442, MAP.346; MAP.341 to Core 3; file TEST.444 (#3641)</li>
+</ul>
+<h2 id="map347">MAP.347</h2>
+<p>2026-10-29 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: docs: file info popup redesign MAP.347, hover preview MAP.348, Go to buttons MAP.349 (#3784)</li>
+<li>2026-10-30: MAP.347: the info popup is a first view with Expand (#3940)</li>
+<li>2026-10-30: TODO: retire MAP.347 (#3940), notes on MAP.348 and MAP.349 (#3941)</li>
+</ul>
+<h2 id="map348">MAP.348</h2>
+<p>2026-10-29 to 2026-10-30; 4 commits; not open.</p>
+<ul>
+<li>2026-10-29: docs: file info popup redesign MAP.347, hover preview MAP.348, Go to buttons MAP.349 (#3784)</li>
+<li>2026-10-30: TODO: retire MAP.347 (#3940), notes on MAP.348 and MAP.349 (#3941)</li>
+<li>2026-10-30: MAP.348: hovering a thing on the Galaxy Map shows a small preview of it (#3990)</li>
+<li>2026-10-30: TODO: retire MAP.348 (#3990) (#3991)</li>
+</ul>
+<h2 id="map349">MAP.349</h2>
+<p>2026-10-29 to 2026-10-30; 4 commits; not open.</p>
+<ul>
+<li>2026-10-29: docs: file info popup redesign MAP.347, hover preview MAP.348, Go to buttons MAP.349 (#3784)</li>
+<li>2026-10-30: TODO: retire MAP.347 (#3940), notes on MAP.348 and MAP.349 (#3941)</li>
+<li>2026-10-30: MAP.349: a Go to button on every container and place line of a card (#4006)</li>
+<li>2026-10-30: TODO: retire MAP.349 (merged #4006) (#4007)</li>
+</ul>
+<h2 id="map350">MAP.350</h2>
+<p>2026-10-29 to 2026-10-31; 5 commits; not open.</p>
+<ul>
+<li>2026-10-29: docs: MAP.350 map window fills the screen, GEN.977 merged and retired (#3805)</li>
+<li>2026-10-30: MAP.350: the Galaxy Map window fills the browser window, 20 px above and below (#3905)</li>
+<li>2026-10-30: TODO: retire MAP.350 (merged as #3905) (#3906)</li>
+<li>2026-10-30: MAP.350 follow-up: Galaxy Map is 95% of the window height (#4139)</li>
+<li>2026-10-31: Tint and soften a planet's surface by its atmosphere, and draw its clouds (MAP.350) (#4590)</li>
+</ul>
+<h2 id="map351">MAP.351</h2>
+<p>2026-10-29 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: Docs: retire MAP.345; file MAP.351 for the map half (#3830)</li>
+<li>2026-10-30: MAP.351: the Galaxy Map marks the systems where each of the 15 life classes lives (#3897)</li>
+<li>2026-10-30: TODO: retire MAP.351, migration 0176 taken (#3898)</li>
+</ul>
+<h2 id="map352">MAP.352</h2>
+<p>2026-10-29 to 2026-10-30; 3 commits; not open.</p>
+<ul>
+<li>2026-10-29: TODO: retire TEST.450, file MAP.352 (#3881)</li>
+<li>2026-10-30: MAP.352: two quick presses of Back across a sector change land on the second system (#3946)</li>
+<li>2026-10-30: TODO: retire MAP.302 (#3945) and MAP.352 (#3946) (#3947)</li>
+</ul>
+<h2 id="map354">MAP.354</h2>
+<p>2026-10-30 to 2026-10-30; 2 commits; open.</p>
+<ul>
+<li>2026-10-30: File the Lagrange trojan items GEN.1149 to GEN.1151 and MAP.354 (#4272)</li>
+<li>2026-10-30: GEN.1151 and MAP.354 pure parts: whole bodies at L4/L5 and Lagrange point geometry (#4291)</li>
+</ul>
+<h2 id="map355">MAP.355</h2>
+<p>2026-10-30 to 2026-10-30; 1 commits; not open.</p>
+<ul>
+<li>2026-10-30: Record MAP.355 (sector page map limited to its sector), done in PR #4279 (#4280)</li>
+</ul>
+<h2 id="map356">MAP.356</h2>
+<p>2026-10-30 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-30: Retire PERF.137, file PERF.219 and Boss's map bugs MAP.356 to MAP.359 (#4294)</li>
+<li>2026-10-31: Map: small corner Key, region points of interest, card buttons in view, full-window sector and system maps, close sector view, superbubbles off by default (MAP.356 to MAP.362) (#4393)</li>
+<li>2026-10-31: Retire MAP.356 to MAP.362 (map legend, navigation, sector view, superbubbles, #4393) (#4394)</li>
+</ul>
+<h2 id="map357">MAP.357</h2>
+<p>2026-10-30 to 2026-10-30; 2 commits; not open.</p>
+<ul>
+<li>2026-10-30: MAP.357: Boss 9:00 PM EDT, largest filled region as a point of interest (#4295)</li>
+<li>2026-10-30: MAP.357: every far-apart filled region is a point of interest (Boss 9:01 PM EDT) (#4296)</li>
+</ul>
+<h2 id="map359">MAP.359</h2>
+<p>2026-10-30 to 2026-10-30; 1 commits; not open.</p>
+<ul>
+<li>2026-10-30: Retire PERF.137, file PERF.219 and Boss's map bugs MAP.356 to MAP.359 (#4294)</li>
+</ul>
+<h2 id="map360">MAP.360</h2>
+<p>2026-10-30 to 2026-10-30; 1 commits; not open.</p>
+<ul>
+<li>2026-10-30: File MAP.360 (sector highlight and zoom) and MAP.361 (every system that fits) (#4306)</li>
+</ul>
+<h2 id="map361">MAP.361</h2>
+<p>2026-10-30 to 2026-10-30; 1 commits; not open.</p>
+<ul>
+<li>2026-10-30: File MAP.360 (sector highlight and zoom) and MAP.361 (every system that fits) (#4306)</li>
+</ul>
+<h2 id="map362">MAP.362</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: File MAP.362 superbubbles hidden by default with a Menu button (#4382)</li>
+<li>2026-10-31: Map: small corner Key, region points of interest, card buttons in view, full-window sector and system maps, close sector view, superbubbles off by default (MAP.356 to MAP.362) (#4393)</li>
+<li>2026-10-31: Retire MAP.356 to MAP.362 (map legend, navigation, sector view, superbubbles, #4393) (#4394)</li>
+</ul>
+<h2 id="map363">MAP.363</h2>
+<p>2026-10-31 to 2026-10-31; 3 commits; not open.</p>
+<ul>
+<li>2026-10-31: Retire MAP.279 (#4572); file MAP.363 object page lump (#4573)</li>
+<li>2026-10-31: MAP.363: the object page draws the lump of an unrounded small body (#4594)</li>
+<li>2026-10-31: Retire MAP.363 (#4594) (#4595)</li>
+</ul>
+<h2 id="map364">MAP.364</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.364: progress bar for each map level while its tiles load (#4807)</li>
+<li>2026-11-04: MAP.364: a progress bar for each level of map nodes while they load (#4819)</li>
+<li>2026-11-04: Retire MAP.364, file TEST.568 (#4820)</li>
+</ul>
+<h2 id="map365">MAP.365</h2>
+<p>2026-11-04 to 2026-11-04; 4 commits; not open.</p>
+<ul>
+<li>2026-11-04: Nebulae into 8.1 under Core 2: file MAP.365, move MAP.142, MAP.191, MAP.215, MAP.222; retire DOC.89 (#4828)</li>
+<li>2026-11-04: MAP.365 part a: the density a nebula is drawn from, shaped by the model's gas and young stars (#4833)</li>
+<li>2026-11-04: MAP.365: nebulae drawn as irregular wispy shapes from the galaxy's gas and star-forming density (#4843)</li>
+<li>2026-11-04: Retire MAP.365, file TEST.571 (#4844)</li>
+</ul>
+<h2 id="map366">MAP.366</h2>
+<p>2026-11-04 to 2026-11-05; 4 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.366 to MAP.369: tile-chunk star cut, halved object cap, black holes off, region label POI (#4835)</li>
+<li>2026-11-05: MAP.366: the Galaxy Map keeps the star density of tiles that reached their cap near that of the bigger tiles beside them (#5221)</li>
+<li>2026-11-05: Docs: MAP.366 note date in the form the citation test accepts (#5226)</li>
+<li>2026-11-05: TODO: retire UX.272, MAP.366, MAP.386, MAP.387, PERF.243; register sector_quadrant (#5227)</li>
+</ul>
+<h2 id="map367">MAP.367</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.367: the Galaxy Map draws half as much at once (#4875)</li>
+<li>2026-11-04: Retire MAP.367 (#4878)</li>
+</ul>
+<h2 id="map368">MAP.368</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.368: black holes off by default on the Galaxy Map (#4857)</li>
+<li>2026-11-04: Retire MAP.368, file TEST.573 (#4858)</li>
+</ul>
+<h2 id="map369">MAP.369</h2>
+<p>2026-11-04 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.366 to MAP.369: tile-chunk star cut, halved object cap, black holes off, region label POI (#4835)</li>
+<li>2026-11-05: MAP.369: a charted region's point of interest shows the region's name (#5231)</li>
+</ul>
+<h2 id="map370">MAP.370</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.370: black hole dots always draw, only POI marks off (#4859)</li>
+<li>2026-11-04: MAP.370: black hole dots always draw, only the marks are off by default; TEST.573 fixes (#4864)</li>
+<li>2026-11-04: Retire MAP.370, TEST.573 (#4865)</li>
+</ul>
+<h2 id="map371">MAP.371</h2>
+<p>2026-11-04 to 2026-11-04; 4 commits; not open.</p>
+<ul>
+<li>2026-11-04: File the plane view with stems (MAP.371 to MAP.373) and two later items (UX.260, MAP.374) (#4910)</li>
+<li>2026-11-04: Record the 60 degree arc wedge on MAP.371, MAP.372, MAP.375; file MAP.377 and PERF.234 (#4914)</li>
+<li>2026-11-04: MAP.371: Galaxy Map plane view (tilt preset, 60 degree wedge ring grid, midplane choice) (#4982)</li>
+<li>2026-11-04: TODO: retire MAP.371 (#4983)</li>
+</ul>
+<h2 id="map372">MAP.372</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Record the 60 degree arc wedge on MAP.371, MAP.372, MAP.375; file MAP.377 and PERF.234 (#4914)</li>
+<li>2026-11-04: MAP.372: stems from chosen stars down to the plane view's grid plane (#4985)</li>
+<li>2026-11-04: TODO: retire GEN.1270, VIEW.22 and MAP.372; GEN.1274 goes to Sources 2 (#4989)</li>
+</ul>
+<h2 id="map373">MAP.373</h2>
+<p>2026-11-04 to 2026-11-04; 4 commits; not open.</p>
+<ul>
+<li>2026-11-04: File the plane view with stems (MAP.371 to MAP.373) and two later items (UX.260, MAP.374) (#4910)</li>
+<li>2026-11-04: File MAP.375 (linked side strip) and refine MAP.373 coordinates by context (#4911)</li>
+<li>2026-11-04: MAP.373: plane view Stems switch, height stretch and spherical-coordinate labels (#4991)</li>
+<li>2026-11-04: TODO: retire MAP.373; TEST.584 goes to Core 5 (#4992)</li>
+</ul>
+<h2 id="map374">MAP.374</h2>
+<p>2026-11-04 to 2026-11-04; 1 commits; open.</p>
+<ul>
+<li>2026-11-04: File the plane view with stems (MAP.371 to MAP.373) and two later items (UX.260, MAP.374) (#4910)</li>
+</ul>
+<h2 id="map375">MAP.375</h2>
+<p>2026-11-04 to 2026-11-04; 4 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.375 (linked side strip) and refine MAP.373 coordinates by context (#4911)</li>
+<li>2026-11-04: Record the 60 degree arc wedge on MAP.371, MAP.372, MAP.375; file MAP.377 and PERF.234 (#4914)</li>
+<li>2026-11-04: MAP.375: linked side strip for height on the Galaxy Map (galaxystrip.js, Menu button, selection link both ways, phone drawer) (#4973)</li>
+<li>2026-11-04: TODO: store nebula composition (GEN.1276, GEN.1277), retire MAP.375 (#4976)</li>
+</ul>
+<h2 id="map376">MAP.376</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.376 (family click frames the block) (#4912)</li>
+<li>2026-11-04: MAP.376: region and block flights land in the block's own window (#4929)</li>
+<li>2026-11-04: Retire OPS.95 and MAP.376; file GEN.1260; fix two wiring register lines (#4936)</li>
+</ul>
+<h2 id="map377">MAP.377</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Record the 60 degree arc wedge on MAP.371, MAP.372, MAP.375; file MAP.377 and PERF.234 (#4914)</li>
+<li>2026-11-04: MAP.377: black hole names follow the Black hole marks switch (#4921)</li>
+<li>2026-11-04: Retire MAP.377 (#4922)</li>
+</ul>
+<h2 id="map378">MAP.378</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: MAP.378: sector names near the camera, region flights frame the region, fixture-map tests follow the camera-only stage (#4954)</li>
+<li>2026-11-04: Owners for moved lane items; file MAP.380 and PERF.239; retire MAP.378 and MAP.379 (#4955)</li>
+</ul>
+<h2 id="map379">MAP.379</h2>
+<p>2026-11-04 to 2026-11-04; 2 commits; not open.</p>
+<ul>
+<li>2026-11-04: File MAP.379 (five camera and geometry fixture-map tests red on main) (#4952)</li>
+<li>2026-11-04: Owners for moved lane items; file MAP.380 and PERF.239; retire MAP.378 and MAP.379 (#4955)</li>
+</ul>
+<h2 id="map380">MAP.380</h2>
+<p>2026-11-04 to 2026-11-04; 3 commits; not open.</p>
+<ul>
+<li>2026-11-04: Owners for moved lane items; file MAP.380 and PERF.239; retire MAP.378 and MAP.379 (#4955)</li>
+<li>2026-11-04: MAP.380: the two-star wheel test scrolls in on a close pair the map can show (#4997)</li>
+<li>2026-11-04: TODO: retire TEST.584, MAP.177, NAV.65, NAV.66, MAP.380 (#4999)</li>
+</ul>
+<h2 id="map381">MAP.381</h2>
+<p>2026-11-06 to 2026-11-06; 2 commits; not open.</p>
+<ul>
+<li>2026-11-06: MAP.381: the Sector Map draws the globular clusters that reach into it, brightness from the King model (#5342)</li>
+<li>2026-11-06: File GEN.1306; retire MAP.223, MAP.381, TEST.651 (#5344)</li>
+</ul>
+<h2 id="map382">MAP.382</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: Retire TEST.575 and TEST.595; file MAP.382 (#5104)</li>
+<li>2026-11-05: MAP.382 Test that the field cloud sprite hands over to the density volume by design (#5110)</li>
+<li>2026-11-05: Retire MAP.382 (by design) (#5111)</li>
+</ul>
+<h2 id="map383">MAP.383</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: File MAP.383 to MAP.387 and PERF.243 (gravity grid build items from PERF.72) (#5176)</li>
+<li>2026-11-05: MAP.383: the gravity map's rule for the smooth galaxy and the generated stars (#5183)</li>
+<li>2026-11-05: docs: retire MAP.383, UX.187 and UX.263; file GEN.1284 and GEN.1285 (#5187)</li>
+</ul>
+<h2 id="map384">MAP.384</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; not open.</p>
+<ul>
+<li>2026-11-05: MAP.384: the gravity map's numba field kernel (pull, potential, tidal tensor) (#5203)</li>
+</ul>
+<h2 id="map385">MAP.385</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; not open.</p>
+<ul>
+<li>2026-11-05: MAP.385: the gravity map's cell hierarchy and interaction lists (#5205)</li>
+</ul>
+<h2 id="map386">MAP.386</h2>
+<p>2026-11-05 to 2026-11-05; 2 commits; not open.</p>
+<ul>
+<li>2026-11-05: MAP.386: gravity map point masses, one per system; fix American spelling in gravity_tree (#5213)</li>
+<li>2026-11-05: TODO: retire UX.272, MAP.366, MAP.386, MAP.387, PERF.243; register sector_quadrant (#5227)</li>
+</ul>
+<h2 id="map387">MAP.387</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: File MAP.383 to MAP.387 and PERF.243 (gravity grid build items from PERF.72) (#5176)</li>
+<li>2026-11-05: MAP.387: gravity map sector grid job and cache (#5216)</li>
+<li>2026-11-05: TODO: retire UX.272, MAP.366, MAP.386, MAP.387, PERF.243; register sector_quadrant (#5227)</li>
+</ul>
+<h2 id="map392">MAP.392</h2>
+<p>2026-11-05 to 2026-11-05; 4 commits; not open.</p>
+<ul>
+<li>2026-11-05: MAP.392: the Sector Map draws every nebula and supernova remnant from points (#5240)</li>
+<li>2026-11-05: MAP.392: draw nebula group blobs without the ring outline (#5212)</li>
+<li>2026-11-05: TODO: GEN.1295 (burn-down rows), OPS.109, retire MAP.392 (#5245)</li>
+<li>2026-11-05: TEST.633: the nebula blob test expects no ring, as the map draws (MAP.392) (#5269)</li>
+</ul>
+<h2 id="map393">MAP.393</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: MAP.393 Chart View fixes (retired), UX.273 Sensor view, UX.274 View menu (#5223)</li>
+</ul>
+<h2 id="map394">MAP.394</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; open.</p>
+<ul>
+<li>2026-11-05: TODO: Sensor view items (UX.273 umbrella moved to 8.2; UX.275, UX.276, MAP.394 to MAP.396, TEST.629, DOC.107) (#5228)</li>
+</ul>
+<h2 id="map396">MAP.396</h2>
+<p>2026-11-05 to 2026-11-05; 1 commits; open.</p>
+<ul>
+<li>2026-11-05: TODO: Sensor view items (UX.273 umbrella moved to 8.2; UX.275, UX.276, MAP.394 to MAP.396, TEST.629, DOC.107) (#5228)</li>
+</ul>
+<h2 id="map397">MAP.397</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: View menu breakdown (UX.274) and the Forward bug (MAP.397) (#5230)</li>
+<li>2026-11-05: MAP.397: a layer's Forward button stays on its layer's line and can always be pressed (#5260)</li>
+<li>2026-11-05: TODO: retire UX.276, MAP.397, GEN.1289, TEST.499; GEN.1299 filed; GEN.1288 full version after GEN.359 (moved to 8.1) (#5263)</li>
+</ul>
+<h2 id="map398">MAP.398</h2>
+<p>2026-11-05 to 2026-11-05; 3 commits; not open.</p>
+<ul>
+<li>2026-11-05: TODO: GEN.1295 narrowed to RG2 with four burn-down rows to no data; GEN.1297, GEN.1298, MAP.398 filed (#5255)</li>
+<li>2026-11-05: MAP.398: the region token test expects the Region symbol that #5208 gave every charted region (#5256)</li>
+<li>2026-11-05: TODO: retire UX.278, UX.279, MAP.398 (#5257)</li>
+</ul>
+<h2 id="map399">MAP.399</h2>
+<p>2026-11-06 to 2026-11-06; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: File MAP.399, MAP.400, PERF.245 (Boss: uncharted sectors, index coverage, worker sharing) (#5366)</li>
+<li>2026-11-06: Record Boss decisions Q2, Q3, Q6 and set owners (GEN.1299, TEST.634, PERF.245, MAP.399, MAP.401) (#5369)</li>
+<li>2026-11-06: MAP.399: the Sectors list tells uncharted placeholders from generated sectors (#5377)</li>
+<li>2026-11-06: Docs: retire MAP.399, GEN.1209, GEN.1213, GEN.888, GEN.879, GEN.880 (built) (#5379)</li>
+</ul>
+<h2 id="map400">MAP.400</h2>
+<p>2026-11-06 to 2026-11-07; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: File MAP.399, MAP.400, PERF.245 (Boss: uncharted sectors, index coverage, worker sharing) (#5366)</li>
+<li>2026-11-06: MAP.400: lists, search, Nearby and the Lists page count the scattered rows and field clouds the index leaves out (#5382)</li>
+<li>2026-11-06: Docs: retire MAP.400 (#5382) and GEN.1297 (already on main) (#5383)</li>
+<li>2026-11-07: GEN.743: layers for helium-core and oxygen-neon white dwarfs; GEN.744 and GEN.745 confirmed built; MAP.400 doc date format (#5391)</li>
+</ul>
+<h2 id="map401">MAP.401</h2>
+<p>2026-11-06 to 2026-11-06; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: File MAP.401, set owners GEN.1023 and GEN.1307, retire TEST.642 (#5367)</li>
+<li>2026-11-06: Record Boss decisions Q2, Q3, Q6 and set owners (GEN.1299, TEST.634, PERF.245, MAP.399, MAP.401) (#5369)</li>
+<li>2026-11-06: MAP.401: the page of an uncharted sector lists what is placed in it (#5398)</li>
+<li>2026-11-06: Docs: retire MAP.401; file UX.283 single-system generation interface (#5400)</li>
+</ul>
+<h2 id="map402">MAP.402</h2>
+<p>2026-11-06 to 2026-11-08; 6 commits; not open.</p>
+<ul>
+<li>2026-11-06: Docs: file MAP.402 to MAP.404, PERF.247; TEST.659 (#5402)</li>
+<li>2026-11-07: MAP.402: index the uncharted sectors the scatters leave objects in</li>
+<li>2026-11-07: Merge main (train 13) into the MAP.402 branch; migration renumbered 0223, v222 fixture</li>
+<li>2026-11-07: Merge main (train 14) into the MAP.402 branch; migration renumbered 0226, v225 fixture</li>
+<li>2026-11-07: Train 16: merge MAP.402/403 (migration 0227, schema v226 fixture)</li>
+<li>2026-11-08: habitability_site: chart the two fixture sectors in the chart ledger (MAP.402: an unledgered cell is an uncharted placeholder and no block counts it)</li>
+</ul>
+<h2 id="map403">MAP.403</h2>
+<p>2026-11-06 to 2026-11-06; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: Docs: empty uncharted sectors option on MAP.403; MAP.404 intro text drops the links sentence (#5404)</li>
+<li>2026-11-07: MAP.403: the Sectors list, the API and the search show charted sectors by default, with all or uncharted, and an option for the empty uncharted ones</li>
+<li>2026-11-07: MAP.403: the map test opens the placeholder from the list that shows it</li>
+<li>2026-11-06: MAP.403: charted / all / uncharted filter on the Sectors list, the API and the search, with a separate option for empty uncharted sectors (#5436)</li>
+</ul>
+<h2 id="map404">MAP.404</h2>
+<p>2026-11-06 to 2026-11-06; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: Docs: file MAP.402 to MAP.404, PERF.247; TEST.659 (#5402)</li>
+<li>2026-11-06: Docs: empty uncharted sectors option on MAP.403; MAP.404 intro text drops the links sentence (#5404)</li>
+<li>2026-11-06: MAP.404: the uncharted sector page shows the Sector Map, worded as what long-range scans detected (#5405)</li>
+<li>2026-11-06: Docs: retire MAP.404 (#5405) (#5406)</li>
+</ul>
+<h2 id="map405">MAP.405</h2>
+<p>2026-11-06 to 2026-11-07; 4 commits; not open.</p>
+<ul>
+<li>2026-11-06: File MAP.405: sector gravity page answers 502 with no galaxy shape (#5469)</li>
+<li>2026-11-06: MAP.405: the sector gravity route says &quot;not computed yet&quot; with no galaxy shape; an uncaught API conflict is a 409 page (#5481)</li>
+<li>2026-11-06: Retire MAP.405 (PR 5481); file TEST.669 (#5482)</li>
+<li>2026-11-07: MAP.407: a database with no galaxy yet says so on every page (MAP.406 was already fixed by MAP.405) (#5664)</li>
+</ul>
+<h2 id="map406">MAP.406</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; not open.</p>
+<ul>
+<li>2026-11-07: MAP.407: a database with no galaxy yet says so on every page (MAP.406 was already fixed by MAP.405) (#5664)</li>
+</ul>
+<h2 id="map407">MAP.407</h2>
+<p>2026-11-07 to 2026-11-07; 1 commits; not open.</p>
+<ul>
+<li>2026-11-07: MAP.407: a database with no galaxy yet says so on every page (MAP.406 was already fixed by MAP.405) (#5664)</li>
+</ul>
+<h2 id="map408">MAP.408</h2>
+<p>2026-11-08 to 2026-11-08; 2 commits; not open.</p>
+<ul>
+<li>2026-11-08: Docs: file MAP.408 and UX.290 (browser phase findings) (#5679)</li>
+<li>2026-11-08: MAP.408: the Galaxy Map key has a line for the globular cluster layer (#5680)</li>
+</ul>
+<h2 id="map409">MAP.409</h2>
+<p>2026-11-08 to 2026-11-08; 1 commits; open.</p>
+<ul>
+<li>2026-11-08: Docs: file the map browser reds from Lane 03 as MAP.409 to MAP.411 (#5724)</li>
+</ul>
+<h2 id="map411">MAP.411</h2>
+<p>2026-11-08 to 2026-11-08; 3 commits; not open.</p>
+<ul>
+<li>2026-11-08: Docs: file the map browser reds from Lane 03 as MAP.409 to MAP.411 (#5724)</li>
+<li>2026-11-08: MAP.411: map wheel over region points, info card room at phone height, browser tests that ask for what they point at (#5737)</li>
+<li>2026-11-08: Docs: retire TEST.700 (PR 5736) and MAP.411 (PR 5737), file UX.295 (#5738)</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

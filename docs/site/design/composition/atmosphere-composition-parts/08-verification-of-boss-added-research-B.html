@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>08 Verification of boss-added research note, part B (claims 1 to 6) - planetGen docs</title>
+<meta name="description" content="The owner-supplied note (machine-generated, stray &quot;[cite: n]&quot; markers) was treated as unverified.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="08-verification-of-boss-added-research-note-part-b-claims-1-to-6">08 Verification of boss-added research note, part B (claims 1 to 6)</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-B.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#1-mars-dust-claim-1">1. Mars dust (claim 1)</a></li><li style="margin-left:14px"><a href="#11-omega0-about-092-to-095-at-670-nm-verdict-partly">1.1 omega0 about 0.92 to 0.95 at 670 nm. Verdict: PARTLY</a></li><li style="margin-left:14px"><a href="#12-k-greater-than-001-below-350-nm-verdict-confirmed-figure-reading-fe3-attribution-not-reached">1.2 k greater than 0.01 below 350 nm. Verdict: CONFIRMED (figure reading); Fe3+ attribution NOT REACHED</a></li><li style="margin-left:14px"><a href="#13-row-volcanic-so2-aerosol-r2645-r4395-02-04-um-verdict-contradicted-mis-citation">1.3 Row "Volcanic SO2 aerosol: [R2645, R4395], 0.2-0.4 um". Verdict: CONTRADICTED (mis-citation)</a></li><li style="margin-left:0px"><a href="#2-titan-haze-claim-2">2. Titan haze (claim 2)</a></li><li style="margin-left:14px"><a href="#21-equivalent-sphere-mie-underpredicts-forward-scattering-by-up-to-40-percent-verdict-unsupported">2.1 "Equivalent-sphere Mie underpredicts forward scattering by up to 40 percent". Verdict: UNSUPPORTED</a></li><li style="margin-left:14px"><a href="#22-absolute-extinction-law-verdict-confirmed-earlier-exponents-correct">2.2 Absolute extinction law. Verdict: CONFIRMED (earlier exponents correct)</a></li><li style="margin-left:0px"><a href="#3-comet-volatiles-claim-3">3. Comet volatiles (claim 3)</a></li><li style="margin-left:14px"><a href="#31-differences-against-05-mixing-ratios-by-classmd-section-9-not-edited">3.1 Differences against 05-mixing-ratios-by-class.md section 9 (not edited)</a></li><li style="margin-left:0px"><a href="#4-icrp-103-weighting-factors-and-subsurface-neutron-dose-claim-4">4. ICRP 103 weighting factors and subsurface neutron dose (claim 4)</a></li><li style="margin-left:14px"><a href="#41-wr-verdict-confirmed-numbers-2nd-hand">4.1 wR. Verdict: CONFIRMED (numbers 2ND-HAND)</a></li><li style="margin-left:14px"><a href="#42-wt-verdict-confirmed-2nd-hand">4.2 wT. Verdict: CONFIRMED (2ND-HAND)</a></li><li style="margin-left:14px"><a href="#43-subsurface-dose-dominated-by-secondary-neutrons-rather-than-primary-protons-verdict-partly">4.3 "Subsurface dose dominated by secondary neutrons rather than primary protons". Verdict: PARTLY</a></li><li style="margin-left:0px"><a href="#5-dataset-identities-and-licences-claim-5">5. Dataset identities and licences (claim 5)</a></li><li style="margin-left:0px"><a href="#6-nh3-chain-claim-6">6. NH3 chain (claim 6)</a></li><li style="margin-left:14px"><a href="#61-r0847-verdict-partly">6.1 "[R0847]". Verdict: PARTLY</a></li><li style="margin-left:14px"><a href="#62-resolve-anomalies-near-the-500-mbar-condensation-level-verdict-unsupported-as-stated">6.2 "Resolve anomalies near the 500 mbar condensation level". Verdict: UNSUPPORTED as stated</a></li><li style="margin-left:14px"><a href="#63-visible-nh3-absorption-what-is-established">6.3 Visible NH3 absorption: what is established</a></li><li style="margin-left:0px"><a href="#7-final-table-claim-verdict-corrected-number">7. Final table: claim, verdict, corrected number</a></li><li style="margin-left:0px"><a href="#8-not-reached-boss-must-research">8. NOT REACHED (Boss must research)</a></li><li style="margin-left:0px"><a href="#9-recalled--to-verify">9. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#10-cross-links">10. Cross-links</a></li></ul></details>
+<p>The owner-supplied note (machine-generated, stray &quot;[cite: n]&quot; markers) was treated as unverified. Labels follow _worker-rules.md: READ (original text), 2ND-HAND (read in a reachable paper citing it), DATA (data file), COMPUTED (re-derived or digitised by me), SNIPPET, RECALLED (listed in section 9), NOT REACHED. Verdicts: CONFIRMED, PARTLY, CONTRADICTED, UNSUPPORTED (no source found anywhere reachable), NOT REACHED. No repo file was edited.</p>
+<hr />
+<h2 id="1-mars-dust-claim-1">1. Mars dust (claim 1)</h2>
+<h3 id="11-omega0-about-092-to-095-at-670-nm-verdict-partly">1.1 omega0 about 0.92 to 0.95 at 670 nm. Verdict: PARTLY</h3>
+<p>[R4743] (JGR 114, E00D04, [R4743]) full text is paywalled (AGU/Wiley refused, Unpaywall closed); only its abstract was read. Values reached:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4743] abstract</td>
+<td>literature &quot;dark&quot; solar-band omega0 0.89 to 0.90, &quot;bright&quot; 0.92 to 0.94; new solar-band omega0 0.94</td>
+<td>Crossref abstract</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Solar-weighted omega0</td>
+<td>[R3326]: 0.89; Dust value 0.94 (also [R0809, R4380] &quot;nearly equal to 0.94&quot;); dust 0.86 (g 0.79); GFDL 0.92 (g 0.75)</td>
+<td>[R2800] (HAL hal-01120102), sections 2 and 3</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Channel means 0.1-0.5 um / 0.5-5 um</td>
+<td>Ockert-Bell 0.665 / 0.928; Wolff (gamma dist., reff 1.5 um, neff 0.3, cylinders) 0.738 / 0.955</td>
+<td>[R2800: Table 2]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R4743] near 650 nm</td>
+<td>0.975 (&quot;average of results ... surface-orbit observations&quot;); alternatives tested 0.940 [R4395], 0.930 [R3567]</td>
+<td>Chen-Chen et al., [R0765, R0766]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Near-IR 1.0 to 2.6 um</td>
+<td>0.97 (confirmed)</td>
+<td>Vincendon et al., [R4555]</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p>0.92 to 0.95 is the solar-band mean of the &quot;bright&quot; literature, not the 670 nm value (second-hand about 0.975), and it hides the UV drop (0.1 to 0.5 um band mean 0.67 to 0.74). Supported generator ranges: red/NIR 0.93 to 0.975, solar mean 0.89 to 0.94, UV band 0.67 to 0.74. The spectral omega0 table of [R4743] is NOT REACHED.</p>
+<h3 id="12-k-greater-than-001-below-350-nm-verdict-confirmed-figure-reading-fe3-attribution-not-reached">1.2 k greater than 0.01 below 350 nm. Verdict: CONFIRMED (figure reading); Fe3+ attribution NOT REACHED</h3>
+<p>[R2343] (JGR Planets, [R2343]; open copy atmos.washington.edu/~sgw/PAPERS/2021_Mars_dusty_ice.pdf) plot [R4743] imaginary index in Figure 1. I digitised the log-axis curve at 400 dpi (frame calibrated to 12 decades; uncertainty about 15 to 20 percent). COMPUTED from a 2ND-HAND figure:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>lambda (um)</th>
+<th>0.30</th>
+<th>0.35</th>
+<th>0.40</th>
+<th>0.45</th>
+<th>0.50</th>
+<th>0.55</th>
+<th>0.60</th>
+<th>0.70</th>
+<th>0.80</th>
+<th>1.0</th>
+<th>1.5</th>
+<th>2.0</th>
+<th>2.5</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k</td>
+<td>0.0129</td>
+<td>0.0114</td>
+<td>0.0093</td>
+<td>0.0074</td>
+<td>0.0054</td>
+<td>0.0036</td>
+<td>0.0017</td>
+<td>0.00095</td>
+<td>0.0011</td>
+<td>0.0018</td>
+<td>0.0027</td>
+<td>0.0040</td>
+<td>0.0051</td>
+</tr>
+</tbody>
+</table></div>
+<p>k crosses 0.01 near 0.38 um; the curve starts near 0.27 um. Minimum about 1e-3 at 0.7 to 0.8 um. The &quot;Fe3+&quot; cause appears in no text read: [R3326] (abstract, READ) &quot;does not assume a particular mineralogical composition&quot; and adopts the index of bright surface units. [R4395] abstract (READ): imaginary index rises steeply from 670 nm to shorter wavelengths. Lab contrast (DATA, ApJS 268:47, Table 3): analog k is only 0.0001 to 0.0013 over 200 to 2000 nm (JSC Mars-1: 0.00130 at 300 nm, 0.00047 at 650 nm); they state it is &quot;much smaller&quot; than airborne-dust literature values. Airborne k therefore spans about one decade depending on grain-shape assumptions.</p>
+<h3 id="13-row-volcanic-so2-aerosol-r2645-r4395-02-04-um-verdict-contradicted-mis-citation">1.3 Row &quot;Volcanic SO<sub>2</sub> aerosol: [R2645, R4395], 0.2-0.4 um&quot;. Verdict: CONTRADICTED (mis-citation)</h3>
+<p>[R4395]: &quot;Properties of dust in the Martian atmosphere from the Imager on Mars Pathfinder&quot; (mean radius 1.6 +/- 0.15 um). [R2645]: &quot;Atmospheric Imaging Results from the Mars Exploration Rovers&quot; (visible optical depth 0.9; dust radius 1.47 +/- 0.21 um at Gusev, 1.52 +/- 0.18 um at Meridiani; visible to 9 um optical depth ratio 2.0 +/- 0.2). Abstracts READ via Crossref/OpenAlex. Neither concerns SO<sub>2</sub> or sulphate aerosol.</p>
+<hr />
+<h2 id="2-titan-haze-claim-2">2. Titan haze (claim 2)</h2>
+<h3 id="21-equivalent-sphere-mie-underpredicts-forward-scattering-by-up-to-40-percent-verdict-unsupported">2.1 &quot;Equivalent-sphere Mie underpredicts forward scattering by up to 40 percent&quot;. Verdict: UNSUPPORTED</h3>
+<p>Searched [R4392, R4394] team slides, [R0230, R0768, R2008, R4004] ([R0768], earlier mis-attributed here to Gao and Stam; corrected in part 10C section 0), snippets of [R2584, R4673]. No &quot;40 percent&quot; anywhere. Established: DISR data need fractal aggregates, 4000 monomers of 0.04 um radius ([R2008], READ) or N = 3000 of r = 0.05 um (Tomasko team slides, READ); the slides compare equal-volume sphere radius 0.72 um with equal-projected-area radius 2.03 um. Cheng et al. (Pluto, READ): aggregates give &quot;a too small backscatter lobe by factor about 3&quot; (different body and quantity). Treat the 40 percent as invented.</p>
+<h3 id="22-absolute-extinction-law-verdict-confirmed-earlier-exponents-correct">2.2 Absolute extinction law. Verdict: CONFIRMED (earlier exponents correct)</h3>
+<p>Source: Tomasko and the DISR team, CHARM workshop slides 2008-02-26 (atmos.nmsu.edu; READ; the PSS 56, 669 paper is NOT REACHED). Cumulative optical depth, lambda in nm:</p>
+<ul>
+<li>above 80 km: 1.012e7 lambda^-2.339; 30 to 80 km: 2.029e4 lambda^-1.409; below 30 km: 6.270e2 lambda^-0.9706.</li>
+<li>vertical shape above 80 km: exp(-(h-80)/65 km); linear below (Buenzli, [R0296] A.4, 2ND-HAND).</li>
+</ul>
+<p>Unit check (COMPUTED): at 1500 nm the laws give 0.38, 0.68, 0.52 while [R0230] (Table 4, READ) fit 0.31, 0.34, 0.16 using stated scale factors 0.8, 0.5, 0.3; the ratios 0.82, 0.50, 0.31 match, so nm is correct.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>lambda (nm)</th>
+<th>355</th>
+<th>430</th>
+<th>500</th>
+<th>550</th>
+<th>675</th>
+<th>830</th>
+<th>934</th>
+<th>1078</th>
+<th>1288</th>
+<th>1583</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tau above 80 km</td>
+<td>10.97</td>
+<td>7.01</td>
+<td>4.92</td>
+<td>3.94</td>
+<td>2.44</td>
+<td>1.51</td>
+<td>1.14</td>
+<td>0.82</td>
+<td>0.54</td>
+<td>0.33</td>
+</tr>
+<tr>
+<td>tau total</td>
+<td>18.2</td>
+<td>12.7</td>
+<td>9.6</td>
+<td>8.1</td>
+<td>5.7</td>
+<td>4.0</td>
+<td>3.3</td>
+<td>2.6</td>
+<td>2.0</td>
+<td>1.45</td>
+</tr>
+</tbody>
+</table></div>
+<p>The slide plot reaches 18 to 20 at 355 nm (consistent). Single-scattering albedo is plotted (0.8 to 1.0) but not tabulated in text ([R4394: Table 2] NOT REACHED). [R1144] (Icarus 270, 355, &quot;...radiance measurements made inside and outside the atmosphere&quot;; NTRS 20170002309; abstract READ, no PDF): optical-depth wavelength dependence &quot;similar ... from 500 to 700 nm, but smaller at shorter wavelengths and larger toward longer wavelengths&quot;; scale height 65 km below 140 km, 45 km above; extra layer near 55 km; thin layers at 21, 11, 7 km ([R2263], real title &quot;Rain and dewdrops on Titan based on in situ imaging&quot;). New coefficients, [R2584, R3663] full text NOT REACHED ([R2584] abstract SNIPPET: charge 15 e/um, imaginary index larger than lab tholins).</p>
+<hr />
+<h2 id="3-comet-volatiles-claim-3">3. Comet volatiles (claim 3)</h2>
+<p>Read: Harrington [R3535] ([R3535]; HP22); Biver, Dello Russo, Opitom, Comets III ([R0410: Table 3], updates [R0435], Dello [R1063, R3835]); [R4705] ([R4705], Dello [R1063] ranges); [R0859] ([R0859], SOHO/SWAN, 61 comets); [R0048] (NTRS 20120008332; text only, Table 1 OCR damaged). [R3206] (abstract only) and [R0436] NOT REACHED.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Claim</th>
+<th>Found (percent of H<sub>2</sub>O)</th>
+<th>Status</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO</td>
+<td>0.15 to 30</td>
+<td>within 2.5 au 0.3 to 26, median 3.3 +/- 1.3 (32 comets); mean 6.4 (HP22), 5.2 +/- 1.3 (24 comets, Dello [R1063]); IR 0.3 to 26, radio &lt; 1.23 to 35; OCC 0.4 to 26.2 (mean 6.1), JFC 0.3 to 4.3 (mean 1.6)</td>
+<td>READ</td>
+<td>PARTLY</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>2 to 30</td>
+<td>2 to 30, median 12 +/- 2 (23 comets); IR 4 to 30; AKARI median 17 (quoted); CO+CO<sub>2</sub> median 18 +/- 4</td>
+<td>READ</td>
+<td>CONFIRMED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>0.2 to 1.5</td>
+<td>IR 0.15 to 2.7; OCC 0.15 to 1.57 (mean 0.88); JFC &lt; 0.25 to 0.54 (mean 0.31)</td>
+<td>READ</td>
+<td>PARTLY</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>0.2 to 1.0</td>
+<td>IR 0.1 to 3.6 (3.63 in C/2012 S1); radio 0.18 to 0.60; OCC mean 0.91, JFC mean 0.59, all 0.80</td>
+<td>READ</td>
+<td>CONTRADICTED at top</td>
+</tr>
+<tr>
+<td>Q(H2O)</td>
+<td>1e26 to 1e31 /s</td>
+<td>SWAN peak values 5.11e26 (C/2012 E2) to 1.41e31 (Hale-Bopp) over 141 table entries; Garradd at 2 au 8e28 (IR) to 2.9e29 (Herschel, SWAN)</td>
+<td>READ; COMPUTED min/max</td>
+<td>PARTLY (low end is a SWAN detection limit)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Also: CO<sub>2</sub>/CO varies by more than two decades and the JFC range encloses the LPC range ([R0048], READ); Q(CO2) 0.06 to 740 and Q(CO) 0.2 to 3000, units 1e26 /s, 0.71 to 6.18 au, 25 comets (HP22); Q(CO2)/Q(H<sub>2</sub>O) goes as r^2.2.</p>
+<h3 id="31-differences-against-05-mixing-ratios-by-classmd-section-9-not-edited">3.1 Differences against 05-mixing-ratios-by-class.md section 9 (not edited)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row in 05</th>
+<th>05 says</th>
+<th>Reached sources</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>median about 12, 25 comets</td>
+<td>median 12 +/- 2 from 23 comets within 2.5 au; range 2 to 30</td>
+<td>add range</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>0.5 to 23, median about 3</td>
+<td>0.3 to 26; median 3.3; Hale-Bopp 26.2 [R4705] vs 23.0 [R4704]</td>
+<td>widen; source spread</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>0.1 to 0.73</td>
+<td>0.1 to 3.6 (IR), 0.18 to 0.60 (radio)</td>
+<td>upper bound too low</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO</td>
+<td>not extracted</td>
+<td>CH<sub>4</sub> 0.15 to 2.7; C<sub>2</sub>H<sub>6</sub> IR 0.1 to 2.7 (OCC mean 0.63, JFC 0.34); H<sub>2</sub>CO IR &lt; 0.02 to 1.1, radio 0.13 to 1.4</td>
+<td>fill in</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>0.2 to 2.6</td>
+<td>radio 0.7 to 6.1; IR &lt; 0.13 to 4.3</td>
+<td>widen</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>0.09 to 0.29</td>
+<td>radio 0.05 to 0.25; IR 0.03 to 0.5</td>
+<td>widen</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>1.10 (67P)</td>
+<td>radio 0.09 to 1.5</td>
+<td>cross-comet range missing</td>
+</tr>
+<tr>
+<td>67P</td>
+<td>[R3835] snapshots</td>
+<td>mission-integrated: CO 0.3 to 3, CO<sub>2</sub> 7.0, CH<sub>4</sub> 0.4, C<sub>2</sub>H<sub>6</sub> 0.8, NH<sub>3</sub> 0.4, H<sub>2</sub>S 2.0, O<sub>2</sub> 2.0</td>
+<td>CO<sub>2</sub> 4.7 vs 7.0 is a spread, not an error</td>
+</tr>
+<tr>
+<td>9.2 flux</td>
+<td>1.54e22 /m2/s; 4.8e28 /s for 1 km</td>
+<td>COMPUTED: 1.543e22 and 4.85e28 (flux times pi R^2). Hale-Bopp 1.41e31 /s needs about 900 km2 sunlit area at the 1 au flux</td>
+<td>consistent; L = 51 kJ/mol still RECALLED</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-icrp-103-weighting-factors-and-subsurface-neutron-dose-claim-4">4. ICRP 103 weighting factors and subsurface neutron dose (claim 4)</h2>
+<h3 id="41-wr-verdict-confirmed-numbers-2nd-hand">4.1 wR. Verdict: CONFIRMED (numbers 2ND-HAND)</h3>
+<p>ICRP free extract (icrp.org, READ), summary (h): neutron and proton values changed, &quot;values for neutrons given as a continuous function of neutron energy&quot;, charged pions added, &quot;photons, electrons, muons, and alpha particles are unchanged&quot;. The ICRP 103 table is not reachable; values from Wikipedia &quot;Equivalent dose&quot; quoting it: photons, electrons, muons 1; protons and charged pions 2; alpha, fission fragments, heavy ions 20; neutrons (E in MeV): 2.5 + 18.2 exp(-[ln E]^2/6) for E &lt; 1; 5.0 + 17.0 exp(-[ln 2E]^2/6) for 1 to 50; 2.5 + 3.25 exp(-[ln 0.04E]^2/6) for E &gt; 50. COMPUTED: continuous at 1 MeV (20.69) and 50 MeV (5.50); 0.01 MeV 3.03; 0.1 MeV 10.0; 0.5 MeV 19.3; 2 MeV 17.3; 5 MeV 12.0; 10 MeV 8.8; 20 MeV 6.8; 100 MeV 4.86; 1 GeV 2.84; floor 2.5. Gakis and Atri's &quot;Q &gt; 20&quot; for neutrons is an ICRP 60 style statement; ICRP 103 peaks at 20.7 near 1 MeV.</p>
+<h3 id="42-wt-verdict-confirmed-2nd-hand">4.2 wT. Verdict: CONFIRMED (2ND-HAND)</h3>
+<p>[R3386] (Radiat. Environ. Biophys. 64, 637, PMC12701026, Table 1) and Wikipedia agree: bone marrow, colon, lung, stomach 0.12; breast 0.12; remainder 0.12 (adrenals, ET region, gall bladder, heart, kidneys, lymph nodes, muscle, oral mucosa, pancreas, prostate/uterus-cervix, small intestine, spleen, thymus); gonads 0.08; thyroid, oesophagus, liver, bladder 0.04; bone surface, skin, brain, salivary glands 0.01. COMPUTED sum 1.00. ICRP 60 values (gonads 0.20, breast 0.05) must not be mixed in.</p>
+<h3 id="43-subsurface-dose-dominated-by-secondary-neutrons-rather-than-primary-protons-verdict-partly">4.3 &quot;Subsurface dose dominated by secondary neutrons rather than primary protons&quot;. Verdict: PARTLY</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Finding</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R4890], JGR Planets 127, e2021JE007157 (open)</td>
+<td>neutrons about 50% of effective dose at the Mars surface and above 80% below about 50 cm; neutron flux and effective dose peak near 30 cm depth (60 to 70 g/cm2 with atmosphere), neutrons &quot;primarily induced by GCR protons&quot;; but neutrons only 4, 8, 9% of absorbed dose in water at the surface (82, 753, 1200 Pa); 100 mSv/yr needs 1 to 1.6 m regolith</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Koehler et al., [R1728] (MSL RAD)</td>
+<td>7 to 740 MeV neutrons 5.1 uGy/d and 23.6 uSv/d vs totals 233 and 610: 2.2% of dose, 3.8% of dose equivalent; 1 to 1000 MeV extrapolation about 3% and 5%</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4888], Sci. Adv. 6, eaaz1334 (Chang'E-4 LND, PMC7518862)</td>
+<td>Moon surface: neutral particles 3.1 +/- 0.5 of 13.2 +/- 1 uGy/h in Si (23 +/- 8%, includes gamma); charged dose equivalent 57.1 uSv/h; neutron contribution &quot;expected to increase&quot; under regolith; Apollo 17 neutron flux rises to about 150 g/cm2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0996], Biogeosciences Discuss. 4, 455</td>
+<td>with depth &quot;muons and pions, and the electrons ... become increasingly dominant&quot;; neutrons ionise only via recoil protons</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Gakis and Atri, [R1493]</td>
+<td>water-rich regolith attenuates neutrons below 10 MeV; model weak on neutrons vs MSL RAD; surface shielding, not subsurface dose</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>no source</td>
+<td>H in water-rich regolith cuts neutrons below 10 MeV</td>
+<td>2ND-HAND (via [R4890])</td>
+</tr>
+</tbody>
+</table></div>
+<p>Corrected statement: in the first metre of regolith, dose equivalent and effective dose are neutron-dominated (Mars: about 50% surface, above 80% below 50 cm); absorbed dose at the surface is charged-particle dominated (neutrons 2 to 9%); at metres to tens of metres muons, pions and cascade electrons dominate. Not supported without these qualifiers.</p>
+<hr />
+<h2 id="5-dataset-identities-and-licences-claim-5">5. Dataset identities and licences (claim 5)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Identity</th>
+<th>Terms found</th>
+<th>Status</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>&quot;LAMDA / [R1873]&quot;</td>
+<td>[R1873] is the Leiden photodissociation and photoionisation database (102 species), home.strw.leidenuniv.nl/~ewine/photo/. LAMDA (home.strw.leidenuniv.nl/~moldata/) is the collisional line database, A&amp;A 432, 369</td>
+<td>Photo site, exact text: &quot;When using material from this site, please cite one of the overview papers. In cases of specific molecules, please cite the original source of the cross sections as appropriate.&quot; LAMDA: &quot;If you use the data files in your work please refer to the publication by Schoier ... 2005, A&amp;A 432, 369-379 ... Please mention the date when you accessed the database&quot;. No formal licence on either</td>
+<td>READ</td>
+<td>CONTRADICTED (conflated)</td>
+</tr>
+<tr>
+<td>[R2040]</td>
+<td>citation correct: Planet. Space Sci. 106, 11-45, [R2040]; Crossref funder NASA award NNX08AF03G; article Elsevier licences</td>
+<td>data page phidrates.space.swri.edu connection reset; &quot;public domain NASA legacy&quot; not shown by anything reached</td>
+<td>NOT REACHED (terms)</td>
+<td>PARTLY</td>
+</tr>
+<tr>
+<td>JPL 19-5</td>
+<td>JPL Publication 19-5, Evaluation No. 19</td>
+<td>jpldataeval.jpl.nasa.gov refused (502); not in NTRS or Crossref</td>
+<td>NOT REACHED</td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Mainz atlas [R2303]</td>
+<td>ESSD 5, 365; 8203 cross-section files, 1402 species, 154 quantum-yield files (site count)</td>
+<td>live site: &quot;please cite our publication: Keller-Rudek ... (2013)&quot;, no licence. Zenodo record 6951 ([R2302], frozen 2013-06-24, 126 MB): cc-by-4.0, open access. ESSD paper CC BY 3.0. Files derive from third-party papers (rights not individually cleared, my caution)</td>
+<td>READ; DATA (Zenodo metadata)</td>
+<td>terms found</td>
+</tr>
+<tr>
+<td>Bremen / Serdyuchenko O<sub>3</sub></td>
+<td>iup.uni-bremen.de .../o3spectra2011: 11 temperatures 193 to 293 K, 213 to 1100 nm, zips of 2012-07-25 and 2013-07-22; papers AMT 7, 625 and 609 (2014)</td>
+<td>no licence or terms text on the data page (only a &quot;Data Privacy&quot; link); papers CC BY 3.0 (Crossref), not stated for the files</td>
+<td>READ</td>
+<td>no licence stated</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rule for planetGen: do not vendor these tables without a licence line; read user-supplied copies or ask the data owners. Extends the licence rows of 02.</p>
+<hr />
+<h2 id="6-nh3-chain-claim-6">6. NH<sub>3</sub> chain (claim 6)</h2>
+<h3 id="61-r0847-verdict-partly">6.1 &quot;[R0847]&quot;. Verdict: PARTLY</h3>
+<p>No standalone [R0847] NH<sub>3</sub> paper exists in Crossref. C2018 is the preliminary room-temperature CoYuTe, named in [R2098] (Icarus 321, 572, &quot;Analysis of gaseous ammonia (NH<sub>3</sub>) absorption in the visible spectrum of Jupiter - Update&quot;, [R2097]; READ). Published list: [R4323], &quot;ExoMol molecular line lists XXXV. A rotation-vibration line list for hot ammonia&quot; ([R0847]; READ): 16.9 billion transitions, to 20 000 cm-1 (beyond 0.5 um), up to 1500 K (visible part only 300 K per [R2098]), improving BYTe (ends at 0.833 um). Authors caution: visible line positions off by several to tens of cm-1; absolute visible intensities not independently validated.</p>
+<h3 id="62-resolve-anomalies-near-the-500-mbar-condensation-level-verdict-unsupported-as-stated">6.2 &quot;Resolve anomalies near the 500 mbar condensation level&quot;. Verdict: UNSUPPORTED as stated</h3>
+<ul>
+<li>[R2098] (READ): VLT/MUSE 0.48 to 0.93 um, NEMESIS correlated-k with CH<sub>4</sub> from [R2265]; chi2/n 1.93 to 1.60 (Equatorial Zone) and 2.06 to 1.76 (NEB) switching from [R2777] to C2018; the 0.75 um feature is an artefact. No 500 mbar anomaly mentioned.</li>
+<li>[R2100] ([R2100], MNRAS; READ): CoYuTe below 0.977 um, HITRAN2022 above, CH<sub>4</sub> [R2265] below 0.93 um and TheoReTS above; upper cloud at about 0.55 bar &quot;coinciding with the ammonia condensation level&quot;, lower cloud at 1 to 2 bar at the start of the NH<sub>3</sub> drop.</li>
+<li>[R0411] ([R0411]; READ): reflecting layer 570 +/- 30 mbar from 5.32 um NH<sub>3</sub> lines (NH<sub>3</sub> cloud); NH<sub>3</sub> 200 +/- 50 ppm at 0.7 to 5 bar (GRS).</li>
+<li>Not reached: Li 2017 Juno [R2097] first paper full text.</li>
+</ul>
+<h3 id="63-visible-nh3-absorption-what-is-established">6.3 Visible NH<sub>3</sub> absorption: what is established</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fact</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bands</td>
+<td>0.552, 0.648, 0.765, 0.79, 0.825, 0.93 um</td>
+<td>[R2098]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Line list (6475 A band)</td>
+<td>33 strongest lines, 36 m, 1 atm, 294 K, about 17% of band absorption, no lower-state energies</td>
+<td>[R2098]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R2777]</td>
+<td>6475 and 5520 A cross sections, room T, self-broadened; resolution about 10 A not 2 A; strengths inconsistent with longer-wavelength data</td>
+<td>[R2098]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Numeric band strengths 500 to 800 nm</td>
+<td>not in any reachable text (ExoMol file contents needed)</td>
+<td></td>
+<td>NOT REACHED</td>
+</tr>
+<tr>
+<td>Widths used</td>
+<td>H<sub>2</sub> to J = 9 then 0.0788 cm-1/atm; He 0.0282; T exponents 0.59 (H<sub>2</sub>), 0.37 (He)</td>
+<td>[R2098]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>&quot;[R4186], Jupiter's NH<sub>3</sub> absorption&quot;</td>
+<td>not found; real: [R4186], &quot;The source of 3-um absorption in Jupiter's clouds: Reanalysis of ISO observations using new NH<sub>3</sub> absorption models&quot; (infrared)</td>
+<td>Crossref</td>
+<td>READ (title)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reachable data: [R2258] cold methane absorption coefficients, 300 to 1000 nm, 1750 rows, at https://atmos.nmsu.edu/planetary_datasets/infraredsaturn.txt (DATA; terms not stated; PDS Atmospheres node). Sample (vacuum nm, 1/km-am): 500 0.0014; 540 0.0718; 600 0.022; 620 0.683; 650 0.0379; 700 0.244; 726.8 4.10; 790 0.550; 840 0.602; 860 2.51; 890 24.1; 900 12.7; 990 12.3.</p>
+<hr />
+<h2 id="7-final-table-claim-verdict-corrected-number">7. Final table: claim, verdict, corrected number</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Corrected or supported value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1a</td>
+<td>omega0 0.92 to 0.95 at 670 nm</td>
+<td>PARTLY</td>
+<td>solar mean 0.89 to 0.94; about 0.975 near 650 nm (2ND-HAND); UV band 0.67 to 0.74</td>
+</tr>
+<tr>
+<td>1b</td>
+<td>k &gt; 0.01 below 350 nm</td>
+<td>CONFIRMED</td>
+<td>0.013 (0.30 um), 0.011 (0.35), 0.0093 (0.40); min about 1e-3 at 0.7 to 0.8 um (digitised)</td>
+</tr>
+<tr>
+<td>1c</td>
+<td>Fe3+ attribution</td>
+<td>NOT REACHED</td>
+<td>no source states it</td>
+</tr>
+<tr>
+<td>1d</td>
+<td>SO<sub>2</sub> row cites [R2645, R4395]</td>
+<td>CONTRADICTED</td>
+<td>both Mars dust imaging papers</td>
+</tr>
+<tr>
+<td>2a</td>
+<td>Mie underpredicts forward scattering 40%</td>
+<td>UNSUPPORTED</td>
+<td>no source</td>
+</tr>
+<tr>
+<td>2b</td>
+<td>haze extinction law (our gap)</td>
+<td>CONFIRMED</td>
+<td>1.012e7 L^-2.339, 2.029e4 L^-1.409, 6.27e2 L^-0.9706 (nm); total 9.6 at 500 nm</td>
+</tr>
+<tr>
+<td>3a</td>
+<td>CO 0.15 to 30%</td>
+<td>PARTLY</td>
+<td>0.3 to 26, median 3.3</td>
+</tr>
+<tr>
+<td>3b</td>
+<td>CO<sub>2</sub> 2 to 30%</td>
+<td>CONFIRMED</td>
+<td>2 to 30, median 12</td>
+</tr>
+<tr>
+<td>3c</td>
+<td>CH<sub>4</sub> 0.2 to 1.5%</td>
+<td>PARTLY</td>
+<td>0.15 to 2.7</td>
+</tr>
+<tr>
+<td>3d</td>
+<td>NH<sub>3</sub> 0.2 to 1.0%</td>
+<td>CONTRADICTED</td>
+<td>0.1 to 3.6; mean 0.8</td>
+</tr>
+<tr>
+<td>3e</td>
+<td>Q(H2O) 1e26 to 1e31</td>
+<td>PARTLY</td>
+<td>5.1e26 to 1.41e31 (SWAN sample)</td>
+</tr>
+<tr>
+<td>4a</td>
+<td>wR values and neutron function</td>
+<td>CONFIRMED</td>
+<td>formula in 4.1</td>
+</tr>
+<tr>
+<td>4b</td>
+<td>wT values</td>
+<td>CONFIRMED</td>
+<td>sum 1.00</td>
+</tr>
+<tr>
+<td>4c</td>
+<td>subsurface neutron dominance</td>
+<td>PARTLY</td>
+<td>dose equivalent only, 50% surface to above 80% below 50 cm (Mars); absorbed dose 2 to 9%</td>
+</tr>
+<tr>
+<td>5a</td>
+<td>&quot;LAMDA / [R1873]&quot;</td>
+<td>CONTRADICTED</td>
+<td>[R1873] = Leiden photo database; LAMDA = a molecular database; citation request only</td>
+</tr>
+<tr>
+<td>5b</td>
+<td>[R2040] public domain</td>
+<td>PARTLY</td>
+<td>citation right; terms NOT REACHED</td>
+</tr>
+<tr>
+<td>5c</td>
+<td>JPL 19-5 terms</td>
+<td>NOT REACHED</td>
+<td></td>
+</tr>
+<tr>
+<td>5d</td>
+<td>Mainz terms</td>
+<td>terms found</td>
+<td>cite [R2302, R2303]; Zenodo CC BY 4.0</td>
+</tr>
+<tr>
+<td>5e</td>
+<td>Bremen terms</td>
+<td>none stated</td>
+<td></td>
+</tr>
+<tr>
+<td>6a</td>
+<td>[R0847]</td>
+<td>PARTLY</td>
+<td>[R4323]</td>
+</tr>
+<tr>
+<td>6b</td>
+<td>500 mbar anomaly resolved</td>
+<td>UNSUPPORTED</td>
+<td>chi2/n 1.93 to 1.60 and 2.06 to 1.76; NH<sub>3</sub> cloud 0.55 to 0.57 bar</td>
+</tr>
+<tr>
+<td>6c</td>
+<td>K and T 2009/2010/2011 titles</td>
+<td>PARTLY</td>
+<td>only 2010 is the CH<sub>4</sub> paper</td>
+</tr>
+</tbody>
+</table></div>
+<p>Counts (23 rows): CONFIRMED 5; PARTLY 8; CONTRADICTED 3 (1d, 3d, 5a); UNSUPPORTED 2 (2a, 6b); NOT REACHED 2 (1c, 5c); terms-found or none-stated 3 (5d, 5e plus the 5b terms).</p>
+<hr />
+<h2 id="8-not-reached-boss-must-research">8. NOT REACHED (Boss must research)</h2>
+<ol>
+<li>[R4743] tables of omega0(lambda) and (n, k)(lambda); [R0809, R3326, R3567] tables.</li>
+<li>[R4394] (PSS 56, 669) Tables 2 and 3 and phase functions; [R1144] coefficients; [R2584, R3663] full text. Any source for a Mie versus aggregate forward-scattering percentage.</li>
+<li>[R0048, R0436, R3206] Table 1, Dello [R1063] original table; Q(H2O) of small comets.</li>
+<li>ICRP 103 body tables and ICRP 116; Chang'E-4 neutron-only dose equivalent.</li>
+<li>Terms: Huebner and Mukherjee data page, JPL 19-5, Bremen files, Leiden photo database (citation request only), NMSU Karkoschka files.</li>
+<li>NH<sub>3</sub> numeric band strengths 500 to 800 nm ([R2777], CoYuTe contents); [R2097] first paper; Li 2017; [R2265] supplementary table.</li>
+</ol>
+<h2 id="9-recalled--to-verify">9. Recalled / to verify</h2>
+<p>JPL Publication 19-5 title and authors; L = 51 kJ/mol (from 05); Fe3+ as the UV absorber; that the ICRP 103 body table matches the Wikipedia reproduction (extract confirms narrative only).</p>
+<h2 id="10-cross-links">10. Cross-links</h2>
+<p>02 (optical constants, dataset licences), 05 section 9 (differences in 3.1), 06 (dust, hazes, sulphate; the misplaced Lemmon/Tomasko row is Mars dust), 07 (radiation weighting, shielding, subsurface neutrons).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

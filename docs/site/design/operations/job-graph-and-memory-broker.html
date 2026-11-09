@@ -1,0 +1,776 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Every run as a graph of single small jobs, built from what Boss asks for - planetGen docs</title>
+<meta name="description" content="Written 2026-11-08, 3:35 PM EST by the job-queue design thread (DOC.113), for Boss.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/job-graph-and-memory-broker.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/job-graph-and-memory-broker.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="every-run-as-a-graph-of-single-small-jobs-built-from-what-boss-asks-for">Every run as a graph of single small jobs, built from what Boss asks for</h1><p class="meta">docs/design/operations/job-graph-and-memory-broker.md</p><details class="toc"><summary>On this page (22 headings)</summary><ul><li style="margin-left:0px"><a href="#1-answer-first">1. Answer first</a></li><li style="margin-left:0px"><a href="#2-how-a-galaxy-is-built-today-and-where-the-grouping-is">2. How a galaxy is built today, and where the grouping is</a></li><li style="margin-left:0px"><a href="#3-the-job-model">3. The job model</a></li><li style="margin-left:14px"><a href="#30-the-one-thing-rule">3.0 The one-thing rule</a></li><li style="margin-left:14px"><a href="#31-a-job">3.1 A job</a></li><li style="margin-left:14px"><a href="#32-plan-first-the-planner-writes-the-command-sequence">3.2 Plan first: the planner writes the command sequence</a></li><li style="margin-left:14px"><a href="#33-dependencies">3.3 Dependencies</a></li><li style="margin-left:14px"><a href="#34-spawning-and-the-size-of-the-queue">3.4 Spawning and the size of the queue</a></li><li style="margin-left:14px"><a href="#35-how-small-is-small">3.5 How small is "small"</a></li><li style="margin-left:0px"><a href="#4-memory-and-fair-share-the-broker-and-the-scheduler">4. Memory and fair share: the broker and the scheduler</a></li><li style="margin-left:14px"><a href="#41-the-claim">4.1 The claim</a></li><li style="margin-left:14px"><a href="#42-admission">4.2 Admission</a></li><li style="margin-left:14px"><a href="#43-adjusting-by-load">4.3 Adjusting by load</a></li><li style="margin-left:14px"><a href="#44-relation-to-perf254-and-dask-is-out">4.4 Relation to PERF.254, and Dask is out</a></li><li style="margin-left:14px"><a href="#45-fair-share-one-scheduler-for-all-job-kinds-ops130">4.5 Fair share: one scheduler for all job kinds (OPS.130)</a></li><li style="margin-left:0px"><a href="#5-how-a-galaxy-run-looks">5. How a galaxy run looks</a></li><li style="margin-left:0px"><a href="#6-risks-and-how-each-is-held">6. Risks and how each is held</a></li><li style="margin-left:0px"><a href="#7-migration-one-step-at-a-time">7. Migration, one step at a time</a></li><li style="margin-left:0px"><a href="#8-decided-by-boss-2026-11-08">8. Decided by Boss (2026-11-08)</a></li><li style="margin-left:0px"><a href="#9-items-numbers-from-todo-docs-prs-5750-and-after-doc113-and-ops122-to-ops132-all-proposed-build-after-boss-approves-this-note">9. Items (numbers from TODO, docs PRs 5750 and after; DOC.113 and OPS.122 to OPS.132; all proposed, build after Boss approves this note)</a></li><li style="margin-left:0px"><a href="#10-what-i-did-not-verify">10. What I did not verify</a></li><li style="margin-left:0px"><a href="#sources-all-in-the-repository-at-c406c9a-unless-noted">Sources (all in the repository at c406c9a unless noted)</a></li></ul></details>
+<p>Written 2026-11-08, 3:35 PM EST by the job-queue design thread (DOC.113), for Boss. Design only: no code was changed. All times are EST. Evidence tags: [S] read in the repository on main (c406c9a), [R] read in an earlier report, [A] my arithmetic or judgement, [?] not verified, to be measured before a build. Item numbers (OPS.122 to OPS.127) are TODO's, filed in docs PR 5750.</p>
+<h2 id="1-answer-first">1. Answer first</h2>
+<ol>
+<li><strong>You are right about how it works today.</strong> <code>planetgen galaxy</code> is a fixed, hand-ordered list of 13 stages (<code>generation/stages.py</code> <code>galaxy_stages</code>), turned into steps one after the other (<code>commands.build_steps</code>). Each stage is cut into chunks of many sectors, and a stage must be wholly finished before the next is cut. The cut, the preparation, the closing work and the start of the next stage are not jobs at all: they run inside the last chunk's work process. That hidden work is where the three kills of 10-31 and 11-08 happened. [S]</li>
+<li><strong>The fix is two phases for every task: plan, then execute (your 3:29 PM rule).</strong> First a planner turns your request into an ordered <strong>sequence of commands</strong>, written down as data before anything runs. You say what you want (a galaxy of this shape, with these layers, or one scatter, or one sector); the planner works out which commands that takes, drops the ones whose result is already stored, and puts the rest in order, each with what it needs first. Then an executor runs that sequence and does nothing else: it never decides what to run, only when it may start (its predecessors are done, memory is free). The sequence fixes the order of entries that depend on each other; <strong>entries that do not need each other overlap</strong> (Boss, 2026-11-08, 3:55 PM EST), under the memory gate and the fair scheduler. Whether two entries need each other is derived from what each declares it reads and writes, and a pair is allowed to overlap only after it has been proven independent and compared byte for byte (sections 3.3 and 7). A pair not yet proven runs in plan order. There is no fixed stage list in code.</li>
+<li><strong>Every entry in the sequence is a command that does one thing (your 3:32 PM rule).</strong> A job, whether a Generate page job, an API job or a command line run, is nothing more than such a sequence. Today a command bundles several things behind hooks: the finish of the phenomena scatter draws the special phenomena, writes them, builds five indexes, stamps an epoch and records a seed in one go; the population pass scans, prunes, dates and founds in one go. Those become separate commands in the sequence, each with its own name, result and memory claim (section 3.0).</li>
+<li><strong>Every job has a memory claim, and one broker admits jobs by the live free memory.</strong> The claim starts from the measured figure for that kind of job and is corrected from what jobs of that kind actually used on this galaxy. A job that would not fit waits. A job that outgrows its claim is stopped by us, put back with a bigger claim, and run again, before the kernel has to kill MySQL. Small jobs make this cheap: the loss is a few seconds, not the 2 hours the last kill cost.</li>
+<li><strong>A fair scheduler shares the machine across all kinds of work (your 3:44 PM EST rule).</strong> Site-serving jobs have reserved places and always go first; the rest share the host by weight across job kinds (generation, warm-up, checks, API jobs); and waiting time raises priority, so nothing starves. The warm-up or any other command can never block the site, and every task that can run gets a turn. Small jobs are what make this work: a turn comes up every few seconds, not every hour (section 4.5).</li>
+<li><strong>Jobs can spawn jobs.</strong> An opening job reads the database and spawns the item jobs; a closing job is held until they are all done. Spawning is windowed (a rolling few thousand at a time), so a galaxy with tens of millions of sectors never puts tens of millions of jobs in Redis.</li>
+<li><strong>It is built in small steps, each one a whole replacement with no old path left beside it, and each compared byte for byte against the run before it.</strong> The first step (cut and close work as jobs of their own, with a memory claim) is the one that stops the kills, and it changes no output.</li>
+<li><strong>Both open decisions are answered</strong> (section 8): one command per item with tiny ones packed (my recommendation, taken), and jobs overlap whenever they do not need each other (Boss's change of my recommendation).</li>
+</ol>
+<h2 id="2-how-a-galaxy-is-built-today-and-where-the-grouping-is">2. How a galaxy is built today, and where the grouping is</h2>
+<p>All [S] unless marked.</p>
+<p><strong>The stage list is fixed in code.</strong> <code>galaxy_stages(args)</code> returns, in this order: the sector stages (start and neighborhood, or one sectors stage, picked by flags), <code>link</code>, <code>mass</code>, <code>luminosity</code>, the three phenomena stages (<code>phenomena</code>, <code>phenomena-index</code>, <code>nebula-draw</code>), <code>block-lights</code>, <code>backfill</code>, <code>population</code>, <code>territories</code>, <code>settle</code>, <code>run-blocks</code>. Order is the list order. A stage the request does not need is dropped or marked skipped by an <code>if</code> in code, and a run carried on after a stop works by tagging stages <code>finished_by</code> (<code>finish_run.py</code>).</p>
+<p><strong>The only dependency data is four lines.</strong> <code>commands.REQUIRES</code> names four edges (phenomena index after phenomena scatter, territories after population, link and settle after the three sector commands). Those edges are only used to refuse a wrong list (<code>validate_order</code>) and to write a &quot;released&quot; line. Nothing runs two stages at once; the doc says so (<code>redis-and-the-work-queue.md</code> 5.13: &quot;making two stages run together is a later step&quot;).</p>
+<p><strong>Grouping, layer by layer:</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What is grouped</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stage barrier</td>
+<td>Every unit of stage N must be done before any unit of N+1 exists. The unit that finishes the set queues the next stage.</td>
+<td><code>units._end_stage</code>, <code>wrapper.advance</code></td>
+</tr>
+<tr>
+<td>Chunks</td>
+<td>A unit is many items. Sector stages: up to 4,000 chunks of consecutive sectors (<code>SECTOR_UNITS_MAX</code>). Link: 500 sectors a unit. Settle: 100 a unit. Backfill: at least 10,000 sky cells a unit, at most 2,000 units. Cut is fixed when the stage opens, by <code>static_chunks</code>, from the weights, never from memory or load.</td>
+<td><code>run_galaxy.expand_generate_sectors</code>, <code>units.static_chunks</code></td>
+</tr>
+<tr>
+<td>&quot;Whole&quot; commands</td>
+<td>One job doing a large job: plan skeleton, finish phenomena, run population, run territories, update block totals, clean nebula field, reset. 12 commands are <code>whole</code>.</td>
+<td><code>commands.REGISTRY</code></td>
+</tr>
+<tr>
+<td>Hidden steps that are not jobs</td>
+<td><code>prepare</code>, the cluster-field build, <code>expand</code> (the cut), <code>finish</code>, <code>conclude</code>, <code>finish_stage</code>, <code>advance</code>. They run in the work process of the last unit of the stage before.</td>
+<td><code>wrapper._open</code>, <code>units._end_stage</code></td>
+</tr>
+<tr>
+<td>Followers</td>
+<td>The process that started the run holds the display objects and some in-process stage work between stages.</td>
+<td><code>generation/followed.py</code></td>
+</tr>
+<tr>
+<td>Memory</td>
+<td>A table of one figure per command kind (<code>workers.STAGE_WORKER_MEMORY_MB</code>, 700 / 2,100 / 3,050 MB) and a cap of half the host. Nothing reads the host while a run goes. The cut is outside the table.</td>
+<td><code>workers.py</code>, [R] <code>memory-kills-and-dynamic-workers-2026-11-08.md</code></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What that cost.</strong> The 11-08 kills: 15 workers held 15,128 MB of 15,992 MB, the cut of the next stage ran in a work process for 1 hour 54 minutes with no log line, and the kernel killed it. [R] The job that was killed was named as the stage before, because the cut had no job of its own. [R] <code>perf252-opening-oom-2026-11-08.md</code>.</p>
+<p><strong>What already works and is kept.</strong> Every command is already a registered, pure, restartable command with JSON in and JSON out (<code>CommandSpec</code>). Every draw already comes from a seed of the thing it draws, not from the worker or the chunk (<code>work.task_seed</code>, GEN.39), so results do not depend on worker count. A unit that runs twice counts once. The run record in Redis is the only store of a run, and a second process can follow it. Stage statistics, ETA, Stop All, pause and the update guard are all built on it. This design reuses all of that; it does not start over.</p>
+<p><strong>The earlier plan this continues.</strong> Boss, 2026-10-17, 4:12 PM EDT (<code>redis-and-the-work-queue.md</code> 5.12): every part of generate is an individual command, a wrapper makes the list of commands and puts them into the queue individually, no command knows the order, &quot;a chunk of a chunked stage is its own command&quot;. Built as PERF.106 to PERF.128 and PERF.172. PERF.247 (5.13) added &quot;a job can require another job&quot;. PERF.254 (memory governor; the Dask assessment <code>perf254-dask-assessment-2026-11-08.md</code> is kept as the record) added the memory half. This design finishes the thought: the wrapper was meant to <em>select</em> commands from the request, but selection today is a fixed list with <code>if</code>s, and the &quot;individual command&quot; stopped at the chunk.</p>
+<p>A note on a reference in the brief: the 11-06 report &quot;Review phases and trains for efficiency&quot; (<code>phase-and-train-efficiency-2026-11-06.md</code>) is about build phases and merge trains (the test gate, sharding it), not the job queue. Nothing in it changes this design.</p>
+<h2 id="3-the-job-model">3. The job model</h2>
+<h3 id="30-the-one-thing-rule">3.0 The one-thing rule</h3>
+<p>Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular commands that each do one thing. This is the governing principle of 2026-10-17, 4:18 PM EDT (&quot;each command does one and only one thing and does it exceptionally well&quot;) taken to its end.</p>
+<p><strong>The rule.</strong></p>
+<ol>
+<li>A command has one verb and one named effect: <em>clear the phenomena scatter</em>, <em>cut the mass scatter into shells</em>, <em>scatter one shell of massive stars</em>, <em>store the mass limit</em>, <em>build one index</em>. Its name says it, and its registry description needs no &quot;and&quot; or comma list.</li>
+<li>A command has <strong>no hooks</strong>. <code>prepare</code>, <code>expand</code>, <code>finish</code> and <code>conclude</code> are removed from <code>CommandSpec</code>. Each of them is a command in the sequence, in its place, or it is not a command's business at all.</li>
+<li><strong>Bookkeeping is the executor's, not a command's.</strong> Timings, speed statistics, progress, the run's log lines and the stage row are written by the executor from what every job reports. <code>finish_scatter</code> and <code>finish_scatter_phenomena</code>, which only record speeds and metrics, disappear into the executor.</li>
+<li>A <strong>job</strong> (Generate page job, API job, <code>planetgen galaxy</code>, <code>warm</code>, <code>check-db</code>) is a plan: a sequence of such commands. The single-verb command line runs are plans of one entry.</li>
+<li>A guard test fails a registered command that has a hook, a second effect (a registry field <code>effects</code> names exactly one), or a description that lists several actions. It sits beside <code>test_one_wrapper_run</code>.</li>
+</ol>
+<p><strong>Where the code bundles several things today</strong> (read from the functions' own docstrings [S]; each split is a candidate for the sequence, with Boss's veto):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Today</th>
+<th>What it does in one go</th>
+<th>Becomes, in sequence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prepare_scatter_phenomena</code></td>
+<td>empties the earlier scatter, then takes off the indexes</td>
+<td><code>clear-phenomena</code> (exists as a command already), <code>drop-phenomenon-indexes</code></td>
+</tr>
+<tr>
+<td><code>finish_phenomena_unit</code> (the <code>finish-phenomena</code> command)</td>
+<td>draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut</td>
+<td><code>draw-special-phenomena</code>, <code>write-special-phenomena</code>, <code>build-index</code> (one per index), <code>stamp-hypervelocity-epoch</code>, <code>record-phenomenon-scatter</code></td>
+</tr>
+<tr>
+<td><code>conclude_scatter_phenomena</code></td>
+<td>counts the phenomena per class and stores them</td>
+<td><code>store-phenomenon-class-counts</code></td>
+</tr>
+<tr>
+<td><code>prepare_scatter_pass</code>, <code>conclude_scatter_pass</code></td>
+<td>empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch</td>
+<td><code>clear-bright-stars</code> (or <code>clear-luminosity-pass</code>), <code>store-scatter-limits</code>, <code>store-scatter-epoch</code></td>
+</tr>
+<tr>
+<td><code>prepare_draw_nebula_field</code>, <code>conclude_draw_nebula_field</code></td>
+<td>checks the skeleton and empties the table; links the stored nebulae to their rows and makes the nebula block totals</td>
+<td><code>clear-nebula-field</code> (exists), <code>link-nebulae-to-field</code>, <code>make-nebula-block-totals</code></td>
+</tr>
+<tr>
+<td><code>conclude_field</code> (<code>warm-cluster-field</code>)</td>
+<td>makes the field from rows and parts, and publishes the file</td>
+<td><code>make-cluster-field</code>, <code>publish-cluster-field-file</code></td>
+</tr>
+<tr>
+<td><code>_ensure_cluster_field</code>, called by the wrapper before a stage that reads the galaxy's shape</td>
+<td>makes the file if absent</td>
+<td><code>make-cluster-field</code>, planned before the commands that need it (a declared fact: <code>cluster-field</code>)</td>
+</tr>
+<tr>
+<td><code>population_unit</code> (<code>run-population</code>)</td>
+<td>scans the life worlds, drops species with no civilization, dates the civilizations, founds or dissolves polities</td>
+<td><code>scan-life-worlds</code>, <code>drop-civilization-less-species</code>, <code>date-civilizations</code>, <code>update-polities</code></td>
+</tr>
+<tr>
+<td><code>conclude_rescore_habitability</code></td>
+<td>makes the blocks' habitable totals follow the sector counts</td>
+<td><code>make-habitable-block-totals</code></td>
+</tr>
+<tr>
+<td><code>expand_*</code> (every cut)</td>
+<td>reads the database and decides the items</td>
+<td><code>cut-&lt;command&gt;</code>: one thing, makes the item list</td>
+</tr>
+<tr>
+<td><code>generate_sectors_unit</code></td>
+<td>draws a sector and saves it in one transaction, and builds the log summary</td>
+<td>stays <strong>one command</strong>, <code>generate-sector</code> (draw and save are one effect: making a sector exist; splitting them would move a whole sector through Redis). The summary lines are bookkeeping and move to the executor. Boss may overrule.</td>
+</tr>
+<tr>
+<td><code>refresh_block_lights_unit</code>, link, settle, one shell of a scatter, one backfill cell</td>
+<td>one effect each</td>
+<td>unchanged, but as items (section 3.5)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The commands that have no hook today (checks, <code>reset-galaxy</code>, <code>plan-skeleton</code>, the warm families) are mostly already singular; <code>plan-skeleton</code> and <code>reset-galaxy</code> are one effect each. A few <code>check-*</code> and <code>warm-*</code> commands may also bundle (the audit in step 0 lists them).</p>
+<p><strong>What a plan looks like then</strong>, for <code>planetgen scatter --mass</code> (stored first, then run):</p>
+<pre><code>1  clear-massive-stars          (only if a re-draw was asked for)
+2  cut-mass-scatter             makes: the list of shells
+3  scatter-mass-shell  x N      one per shell, spawned in windows, run together
+4  store-scatter-limits         needs: all of 3
+5  store-scatter-epoch          needs: 4
+6  make-block-lights  x blocks  needs: 5
+</code></pre>
+<p>Every line is one thing, can be run alone (<code>planetgen command run</code>), has its own claim and its own log line, and is named in a kill message if it is the one that dies.</p>
+<h3 id="31-a-job">3.1 A job</h3>
+<p>A job is one registered command applied to one item. It is a record in Redis:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>Hierarchical and stable: <code>&lt;run&gt;/&lt;parent path&gt;/&lt;kind&gt;:&lt;item key&gt;</code>, for example <code>r7/sectors/generate:3.12.401</code>. The item key is the thing worked on (an address, a shell, a sky cell), never a chunk number or a worker.</td>
+</tr>
+<tr>
+<td><code>kind</code>, <code>args</code></td>
+<td>A command in <code>REGISTRY</code> and its JSON arguments, as now.</td>
+</tr>
+<tr>
+<td><code>seed key</code></td>
+<td>The item key. The draw is <code>work.task_seed(run_seed, item key)</code>, as now.</td>
+</tr>
+<tr>
+<td><code>needs</code></td>
+<td>What must be done first (section 3.3).</td>
+</tr>
+<tr>
+<td><code>makes</code></td>
+<td>The facts this job's result stores (section 3.3).</td>
+</tr>
+<tr>
+<td><code>claim</code></td>
+<td><code>mem_mb</code>, <code>est_seconds</code>, and named tokens (<code>mysql_write</code>, <code>star_tables</code>, <code>alone</code>) (section 5).</td>
+</tr>
+<tr>
+<td><code>parent</code>, <code>group</code></td>
+<td>Who spawned it, and the group (the old &quot;stage&quot;) its bar and ETA belong to.</td>
+</tr>
+<tr>
+<td><code>state</code></td>
+<td><code>planned</code>, <code>held</code>, <code>ready</code>, <code>admitted</code>, <code>running</code>, <code>done</code>, <code>failed</code>, <code>canceled</code>.</td>
+</tr>
+<tr>
+<td><code>result</code></td>
+<td>JSON, kept only as long as a dependant or the run's summary needs it.</td>
+</tr>
+</tbody>
+</table></div>
+<p>A command stays one thing and knows nothing about order. The five hooks of today (<code>prepare</code>, <code>expand</code>, <code>unit</code>, <code>finish</code>, <code>conclude</code>) are not three job kinds of one command, as an earlier draft of this note had it. They become <strong>commands of their own in the sequence</strong> (section 3.0): the cut is <code>cut-&lt;command&gt;</code>, a clearing is <code>clear-&lt;thing&gt;</code>, the unit is the item command, and a conclusion is one <code>store-...</code> or <code>make-...</code> command per effect. The cut therefore stops being something a worker does on the side: it is a command with a name, a claim, a log line and a place in the Queue page, and when it is killed the kill message names it.</p>
+<h3 id="32-plan-first-the-planner-writes-the-command-sequence">3.2 Plan first: the planner writes the command sequence</h3>
+<p><strong>Plan, then execute, for every task</strong> (Boss, 2026-11-08, 3:29 PM EST: &quot;all tasks should be planned with commands in sequence and then should execute the command sequence&quot;). This is the shape of the job spec already designed in <code>one-run-per-job.md</code> (PERF.203: a JSON list of <code>{command, argv}</code>, one run per Generate job), carried through to every kind of run.</p>
+<ul>
+<li><strong>The plan is data and has no side effects.</strong> <code>plan(request, stored state)</code> returns the ordered list of command entries: <code>position</code>, <code>command</code>, <code>args</code>, <code>needs</code>, <code>makes</code>, <code>claim</code>, <code>group</code> (its label for bars). It is stored in the run record before the first job is queued, so it can be printed (<code>--plan-only</code>, and the Generate page shows it before you press start), estimated (the size and time estimate come from it, not from a separate path), and compared with what ran.</li>
+<li><strong>One planner for every start path.</strong> The Generate page, the API's jobs, <code>planetgen galaxy</code>, <code>scatter</code>, <code>sectors</code>, <code>warm</code>, <code>check-db</code>, <code>sector</code>, <code>system</code>, and the jobs <code>update.sh</code> starts all build their request and call the same function. The page and the API cannot drift, which is what PERF.203 set out to guarantee.</li>
+<li><strong>The executor runs the plan and nothing else.</strong> It releases an entry when what it <code>needs</code> is done, memory is admitted (section 4) and the fair scheduler gives it a turn (4.5); entries with no need of each other run together. It records the result. A command still knows nothing about order. A running command's <strong>open</strong> job may expand into its item commands; those are appended to the plan record under their entry as they are written (in windows), so the record ends as the complete list of what ran, and the dry run shows them as &quot;about N items&quot;.</li>
+<li><strong>A plan is re-plannable.</strong> If a run stops, plan again from the stored facts: finished entries are not planned, the rest are. That replaces &quot;finish a stopped run&quot; as a special path.</li>
+</ul>
+<p>Input to the planner: what you are doing, as a <strong>goal</strong>, not as a stage list.</p>
+<ul>
+<li>&quot;Make a galaxy of this shape and these layers&quot; (the Generate page, <code>planetgen galaxy</code>).</li>
+<li>&quot;Scatter the bright stars&quot; (<code>planetgen scatter --luminosity</code>).</li>
+<li>&quot;Generate this block&quot;, &quot;regenerate this sector&quot;, &quot;re-score habitability&quot;, &quot;warm the site&quot;, &quot;check the database&quot;.</li>
+</ul>
+<p>The planner (replacing <code>galaxy_stages</code>, <code>for_command</code>, <code>KIND_OF_STAGE</code>, <code>build_steps</code> and the <code>if</code>s that skip stages) does three things.</p>
+<ol>
+<li>
+<p><strong>Names the facts the goal needs.</strong> Every command declares what it <code>needs</code> and what it <code>makes</code>, as named facts. My reading of the galaxy, from the code comments and the existing <code>REQUIRES</code>; each pair must be proven by the data-touch check in section 7 before any overlap is allowed [?]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Makes</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>plan-skeleton</td>
+<td><code>skeleton</code></td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>generate-start-sector, generate-neighborhood, generate-sectors</td>
+<td><code>sector(address)</code></td>
+<td><code>skeleton</code></td>
+</tr>
+<tr>
+<td>link-neighbors</td>
+<td><code>links(address)</code></td>
+<td><code>sector(address)</code> and <code>sector</code> of each neighbor</td>
+</tr>
+<tr>
+<td>settle-sector-paths</td>
+<td><code>path(address)</code></td>
+<td><code>sector(address)</code> (the existing REQUIRES has all three sector commands; per sector is enough)</td>
+</tr>
+<tr>
+<td>scatter-mass</td>
+<td><code>stars:mass</code> and the mass limit</td>
+<td><code>skeleton</code></td>
+</tr>
+<tr>
+<td>scatter-luminosity (and band)</td>
+<td><code>stars:bright</code></td>
+<td><code>stars:mass</code> (it works at the stored mass limit)</td>
+</tr>
+<tr>
+<td>scatter-phenomena</td>
+<td><code>phenomena:shells</code></td>
+<td><code>skeleton</code></td>
+</tr>
+<tr>
+<td>finish-phenomena</td>
+<td><code>phenomena:index</code></td>
+<td><code>phenomena:shells</code> (existing REQUIRES)</td>
+</tr>
+<tr>
+<td>draw-nebula-field</td>
+<td><code>nebula</code></td>
+<td><code>skeleton</code>, <code>phenomena:index</code> [?]</td>
+</tr>
+<tr>
+<td>scatter-backfill</td>
+<td><code>stars:backfill(cell)</code></td>
+<td><code>sector</code> of the cell's sectors, <code>stars:mass</code></td>
+</tr>
+<tr>
+<td>refresh-block-lights, refresh-run-blocks</td>
+<td><code>blocks</code></td>
+<td>every fact that writes a block total (PERF.251 already wants it last)</td>
+</tr>
+<tr>
+<td>run-population</td>
+<td><code>population</code></td>
+<td><code>sector</code> (all)</td>
+</tr>
+<tr>
+<td>run-territories</td>
+<td><code>territories</code></td>
+<td><code>population</code> (existing REQUIRES)</td>
+</tr>
+</tbody>
+</table></div>
+</li>
+<li>
+<p><strong>Subtracts what already exists.</strong> A fact already stored for this galaxy (same seed, same build) needs no job. This is what <code>skip</code>, <code>finished_by</code>, <code>_refuse_stored_scatter</code> and &quot;run again after a stop&quot; each do by hand today. One rule replaces them: <em>a job whose <code>makes</code> are all present is not planned.</em> A run carried on after a stop is just a new plan over the facts that were saved.</p>
+</li>
+<li>
+<p><strong>Emits the sequence, lazily below the command.</strong> The plan holds the commands. Each command's items (a range of sectors, a shell list, a block) are described compactly and written by the command's open job in windows (section 3.4), not stored up front.</p>
+</li>
+</ol>
+<p>The order of a run is therefore a result of the planner, not a list someone typed. Add a command with <code>needs</code>/<code>makes</code> and it fits; ask for less and fewer jobs exist. The Generate page, the API and the command line all send the same thing (a goal and its settings) to the planner. The &quot;Stage 4 of 13&quot; bars become <strong>groups</strong>: each command in the plan is a group, bars and ETAs are the sum over the group's jobs, so <code>stagetimes</code>, the ETA and the Queue page keep their meaning.</p>
+<h3 id="33-dependencies">3.3 Dependencies</h3>
+<ul>
+<li><strong>Counters, not RQ <code>depends_on</code> for wide fan-in.</strong> RQ's <code>depends_on</code> is quadratic when one job waits on N: 2.3 s, 10.1 s, 45.4 s for 200, 500, 1,000 units. [R, measured] The linear way, 7 ms a unit, is an atomic counter in Redis. So each held job has a <code>waiting</code> count; each fact has a list of dependants; a finishing job runs one Lua script that decrements them and moves any that reach zero to <code>ready</code>. That is the done-set barrier of 5.1, made general.</li>
+<li><strong>Two shapes of edge.</strong> <em>Narrow</em>: link of sector S waits for S and its (at most 8) neighbors; settle of S waits for S. <em>Wide</em>: backfill waits for the generated sectors of its cell, or population waits for all sectors; a wide edge is one group counter, and it is the old barrier, now only where it is real.</li>
+<li><strong>Edges are derived, not typed, and an overlap is proven per pair.</strong> Every command declares what it <code>reads</code> and what it <code>writes</code> (tables and named facts, in section 3.2's table). The planner adds an edge for every conflict: a write that another entry reads, a read of something another entry writes, two writes to the same thing. No conflict means no edge, and the two may run together. Two safeguards make that safe:
+<ol>
+<li><strong>Declarations are checked against reality.</strong> A test taps the SQL of each command on the toy galaxy and fails a command that touches a table it did not declare (reads, writes or locks), and one that reads a file, a Redis key or a process-wide cache that is not declared either. Table-level is the default grain; a finer grain (by shell, by sector range) is allowed only where proven.</li>
+<li><strong>Each overlapping pair is compared byte for byte.</strong> A pair the planner would overlap is listed in <code>independence.json</code> only after a test runs it overlapped, in both orders and at 1 and 15 workers, and its content hashes (keyed by address and shell, not row ids) equal the run in plan order. A pair not in the list runs in plan order, so a new command is safe by default and overlap is earned one pair at a time.
+The things that break independence without showing in a table list are the audit items of section 6: row ids taken in completion order, <code>id_blocks</code>, shared caches, the cluster-field file, and locks such as the link stage's neighbor lock.</li>
+</ol>
+</li>
+<li><strong>Failure.</strong> A failed job fails its dependants with the line &quot;required job X failed&quot;, as <code>requires.job_failed</code> does now, and the run ends with the job named. Retry once (as now); the second failure stops the run.</li>
+<li><strong>Cancel, pause, Stop All.</strong> Cancel is by id prefix (<code>&lt;run&gt;/...</code>), which is why ids are hierarchical. Pause stops admission only. Stop All and the update guard read the same run record.</li>
+</ul>
+<h3 id="34-spawning-and-the-size-of-the-queue">3.4 Spawning and the size of the queue</h3>
+<p>A job may spawn jobs: <code>spawn(children)</code>. The only ways a job can create work:</p>
+<ul>
+<li><strong>Cut commands</strong> (<code>cut-&lt;command&gt;</code>, today's <code>expand</code>) read the database and spawn the item commands. A cut does that one thing and nothing else.</li>
+<li><strong>Windowed spawners.</strong> The cut of a command with a huge item count does not write all items. It writes its cursor (<code>next = 0, total = N</code>) and the first window (for example 4 times the workers, never more than 2,000 queued). Each finishing item runs the same Lua script that releases dependants; if outstanding items fall under the low-water mark and the cursor is not at the end, it also asks the spawner to write the next window (a tiny continuation job, or the same script if the cut is a pure range). Redis then holds at most one window per command whatever the galaxy size. [A] Measured numbers: 1,831 bytes per queued job, 7,229 with the result kept [R]; with <code>result_ttl=0</code> as now and a window of 2,000 that is under 4 MB.</li>
+<li><strong>Joins.</strong> The <code>store-...</code> command that follows needs the group counter to reach <code>total</code>; the counter counts items done, including ones not yet spawned, so the join is correct while the window rolls.</li>
+<li><strong>Depth is small and fixed by design:</strong> run, command (cut, items, then the <code>store-</code> and <code>make-</code> commands that follow). A spawner may not spawn a spawner of its own kind without its claim being counted, so a bug cannot multiply work.</li>
+</ul>
+<h3 id="35-how-small-is-small">3.5 How small is &quot;small&quot;</h3>
+<p>The item is the smallest piece that has a meaning of its own, a seed of its own and a result of its own:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Item today (chunk)</th>
+<th>Item in the new model</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>generate sectors</td>
+<td>up to thousands of consecutive sectors</td>
+<td>one sector</td>
+</tr>
+<tr>
+<td>link</td>
+<td>500 sectors</td>
+<td>one sector</td>
+</tr>
+<tr>
+<td>settle</td>
+<td>100 sectors</td>
+<td>one sector</td>
+</tr>
+<tr>
+<td>scatter mass / bright / band / phenomena</td>
+<td>a run of shells</td>
+<td>one shell (or one shell slab if a shell is too small to be worth a job) [?]</td>
+</tr>
+<tr>
+<td>backfill</td>
+<td>at least 10,000 sky cells</td>
+<td>one 50 pc sky cell</td>
+</tr>
+<tr>
+<td>block lights</td>
+<td>one of 90 units</td>
+<td>one block</td>
+</tr>
+<tr>
+<td>nebula field</td>
+<td>a slab of cells</td>
+<td>one cell slab</td>
+</tr>
+<tr>
+<td>skeleton, reset, checks, finish phenomena</td>
+<td>one job</td>
+<td>unchanged: they are one thing</td>
+</tr>
+<tr>
+<td>population, territories, run blocks</td>
+<td>one job</td>
+<td>split by sector later, once the sectors are items (section 7, step 8)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cost of a job: an RQ fork-per-job worker runs a no-op job in 14.2 ms (70 a second); the done-set design measured 7 ms a unit end to end. [R] That is nothing next to a sector (seconds; a generate unit is declared 20 s for a chunk). It is a lot next to a link or a settle of one sector [?, not measured]. That is why section 8 asks the question: the command is always one item; the only choice is whether a worker may take several tiny ones in one go. Because every item has its own seed and result, packing changes no output and can be chosen at run time from measured speed, never from the cut.</p>
+<h2 id="4-memory-and-fair-share-the-broker-and-the-scheduler">4. Memory and fair share: the broker and the scheduler</h2>
+<h3 id="41-the-claim">4.1 The claim</h3>
+<p>Each job carries <code>mem_mb</code>. It starts as the larger of</p>
+<ul>
+<li>the figure in <code>STAGE_WORKER_MEMORY_MB</code> for the command (700, 2,100 or 3,050 MB; cut and <code>store-</code>/<code>make-</code> commands get figures of their own, which is new), and</li>
+<li>the learned figure: the 90th percentile of <code>units.peak_resident_mb</code> (proportional size, shared pages once) for that command on this galaxy, kept in Redis and refreshed by every finished job. The stage report already records the biggest worker per stage [S]; this keeps the whole curve and ties it to galaxy size (sectors, shells), so a bigger galaxy raises the claim <em>before</em> a job runs.</li>
+</ul>
+<p>A packed job (section 3.5) claims <code>base + per item x items</code> where per-item is learned.</p>
+<h3 id="42-admission">4.2 Admission</h3>
+<p>The broker is one function that runs atomically over a Redis hash of live claims:</p>
+<pre><code>available = MemAvailable (and the cgroup limit, whichever is lower)
+          - reserve                         (MySQL, Redis, web: the size they have now, not a guess)
+          - sum over running jobs of max(claim, last observed size) - observed size     (headroom still to be used)
+admit job if claim &lt;= available, and its tokens are free
+</code></pre>
+<ul>
+<li>Workers do not take whatever RQ gives them. A ready job goes to a lane by memory class (lean, tables, sector, alone); a worker of that lane asks the broker before it runs the job it was given, and if refused hands it back to the front of the ready list. [A] RQ cannot pop conditionally, so the honest options are this hand-back, or our own ready list in Redis with a <code>claim_next(free_mb)</code> script. I recommend the own ready list once jobs carry claims, because it also gives best-fit and age priority; RQ stays the worker runtime and the interactive and long lanes are untouched.</li>
+<li><strong>Token slots</strong> for other shared resources: <code>mysql_write</code> (a cap on concurrent heavy writers, section 6), <code>star_tables</code> (the 1.4 GB tables are built once per worker), <code>alone</code> (nothing else runs; this is what the cut of the stage needs, and what PERF.226 imitates by shedding workers).</li>
+<li><strong>Aging.</strong> A job that has waited long gets priority over smaller later ones so a big claim is never starved by small ones.</li>
+</ul>
+<h3 id="43-adjusting-by-load">4.3 Adjusting by load</h3>
+<p>Every 2 to 5 seconds each running job reports its proportional size (psutil, or <code>/proc/&lt;pid&gt;/smaps_rollup</code>). The broker then:</p>
+<ol>
+<li>keeps <code>max(claim, observed)</code> for the sum above, so a job that grew uses up the room it really takes;</li>
+<li>when available falls under the reserve: stops admitting, asks the newest <em>idle</em> workers to leave (the <code>shed_bulk</code> call, now by load);</li>
+<li>if it keeps falling: <strong>stops the running job with the most growth that has the least done</strong>, puts it back with <code>claim = observed x 1.3</code>, and logs &quot;job X was put back: it held N MB against a claim of M MB&quot;. Items are small and restartable and a unit that runs twice counts once, so this is cheap, and it is a stop <em>we</em> choose rather than a kernel kill of whatever it picked (MySQL, last time);</li>
+<li>a job whose claim alone exceeds what the host can give runs <code>alone</code>; if even that is not enough it fails with a message naming the job and the MB, because no governor shrinks a pass that wants 57 GB. [R] The remedy then is the size of the job, which is the argument for items.</li>
+</ol>
+<p>Everything here is code in the program. Nothing asks you to change a systemd drop-in, Apache limit or MySQL setting.</p>
+<h3 id="44-relation-to-perf254-and-dask-is-out">4.4 Relation to PERF.254, and Dask is out</h3>
+<ul>
+<li><strong>PERF.254 (rewritten by TODO, 2026-11-08, after Boss's decision)</strong> is the first slice: RQ stays the job runner, and our own psutil reader plus a Redis memory gate admits and sheds workers from the live free memory. Boss's rule is that <strong>all jobs of every kind</strong> run under that gate (generation units, warm-up, checks, API jobs), not only the stages of a galaxy run. That is this broker: the claim, the live reading and the admission rule are the same code, and this note's per-job claims are what the gate takes in place of a per-stage figure once OPS.122 lands.</li>
+<li><strong>Dask is dropped</strong> (OPS.125 withdrawn). The graph, the planner, the claims and the broker live in our Redis, because the run record is what the Queue page, the update guard, Stop All, pause and finishing a stopped run all read. Lane 22's assessment (<code>perf254-dask-assessment-2026-11-08.md</code>) stays as the record of why it was considered. Nothing in this design needs it, and no step below depends on it.</li>
+</ul>
+<h3 id="45-fair-share-one-scheduler-for-all-job-kinds-ops130">4.5 Fair share: one scheduler for all job kinds (OPS.130)</h3>
+<p>Boss, 2026-11-08, 3:44 PM EST: the job system uses a task scheduler that shares system time fairly, so the warm-up or any other command never blocks the site, and every task that can run gets a turn (fair share across job kinds, priority and reserved places for site-serving work, aging so nothing starves).</p>
+<p><strong>What exists today</strong> [S]: a fixed slicing of the host's worker places. Three lanes (<code>bulk</code>, <code>interactive</code>, <code>long</code>) and a maintenance lane of three queues taken in turn by one worker (<code>workers.lane_of</code>, PERF.245); <code>reserved_places</code> keeps <code>queue.interactive_workers + queue.long_workers</code> places out of the bulk and maintenance lanes' reach; <code>maintenance_cap</code> gives upkeep <code>queue.maintenance_workers</code> while a generation run is live; a pause flag holds the bulk and maintenance lanes only; the site's workers run at a lower nice value. It is a good first cut (PERF.150 to PERF.153, PERF.245) but it is a <strong>count of places per lane, set by hand</strong>, it knows nothing about memory, and a single unit of a lane can hold its place for an hour.</p>
+<p><strong>The scheduler.</strong> The same single admission point as the broker (section 4.2), which now answers two questions for every free place: <em>which class of work goes next</em>, then <em>which job of that class fits</em>.</p>
+<ol>
+<li><strong>Classes.</strong> Every job kind belongs to a class: <code>site</code> (jobs a visitor or an admin is waiting on: the interactive and long API jobs, page builds), <code>run</code> (generation), <code>upkeep</code> (warm-up, checks, database repair). A class has a <strong>weight</strong>, a <strong>reserved number of places</strong> and a <strong>priority</strong>. They are settings (<code>queue.share.*</code>, <code>queue.reserved.*</code>), not code constants and not operating-system settings.</li>
+<li><strong>Reserved places, first.</strong> <code>site</code> jobs have places no other class can take, so a warm-up that has used every other place still leaves a visitor's search a worker at once. A reserved place with no <code>site</code> work in it is lent to the other classes and taken back as soon as a <code>site</code> job is ready; because lent jobs are small, taking it back costs seconds, not the end of a unit of an hour (today's lend rule, PERF.150, with the same idea).</li>
+<li><strong>Fair share, for the rest.</strong> Between <code>run</code> and <code>upkeep</code>, and between job kinds inside a class (a run of units and another run, the warm-up families), places go by <strong>weighted fair queuing</strong>: each kind keeps a running total of what it has used (claimed MB times seconds, and places times seconds), and the next free place goes to the ready kind that is furthest behind its weight. One run with ten million ready items does not shut out a warm-up with two jobs, and the warm-up cannot hold the run back past its weight.</li>
+<li><strong>Aging.</strong> The longer a ready job has waited, the higher its effective priority, up to a cap; a job with a large claim that has waited past a limit gets the next room that opens (the other classes are not admitted until it fits), so a big claim is never starved by small ones (also 4.2).</li>
+<li><strong>Two resources, one rule.</strong> Fairness is taken over places (cores) and over memory, because either can be the one that is short. A <code>mysql_write</code> token (section 6) is shared the same way.</li>
+<li><strong>No preemption of running work.</strong> A job is never cut short for fairness. What makes the share fair is that jobs are short (a few seconds to a minute at most); the longest turn anyone waits is the longest job in the class ahead. Jobs longer than the unit-length ceiling (<code>queue.unit_ceiling_seconds</code>) are already refused.</li>
+<li><strong>Pause and Stop All</strong> stay what they are, a hold on admission by class. The admin's worker count (<code>wanted</code>, &quot;Ludicrous Speed&quot;) becomes the total number of places the scheduler shares.</li>
+</ol>
+<p><strong>Replaces:</strong> <code>reserved_places</code>, <code>maintenance_cap</code>, <code>maintenance_share</code>, the lend rule and the per-lane worker counts, in one change, with no old path beside them. <strong>Related:</strong> OPS.121, the warm-up priority work of PR 5582 (the rule that two warm-ups never run at once stays), PERF.150 to PERF.153, PERF.245. <strong>Tests:</strong> a fake clock and a fake host; a run, a warm-up and a check all ready at once must each get their weight within a bounded number of admissions; a <code>site</code> job waits no longer than one job's time when its place is reserved; a large claim is admitted within its aging limit while small jobs keep arriving.</p>
+<h2 id="5-how-a-galaxy-run-looks">5. How a galaxy run looks</h2>
+<p>Boss asks for a random-start galaxy of a given shape with all layers. This is the design with overlap on; until a pair is proven independent (step 7) the pair runs in plan order, and the items inside a command run together either way.</p>
+<ol>
+<li>The planner reads the request and the stored state. Nothing is stored, so it plans the whole goal.</li>
+<li>The plan is stored as the sequence of commands, with root run <code>r7</code>. Only <code>plan-skeleton</code> is ready.</li>
+<li><code>plan-skeleton</code> finishes, its fact <code>skeleton</code> appears, and the cuts of generate-start-sector, scatter-mass and scatter-phenomena (all need only the skeleton) become ready. They run beside each other if the broker admits them. [Today they run one after another; running them together is allowed only after the check in section 7, step 7.]</li>
+<li><code>cut-start-sector</code> makes one sector item and <code>generate-sector</code> runs it; then <code>cut-neighborhood</code> makes the neighborhood's items in a window.</li>
+<li>As each sector finishes, the link job for it waits only for its neighbors; settle of it waits only for itself. No barrier at the end of the sectors.</li>
+<li>Backfill waits per sky cell for the sectors of that cell and for the mass scatter.</li>
+<li>Block lights and the final block totals wait on every fact that writes a block total. Population waits for all sectors; territories for population.</li>
+<li>The run is done when every command of the plan is done and the executor has written the run summary. Stop at any time and plan again: the stored facts are subtracted and the rest is planned.</li>
+</ol>
+<h2 id="6-risks-and-how-each-is-held">6. Risks and how each is held</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Why it matters</th>
+<th>How it is held</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Byte-identical output</strong></td>
+<td>You need the same galaxy for the same seed, at any worker count and any packing.</td>
+<td>Seeds already come from the item (GEN.39, <code>task_seed</code>). <strong>Unaudited:</strong> (a) any unit whose draws depend on chunk edges (a run of shells that shares a stream), (b) any row id taken in completion order (<code>id_blocks</code>, auto-increment), (c) any unit that reads rows another unit of the same stage writes. The audit is step 0 and lists them. Every migration step is compared with the run before it through the golden and the census and row hashes keyed by content (address, shell), with workers 1, 4 and 15, with packing off and on, and with a forced job kill and put back in the middle. A step that fails the comparison does not merge.</td>
+</tr>
+<tr>
+<td><strong>MySQL write contention</strong></td>
+<td>One sector is one transaction today. One-sector jobs raise the commit rate, link takes a neighbor lock in turn, and each job opens a connection.</td>
+<td>The <code>mysql_write</code> token caps heavy writers; a worker keeps its pool between jobs; the lock for linking becomes per-pair, which is what narrow edges give (link of S only waits for its own neighbors). Measure commits a second and lock waits before and after, on the host's 16 GB, in step 0. The binlog and disk growth with many small commits is a known trap on lane machines.</td>
+</tr>
+<tr>
+<td><strong>Overlap changes results</strong></td>
+<td>Two commands that look independent share a table, a lock, row ids or a cache.</td>
+<td>Declared reads/writes checked by the SQL tap; a pair overlaps only when listed in <code>independence.json</code> after the both-orders, 1-and-15-worker hash comparison; row ids are never in the comparison; a pair that ever differs is removed from the list and its test says which rows.</td>
+</tr>
+<tr>
+<td><strong>Queue size</strong></td>
+<td>Tens of millions of sectors would be tens of millions of jobs.</td>
+<td>Windowed spawning (3.4), compact group descriptions in the plan, <code>result_ttl=0</code>, and counters in place of rows for the Queue page. Redis never holds more than a window per command, about 4 MB at 2,000.</td>
+</tr>
+<tr>
+<td><strong>Scheduler complexity and bugs</strong></td>
+<td>A broker that is wrong stalls a run or kills it slowly.</td>
+<td>Fall back to the table figure and the old cap when the broker cannot read the host; bound every wait; log every decision (admit, refuse, shed, put back) in the run's log; a fake host with memory curves in the tests; a stall detector that fails the run with the waiting jobs named after a limit.</td>
+</tr>
+<tr>
+<td><strong>Starvation and deadlock</strong></td>
+<td>Big claims behind small ones; circular needs; one kind of job taking every place.</td>
+<td>Fair share and aging (4.5); <code>alone</code> jobs drain others; the planner rejects a cycle at plan time.</td>
+</tr>
+<tr>
+<td><strong>Fairness against throughput</strong></td>
+<td>Reserved places sit idle when no site work is waiting, and sharing slows a generation run while a warm-up runs.</td>
+<td>Idle reserved places are lent and taken back in seconds; the weights are settings and the log shows each class's share, so a slower run is a number to tune, not a surprise.</td>
+</tr>
+<tr>
+<td><strong>Retry loops</strong></td>
+<td>A job that always outgrows its claim could be put back forever.</td>
+<td>Two put-backs, then it runs alone, then it fails with its size in the message.</td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td>A run of millions of jobs cannot be listed row by row.</td>
+<td>The Queue page shows groups with counts and the slowest and the held; a job page by id; the run log keeps the same lines.</td>
+</tr>
+<tr>
+<td><strong>Progress, ETA, stage statistics</strong></td>
+<td>They are keyed by stage.</td>
+<td>A group is the old stage: same keys, same <code>stagetimes</code>, bars from group counters.</td>
+</tr>
+<tr>
+<td><strong>Redis becomes the graph</strong></td>
+<td>The run record already lives there.</td>
+<td><code>appendonly yes</code> and the ACL set up under SEC.39 and the install notes; the run stays safe to rebuild: the plan is a pure function of the goal and the stored facts, so a lost graph is re-planned, not lost.</td>
+</tr>
+<tr>
+<td><strong>Replace, no shim</strong></td>
+<td>Your standing rule.</td>
+<td>Each step deletes the thing it replaces in the same change (the stage list, <code>REQUIRES</code>, <code>finished_by</code>, the hooks inside the horse). No switch stays beside it.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-migration-one-step-at-a-time">7. Migration, one step at a time</h2>
+<p>Every step: one change, old way deleted, compared byte for byte with the step before, tested on the toy galaxy and then on the 16 GB host. &quot;For Boss&quot; is what you would see.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Step</th>
+<th>What changes</th>
+<th>For Boss</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0. Measure and audit</td>
+<td>(a) per-job overhead on the real worker with a real one-sector job, (b) the cut of the backfill and of the other stages on a full galaxy (Lane 13's measurement, PERF.252), (c) commits a second and lock waits, (d) the three byte-identity audits of section 6.</td>
+<td>A report.</td>
+<td>none</td>
+</tr>
+<tr>
+<td>1. Hooks become commands, one thing each</td>
+<td><code>prepare</code>, <code>expand</code>, <code>finish</code> and <code>conclude</code> are removed from <code>CommandSpec</code>; each becomes a command in the sequence (<code>clear-*</code>, <code>cut-*</code>, <code>store-*</code>, <code>make-*</code>), with its own claim, log lines and <code>alone</code> where needed; the speed statistics move to the executor. Bundles are split as in section 3.0, one command per PR. Stages still run in the same order. <code>_end_stage</code> and the work done inside the last unit's horse are deleted. The guard test of rule 5 goes in at the end.</td>
+<td>Kill messages name the real job; the cut shows in the Queue page and the log with its memory. This is the change that removes the hiding place of the 11-08 kills.</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>2. The broker</td>
+<td>Claims, live reading of memory and per-job sizes, admission, idle shedding, put-back with a bigger claim, <code>alone</code>. <code>STAGE_WORKER_MEMORY_MB</code> becomes the starting figure. (This is PERF.254 step 1.)</td>
+<td>Memory is read while the run goes; the log says why a job waited or was put back.</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>2b. Fair share</td>
+<td>Classes, reserved places, weighted fair queuing and aging in the one admission point (OPS.130). Replaces <code>reserved_places</code>, <code>maintenance_cap</code>, <code>maintenance_share</code> and the lend rule.</td>
+<td>A warm-up never starves the site, and a run, a warm-up and a check all make progress together; the log says which class got each place.</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>3. Job records and counters replace the barrier</td>
+<td>Run record gets job ids, <code>needs</code>/<code>makes</code>, group counters and the Lua release. Stages become groups. <code>REQUIRES</code> is replaced by declared <code>reads</code>/<code>writes</code>, and the planner derives the edges from them (the four edges of today must come out of the derivation). Groups still run in plan order: nothing overlaps until step 7.</td>
+<td>Same bars; the Queue page lists held jobs by group.</td>
+<td>identical by construction</td>
+</tr>
+<tr>
+<td>4. The planner, plan then execute</td>
+<td>The request becomes a goal; the planner writes the command sequence (stored, printable, estimated) and subtracts stored facts; the executor only runs it. This takes over PERF.203's job spec for every start path. <code>galaxy_stages</code>, <code>for_command</code>, <code>KIND_OF_STAGE</code>, <code>build_steps</code>, <code>finished_by</code> and the stage <code>skip</code>s are deleted. The Generate page and the API send goals.</td>
+<td>The run is built from what you ask for. &quot;Finish a stopped run&quot; is just planning again.</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>5. Items as jobs, windowed</td>
+<td>Sector generation first (the biggest), then scatter shells, backfill cells, link, settle, block lights, nebula slabs. Windowed spawners; packing of tiny items (section 8). One command per change, each compared with its chunked self.</td>
+<td>Progress per sector; a kill loses one sector, not a chunk.</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>6. The independence harness</td>
+<td>The SQL tap test that checks every command's declared <code>reads</code>/<code>writes</code> against what it touches; the pair test that runs two commands overlapped, in both orders, at 1 and 15 workers, and compares content hashes with the plan-order run; <code>independence.json</code>, empty at first. No overlap yet.</td>
+<td>Nothing visible; a new command is checked the day it is added.</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>7. Overlap, one proven pair at a time</td>
+<td>The planner overlaps exactly the pairs in <code>independence.json</code>. Order of proving: the commands that need only the skeleton (sectors, mass scatter, phenomena), then the nebula field, then the rest as the table of 3.2 allows. Each pair is its own PR with its test.</td>
+<td>Fewer idle minutes; more memory at once, which the gate and the scheduler meter.</td>
+<td>identical, proven per pair</td>
+</tr>
+<tr>
+<td>7b. Narrow edges</td>
+<td>Link and settle per sector, backfill per cell, so they start while sectors are still being generated.</td>
+<td>Shorter runs (no idle workers at barriers); the link lock is per pair of neighbors.</td>
+<td>identical rows, a different order of writing: proven by content hashes</td>
+</tr>
+<tr>
+<td>8. Split the whole commands</td>
+<td>Population into its four effects first (step 1), then by sector; territories, run blocks by block, once the sectors are items.</td>
+<td>Population gets bars and a memory claim per piece.</td>
+<td>identical</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rough effort [A, not measured]: steps 1 and 2 are days (queue code, no output change; step 2 is PERF.254 step 1); step 3 is about one to two weeks; step 4 about a week; step 5 two to three weeks across the commands (one lane, sector generation first); steps 6 to 8 depend on what step 0 finds (step 7 is one PR per proven pair). Lane 22 estimated 2,500 to 3,500 of the 7,273 queue lines are in the path of a change to how jobs are submitted [R]; this design touches about the same lines (<code>wrapper</code>, <code>units</code>, <code>workers</code>, <code>runrecord</code>, <code>commands</code>, <code>stages</code>, <code>finish_run</code>, <code>followed</code>), so the cost is of that order. The test suite has 36 files that touch the queue.</p>
+<p>Done when: a full galaxy on a 16 GB host runs past stage 13 with no kernel kill, with groups overlapping where proven safe, output equal to the chunked run, and the cut of every command seen in the log as a job with its memory.</p>
+<h2 id="8-decided-by-boss-2026-11-08">8. Decided by Boss (2026-11-08)</h2>
+<ol>
+<li><strong>How small is one job.</strong> One command per item (a sector, a shell, a sky cell, a block), each with its own seed, result and claim; a worker may take several tiny items in one go when each costs far less than starting a job (links and settles of one sector, probably). The number is chosen at run time from measured speed, never from the cut, and <code>queue.min_job_seconds = 0</code> makes it strictly one queue job per item. Boss took my recommendation.</li>
+<li><strong>Sequence or overlap.</strong> Overlap (Boss, 3:55 PM EST: &quot;jobs can overlap if they don't need each other&quot;). I had recommended strict sequence; Boss changed it. The plan is still written first as an ordered sequence, and the order is kept between entries that need each other and for pairs not yet proven independent. Entries that do not need each other run together, under the memory gate and the fair scheduler. Independence is derived from declared reads and writes and proven per pair, byte for byte (3.3, steps 6 and 7).</li>
+</ol>
+<p>Smaller choices I took, which you can overrule: the graph lives in our Redis and Dask is out; PERF.254 step 1 is the first slice, not a separate project; the planner takes a goal and subtracts stored facts, so there is no &quot;skip&quot; flag anywhere.</p>
+<h2 id="9-items-numbers-from-todo-docs-prs-5750-and-after-doc113-and-ops122-to-ops132-all-proposed-build-after-boss-approves-this-note">9. Items (numbers from TODO, docs PRs 5750 and after; DOC.113 and OPS.122 to OPS.132; all proposed, build after Boss approves this note)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>What</th>
+<th>Owner proposed</th>
+<th>Steps of section 7</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DOC.113</td>
+<td>This design note</td>
+<td>this thread</td>
+<td></td>
+</tr>
+<tr>
+<td>PERF.254</td>
+<td>Ships first. Rewritten by TODO: RQ stays; our own psutil reader plus a Redis memory gate admits and sheds workers; Boss's rule is that all jobs of every kind run under it</td>
+<td>Lane 22</td>
+<td>2 (first form)</td>
+</tr>
+<tr>
+<td>OPS.122</td>
+<td>Job model: job record, declared dependencies, subjob spawning, per-job memory claim, replacing the stage barrier</td>
+<td>Lane 22</td>
+<td>3</td>
+</tr>
+<tr>
+<td>OPS.123</td>
+<td>Hooks (<code>prepare</code>, <code>expand</code>, <code>finish</code>, <code>conclude</code>) become single-purpose commands in the sequence</td>
+<td>Lane 13</td>
+<td>1</td>
+</tr>
+<tr>
+<td>OPS.124</td>
+<td>Memory broker: per-job claim, measured and adjusted by load; the gate of PERF.254 grows into it</td>
+<td>Lane 22, after PERF.254</td>
+<td>2</td>
+</tr>
+<tr>
+<td>OPS.126</td>
+<td>Sector generation as single-sector jobs fed by a spawner</td>
+<td>Lane 13</td>
+<td>5 (sectors first)</td>
+</tr>
+<tr>
+<td>OPS.127</td>
+<td>Migration stage by stage, each compared byte for byte</td>
+<td>Lanes 22 and 13</td>
+<td>0, 5 to 8</td>
+</tr>
+<tr>
+<td>OPS.128</td>
+<td>Run planner: every task planned first as a stored command sequence, for every start path; takes over PERF.203's job spec</td>
+<td>to be set by TODO</td>
+<td>4</td>
+</tr>
+<tr>
+<td>OPS.129</td>
+<td>Split the bundled commands (the phenomena finish into about five, run-population into four, and the rest of section 3.0)</td>
+<td>to be set by TODO</td>
+<td>1 and 8</td>
+</tr>
+<tr>
+<td>OPS.131</td>
+<td>Independence harness: command read/write declarations, the SQL tap test, planner edges from conflicts, <code>independence.json</code> written by an overlapped-both-orders test at 1 and 15 workers by content hash</td>
+<td>to be set by TODO</td>
+<td>6</td>
+</tr>
+<tr>
+<td>OPS.132</td>
+<td>Per-pair overlap rollout and the narrow edges</td>
+<td>to be set by TODO</td>
+<td>7, 7b</td>
+</tr>
+<tr>
+<td>OPS.130</td>
+<td>Fair task scheduler: classes with weights and reserved places for site-serving work, weighted fair sharing across job kinds, aging; replaces the hand-set lane counts (Boss, 3:44 PM EST)</td>
+<td>Lane 22, after PERF.254</td>
+<td>2b</td>
+</tr>
+<tr>
+<td>OPS.125</td>
+<td>Optional Dask engine: <strong>dropped</strong></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>All steps now have an item. The independence harness is OPS.131 and the per-pair overlap rollout with the narrow edges is OPS.132 (TODO, 2026-11-08).</p>
+<p><strong>Order of the build (Boss approved, 2026-11-08, 6:43 PM EST):</strong> PERF.254; then OPS.123 and OPS.129 (hooks and bundled commands become single-purpose commands); then OPS.122 and OPS.128 (job model, planner); then OPS.124 and OPS.130 (memory broker, fair scheduler); then OPS.126 (sector jobs); last OPS.131 and OPS.132 (independence harness, per-pair overlap). Boss also agreed that drawing and saving a sector stay one command (<code>generate-sector</code>). OPS.127 (stage by stage migration with the byte-for-byte check) runs alongside every step.</p>
+<h2 id="10-what-i-did-not-verify">10. What I did not verify</h2>
+<ul>
+<li>The default galaxy's sector count and the time of one sector job; the commit rate at one sector a job; per-job cost for a link or a settle.</li>
+<li>The <code>makes</code>/<code>needs</code> table beyond the four edges the code already declares and the comments I read.</li>
+<li>Whether any current unit draws from a stream shared across its chunk, or takes row ids in completion order.</li>
+<li>The size of the cut of each stage on a full galaxy (Lane 13's open measurement).</li>
+</ul>
+<h2 id="sources-all-in-the-repository-at-c406c9a-unless-noted">Sources (all in the repository at c406c9a unless noted)</h2>
+<p><code>src/planetgen/generation/stages.py</code>, <code>generation/followed.py</code>, <code>generation/run_galaxy.py</code> (<code>expand_generate_sectors</code>, <code>generate_sectors_unit</code>), <code>queue/commands.py</code>, <code>queue/wrapper.py</code>, <code>queue/units.py</code>, <code>queue/workers.py</code>, <code>queue/requires.py</code>, <code>queue/runrecord.py</code>, <code>queue/pause.py</code>, <code>cli/worker.py</code>; <code>docs/design/operations/redis-and-the-work-queue.md</code> (sections 3, 5.1, 5.12, 5.13); <code>docs/TODO.md</code> (PERF.254, PERF.252, PERF.226); <code>/mnt/project-files/reports/perf254-dask-assessment-2026-11-08.md</code>, <code>memory-kills-and-dynamic-workers-2026-11-08.md</code>, <code>perf252-opening-oom-2026-11-08.md</code>, <code>phase-and-train-efficiency-2026-11-06.md</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

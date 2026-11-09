@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Which later phenomena are scattered, backfilled or fill-only - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-16, 12:30 AM EDT), to Core 3: say how each new phenomenon of goal issue #1677 applies to the scatter and back-scatter phases, and what stays sector-fill-only (like comets and rogue planets) and what gets scattered.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/later-phenomena-scatter-rules.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/later-phenomena-scatter-rules.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="which-later-phenomena-are-scattered-backfilled-or-fill-only">Which later phenomena are scattered, backfilled or fill-only</h1><p class="meta">docs/design/systems/later-phenomena-scatter-rules.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-the-phases-as-the-code-has-them">1. The phases, as the code has them</a></li><li style="margin-left:0px"><a href="#2-the-decisions-item-by-item">2. The decisions, item by item</a></li><li style="margin-left:0px"><a href="#3-the-one-call-magnetars-as-scatter-rows">3. The one call: magnetars as scatter rows</a></li><li style="margin-left:0px"><a href="#4-what-this-does-to-the-one-rule-set-and-the-sector-profile-gen235">4. What this does to the one rule set and the sector profile (GEN.235)</a></li><li style="margin-left:0px"><a href="#5-the-backfill-case-by-case">5. The backfill, case by case</a></li><li style="margin-left:0px"><a href="#6-registry-rows-gen250-these-decisions-imply">6. Registry rows (GEN.250) these decisions imply</a></li><li style="margin-left:0px"><a href="#7-columns-and-migrations-for-core-1">7. Columns and migrations (for Core 1)</a></li><li style="margin-left:0px"><a href="#8-changes-to-the-todo-items-for-the-todo-thread">8. Changes to the TODO items (for the TODO thread)</a></li><li style="margin-left:0px"><a href="#9-decisions-and-defaults">9. Decisions and defaults</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Boss (2026-10-16, 12:30 AM EDT), to Core 3: say how each new phenomenon of goal issue #1677 applies to the scatter and back-scatter phases, and what stays sector-fill-only (like comets and rogue planets) and what gets scattered. This note is the answer (GEN.277). It is a recommendation: nothing here is built, and nothing is built from it until Boss approves.</p>
+<p>Informs: GEN.113, GEN.149, GEN.151, GEN.153 to GEN.155, GEN.189, GEN.244 to GEN.246, GEN.254 to GEN.257, and the rule set of GEN.235. Read with <a href="phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a> (the kind list and fill stages), <a href="multi-star-systems.html">multi-star-systems.md</a> (companions at scatter time), <a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> (the sector profile) and <a href="anomalies.html">anomalies.md</a> (GEN.113).</p>
+<p>Evidence tags as in the catalogue: <strong>[S]</strong> seen in the repository or a search summary, <strong>[C]</strong> computed with the repository's code, <strong>[R]</strong> recalled and unconfirmed, <strong>[I]</strong> inferred.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Four ways an object can come about</strong>, and every item gets exactly one: a <strong>scatter row</strong> (a point, a seed and a kind placed after <code>plan</code>, with stellar companions stored at scatter time and no planets), the <strong>backfill</strong> (the sector-by-sector top-up around filled space: the mass rings of GEN.187 and the below-cut remnant draws of GEN.168), <strong>sector fill only</strong> (made when a sector is filled, from a roll on its own seed, like comets and rogue planets), and <strong>derived</strong> (no object: a value or an overlay computed from other things).</li>
+<li><strong>Result for the fourteen items</strong> (table below): two items stay scatter rows and change only what the row stores (GEN.149, GEN.151); one object becomes a new scatter class (magnetars, GEN.153); two are components that feed the existing passes (GEN.244 and, by derivation, GEN.254); one is a state of stars the passes already place (GEN.246); one is an attribute drawn at build, fill-only (GEN.245); five are derived values or overlays (GEN.154, GEN.189, GEN.255, GEN.256, GEN.257); one is a documented decision (GEN.155) and one is the analysis behind the rest (GEN.113).</li>
+<li><strong>No new column on <code>phenomenon_scatter</code> or <code>bright_stars</code>.</strong> Magnetars and remnant classes ride on the existing <code>subtype</code>; the planetary-nebula row stores a mass and a luminosity in the existing <code>mass_solar</code> and <code>map_luminosity_sol</code>. The only new columns are the disk descriptor on <code>stars</code> (shared with GEN.242) and the age and profile columns of the component table (GEN.237), both Core 1's.</li>
+<li><strong>One real call for Boss</strong> (the rest stand as defaults): whether magnetars are scatter rows (recommended) or fill-time draws only (section 3).</li>
+</ul>
+<h2 id="1-the-phases-as-the-code-has-them">1. The phases, as the code has them</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>What it does</th>
+<th>Where [S]</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Scatter</strong></td>
+<td>after <code>plan</code>, object first, one Poisson count per shell from a certified density bound: bright stars (9,000 L_sun and up), the mass pass (born at 14 solar masses and up), black holes at 14 and up, intermediate-mass holes, planetary nebulae, supernova remnants, hypervelocity stars, the nucleus. A row is a point, a seed, a kind, a <code>subtype</code>, a velocity, a mass and a map luminosity. Stellar companions are stored with it (GEN.260); planets, moons and belts never are</td>
+<td><code>bright_stars.py</code>, <code>phenomenon_scatter.py</code> (<code>SCATTER_CLASSES</code>, <code>PHENOMENON_SCATTER_COLUMNS</code>)</td>
+</tr>
+<tr>
+<td><strong>Backfill</strong></td>
+<td>around generated sectors only. The bright-star backfill adds the stars the scatter left out by initial mass in rings (1, 2, 5 and 8 solar masses, GEN.187) and the luminosity bands (GEN.44); the phenomena backfill is the below-cut draw: the neutron stars and black holes under 14 solar masses, Poisson per sector from the sector's own stream (GEN.168). Neither stores anything before the sector is filled</td>
+<td><code>bright_stars.backfill_mass_cells</code>, <code>phenomenon_scatter.below_cut_draws</code></td>
+</tr>
+<tr>
+<td><strong>Fill only</strong></td>
+<td>a sector rolls it when it is filled, from its own seed, for a kind that is common, small or local: rogue planets, brown dwarfs, comets, asteroid fields, hosted nebulae, the descriptors of a star</td>
+<td><code>generate_sector_phenomena</code>, <code>add_star_hosted_nebulae</code></td>
+</tr>
+<tr>
+<td><strong>Derived</strong></td>
+<td>no object: computed from a position, a mass or other rows when asked</td>
+<td><code>activity</code>, the pages, the map overlays</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What decides the phase.</strong> Four questions, in this order:</p>
+<ol>
+<li><em>Is it an object at all?</em> A flag, a score or an overlay is derived.</li>
+<li><em>Is it so rare that a fill, drawing only inside the sectors that are filled, could never make it visible to a neighbour?</em> If something else must see it from outside its sector (a hazard score, a map before the fill, a nebula that needs it), it is a scatter row. The count does not matter for cost: every kind in this note is under 1e5 rows against 6e7 already stored [C: multi-star section 2].</li>
+<li><em>Is it a state or attribute of a star that already exists?</em> Then it lives in the star's record and follows whichever pass placed the star.</li>
+<li><em>Does a field or component decide where it is, not the density?</em> Then it is a component or a seeded field that the passes read.</li>
+</ol>
+<p>Everything else (common, local, dense) is fill only, as comets are.</p>
+<h2 id="2-the-decisions-item-by-item">2. The decisions, item by item</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Phenomenon</th>
+<th>Phase</th>
+<th>Why (observed rate and locality)</th>
+<th>What the row or build stores</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.149</td>
+<td>planetary-nebula central star</td>
+<td><strong>scatter row, unchanged kind</strong></td>
+<td>about 20,000 in the Galaxy [S]; the row exists and the star is made with the nebula</td>
+<td>the central star as member 0 (mass 0.5 to 0.7, median 0.59), its 20% close companion at scatter time (multi-star 4.4); <code>mass_solar</code> = that mass, <code>map_luminosity_sol</code> = the star's 1e2 to 1e4 L_sun (a main-sequence law would give 0.2 L_sun); no new column</td>
+</tr>
+<tr>
+<td>GEN.151</td>
+<td>supernova remnant size</td>
+<td><strong>scatter row, unchanged kind</strong></td>
+<td>400 to 3,000 visible [S]; 3.2e3 rows today</td>
+<td><code>subtype</code> = the remnant class letter (R to W) drawn at scatter time, so the map can size it before the fill (the class fixes the age window and the ambient density range); the exact radius still comes from the Sedov-Taylor law at build, from the row's seed; no new column</td>
+</tr>
+<tr>
+<td>GEN.153</td>
+<td>magnetar</td>
+<td><strong>new scatter class</strong> of <code>neutron-star</code> (recommended; section 3)</td>
+<td>about 100 active (30 to 600) [S: anomalies.md]; 1e-7 of neutron stars, so a fill would almost never put one in a given neighbourhood</td>
+<td><code>subtype</code> = <code>magnetar</code>, <code>mass_solar</code> drawn, young-population weight (below); B, spin and age at build from the seed. A <strong>pulsar</strong> needs no row: it is an attribute of every neutron star, drawn at build from its age (built)</td>
+</tr>
+<tr>
+<td>GEN.154</td>
+<td>Einstein radius</td>
+<td><strong>derived</strong></td>
+<td>a number from mass and distance</td>
+<td>nothing; a scatter row's <code>mass_solar</code> already gives it for an unfilled black hole or neutron star</td>
+</tr>
+<tr>
+<td>GEN.155</td>
+<td>nuclear cluster</td>
+<td><strong>not built</strong> (decision recorded)</td>
+<td>one object; the Sgr A* sector holds a star every 0.005 pc and cannot be filled star by star</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>GEN.189</td>
+<td>gamma-ray and nuclear-activity ozone loss</td>
+<td><strong>derived</strong></td>
+<td>a rate per Gyr from galactocentric radius alone, so scatter, backfill and fill give the same value for the same place</td>
+<td>the existing <code>lethal_event_rate_per_gyr</code> on each star; no new column</td>
+</tr>
+<tr>
+<td>GEN.244</td>
+<td>young open clusters, OB associations</td>
+<td><strong>component</strong> (GEN.237's table), feeding the existing passes</td>
+<td>about 3,000 catalogued, tens of thousands in all [R]; local, defined by a profile, not by density</td>
+<td>a component row (position, age 1 to 1,000 Myr, Plummer scale, [Fe/H], mass); <strong>no scatter row per star</strong>: the cluster adds its density to the cell's <code>lambda</code> and 100% young to its <code>mix</code>, so the mass pass and the bright pass place its O and B stars with no change and the backfill rings (1 to 8 solar masses) and the fill draw the rest. Trapezia and runaway origins ride on the member tree (GEN.273, GEN.274). <strong>Built as a derived component with age-bin populations and no phenomena of its own: <code>intergalactic-and-halo-contents.md</code> section 5.14</strong></td>
+</tr>
+<tr>
+<td>GEN.245</td>
+<td>debris disk (A and F stars)</td>
+<td><strong>fill only, an attribute</strong></td>
+<td>about 20% of A and F stars [R]; A and F stars are 1.4 to 2.1 and 1.0 to 1.4 solar masses, so none is pre-placed (the mass pass is 14 and up, the bright floor 9,000 L_sun)</td>
+<td>a descriptor drawn at build from the star's seed, the same in a fill and in a backfill ring; the <code>disk</code> columns on <code>stars</code> shared with GEN.242 (disk class, mass, outer radius)</td>
+</tr>
+<tr>
+<td>GEN.246</td>
+<td>luminous blue variable, hypergiant</td>
+<td><strong>state of scattered stars</strong>, no new kind</td>
+<td>tens in the Galaxy [R]; all at least 25 solar masses and 1e5 L_sun, so the mass pass and the bright pass already place every one</td>
+<td>the star's record at its age (a short window before Wolf-Rayet or explosion); the <strong>ejecta nebula</strong> is a hosted nebula made at fill, host first (like a Wolf-Rayet ring, GEN.243), not a scatter row. Backfill: none (the rings stop at 8 solar masses)</td>
+</tr>
+<tr>
+<td>GEN.254</td>
+<td>superbubble field</td>
+<td><strong>derived field</strong> (seeded, like <code>nebula_field</code>)</td>
+<td>superbubbles fill about 12% of the disk [S]; the Local Bubble is 100 to 200 pc</td>
+<td>nothing stored; the profile function reads the field, so the cloud pass and the remnant sizes see the cavity (section 4)</td>
+</tr>
+<tr>
+<td>GEN.255</td>
+<td>jets</td>
+<td><strong>derived at render</strong></td>
+<td>each needs a spin axis (GEN.104) and a state</td>
+<td>nothing stored. Herbig-Haro jets: protostars in class Q cores, which are fill (GEN.241). Microquasar jets: a scattered black hole or neutron star whose stored member is a Roche-lobe donor in the accreting state (GEN.269); the map can draw the jet before the fill from that state. Pulsar jets: <code>pulsar_type</code> at build</td>
+</tr>
+<tr>
+<td>GEN.256</td>
+<td>radiation hazard score</td>
+<td><strong>derived</strong>, from neighbouring rows</td>
+<td>hot stars, Wolf-Rayet stars, remnants and magnetars within a few hundred parsecs, and the 10 pc magnetar flag</td>
+<td>nothing stored; reads scatter rows through the cell-key region query (stage C: DB.34, GEN.276) plus the objects of filled sectors. This is why magnetars must be rows (section 3)</td>
+</tr>
+<tr>
+<td>GEN.257</td>
+<td>Fermi bubbles</td>
+<td><strong>derived</strong> (overlay)</td>
+<td>two lobes of about 8 kpc, no objects</td>
+<td>nothing</td>
+</tr>
+<tr>
+<td>GEN.113</td>
+<td>the anomaly documents</td>
+<td><strong>analysis</strong></td>
+<td><code>anomalies.md</code> is the list (Tier 1 to 3, the errors found, the 20 ly to 4 pc conversion)</td>
+<td>the Tier 3 fiction kinds, if ever wanted, are <strong>fill only</strong>, one <code>lore-anomaly</code> kind with <code>K_lore</code> 0: fictional objects have no observed rate to scatter by and must not show on a map before someone asks</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-one-call-magnetars-as-scatter-rows">3. The one call: magnetars as scatter rows</h2>
+<p><strong>Recommendation (default): scatter them as a class of <code>neutron-star</code></strong>, beside the intermediate-mass black holes (<code>SCATTER_CLASSES</code> gains <code>(&quot;neutron-star&quot;, &quot;magnetar&quot;)</code> last, so earlier classes keep their draws).</p>
+<ul>
+<li><strong>Rate.</strong> About 100 active in the Galaxy (birth 1 per century times 1e4 yr [S, R]; range 30 to 600). That is about 3.4e-10 per star (100 over 2.95e11 systems) [C]. About 100 rows against 6.1e7 in the scatter.</li>
+<li><strong>Placement.</strong> The young population with arm contrast, not total density: a new gate <code>young stars</code> in the registry (the gates are <code>stellar density</code>, <code>nebula field</code>, <code>hot stars</code>, <code>none</code>), reusing the thickening of <code>remnant_distribution.placement_factor</code> with a young scale height (a magnetar is under 1e4 years old and has not drifted).</li>
+<li><strong>Why a row and not a fill draw.</strong> The fill's neutron-star draw would give a given sector a magnetar with probability about 4e-9; the Galaxy would hold about 50 in total but no neighbour could ever see one from an unfilled sector. A hazard score within 10 pc of an active magnetar (GEN.256) and a map that shows them before the fill both need the object to exist before its sector is filled. The same argument already places supernova remnants, Wolf-Rayet stars and black holes in the scatter.</li>
+<li><strong>No double count.</strong> The neutron-star fill draw must stop producing magnetars itself: the built age lottery of GEN.153 (a neutron star younger than 1e4 yr is a magnetar with 10% chance) then applies only to the <strong>cores of young supernova remnants</strong>, where the age is the remnant's, and the free draw's age floor rises to 1e4 yr (<code>COMPACT_REMNANT_AGE_RANGE_GY</code> lower bound 1e-5 Gy). Both changes are in the follow-up item below, not in GEN.153.</li>
+<li><strong>Cost.</strong> About 100 rows; the build reads <code>subtype == &quot;magnetar&quot;</code> and forces the magnetar branch with the row's seed.</li>
+</ul>
+<p><strong>Built (GEN.278).</strong> <code>(&quot;neutron-star&quot;, &quot;magnetar&quot;)</code> is the last of <code>SCATTER_CLASSES</code>, placed by the registry gate <code>young stars</code> (<code>registry.SCATTER_CLASS_GATES</code>): a band's angle bins are weighted by the young population's density with its arm contrast (<code>density.population_densities_array</code>, now accepting one height per band), so none sit in the halo, a cluster or the thick disk, and the remnant thickening of ordinary neutron stars does not apply. The rate is <code>MAGNETAR_PER_NEUTRON_STAR</code> (1e-7) of the neutron stars' per star, divided by the young population's 0.19% of all stars in a galaxy of 5e10 solar masses (0.44% before GEN.469, 0.48% before GEN.134) in a Milky Way-sized galaxy (<code>MAGNETAR_YOUNG_STAR_SHARE</code>), which gives about 150 rows over a full scatter against the 100 asked. A magnetar ignores the mass cut (the cut leaves the ordinary neutron stars below it to the fill, and a magnetar is never drawn by the fill: <code>share_above</code> is 1). <code>COMPACT_REMNANT_AGE_RANGE_GY</code> now starts at 1e-5 Gy, so a free-standing neutron star is never young enough to be one; the cores of young supernova remnants keep the 10% birth lottery. The row builds <code>NeutronStar(magnetar=True)</code> with the row's mass and an age in <code>MAGNETAR_AGE_RANGE_GY</code>. No migration: <code>subtype</code> holds <code>magnetar</code>. The Galaxy Map lists them with the neutron stars as &quot;Magnetar (uncharted)&quot;.</p>
+<p><strong>Alternative (fill only):</strong> keep the age lottery alone. Cheaper by one item, correct in expectation over filled sectors, but the 10 pc flag and the map can see only magnetars in filled sectors, and a filled galaxy would show about 50 where the sky has 100. Boss's call; if no answer, the recommendation stands.</p>
+<h2 id="4-what-this-does-to-the-one-rule-set-and-the-sector-profile-gen235">4. What this does to the one rule set and the sector profile (GEN.235)</h2>
+<p>The profile function of <a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.3 stays a pure function of the shape, the component table and the address. The later phenomena add terms; none adds a rule.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Profile field</th>
+<th>Gains</th>
+<th>From</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>kind_factors</code></td>
+<td><code>magnetar</code>: young share times arm contrast, 0 in the halo, clusters and old satellites; <code>supernova-remnant</code>: unchanged (gas fraction), now also times 1 inside a superbubble</td>
+<td>GEN.153, GEN.254</td>
+</tr>
+<tr>
+<td><code>mix</code></td>
+<td>the young-cluster components contribute 100% <code>young</code> with their age window</td>
+<td>GEN.244</td>
+</tr>
+<tr>
+<td><code>gas</code></td>
+<td>the ambient density in cm^-3 inside a superbubble cavity (0.001 to 0.01 in place of the disk's 1; the Local Bubble is about 0.005 [R]); the molecular-cloud keep rate is 0 inside it</td>
+<td>GEN.254</td>
+</tr>
+<tr>
+<td><code>lambda</code></td>
+<td>the Plummer density of each cluster inside its tidal sphere</td>
+<td>GEN.244</td>
+</tr>
+<tr>
+<td>a descriptor rule, not a field</td>
+<td>A and F stars roll a debris disk (about 20%, [R]); stars under 10 Myr roll a protoplanetary disk (GEN.242)</td>
+<td>GEN.245</td>
+</tr>
+</tbody>
+</table></div>
+<p>Two consequences worth stating:</p>
+<ul>
+<li><strong>Remnant size depends on the cavity.</strong> The Sedov-Taylor radius goes as <code>n^(-1/5)</code> and the snowplow cap as <code>n^(-3/7)</code> (GEN.151). A remnant in a cavity of 0.005 cm^-3 reaches 45.7 ly times 0.005^(-3/7) = 440 ly (135 pc) before the cap, against 46 ly at n = 1. A scatter row's class letter fixes the density range, so the map's typical radius uses the class range; the exact radius at build uses the profile's ambient density when the position is inside a cavity.</li>
+<li><strong>A seeded field, not a derived one.</strong> The superbubble field is seeded like <code>nebula_field</code> (cell 50 pc, radius 50 to 500 pc, about 12% filling) rather than derived from the OB-association components. Deriving it from GEN.244's clusters would be more physical (a superbubble is the work of an association's supernovae) but would make GEN.254 wait on GEN.237 and GEN.241 instead of GEN.235. Default: seeded; the Local Bubble anchors it.</li>
+</ul>
+<p><strong>Built (GEN.254).</strong> <code>galaxy/superbubble_field.py</code>: the plane is cut into 250 pc columns (not 50: a bubble reaches 500 pc, so a point would read 8,000 columns), each column's bubbles drawn from its own seed (<code>superbubble-cell</code>), a Poisson count whose mean puts 12% of the plane at the solar circle inside a bubble and follows the molecular gas (<code>nebula_field.gas_factor</code>) elsewhere. A bubble has a centre in its column at a height of about 60 pc, a log-uniform radius from 50 to 500 pc (the Local Bubble's 100 to 200 pc among them), and 0.001 to 0.01 atoms per cm3 of ionised gas at a million kelvin. Nothing is stored. <code>nebula_field.cloud_kept</code> loses a cloud whose centre is inside one (the draw and the object IDs still count it; <code>--redo-nebula-field</code> removes the ones already stored). <code>SectorProfile.gas.superbubble</code> names the cavity a place is in and its ambient gas replaces the disk's (<code>profile_at(..., galaxy_seed=)</code>). <code>GET /api/galaxy/superbubbles</code> lists the cavities for the Galaxy Map, which draws each as three faint circles; <code>GET /api/sectors/&lt;id&gt;</code> carries <code>superbubble</code>, and the sector page says so under its map. The remnant size at build (GEN.151) reads the gas it expands into since GEN.298 (built 2026-10-17); a remnant keeps its rate factor from <code>kind_factors</code> (see intergalactic-and-halo-contents.md).</p>
+<h2 id="5-the-backfill-case-by-case">5. The backfill, case by case</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Backfill pass</th>
+<th>Effect of the later phenomena</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Mass rings (1, 2, 5, 8 solar masses; GEN.187)</strong></td>
+<td>stars in a young cluster component come with it: the cell's <code>lambda</code> and <code>mix</code> include the component, so the ring draws cluster members like any others and the scatter's own pre-placed share is subtracted once. A and F stars in the rings roll their debris disk at build. No LBV or hypergiant is possible (25 solar masses and up are all pre-placed).</td>
+</tr>
+<tr>
+<td><strong>Luminosity bands (GEN.44)</strong></td>
+<td>unchanged. The planetary-nebula central stars (1e2 to 1e4 L_sun) are scatter rows of their own, so they are not in the bright-star bands either way (no double count; the rows with 9,000 L_sun and up that are central stars stay under the planetary-nebula class).</td>
+</tr>
+<tr>
+<td><strong>Below-cut remnants (GEN.168)</strong></td>
+<td>neutron stars and black holes under 14 solar masses are drawn per sector from the sector's stream. Pulsars come out by age. Magnetars come out only as the cores of young remnants (or not at all if the fill-only alternative is chosen). Intermediate-mass holes and remnants stay as they are.</td>
+</tr>
+<tr>
+<td><strong>Phenomenon passes at fill</strong></td>
+<td>superbubble cavities zero the molecular clouds drawn in them; jets and the hazard score read what the other passes made.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-registry-rows-gen250-these-decisions-imply">6. Registry rows (GEN.250) these decisions imply</h2>
+<p>One row each, the columns of <a href="phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a> section 6. Kinds and subtypes not listed are unchanged.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>kind (subtype)</th>
+<th>family</th>
+<th>mode</th>
+<th>scatter_pass</th>
+<th>gate</th>
+<th>host</th>
+<th>carries</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>neutron-star</code> (<code>magnetar</code>)</td>
+<td>compact-remnant</td>
+<td>scatter</td>
+<td><code>band-density</code></td>
+<td><code>young stars</code> (new gate)</td>
+<td>none</td>
+<td>none</td>
+<td><code>id_code</code> is the neutron star's; subtype only</td>
+</tr>
+<tr>
+<td><code>supernova-remnant</code> (class letter)</td>
+<td>nebula</td>
+<td>scatter</td>
+<td><code>band-density</code></td>
+<td><code>nebula field</code></td>
+<td>none</td>
+<td>its core, at build</td>
+<td>the subtype becomes the class letter instead of <code>None</code></td>
+</tr>
+<tr>
+<td><code>planetary-nebula</code></td>
+<td>nebula</td>
+<td>scatter</td>
+<td><code>band-density</code></td>
+<td><code>stellar density</code></td>
+<td>central-star</td>
+<td>its white dwarf and its companion</td>
+<td>row stores the central star's mass and luminosity</td>
+</tr>
+<tr>
+<td><code>young-cluster</code></td>
+<td>star</td>
+<td>component</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>its members through the passes</td>
+<td>GEN.237's table, kind value added</td>
+</tr>
+<tr>
+<td><code>superbubble</code></td>
+<td>nebula</td>
+<td>field</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>seeded from the galaxy seed, like <code>nebula_field</code></td>
+</tr>
+<tr>
+<td><code>debris-disk</code></td>
+<td>star</td>
+<td>flag</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>attribute of A and F stars</td>
+</tr>
+<tr>
+<td><code>lbv</code>, <code>hypergiant</code></td>
+<td>star</td>
+<td>scatter</td>
+<td><code>bright-star</code> (existing passes)</td>
+<td><code>hot stars</code></td>
+<td>star-system</td>
+<td>its ejecta nebula, host first</td>
+<td>stellar states, not rows of their own</td>
+</tr>
+<tr>
+<td><code>lore-anomaly</code></td>
+<td>small-body</td>
+<td>fill</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td>none</td>
+<td><code>K_lore</code> 0, off unless enabled</td>
+</tr>
+</tbody>
+</table></div>
+<p>The completeness test of the registry then covers these: every row has a builder, a rate or a field, and a page class.</p>
+<h2 id="7-columns-and-migrations-for-core-1">7. Columns and migrations (for Core 1)</h2>
+<ul>
+<li><code>phenomenon_scatter</code>: <strong>none.</strong> <code>subtype</code> carries <code>magnetar</code> and the remnant class letter; <code>mass_solar</code> and <code>map_luminosity_sol</code> carry the planetary-nebula star.</li>
+<li><code>bright_stars</code>: <strong>none</strong> (LBV and hypergiant are states of rows that exist).</li>
+<li><code>stars</code> (and the members of <code>scatter_members</code>, GEN.260): the disk descriptor shared by GEN.242 and GEN.245, three columns (disk class, mass in Earth masses, outer radius in AU), nullable. Core 2 owns GEN.242; this is one set of columns, added once, in whichever of the two migrations comes first.</li>
+<li>Component table (GEN.237): a <code>kind</code> value for <code>young-cluster</code>, age in Myr, Plummer scale radius, and a flag <code>hosts_nebula</code> for those under 10 Myr. Core 1 owns the migration; if GEN.237's table already carries age and a profile kind, no column is new.</li>
+<li><code>COMPACT_REMNANT_AGE_RANGE_GY</code> and the <code>SCATTER_CLASSES</code> tuple are settings and code, not schema.</li>
+</ul>
+<h2 id="8-changes-to-the-todo-items-for-the-todo-thread">8. Changes to the TODO items (for the TODO thread)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Change</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.149</td>
+<td>add: the scatter row stores the central star's mass and map luminosity; the 20% close companion goes into the member tree at scatter time (GEN.261)</td>
+</tr>
+<tr>
+<td>GEN.151</td>
+<td>add: the scatter row's <code>subtype</code> is the remnant class letter; the build's ambient density is the profile's inside a superbubble</td>
+</tr>
+<tr>
+<td>GEN.153</td>
+<td>unchanged as built (magnetar by age, pulsar fraction by age); <strong>new item</strong> below does the scatter class</td>
+</tr>
+<tr>
+<td><strong>new</strong></td>
+<td><strong>Magnetar scatter class</strong> (Core 3, after GEN.250, GEN.235 and GEN.153): <code>(&quot;neutron-star&quot;, &quot;magnetar&quot;)</code> in <code>SCATTER_CLASSES</code>, the <code>young stars</code> gate, the age floor of the free neutron-star draw, the build forcing the magnetar branch; test: about 100 rows over a full scatter, none in the halo</td>
+</tr>
+<tr>
+<td>GEN.244</td>
+<td>add: the component feeds <code>lambda</code> and <code>mix</code> only; no per-star scatter rows; the backfill reads the component term; trapezia and runaway origins come from the member tree</td>
+</tr>
+<tr>
+<td>GEN.245</td>
+<td>add: fill-only attribute, shares the <code>stars</code> disk columns with GEN.242</td>
+</tr>
+<tr>
+<td>GEN.246</td>
+<td>add: states of stars the passes place; the ejecta nebula is hosted at fill; no scatter work</td>
+</tr>
+<tr>
+<td>GEN.254</td>
+<td>add: seeded field, read by the profile; remnant sizes and the cloud keep rate see it</td>
+</tr>
+<tr>
+<td>GEN.255</td>
+<td>add: derived at render; microquasar jets read the stored accreting member</td>
+</tr>
+<tr>
+<td>GEN.256</td>
+<td>add: reads scatter rows through stage C; needs the magnetar rows to see the 10 pc flag before the fill</td>
+</tr>
+<tr>
+<td>GEN.257, GEN.154, GEN.189, GEN.155</td>
+<td>no change; derived or decided</td>
+</tr>
+<tr>
+<td>GEN.113</td>
+<td>closed by <code>anomalies.md</code> and this note; the Tier 3 fiction kinds are fill only if ever built</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="9-decisions-and-defaults">9. Decisions and defaults</h2>
+<ol>
+<li><strong>Magnetars are scatter rows</strong> (section 3). Alternative: fill only. Needs Boss's word; the default stands without it.</li>
+<li><strong>Superbubbles are a seeded field</strong>, not derived from the clusters (section 4).</li>
+<li><strong>The planetary-nebula row stores the central star's mass and luminosity</strong> (section 2), so the map agrees with the sector page, as MAP.165 did for black holes and neutron stars.</li>
+<li><strong>Young clusters are components, not scatter rows of their stars</strong>, so a cluster's star is never counted twice (section 2).</li>
+<li><strong>Fiction anomalies, if ever wanted, are fill only</strong> with <code>K_lore</code> 0.</li>
+</ol>
+<h2 id="sources">Sources</h2>
+<p>The folded notes' own sources. Observed counts are as in <a href="phenomena-catalogue-and-fill.html">phenomena-catalogue-and-fill.md</a> and <a href="anomalies.html">anomalies.md</a>; figures marked [C] are computed with the repository's code or its stated formulas. The superbubble ambient density (0.005 cm^-3) is recalled, not confirmed.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

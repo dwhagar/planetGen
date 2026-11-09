@@ -1,0 +1,32 @@
+{#- planetgen/web/templates/admin_generated.html -- /admin/generated (ADM.151). -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" id="generated" aria-labelledby="generated-heading">
+  <h2 id="generated-heading">Generated so far</h2>
+  <p class="hint">Made since {{ utc_time(since) if since else "the beginning" }}, newest first. The Galaxy Map is closed while a run goes; this list is not.
+    {%- if since %} <a href="{{ everything_url }}">Show everything</a>{% endif %}</p>
+  <nav aria-label="Kinds">
+    <ul class="tab-links">
+      {%- for tab in tabs %}
+      <li><a href="{{ tab.url }}"{% if tab.current %} aria-current="page"{% endif %}>{{ tab.label }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+  <p><span class="badge">{{ num(total) }} {{ kind }}</span></p>
+  {%- if rows %}
+  <table class="data-table">
+    <thead><tr>{% for head in heads %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr>{% for cell in row %}<td>{% if cell.href %}<a href="{{ cell.href }}">{{ cell.text }}</a>{% else %}{{ cell.text }}{% endif %}</td>{% endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  <p class="hint">
+    {%- if previous_url %}<a href="{{ previous_url }}">Newer</a> &middot; {% endif %}Page {{ page }} of {{ last }}
+    {%- if next_url %} &middot; <a href="{{ next_url }}">Older</a>{% endif %}</p>
+  {%- else %}
+  <p class="hint">None made since then.</p>
+  {%- endif %}
+</section>
+{% endblock %}
