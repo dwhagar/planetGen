@@ -165,7 +165,19 @@ def note_rows(conn, table, columns, rows):
             light = _float32(light)
         cells.setdefault((row[cell_at[0]], row[cell_at[1]], row[cell_at[2]]), []).append(
             (light, row[x_at], row[y_at], row[z_at], row[temperature_at] if stars else None))
-    _write_parts(conn, [tuple(address) + tuple(cell_sums(stars, values)) for address, values in sorted(cells.items())], add=True)
+    held = set()
+    addresses = sorted(cells)
+    for start in range(0, len(addresses), 500):
+        chunk = addresses[start:start + 500]
+        held.update((row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+            "SELECT shell_index, band_index, wedge_index FROM galaxy_block_light_parts WHERE (shell_index, band_index, wedge_index) IN ("
+            + ", ".join("(?, ?, ?)" for _ in chunk) + ")", [value for cell in chunk for value in cell]).fetchall())
+    # A cell with no part yet gets the sums of this batch. A cell that has one holds an earlier batch's rows too, and two sums added are not the sum of all the rows
+    # (the last bit differs), so its part is made again from the cell's rows, which include this batch's: one cell, a few rows, and the bits stay those of a rebuild.
+    # (`ON DUPLICATE KEY UPDATE` only covers a cell two writers meet at once; it adds, and a refresh or rebuild puts the last bit right.)
+    _write_parts(conn, [tuple(address) + tuple(cell_sums(stars, cells[address])) for address in addresses if address not in held], add=True)
+    if held:
+        sync_cells(conn, sorted(held))
     return len(cells)
 
 

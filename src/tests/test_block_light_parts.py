@@ -5,6 +5,8 @@ checked before they are used and made again when they differ, a sector build or 
 a galaxy made before v236 gets the empty table.
 """
 
+import struct
+
 import pytest
 
 from planetgen.db import block_lights, store, uncharted_index
@@ -36,7 +38,8 @@ def _rows():
     sol = 3.828e26
     stars = [_star((10, 1, 2), 1.0e6, 2.0e6, 3.0e5, 2.0e3 * sol, 9000.0), _star((10, 1, 2), -4.0e5, 1.0e6, 2.0e5, 5.0e2 * sol, 5000.0),
              _star((11, 4, 4), 7.0e5, -3.0e6, 1.0e5, 1.0e4 * sol, 30000.0), _star((1500, 2, 3), 2.0e6, 2.0e6, 1.0e6, 3.0e1 * sol, 4000.0)]
-    points = [_point((10, 1, 2), 1.5e6, 1.0e6, 1.0e5, 120.0, 1), _point((12, 0, 1), -2.0e6, 5.0e5, 4.0e4, 55.0, 2), _point((12, 0, 1), 1.0e6, 1.0e5, 4.0e3, None, 3)]
+    points = [_point((10, 1, 2), 1.5e6, 1.0e6, 1.0e5, 120.0, 1), _point((12, 0, 1), -2.0e6, 5.0e5, 4.0e4, 55.0, 2), _point((12, 0, 1), 1.0e6, 1.0e5, 4.0e3, None, 3),
+              _point((13, 3, 3), 1.1e6, -2.3e6, 7.7e4, 0.1, 4), _point((13, 3, 3), -9.1e5, 1.7e6, -3.3e4, 0.3, 5), _point((13, 3, 3), 4.9e5, 8.1e5, 2.9e4, 0.7, 6)]      # a FLOAT column holds 0.1 and 0.3 as no double
     return stars, points
 
 
@@ -61,9 +64,10 @@ def _from_tables(conn):
 
 
 def _assert_same(found, expected):
+    """The same rows with the same bits (GEN.1476): a rolled total, a refresh and a rebuild are one number."""
     assert set(found) == set(expected)
     for key, sums in expected.items():
-        assert found[key] == pytest.approx(sums, rel=1e-9, abs=1e-9), key
+        assert [struct.pack("d", value) for value in found[key]] == [struct.pack("d", value) for value in sums], key
 
 
 @pytest.fixture
