@@ -56683,6 +56683,120 @@
           "tweak": "L1",
           "unread": null,
           "what": "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (radiation_field.ring_light_ratio, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444)"
+            ],
+            [
+              "The range it moves in",
+              "annuli 8 to 64"
+            ],
+            [
+              "Where it holds",
+              "rings narrow against the companion's distance"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose bodies sit in one part of the ring (a resonant clump, a narrow family) where the companion's share differs from the ring's mean by over a tenth"
+            ],
+            [
+              "What replaces it",
+              "the light at each member's own distance"
+            ],
+            [
+              "Evidence",
+              "derived: the mean of a smooth ratio over the ring; the test compares the 16 annuli with a 2000-annulus sum"
+            ]
+          ],
+          "id": "RF6",
+          "key": "6.239:RF6",
+          "kind": "T",
+          "slug": "6-239-rf6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (radiation_field.ring_light_ratio, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (belt_ledger.belt_state) stay the formation ones, as for planets (born_beyond_snow_line)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions that were present while the disk lasted or not at all"
+            ],
+            [
+              "What would show it wrong",
+              "a belt past the snow line whose ice a companion's light would have sublimated, or one inside the line that a companion's disk truncation kept cold"
+            ],
+            [
+              "What replaces it",
+              "a present-day ice line from the ring's temperature and the ice's sublimation (condensate_shares.ICE_CONDENSATION_K)"
+            ],
+            [
+              "Evidence",
+              "design; the same rule as the zone letter of a planet (RF4)"
+            ]
+          ],
+          "id": "RF7",
+          "key": "6.239:RF7",
+          "kind": "T",
+          "slug": "6-239-rf7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (belt_ledger.belt_state) stay the formation ones, as for planets (born_beyond_snow_line)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
+            ],
+            [
+              "The range it moves in",
+              "the threshold"
+            ],
+            [
+              "Where it holds",
+              "comets of stars near the Sun's luminosity"
+            ],
+            [
+              "What would show it wrong",
+              "a comet of a faint or bright star whose activity distance moves with its luminosity"
+            ],
+            [
+              "What replaces it",
+              "an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light"
+            ],
+            [
+              "Evidence",
+              "design; a lone star unchanged"
+            ]
+          ],
+          "id": "RF8",
+          "key": "6.239:RF8",
+          "kind": "T",
+          "slug": "6-239-rf8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a comet's chance of showing activity reads the light at its perihelion: _activity_chance of the perihelion over the square root of the total light over the host's own (radiation_field.lit_distance_au), against the fixed distance COMET_ACTIVITY_PERIHELION_THRESHOLD_AU, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444)"
         }
       ],
       "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
@@ -57555,6 +57669,166 @@
       ],
       "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
       "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
+    },
+    {
+      "key": "6.246",
+      "number": "6.246",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of Eggleton 1983)"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "companions of any mass ratio, disks of low viscosity"
+            ],
+            [
+              "What would show it wrong",
+              "a disk seen cut at a clearly different share of the lobe round a binary of known orbit"
+            ],
+            [
+              "What replaces it",
+              "a truncation from the disk's viscosity and the mass ratio"
+            ],
+            [
+              "Evidence",
+              "recalled from simulations of disks in binaries, read second-hand; the equal pair gives about 0.28 of the periastron, near the third that young binaries show"
+            ]
+          ],
+          "id": "DT1",
+          "key": "6.246:DT1",
+          "kind": "T",
+          "slug": "6-246-dt1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.TRUNCATION_OF_ROCHE_LOBE 0.733: a circumstellar disk ends at that share of the host's Roche lobe at the companion's periastron (the lobe from the fit of Eggleton 1983)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the companion's orbit is the one it has today and is coplanar with the disk; a subtree of stars is one point (as radiation_field takes it)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose companion has not moved since the disk"
+            ],
+            [
+              "What would show it wrong",
+              "a companion whose orbit changed a great deal (an ejected or captured one)"
+            ],
+            [
+              "What replaces it",
+              "the orbit while the disk lasted"
+            ],
+            [
+              "Evidence",
+              "derived: a mutual inclination only moves the cut further out"
+            ]
+          ],
+          "id": "DT2",
+          "key": "6.246:DT2",
+          "kind": "T",
+          "slug": "6-246-dt2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the companion's orbit is the one it has today and is coplanar with the disk; a subtree of stars is one point (as radiation_field takes it)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "only giants clear spans (chaotic zone and resonance gaps) from a belt; a smaller planet's chaotic zone 1.3 a mu^(2/7) lies inside the five Hill radii no belt may take, for every mass up to 50 Earth masses"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets under a giant's mass"
+            ],
+            [
+              "What would show it wrong",
+              "a planet below the giant class whose chaotic zone reaches past its keep-out"
+            ],
+            [
+              "What replaces it",
+              "clearing spans for every planet"
+            ],
+            [
+              "Evidence",
+              "derived; test_a_planets_chaotic_zone_that_is_not_a_giants_lies_inside_its_keep_out"
+            ]
+          ],
+          "id": "DT3",
+          "key": "6.246:DT3",
+          "kind": "T",
+          "slug": "6-246-dt3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "only giants clear spans (chaotic zone and resonance gaps) from a belt; a smaller planet's chaotic zone 1.3 a mu^(2/7) lies inside the five Hill radii no belt may take, for every mass up to 50 Earth masses"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a companion's secular and Kozai excitation of a belt (forced eccentricity, a stirred flag) is not built; the belt's edge is cut but its bodies are not heated"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "belts well inside the cut"
+            ],
+            [
+              "What would show it wrong",
+              "a belt whose forced eccentricity from the companion exceeds its own spread"
+            ],
+            [
+              "What replaces it",
+              "a forced eccentricity 5/4 (a/a_c) e_c / (1 - e_c^2) added to the roster's"
+            ],
+            [
+              "Evidence",
+              "design; filed as a follow-up of GEN.1451"
+            ]
+          ],
+          "id": "DT4",
+          "key": "6.246:DT4",
+          "kind": "T",
+          "slug": "6-246-dt4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a companion's secular and Kozai excitation of a belt (forced eccentricity, a stirred flag) is not built; the belt's edge is cut but its bodies are not heated"
+        }
+      ],
+      "slug": "6-246-stand-ins-of-a-companion-star-s-cut-of-a-disk-and-its-belts",
+      "title": "Stand-ins of a companion star's cut of a disk and its belts"
     }
   ]
 }

@@ -594,6 +594,13 @@ flare index and far-ultraviolet are each given as a total and per source. The me
 the runaway greenhouse test, the zone letter and the energy flux; a companion beyond 100 AU moves the temperature by under 0.1 percent, and an equal one at 5 AU
 adds about 10 percent of the light to a planet at 1.5 AU. The simplification that kept the companion's share out is retired; the limits (coplanar orbits, a
 subtree as one point) are the registry rows RF1 to RF5 of section 6.239 of the gap plan.
+
+**Belts and comets (GEN.1444).** A belt is lit by the field across its ring, not by the host alone: `radiation_field.ring_light_ratio` is the ratio of the ring's mean total
+light to its mean host light (16 equal-width annuli, each weighted by its area), and `1.0` for a lone star. The host's luminosity times that ratio is the luminosity the belt's
+makeup is drawn at (the temperature of its bodies and the taxa of its members, `belt.lit_luminosity_w`), and the belt is on the icy or the rocky side of the snow line by its
+distance over the square root of the ratio (`belt.size_law`, the same rule as the zone letter of a planet). The snow line itself and the solids of the disk the belt grew from
+stay the formation ones. A comet's chance of showing activity is read at the light of its perihelion (`radiation_field.lit_distance_au`). A belt or a comet of a lone star gives
+the numbers of before to the last digit. The limits are the registry rows RF6 to RF8; a surface dose of a belt or a comet is not stored today and is not part of this item.
 Over 200 generated systems the median swing of a wide pair's planet is about 5e-7 (the
 largest 0.23, a close companion) and of a circumbinary planet 0.05 (the largest 0.46).
 

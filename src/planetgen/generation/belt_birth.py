@@ -31,7 +31,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in BG14, tier M
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
 from planetgen.generation import remnant_orbits
-from planetgen.physics import belt_origin, bulk_draw, scatter, swept_hand_on, trojans
+from planetgen.physics import belt_origin, bulk_draw, disk_truncation, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -115,7 +115,8 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     snow_line_au = star.snow_line_au
     edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
-                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability)
+                                debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
+                                disk_limit_au=disk_truncation.star_disk_limit_au(star))
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
@@ -128,7 +129,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         kept = [max(found, key=lambda item: item[0])]
     belts = []
     for _mass, origin, lower, upper in kept:
-        shares, sentence, giant_au, giant = _fates(star, star_mass_kg, planets, origin, edge_au, instability)
+        shares, sentence, giant_au, giant = _fates(star, star_mass_kg, planets, origin, origin.outer_au, instability)     # the disk's edge as a companion cut it (GEN.1451); the star's own edge when none did
         belt = AsteroidBelt(system_config, star, lower, lower, upper, origin=origin, scatter_fates=shares, scatter_giant_au=giant_au)
         if giant is not None:
             belt.scatter_giant_kg, belt.scatter_giant_radius_km = giant.mass, giant.radius
