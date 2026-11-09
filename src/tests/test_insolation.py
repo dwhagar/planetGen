@@ -19,7 +19,7 @@ def test_a_companion_at_50_au_adds_about_4e_minus_4_of_its_light_to_a_planet_at_
     swing = insolation.companion_swing(1.0, 1.0, 1.0, 50.0, 50.0)
     assert swing == 0.0  # circular: the companion's light never changes
     eccentric = insolation.companion_swing(1.0, 1.0, 1.0, 25.0, 75.0)
-    assert eccentric == pytest.approx((1 / 625.0 - 1 / 5625.0) / (1.0 + 1 / (2500.0 * math.sqrt(1 - 0.25))), rel=1e-9)
+    assert eccentric == pytest.approx((1 / 625.0 - 1 / 5625.0) / (1.0 + 1 / (2500.0 * math.sqrt(1 - 0.25))), rel=1e-5)   # GEN.1441: the mean is over the planet's orbit too (1 / (R^2 - d^2))
     assert 1e-3 < eccentric < 2e-3
 
 

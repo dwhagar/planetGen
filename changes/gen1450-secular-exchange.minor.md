@@ -8,3 +8,4 @@
 - `secular_chain.precession_rates` gives each planet's own apsidal and nodal rates for the Kozai screen of GEN.1447 and the spin-orbit drift of GEN.1454.
 
 generation-output: changed
+generation-affects: fill

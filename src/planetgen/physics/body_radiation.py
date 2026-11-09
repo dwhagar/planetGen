@@ -24,7 +24,7 @@ import functools
 
 import numpy as np
 
-from planetgen.physics import activity, aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
+from planetgen.physics import activity, aerosols, air_column, atmospheric_radiation, constants, radiation_field, stellar_spectrum, uv_cross_sections
 
 DEFAULT_GROUND_ALBEDO = 0.15
 """float: The ground reflectance used until GEN.462 gives it by band (stand-in: the Earth-like land mean)."""
@@ -56,18 +56,23 @@ def _star_flux_w_m2(body, distance_au):
     return temperature, stellar_spectrum.bolometric_flux_w_m2(luminosity, distance_au)
 
 
-def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
-    """
-    The `SurfaceSpectrum` at the ground of `body` for the star at cosine `mu0` of the zenith angle (0.2 to 1), or `None` for a body with no air,
-    no star or no gravity.
-    `distance_au` is the body's distance from its star when the body does not carry it.
-    """
-    column = air_column.column_of(body)
-    lit = _star_flux_w_m2(body, distance_au or _star_distance_au(body))
-    if column is None or lit is None:
-        return None
-    temperature, flux = lit
-    star = body.star
+def _companion_sources(body, distance_au):
+    """GEN.1442: `[(star, temperature_k, flux_w_m2)]` for the other stars of the body's system that light it (`radiation_field.sources_of`; none for a lone star
+    or a body with no distance), the flux each one's time-averaged part of the field at the body."""
+    star = getattr(body, "star", None)
+    if star is None or not distance_au:
+        return []
+    found = []
+    for member_no, other, factor in radiation_field.sources_of(star, distance_au):
+        luminosity, temperature = getattr(other, "luminosity", None), getattr(other, "temperature", None)
+        if member_no is None or not luminosity or not temperature:
+            continue
+        found.append((other, temperature, stellar_spectrum.bolometric_flux_w_m2(luminosity, 1.0) * factor))
+    return found
+
+
+def _spectrum_of(body, star, temperature, flux, ozone_flux, mu0, ground_albedo, column):
+    """The `SurfaceSpectrum` of one source (`star`, its `temperature` and `flux` at the body); `ozone_flux` the whole field's, which warms the ozone layer."""
     share = getattr(star, "uv_c_share", None)
     stored = aerosols.of_body(body)
     centers = uv_cross_sections.centers(uv_cross_sections.standard_edges())
@@ -75,21 +80,56 @@ def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distanc
     return atmospheric_radiation.surface_radiation(
         column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share, uv_shares=activity.uv_shares_of(star),
         ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-        ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(flux, getattr(body, "bond_albedo", None)), mu0=mu0,
+        ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(ozone_flux, getattr(body, "bond_albedo", None)), mu0=mu0,
         ground_albedo=ground_albedo,
         haze=haze, low_aerosol=cloud, cloud_cover=stored.cloud_cover)
 
 
+def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
+    """
+    The `SurfaceSpectrum` at the ground of `body` for its host star at cosine `mu0` of the zenith angle (0.2 to 1), or `None` for a body with no air,
+    no star or no gravity. The other stars of the system each have a spectrum of their own (`companion_spectra`); `uv_index` and `dna_dose_w_m2` add them.
+    `distance_au` is the body's distance from its star when the body does not carry it.
+    """
+    column = air_column.column_of(body)
+    where = distance_au or _star_distance_au(body)
+    lit = _star_flux_w_m2(body, where)
+    if column is None or lit is None:
+        return None
+    temperature, flux = lit
+    ozone_flux = flux + sum(other[2] for other in _companion_sources(body, where))
+    return _spectrum_of(body, body.star, temperature, flux, ozone_flux, mu0, ground_albedo, column)
+
+
+def companion_spectra(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
+    """GEN.1442: the `SurfaceSpectrum` of each other star of the body's system at its ground, a list (empty for a lone star or a body with no air)."""
+    where = distance_au or _star_distance_au(body)
+    others = _companion_sources(body, where)
+    if not others:
+        return []
+    column = air_column.column_of(body)
+    lit = _star_flux_w_m2(body, where)
+    if column is None or lit is None:
+        return []
+    ozone_flux = lit[1] + sum(other[2] for other in others)
+    return [_spectrum_of(body, star, temperature, flux, ozone_flux, mu0, ground_albedo, column) for star, temperature, flux in others]
+
+
 def uv_index(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
-    """The CIE UV index at the ground of `body`, 0 where there is no air to compute it in."""
+    """The CIE UV index at the ground of `body` (every star of its system adds its own), 0 where there is no air to compute it in."""
     spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
-    return 0.0 if spectrum is None else spectrum.uv_index()
+    if spectrum is None:
+        return 0.0
+    return spectrum.uv_index() + sum(other.uv_index() for other in companion_spectra(body, mu0, ground_albedo, distance_au))
 
 
 def dna_dose_w_m2(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
-    """The Setlow DNA-damage weighted irradiance at the ground of `body`, W/m2, 0 where there is no air to compute it in."""
+    """The Setlow DNA-damage weighted irradiance at the ground of `body` (every star of its system adds its own), W/m2, 0 where there is no air to compute
+    it in."""
     spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
-    return 0.0 if spectrum is None else spectrum.dna_dose_w_m2()
+    if spectrum is None:
+        return 0.0
+    return spectrum.dna_dose_w_m2() + sum(other.dna_dose_w_m2() for other in companion_spectra(body, mu0, ground_albedo, distance_au))
 
 
 def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
@@ -98,11 +138,14 @@ def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
     lit = _star_flux_w_m2(body, distance_au or _star_distance_au(body))
     if lit is None:
         return None
-    temperature, flux = lit
-    share = getattr(body.star, "uv_c_share", None)
     edges = uv_cross_sections.standard_edges()
-    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(body.star))
-    return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centers(edges))))
+    weight = atmospheric_radiation.setlow_weight(uv_cross_sections.centers(edges))
+    total = 0.0
+    for star, temperature, flux in [(body.star, *lit), *_companion_sources(body, distance_au or _star_distance_au(body))]:
+        share = getattr(star, "uv_c_share", None)
+        top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(star))
+        total += float(mu0 * np.sum(top * weight))      # GEN.1442: every star of the system adds its own
+    return total
 
 
 @functools.lru_cache(maxsize=1)
@@ -123,5 +166,5 @@ def dna_dose_index(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_
         dose = bare_dna_dose_w_m2(body, mu0, distance_au)
     else:
         spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
-        dose = None if spectrum is None else spectrum.dna_dose_w_m2()
+        dose = None if spectrum is None else spectrum.dna_dose_w_m2() + sum(o.dna_dose_w_m2() for o in companion_spectra(body, mu0, ground_albedo, distance_au))
     return None if dose is None else dose / earth_dna_dose_w_m2()

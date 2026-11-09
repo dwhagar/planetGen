@@ -1088,7 +1088,7 @@ GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "m
 
 ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
 """dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
-ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",)
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",) + tuple(key for key, _label in isotope_record.ICE_SHEET_ROWS)
 """tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
 
 
@@ -1199,6 +1199,18 @@ def _chemistry_rows(conn, row):
              "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
 
 
+def _ice_rows(conn, kind, row):
+    """The ice isotope lines of a belt or a comet (`isotope_record.ice_sheet_rows`) from its host star's [Fe/H] and age; none for a body with no host or no ice."""
+    star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE id = ?", (row["star_id"],)).fetchone() if row["star_id"] else None
+    if star is None:
+        star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (row["star_system_id"],)).fetchone()
+    if star is None:
+        return []
+    distance = row["distance_km"] if kind == "belt" else row["perihelion_distance_km"]
+    snow_line = row["formation_snow_line_au"] if kind == "belt" else None
+    return isotope_record.ice_sheet_rows(kind, star["metallicity_fe_h"], star["age_gy"], row["ice_mass_fraction"], distance, snow_line, f"{row['star_system_id']}:{distance!r}")
+
+
 ECLIPSE_KEY = "longest_eclipse_hours"
 """str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
 orbit and the planet's radius when the sheet is made and is not a column."""
@@ -1287,6 +1299,10 @@ def sheet(conn, kind, object_id):
     if table in ("planets", "moons"):
         wanted.update(regional_temperature.BAND_COLUMNS)    # GEN.1108: the table of the bands
         wanted.add("temp_mean_swing_k")                      # the range on the mean temperature row
+    if table in ("asteroid_belts", "comets"):
+        wanted.update(("star_system_id", "star_id", "ice_mass_fraction", "distance_km" if table == "asteroid_belts" else "perihelion_distance_km"))      # GEN.1420: the ices' isotope lines
+        if table == "asteroid_belts":
+            wanted.add("formation_snow_line_au")
     if table == "stars":
         wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"))    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
     columns = ", ".join(sorted(wanted))
@@ -1311,6 +1327,9 @@ def sheet(conn, kind, object_id):
     if kind in ISOTOPE_TABLES:
         recorded = conn.execute(f"SELECT isotope, fraction FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
         for key, label, text, ratio in isotope_record.sheet_rows(recorded):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
+    if kind in ("belt", "comet"):
+        for key, label, text, ratio in _ice_rows(conn, kind, row):
             by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
     if eclipse:

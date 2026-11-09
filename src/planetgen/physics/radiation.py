@@ -61,7 +61,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, planet_type, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, planet_type, proton_range, radiation_belts, radiation_field, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -337,6 +337,20 @@ def proton_cutoff_gv(column_g_cm2, material="air"):
     return proton_range.rigidity_gv(proton_range.energy_mev(column_g_cm2, material))
 
 
+def companion_free_sep_msv_yr(star, distance_au):
+    """GEN.1442: the free-space particle dose, mSv/yr, that the companions of `star` give a body at `distance_au` from it: each one's flare rate and size
+    slope as the host's, its distance the time-averaged `1/d^2` of its orbit against the body's (`radiation_field.sources_of`). 0 for a lone star."""
+    total = 0.0
+    if not distance_au:
+        return total
+    for member_no, other, factor in radiation_field.sources_of(star, distance_au):
+        rate = getattr(other, "flare_n33_per_yr", None)
+        if member_no is None or not rate:
+            continue
+        total += solar_particles.FREE_MSV_YR * math.sqrt(rate / N33_SUN_PER_YR * flare_energy_weight(getattr(other, "flare_alpha", None))) * factor
+    return total
+
+
 def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
     """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space dose and a dipole's equatorial `cutoff_gv`: the share of the protons
     of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
@@ -476,7 +490,8 @@ def generate_dose(body):
     cutoff = cutoff_rigidity_gv(moment, body.radius)
     modulation = log_uniform(*tuning.GCR_SOLAR_MODULATION_RANGE)
     gcr = gcr_dose_msv_yr(column, cutoff, modulation)
-    free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance, getattr(star, "flare_alpha", None))
+    free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance, getattr(star, "flare_alpha", None)) \
+        + companion_free_sep_msv_yr(star, distance)       # GEN.1442: the particles of the other stars too
     sep = sep_dose_msv_yr(free, column, cutoff)
     ground = _ground_dose(body, pressure_pa)
     p_o2_pa = mixture.partial_pressures_pa(body).get("O2", 0.0)

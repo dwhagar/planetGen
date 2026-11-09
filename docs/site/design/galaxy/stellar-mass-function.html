@@ -74,7 +74,7 @@ what is set and what is derived, and what each consumer reads.</p>
 </tr>
 </tbody>
 </table></div>
-<p><strong>Single stars.</strong> A log-normal in log mass below 1 solar mass (centre 0.079, width 0.69 dex) and the power law
+<p><strong>Single stars.</strong> A log-normal in log mass below 1 solar mass (center 0.079, width 0.69 dex) and the power law
 <code>dN/dM ~ M^-2.3</code> above, joined continuously at 1 solar mass. The function is kept as a continuous piecewise power law
 (<code>tuning.IMF_BREAKS_SOL</code>, <code>IMF_SLOPES</code>): the log-normal is cut at every 0.05 dex and each pair of nodes is joined by the
 chord of <code>ln dN/dM</code> against <code>ln M</code>, within 0.07% of the log-normal. The sampler, the integrals and the number counts of
@@ -90,7 +90,7 @@ the primaries of that mass plus the companions of the heavier primaries that fal
 companion's mass is its primary's times a ratio from the law of [R3108: Table 13] between <code>max(0.1, 0.08 / M)</code> and 1
 (<code>multistar.companion_ratio_range</code>, <code>mass_ratio.py</code>, GEN.951, below).
 Companions are never heavier than the primary, so the equation is solved from the top mass down in one pass, with no
-iteration. The result peaks higher than <code>xi</code>, as the published systems' functions do (Chabrier's own for systems has its centre
+iteration. The result peaks higher than <code>xi</code>, as the published systems' functions do (Chabrier's own for systems has its center
 at 0.22). Systems per star born is 0.695 and systems per solar mass of stars born 1.124 (<code>systems_per_star</code>,
 <code>systems_per_solar_mass</code>; they were 0.697 and 1.128 with a flat mass ratio).</p>
 <p>What the derivation leaves out, and the reason: the companions past the seventh star of a system (a chance of about 1e-5 of

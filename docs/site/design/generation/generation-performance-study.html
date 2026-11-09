@@ -478,7 +478,7 @@ can.
 <code>run_galaxy.link_after_run</code> links them once at the end (<code>store.link_sector_neighbors</code>):
 containment, each object's nearest systems and quadrant, then the new systems merged into the
 lists of the already-linked sectors around, 200 sectors per transaction under the neighbour
-lock, retried on a deadlock. It runs after a cancelled or failed run too (for the sectors that
+lock, retried on a deadlock. It runs after a canceled or failed run too (for the sectors that
 were saved). The first sector of a molecular cloud still takes the lock while it saves, since
 it stores the cloud. Sectors made on demand (API, <code>ensure_sector_generated</code>) link as they are
 saved. Measured by decision rule &quot;whichever is more efficient&quot;: 4 workers, 400 sectors in ring

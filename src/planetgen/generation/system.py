@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, debris_dust, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -698,6 +698,7 @@ class StarSystem:
         star has none.
         """
         self._ledger = None
+        radiation_field.attach(self.star, ())
         if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
         ledger = self.ledger
@@ -709,6 +710,18 @@ class StarSystem:
             limit = ledger.stability_limit_au((kind, number))
             if limit is not None:
                 star.a_crit_au = limit
+            self._attach_sources(ledger, kind, number, star)
+
+    def _attach_sources(self, ledger, kind, number, star):
+        """Gives `star` the other radiating objects its bodies see, each with the orbit it moves in against the host (GEN.1441, `radiation_field`): the
+        stars of `stars` that hang elsewhere in the orbit tree. A dark member gives no light and a `group` node has no orbit to average over, so a young
+        system that is not hierarchical has none."""
+        try:
+            orbits = planet_zones.companion_orbits(ledger.zone((kind, number)), ledger.nodes, ledger.members)
+        except ValueError:
+            orbits = []
+        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity)
+                                      for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
 
     def pair_node_no(self):
         """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both
@@ -2205,6 +2218,10 @@ class StarSystem:
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
+                # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit")
                 if planetPhysics.settle_envelope(obj):
                     log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
                 if planetPhysics.finish_orbit_oddities(obj):

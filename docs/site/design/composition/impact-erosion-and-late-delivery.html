@@ -48,11 +48,11 @@ main{padding:16px 16px 60px}}
 <h2 id="1-the-answer-in-short">1. The answer in short</h2>
 <ul>
 <li>After the giant impacts a rocky planet goes on accreting leftover planetesimals. The mass is about 0.7 weight percent of an Earth mass for the Earth, and goes as (M / M_earth)^(-1/3) (cross section over mass): Mercury 1.9, Venus 0.75, Earth 0.7, Mars 1.5 percent, against 2.7, 0.8, 0.7 and 1.4 in the N-body runs of [R0518] (Table 1; scatter 0.5 to 4.5 percent). The Moon is off the law (0.025 weight percent from the highly siderophile elements, as quoted in the sources above); nothing here is fitted to it.</li>
-<li>The same impacts do two opposite things to the air. They deliver volatiles (water, CO<sub>2</sub>, N<sub>2</sub>) and they blow the air away. The balance for each species is the one of [R3872]: dm/dS = (1 - zeta) x - eta m / m_air, with S the cumulative impactor mass, x the species' mass fraction in the impactors, zeta the share of the impactor's own vapour that escapes and eta the air mass one unit of impactor mass removes.</li>
+<li>The same impacts do two opposite things to the air. They deliver volatiles (water, CO<sub>2</sub>, N<sub>2</sub>) and they blow the air away. The balance for each species is the one of [R3872]: dm/dS = (1 - zeta) x - eta m / m_air, with S the cumulative impactor mass, x the species' mass fraction in the impactors, zeta the share of the impactor's own vapor that escapes and eta the air mass one unit of impactor mass removes.</li>
 <li>With the carbonaceous reference composition of Sakuraba et al. (10 percent water, 2 percent CO<sub>2</sub>, 0.2 percent N<sub>2</sub>) scaled by a drawn factor of 0.01 to 1 (0.1 is the enstatite-chondrite-like veneer that the Earth's isotopes ask for), the Earth twin ends with 5.9e17 to 7.3e18 kg of N<sub>2</sub> in the air; the real 3.9e18 kg lies inside. The water the impactors bring and the planet keeps (above what the air can hold) is 3.7e20 to 3.7e21 kg; the ocean's 1.4e21 kg lies inside.</li>
 <li>Venus, with no ocean and no carbonate sink, holds everything the impacts do not blow away: 1.4e17 to 9.3e18 kg of N<sub>2</sub> against the observed 1.1e19 kg.</li>
 <li>Mars comes out with much more N<sub>2</sub> than it has (1.8e18 kg at scale 1, 8.8e16 kg at 0.1, against 4.4e14 kg observed). This is the result of [R3872] as well: late impacts alone do not make Mars thin. The thin air of Mars is the escape of the retention rows of the pressure supply law, not erosion by impacts. A planet the size of Mars needs those rows (GEN.411/422), and the module's test says so.</li>
-<li>About a tenth to a fifth of the impactor vapour escapes (zeta 0.10 for the Earth, 0.13 for Venus, 0.17 for Mars).</li>
+<li>About a tenth to a fifth of the impactor vapor escapes (zeta 0.10 for the Earth, 0.13 for Venus, 0.17 for Mars).</li>
 </ul>
 <h2 id="2-sources-and-what-was-read">2. Sources, and what was read</h2>
 <div class="table"><table>
@@ -67,7 +67,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>[R3872], &quot;Numerous chondritic impactors and oceanic composition&quot; [R3872]</td>
 <td>full text</td>
-<td>the balance Eq. 1 and 2; Svetsov's erosion as Eq. 5 to 7; Shuvalov's vapour escape Eq. 8; the carbonaceous reference composition (section 2.4); the size distribution (section 2.6); the surface limits of an ocean and carbonate cycle (section 2.3); the Earth, Venus and Mars check</td>
+<td>the balance Eq. 1 and 2; Svetsov's erosion as Eq. 5 to 7; Shuvalov's vapor escape Eq. 8; the carbonaceous reference composition (section 2.4); the size distribution (section 2.6); the surface limits of an ocean and carbonate cycle (section 2.3); the Earth, Venus and Mars check</td>
 </tr>
 <tr>
 <td>[R0518], Earth Planet. Sci. Lett. 455, 85 [R0518]</td>
@@ -93,7 +93,7 @@ main{padding:16px 16px 60px}}
 <li><strong>What it brings</strong> (<code>veneer_volatiles</code>): H<sub>2</sub>O 0.10, CO<sub>2</sub> 0.02, N<sub>2</sub> 0.002 of the impactor mass (carbonaceous reference of Sakuraba et al. section 2.4), times a scale drawn log-uniform between 0.01 and 1, recorded as <code>veneer_volatile_scale</code>. The scale is the one free number of the model; the Earth's N<sub>2</sub> and the ocean bracket it (section 4).</li>
 <li><strong>How hard it hits</strong> (<code>impact_speed_ms</code>): the speed at the surface is sqrt(v_esc^2 + v_inf^2) with v_inf = 0.6 of the orbital speed. Brasser et al. give 24.3, 21.1 and 13.4 km/s for Venus, Earth and Mars; the module gives 23.4, 21.1 and 15.3 (within 16 percent, tested).</li>
 <li><strong>What it removes</strong> (<code>erosion_per_impactor_mass</code>): Svetsov's air mass removed per unit impactor mass for an impactor of diameter D, with the plume fraction that outruns the escape speed, averaged over a size distribution whose mass is flat in the diameter from 10^-1.5 to 10^3 km ([R0484] as used by Sakuraba et al.). A thin air loses less per impactor mass, a big impactor less than a small one, and an impact too slow to launch the plume past escape erodes nothing (all tested).</li>
-<li><strong>The caps</strong> (<code>caps_pa</code>): the gas a species can hold is limited by the surface. An ocean holds the water above its vapour pressure, a carbonate cycle the CO<sub>2</sub> above its balance, an ice cap the rest. The excess is kept in the ocean, rock or ice, not eroded. The caller gives the caps (the module knows no climate), and the test uses the surface limits of Sakuraba et al. section 2.3.</li>
+<li><strong>The caps</strong> (<code>caps_pa</code>): the gas a species can hold is limited by the surface. An ocean holds the water above its vapor pressure, a carbonate cycle the CO<sub>2</sub> above its balance, an ice cap the rest. The excess is kept in the ocean, rock or ice, not eroded. The caller gives the caps (the module knows no climate), and the test uses the surface limits of Sakuraba et al. section 2.3.</li>
 <li><strong>To the supply law</strong> (<code>surface_pressure.impact_inventory(balance, mantle_kg)</code>): the air plus the kept mass, as moles of H, C and N atoms per 100 g of mantle (H = 2 H<sub>2</sub>O, C = CO<sub>2</sub>, N = 2 N<sub>2</sub>).</li>
 </ul>
 <h2 id="4-checks-against-the-terrestrial-planets">4. Checks against the terrestrial planets</h2>
