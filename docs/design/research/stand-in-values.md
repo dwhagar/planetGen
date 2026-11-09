@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1487 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1491 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1461 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1465 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 107 | 47 | 9 | 10 | 0 | 173 |
 | T4 | 74 | 11 | 3 | 21 | 10 | 119 |
 | T5 | 73 | 24 | 6 | 1 | 1 | 105 |
-| T6 | 176 | 104 | 27 | 76 | 2 | 385 |
+| T6 | 177 | 104 | 27 | 77 | 4 | 389 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 832 | 300 | 71 | 236 | 48 | 1487 |
+| All | 833 | 300 | 71 | 237 | 50 | 1491 |
 
 ## How the labels were given
 
@@ -2610,3 +2610,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
 | IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
 | IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+
+## 6.250 Stand-ins of the late supply a planet takes from the reservoirs of its system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | - | replace (GEN.1493) |
+| LS2 | P | T6 | L4 | `late_supply.RELATIVE_SPEED_SHARE` 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor | 0.2 to 0.8 | bodies on near-circular orbits | a measured impact-speed distribution on a rocky planet that differs by more than a factor of two | the speed from the scattered orbits' eccentricities | no source: an eccentricity of a few tenths | predicted only | - | no data |
+| LS3 | P | T6 | L4 | `late_supply.OUTER_REACH` 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge | 2 to 6 | giants outside a belt | a giant at 4 times a belt's edge whose measured scattering of that belt is negligible | the giant's chaotic zone width (the Hill-radius law of the clearing) | no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters | predicted only | - | no data |
+| LS4 | T | T6 | L0 | each body takes the scattered mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census) | none | bodies the planetesimals cross | a system whose measured veneer is set by the star's capture or by planetesimals outside any belt | an Opik collision probability per orbit with the lifetimes of the crossing population | design; the form is the Safronov focusing factor | predicted only | - | - |
