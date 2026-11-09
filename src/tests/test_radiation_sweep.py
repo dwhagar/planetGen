@@ -36,7 +36,7 @@ import pytest
 from scipy import stats
 
 from planetgen import tuning
-from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, planet_type, radiation as rad, surface_air)
+from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, planet_type, radiation as rad, radiation_field, surface_air)
 from tests.class_sweep_cli import sample_bodies
 
 SYSTEMS = 20
@@ -81,7 +81,7 @@ def _starlight_w_m2(body):
     luminosity = getattr(getattr(body, "star", None), "luminosity", None)
     if not distance_au or not luminosity:
         return None
-    return climate_draws.starlight_w_m2(luminosity, distance_au * constants.AU_TO_KM)
+    return radiation_field.starlight_w_m2(body.star, distance_au)       # GEN.1441: the host's light and every other star's
 
 
 def _same(a, b):
