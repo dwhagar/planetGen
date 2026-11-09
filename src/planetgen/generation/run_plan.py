@@ -3266,6 +3266,67 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
+STORED_SCATTER_STAGES = {"stars": ("mass", "luminosity"), "phenomena": ("phenomena", "phenomena-index"), "nebula-field": (NEBULA_DRAW_KEY,)}
+"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the two star passes, the phenomena shells with their indexes, the nebula field."""
+
+
+def _scatter_stands(conn, kinds, current, behind):
+    """Whether every kind of `kinds` was drawn to its end and recorded (`record_scatter_epoch`; every clear forgets it, so a record is a finished draw, rows or none: a nebula field can be
+    drawn and empty) under an epoch no later epoch changed the scatter stage of (`epoch_record.needs`)."""
+    recorded = store.scatter_epochs(conn)
+    return all(kind in recorded and not behind("scatter", recorded[kind], current) for kind in kinds)
+
+
+def stored_scatter_skips(args):
+    """
+    The stages of a `galaxy` run that need not run because what they draw is stored and current (PERF.256; the planner rule "a job whose outputs are present is not
+    planned"): `{stage key: reason}`, empty when nothing stands. A scatter stands when it was drawn to its end (`scatter_epochs` holds its record), the generator epoch it was drawn under is not one that changed the scatter
+    stage (`epoch_record.needs`), and the settings the request would draw it with are the stored ones: the luminosity floor, the stellar mass limit and the seed of the star
+    passes; the seed and the lowest compact mass of the phenomena (the galaxy's seed derives the nebula field's). The two star passes stand or are drawn together, as `galaxy` draws them
+    (the bright stars are split from the massive ones at the mass limit), and the nebula field is drawn again whenever the phenomena are. Reads the database and changes nothing; a galaxy with no skeleton or no seed has no skips.
+    """
+    from planetgen.galaxy import epoch_record
+    from planetgen.util import generator_epoch
+
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None or skeleton.galaxy_seed is None:
+            return {}
+        current, behind = generator_epoch.generator_epoch(), epoch_record.needs
+        floor, stored = float(args.bright_star_min_luminosity), store.bright_star_scatter_settings(conn)
+        limit, stored_limit = _stellar_mass_limit(args, conn), store.bright_star_mass_limit(conn)
+        stars = (stored is not None and stored_limit is not None and math.isclose(stored[0], floor, rel_tol=1e-12) and math.isclose(stored_limit, limit, rel_tol=1e-12)
+                 and stored[1] == _bright_star_seed(skeleton, "scatter") and _scatter_stands(conn, ("mass", "luminosity"), current, behind)
+                 and not (store.scatter_epochs(conn).get("band") is not None and behind("scatter", store.scatter_epochs(conn)["band"], current)))
+        found = store.phenomenon_scatter_settings(conn)
+        compact = _compact_mass_limit(args, conn)
+        phenomena = (found is not None and found[1] is not None and found[0] == _phenomenon_scatter_seed(skeleton) and math.isclose(found[1], compact, rel_tol=1e-12)
+                     and _scatter_stands(conn, ("phenomena",), current, behind))
+        field = phenomena and _scatter_stands(conn, ("nebula-field",), current, behind)
+        standing = {"stars": stars, "phenomena": phenomena, "nebula-field": field}
+        reasons = {"stars": "the star scatter is stored under the current epoch with these settings",
+                   "phenomena": "the phenomena scatter is stored under the current epoch with these settings",
+                   "nebula-field": "the nebula field is stored under the current epoch"}
+        return {key: reasons[kind] for kind, keys in STORED_SCATTER_STAGES.items() if standing[kind] for key in keys}
+    finally:
+        conn.close()
+
+
+def block_lights_skip(args, skips):
+    """
+    The reason the block light stage of a `galaxy` run need not run, or `None` (PERF.256): every scatter stands (`skips` holds the stages of all of them, `stored_scatter_skips`) and the stored
+    totals hold every unbuilt object (`block_lights.totals_current`). The caller asks only for a run that generates no sector, since a backfill or a fill can still change a light.
+    """
+    if not all(key in skips for keys in STORED_SCATTER_STAGES.values() for key in keys):
+        return None
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        return "the scatters stand and the block light totals hold every pre-placed object" if block_lights.totals_current(conn) else None
+    finally:
+        conn.close()
+
+
 def run_scatter(args):
     """
     `planetgen scatter` (PERF.121): draws the one kind of scatter `args` names (`stages.scatter_kind`) on the stored
