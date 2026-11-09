@@ -1641,9 +1641,9 @@ def epoch_status(database):
         return {"error": f"The galaxy could not be read: {exc}"}
 
 
-def finish_status(database):
+def finish_status(database, run_id=None):
     """
-    What "Finish the last run" would do (PERF.182), read from the run record: `{"error": None, "run", "title",
+    What "Finish the last run" would do (PERF.182), or with `run_id` (the Queue page's Resume run, OPS.144) what carrying on that run would do, read from the run record: `{"error": None, "run", "title",
     "stopped_in", "carried", "again"}` (the id and title of the run that stopped, the stage it stopped in, the stages it
     finished and keeps, and the stages that run now: those the run never started among them), or `{"error": ...}` saying
     why there is nothing to carry on. It changes nothing but the record of a
@@ -1651,7 +1651,7 @@ def finish_status(database):
     """
     try:
         seed = _stored_seed(database)
-        found = finish_run.find(redisqueue.connect(), None if seed is None else seed.hex(), None, database)
+        found = finish_run.find(redisqueue.connect(), None if seed is None else seed.hex(), None, database, run_id)
     except finish_run.CannotFinish as exc:
         return {"error": str(exc)}
     except Exception as exc:  # noqa: BLE001 -- the page then says why instead of failing
