@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3787] - 2026-11-09
+
+**Headline:** The effect ledger no longer stores a row for a body that has only one star sending it light, and an edit of a system clears the system's ledger rows. A default system now keeps about 2.4 light and ultraviolet rows on average, not 4 for every body.
+
+### Changed
+
+- A light or UV effect on a body with a single source writes no row: that source is the body's host star and the flux is on the body, so the rows begin where a second source matters (a binary or a multiple). The gravity effects keep the largest source and the summary row as before.
+- `edits.save_system_edits` clears the system's ledger rows (an edited body's shares are no longer the ones generation noted; they stay empty until the system's ledger is refilled), and `edits.forget_ledger_rows` takes the rows of a standalone phenomenon that is deleted alone or with its sector, as receiver and as source.
+- The module note of `physics/effect_ledger.py` says that light and UV sources are the stars of the body's own system, not the sky's.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3786] - 2026-11-09
+
+**Headline:** A queue test can no longer replace its own test process with a worker, which took a parallel test node down.
+
+### Changed
+
+- `tests/test_work_units.py`: `test_a_unit_survives_a_warm_that_outlasts_an_execution_record` ran the real queue worker in the test process. The worker starts itself over (`os.execv`, PERF.226) for a unit that needs no star tables when its process holds them, and a pytest-xdist node that an earlier test had left holding the tables was replaced by a worker ("node down" on every parallel run, passing alone). The test now says no tables are held.
+- `tests/conftest.py`: an autouse fixture makes `os.execv` raise in a test process unless the test patches it (the tests of the worker's start-over already do), so the next such case fails with a message and not with a lost node.
+
+generation-affects: none
+
+## [8.0.3785] - 2026-11-09
+
+**Headline:** The heading test of the describe renderers no longer needs the first seeded system to have a moon.
+
+### Changed
+
+- `tests/test_describe_render.py::test_headings_follow_the_tree_in_each_format` took the first of three seeded systems and asserted it had a moon section. `MOONS` forces a chance at moons, not a moon, and the Train 21 merge changed what the seed draws (the system of run seed 100 has five planets and no moon now; one moon before). Measured over 80 systems with `MOONS` on, 46 had a moon before Train 21 and 48 after (340 and 354 moons), so the moon rate did not move. The test takes the first of the three seeded documents that has a moon, and fails if none has.
+
+generation-affects: none
+
+## [8.0.3784] - 2026-11-09
+
+**Headline:** Emptying the earlier bright stars is a step of its own in a scatter run, no longer a hook of the shell scatter commands (OPS.123 slice 3, bright-star verb).
+
+### Changed
+- **`clear-bright-stars` is its own command and stage.** The `prepare` of `scatter-mass` and `scatter-luminosity` is gone; `clear_bright_stars_unit` does the same work in one unit and reads the same deferred scatter settings as the pass it comes before. The stage is "Clear the earlier bright stars" (`mass-clear`) before a mass pass, which empties the whole scatter, and "Clear the earlier bright stars of the luminosity pass" (`luminosity-clear`) before a luminosity pass run alone, which empties that pass only. A galaxy run counts one more stage (16). `finish_run.REWIND_WITH` now names the commands a stopped stage is rewound with, nearest first, so a massive-star pass that stopped is carried on from its clearing and a luminosity pass of a run that draws both passes is carried on from the clearing before the massive pass; a luminosity pass of its own clears itself and stays apart, as before. Reused: `store.clear_bright_stars`, `store.clear_bright_star_pass`, the deferred `scatter-settings` parameter, the one-unit whole expansion of `clear-scatter`. `clear-scatter` itself was not reused: it refuses when the bright stars are stored, empties on the stored limits, refreshes the block lights and resets the scatter epoch.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3783] - 2026-11-09
+
+**Headline:** The known-red list no longer names test_work_units and test_gen_reach_groups, which pass on main.
+
+### Changed
+
+- `scripts/data/known_reds.json`: TEST.642 (test_work_units) and TEST.650 (test_gen_reach_groups) are removed; both pass on main after Train 21, so the gate treats a failure in them as new.
+
+generation-affects: none
+
+## [8.0.3782] - 2026-11-09
+
+**Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
+
+### Added
+- **Design note for GEN.1492** (`docs/design/systems/belt-secular-excitation-by-companions.md`): what the belt roster does today, the first-order secular theory (forced eccentricity, diluted by the planets' own precession), what it leaves out (inclination, Kozai, planets), and two slices (the calibration module, then the wiring as a lock item). Three questions for TODO.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3781] - 2026-11-09
 
 **Headline:** `rescore-habitability` now re-scores only the systems whose stored numbers were not worked out by the running code, so a rerun after no change touches nothing.

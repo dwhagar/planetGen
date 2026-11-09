@@ -591,6 +591,18 @@ def _run_queue_inline(monkeypatch, request):
         yield
 
 
+@pytest.fixture(autouse=True)
+def _no_test_process_is_replaced(monkeypatch):
+    """
+    TEST.713: `os.execv` in a test process would replace the process: a pytest-xdist node that ran a real queue worker's `prepare_execution` (the worker starts itself over for a unit
+    that needs no star tables when it holds them, PERF.226) went down and its tests were lost. A test that wants to see the call patches it itself (that patch comes after this one).
+    """
+    def refuse(*args, **kwargs):
+        raise AssertionError(f"os.execv{args[:1]!r} would replace the test process; patch it in the test (TEST.713)")
+    monkeypatch.setattr(os, "execv", refuse)
+    yield
+
+
 ROOMY_DISK_BYTES = 200 * 1024 ** 3
 """int: The free space (and twice the size) a test sees on the database's drive."""
 

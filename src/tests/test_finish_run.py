@@ -53,7 +53,7 @@ def _conclude(params, plan, results, seconds):
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
     for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
-                 "empty-nebula-field", "draw-nebula-field"):
+                 "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
             kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), prepare=(__name__, "_prepare"),
             conclude=(__name__, "_conclude")))
@@ -170,20 +170,28 @@ def test_a_nebula_field_draw_that_stopped_is_carried_on_with_the_clearing_of_the
     found = _plan(conn, run_id)
     assert (found.first, found.stopped) == (1, 2)
     assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
-    assert "empty-nebula-field" in finish_run.FINISHABLE and finish_run.REWIND_WITH["draw-nebula-field"] == "empty-nebula-field"
+    assert "empty-nebula-field" in finish_run.FINISHABLE and finish_run.REWIND_WITH["draw-nebula-field"] == ("empty-nebula-field",)
 
 
-def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together(conn):
-    run_id = _stopped(conn, [_step("mass", "scatter-mass", clear="all"), _step("luminosity", "scatter-luminosity")],
-                      "luminosity", 0)
-    found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (0, 1)
-
-
-def test_the_bright_stars_of_a_run_that_clears_its_own_pass_are_not(conn):
-    steps = [_step("mass", "scatter-mass", clear="all"), _step("luminosity", "scatter-luminosity", clear="luminosity")]
+def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together_with_their_clearing(conn):
+    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"), _step("luminosity", "scatter-luminosity")]
     run_id = _stopped(conn, steps, "luminosity", 0)
-    assert _plan(conn, run_id).first == 1
+    found = _plan(conn, run_id)
+    assert (found.first, found.stopped) == (0, 2)
+
+
+def test_a_massive_star_pass_that_stopped_is_carried_on_from_its_clearing(conn):
+    steps = [_step("start", "plain"), _step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass")]
+    found = _plan(conn, _stopped(conn, steps, "mass", 0))
+    assert (found.first, found.stopped) == (1, 2)
+
+
+def test_the_bright_stars_of_a_run_that_clears_its_own_pass_are_not_rewound_with_the_massive_pass(conn):
+    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"),
+             _step("luminosity-clear", "clear-bright-stars"), _step("luminosity", "scatter-luminosity")]
+    run_id = _stopped(conn, steps, "luminosity", 0)
+    found = _plan(conn, run_id)
+    assert (found.first, found.stopped) == (2, 3)
 
 
 def test_a_run_already_carried_on_is_not_carried_on_twice(conn):
