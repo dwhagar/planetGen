@@ -3007,3 +3007,4 @@ Baseline: PR #1817.
 | GEN.1469 | 8.1 | Stand-in replacements |
 | PERF.249 | 8.1 | Bugs and flaky tests |
 | PERF.257 | 8.1 | Stand-in replacements |
+| GEN.1482 | 8.1 | Stand-in replacements |
