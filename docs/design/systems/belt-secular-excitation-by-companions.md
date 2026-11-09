@@ -4,7 +4,7 @@ Status: design for review by TODO; nothing is built. Written by Lane 22 on 2026-
 
 ## The question
 
-A belt's members get their eccentricity and inclination from one Rayleigh draw whose width depends only on how far out the belt is (`belt_roster.rms_eccentricity`, `E_OVER_I`), whatever stars the system holds. A belt a few AU from a star with a companion of a few hundred AU is pushed by the companion's tide: over many orbits the companion's pull averages into a slow exchange that raises every member's eccentricity to a **forced** value (the secular forcing of Heppenheimer 1978) that depends on where the belt stands in the companion's orbit, and that the free, drawn eccentricity then adds to as a vector. Today a belt in a close binary looks the same as one round a lone star. GEN.1451 left this out on purpose (row DT4 of section 6.246).
+A belt's members get their eccentricity and inclination from one Rayleigh draw whose width depends only on how far out the belt is (`belt_roster.rms_eccentricity`, `E_OVER_I`), whatever stars the system holds. A belt a few AU from a star with a companion of a few hundred AU is pushed by the companion's tide: over many orbits the companion's pull averages into a slow exchange that raises every member's eccentricity to a **forced** value that depends on where the belt stands in the companion's orbit, and that the free, drawn eccentricity then adds to as a vector. Today a belt in a close binary looks the same as one round a lone star. GEN.1451 left this out on purpose (row DT4 of section 6.246).
 
 ## What the code does today (read, not assumed)
 
@@ -15,7 +15,7 @@ A belt's members get their eccentricity and inclination from one Rayleigh draw w
 
 ## The physics
 
-For a test body at `a` round a host of mass `M` with a companion of mass `m'` at `a_c`, eccentricity `e'`, the first-order secular theory (Murray and Dermott, *Solar System Dynamics* sections 7.2 and 7.3 [R3220]; Heppenheimer 1978) gives, with `alpha = a / a_c`, `n` the body's mean motion:
+For a test body at `a` round a host of mass `M` with a companion of mass `m'` at `a_c`, eccentricity `e'`, the first-order secular theory (Murray and Dermott, *Solar System Dynamics* sections 7.2 and 7.3 [R3220]) gives, with `alpha = a / a_c`, `n` the body's mean motion:
 
     A_c = (n / 4) (m' / M) alpha^2 b_{3/2}^{(1)}(alpha)  ~  (3/4) n (m'/M) alpha^3 (1 - e'^2)^(-3/2)
     B_c = (n / 4) (m' / M) alpha^2 b_{3/2}^{(2)}(alpha) e' ~  (15/16) n (m'/M) alpha^4 e' (1 - e'^2)^(-5/2)
