@@ -1,0 +1,836 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Course avoidance: keep-out radii and the path-bending algorithm - planetGen docs</title>
+<meta name="description" content="What radius a course keeps from each kind of object, where the built rule (galaxy/keepout.py, NAV.24) has to change, the algorithm that bends a straight course around keep-out spheres (NAV.26), how moving bodies inside a system are handl...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/course-avoidance.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/course-avoidance.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="course-avoidance-keep-out-radii-and-the-path-bending-algorithm">Course avoidance: keep-out radii and the path-bending algorithm</h1><p class="meta">docs/design/orbits/course-avoidance.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-is-in-the-repo-checked">1. What is in the repo (checked)</a></li><li style="margin-left:0px"><a href="#2-keep-out-radius-per-kind">2. Keep-out radius per kind</a></li><li style="margin-left:14px"><a href="#21-below-resolution-exemptions-scale-hand-off">2.1 Below resolution, exemptions, scale hand-off</a></li><li style="margin-left:0px"><a href="#3-fixes-to-the-built-rule">3. Fixes to the built rule</a></li><li style="margin-left:14px"><a href="#31-asteroid-fields-nav51">3.1 Asteroid fields (NAV.51)</a></li><li style="margin-left:14px"><a href="#32-supermassive-black-hole-and-quasar">3.2 Supermassive black hole and quasar</a></li><li style="margin-left:14px"><a href="#33-moon-hill-radius-verified-in-the-code">3.3 Moon Hill radius (verified in the code)</a></li><li style="margin-left:14px"><a href="#34-nebulae-and-supernova-remnants">3.4 Nebulae and supernova remnants</a></li><li style="margin-left:0px"><a href="#4-numbers-behind-the-table">4. Numbers behind the table</a></li><li style="margin-left:14px"><a href="#41-stars">4.1 Stars</a></li><li style="margin-left:14px"><a href="#42-planets-and-moons">4.2 Planets and moons</a></li><li style="margin-left:14px"><a href="#43-black-holes">4.3 Black holes</a></li><li style="margin-left:14px"><a href="#44-neutron-stars-pulsars-magnetars">4.4 Neutron stars, pulsars, magnetars</a></li><li style="margin-left:14px"><a href="#45-rogue-planets-hypervelocity-stars-comets-dust">4.5 Rogue planets, hypervelocity stars, comets, dust</a></li><li style="margin-left:0px"><a href="#5-the-path-bending-algorithm-nav26">5. The path-bending algorithm (NAV.26)</a></li><li style="margin-left:14px"><a href="#51-known-results">5.1 Known results</a></li><li style="margin-left:14px"><a href="#52-methods-compared">5.2 Methods compared</a></li><li style="margin-left:14px"><a href="#53-key-function-bodies">5.3 Key function bodies</a></li><li style="margin-left:14px"><a href="#54-measured-results">5.4 Measured results</a></li><li style="margin-left:14px"><a href="#55-degenerate-and-hard-cases">5.5 Degenerate and hard cases</a></li><li style="margin-left:0px"><a href="#6-moving-bodies-inside-a-system-nav27">6. Moving bodies inside a system (NAV.27)</a></li><li style="margin-left:0px"><a href="#7-how-course-lines-are-exposed-nav28-nav5-nav17-nav21">7. How course lines are exposed (NAV.28, NAV.5, NAV.17, NAV.21)</a></li><li style="margin-left:0px"><a href="#8-what-carries-over-from-the-uploaded-documents-and-what-does-not">8. What carries over from the uploaded documents, and what does not</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>What radius a course keeps from each kind of object, where the built rule (<code>galaxy/keepout.py</code>, NAV.24) has to change, the algorithm that bends a straight course around keep-out spheres (NAV.26), how moving bodies inside a system are handled (NAV.27) and the <code>adjusted</code> course object that the NAV page, the maps and saved courses share (NAV.28). It also records which parts of Boss's uploaded astrodynamics documents carry over and which do not. The route itself (which systems are the stops) is in <a href="course-routing.html">course-routing.md</a>; the frames a course is written in are in <a href="navigation-frames.html">navigation-frames.md</a>.</p>
+<p>Informs: NAV.6, NAV.22, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, NAV.51, NAV.5, NAV.21, NAV.4, NAV.17, MAP.121
+Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation
+Built (NAV.22 part a, 2026-11-05): a course inside one sector is drawn in that sector on the Galaxy Map; <code>web/nav_page.galaxy_course</code> places the stops the API gives in the sector's own axes (light-years) into the galaxy frame (parsecs) from the sector's center (<code>galaxy/frame.local_to_galaxy_pc</code>) and returns them as <code>points</code> with <code>scope</code> <code>&quot;sector&quot;</code>, so the map's course drawing (route, straight line, bends, rings, names) serves both. Built (NAV.22 part b, 2026-11-05): <code>web/nav_page.system_course</code> hands a system's 3D view the legs of the course that lie in it (the API's <code>out</code>, <code>into</code> and <code>within</code> legs, each polyline in km as <code>adjust_legs</code> planned it, the straight line where none was), the page passes them as <code>data-course</code> and <code>static/systemcourse.js</code> draws them through the view's layout (cut into pieces in the compressed scale, where a straight line bends); the hand-off at the heliopause is the leg's own end, as section 2.1 has it. The NAV page links to the view of each system a leg lies in (<code>?course=&lt;from&gt;,&lt;to&gt;</code>). Built (NAV.54, 2026-11-05): the keep-out table of section 2 in <code>galaxy/keepout.py</code> and <code>db/query.keep_out_radius</code> (an asteroid field's stored radius, a supermassive hole's and a quasar's sphere of influence, a star's radiation radius inside its own system as <code>keep_out_in_system</code> on a star, the corrected pass-through notes for a cloud, a remnant and a belt; a moon's stored Hill radius was already against its planet, GEN.138); the knobs are <code>tuning.KEEP_OUT_*</code>. Built (NAV.25, 2026-11-05): <code>db/obstacles.py</code> <code>obstacles_along_segment(conn, start_pc, end_pc, kinds=None)</code> lists the keep-out spheres a straight segment touches in the galaxy frame, in order along it, with each sphere's center, radius, basis, note and whether an end lies inside it; each kind is searched with its own widest radius (<code>widest_reach_pc</code>), so a rogue planet's 0.05 pc and a quasar's 200 pc do not share one box. A course inside a system works from the bodies at a time (NAV.27, built below). One change from the research: the sphere of influence uses the bulge dispersion that the hole's own mass sets (<code>galaxy.structure.black_hole_dispersion_kms</code>, the M-sigma relation the generator now draws the hole with), not a fixed 100 km/s, so a 4 million solar mass hole keeps out 3.1 pc, not 1.7 pc. Built (NAV.26, 2026-11-05): <code>galaxy/avoid.py</code> <code>plan_course(start, end, spheres, frame, unit, passed_through)</code> is the planner of section 5 as pure numpy geometry, returning the <code>adjusted</code> object of section 7: the closed-form wrap at the first hit, the validated polish, the exemption of any sphere that holds an end (both ends in one sphere is a straight line), spheres under <code>tuning.COURSE_BELOW_RESOLUTION</code> of the leg stepped around with two tangent points and listed apart, a polyline cut to a 1% sagitta, and the overlap rule (the cluster of a crossed sphere is replaced by its enclosing sphere and the course planned again; a merged sphere's <code>ref</code> is the list of its members; an end swallowed or a plan still wrong gives the straight line with <code>overlap_fallback</code>; more than <code>tuning.COURSE_MAX_WRAPS</code> wraps gives <code>wrap_limit</code>). The knobs are <code>tuning.COURSE_*</code>. Its prerequisite NAV.62 (the pull of unresolved stars) was a study, done 2026-11-05 (<code>realistic-galactic-core.md</code> section 11), and the planner does not need it. Nothing calls it yet; the wiring is NAV.6.</p>
+<p>Prototype and test scripts are in the research scratchpad (<code>nav05/</code>: planner <code>avoid.py</code>, numbers <code>physics.py</code>, <code>collide.py</code>, <code>moving.py</code>, <code>moving2.py</code>, <code>nebfrac.py</code>, tests <code>t1.py</code> to <code>t20.py</code>). The scripts are research code outside the repo. The research environment could only read search-result text, not the papers themselves; [R] items are listed under Evidence notes.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>NAV.6 (Boss, 2026-10-01 20:55Z): &quot;we need to factor gravitational bodies into the course. A ship piloting would adjust the course to avoid falling into the gravitational field of objects it knows about. ... attempting to stay out of the Hill sphere of each object. We're also going to use this within the sector and within the star system.&quot;</li>
+<li>NAV.51 (Boss, 2026-10-09 01:02Z): &quot;Courses should avoid asteroid fields.&quot; Nebulae and supernova remnants were not ruled on; the course passes through them with a note until Boss decides.</li>
+<li>The NAV chain is parked (Boss, 2026-10-09).</li>
+<li>Related, from the route work (Boss, 2026-10-02 01:53Z): no hop limit, and a hop through unknown space is flagged. Avoidance therefore bends each hop of a route one at a time and does not change which systems are the stops.</li>
+<li>Not a Boss decision, a pre-planning default recorded in the NAV.6 text: a lone star or object uses its galactic Hill radius.</li>
+</ul>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>Keep-out rule.</strong> NAV.24 is built and its rule is sound for planets, moons, stars, systems and the compact objects (one default per kind, section 2). The galactic Hill spheres of stars fill only about 6% of the disk volume near the Sun, so they are separate obstacles and not a wall.</li>
+<li><strong>Four fixes to the built rule</strong> (section 3): asteroid fields need a hard keep-out at <code>radius_ly</code> (built code returns none, contradicting NAV.51); the supermassive hole and quasar get the event horizon (0.08 AU) and need the sphere of influence (1.7 pc); a moon's stored <code>hill_radius_km</code> is computed against the star's mass (confirmed in the code); the nebula and remnant note gives the wrong reason for pass-through.</li>
+<li><strong>Algorithm</strong> (section 5): straight line, then the exact one-sphere tangent-and-arc solution wherever a leg crosses a sphere, then polish by block-coordinate descent. In 150+ scenes it was always valid, never longer than a lattice A*, and 10 to 100 times faster (1 to 8 ms for up to 600 spheres).</li>
+<li><strong>Moving bodies</strong> (section 6): at warp 1 or faster, departure-time positions are enough. <strong>Exposure</strong> (section 7): an <code>adjusted</code> object beside <code>direct</code> and <code>route</code>.</li>
+</ul>
+<h2 id="1-what-is-in-the-repo-checked">1. What is in the repo (checked)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>What it does</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>galaxy/keepout.py</code>, <code>queryDb.keep_out_radius</code></td>
+<td>One rule per kind, returns <code>KeepOut(radius_km, basis, note)</code>; <code>GET /api/objects/&lt;ref&gt;</code> shows it as <code>keep_out</code></td>
+<td>Asteroid field returns none (needs the NAV.51 change); SMBH and quasar floor is the horizon radius</td>
+</tr>
+<tr>
+<td><code>stars.system_perimeter_km</code></td>
+<td><code>r_gal * (M / (3 M_vir))^(1/3)</code>, <code>M_vir</code> the galaxy's virial mass from its mass chain (<code>galaxy/mass_chain.py</code>, GEN.400; it was a fixed 1.15e12 solar masses) (<code>Star.calculate_system_perimeter</code>)</td>
+<td>A galaxy of 1.15e12 solar masses, Sun at 8 kpc: 0.53 pc = 1.7 ly = 1.09e5 AU [C]</td>
+</tr>
+<tr>
+<td><code>planets.hill_radius_km</code>, <code>moons.hill_radius_km</code></td>
+<td><code>a (m / 3M)^(1/3)</code> (<code>orbits.calculate_hill_sphere</code>)</td>
+<td>Planet: central mass is the star, correct. Moon: also the star's mass (section 3.3)</td>
+</tr>
+<tr>
+<td><code>asteroid_fields.radius_ly</code></td>
+<td>Bounding sphere, 0.001 to 1 ly (63 AU to 63,000 AU), <code>tuning.ASTEROID_FIELD_RADIUS_RANGE_LY</code></td>
+<td>No number density stored, only <code>density</code> = sparse, typical or dense</td>
+</tr>
+<tr>
+<td><code>nebulae.radius_ly</code>, <code>nebula_shape.NebulaShape.contains</code></td>
+<td>Bounding radius 0.1 to 200 ly; irregular metaball shape</td>
+<td>A containment test exists, so a chord length can be measured</td>
+</tr>
+<tr>
+<td><code>supernova_remnants.radius_ly</code></td>
+<td><code>0.35 ly * age^0.4</code> (<code>SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY</code>)</td>
+<td>Coefficient reviewed in <a href="../systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a></td>
+</tr>
+<tr>
+<td><code>physics/body_positions.positions_at(scene, years)</code></td>
+<td>Every body of a system at any time</td>
+<td>Built (MAP.70) with no production caller yet (tests and the browser twin only); NAV.27 will use it as is</td>
+</tr>
+<tr>
+<td><code>galaxy/geometry.sectors_along_segment</code> (NAV.38)</td>
+<td>Sectors a straight segment crosses</td>
+<td>Starting point for NAV.25's broad phase</td>
+</tr>
+<tr>
+<td><code>web/nav_page.galaxy_course</code></td>
+<td>Course for the Galaxy Map: <code>points</code> <code>[{name, url, role, x, y, z}]</code> in parsecs, <code>direct</code>, <code>readout</code></td>
+<td>The extension point for the adjusted form</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sector size is <code>DEFAULT_SECTOR_EDGE_PC = 4</code> (13.05 ly), in rings, layers and slots, not true cubes.</p>
+<h2 id="2-keep-out-radius-per-kind">2. Keep-out radius per kind</h2>
+<p>One default per kind. Where a kind has two rows (stars, neutron stars) the first applies at galaxy and sector scale and the second inside a system, which is what &quot;within the sector and within the star system&quot; (Boss, NAV.6) needs.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Keep-out radius</th>
+<th>Class</th>
+<th>Data in the DB</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Star, white dwarf, O/B giant (galaxy and sector scale)</td>
+<td>galactic Hill radius <code>r_gal (M / 3 M_MW)^(1/3)</code>: 0.25 to 2.1 pc</td>
+<td>Hard</td>
+<td><code>stars.system_perimeter_km</code></td>
+</tr>
+<tr>
+<td>Binary or multiple system (galaxy and sector scale)</td>
+<td>the larger of the pair's combined-mass galactic Hill radius and each star's</td>
+<td>Hard</td>
+<td><code>star_systems.binary_system_perimeter_km</code>, <code>stars.system_perimeter_km</code> (as built)</td>
+</tr>
+<tr>
+<td>Star inside its own system</td>
+<td><code>max(10 R_star, sqrt(L / (4 pi F_lim)))</code>, F_lim = 50 kW/m^2 (tunable)</td>
+<td>Hard; exempt when an end lies inside it</td>
+<td><code>stars.radius_km</code>, <code>stars.luminosity_w</code></td>
+</tr>
+<tr>
+<td>Planet</td>
+<td><code>hill_radius_km</code></td>
+<td>Hard (in system and sector)</td>
+<td><code>planets.hill_radius_km</code></td>
+</tr>
+<tr>
+<td>Moon</td>
+<td>not needed from outside (the planet's sphere covers it); inside the planet's sphere, Hill radius against the planet's mass</td>
+<td>Hard, local only</td>
+<td><code>moons.distance_km</code>, <code>moons.mass_kg</code>, planet mass (stored <code>moons.hill_radius_km</code> is wrong)</td>
+</tr>
+<tr>
+<td>Asteroid belt</td>
+<td>none; note when crossed</td>
+<td>Pass-through</td>
+<td><code>asteroid_belts</code> limits</td>
+</tr>
+<tr>
+<td>Asteroid field</td>
+<td><code>radius_ly</code> (bounding sphere)</td>
+<td>Hard (Boss)</td>
+<td><code>asteroid_fields.radius_ly</code></td>
+</tr>
+<tr>
+<td>Comet, interstellar comet</td>
+<td>none</td>
+<td>Pass-through</td>
+<td></td>
+</tr>
+<tr>
+<td>Rogue planet</td>
+<td>galactic Hill radius, floor its own radius</td>
+<td>Hard (tiny)</td>
+<td><code>rogue_planets.mass_kg</code>, <code>radius_km</code>, <code>galactic_radius_pc</code></td>
+</tr>
+<tr>
+<td>Stellar or intermediate black hole</td>
+<td>galactic Hill radius, floor the horizon</td>
+<td>Hard</td>
+<td><code>black_holes.mass_solar</code>, <code>galactic_radius_pc</code></td>
+</tr>
+<tr>
+<td>Supermassive black hole</td>
+<td><code>G M / sigma^2</code> with the generator's sigma = 100 km/s (1.7 pc at 4e6 solar masses)</td>
+<td>Hard</td>
+<td><code>black_holes.mass_solar</code> (+ <code>mass_class</code>)</td>
+</tr>
+<tr>
+<td>Quasar nucleus</td>
+<td>max(<code>G M / sigma^2</code>, radiation radius at 10 kW/m^2)</td>
+<td>Hard</td>
+<td><code>quasars.black_hole_mass_solar</code>, <code>luminosity_w</code></td>
+</tr>
+<tr>
+<td>Neutron star, pulsar (magnetar if added)</td>
+<td>galactic Hill radius between systems; in a system <code>max(1 T field radius, 1 g tide radius, spin-down radiation radius)</code></td>
+<td>Hard</td>
+<td><code>neutron_stars.mass_solar</code>, <code>radius_km</code>, <code>spin_period_ms</code>, <code>magnetic_field_gauss</code></td>
+</tr>
+<tr>
+<td>Nebula (all classes), supernova remnant</td>
+<td>none</td>
+<td>Pass-through with a note (chord, column, extinction)</td>
+<td><code>nebulae.density_cm3</code>, <code>extinction_av</code>, shape; <code>supernova_remnants</code> age, radius</td>
+</tr>
+<tr>
+<td>Facility</td>
+<td>none</td>
+<td>Endpoint only</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Why a sphere per kind and not a physical hazard radius: most physical radii (tidal, radiation, magnetic, accretion disk) are 1e-4 to 1e2 AU, against 1e5 AU for a star's galactic Hill sphere and 4 pc (about 8e5 AU) for a sector edge. They are below useful resolution between systems and matter only inside a system. The numbers behind each row are in section 4.</p>
+<h3 id="21-below-resolution-exemptions-scale-hand-off">2.1 Below resolution, exemptions, scale hand-off</h3>
+<ul>
+<li><strong>Galaxy and sector scale:</strong> only galactic-scale radii matter (stars, black holes, neutron stars, large fields, large quasars). Tide, field, radiation and photon-sphere radii are under 1e-3 of a sector edge and are ignored.</li>
+<li><strong>Small spheres</strong> (rogue planets, small fields, comets) stay obstacles when a leg crosses one, but a sphere with <code>r &lt; 0.002 x leg length</code> is &quot;below resolution&quot;: two tangent waypoints, no arc samples, not drawn (length change about 2e-4 percent). Inside a system the same applies below about 1e-5 of the leg.</li>
+<li><strong>Exemption by containment</strong>, not only by &quot;the end body&quot;: a sphere that contains the start or the goal is dropped (a planet is inside its star's galactic Hill sphere; a system can lie inside a nebula or a quasar's sphere of influence). Closed test: center distance &lt;= R x (1 + 1e-9). The unit tests should pin it.</li>
+<li><strong>Hand-off between scales:</strong> the galactic path ends at the system's star (exempt sphere). The in-system leg starts where the path crosses the system's heliopause (<code>stars.heliosphere_radius_km</code>, compressed in a cloud by <code>compressed_heliosphere_radius</code>; see navigation-frames.md) and ends at the target body. The galactic Hill sphere is the exemption radius, not the hand-off radius.</li>
+</ul>
+<h2 id="3-fixes-to-the-built-rule">3. Fixes to the built rule</h2>
+<h3 id="31-asteroid-fields-nav51">3.1 Asteroid fields (NAV.51)</h3>
+<p><code>keepout.py</code> and <code>queryDb.keep_out_radius</code> return <code>KeepOut(None, &quot;none&quot;, PASS_THROUGH_NOTE)</code> for <code>asteroid_field</code>. Change to a hard keep-out of <code>radius_ly</code> converted to km, basis <code>&quot;radius&quot;</code>. The whole stored sphere is the radius, with no density-based shrinking. <a href="../systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a> section 9 suggests a 1.1 times margin as a cheap default; the planner already places waypoints at <code>R (1 + 1e-6)</code>, so no margin is needed (a tunable if Boss wants one).</p>
+<p>This is a game rule, not physics. Expected strikes <code>N = n pi (r_body + r_ship)^2 L</code> for a 100 m ship and bodies of 1 km or more [C, <code>collide.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Crossing</th>
+<th>at belt density (4e6 km spacing)</th>
+<th>at 1e6 km spacing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Belt, 1 AU</td>
+<td>2e-12</td>
+<td>1.4e-10</td>
+</tr>
+<tr>
+<td>Field, 0.01 ly across</td>
+<td>3e-9</td>
+<td>1.8e-7</td>
+</tr>
+<tr>
+<td>Field, 2 ly across</td>
+<td>3e-7</td>
+<td>1.8e-5</td>
+</tr>
+</tbody>
+</table></div>
+<p>A field would need to be 5.6e4 to 3.4e6 times denser than the real belt for one expected strike on a 2 ly crossing. Real belt spacing is about 1e6 km on average (4e6 km from n = 5.9e4 per AU^3 over 1 km, nebula document section 9); Pioneer 10's closest approach to any known asteroid was 8.8e6 km and Dawn's planned closest approach to a catalogued one 1.0e6 km [S]. The density label matters only for the note and a possible soft cost. Dust at speed is the one place physics supports avoidance (section 3.4 and the nebula document).</p>
+<p>An in-system belt stays pass-through with a note: a belt lies between the inner and outer planets, so a hard keep-out would forbid most inner-to-outer legs or force a climb out of the plane, and the crossing risk is about 1e-10.</p>
+<h3 id="32-supermassive-black-hole-and-quasar">3.2 Supermassive black hole and quasar</h3>
+<p>Their galactic radius is 0, so their galactic Hill radius is 0 and the built floor is the event horizon: about 1.2e7 km = 0.08 AU for 4e6 solar masses. A course would graze the hole. Use the sphere of influence <code>G M / sigma^2</code>: 1.56 pc for 4e6 solar masses at 105 km/s, 1.7 pc with the generator's constant sigma = 100 km/s (which <code>compact_remnant.py</code> already stores as <code>system_perimeter</code> on the generated hole, not in the <code>black_holes</code> table). For a quasar use the larger of that and a radiation radius: luminosities in <code>tuning</code> (0.1 to 1 L_Edd, 1e38 to 1.3e40 W) at 10 kW/m^2 give 0.9 to 9 pc [C]. The region will contain many stars; any course to a star inside is exempt by containment (section 2.1) and every other course goes around.</p>
+<h3 id="33-moon-hill-radius-verified-in-the-code">3.3 Moon Hill radius (verified in the code)</h3>
+<p>Confirmed by reading the code. <code>Planet(...)</code> for a moon is created in <code>physics/planets.py</code> <code>generate_moons</code> with <code>planet.star</code> as its star and the moon's distance from its planet (AU) as <code>distance</code>. <code>generate_planet_properties</code> ends with an unconditional <code>update_hill_sphere(planet)</code>, which computes <code>calculate_hill_sphere(planet.distance * AU_TO_M, planet.mass, planet.star.mass)</code>: the moon's mass against the star's mass, at the moon's distance from its planet. <code>generation/validation.py</code> <code>refresh_moon_orbit</code> calls the same function for moons after an edit. For the Moon (384,400 km, 7.35e22 kg) this gives 888 km (smaller than its 1,737 km radius); against the Earth's mass it is 61,525 km [C, hand arithmetic from the code's formula; the project could not be imported here because <code>astropy</code> is not installed, and no database was available].</p>
+<p>Effects beyond routing: <code>min_orbit_distance</code> for a moon is <code>5 x hill_radius</code>, and <code>generate_moons</code> adds it to the running orbit distance, so moons are spaced with the wrong number (about 4,440 km for a Moon-like moon against about 307,000 km with the right Hill radius). The outer bound (<code>MOON_PROGRADE_STABLE_HILL_FRACTION</code> of the planet's Hill radius) is correct. The facility orbit slider (<code>facilities.orbit_limits</code>) falls back to a multiple of the host radius when the sphere is below the lowest orbit, which hides the error for small moons. A moon is inside its planet's Hill sphere anyway, so routing rarely needs the value; compute it against the planet's mass (<code>a (m / 3 (M + m))^(1/3)</code>, section 8) and fix <code>update_hill_sphere</code> for moons. This is a generator bug, separate from routing.</p>
+<h3 id="34-nebulae-and-supernova-remnants">3.4 Nebulae and supernova remnants</h3>
+<p>Recommendation: pass-through with a note, which is what is built, but for better reasons than the current note (&quot;No mass is stored for it, so the course passes through it.&quot;) gives.</p>
+<ul>
+<li><strong>Geometry.</strong> A nebula's drawn shape fills only 13% of its bounding sphere (6% to 19% over 30 shapes drawn with <code>nebula_shape.draw_shape</code>, seeded with <code>random.Random</code> in place of <code>draw.Stream</code>) [C, <code>nebfrac.py</code>]. A hard keep-out on the stored <code>radius_ly</code> would reserve about 7 times the real volume and force detours around empty space. If Boss ever wants a hard keep-out it should use the shape, not the sphere.</li>
+<li><strong>Gas.</strong> Ram pressure is negligible (0.015 Pa at 0.1c in a 1e4 cm^-3 core), but kinetic power flux <code>0.5 rho v^3</code> is not: 31 W/m^2 at 0.1c in 1 cm^-3 gas, 3.1e5 W/m^2 at 0.1c in a 1e4 cm^-3 core, 3.9e7 W/m^2 at 0.5c [C; hydrogen mass 1.4 m_H]. The 50 kW/m^2 threshold is reached at 0.1c for about 1,600 cm^-3. Dust erodes about 0.5 mm of surface per 3e17 cm^-2 of hydrogen column at 0.2c ([R1965] [S]); crossing 100 ly of a class M core (1e4 cm^-3) is 9.5e23 cm^-2, about a million times the Alpha Centauri trip [C]. This applies only to sub-light speeds near 0.1c or more; warp and fold speeds are game physics. It is a reason to put the column density in the note, not to forbid passage.</li>
+<li><strong>Extinction.</strong> A_V up to 100+ in dark cores blocks sensors and starlight: a navigation-difficulty note and a possible soft cost, not a collision hazard.</li>
+<li><strong>Remnants.</strong> Hot gas (1e6 to 1e7 K) at 0.1 to 100 cm^-3, so gas hazards are small; the particle and X-ray environment of a young remnant (classes R, T, U; under about 1e4 years) is the real caution. The lethal distances in the literature (8 to 10 pc for a supernova, 91 to 200 pc for a GRB [S]) are for biospheres, not ships. Remnants have no stored shape, so the bounding sphere is the whole thing.</li>
+<li><strong>New note text.</strong> &quot;Passes through <name> (class X) for about N ly; column about Y cm^-2; extinction A_V about Z.&quot; The chord length comes from <code>NebulaShape.contains_many</code> sampled along the leg. A later optional &quot;avoid dense clouds&quot; switch (edge cost multiplied by 1 + k inside the shape, A* on a coarse grid) only if Boss asks.</li>
+</ul>
+<h2 id="4-numbers-behind-the-table">4. Numbers behind the table</h2>
+<p>All galactic Hill radii use the code's formula (total Milky Way mass 1.15e12) at 8 kpc unless stated. [C] values are from <code>nav05/physics.py</code>.</p>
+<h3 id="41-stars">4.1 Stars</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Star</th>
+<th>Mass (solar)</th>
+<th>Galactic Hill radius</th>
+<th>Percent of 4 pc sector edge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>M dwarf</td>
+<td>0.1</td>
+<td>0.25 pc (0.80 ly)</td>
+<td>6%</td>
+</tr>
+<tr>
+<td>M/K</td>
+<td>0.5</td>
+<td>0.42 pc</td>
+<td>10%</td>
+</tr>
+<tr>
+<td>Sun, white dwarf</td>
+<td>1</td>
+<td>0.53 pc (1.73 ly)</td>
+<td>13%</td>
+</tr>
+<tr>
+<td>B</td>
+<td>3</td>
+<td>0.76 pc</td>
+<td>19%</td>
+</tr>
+<tr>
+<td>O</td>
+<td>30</td>
+<td>1.65 pc (5.4 ly)</td>
+<td>41%</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>60</td>
+<td>2.07 pc (6.8 ly)</td>
+<td>52%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The galaxy's tidal (Jacobi) radius of the Sun is larger: <code>r_J = (G M / (4 A (A - B)))^(1/3)</code> with the Oort constants gives 1.39 pc, and a flat rotation curve (236 km/s at 8.2 kpc) gives 1.37 pc [C; formula and constants S, the 1.4 pc figure itself was not in the results]. The code's value is 2.6 times smaller because it uses the whole-galaxy mass (halo to the virial radius) instead of the mass inside the Sun's orbit (about 1.06e11 solar masses for a flat curve, which gives 1.2 pc as a point-mass Hill radius). <a href="orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a> section 6.1 tabulates the point-mass Hill and Jacobi radii by galactocentric radius (1.22 and 1.37 pc for 1 solar mass at 8.128 kpc), and <a href="../galaxy/galactic-potential.html">galactic-potential.md</a> section 10 notes that <code>galactic_hill_radius_km</code> could use the potential's enclosed mass. <strong>Superseded by GEN.370:</strong> the radius takes the galaxy's own enclosed mass and the cell's own distance, so the whole-galaxy value above is replaced for routing and for placement alike. The smaller radius was what sector placement used to keep systems apart (<code>galaxy/sector.py</code> <code>hill_radius_ly</code>); with 1.4 pc the spheres would fill 108% of the volume at 0.1 stars/pc^3 (against 6% with the old value) and overlap. The 6% fill was why routing around them is practical, so GEN.370's build rechecks the placement fill (6% against up to 108% at 1.4 pc) with the new radius. <strong>Rechecked (GEN.370 build):</strong> for three drawn galaxies the Hill-sphere volume of a mean-mass system times the system density (the &quot;fill&quot;) is 0.0001 to 0.8 inside 100 pc (the dense cores), 0.2 to 0.5 at 1 kpc, 0.3 to 0.9 at 1 to 3 disk scale lengths and under 0.1 beyond 5 scale lengths; the old whole-halo value never passed 0.03. Placed with the real placer in two further drawn galaxies (a 4 pc cell, three seeds per radius, the requested count capped at 400), the sparser one fits every requested system except 1 of 16 at 3.7 kpc in two seeds, but the denser one (6 systems per cubic parsec at 1 kpc) fits 240 to 280 of 392 at 1 kpc (60 to 70%), 52 to 65 of 152 at 3.2 kpc (35 to 45%) and 21 to 27 of 27 at 5.7 kpc; the old radius fitted all of them. So the placer, not the density model, now sets the number of systems in a dense disk cell. Decided (Boss, contradiction sweep card, 7:29 AM EDT 2026-10-21): GEN.370 wins.</p>
+<p>Other stellar options, for completeness:</p>
+<ul>
+<li>Radiation <code>r = sqrt(L / (4 pi F))</code>. At F = 10 kW/m^2: M dwarf 0.012 AU, Sun 0.37 AU, B star (1e3 solar luminosities) 12 AU, O star (1e5) 117 AU, O<sub>3</sub> (1e6) 369 AU [C]. Parker Solar Probe's closest approach (9.86 R_sun) sees 650 kW/m^2 [C], so shielded craft go far inside this. At the F_lim = 50 kW/m^2 chosen here (a tunable): 0.17 AU for the Sun, 165 AU for an O<sub>3</sub> star.</li>
+<li>Photosphere or corona floor <code>k R_star</code>; with k = 10 the Sun is 0.047 AU. The in-system star rule is the larger of the two.</li>
+<li>The O/B star H II region (Stromgren radius, 0.68 to 14.6 pc for Q = 1e49 photons/s at n = 1,000 to 10 cm^-3 [C]) is a nebula extent, not a ship hazard.</li>
+</ul>
+<h3 id="42-planets-and-moons">4.2 Planets and moons</h3>
+<ul>
+<li>Hill radius <code>a (m / 3M)^(1/3)</code>: Mercury 2.2e5 km, Earth 1.5e6 km, Mars 1.1e6 km, Jupiter 5.3e7 km (0.36 AU), Saturn 6.5e7, Uranus 7.0e7, Neptune 1.16e8 km (0.78 AU) [C]. A hot Jupiter at 0.05 AU: 5.1e5 km (7 R_J).</li>
+<li>Stable satellites: [R1772] (Icarus 96:43) say the stable zone scales with the Hill sphere at pericenter and retrograde orbits are stable out to slightly past the Hill radius [S]. The common numbers are about 0.49 R_H prograde and 0.93 R_H retrograde [R1138] [R]; the repo uses 0.4895 (<code>MOON_PROGRADE_STABLE_HILL_FRACTION</code>). This limits where a moon can orbit; for a ship it only marks where capture and long orbits are possible.</li>
+<li>Laplace sphere of influence <code>a (m/M)^(2/5)</code>: Earth 9.2e5 km, Jupiter 4.8e7 km, 60% to 90% of the Hill radius [C]. No advantage over the stored value, and never mixed with it (orbital-solvers-and-integrators.md section 7).</li>
+<li>Fluid Roche limit <code>2.44 R_p (rho_p / rho_body)^(1/3)</code> (1.26 for rigid bodies, orbital-updates.md): 2.4 R_p for a body of the planet's own density, under 1% of a giant's Hill radius (Jupiter's is 740 R_J). A ship is rigid and strong, so Roche is a floor for parking orbits, not a hazard.</li>
+<li><strong>Default: stored Hill radius, hard keep-out.</strong> Boss's rule, and the right order of magnitude.</li>
+</ul>
+<h3 id="43-black-holes">4.3 Black holes</h3>
+<p>Schwarzschild radius <code>r_s = 2GM/c^2</code>; photon sphere 1.5 r_s; innermost stable circular orbit 3 r_s non-spinning, about 0.6 r_s prograde and 4.5 r_s retrograde at spin 0.998 [R, textbook]. Tidal acceleration across a 1 km ship equals 1 g at <code>r = (2 G M L / g)^(1/3)</code> [C].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Mass (solar)</th>
+<th>r_s</th>
+<th>Photon sphere</th>
+<th>1 g tide (1 km ship)</th>
+<th>Galactic Hill (8 kpc)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Stellar</td>
+<td>10</td>
+<td>30 km</td>
+<td>44 km</td>
+<td>6.5e4 km</td>
+<td>1.14 pc</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>1e3</td>
+<td>2,950 km</td>
+<td>4,430 km</td>
+<td>3.0e5 km</td>
+<td>5.3 pc</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>1e5</td>
+<td>2.95e5 km</td>
+<td>4.4e5 km</td>
+<td>1.4e6 km</td>
+<td>24.6 pc</td>
+</tr>
+<tr>
+<td>Supermassive (Sgr A*)</td>
+<td>4e6</td>
+<td>1.18e7 km (0.08 AU)</td>
+<td>1.8e7 km</td>
+<td>4.8e6 km</td>
+<td>0 (at the center)</td>
+</tr>
+<tr>
+<td>Quasar nucleus</td>
+<td>1e8 to 1e10</td>
+<td>2 to 200 AU</td>
+<td></td>
+<td>1.4e7 to 6.5e7 km</td>
+<td>0 (at the center)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The tidal-disruption radius of a star is <code>R_star (M_bh / M_star)^(1/3)</code>, equal to r_s at about 1e8 solar masses for a Sun-like star [S]; for a ship it is far smaller than the 1 g tide radius. Accretion-disk radiation at 1% of Eddington for a 10 solar-mass hole is 1.3e30 W, 21 AU at 10 kW/m^2 [C]. All of this is far below the galactic Hill and sphere-of-influence radii, so the rule for black holes is a &quot;gravity well&quot; rule in Boss's sense.</p>
+<h3 id="44-neutron-stars-pulsars-magnetars">4.4 Neutron stars, pulsars, magnetars</h3>
+<p>Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of [R3075] at its mass (GEN.463). The DB has <code>spin_period_ms</code>, <code>magnetic_field_gauss</code> (up to 1e13 G) and <code>pulsar_type</code>; there are no magnetars in the generator (1e14 to 1e15 G [S]).</p>
+<ul>
+<li>Light cylinder <code>c P / (2 pi)</code>: 67 km (1.4 ms), 760 km (16 ms), 9.5e4 km (2 s) [C; formula S].</li>
+<li>Dipole field <code>B(r) = B0 (R/r)^3</code> falls to 1 tesla at 260 km (1e8 G ms pulsar), 5,600 km (1e12 G), 12,000 km (1e13 G), 56,000 km (1e15 G magnetar) [C].</li>
+<li>1 g tide across a 1 km ship at 1.4 solar masses: 3.4e4 km [C].</li>
+<li>Vacuum-dipole spin-down power <code>B^2 R^6 Omega^4 / (6 c^3)</code> is 7e27 W (ms pulsar) to 4e31 W (young, 16 ms), which at 10 kW/m^2 is 1.6 to 125 AU [C, formula R]. The beam's orientation is not stored, so <code>sqrt(E / (4 pi F))</code> is the orientation-free stand-in.</li>
+<li>Default: galactic Hill radius (0.59 pc) between systems and in sectors; inside a system <code>max(1 T field radius, 1 g tide radius, spin-down radiation radius)</code>.</li>
+</ul>
+<h3 id="45-rogue-planets-hypervelocity-stars-comets-dust">4.5 Rogue planets, hypervelocity stars, comets, dust</h3>
+<ul>
+<li>Rogue planet: galactic Hill radius (as built), 0.0076 pc (0.025 ly) for an Earth mass, 0.052 pc for a Jupiter mass; about 58 per local sector at the stored rate; 0.016 expected hits per 100 pc line for Earth-mass ones, below drawing resolution.</li>
+<li>Hypervelocity star: an ordinary star system with <code>runaway_speed_kms</code> and a velocity vector; use the star rule. It moves 0.33 ly in a century at 1,000 km/s, so ignore motion except on trips of decades.</li>
+<li>Comets: galactic Hill radius of a 1e12 kg interstellar comet 0.087 AU [C]; no keep-out. A coma (1e5 to 1e7 km) is a note only.</li>
+</ul>
+<h2 id="5-the-path-bending-algorithm-nav26">5. The path-bending algorithm (NAV.26)</h2>
+<h3 id="51-known-results">5.1 Known results</h3>
+<ul>
+<li>For disjoint spheres in 3D, a shortest path is straight segments tangent to spheres joined by arcs of great circles on the sphere surfaces. This is the standard picture for convex smooth obstacles [R]; the general 3D shortest-path problem among obstacles is NP-hard with an FPTAS (Kisfaludi-Bak) [S]. Exact algorithms exist for one, two and three spheres (Chou, Hsieh and Lee, IEEE 2008; [R0775]; a fixed-sequence n-sphere version in 2012) and an approximation scheme for disjoint spheres [S]; the papers were not read.</li>
+<li>Tangent lines between two spheres are continuous families in 3D, so no exact visibility graph exists; any graph needs sampled points per sphere. A lattice A* built as the reference was never better than the method below.</li>
+<li><strong>One sphere, closed form and planar.</strong> If the straight segment A to B meets sphere (c, R), the shortest path lies in the plane through A, B and c. With <code>a = |A-c|</code>, <code>b = |B-c|</code> and <code>phi</code> the angle at c between them, the wrap exists when <code>acos(R/a) + acos(R/b) &lt; phi</code>. Entry and exit are at angles <code>acos(R/a)</code> and <code>phi - acos(R/b)</code> from the direction of A in that plane. Length: <code>sqrt(a^2-R^2) + R (phi - acos(R/a) - acos(R/b)) + sqrt(b^2-R^2)</code>. If A, c, B are collinear any plane through the line gives the same length. The planner reproduces it to 7e-15 (compared at the waypoint radius <code>R (1 + 1e-6)</code>). Overhead for a dead-center sphere of radius r on a leg of length L: 2e-4 at r/L = 0.01, 1.8e-3 at 0.03, 2.0e-2 at 0.1, 0.128 at 0.25, 0.54 at 0.49 [C]; about <code>2 (r/L)^2</code> for small r/L.</li>
+</ul>
+<h3 id="52-methods-compared">5.2 Methods compared</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Result in the tests</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Insert a wrap at the first hit, polish by block-coordinate descent with exact tangents</strong></td>
+<td>Valid and shortest in every disjoint scene; 1 to 8 ms for up to 600 spheres</td>
+<td>Use for NAV.26</td>
+</tr>
+<tr>
+<td>Lattice A* (K = 12 to 64 points per sphere plus tangent rings from each end)</td>
+<td>Never shorter; equal within 0.002% in a wall of spheres, up to 3% longer with K = 16 in dense random fields; 5 ms to 1 s</td>
+<td>Fallback or cross-check only</td>
+</tr>
+<tr>
+<td>RRT*, roadmaps, exact n-sphere algorithms (Chou et al.)</td>
+<td>Not run</td>
+<td>Not needed: obstacles are few and convex and the local solution is closed form</td>
+</tr>
+</tbody>
+</table></div>
+<p>Procedure, in prototype terms (<code>avoid.py</code>; the recommended method is <code>method=&quot;greedy&quot;</code> in <code>_plan_core</code>, reached through <code>plan_corridor(..., method=&quot;greedy&quot;)</code>; the prototype's default, <code>&quot;lattice&quot;</code>, is the A* reference and is not to be copied):</p>
+<ol>
+<li>Drop spheres that contain the start or the goal. If the straight segment misses all the others, return it.</li>
+<li>Loop: find the first leg that still crosses a sphere (closest-approach test; no squared large numbers), and insert a wrap using the one-sphere solution between the leg's two ends. The inserted wrap's neighbouring legs leave the sphere outward, so one wrap cannot be hit twice by the same sphere and the loop ends.</li>
+<li>Polish: sweep over the wraps, recompute each wrap's tangent points from its two neighbours (exact), and accept only if the new legs and arc are clear of all spheres and the length does not rise. Drop a wrap only if the direct neighbour-to-neighbour segment is clear of all spheres. Merge adjacent wraps on the same sphere. Repeat until the length stops falling.</li>
+<li>A first version let the polish drop and re-insert wraps freely; it oscillated and left 5% to 20% of dense scenes invalid. The validated polish above made every disjoint test valid.</li>
+<li>Broad phase for the full data set: only spheres whose center is within R + W of the straight segment go to the planner, W = max(5% of the leg, 3 x the biggest radius in that tube). After planning, check the result against all spheres and double W on any miss (at most 6 rounds). In the DB this is NAV.25's corridor query.</li>
+</ol>
+<h3 id="53-key-function-bodies">5.3 Key function bodies</h3>
+<p>The hit test uses the closest-approach form. The discriminant form <code>B^2 - 4A(C - R^2)</code> of &quot;Orbital Update Collision Detection.md&quot; loses digits when R is far smaller than the coordinates (the same cancellation <a href="collisions-and-mergers.html">collisions-and-mergers.md</a> section 2.1 documents for that code). For a ship leg against a static sphere it is the same quadratic with <code>Delta v = 0</code> for the sphere.</p>
+<pre><code class="language-python">def _closest(P, Q, C):
+    d = Q - P; a = float(d @ d); f = C - P
+    tu = (f @ d) / a                          # unclipped closest-approach parameter
+    t = np.clip(tu, 0.0, 1.0)
+    dist = np.linalg.norm(f - np.outer(t, d), axis=1)
+    return t, dist, tu, math.sqrt(a)
+
+def seg_hits(P, Q, C, R):                     # open ball: tangent grazing is not a hit
+    if float((Q - P) @ (Q - P)) == 0.0:
+        return np.zeros(len(R), bool)
+    t, dist, tu, dl = _closest(P, Q, C)
+    return dist &lt; R
+
+def seg_first_hit(P, Q, C, R):                # sphere entered first along P-&gt;Q, or -1
+    if float((Q - P) @ (Q - P)) == 0.0:
+        return -1
+    t, dist, tu, dl = _closest(P, Q, C)
+    hit = dist &lt; R
+    if not hit.any():
+        return -1
+    half = np.sqrt(np.maximum(R * R - dist * dist, 0.0)) / dl
+    t_in = np.where(hit, np.maximum(tu - half, 0.0), np.inf)
+    return int(np.argmin(t_in))
+
+def tangent_wrap(a, b, c, R):
+    &quot;&quot;&quot;Exact shortest a -&gt; b around ONE sphere. None if the segment clears it,
+    else (entry, exit, arc_angle). Lives in the plane through a, b and c.&quot;&quot;&quot;
+    u, v = a - c, b - c
+    da, db = np.linalg.norm(u), np.linalg.norm(v)
+    if da &lt; R * (1 - 1e-9) or db &lt; R * (1 - 1e-9):
+        return None
+    e1 = u / da
+    w = v - (v @ e1) * e1; wn = np.linalg.norm(w)
+    if wn &lt; 1e-12 * db:                       # collinear: any perpendicular will do
+        k = int(np.argmin(np.abs(e1))); t = np.zeros(3); t[k] = 1.0
+        w = t - (t @ e1) * e1; wn = np.linalg.norm(w)
+    e2 = w / wn
+    phi = math.atan2(v @ e2, v @ e1)          # in (0, pi]
+    alpha_a = math.acos(min(1.0, R / da)); alpha_b = math.acos(min(1.0, R / db))
+    if alpha_a + alpha_b &gt;= phi:
+        return None
+    ang_e, ang_x = alpha_a, phi - alpha_b
+    e = c + R * (math.cos(ang_e) * e1 + math.sin(ang_e) * e2)
+    x = c + R * (math.cos(ang_x) * e1 + math.sin(ang_x) * e2)
+    return e, x, ang_x - ang_e
+
+def repair(items, C, R, max_inserts=200):     # items: [(&quot;pt&quot;, p) | (&quot;wrap&quot;, i, entry, exit)]
+    Rt = R * (1 - 1e-7)                       # hit tests use R(1-1e-7), waypoints sit at R(1+1e-6)
+    for _ in range(max_inserts):
+        for k in range(len(items) - 1):
+            a = items[k][1] if items[k][0] == &quot;pt&quot; else items[k][3]
+            b = items[k + 1][1] if items[k + 1][0] == &quot;pt&quot; else items[k + 1][2]
+            j = seg_first_hit(a, b, C, Rt)
+            if j &lt; 0: continue
+            res = tangent_wrap(a, b, C[j], R[j] * (1 + 1e-6))
+            if res is None: continue
+            items.insert(k + 1, (&quot;wrap&quot;, j, res[0], res[1]))
+            break
+        else:
+            return items                      # no leg crosses a sphere
+    return items
+
+def polish(items, C, R, sweeps=60):           # block-coordinate descent, exact tangents
+    for _ in range(sweeps):
+        before = chain_length(items, C, R)
+        for k in range(1, len(items) - 1):
+            if items[k][0] != &quot;wrap&quot;: continue
+            i = items[k][1]
+            a, b = end_of(items[k - 1]), start_of(items[k + 1])
+            res = tangent_wrap(a, b, C[i], R[i] * (1 + 1e-6))
+            if res is None:                   # a-b clears this sphere
+                if seg_first_hit(a, b, C, R * (1 - 1e-7)) &lt; 0:
+                    drop_wrap(items, k)       # only if a-b clears every sphere
+                continue
+            cand = (&quot;wrap&quot;, i, res[0], res[1])
+            if wrap_ok(a, cand, b, C, R) and new_length(cand) &lt;= old_length + 1e-12:
+                items[k] = cand               # clear of every sphere and never longer
+        merge_adjacent_wraps_on_same_sphere(items)
+        if before - chain_length(items, C, R) &lt; 1e-12 * before: break
+    return items
+
+def repair_polish(items, C, R, sweeps=60, rounds=40):
+    for _ in range(rounds):
+        items = polish(items, C, R, sweeps)
+        new = repair(items, C, R)
+        if len(new) == len(items): return items
+        items = new
+    return polish(items, C, R, sweeps)
+</code></pre>
+<p><code>end_of</code>, <code>start_of</code>, <code>drop_wrap</code>, <code>wrap_ok</code> (both legs and a 0.05 rad sampling of the arc clear of every other sphere), <code>chain_length</code> (legs plus <code>radius x arc angle</code>), <code>new_length</code>/<code>old_length</code> (that wrap with its two neighbours, before and after) and the merge helper are small functions in <code>avoid.py</code>; <code>plan_corridor</code> wraps the whole thing in the broad phase of step 5. The prototype needs only <code>math</code> and numpy, which the project already depends on; a pure-Python version was not tested.</p>
+<h3 id="54-measured-results">5.4 Measured results</h3>
+<p>All [C]. Scenes are random fields of spheres in a 100-unit cube unless stated; &quot;overhead&quot; is path length over straight line minus 1; &quot;valid&quot; means a dense-sample check found no point inside any sphere by more than 1e-7 relative.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scene</th>
+<th>Cases</th>
+<th>Valid</th>
+<th>Overhead mean / p95 / max</th>
+<th>Time mean / p95</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disjoint, 5% fill, r 2 to 10</td>
+<td>40</td>
+<td>100%</td>
+<td>0.17% / 0.36% / 3.9%</td>
+<td>1.4 / 10 ms</td>
+</tr>
+<tr>
+<td>Disjoint, 12% fill, r 3 to 15</td>
+<td>30</td>
+<td>100%</td>
+<td>0.13% / 0.91% / 1.6%</td>
+<td>2.8 / 16 ms</td>
+</tr>
+<tr>
+<td>Disjoint, 25% fill, r 4 to 16</td>
+<td>20</td>
+<td>100%</td>
+<td>0.60% / 3.0% / 3.0%</td>
+<td>8 / 21 ms</td>
+</tr>
+<tr>
+<td>Two-layer wall of spheres with 2-in-10 gaps</td>
+<td>12</td>
+<td>100%</td>
+<td>0.09% / n/a / 0.38%</td>
+<td>3 ms (lattice 190 ms, same length within 0.002%)</td>
+</tr>
+<tr>
+<td>Star field (0.114/pc^3, 7% fill, 24,568 spheres): hop 10 pc</td>
+<td>60</td>
+<td>100%</td>
+<td>0.20% / 1.2% / 2.2%</td>
+<td>19 / 49 ms</td>
+</tr>
+<tr>
+<td>same, hop 30 pc</td>
+<td>60</td>
+<td>100%</td>
+<td>0.10% / 0.45% / 0.64%</td>
+<td>40 / 82 ms</td>
+</tr>
+<tr>
+<td>same, hop 90 pc</td>
+<td>20</td>
+<td>100%</td>
+<td>0.07% / 0.25% / 0.34%</td>
+<td>151 / 273 ms</td>
+</tr>
+<tr>
+<td>Overlapping spheres, 25% fill</td>
+<td>25 to 40</td>
+<td>84% to 90% (lattice no better: 84%)</td>
+<td>1.4% mean</td>
+<td>4 ms</td>
+</tr>
+<tr>
+<td>Overlapping, 50% fill</td>
+<td>40</td>
+<td>72%</td>
+<td></td>
+<td>3 ms</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The star-field times are dominated by whole-array distance tests over 24,568 spheres with no spatial index. With NAV.25's corridor query (a few hundred spheres) expect 1 to 10 ms.</li>
+<li>Hops of 10 pc bend in 47% of cases and hops over 30 pc in 88% or more: about one wrap per 15 pc of line (0.7, 1.8, 4.1 and 6.1 wraps at 10, 30, 60 and 90 pc). Overhead stays under about 0.2% on average, so adding keep-out does not change which stops are chosen, and travel times grow by a few tenths of a percent at most. Ignoring a sphere of radius r on a leg of length L would change the length by about <code>2 (r/L)^2</code> (under 0.02% for r &lt; 0.01 L), but small spheres are still stepped around so the path is correct.</li>
+<li>Robustness: a chain of 40 tiny spheres on the line (radius 1e-6 to 1e-2 of a 100 pc leg, or 1e-4 to 1e-3 pc on a 2e4 pc leg) gave the same result to 1e-15 relative with the whole scene shifted by up to 2e4 pc. Work in parsecs (galaxy), light-years (sector) or km (system) with doubles.</li>
+<li>Ten edge cases pass (<code>t19.py</code>): start equal to end; start inside a sphere; end on a sphere surface; start inside a sphere that overlaps another on the way; collinear start-center-end; two tangent spheres with the line through the contact point (goes straight); two spheres 0.01 apart (goes through the gap); a sphere near but not touching the line; both ends in one big sphere; a zero-radius sphere.</li>
+</ul>
+<h3 id="55-degenerate-and-hard-cases">5.5 Degenerate and hard cases</h3>
+<ul>
+<li><strong>Start or end inside a sphere:</strong> drop that sphere (exempt). <strong>Both ends inside the same sphere:</strong> straight line.</li>
+<li><strong>Overlapping spheres:</strong> the arc of one sphere may enter another; validity fell to 72% to 90% at heavy random overlap. Real data should rarely overlap because system Hill spheres are placed disjoint (<code>galaxy/sector.py</code>), but black holes, rogue planets and fields are not covered by that rule. Handling: detect clusters (union of overlapping pairs); if the plan still crosses a sphere after the loop, replace the cluster by the smallest enclosing sphere (<code>merge_overlaps</code>, exact for pairs) and replan; if that sphere swallows an end (it did in every test at 25% fill, because random clusters percolate), return the straight line with the warning <code>overlap_fallback</code> and not a wrong path. An overlap census at generation time or in a test shows how often this fires.</li>
+<li><strong>Many spheres:</strong> the loop is linear in wraps; broad phase by corridor; cap the width doublings (6) and the number of wraps (a few hundred) and return a flagged straight line if exceeded.</li>
+<li><strong>Chosen side:</strong> the method keeps the first wrap's plane. It never lost to the lattice search in random scenes and was within 0.002% in the two-layer wall, but it is not proven globally optimal; the UI should say &quot;short detour&quot;, not &quot;shortest&quot;.</li>
+<li><strong>Rounding:</strong> waypoints sit at <code>R (1 + 1e-6)</code>, hit tests use <code>R (1 - 1e-7)</code>, so tangent legs never fail on rounding.</li>
+</ul>
+<h2 id="6-moving-bodies-inside-a-system-nav27">6. Moving bodies inside a system (NAV.27)</h2>
+<p>Real planet data (a, mass, circular coplanar orbits) from Mercury to Neptune, random phases, legs Earth to Neptune, Mercury to Uranus and Venus to Saturn [C, <code>moving.py</code>, <code>moving2.py</code>; 300 and 200 draws]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Ship speed</th>
+<th>Static t0 positions enter a Hill sphere (more than 1% of R_H)</th>
+<th>Iterated (obstacle at time of pass)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1c, 10c, 100c (warp 1 and up)</td>
+<td>0% (max 0.00 R_H), also 0% at 0.1c</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>0.01c</td>
+<td>0.5% to 5.5% (max 0.10 R_H)</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>0.003c</td>
+<td>1.5% to 2.5% (max 0.26 R_H)</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>0.001c (300 km/s)</td>
+<td>1.5% to 2.5% (max 0.97 R_H)</td>
+<td>0%</td>
+</tr>
+<tr>
+<td>0.0003c (90 km/s)</td>
+<td>0.5%</td>
+<td>0% to 1% (does not converge near planet speeds)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Ship speed at warp 1 is 3e5 km/s against 5 to 48 km/s for planets, and outer Hill radii are 5e7 to 1.2e8 km. Inner planets are the only close call: Mercury's Hill radius is 2.2e5 km, and a ship at 1c needs about 140 s to cross 0.28 AU, during which Mercury moves 6,600 km (3% of R_H).</p>
+<p>Built (NAV.27, 2026-11-05): <code>galaxy/system_course.plan_system_course(scene, keep_outs, start, end, speed_kms, departure_years=0)</code> follows steps 1, 2 and 5 below with <code>avoid.plan_course(frame=&quot;system&quot;, unit=&quot;km&quot;)</code>: every body at the departure time, the destination re-aimed at its arrival-time position (up to <code>tuning.COURSE_SYSTEM_AIM_STEPS</code> passes), departure now (scene epoch). The keep-outs are <code>db/obstacles.system_keep_outs</code> (a star's radiation radius, a planet's or moon's Hill radius); <code>api/nav_system.adjust_legs</code> runs it for the within, out and into legs at warp <code>tuning.COURSE_SYSTEM_WARP_FACTOR</code>, so step 3 (slow ships, several passes) is not built and not needed at warp speeds.</p>
+<p>Recommended procedure (no Lambert solution, no ephemeris iteration):</p>
+<ol>
+<li>Plan with every body at the departure time t0 (<code>body_positions.positions_at</code>); enough for warp or fold.</li>
+<li>The destination body moves while the ship flies: aim at <code>T(t_arrival)</code> with <code>t_arrival = t0 + L/v</code>, a fixed point that converges in 2 to 3 steps because <code>u/v</code> is below 2e-4.</li>
+<li>If a speed below about 0.01c is ever offered, do 3 to 6 passes: set each obstacle's time to <code>t0 + s_i / v</code> (arclength along the previous path to its closest approach) and replan.</li>
+<li>A comet on a parabolic or hyperbolic orbit is handled the same way (<code>positions_at</code> already does it).</li>
+<li>Default departure time: now (NAV.27 text).</li>
+</ol>
+<p>At galactic scale nothing moves enough at warp (a star at 200 km/s drifts 0.067 ly a century; a hypervelocity star at 1,000 km/s, 0.33 ly), so NAV.27 stays system-only.</p>
+<p>Gravity itself does not bend the ship in this model: warp and fold speeds are game physics and the keep-out is a rule. The flyby formula of &quot;Computational Astrodynamics.md&quot; (turning angle <code>delta = 2 arcsin(1 / sqrt(1 + (b v^2 / mu)^2))</code>, correct) shows why that is harmless for routing. Passing the Sun (mu = 1.327e11 km^3/s^2) at 0.17 AU: 0.96 rad at 100 km/s, 1.2e-3 rad at 3,000 km/s, 1.2e-5 rad at 0.1c, 1e-7 rad at 1c [C]. Gravitational deflection matters only for a ship at planetary speeds, which no speed in the warp and fold tables is.</p>
+<h2 id="7-how-course-lines-are-exposed-nav28-nav5-nav17-nav21">7. How course lines are exposed (NAV.28, NAV.5, NAV.17, NAV.21)</h2>
+<p>Add <code>adjusted</code> to the NAV result and to <code>galaxy_course</code> beside the existing <code>points</code> and <code>direct</code>. Positions use the frame already in use (galaxy parsecs for the Galaxy Map, sector-local light-years, system km), declared in <code>unit</code> and <code>frame</code>.</p>
+<pre><code class="language-json">&quot;adjusted&quot;: {
+  &quot;frame&quot;: &quot;galactic&quot;, &quot;unit&quot;: &quot;pc&quot;,
+  &quot;length&quot;: 40.2966, &quot;straight_length&quot;: 40.1123, &quot;extra&quot;: 0.1842,
+  &quot;waypoints&quot;: [
+    {&quot;p&quot;: [0,0,0],               &quot;kind&quot;: &quot;start&quot;,       &quot;ref&quot;: null},
+    {&quot;p&quot;: [11.848,-0.55,-0.755], &quot;kind&quot;: &quot;tangent_in&quot;,  &quot;ref&quot;: &quot;star:101&quot;},
+    {&quot;p&quot;: [12.222,-0.54,-0.757], &quot;kind&quot;: &quot;tangent_out&quot;, &quot;ref&quot;: &quot;star:101&quot;},
+    {&quot;p&quot;: [40,3,0],              &quot;kind&quot;: &quot;end&quot;,         &quot;ref&quot;: null}
+  ],
+  &quot;legs&quot;: [
+    {&quot;type&quot;: &quot;line&quot;, &quot;from&quot;: 0, &quot;to&quot;: 1},
+    {&quot;type&quot;: &quot;arc&quot;,  &quot;from&quot;: 1, &quot;to&quot;: 2, &quot;center&quot;: [12,1,0.5], &quot;radius&quot;: 2.0, &quot;obstacle&quot;: &quot;star:101&quot;},
+    {&quot;type&quot;: &quot;line&quot;, &quot;from&quot;: 2, &quot;to&quot;: 3}
+  ],
+  &quot;polyline&quot;: [[0,0,0], &quot;...&quot;],
+  &quot;avoided&quot;: [&quot;star:101&quot;],
+  &quot;passed_through&quot;: [{&quot;ref&quot;: &quot;nebula:55&quot;, &quot;note&quot;: &quot;...&quot;, &quot;inside_length&quot;: 12.4, &quot;column_cm2&quot;: 3.1e21}],
+  &quot;ignored_below_resolution&quot;: [&quot;rogue_planet:9001&quot;],
+  &quot;ruleset&quot;: {&quot;keepout&quot;: 1, &quot;planner&quot;: 1},
+  &quot;warnings&quot;: []
+}
+</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>frame</code>, <code>unit</code></td>
+<td><code>galactic</code> + <code>pc</code>, <code>sector</code> + <code>ly</code>, or <code>system</code> + <code>km</code>; every position in the object is in this frame</td>
+</tr>
+<tr>
+<td><code>length</code>, <code>straight_length</code>, <code>extra</code></td>
+<td>Adjusted path length, the straight line, and the difference; same unit. NAV.2's tables use <code>length / speed</code> unchanged</td>
+</tr>
+<tr>
+<td><code>waypoints</code></td>
+<td><code>{p, kind, ref}</code>; <code>kind</code> is <code>start</code>, <code>tangent_in</code>, <code>tangent_out</code> or <code>end</code>; <code>ref</code> is the object reference (<code>star:101</code>) of the sphere a tangent point sits on</td>
+</tr>
+<tr>
+<td><code>legs</code></td>
+<td>The exact form: a <code>line</code> between two waypoint indices, or an <code>arc</code> with <code>center</code>, <code>radius</code> (the radius used, <code>R (1 + 1e-6)</code>) and <code>obstacle</code>; an arc is the shorter great-circle arc between its two waypoints</td>
+</tr>
+<tr>
+<td><code>polyline</code></td>
+<td>What the map draws; arcs sampled so the chord sagitta is at most 1% of the sphere radius (about 12 segments for a half circle; 1 to 2 for a below-resolution sphere); vertices sit on or just outside the sphere</td>
+</tr>
+<tr>
+<td><code>avoided</code></td>
+<td>References of the spheres the path bends around</td>
+</tr>
+<tr>
+<td><code>passed_through</code></td>
+<td>Pass-through objects crossed, with the note text, length inside and column density (section 3.4)</td>
+</tr>
+<tr>
+<td><code>passed_through_unresolved</code></td>
+<td>Only where the course crosses capped cells of the dense core (NAV.75, <code>db/obstacles.passed_through_unresolved</code>): <code>{crossings, length_pc, length_ly, unresolved_systems, cells}</code>, the mean number of keep-out spheres of the stars the cell cap left unmade that the course passes through (<code>galaxy/unresolved_crossings</code>, NAV.74; <code>realistic-galactic-core.md</code> section 11), summed along the course's own polyline. The course goes round the stars that are made and cannot go round these</td>
+</tr>
+<tr>
+<td><code>ignored_below_resolution</code></td>
+<td>Spheres smaller than 0.002 of the leg (section 2.1), listed but not drawn</td>
+</tr>
+<tr>
+<td><code>ruleset</code></td>
+<td>Versions of the keep-out table and the planner, so an old saved course can be told from a changed rule</td>
+</tr>
+<tr>
+<td><code>warnings</code></td>
+<td>Machine-readable codes: <code>overlap_fallback</code>, <code>wrap_limit</code>, <code>unknown_space</code> (an ungenerated sector has no objects to avoid; the NAV.12 flag already marks it)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>The straight line stays as <code>direct</code>; the system-to-system hop chain as <code>route</code>. Per-hop adjusted forms go inside the route entries and the route's total is their sum. NAV.23's switch (Direct, Route, Adjusted) is three keys.</li>
+<li>The course readout (bearing and mark, <a href="navigation-frames.html">navigation-frames.md</a>) is worked out per leg in that leg's frame; for an adjusted course the heading to leave on is the first leg's, not the direct line's.</li>
+<li>Saved courses (NAV.17): store <code>waypoints</code>, <code>legs</code>, the <code>ruleset</code> version and, for each obstacle, <code>ref</code> and the radius used (a few hundred bytes per wrap). Opening a saved course recomputes it and says what changed: an object moved (the correlative update), a regenerated system vanished, or the keep-out rule changed. Without the radius used there is no way to tell which.</li>
+<li>NAV.21 (fit the view): take the bounding box of <code>polyline</code>, not of <code>waypoints</code>, since an arc can bulge past its tangent points.</li>
+<li>MAP.121: course geometry is in the galaxy frame, independent of how neighbours are dimmed or faded; draw the course on a layer that is not faded with the sectors in front of the camera.</li>
+<li>Browser twin: <code>sectors_along_segment</code> has one; the planner can stay server-side (the result is data), so no JavaScript port is needed unless Boss wants live re-planning while dragging endpoints.</li>
+</ul>
+<h2 id="8-what-carries-over-from-the-uploaded-documents-and-what-does-not">8. What carries over from the uploaded documents, and what does not</h2>
+<ul>
+<li><strong>&quot;Computational Astrodynamics.md&quot;, Hill sphere.</strong> The formula <code>d (m / 3M)^(1/3)</code> is what <code>orbits.calculate_hill_sphere</code> implements and what the stored <code>hill_radius_km</code> uses. Against the exact L1 distance of the restricted three-body problem it is +0.3% for Earth and +2.4% for Jupiter, but +6% for the Moon against the Earth, +14% at m/M = 0.1 and <strong>+39% for equal masses</strong>; with <code>(m / (3 (M + m)))^(1/3)</code> the equal-mass error is +10% (<a href="orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a> section 1, row 5). For keep-out this matters only for moons (use <code>M + m</code>, section 3.3) and a binary pair's mutual sphere; planets keep the stored value. The document's <code>d</code> is the instantaneous separation, while the stable sphere is set at pericenter <code>a (1 - e)</code>; the stored value uses <code>a</code>, the generous side for a ship, so it stays.</li>
+<li><strong>Same document, Roche limit and hyperbolic deflection.</strong> <code>d_roche = 2.44 R1 (rho1/rho2)^(1/3)</code> is the fluid limit and holds for a fluid secondary; it is not a ship hazard (section 4.2). The deflection formulas are correct as written and are used in section 6.</li>
+<li><strong>Same document, sector frame and galactic potential.</strong> It describes 4 pc cubic cells with Morton keys; planetGen used 4 pc ring, layer and slot cells (orbital-solvers-and-integrators.md row 12; shell, band and wedge cells since 2026-10-15), so courses use the existing frames: galaxy parsecs, sector-local light-years, system km. Its galactic potential gives an enclosed mass for a Jacobi radius; the code deliberately uses the total mass (section 4.1), and <a href="../galaxy/galactic-potential.html">galactic-potential.md</a> records the option to change it. This design does not.</li>
+<li><strong>&quot;Orbital Update Collision Detection.md&quot;.</strong> Its swept-sphere quadratic <code>S(tau) = A tau^2 + B tau + C</code> is the mathematics of a leg against a static sphere. The planner uses the closest-approach form for the cancellation reason in section 5.3; straight-line sweeps are exact for ship legs, and the curved-path limitation (orbital-solvers-and-integrators.md section 7) applies only to moving bodies, which NAV.27 evaluates at the time of pass. Its other defects, and the merger radius, are in <a href="collisions-and-mergers.html">collisions-and-mergers.md</a> section 2.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[S] seen in a search result (snippet text): the Hamilton and Burns stability statement; the Jacobi radius formula with Oort constants (A about 14.8, B about -12 km/s/kpc); belt spacing about 1e6 km, Pioneer 10 closest 8.8e6 km, Dawn closest catalogued 1.0e6 km; the tidal-disruption radius and Hills mass (about 1e8 solar masses); Hoang et al. dust erosion column; magnetar fields and the light-cylinder formula; the existence of exact three-sphere and approximate multi-sphere shortest-path algorithms and the NP-hardness statement for 3D obstacles.</p>
+<p>[C] computed: all galactic Hill radii, Jacobi comparisons, filling fraction and hit-rate figures, black hole radii, tidal and radiation radii, neutron star radii and spin-down power, Stromgren radii, belt strike table, kinetic power flux table, nebula shape volume fraction (13%), all planner results and timings, the moving-bodies tests, the robustness and edge-case tests, the flyby deflection figures (section 6) and the moon Hill-radius figures (hand arithmetic from the code's formula). Not computed against a real database: no generated galaxy was available (importing the generator needs <code>astropy</code> and <code>nltk</code>, which were not installed), so densities and masses come from <code>tuning.py</code> and per-sector counts are model-level, not measured.</p>
+<p>[R] recalled, to verify when paper or arXiv access is allowed:</p>
+<ul>
+<li>The 0.4895 and 0.9309 Hill fractions attributed to [R1138] (a result listed both numbers with the labels swapped, so the pairing needs a check).</li>
+<li>Photon sphere 1.5 r_s and the innermost-stable-orbit values (3 r_s, spin dependent).</li>
+<li>The vacuum-dipole spin-down formula.</li>
+<li>The main-belt count of about 1e6 bodies over 1 km and the 18 AU^3 torus estimate.</li>
+<li>That shortest paths around spheres are tangent segments plus great-circle arcs (standard for convex obstacles, but not confirmed by a search result).</li>
+<li>The M-sigma relation (not used; the generator's constant sigma = 100 km/s is).</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<p>Search results, not fetched pages:</p>
+<ul>
+<li>[R1772]:43, reprint: https://pages.astro.umd.edu/~dphamil/research/DPHreprints/HamBurns92.pdf (snippet only)</li>
+<li>Stable satellites around giant planets [R1138]: https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-2966.2006.11104.x (title only; the 0.4895 and 0.9309 values were not confirmed)</li>
+<li>Jacobi radius with Oort constants: [R1210, R3731], https://en.wikipedia.org/wiki/Oort_constants</li>
+<li>Asteroid belt spacing, Pioneer 10 and Dawn: https://www.astronomy.com/science/how-do-spacecraft-safely-navigate-the-asteroid-belt/, https://science.nasa.gov/mission/dawn/faq/, https://lucy.swri.edu/MainBeltDensity.html, https://en.wikipedia.org/wiki/Pioneer_10, https://www.scientificamerican.com/article/in-science-fiction-movies/</li>
+<li>Tidal disruption radius and Hills mass: https://link.springer.com/article/10.1007/s11214-021-00818-7, https://pubs.aip.org/physicstoday/article/67/5/37/414728/The-tidal-disruption-of-stars-by-supermassive, https://academic.oup.com/mnras/article/455/1/859/984391</li>
+<li>Supernova remnant radii and phases: [R2596], https://pages.astro.umd.edu/~rmushotz/ASTR480/A480_supernova_remnants_2016_lec3.pdf, [R1748]</li>
+<li>Relativistic craft and the interstellar medium: [R1965] ([R1965]:5), [R2736]</li>
+<li>Magnetar fields and the light cylinder: https://solomon.as.utexas.edu/magnetar.html, [R4150]</li>
+<li>Supernova and GRB lethal distances: https://iopscience.iop.org/article/10.1086/346127 [R1530, R3028]</li>
+<li>Shortest paths among spheres: https://ieeexplore.ieee.org/document/4811457/, https://www.researchgate.net/publication/255640870_A_Base_Algorithm_for_Computing_the_Shortest_Path_of_Spheres, https://cerv.aut.ac.nz/wp-content/uploads/2015/08/MItech-TR-75.pdf, https://drops.dagstuhl.de/storage/00lipics/lipics-vol359-isaac2025/LIPIcs.ISAAC.2025.46/LIPIcs.ISAAC.2025.46.pdf</li>
+</ul>
+<p>Repo files read: <code>docs/TODO.md</code> (NAV entries), <code>course-routing.md</code>, <code>navigation-frames.md</code>, <code>nebula-and-asteroid-field-classes.md</code>, <code>orbital-solvers-and-integrators.md</code>, <code>galactic-potential.md</code>, <code>collisions-and-mergers.md</code>, &quot;Computational Astrodynamics.md&quot;, &quot;Orbital Update Collision Detection.md&quot;, <code>src/planetgen/galaxy/keepout.py</code>, <code>db/query.py</code> (<code>keep_out_radius</code>), <code>physics/planets.py</code>, <code>physics/orbits.py</code>, <code>physics/body_positions.py</code>, <code>generation/star.py</code>, <code>generation/binary.py</code>, <code>generation/validation.py</code>, <code>generation/phenomena/compact_remnant.py</code>, <code>galaxy/nebula_shape.py</code>, <code>population/facilities.py</code>, <code>tuning.py</code>, <code>db/schema.sql</code>, <code>web/nav_page.py</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,694 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rebuilding the test suite: faster, modular, and able to run only what a change touches (TEST.139) - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-14 12:17Z): &quot;rework, optimize, and rebuild our entire test suite from the ground up so that it runs faster and is modular (so we can if we choose only test the things that we changed in the last run).&quot;">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/test-suite-rebuild.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/test-suite-rebuild.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="rebuilding-the-test-suite-faster-modular-and-able-to-run-only-what-a-change-touches-test139">Rebuilding the test suite: faster, modular, and able to run only what a change touches (TEST.139)</h1><p class="meta">docs/design/operations/test-suite-rebuild.md</p><details class="toc"><summary>On this page (34 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-the-baseline">1. The baseline</a></li><li style="margin-left:14px"><a href="#time-by-file-sum-of-each-tests-setup-call-and-teardown-m">Time by file (sum of each test's setup, call and teardown) [M]</a></li><li style="margin-left:14px"><a href="#setup-and-teardown-m">Setup and teardown [M]</a></li><li style="margin-left:14px"><a href="#the-db-marker-misses-most-database-tests-m">The db marker misses most database tests [M]</a></li><li style="margin-left:0px"><a href="#2-principles">2. Principles</a></li><li style="margin-left:0px"><a href="#3-modular-three-layers">3. Modular: three layers</a></li><li style="margin-left:14px"><a href="#31-markers-what-a-test-is">3.1 Markers (what a test is)</a></li><li style="margin-left:14px"><a href="#32-runner-how-a-person-picks">3.2 Runner (how a person picks)</a></li><li style="margin-left:14px"><a href="#33-change-based-selection-what-a-change-touches">3.3 Change-based selection (what a change touches)</a></li><li style="margin-left:0px"><a href="#4-faster">4. Faster</a></li><li style="margin-left:0px"><a href="#5-what-stays-and-what-does-not-move">5. What stays and what does not move</a></li><li style="margin-left:0px"><a href="#6-stages">6. Stages</a></li><li style="margin-left:0px"><a href="#7-for-the-todo-thread">7. For the TODO thread</a></li><li style="margin-left:0px"><a href="#8-questions-for-boss-with-the-default-i-will-use">8. Questions for Boss (with the default I will use)</a></li><li style="margin-left:0px"><a href="#9-stage-1-result-2026-10-14-scriptstestpy-full-started-1347z">9. Stage 1 result (2026-10-14, scripts/test.py full, started 13:47Z)</a></li><li style="margin-left:0px"><a href="#10-the-test-fixes-decisions-boss-approved-2026-10-14-1506z">10. The test fixes: decisions (Boss approved 2026-10-14 15:06Z)</a></li><li style="margin-left:14px"><a href="#101-implemented-as-small-fixes-group-a">10.1 Implemented as small fixes (group A)</a></li><li style="margin-left:14px"><a href="#102-folded-into-the-rebuild-not-fixed-one-by-one-group-b">10.2 Folded into the rebuild, not fixed one by one (group B)</a></li><li style="margin-left:14px"><a href="#103-new-work-with-an-order-group-c">10.3 New work with an order (group C)</a></li><li style="margin-left:14px"><a href="#104-order">10.4 Order</a></li><li style="margin-left:0px"><a href="#11-stage-2-result-change-based-selection-2026-10-14">11. Stage 2 result: change-based selection (2026-10-14)</a></li><li style="margin-left:0px"><a href="#12-stage-3-result-one-database-per-worker-2026-10-14">12. Stage 3 result: one database per worker (2026-10-14)</a></li><li style="margin-left:0px"><a href="#13-policy-changed-as-the-merge-gate-boss-2026-10-14-1944z">13. Policy: changed as the merge gate (Boss, 2026-10-14 19:44Z)</a></li><li style="margin-left:0px"><a href="#14-test133-the-big-galaxy-query-budget-tier-2026-10-14">14. TEST.133: the big-galaxy query budget tier (2026-10-14)</a></li><li style="margin-left:0px"><a href="#15-a-clear-last-line-from-scriptstestpy-boss-2026-10-15-0009z">15. A clear last line from scripts/test.py (Boss, 2026-10-15 00:09Z)</a></li><li style="margin-left:0px"><a href="#16-flakes-that-were-not-load-2026-10-15">16. Flakes that were not load (2026-10-15)</a></li><li style="margin-left:0px"><a href="#17-test150-the-progress-log-and-the-build-id-2026-10-15-boss-chose-option-a-of-test148">17. TEST.150: the progress log and the build id (2026-10-15, Boss chose option A of TEST.148)</a></li><li style="margin-left:0px"><a href="#18-test153-a-hung-test-can-no-longer-stall-a-run-2026-10-15-from-bug-1s-ops50-run">18. TEST.153: a hung test can no longer stall a run (2026-10-15, from Bug 1's OPS.50 run)</a></li><li style="margin-left:0px"><a href="#19-test151-scriptstestpy-command---resume-2026-10-15">19. TEST.151: scripts/test.py &lt;command&gt; --resume (2026-10-15)</a></li><li style="margin-left:0px"><a href="#20-test152-the-redis-clean-up-and-the-map-of-a-resumed-run-2026-10-15">20. TEST.152: the Redis clean-up and the map of a resumed run (2026-10-15)</a></li><li style="margin-left:0px"><a href="#21-stage-4-second-part-quality-lane-2026-10-15">21. Stage 4, second part (Quality lane, 2026-10-15)</a></li><li style="margin-left:0px"><a href="#22-the-folded-flake-list-looped-on-an-idle-machine-quality-lane-2026-10-15">22. The folded flake list, looped on an idle machine (Quality lane, 2026-10-15)</a></li><li style="margin-left:14px"><a href="#the-proof-period-2026-10-15">The proof period (2026-10-15)</a></li></ul></details>
+<p>Boss (2026-10-14 12:17Z): &quot;rework, optimize, and rebuild our entire test suite from the ground up so that it runs faster and is modular (so we can if we choose only test the things that we changed in the last run).&quot;</p>
+<p>Status: stages 1 to 3 built and stage 4 mostly built (2026-10-15). Stage 1 (#1280: markers, <code>src/tests/areas.py</code>, <code>scripts/test.py</code>, failure capture), stage 2 (#1323: <code>src/tests/depmap.py</code>, <code>--changed</code>) and stage 3 (one database per worker) are merged, and stage 4's browser work is in (sections 21 and 22); the heavy generation files wait for their owning lanes' word. Stage 5, five clean full runs before <code>changed</code> replaces the full run as the merge gate, has its five clean runs (2026-10-15, section 22); the gate policy of section 13 stands. TEST.139 closes with this proof. The measurement below is the baseline of 2026-10-14. Evidence tags: [M] measured in this work (numbers below), [S] seen in the repo, [E] estimated from a measurement.</p>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>The full suite is 15,622 tests and took 55 min 12 s on 4 cores</strong> (MariaDB 10.11, Redis, Chromium, <code>pytest -n 4 --dist worksteal</code>, 2026-10-14 12:28Z). Adding up every test's own time gives 215 min, so the machine was busy the whole 55 minutes [M].</li>
+<li><strong>Where the time goes</strong> [M]: the browser tests (571 tests, 5 files) are 42% of the test time; the 25 biggest files are 75%; creating and dropping a database for each database test is about 15%; fuzz and bug-hunt files are only 4%. The 2,206 tests marked <code>slow</code> are cheap; the expensive tests are not the ones marked that way.</li>
+<li><strong>The cheapest large win is not to run browser tests when nothing they cover changed</strong>, and to run them as a separate phase with fewer workers (13 of the 14 failures in the baseline were browser timeouts under load, the open TEST.126). That, together with change-based selection, is what turns a typical lane run from about 55 minutes into a few.</li>
+<li><strong>Change-based selection works without any new dependency.</strong> A pytest plugin built on the standard library (<code>sys.monitoring</code> for Python code, an audit hook for the data files a test reads) records which source files each test executes, at about zero overhead [M]. On a 3,796-test sample, one changed source file selects 9.5% of the tests on average (median 0.8%); with a safety margin of one import hop, 17.6% (median 8.5%). Reading the import statements alone, as most tools do, selects 55% of the test files for a typical change because the packages import each other everywhere [M]. So the recorded map is the right tool.</li>
+<li><strong>The full suite stays the merge gate</strong> until the selection has been proven (below; superseded by section 13 (Boss, 2026-10-14, 3:44 PM EDT): <code>changed</code> may replace the full local suite as the merge gate for small changes). Nothing here adds CI cost: no new job, no new matrix leg.</li>
+<li>Plan in five small stages (section 6). Stages 1 and 2 give the most.</li>
+</ul>
+<h2 id="1-the-baseline">1. The baseline</h2>
+<p>Machine: 4 cores, 15 GB, MariaDB 10.11 with the container's defaults, Redis 7, Python 3.13, Chromium 141 through Playwright 1.56. The suite as <code>docs/reference/testing.md</code> says to run it, with <code>--durations=0</code> and a JUnit file for the per-test times.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Run</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full, <code>-n 4 --dist worksteal</code></td>
+<td>15,548 passed, 14 failed, 60 skipped, 55 min 12 s</td>
+</tr>
+<tr>
+<td>Same, database and browser unavailable (a first attempt with a wrong database user)</td>
+<td>11,763 passed, 3,791 skipped, 5 min 11 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>The second row matters: <strong>the part of the suite that needs neither MySQL nor a browser is 5 minutes</strong>. Everything else is the database, the browser or generation.</p>
+<p>The 14 failures: 13 are <code>Page.goto</code>/<code>click</code>/<code>screenshot</code> timeouts of 30 s in the WebGL browser tests running four at a time on four cores (TEST.126 describes this), and 1 was my own account lacking <code>GRANT OPTION</code> for a test that creates a restricted user (not a bug). Two environment findings for the TODO thread are in section 7.</p>
+<h3 id="time-by-file-sum-of-each-tests-setup-call-and-teardown-m">Time by file (sum of each test's setup, call and teardown) [M]</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Tests</th>
+<th>Time</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>test_web_browser_fixture_maps</td>
+<td>86</td>
+<td>3,506 s</td>
+<td>27.1%</td>
+</tr>
+<tr>
+<td>test_neighborhood_edge</td>
+<td>18</td>
+<td>753 s</td>
+<td>5.8%</td>
+</tr>
+<tr>
+<td>test_galaxy_gen</td>
+<td>105</td>
+<td>628 s</td>
+<td>4.9%</td>
+</tr>
+<tr>
+<td>test_web_browser_maps</td>
+<td>17</td>
+<td>614 s</td>
+<td>4.8%</td>
+</tr>
+<tr>
+<td>test_web_browser_layout</td>
+<td>137</td>
+<td>475 s</td>
+<td>3.7%</td>
+</tr>
+<tr>
+<td>test_web_browser_controls</td>
+<td>170</td>
+<td>424 s</td>
+<td>3.3%</td>
+</tr>
+<tr>
+<td>test_parallel_generation</td>
+<td>15</td>
+<td>329 s</td>
+<td>2.5%</td>
+</tr>
+<tr>
+<td>test_prevalence</td>
+<td>27</td>
+<td>319 s</td>
+<td>2.5%</td>
+</tr>
+<tr>
+<td>test_web_a11y</td>
+<td>138</td>
+<td>290 s</td>
+<td>2.2%</td>
+</tr>
+<tr>
+<td>test_api</td>
+<td>129</td>
+<td>273 s</td>
+<td>2.1%</td>
+</tr>
+<tr>
+<td>test_phenomenon_scatter</td>
+<td>76</td>
+<td>260 s</td>
+<td>2.0%</td>
+</tr>
+<tr>
+<td>test_fuzz_web_routes</td>
+<td>1,453</td>
+<td>249 s</td>
+<td>1.9%</td>
+</tr>
+<tr>
+<td>test_work_queue_failures</td>
+<td>22</td>
+<td>239 s</td>
+<td>1.9%</td>
+</tr>
+</tbody>
+</table></div>
+<p>The top 5 files are 46% and the top 25 are 75% of the 12,920 s. The other 282 files are the remaining quarter.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Time</th>
+<th>Share</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Browser files (<code>test_web_browser*</code>, <code>test_web_a11y</code>)</td>
+<td>5,390 s</td>
+<td>42%</td>
+</tr>
+<tr>
+<td>Fuzz files (<code>test_fuzz_*</code>)</td>
+<td>425 s</td>
+<td>3%</td>
+</tr>
+<tr>
+<td>Bug-hunt files (<code>test_bughunt_*</code>)</td>
+<td>115 s</td>
+<td>1%</td>
+</tr>
+<tr>
+<td>Everything else</td>
+<td>6,989 s</td>
+<td>54%</td>
+</tr>
+</tbody>
+</table></div>
+<p>A browser test spends most of its time drawing WebGL in software (SwiftShader), the same CPU the other workers need. The slowest test is 280 s (<code>test_galaxy_map_wheel_carries_the_zoom_into_a_system_and_back</code>); a typical fixture-map test is 40 s.</p>
+<h3 id="setup-and-teardown-m">Setup and teardown [M]</h3>
+<p>Of the 12,920 s, calls are 9,654 s, setup 1,919 s and teardown 1,322 s. For the database files outside the browser group alone: setup 789 s, teardown 1,137 s, call 4,249 s. The cost is in the fixture that gives every database test its own database: <code>CREATE DATABASE</code>, then <code>schema.sql</code> (122 tables, applied on the first connection), then <code>DROP DATABASE</code>. On an idle machine that is 0.04 s + 0.34 s + 0.28 s = 0.66 s per test; under load the drop doubles. Server settings help little (<code>innodb_flush_log_at_trx_commit=0</code> and <code>innodb_file_per_table=0</code> together took it to 0.33 s), because the cost is the DDL itself, so the fix is to create fewer databases (stage 3).</p>
+<h3 id="the-db-marker-misses-most-database-tests-m">The <code>db</code> marker misses most database tests [M]</h3>
+<p><code>conftest.py</code> adds <code>db</code> to a test that names <code>mysql_config</code>. 1,465 tests carry it. With the server unreachable, 3,677 tests skipped for lack of one, so <strong>2,210 tests need MySQL but are not marked <code>db</code></strong>: they reach the server through <code>_mysql_server_available</code> (<code>fuzz_db</code>, <code>site_db</code> and a few more in test_fuzz_web_routes, test_web_a11y, test_parallel_generation, test_db_collation and rich_galaxy_support). So <code>-m &quot;not db&quot;</code> is not the database-free slice that <code>docs/reference/testing.md</code> says it is.</p>
+<h2 id="2-principles">2. Principles</h2>
+<ol>
+<li><strong>One way to pick tests.</strong> A person says what they want (<code>quick</code>, <code>changed</code>, <code>area web</code>, <code>full</code>) and a runner builds the pytest command. Plain <code>pytest</code> keeps working.</li>
+<li><strong>A test is picked by what it depends on, not by where its file sits.</strong> Moving files around does not make the suite modular; knowing what each test touches does.</li>
+<li><strong>Over-select, never under-select.</strong> Every shortcut in the selection errs toward running more. The full suite is the check on the shortcuts.</li>
+<li><strong>No new dependency that is not light.</strong> Everything below uses pytest, xdist, the standard library and git, all already here.</li>
+<li><strong>Small stages.</strong> Other lanes are editing tests all the time; each stage is a small PR and none rewrites a test body that a lane is editing.</li>
+</ol>
+<h2 id="3-modular-three-layers">3. Modular: three layers</h2>
+<h3 id="31-markers-what-a-test-is">3.1 Markers (what a test is)</h3>
+<p>Kept as they are (<code>db</code>, <code>slow</code>, <code>browser</code>, <code>generation</code>, <code>mathcheck</code>), with these changes:</p>
+<ul>
+<li><code>db</code> also marks a test that uses <code>_mysql_server_available</code> (fixes the 2,210).</li>
+<li>New tier markers by cost, set automatically in <code>conftest.py</code> from the file name, as now: <code>browser</code> (571 tests), <code>heavy</code> (the files that take over 60 s of the baseline: a short list kept in <code>conftest.py</code>, about 20 files). <code>slow</code> stays what it is.</li>
+<li>New area markers set from the file name prefix, with no file moved: <code>area_web</code> (<code>test_web_*</code>, <code>test_fuzz_web_*</code>), <code>area_api</code> (<code>test_api*</code>), <code>area_db</code> (<code>test_db_*</code>), <code>area_generation</code> (<code>test_gen*</code>, <code>test_galaxy*</code>, <code>test_phenom*</code>, <code>test_scatter*</code> and so on), <code>area_physics</code> (<code>test_physics*</code>, <code>test_orbit*</code>, ...), <code>area_cli</code>, <code>area_names</code>, <code>area_map</code> (maps, tiles). The table lives in one place, <code>src/tests/areas.py</code>, and a test fails if a test file matches no area, so a new file cannot go unmapped.</li>
+</ul>
+<h3 id="32-runner-how-a-person-picks">3.2 Runner (how a person picks)</h3>
+<p><code>scripts/test.py</code> (no dependency), thin over pytest:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Runs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>scripts/test.py quick</code></td>
+<td>everything not <code>db</code>, <code>browser</code> or <code>heavy</code>: about 5 minutes today, less after stage 1</td>
+</tr>
+<tr>
+<td><code>scripts/test.py changed</code></td>
+<td>the tests selected from the change since the base (3.3)</td>
+</tr>
+<tr>
+<td><code>scripts/test.py area web db</code></td>
+<td>the tests carrying those area markers</td>
+</tr>
+<tr>
+<td><code>scripts/test.py browser</code></td>
+<td>the browser phase alone, with 2 workers</td>
+</tr>
+<tr>
+<td><code>scripts/test.py full</code></td>
+<td>everything: the merge gate. Runs the non-browser tests with all cores, then the browser tests with 2 workers</td>
+</tr>
+<tr>
+<td>any of them <code>--record</code></td>
+<td>also records the map (3.3)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>full</code> command writes the start time and the previous duration to its first line, so a lane can paste it in its status line.</p>
+<h3 id="33-change-based-selection-what-a-change-touches">3.3 Change-based selection (what a change touches)</h3>
+<p><strong>Recording.</strong> A pytest plugin (<code>src/tests/depmap.py</code>, on with <code>--record-deps</code>) tracks, for every test, the set of repository files it used:</p>
+<ul>
+<li>Python files: <code>sys.monitoring</code> (Python 3.12 and later) with a <code>PY_START</code> callback that stores the file of each function that starts and then disables itself for that function, and is switched on again at the start of each test. The overhead was not measurable (a 389-test run took 16.7 s with it and 18.6 s without).</li>
+<li>Data files (templates, static JS and CSS, <code>schema.sql</code>, fixtures, JSON): an <code>open</code> audit hook (<code>sys.addaudithook</code>, any Python 3.8+) records every path opened under the repository during a test.</li>
+<li>A test that starts a subprocess or forks (audit events <code>subprocess.Popen</code>, <code>os.fork</code>, <code>os.posix_spawn</code>) is recorded as opaque, since what the child runs is not seen: it depends on everything under <code>src/planetgen/</code>.</li>
+<li>The result is one JSON file per checkout (<code>.pytest-deps.json</code>, ignored by git), written when the run ends. Under xdist each worker sends its part to the controller, which merges them.</li>
+<li>Recording is only on a run that asks for it, and needs 3.12 or later. Selection itself reads the JSON and runs on any Python.</li>
+</ul>
+<p><strong>Safety margins.</strong> <code>sys.monitoring</code> sees functions that run, so a test that only reads a constant from module B, through a function in module A, would not list B. The selection is therefore widened by one import hop, read from the <code>import</code> statements of every file under <code>src/</code> when a changed file needs it (a file that imports a changed module counts as changed; a changed <code>__init__.py</code> reaches everything importing inside its package; test files count, so a test that only imports a constant is caught), and the plugin always treats these as changes that select everything: <code>conftest.py</code>, <code>src/tests/*support*.py</code>, <code>pytest.ini</code>, <code>setup.py</code>, <code>requirements*.lock</code>, anything under <code>src/tests/fixtures/</code>, and a test the map has never seen (that test alone is selected).</p>
+<p><strong>Selection.</strong> <code>--changed [BASE]</code> takes the files that differ from BASE (default: the merge base with <code>origin/main</code>, plus uncommitted and untracked files), and runs: every test in a changed test file, every test that is new to the map, every opaque test whose area changed, and every test whose recorded set (widened) contains a changed file. Non-code changes (docs, <code>changes/</code>, <code>TODO.md</code>) select nothing, except <code>docs/</code> files that a test reads, which the audit hook already finds.</p>
+<p><strong>Keeping the map fresh.</strong> A selected run re-records the tests it ran and updates their entries; the entries of tests not run are kept (they depend on none of the changes). <code>scripts/test.py full</code> records on every run (<code>--record-deps</code>), so the map stays current without anyone asking; a test that failed or skipped is not recorded and is therefore selected next time. A lane's first <code>changed</code> run with no map runs the full suite and records, so no one has to build a map by hand.</p>
+<p><strong>Measured selectivity</strong> (sample of 72 test files, 3,796 tests, browser and the heaviest files left out) [M]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Per changed source file (210 files)</th>
+<th>Mean</th>
+<th>Median</th>
+<th>90th percentile</th>
+<th>Files hit by over half the tests</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Functions that ran</td>
+<td>9.5%</td>
+<td>0.8%</td>
+<td>67%</td>
+<td>23</td>
+</tr>
+<tr>
+<td>Plus one import hop</td>
+<td>17.6%</td>
+<td>8.5%</td>
+<td>76%</td>
+<td>33</td>
+</tr>
+<tr>
+<td>Static <code>import</code> graph (not used)</td>
+<td>55% of test files</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+<p>A test ran 20.3 source files on average. The handful of files every test touches (<code>util/draw.py</code>, <code>physics/orbits.py</code>, <code>generation/config.py</code>, and <code>admin/throttle.py</code>, which an autouse fixture in <code>conftest.py</code> imports) are the widely shared core: a change there selects most of the suite, which is correct. A later refinement can record the fixture phase apart from the call phase, so an autouse fixture's imports stop counting for every test.</p>
+<p><strong>Proving it before it is trusted.</strong> The full suite stays the merge gate (superseded by section 13 (Boss, 2026-10-14, 3:44 PM EDT): <code>changed</code> may replace the full local suite as the merge gate for small changes). For a number of merges (suggested: the next 20, or two weeks) each lane runs <code>changed</code> first and then the full suite, and the plugin reports any test that failed in the full run but was not selected; any such test is a hole in the map or the rules, and is fixed. Only when that list stays empty does Boss decide whether <code>changed</code> may replace the full run for small changes, with the scheduled daily full CI run as the backstop. Until then <code>changed</code> is a fast loop, not a gate (superseded by section 13 (Boss, 2026-10-14, 3:44 PM EDT): <code>changed</code> may replace the full local suite as the merge gate for small changes).</p>
+<p>Why not an existing tool: <code>pytest-testmon</code> does the same job with <code>coverage.py</code> (a C tracer, about 2 to 3 times slower while recording, one more dependency to pin) and does not see the data files or the subprocesses either. <code>sys.monitoring</code> plus the audit hook is smaller, and its overhead is nothing. If the plugin proves too much to maintain, testmon is the fallback.</p>
+<h2 id="4-faster">4. Faster</h2>
+<p>In order of return per unit of risk. Times are from section 1.</p>
+<ol>
+<li><strong>Browser phase</strong> (42%). Run it apart from the rest, with 2 workers so SwiftShader is not starved, after the other tests; skip it entirely unless a change touches <code>web/</code>, templates, <code>static/</code>, <code>html/</code> or the shared map code (selection does this). Expected: the 13 load timeouts go away (TEST.126), and the all-core phase stops sharing CPUs with Chromium. A second step shares one page load across the several tests that load the same page (the fixture-map file loads a fresh page 86 times; its setup alone is 792 s).</li>
+<li><strong>Database per worker, reset between tests</strong> (about 10 to 13%: the 1,926 s of setup and teardown in the database files). A <code>mysql_config</code>-compatible fixture that takes a ready database from a per-worker pool, and on teardown deletes the rows from the tables the test filled (found with a <code>SELECT 1 ... LIMIT 1</code> per table, about 15 ms for the 122) instead of dropping and re-creating the schema. Tests that change the schema (old-schema fixtures, migrations, version detection) keep the current fixture. This is the one stage that touches test behaviour, so it comes with a leak check that compares a reset database to a fresh one table by table.</li>
+<li><strong>The heavy generation files</strong> (<code>test_neighborhood_edge</code> 753 s, <code>test_galaxy_gen</code> 628 s, <code>test_parallel_generation</code> 329 s, <code>test_prevalence</code> 319 s, <code>test_phenomenon_scatter</code> 260 s, <code>test_work_queue_failures</code> 239 s): about 2,500 s together. File by file, shrink the galaxy each one builds to the least that still shows the behaviour (the <code>sparse</code> neighbourhood case alone is 244 s), and share a built galaxy among the tests of a file when they only read it. These are the files the Foundations lanes edit, so each is done with its owner's word.</li>
+<li><strong>Cheap wins</strong>: <code>--dist worksteal</code> and the 600 s timeout were on at the baseline (<code>pytest.ini</code> gives every test 900 s since TEST.153, 2026-10-15); set <code>-p no:cacheprovider</code> in the runner; collect once (collection is 5 s, run it with <code>--import-mode=importlib</code> only if it measures faster).</li>
+</ol>
+<p>A rough result, adding the stages: the full suite from 55 to about 35 to 40 minutes (browser phase, database reset, three heavy files); a typical <code>changed</code> run to a few minutes, because most changes select under a fifth of the non-browser tests and no browser tests.</p>
+<h2 id="5-what-stays-and-what-does-not-move">5. What stays and what does not move</h2>
+<ul>
+<li><strong>Test files do not move.</strong> A folder-per-area layout would make every other lane's open PR conflict, and the markers and the map give the same selection. If Boss wants the folders anyway, it is one mechanical PR at a quiet moment, last.</li>
+<li><strong>The merge gate</strong> (full local suite, no waiting for CI) and the daily CI run are unchanged (superseded by section 13 (Boss, 2026-10-14, 3:44 PM EDT): <code>changed</code> may replace the full local suite as the merge gate for small changes; the daily CI run stays).</li>
+<li><strong>Flaky-test items</strong> (TEST.111/116/125-132/137/138) stay with the Bugfixes lanes. This work removes one cause of them (the load) and does not edit their tests.</li>
+</ul>
+<h2 id="6-stages">6. Stages</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Change</th>
+<th>Touches</th>
+<th>Risk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><code>db</code> marker fix, <code>heavy</code> and area markers (<code>areas.py</code>), <code>scripts/test.py</code> with <code>quick</code>, <code>area</code>, <code>browser</code>, <code>full</code> (two phases), docs/reference/testing.md</td>
+<td>conftest.py (marker hook only), new files</td>
+<td>low</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>depmap.py</code> plugin: <code>--record-deps</code>, <code>--changed</code>, the fixed select-everything rules, the proof report</td>
+<td>new file plus two lines in conftest.py</td>
+<td>low (opt-in)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Database per worker with reset, leak check</td>
+<td>conftest.py fixture, new fixture module</td>
+<td>medium</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Browser page-load sharing; heavy generation files, one PR per file with its owner</td>
+<td>test files</td>
+<td>medium, per file</td>
+</tr>
+<tr>
+<td>5</td>
+<td>After the proof period: Boss decides whether <code>changed</code> may replace the full run for small changes</td>
+<td>policy</td>
+<td>n/a</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each PR is merged on a green full run and reports the TODO items it resolves and adds.</p>
+<h2 id="7-for-the-todo-thread">7. For the TODO thread</h2>
+<ul>
+<li>TEST.139 (this item) gets the stages in section 6 as sub-items.</li>
+<li>New bug: <code>markdown</code> 3.11.1 (installed by <code>pip install -e &quot;.[test,api]&quot;</code> today, since <code>setup.py</code> only says <code>markdown&gt;=3.6</code>) removes the inline pattern <code>not_strong</code> that <code>web/lib/mdrender.py:34</code> names, so 68 tests fail in the first baseline run (74 when the database is on and the seven files that render Markdown run together: test_fuzz_text_rendering, test_web_system_phen, test_bughunt_render_edges, test_mdrender, test_web_population, test_systems, test_page_shell) with <code>ValueError: No item named &quot;not_strong&quot; exists</code>, and the site's Markdown pages would fail; <code>requirements.lock</code> pins 3.11, which works. Fix: cap the requirement (<code>markdown&gt;=3.6,&lt;3.11.1</code>) or make <code>mdrender.py</code> tolerate the missing name. (Confirmed: the same seven files give 466 passed on 3.11 and 74 failed on 3.11.1.)</li>
+<li>New: the <code>db</code> marker misses 2,210 tests (section 1); fixed in stage 1.</li>
+<li><code>playwright</code> is unpinned (<code>&gt;=1.49.0</code>) and a new release needs a newer Chromium than the one the cloud image carries (1.64 wants build 1248, the image has 1194). Lanes need <code>playwright==1.56.0</code> there. Worth a line in docs/reference/testing.md.</li>
+</ul>
+<h2 id="8-questions-for-boss-with-the-default-i-will-use">8. Questions for Boss (with the default I will use)</h2>
+<ol>
+<li><strong>Run the browser tests as their own phase with 2 workers, and only when web or map code changed, in <code>changed</code> runs?</strong> Default: yes. The <code>full</code> command still runs them.</li>
+<li><strong>Keep test files where they are and group by markers?</strong> Default: yes (section 5).</li>
+<li><strong>Let <code>changed</code> replace the full run for small changes after the proof period?</strong> Default: no change to the gate until the proof report is clean; I will ask again then.</li>
+</ol>
+<h2 id="9-stage-1-result-2026-10-14-scriptstestpy-full-started-1347z">9. Stage 1 result (2026-10-14, <code>scripts/test.py full</code>, started 13:47Z)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Tests</th>
+<th>Result</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Non-browser, 4 workers</td>
+<td>15,123</td>
+<td>15,115 passed, 8 skipped, 0 failed</td>
+<td>21 min 33 s</td>
+</tr>
+<tr>
+<td>Browser, 2 workers</td>
+<td>571</td>
+<td>513 passed, 52 skipped, 6 failed</td>
+<td>34 min 43 s</td>
+</tr>
+<tr>
+<td>Whole run</td>
+<td>15,694</td>
+<td></td>
+<td>56 min 24 s</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>The wall time did not shrink</strong> (55 min 12 s before). The machine now does the same work without the contention: the browser phase on 2 workers spends 2,083 s of wall time where the browser files spent 5,390 s of summed test time before, but two cores sit idle during it. Stage 1 is about reliability and the fast loops, not the full-run time; that comes from stages 3 and 4 and from <code>changed</code> runs.</li>
+<li><strong>Browser failures went from 13 timeouts to 6</strong>: four fail alone on main (TEST.125 three moon tests, TEST.142 the <code>after</code> argument), two are load failures that pass alone (<code>test_bookmarks_keep_a_course_pick_on_the_galaxy_map</code>, <code>test_galaxy_map_buttons</code>), confirmed by running them alone. Two workers is better than four but not enough; stage 4 gives the heavy WebGL tests state-based waits.</li>
+<li>Non-browser tests have no failures at all in this run (the 14 of the baseline were 13 browser timeouts and my own database grant).</li>
+<li><code>quick</code> (not database, browser or heavy) is the fast loop; its time is printed by the runner.</li>
+</ul>
+<h2 id="10-the-test-fixes-decisions-boss-approved-2026-10-14-1506z">10. The test fixes: decisions (Boss approved 2026-10-14 15:06Z)</h2>
+<p>Boss (14:01Z) moved every test-fix item to this rebuild and asked that none be implemented until it was decided which should be. Decided 2026-10-14; each item has a decision, a reason and a close condition. The TODO items keep the IDs; the owner of every one is the Test Suite Rebuild thread. The text of the decision list as posted is also kept in <code>/mnt/project-files/test-suite-rebuild/test-fix-decisions.md</code>.</p>
+<h3 id="101-implemented-as-small-fixes-group-a">10.1 Implemented as small fixes (group A)</h3>
+<p>These fail repeatably (alone, or on one database engine), not only under load, so they do not wait for the rebuild. One small PR each, in this order.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Decision</th>
+<th>Reason</th>
+<th>Closes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.125 three browser-map tests, &quot;no generated system has a moon&quot;</td>
+<td>Implement</td>
+<td>Failed in the 2026-10-14 baseline and fails alone and on main: the map fixture's galaxy has no moon since the generator's draws shifted.</td>
+<td>The fixture always holds a planet with moons (a system generated last, with moons forced, so no earlier draw moves) and the three tests pass in a full browser phase.</td>
+</tr>
+<tr>
+<td>TEST.142 fake <code>get_systems</code> lacks <code>after</code></td>
+<td>Implement</td>
+<td>Failed in the baseline and alone; PERF.75's keyset paging added the argument.</td>
+<td>The fake takes and honours <code>after</code>, and no other fake of a paged reader is left (checked with a grep).</td>
+</tr>
+<tr>
+<td>TEST.143 install test fails from a git worktree</td>
+<td>Implement</td>
+<td>The test's stand-in Python imported <code>planetgen</code> from the machine's editable install, not from the checkout under test. Reproduced from a worktree.</td>
+<td>The stand-in is pinned to the checkout with <code>PYTHONPATH</code>; the test passes from a worktree and from the main checkout.</td>
+</tr>
+<tr>
+<td>TEST.129 orbit-update tests on MySQL 8.4 (<code>last_updated_at</code> rounds up)</td>
+<td>Implement</td>
+<td>MySQL 8.4 rounds fractional seconds where MariaDB truncates; may give a negative elapsed time in a real run.</td>
+<td>The orbit update stores and compares a time both servers treat alike, checked on MySQL 8.4 and MariaDB.</td>
+</tr>
+<tr>
+<td>TEST.130 scene vs stored positions for comets</td>
+<td>Implement</td>
+<td>A real disagreement for some random systems with comets (about 1e10 km). 400 seeded systems with comets and a second star did not reproduce it; systems with three stars are being tried next.</td>
+<td>The cause is found and fixed, and the test draws a system that has comets (and the star layout that triggers it) every time instead of by luck.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="102-folded-into-the-rebuild-not-fixed-one-by-one-group-b">10.2 Folded into the rebuild, not fixed one by one (group B)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Decision</th>
+<th>How the rebuild settles it</th>
+<th>Closes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.126 WebGL tests time out under 4 workers</td>
+<td>Fold into stage 1 and stage 4</td>
+<td>13 of the baseline's 14 failures were this. Stage 1 runs the browser tests as a separate phase on 2 workers (6 failed in its first full run, 4 of them TEST.125 and 142; 2 pass alone). Stage 4 gives the heavy WebGL tests state-based waits.</td>
+<td>5 consecutive full runs show none of them failing.</td>
+</tr>
+<tr>
+<td>TEST.138, TEST.144 browser menu and button tests fail once under load</td>
+<td>Fold into TEST.126</td>
+<td>Same family.</td>
+<td>With TEST.126.</td>
+</tr>
+<tr>
+<td>TEST.111, 116, 127, 128, 132, 134, 137, 140, 141: failed once in a full run, passed alone, no traceback kept</td>
+<td>Fold; no one-by-one hunt</td>
+<td>None has a repro (TEST.111: none in 15 loaded runs; TEST.116: none in 83). Stage 1 keeps every failure's full report and re-runs it alone, saying &quot;passes alone&quot; or &quot;FAILS ALONE&quot;. Stage 3 (one database per worker) removes the shared-database and create-and-drop-under-load causes.</td>
+<td>5 consecutive full runs after stage 3 show none of them; or a recurrence is fixed from its captured report.</td>
+</tr>
+<tr>
+<td>TEST.116 specifically</td>
+<td>Stays open for its first recurrence</td>
+<td>The test pins <code>--star-type K2V</code> and a different stored type may mean the pin was not honoured on that draw, which would be a product bug, not test luck (inferred, not confirmed).</td>
+<td>Its first recurrence is investigated with the captured seed.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="103-new-work-with-an-order-group-c">10.3 New work with an order (group C)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Decision</th>
+<th>Closes when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.133 big-galaxy query-budget test (EXPLAIN every page query on 2,000,000 systems)</td>
+<td>Implement as its own opt-in tier (marker <code>budget</code>, <code>scripts/test.py budget</code>, run by hand before a PERF merge). Not in the merge gate and not in CI: building 2,000,000 systems takes about 2 minutes, and nothing here may raise CI cost. After stage 3.</td>
+<td>The tier exists and passes on 2,000,000 systems.</td>
+</tr>
+<tr>
+<td>TEST.135 nebula reads in that budget</td>
+<td>Same tier, after TEST.133 and DB.24 (its stated prerequisite).</td>
+<td>The nebula reads are in the budget and pass.</td>
+</tr>
+<tr>
+<td>TEST.131 gravity evaluator tests</td>
+<td>Stays with the gravity work: it needs GEN.198, which does not exist yet. Whoever builds GEN.198 writes these in the same PR as a normal test file, which the markers and the dependency map pick up with no change.</td>
+<td>GEN.198 lands with its tests.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="104-order">10.4 Order</h3>
+<ol>
+<li>Stage 1 (merged): markers, runner, browser phase, failure capture.</li>
+<li>Group A, one small PR each: TEST.125, 142, 143, then 129, 130.</li>
+<li>Stage 2: change-based selection.</li>
+<li>Stage 3: one database per worker; then re-check group B.</li>
+<li>TEST.133, then TEST.135 when DB.24 lands.</li>
+<li>Stage 4: browser page-load sharing and the heavy generation files, one PR each with the owning lane's word.</li>
+</ol>
+<p>A lane that sees a test failure still reports it to the TODO thread; with the stage 1 failure capture the report is kept.</p>
+<h2 id="11-stage-2-result-change-based-selection-2026-10-14">11. Stage 2 result: change-based selection (2026-10-14)</h2>
+<p><code>src/tests/depmap.py</code> is loaded by <code>conftest.py</code> (<code>pytest_plugins</code>). It adds:</p>
+<ul>
+<li><code>--record-deps</code>: writes <code>.pytest-deps.json</code>; on in <code>scripts/test.py full</code>.</li>
+<li><code>--changed [BASE]</code> (<code>scripts/test.py changed [--base REF]</code>): runs the same two phases as <code>full</code>, but only the selected tests; prints how many of how many and the recorded seconds skipped. No map yet: runs everything and records one.</li>
+<li><code>--deps-check [BASE]</code> (<code>scripts/test.py full --check</code>): runs everything, then prints <code>MISSED:</code> for each failed test <code>--changed</code> would not have chosen, and appends the run to <code>.pytest-deps-proof.json</code>.</li>
+</ul>
+<p>Checked on a small file set: touching a file nothing used selected 0 of 43; touching <code>names/__init__.py</code> selected the 22 tests that import inside the package; touching <code>conftest.py</code> or the plugin selected all 43. A collect-only run no longer overwrites the map. The first full run with <code>--check</code> records the first complete map; the proof period (section 3.3) starts from the full runs after that, and <code>changed</code> stays a fast loop, not a gate, until Boss decides (superseded by section 13 (Boss, 2026-10-14, 3:44 PM EDT): <code>changed</code> may replace the full local suite as the merge gate for small changes).</p>
+<h2 id="12-stage-3-result-one-database-per-worker-2026-10-14">12. Stage 3 result: one database per worker (2026-10-14)</h2>
+<p><code>src/tests/dbpool.py</code> and the new <code>mysql_config</code> (section 4, item 2). Measured on the 3,243 database tests (<code>-m &quot;db and not browser&quot; -n 4</code>), 16 min 49 s with the deep check on every reset (15 min 48 s without it); on four database files, 26 s became 14 s.</p>
+<ul>
+<li>What a reset does: empties the tables with rows (one <code>UNION ALL</code> probe, then <code>DELETE</code> with foreign keys off), sets an advanced <code>AUTO_INCREMENT</code> back to 1 (so a test still gets row id 1), puts back the baseline <code>schema_migrations</code> row, closes the pool, and drops the process's cached facts about the database name. The caches are found by name, not listed: every <code>_</code>-prefixed dict or set in a <code>planetgen</code> module is searched for a key naming the database (this found <code>_id_blocks</code>, <code>_facet_cache</code>, <code>_token_sizes</code>, the count cache, the queue connections); the Redis keys holding the name are deleted. A new cache keyed by database is covered with no change here.</li>
+<li>A test that changes the schema is noticed by comparing table, column, index, routine, trigger and constraint structure and each table's creation time with how the test began; the database is dropped and the next test gets a new one.</li>
+<li>Tests that need no schema at all are marked <code>fresh_database</code> and get the old fixture: <code>test_db_old_schemas.py</code>, <code>test_db_schema_version_detect.py</code>, <code>test_facility_velocity_migration.py</code>, <code>test_generation_size_estimate.py</code> (it measures table bytes, which a reused database has grown), the v63 migration test, and three &quot;uninitialized database&quot; tests. The first run with the reuse turned on had 55 failures; they were these and one test that read a count another test had left in Redis under the same database name.</li>
+<li>The proof: <code>PLANETGEN_TEST_DEEP_CHECK=1</code> compares each reset with a new database (every table definition, rows, counters). All 3,243 database tests passed with it on. <code>test_dbpool.py</code> repeats the check on a real sector save and covers the schema-change and counter cases.</li>
+<li><code>PLANETGEN_TEST_FRESH_DB=1</code> returns every test to its own database.</li>
+<li><strong>Measured on a full run</strong> (<code>scripts/test.py full --check</code>, started 18:47Z): the non-browser phase went from 21 min 40 s (stage 2 run) to 19 min 23 s, a saving of 2 min 17 s, not the 8 minutes the setup and teardown total suggested: the database files are dominated by the work the tests do, and the heaviest files run on four workers either way. The browser phase (39 to 40 min on 2 workers) is now two thirds of a full run, so it is the next lever (stage 4). The full run took 59 min 43 s (60 min 54 s before). One failure, <code>test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts</code>, which passed alone: its fixed one-minute request window can end between its requests (the limiter counts from the clock minute), a rare time flake; reported for the TODO list.</li>
+</ul>
+<h2 id="13-policy-changed-as-the-merge-gate-boss-2026-10-14-1944z">13. Policy: <code>changed</code> as the merge gate (Boss, 2026-10-14 19:44Z)</h2>
+<p><code>scripts/test.py changed</code> may replace the full local suite as the merge gate for small changes and for the steps of a sequence of related items. A full run (<code>scripts/test.py full --check</code>) is for when a sequence is finished, not for every merge. The safeguards are in the selection (a change to the test setup, or no map yet, selects everything), in <code>--check</code> (every full run lists any failing test that <code>changed</code> would have missed; that is a bug to fix), and in the daily CI run on main. A PR description says which run it used.</p>
+<h2 id="14-test133-the-big-galaxy-query-budget-tier-2026-10-14">14. TEST.133: the big-galaxy query budget tier (2026-10-14)</h2>
+<p><code>scripts/test.py budget</code> (<code>src/tests/test_budget_queries.py</code>, <code>budget_support.py</code>). Opt-in, not in the merge gate or CI (decision list, TEST.133).</p>
+<ul>
+<li>The galaxy: <code>ensure_big_galaxy</code> clones one real saved single-star system into 2,000,000 systems with stars on 150,000 cloned sectors, with a real-galaxy mix of star types (three in four red dwarfs). The full-text indexes are dropped while filling and rebuilt after, then <code>ANALYZE</code>. The database is named for its size and the schema version and kept between runs.</li>
+<li>The measure is rows read by the server for one call (the session's <code>Handler_read*</code> counters before and after), not seconds, so the budget holds on any machine. A page of 50 may read 5,000 rows; a count may read about the table.</li>
+<li>Cases are the project's own query functions: the Systems and Sectors pages (several sorts, a star-type filter, offsets 0, 20,000 and a quarter of the table) and the counts. TEST.135 adds the nebula reads once DB.24 is in.</li>
+<li>First run on 200,000 systems found: sort by sector and by octant are now within budget (PERF.70 holds); the Sectors list sorted by name, systems or density, the Systems page filtered by star type, and deep offsets by name read far more than a page and are expected failures until their fixes land.</li>
+<li><code>test_budget_support.py</code> builds 3,000 systems and runs every case in the ordinary run, so a schema or query change that breaks the tier is seen at once.</li>
+<li><strong>Measured on the full size</strong> (2026-10-15, MariaDB 10.11): building 2,000,000 systems took 474 s (397 s of it the system rows, whose many indexes are the cost), 45 s for the stars, 22 s to rebuild the full-text indexes; the 13 cases then ran in about 60 s: 7 within budget, 6 expected failures. Later runs reuse the database.</li>
+</ul>
+<h2 id="15-a-clear-last-line-from-scriptstestpy-boss-2026-10-15-0009z">15. A clear last line from <code>scripts/test.py</code> (Boss, 2026-10-15 00:09Z)</h2>
+<p>Boss's rule: a run must never be cut by the 30-minute background limit, and it must be certain when a run is done. Start every long run with <code>run_in_background</code> and a timeout of at least 90 minutes (7,200,000 ms), with its output and start time written to a file. <code>scripts/test.py</code> now passes pytest's output through and ends with exactly one of:</p>
+<ul>
+<li><code>scripts/test.py &lt;command&gt;: PASS in &lt;time&gt;: &lt;counts&gt;</code></li>
+<li><code>scripts/test.py &lt;command&gt;: FAIL in &lt;time&gt;: &lt;counts&gt;</code> (the failed tests were already listed with their verdicts above it)</li>
+<li><code>scripts/test.py &lt;command&gt;: INTERRUPTED (&lt;signal&gt;) in the &lt;phase&gt; phase after &lt;time&gt;; not finished, &lt;counts&gt; so far</code> on Ctrl-C or a SIGTERM; the child pytest is stopped first.</li>
+</ul>
+<p>A run whose output ends with none of the three was killed (SIGKILL or the background limit, which cannot be caught) and counts as not run.</p>
+<h2 id="16-flakes-that-were-not-load-2026-10-15">16. Flakes that were not load (2026-10-15)</h2>
+<p>The first capture with full reports (<code>/mnt/project-files/test-suite-rebuild/failure-records/2026-10-15-0103Z-changed.jsonl</code>) showed two &quot;load&quot; failures were random data. Both reproduce on an idle machine in a loop:</p>
+<ul>
+<li>TEST.149 <code>test_only_due_planets_and_moons_move_and_count</code>: 4 of 150 random systems have a slow, distant moon whose 100,000 km takes longer than a year, so it is correctly not due. Fixed in the test (expects the due count it computes, checks the rest did not move); 0 failures in 400.</li>
+<li>TEST.147 the nebula field table tests: the galaxy seed was random per database and 5 of 80 seeds had no class M or N cloud reaching the sampled sectors. Fixed with a fixed seed.</li>
+</ul>
+<p>Lesson for the rest of the flake list: before calling a failure load, run it in a loop on an idle machine; a test that builds random data without a seed can fail at any load.</p>
+<ul>
+<li>TEST.149, second test: <code>test_atmospheric_pressure_correlates_positively_with_gravity</code> is statistical. With 40 planets per class the Pearson r is 0.10 with a spread of 0.04 (Spearman 0.60, spread 0.02), so r of 0 or less came up in about 1 run in 100. 320 per class makes the spread 0.017 and costs 1.4 s a run. A statistical test needs a sample whose spread is a few times smaller than the distance to its threshold.</li>
+</ul>
+<h2 id="17-test150-the-progress-log-and-the-build-id-2026-10-15-boss-chose-option-a-of-test148">17. TEST.150: the progress log and the build id (2026-10-15, Boss chose option A of TEST.148)</h2>
+<p><code>src/tests/progress_log.py</code> (a plugin loaded from <code>pytest.ini</code>, like <code>depmap</code>) appends a line when a test's teardown is reported, with the worst outcome of its phases (<code>failed</code>, <code>skipped</code>, <code>xfailed</code>, <code>xpassed</code>, <code>passed</code>; only <code>passed</code> counts as done on a resume). <code>src/tests/buildid.py</code> hashes the parts listed in its docstring into a 16-character id and keeps the parts so a resume that finds nothing can name the part that changed. <code>scripts/test.py</code> computes the id before pytest starts, writes the header, sets <code>PLANETGEN_PROGRESS_LOG</code>, and removes logs more than a day old. The failure reruns (<code>rerun_failures</code>) do not log. Resuming is TEST.151, clearing Redis and merging the map TEST.152.</p>
+<h2 id="18-test153-a-hung-test-can-no-longer-stall-a-run-2026-10-15-from-bug-1s-ops50-run">18. TEST.153: a hung test can no longer stall a run (2026-10-15, from Bug 1's OPS.50 run)</h2>
+<p>A <code>scripts/test.py changed</code> run stood at 99% for over an hour: <code>test_a_paused_queue_node_stands_by_until_resumed</code> waits in <code>queue.submit</code> for a resume, and its helper thread had ended after <code>_wait_for</code> raised &quot;timed out&quot; under load without resuming. Three changes: the two tests with that pattern use <code>_ResumeLater</code>, a helper thread that always resumes and hands its failure to the test; <code>pytest.ini</code> gives every test 900 s (<code>timeout_method = signal</code>, which interrupts the main thread of the worker and leaves the worker alive); and the runner names the tests that timed out. A hard hang in C code that signals cannot interrupt would still stall a run; <code>timeout_method = thread</code> would end the worker process (xdist replaces it) but leaves its database behind, so it is not used.</p>
+<h2 id="19-test151-scriptstestpy-command---resume-2026-10-15">19. TEST.151: <code>scripts/test.py &lt;command&gt; --resume</code> (2026-10-15)</h2>
+<p><code>--resume</code> finds <code>.test-progress/&lt;build id&gt;.jsonl</code>, writes the node ids whose last line says <code>passed</code> to <code>&lt;id&gt;.skip</code>, appends a <code>resume</code> line to the log, and gives pytest <code>--skip-passed &lt;file&gt;</code> (a plugin option in <code>progress_log.py</code>, applied in <code>pytest_collection_modifyitems</code> on every worker, so all workers collect the same set). The skip option is not part of the build id (it is added after the id is computed). Both phases share the one list; a test only belongs to the phase whose marker selects it. A resume with no log, or a log with no passed test, or a log of another build, runs nothing and exits 2 with the reason (the parts that changed, from the header of the last run of that command). Checked by killing <code>area names</code> with SIGTERM at 14 s (107 passed, line <code>INTERRUPTED ... 107 tests had passed</code>), then <code>--resume</code>: 87 more passed; a run from the start gives 194. The INTERRUPTED line now says how many tests had passed and that <code>--resume</code> continues it. TEST.152 (section 20) adds the Redis clean-up and the dependency map note.</p>
+<h2 id="20-test152-the-redis-clean-up-and-the-map-of-a-resumed-run-2026-10-15">20. TEST.152: the Redis clean-up and the map of a resumed run (2026-10-15)</h2>
+<p><code>src/tests/redis_cleanup.py</code>, called by <code>scripts/test.py</code> before the first phase of every command, removes the keys earlier runs left on the test Redis: 4,065 had piled up on the development server (job, result and registry keys of <code>planetgen-api-test-*</code>, <code>planetgen-run-*</code> and <code>test-*</code> queues; none has an expiry). It reads <code>PLANETGEN_TEST_REDIS_URL</code> only. The choice was between flushing the database (simple, destroys anything else on a shared server), deleting by key pattern (chosen), and giving the tests their own database number (does not stop the keys piling up). The limiter keys (<code>LIMITS:*</code>) are not touched: they expire, and a delete would take counts from tests running at that moment (TEST.146). A run queue of the real application is called <code>planetgen-run-&lt;random&gt;</code> like a test's, so the clean-up holds back whenever a worker's heartbeat is under 90 s old. <code>runner.clear_test_redis</code> is the one hook the runner tests replace, so no test in a suite run clears the Redis its neighbours use. The dependency map needed no change: <code>merge_map</code> already keeps the entries of tests that did not run, which is what a resumed run is; the <code>--check</code> output now says a resumed run covers only the tests that ran, and the proof record marks it. After the clean-up, the 4,065 keys became 15 (14 limiter keys and <code>rq:queues</code>).</p>
+<h2 id="21-stage-4-second-part-quality-lane-2026-10-15">21. Stage 4, second part (Quality lane, 2026-10-15)</h2>
+<ul>
+<li><strong>Browser phase on an idle 4-core machine: 19 min 12 s</strong> (534 passed, 52 skipped, 1 failed; MariaDB 10.11), down from 39 to 40 minutes before stage 4. The slowest calls: unfilled-sector outline 119 s, plain buttons on the sector and galaxy pages 86 s and 67 s, wheel zoom 55 s, breadcrumb 55 s.</li>
+<li><strong>Where a browser test's time goes</strong> (a profile that times every Playwright call, kept out of the tree): one <code>HOVER_SCAN</code> of the whole map costs about 2.5 s, and <code>_hover_choice</code> repeated it 20 times, 250 ms apart, when the answer was &quot;no such choice&quot;. A test asking whether a choice exists settles the map first and passes <code>retries=1</code>; the scan keeps its 20 tries where the choice must exist.</li>
+<li><strong>A 2-minute default wait</strong> (<code>tests/browser_waits.py</code>, installed by <code>conftest.py</code>) on every context. No test depends on Playwright's 30 s, and a wait with its own <code>timeout=</code> keeps it.</li>
+<li><strong><code>test_the_map_help_is_a_menu_item_that_opens_a_dialog</code></strong> (the one failure above, &quot;passes alone&quot;, 39.5 s under load 8.4): the Menu item calls <code>dialog.show()</code> only once Shoelace has upgraded the element, so the test waits for <code>show</code> first.</li>
+<li><strong>TEST.157</strong> was a point one parsec from the system placed inside a random nebula shape; it now uses the system's own point, like its sibling test (300 of 300 loop runs pass; the old form failed several of 300).</li>
+</ul>
+<h2 id="22-the-folded-flake-list-looped-on-an-idle-machine-quality-lane-2026-10-15">22. The folded flake list, looped on an idle machine (Quality lane, 2026-10-15)</h2>
+<p>Each test run 60 times (<code>-n 2</code>, a fresh random draw each time, nothing else on the machine) before anyone calls it load:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Test</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.132</td>
+<td><code>test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star</code></td>
+<td><strong>3 of 60 failed</strong>: the backfill drew no stars for the neighbour cell the test fills next. Fixed (the test fills the nearest cell given stars); 100 of 100 pass</td>
+</tr>
+<tr>
+<td>TEST.157</td>
+<td><code>test_system_detail_names_the_containing_nebula</code></td>
+<td>reproduced and fixed (section 21)</td>
+</tr>
+<tr>
+<td>TEST.111</td>
+<td><code>test_ensure_sector_generated_creates_then_reuses_the_same_sector</code></td>
+<td>0 of 60</td>
+</tr>
+<tr>
+<td>TEST.116</td>
+<td><code>test_bughunt_end_to_end</code> (both tests)</td>
+<td>0 of 60</td>
+</tr>
+<tr>
+<td>TEST.127</td>
+<td><code>test_nebula_shape_endpoint_serves_a_mesh</code></td>
+<td>0 of 60</td>
+</tr>
+<tr>
+<td>TEST.128</td>
+<td><code>test_spatial_position_db.py</code></td>
+<td>0 of 60 (the shared-database cause went with stage 3)</td>
+</tr>
+<tr>
+<td>TEST.134</td>
+<td><code>test_many_processes_starting_at_once_start_one_job</code></td>
+<td>0 of 60</td>
+</tr>
+<tr>
+<td>TEST.140</td>
+<td><code>test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing</code></td>
+<td>0 of 60</td>
+</tr>
+<tr>
+<td>TEST.137</td>
+<td><code>test_a_neighborhood_from_the_generate_page</code> (all cases)</td>
+<td>0 of 40 each</td>
+</tr>
+<tr>
+<td>TEST.141</td>
+<td><code>test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector</code> (all cases)</td>
+<td>0 of 40 each</td>
+</tr>
+<tr>
+<td>(sibling of TEST.132)</td>
+<td><code>test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers</code></td>
+<td>0 of 40</td>
+</tr>
+</tbody>
+</table></div>
+<p>A test with 0 failures in 60 has a failure rate under about 5% at 95% confidence, so these stay on the list for the five-clean-full-runs proof; none has a reproducer. The loop used a small plugin that repeats a test through a parametrized fixture; the 60-run loop of the six slowest takes about 27 minutes on 2 workers.</p>
+<h3 id="the-proof-period-2026-10-15">The proof period (2026-10-15)</h3>
+<p>Five clean full runs with <code>scripts/test.py full --check</code> on main, none with a <code>MISSED</code> line (so <code>changed</code> would have chosen every test that failed, which was none). Run 1 was clean; the next run failed <code>test_a_live_redis_reports_its_settings</code> (a real bug in the test, fixed since, not a flake). The four runs after the fix each passed 17,446 tests with 78 skipped, in 32 min 9 s, 32 min 51 s, 33 min 24 s and 32 min 23 s. None of the folded flake-list tests failed in any run. The policy of section 13 (a green <code>changed</code> for small changes, a green <code>full --check</code> when a sequence finishes) therefore stays as it is, and the proof backs it.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

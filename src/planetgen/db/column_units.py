@@ -369,6 +369,13 @@ TABLES = {
         "Lsun*pc": ("star_lpx", "star_lpy", "star_lpz", "point_lpx", "point_lpy", "point_lpz"),
         "Lsun*K": ("star_lt",),
     },
+    "galaxy_block_light_parts": {
+        "index": ("shell_index", "band_index", "wedge_index"),
+        "count": ("star_count", "point_count"),
+        "Lsun": ("star_luminosity_sol", "point_luminosity_sol"),
+        "Lsun*pc": ("star_lpx", "star_lpy", "star_lpz", "point_lpx", "point_lpy", "point_lpz"),
+        "Lsun*K": ("star_lt",),
+    },
     "region_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
         "count": ("sector_count", "capacity", "clump_count"),
@@ -473,6 +480,11 @@ TABLES = {
         "frac": ("grade",),
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
+    },
+    "moon_isotopes": {
+        "id": ("id", "moon_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "moon_interior_layers": {
         "id": ("id", "moon_id"),
@@ -754,6 +766,11 @@ TABLES = {
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
     },
+    "planet_isotopes": {
+        "id": ("id", "planet_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
+    },
     "planet_interior_layers": {
         "id": ("id", "planet_id"),
         "index": ("layer_index",),
@@ -984,9 +1001,19 @@ TABLES = {
         "index": ("generator_epoch",),
         "flag": ("complete",),
     },
+    "effect_ledger": {
+        "id": ("star_system_id", "body_id", "source_id"),
+        "key": ("body_type", "effect", "source_type"),
+        "frac": ("share",),
+        "count": ("n_below",),
+        "row-defined": ("largest_value",),
+    },
     "chart_ledger": {
         "index": ("shell_index", "band_index", "wedge_index", "generator_epoch"),
         "id": ("run_id",),
+    },
+    "system_summary": {
+        "id": ("star_system_id", "habitability_stamp"),
     },
     "sector_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
@@ -997,6 +1024,16 @@ TABLES = {
         "count": ("expected_systems", "actual_systems", "actual_stars", "habitable_worlds"),
         "K": ("mean_temperature_k",),
         "Gyr": ("mean_age_gy",),
+    },
+    "sector_facets": {
+        "index": ("shell_index", "band_index", "wedge_index"),
+        "count": ("n",),
+    },
+    "galaxy_totals": {
+        "id": ("id",),
+        "count": ("systems", "stars", "planets", "moons", "belts", "habitable_worlds"),
+        "kg": ("mass_kg",),
+        "Lsun": ("luminosity_sol",),
     },
     "sector_system_counts": {
         "id": ("sector_id",),
@@ -1172,6 +1209,11 @@ ROGUE_BODY_UNITS = {
         "frac": ("grade",),
         "Gyr": ("age_window_gyr_start", "age_window_gyr_end"),
         "flag": ("capped_by_host",),
+    },
+    "rogue_planet_isotopes": {
+        "id": ("id", "rogue_planet_id"),
+        "frac": ("fraction",),
+        "ratio": ("initial_ratio",),
     },
     "rogue_planet_interior_layers": {
         "GPa": ("bottom_pressure_gpa", "top_pressure_gpa",),

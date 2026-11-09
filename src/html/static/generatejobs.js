@@ -89,15 +89,16 @@ function render(job) {
     error.hidden = !job.error;
   }
 
+  // ADM.151: the systems this run has made so far.
+  const systems = panel.querySelector("[data-job-systems]");
+  if (systems) {
+    systems.hidden = !job.systems_url;
+    if (job.systems_url) systems.href = job.systems_url;
+  }
+
   if (job.finished) {
     const cancel = panel.querySelector("[data-job-cancel]");
     if (cancel) cancel.remove();
-  }
-  // ADM.31: a finished run that made sectors offers them on the Galaxy Map.
-  const made = panel.querySelector("[data-job-made]");
-  if (made) {
-    made.hidden = !job.made_url;
-    if (job.made_url) made.href = job.made_url;
   }
 }
 

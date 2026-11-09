@@ -132,10 +132,9 @@ def _expand(conn, run_id, index):
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
     step comes from the run record, so any process can do this.
 
-    The cut is the *opening* of the stage (PERF.252): it runs in the work horse of the last unit of the stage before, so the run
-    record names the stage being opened (`runrecord.begin_opening`) while it lasts, for a kill or a failure to say so, and the log
-    says that it is opening and how much memory the process holds after each step, since the stage's own start line is written
-    only when the cut is done.
+    The cut is the *opening* of the stage (PERF.252). Since PERF.254 it is a job of its own (`units.open_stage`), claimed on the memory
+    gate; the run record names the stage being opened (`runrecord.begin_opening`) while it lasts, and the log says that it is opening and
+    how much memory the process holds after each step, since the stage's own start line is written only when the cut is done.
 
     Returns:
         int: How many units the stage queued.
@@ -414,18 +413,6 @@ def stage_name(conn, run_id, index):
     return label or str(index)
 
 
-def opening_note(conn, run_id, stage):
-    """
-    What a failure message adds when the process that failed was opening a stage (PERF.252): `" while it was opening stage <label>"`,
-    or `""`. The opening of a stage runs in the work horse of the last unit of the stage before it, so that unit is named by the job
-    and the stage being opened is not.
-    """
-    opened = runrecord.opening(conn, run_id)
-    if opened is None or opened == stage:
-        return ""
-    return f" while it was opening stage {stage_name(conn, run_id, opened)}"
-
-
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
@@ -488,9 +475,12 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
         plan = runrecord.read_plan(conn, run_id, index)
-        metrics = {}
+        results = _stage_results(conn, run_id, index)
+        # OPS.123: the speeds and the row's counts are what the units report, written here, not a hook of each command
+        stages.record_unit_samples(_mysql_config(step.params["database"]), step.params.get("workers", 1), results)
+        metrics = stages.stage_row_metrics(plan["detail"], results)
         if hook is not None:
-            metrics = hook(step.params, plan["detail"], _stage_results(conn, run_id, index), seconds) or {}
+            metrics = {**metrics, **(hook(step.params, plan["detail"], results, seconds) or {})}
         if declared.get("row"):
             skipped = (plan["detail"] or {}).get("skip")
             if skipped:

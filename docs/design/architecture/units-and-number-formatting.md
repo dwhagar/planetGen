@@ -16,7 +16,7 @@ Status: research, 2026-10-09; decisions marked "Boss" are his, everything else i
 **Update (DOC.70, 2026-10-23): where the units live now.** This note was written before the unit registry existed; its
 ladders and the migration order below are still the display design, but a unit's number is no longer stated here or
 anywhere else a second time. One list of units exists, and everything else reads it
-(design: `docs/design/unified-unit-quantity.md`):
+(design: `docs/design/architecture/unified-unit-quantity.md`):
 
 | What | Where | Rule |
 |---|---|---|
@@ -24,7 +24,7 @@ anywhere else a second time. One list of units exists, and everything else reads
 | **`Quantity`** | `physics/quantity.py` (GEN.569) | A number in one registry unit, kept as given, answered in any other unit of its kind on demand; for the edges (store, load, show, API), never in a kernel loop. A conversion between units a power of ten apart is one correctly rounded step. |
 | **Relations** | `physics/relations.py` (GEN.586) | Named laws (surface gravity, Hill radius, fluid Roche limit, a period and its frequency) declared once as SI kernels with a `Quantity` form; a dimension test checks each formula's output dimension. |
 | **Field declarations** | `MassObject.FIELD_UNITS` (GEN.570) | Each persisted attribute of a body family with the unit its instance holds it in; `SERIALIZABLE_FIELDS` is its names. |
-| **The column registry** | `db/column_units.py` (DB.76) | Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (`tests/test_column_units.py`). See `docs/database-schema.md`, "Units of a column". |
+| **The column registry** | `db/column_units.py` (DB.76) | Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (`tests/test_column_units.py`). See `docs/reference/database-schema.md`, "Units of a column". |
 | **The display ladders** | `util/ladders.py`, `scripts/build_unit_ladders.py` | A ladder rung is built from its registry row (`rung`, `companion`): the factor, offset and name are the registry's; the ladder adds only display data (a different symbol, the start threshold, the singular form, the unit systems). |
 | **The browser** | `html/static/unitregistry.js`, written by `scripts/build_unit_registry.py` | The registry in JavaScript, tested to give bit-identical conversions; a browser script that declares its own unit factor fails `tests/test_unit_registry_js.py`. |
 

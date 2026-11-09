@@ -1,0 +1,1111 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fill order, region selection and the galactic core - planetGen docs</title>
+<meta name="description" content="Which order should the generator fill sectors in when it fills a ball, a disk, a span or the galactic core; whether the &quot;pruned Hilbert curve with face-adjacent unit steps&quot; wording of GEN.101 can be met; how to count and enumerate region...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/fill-order-curves-and-core.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/fill-order-curves-and-core.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="fill-order-region-selection-and-the-galactic-core">Fill order, region selection and the galactic core</h1><p class="meta">docs/design/galaxy/fill-order-curves-and-core.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#findings-in-short">Findings in short</a></li><li style="margin-left:0px"><a href="#1-unit-step-fills-on-a-ball-of-lattice-points">1. Unit-step fills on a ball of lattice points</a></li><li style="margin-left:14px"><a href="#11-the-parity-obstruction">1.1 The parity obstruction</a></li><li style="margin-left:14px"><a href="#12-the-pruned-hilbert-curve">1.2 The pruned Hilbert curve</a></li><li style="margin-left:14px"><a href="#13-what-this-means-for-the-gen101-wording">1.3 What this means for the GEN.101 wording</a></li><li style="margin-left:0px"><a href="#2-the-real-grid-ring-layer-slot">2. The real grid: ring, layer, slot</a></li><li style="margin-left:14px"><a href="#21-how-irregular-the-neighbours-are">2.1 How irregular the neighbours are</a></li><li style="margin-left:14px"><a href="#22-mapping-the-grid-onto-a-cubic-voxel-lattice-does-not-work">2.2 Mapping the grid onto a cubic voxel lattice does not work</a></li><li style="margin-left:14px"><a href="#23-orders-compared-on-real-cells">2.3 Orders compared on real cells</a></li><li style="margin-left:14px"><a href="#24-recommended-orders">2.4 Recommended orders</a></li><li style="margin-left:14px"><a href="#25-fill-order-does-not-change-results-only-what-exists-when-a-run-stops">2.5 Fill order does not change results, only what exists when a run stops</a></li><li style="margin-left:0px"><a href="#3-regions-spans-cylinders-and-sphere-enumeration">3. Regions: spans, cylinders and sphere enumeration</a></li><li style="margin-left:14px"><a href="#31-counting-without-enumerating">3.1 Counting without enumerating</a></li><li style="margin-left:14px"><a href="#32-enumerating-a-cylinder">3.2 Enumerating a cylinder</a></li><li style="margin-left:14px"><a href="#33-adm30-what-radius-x-sectors-means">3.3 ADM.30: what "radius x sectors" means</a></li><li style="margin-left:14px"><a href="#34-cost-time-memory-streaming-estimates">3.4 Cost: time, memory, streaming, estimates</a></li><li style="margin-left:14px"><a href="#35-gen97-nav43-gen23-perf18-adm31">3.5 GEN.97, NAV.43, GEN.23, PERF.18, ADM.31</a></li><li style="margin-left:0px"><a href="#4-the-galactic-core-gen24">4. The galactic core (GEN.24)</a></li><li style="margin-left:14px"><a href="#41-what-the-code-does-at-the-center-today-c-exp3py">4.1 What the code does at the center today [C, exp3.py]</a></li><li style="margin-left:14px"><a href="#42-real-numbers-all-r-and-to-be-verified">4.2 Real numbers, all [R] and to be verified</a></li><li style="margin-left:14px"><a href="#43-time-and-storage-for-the-core-fill">4.3 Time and storage for the core fill</a></li><li style="margin-left:14px"><a href="#44-what-the-bulge-scale-radius-controls">4.4 What the bulge scale radius controls</a></li><li style="margin-left:14px"><a href="#45-recommended-default-and-thresholds">4.5 Recommended default and thresholds</a></li><li style="margin-left:0px"><a href="#5-statements-in-older-documents-that-this-research-supersedes">5. Statements in older documents that this research supersedes</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Which order should the generator fill sectors in when it fills a ball, a
+disk, a span or the galactic core; whether the &quot;pruned Hilbert curve with
+face-adjacent unit steps&quot; wording of GEN.101 can be met; how to count and
+enumerate regions cheaply (ADM.29, ADM.30, GEN.97, NAV.43); and what the
+GEN.24 core fill costs and what it contains. The grid it works on is
+described in <a href="galaxy-coordinate-system.html">galaxy-coordinate-system.md</a> and
+the density it fills with in <a href="galaxy-disk-density.html">galaxy-disk-density.md</a>.</p>
+<p>Informs: GEN.101, ADM.29, ADM.30, GEN.24, GEN.23, GEN.97, ADM.31, PERF.18, NAV.43, PERF.3</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [C] computed in this research and re-runnable (scripts named
+under Sources), [S] read directly from a package page or API, [R] recalled
+from memory and unconfirmed. The research environment could not read papers
+and its web search budget was already spent, so every astronomy number and
+every paper citation is [R] and is listed under Evidence notes. Everything
+about the repository and every experiment is [C].</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li><strong>GEN.101 fill order (Boss, 2026-10-07 11:47Z):</strong> fill sectors nearest the
+original sector first, circling outward, using a pruned Hilbert octree
+over the integer lattice, deterministic and O(N), &quot;face-adjacent unit
+steps ... visiting every valid voxel centroid exactly once with zero
+backtracking&quot;.</li>
+<li><strong>GEN.101 (Boss, 2026-10-07 17:11Z):</strong> keep the Hilbert order, with a
+logged jump where the ball cuts the curve.</li>
+<li><strong>GEN.24 core (Boss, 2026-10-01 14:55Z):</strong> the admin chooses the size, as a
+radius or a number of rings, on the Generate page and the CLI; suggested
+default the bulge scale radius (200 pc, about 50 rings, about 7,900
+sectors); layer 0 only; the generate-around sphere and bright-star
+backfill (GEN.23) run around the core as around any generated sector; fill
+from ring 0 outward so a run that stops early leaves a solid disk.</li>
+<li><strong>ADM.30 (Boss, 2026-10-07 11:47Z):</strong> &quot;x sectors radius (1 = minimum for
+contiguous orthogonal connection between each sector and its adjacent
+sectors)&quot;.</li>
+</ul>
+<h2 id="findings-in-short">Findings in short</h2>
+<ol>
+<li><strong>The unit-step, visit-once, zero-backtrack guarantee cannot hold for a
+pruned ball on any curve, Hilbert included.</strong> It is a parity obstruction
+(section 1.1): no integer radius from 1 to 40 is walkable, and radius 1
+needs at least 4 jumps. Boss's recorded decision (keep Hilbert, log the
+jump) is the only wording that can be true, and it means &quot;the order is
+face-adjacent for about 99% of steps and every other step is logged with
+its length&quot;, not a guarantee. The NP-completeness remark in the GEN.101
+quote is correct in general but is not the reason; balls fail for a
+simpler one.</li>
+<li><strong>Plain pruned Hilbert also fails &quot;nearest first&quot;</strong>: it starts at a corner
+of the enclosing cube, 0.99 R from the center (section 1.2). &quot;From the
+origin sector outward&quot; and &quot;face-adjacent&quot; cannot both come from the
+Hilbert index.</li>
+<li><strong>The grid is not a voxel lattice</strong> (6 to 8 face neighbours per cell), so
+a Hilbert walk over voxels cannot address sectors (section 2).</li>
+<li><strong>Recommended order:</strong> ring serpentine for the core and any axis-centered
+disk or cylinder (zero jumps, nearest first); deterministic greedy
+nearest-first walk elsewhere (96% to 99.5% face-adjacent, nearest-first
+quality about 0.9); Hilbert only as a sort key or block tie-break
+(section 2.4).</li>
+<li><strong>The GEN.24 default of 200 pc is 7,857 sectors and about 7.45 million
+systems</strong>: 17 days on one worker, about 400 GB, refused by PERF.3 on any
+disk under about 1.6 TB. Recommend 50 pc (section 4.3). The &quot;bulge scale
+radius 200 pc&quot; it cites is a revision-2 value; the shipped default is
+1,580 pc.</li>
+<li><strong>Two traps for ADM.30</strong> (section 3.3): a Euclidean disk of radius 1 edge
+returns 3 cells, not the point and its face neighbours, and the
+enumerator's order is ring-major, so &quot;nearest first as enumerated&quot; in
+<code>_neighborhood_batch</code> is false.</li>
+</ol>
+<h2 id="1-unit-step-fills-on-a-ball-of-lattice-points">1. Unit-step fills on a ball of lattice points</h2>
+<h3 id="11-the-parity-obstruction">1.1 The parity obstruction</h3>
+<p>The cubic lattice graph is bipartite. Colour a point by (x + y + z) mod 2;
+every unit step changes colour, so a path alternates colours and its two
+colour counts differ by at most 1. Take a ball with e even points and o odd
+points, imbalance D = |e - o|. Any cover of the ball by p vertex-disjoint
+unit-step paths has D &lt;= p, so a single walk with jumps in between needs
+at least D - 1 jumps. A second necessary condition: a point with one
+neighbour in the set must be a path end, and a path has two ends.</p>
+<p>Balls centered on a lattice point, center counted as even [C, <code>exp1.py</code>,
+<code>exp1c.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>R</th>
+<th>points N</th>
+<th>even</th>
+<th>odd</th>
+<th>imbalance D</th>
+<th>jumps forced (D - 1 or more)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>7</td>
+<td>1</td>
+<td>6</td>
+<td>5</td>
+<td>4</td>
+</tr>
+<tr>
+<td>2</td>
+<td>33</td>
+<td>19</td>
+<td>14</td>
+<td>5</td>
+<td>4</td>
+</tr>
+<tr>
+<td>4</td>
+<td>257</td>
+<td>141</td>
+<td>116</td>
+<td>25</td>
+<td>24</td>
+</tr>
+<tr>
+<td>6</td>
+<td>925</td>
+<td>459</td>
+<td>466</td>
+<td>7</td>
+<td>6</td>
+</tr>
+<tr>
+<td>13</td>
+<td>9,171</td>
+<td>4,585</td>
+<td>4,586</td>
+<td>1</td>
+<td>0 by parity, but 6 degree-1 tips, so at least 2</td>
+</tr>
+<tr>
+<td>20</td>
+<td>33,401</td>
+<td>16,757</td>
+<td>16,644</td>
+<td>113</td>
+<td>112</td>
+</tr>
+<tr>
+<td>40</td>
+<td>267,761</td>
+<td></td>
+<td></td>
+<td>257</td>
+<td>256</td>
+</tr>
+<tr>
+<td>60</td>
+<td>904,089</td>
+<td>452,261</td>
+<td>451,828</td>
+<td>433</td>
+<td>432</td>
+</tr>
+</tbody>
+</table></div>
+<p>The rows for R = 1, 2, 4, 6, 13 and 20 were recomputed while writing this
+document and match.</p>
+<p>Among all 1,335 distinct balls with R squared at most 1,600, 16 pass the
+parity test (R squared = 3, 30, 48, 169, 177, 204, 214, 217, 334, 432, 745,
+802, 1144, 1150, 1203, 1218). Only R squared = 3 (27 points) was confirmed
+walkable, by a depth-first search; the others pass a necessary condition
+and were not searched. No integer R from 1 to 40 is walkable (R = 13 fails
+on the degree-1 tips). So walkable pruned balls are the exception, and for
+the integer radius in sectors that an admin would type, essentially never.</p>
+<p>Theory, all [R]: Hamiltonian path in general grid graphs is NP-complete
+solid grid graphs have a polynomial cycle algorithm (Umans
+and Lenhart, FOCS 1997), and the 3D case is believed no easier. This does
+not matter for the fix: parity already decides it.</p>
+<h3 id="12-the-pruned-hilbert-curve">1.2 The pruned Hilbert curve</h3>
+<p>Implementation: Skilling's transpose algorithm (Skilling, &quot;Programming the
+Hilbert curve&quot;, AIP Conf. Proc. 707, 2004 [R]; the alternative is [R0616]
+[R]), vectorised in numpy, about 35 lines (<code>hil.py</code>). Verified on full cubes
+of side 2 to 32: bijective, every step has L1 length 1, start (0,0,0), end
+on the same edge [C, <code>t1.py</code>]. A pure-Python version is about 25 lines. PyPI
+has <code>hilbertcurve</code> 2.0.5 (MIT, numpy only, last release 2021-03-29) and
+<code>numpy-hilbert-curve</code> 1.0.1 (MIT, 2020-11-07) [S]; both are old and small,
+so vendoring the 25 lines is preferable to a dependency.</p>
+<p>Setup: a ball of radius R centered on a lattice point, in a cube of side
+2^b centered on it, b minimal with 2^(b-1) &gt; R. The depth formula in the
+GEN.101 quote, D = ceil(log2(2R)), is one level short when R is a power of
+two (R = 1, 2, 4, 8, 16, 32): the ball is then 2R + 1 points across, which
+does not fit in 2R. Order is the Hilbert index; points outside the ball are
+skipped.</p>
+<p>Results for R = 60 (N = 904,089); other radii behave alike [C, <code>exp1.py</code>,
+<code>exp1b.py</code>, <code>exp1d.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Order</th>
+<th>non-unit steps</th>
+<th>mean / median / max jump (voxels)</th>
+<th>path per point</th>
+<th>nearest-first Q at 1% / 10% / 50%</th>
+<th>prefix reach, max radius over ideal at 1% / 10%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Hilbert, pruned</td>
+<td>8,432 (0.93%)</td>
+<td>2.3 / 1.4 / 32.8</td>
+<td>1.01</td>
+<td>0.00 / 0.12 / 0.49</td>
+<td>4.66 / 2.16</td>
+</tr>
+<tr>
+<td>Morton (Z-order), pruned</td>
+<td>50.0%</td>
+<td>1.9 / 1.4 / 120</td>
+<td>1.47</td>
+<td>0.00 / 0.01 / 0.49</td>
+<td>4.66 / 2.16</td>
+</tr>
+<tr>
+<td>z-major serpentine raster</td>
+<td>0.7%</td>
+<td>1.9 / 1.4 / 16</td>
+<td>1.01</td>
+<td>0.00 / 0.00 / 0.50</td>
+<td>4.64 / 2.15</td>
+</tr>
+<tr>
+<td>Sorted by distance (ties by Hilbert)</td>
+<td>100%</td>
+<td>10.4 / 7.9 / 102</td>
+<td>10.4</td>
+<td>1.00 / 1.00 / 1.00</td>
+<td>1.00 / 1.00</td>
+</tr>
+<tr>
+<td>Shells 1 voxel wide, Hilbert inside</td>
+<td>37.0%</td>
+<td>2.3 / 1.4 / 95</td>
+<td>1.49</td>
+<td>0.99 / 0.99 / 0.99</td>
+<td>1.01 / 1.01</td>
+</tr>
+<tr>
+<td>Shells 4 voxels wide, Hilbert inside</td>
+<td>9.3%</td>
+<td>2.4 / - / 98</td>
+<td>1.13</td>
+<td>0.83 / 0.98 / -</td>
+<td>1.24 / 1.01</td>
+</tr>
+<tr>
+<td>4x4x4 blocks by block distance, Hilbert inside and between</td>
+<td>1.6%</td>
+<td>4.7 / - / 91</td>
+<td>1.06</td>
+<td>0.88 / 0.93 / -</td>
+<td>1.46 / 1.12</td>
+</tr>
+<tr>
+<td>Greedy nearest-first walk (window 256)</td>
+<td>1.0%</td>
+<td>16.0 / - / 109</td>
+<td>1.15</td>
+<td>0.90 / 0.91 / -</td>
+<td>- / 1.27</td>
+</tr>
+<tr>
+<td>Lower bound on jumps from parity</td>
+<td>at least 432 (0.05%)</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Q(n) is the fraction of the first n visited points that lie inside the
+sphere containing the n nearest points. The first voxel of the pruned
+Hilbert curve is at distance 59.6 of 60; the sorted orders start at the
+center.</p>
+<p>Reading the table:</p>
+<ul>
+<li>Pruned Hilbert's jump count is about 2.35 r squared (240 at r = 10, 2,125
+at r = 30, 8,432 at r = 60), about a fifth of a jump per surface voxel;
+mean jump about 2.3 voxels at any size, with occasional long ones (up to
+54 at r = 40) where a whole sub-cube is cut away. Shifting the ball by a
+few voxels inside the cube changes the jump fraction by under 10% (0.009 at
+r = 60 in all six offsets tried), so alignment is not a lever.</li>
+<li>Morton and Gray-code-style curves are never unit-step
+(half of all steps jump) and no better at nearest-first. Use them only as
+fast sort keys.</li>
+<li>The Moore curve (a closed Hilbert variant, 3D forms in Haverkort's work
+[R]) makes start and end adjacent, which is irrelevant to a ball. 3D Peano
+(3x3x3 serpentine recursion [R]) is unit-step on a cube of side 3^k but
+behaves like Hilbert once pruned. Gosper-style curves are 2D hexagonal;
+there is no standard 3D one.</li>
+<li>Locality theory for Hilbert (Moon, Jagadish, Faloutsos, Saltz, IEEE TKDE
+2001; [R3910]; Haverkort and van Walderveen
+2010 [R]) is about the cost of range queries, which is what a database
+wants when it stores sectors in curve order. It says nothing about
+visiting a ball nearest first. The &quot;onion curve&quot; (Xu, Nguyen, Tirthapura,
+ICDE 2018 [R]) is the published relative of the shell ordering tested here.</li>
+<li>Best-first search by minimum cell distance over an octree (Hjaltason and
+Samet's incremental nearest neighbour [R]) reproduces exact distance order:
+perfect Q, but 100% non-unit steps and a path of 10 steps per point at
+r = 60. Right for &quot;what do we generate first if the run stops early&quot;,
+wrong for locality.</li>
+</ul>
+<h3 id="13-what-this-means-for-the-gen101-wording">1.3 What this means for the GEN.101 wording</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Demand in the quote</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deterministic and O(N)</td>
+<td>Met by every order above (sorting is O(N log N); the greedy walk is O(N x window)).</td>
+</tr>
+<tr>
+<td>Nearest first</td>
+<td>Not met by plain pruned Hilbert; met by greedy, shells plus Hilbert, blocks, serpentine.</td>
+</tr>
+<tr>
+<td>Locality</td>
+<td>Met by greedy, shells plus Hilbert, blocks.</td>
+</tr>
+<tr>
+<td>Unit steps, every point once, zero backtracking</td>
+<td>Cannot be met for a ball, with or without Hilbert. The achievable statement is &quot;about 99% of steps are face-adjacent; each other step is logged with its length&quot;. Parity says no algorithm can beat 0.05% jumps at radius 60, and at radius 1 four of the six steps must jump.</td>
+</tr>
+<tr>
+<td>Begin at the center and expand</td>
+<td>Not possible for one Hilbert curve: its prefixes are unions of dyadic cubes. Placing the origin at the cube corner and filling one octant per curve starts at the origin, but the eight octants then run one after another, which is not nearest first either.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-the-real-grid-ring-layer-slot">2. The real grid: ring, layer, slot</h2>
+<p>(This section studies the cylindrical grid, which was the grid until 2026-10-15; the grid is shell, band and wedge since then, see <code>galaxy-coordinate-system.md</code>.)</p>
+<p>Code read: <code>src/planetgen/galaxy/geometry.py</code> (the TODO items call it
+<code>galaxyGeometry.py</code>), <code>src/planetgen/generation/run_galaxy.py</code>
+(<code>_neighborhood_candidates</code>, <code>_neighborhood_batch</code>, <code>_generate_addresses</code>,
+<code>run_addresses</code>).</p>
+<h3 id="21-how-irregular-the-neighbours-are">2.1 How irregular the neighbours are</h3>
+<p>Rings 0 to 59, layer 0 [C, <code>exp2b.py</code>]; the neighbour counts were recomputed
+while writing this document and match.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Measured</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Face neighbours per cell (<code>neighbor_addresses</code>, includes up and down)</td>
+<td>6 (4,272 cells), 7 (6,408), 8 (633)</td>
+</tr>
+<tr>
+<td>In-plane face neighbours</td>
+<td>4, 5 or 6</td>
+</tr>
+<tr>
+<td>Neighbours of a ring-0 cell in ring 1</td>
+<td>3 (3 slots against 9), not 1 or 2</td>
+</tr>
+<tr>
+<td>Neighbour relation symmetric and connected</td>
+<td>yes, 0 asymmetric pairs</td>
+</tr>
+<tr>
+<td>Distance to same-ring neighbour, in edges</td>
+<td>0.87 (ring 0, 3 slots) to 1.045; mean 1.00</td>
+</tr>
+<tr>
+<td>Distance to vertical neighbour</td>
+<td>exactly 1.00</td>
+</tr>
+<tr>
+<td>Distance to neighbour in an adjacent ring</td>
+<td>1.00 to 1.38, mean 1.07</td>
+</tr>
+<tr>
+<td>Largest in-plane face-neighbour distance, rings below 2000</td>
+<td>1.379 edges (ring 30 slot 174 to ring 29 slot 164)</td>
+</tr>
+<tr>
+<td>In-plane face neighbours farther than 1 edge (rings below 200)</td>
+<td>33%</td>
+</tr>
+</tbody>
+</table></div>
+<p>&quot;Face-adjacent unit step&quot; therefore has no Euclidean meaning here: it means
+&quot;is in <code>neighbor_addresses</code>&quot;. Where the slot count changes between rings a
+cell touches one or two cells in the next ring (three from ring 0 into ring
+1), the brick-course offset the docstring describes. The slot-0 seam is not
+special in the adjacency graph (slot N - 1 and slot 0 are neighbours modulo
+N) and does not exist in Cartesian coordinates. It matters only to orders
+that walk (ring, slot) as coordinates: a ring is a cycle, not a line. The
+serpentine in section 2.4 turns where rings align.</p>
+<h3 id="22-mapping-the-grid-onto-a-cubic-voxel-lattice-does-not-work">2.2 Mapping the grid onto a cubic voxel lattice does not work</h3>
+<p>Putting each layer-0 cell center of a 200 pc disk into a 4 pc cube: with
+cubes cornered on the origin, 6,623 cubes get one cell and 617 get two; with
+cubes centered on the origin, 6,168 get one, 840 get two and 3 get three.
+Inside r &lt;= 190 pc, 584 to 754 of about 7,090 cubes get no cell [C,
+<code>exp2d.py</code>]. &quot;One voxel = one sector&quot; is false. A Hilbert index can only be
+a sort key on quantised center coordinates, never a lattice walk. Defining
+the curve on (ring, layer, slot) index space instead (a compact Hilbert index
+for unequal side lengths, Hamilton and Rau-Chaplin, Inf. Process. Lett. 2008
+[R]) would put slot 0 and slot N - 1 at opposite ends and treat ring 3 slot 7
+and ring 4 slot 7 as neighbours although they sit at different angles, so it
+is not recommended.</p>
+<h3 id="23-orders-compared-on-real-cells">2.3 Orders compared on real cells</h3>
+<p>&quot;Face-adj&quot; is the share of consecutive steps that are in
+<code>neighbor_addresses</code>; path is the sum of center distances in edges per cell;
+Q as in section 1.2 [C, <code>exp2c.py</code>, <code>exp2f.py</code>].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Region (cells)</th>
+<th>Order</th>
+<th>Face-adj</th>
+<th>Mean / max jump (edges)</th>
+<th>Path per cell</th>
+<th>Q at 10%</th>
+<th>First cell distance</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>50 pc sphere on the axis (8,169)</td>
+<td>Enumeration today</td>
+<td>97.0%</td>
+<td>2.2 / 24</td>
+<td>1.03</td>
+<td>0.36</td>
+<td>48 pc</td>
+</tr>
+<tr>
+<td></td>
+<td>Distance sort</td>
+<td>77.8%</td>
+<td>5.4 / 24</td>
+<td>1.97</td>
+<td>1.00</td>
+<td>2</td>
+</tr>
+<tr>
+<td></td>
+<td>Hilbert key (centers quantised to 0.5 edge)</td>
+<td>90.1%</td>
+<td>1.9 / 10</td>
+<td>1.12</td>
+<td>0.10</td>
+<td>49.5</td>
+</tr>
+<tr>
+<td></td>
+<td>Shells of 1 edge + Hilbert</td>
+<td>66.9%</td>
+<td>2.5 / 16</td>
+<td>1.50</td>
+<td>1.00</td>
+<td>2</td>
+</tr>
+<tr>
+<td></td>
+<td>Greedy walk, window 256</td>
+<td>99.5%</td>
+<td>5.5 / 19</td>
+<td>1.03</td>
+<td>0.59</td>
+<td>2</td>
+</tr>
+<tr>
+<td>50 pc sphere off the axis, ring 700 (8,121)</td>
+<td>Enumeration today</td>
+<td>89.4%</td>
+<td>10.0 / 25</td>
+<td>1.96</td>
+<td>0.00</td>
+<td>49.7</td>
+</tr>
+<tr>
+<td></td>
+<td>Distance sort</td>
+<td>0.1%</td>
+<td>12.2 / 25</td>
+<td>12.2</td>
+<td>1.00</td>
+<td>0</td>
+</tr>
+<tr>
+<td></td>
+<td>Hilbert key</td>
+<td>94.9%</td>
+<td>2.1 / 9.8</td>
+<td>1.06</td>
+<td>0.11</td>
+<td>49.0</td>
+</tr>
+<tr>
+<td></td>
+<td>Shells of 1 edge + Hilbert</td>
+<td>61.0%</td>
+<td>2.3 / 16</td>
+<td>1.49</td>
+<td>0.94</td>
+<td>4</td>
+</tr>
+<tr>
+<td></td>
+<td>Greedy walk, window 256</td>
+<td>96.1%</td>
+<td>3.2 / 11.8</td>
+<td>1.09</td>
+<td>0.90</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Core disk, layer 0, R 200 (7,857)</td>
+<td>Enumeration today</td>
+<td>99.4%</td>
+<td>1.4 / 1.5</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>2</td>
+</tr>
+<tr>
+<td></td>
+<td>Hilbert key</td>
+<td>80.3%</td>
+<td>2.1 / 51</td>
+<td>1.24</td>
+<td>0.00</td>
+<td>198</td>
+</tr>
+<tr>
+<td></td>
+<td>Greedy walk</td>
+<td>100%</td>
+<td>0</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Cylinder, 30 rings x 11 layers (30,987)</td>
+<td>Ring serpentine</td>
+<td>100%</td>
+<td>0</td>
+<td>1.00</td>
+<td>by cylindrical radius</td>
+<td>ring 0</td>
+</tr>
+</tbody>
+</table></div>
+<p>Plain distance sort is the worst for locality; off the axis its steps are
+essentially never adjacent, because it hops between the two sides of the
+center as distances tie. The greedy walk is the only order that is both
+near-perfect on adjacency and near-perfect on nearest-first. The Q = 0.59 at
+10% on the axis comes from a 3D spiral that fills layers in a leapfrog way;
+Q at 50% is 0.88. Cost: an O(N log N) sort plus an O(N) pass, about 10
+microseconds per cell in Python for the neighbour lookups [C].</p>
+<h3 id="24-recommended-orders">2.4 Recommended orders</h3>
+<p><strong>Ring serpentine (core, axis-centered disks and cylinders).</strong> Walk ring 0
+slots upward, ring 1 slots downward, ring 2 upward, and so on. Every ring's
+slot 0 starts at angle 0 and its last slot ends at 360 degrees, so
+consecutive rings always touch at the turn. Built for a 30-ring, 11-layer
+cylinder (30,987 cells): 0 non-adjacent steps, every cell once [C,
+<code>exp2d.py</code>]. On layer 0 the current ring-major enumeration is already
+nearest-first with 49 near-jumps (the ring-to-ring wrap); the serpentine
+removes them. For several layers, fill one ring through all its layers
+(serpentine in the layer index) before the next ring. This is exactly the
+GEN.24 rule &quot;fill from ring 0 outward&quot; and needs no Hilbert code.</p>
+<p><strong>Greedy nearest-first walk (any other center).</strong> Deterministic; the order
+depends only on the center, the radius and the grid; no random numbers.</p>
+<ol>
+<li>Take the region's cells (the enumerator, trimmed to the galaxy outline).</li>
+<li>Key of a cell: (distance to the center rounded to 1e-9 pc, ring, layer,
+slot). Sort the cells by key; start at the first.</li>
+<li>At each step move to the unvisited member of <code>neighbor_addresses(current)</code>
+with the smallest key.</li>
+<li>When no such neighbour exists, choose, among the next 256 unvisited cells
+in key order, the one nearest the current cell, ties by (distance, key).</li>
+</ol>
+<p>On a 50 pc sphere (8,169 cells) this gives 99.5% face-adjacent steps on the
+axis and 96% off it, nearest-first quality about 0.9, mean jump 3 to 5
+edges, against Hilbert-key ordering at 90 to 95% adjacent but Q about 0.1.</p>
+<p><strong>If Hilbert is kept (Boss's 2026-10-07 17:11Z decision).</strong> Use it as a
+tie-break key, not as the walk: world-aligned 4-voxel blocks ordered by
+distance, Hilbert inside the blocks, gives 1.6% jumps, Q 0.93 at 10% and a
+path of 1.06 steps per sector (table in section 1.2); the first sector is
+the center. Plain pruned Hilbert starts at the far edge. Log each non-adjacent
+step with its length, and report the count and the mean at the end of the
+run.</p>
+<h3 id="25-fill-order-does-not-change-results-only-what-exists-when-a-run-stops">2.5 Fill order does not change results, only what exists when a run stops</h3>
+<p>A sector's contents depend only on the galaxy seed and its address
+(<code>reproducible-galaxies.md</code>, section 3: &quot;never on the order sectors run in
+or the worker count&quot;). <code>_submit_batch</code> queues all sectors and waits; with
+more than one worker, completion order is not submission order. So the order
+matters for: what <code>--limit N</code> keeps (ring, column, block and shell modes cut
+the batch at N before submitting: <code>run_ring_batch</code>, <code>_generate_addresses</code>),
+the state left by a canceled or failed job, the progress display, and
+database locality if sector ids follow submission order. It does not matter
+for correctness. This is the reason to prefer &quot;cheap, nearest first, logs
+its jumps&quot; over a curve with a theorem attached: with parallel workers &quot;zero
+backtracking&quot; has no observable meaning.</p>
+<h2 id="3-regions-spans-cylinders-and-sphere-enumeration">3. Regions: spans, cylinders and sphere enumeration</h2>
+<h3 id="31-counting-without-enumerating">3.1 Counting without enumerating</h3>
+<ul>
+<li>
+<p>Sectors per layer in rings 0 to K - 1 is a prefix sum of
+<code>ring_sector_count</code>; <code>GalaxyBounds</code> already keeps it (<code>_cumulative</code>). A
+ring span [a, b] on one layer costs <code>cum[b + 1] - cum[a]</code>; a layer span
+costs O(layers); a column span (ring, slot range) is the sum over its rings
+of the layers that reach each ring (<code>galaxy_column</code>). Prefix sums for 4,000
+rings take 0.02 s [C, <code>exp5.py</code>]. ADM.29's &quot;estimate shown first&quot; is
+therefore free; only PERF.3's per-sector density needs sampling (3.4).</p>
+</li>
+<li>
+<p>On-axis disk of radius rho on one layer: exactly the sum of N_i over rings
+with (i + 1/2) x e &lt;= rho, about pi x floor(rho / e + 1/2) squared [C,
+<code>exp2e.py</code>, recomputed with <code>ring_sector_count</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>rho</th>
+<th>Rings</th>
+<th>Sectors</th>
+<th>Sectors if 11 layers all exist</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20 pc</td>
+<td>0..4</td>
+<td>75</td>
+<td>825</td>
+</tr>
+<tr>
+<td>50 pc</td>
+<td>0..12</td>
+<td>531</td>
+<td>5,841</td>
+</tr>
+<tr>
+<td>100 pc</td>
+<td>0..24</td>
+<td>1,965</td>
+<td>21,615</td>
+</tr>
+<tr>
+<td>200 pc</td>
+<td>0..49</td>
+<td>7,857</td>
+<td>86,427</td>
+</tr>
+<tr>
+<td>400 pc</td>
+<td>0..99</td>
+<td>31,425</td>
+<td>345,675</td>
+</tr>
+</tbody>
+</table></div>
+</li>
+<li>
+<p>Off-axis disk: about pi x (rho / e) squared. Measured actual over formula
+for 40 random centers per radius: rho = 8 pc 0.88 to 0.96, 20 pc 0.90 to
+0.99, 50 pc 0.99 to 1.08, 100 pc 0.97 to 1.00, 200 pc 0.99 to 1.00. Good
+for an estimate; enumerate when the exact list is needed.</p>
+</li>
+<li>
+<p>Ball of radius R: about (4/3) pi (R / e) cubed cells: 8,169 at 50 pc
+(formula 8,181), 65,181 at 100 pc, 524,835 at 200 pc [C].</p>
+</li>
+</ul>
+<h3 id="32-enumerating-a-cylinder">3.2 Enumerating a cylinder</h3>
+<p>A cylinder enumerator is the sphere enumerator with the vertical offset
+fixed. For each ring from ceil((r_c - rho) / e - 1/2) to floor((r_c + rho) /
+e - 1/2), take one slot window from acos((r_m squared + r_c squared - rho
+squared) / (2 r_m r_c)) (all slots if the disk contains the axis), tested
+against the cell center. A prototype (<code>disk_cells</code> in <code>exp2e.py</code>) matched
+brute force on 60 random disks with 0 differences [C]. The existing
+<code>enumerate_sectors_within_radius</code> already does this per (ring, layer) pair;
+a cylinder is its loop with <code>planar</code> held at rho for every layer, a ten-line
+variant. Each (ring, layer) meets the disk in one contiguous slot window
+(wrapping at most once), so the unique index <code>uq_sectors_address (ring_index, layer_index, ring_slot_index)</code> answers &quot;which of these are generated&quot; with
+one range predicate per (ring, layer) instead of a list of ids.</p>
+<h3 id="33-adm30-what-radius-x-sectors-means">3.3 ADM.30: what &quot;radius x sectors&quot; means</h3>
+<p>Boss: &quot;1 = minimum for contiguous orthogonal connection between each sector
+and its adjacent sectors&quot;. Two readings differ on this grid [C, <code>exp2b.py</code>,
+<code>exp2g.py</code>]:</p>
+<ul>
+<li><strong>Euclidean disk of radius x edges</strong> around the center cell. At x = 1 it
+returns the center plus 2 cells (3 in total), because most face neighbours
+sit 1.0 to 1.38 edges away. It fails Boss's definition. The face-neighbour
+set is inside the disk only from radius 1.38 edges up.</li>
+<li><strong>Face-adjacency steps</strong> (breadth-first over in-plane <code>neighbor_addresses</code>):
+x = 1 gives 5 or 6 cells per layer (4 to 6 neighbours plus the center);
+x = 2 gives 13 to 17; x = 3 gives 25 to 34, against pi x squared = 3.1,
+12.6, 28.3. A diamond-like shape, not a disk.</li>
+</ul>
+<p>Recommendation: a Euclidean disk of radius (x + 0.385) edges. At x = 1 that
+is 1.385 edges, which returned exactly the center plus its in-plane face
+neighbours in all 1,331 trials (rings 0..59, 100, 300, 1000; every neighbour
+is within 1.379). Larger x gives a round shape connected by face adjacency
+from the center. Boss gave no height: default to x layers either side (a
+can of 2x + 1 layers), so x = 1 includes the cells above and below, which
+are face neighbours too, and make the half-height a separate field.</p>
+<p>Second trap, in the existing code: <code>enumerate_sectors_within_radius</code> yields in
+no particular order (ring-major in practice), so the <code>_neighborhood_batch</code>
+docstring &quot;nearest first as enumerated&quot; is false. In an off-axis test the
+first 10% of the list contained none of the nearest 10% [C, <code>exp2a.py</code>].
+Sort before applying any limit.</p>
+<h3 id="34-cost-time-memory-streaming-estimates">3.4 Cost: time, memory, streaming, estimates</h3>
+<ul>
+<li>Speed on this machine (Python 3.13): about 1.3 microseconds per cell for
+the enumerator, 14 for <code>relative_density</code>, 15 for <code>sector_address_at</code> [C].
+Sphere of 50 pc: 0.02 s; 100 pc: 0.07 to 0.15 s; 200 pc: 0.7 s. Python 3.9
+on users' machines may be 1.5 to 2 times slower [R]. Enumeration is never
+the bottleneck; generating one sector takes seconds.</li>
+<li>Memory if the list is materialised (<code>_neighborhood_candidates</code> builds
+one): about 170 bytes per cell [C: 1.4 MB for 8,169 cells], so 90 MB at
+200 pc and about 1.4 GB for the 8 million cells of a 500 pc sphere, before
+<code>sector_args</code> per sector, which is heavier. For runs above about 50,000
+cells, stream the enumerator in chunks (for example 1,000 cells) into the
+work queue, keeping only the key list (three small ints per cell) for the
+nearest-first sort, and build <code>sector_args</code> lazily. Sorting (key, address)
+pairs costs a few tens of MB at 500,000 cells.</li>
+<li>PERF.3 estimate: <code>relative_density</code> on every cell costs 14 microseconds x N,
+0.11 s for the 7,857-cell core but 14 s for a million cells. Sampling 200
+random cells estimated the 7.455 million-system core to within 1% (7.37 to
+7.51 million over 20 trials) [C, <code>exp5.py</code>]. Sample above about 20,000
+cells and label the figure an estimate.</li>
+<li>Warn and confirm: the repository uses <code>LARGE_RING_WARNING_THRESHOLD = 2000</code>
+sectors for ring, block and shell modes. Use one rule for all region modes
+(spans, cylinders, core, neighbourhoods): always show the PERF.3 estimate;
+require <code>--yes</code> or the page's confirm above 2,000 sectors; refuse to
+enumerate in a web request above about 2 million cells (a 200 pc sphere is
+0.5 million; a 400 pc sphere is 4.2 million and 6 s, fine in a worker, not
+in a request).</li>
+</ul>
+<h3 id="35-gen97-nav43-gen23-perf18-adm31">3.5 GEN.97, NAV.43, GEN.23, PERF.18, ADM.31</h3>
+<ul>
+<li><strong>GEN.97 (N random neighbourhoods).</strong> Expected cell count is N x (4/3) pi
+(r / e) cubed minus overlaps; 100 neighbourhoods of 12 pc is about 11,000
+cells. Deduplicate with a set of addresses while streaming; fill each
+neighbourhood in the greedy order and the neighbourhoods in draw order.
+<code>GalaxyBounds.random_address</code> already draws centers uniformly by volume.</li>
+<li><strong>NAV.43 (<code>objects_within</code>).</strong> The enumerator names sectors whose center is
+within r. A sector whose center is outside but whose cell reaches the
+sphere would be missed; a cell extends at most about half a diagonal
+(about 3.7 pc at 4 pc: 1.06 x sqrt(3) / 2 x 4) past its center. Query with
+r + 3.7 pc (or r + one edge for margin), then filter on exact object
+distance. For r = 50 pc that is about 10,000 cells; use one <code>(ring, layer, slot BETWEEN)</code> predicate per (ring, layer) pair (about 600) rather than a
+10,000-id IN list, or the <code>idx_sectors_center (center_x_pc, center_y_pc, center_z_pc)</code> bounding box with an exact distance test. Cells that were
+never generated simply return nothing.</li>
+<li><strong>GEN.23 and PERF.18 (backfill around the core).</strong>
+<code>backfill_bright_stars_around</code> calls the enumerator once per generated
+center over the largest tier radius (100 ly = 30.7 pc). For a 50 pc core
+that is 531 calls and 1.0 million enumerated cells to find 16,527 unique
+cells (5.2 s); for 100 pc, 1,965 calls, 3.7 million cells, 44,247 unique,
+16.8 s; extrapolated to 200 pc about 14.8 million enumerated cells (about
+70 s) for roughly 100,000 unique ones [C, <code>exp4.py</code>]. A 60-fold
+redundancy. For a convex run region it is cheaper to enumerate once around
+the region's bounding disk and keep cells whose distance to the region
+(here max(0, distance from axis - R_core) on layer 0) is within the tier
+radii, or to enumerate only the margin ring.</li>
+<li><strong>ADM.31 (show on the Galaxy Map).</strong> The fill list is also the &quot;what was
+made&quot; list. Return a 500,000-cell result as ring, layer and slot-window
+ranges (one per (ring, layer)), not as a list of addresses, to keep the map
+request small.</li>
+</ul>
+<h2 id="4-the-galactic-core-gen24">4. The galactic core (GEN.24)</h2>
+<h3 id="41-what-the-code-does-at-the-center-today-c-exp3py">4.1 What the code does at the center today [C, <code>exp3.py</code>]</h3>
+<ul>
+<li>Defaults (<code>planetgen plan</code> in <code>src/planetgen/cli/generate.py</code>; the Generate
+page <code>generate_page.py</code>): thin disk scale length 2,600 pc, height 300 pc,
+<strong>bulge scale radius 1,580 pc</strong> (axes 1,580 x 620 x 430 pc), bulge
+amplitude 3.11, 2 arms, <code>k_norm</code> 36.6.
+<a href="galaxy-disk-density.html">galaxy-disk-density.md</a> section 5 records that
+revision 2 had a 200 pc sphere and amplitude 1 and that GEN.118 replaced
+them with the COBE/DIRBE bar. The &quot;bulge scale radius, 200 pc&quot; in the GEN.24
+text (and in <code>orbital-updates.md</code> section 11, &quot;bulge scale radius 200 pc&quot;)
+therefore describes a model that no longer exists. No other 200 pc constant
+remains in the density module; the nuclear stellar disk &quot;inside 200 pc&quot; is
+explicitly listed there as not modelled (before GEN.280, 2026-10-16, which models it).</li>
+<li>Density is nearly flat through the core: relative density 154 at the
+center, 140 to 169 by azimuth within 25 pc, 163 at 200 pc along the bar and
+132 across it. With <code>expected_system_count_at_density_1</code> = 6.31 systems per
+4 pc sector, a core sector holds about <strong>880 to 1,060 systems</strong> (14 to 17
+systems per cubic parsec, against 0.1 in the solar neighbourhood [R]). The
+model, as read here, had no central cusp, no nuclear cluster and no nuclear disk; the nuclear star cluster and nuclear stellar disk entered with GEN.280 (2026-10-16), so the flat core and the 880 to 1,060 figure are the values before GEN.280.</li>
+<li>There is no per-sector star cap: <code>MAX_SYSTEMS_PER_SECTOR = 1e9</code> in
+<code>generation/stats.py</code> only limits the estimate text. Generation draws a
+Poisson count around the expected value (<code>SpaceSector.grow_from_seed</code>) and
+places each system by Poisson-disk growth with Hill-sphere separation.</li>
+<li>Hill spheres are not the constraint at that density.
+<code>calculate_hill_sphere(d, m, M_MW)</code> with the whole Milky Way mass (1.15e12
+Msun) gives about 27 AU for a 1 Msun star 2 pc from the center and 1,360 AU
+at 100 pc [C], against a mean spacing of 0.25 pc (about 52,000 AU) at 16
+systems per cubic parsec. The formula uses the total galaxy mass, not the
+mass enclosed at the radius (about 1e9 Msun inside 200 pc [R]), so it
+understates the tidal radius by roughly a factor 10 near the core. Not a
+blocker; worth a comment in GEN.24 or the physics review.</li>
+</ul>
+<h3 id="42-real-numbers-all-r-and-to-be-verified">4.2 Real numbers, all [R] and to be verified</h3>
+<p>Superseded by GEN.280 (Boss's item GEN.285, 2026-10-16, 12:43 AM EDT): the nuclear star cluster and the nuclear stellar disk are in the density model (<code>galaxy-disk-density.md</code>, ADM.49), so the &quot;no nuclear-cluster object&quot; decision below was overtaken by the new item it invited, and the 880 to 1,060 systems per core sector are the figure before GEN.280.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Structure</th>
+<th>Size</th>
+<th>Mass</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sgr A*</td>
+<td>point</td>
+<td>4.3e6 Msun</td>
+<td>distance 8.2 to 8.3 kpc</td>
+</tr>
+<tr>
+<td>Nuclear star cluster</td>
+<td>half-light radius about 4 pc [R3967]</td>
+<td>2.0 to 2.5e7 Msun</td>
+<td>mean density inside 4 pc about 4.5e4 Msun/pc^3 (derived: 1.2e7 Msun in 268 pc^3)</td>
+</tr>
+<tr>
+<td>Nuclear stellar disk</td>
+<td>radius about 100 to 230 pc, scale height about 30 to 45 pc [R2577, R4152]</td>
+<td>about 1e9 Msun</td>
+<td>mean density inside 200 pc about 50 to 150 Msun/pc^3 (derived, assuming 0.7e9 in pi x 200^2 x 90 pc^3)</td>
+</tr>
+<tr>
+<td>Central molecular zone</td>
+<td>about 200 pc radius (about 1.5 degrees of longitude)</td>
+<td>gas 3 to 5e7 Msun</td>
+<td>gas, not stars; a ring or twisted ring near 100 pc plus clouds</td>
+</tr>
+<tr>
+<td>Bar and bulge (boxy)</td>
+<td>half-length about 2 kpc; long bar to about 4 to 5 kpc</td>
+<td>about 1.5e10 Msun</td>
+<td>the model's 31% bulge share</td>
+</tr>
+</tbody>
+</table></div>
+<p>Star densities: the nuclear stellar disk volume holds roughly 100 to 300
+stars per cubic parsec (about 0.5 Msun per star averaged over a population
+with many low-mass stars [R]), so about <strong>6,000 to 20,000 stars per 4 pc
+sector</strong>. The generator's 880 to 1,060 systems (about 1.3 stars each by the
+PERF.3 default <code>_stars_per_system</code> = 1.3, so 1,100 to 1,400 stars) is 5 to
+15 times lower. In the nuclear cluster the density rises further: about
+1e5 Msun/pc^3 near 1 pc and 1e6 to 1e7 Msun/pc^3 within 0.1 pc (derived
+from an r^-1.4 slope normalised to the mean above; low confidence, check
+[R1535] [R]). The sector holding Sgr A*
+(a 4 pc cube, r of about 2 to 2.5 pc) contains of order 1e6 to 1e7 stars, a
+thousand times anything generated here, and cannot be filled star by star
+with planetary systems (a star every 0.005 pc, a few hundred AU, with Hill
+spheres of 27 AU or less). If the owner wants the real center it should be
+a special-case object (a nuclear cluster phenomenon with a statistical star
+population and Sgr A* as a black hole), not a sector fill. Ring 0 slot 0
+already holds the black-hole nucleus (<code>add_galactic_nucleus</code>).</p>
+<p><strong>Decision (Boss, 2026-10-10, defaults approved; GEN.155 closed):</strong> leave the
+model alone. The Sgr A* sector keeps the black-hole nucleus
+(<code>add_galactic_nucleus</code>) and the ordinary fill, with the density the model
+gives it, which is far below the real 1e6 to 1e7 stars. There is no
+nuclear-cluster object. Reopen it as a new item if the real galactic center is
+ever wanted; the shape above (a statistical star population around Sgr A* as
+one phenomenon, not a sector fill) is where to start.</p>
+<h3 id="43-time-and-storage-for-the-core-fill">4.3 Time and storage for the core fill</h3>
+<p>Speeds are the PERF.3 defaults (<code>DEFAULT_SECONDS_PER_SYSTEM</code> = 0.2 s,
+<code>DEFAULT_BYTES_PER_SYSTEM</code> = 48 KiB), not measured on a server [C,
+<code>exp3.py</code>]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Core radius (layer 0)</th>
+<th>Rings</th>
+<th>Sectors</th>
+<th>Expected systems</th>
+<th>1 worker</th>
+<th>8 workers</th>
+<th>Storage (+10%)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>20 pc</td>
+<td>0..4</td>
+<td>75</td>
+<td>73 thousand</td>
+<td>0.2 days</td>
+<td>0.03 days</td>
+<td>4 GB</td>
+</tr>
+<tr>
+<td>50 pc</td>
+<td>0..12</td>
+<td>531</td>
+<td>0.51 million</td>
+<td>1.2 days</td>
+<td>3 hours</td>
+<td>28 GB</td>
+</tr>
+<tr>
+<td>100 pc</td>
+<td>0..24</td>
+<td>1,965</td>
+<td>1.89 million</td>
+<td>4.4 days</td>
+<td>13 hours</td>
+<td>102 GB</td>
+</tr>
+<tr>
+<td><strong>200 pc (GEN.24 suggestion)</strong></td>
+<td>0..49</td>
+<td><strong>7,857</strong></td>
+<td><strong>7.45 million</strong></td>
+<td><strong>17.3 days</strong></td>
+<td><strong>2.2 days</strong></td>
+<td><strong>403 GB</strong></td>
+</tr>
+<tr>
+<td>400 pc</td>
+<td>0..99</td>
+<td>31,425</td>
+<td>28.5 million</td>
+<td>66 days</td>
+<td>8.2 days</td>
+<td>1.5 TB</td>
+</tr>
+</tbody>
+</table></div>
+<p>The time is per-system generation, so a faster fill order cannot help: GEN.24
+is limited by density, not traversal. PERF.3 refuses a run that would take
+more than <code>MAX_DISK_SHARE</code> = a quarter of the database disk or leave under
+<code>MIN_FREE_BYTES</code> = 5 GB, so the 200 pc default is refused on any disk below
+about 1.6 TB. Reducing the cost needs a smaller radius, a lower per-sector
+density in the core (a cap), or an accepted cost.</p>
+<h3 id="44-what-the-bulge-scale-radius-controls">4.4 What the bulge scale radius controls</h3>
+<p><code>bulge_scale_radius_pc</code> is x0 of the Dwek G2 profile, the half-axis along the
+bar; y0 and z0 are fixed fractions of it (0.39 and 0.27). The bulge's
+contribution at the center is <code>bulge_amplitude x k_norm</code> whatever x0 is.
+From the real model [C]: center density 154.2 for any x0 at amplitude 3.11;
+density at 200 pc from the center is 118.9 (x0 = 200), 160.6 (x0 = 800) and
+163.2 (x0 = 1,580); with amplitude 1 the center is 77. A toy galaxy with
+scale length 500 and bulge radius 300 still has 154 at the center. So the
+systems per core sector come from the bulge amplitude and the disk, not from
+the scale radius; only the extent of the dense region follows x0; and a
+fixed 200 pc core is deep inside the real bulge at the Milky Way default but
+covers most of a small galaxy's bulge.</p>
+<h3 id="45-recommended-default-and-thresholds">4.5 Recommended default and thresholds</h3>
+<ul>
+<li>Core radius default: <strong>50 pc</strong> (531 sectors, rings 0..12) at the Milky Way
+shape, scaled for other shapes as min(50 pc, 0.25 x
+<code>bulge_scale_radius_pc</code>), so a toy galaxy with a 100 pc bulge gets 25 pc.
+200 pc stays a typed value (&quot;the nuclear stellar disk&quot;) with the estimate
+in front of the confirm.</li>
+<li>Warn at 2,000 sectors (the existing threshold, reached near 100 pc) and
+name the estimate; the PERF.3 refusal then does what it already does.</li>
+<li>Order: ring serpentine from ring 0, layer 0 only (Boss's answer). Ring 0
+slot 0 holds the nucleus and is filled first, so <code>--limit N</code> leaves a solid
+disk.</li>
+<li>Backfill (GEN.23, PERF.18): see 3.5; around a 200 pc core compute the
+margin once.</li>
+<li>Owner's call: cap systems per sector in the core, or mark the very center
+as a special cluster object, since the model's 1,000 systems per sector is
+already 5 to 15 times below the real nuclear disk and the cluster sector is
+off the scale.</li>
+</ul>
+<h2 id="5-statements-in-older-documents-that-this-research-supersedes">5. Statements in older documents that this research supersedes</h2>
+<ul>
+<li><strong>Bulge scale radius 200 pc</strong> (TODO GEN.24; <code>orbital-updates.md</code> section
+11): stale; shipped default 1,580 pc (section 4.1).</li>
+<li><strong><code>Computational Astrodynamics.md</code>, &quot;Synthesis and Structural
+Recommendations&quot; (spatial partitioning paragraph and its table row):</strong> 4 pc
+uniform cubic cells indexed by a 64-bit Morton code with a 27-cell stencil,
+&quot;replacing cylindrical geometries&quot;. Not what was built: the shipped grid was
+the cylindrical ring, layer, slot grid until 2026-10-15 (shell, band and wedge since), <code>galaxy-drilldown-navigation.md</code>
+turned Morton keys down, and <code>orbital-updates.md</code> section 11 keeps the
+current sectors (&quot;this sector and every sector touching it&quot;). The 4 pc edge
+matches. Section 2 shows why a cubic index cannot address these cells.</li>
+<li><strong><code>Orbital Position and Vector Update Algorithms.md</code>, &quot;Database Storage
+Methods&quot;, worst-case setup:</strong> a 10 ly core sector with 1 black hole, 50
+stars and 500 planets (551 rows). The model puts 880 to 1,060 systems in
+each 4 pc core sector (section 4.1), so that table's 70 KB point-mass table
+and 32 MB octree figures are lower bounds on a generated core sector, and
+the real center is denser still (section 4.2). The black-hole part (an
+analytic point mass for Sgr A*) stands.</li>
+<li><strong>GEN.101 text:</strong> &quot;D = ceil(log2(2R))&quot; is one level short for R a power
+of two, and &quot;face-adjacent unit steps ... zero backtracking&quot; cannot be met
+(section 1).</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>Everything marked [C] is reproducible from the scripts. Everything outside
+the repository is [R] and unverified; the research environment could read
+only search-result text, not papers, and web search was unavailable for this
+topic. Verify when paper access is allowed:</p>
+<ul>
+<li>All astronomy figures in 4.2: nuclear star cluster mass (2.0 to 2.5e7
+Msun) and half-light radius (about 4 pc), [R3967] (medium confidence); nuclear stellar disk
+mass (about 1e9 Msun), radius and scale height, [R2577, R4152] (medium); CMZ gas mass and radius (medium); Sgr A* mass
+4.3e6 Msun (high); bulge mass 1.5e10 Msun (matches the repository's BHG16
+citation). The inner-parsec densities are derived from an assumed slope
+and are low confidence.</li>
+<li>Stars per solar mass in the dense core (about 2) and the 0.1 systems per
+cubic parsec solar-neighbourhood figure are common but unchecked. The
+enclosed mass inside 200 pc (about 1e9 Msun) is recalled.</li>
+<li>That 3D grid-graph
+Hamiltonian path is NP-complete is believed, not confirmed. It does not
+affect any conclusion: the parity proof is self-contained.</li>
+<li>The 1.5 to 2 times slowdown of Python 3.9 against the 3.13 timed here is a
+rule of thumb.</li>
+<li>The PERF.3 defaults (0.2 s and 48 KiB per system) are constants in
+<code>generation/stats.py</code> and have not been measured on a real server; the
+core time and storage rows scale with them.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Repository files read: <code>docs/TODO.md</code> (GEN.101, ADM.29, ADM.30, GEN.24,
+GEN.97, ADM.31, PERF.18, NAV.43), <code>galaxy-coordinate-system.md</code>,
+<code>galaxy-disk-density.md</code>, <code>reproducible-galaxies.md</code>,
+<code>galaxy-drilldown-navigation.md</code>, <code>orbital-updates.md</code>,
+<code>Computational Astrodynamics.md</code>, <code>Orbital Position and Vector Update Algorithms.md</code>; <code>src/planetgen/galaxy/geometry.py</code>, <code>density.py</code>,
+<code>skeleton.py</code>, <code>viewport.py</code>, <code>src/planetgen/generation/run_galaxy.py</code>,
+<code>run_common.py</code>, <code>stats.py</code>, <code>src/planetgen/physics/orbits.py</code>,
+<code>src/planetgen/tuning.py</code>, <code>src/planetgen/db/models.py</code> (sector indexes).</li>
+<li>PyPI JSON API: https://pypi.org/pypi/hilbertcurve/json ,
+https://pypi.org/pypi/numpy-hilbert-curve/json ,
+https://pypi.org/pypi/pyzorder/json</li>
+<li>Raw source (module docstring only):
+https://raw.githubusercontent.com/galtay/hilbertcurve/main/hilbertcurve/hilbertcurve.py</li>
+<li>Experiment scripts (research scratchpad): <code>hil.py</code> (Hilbert and Morton,
+metrics), <code>t1.py</code> (Hilbert verification), <code>exp1.py</code>, <code>exp1b.py</code>,
+<code>exp1c.py</code>, <code>exp1d.py</code> (ball experiments, parity), <code>exp2a.py</code> to <code>exp2g.py</code>
+(real grid: counts, neighbours, orders, serpentine, disks), <code>exp3.py</code> (core
+density and cost), <code>exp4.py</code> (backfill redundancy), <code>exp5.py</code> (estimation
+cost, sampling); raw results in <code>exp1.json</code>. The scripts are not in the
+repository; a developer implementing GEN.101 should port the greedy walk
+and serpentine into <code>src/tests/</code> with the 50 pc sphere and 30-ring cylinder as
+fixtures.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

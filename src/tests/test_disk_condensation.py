@@ -1,5 +1,7 @@
 """The species-by-species disk condensation (GEN.1363 part A, physics/disk_condensation.py)."""
 
+import math
+
 import pytest
 
 from planetgen.physics import condensate_shares, disk_condensation as dc
@@ -183,3 +185,48 @@ def test_the_stars_nitrogen_sulfur_and_noble_ratios_scale_the_split_not_the_fact
         dc.envelope_enrichments(0.0, 1.0)
     with pytest.raises(ValueError):
         dc.envelope_enrichments(100.0, -1.0)
+
+
+def test_the_jump_of_the_solids_at_the_snow_line_is_the_solids_over_the_rock_alone():
+    """GEN.1396: rock + grains + water over the rock, read between the water and ammonia lines: 1.97 for the Sun, under the
+    equilibrium table's 2.17 (CO and CO2 hold some of the oxygen) and under the classical nebula's 30 / 7."""
+    masses = dc.masses_percent(dc.SNOW_LINE_SOLID_JUMP_K)
+    assert set(masses) == {"rock", "C", "H2O"}
+    assert dc.SNOW_LINE_SOLID_JUMP == pytest.approx((masses["rock"] + masses["C"] + masses["H2O"]) / masses["rock"])
+    assert dc.SNOW_LINE_SOLID_JUMP == pytest.approx(1.967, abs=0.001)
+    assert dc.SNOW_LINE_SOLID_JUMP < 1.0 + 0.571 / 0.489 < 30.0 / 7.0
+    assert dc.SNOW_LINE_SOLID_JUMP > 1.0 + masses["H2O"] / (masses["rock"] + masses["C"])    # the divisor is not the rock plus the grains
+
+
+def test_a_star_with_more_oxygen_has_a_bigger_jump_and_one_with_no_spare_oxygen_only_the_grains():
+    assert dc.snow_line_solid_jump(oxygen=1.5) > dc.SNOW_LINE_SOLID_JUMP > dc.snow_line_solid_jump(oxygen=0.6)
+    dry = dc.snow_line_solid_jump(oxygen=condensate_shares.ROCK_OXYGEN_SHARE)
+    masses = dc.masses_percent(dc.SNOW_LINE_SOLID_JUMP_K, oxygen=condensate_shares.ROCK_OXYGEN_SHARE)
+    assert "H2O" not in masses and dry == pytest.approx((masses["rock"] + masses["C"]) / masses["rock"])
+
+
+def test_the_mass_law_reads_the_jump_beyond_the_snow_line_only():
+    from planetgen.physics import formation
+    inside = formation.mmsn_surface_density_gcm2(1.0, 2.0)
+    assert formation.mmsn_surface_density_gcm2(1.0, 0.5) == pytest.approx(inside * dc.SNOW_LINE_SOLID_JUMP)
+
+
+def test_the_recipe_median_is_the_median_of_the_drawn_f7_and_not_the_center_of_its_core():
+    """GEN.1471: the core of `f7` is cut at 0.8, so the median of the draw (0.51) is below the core's center (0.57); dividing the draw by the center, as GEN.1363 part C did, lowered every giant."""
+    from planetgen.generation.possibility_table import Subject
+    from planetgen.physics.atmosphere_recipes import RECIPES
+    s = Subject("giant", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
+    below = RECIPES.probability_in("f7", s, None, dc.RECIPE_C_OVER_O_MEDIAN)
+    assert below == pytest.approx(0.5, abs=1e-3), below
+    assert dc.RECIPE_C_OVER_O_MEDIAN < dc.RECIPE_C_OVER_O_CENTER - 0.04
+    d = RECIPES._dist_of(RECIPES.entry("f7"), s)
+    assert d["core"]["sigma"] == pytest.approx(dc.RECIPE_C_OVER_O_CORE_SIGMA_DEX) and d["core"]["range"] == pytest.approx([math.log10(x) for x in dc.RECIPE_C_OVER_O_CORE_RANGE])
+    assert (d["tail"]["lo"], d["tail"]["hi"]) == pytest.approx(dc.RECIPE_C_OVER_O_TAIL_RANGE)
+
+
+def test_a_giant_with_the_medians_f7_keeps_its_disks_c_over_o_and_a_lightly_mixed_envelope_is_the_gas_leaning_one():
+    from planetgen.physics import mixture_giant
+    subject = {"formation_temperature_k": 100.0, "disk_carbon": 1.0, "disk_oxygen": 1.0}
+    bulk = mixture_giant._disk_c_over_o(subject, math.log10(18.0))             # 18 times the star's heavy elements in the planet
+    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0))
+    assert bulk > dc.envelope_c_over_o(100.0, 18.0) + 0.04                     # the envelope carries a share of the bulk, so less of the oxygen-rich solids

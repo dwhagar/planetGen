@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, dynamo, giant_dynamo, interior_heat, magnetism, orbit_elements, radiogenic, spin
+from planetgen.physics import activity, constants, dynamo, giant_dynamo, interior_heat, magnetism, orbit_elements, radiation_field, radiogenic, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -415,8 +415,10 @@ def test_generated_bodies_store_their_field_and_exposure():
                 assert body.xuv_flux_earth > 0.0 and body.xuv_exposure_index > 0.0
                 assert body.flare_irradiation_index >= 0.0
             # GEN.727: the light a planet gets is that of the mean flux of its ellipse, the distance of `flux_distance_au`
+            # GEN.1442: and the other stars of the system add theirs (`radiation_field.field_at`; a lone star's is the host's alone)
             assert planet.xuv_flux_earth == pytest.approx(
-                activity.xuv_flux_earth(planet.star, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)))
+                radiation_field.field_at(planet.star, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)).xuv_flux_earth.total,
+                rel=1e-4)       # a planet whose orbit settled (`settle_orbit`) after its light was made differs by a few parts per million (seed 15, planet VII)
     assert {"none", "strong"} <= seen
 
 

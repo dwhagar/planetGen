@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Surface pressure supply law: how much gas a rocky body has delivered to its surface (GEN.726) - planetGen docs</title>
+<meta name="description" content="Status: design, 2026-10-24, lane I (Blocker I).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/surface-pressure-supply-law.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/surface-pressure-supply-law.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="surface-pressure-supply-law-how-much-gas-a-rocky-body-has-delivered-to-its-surface-gen726">Surface pressure supply law: how much gas a rocky body has delivered to its surface (GEN.726)</h1><p class="meta">docs/design/composition/surface-pressure-supply-law.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-is-being-defined">1. What is being defined</a></li><li style="margin-left:0px"><a href="#2-the-terms">2. The terms</a></li><li style="margin-left:14px"><a href="#21-the-element-inventory-read">2.1 The element inventory (read)</a></li><li style="margin-left:14px"><a href="#22-the-share-degassed-by-the-bodys-age-the-part-that-is-calibrated">2.2 The share degassed by the body's age (the part that is calibrated)</a></li><li style="margin-left:14px"><a href="#23-the-sinks">2.3 The sinks</a></li><li style="margin-left:14px"><a href="#24-from-atoms-to-a-pressure">2.4 From atoms to a pressure</a></li><li style="margin-left:0px"><a href="#3-anchors-the-tests-keep">3. Anchors the tests keep</a></li><li style="margin-left:0px"><a href="#4-registry-rows-this-adds-source-tier-tweak-level-gen725-rule">4. Registry rows this adds (source tier, tweak level; GEN.725 rule)</a></li><li style="margin-left:0px"><a href="#5-what-it-does-not-do">5. What it does not do</a></li><li style="margin-left:0px"><a href="#6-in-the-generator-gen411-gen422">6. In the generator (GEN.411, GEN.422)</a></li></ul></details>
+<p>Status: design, 2026-10-24, lane I (Blocker I). Boss, 3:50 PM EDT 2026-10-24: &quot;Hold 4c until the supply law is done&quot;; earlier, 3:30 PM EDT: &quot;I want to be as accurate to known physics as possible&quot;. This note defines <code>P_supply</code>, the one term of the retention design <code>P = min(P_supply, P_retention, P_vapor)</code> (<code>habitability/atmospheres-retention-and-classes.md</code>) that had no definition, names the source of every term and the tier of every number that is not read from a source. GEN.411 and GEN.422 (the wiring of the mixture draw and the order of the pressure sum) wait for it.</p>
+<h2 id="1-what-is-being-defined">1. What is being defined</h2>
+<p>The pressure of a hydrostatic atmosphere is its mass over the area, <code>P = g M_air / (4 pi R^2)</code>. The supply law gives the mass <code>M_air</code> that the body's interior has delivered to the surface by its age and that no surface sink has taken back:</p>
+<pre><code>M_air = sum over gases of  (atoms of the gas's elements degassed) - (what the sinks hold)
+</code></pre>
+<p>It does not subtract escape. The loss of a body that is too small or too hot to keep what it has is the retention row's job (<code>d1</code> to <code>d5</code>, the cosmic shoreline of [R4862], GEN.511) and the Jeans filter that already removes the light gases from the mixture (<code>mixture_escape</code>, GEN.693); subtracting it here as well would count it twice. The vapor cap is the third term of the minimum. So the law answers: if nothing escaped, how much gas would be here?</p>
+<p>What it replaces: on main the pressure is a class density range times <code>gravity^1</code> (&quot;a starting point, not derived from a retention model&quot;). GEN.422 deletes the class <code>atm_density</code> and <code>atm_molar_density</code> ranges; this law is where the number comes from instead.</p>
+<h2 id="2-the-terms">2. The terms</h2>
+<h3 id="21-the-element-inventory-read">2.1 The element inventory (read)</h3>
+<p><code>mixture_rocky.rocky_inventory</code> already gives the delivered budget of the outgassing stage: H, C, N, S and radiogenic Ar, in atoms per 100 g of the mantle that holds them. Water and carbon dioxide are [R3378: Table 1] (water 0.05 to 0.5 weight percent with CO<sub>2</sub>/H2O 0.2, the dry class CO<sub>2</sub> 0.018 to 0.1 weight percent (Ortenzi's stored 0.018 to the wet High case; his delivered 0.6 is 16 times the bulk silicate Earth's carbon and is not used, GEN.813), the water-rich class 10 to 50 weight percent); nitrogen and sulfur per carbon atom are brackets that contain the bulk silicate Earth and the CI chondrites; argon is made by the rock's potassium. These are kept as they are (tier 1 and 2 as the gap plan registry rows AM13 and AM14 say). What was missing is the mass they refer to and the share that has come out.</p>
+<p><strong>The mass is the mantle's</strong>, <code>M_mantle = M * rock_mass_fraction</code> (the silicate share of <code>bulk_composition</code>; the core and the ice do not hold the delivered volatiles). The inventory's per-100-g basis was a scale-free device for the mixture, and the Ortenzi values are mantle contents, so the code reads them per 100 g of mantle.</p>
+<p>[R2923] (EPSL 313-314, 56-66; [R2923], read) puts the water of the bulk Earth at 1000 to 3000 ppm and the carbon at up to 500 ppm, &quot;both largely sequestrated in the solid Earth&quot;, and says up to 90 percent of the water and up to 97 percent of the carbon may be in the mantle. Ortenzi's 500 to 5000 ppm water and 100 to 1000 ppm CO<sub>2</sub> are the same order of magnitude and are the part a planet can outgas, so the inventory above is an upper bound on what reaches the surface.</p>
+<h3 id="22-the-share-degassed-by-the-bodys-age-the-part-that-is-calibrated">2.2 The share degassed by the body's age (the part that is calibrated)</h3>
+<p>The share of an element that has reached the surface is</p>
+<pre><code>phi_e = eps_e * (1 - exp(-Theta)),     Theta = E_release / (M_mantle * e_proc)
+</code></pre>
+<p><code>E_release</code> is the heat the interior has carried out since the body formed (J), a new output of the interior heat model (<code>interior_heat.Heat.released_j</code>, the integral of the heat flow over the age). The physical picture is [R4413] (&quot;The habitability of a stagnant-lid Earth&quot;, [R4413], read, sections 2.2 and 2.3): melt is produced where the mantle is hotter than its solidus, the melt rises and erupts, and the gas the melt cannot hold dissolved comes out. The melt production is driven by the same convective heat loss, so the mantle processed through melting grows with the heat carried out. <code>e_proc</code> (J per kilogram of mantle) is the heat released per kilogram of mantle for one e-folding of the undegassed share. The form <code>1 - exp(-Theta)</code> is the first-order depletion of a well-mixed reservoir, the standard form of mantle degassing models.</p>
+<p>Alternatives considered and left out: integrating the melt production of [R4413] equations 15 to 19 (it needs the solidus, the melt fraction and the crust growth, none of which the interior model carries), and the modern outgassing flux of the carbonate-silicate models (a flux today, no history). The heat release is the history the project already computes and stores the inputs of.</p>
+<p><code>eps_e</code>, the share of the element the melt cannot hold:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>element</th>
+<th>eps</th>
+<th>basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C, N, Ar</td>
+<td>1</td>
+<td>CO<sub>2</sub> and N<sub>2</sub> are far less soluble than water in basaltic melt, &quot;the low solubility of CO<sub>2</sub> causes most of the carbon to be outgassed&quot; ([R4413], abstract); argon is a noble gas</td>
+</tr>
+<tr>
+<td>S</td>
+<td>0.5</td>
+<td>sulfur stays partly in the melt as sulfide (stand-in, tier 6)</td>
+</tr>
+<tr>
+<td>H</td>
+<td>drawn 0.05 to 0.5, log</td>
+<td>water is highly soluble and &quot;limited to a few tens of bars&quot; [R4413]; the magma ocean retains much of it ([R0501]: &quot;much of the water delivered during accretion can be retained in the interior&quot;); [R2923]: up to 90 percent in the mantle. The bracket's top is Marty's 10 percent surface share doubled for the water that never was in the mantle (stand-in, tier 6)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Calibration of <code>e_proc</code>.</strong> The Earth and Venus both hold about 1e22 mol of carbon at the surface: Earth 7 to 11e21 mol in carbonates and organic matter (a review's figure met in a search, not yet checked against the paper: tier 3) and Venus 1.05e22 mol of CO<sub>2</sub> in its air (9.2 MPa over 4 pi R^2 / g = 4.77e20 kg of air, 96.5 percent CO<sub>2</sub>). With the log-middle of the Ortenzi CO<sub>2</sub> range, 0.032 weight percent of a 4.0e24 kg mantle (1.3e21 kg), Earth's 4.6e20 kg of CO<sub>2</sub> is a share of 0.36, so <code>Theta_Earth = 0.45</code>. The interior model gives the Earth twin its heat release, and <code>e_proc</code> is set so that the twin reaches 0.45. Venus is then a check, not a fit: its heat release per kilogram of mantle (stagnant lid in the model) should give a share inside a factor of 1.5 of the 0.43 its air needs (4.6e20 kg of CO<sub>2</sub> over 3.3e24 kg of mantle at the same inventory).</p>
+<h3 id="23-the-sinks">2.3 The sinks</h3>
+<p><strong>The ocean (water, sulfur).</strong> When the surface holds liquid water, the vapor in the air is the saturation pressure of water at the surface temperature times the relative humidity the habitability code already uses; the rest of the water is the ocean (<code>hydrosphere</code>). So the air's water is <code>min(supply, saturation)</code>: the vapor term of the minimum. Sulfur gases are taken up by an ocean (sulfate and sulfide; <code>SULFUR_SINK</code> of <code>mixture_evolved</code>, already a registry row AM2).</p>
+<p><strong>The carbonate-silicate cycle (carbon dioxide).</strong> On a body with an ocean and rock to weather, silicate weathering removes CO<sub>2</sub> at a rate that grows with temperature and with the CO<sub>2</sub> pressure, and volcanic outgassing puts it back; over geological time the two balance ([R2628, R4596], &quot;Carbonate-silicate cycle predictions of Earth-like planetary climates and testing the habitable zone concept&quot;, PMC7708846, read). The continental weathering law in the form of that paper (Eq. 4 of its simplified model; Table 1 for the ranges):</p>
+<pre><code>F_w = rho * f_land * (pCO2 / pCO2_mod)^alpha * exp((Ts - Ts_mod) / T_e)
+</code></pre>
+<p>with <code>pCO2_mod = 288e-6 bar</code> and <code>Ts_mod = 289 K</code> (preindustrial Earth), <code>alpha</code> 0.1 to 0.5 (geologic constraints over the last 100 Myr), <code>T_e</code> 10 to 40 K (laboratory and Phanerozoic constraints), <code>f_land</code> the land fraction (Earth 1 in their scaling, so here <code>f_land / f_land_Earth</code>), and outgassing <code>F_out = F_out_mod (q / q_Earth)^m</code> with <code>m</code> 1 to 2 and <code>F_out_mod</code> 6 to 10 Tmol C per year. In balance <code>F_out = F_w</code>, so</p>
+<pre><code>pCO2* = pCO2_mod * [ (q/q_E)^m * (F_out_mod / rho_mod) / (f_land / f_land_E) ]^(1/alpha) * exp(-(Ts - Ts_mod) / (alpha T_e))
+</code></pre>
+<p>with <code>rho_mod f_land_E = F_out_mod</code> for the modern Earth (a steady state at 288 ppm by construction). The weathering and the outgassing both scale with the surface area, so it cancels. <code>Ts</code> depends on <code>pCO2</code> through the greenhouse, so the balance is solved with the temperature function of the body (<code>atmosphere_state.greenhouse_warming</code>, the fixed point of GEN.422). The CO<sub>2</sub> left in the air is <code>min(supply, pCO2*)</code>: a world with little CO<sub>2</sub> has all of it taken; one with a lot is held at the balance and the rest is in carbonates. The unstable branch [R1661] report in the outer habitable zone (weathering falling with pCO2) is not modelled: the solution takes the stable root.</p>
+<p>The cycle needs liquid water at the surface (ocean fraction above zero, <code>Ts</code> between the freezing point and the critical point of water) and rock to weather. Without liquid water (Venus, Mars today) nothing takes the CO<sub>2</sub> back and the air holds all the supply, which is what makes Venus a 90 bar CO<sub>2</sub> world with the same carbon as the Earth. A frozen world keeps its CO<sub>2</sub> until the greenhouse thaws it (the balance's temperature factor lets <code>pCO2*</code> climb, capped by the vapor term when the CO<sub>2</sub> would condense).</p>
+<p>Nitrogen and the noble gases have no surface sink (N<sub>2</sub> is almost insoluble); the Earth's mantle holds more nitrogen than its air ([R2923]: 0.84 +/- 0.43 ppm of the silicate Earth in the mantle against 3.9e18 kg in the air), which the share <code>phi_N</code> already carries.</p>
+<h3 id="24-from-atoms-to-a-pressure">2.4 From atoms to a pressure</h3>
+<p>The mixture draw takes the element budget of the gas and returns mole fractions in equilibrium with the mantle. The supply law changes only the budget it is given: the inventory times <code>phi_e</code> (what has been degassed), then the sinks take atoms out (ocean: H and S; carbonate: C and the O that went with it). The moles of gas follow from the atoms and the atoms per mole of the mixture; the mass from the molar mass; the pressure from the mass. In steps, in the order GEN.422 fixes: mixture, pressure with freeze-out, density, scale height, greenhouse, temperature (the fixed point), with the sinks inside the loop because the carbonate balance needs the temperature.</p>
+<h2 id="3-anchors-the-tests-keep">3. Anchors the tests keep</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>body</th>
+<th>what is checked</th>
+<th>value</th>
+<th>basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth twin</td>
+<td><code>Theta</code> from the interior model gives the calibrated share</td>
+<td>0.45 (set)</td>
+<td>surface carbon 1e22 mol</td>
+</tr>
+<tr>
+<td>Earth twin</td>
+<td><code>pCO2*</code> at the modern flux and 289 K</td>
+<td>288e-6 bar (identity)</td>
+<td>[R2628]</td>
+</tr>
+<tr>
+<td>Venus twin</td>
+<td>degassed CO<sub>2</sub> inside a factor of 1.5 of the air</td>
+<td>4.6e20 kg</td>
+<td>9.2 MPa, 96.5 percent CO<sub>2</sub></td>
+</tr>
+<tr>
+<td>Venus twin</td>
+<td>no ocean: no sink, the air is the supply</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>Mars twin</td>
+<td>the supply is above the observed 0.6 kPa: the observed air is the retention row's loss, not the supply's</td>
+<td>2.5e16 kg observed</td>
+<td>non-thermal escape (not modelled here)</td>
+</tr>
+<tr>
+<td>Titan</td>
+<td>out of scope: the <code>titan</code> and <code>frost</code> families set their own pressure</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="4-registry-rows-this-adds-source-tier-tweak-level-gen725-rule">4. Registry rows this adds (source tier, tweak level; GEN.725 rule)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+<th>source</th>
+<th>tier</th>
+<th>tweak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PROCESSING_ENERGY_J_PER_KG</code></td>
+<td>set by the Earth calibration</td>
+<td>Earth and Venus surface carbon, [R4413] picture</td>
+<td>5 confident educated guess based on physics</td>
+<td>1 nudged within the range of two anchors</td>
+</tr>
+<tr>
+<td><code>DEGAS_EFFICIENCY_H</code></td>
+<td>0.05 to 0.5, log</td>
+<td>[R0501, R2923, R4413]</td>
+<td>6 marginal educated guess</td>
+<td>1</td>
+</tr>
+<tr>
+<td><code>DEGAS_EFFICIENCY_S</code></td>
+<td>0.5</td>
+<td>sulfide retention in melt</td>
+<td>6</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>WEATHERING_ALPHA</code></td>
+<td>0.1 to 0.5, uniform</td>
+<td>[R2628: Table 1]</td>
+<td>1 verified (range)</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>WEATHERING_T_E_K</code></td>
+<td>10 to 40 K, uniform</td>
+<td>same</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>OUTGASSING_EXPONENT</code></td>
+<td>1 to 2, uniform</td>
+<td>same</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>LAND_FRACTION_REFERENCE</code></td>
+<td>0.29 (Earth)</td>
+<td>the Earth's land share</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>CO2_MODERN_BAR</code>, <code>TS_MODERN_K</code></td>
+<td>288e-6, 289</td>
+<td>same</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>The draws go through <code>util/draw.py</code> after the existing mixture draws, in the order above, so a change of the order is a generator-epoch change (and the whole law is one).</p>
+<h2 id="5-what-it-does-not-do">5. What it does not do</h2>
+<ul>
+<li>The magma-ocean epoch: the inventory is taken as already split between mantle and surface at the start of the geological stage ([R0501] treat the first million years; the water share <code>eps_H</code> stands for it).</li>
+<li>Impact erosion and delivery after the main accretion (the physics gap register's A5), and non-thermal escape (the retention rows).</li>
+<li>Seafloor weathering, organic carbon burial, the biological weathering factor <code>f_bio</code> (taken as 1) and carbonate metamorphism of a stagnant lid [R1403]: the cycle is one box, the stable root.</li>
+<li>A tectonic or stagnant-lid switch on the outgassing: the heat flow <code>q</code> carries the regime only through its value, because the regime is drawn after the hydrosphere. This is the largest simplification.</li>
+<li>Giant and ice-world envelopes, Titan-like and frost air: their pressures come from their own families.</li>
+</ul>
+<h2 id="6-in-the-generator-gen411-gen422">6. In the generator (GEN.411, GEN.422)</h2>
+<p>Built 2026-10-24 (lane I, Blocker I): <code>physics/surface_air.py</code> solves the order of section 2.4 for every rocky planet and moon and every giant, and <code>physics/planets.calculate_atmospheric_conditions</code> stores the result (<code>atmosphere.store_air</code>). The class density ranges <code>atm_density_range</code> and <code>atm_molar_density_range</code>, the greenhouse multiplier ranges, <code>CLASS_MIXES</code> and the old mixing-ratio draw are gone (GEN.683); no body is given an air by its class.</p>
+<p><strong>One body, one fixed point.</strong> Draws first (design constants of the law: the efficiencies, the cycle's three, the hydrate skin; the seed of the replay), then repeated steps at a temperature and a pressure:</p>
+<ol>
+<li>The recipe subject of the body at (<code>Ts</code>, <code>P</code>, ocean, geology) (<code>mixture_subject.subject_of_body</code>, GEN.756) and the mixture draw over the inventory times the degassed share, less the carbonate sink at that temperature (<code>surface_pressure.carbonate_pco2_bar</code>). The draw replays from one seed at every step, so only the temperature and pressure move it. The regimes of the recipe depend on them, so the draw is kept from step 8 on (<code>FREEZE_AFTER</code>); a regime on the edge of its gate cannot flip the solution back and forth.</li>
+<li>The moles of the mixture (<code>MixtureDraw.moles</code>, per 100 g of mantle, times the mantle mass) and the light-gas escape (<code>mixture_escape</code>) give the column.</li>
+<li>The freeze-out (<code>freeze_out</code>): a gas above its saturation pressure condenses until it stands on the curve, and water over an ocean or ice stands at the relative humidity 0.77 ([R2848], the Earth's mean) while the water lasts; the quadratic of each gas is solved exactly, the mean molar mass changes with each, and the result is repeated until none moves. An ocean dissolves the sulfur gases by Henry's law (<code>mixture_sinks.sulfur_remaining_fraction</code>, GEN.757). The retention row <code>d6</code> caps the total. An icy cold body then holds the guest gases above their dissociation pressure in the cages of its ice skin (GEN.762, <code>clathrate_brine.hydrate_hold_pa</code>).</li>
+<li>The pressure is the sum of what is left (<code>P = g M / (4 pi R^2)</code>, <code>surface_pressure.pressure_pa</code>); the density, mean molar mass and scale height follow (<code>atmosphere_state.air_state</code>).</li>
+<li>The greenhouse and the temperature of that air (<code>atmosphere_state.greenhouse_warming</code>).</li>
+</ol>
+<p>The step is damped in ln P and in T and halves its damping when it overshoots; a creep toward the solution (the water vapor and the temperature feeding each other) is taken by a secant step of at most <code>MAX_GAIN</code> times the damped one. It stops when ln P moves by less than <code>TOLERANCE_LN_P</code> (1e-3, the noise of the greenhouse solver) and T by less than 0.1 K, or after <code>MAX_STEPS</code>; <code>Air.converged</code> says which. A world whose ocean freezes and thaws more than <code>MAX_OCEAN_FLIPS</code> times has no state that is both (the ocean weathers the CO<sub>2</sub> away and freezes, the ice leaves the CO<sub>2</sub> to build up and thaws): it is solved as one that keeps its ocean, with the weathering law taking itself away where it is cold.</p>
+<p><strong>Giants, brown dwarfs, envelopes.</strong> There is no surface: the reference level is the 1 bar level, the mixture there does not depend on the surface temperature, and the greenhouse temperature there is of the radiated flux, the absorbed starlight plus the giant's own heat flux (<code>giant_draw.own_flux_w_m2</code>, the cooling law through Jupiter and Neptune, GEN.816; Jupiter 154 K, Uranus 83 K, Neptune 76 K against 166, 76 and 72 measured, Saturn 115 K against 134 until its helium-rain heat is added, GEN.810). One step is the solution.</p>
+<p><strong>Where the old values went.</strong> The pressure of a class-A to V rocky world is now the supply of its interior less its sinks; a class whose retention row says &quot;none kept&quot; (d1) is airless; the stored density is the mean molar mass over the air's own state, not a class range.</p>
+<p><strong>An air that does not settle stores the knee, not the last answer (GEN.1344).</strong> 4 to 5 percent of airs do not settle in <code>MAX_STEPS</code> (93 of 1,841 on main, 71 of 1,614 on train 15, no giants). In the airs traced the step from a temperature <code>x</code> finds a temperature <code>f(x)</code> that jumps down as <code>x</code> rises (a haze or an ocean that switches on at a temperature: the hotter air is the cooler answer, a body at 205 K answered 350 K and 205 K in turn, 1.9 bar and 10 bar), so the map has no fixed point at all; the damped iterate stays at the jump (its step is the damping floor 0.05 times the residual) and its answers swing to either side of it, 10 to 75 K in the worst. The state such a system keeps is the time average of the two answers, the mean over the last cycles (the Filippov value of a switch). <code>surface_air.sliding_temperature</code> reads the last <code>SLIDING_WINDOW</code> (12) steps: when the answers swing by more than <code>SLIDING_MIN_SWING_K</code> (1 K) and the iterate itself moved by less than <code>SLIDING_ITERATE_SHARE</code> (0.5) of that swing, it returns the mean of the answers and <code>Air.knee</code> is true, and <code>planets.calculate_atmospheric_conditions</code> takes the stored greenhouse factor from that temperature (as for a body at the 2,000 K guard) so the three stored numbers agree. A creep, a drift or noise keeps the last answer. The air stays flagged unsettled (<code>Air.converged</code> is false): the unsettled share does not fall, the stored error falls from the swing to about the step. See stand-in section 6.200, SL1.</p>
+<p><strong>No steam under the runaway limit (GEN.1329).</strong> Above its critical point (647 K, 22.07 MPa) water has no saturation curve, so <code>freeze_out</code> let a gas in contact with a reservoir there take the whole reservoir. A body whose air passed 647 K for any reason then held all its water as steam, 1e10 to 1e11 Pa, and the table's adiabat (stand-in IR16) kept it at the 2,000 K guard. The reason was the first step of the fixed point: a reducing, hydrogen-rich mixture of 25 bar or more (28 bar of H<sub>2</sub>, CO<sub>2</sub>, CO and CH<sub>4</sub> for an Earth-mass body in the habitable zone) which the table warms to 1,000 K, after which the water joined the air and nothing returned it. On 450 generated systems 63 of 1,339 rocky planets were steam airs and 44 of the 63 stood under the runaway greenhouse flux (median 0.44 of it, the lowest 0.008, at 2 W/m2 absorbed); 8 of 14 Earth-mass bodies in the habitable zone of a Sun-like star ended at 1,100 to 1,500 K with 1e9 to 2e10 Pa. A hot steam air radiates about 280 W/m2 whatever it absorbs [R1607, R3236]; a body that absorbs less cools and the water returns to the surface, so the state does not stand. <code>Setting.steam_possible</code> (<code>surface_air._steam_possible</code>) is true when the body's effective flux, the starlight in the Sun's at the Earth plus its own heat flow (interior and tide) as the starlight that would absorb the same, is past <code>orbits.runaway_greenhouse_flux</code> of its star and mass (the limit the water-loss history and the steam-branch start of GEN.1238 already use). When it is false and the body has water, each step of the fixed point holds the surface under <code>MOIST_LIMIT_K</code> (375 K, the last solution of the radiative-convective model's saturated clear-sky air before its runaway, 374.6 K at 330 W/m2, GEN.1194), so the transient of the first steps cannot carry the ocean past the critical point; the later steps, whose mixtures no longer hold the transient, settle on the cool branch (the Earth-mass sample then reads 191 to 375 K and under 5 bar in all 14 seeds). Above the limit nothing changes. A body with no star takes the Sun's limit. See stand-in section 6.199, SV1.</p>
+<p><strong>Registry rows this adds</strong> (GEN.725 rule, in <code>research/gap-filling-plan.md</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>name</th>
+<th>value</th>
+<th>source</th>
+<th>tier</th>
+<th>tweak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RELATIVE_HUMIDITY</code></td>
+<td>0.77</td>
+<td>[R2848]</td>
+<td>1 verified</td>
+<td>0</td>
+</tr>
+<tr>
+<td><code>LONG_LIVED_FLUX_FRACTION</code></td>
+<td>0.5</td>
+<td>share of the Earth twin's heat flow that keeps a mantle geologically alive</td>
+<td>7 educated guess from inferred physics</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>| <code>MAX_OCEAN_FLIPS</code>, <code>MAX_GAIN</code>, <code>MAX_STEPS</code>, tolerances | | numerical | not stand-ins | |</p>
+<p>Removed stand-ins: the weathering sink bracket of the rocky inventory (now the carbonate balance and Henry's law), the class density ranges, the greenhouse multiplier ranges.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

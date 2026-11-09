@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Installing planetGen - planetGen docs</title>
+<meta name="description" content="This guide takes you from nothing to a running planetGen site with a generated galaxy, on Linux or macOS.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/INSTALL.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="repo/INSTALL.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="installing-planetgen">Installing planetGen</h1><p class="meta">INSTALL.md</p><details class="toc"><summary>On this page (21 headings)</summary><ul><li style="margin-left:0px"><a href="#the-whole-path-at-a-glance">The whole path at a glance</a></li><li style="margin-left:0px"><a href="#requirements">Requirements</a></li><li style="margin-left:14px"><a href="#swap">Swap</a></li><li style="margin-left:14px"><a href="#memory-guards">Memory guards</a></li><li style="margin-left:14px"><a href="#ubuntu-2404-and-2604-lts">Ubuntu 24.04 and 26.04 LTS</a></li><li style="margin-left:0px"><a href="#1-get-the-code">1. Get the code</a></li><li style="margin-left:0px"><a href="#2-create-the-database-and-account">2. Create the database and account</a></li><li style="margin-left:0px"><a href="#3-write-configjson">3. Write config.json</a></li><li style="margin-left:0px"><a href="#4-run-the-installer">4. Run the installer</a></li><li style="margin-left:14px"><a href="#linux-debian-or-ubuntu">Linux (Debian or Ubuntu)</a></li><li style="margin-left:14px"><a href="#give-redis-a-user-and-a-password-new-and-existing-installs">Give Redis a user and a password (new and existing installs)</a></li><li style="margin-left:14px"><a href="#macos">macOS</a></li><li style="margin-left:0px"><a href="#5-set-up-the-web-server">5. Set up the web server</a></li><li style="margin-left:0px"><a href="#6-https-and-the-first-admin-login">6. HTTPS and the first admin login</a></li><li style="margin-left:0px"><a href="#7-generate-the-galaxy">7. Generate the galaxy</a></li><li style="margin-left:0px"><a href="#8-check-the-server">8. Check the server</a></li><li style="margin-left:0px"><a href="#keeping-it-up-to-date">Keeping it up to date</a></li><li style="margin-left:14px"><a href="#the-update-button-linux">The Update button (Linux)</a></li><li style="margin-left:14px"><a href="#scheduled-maintenance">Scheduled maintenance</a></li><li style="margin-left:0px"><a href="#command-line-only">Command line only</a></li><li style="margin-left:0px"><a href="#development-setup">Development setup</a></li></ul></details>
+<p>This guide takes you from nothing to a running planetGen site with a
+generated galaxy, on Linux or macOS. It covers the install
+scripts, where the example configs live, and what to do after the first
+install. For what planetGen is and how to use it, see the
+<a href="README.html">README</a>.</p>
+<h2 id="the-whole-path-at-a-glance">The whole path at a glance</h2>
+<ol>
+<li><a href="#requirements">Check the requirements</a>.</li>
+<li><a href="#1-get-the-code">Get the code</a> as a git checkout.</li>
+<li><a href="#2-create-the-database-and-account">Create the MySQL database and account</a>.</li>
+<li><a href="#3-write-configjson">Write <code>config.json</code></a>.</li>
+<li><a href="#4-run-the-installer">Run the installer</a> for your platform.</li>
+<li><a href="#5-set-up-the-web-server">Set up the web server</a> from the example config.</li>
+<li><a href="#6-https-and-the-first-admin-login">Turn on HTTPS and change the admin login</a>.</li>
+<li><a href="#7-generate-the-galaxy">Generate the galaxy</a>.</li>
+<li><a href="#8-check-the-server">Check the server</a>.</li>
+<li><a href="#keeping-it-up-to-date">Keep it up to date</a>.</li>
+</ol>
+<h2 id="requirements">Requirements</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>What</th>
+<th>Version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>3.12+ (Homebrew's on macOS)</td>
+<td>Linux uses the system Python. numba is installed with the other Python libraries and is required.</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>MySQL 8.0.19+ (MariaDB is not supported)</td>
+<td>Local or on another machine.</td>
+</tr>
+<tr>
+<td>A web server</td>
+<td>Apache2 + mod_wsgi (reference), nginx, Caddy</td>
+<td>Only for the website. The command line needs none.</td>
+</tr>
+<tr>
+<td>git</td>
+<td>any</td>
+<td>The checkout must be a git clone so the update scripts can pull.</td>
+</tr>
+<tr>
+<td>Swap</td>
+<td>on (8 GB is plenty)</td>
+<td>A server with none has nothing between a memory spike and the kernel's out-of-memory killer, which ends MySQL, Redis or the web server. <code>sudo scripts/enable-swap.sh</code> makes a swap file and keeps it across reboots; see <a href="#swap">swap</a> below.</td>
+</tr>
+<tr>
+<td>Disk</td>
+<td>about 10 GB once the galaxy is planned, more as sectors fill</td>
+<td>The plan stores about 60 million bright stars. Most people then fill neighborhoods as they need them rather than the whole galaxy.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Supported platforms:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Installer</th>
+<th>Updater</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debian or Ubuntu (reference)</td>
+<td><code>install.sh</code></td>
+<td><code>update.sh</code></td>
+<td><a href="../deployment/apache.html">Apache</a>, <a href="../deployment/nginx.html">nginx</a>, <a href="../deployment/caddy.html">Caddy</a></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td><code>install.sh</code></td>
+<td><code>update.sh</code></td>
+<td><a href="../deployment/macos.html">macOS</a>: Homebrew nginx in front of gunicorn under launchd</td>
+</tr>
+<tr>
+<td>A rented server</td>
+<td>as on Linux</td>
+<td>as on Linux</td>
+<td><a href="../deployment/paas.html">VPS and PaaS</a></td>
+</tr>
+</tbody>
+</table></div>
+<p><a href="../deployment/README.html"><code>docs/deployment/README.md</code></a> compares the
+platforms in more detail. Windows: see <a href="../deployment/WINDOWS.html">docs/deployment/WINDOWS.md</a>.</p>
+<blockquote>
+<p>Do not install planetGen with <code>pip install .</code>. The installers put its
+libraries in a virtual environment (<code>/usr/local/planetgen/venv</code>) built
+from a hash-checked lock file, where the web server can use them and the
+system Python stays untouched. They then install the checkout itself as an
+editable package (<code>pip install -e</code>), so the site and the command line
+run the checkout's code and a <code>git pull</code> takes effect without a
+reinstall.</p>
+</blockquote>
+<h3 id="swap">Swap</h3>
+<p>Turn swap on before you generate anything. A host with none (many cloud servers ship that way) has nothing to absorb
+a burst of memory, and the kernel then kills whichever big process it finds first, usually MySQL; with swap the
+server slows down instead. One command makes an 8 GB swap file, switches it on and adds it to <code>/etc/fstab</code> so it
+stays on after a reboot (it does nothing when swap is already on):</p>
+<pre><code class="language-bash">sudo scripts/enable-swap.sh            # 8 GB at /swapfile
+sudo scripts/enable-swap.sh 16G        # another size
+sudo scripts/enable-swap.sh 8G /mnt/disk/swapfile   # another place, when the system disk is small
+</code></pre>
+<p><code>swapon --show</code> and <code>free -m</code> show the result. <code>install.sh</code> and <code>update.sh</code> warn when the host has no swap.</p>
+<h3 id="memory-guards">Memory guards</h3>
+<p>Some hosts run a memory guard (<code>earlyoom</code>, <code>systemd-oomd</code>, <code>nohang</code>) that ends the biggest process with SIGTERM when free memory runs low, before the
+kernel's own killer ends it with SIGKILL. A planetGen work unit (the warm-up, a generate run) is often the biggest process, and a unit ended this way fails
+with status 15. <code>install.sh</code> and <code>update.sh</code> say when one is running, and a warm-up that fails prints what the kernel and the guards logged
+meanwhile. Every ended work process is also written, with its signal, unit and run, to <code>error.log</code> in the log folder
+(<code>/var/log/planetgen/error.log</code>), so the cause is on record. What to do about it, in this order: keep swap on (above), because a guard acts when swap is
+nearly used up as well as memory; give the guard something to protect, for example <code>earlyoom</code> started with <code>--avoid '(^|/)(mysqld|redis-server|apache2|httpd)$'</code> so
+it picks a work unit before the database, the queue or the web server; and, if the host is small, lower <code>queue.max_host_workers</code> in <code>config.json</code> (0 sizes it from memory; see <code>docs/reference/config.md</code>) so fewer
+units run at once.</p>
+<p>On a 16 GB host that also generates, <code>innodb_buffer_pool_size = 4G</code> in <code>/etc/mysql/mysql.conf.d/mysqld.cnf</code> keeps
+MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
+Generate page) and the web app.</p>
+<p>On a machine that runs the whole test gate (<code>scripts/test.py full</code>, many tests writing in parallel), raise
+<code>innodb_redo_log_capacity</code> from its 100 MB default to 2 GB in the same file (<code>innodb_redo_log_capacity = 2G</code>, or at
+run time <code>SET GLOBAL innodb_redo_log_capacity = 2147483648;</code>, which MySQL 8.0.30 and later accept without a restart).
+At the default the log checkpointer falls behind under that load (<code>log_checkpointer lagging</code> in the MySQL error log,
+84 warnings in one gate), the gate slows, and tests can lose their connection. A galaxy run does the same: the redo
+log must hold the writes of its busiest half hour or the checkpointer lags (MY-014084 in the error log).</p>
+<h3 id="ubuntu-2404-and-2604-lts">Ubuntu 24.04 and 26.04 LTS</h3>
+<p>Both releases are supported, with Ubuntu's own packages. One line installs
+everything the installers expect to find (they add <code>mod_wsgi</code> and Redis
+themselves when missing, but not MySQL or Apache):</p>
+<pre><code class="language-bash">sudo apt update
+sudo apt install git python3 python3-venv mysql-server apache2 libapache2-mod-wsgi-py3 redis-server
+</code></pre>
+<p>Leave out <code>mysql-server</code> when MySQL runs on another machine. What each
+release ships:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Ubuntu 24.04 LTS</th>
+<th>Ubuntu 26.04 LTS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python (the venv is made from it)</td>
+<td>3.12</td>
+<td>3.14</td>
+</tr>
+<tr>
+<td>MySQL</td>
+<td>8.0</td>
+<td>8.4</td>
+</tr>
+<tr>
+<td>Apache / mod_wsgi</td>
+<td>2.4.58 / 5.0.0 (Python 3.12)</td>
+<td>2.4.66 / 5.0.2 (Python 3.14)</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>7.0</td>
+<td>8.0</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>MySQL 8.4 does not load <code>mysql_native_password</code>.</strong> The account in step 2
+uses the default login (<code>caching_sha2_password</code>), which both versions
+support; do not add <code>IDENTIFIED WITH mysql_native_password</code>.</li>
+<li><strong>mod_wsgi and the venv must be the same Python.</strong> The installers make the
+venv from the system <code>python3</code>, which is what Ubuntu builds <code>mod_wsgi</code>
+for, so they match; <code>update.sh</code> warns when they do not.</li>
+<li><strong>Upgrading from 24.04 to 26.04 in place:</strong> run <code>sudo ./update.sh</code> after
+the upgrade. The old venv's Python (3.12) is gone, so <code>update.sh</code> makes the
+venv again from the new <code>python3</code> (3.14) and reinstalls the locked
+libraries; nothing else changes. Check that <code>apache2ctl configtest</code> passes
+and that your vhost still has <code>python-home=/usr/local/planetgen/venv</code>.</li>
+</ul>
+<h2 id="1-get-the-code">1. Get the code</h2>
+<p>Clone the repository where the site will run from. The guides use
+<code>/var/lib/planetGen</code>:</p>
+<pre><code class="language-bash">sudo git clone https://github.com/dwhagar/planetGen.git /var/lib/planetGen
+cd /var/lib/planetGen
+</code></pre>
+<p>Keep it a git checkout: the update scripts update it by fetching and
+resetting to the tracked branch.</p>
+<p>On macOS, install the Homebrew packages first:
+<code>brew install python@3.12 nginx mysql@8.4 redis</code> (then <code>brew services start redis</code>).</p>
+<h2 id="2-create-the-database-and-account">2. Create the database and account</h2>
+<p>planetGen uses one MySQL account for everything: the generator, the
+migrations and the website. It creates its own tables and a second
+<em>control</em> schema (<code>planetgen_control</code>: admin logins, sessions, API keys,
+audit log), so it needs full rights on every <code>planetgen%</code> schema:</p>
+<pre><code class="language-sql">CREATE DATABASE planetgen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'planetgen'@'localhost' IDENTIFIED BY 'a long random password';
+GRANT ALL PRIVILEGES ON `planetgen%`.* TO 'planetgen'@'localhost';
+</code></pre>
+<p>Use <code>'planetgen'@'%'</code> (or the web host's address) when MySQL is on
+another machine. The admin Generate page's <em>New galaxy</em> and <em>Reset</em>
+actions empty the tables, so a less privileged web account still needs
+<code>DROP</code>. More in <a href="../deployment/README.html#mysql-accounts">MySQL accounts</a>.</p>
+<h2 id="3-write-configjson">3. Write <code>config.json</code></h2>
+<pre><code class="language-bash">sudo cp config.json.example config.json
+sudo ${EDITOR:-nano} config.json
+</code></pre>
+<p>At minimum set:</p>
+<ul>
+<li><code>mysql.host</code>, <code>mysql.user</code>, <code>mysql.password</code>, <code>mysql.database</code>;</li>
+<li><code>secret_key</code> is optional: left empty, the update makes one and keeps it in the
+state folder (<code>secret_key</code>, mode 0600);</li>
+<li><code>site_name</code> and <code>base_url</code> for your site;</li>
+<li><code>proxy_fix</code> when a separate web server proxies to the app (nginx,
+Caddy, macOS): <code>{&quot;x_for&quot;: 1, &quot;x_proto&quot;: 1, &quot;x_host&quot;: 0}</code>
+(<a href="../deployment/README.html#behind-a-reverse-proxy-proxy_fix">why</a>).
+Apache with mod_wsgi does not need it.</li>
+</ul>
+<p>Every setting, and the <code>PLANETGEN_*</code> environment variable that overrides
+it, is in <a href="../reference/config.html"><code>docs/reference/config.md</code></a>. <code>config.json</code> is gitignored,
+so updates never overwrite it, and the installers make it readable only
+by administrators and the web server's account.</p>
+<h2 id="4-run-the-installer">4. Run the installer</h2>
+<p>The installer prints the first admin password <strong>once</strong>, in a box, when
+it creates a new database. Write it down.</p>
+<h3 id="linux-debian-or-ubuntu">Linux (Debian or Ubuntu)</h3>
+<pre><code class="language-bash">sudo ./install.sh
+</code></pre>
+<p>It runs eight steps and prints each one:</p>
+<ol>
+<li>Installs the Python libraries into planetGen's own virtual environment,
+<code>/usr/local/planetgen/venv</code>, from the hash-checked lock; the system Python
+is left alone (<a href="../deployment/apache.html#planetgens-own-python">planetGen's own Python</a>).
+It also adds a <code>planetgen</code> command in <code>/usr/local/bin</code>. The Apache vhost
+needs <code>python-home=/usr/local/planetgen/venv</code> on its <code>WSGIDaemonProcess</code>
+line (the example has it); <code>update.sh</code> checks that, the process group,
+<code>application-group=%{GLOBAL}</code> and that Apache's user can read the venv, and
+only warns (<a href="../deployment/apache.html#what-apache-needs-to-run-the-venv-and-what-updatesh-checks">the rules</a>).</li>
+<li>Creates or migrates the database schema, and prints the admin
+password on a new database.</li>
+<li>Fetches the NLTK <code>words</code> corpus into <code>/usr/local/share/nltk_data</code>.</li>
+<li>Makes the scripts executable.</li>
+<li>Installs mod_wsgi if needed and enables Apache's <code>wsgi</code>, <code>headers</code> and
+<code>deflate</code> modules.</li>
+<li>Locks down the code tree and <code>config.json</code> for Apache's account.</li>
+<li>Creates the Galaxy Map tile cache (<code>/var/cache/planetgen/tiles</code>) and
+the Generate jobs directory (<code>/var/lib/planetGen/jobs</code>).</li>
+<li>Creates the debug log (whether or not <code>debug</code> is on) and the activity
+log's folder, each with its logrotate config.</li>
+</ol>
+<p>After the eight steps it checks that the web app imports as Apache's
+user, and checks the Redis server (below).</p>
+<p>After step 3 it also offers to run the optional population pass
+(species, civilizations and territories: <code>planetgen population</code>, then <code>planetgen territories</code>; y/N, defaulting to N after 30
+seconds). <code>sudo POPULATION=1 ./install.sh</code> runs it without asking, and
+those two commands run it any time later. A new galaxy has no
+worlds yet, so there is nothing for it to do on a first install.</p>
+<p>The Redis check installs <code>redis-server</code> with apt and starts it when
+nothing answers at <code>redis.url</code>; then the installer checks its settings and prints a
+warning, with the exact line to add, for the append-only file, the memory
+policy and limit, and the bind address; copy the lines from
+<a href="https://github.com/dwhagar/planetGen/blob/main/examples/redis/planetgen.conf"><code>examples/redis/planetgen.conf</code></a> into your
+Redis config and restart Redis (it never edits that file; see
+<a href="../deployment/README.html">deployment</a>). It also warns while Redis lets
+anyone on the machine in without a password; the next section is the fix.</p>
+<h3 id="give-redis-a-user-and-a-password-new-and-existing-installs">Give Redis a user and a password (new and existing installs)</h3>
+<p>A job on the work queue names a function that a planetGen worker runs, so
+any user on the machine who can reach a passwordless Redis can make a worker
+run planetGen code with arguments of their choosing. <code>redis.url</code> should
+therefore name a Redis user with a password, and the passwordless <code>default</code>
+user should be off. <a href="https://github.com/dwhagar/planetGen/blob/main/examples/redis/planetgen-acl.conf"><code>examples/redis/planetgen-acl.conf</code></a>
+has the two lines; the installer cannot do this for you (it never edits your
+Redis config, and the password is yours to choose). Until it is done,
+<code>install.sh</code> and <code>update.sh</code> print &quot;any user on this machine can use Redis
+without a password&quot; with these same lines, and carry on.</p>
+<p>Do it in this order, on a new install after <code>install.sh</code> has finished and on
+an existing install when nothing you care about is running (the restart in
+step 4 stops the runs and workers using Redis; queued jobs are kept because
+of the append-only file):</p>
+<ol>
+<li>Choose a password: <code>openssl rand -hex 24</code> prints a good one.</li>
+<li>Copy the example next to your Redis config and put your password in place
+of <code>A-LONG-RANDOM-PASSWORD</code> in the <code>user planetgen</code> line (only there).
+Redis alone must read it:
+<code>sudo cp examples/redis/planetgen-acl.conf /etc/redis/planetgen-acl.conf</code>,
+then <code>sudo chown redis:redis /etc/redis/planetgen-acl.conf</code> and
+<code>sudo chmod 600 /etc/redis/planetgen-acl.conf</code>.</li>
+<li>End <code>/etc/redis/redis.conf</code> with the line
+<code>include /etc/redis/planetgen-acl.conf</code> (after the <code>include</code> of
+<code>planetgen.conf</code>, if you added one: later lines win). This is the file
+that switches the <code>default</code> user off.</li>
+<li>Put the same password in the URL planetGen uses, in <code>config.json</code>:
+<code>&quot;redis&quot;: {&quot;url&quot;: &quot;redis://planetgen:YOUR-PASSWORD@127.0.0.1:6379/0&quot;}</code>
+(or set <code>PLANETGEN_REDIS_URL</code>; a password with characters such as <code>@</code> or
+<code>/</code> must be percent-encoded, which is why a hex password is the easy
+choice). <code>config.json</code> lives in the state folder with mode 640 (the web user and
+its group), so other users cannot read the password, as with the
+database password it already holds; edit the linked file with <code>sudo</code>.</li>
+<li>Restart Redis and the web server:
+<code>sudo systemctl restart redis-server &amp;&amp; sudo systemctl restart apache2</code>.</li>
+<li>Check it: <code>redis-cli ping</code> now answers <code>NOAUTH Authentication required.</code>
+(the passwordless user is off), and
+<code>redis-cli --user planetgen --pass YOUR-PASSWORD ping</code> answers <code>PONG</code>.
+Then <code>sudo ./update.sh</code> prints &quot;Redis: answering at ...&quot; and no longer
+warns about the password; any other line it prints about Redis is one of
+the settings of <code>planetgen.conf</code> and has the line to add.</li>
+</ol>
+<p>To go back, remove the <code>include</code> line from <code>redis.conf</code>, put the plain
+<code>redis://127.0.0.1:6379/0</code> URL back and restart both services.
+<code>update.sh</code> keeps printing the warning until this is done; it does not stop
+the update. The user may do everything planetGen does and none of the
+dangerous commands (<code>FLUSHALL</code>, <code>KEYS</code>, <code>CONFIG SET</code>, <code>SHUTDOWN</code>, <code>ACL</code> and
+the like): for those, edit the Redis config and restart Redis, as above.</p>
+<p><code>sudo ./install.sh --skip-database</code> leaves out step 2 and the population
+question when the database
+isn't ready yet; run <code>sudo ./update.sh</code> once it is. The installer never
+writes the web server's site file; it prints what to do next.</p>
+<h3 id="macos">macOS</h3>
+<pre><code class="language-bash">sudo /var/lib/planetGen/install.sh
+</code></pre>
+<p>The same script as on Linux (the virtual environment at
+<code>/usr/local/planetgen/venv</code> is made from Homebrew's <code>python3</code>), with macOS's
+own pieces: <code>_www</code> ownership, <code>newsyslog</code> for the debug log, and gunicorn
+installed and started as a launchd daemon on <code>127.0.0.1:8000</code>, plus the
+<code>planetgen</code> command. nginx stays yours (next step). See the <a href="../deployment/macos.html">macOS guide</a>.</p>
+<h2 id="5-set-up-the-web-server">5. Set up the web server</h2>
+<p>Each platform has a guide and example files. Copy the example, set the
+host name, check the paths, and enable it.</p>
+<p><strong>Apache on Linux (the reference setup):</strong></p>
+<pre><code class="language-bash">sudo cp examples/apache/planetgen.conf.example /etc/apache2/sites-available/planetgen.conf
+sudo ${EDITOR:-nano} /etc/apache2/sites-available/planetgen.conf   # set ServerName
+sudo a2ensite planetgen
+sudo systemctl reload apache2
+</code></pre>
+<p><strong>nginx on macOS:</strong> copy <code>examples/macos/planetgen-nginx.conf</code> to
+<code>$(brew --prefix)/etc/nginx/servers/planetgen.conf</code>, set <code>server_name</code>
+and the certificate paths, put <code>user _www _www;</code> at the top of
+<code>nginx.conf</code>, then <code>sudo nginx -t &amp;&amp; sudo brew services start nginx</code>.</p>
+<p>Where the examples live:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>What is in it</th>
+<th>Guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/apache"><code>examples/apache/</code></a></td>
+<td>Apache vhost, and the permission, cache-directory and debug-log scripts the installers call</td>
+<td><a href="../deployment/apache.html">apache.md</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/nginx"><code>examples/nginx/</code></a></td>
+<td>nginx site file</td>
+<td><a href="../deployment/nginx.html">nginx.md</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/caddy"><code>examples/caddy/</code></a></td>
+<td>Caddyfile</td>
+<td><a href="../deployment/caddy.html">caddy.md</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/systemd"><code>examples/systemd/</code></a></td>
+<td>gunicorn service for nginx or Caddy</td>
+<td><a href="../deployment/nginx.html">nginx.md</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/macos"><code>examples/macos/</code></a></td>
+<td>nginx config and launchd plists (gunicorn, orbit update, <code>update.sh</code>)</td>
+<td><a href="../deployment/macos.html">macos.md</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/redis"><code>examples/redis/</code></a></td>
+<td>Redis settings (append-only file, noeviction, memory guard, loopback) and the <code>planetgen</code> user with a password</td>
+<td><a href="../deployment/README.html">deployment</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/maintenance"><code>examples/maintenance/</code></a></td>
+<td>Monthly maintenance: systemd timers or launchd daemons (<code>install-maintenance-timer.sh</code>)</td>
+<td><a href="#scheduled-maintenance">below</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/tree/main/examples/systems"><code>examples/systems/</code></a></td>
+<td>Example system files for <code>planetgen system --system-file</code></td>
+<td><a href="../reference/system-file-format.html">system-file-format.md</a></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-https-and-the-first-admin-login">6. HTTPS and the first admin login</h2>
+<p>The admin pages only work over HTTPS. With Apache, <code>sudo certbot --apache</code>; each guide says how for its server.</p>
+<p>Then open <code>https://&lt;your site&gt;/login</code> and sign in as <code>admin</code> with the
+password the installer printed. You are sent to <code>/account</code> to choose
+your own username and password; the other admin pages stay locked until
+you do. Lost the password? See
+<a href="../reference/api.html#resetting-the-admin-login">Resetting the admin login</a>.</p>
+<h2 id="7-generate-the-galaxy">7. Generate the galaxy</h2>
+<p>A new site has an empty galaxy. Use the browser or the command line.</p>
+<p><strong>In the browser:</strong> as an admin, open <strong>Generate</strong> (<code>/admin/generate</code>)
+and choose <em>New galaxy</em>. It plans the galaxy's shape, places its bright
+stars (shown as their own step with a progress bar), and generates a
+first neighborhood around a random start, as a background job you can
+watch and cancel. <em>Generate sectors</em> adds more
+later, and so do the Generate buttons on the Galaxy Map and Sector Map.</p>
+<p><strong>On the command line</strong>, from the checkout:</p>
+<pre><code class="language-bash">planetgen plan                  # the galaxy's shape; once, before anything else
+planetgen scatter --mass        # every star of the mass limit or more, placed across the whole galaxy
+planetgen scatter --luminosity  # the lighter stars bright enough to see from afar
+planetgen scatter --phenomena   # the neutron stars, black holes and the rest
+planetgen galaxy                # a random start and every sector within 100 ly of it
+</code></pre>
+<p>The installer adds the <code>planetgen</code> command.</p>
+<p><strong>The scatters take a while and need space.</strong> The two star scatters place
+every star of 500 solar luminosities or more across the whole galaxy, about 60
+million stars and 10 GB in the database, before any sector is filled,
+so the Galaxy Map shows the spiral arms from the start: roughly 20
+minutes of drawing plus the database load. For a quick test galaxy, raise the
+threshold (<code>planetgen scatter --mass --bright-star-min-luminosity 5000</code>) or
+leave the scatters out and run them later on the stored plan. Going the
+other way, <code>--bright-star-min-luminosity 100</code> places about 220 million
+(about 35 GB).</p>
+<p>Then browse the <strong>Galaxy Map</strong>, the sectors and the systems on the site.
+See <a href="README.html#usage">Usage</a> for the other commands.</p>
+<h2 id="8-check-the-server">8. Check the server</h2>
+<p>Run the <a href="../deployment/server-checklist.html">server checklist</a>: it confirms the
+code, schema, indexes, web server config, cache and permissions are all
+right, with commands for each platform.</p>
+<h2 id="keeping-it-up-to-date">Keeping it up to date</h2>
+<pre><code class="language-bash">sudo ./update.sh
+</code></pre>
+<p>It pulls the latest code (a <code>git reset --hard</code> to the tracked
+branch; <code>config.json</code> and other untracked files are kept), checks the
+Python libraries and installs only a missing or too-old one, checks the
+NLTK corpus, runs the generator's math check (a failure only warns, and
+bulk generation refuses to start until it passes), migrates the database
+and records the version key, re-applies folders, permissions and the
+logs, checks that the site imports, and checks Redis as the installer
+does. It never reinstalls what is already there. Last, it builds
+the site's caches (<code>planetgen warm</code>:
+the Galaxy Map's opening view, the lists, the sector, system and phenomenon
+pages and the search, each its own command run in order, in two stages, each
+with a time limit of 4 hours, <code>WARM_STAGE_SECONDS</code>), so
+the first visit after an update is fast. Each warm-up leaves its record in
+<code>warmup.log</code> in the log folder, in local time with its zone.</p>
+<p>When the update includes a schema migration, it first asks whether to
+<strong>delete the galaxy data instead</strong> (y/N, defaulting to N after 30
+seconds; admin logins are kept either way). Answer <code>y</code> when the release
+notes say to regenerate, then generate the galaxy again
+(<a href="#7-generate-the-galaxy">step 7</a>). The update never runs the
+population pass; run <code>planetgen population</code> by hand when wanted. On
+Linux, <code>update.sh</code> reloads Apache itself when Apache is running (and
+restarts it when it just enabled a module); only if Apache is not running,
+or with nginx or Caddy in front of gunicorn, does it print the command to
+run. On macOS it prints the <code>SIGHUP</code> to send to gunicorn.</p>
+<p><code>sudo ./update.sh --kill-all</code> first does a full stop (<code>planetgen queue stop-all --no-hold</code>, the same routine
+as Stop everything on the admin Queue page): it cancels every run and job, empties the queues and ends every planetgen
+worker and command process, including ones nothing lists any more. It only does so when you give it; without it the
+update stops only the work it lists, and refuses while other work runs unless you answer y or add <code>--yes</code>.
+To stop everything and keep it stopped, use <code>sudo planetgen queue stop-all</code> (or the Queue page) and
+<code>planetgen queue resume</code> when you are ready.</p>
+<p>Do not use a plain <code>git pull</code>: it skips the migration and can drop the
+scripts' executable bits.</p>
+<h3 id="the-update-button-linux">The Update button (Linux)</h3>
+<p>The admin pages can start <code>update.sh</code> without anyone holding a root shell (SEC.43). The web server's user only creates an empty file,
+<code>update.request</code>, in the state folder. The root-owned unit <code>planetgen-update.path</code> sees it and starts <code>planetgen-update.service</code>,
+which deletes the request and runs <code>update.sh</code> as root. The file is never read and the command has no argument, so a request can do
+nothing except run the update. A press made while an update runs waits for it and runs after it; the update guard decides whether
+running work is canceled or the update refuses. <code>install.sh</code> and <code>update.sh</code> install and enable both units with this checkout's path
+and state folder (the same step installs the maintenance timers below); <code>install-maintenance-timer.sh --skip-update-button</code> leaves the path unit out. The Owner presses it on the admin
+Update page (<code>/admin/update</code>, after typing the password again; the page shows the state and the end of <code>update.log</code> and reloads itself
+while an update runs). Progress is in
+<code>update.log</code> in the log folder and <code>journalctl -u planetgen-update.service</code>. If a request file cannot be removed, the service stops after
+ten tries in ten minutes; clear it with <code>sudo systemctl reset-failed planetgen-update.service</code>.</p>
+<h3 id="scheduled-maintenance">Scheduled maintenance</h3>
+<p>On Linux with systemd, <code>install.sh</code> and <code>update.sh</code> install the timers themselves (OPS.110) and enable the monthly orbit update
+(<code>planetgen.cli.orbits</code>, at 03:30 on the 1st) and the nightly tile rebuild below. The unattended monthly update (at 03:00) is installed
+but left off, because it deploys whatever is on the tracked branch with no review; every deploy says how to turn it on while it is off:
+<code>sudo systemctl enable --now planetgen-update.timer</code>. Every
+unit file is rendered for the checkout the script runs from and the virtual environment (<code>PLANETGEN_VENV</code>, default
+<code>/usr/local/planetgen/venv</code>), so the installed copies name the real paths; a path with a space or a special character is refused. A
+unit that differs from the rendered one (an older copy, or another install location) is replaced, and the log says so. A deploy
+enables only a unit it installs for the first time, so a timer you disable stays disabled. Run the installer by hand to choose
+the databases or leave a timer out; on macOS it is the only way to get the launchd daemons:</p>
+<pre><code class="language-bash">sudo examples/maintenance/install-maintenance-timer.sh                      # Linux (systemd) and macOS (launchd); this one also turns the update timer on
+sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # orbits only
+</code></pre>
+<p>The gunicorn unit of an nginx or Caddy host is the exception: copy it by hand and edit its two paths (the checkout and the virtual
+environment; <a href="../deployment/nginx.html">nginx.md</a>).</p>
+<p>An unattended update deploys whatever is on the tracked branch with no review, and
+keeps the data when a migration is pending.</p>
+<p>On Linux the installer also sets up the nightly rebuild of the whole Galaxy Map tile cache (PERF.233, <code>planetgen.cli.tiles</code>, at
+05:00, after the orbit update); <code>--skip-tiles-timer</code> leaves it out. It builds every node of every level into a new cache beside the live
+one and swaps it in when it is complete, so visitors never meet an empty cache and a run that is killed leaves the old cache
+serving; then <code>planetgen warm</code> rebuilds the lists, objects and search. The disk needs room for both caches while it runs: the run
+refuses to start unless twice the projected size is free, and says the figures (about 80 KB a generated sector and 30 KB a block;
+<code>reports/perf233-tile-cache-cost-2026-11-04.md</code>). Run it by hand, as the web server's user, with <code>python3 -m planetgen.cli.tiles</code>.</p>
+<h4 id="nightly-memory-smoke-run">Nightly memory smoke run</h4>
+<pre><code class="language-bash">sudo examples/maintenance/install-maintenance-timer.sh --with-smoke-timer   # Linux (systemd)
+python -m planetgen.cli.smoke                                               # once, by hand
+</code></pre>
+<p>It builds the Generate page's New galaxy job for a small neighborhood (12 pc) in scratch databases, runs every step,
+and watches the memory of MySQL, the planetgen workers, each step and the host while each one runs (a <code>Memory peak:</code>
+line after each step in every job log, and <code>memory.json</code> in the job folder). It exits 1 when a step peaked above a
+budget (<code>tuning.SMOKE_BUDGET_MB</code>; <code>--budget mysql=2000</code> overrides one) and 2 when a step failed. Run it on a quiet
+host with a database account that may create and drop databases. The timer fires at 04:30 every night; the report is
+in <code>journalctl -u planetgen-smoke.service</code>.</p>
+<h2 id="command-line-only">Command line only</h2>
+<p>The generator does not need the website. Run the installer anyway (it
+sets up the libraries, database and NLTK corpus) and skip step 5. Then
+run <code>planetgen</code>, the command the installer adds.</p>
+<h2 id="development-setup">Development setup</h2>
+<p>For working on planetGen itself, use a virtual environment and an
+editable install with the test extras:</p>
+<pre><code class="language-bash">python3 -m venv .venv
+. .venv/bin/activate
+pip install -e &quot;.[test,api]&quot;
+scripts/test.py changed       # the tests your change touches; `full --check` runs everything
+python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
+</code></pre>
+<p>Set <code>admin_cookie_insecure</code> in <code>config.json</code> to log in over plain HTTP
+locally. Database tests need a MySQL server, and the work-queue tests need Redis
+(<code>PLANETGEN_TEST_REDIS_URL</code>); both skip without one. A machine that runs <code>scripts/test.py full</code>
+needs <code>innodb_redo_log_capacity = 2G</code> in MySQL (see <a href="#requirements">Requirements</a>), or the checkpointer lags and tests lose
+their connection. See <a href="../reference/testing.html"><code>docs/reference/testing.md</code></a>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

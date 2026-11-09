@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Volatile inventory against the totals of the Earth, Venus, Mars and Titan (GEN.813) - planetGen docs</title>
+<meta name="description" content="Status: research note and calibration, written on the night of 2026-10-24 (as the lane reported) by the Citations lane.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/volatile-inventory-against-planet-totals.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/volatile-inventory-against-planet-totals.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="volatile-inventory-against-the-totals-of-the-earth-venus-mars-and-titan-gen813">Volatile inventory against the totals of the Earth, Venus, Mars and Titan (GEN.813)</h1><p class="meta">docs/design/composition/volatile-inventory-against-planet-totals.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-answer-in-short">1. The answer in short</a></li><li style="margin-left:0px"><a href="#2-sources-and-what-was-read">2. Sources, and what was read</a></li><li style="margin-left:0px"><a href="#3-the-totals">3. The totals</a></li><li style="margin-left:0px"><a href="#4-the-change-and-its-effect">4. The change and its effect</a></li><li style="margin-left:0px"><a href="#5-limits-and-what-is-not-done">5. Limits and what is not done</a></li><li style="margin-left:0px"><a href="#6-what-waits-on-the-fixed-point">6. What waits on the fixed point</a></li></ul></details>
+<p>Status: research note and calibration, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. It answers finding 2 of <code>reports/air-fixed-point-findings-2026-10-24.md</code>. Two brackets of <code>mixture_rocky.INVENTORY</code> change (the dry-class carbon and the nitrogen per carbon). Nothing in the generator draws the mixture yet, so no stored value changes and there is no epoch; the check on the fixed point itself waits on GEN.411 and GEN.422 (section 6).</p>
+<h2 id="1-the-answer-in-short">1. The answer in short</h2>
+<ul>
+<li>The finding was right and its cause is one number. The delivery weights put a planet at the Earth's distance in the dry class (b1) 85 percent of the time (x = a / a_snow = 0.37 gives s = 0.076, weight (1 - s)^2), and b1 carried 0.6 weight percent CO<sub>2</sub>: 1640 ppm of carbon, sixteen times the 100 ppm of the bulk silicate Earth (BSE). Nitrogen follows carbon by N/C, so 37 percent of Earth-distance draws held more than ten times the BSE's nitrogen (one seed: 87 bar of N<sub>2</sub> on a 1.8 Earth-mass planet).</li>
+<li>The 0.6 is Ortenzi's DELIVERED dry value. The same table's STORED dry value, the carbon that stays in the mantle, is 0.018 weight percent (49 ppm C). The inventory is read as the carbon in the mantle, so the delivered value was the wrong column for it. The dry-class CO<sub>2</sub> is now a log bracket from the stored 0.018 to the wet High case's delivered 0.1 weight percent. Its log-middle, 0.042 weight percent, is 115 ppm of carbon against the BSE's 100.</li>
+<li>The nitrogen per carbon bracket was 1e-3 to 0.1. The measured ratios are the BSE 0.020, the CI chondrites 0.059, the air of Venus 0.074 and the air of Mars 0.055 ([R0357: Table S1]). The bracket is now 0.005 to 0.1, whose log-middle (0.022) is the Earth's.</li>
+<li>With these, an Earth, Venus or Mars twin draws a median of 80 to 110 ppm of carbon (BSE 100), the BSE's carbon and nitrogen sit inside the 5 to 95 percent range of the draw for all three, the air of Venus is what a degassed share of 0.43 of the draw brings up, Mars's source magma range (5 to 1000 ppm CO<sub>2</sub>) holds the median, and no Earth-distance draw holds ten times the BSE's nitrogen (it was 37 percent).</li>
+<li>Titan is not in the rocky inventory. Its air is set by the <code>titan</code> family from the pressure it is given, and the nitrogen of an icy moon needs an ammonia-ice inventory that does not exist (section 5); the check there is the pressure.</li>
+</ul>
+<h2 id="2-sources-and-what-was-read">2. Sources, and what was read</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Read</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bergin, Blake, Ciesla, Hirschmann and Li 2015, PNAS 112, 8965, &quot;Tracing the ingredients for a habitable Earth from interstellar space through planet formation&quot; [R0357] with its supporting information</td>
+<td>full text, Table S1 and the Earth section</td>
+<td>BSE C/Si 1.1e-3 (plus or minus 2.0e-4) and N/Si 2.5e-5 (plus or minus 5e-6), C/N 49 plus or minus 9; Earth surface carbon 9.3e22 g and nitrogen 6.4e21 g; mantle carbon 20 and 165 ppm for the depleted and enriched sources; the ratios for the CI chondrites (17), the air of Venus (13.5) and the air of Mars (18)</td>
+</tr>
+<tr>
+<td>NASA planetary fact sheets for Venus and Mars (nssdc.gsfc.nasa.gov)</td>
+<td>read</td>
+<td>Venus 92 bar, 96.5 percent CO<sub>2</sub>, 3.5 percent N<sub>2</sub>, g 8.87 m/s2, radius 6051.8 km; Mars 6.36 mbar, 95.1 percent CO<sub>2</sub>, 2.59 percent N<sub>2</sub></td>
+</tr>
+<tr>
+<td>[R4345], &quot;Constraints on the Size and Composition of the Ancient Martian Atmosphere from Coupled CO<sub>2</sub>-N2-Ar Isotopic Evolution Models&quot;</td>
+<td>full text</td>
+<td>the CO<sub>2</sub> of the Martian source magma, 5 ppm at IW-1 to 1000 ppm at IW+1 (it cites [R1701, R1955], which were not opened: second-hand); 1.9 ppm of nitrogen (same); the atmosphere of 0.3 to 1.5 bar CO<sub>2</sub> and 0.1 to 0.5 bar N<sub>2</sub> at 3.8 Ga; 300 to 1400 mbar of CO<sub>2</sub> in carbonates</td>
+</tr>
+<tr>
+<td>[R2545], MNRAS, &quot;Escape and evolution of Titan's N<sub>2</sub> atmosphere constrained by 14N/15N isotope ratios&quot; [R1282]</td>
+<td>the parts on the ice and nitrogen budget</td>
+<td>Titan's mean surface pressure 1.467 bar, the origin of the nitrogen in ammonia ice, and the CI-like nitrogen content of the rock</td>
+</tr>
+<tr>
+<td>[R3378: Table 1] (already read, part 05 section 3.1)</td>
+<td>already read</td>
+<td>delivered and stored CO<sub>2</sub> of the Low, High and Dry cases</td>
+</tr>
+</tbody>
+</table></div>
+<p>The Earth's silicon fraction, 21 weight percent of the BSE (45 weight percent SiO<sub>2</sub>), turns the Si ratios into ppm; it is recalled, not read (tier 3).</p>
+<h2 id="3-the-totals">3. The totals</h2>
+<p>All as ppm by weight of the mantle (the mass the inventory is per).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Body</th>
+<th>Carbon</th>
+<th>Nitrogen</th>
+<th>Basis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth (BSE, mantle plus surface)</td>
+<td>99 (82 to 117)</td>
+<td>2.6 (2.1 to 3.1)</td>
+<td>Bergin Table S1 ratios times 21 weight percent Si</td>
+</tr>
+<tr>
+<td>Earth surface only</td>
+<td>23</td>
+<td>1.6</td>
+<td>9.3e22 g C and 6.4e21 g N over 4.0e27 g</td>
+</tr>
+<tr>
+<td>Venus air</td>
+<td>39</td>
+<td>3.3</td>
+<td>92 bar is 4.77e20 kg of air; 3.3e24 kg of mantle; a floor, the interior is unknown</td>
+</tr>
+<tr>
+<td>Mars source magma</td>
+<td>1.4 to 273</td>
+<td>1.9</td>
+<td>5 to 1000 ppm CO<sub>2</sub>, redox dependent; nitrogen the silicate Earth's, adopted</td>
+</tr>
+<tr>
+<td>Mars air</td>
+<td>0.013</td>
+<td>0.001</td>
+<td>6.36 mbar over 4.8e23 kg of mantle (a floor, mostly lost)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Titan: 1.467 bar is 9.0e18 kg of air, almost all N<sub>2</sub>, so about 8.9e18 kg of nitrogen, 65 ppm of the whole 1.35e23 kg body, and its nitrogen per carbon in the air is above 30 (5.65 percent methane in N<sub>2</sub>). The CI chondrites carry about 2000 ppm of nitrogen (N/Si 0.042, silicon 10.6 weight percent recalled, tier 3), so the nitrogen of Titan is a small share of an ice-rock inventory but 25 times the BSE's: the two cannot share one bracket.</p>
+<h2 id="4-the-change-and-its-effect">4. The change and its effect</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Draw (median, 5 to 95 percent of Earth-distance draws, ppm)</th>
+<th>Before</th>
+<th>After</th>
+<th>Earth BSE</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Carbon</td>
+<td>1637 (27 to 1637)</td>
+<td>101 (27 to 250)</td>
+<td>99</td>
+</tr>
+<tr>
+<td>Nitrogen</td>
+<td>12.9 (0.2 to 145)</td>
+<td>1.1 (0.1 to 12)</td>
+<td>2.6</td>
+</tr>
+<tr>
+<td>Share of draws with more than 26 ppm N (ten times the BSE)</td>
+<td>0.37</td>
+<td>0.00</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The remaining spread is wide on purpose: the 27 ppm low end is Ortenzi's Low case (6 times under the BSE) and the 250 ppm top is the High case. Venus and Mars draws are the same inventory (the delivery weights differ: Venus 93 percent dry, Mars 65 percent dry, 31 percent Low).</p>
+<p>Registry (GEN.725): AM13 keeps the wet classes (tier 1, tweak level 0); AM14 is the nitrogen per carbon bracket (tier 1, tweak level 2: read, then tuned so that its log-middle is the Earth's); AM50 is the dry-class carbon (tier 1, tweak level 2: both ends read from Ortenzi's table, the choice of columns tuned to the BSE carbon). Tests: <code>src/tests/test_volatile_inventory_totals.py</code>.</p>
+<h2 id="5-limits-and-what-is-not-done">5. Limits and what is not done</h2>
+<ul>
+<li><strong>Mars</strong> is checked only at the source magma, which spans 200 times; the 50 percent coverage of the draw is not a test of Mars. The outgassed and lost CO<sub>2</sub> (the 70 mbar to 13 bar of Hirschmann and Withers through the Mars paper) depends on the degassed share of Mars, which the interior heat model supplies in the fixed point.</li>
+<li><strong>Venus</strong> is a one-sided check (the air is a floor); the mantle carbon of Venus is unknown. The degassed share 0.43 is the one the supply law note takes from the same air.</li>
+<li><strong>Titan</strong> has no inventory: the <code>titan</code> family takes its pressure from the retention and supply terms and the nitrogen of an icy moon is ammonia ice (Erkaev et al.), which the rocky inventory does not carry. An ice-moon nitrogen inventory (ammonia over water, with the outgassing efficiency of Erkaev et al. Table 2) is a new item; the Titan check will be the 1.467 bar.</li>
+<li><strong>Sulfur</strong> per carbon (0.1 to 3) is untouched; the BSE ratio of 1.7 and the CI 0.6 are inside it. The sulfur sink is finding 4 (a separate item).</li>
+<li><strong>Correlation.</strong> Carbon and nitrogen are drawn independently inside their brackets. The BSE ratio C/N = 49 plus or minus 9 would allow a tighter pairing; the independent draw keeps the spread of the measured ratios (0.013 to 0.074) rather than the Earth's alone.</li>
+<li><strong>The water-rich class</strong> (b4) is GEN.814's.</li>
+</ul>
+<h2 id="6-what-waits-on-the-fixed-point">6. What waits on the fixed point</h2>
+<p>GEN.411 and GEN.422 (the air fixed point) are not in the repository yet. The &quot;Done&quot; line of GEN.813 asks that the four bodies reproduce within the stated spread. At the level of the inventory this is done and tested here. The full check (an Earth twin at about 1 bar of N<sub>2</sub>, a Venus twin at about 3 bar, a Mars twin thin and a Titan at 1.467 bar) is a run of the fixed point; it is the same run GEN.819 needs, and it will be done there.</p>
+<ul>
+<li>TEST.547 (2026-10-31, as the lane reported): GEN.1005 replaced the bracket tuned to the bulk silicate Earth with the one derived from [R0419] (0.029 to 0.108 weight percent CO<sub>2</sub>, 80 to 294 ppm C of the body, log middle 153 ppm C). The test of the middle now holds it to the paper's own mantle carbon, 140 +/- 40 ppm (100 to 180), and still asks that the Earth's 99 ppm lie inside the bracket; the old bound of 20 percent about 99 was the tuning, not a measurement.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,561 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings model, configuration page, SEO and user accounts - planetGen docs</title>
+<meta name="description" content="How config.json becomes one validated settings model with a web configuration page, how the site&#x27;s icons, Open Graph tags, robots.txt and sitemap are configured, and how user accounts, invites, password reset, SMTP and the Owner role are...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/settings-seo-and-accounts.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/settings-seo-and-accounts.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="settings-model-configuration-page-seo-and-user-accounts">Settings model, configuration page, SEO and user accounts</h1><p class="meta">docs/design/interface/settings-seo-and-accounts.md</p><details class="toc"><summary>On this page (27 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#part-a-settings-model-configuration-page-seo-and-open-graph">Part A: settings model, configuration page, SEO and Open Graph</a></li><li style="margin-left:14px"><a href="#a1-what-exists-today-and-the-library-choice">A1. What exists today and the library choice</a></li><li style="margin-left:14px"><a href="#a2-the-model-and-which-file-holds-what">A2. The model, and which file holds what</a></li><li style="margin-left:14px"><a href="#a3-the-admin-form-generated-from-the-model">A3. The Admin form generated from the model</a></li><li style="margin-left:14px"><a href="#a4-applying-changes-live-reload-versus-restart">A4. Applying changes: live reload versus restart</a></li><li style="margin-left:14px"><a href="#a5-secrets">A5. Secrets</a></li><li style="margin-left:14px"><a href="#a6-saving-backup-rollback-versioning-audit-import-and-export">A6. Saving, backup, rollback, versioning, audit, import and export</a></li><li style="margin-left:14px"><a href="#a7-generated-docs-and-the-drift-tests">A7. Generated docs and the drift tests</a></li><li style="margin-left:14px"><a href="#a8-adm44-web-open-graph-and-seo-settings">A8. ADM.44: web, Open Graph and SEO settings</a></li><li style="margin-left:14px"><a href="#a9-how-it-fits-the-code">A9. How it fits the code</a></li><li style="margin-left:0px"><a href="#part-b-user-accounts-and-security-practice">Part B: user accounts and security practice</a></li><li style="margin-left:14px"><a href="#b1-state-of-the-code-what-usr-builds-on">B1. State of the code (what USR builds on)</a></li><li style="margin-left:14px"><a href="#b2-password-storage">B2. Password storage</a></li><li style="margin-left:14px"><a href="#b3-reset-invite-and-transfer-tokens">B3. Reset, invite and transfer tokens</a></li><li style="margin-left:14px"><a href="#b4-sessions-cookies-and-csrf">B4. Sessions, cookies and CSRF</a></li><li style="margin-left:14px"><a href="#b5-lockout-and-throttling-for-the-new-flows-usr1-sec1">B5. Lockout and throttling for the new flows (USR.1, SEC.1)</a></li><li style="margin-left:14px"><a href="#b6-totp-and-webauthn">B6. TOTP and WebAuthn</a></li><li style="margin-left:14px"><a href="#b7-role-model-usr2">B7. Role model (USR.2)</a></li><li style="margin-left:14px"><a href="#b8-invites-usr4">B8. Invites (USR.4)</a></li><li style="margin-left:14px"><a href="#b9-smtp-usr3">B9. SMTP (USR.3)</a></li><li style="margin-left:14px"><a href="#b10-password-setting-reset-and-owner-flows-usr5-usr6">B10. Password setting, reset and Owner flows (USR.5, USR.6)</a></li><li style="margin-left:14px"><a href="#b11-audit-data-minimization-and-usr7">B11. Audit, data minimization and USR.7</a></li><li style="margin-left:14px"><a href="#b12-usr8-the-one-off-system-limit">B12. USR.8: the one-off system limit</a></li><li style="margin-left:0px"><a href="#corrections-to-existing-statements">Corrections to existing statements</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How <code>config.json</code> becomes one validated settings model with a web configuration page, how the site's icons, Open Graph tags, robots.txt and sitemap are configured, and how user accounts, invites, password reset, SMTP and the Owner role are built on the control database that already holds the admin accounts. Part A covers the settings model, the Admin page and SEO; Part B covers accounts and security. Boss's uploaded &quot;Web UX and Job Management Guide.md&quot; and &quot;Web UX Development Notes.md&quot; were read for anything on auth or settings and have none; their queue sections describe an SQLite design that <a href="../architecture/library-migration.html">library-migration.md</a> replaced with RQ on Redis.</p>
+<p>Informs: ADM.42, ADM.43, ADM.44, ADM.18, USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, API.6, VIEW.3 (card renderer hook)</p>
+<p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
+<p>Evidence tags: [S] seen in a search result or package page, [C] computed in the research session (Python 3.9.25, lock-file versions; timings are from a slow, noisy VM, so only ratios carry over), [R] recalled and unconfirmed. The research environment could read search-result text only, not the papers or the vendors' own pages.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>Configuration page (Boss, GitHub issue #515, 2026-10-08 00:39Z): &quot;A page under admin is needed to configure everything EXCEPT for the database information. All other settings should be accessed and changeable from there.&quot; (ADM.43)</li>
+<li>Web settings (Boss, issue #743, 2026-10-09 02:55Z): icons, Open Graph fields for Discord and other link previews, SEO description and keywords, and editable web documents such as robots.txt (ADM.44).</li>
+<li>Accounts (Boss, 2026-10-01): an email loop for setting and resetting passwords; invite only, by unique link, with a use count and an expiry of 1, 4, 6, 12 or 24 hours, 3 or 7 days, 1 month, 1 year or never; infinite uses with never expiring asks for confirmation. One &quot;Owner&quot; account, made at install, cannot be overridden. Owner transfer needs specific approval, double password confirmation and an email loop, and the target accepts by email. SMTP settings live in the admin config (USR.1 to USR.6).</li>
+<li>API keys (Boss, 2026-10-02 01:31Z): &quot;all keys are attached to the account that created them&quot;; admins create user-level keys that read but do not upload (API.6). All signed-in users may generate a one-off system (Boss, 2026-10-02 05:16Z, USR.8).</li>
+<li>Library swaps leave no shims (Boss, 2026-10-07), so <code>util/appconfig.py</code> is deleted, not wrapped.</li>
+<li>SEC.29, SEC.30 and SEC.31 are done (PRs #612, #643, #457 per <a href="../../plan/todo-number-map.html">todo-number-map.md</a>).</li>
+</ul>
+<h2 id="part-a-settings-model-configuration-page-seo-and-open-graph">Part A: settings model, configuration page, SEO and Open Graph</h2>
+<h3 id="a1-what-exists-today-and-the-library-choice">A1. What exists today and the library choice</h3>
+<p>Verified against the code on this branch:</p>
+<ul>
+<li><code>util/appconfig.py</code> holds <code>DEFAULT_CONFIG</code> (a dict) and <code>load_config()</code>, which re-reads and deep-merges <code>config.json</code> on every call with no schema, no unknown-key check and no type checks. A typo such as <code>&quot;ratelimt&quot;</code> is accepted silently, and <code>debug</code> needs a hand-written string-to-bool shim. A Pydantic bool does that (<code>&quot;false&quot;</code> and <code>&quot;0&quot;</code> give <code>False</code>, <code>&quot;maybe&quot;</code> is an error) [C].</li>
+<li>About 14 modules import <code>appconfig</code>: <code>api/config.py</code> freezes most options at import, the rest read per use.</li>
+<li><code>docs/reference/config.md</code> has a hand-written field table of about 25 rows. Keep its prose, generate the table (A8). <code>base_url</code> is documented as &quot;not yet read by any page&quot;; ADM.44 makes it load-bearing, so it needs validation.</li>
+<li><code>base.html</code> hard-codes the two <code>theme-color</code> values and <code>favicon.svg</code>.</li>
+<li>Pydantic is already a dependency (<code>pydantic&gt;=2.7.0</code>; <code>api/schemas.py</code>, <code>web/generate_page.py</code>). <code>setup.py</code> said <code>python_requires='&gt;=3.9'</code> when this was written, so each new dependency needed a 3.9-compatible release (history: the minimum is Python 3.12 since Boss, 2026-10-14, <code>python_requires='&gt;=3.12'</code>).</li>
+</ul>
+<p>Library facts for Python 3.9 (history, the minimum is Python 3.12 since Boss, 2026-10-14; PyPI on 2026-10-09 [S]): pydantic 2.14.0 and pydantic-settings 2.15.0 need Python 3.10, and the last releases for 3.9 are pydantic 2.13.5 (the lock pin) and pydantic-settings 2.11.0. The same split holds for Flask-Limiter (3.11.0 for 3.9; limits 4.2), <code>webauthn</code> (2.7.1) and Flask-WTF (1.2.2); <code>argon2-cffi</code> 25.1.0 and <code>pyotp</code> 2.10.0 support 3.8 and later.</p>
+<p>pydantic-settings adds python-dotenv and its environment-name mapping does not fit the <code>PLANETGEN_*</code> names: with <code>env_nested_delimiter=&quot;_&quot;</code>, <code>PLANETGEN_TILE_CACHE_DIR</code> was applied but <code>PLANETGEN_TILE_CACHE_MAX_MB</code> was silently ignored [C]. Declare each option's variable in its field metadata instead. On Python 3.9 (history; the minimum is 3.12) write <code>Optional[str]</code>, not <code>str | None</code>, which raises <code>TypeError</code> inside a model unless <code>eval_type_backport</code> is installed [C].</p>
+<h3 id="a2-the-model-and-which-file-holds-what">A2. The model, and which file holds what</h3>
+<p>Nested <code>BaseModel</code> sections with <code>extra=&quot;forbid&quot;</code> when validating a form or import and <code>extra=&quot;ignore&quot;</code> plus one logged warning when loading (an older server must not crash on a newer file): the sections <code>settings</code> (the backups), <code>site</code>, <code>web</code>, <code>icons</code>, <code>seo</code>, <code>og</code>, <code>mysql</code>, <code>redis</code>, <code>ratelimit</code>, <code>proxy_fix</code>, <code>tile_cache</code>, <code>page_cache</code>, <code>jobs</code> and <code>wiki</code>, and these options at the top level of the file: <code>config_version</code>, <code>site_name</code>, <code>base_url</code> (an Owner option; it stayed at the top level and is not in <code>web</code>), <code>api_base_url</code>, <code>debug</code>, <code>log_file</code>, <code>log_dir</code>, <code>log_rotation</code>, <code>control_database</code>, <code>login_allowlist</code>, <code>admin_cookie_insecure</code> and <code>secret_key</code>. <code>mysql</code> and <code>control_database</code> are never editable. The SMTP section (USR.3) is not built yet.</p>
+<p>Field metadata goes in <code>json_schema_extra</code> under <code>x-</code> keys, declared through one helper; the keys survive <code>model_json_schema()</code> and <code>Field(ge=, le=, min_length=, pattern=)</code> become <code>minimum</code>, <code>maximum</code> and so on [C].</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>description</code> (Pydantic)</td>
+<td>help text for the form, the docs table and the schema</td>
+</tr>
+<tr>
+<td><code>x-unit</code></td>
+<td>suffix on the input and in docs</td>
+</tr>
+<tr>
+<td><code>ge</code>, <code>le</code>, <code>min_length</code>, <code>max_length</code>, <code>pattern</code> (Pydantic)</td>
+<td>validation and the HTML <code>min</code>, <code>max</code>, <code>maxlength</code></td>
+</tr>
+<tr>
+<td><code>x-restart</code></td>
+<td>change applies only after a restart</td>
+</tr>
+<tr>
+<td><code>x-secret</code></td>
+<td>never sent to the browser or logged; redacted in export and audit</td>
+</tr>
+<tr>
+<td><code>x-label</code>, <code>x-summary</code></td>
+<td>the setting's name in plain words and one sentence on what it does (required; the long <code>description</code> is the help under Details)</td>
+</tr>
+<tr>
+<td><code>x-group</code></td>
+<td>the purpose-based group the page lists it under (<code>settings_view.GROUPS</code>)</td>
+</tr>
+<tr>
+<td><code>x-advanced</code></td>
+<td>listed under Advanced in its group; search always reaches it</td>
+</tr>
+<tr>
+<td><code>x-editable</code></td>
+<td><code>false</code>: command line only, shown read-only</td>
+</tr>
+<tr>
+<td><code>x-min_role</code></td>
+<td><code>admin</code> or <code>owner</code>: who may save it</td>
+</tr>
+<tr>
+<td><code>x-env</code></td>
+<td>environment variable that overrides it; field shown disabled</td>
+</tr>
+<tr>
+<td><code>x-control</code></td>
+<td>the control when the type alone doesn't say: <code>slider</code>, <code>duration</code>, <code>rate</code>, <code>color</code>, <code>asset</code>, <code>language</code> (<code>x-widget</code> of the first draft, now built)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>One file (Boss, 2026-10-16, 2:25 and 2:26 PM EDT).</strong> All program configuration lives in one file, the user's own <code>config.json</code>: the user copies the shipped <code>config.json.example</code> to <code>config.json</code> once and edits it (the deployment instructions, unchanged), and nothing else is a settings file. An earlier draft of this note kept a second file, <code>settings.json</code>, because the web process could not write a root-owned <code>config.json</code>; that obstacle is gone, because <code>set-permissions.sh</code> makes the web user own <code>config.json</code> (mode 640) and the checkout belongs to that account since 2026-10-16. The load order, lowest to highest, is: model default, <code>config.json</code>, <code>PLANETGEN_*</code> environment, explicit argument. The settings page and the command line write only that copy, atomically (a temporary file in the same folder, fsync, rename, owner and mode kept), never the example; <code>update.sh</code> and the installers never overwrite or recreate it. ADM.96 removes the overlay layer that ADM.42 built.</p>
+<p><strong>Built (#1857, 2026-10-16, 3:52 PM EDT; ADM.96, ADM.83, ADM.87).</strong> The overlay layer is gone and <code>config check</code> names a stray <code>settings.json</code> as unused. The writer is <code>planetgen.util.settings_writer</code>; it takes the caller's role (<code>admin</code>, <code>owner</code> or <code>host</code>; the command line is <code>host</code> and may change everything, including the database and secrets) and refuses an option the role may not change, a value that fails validation, and an option that does not exist.</p>
+<p><strong>Three tiers.</strong> Some options are code execution or request-forgery paths if an admin account is stolen: <code>jobs.python</code> is the interpreter the web app launches, so editing it from the browser is remote code execution as the web user.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Options</th>
+<th>Edited in the browser by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>admin</td>
+<td>site text, SEO, Open Graph, icons, <code>limits</code>, <code>ratelimit</code> numbers, tile cache, <code>jobs.keep</code>, page cache</td>
+<td>any admin</td>
+</tr>
+<tr>
+<td>Owner</td>
+<td>SMTP, <code>base_url</code></td>
+<td>the Owner, after re-entering the password</td>
+</tr>
+<tr>
+<td>read-only</td>
+<td><code>mysql.*</code>, <code>control_database</code>, <code>jobs.python</code>, <code>jobs.dir</code>, log paths, <code>secret_key</code>, <code>proxy_fix.*</code>, <code>admin_cookie_insecure</code>, <code>redis.url</code>, <code>api_base_url</code></td>
+<td>nobody; the page shows the value and &quot;change it on the command line&quot;</td>
+</tr>
+</tbody>
+</table></div>
+<p>This enforces &quot;everything except the database&quot; by file permission, not only by hiding fields.</p>
+<p><strong>No galaxy settings file (ADM.50).</strong> ADM.18's galaxy-creation JSON was removed; the galaxy keeps an internal record in the database instead (see <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a>, section 7), and <code>config.json</code> is the only settings file.</p>
+<h3 id="a3-the-admin-form-generated-from-the-model">A3. The Admin form generated from the model</h3>
+<p>A Jinja macro walks <code>Settings.model_fields</code> and picks a Shoelace widget (UX.49) from the annotation: <code>sl-switch</code> for <code>bool</code>; <code>sl-input type=number</code> with <code>min</code>, <code>max</code>, <code>step</code> and a unit suffix for numbers; <code>sl-input</code> for <code>str</code>; <code>sl-select</code> for <code>Literal</code> and <code>Enum</code>; <code>sl-textarea</code> one per line for <code>List[str]</code> (login allowlist) and for long text (robots.txt); a password input where empty means keep, plus a &quot;clear&quot; box, for secrets; <code>sl-color-picker</code>; and an upload for icons and the OG image (the setting stores the file name).</p>
+<ul>
+<li><strong>Field names are dotted paths</strong> (<code>tile_cache.max_mb</code> here; the one cache size key is <code>cache.max_mb</code>, default 1024, since Boss's 2026-10-18, 5:43 PM EDT ruling, PERF.139). <code>ValidationError.errors()</code> returns <code>loc</code> tuples that join to exactly those names, so errors map to fields with no extra code: <code>site_name | string_too_short</code>, <code>debug | bool_parsing</code>, <code>mysql.port | less_than_equal</code>, <code>unknown | extra_forbidden</code> [C].</li>
+<li><strong>Re-render the whole form</strong> with submitted values and per-field messages in each control's <code>help-text</code> slot, with <code>aria-invalid</code>. That works without JavaScript; UX.49's browser test should submit one bad value to prove it.</li>
+<li><strong>Missing versus false.</strong> An unchecked checkbox sends nothing, so post a hidden list of the rendered field names and apply only those. Disabled (environment-overridden) and read-only fields are never applied.</li>
+<li><strong>Validation layers:</strong> per field (Pydantic); cross field (<code>model_validator</code>: <code>smtp.security=none</code> with a non-loopback host is refused); environmental checks that only warn (folder writable, Redis answers, SMTP test, PNG decodes), run from &quot;Test&quot; buttons, not on every save.</li>
+<li><strong>Concurrent edits.</strong> The form carries a hash of the file as read; a stale hash is refused with a diff.</li>
+<li><strong>Recent authentication</strong> for the Owner tier: the password again (valid 5 minutes) before saving SMTP or <code>base_url</code>. Each field also shows where its value comes from (default, file or environment).</li>
+</ul>
+<h3 id="a4-applying-changes-live-reload-versus-restart">A4. Applying changes: live reload versus restart</h3>
+<p>The code already splits this way by accident (from the <code>load_config</code> call sites, read not run [R]; confirm each when ADM.42 is built):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Read</th>
+<th>Treat as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>site_name</code>, <code>tile_cache.*</code>, <code>jobs.*</code>, <code>mysql.statement_timeout_seconds</code>, <code>redis.url</code> (queue)</td>
+<td>on each use</td>
+<td>live</td>
+</tr>
+<tr>
+<td><code>debug</code>, <code>log_file</code>, <code>log_dir</code>, <code>log_rotation</code>, <code>page_cache.*</code></td>
+<td>at logger or app start</td>
+<td>restart (could become live)</td>
+</tr>
+<tr>
+<td><code>ratelimit.*</code>, <code>login_allowlist</code>, <code>admin_cookie_insecure</code>, <code>secret_key</code>, <code>proxy_fix.*</code>, <code>api_base_url</code>, <code>mysql.*</code>, <code>control_database</code></td>
+<td>at import into <code>Config</code></td>
+<td>restart</td>
+</tr>
+</tbody>
+</table></div>
+<ol>
+<li><code>get_settings()</code> returns an immutable validated object cached on <code>(mtime_ns, size)</code> of the one file (<code>config.json</code>, Boss, 2026-10-16, 2:25 and 2:26 PM EDT) plus a hash of the relevant environment variables. A <code>stat</code> costs 1.3 microseconds and validating the full model 8.5 microseconds [C], so per-request checking is free and every live field becomes live with no extra code.</li>
+<li>At start store <code>STARTUP = get_settings()</code>. The page lists <code>x-restart</code> fields whose current value differs from <code>STARTUP</code> (&quot;saved but not yet running: <code>ratelimit.default</code> running <code>200 per day</code>, saved <code>500 per day</code>&quot;). No extra state is persisted.</li>
+<li>A bad hand-edited file at runtime logs once and keeps the last good settings; at startup it stops the app with per-field messages (the existing <code>proxy_fix</code> behaviour, generalized). Add <code>python -m planetgen.cli.config check</code>.</li>
+<li>Restart. Under Apache and mod_wsgi daemon mode (the documented setup), touching the WSGI script file restarts the daemon on the next request [S: modwsgi.readthedocs.io]; Unix daemon mode only, and the web user must be able to write the script. gunicorn takes SIGHUP [R]. Show &quot;Restart now&quot; only when the deployment is detected and permitted, otherwise a copy-paste command (<code>update.sh</code> already prints <code>sudo systemctl reload apache2</code>), and say that a restart drops in-flight requests for a few seconds.</li>
+<li>Never apply a changed <code>secret_key</code> live: it invalidates every CSRF token, flash cookie and signed token.</li>
+</ol>
+<h3 id="a5-secrets">A5. Secrets</h3>
+<p>Secrets in scope: SMTP password, <code>secret_key</code>, MySQL password. Every secret is stored in the same <code>config.json</code>. An environment variable is a supported override (<code>x-env</code>), not storage (mod_wsgi does not pass Apache <code>SetEnv</code> into <code>os.environ</code>). Encrypting in the control database is not worth it: the key would sit on the same host where the web user reads it, so it only protects a leaked dump, and a file outside the database is already absent from dumps. Secrets are never returned to the browser (the form shows &quot;set&quot; and takes a replacement), never written to the audit or debug log, and shown in a diff, an audit row, an export and <code>config check</code> only as &quot;(changed)&quot; or &quot;set&quot;. An archive of the file (ADM.87) holds the secrets, so it is an owner-only file that only the Owner may download.</p>
+<h3 id="a6-saving-backup-rollback-versioning-audit-import-and-export">A6. Saving, backup, rollback, versioning, audit, import and export</h3>
+<p>Save pipeline [C: 20 saves in 0.6 s with fsyncs, mode 0640 kept, backups pruned]:</p>
+<ol>
+<li>Parse the form to a nested dict, merge it onto the values now in <code>config.json</code>, validate the whole model; if invalid, re-render and change nothing.</li>
+<li>Show a diff (secrets as <code>changed</code>); require confirmation for restart-flagged and Owner-tier fields.</li>
+<li>Take a settings backup archive of the current <code>config.json</code> through ADM.87 (retention <code>settings.backups_kept</code>).</li>
+<li>Write a temp file in the same directory, copy mode and owner, <code>fsync</code>, <code>os.replace</code> (atomic on POSIX), <code>fsync</code> the directory.</li>
+<li>Write audit rows and bump the cache.</li>
+</ol>
+<p><strong>Built (#1857).</strong> The backup library is <code>planetgen.backup</code> with the command line <code>planetgen.cli.backup</code>; every backup is one <code>&lt;state dir&gt;/backups/&lt;UTC time&gt;.tar.bz2</code>, and the <code>config.json</code> copy is its settings part (<code>settings/config.json</code> in the archive). Retention is <code>settings.backups_kept</code> (default 20, 1 to 200). A web restore restores only the options an admin may change; the command line restores the whole file.</p>
+<p>Rollback lists the backups with diffs and a &quot;restore&quot; button that runs the same pipeline, so a restore is itself backed up and audited; one that fails validation under the current model is refused with the reason. Save only <code>exclude_defaults</code> values so the file stays short and new defaults reach existing installs.</p>
+<p>Versioning: top-level <code>&quot;config_version&quot;: 1</code> (today's file has none; missing means 1). Migrations are ordered <code>dict -&gt; dict</code> functions applied in memory; the file is rewritten at the next save, since the loader may not own it. A test loads every committed fixture of every past version.</p>
+<p>Audit: <code>admin_audit_log</code> (<code>action=&quot;config.update&quot;</code>, <code>target=&quot;config:tile_cache.max_mb&quot;</code> (the example key; <code>cache.max_mb</code> after PERF.139, Boss, 2026-10-18, 5:43 PM EDT), <code>detail</code> JSON <code>{old,new}</code>, secrets as <code>&quot;(changed)&quot;</code>) and the activity log's <code>DB</code> category, as other admin writes do; also <code>config.restore</code>, <code>config.import</code>, <code>smtp.test</code>. The 90-day pruning of failed-login rows does not apply to these.</p>
+<p>Import and export: export downloads the effective settings of the options a web admin may change, with secrets removed. Import runs the migration chain, validates, shows the diff and follows the save pipeline; keys the importer may not edit are rejected with a message. Also write <code>config.schema.json</code> from <code>model_json_schema()</code> (3.7 ms [C]).</p>
+<h3 id="a7-generated-docs-and-the-drift-tests">A7. Generated docs and the drift tests</h3>
+<p><code>python -m planetgen.cli.config docs</code> rewrites the table between <code>&lt;!-- BEGIN GENERATED --&gt;</code> markers in <code>docs/reference/config.md</code> (option, type, default, unit, live or restart, environment variable, description) and writes <code>config.json.example</code> from the defaults; the permissions, precedence and activity-log prose stays hand-written. Tests: (1) regenerating matches the committed files; (2) no module outside the settings module calls <code>load_config</code>, reads <code>DEFAULT_CONFIG</code> or indexes <code>config[&quot;...&quot;]</code> (the ADM.42 requirement; typed access such as <code>settings.tile_cache.max_mb</code> makes a missing option an <code>AttributeError</code>, stronger than a grep); (3) every <code>x-env</code> name appears in the docs, no non-editable field is in the generated form, no secret field is in export.</p>
+<h3 id="a8-adm44-web-open-graph-and-seo-settings">A8. ADM.44: web, Open Graph and SEO settings</h3>
+<p>All feed templates and routes at request time, so none needs a restart. Existing: <code>site_name</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Type, default</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>site.tagline</code>, <code>site.language</code></td>
+<td>str &lt;=120 <code>&quot;&quot;</code>; <code>en</code></td>
+<td>home page title; <code>&lt;html lang&gt;</code>, <code>og:locale</code></td>
+</tr>
+<tr>
+<td><code>base_url</code> (top level, not in <code>web</code>)</td>
+<td>absolute http(s) URL, trailing slash, <code>http://localhost/</code></td>
+<td>Owner tier; canonical, OG, sitemap, email links, WebAuthn origin; never derived from the <code>Host</code> header</td>
+</tr>
+<tr>
+<td><code>web.title_template</code>, <code>web.theme_color_light</code>, <code>_dark</code></td>
+<td><code>{title} - {site_name}</code>; <code>#f6f7fb</code>, <code>#14151e</code></td>
+<td>hard-coded in templates today</td>
+</tr>
+<tr>
+<td><code>web.assets_dir</code></td>
+<td>platform default</td>
+<td>host-level, file-only</td>
+</tr>
+<tr>
+<td><code>icons.favicon_svg</code>, <code>favicon_png</code>, <code>apple_touch_icon</code> (180x180), <code>manifest_enabled</code></td>
+<td>uploads; false</td>
+<td>built-in <code>favicon.svg</code>; the manifest serves <code>/site.webmanifest</code></td>
+</tr>
+<tr>
+<td><code>seo.indexing</code></td>
+<td><code>off</code> / <code>top_pages</code> / <code>all</code>, <code>top_pages</code></td>
+<td><code>off</code> serves <code>Disallow: /</code> and <code>noindex</code> everywhere</td>
+</tr>
+<tr>
+<td><code>seo.detail_pages</code></td>
+<td><code>noindex</code> / <code>index</code>, <code>noindex</code></td>
+<td>system, sector and phenomenon pages</td>
+</tr>
+<tr>
+<td><code>seo.description</code>, <code>seo.keywords</code></td>
+<td>str &lt;=300; list, empty</td>
+<td>description for pages that give none (about 155 characters show in snippets [R]); Google has ignored keywords since 2009 [S], and the help text says so</td>
+</tr>
+<tr>
+<td><code>seo.json_ld</code></td>
+<td>bool, true</td>
+<td>home page <code>WebSite</code> block</td>
+</tr>
+<tr>
+<td><code>seo.robots_extra</code>, <code>seo.robots_override</code></td>
+<td>text &lt;=64 KiB, &lt;=500 KiB</td>
+<td>appended to, or replacing, the generated robots.txt</td>
+</tr>
+<tr>
+<td><code>seo.block_ai_crawlers</code></td>
+<td>bool, false</td>
+<td><code>Disallow: /</code> for GPTBot, ClaudeBot, CCBot, Google-Extended, Applebot-Extended [S, vendor guides]</td>
+</tr>
+<tr>
+<td><code>seo.sitemap_enabled</code>, <code>sitemap_max_urls</code>, <code>sitemap_cache_hours</code></td>
+<td>true; 1..50000 (50000); 1..168 (24)</td>
+<td></td>
+</tr>
+<tr>
+<td><code>seo.security_txt</code>, <code>humans_txt</code>, <code>privacy_note</code></td>
+<td>text, empty</td>
+<td><code>/.well-known/security.txt</code> (RFC 9116 wants <code>Contact</code> and <code>Expires</code> [R]) and <code>/humans.txt</code> when non-empty; the note shows on the account page</td>
+</tr>
+<tr>
+<td><code>og.enabled</code>, <code>og.site_name</code>, <code>og.image_alt</code></td>
+<td>true; falls back to <code>site_name</code>; str &lt;=200</td>
+<td></td>
+</tr>
+<tr>
+<td><code>og.default_image</code></td>
+<td>PNG or JPEG, built-in 1200x630</td>
+<td>width and height read from the file</td>
+</tr>
+<tr>
+<td><code>og.twitter_card</code>, <code>og.twitter_site</code></td>
+<td><code>summary_large_image</code>; <code>@handle</code> or empty</td>
+<td></td>
+</tr>
+<tr>
+<td><code>og.generated_cards</code>, <code>og.card_cache_mb</code>, <code>og.card_cache_dir</code></td>
+<td>false; 100; <code>&quot;&quot;</code></td>
+<td>per-object PNG cards; reuse the tile-cache pruner</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>seo.robots_override</code> or <code>robots_extra</code> can break crawling site-wide, so validate: size cap, parseable <code>User-agent</code>, <code>Allow</code>, <code>Disallow</code> and <code>Sitemap</code> lines, and a warning when the result blocks <code>/</code> while <code>seo.indexing</code> is not <code>off</code>.</p>
+<p><strong>Open Graph and Twitter/X tags</strong> come from one block in <code>base.html</code>: <code>og:title</code>, <code>og:type</code> (<code>website</code>), <code>og:url</code> (the canonical URL), <code>og:description</code>, <code>og:site_name</code>, <code>og:locale</code>, <code>og:image</code> (absolute https URL) with <code>:width</code>, <code>:height</code>, <code>:alt</code> and <code>:type</code>, plus <code>twitter:card</code> and <code>twitter:image:alt</code>.</p>
+<ul>
+<li>X falls back to the <code>og:</code> tags when the Twitter ones are missing [S, guide sites]. One source says Discord shows only a small thumbnail without <code>twitter:card=summary_large_image</code> [S, single source; test with a real Discord post].</li>
+<li>Image: 1200x630; X crops to about 2:1, minimum 300x157, at most 5 MB; PNG or JPEG, because WebP support is uneven in Slack and Discord [S].</li>
+<li>Discordbot fetches when a link is posted and may keep the preview long; sources disagree on whether it obeys robots.txt [S]. Do not <code>Disallow</code> page URLs that should unfurl, and add <code>?v=&lt;content hash&gt;</code> to <code>og:image</code> so a changed card refetches.</li>
+<li>Admin, account and login pages emit no Open Graph tags.</li>
+</ul>
+<p><strong>Canonical URLs and pagination.</strong> <code>canonical</code> is the top-level <code>base_url</code> plus the path with tracking and sort parameters stripped (<code>needs_canonical_redirect</code> in <code>web/searchpage.py</code> already redirects some old forms). Do not emit <code>rel=prev/next</code>; Google dropped it years ago [S]. List pages (<code>/sectors</code>, <code>/systems</code>, <code>/species</code>, <code>/polities</code>): page 1 is indexable with a self canonical; <code>?page=N</code>, filters and sorts get <code>noindex,follow</code> and a self canonical, not a canonical to page 1, which would hide the linked items. The lists reach billions of rows (about 10.5 billion sector rows, see <a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>), so add <code>Disallow: /*?*page=</code> to the generated robots.txt (<code>*</code> is in RFC 9309).</p>
+<p><strong>Indexing matrix</strong> (defaults):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>URL class</th>
+<th>Robots meta or header</th>
+<th>robots.txt</th>
+<th>Sitemap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/</code>, <code>/classes*</code>, <code>/species*</code>, <code>/polities*</code>, <code>/galaxy</code> shell</td>
+<td><code>index,follow</code></td>
+<td>allow</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>/sectors</code>, <code>/systems</code> (page 1, no query)</td>
+<td><code>index,follow</code></td>
+<td>allow</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>list pages with <code>page</code>, <code>sort</code> or filter queries</td>
+<td><code>noindex,follow</code></td>
+<td><code>Disallow</code> for deep <code>page=</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>/system/&lt;id&gt;</code>, <code>/sector/&lt;id&gt;</code>, <code>/phenomenon/...</code></td>
+<td><code>noindex,follow</code> (<code>index</code> if <code>seo.detail_pages=index</code>)</td>
+<td>allow, so the tag is seen</td>
+<td>no (yes if <code>index</code>, capped)</td>
+</tr>
+<tr>
+<td><code>/search</code>, <code>/nav</code>, <code>/galaxy/tiles</code>, <code>/galaxy/stage</code>, <code>/galaxy/territories</code>, <code>/galaxy/locate</code>, <code>/table/*</code>, scene and shape JSON</td>
+<td><code>X-Robots-Tag: noindex</code></td>
+<td><code>Disallow</code></td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>/admin*</code>, <code>/login*</code>, <code>/logout</code>, <code>/account*</code>, <code>/api/*</code></td>
+<td><code>noindex,nofollow</code></td>
+<td><code>Disallow</code></td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>A robots.txt <code>Disallow</code> stops crawling, not indexing, and hides any <code>noindex</code> on that URL, so choose one per URL [S: Search Engine Journal, Semetrical].</li>
+<li>Google reads robots.txt up to 500 KiB, caches it about 24 hours, treats a persistent 5xx as &quot;stop crawling&quot; [S, translated snippets] and ignores <code>Crawl-delay</code> [S].</li>
+<li>Not indexing generated detail pages follows third-party summaries of Google's scaled-content guidance [S]; <code>seo.detail_pages</code> switches it for a small galaxy.</li>
+<li>The page limiter allows 300 requests a minute per IP, which a crawler can hit; keep robots.txt and the sitemap cached.</li>
+</ul>
+<p><strong>Sitemap.</strong> <code>/sitemap.xml</code> is an index listing <code>/sitemap-pages.xml</code> and, only if detail pages are indexed, <code>/sitemap-systems-&lt;n&gt;.xml</code>. Limits: 50,000 URLs and 50 MB uncompressed per file [S, secondary quoting sitemaps.org]; at about 100 bytes a URL, 50,000 URLs is about 5 MB [C], so the count binds. Emit <code>loc</code> and <code>lastmod</code> only (Google ignores <code>changefreq</code> and <code>priority</code>, and trusts <code>lastmod</code> only when consistently accurate [S]), from a real change time or omitted. Build files by keyset pagination (<code>WHERE id &gt; ? ORDER BY id LIMIT 50000</code>) so boundaries do not shift, cache them <code>seo.sitemap_cache_hours</code>, and list the sitemap in robots.txt (pings are deprecated [S]).</p>
+<p><strong>JSON-LD.</strong> Google retired the sitelinks search box in November 2024 [S, trade press], so emit only a <code>WebSite</code> block (<code>name</code>, <code>url</code>), and no <code>Place</code> or <code>Product</code> markup for generated objects. An inline <code>application/ld+json</code> block is not executed and should not violate the CSP's <code>script-src</code> [R: confirm in the Playwright tests].</p>
+<p><strong>Link-preview images (ties to VIEW.3).</strong> Default: one static admin-uploaded PNG. Per-object cards drawn with Pillow (name, star types, planet count, orbit sketch) cost 125 ms and 39 KiB per 1200x630 card on the slow VM [C], need no new dependency (Pillow arrives through scikit-image) and are cached on disk; a WebGL screenshot would need headless Chromium, so no. Route <code>/og/&lt;kind&gt;/&lt;id&gt;.png</code>: <code>image/png</code>, <code>Cache-Control: public, max-age=86400</code>, an <code>ETag</code> from the object's change stamp (<code>apiclient.get_galaxy_changes</code>), its own limiter bucket, 404 for unknown ids, text only from stored names (already filtered). <code>render_card(kind, object_id) -&gt; bytes</code> sits behind a registry and falls back to the static image on error, so VIEW.3's sky render can register later; ADM.44 does not wait for it. <code>og.generated_cards</code> is off by default to avoid extra write load.</p>
+<p><strong>Icon upload.</strong> Accept PNG and ICO; verify with Pillow, check the pixel size, store under a content-hash name in <code>web.assets_dir</code>, serve with a long cache and <code>nosniff</code>. Accept SVG only with <code>Content-Security-Policy: default-src 'none'; sandbox</code> on the asset response, or not at all (a script in an uploaded SVG opened directly runs on the site's origin). External icon URLs would be blocked by the CSP, so uploads are the only form.</p>
+<h3 id="a9-how-it-fits-the-code">A9. How it fits the code</h3>
+<p>New package <code>planetgen/settings/</code> (model, loader, writer, migrations, doc generator); <code>util/appconfig.py</code> is deleted once callers move. <code>api/config.py</code> keeps <code>Config</code> but reads <code>STARTUP</code>. The Admin page sits beside <code>admin_pages.py</code> behind <code>_admin_or_403</code> with <code>Cache-Control: no-store</code>. Sitemap, robots, security.txt, humans.txt, manifest and OG routes go in a new blueprint <code>web/site_documents.py</code>. <code>base.html</code> takes <code>theme-color</code>, favicon and title from the settings.</p>
+<h2 id="part-b-user-accounts-and-security-practice">Part B: user accounts and security practice</h2>
+<h3 id="b1-state-of-the-code-what-usr-builds-on">B1. State of the code (what USR builds on)</h3>
+<ul>
+<li>Tables (<code>db/control_schema.sql</code>): <code>admin_users</code> (username, password_hash, must_change_credentials, last_login_at), <code>admin_sessions</code> (token SHA-256, <code>expires_at</code>), <code>admin_api_keys</code>, <code>admin_audit_log</code> (username kept as text, foreign key <code>SET NULL</code>), <code>admin_devices</code>, <code>admin_totp</code>, <code>admin_recovery_codes</code>. No email column, no role. The control schema is at v10 (<code>CONTROL_SCHEMA_VERSION</code>, <code>db/store.py</code>) and migrations are Alembic revisions (DB.11, done), so the account columns are the next revision.</li>
+<li><code>admin/auth.py</code> (before SEC.32; see &quot;As built&quot; in B2): <code>PASSWORD_HASH_METHOD = &quot;pbkdf2:sha256:600000&quot;</code>, <code>MIN_PASSWORD_LENGTH = 12</code>, a bundled blocklist, no maximum length, <code>SESSION_TTL_HOURS = 12</code> fixed, tokens from <code>secrets.token_urlsafe(32)</code> stored as SHA-256, <code>needs_rehash</code> at login, and a dummy hash so unknown usernames cost the same time.</li>
+<li>Session cookie: HttpOnly, Secure (unless the development flag), <code>SameSite=Strict</code>. <code>create_session</code> always mints a new token, so a pre-set cookie cannot be fixated. <code>web/csrf.py</code> is a nonce cookie plus an HMAC bound to the session, checked on every unsafe page request. Headers: <code>nosniff</code>, <code>X-Frame-Options: DENY</code>, <code>Referrer-Policy: no-referrer</code> (a reset link cannot leak its token by Referer), a strict CSP, HSTS over HTTPS.</li>
+<li><code>api/loginguard.py</code> applies the per-IP lockout and per-username backoff of <code>admin/throttle.py</code>; the counters are the project's own <code>RedisStore</code>, on the same Redis server Flask-Limiter counts requests on. <code>record_login_failure</code> writes <code>login.failed</code> and <code>login.locked</code>. <code>cli/lockouts.py</code> already has <code>--reset-two-factor USER</code> and <code>--forget-devices USER</code>.</li>
+</ul>
+<h3 id="b2-password-storage">B2. Password storage</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scheme</th>
+<th>OWASP position [S: Password Storage Cheat Sheet, snippets]</th>
+<th>Measured here [C]</th>
+<th>Fit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Argon2id</td>
+<td>first choice; 19 MiB, t=2, p=1 minimum (46 MiB, t=1 equivalent)</td>
+<td>263 ms (19 MiB, t=2); 221 ms (46 MiB, t=1); 1240 ms (argon2-cffi defaults 64 MiB, t=3, p=4)</td>
+<td>recommended</td>
+</tr>
+<tr>
+<td>scrypt</td>
+<td>N=2^17, r=8, p=1</td>
+<td>2464 ms, 128 MiB (Werkzeug's N=2^15: 446-510 ms)</td>
+<td>too heavy at 5 threads</td>
+</tr>
+<tr>
+<td>PBKDF2-HMAC-SHA256</td>
+<td>600,000 iterations, listed last, for FIPS-140</td>
+<td>1345 ms</td>
+<td>in use; no memory hardness</td>
+</tr>
+</tbody>
+</table></div>
+<p>The brute-force design measured PBKDF2-600k at about 175 ms on the build machine; the research VM is about 8 times slower, so only ratios matter. Argon2id at the OWASP minimum is faster than PBKDF2-600k, uses 19 MiB per hash (95 MiB across 5 threads) and resists GPU cracking, which matters once user accounts make a stolen control database the main offline risk.</p>
+<p>Migration: <code>PasswordHasher(time_cost=2, memory_cost=19456, parallelism=1)</code>; <code>verify_password</code> dispatches on the stored prefix (<code>$argon2id$</code> versus <code>pbkdf2:</code> or <code>scrypt:</code>) because Werkzeug cannot verify Argon2; <code>needs_rehash</code> is also true for old schemes and weaker Argon2 parameters (<code>check_needs_rehash</code>), so every user upgrades at next login with the code that exists; the <code>VARCHAR(255)</code> column fits (about 97 characters); recreate the dummy hash with the active scheme. Add a 1,024-character maximum to <code>validate_password_policy</code> (none today; NIST asks verifiers to accept at least 64 [S, secondary]). Put the cost parameters in the settings model within minimum limits.</p>
+<p>NIST SP 800-63B-4 was finalized 2025-07-31 [S: csrc.nist.gov]; secondary summaries say 15 characters minimum when the password is the only factor and 8 when it is one of two, no composition rules, a blocklist, no forced rotation [S; normative text not read]. The 12-character policy fits the second-factor case, so the default in the brute-force design (section 4) stands. Suggested: 15 without TOTP, 12 with it; Boss's choice.</p>
+<p><strong>As built (SEC.32).</strong> <code>admin/auth.py</code> hashes with <code>argon2.PasswordHasher</code> (Argon2id, 32-byte output, 16-byte salt) at <code>hash_parameters()</code>, which reads the <code>password_hash</code> settings section (<code>memory_kib</code> 19456, <code>time_cost</code> 2, <code>parallelism</code> 1; <code>PLANETGEN_PASSWORD_HASH_*</code>). <code>verify_password</code> sends a hash by its prefix: <code>$argon2id$</code> to Argon2, <code>pbkdf2:</code> and <code>scrypt:</code> to Werkzeug, anything else (including another Argon2 variant) never matches. <code>needs_rehash</code> is true for any non-Argon2id hash and, through <code>check_needs_rehash</code>, for an Argon2id hash made with other numbers than the settings name (so lowering the settings re-hashes as well); <code>authenticate</code> stores the new hash after a successful login. <code>MAX_PASSWORD_LENGTH = 1024</code> is checked by <code>validate_password_policy</code>, and <code>verify_password</code> and <code>hash_password</code> refuse more before any hashing. The unknown-username dummy hash is an Argon2id hash at the same cost. <code>PASSWORD_HASH_METHOD</code> is gone. The session cookie is <code>__Host-pg_admin_session</code> while <code>SESSION_COOKIE_SECURE</code> is on (<code>api.authz.session_cookie_name</code>), with Path=/ and no Domain, and its removal at logout is sent Secure too (a browser ignores an unsecured replacement of a <code>__Host-</code> cookie); with <code>admin_cookie_insecure</code> it keeps the plain name. The device cookie and the CSRF nonce cookie keep their names. <code>argon2-cffi&gt;=23.1.0</code> is in <code>setup.py</code>, both lock files and <code>install-python-deps.sh</code>.</p>
+<h3 id="b3-reset-invite-and-transfer-tokens">B3. Reset, invite and transfer tokens</h3>
+<p>OWASP's Forgot Password cheat sheet [S, snippets] asks for the same message whether or not the account exists, uniform response time, secure random tokens, single use, expiry and rate limits. Recommended:</p>
+<ul>
+<li>Token <code>secrets.token_urlsafe(32)</code>, stored as SHA-256 only (a fast hash suits a 256-bit random value), like sessions and API keys.</li>
+<li>One table, <code>account_tokens(id, account_id, purpose ENUM('set_password','reset','email_change','owner_confirm','owner_accept'), token_hash CHAR(64) UNIQUE, created_at, expires_at, used_at, meta JSON)</code>. A new token for the same account and purpose invalidates older ones.</li>
+<li>Consume with one statement and require <code>rowcount == 1</code>, which closes the replay race (design pattern): <code>UPDATE account_tokens SET used_at=NOW() WHERE token_hash=? AND used_at IS NULL AND expires_at&gt;NOW()</code>.</li>
+<li>The link opens a GET form; the password is set on POST with the CSRF token; <code>Cache-Control: no-store</code>. The token is in the path and reaches access logs, so lifetimes stay short.</li>
+<li>Lifetimes: reset 30 minutes (third-party guidance says 15-30 [S]); first-password link 24 hours; owner-transfer links 24 hours; email change 1 hour.</li>
+<li>A reset ends the account's other sessions and trusted devices (as <code>change_credentials</code> does), keeps API keys, and emails a &quot;your password was changed&quot; notice.</li>
+<li>No enumeration: &quot;forgot password&quot; always answers the same text, does the same work (hashing a dummy token) and sends from an RQ job so timing is flat.</li>
+<li>itsdangerous is not used: it cannot know whether a token was used [S], and the flows need use counts, revocation and listings anyway.</li>
+</ul>
+<h3 id="b4-sessions-cookies-and-csrf">B4. Sessions, cookies and CSRF</h3>
+<ul>
+<li>Keep sessions in the control database: the properties of &quot;sessions in Redis&quot; (opaque id, hash at rest, immediate revoke, end-others on credential change) already exist, and a flush would sign everyone out.</li>
+<li>Add a fixation test (a made-up cookie that then logs in gets a different cookie) and renew the token after any role or password change. Use the <code>__Host-</code> prefix when the cookie is Secure [R].</li>
+<li>Admins keep 12 hours fixed. For ordinary users propose <code>security.session_hours_user</code> default 720 (30 days), with an absolute cap and a sliding refresh limited to 7 days, as bounded settings.</li>
+<li><code>SameSite=Strict</code> makes a link from a mail client a cross-site navigation with no session cookie. Reset and invite links need no session; USR.6's confirm link and email-change confirmation do, so they land on a neutral page that asks to sign in (carrying <code>next</code>) or shows a &quot;continue&quot; button doing a same-site POST. Test in a browser.</li>
+<li>Keep <code>web/csrf.py</code>; Flask-WTF 1.3.0 needs Python 3.10 and would duplicate it. Every new form gets the check because it is app-wide.</li>
+</ul>
+<h3 id="b5-lockout-and-throttling-for-the-new-flows-usr1-sec1">B5. Lockout and throttling for the new flows (USR.1, SEC.1)</h3>
+<p>Extend the existing design (delays that expire, per-IP and per-username limits, trusted-device cookie, neutral messages; NIST prefers delays [S, secondary]) with <code>loginguard</code> namespaces <code>reset</code>, <code>invite</code> and <code>register</code>. Reset: 3 per hour per hashed address and 10 per hour per IP, counted whether or not the address has an account. Invite page: 20 per hour per IP (guessing 256 bits is hopeless, so this is about spam and load). Registration: 5 per hour per IP. Redis keys use a hash of the lowercased address so Redis never stores addresses. Extend <code>revoke_devices</code> to resets and role changes. A failed second factor and a failed owner-transfer password prompt count as failed logins (SEC.26 already counts TOTP).</p>
+<h3 id="b6-totp-and-webauthn">B6. TOTP and WebAuthn</h3>
+<p>TOTP is done on pyotp (plus or minus one step, no reuse of a step at or before <code>last_step</code>); keep it, require it for the Owner and refuse Owner transfer to an account without it. WebAuthn (py_webauthn; Python 3.10 for 3.0.1, 2.7.1 for 3.9; pulls cryptography, pyOpenSSL, cbor2, pyasn1) is in no USR item: defer it to an optional factor after USR.7, with the relying-party origin from <code>base_url</code> and a <code>webauthn_credentials</code> table (credential id, public key, sign count, transports, label, created, last used). The library's source was not reviewed [S: PyPI release dates only].</p>
+<h3 id="b7-role-model-usr2">B7. Role model (USR.2)</h3>
+<p>Answers to USR.2's open questions, with defaults:</p>
+<ul>
+<li><strong>One table.</strong> Add to <code>admin_users</code>: <code>email VARCHAR(254) NULL</code> unique, <code>email_verified_at</code>, <code>role</code> as one text column with four valid values (user, moderator, admin, Owner; roles-and-requests.md, Boss, 2026-10-16, 1:43 PM and 1:49 PM EDT) <code>NOT NULL DEFAULT 'admin'</code> (existing rows are admins), <code>disabled_at</code>, <code>password_changed_at</code>, <code>created_by</code>. Renaming to <code>accounts</code> (and <code>admin_user_id</code> to <code>account_id</code> across six tables) is cleaner but touches every query; add columns now, rename in a follow-up unless Boss wants it in the same PR.</li>
+<li><strong>Exactly one Owner, enforced by the database:</strong> a generated column <code>owner_flag TINYINT AS (CASE WHEN role='owner' THEN 1 END) VIRTUAL</code> with a <code>UNIQUE</code> index (NULLs may repeat, one <code>1</code> only). Not testable here; verify on MySQL 8.4 and MariaDB 11.4 [R].</li>
+<li><strong>Which existing account is Owner:</strong> the lowest id (the one <code>bootstrap_control_schema</code> seeded). The migration prints its choice and <code>python -m planetgen.cli.accounts --set-owner USER</code> (like <code>planetgen.cli.lockouts</code>) corrects it.</li>
+<li><strong>Demotion:</strong> an admin may demote any other admin except the Owner, never themselves (so the last admin cannot vanish); only Owner transfer changes the top role. Every change is audited.</li>
+<li><strong>Disable and delete:</strong> admins disable and re-enable ordinary users (ends sessions and keys); disabling an admin is Owner-only. Hard delete is by the account itself or the Owner and rewrites <code>admin_audit_log.admin_username</code> to <code>deleted-user-&lt;id&gt;</code>.</li>
+<li><strong>API keys:</strong> admins only at first (API.6). Effective rights are the intersection of the key's scope and its owner's current role, evaluated per request (never cached in the key row), so a demoted admin's keys fall to the new role and a user-level key owned by an admin never exceeds read scope. The rule from PR #293 (any API key gets 403 on key management, credentials, 2FA and logout) stays. Scopes come from API.9.</li>
+<li><strong>Names:</strong> usernames 3-64 characters from <code>[A-Za-z0-9_.-]</code>, unique case-insensitively (explicit <code>utf8mb4_bin</code> on a lowercased shadow column; collation names differ between MySQL 8.4 and MariaDB 11.4 [R]). Email stored lowercased and unique; <code>email_verified_at</code> is set by the first emailed link. Validate with <code>email.utils.parseaddr</code> and a length check; the confirmation email is the real validation.</li>
+</ul>
+<h3 id="b8-invites-usr4">B8. Invites (USR.4)</h3>
+<p>Tables <code>invites(id, token_hash UNIQUE, created_by, created_at, expires_at NULL=never, max_uses NULL=infinite, uses INT, revoked_at, note, invitee_email NULL)</code> and <code>invite_uses(invite_id, account_id, used_at)</code>. Redeem with one atomic statement, <code>rowcount == 1</code>, then create the account in the same transaction:</p>
+<pre><code class="language-sql">UPDATE invites SET uses = uses + 1
+WHERE token_hash = ? AND revoked_at IS NULL
+  AND (expires_at IS NULL OR expires_at &gt; NOW())
+  AND (max_uses IS NULL OR uses &lt; max_uses)
+</code></pre>
+<p>Boss's expiry list is a fixed enum in the model. Defaults for the open questions: the admin may type the invitee's email, and with SMTP configured the link is sent (and also shown to copy); without SMTP only the link is shown, which answers USR.3's no-SMTP question. Open invites are capped at 50 (a setting), each use of a multi-use link is recorded in <code>invite_uses</code>, and new accounts get role <code>user</code>.</p>
+<h3 id="b9-smtp-usr3">B9. SMTP (USR.3)</h3>
+<ul>
+<li>Standard-library <code>smtplib</code> with <code>EmailMessage</code> (Flask-Mail 0.10.0, last release May 2024, wraps about 40 lines), plain text with <code>Date</code> and <code>Message-ID</code>.</li>
+<li>Modes <code>starttls</code> (587, default), <code>ssl</code> (465, <code>SMTP_SSL</code>), <code>none</code> (loopback only); <code>ssl.create_default_context()</code> in both TLS modes; class chosen from the mode, not the port; timeout 10 s; log host, port, error class and SMTP code, never the password.</li>
+<li>Send from an RQ job with a small retry, so a slow server holds no thread and timing does not reveal whether an account exists.</li>
+<li>Settings: <code>smtp.host</code>, <code>port</code> (587), <code>security</code>, <code>username</code>, <code>password</code> (secret), <code>from_address</code>, <code>from_name</code>, <code>timeout</code> (10). &quot;Send test email&quot; goes to the signed-in admin's address and shows the SMTP error text, never the password.</li>
+<li><strong>Owner only, with recent re-authentication, for SMTP, <code>base_url</code> and the From address.</strong> The reset link is built from <code>base_url</code> and sent through this server; whoever sets either can read the Owner's reset email and take over the Owner account. This is the one place where admin power must not equal Owner power.</li>
+<li>The password lives in <code>config.json</code> (A5), replaceable but never read back. Deliverability (SPF, DKIM, DMARC) is the SMTP provider's job and the docs say so.</li>
+</ul>
+<h3 id="b10-password-setting-reset-and-owner-flows-usr5-usr6">B10. Password setting, reset and Owner flows (USR.5, USR.6)</h3>
+<p>Lifetimes are in B3. Changing the email address needs the current password and a confirmation link to the new address, plus a notice to the old one, which stays until the new one confirms. An Owner reset works by email, but with TOTP enrolled the reset page also asks for the code, and each one emails the Owner and writes an <code>AUTH</code> event. Break-glass for an Owner without password and email is the console: <code>python -m planetgen.cli.accounts --reset-password OWNER</code> and <code>--set-owner</code> (API.15's &quot;console user is god&quot;).</p>
+<p><strong>Owner transfer</strong> is a state machine in <code>owner_transfers(id, from_id, to_id, state, confirm_token_hash, accept_token_hash, created_at, expires_at, ...)</code> with states <code>pending_owner</code>, <code>pending_target</code>, <code>done</code>, <code>canceled</code>, <code>expired</code>, and at most one active transfer:</p>
+<ol>
+<li>The Owner picks an existing admin, retypes the password twice, enters the TOTP code if enrolled, ticks the explicit confirmation; an email goes to the Owner.</li>
+<li>The Owner clicks it; an email goes to the target.</li>
+<li>The target signs in and accepts (the click alone is not enough: signing in proves password and TOTP).</li>
+<li>One transaction locks both rows (<code>SELECT ... FOR UPDATE</code>), sets old to <code>admin</code> and new to <code>owner</code> (the unique index forbids two Owners), ends both accounts' sessions and trusted devices and writes the audit rows. The old Owner gets a final notice.</li>
+</ol>
+<p>Defaults: the new Owner must already be an admin with TOTP; the transfer expires in 48 hours; the Owner may cancel before acceptance; unconfigured SMTP disables it.</p>
+<h3 id="b11-audit-data-minimization-and-usr7">B11. Audit, data minimization and USR.7</h3>
+<p>Add to <code>admin_audit_log</code> and the activity log: <code>account.create|disable|enable|delete</code>, <code>role.change</code>, <code>invite.create|revoke|use</code>, <code>password.reset.request|complete</code>, <code>password.set</code>, <code>email.change.request|confirm</code>, <code>owner.transfer.start|confirm|accept|cancel|expire|done</code>, <code>config.update</code>, <code>smtp.test</code>. Log a token-hash prefix, never tokens or email bodies; role and owner events are not pruned with failed logins.</p>
+<p>The account record is username, email, password hash, role and timestamps; no IP addresses, no tracking pixels, no third-party calls. The account page offers &quot;download my data&quot; JSON and &quot;delete my account&quot; (bookmarks, keys and sessions cascade), and <code>seo.privacy_note</code> gives the operator a place for a privacy note. GDPR specifics were not researched [R].</p>
+<p>USR.7: bookmarks are keyed by account and a stable object reference (NAV.7's references); decision 4 of <a href="galaxy-drilldown-navigation.html">galaxy-drilldown-navigation.md</a> is a prerequisite per the TODO. A broken bookmark after a regenerate shows the stored name and &quot;no longer in this galaxy&quot;. If reading ever requires sign-in, <code>seo.indexing=off</code> must be forced; the default stays public read.</p>
+<h3 id="b12-usr8-the-one-off-system-limit">B12. USR.8: the one-off system limit</h3>
+<p>Today <code>/admin/generate/system</code> and <code>/download</code> in <code>web/system_page.py</code> are admin-only (<code>_admin_or_redirect</code>, <code>_admin_or_403</code>). Flask-Limiter semantics (limits 4.2 under Flask-Limiter 3.11.0) [C]:</p>
+<ul>
+<li>The bucket is whatever <code>key_func</code> returns: <code>user:&lt;account id&gt;</code> when signed in, <code>ip:&lt;address&gt;</code> otherwise. Use <code>&quot;30 per hour&quot;</code> with <code>strategy=&quot;moving-window&quot;</code>, which counts the last 3,600 seconds exactly (one entry per hit; trivial at 30). <code>fixed-window</code> can pass nearly double the limit across a boundary. <code>sliding-window-counter</code> approximates and, after 30 hits at t=0, lets 1 through at 60m01s and 29 at 119m.</li>
+<li>The 31st request is a 429; <code>Retry-After</code> and <code>X-RateLimit-*</code> appear because <code>api/config.py</code> sets <code>RATELIMIT_HEADERS_ENABLED</code>, and the page shows the wait in words. <code>exempt_when</code> takes a callable; admins and the Owner pass it (40 admin requests all 200).</li>
+<li>In-process API calls skip the default limits but not explicit <code>@limiter.limit(...)</code> ones (<code>api/limiter.py</code>), so decorate the web view directly, as <code>page_limit</code> does.</li>
+</ul>
+<p>Count in Redis, not the control database as USR.8's default says: the data is ephemeral, SEC.30 already put the limiter on Redis, and a database row per generation is pure write load. A Redis outage falls back to per-process counting (<code>RATELIMIT_IN_MEMORY_FALLBACK_ENABLED</code>), fine for a fairness limit. Add a concurrency cap, since each request starts a generator process for about a second on a 5-thread server and a per-hour limit does not stop 30 requests in one second: for example 3 at once, a Redis counter with a TTL, &quot;busy, try again&quot;. Settings: <code>limits.one_off_per_hour</code> (30), <code>limits.one_off_concurrent</code> (3).</p>
+<h2 id="corrections-to-existing-statements">Corrections to existing statements</h2>
+<ul>
+<li><a href="../operations/login-brute-force-protection.html">login-brute-force-protection.md</a> section 5 said &quot;Planned: libraries&quot; for work that is done (SEC.29, SEC.30); corrected in place.</li>
+<li>The research draft said <code>loginguard.py</code> uses Flask-Limiter's storage and named control schema v9; the lockout counters are the project's own <code>RedisStore</code> on the same Redis server, and the control schema is at v10.</li>
+<li><code>docs/reference/config.md</code> makes <code>config.json</code> read-only to the web process, so ADM.43's web-saved configuration is impossible as written (A2); its &quot;<code>base_url</code> not yet read&quot; changes with ADM.44.</li>
+<li>NIST SP 800-63B-4 asks for 15 characters when the password is the only factor; the 12-character policy holds only while a second factor is expected (B2).</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[C] results used Python 3.9.25, pydantic 2.13.5, pydantic-settings 2.11.0, Flask-Limiter 3.11.0, limits 4.2, argon2-cffi 25.1.0, Werkzeug 3.1.9 and Pillow 11.3.0, on a slow, noisy VM; the scripts were scratch files and are not in the repository. [R] items to verify when paper and vendor access is allowed:</p>
+<ul>
+<li>Google: a long-lived <code>noindex</code> becoming <code>nofollow</code>; robots.txt cached 24 hours and read to 500 KiB (translated snippets only); the 155-character snippet length.</li>
+<li>Discord: use of <code>theme-color</code>, whether Discordbot obeys robots.txt, whether <code>twitter:card</code> is needed for a large image; X's card ratio (sources said 1.91:1 and 2:1).</li>
+<li>Inline <code>application/ld+json</code> under the CSP; RFC 9116 requiring <code>Contact</code> and <code>Expires</code>.</li>
+<li>The unique generated-column Owner index and username collations on MySQL 8.4 and MariaDB 11.4; <code>__Host-</code> cookie rules; gunicorn reload by SIGHUP; that table A4 matches every call site.</li>
+<li>NIST SP 800-63B-4's normative text, the OWASP wording on hashing reset tokens, the 15-30 minute reset lifetime; py_webauthn maintenance; the GDPR points in B11.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<p>Package pages (PyPI JSON, fetched 2026-10-09): pydantic, pydantic-settings, pyotp, argon2-cffi, webauthn, flask-limiter, limits, flask-wtf, flask-mail, itsdangerous, werkzeug, pillow (<code>https://pypi.org/pypi/&lt;package&gt;/json</code>).</p>
+<p>Search results (secondary unless noted):</p>
+<ul>
+<li>OWASP, snippets only: https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html, https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html</li>
+<li>NIST SP 800-63B-4: https://csrc.nist.gov/pubs/sp/800/63/B/4/final (listing), https://www.sakimura.org/en/2025/10/7710/, https://www.enzoic.com/blog/nist-sp-800-63b-rev4/</li>
+<li>Sitemaps: https://library.linkbot.com/what-are-the-url-and-file-size-limits-for-sitemaps-and-how-can-large-sites-adapt/, https://blogs.bing.com/webmaster/november-2016/increasing-the-size-limit-of-sitemaps-file-to-addr, https://developers.google.com/search/blog/2023/06/sitemaps-lastmod-ping (title only), https://dynomapper.com/blog/search-engine-optimization/xml-sitemaps-seo-best-practices/</li>
+<li>Search engines: https://www.searchenginejournal.com/google-on-robots-txt-when-to-use-noindex-vs-disallow, https://www.semetrical.com/insights/noindex-vs-disallow-why-robotstxt-wont-stop-low-quality-pages-from-getting-indexed/, https://www.searchenginejournal.com/google-stopped-supporting-relprev-next-in-search-indexing-years-ago/299689/, https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec (translated pages only), https://webmasters.googleblog.com/2009/09/google-does-not-use-keywords-meta-tag.html, https://ppc.land/google-to-remove-sitelinks-search-box/, https://www.mediapost.com/publications/article/400424/</li>
+<li>mod_wsgi: https://modwsgi.readthedocs.io/en/latest/user-guides/reloading-source-code.html</li>
+<li>Link previews: https://support.discord.com/hc/en-us/articles/42500550752919-About-Discord-Link-Previews-and-the-Discordbot (title only), https://htmlcsstoimage.com/features/og-images-for-discord, https://env.dev/guides/opengraph-image-not-showing, https://screenhance.com/blog/og-image-size-guide, https://quickseo.ai/tools/twitter-card-validator, https://superblog.ai/blog/ai-crawlers-guide, https://www.texta.ai/blog/ai-crawler-user-agents</li>
+<li>itsdangerous: https://itsdangerous.palletsprojects.com/url_safe/</li>
+</ul>
+<p>Repository files read: <code>docs/TODO.md</code> (ADM.42-44, ADM.18, USR.1-8, API.6, API.15, UX.49, VIEW.3), <code>docs/reference/config.md</code>, <code>config.json.example</code>, the code under <code>src/planetgen/</code> named above, <code>db/control_schema.sql</code>, <code>setup.py</code> and <code>requirements.lock</code>.</p>
+<p>See also <a href="../operations/api-design-standards.html">api-design-standards.md</a> for the API conventions (keys, errors, paging, logging) that API.6 and the account items rely on.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

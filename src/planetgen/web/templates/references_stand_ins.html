@@ -6,7 +6,7 @@
 <aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
 <section class="panel" id="stand-ins" aria-labelledby="stand-ins-heading">
   <div class="panel-header"><h2 id="stand-ins-heading">{{ page.title }}</h2></div>
-  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- for paragraph in page.intro %}<p>{{ paragraph|chem }}</p>{% endfor %}
   <form method="get" action="{{ request.path }}#results" class="search-form" aria-label="Filter the stand-ins">
     {{ ui_input("text", "Words in the stand-in", page.filters.text, maxlength=100) }}
     {{ ui_select("tier", "Source tier", page.tier_options, page.filters.tier) }}
@@ -24,7 +24,7 @@
     <thead><tr><th scope="col">Stand-in</th><th scope="col">What it is</th><th scope="col">Tier</th><th scope="col">Tweak</th></tr></thead>
     <tbody>
       {%- for row in part.rows %}
-      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.what }}</td><td>{{ row.tier }}</td><td>{{ row.tweak }}</td></tr>
+      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.what|chem }}</td><td>{{ row.tier }}</td><td>{{ row.tweak }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>

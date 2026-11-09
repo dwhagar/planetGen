@@ -360,6 +360,9 @@ def test_a_unit_survives_a_warm_that_outlasts_an_execution_record(monkeypatch, c
     when it cleaned up. Here the warm drops every execution record of the job, as the expiry would."""
     from planetgen.cli import worker
     _handlers(monkeypatch, test=_square)
+    # TEST.713: the worker starts itself over (`os.execv`) for a unit that needs no star tables when its process holds them (PERF.226, `units.sheds_tables_for`). A test process that
+    # an earlier test left holding the tables (a parallel run's) was replaced by a worker there, and its pytest-xdist node went down; this test is about the warm, so none is held.
+    monkeypatch.setattr(units, "tables_held", lambda: False)
     seen = []
 
     def long_warm(job):
@@ -453,11 +456,11 @@ def test_the_mass_scatter_records_its_run_with_a_unit_per_run_of_shells(mysql_co
     conn = redisqueue.connect()
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["database"] == mysql_config.database
-    assert [stage["key"] for stage in run["stages"]] == ["mass", "block-lights"]
-    assert run["stages"][0]["done"] == run["stages"][0]["units"] > 0
-    plan = runrecord.read_plan(conn, runs[0], 0)
-    assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][0]["units"]
-    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["scatter-mass", "refresh-block-lights"]
+    assert [stage["key"] for stage in run["stages"]] == ["mass-clear", "mass", "block-lights"]
+    assert run["stages"][1]["done"] == run["stages"][1]["units"] > 0
+    plan = runrecord.read_plan(conn, runs[0], 1)
+    assert plan["kind"] == "scatter-mass" and plan["units"] == run["stages"][1]["units"]
+    assert [step["kind"] for step in runrecord.read_steps(conn, runs[0])] == ["clear-bright-stars", "scatter-mass", "refresh-block-lights"]
 
 
 def _scatter_then_band(mysql_config, workers):
@@ -482,7 +485,7 @@ def test_the_luminosity_pass_and_the_band_give_the_same_stars_at_any_worker_coun
     assert len(scattered) > 20 and len(banded) > len(scattered)
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "scatter-mass", "scatter-luminosity", "refresh-block-lights", "scatter-band"]
+        "clear-bright-stars", "scatter-mass", "scatter-luminosity", "refresh-block-lights", "scatter-band"]
     for run_id in runs:
         run = runrecord.read_run(conn, run_id)
         assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 0
@@ -607,7 +610,7 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     assert len(one) > 50
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights"]
+        "scatter-phenomena", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
@@ -628,7 +631,7 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
     assert shape.to_json() == {key: value for key, value in expansion.plan.items()
-                                      if key not in ("filled", "outline_shells", "min_mass_solar")} \
+                                      if key not in ("filled", "outline_shells", "min_mass_solar", "row_totals")} \
         and len(shape.tasks) == len(expansion.units) > 1
     conn = store.get_connection(mysql_config)
     try:

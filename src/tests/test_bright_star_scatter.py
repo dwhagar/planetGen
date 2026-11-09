@@ -227,6 +227,28 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
         assert row["stored_fe_h"] is not None and star["fe_h"] == pytest.approx(row["stored_fe_h"])
 
 
+def test_the_clear_bright_stars_step_empties_the_stars_only_when_the_settings_say_to(mysql_config):
+    """OPS.123: the emptying was the `prepare` of the shell scatter commands; as a step of its own it empties on `clear` and otherwise leaves the stars."""
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    summary = run_plan.scatter_bright_stars(_scatter_args(mysql_config, "--mass"))
+    assert summary["total"] > 0
+    params = {"database": wrapper.database_args(mysql_config)}
+    assert run_plan.expand_clear_bright_stars(params).units == [(params, 1.0)]
+    assert commands.run_alone("clear-bright-stars", params) == {"cleared": None}
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == summary["total"]
+    finally:
+        conn.close()
+    assert commands.run_alone("clear-bright-stars", {**params, "clear": "all"}) == {"cleared": "all"}
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
 def test_the_scatter_reports_only_the_shells_that_drew_stars(mysql_config, monkeypatch):
     # GEN.79: "all 5685 layers were generated" hid that only the middle
     # ones held any stars. Shell 8 here draws none.
@@ -1014,8 +1036,8 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
     run_galaxy.run_galaxy(args)
     [followers] = runs
     assert [follower.key for follower in followers] == [
-        "start", "neighborhood", "link", "mass", "luminosity", "phenomena", "phenomena-index", "nebula-draw",
-        "block-lights", "backfill", "population", "territories", "settle", "run-blocks"]
+        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw",
+        "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
     by_key = {follower.key: follower for follower in followers}
     # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.
     mass, phenomena = by_key["mass"].params()["settings"], by_key["phenomena"].params()["settings"]

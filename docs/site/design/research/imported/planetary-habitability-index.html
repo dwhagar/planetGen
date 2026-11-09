@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Planetary habitability index - planetGen docs</title>
+<meta name="description" content="Planetary habitability index">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/planetary-habitability-index.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/planetary-habitability-index.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<p class="meta">docs/design/research/imported/planetary-habitability-index.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:14px"><a href="#1-pressure-atmospheric--hydrostatic">1. Pressure (Atmospheric &amp; Hydrostatic)</a></li><li style="margin-left:14px"><a href="#2-temperature-thermal-dynamics">2. Temperature (Thermal Dynamics)</a></li><li style="margin-left:14px"><a href="#3-chemistry-air--water-toxicity">3. Chemistry (Air &amp; Water Toxicity)</a></li><li style="margin-left:14px"><a href="#4-radiation-ionizing--xuv">4. Radiation (Ionizing &amp; XUV)</a></li></ul></details><blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere</a>, <a href="../../habitability/atmospheres-retention-and-classes.html">atmospheres-retention-and-classes</a>, <a href="../../habitability/habitability-index.html">habitability-index</a>, <a href="../../architecture/units-and-number-formatting.html">units-and-number-formatting</a>.</p>
+</blockquote>
+<p>The <strong>Planetary Habitability Index (PHI-4)</strong> evaluates planetary environments across four critical physiological and thermodynamic domains, integrating universal biological constraints with specific species adaptations. The index scales from <strong>Blue</strong> (ideal conditions) to <strong>Red</strong> (lethal extremes), with <strong>Green</strong> representing the baseline sweet spot for unassisted or minimally assisted survival.</p>
+<h3 id="1-pressure-atmospheric--hydrostatic">1. Pressure (Atmospheric &amp; Hydrostatic)</h3>
+<p>This domain measures total ambient pressure and its physical effects on biological tissues, ranging from vacuum ebullism to extreme hyperbaric density.</p>
+<ul>
+<li><strong>Blue (Ideal):</strong> Atmospheric pressures between 50 kPa and 250 kPa. These conditions prevent fluid ebullism and mechanical tissue distortion without imposing excess work of breathing.</li>
+<li><strong>Green (Tolerable):</strong> Sub-baric pressures down to 10–20 kPa (requiring pure oxygen masks but no mechanical counterpressure suits) or hyperbaric pressures up to 400 kPa (where mild nitrogen narcosis risk begins).</li>
+<li><strong>Yellow (Marginal):</strong> Pressures dropping toward the Armstrong limit of 6.3 kPa, requiring mechanical counterpressure (MCP) suits to prevent bodily fluids from boiling. Alternatively, extreme hyperbaric regimes between 500 kPa and 10 MPa. This is the required operational tier for <strong>Homo Sapiens Aqualis</strong>, who suffer severe adverse effects if pressure drops below 50 kPa, and the <strong>Hydraquari</strong>.</li>
+<li><strong>Red (Harshest):</strong> Hard vacuum or sub-Armstrong limits (&lt; 6.3 kPa) resulting in instant vaporization of exposed alveolar fluids. Conversely, abyssal pressures exceeding 12 MPa where gas density halts the human diaphragm's ability to mechanically breathe. Only vacuum-adapted biologicals like the <strong>Aloftex Arachnid</strong> or hyper-dense supercritical extremophiles survive here.</li>
+</ul>
+<h3 id="2-temperature-thermal-dynamics">2. Temperature (Thermal Dynamics)</h3>
+<p>This domain evaluates sensible heat, evaporative cooling limits, and extreme thermal stressors.</p>
+<ul>
+<li><strong>Blue (Ideal):</strong> Dry-bulb temperatures between 0°C and 31°C. Crucially, the wet-bulb temperature must remain strictly below 31°C to allow for human evaporative cooling. This represents the mandatory baseline for the <strong>Brishian</strong> species, who require strict 20–30°C bands and high humidity to prevent fatal desiccation.</li>
+<li><strong>Green (Tolerable):</strong> Environments dropping to -20°C or peaking at 45°C dry-bulb, survivable with standard thermal clothing or basic evaporative cooling garments.</li>
+<li><strong>Yellow (Marginal):</strong> Moist-greenhouse conditions up to 90°C, requiring active liquid-cooling ventilation garments. On the cold spectrum, cryogenic eutectic brines dropping to -50°C. Organisms like <strong>Subject AEX 13</strong> excel in these thermally volatile zones.</li>
+<li><strong>Red (Harshest):</strong> Thermal ceilings exceeding 122°C, which rapidly hydrolyze phosphodiester bonds and denature amino acids, sterilizing carbon-based biology. Runaway greenhouse worlds and unshielded rogue planet surfaces fall into this category.</li>
+</ul>
+<h3 id="3-chemistry-air--water-toxicity">3. Chemistry (Air &amp; Water Toxicity)</h3>
+<p>This domain measures metabolic fuel, toxic ligand binding, solvent viability, and structural chaos in water.</p>
+<ul>
+<li>
+<p><strong>Blue (Ideal):</strong></p>
+</li>
+<li>
+<p><em>Air:</em> Inspired oxygen between 8.0 kPa and 53.0 kPa. Carbon dioxide remains strictly below 0.93 kPa to prevent respiratory acidosis.</p>
+</li>
+<li>
+<p><em>Water:</em> Neutral pH oceans with water activity (aw) &gt; 0.9, free of heavy metals and chaotropic salts.</p>
+</li>
+<li>
+<p><strong>Green (Tolerable):</strong></p>
+</li>
+<li>
+<p><em>Air:</em> Low-oxygen atmospheric worlds. This is the optimal tier for the <strong>Floran</strong>, whose photosynthetic cells naturally generate internal oxygen, allowing them to bypass standard hypoxic limits.</p>
+</li>
+<li>
+<p><em>Water:</em> Mildly saline or carbonated waters that do not disrupt lipid bilayers.</p>
+</li>
+<li>
+<p><strong>Yellow (Marginal):</strong></p>
+</li>
+<li>
+<p><em>Air:</em> Toxic atmospheres requiring heavy respirator scrubbers. Environments with carbon monoxide up to 10% (requiring Hopcalite catalytic filtration) or elevated carbon dioxide requiring closed-loop amine scrubbers.</p>
+</li>
+<li>
+<p><em>Water:</em> Highly chaotropic brines or alkaline soda oceans (pH 9.5–11.5). Water activity drops toward the extreme xerophilic limit of 0.605.</p>
+</li>
+<li>
+<p><strong>Red (Harshest):</strong></p>
+</li>
+<li>
+<p><em>Air:</em> Lethal concentrations of carbon monoxide (&gt; 0.1 kPa) that irreversibly halt aerobic electron transport, or acute carbon dioxide (&gt; 5.0 kPa) causing immediate cardiac failure.</p>
+</li>
+<li>
+<p><em>Water:</em> Hyperacidic sulfate oceans (pH 0–1) or hyperchaotropic pools (&gt; 73.8 kJ/kg) that physically dismantle macromolecular hydration shells, rendering the liquid chemically sterile.</p>
+</li>
+</ul>
+<h3 id="4-radiation-ionizing--xuv">4. Radiation (Ionizing &amp; XUV)</h3>
+<p>This domain measures the penetration of galactic cosmic rays (GCRs), stellar energetic particles (SEPs), and endogenous radioactive decay.</p>
+<ul>
+<li><strong>Blue (Ideal):</strong> Surface biological equivalent doses remain below the occupational threshold of 50 mSv/yr. This is achieved naturally by an atmospheric column mass exceeding 1000 g/cm² or by a protective water column of at least 10 meters.</li>
+<li><strong>Green (Tolerable):</strong> Moderate surface doses (50–100 mSv/yr). The planet may possess a thinner atmosphere or weak magnetosphere, leading to occasional UV surface bursts from stratospheric ozone depletion during stellar proton events.</li>
+<li><strong>Yellow (Marginal):</strong> Extreme surface radiation requiring subsurface refugia. Habitability is restricted to the &quot;Radiolytic Habitable Zone,&quot; located under 3 to 5 meters of silicate rock or planetary ice. Here, cosmic rays drive water radiolysis, providing metabolic energy for deep-subterranean extremophiles without exposing them to lethal surface doses.</li>
+<li><strong>Red (Harshest):</strong> Unshielded surface doses exceeding 10 Gy/yr. At this level, radiation surpasses the Eigen mutational error threshold, destroying proto-genomic replication and preventing the maintenance of genomes longer than a few dozen nucleotides.</li>
+</ul>
+<p>A planetary assessment cross-references these four domains. A world with a breathable Blue atmosphere and Green temperatures may still require isolated settlement if its Radiation domain scores Red due to a missing magnetosphere and thin atmospheric column, ultimately dictating the technological or biological adaptations required for survival.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

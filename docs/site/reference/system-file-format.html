@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>System Specification Files - planetGen docs</title>
+<meta name="description" content="planetgen&#x27;s system subcommand can load a full (or partial) star system specification from a JSON file with --system-file / -f:">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/system-file-format.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/system-file-format.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="system-specification-files">System Specification Files</h1><p class="meta">docs/reference/system-file-format.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#top-level-keys">Top-level keys</a></li><li style="margin-left:0px"><a href="#tri-state-options">Tri-state options</a></li><li style="margin-left:0px"><a href="#slots">Slots</a></li><li style="margin-left:0px"><a href="#planet-classes">Planet classes</a></li><li style="margin-left:0px"><a href="#full-example">Full example</a></li></ul></details>
+<p><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/generate.py"><code>planetgen</code></a>'s <code>system</code> subcommand can load a full
+(or partial) star system specification from a JSON file with
+<code>--system-file</code> / <code>-f</code>:</p>
+<pre><code class="language-bash">planetgen system --system-file examples/systems/solar_system.json
+</code></pre>
+<p>Like any <code>planetgen system</code> run, this saves the system to the
+configured database. Add <code>--output FILE</code> (or <code>--output -</code> for standard
+output) to write the page to a file instead and leave the database alone.</p>
+<p>Every key is optional. Anything you leave out is generated normally (randomly,
+subject to the usual physical rules). Anything given on the command line
+<em>in addition to</em> <code>--system-file</code> overrides the corresponding value from the
+file — the file sets a baseline, the command line wins.</p>
+<p>See <code>solar_system.json</code> for a complete example that builds something
+resembling our own solar system.</p>
+<h2 id="top-level-keys">Top-level keys</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>star_type</code></td>
+<td>string or <code>null</code></td>
+<td>A specific spectral type + Yerkes class, e.g. <code>&quot;G2V&quot;</code>, <code>&quot;M5V&quot;</code>, <code>&quot;B0IA&quot;</code>. Format is <code>[OBAFGKM][0-9][Yerkes class]</code> (Yerkes classes: <code>0</code>, <code>IA+</code>, <code>IA</code>, <code>IAB</code>, <code>IB</code>, <code>II</code>, <code>III</code>, <code>IV</code>, <code>V</code>, <code>VI</code>, <code>VII</code>/<code>D</code>). If omitted, the star is generated randomly.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string or <code>null</code></td>
+<td>The star system's name. If omitted, a name is randomly generated.</td>
+</tr>
+<tr>
+<td><code>age</code></td>
+<td><code>&quot;young&quot;</code>, <code>&quot;old&quot;</code>, or <code>null</code></td>
+<td>Biases the star's initial age toward the start or end of its lifespan. If omitted, age is random.</td>
+</tr>
+<tr>
+<td><code>num_orbits</code></td>
+<td>integer or <code>null</code></td>
+<td>The exact number of orbital slots (planets <em>and</em> asteroid belts, combined) to generate, at most 500. If omitted, the count is estimated from the star's mass (see <code>max_planets</code> below) and randomized.</td>
+</tr>
+<tr>
+<td><code>slots</code></td>
+<td>array or <code>null</code></td>
+<td>Per-orbit specifications — see <a href="#slots">Slots</a> below.</td>
+</tr>
+<tr>
+<td><code>habitable_world</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>asteroid_belt</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>comets</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>large_star</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>moons</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>max_planets</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>intelligent_life</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>binary_system</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>wide_binary</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>. Only meaningful together with <code>binary_system: true</code>.</td>
+</tr>
+<tr>
+<td><code>planets</code></td>
+<td><code>true</code>, <code>false</code>, or omitted</td>
+<td>See <a href="#tri-state-options">Tri-state options</a>.</td>
+</tr>
+<tr>
+<td><code>flavor_chance_system</code></td>
+<td>float <code>0.0</code>-<code>1.0</code></td>
+<td>Overrides the odds of a system-level &quot;sensor readings&quot; flavor line appearing.</td>
+</tr>
+<tr>
+<td><code>flavor_chance_planet</code></td>
+<td>float <code>0.0</code>-<code>1.0</code></td>
+<td>Overrides the odds of a planet-level flavor line appearing.</td>
+</tr>
+<tr>
+<td><code>max_planet_flavor</code></td>
+<td><code>true</code> or omitted</td>
+<td>Raises the total flavor-text budget for the run to 99 and sets <code>flavor_chance_planet</code> to 1.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="tri-state-options">Tri-state options</h2>
+<p>Most of the boolean-ish options above are <strong>tri-state</strong>: <code>true</code> forces the
+feature to be present (except <code>habitable_world</code> and <code>intelligent_life</code>, where it
+only raises the odds and never forces; the system may come out without and says so),
+<code>false</code> forces it to be absent, and omitting the key
+(or, in JSON, setting it to <code>null</code>) leaves it up to chance. This mirrors the
+command line's <code>+name</code> / <code>-name</code> flags (<code>+habitable_world</code> sets it <code>true</code>,
+<code>-habitable_world</code> sets it <code>false</code>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Key</th>
+<th><code>true</code> forces...</th>
+<th><code>false</code> forces...</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>habitable_world</code></td>
+<td>Raises the odds of a habitable world; never forces one.</td>
+<td>No habitable world is generated.</td>
+</tr>
+<tr>
+<td><code>asteroid_belt</code></td>
+<td>At least one asteroid belt exists.</td>
+<td>No asteroid belt is generated.</td>
+</tr>
+<tr>
+<td><code>comets</code></td>
+<td>At least one star-bound comet exists.</td>
+<td>No star-bound comet is generated.</td>
+</tr>
+<tr>
+<td><code>large_star</code></td>
+<td>A large, massive star is generated (only matters when <code>star_type</code> is omitted).</td>
+<td>Nothing beyond the normal default population — included for symmetry/explicitness.</td>
+</tr>
+<tr>
+<td><code>moons</code></td>
+<td>Every planet gets a chance at moons.</td>
+<td>No planet in the system gets moons (unless a slot gives it an explicit <code>moons</code> count — see below).</td>
+</tr>
+<tr>
+<td><code>max_planets</code></td>
+<td>The system generates the maximum number of orbital objects its star can support.</td>
+<td>The system generates the minimum (0, or whatever <code>habitable_world</code>/<code>asteroid_belt</code>/<code>planets</code> require).</td>
+</tr>
+<tr>
+<td><code>intelligent_life</code></td>
+<td>Raises the odds of a planet with a technological civilization; never forces one. Also sets <code>habitable_world</code> to <code>true</code>.</td>
+<td>No planet reaches a technological civilization. Also forces <code>habitable_world</code> to <code>true</code> (a world can still be habitable without intelligent life).</td>
+</tr>
+<tr>
+<td><code>binary_system</code></td>
+<td>A binary star system is generated instead of a single star (which of the two real configurations below is used is decided by <code>wide_binary</code>).</td>
+<td>A single star (the default).</td>
+</tr>
+<tr>
+<td><code>wide_binary</code></td>
+<td>An S-type (wide) binary is generated: the two stars stay tens to thousands of AU apart, each keeping its own identity and independently-generated planets, with each star's maximum stable orbit limited by the companion's gravity.</td>
+<td>A P-type (close/circumbinary) binary is generated instead: the two stars merge into one effective star for planet placement. If omitted, one of the two is chosen at random. Ignored entirely unless <code>binary_system</code> is also <code>true</code>.</td>
+</tr>
+<tr>
+<td><code>planets</code></td>
+<td>The system has at least one planet or asteroid belt (count won't be forced down to 0).</td>
+<td>The system has no planets or asteroid belts at all — just the star.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Incompatible combinations</strong> (the CLI will refuse these; take the same care
+in a JSON file):</p>
+<ul>
+<li><code>planets: false</code> with <code>moons: true</code>, <code>max_planets: true</code>, or <code>habitable_world: true</code>.</li>
+<li><code>star_type</code> set together with <code>large_star: true</code>.</li>
+<li><code>intelligent_life</code> (either value) together with <code>habitable_world: false</code>.</li>
+<li><code>habitable_world: true</code> and <code>asteroid_belt: true</code> together with <code>large_star: false</code> (both objects need the extra room a large star provides).</li>
+<li><code>num_orbits</code> together with <code>planets: false</code>.</li>
+</ul>
+<h2 id="slots">Slots</h2>
+<p><code>slots</code> lets you dictate exactly what occupies specific orbital positions,
+counted outward from the star starting at index 0. It's a JSON array; each
+entry is either:</p>
+<ul>
+<li>
+<p><code>null</code> — generate that orbit normally (random, subject to the other options), or</p>
+</li>
+<li>
+<p>an object describing exactly what goes there:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>yes</td>
+<td><code>&quot;planet&quot;</code> or <code>&quot;asteroid_belt&quot;</code>.</td>
+</tr>
+<tr>
+<td><code>planet_class</code></td>
+<td>no (<code>type: &quot;planet&quot;</code> only)</td>
+<td>A specific planet class letter (see <a href="#planet-classes">Planet classes</a>). If omitted, the planet is drawn normally and gets whatever class it comes out as.</td>
+</tr>
+<tr>
+<td><code>moons</code></td>
+<td>no (<code>type: &quot;planet&quot;</code> only)</td>
+<td>An exact number of moons to generate, <code>0</code> for none. If omitted, moon generation falls back to the <code>moons</code> option / random 50-50 chance.</td>
+</tr>
+</tbody>
+</table></div>
+</li>
+</ul>
+<p>The array doesn't need to cover every orbit — it can be shorter than
+<code>num_orbits</code> (or than however many orbits are otherwise generated), and any
+entry can be <code>null</code>. Orbits past the end of the array, or with a <code>null</code>
+entry, are generated normally.</p>
+<p>Notes on how slots interact with the rest of generation:</p>
+<ul>
+<li><strong>Orbital distance isn't something you set directly.</strong> Distances are
+computed sequentially, each orbit building outward from the last based on
+the star's mass and the previous object's size. The one request that moves
+an orbit is a class that can carry life (see <a href="#planet-classes">Planet classes</a>):
+if the orbit would land outside the habitable zone, the generator snaps it
+into the zone, the way the orbit of a requested habitable world is placed. Any other
+class keeps the orbit's own distance, and the planet is drawn again there
+until it comes out as that class.</li>
+<li><strong><code>moons</code> is best-effort.</strong> A planet only has so much stable orbital room
+for satellites (governed by its Hill sphere). If you ask for more moons
+than fit, you'll get as many as fit and no more — no error.</li>
+<li>A slot with <code>planet_class</code> set to one of the habitable classes (see below)
+still counts toward satisfying a top-level <code>habitable_world: true</code>
+requirement.</li>
+<li>An unknown <code>planet_class</code> (a typo, or a letter no class uses) raises a clear
+error at generation time rather than silently substituting something else.
+A real class that the draws cannot reach at that place is listed as an
+unmet requirement in the generated system.</li>
+</ul>
+<h2 id="planet-classes">Planet classes</h2>
+<p>These are the class letters valid for <code>slots[].planet_class</code>. A class is not drawn first. It is read off the finished
+body: the generator builds the whole planet (mass, make, air, temperature, water), then gives it the first class in the
+check order below whose rule it meets. A slot that names a class is generated again, up to 40 times, until the finished
+planet has that class.</p>
+<p>Only a class that can carry life has a place. Those classes (the &quot;Life?&quot; column) need a world in the habitable zone, so
+a slot that asks for one is moved into the habitable zone if its orbit would land outside it. Every other class keeps the
+orbit's own distance, and the draws are made there. A class that cannot come out at that place (a white dwarf's habitable
+zone holds no air) is listed in the system's unmet requirements instead of being forced. An unknown letter raises an
+error at once, and a class that can carry life raises one when <code>habitable_world</code> is <code>false</code>. Only <code>&quot;M&quot;</code> is called out
+separately in the summary output, as a &quot;class M world&quot;.</p>
+<p>The giants are checked first (T, then I, then J). Rocky bodies are checked in this order: D, S, C, A, T, N, V, L, K, E, P,
+B, F, G, O, H, M. The last class in each list takes every body that no earlier rule caught.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Name</th>
+<th>Type</th>
+<th>Rule: what the finished body must be</th>
+<th>Life?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>T</code></td>
+<td>Gas dwarf</td>
+<td>gas giant</td>
+<td>Mass below 10 Earth masses.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>I</code></td>
+<td>Ice giant</td>
+<td>gas giant</td>
+<td>Mass below 35 Earth masses.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>J</code></td>
+<td>Gas giant</td>
+<td>gas giant</td>
+<td>Every giant no earlier class took.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>D</code></td>
+<td>Small icy body</td>
+<td>terrestrial</td>
+<td>No air (under 10 Pa) and at least 1 percent of its mass is water or ice.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>S</code></td>
+<td>Airless super-Earth</td>
+<td>terrestrial</td>
+<td>No air (under 10 Pa) and at least 1.5 Earth masses.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>C</code></td>
+<td>Dead world</td>
+<td>terrestrial</td>
+<td>No air (under 10 Pa).</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>A</code></td>
+<td>Volcanic world</td>
+<td>terrestrial</td>
+<td>At least 3 percent sulfur dioxide in the air.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>T</code></td>
+<td>Gas dwarf</td>
+<td>terrestrial</td>
+<td>At least 30 percent hydrogen in the air and under 10 Earth masses.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>N</code></td>
+<td>Hot dense world</td>
+<td>terrestrial</td>
+<td>Air of at least 10 bar, a mean surface at 400 K or more, and under 30 percent hydrogen.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>V</code></td>
+<td>High-gravity world</td>
+<td>terrestrial</td>
+<td>Surface gravity of at least 2 g.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>L</code></td>
+<td>Marginal thin-air world</td>
+<td>terrestrial</td>
+<td>Air of 30 kPa to 3 bar, a mean surface of 273.15 K to 320 K, 1 percent or more carbon dioxide, 3 to 16 percent oxygen, and at least 0.5 g.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>K</code></td>
+<td>Thin-air world</td>
+<td>terrestrial</td>
+<td>Air under 3 kPa, a mean surface of 273.15 K to 320 K, and under 10 percent oxygen.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>E</code></td>
+<td>Deep-frozen world</td>
+<td>terrestrial</td>
+<td>A mean surface under 233.15 K (-40 C).</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>P</code></td>
+<td>Glaciated world</td>
+<td>terrestrial</td>
+<td>A mean surface of 233.15 K to 273.15 K.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>W</code></td>
+<td>Frozen world</td>
+<td>terrestrial</td>
+<td>An air world with a mean surface of 233.15 K to 273.15 K, under 2 g, that class P does not hold (GEN.1306).</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>B</code></td>
+<td>Small hot world</td>
+<td>terrestrial</td>
+<td>Surface gravity under 0.5 g.</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>F</code></td>
+<td>Anoxic world</td>
+<td>terrestrial</td>
+<td>Under 3 percent oxygen and under 20 percent carbon dioxide in the air, 0.5 to 1.4 g.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>G</code></td>
+<td>Carbon dioxide world</td>
+<td>terrestrial</td>
+<td>At least 20 percent carbon dioxide in the air.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>O</code></td>
+<td>Ocean world</td>
+<td>terrestrial</td>
+<td>At least 80 percent of the surface covered by water.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>H</code></td>
+<td>Desert world</td>
+<td>terrestrial</td>
+<td>Under 20 percent of the surface covered by water.</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>M</code></td>
+<td>Temperate world</td>
+<td>terrestrial</td>
+<td>Every rocky body no earlier class took.</td>
+<td>yes</td>
+</tr>
+</tbody>
+</table></div>
+<p>The letters Q, R, U, W, X, Y and Z are not used. The rules above are the live ones, and the thresholds are tuned by the
+class sweep (<code>src/tests/class_shadow_cli.py</code>), so check <code>src/planetgen/physics/data/planet_classes.json</code> for the exact
+numbers.</p>
+<p><strong>Planned, class code system GEN.1220 (not live yet).</strong> A class will be a letter plus a digit, and new letters are
+confirmed for new families of world: <code>Y</code> (sulfuric acid), <code>U</code> (methane and ethane), <code>X</code> (ammonia and water), <code>Z</code> (hot
+thin-air world) and <code>R</code> (Hothouse). None of these can be named in a slot until GEN.1220 is merged.</p>
+<p>Moons are given a class by the same rules, so no letter is barred from a moon, and a slot's own <code>planet_class</code> always
+describes the planet itself, never its moons.</p>
+<h2 id="full-example">Full example</h2>
+<pre><code class="language-json">{
+  &quot;star_type&quot;: &quot;G2V&quot;,
+  &quot;name&quot;: &quot;Sol&quot;,
+  &quot;num_orbits&quot;: 9,
+  &quot;slots&quot;: [
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;B&quot;, &quot;moons&quot;: 0},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;N&quot;, &quot;moons&quot;: 0},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;M&quot;, &quot;moons&quot;: 1},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;C&quot;, &quot;moons&quot;: 2},
+    {&quot;type&quot;: &quot;asteroid_belt&quot;},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;J&quot;, &quot;moons&quot;: 4},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;J&quot;, &quot;moons&quot;: 5},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;I&quot;, &quot;moons&quot;: 5},
+    {&quot;type&quot;: &quot;planet&quot;, &quot;planet_class&quot;: &quot;I&quot;, &quot;moons&quot;: 1}
+  ]
+}
+</code></pre>
+<p>This pins the star to a Sun-like <code>G2V</code>, lays out exactly 9 orbits, and
+dictates each one: two small hot worlds, an Earth-like world with one moon, a
+dead cold world with two moons, an asteroid belt, two gas giants, and two ice
+giants — a rough analog of our own solar system. Anything not specified here
+(the star's exact mass/radius/temperature within its type, each planet's
+exact radius/mass/atmosphere details, orbital distances, names, ages, life
+chemistry, flavor text, etc.) is still generated normally.</p>
+<p>See <a href="cli.html"><code>cli.md</code></a> for the full command-line reference,
+or <a href="example-systems.html"><code>example-systems.md</code></a> for the rest of the example
+files.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

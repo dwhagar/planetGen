@@ -1,0 +1,483 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library migration and code layout - planetGen docs</title>
+<meta name="description" content="The plan of record for moving planetGen off its zero-dependency model and onto third-party open-source libraries, and for reorganizing the code into importable packages.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/library-migration.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/library-migration.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="library-migration-and-code-layout">Library migration and code layout</h1><p class="meta">docs/design/architecture/library-migration.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-boss-asked-for">1. What Boss asked for</a></li><li style="margin-left:0px"><a href="#2-order">2. Order</a></li><li style="margin-left:0px"><a href="#3-the-work-queue-redis-and-rq">3. The work queue: Redis and RQ</a></li><li style="margin-left:0px"><a href="#4-logs-and-progress-in-the-browser">4. Logs and progress in the browser</a></li><li style="margin-left:0px"><a href="#5-front-end-libraries">5. Front-end libraries</a></li><li style="margin-left:0px"><a href="#6-package-layout-ops23">6. Package layout (OPS.23)</a></li><li style="margin-left:14px"><a href="#61-where-things-live-today">6.1 Where things live today</a></li><li style="margin-left:14px"><a href="#62-no-compatibility-layer">6.2 No compatibility layer</a></li><li style="margin-left:14px"><a href="#63-the-packages">6.3 The packages</a></li><li style="margin-left:14px"><a href="#64-shared-helpers-merged-into-utilities">6.4 Shared helpers merged into utilities</a></li><li style="margin-left:14px"><a href="#65-the-order-of-the-move-ops24">6.5 The order of the move (OPS.24)</a></li><li style="margin-left:14px"><a href="#66-deployment">6.6 Deployment</a></li><li style="margin-left:0px"><a href="#7-why-it-works-this-way">7. Why it works this way</a></li></ul></details>
+<p>The plan of record for moving planetGen off its zero-dependency model and
+onto third-party open-source libraries, and for reorganizing the code into
+importable packages. It condenses Boss's research documents in this folder
+(&quot;Library Migration Workflow.md&quot;, &quot;Web UX Development Notes.md&quot; and &quot;Web UX
+and Job Management Guide.md&quot;) and records where this plan departs from them. Measured costs and the
+health of the front-end libraries are in
+<a href="../interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries.md</a>.</p>
+<p><strong>Status (2026-10-15).</strong> Built: OPS.20 to OPS.24, DB.11, PERF.24, UX.39 to UX.41, ADM.22 and MAP.102. The work queue of section 3 was rebuilt under PERF.86 (built by PERF.95 to PERF.100 and the command steps after them): Redis is the only place a run lives, and the MySQL job tree and its tables are gone. Astropy was dropped by GEN.211 (#1310), the Python floor is 3.12 and numba is required (OPS.42, #1291). Section 6 is the plan from before the move (its &quot;where things live today&quot; names, such as <code>stellarObjects</code> and the single <code>generate.py</code>, are history); the packages that exist now are in <a href="architecture.html">architecture.md</a>.</p>
+<h2 id="1-what-boss-asked-for">1. What Boss asked for</h2>
+<p>Boss (2026-10-03 05:38Z): &quot;Transition the code to open source 3rd party
+libraries and simplify the code base, also in this step we'll use a redis
+server for use in managing and executing the work queue. ... To be clear,
+we have an explicit directive to move the code base from a 0-dependency
+model into using 3rd party open source libraries to simplify our own code
+deployment.&quot;</p>
+<p>And: &quot;Code reorganize to put things into distinct python modules as
+different importable objects for modularity of code and easier
+maintenance. Maximize the use of utility libraries for shared functions
+across all modules.&quot;</p>
+<p>Both are phase 0 groundwork: several bugs (the job log bugs, the 2FA and
+rate-limit test flakes, the menu and button bugs, slow map zoom) are fixed
+by the new libraries rather than patched in the old code.</p>
+<h2 id="2-order">2. Order</h2>
+<ol>
+<li><strong>Pins and Redis first.</strong> The new packages go into the hash-pinned lock
+files, and install, update and CI provide a Redis server.</li>
+<li><strong>Layout plan, then the move.</strong> A package layout is written down and
+approved, then the code moves one package per PR with no behavior
+change. Doing this before the swaps means each file moves once.</li>
+<li><strong>Library swaps</strong>, each its own PR, deleting the code it replaces:</li>
+</ol>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Today</th>
+<th>Library</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Two-step sign-in</td>
+<td><code>totp.py</code> and <code>qrcodegen.py</code>, deleted (SEC.29, PR #612)</td>
+<td>pyotp, segno</td>
+<td>Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies.</td>
+</tr>
+<tr>
+<td>Markdown</td>
+<td><code>mdconvert.py</code>, replaced by <code>web/lib/mdrender.py</code> (UX.39, PR #759)</td>
+<td>markdown</td>
+<td>Narrow subset only; everything else stays plain text and is escaped.</td>
+</tr>
+<tr>
+<td>Rate limits</td>
+<td><code>loginThrottle.py</code>, <code>api/limiter.py</code>, <code>api/loginguard.py</code></td>
+<td>Flask-Limiter (Redis storage)</td>
+<td>The lockout rules in login-brute-force-protection.md are kept.</td>
+</tr>
+<tr>
+<td>Work queue and web jobs</td>
+<td><code>workQueue.py</code> (1,600 lines), <code>planetgen.cli.job</code>, the <code>work_lease</code> table</td>
+<td>RQ on Redis</td>
+<td>Done (PERF.24, rebuilt by PERF.86). See section 3.</td>
+</tr>
+<tr>
+<td>Caches</td>
+<td><code>pagecache.py</code>, <code>tilecache.py</code></td>
+<td>cachetools for <code>pagecache.py</code> only (done: a <code>TTLCache</code> sized by body length, <code>max_entries</code> held on top; PERF.25)</td>
+<td>Boss agreed (2026-10-07 13:27Z): <code>tilecache.py</code> stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters.</td>
+</tr>
+<tr>
+<td>Database</td>
+<td><code>store.py</code> (9,800 lines), <code>planetgen.cli.migrate</code> with <code>schema_vNN.sql.gz</code> fixtures</td>
+<td>SQLAlchemy, Alembic</td>
+<td>Alembic starts from a baseline that recognises existing databases at the current schema.</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td><code>validation.py</code></td>
+<td>Pydantic</td>
+<td>The same limits; errors list every field.</td>
+</tr>
+<tr>
+<td>Physics</td>
+<td><code>keplerMotion.py</code>, <code>physical_constants.py</code>, replaced (GEN.66, PR #767) by <code>physics/kepler.py</code> on scipy and a literal constants table (GEN.211, #1310; astropy now only in the <code>test</code> extra, where <code>tests/test_astropy_constants.py</code> holds the table against astropy's own values)</td>
+<td>scipy</td>
+<td>Results checked against the old values within stated tolerances.</td>
+</tr>
+<tr>
+<td>Job logs and progress</td>
+<td><code>generatejobs.js</code>, <code>generatefolds.js</code>, <code>jobs.py</code>, <code>progressRate.py</code></td>
+<td>Xterm.js over Server-Sent Events, native <code>&lt;progress&gt;</code></td>
+<td>Done (ADM.22). See section 4.</td>
+</tr>
+<tr>
+<td>Buttons, menus, dialogs</td>
+<td>hand-written HTML and CSS</td>
+<td>Shoelace web components</td>
+<td>Done (UX.40). Uses the approved icon set. Shoelace 2.20.1 is its final release; see section 5.</td>
+</tr>
+<tr>
+<td>Tables</td>
+<td><code>tabledisplay.py</code></td>
+<td>TanStack Table and TanStack Virtual</td>
+<td>Done (UX.41, PR #606). The server still pages 50 rows.</td>
+</tr>
+<tr>
+<td>Galaxy Map streaming</td>
+<td><code>galaxymap3d.js</code>, <code>galaxyprisms.js</code></td>
+<td>3D tiles, camera-relative rendering</td>
+<td>Done (MAP.102, PR #574): level of detail per tile. three-mesh-bvh was dropped: stars are not pickable in Galaxy mode, and for Star mode (MAP.122) a screen-space typed-array pick measured 5.4 ms at 70,000 stars against 0.6 s just to build a point BVH (map-ui-and-frontend-libraries.md, section 5.2).</td>
+</tr>
+<tr>
+<td>Nebula meshes</td>
+<td>none</td>
+<td>scikit-image (marching cubes)</td>
+<td>For the nebula shape (nebula-and-asteroid-field-classes.md).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-work-queue-redis-and-rq">3. The work queue: Redis and RQ</h2>
+<p>The job guide proposes a broker-less <code>ProcessPoolExecutor</code> and mentions
+SQLite. Boss chose Redis for the queue, and the store is MySQL or MariaDB,
+so this plan uses <strong>RQ on Redis</strong>:</p>
+<ul>
+<li>Generation units (a sector, a layer scatter, a backfill block) and web
+jobs (Generate page runs, map-menu fills, API jobs) are RQ jobs.</li>
+<li>Worker count, retries, timeouts and status come from RQ. A worker that
+dies has its job retried instead of hanging the run.</li>
+<li>Each job publishes its progress and log lines to Redis, which the web
+log window and progress bars read.</li>
+<li>Results must match the old queue for the same seed at any worker count
+(reproducible-galaxies.md, section 5).</li>
+<li>The jobs folder keeps only downloadable logs.</li>
+</ul>
+<p>As built (PERF.24, then PERF.86 on 2026-10-29): this is the plan of
+October; two of its lines changed. A run is not a tree of jobs: its record,
+stages, unit results, counters and log events are in Redis
+(<code>queue/runrecord.py</code>), a stage is cut into units that are RQ jobs on the
+bulk queue carrying JSON (<code>queue/units.py</code>, <code>queue/wrapper.py</code>), and the unit
+that finishes a stage queues the next, so the command that started the run
+only follows it. The MySQL <code>work_*</code> tables, the <code>work_lease</code> and the
+parent and child nodes are gone (control schema v21). The Generate page's
+job still keeps its folder (<code>job.json</code>, <code>state.json</code>, <code>output.log</code>,
+<code>progress.json</code>) beside the runs it starts. The design and how it was built
+are in <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a>.</p>
+<p>Huey and Celery were looked at: Huey would avoid Redis but Boss chose
+Redis; Celery is heavier than a single-host deployment needs.</p>
+<h2 id="4-logs-and-progress-in-the-browser">4. Logs and progress in the browser</h2>
+<p>A running job's log streams over Server-Sent Events into an Xterm.js
+terminal, and its progress into native <code>&lt;progress&gt;</code> bars. Under Apache,
+SSE needs threaded mod_wsgi daemon processes (or a gevent worker behind a
+proxy) so one long-lived stream doesn't hold a whole process; the
+deployment docs give the settings. Log messages are single lines (the
+terminal wraps them), a failed job's log stays open until the user
+continues, and tracebacks appear in full with a Copy button.</p>
+<p>As built (ADM.22, ADM.40): the stream route sends <code>log</code> events whose id is
+the byte offset reached, so a browser that reconnects resumes where it left
+off, and closes itself every 40 seconds to stay under the daemon's request
+timeout. The browser's <code>EventSource</code> reports each such close as an error, so
+the &quot;connection lost&quot; note appears only after a grace period
+(<code>connectionnote.js</code>). The job guide's in-memory queue per job id was not
+used: the log is a file read by offset, which works across the several
+processes Apache and the workers run in.</p>
+<h2 id="5-front-end-libraries">5. Front-end libraries</h2>
+<p>Shoelace, TanStack, Xterm.js and three.js are vendored as ES module builds
+under <code>src/html/static/vendor/</code> and served by Flask, with no bundler and no
+CDN at runtime (default until Boss decides otherwise; the site's
+<code>default-src 'self'</code> policy also forbids a CDN script, inline import maps and
+<code>data:</code> icons). Both themes, keyboard use and reduced motion are kept.
+three-mesh-bvh is not vendored (section 2).</p>
+<p>State on 2026-10-09 (details and sources in
+<a href="../interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries.md</a>, section 1):</p>
+<ul>
+<li><strong>Shoelace 2.20.1 is the last release.</strong> Its README says &quot;Shoelace is
+sunset. There is no active development&quot;; the registry shows no deprecation
+and <code>npm audit</code> finds nothing in the pinned set. Nothing breaks, so there is
+no migration now. Its successor, Web Awesome (MIT free tier, 3.14.0), needs
+<code>wa-</code> tag renames and a local icon library (its default fetches from a CDN
+the CSP refuses). If the move is wanted, do it inside the UX.43 restyle,
+which rewrites <code>shoelace-theme.css</code> anyway.</li>
+<li><strong>three.js stays on the vendored r186</strong> (<code>three.module.min.js</code>, three.js
+and its core file bundled with esbuild). Rebuilding from <code>three@0.186.0</code>
+with esbuild 0.28.2 reproduces the file byte for byte. <code>THREE.Clock</code> is
+deprecated since r183 and logs a warning in r186; <code>phenomenonrender.js</code> is
+the one user, to move to <code>THREE.Timer</code> before the next bump.</li>
+<li><strong>Xterm.js 6.0.0</strong> (<code>@xterm/xterm</code>, with <code>@xterm/addon-fit</code> 0.11.0) and
+<strong>TanStack</strong> table-core 8.21.3 and virtual-core 3.13.12 are current enough;
+TanStack Table 9 exists, and stays unused until a feature needs it.</li>
+<li><strong>Record versions and hashes in one lock file</strong> (recommended, not yet
+built). <code>vendor/THIRD_PARTY_NOTICES.txt</code> lists versions and rebuild commands
+but no hashes or build-tool version. Add <code>static/vendor/VENDORED.json</code>
+(package, version, npm <code>dist.integrity</code>, SHA-256 of each shipped file,
+esbuild version, licence), written by the vendor scripts and checked by a
+pytest that fails on a mismatch or an unlisted file; add the esbuild version
+to the notices file.</li>
+</ul>
+<h2 id="6-package-layout-ops23">6. Package layout (OPS.23)</h2>
+<p>The plan for OPS.24's move. Boss approves it before the move starts.</p>
+<h3 id="61-where-things-live-today">6.1 Where things live today</h3>
+<ul>
+<li><code>src/stellarObjects/</code>: 75 flat modules, 46,000 lines, among them
+<code>store.py</code> (9,800), <code>program_constants.py</code> (2,900), <code>systemData.py</code>
+(2,100) and <code>utils.py</code> (1,900, a mix of formatting, unit conversion,
+random sampling, orbital formulas and word-salad names).</li>
+<li><code>generate.py</code> (4,600 lines) at the repo root, and nine scripts in
+<code>src/</code> (<code>planetgen.db.query</code> alone is 4,300).</li>
+<li><code>src/html/</code>: <code>api/</code> and <code>web/</code> import as top-level packages and the 17
+modules in <code>lib/</code> as top-level modules, because <code>wsgi.py</code>,
+<code>web/__init__.py</code>, <code>routes.py</code> and <code>apiclient.py</code> each push a folder
+onto <code>sys.path</code>. <code>fmt.py</code> repeats <code>utils.py</code>'s distance formatting and
+<code>galaxymap.py</code> repeats <code>galaxyGeometry.py</code>'s quadrant and zone helpers.</li>
+<li><code>src/wikiClient/</code>: the wiki export client.</li>
+</ul>
+<h3 id="62-no-compatibility-layer">6.2 No compatibility layer</h3>
+<p>Boss (2026-10-07 13:04Z): &quot;In the end I don't want shims or wrappers or
+such, so far no one uses this but me, so I don't want to worry yet about
+backward compatibility.&quot; So:</p>
+<ul>
+<li>A moved module leaves nothing at its old path. Each move PR changes
+every caller in the same PR: code, tests, scripts, install and update,
+CI, the Generate page's job commands and the docs.</li>
+<li>The command-line scripts don't stay at their old paths as wrappers.
+Each becomes a module in <code>planetgen.cli</code> run as
+<code>python3 -m planetgen.cli.&lt;name&gt;</code> (and <code>planetgen</code> stays the console
+command for generation).</li>
+<li>install and update install the checkout as an editable package
+(<code>pip install -e .</code>), so <code>planetgen</code> imports from anywhere with no
+<code>sys.path</code> pushes, and a <code>git pull</code> takes effect without a reinstall.</li>
+<li><code>stellarObjects</code>, <code>src/html/api</code>, <code>src/html/web</code>, <code>src/html/lib</code>,
+<code>src/wikiClient</code>, <code>generate.py</code> and the <code>src/*.py</code> scripts are gone
+when the move is done.</li>
+<li><code>src/html/</code> keeps only <code>wsgi.py</code> (the WSGI entry point Apache and gunicorn
+load) and <code>static/</code>, so the server's Apache config needs
+no change. wsgi.py imports <code>planetgen.web.app</code> and nothing else.</li>
+</ul>
+<p>A branch open during the move (the Bugfixes lane's) merges main after
+each move PR. Git follows a renamed file, so an edit to a moved module
+usually merges cleanly; an import of an old path fails loudly and is
+fixed to the new one.</p>
+<h3 id="63-the-packages">6.3 The packages</h3>
+<p>One top-level package, <code>planetgen</code>, in <code>src/planetgen/</code>. Module names
+become <code>snake_case</code>. Every package's <code>__init__.py</code> stays empty (no
+imports), so no package pulls in another just by being imported and no
+import cycle can form between them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Modules (today's name in brackets)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>planetgen.util</code></td>
+<td><code>log</code> (log), <code>appconfig</code> (appconfig), <code>serialization</code> (serialization), <code>checks</code> (<code>finite_domain</code> from utils), <code>format</code> (number, distance, speed, duration, temperature, pressure and age text from utils, merged with the same helpers in html/lib/fmt), <code>random</code> (seeded sampling: power law, bounded bell, the five copies of <code>_log_uniform</code>)</td>
+</tr>
+<tr>
+<td><code>planetgen.tuning</code></td>
+<td>one module (program_constants): every package reads it, so it sits outside them all</td>
+</tr>
+<tr>
+<td><code>planetgen.physics</code></td>
+<td><code>constants</code> (physical_constants), <code>units</code> (ly, pc, mpc and AU conversions from utils), <code>orbits</code> (habitable zone, Hill sphere, Holman-Wiegert, reflex offset, orbital position and update interval from utils), <code>formation</code> (snow line, MMSN, isolation mass from utils), <code>kepler</code> (keplerMotion), <code>planets</code> (planetPhysics), <code>rogue_surface</code> (rogueSurface), <code>stellar_evolution</code> (stellarEvolution), <code>mathcheck</code> (mathCheck)</td>
+</tr>
+<tr>
+<td><code>planetgen.galaxy</code></td>
+<td><code>geometry</code> (galaxyGeometry), <code>density</code> (galaxyDensity), <code>skeleton</code> (galaxySkeleton), <code>drill</code> (galaxyDrill), <code>viewport</code> (galaxyViewport), <code>seed</code> (galaxySeed), <code>version_key</code> (versionKey), <code>sector</code> (spaceSector), <code>nebula_field</code> (nebulaField), <code>navigation</code> (navigation), <code>nav_graph</code> (navGraph), <code>galactic_orbit</code> (the galactic orbit helpers from utils)</td>
+</tr>
+<tr>
+<td><code>planetgen.names</code></td>
+<td><code>wordlists</code> (names, with offensive_words.txt), <code>wordsalad</code> (the syllable and phoneme-salad helpers from utils), <code>uniqueness</code> (nameUniqueness), <code>bodies</code> (bodyNames), <code>object_id</code> (objectId), <code>gated_phoneme_codec</code> (the ID-to-words codec, moved from the repo root by GEN.120; GEN.67 wires it into naming). GEN.71 deletes <code>wordlists</code> and <code>wordsalad</code>.</td>
+</tr>
+<tr>
+<td><code>planetgen.generation</code></td>
+<td><code>config</code> (config: SystemConfig), <code>star</code> (starData), <code>planet</code> (planetData), <code>system</code> (systemData), <code>binary</code> (doubleStar), <code>wide_binary</code> (wideBinary), <code>belt</code> (asteroidData), <code>comet</code> (cometData), <code>life</code> (planetLife), <code>evolution</code> (evolution), <code>star_population</code> (stellarPopulation), <code>bright_stars</code> (brightStars), <code>limits</code> (generationLimits), <code>stats</code> (generationStats), <code>validation</code> (validation), <code>plausibility</code> (plausibility), <code>phenomena_plausibility</code> (phenomenaPlausibility); and <code>run_system</code>, <code>run_sector</code>, <code>run_galaxy</code>, <code>run_plan</code>, <code>run_phenomenon</code>, <code>run_population</code> (generate.py's sections)</td>
+</tr>
+<tr>
+<td><code>planetgen.generation.phenomena</code></td>
+<td><code>asteroid_field</code>, <code>compact_remnant</code>, <code>nebula</code>, <code>quasar</code>, <code>rogue</code> (rogue planets and interstellar comets), <code>supernova_remnant</code> (the six phenomenon <code>*Data.py</code> modules)</td>
+</tr>
+<tr>
+<td><code>planetgen.population</code></td>
+<td><code>model</code> (population), <code>facilities</code> (facilities)</td>
+</tr>
+<tr>
+<td><code>planetgen.db</code></td>
+<td><code>store</code> (_db, with schema.sql and control_schema.sql beside it), <code>edits</code> (editStore), <code>render</code> (systemRender), <code>query</code> (queryDb's queries), <code>stats</code> (adminStats)</td>
+</tr>
+<tr>
+<td><code>planetgen.admin</code></td>
+<td><code>auth</code> (adminAuth, with the common-password list), <code>throttle</code> (loginThrottle), <code>activity_log</code> (activitylog), <code>edits</code> (adminEdits)</td>
+</tr>
+<tr>
+<td><code>planetgen.queue</code></td>
+<td><code>work</code> (workQueue), <code>progress_file</code> (progressFile), <code>progress_rate</code> (progressRate), <code>load</code> (systemLoad)</td>
+</tr>
+<tr>
+<td><code>planetgen.api</code></td>
+<td>everything in <code>src/html/api/</code> under the same module names</td>
+</tr>
+<tr>
+<td><code>planetgen.web</code></td>
+<td>everything in <code>src/html/web/</code> under the same names, with <code>templates/</code>; <code>app</code> (the Flask app factory, from api/app); <code>planetgen.web.lib</code> for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); <code>planetgen.web.maps</code> for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender)</td>
+</tr>
+<tr>
+<td><code>planetgen.wiki</code></td>
+<td>the wiki client (<code>src/wikiClient/</code>)</td>
+</tr>
+<tr>
+<td><code>planetgen.cli</code></td>
+<td><code>generate</code> (generate.py's argument parsing and dispatch), <code>query</code> (queryDb's command line), <code>migrate</code> (migrateDb), <code>reset</code> (resetDb), <code>orbits</code> (updateOrbits), <code>dedupe</code> (dedupeNames), <code>lockouts</code> (loginLockouts), <code>render_parity</code> (checkRenderParity), <code>job</code> (jobRunner, moved whole; RQ replaces it, section 3). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into <code>planetgen.db</code> buys nothing.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Large modules move whole. <code>store.py</code> is split by DB.11 (SQLAlchemy), and
+<code>planetgen.db.query</code> with it; splitting them during the move would make every
+open branch conflict twice. <code>utils.py</code>, <code>fmt.py</code> and <code>generate.py</code> are
+the exceptions: they are split as listed, because nothing replaces them
+later.</p>
+<p><code>src/tests/</code> stays where it is; each move PR changes the tests' imports
+and string patch targets (<code>monkeypatch.setattr(&quot;stellarObjects.utils.x&quot;, ...)</code>) along with everything else. <code>_version.py</code> moves to
+<code>planetgen/_version.py</code> in the first PR, with <code>setup.py</code>,
+<code>scripts/bump_version.py</code> and the release workflow.</p>
+<h3 id="64-shared-helpers-merged-into-utilities">6.4 Shared helpers merged into utilities</h3>
+<p>Only where the merged helper gives identical results, so a seeded galaxy
+is unchanged (reproducible-galaxies.md):</p>
+<ul>
+<li>Number and distance formatting: <code>utils.format_distance_*</code> and
+<code>fmt.format_distance_*</code> into <code>planetgen.util.format</code>; <code>planetgen.web.lib.fmt</code>
+keeps only the HTML helpers.</li>
+<li><code>sector_quadrant</code> and <code>sector_zone</code>: galaxymap calls
+<code>planetgen.galaxy.geometry</code>'s.</li>
+<li><code>_log_uniform</code> (generate.py, compactRemnant, quasarData,
+stellarEvolution, rogueSurface): one <code>planetgen.util.random.log_uniform</code>
+where the draws match; a copy whose draw order differs stays local,
+with a note, until a seeded test proves the swap is safe. Done in step
+13: every copy made the same single <code>uniform</code> draw, so all of them
+(and nebula's <code>_draw_in_range</code> and the wide-binary separation) now call
+<code>log_uniform</code>; stellarEvolution's copy was unused and went.</li>
+<li>utils.py's helpers the table above doesn't name went to their one
+caller's module: the star-profile helpers (<code>get_star_spectral_class</code>,
+<code>get_star_evolutionary_profile</code>) to <code>planetgen.generation.star</code>,
+<code>calculate_object_mass</code> to <code>planetgen.physics.planets</code>, the wide-binary
+samplers to <code>planetgen.generation.wide_binary</code>, and <code>to_paragraph</code> and
+<code>properties_to_string</code> to <code>planetgen.util.format</code>.</li>
+<li><code>sys.path</code> pushes: all four go (the editable install makes them
+unnecessary).</li>
+</ul>
+<h3 id="65-the-order-of-the-move-ops24">6.5 The order of the move (OPS.24)</h3>
+<p>One package per PR, each mechanical (<code>git mv</code>, import lines, callers),
+each with the full suite green and no change to behavior. Leaves first,
+so each PR's modules import ones that already moved:</p>
+<ol>
+<li>Scaffold <code>src/planetgen/</code> with <code>_version.py</code> and <code>planetgen.util</code>
+(log, appconfig, serialization). Every entry point already puts <code>src/</code>
+on <code>sys.path</code>, so <code>planetgen</code> imports the way <code>stellarObjects</code> does;
+the editable install comes with step 14, when those <code>sys.path</code> pushes
+go.</li>
+<li><code>planetgen.tuning</code> and <code>planetgen.physics</code>.</li>
+<li><code>planetgen.galaxy</code>.</li>
+<li><code>planetgen.names</code>.</li>
+<li><code>planetgen.generation</code> and its phenomena.</li>
+<li><code>planetgen.population</code>.</li>
+<li><code>planetgen.admin</code>.</li>
+<li><code>planetgen.db</code>, with the <code>src/</code> scripts into <code>planetgen.cli</code>. Until
+step 14's editable install, they run as <code>python3 -m planetgen.cli.&lt;name&gt;</code>
+from the checkout's <code>src/</code>; install and update do that, and the job
+runner puts <code>src/</code> on its steps' <code>PYTHONPATH</code>.</li>
+<li><code>planetgen.queue</code>, with jobRunner into <code>planetgen.cli.job</code> (the web
+app starts it with <code>python -m</code> from <code>src/</code>).</li>
+<li><code>planetgen.web.lib</code> and <code>planetgen.web.maps</code>.</li>
+<li><code>planetgen.api</code>.</li>
+<li><code>planetgen.web</code> with its templates, and wsgi.py; <code>src/html/</code> is down
+to <code>wsgi.py</code> and <code>static/</code>.</li>
+<li>The split of <code>utils.py</code> and <code>fmt.py</code> into the utility modules
+(section 6.4); <code>stellarObjects</code> is gone.</li>
+<li><code>generate.py</code> into <code>planetgen.generation.run_*</code> and
+<code>planetgen.cli.generate</code>; the root file is gone, and <code>pytest.ini</code>'s
+<code>pythonpath</code> is gone. Done in two PRs: the split first, then the
+editable install with the <code>sys.path</code> pushes and <code>pythonpath</code>. What
+every command shares (the progress bar, the <code>--strict</code>
+refuse-or-warn rule, the run's counts, the work queue, the
+statistics and estimate) went to <code>planetgen.generation.run_common</code>,
+so the run modules import downward only (system, sector, galaxy, then
+plan); the bright-star band drawing moved from the galaxy section to
+<code>run_plan</code>, which owns the scatter. Command options stay in
+<code>planetgen.cli.generate</code>; <code>run_galaxy</code> imports the shared generation
+options from it inside <code>_default_generation_args</code>, the one place a
+run module needs them.
+The second PR moved the last stray package, <code>src/wikiClient</code>, to
+<code>planetgen.wiki</code> (no step had named it), limited <code>setup.py</code> to the
+<code>planetgen</code> packages, and replaced the <code>/usr/local/bin/planetgen</code>
+wrapper with pip's console script from the editable install (linked
+there from the venv on macOS). install and update make the editable
+install on every path (<code>--break-system-packages</code> on a PEP 668
+Python, as the libraries already were) and skip it when <code>planetgen</code>
+already imports from the checkout. The job runner no longer sets
+<code>PYTHONPATH</code>, and every command runs from the checkout's root.</li>
+</ol>
+<h3 id="66-deployment">6.6 Deployment</h3>
+<p>The server needs <code>update.sh</code> after each step that renames a script
+install or update runs (steps 8, 9 and 14; step 14 also brings the
+editable install). The Apache config doesn't change. The
+web server's user needs read access to <code>src/planetgen/</code>;
+<code>set-permissions.sh</code> covers it from step 1.</p>
+<h2 id="7-why-it-works-this-way">7. Why it works this way</h2>
+<ul>
+<li><strong>Libraries over hand-rolled code</strong>: Boss's directive. The research
+estimates over 10,000 lines removed, and the libraries are audited and
+tested where the hand-rolled code is not (TOTP, QR, SQL building).</li>
+<li><strong>Move first, swap second</strong>: a swap inside a file that is about to move
+makes every open branch conflict twice.</li>
+<li><strong>One swap per PR</strong>: each swap is checked against the old behavior on
+its own, so a regression points at one library.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

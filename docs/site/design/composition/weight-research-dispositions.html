@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weight research dispositions: what GEN.480 to GEN.494 and GEN.501 found for the 43 open atmosphere rows - planetGen docs</title>
+<meta name="description" content="Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/weight-research-dispositions.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/weight-research-dispositions.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="weight-research-dispositions-what-gen480-to-gen494-and-gen501-found-for-the-43-open-atmosphere-rows">Weight research dispositions: what GEN.480 to GEN.494 and GEN.501 found for the 43 open atmosphere rows</h1><p class="meta">docs/design/composition/weight-research-dispositions.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-rule-applied">1. The rule applied</a></li><li style="margin-left:0px"><a href="#2-row-by-row">2. Row by row</a></li><li style="margin-left:0px"><a href="#3-gen501-the-nh3-activity-factor">3. GEN.501: the NH3 activity factor</a></li><li style="margin-left:0px"><a href="#4-what-this-leaves-for-the-builders">4. What this leaves for the builders</a></li></ul></details>
+<p>Status: closes the research items GEN.480 to GEN.494 and GEN.501 (lane M, 2026-10-23). Source of the findings: <code>docs/design/composition/tunable-gaps.md</code> section 3 and the worker reports in <code>docs/design/composition/tunable-gaps-sources/</code>, <code>docs/design/research/boss-papers-2026-10-17.md</code> and <code>docs/design/research/open-gaps-closest-laws-2026-10-17.md</code>; nothing in this note is a new reading of a paper. What this note adds is the decision for each row, written into the machine columns (<code>scripts/atmosphere_recipes_data.py</code>) and the data file the loader reads.</p>
+<h2 id="1-the-rule-applied">1. The rule applied</h2>
+<p>Before this change 43 of the 104 rows of part 09 were <code>open</code>: a <code>DESIGN</code> weight the generator would draw inside a bracket. The research items were to turn each into <code>SOURCED</code> or <code>DERIVED</code>. The tunable-gaps investigation had already read what the public record holds for each row. Boss's rule (1:23 PM EDT, 2026-10-17) settles what to do where it holds nothing: <strong>a row with no measurement ships as a labelled stand-in at the widest bracket, replaced when a measurement exists</strong>; and the verified-wins, newest-wins, widest-range-wins rules decide between sources. So every <code>open</code> row now has one of two states:</p>
+<ul>
+<li><strong>partly verified</strong> with a stated limit, where a published statistic, gate or bracket exists and only an edge, a width or a share is a design choice. The limit says which.</li>
+<li><strong>stand-in</strong> naming the builder item (GEN.509 to GEN.525, GEN.595) that replaces it, where no measurement exists, the value rests on Solar System bodies, or the only number is a SNIPPET or RECALLED value (the target table never tunes to those).</li>
+</ul>
+<p>No row is <code>verified</code> or <code>derived</code> by this change: no source was newly opened. The loader therefore lists no <code>open</code> row, and 30 stand-ins (2 before: 28 new) and 38 partly verified rows (23 before: 15 new) carry the open work, each pointing at the builder that owns it. (Later builders move rows: GEN.516 retuned f5 to a verified source, and GEN.514 turned o4 from a stand-in into a partly verified formula; the counts are then 37 partly verified and 29 stand-ins.)</p>
+<p>The recipes are not yet read by the generator, so this change draws nothing differently and takes no generator epoch.</p>
+<h2 id="2-row-by-row">2. Row by row</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Research item</th>
+<th>Rows</th>
+<th>New state</th>
+<th>Why</th>
+<th>Replaced by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GEN.480 (AR1) envelope, water-rich share, envelope Z</td>
+<td>b4</td>
+<td>stand-in</td>
+<td>published water-rich shares run from at most 3 percent [R3801] to 87 percent by formation model; decision D1: keep the NGPPS logistic as the labelled MODEL default, bracket 0 to 0.87</td>
+<td>GEN.510</td>
+</tr>
+<tr>
+<td></td>
+<td>e3, e4</td>
+<td>partly verified</td>
+<td>the hycean gate (Teq below about 400 K, H<sub>2</sub> at most 0.1 wt percent, water at least 10 wt percent) is [R2804]; the share is p[b4], a stand-in</td>
+<td>GEN.510</td>
+</tr>
+<tr>
+<td></td>
+<td>e5</td>
+<td>partly verified</td>
+<td>bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists</td>
+<td>GEN.509</td>
+</tr>
+<tr>
+<td>GEN.481 (AR2) delivery</td>
+<td>b1 to b3</td>
+<td>stand-in</td>
+<td>the Ortenzi payloads are Earth delivery scenarios; formation distance is not observable; the only function of water against distance is population synthesis (NGPPS, logistic center 6.1 Earth masses, slope 6.3 per dex, COMPUTED)</td>
+<td>GEN.510</td>
+</tr>
+<tr>
+<td></td>
+<td>b5, b6</td>
+<td>stand-in</td>
+<td>no ensemble measures sub-percent water (Boss, 1:23 PM EDT, 2026-10-17); rogue water is not a separate draw</td>
+<td>GEN.510</td>
+</tr>
+<tr>
+<td>GEN.482 (AR3) redox</td>
+<td>a1</td>
+<td>stand-in</td>
+<td>the Earth end and the mass slope rest on Solar System bodies; the low-mass end is tunable to the white dwarfs once the scale conversion (core formation against surface magma ocean) is tested</td>
+<td>GEN.513</td>
+</tr>
+<tr>
+<td></td>
+<td>a2 (already a stand-in)</td>
+<td>stand-in</td>
+<td>law fitted to the Moon, Mars and Earth</td>
+<td>GEN.513</td>
+</tr>
+<tr>
+<td></td>
+<td>a3, a4</td>
+<td>partly verified</td>
+<td>22 polluted white dwarf values [R1152, R1153]: center -1.25, sd 0.45; the sample carries detection and settling selection; the shipped draw is the first tunable row (see section 4)</td>
+<td>GEN.513</td>
+</tr>
+<tr>
+<td>GEN.483 (AR4) shoreline</td>
+<td>d6</td>
+<td>stand-in</td>
+<td>only upper limits and one detection (55 Cnc e); the cap is derived as min(supply, vapor, escape)</td>
+<td>GEN.511</td>
+</tr>
+<tr>
+<td>GEN.484 (AR5) giant C/O</td>
+<td>f7</td>
+<td>partly verified</td>
+<td>stellar C/O measured (median 0.47, sd 0.07, N=849); planets 6 of 69 above 0.8 (LExACoM) with a 0.2 to 0.3 method systematic</td>
+<td>GEN.516</td>
+</tr>
+<tr>
+<td>GEN.485 (AR6) hot Jupiters</td>
+<td>h2, h3</td>
+<td>stand-in</td>
+<td>the regime edges are pressure-dependent outputs of equilibrium chemistry, not measurements</td>
+<td>GEN.518</td>
+</tr>
+<tr>
+<td></td>
+<td>h4</td>
+<td>partly verified</td>
+<td>an empirical Ti threshold between 2350 and 2640 K from N=3 to 6 planets; no population measures Kzz</td>
+<td>GEN.519</td>
+</tr>
+<tr>
+<td>GEN.486 (AR7) lava worlds</td>
+<td>i6</td>
+<td>partly verified</td>
+<td>2 of 2 molten-dayside ultra-short-period planets keep volatiles (55 Cnc e, TOI-561 b); N=2, Beta(3,1) interval 0.29 to 0.99</td>
+<td>GEN.511</td>
+</tr>
+<tr>
+<td>GEN.487 (AR8) evolved and frost</td>
+<td>j1</td>
+<td>partly verified</td>
+<td>the runaway gate is [R2446]; the retained fraction is a design residual in [0, 1]</td>
+<td>GEN.511</td>
+</tr>
+<tr>
+<td></td>
+<td>j5</td>
+<td>stand-in</td>
+<td>the oxygen-sink fraction is unsourced (Luger and Barnes against [R1813] span from 0 to 2400 bar per ocean)</td>
+<td>GEN.511</td>
+</tr>
+<tr>
+<td>GEN.488 (AR9) comets</td>
+<td>k1 to k3</td>
+<td>stand-in</td>
+<td>counts 13/9/3 of 25 are a SNIPPET (Harrington [R3535: Table 4] not read); the target table never tunes to a SNIPPET</td>
+<td>GEN.520</td>
+</tr>
+<tr>
+<td></td>
+<td>k4, k5</td>
+<td>stand-in</td>
+<td>the Solar System population is not a prior for other systems; 2I and 3I lie 1.8 to 3.6 sigma outside the fits</td>
+<td>GEN.520</td>
+</tr>
+<tr>
+<td></td>
+<td>k7 (already a stand-in)</td>
+<td>stand-in</td>
+<td>single-comet species; O<sub>2</sub> presence cannot be set from one comet</td>
+<td>GEN.520</td>
+</tr>
+<tr>
+<td>GEN.489 (AR10) white dwarfs and pulsars</td>
+<td>l1, l2, l3</td>
+<td>stand-in</td>
+<td>the exosphere threshold (log10 P = -6 +/- 0.5) is a design constant with no data; the surviving-giant share has upper limits and two detections only</td>
+<td>GEN.513</td>
+</tr>
+<tr>
+<td>GEN.490 (AR11) trace gases</td>
+<td>m2, m5, m6</td>
+<td>stand-in</td>
+<td>abiotic O<sub>3</sub> is a photochemistry look-up; HCl and HF are speciation of a crust halogen budget that is Earth-only</td>
+<td>GEN.524</td>
+</tr>
+<tr>
+<td></td>
+<td>m3, m4, m11</td>
+<td>stand-in</td>
+<td>no measurement of N<sub>2</sub>O, PH<sub>3</sub>, NO<sub>2</sub> or CH<sub>3</sub>Cl on any exoplanet; tuning to Earth or Venus breaks NO FIXED CONTENT</td>
+<td>GEN.525</td>
+</tr>
+<tr>
+<td>GEN.491 (AR12) clouds and haze</td>
+<td>n6</td>
+<td>partly verified</td>
+<td>A_H against Teq is measured (Fu 2017, N=34, slope 0.0008 +/- 0.00016 per K); the 950 K crossover is a model output</td>
+<td>GEN.519</td>
+</tr>
+<tr>
+<td></td>
+<td>n7</td>
+<td>stand-in</td>
+<td>lab rates span 250 times and every population statistic is degenerate with metallicity, Kzz and cloud cover</td>
+<td>GEN.519</td>
+</tr>
+<tr>
+<td>GEN.492 (AR13) radioisotopes</td>
+<td>o2</td>
+<td>partly verified</td>
+<td>[Th/Mg] for thin disk (N=215) and thick disk (N=32) from Hypatia; halo, young and M hosts have no data</td>
+<td>GEN.514</td>
+</tr>
+<tr>
+<td></td>
+<td>o3, o4</td>
+<td>stand-in</td>
+<td>planetary K is volatile-depleted and only Solar System bodies give the depletion; Th/U calibration is Solar System only</td>
+<td>GEN.514</td>
+</tr>
+<tr>
+<td></td>
+<td>o6</td>
+<td>partly verified</td>
+<td>the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution</td>
+<td>GEN.514</td>
+</tr>
+<tr>
+<td>GEN.493 (AR14) rotation and saturation</td>
+<td>p6</td>
+<td>partly verified</td>
+<td>percentile tracks of Tu 2015 (READ); the 0.25/0.5/0.25 weights give way to a uniform percentile</td>
+<td>GEN.523</td>
+</tr>
+<tr>
+<td>GEN.494 (AR15) brown dwarfs</td>
+<td>g1, g4</td>
+<td>partly verified</td>
+<td>type is a function of Teff with published scatter ([R2374], N=525); the age edge and the 500 to 700 K edge are design choices</td>
+<td>GEN.517</td>
+</tr>
+</tbody>
+</table></div>
+<p>Stand-ins that already named a research item now name their builder: a2 (GEN.482 to GEN.513) and k7 (GEN.488 to GEN.520).</p>
+<h2 id="3-gen501-the-nh3-activity-factor">3. GEN.501: the NH<sub>3</sub> activity factor</h2>
+<p>The photolysis lifetime of NH<sub>3</sub> (<code>physics/data/photolysis_lifetimes.json</code>) uses an activity factor of 1.075, the middle of 1.05 to 1.10, settled with the body lane because NH<sub>3</sub> absorbs mainly at 170 to 217 nm. The [R2040] rate tables (Planet. Space Sci. 106, 11-45) are the source that would replace it. The paper was not reachable from this lane, and the <code>sbpy</code> package that codes part of the tables (read at version 0.6.0) holds H<sub>2</sub>O, OH, HCN, CH<sub>3</sub>OH, H<sub>2</sub>CO, CO, CO<sub>2</sub> and CN but no NH<sub>3</sub>. So the factor stays the flagged bracket 1.05 to 1.10 with its reasoning, no number changes, and GEN.501 stays open as a data request (the rate table for NH<sub>3</sub> from the paper).</p>
+<h2 id="4-what-this-leaves-for-the-builders">4. What this leaves for the builders</h2>
+<ul>
+<li>Rows marked <code>tunable</code> need a target in <code>physics/data/tuning_targets.json</code> (GEN.503). Only a3 and a4 are tunable today. Each builder marks its rows tunable when it adds the targets.</li>
+<li>The selection models (GEN.504 to GEN.508) are the dependency for the tunable rows whose published statistic comes from a biased sample (a3, a4 need GEN.508; the radius valley needs GEN.504).</li>
+<li>a1: the Sossi floor (-2) and the white-dwarf center (-1.25) are on different redox scales (core formation against surface magma ocean). The mass-law floor is therefore left as shipped, and GEN.513 tests the conversion before moving it.</li>
+<li>A stand-in whose value is a bracket is drawn at the widest bracket with the stand-in label (registry in <code>docs/design/research/gap-filling-plan.md</code> section 6); nothing here is a default until a builder registers it.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

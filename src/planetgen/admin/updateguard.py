@@ -84,8 +84,8 @@ PROMPT_SECONDS = 30
 TIMER_PARENTS = ("cron", "crond", "anacron", "atd")
 """tuple: The names of the processes whose children have no person at the keyboard."""
 
-UNIT_JOB = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}-s\d+-u\d+$")
-"""re.Pattern: The id of a queue job that is a unit of a run (`queue/units.py`'s `job_id`): the run lists it."""
+UNIT_JOB = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{8}-(?:s\d+-u\d+|open\d+)$")
+"""re.Pattern: The id of a queue job that is a unit of a run, or the opening of one of its stages (`queue/units.py`'s `job_id`, `open_job_id`): the run lists it."""
 
 TURN_OFF_HINT = "python -m planetgen.cli.maintenance off"
 """str: The command that opens the site again after a failed update."""

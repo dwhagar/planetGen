@@ -837,6 +837,24 @@
       "first_release": "8.0.3688",
       "reason": "Train 18: core composition split, dust species, mantle water and carbon, giant envelope species, disk condensation parts B and C, ore deposits, phosphorus budget, ground after life, no-life class list",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 141,
+      "first_release": "8.0.3721",
+      "reason": "Train 19: snow line solid jump with retuned giants, superionic water and ammonia boundaries, moissanite and cohenite deposits, carbon sink after the oxygen rise, isotope record part 1, GEN.1347, block lights last",
+      "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 142,
+      "first_release": "8.0.3741",
+      "reason": "Train 20: isotopes part 2, spin-axis frame work, radiation field, wind, dose, vapour stand-ins",
+      "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 143,
+      "first_release": "8.0.3765",
+      "reason": "Train 21: lighter inner planets, secular exchange, second suns and their day and eclipses, companion disk cut, belt and comet light from every star, trojan swarm cut, scattering by the strongest planet, Jupiter-family comets by the giant, super-puff by density, envelope loss, cosmogenic nuclides",
+      "affects": ["fill", "population"]
     }
   ]
 }

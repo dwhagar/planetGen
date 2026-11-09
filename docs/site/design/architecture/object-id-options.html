@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unique IDs for every object: options, measurements, recommendation - planetGen docs</title>
+<meta name="description" content="Status (2026-10-15): decided and built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/object-id-options.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/object-id-options.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="unique-ids-for-every-object-options-measurements-recommendation">Unique IDs for every object: options, measurements, recommendation</h1><p class="meta">docs/design/architecture/object-id-options.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#0-decision-and-revised-design-boss-2026-10-09-2239z">0. Decision and revised design (Boss, 2026-10-09 22:39Z)</a></li><li style="margin-left:14px"><a href="#01-one-layout-for-every-object-80-bits-20-hex-digits-binary10">0.1 One layout for every object: 80 bits, 20 hex digits, BINARY(10)</a></li><li style="margin-left:14px"><a href="#02-rules-that-make-it-unique-and-stable">0.2 Rules that make it unique and stable</a></li><li style="margin-left:14px"><a href="#03-nebulae-and-other-multi-sector-objects">0.3 Nebulae and other multi-sector objects</a></li><li style="margin-left:14px"><a href="#04-what-this-does-to-the-earlier-ranking">0.4 What this does to the earlier ranking</a></li><li style="margin-left:0px"><a href="#1-what-is-in-the-code-today">1. What is in the code today</a></li><li style="margin-left:14px"><a href="#cost-of-the-current-approach">Cost of the current approach</a></li><li style="margin-left:14px"><a href="#defects-found-reproduced-against-mariadb-with-the-repos-own-code">Defects found, reproduced against MariaDB with the repo's own code</a></li><li style="margin-left:0px"><a href="#2-what-the-id-has-to-do">2. What the ID has to do</a></li><li style="margin-left:0px"><a href="#3-numbers">3. Numbers</a></li><li style="margin-left:14px"><a href="#31-collision-odds-birthday-bound-p--1---exp-n²2b1">3.1 Collision odds (birthday bound, p = 1 - exp(-n²/2^(b+1)))</a></li><li style="margin-left:14px"><a href="#32-compute-per-id-python-one-thread-benchids_benchtxt">3.2 Compute per ID (Python, one thread; bench/ids_bench.txt)</a></li><li style="margin-left:14px"><a href="#33-index-and-insert-cost-2000000-rows-10-per-sector-200000-sectors-filled-in-hilbert-sector-order-benchdb_resultsjsonl">3.3 Index and insert cost (2,000,000 rows, 10 per sector, 200,000 sectors, filled in Hilbert sector order; bench/db_results.jsonl)</a></li><li style="margin-left:14px"><a href="#34-does-the-sector-key-order-matter-for-queries">3.4 Does the sector key order matter for queries?</a></li><li style="margin-left:0px"><a href="#4-the-options">4. The options</a></li><li style="margin-left:0px"><a href="#5-ranking">5. Ranking</a></li><li style="margin-left:0px"><a href="#6-recommendation-a-in-detail">6. Recommendation: A, in detail</a></li><li style="margin-left:0px"><a href="#7-what-i-could-not-measure">7. What I could not measure</a></li><li style="margin-left:0px"><a href="#8-sources">8. Sources</a></li></ul></details>
+<p><strong>Status (2026-10-15):</strong> decided and built. Section 0 is Boss's decision of 2026-10-09, 6:39 PM EDT (80 bits, 20 hex digits, <code>BINARY(10)</code>, the same length for every object) (the first layout; the default is 96 bits, <code>BINARY(12)</code>, Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md); sections 1 to 6 are the options weighed and are superseded wherever section 0 differs. Built: GEN.170 (#1017), GEN.171 and DB.20 (#1055), GEN.172 and GEN.176 (#1075) and API.23 (#1133).</p>
+<p>Research only. No code, TODO.md or PR was changed. Boss decides before anything is filed.
+Measured on the build box (4 cores, Python 3.13, MariaDB 10.11.14, InnoDB buffer pool 256 MB); scripts and raw results are in <code>bench/</code> beside this file. Code read: <code>main</code> at 4113872 (after PERF.49).</p>
+<h2 id="0-decision-and-revised-design-boss-2026-10-09-2239z">0. Decision and revised design (Boss, 2026-10-09 22:39Z)</h2>
+<p>Boss: fix the defects, use birth location + serial <strong>galaxy-wide</strong>, up to 128 bits but shorter preferred, <strong>the same length for every object</strong>, and an ID that always identifies that one object. Nebulae are located by the geometric center of the space they occupy. This supersedes section 6 where they differ (section 6 had short, system-scoped body IDs).</p>
+<h3 id="01-one-layout-for-every-object-80-bits-20-hex-digits-binary10">0.1 One layout for every object: 80 bits, 20 hex digits, <code>BINARY(10)</code></h3>
+<pre><code>| birth sector address | serial in that sector | body number |
+|       40 bits        |       28 bits         |   12 bits   |
+|     10 hex digits    |      7 hex digits     |  3 hex digits|
+</code></pre>
+<ul>
+<li><strong>Birth sector address (40 bits):</strong> ring 12, biased layer 12, slot 16. Fits the default Milky Way (3,763 rings, 2,041 layers, 23,040 slots in the outer ring) with 8% spare on rings. It re-packs today's 45-bit designation so the whole ID is nibble-aligned; a galaxy whose bounds do not fit picks wider fields at plan time (stored in <code>galaxy_shape</code>) and the ID grows to 96 or at most 128 bits. Length is fixed inside a galaxy.</li>
+<li><strong>Serial (28 bits):</strong> a top-level object's number in its birth sector. Top two bits split the space so no allocator ever needs another's state: <code>00</code> generated (the object's rank in generation order, up to 67M a sector; omega-Centauri-class cores are a few million), <code>01</code> added at run time (admin, ejection, facility), <code>10</code> field-drawn (nebulae and other objects stored by a sector other than the one holding their center, below).</li>
+<li><strong>Body number (12 bits):</strong> <code>000</code> is the top-level object itself (system, rogue planet, nebula, facility, ...). <code>001</code> and up number the stars, planets, moons, belts and comets born in that system, one counter across all five kinds, so a captured moon, a merged planet or a comet that becomes a planet keeps its number. 4,095 births a system for its lifetime.</li>
+<li>Printed <code>FE81000A2B-0000005-000</code> (system) and <code>FE81000A2B-0000005-01A</code> (a body). Every object has the same 20 digits. Cost to store: 10 bytes, against 12 (system) or 8 (body) today.</li>
+<li>The kind is <strong>not</strong> in the ID, because kind changes (a planet ejected from its star becomes a rogue planet and keeps its ID). Lookup by ID probes the object tables by the unique <code>uid</code> index; a URL or reference may carry the kind as a hint (<code>planet:FE81...</code>), never as identity.</li>
+<li>A 64-bit alternative exists (36-bit sector ordinal + one flat 28-bit counter per sector, <code>BIGINT</code>), but it loses the system/body split, caps a sector at 67M objects and has no room for a bigger galaxy; I do not recommend it.</li>
+</ul>
+<p>Capacity check: 2.95e11 systems and about 1.3e13 objects over about 3.3e10 sectors is 400 objects a sector on average. Densest known sector (a 47 Tuc-class core, 1e5 to 5e5 systems) fits 67M.</p>
+<h3 id="02-rules-that-make-it-unique-and-stable">0.2 Rules that make it unique and stable</h3>
+<ol>
+<li><strong>Assigned once, at birth, never recomputed</strong> from rank, position, sector, parent, table or content. The fill gives generated serials by generation order inside the sector (one worker owns a sector, so no coordination and no database read). This is also the fix for defect 1.</li>
+<li><strong>Run-time births</strong> (admin-added body, ejected object, facility, merger remnant, new system placed by hand) take the next value of a counter in a small <code>id_counters</code> table keyed by sector (bodies: by system) using the upsert-and-<code>LAST_INSERT_ID</code> pattern <code>_reserve_id_block</code> already uses. Counters only grow and survive deleting the sector or object, so a run-time serial is never given twice. This is the fix for defect 2.</li>
+<li><strong>A deleted or merged object's ID is never given to another object.</strong> The only reuse is regenerating a whole sector from the seed, which makes the same objects again at the same ranks. Regenerating a body or phenomenon in place keeps its ID: add <code>uid</code> to <code>_KEPT_PHENOMENON_COLUMNS</code> and keep the row's serial on a system's content swap. This is the fix for defect 3.</li>
+<li><strong>Events:</strong> move and reparent keep the ID; an ejected planet keeps its ID (now a rogue-planet row, body number unchanged); a merge keeps the heavier body's ID and retires the other; a split gives each fragment a new run-time serial.</li>
+<li><strong>The row <code>id</code> stays as the foreign key and join key.</strong> The ID becomes the public reference (pages, URLs, API, wiki links, <code>objectref</code>), since Boss wants it to identify the object. Row ids stay out of anything user-facing. No compatibility shim.</li>
+<li><strong>Position IDs (GEN.64) stay as the names</strong> of interstellar objects. The ID column no longer depends on them, so <code>_claim_object_ids</code> is needed only for name uniqueness.</li>
+</ol>
+<h3 id="03-nebulae-and-other-multi-sector-objects">0.3 Nebulae and other multi-sector objects</h3>
+<p>A nebula occupies many sectors, so its birth sector is the sector holding the <strong>geometric center of the space it occupies</strong>: the centroid of the interior of its metaball field (<code>nebula_shape.py</code>), not the metaball origin, which the warp and the 0.55 ellipsoid offset move away from the centroid. Remnants use the center of their shell.</p>
+<ul>
+<li>Centroid method: count interior points of the shape on a fixed grid (the existing 24-cell fit grid) in integer arithmetic, average them, scale by the radius, add the stored center, round to 1 mpc as an integer, and take the sector from the rounded integers. Rounding first removes platform float noise except when a centroid lies within about 1e-12 of a half-mpc step of a sector face; I did not measure how often that happens.</li>
+<li>Today a field cloud is stored by &quot;the first sector saved that the cloud reaches&quot; (<code>_insert_field_nebulae</code>), so its home sector depends on save order and on which worker was quicker. Under the new rule the birth sector is the centroid's sector whoever stores it. Because that worker does not own the center sector, the cloud takes a <strong>field-drawn serial</strong> (<code>10</code> prefix): the cloud's rank among the clouds of its field cell (<code>nebula_field.cell_clouds(seed, shape, (i,j,k))</code>) that have their centroid in that sector, which every worker computes identically. No shared counter, and the center sector need not exist yet.</li>
+<li>The same rule covers any other object that is stored by a sector other than its own.</li>
+</ul>
+<h3 id="04-what-this-does-to-the-earlier-ranking">0.4 What this does to the earlier ranking</h3>
+<p>The recommendation is unchanged in kind (A, birth-address serial) but now global and fixed-width. A hash cannot meet the new requirement at 80 bits: a flat 80-bit hash over 1.3e13 objects collides with probability near 1. Section 3 numbers still hold; the 63k to 67k inserts/s figures were for a 12-byte key, and a 10-byte key will not be worse. Re-measure on the real fill order when this is built.</p>
+<h2 id="1-what-is-in-the-code-today">1. What is in the code today</h2>
+<p>Three IDs coexist, and only one of them is used to find anything.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Where</th>
+<th>Form</th>
+<th>Used for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Row <code>id</code></td>
+<td>every table</td>
+<td><code>BIGINT</code>, handed out in per-process blocks (<code>_allocate_id</code>, <code>id_blocks</code>)</td>
+<td>Foreign keys, URLs (<code>system:12</code>, <code>objectref.py</code>), the API. Differs between runs and workers.</td>
+</tr>
+<tr>
+<td><code>uid</code> (GEN.69, PERF.44)</td>
+<td><code>uid</code> column on every object table</td>
+<td>Sector: designation as <code>BIGINT</code>. System and phenomenon: <code>BINARY(12)</code>, first 96 bits of SHA-256(seed, <code>uid-&lt;kind&gt;</code>, parent, rank), top bit set. Star, planet, moon, belt, comet: <code>BIGINT</code> (64-bit hash), unique only under its system</td>
+<td>Written on every save, printed in detail views. Nothing looks an object up by it.</td>
+</tr>
+<tr>
+<td>Position ID (GEN.64)</td>
+<td><code>name</code> and <code>uid</code> of rogue planets, standalone BH/NS, nebulae, remnants, quasars, comets, asteroid fields, bright-sweep systems</td>
+<td>76 bits: type 6, unit 3, distance 19, bearing 22, mark 22, collision 4</td>
+<td>Naming (the codec turns it into words)</td>
+</tr>
+</tbody>
+</table></div>
+<p><code>rank</code> in the uid hash is the row's place among its parent's rows in id order, counted at insert time by <code>_UidIssuer</code> or recounted by <code>assign_uids</code>.</p>
+<h3 id="cost-of-the-current-approach">Cost of the current approach</h3>
+<ul>
+<li>Compute: <strong>1.3 to 1.4 µs per ID</strong> (<code>derived_uid</code>, SHA-256). A sector of about 170 rows costs 0.24 ms, against a row INSERT of 70 to 90 µs. Compute is not the cost, and PERF.44 already removed the SELECT-and-UPDATE pass.</li>
+<li>Index: a random-valued unique index. In a 2-million-row model of <code>star_systems</code> (table: row id, sector id, 250-byte payload, sector index; filled one sector at a time in Hilbert order) adding the hashed <code>BINARY(12)</code> unique index took inserts from <strong>70.4k to 45.7k rows/s (-35%)</strong> and the table from <strong>370 to 421 bytes a row (+14%)</strong>.</li>
+<li>GEN.64 position IDs: <strong>5.0 µs</strong> to pack (trig), plus <code>_claim_object_ids</code>, which SELECTs the table for held IDs once per table per sector and again for every bump.</li>
+</ul>
+<h3 id="defects-found-reproduced-against-mariadb-with-the-repos-own-code">Defects found, reproduced against MariaDB with the repo's own code</h3>
+<ol>
+<li><strong>A re-run of the uid pass can fail with a duplicate key.</strong> Delete the first planet of a 9-planet system through <code>save_system_edits</code>, add a planet (it saves with a NULL uid), then run <code>assign_uids</code>: <code>IntegrityError 1062 Duplicate entry for key 'uq_planets_uid'</code>. The new planet is ranked by its place among the <em>current</em> rows, so it gets the hash of a rank a surviving sibling already holds. <code>add_system_to_sector</code> runs the sector-wide pass over every system in the sector (<code>store.py</code> 6040), so by code reading an admin adding a system to a sector can fail this way; I ran only the system-level call. <code>generation-determinism.md</code> section 6.2 already warns that rank can shift.</li>
+<li><strong>Bodies added by an admin never get a uid.</strong> <code>save_system_edits</code> inserts new bodies with no uid and nothing assigns one (the new planet's uid stayed NULL).</li>
+<li><strong>Regenerating a phenomenon wipes its uid.</strong> <code>replace_phenomenon_content</code> copies every column except <code>_KEPT_PHENOMENON_COLUMNS</code>, which leaves out <code>uid</code>. A rogue planet with uid <code>0000004986A0FFFE64000000</code> had <code>NULL</code> afterwards (name kept). The docs say regeneration keeps the ID.</li>
+</ol>
+<p>Also: the id of a body depends on its parent (<code>planet uid</code> goes into a moon's hash). Orbital updates change parents (capture, ejection), change tables (a planet ejected from its star becomes a rogue planet, two planets merge into a star, a body disrupts into an asteroid field: <code>orbital-updates.md</code> sections 1 and 3, <code>collisions-and-mergers.md</code> section 5), and move systems between sectors. An ID that encodes the parent or the table, or is recomputed from where the object is, will not survive those.</p>
+<h2 id="2-what-the-id-has-to-do">2. What the ID has to do</h2>
+<p>R1 unique (galaxy-wide for top-level objects, under the system for bodies). R2 survives edits and in-place regeneration. R3 survives a move to another sector. R4 survives reparenting, reclassification, merge, split (a rule is needed for the last two whatever the scheme). R5 same seed gives same IDs with parallel workers. R6 computable before the INSERT, with no lock, sequence call or SELECT. R7 cheap in the index and clustered usefully for sector queries. R8 readable and ideally decodable to an address. R9 cheap to migrate (Boss: no compatibility needed).</p>
+<h2 id="3-numbers">3. Numbers</h2>
+<h3 id="31-collision-odds-birthday-bound-p--1---exp-n²2b1">3.1 Collision odds (birthday bound, p = 1 - exp(-n²/2^(b+1)))</h3>
+<p>Object counts: 2.953e11 systems (default galaxy, <code>phenomenon-scatter-mass-cut.md</code>); about 45 bodies per system from the 449-system run in <code>generation-performance-study.md</code> (1.3 stars, 9 planets, 25 moons, 0.7 comets, rest rogue/other), so about 1.3e13 objects. The full galaxy will never be generated; these are the ceilings. The bound matched a 32-bit simulation (0.75 seen, 0.69 predicted).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Namespace</th>
+<th>n</th>
+<th>64 bit</th>
+<th>95 bit (today's 96 with fixed top bit)</th>
+<th>128 bit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All systems</td>
+<td>2.95e11</td>
+<td>certain</td>
+<td><strong>1.1e-6</strong></td>
+<td>1.3e-16</td>
+</tr>
+<tr>
+<td>All objects in one flat space</td>
+<td>1.3e13</td>
+<td>certain (about 4.6e6 clashes)</td>
+<td>2.1e-3</td>
+<td>2.5e-13</td>
+</tr>
+<tr>
+<td>Bodies of one system (about 60)</td>
+<td>60</td>
+<td>9.8e-17</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>One sector's systems (about 10)</td>
+<td>10</td>
+<td>2.7e-18</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>Bits for p below 1e-9: 105 for systems, 116 for every object. So today's split is sound: 96-bit galaxy-wide for systems, 64-bit scoped to the system for bodies. A flat 64-bit hash for everything would not be unique. A hash collision is also a hard failure: the same input gives the same ID, so the sector can never save (the GEN.64 bump counter has no hash equivalent).</p>
+<p>Positional (sector + offset, Boss's idea): at 1 mpc (12 bits per axis, 81 bits with the 45-bit designation) about 10 systems a sector gives 7e-10 clash chance per sector and about 21 expected clashing pairs across 3e10 sectors if systems were placed uniformly (placement keeps Hill-sphere spacing, so fewer; not measured). At 0.1 mpc, 0.02 expected. Never zero, so it still needs a collision counter and a check.</p>
+<h3 id="32-compute-per-id-python-one-thread-benchids_benchtxt">3.2 Compute per ID (Python, one thread; <code>bench/ids_bench.txt</code>)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scheme</th>
+<th>µs/ID</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Counter (sector key plus serial)</td>
+<td>0.09</td>
+</tr>
+<tr>
+<td>Snowflake-style</td>
+<td>0.21</td>
+</tr>
+<tr>
+<td>Truncated SHA-256 / BLAKE2b / SHA-1</td>
+<td>0.6 to 0.65</td>
+</tr>
+<tr>
+<td>Current <code>derived_uid</code></td>
+<td>1.3 to 1.4</td>
+</tr>
+<tr>
+<td>Sector designation plus 3x12-bit offset</td>
+<td>1.7 (mostly <code>sector_uid</code>'s validation)</td>
+</tr>
+<tr>
+<td>UUIDv4</td>
+<td>1.3</td>
+</tr>
+<tr>
+<td>UUIDv5 (SHA-1, 16 B)</td>
+<td>1.8</td>
+</tr>
+<tr>
+<td>UUIDv7-style</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>ULID string</td>
+<td>3.1</td>
+</tr>
+<tr>
+<td>GEN.64 position pack</td>
+<td>5.0</td>
+</tr>
+<tr>
+<td>Morton 3D (magic numbers)</td>
+<td>1.4</td>
+</tr>
+<tr>
+<td>Hilbert 3D (pure Python)</td>
+<td>17.9</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="33-index-and-insert-cost-2000000-rows-10-per-sector-200000-sectors-filled-in-hilbert-sector-order-benchdb_resultsjsonl">3.3 Index and insert cost (2,000,000 rows, 10 per sector, 200,000 sectors, filled in Hilbert sector order; <code>bench/db_results.jsonl</code>)</h3>
+<p>One run each, so treat differences under about 10% as noise.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Variant</th>
+<th>Inserts/s</th>
+<th>Bytes/row (data+indexes)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>No uid (row id plus sector index)</td>
+<td>70.4k</td>
+<td>370</td>
+<td>floor</td>
+</tr>
+<tr>
+<td><strong>Hash uid, BINARY(12), unique (today)</strong></td>
+<td><strong>45.7k</strong></td>
+<td><strong>421</strong></td>
+<td>random index</td>
+</tr>
+<tr>
+<td>UUIDv4 as clustered PK</td>
+<td>11.8k</td>
+<td>514</td>
+<td>table 3x the buffer pool: I/O bound; gets worse with size</td>
+</tr>
+<tr>
+<td>UUIDv7 as clustered PK</td>
+<td>71.6k</td>
+<td>393</td>
+<td>in time order; not deterministic; point lookup 2x slower here (extra hop)</td>
+</tr>
+<tr>
+<td>Sector designation + serial, <code>BINARY(12)</code> unique</td>
+<td>63.5k</td>
+<td>463</td>
+<td>index 268 MB: designation order is not the fill order, so pages half fill</td>
+</tr>
+<tr>
+<td>Hilbert-ordinal sector + serial, <code>BINARY(12)</code> unique</td>
+<td>67.2k</td>
+<td>415</td>
+<td>prefix follows the fill order</td>
+</tr>
+<tr>
+<td>Clustered PK (designation, serial), no row id</td>
+<td>71.6k</td>
+<td>719</td>
+<td>row pages half fill when filled out of key order</td>
+</tr>
+<tr>
+<td>Clustered PK (Hilbert ordinal, serial), no row id</td>
+<td>87.5k</td>
+<td>305</td>
+<td>append-like; no secondary indexes, so not like for like</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading: what costs is key order against insert order, not key width. Random keys (hash, UUIDv4/5) scatter; keys that start with a sector and are inserted sector by sector are 39 to 47% faster than the hash in the same model. Designation order costs index space unless the fill follows it.</p>
+<h3 id="34-does-the-sector-key-order-matter-for-queries">3.4 Does the sector key order matter for queries?</h3>
+<p>For a 3-D neighbourhood of sectors (400 random centers, 229k-sector toy grid, <code>bench/locality.txt</code>), pages touched at 4 sectors per page: radius 8 pc, designation 16.6, Hilbert 15.6, Morton 17.2; radius 20 pc, designation 162, Hilbert 155, Morton 167. The existing designation order (ring, layer, slot) is within 6% of Hilbert for reads and had fewer contiguous runs. <strong>A curve key is not worth it for queries</strong>; the only case for one is matching the fill order on insert.</p>
+<h2 id="4-the-options">4. The options</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Scheme</th>
+<th>Unique</th>
+<th>Stable on edit / move / reparent</th>
+<th>Seed-deterministic, parallel-safe</th>
+<th>Before INSERT</th>
+<th>Index</th>
+<th>Readable / decodable</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A</td>
+<td><strong>Birth-address serial</strong>: sector designation + serial counted at birth (+ body serial)</td>
+<td>By construction, no collisions</td>
+<td>Yes if the serial is stored and never renumbered</td>
+<td>Yes: serial is generation rank, one worker per sector</td>
+<td>Yes, 0.1 µs</td>
+<td>Sector-prefixed, clusters (63 to 67k/s)</td>
+<td>Yes: <code>FE81000A2B.3F</code> decodes to sector and serial</td>
+<td>Needs a stored counter for runtime additions</td>
+</tr>
+<tr>
+<td>B</td>
+<td>A plus keyed scramble (Feistel / the GEN.120 codec's permutation)</td>
+<td>By construction (bijection)</td>
+<td>As A</td>
+<td>As A</td>
+<td>Yes, a few µs</td>
+<td>Scrambled, scatters like the hash unless the stored column is the unscrambled one</td>
+<td>Opaque unless decoded with the key</td>
+<td>Only if Boss wants non-guessable IDs; nothing here needs that</td>
+</tr>
+<tr>
+<td>C</td>
+<td>Hash of birth address (today, GEN.69)</td>
+<td>Probabilistic (1e-6 systems)</td>
+<td>Birth hash survives moves; <strong>rank-derived hashes broke on delete+add</strong></td>
+<td>Yes</td>
+<td>Yes, 1.3 µs</td>
+<td>Random: -35% inserts</td>
+<td>No, one-way</td>
+<td>Fixing defect 1 means storing a birth index, which is A; the hash then adds only risk and scatter</td>
+</tr>
+<tr>
+<td>D</td>
+<td>UUIDv5 (name-based, SHA-1)</td>
+<td>Probabilistic, 128-bit</td>
+<td>As C</td>
+<td>Yes</td>
+<td>Yes, 1.8 µs</td>
+<td>16 B random</td>
+<td>No</td>
+<td>C in a standard wrapper; MariaDB has a <code>UUID</code> type, MySQL 8.4 does not, so portable only as <code>BINARY(16)</code></td>
+</tr>
+<tr>
+<td>E</td>
+<td>UUIDv4 / 128-bit random</td>
+<td>Probabilistic</td>
+<td>Yes once stored</td>
+<td><strong>No</strong></td>
+<td>Yes</td>
+<td>Worst: -83%</td>
+<td>No</td>
+<td>Only for rows that are not generated</td>
+</tr>
+<tr>
+<td>F</td>
+<td>UUIDv7, ULID, KSUID, Snowflake, Sonyflake, TSID</td>
+<td>Yes (clock plus worker plus sequence)</td>
+<td>Yes once stored</td>
+<td><strong>No</strong>: time of creation</td>
+<td>Yes</td>
+<td>Append-like (71.6k/s)</td>
+<td>Partly</td>
+<td>Right for non-spatial runtime rows (accounts, jobs, API keys, audit rows); wrong for generated objects, since a re-run gives new IDs</td>
+</tr>
+<tr>
+<td>G</td>
+<td>Pure positional, GEN.64-style (galactic polar, or sector + offset)</td>
+<td>Needs a collision counter and a DB check</td>
+<td><strong>Only as a frozen birth position</strong> (as Gaia does)</td>
+<td>Within a sector, yes; across a sector face two workers can claim the same cell</td>
+<td>Needs <code>_claim_object_ids</code> SELECTs</td>
+<td>Clusters spatially</td>
+<td>Decodes to a place that goes stale</td>
+<td>Planets, moons and anything orbiting move every tick, so it cannot identify bodies</td>
+</tr>
+<tr>
+<td>H</td>
+<td>Curve key of position (Morton, Hilbert, HEALPix) as the ID</td>
+<td>Not injective</td>
+<td>Moves with the object</td>
+<td>Yes</td>
+<td>Hilbert 18 µs in Python</td>
+<td>Clusters</td>
+<td>No</td>
+<td>A sort/cluster key, not an identity. Gaia's <code>source_id</code> pairs a curve cell at first detection with a running number, which is A with a different prefix</td>
+</tr>
+<tr>
+<td>I</td>
+<td>Per-sector counter / DB sequence alone (no sector prefix)</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Not unless one allocator</td>
+<td>Needs a round trip (<code>id_blocks</code> today)</td>
+<td>Sequential</td>
+<td>No</td>
+<td>This is the row id; keep it as the join key</td>
+</tr>
+<tr>
+<td>J</td>
+<td>Content hash (Merkle leaf, fingerprint)</td>
+<td>Collides for identical content</td>
+<td><strong>No</strong>: any edit changes it</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Random</td>
+<td>No</td>
+<td>Right tool for change detection (<code>generation-determinism.md</code>), not identity</td>
+</tr>
+<tr>
+<td>K</td>
+<td>Natural keys (name) / composite keys with no surrogate</td>
+<td>Names are unique via the registry</td>
+<td>Renames break it</td>
+<td>Yes</td>
+<td>Registry round trip</td>
+<td>Wide</td>
+<td>Yes</td>
+<td>Names change (GEN.62 cascades); composite keys widen every child index</td>
+</tr>
+<tr>
+<td>L</td>
+<td>Hierarchical path text (<code>S12.3.0/y4/p2</code>)</td>
+<td>By construction</td>
+<td>As A</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Variable-length text</td>
+<td>Best</td>
+<td>The display form of A, not a storage form</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-ranking">5. Ranking</h2>
+<ol>
+<li><strong>A, birth-address serial.</strong> Only option that has zero collision risk, needs no hash, SELECT or lock, decodes without a lookup, clusters by sector, and keeps its ID through every move because the address in it is where the object was born, not where it is. In my model it is 39 to 47% faster to insert than today's hash.</li>
+<li><strong>B, A with a keyed scramble.</strong> Same properties plus opacity, at some cost in decodability and clustering. Only if non-guessable IDs are wanted.</li>
+<li><strong>C, keep the hash</strong> and fix the three defects (store a birth index, keep <code>uid</code> in the regenerate path, assign on admin add). Works, but the stored birth index needed for the fix makes the hash redundant.</li>
+<li><strong>D, UUIDv5.</strong> C with a standard wrapper.</li>
+<li><strong>G, positional</strong> for interstellar objects only, as now.</li>
+<li><strong>F, time-ordered IDs</strong> for non-generated, non-spatial rows.</li>
+<li><strong>H, I, K, L, J, E</strong>: not identities.</li>
+</ol>
+<h2 id="6-recommendation-a-in-detail">6. Recommendation: A, in detail</h2>
+<p><strong>Principle: an ID is assigned once at birth and is never recomputed from anything that can change</strong> (position, sector, parent, table, content). Where an object is now is an attribute (<code>sector_id</code>, position); where it was born is its ID.</p>
+<p>Layout, with no column-width change from today:</p>
+<ul>
+<li><strong>Sector:</strong> its designation, unchanged (exists before any row, GEN.68).</li>
+<li><strong>System and every top-level object</strong> (rogue planet, BH/NS, nebula, remnant, quasar, comet, asteroid field, facility on its own): <code>BINARY(12)</code> = 8-byte birth-sector designation + 4-byte serial from that sector's counter. The serial is the object's generation rank at fill; objects added later (admin, runtime, ejection) take the next value of <code>sectors.next_serial</code>, which only grows, so deleted serials are never reused. Four billion per sector is far above any sector's population.</li>
+<li><strong>Star, planet, moon, belt, comet:</strong> the existing <code>BIGINT uid</code>, now a per-system serial from <code>star_systems.next_body_serial</code> (generation rank at fill, then the next value). One counter across all five kinds, so a moon that is captured, a planet that merges, or a comet that becomes a planet keeps its ID. Full form: <code>&lt;system ID&gt;.&lt;serial&gt;</code>.</li>
+<li>Display form: <code>FE81000A2B.3F</code> for a system, <code>FE81000A2B.3F.7</code> for a body. Hex and decodable, which suits the NAV page and URLs.</li>
+<li>Position IDs (GEN.64) stay as the <strong>names</strong> of interstellar objects, since Boss chose them; they stop doubling as the <code>uid</code>, so <code>_claim_object_ids</code> is no longer on the path for uniqueness of the uid (still for the name).</li>
+<li>Identity events (Boss to confirm): move and reparent keep the ID. A planet ejected becomes a rogue planet and <strong>keeps its ID</strong> (system ID plus serial, now living in the rogue table) with a <code>born_in_system</code> link; a merge keeps the heavier body's ID and retires the other's (never reused); a split gives the fragments fresh serials.</li>
+<li>Needs two counter columns (<code>sectors.next_serial</code>, <code>star_systems.next_body_serial</code>), updated in the same transaction as the insert. Bulk fills use generation rank and touch the counter once per sector, so there is no per-object round trip and no cross-worker dependency (one worker owns a sector).</li>
+<li>Seed independence: IDs no longer depend on the galaxy seed, only on generation order, which the seed already fixes. Two galaxies share IDs at the same address, so a cross-galaxy reference needs a galaxy number in front; the design notes already give each galaxy its own database.</li>
+<li>Migration: one Alembic revision that adds the two counters and rewrites <code>uid</code> values; widths do not change. Boss's no-compatibility rule applies, and GEN.39 already calls for a fresh galaxy.</li>
+<li>Compute drops from 1.3 µs to about 0.1 µs per ID and <code>_UidIssuer</code> becomes a counter. The hash-passing code in <code>uid.py</code>, <code>_assign_*_uids</code> and the rank recount can be removed.</li>
+</ul>
+<p>Optional later: match the sector prefix to the fill order (a Hilbert ordinal of the sector) to get the last 5 to 10% of insert speed and the smaller index (415 vs 463 bytes a row). It costs the readable designation; I would not do it unless inserts are still the bottleneck after PERF.45 to 47.</p>
+<h2 id="7-what-i-could-not-measure">7. What I could not measure</h2>
+<ul>
+<li>Real fill order, 4 parallel workers, and contention on a shared counter. The model fills one sector at a time in Hilbert order on one connection.</li>
+<li>Anything near the real table sizes. 2M rows of 250-byte payload against a 256 MB pool is the I/O-bound regime, but the real tables are 100 to 1000 times larger. Single runs; differences under about 10% are noise.</li>
+<li>MySQL 8.4 and MariaDB 11.4 (the CI legs). Only MariaDB 10.11 ran.</li>
+<li>The end-to-end failure when an admin adds a system to a sector after a body delete and add. Defect 1 is reproduced at the <code>assign_uids</code> call; the sector path is by code reading.</li>
+<li>The 45 bodies per system is one dense run; the true average over the galaxy will differ.</li>
+<li>The sector-level positional clash rate with real Hill-sphere spacing, and the GEN.64 collision count (I used the 0 of 16,526 already recorded in <code>object-ids.md</code>).</li>
+<li>Whether any user data (bookmarks, wiki links, facilities) holds row ids or uids that a rewrite would break. Boss's no-compatibility rule says that is fine.</li>
+</ul>
+<h2 id="8-sources">8. Sources</h2>
+<ul>
+<li>Gaia DR3 <code>source_id</code>: HEALPix level-12 cell in bits 36 to 63, processing center code, then a running number, kept for the source's life although stars move (<a href="https://gea.esac.esa.int/archive/documentation/GDR3/Gaia_archive/chap_datamodel/sec_dm_main_source_catalogue/ssec_dm_gaia_source.html">Gaia DR3 datamodel</a>, <a href="https://blog.g-vo.org/healpix-maps-in-general-and-in-gaia.html">G-VO note</a>).</li>
+<li>UUID versions and database-key locality: <a href="https://www.rfc-editor.org/rfc/rfc9562.html">RFC 9562</a>.</li>
+<li>Random keys, page splits and half-full pages in InnoDB: <a href="https://www.percona.com/blog/uuids-are-popular-but-bad-for-performance-lets-discuss/">Percona, 2019</a>, <a href="https://www.percona.com/blog/illustrating-primary-key-models-in-innodb-and-their-impact-on-disk-usage/">Percona, 2015</a>. The search summaries gave the 50% and 94% fill figures from a single vendor blog; my own numbers in section 3.3 are the ones to rely on.</li>
+<li>Repo: <code>galaxy/uid.py</code>, <code>names/object_id.py</code>, <code>db/store.py</code> (<code>_UidIssuer</code>, <code>assign_uids</code>, <code>_claim_object_ids</code>, <code>replace_system_content</code>, <code>add_system_to_sector</code>), <code>db/edits.py</code>, <code>docs/design/architecture/object-ids.md</code>, <code>generation-determinism.md</code>, <code>orbital-updates.md</code>, <code>collisions-and-mergers.md</code>, <code>/mnt/project-files/notes/gen68-object-ids.md</code>.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

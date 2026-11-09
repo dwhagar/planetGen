@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technological Assessment - planetGen docs</title>
+<meta name="description" content="Evaluating an exoplanetary species without relying on game statistics requires observing physical infrastructure, energetic outputs, and operational capabilities across distinct operational domains.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/technological-assessment.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/technological-assessment.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/population-and-politics.html">population-and-politics</a>.</p>
+</blockquote>
+<h1 id="technological-assessment">Technological Assessment</h1><p class="meta">docs/design/research/imported/technological-assessment.md</p><details class="toc"><summary>On this page (10 headings)</summary><ul><li style="margin-left:14px"><a href="#weighting-rationale">Weighting Rationale</a></li><li style="margin-left:0px"><a href="#domain-index-specifications-0-to-7">Domain Index Specifications (0 to 7)</a></li><li style="margin-left:14px"><a href="#1-energy-index-weight-25">1. Energy Index (Weight: 25%)</a></li><li style="margin-left:14px"><a href="#2-materials-index-weight-20">2. Materials Index (Weight: 20%)</a></li><li style="margin-left:14px"><a href="#3-information-index-weight-20">3. Information Index (Weight: 20%)</a></li><li style="margin-left:14px"><a href="#4-medical-index-weight-15">4. Medical Index (Weight: 15%)</a></li><li style="margin-left:14px"><a href="#5-propulsion-index-weight-10">5. Propulsion Index (Weight: 10%)</a></li><li style="margin-left:14px"><a href="#6-defense-index-weight-10">6. Defense Index (Weight: 10%)</a></li><li style="margin-left:0px"><a href="#application--assessment-example">Application &amp; Assessment Example</a></li><li style="margin-left:14px"><a href="#interpretation">Interpretation</a></li></ul></details>
+<p>Evaluating an exoplanetary species without relying on game statistics requires observing physical infrastructure, energetic outputs, and operational capabilities across distinct operational domains. Categorizing a species using an unweighted flat average creates a misleading picture: a civilization with spatial jump-gate travel but zero concept of advanced metallurgy or nuclear power is fundamentally constrained by its resource base.</p>
+<p>To account for foundational prerequisites, an species is rated across six individual domains on an scale from <strong>Index 0 to Index 7</strong>. The composite <strong>Technology Level (<span class="math">\(\text{TL}TL\text{TL}TL\)</span>)</strong> is derived via a weighted formula that prioritizes fundamental planetary engineering over downstream applications.
+Domain Weighting System &amp; Weighted <span class="math">\(\text{TL}TL\text{TL}TL\)</span> Formula</p>
+<hr />
+<p>The overall Technology Level (<span class="math">\(\text{TL}\)</span>) is calculated using the following weighted average equation:</p>
+<p><span class="math display">\[\text{TL} = 0.25(\text{EI}) + 0.20(\text{MI}) + 0.20(\text{II}) + 0.15(\text{MeI}) + 0.10(\text{PI}) + 0.10(\text{DI})\]</span></p>
+<p>Where:</p>
+<ul>
+<li>
+<p><span class="math">\(\text{EI}\)</span> = <strong>Energy Index</strong></p>
+</li>
+<li>
+<p><span class="math">\(\text{MI}\)</span> = <strong>Materials Index</strong></p>
+</li>
+<li>
+<p><span class="math">\(\text{II}\)</span> = <strong>Information Index</strong></p>
+</li>
+<li>
+<p><span class="math">\(\text{MeI}\)</span> = <strong>Medical Index</strong></p>
+</li>
+<li>
+<p><span class="math">\(\text{PI}\)</span> = <strong>Propulsion Index</strong></p>
+</li>
+<li>
+<p><span class="math">\(\text{DI}\)</span> = <strong>Defense Index</strong></p>
+</li>
+</ul>
+<h3 id="weighting-rationale">Weighting Rationale</h3>
+<ul>
+<li>
+<p><strong>Energy Index (Weight: 25%)</strong>: Energy generation dictates the theoretical limit of all work, computation, structural assembly, and spatial manipulation. Without sufficient power, advanced tools in other domains cannot function.</p>
+</li>
+<li>
+<p><strong>Materials Index (Weight: 20%)</strong>: Physical materials represent the structural bottleneck of technology. Energy containment, computational hardware, and orbital hulls are strictly limited by the physical stress tolerances of available elements and alloys.</p>
+</li>
+<li>
+<p><strong>Information Index (Weight: 20%)</strong>: Computational capacity governs a species’ ability to analyze physical laws, automate manufacturing, manage complex distribution networks, and optimize energy grids.</p>
+</li>
+<li>
+<p><strong>Medical Index (Weight: 15%)</strong>: Measures mastery over biological organisms, cellular mechanics, and genetic modification. It reflects physical stability, life extension, and cognitive integration.</p>
+</li>
+<li>
+<p><strong>Propulsion Index (Weight: 10%)</strong>: Indicates spatial range and logistical mobility. While highly visible, propulsion is entirely downstream of Energy, Materials, and Information.</p>
+</li>
+<li>
+<p><strong>Defense Index (Weight: 10%)</strong>: Measures tactical force multiplication and energetic shielding. Like propulsion, defense is an applied manifestation of the underlying Energy and Materials infrastructure.</p>
+</li>
+</ul>
+<h2 id="domain-index-specifications-0-to-7">Domain Index Specifications (0 to 7)</h2>
+<h3 id="1-energy-index-weight-25">1. Energy Index (Weight: 25%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Organic muscle power, open wood/biomass fire.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Draft animals (oxen, donkeys), kinetic river waterwheels, primitive windmills.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Coal-fired steam pressure, basic direct-current (DC) generation, petroleum internal combustion.</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: Nuclear fission, central alternating-current (AC) grids, gas turbines, chemical storage cells.</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Controlled hydrogen/deuterium fusion, micro fuel cells, room-temperature superconductors.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Gravity-induction reactors, mass reactors, Helium-3 fusion networks.</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Matter-antimatter annihilation reactors, micro-fusion cells, localized energy taps.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Zero-point subatomic energy extraction, cosmic energy taps, direct mass-to-energy conversion.</p>
+</li>
+</ul>
+<h3 id="2-materials-index-weight-20">2. Materials Index (Weight: 20%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Unprocessed wood, natural stone, bone, hides, untreated clay.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Smelted copper and bronze, forged iron, high-carbon steel, kiln-fired ceramic bricks.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Structural steel alloys, cast iron, vulcanized rubber, synthetic polymers (early plastics).</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: Precision-molded synthetic plastics, structural titanium alloys, advanced industrial composites.</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Carbon nanotube structures, grown supermaterials, micro-machined polymer matrices.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Molecularly woven composite armor plating, high-density nanotech matrices.</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Liquid-state structural alloys, crystal carbon armors, information-encoded atomic isotopes.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Living metal matrices, programmable matter, forcefield-matter hybrid materials.</p>
+</li>
+</ul>
+<h3 id="3-information-index-weight-20">3. Information Index (Weight: 20%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Oral traditions, tally marking, symbolic cave art.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Written alphabetic scripts, arithmetic, geometric records, scrolls, bound codices.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Movable-type printing, landline electric telegraphy, early analog radio broadcasts.</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: Mainframe and micro-digital computing, global packet-switching networks, cellular connectivity.</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Early true artificial intelligence, Virtual Reality networks (VRNet), direct neural interfaces.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Hyper-Immersion Networks (HINet), star-system automated neural grids, synthetic-sheath androids (biodroids).</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Atomic-scale memory encoding, self-directing artificial intelligence (SAI), instant subspace radio relays.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Subatomic matter calculation, quantum god-minds, temporal-gate data processing.</p>
+</li>
+</ul>
+<h3 id="4-medical-index-weight-15">4. Medical Index (Weight: 15%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Herbal poultices, basic bone setting, primitive cauterization.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Basic invasive surgery without sterile environments, early organ/herbal pharmacology.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Chemical anesthesia, germ theory, synthetic antibiotics, blood typing, diagnostic chemistry.</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: Organ transplantation, non-invasive imaging (CT, PET, MRI), systemic antiviral treatments, diagnostic beds.</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Targeted gene selection (defect elimination), tissue engineering, basic cybernetic prostheses.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Cross-species gene splicing, artificial wombs, full bionic replacement, automed trauma pods.</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Cellular rejuvenation, digital consciousness/ghost uploading, automed regeneration wands, nanite symbionts.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Tissue regeneration rays, complete physical metamorphosis, biological age reversal / immortality.</p>
+</li>
+</ul>
+<h3 id="5-propulsion-index-weight-10">5. Propulsion Index (Weight: 10%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Unassisted organic movement, pack/mount animals, basic timber rafts.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Wheeled animal chariots, multi-masted oceanic sailing ships.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Steam locomotives, internal combustion motor vehicles, submersibles, atmospheric flight, chemical rockets.</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: High-speed jet aircraft, nuclear-powered vessels, multi-stage orbital rockets.</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Automated transit grids, space elevators, gravitic lift platforms, sublight interplanetary ships.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Gravitic hovercraft, non-tactical sublight/trans-light warp drives, static dimensional jump gates.</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Full tactical warp drives, quantum slipstream drives, short-range matter transporters.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Space-folding drives, chronal/time displacement engines, planetary wormhole networks.</p>
+</li>
+</ul>
+<h3 id="6-defense-index-weight-10">6. Defense Index (Weight: 10%)</h3>
+<ul>
+<li>
+<p><strong>Index 0</strong>: Wooden/stone impact weapons, hide padding, wicker/wooden shields.</p>
+</li>
+<li>
+<p><strong>Index 1</strong>: Metal bladed weapons, chainmail/plate armor, mechanical siege engines.</p>
+</li>
+<li>
+<p><strong>Index 2</strong>: Black powder muskets, rifled artillery, ironclad warships, early armored vehicles.</p>
+</li>
+<li>
+<p><strong>Index 3</strong>: Automatic firearms, guided missile systems, synthetic ballistic body armor (Kevlar).</p>
+</li>
+<li>
+<p><strong>Index 4</strong>: Personal electrolasers, heavy directed-energy laser cannons, powered battlesuits, combat robots.</p>
+</li>
+<li>
+<p><strong>Index 5</strong>: Electromagnetic Gauss guns, particle beam weapons, personal force screens, nanotech armor.</p>
+</li>
+<li>
+<p><strong>Index 6</strong>: Compact phasers/blasters, molecular disruptors, ship-wide deflector screens.</p>
+</li>
+<li>
+<p><strong>Index 7</strong>: Disintegrators, nuclear dampers, black-hole bombs, living metal defensive plating.</p>
+</li>
+</ul>
+<h2 id="application--assessment-example">Application &amp; Assessment Example</h2>
+<p>Consider an exoplanetary species exhibiting the following profile vector:</p>
+<ul>
+<li>
+<p><strong>Energy Index</strong>: 4 (Deuterium Fusion)</p>
+</li>
+<li>
+<p><strong>Materials Index</strong>: 3 (Titanium / Precision Composites)</p>
+</li>
+<li>
+<p><strong>Information Index</strong>: 6 (Atomic Memory / SAI / Subspace)</p>
+</li>
+<li>
+<p><strong>Medical Index</strong>: 5 (Gene Splicing / Bionics / Automed)</p>
+</li>
+<li>
+<p><strong>Propulsion Index</strong>: 4 (Sublight Interplanetary / Space Elevator)</p>
+</li>
+<li>
+<p><strong>Defense Index</strong>: 3 (Guided Missiles / Ballistic Armor)</p>
+</li>
+</ul>
+<p><span class="math display">\[\text{TL} = (0.25 \times 4) + (0.20 \times 3) + (0.20 \times 6) + (0.15 \times 5) + (0.10 \times 4) + (0.10 \times 3)\]</span></p>
+<p><span class="math display">\[\text{TL} = 1.00 + 0.60 + 1.20 + 0.75 + 0.40 + 0.30 = \mathbf{4.25}\]</span></p>
+<h3 id="interpretation">Interpretation</h3>
+<p>The species evaluates to an overall <strong>Weighted Technology Level of 4.25</strong>. While their Information Index (Index 6) and Medical Index (Index 5) are advanced, their infrastructure is tethered by an Energy Index (Index 4) and Materials Index (Index 3), preventing them from fielding energy shielding or faster-than-light propulsion.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

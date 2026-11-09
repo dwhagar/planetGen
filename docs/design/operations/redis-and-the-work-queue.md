@@ -326,7 +326,7 @@ As built (PERF.119, second slice: the API's jobs). The API jobs that change the 
 
 As built (PERF.119, the one-unit commands). `reset-galaxy` (`cli.reset.reset_galaxy_unit`, a generation run), `check-math` (`physics.mathcheck.check_math_unit`, a check run) and `check-datasets` (`cli.datasets.check_datasets_unit`, a check run) are registered commands of one unit each, with the database or the options as plain JSON in the step's parameters. Their verbs, `python3 -m planetgen.cli.reset` (after the typed confirmation or `--yes`; `--dry-run` starts no run), `planetgen check-math` and `python3 -m planetgen.cli.datasets status`, build the step and run it through the wrapper, and print what the unit returns (a worker's output reaches nobody). `datasets fetch` is a setup download and stays direct. The Generate page's reset and data-check steps still run these verbs as steps of the job until PERF.203 puts the page on one wrapper run.
 
-As built (PERF.172, `planetgen galaxy` as one run). The galaxy is one run in the queue over one step list. The process that starts it plans the sectors in the mode asked for (the estimate and the questions of `_plan_sectors`: random start, single address, neighborhood, shell, band, span, course or block), and then `generation/followed.run_followed` puts the stages in one `wrapper.run`: the sector stages (`start` and `neighborhood`, or `sectors`, or `sectors` and `neighborhood` for `--wedge` with `--radius-pc`), `link`, `mass`, `luminosity`, `phenomena`, `phenomena-index`, `nebula-draw`, `block-lights`, `backfill`, `population`, `territories`, `settle` and `run-blocks` (`stages.galaxy_stages`). Each stage's `Follower` says what its process shows and counts as the plan arrives and the units come back (bars, lines of the log, the summary); it does none of the stage's work. The work that is not a unit moved into the commands: a command may name a `prepare` (once, in a worker, when its stage opens, before the cut: empty the table the units refill) and a `conclude` (once, in the unit that completes the stage, before the next stage opens: store the record the later stages read, build the indexes, link the nebula field); the starter waits for the conclusion before it closes the stage's display. A hook or the opening of a stage that fails fails the run at once, naming the stage ("stage X could not start", "the end of stage X failed"), where it used to be lost as a unit done when Redis failed it. A stage with nothing to do (no sector saved since the run started, nothing to backfill) stores its row as skipped, so it adds nothing to the estimates. The same seed gives the same galaxy at one worker and at four: every draw still comes from the seed of the thing it draws, and the cuts do not depend on the worker count. The estimate (`planetgen galaxy --estimate-only`, the run's listing) shows the whole list. A link that fails now fails the run, where it only warned; a failed galaxy prints the `planetgen link --since` line to run it again.
+As built (PERF.172, `planetgen galaxy` as one run). The galaxy is one run in the queue over one step list. The process that starts it plans the sectors in the mode asked for (the estimate and the questions of `_plan_sectors`: random start, single address, neighborhood, shell, band, span, course or block), and then `generation/followed.run_followed` puts the stages in one `wrapper.run`: the sector stages (`start` and `neighborhood`, or `sectors`, or `sectors` and `neighborhood` for `--wedge` with `--radius-pc`), `link`, `mass`, `luminosity`, `phenomena`, `phenomena-index`, `nebula-draw`, `backfill`, `population`, `territories`, `settle`, `run-blocks` and `block-lights` (`stages.galaxy_stages`; the block light totals and the uncharted sector rows are the last thing a galaxy run makes, PERF.251, on one bar with a share for each of the units of shells, the levels above them and the index). Each stage's `Follower` says what its process shows and counts as the plan arrives and the units come back (bars, lines of the log, the summary); it does none of the stage's work. The work that is not a unit moved into the commands: a command may name a `prepare` (once, in a worker, when its stage opens, before the cut: empty the table the units refill) and a `conclude` (once, in the unit that completes the stage, before the next stage opens: store the record the later stages read, build the indexes, link the nebula field); the starter waits for the conclusion before it closes the stage's display. A hook or the opening of a stage that fails fails the run at once, naming the stage ("stage X could not start", "the end of stage X failed"), where it used to be lost as a unit done when Redis failed it. A stage with nothing to do (no sector saved since the run started, nothing to backfill) stores its row as skipped, so it adds nothing to the estimates. The same seed gives the same galaxy at one worker and at four: every draw still comes from the seed of the thing it draws, and the cuts do not depend on the worker count. The estimate (`planetgen galaxy --estimate-only`, the run's listing) shows the whole list. A link that fails now fails the run, where it only warned; a failed galaxy prints the `planetgen link --since` line to run it again.
 
 As built (PERF.182, finish an incomplete run). A run can be carried on after it stopped. The run record already holds the steps (a command and its complete parameters per stage) and each stage's `started`, `ended` and `concluded` clocks; it now also holds the galaxy's seed, the build (`galaxy.version_key`) and, for a run that carries another on, `finishes`. `generation/finish_run.py` reads the record of the newest generation run that stopped (a live record whose holder is dead is marked failed first), refuses when the seed, the build or the database is not the one the run recorded, when the run was already carried on, or when a stage it would run is not in `FINISHABLE`, and gives the steps of a new run: a stage the old run finished carries `finished_by` and is *carried over* by the wrapper (`wrapper._carry_finished_stage`: it opens and ends at once with no unit and stores the earlier conclusion), the stage that stopped carries `again` and runs from its start with its `prepare` (the scatters empty what they rewrite; the sector stages skip the sectors already saved, `run_galaxy.generate_sectors_unit`), and the stages after it run as planned. `REWIND_WITH` runs the scatter before a stopped `finish-phenomena`, and the mass scatter before a stopped luminosity scatter that draws both passes, again with it: their rows are written into what only the earlier stage's `prepare` empties. `planetgen finish-run` follows the new run as the other commands do (`RecordedStage` stands in for the followers, which hold the stage state only the starting process knew); the Generate page's `finish_run` job is that command, then the later steps of the job the stopped run was part of (`jobs.remaining_steps`).
 
@@ -383,6 +383,81 @@ every other, as before, so nothing that can run together is made to run one afte
   canceled logs `dropped: stage X did not run, the stage(s) it requires (...) did not finish` for each stage it left undone. The
   stages of a run still run one after another (the barrier of 5.12) and the units of a stage still run together; making two stages run together is a
   later step that needs each pair shown not to touch the other's data.
+
+### 5.14 One memory and load gate for every job (PERF.254, Boss 3:34 PM EST on 2026-11-08)
+
+Until PERF.254 the size of a worker was a number typed into `workers.STAGE_WORKER_MEMORY_MB` and nothing read the host while a run went:
+the runs of 2026-10-31 and 2026-11-08 were killed by the kernel (36 workers at a guess of 452 MB against 1.4 GB tables; 15 workers at 15,128 MB
+of 15,992 MB with no figure for the block lights and the cut of the next stage inside the last unit). Boss chose to keep RQ 2.12 and build the
+gate in Redis, fed by psutil (the Dask assessment and the library research are in `reports/perf254-dask-assessment-2026-11-08.md` and
+`reports/job-library-research-2026-11-08.md`). The gate is `queue/memorygate.py`; what each kind of job claims is `queue/claims.py`.
+
+* **Every job holds a claim.** `WarmWorker.prepare_execution` (`cli/worker.py`) takes the job's claim before anything else (after the check that
+  a worker holding the star tables starts over for a unit that needs none): `claims.claim_for(job)` gives `kind`, MB, cores and lane. A claim is
+  a field of the Redis hash `planetgen:gate:claims` under the worker's name with an expiry that the heartbeat renews (`maintain_heartbeats`), so a
+  worker killed with `kill -9` gives it up by itself; it is released in `execute_job`'s `finally`. No job is exempt: the kinds are
+  `unit:<command>`, `cut:<command>`, `api:<module:name>` and `fn:<function>`, and `tests/test_memory_gate.py` fails for a function on
+  `allowlist.FUNCTIONS`, an API function on `allowlist.API_FUNCTIONS` or a command with units that has none (the callbacks run inside the job they
+  follow). The figures are the measured stage table where there is one (`workers.STAGE_WORKER_MEMORY_MB`) and a first claim by nature elsewhere
+  (`claims.UNIT_BY_NATURE_MB`, `FUNCTION_CLAIMS`, `API_CLAIMS`), marked unmeasured until the gate has seen a job of the kind.
+* **The rule** (`memorygate.decide`, a pure function of the claim, the host and the claims held, so a scheduler can sit on top of it and ask
+  only "does this job fit?"): free = MemAvailable - reserve (the larger of 1,024 MB and 8 percent of the host) - the memory the reserved places of the
+  interactive and long lanes keep (700 MB a place, less what those lanes hold) - for every other claim, `max(0, claim - what its worker and horse
+  hold now)`; the claim, less what the asking worker already holds, must fit. The cores claimed stay within the host's (a quarter over for the
+  short lanes) and an ordinary job waits while the one-minute load per core is over 1.25 (2.0 for the short lanes, whose reserve is also half). A
+  job that finds no other claim is admitted whatever it claims. The cut of a stage claims the bulk lane to itself (`Claim.exclusive`).
+* **It cannot stall a run.** A job waits at most 300 s (`MAX_WAIT_SECONDS`), then is let in when fewer jobs of its kind hold claims than the
+  old table cap (`workers.stage_worker_cap`) allows, and otherwise goes on waiting for the cap. `PLANETGEN_MEMORY_GATE=0` turns the gate off. Each
+  decision is logged: an admission at debug level (`area=queue`), a wait once a minute, a late admission as a warning; a unit or an opening that
+  waited 5 s or more says so in the run's log (kind `gate.wait`).
+* **Claims are learned.** `memorygate.refresh` samples the proportional memory of the worker and every process under it at each heartbeat (every
+  5 s while a job runs) and `release` keeps the largest as the kind's size (`planetgen:gate:learned`); a claim is the table's figure or the learned
+  peak with 10 percent on top, whichever is larger, and for a kind with no figure the learned peak alone. A peak is a sample and can miss a spike;
+  the retry is for that.
+* **A job killed for memory** (`units.horse_killed`, SIGKILL) that has a retry left is queued again by RQ with a claim 1.5 times the old one
+  (or the peak seen, whichever is more; `memorygate.grow`), and the kind's size is learned; a second kill ends the run, naming the unit or the
+  opening and what it claimed and held. A kill by any other signal ends the run at once, as before.
+* **The cut of a stage is a job.** The unit that completes a stage concludes it and queues `units.open_stage(run, next stage)`
+  (`units.enqueue_open`, job id `<run>-open<n>`), which runs `wrapper.advance` in a horse of its own under the `cut:<command>` claim (1,500 MB
+  to start with, then what the gate has seen), alone on its lane. A failure or a kill is filed under the stage being opened, not under the unit
+  before it; cancel and the update guard know the job. The run's own process still opens the first stage.
+* **What it does not do.** The gate cannot make the cut smaller: a cut that wants 57 GB (the old order of the backfill on the full galaxy) is
+  refused room it does not have and waits for the table cap. Reading counts per sky cell instead of rows is the stage code's change (PERF.252, PR 5727).
+  Learned sizes are kept by kind, not by galaxy size: a table kind never claims less than its figure, a kind with no figure is
+  corrected by the retry. The output of a run does not depend on any of this: the work seed is independent of how many jobs run at once.
+* **Outside the queue** a stretch of work takes a claim with `memorygate.hold(conn, claim)`; `scripts/test.py` does so for each phase.
+
+### 5.15 A fair-share scheduler on the gate (OPS.130, Boss 3:44 PM EST on 2026-11-08)
+
+Boss: "we want to use a task scheduler and sharing system time so warmup or other commands do not block the site so all tasks that can run get a
+chance to run". The gate (5.14) answers whether one job fits; when several wait for the same room the gate alone gives it to whichever worker
+polls first, so a warm-up with thousands of units could take every freed megabyte from a visitor's job, and a large claim could wait for ever
+behind small ones. `queue/scheduler.py` answers which waiting job goes next, on the same view of the host and the claims (it is asked in place of
+`memorygate.decide`, under the same lock, and reads the same load and memory).
+
+* **A waiting job is a ticket** (`planetgen:gate:tickets`: the claim, when the wait began, the process), renewed at every poll (every 5 s), dropped when
+  the job goes in, when its worker stops polling (30 s) or when its process is gone. Every worker and `memorygate.hold` use the scheduler; the gate
+  with no scheduler is the old behaviour.
+* **The order** is `weight + aging x seconds waited - fair-share penalty`, highest first. Weights: the interactive lane 100, a visitor's node prefetch
+  90, the long lane 80, a run's units (bulk) 40, the maintenance lane (warm-ups, checks) and anything else 30. The fair-share penalty is up to 10,
+  for the share of the recent system time the job's kind has used (each finished job's seconds times its cores, charged to its kind and halved every
+  hour), so within a class the kind that has used less goes first and a warm-up's thousands of units cannot keep a check or the cut of a run from a turn.
+* **Aging and its bound.** Every waiting second adds `(100 - 30 + 10) / 600` to the weight, so a job that has waited **600 s** outranks a job of any class that
+  has just arrived, whatever the use: the order never keeps a job waiting longer than that behind later jobs. (How long a job waits for room is the time
+  the claims in its way take to end; after 300 s the gate's own bound lets it in by the old table cap.)
+* **A job goes when it is the highest ticket that fits.** It is held back while a higher ticket fits now and the two would not fit together; if both fit, it goes
+  (nobody is held up). Once a higher ticket has waited 120 s without room, the room that frees up is kept for it (until the 300 s bound), so a large
+  claim is not starved by a stream of small ones; before that, a lower job that fits goes ahead of a higher one that does not, so the host is not left idle.
+* **Reserved places.** Memory and now cores are kept for the interactive and long lanes' places against the other lanes: half a core a place, never more than
+  a quarter of the host's cores, less what those lanes hold (`memorygate.kept_mb`, `kept_cores`), so the site's next job always finds room, and a
+  warm-up or a bulk command is slowed (waits at the gate) when the site needs the time.
+* **What to read.** `PLANETGEN_MEMORY_GATE=0` in a worker's environment turns the gate and the scheduler off (the old table caps alone); with it on, the log says
+  what happened: `The memory gate holds <kind> (<MB>) for <worker>: <reason>` once a minute of waiting (the reason names the claim in the way, or "goes first",
+  or "room is kept for ..."), `The memory gate let <kind> in after <s> s of waiting, by the table cap` (a warning: the gate waited its 300 s), `gate admits ...` at
+  debug level (`area=queue`), and the run log's `gate.wait` line for a unit or an opening that waited 5 s or more. `memorygate.snapshot` shows the claims
+  and what was learned, and `scheduler.snapshot` the tickets in the order they would go with their priority, and the use of each kind.
+* **What it does not do.** It does not run anything by itself and does not change what a run generates (the work seed is independent of the order and
+  of how many jobs run at once). The weights are a first setting (`LANE_WEIGHT`, `FAIR_PENALTY`, `AGING_BOUND_SECONDS`): the order of the classes is the rule.
 
 ## 6. Decisions for Boss
 

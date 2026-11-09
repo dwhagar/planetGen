@@ -182,10 +182,11 @@ def test_a_planet_with_no_star_keeps_the_whole_envelope_it_started_with():
 @pytest.mark.slow
 def test_the_generated_planets_show_the_radius_valley_a_system_sweep_finds():
     """The sweep of GEN.1323: inside 100 days, about half the planets of 1 to 4 Earth radii are above 2.0 [R1478] and the
-    planets of 1 to 2 Earth masses are mostly rocky."""
+    planets of 1 to 2 Earth masses are mostly rocky. It draws 40 systems because the count of 1 to 1.5 Earth-mass planets
+    swings from 7 to 28 across 24 (GEN.1396 moved the draws, not the share)."""
     draw.set_run_seed(20261107)
     inner, big, light, light_rocky = 0, 0, 0, 0
-    for _ in range(24):
+    for _ in range(40):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
         from planetgen.generation.system import StarSystem

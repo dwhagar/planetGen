@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Version 9.1: The game's manual, linked - planetGen docs</title>
+<meta name="description" content="Filed on 2026-11-08 as a version map (Boss, 7:03 PM EST: a wiki-style site, spakr, will hold the game&#x27;s manual, characters, races and the other information that PlanetGen does not store; PlanetGen is the game&#x27;s starmap; a later, unstarte...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/releases/version-9-1-wiki-integration.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="plan/releases/version-9-1-wiki-integration.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="version-91-the-games-manual-linked">Version 9.1: The game's manual, linked</h1><p class="meta">docs/plan/releases/version-9-1-wiki-integration.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#goal">Goal</a></li><li style="margin-left:0px"><a href="#phase-1-identity-and-access">Phase 1: Identity and access</a></li><li style="margin-left:14px"><a href="#galaxy-key-and-addresses">Galaxy key and addresses</a></li><li style="margin-left:14px"><a href="#integration-keys">Integration keys</a></li><li style="margin-left:0px"><a href="#phase-2-the-settings-and-the-lookup">Phase 2: The settings and the lookup</a></li><li style="margin-left:14px"><a href="#settings-and-lookup">Settings and lookup</a></li><li style="margin-left:0px"><a href="#phase-3-the-pages">Phase 3: The pages</a></li><li style="margin-left:14px"><a href="#wiki-panel">Wiki panel</a></li><li style="margin-left:0px"><a href="#phase-4-tests-developer-page-and-the-request-to-spakr">Phase 4: Tests, developer page and the request to spakr</a></li><li style="margin-left:14px"><a href="#tests">Tests</a></li><li style="margin-left:14px"><a href="#documents">Documents</a></li><li style="margin-left:14px"><a href="#linked-sites-list">Linked sites list</a></li></ul></details>
+<p>Filed on 2026-11-08 as a version map (Boss, 7:03 PM EST: a wiki-style site, spakr, will hold the game's manual, characters, races and the other information that PlanetGen does not store; PlanetGen is the game's starmap; a later, unstarted project will link a body to its terrain and map).
+<a href="../../TODO.html">docs/TODO.md</a> is the master file: it holds each item's full text, and its &quot;Plan: versions&quot; section indexes every version.
+This file gives the version's goal, its phases and each phase's build threads with every item's prerequisites in order. A phase holds independent threads: an item's blockers sit in the same thread (earlier in the list) or in an earlier phase. Where the two disagree, TODO.md wins; when an item ships, it leaves TODO.md and its row here is deleted in the same PR (the progress ledger keeps its version). Research notes and judgment calls are in <a href="../notes.html">notes.md</a>; the headlines and the ideas not yet filed are in <a href="../release-roadmap.html">release-roadmap.md</a>.</p>
+<p>Version: 9.1</p>
+<p>Status: waiting on the wiki site (Boss, 7:07 PM EST on 2026-11-08: hold 9.1 until spakr has its public API and its field search); nothing is started or owned in PlanetGen, and 8.1 comes first.</p>
+<h2 id="goal">Goal</h2>
+<p>A visitor on an object page can reach the wiki pages written about that star, planet, moon, belt, comet or phenomenon, and the wiki can link back to the map. PlanetGen stores no wiki content and the wiki stores no map data: each side keeps its own accounts (Boss, 7:08 PM EST: separate accounts; an optional account sync is the later item USR.32) and the two sites connect with API keys made by the owner of each side, each holding the other's API URL (Boss, 7:06 PM EST). Every link names a body by the galaxy key and the Object ID, so a wiped map with a new seed reads as &quot;from another map&quot; and a link to a rebuilt system reads as &quot;no longer charted&quot;. The map and every page keep working when the wiki is off, slow or down. Nothing from the removed wiki code (OPS.69) comes back, the spakr repository is not edited from here (the request to its owner is DOC.119), and a later terrain and map project answers the same lookup (API.47). Design: the draft <code>design-drafts/wiki-integration-spakr-2026-11-08.md</code> in the project files, until Boss approves it into docs/design.</p>
+<h2 id="phase-1-identity-and-access">Phase 1: Identity and access</h2>
+<p>The galaxy key, the short address and the read-only integration keys that a linked site needs.</p>
+<h3 id="galaxy-key-and-addresses">Galaxy key and addresses</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API.43</td>
+<td>A galaxy key and the site identity call</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>API.44</td>
+<td>The short address /o/<Object ID> that finds the kind and redirects, and one stable answer from /api/objects/<ref> that tells 'no longer charted' from 'wrong map'; check the anonymous read rule</td>
+<td>API.43</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="integration-keys">Integration keys</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SEC.47</td>
+<td>Integration keys</td>
+<td>USR.28</td>
+<td></td>
+</tr>
+<tr>
+<td>ADM.152</td>
+<td>An Owner-only Integration keys screen: make, name, show once, rotate and revoke a key for a linked site, with its last use and audit</td>
+<td>SEC.47</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-2-the-settings-and-the-lookup">Phase 2: The settings and the lookup</h2>
+<p>The wiki settings section, the lookup client and the linked-pages call.</p>
+<h3 id="settings-and-lookup">Settings and lookup</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>ADM.153</td>
+<td>The wiki settings section in config.json</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>API.45</td>
+<td>The lookup client</td>
+<td>ADM.153</td>
+<td></td>
+</tr>
+<tr>
+<td>API.46</td>
+<td>GET /api/objects/<ref>/linked-pages: the wiki pages about an object, asked of the wiki lazily and returned short</td>
+<td>API.45</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-3-the-pages">Phase 3: The pages</h2>
+<p>What a visitor sees on the map.</p>
+<h3 id="wiki-panel">Wiki panel</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>UX.296</td>
+<td>The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link</td>
+<td>API.46</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="phase-4-tests-developer-page-and-the-request-to-spakr">Phase 4: Tests, developer page and the request to spakr</h2>
+<p>The checks that the link cannot harm the map, and the documents for the wiki site's owner.</p>
+<h3 id="tests">Tests</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.710</td>
+<td>Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL</td>
+<td>UX.296</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="documents">Documents</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DOC.118</td>
+<td>A developer page for spakr's author</td>
+<td>API.43, API.44</td>
+<td></td>
+</tr>
+<tr>
+<td>DOC.119</td>
+<td>A request to the spakr owner: a typed planetgen_ref field on place pages, a links lookup for public pages with a batch form, and an API version header</td>
+<td>DOC.118</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="linked-sites-list">Linked sites list</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Needs</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>API.47</td>
+<td>The linked-sites list for the third project</td>
+<td>API.45</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

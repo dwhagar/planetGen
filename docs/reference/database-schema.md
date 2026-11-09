@@ -6,6 +6,8 @@ reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
+**Every table and column the schema creates, in one list built from `schema.sql`: [../generated/database-columns.md](../generated/database-columns.md).** Use it to find a column this page does not describe.
+
 **Status**: the schema is implemented, with both a write and a read path.
 [`src/planetgen/db/store.py`](../../src/planetgen/db/store.py) (private — leading
 underscore, not part of the package's public generation API) writes
@@ -124,9 +126,9 @@ Every numeric column declares the unit it is stored in, in one list: `db/column_
 table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
 (`physics/unit_registry.py`, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
 `LOCAL_UNITS` for the few the registry does not hold yet. The registry is the only table of units (see
-`docs/design/units-and-number-formatting.md`); this page states no factor.
+`docs/design/architecture/units-and-number-formatting.md`); this page states no factor.
 
-Rules (Boss's cards Q3 and Q4 of `docs/design/unified-unit-quantity.md`):
+Rules (Boss's cards Q3 and Q4 of `docs/design/architecture/unified-unit-quantity.md`):
 
 - **The stored unit is chosen for precision, not forced to SI.** A position keeps its frame's unit (galaxy parsec, sector
   milliparsec, system kilometres or AU) because a double's spacing grows with the number.
@@ -1500,6 +1502,18 @@ Moon counterpart of `planet_deposit_types` — identical shape, `moon_id` FK -> 
 
 Rogue planet counterpart of `planet_deposit_types` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
 
+### `planet_isotopes`
+
+Added in v235 (GEN.1377, GEN.1420). The isotope record of a planet: one row per isotope of each element it holds. `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `element` (VARCHAR(3), the symbol), `isotope` (VARCHAR(8), `H-2`; unique with `planet_id`), `fraction` (DOUBLE, CHECK 0 to 1: the atom fraction of the element, the rows of one element add up to 1), `initial_ratio` (DOUBLE, nullable: the atom ratio of a radioactive isotope to its stable reference isotope at the body's formation; NULL where it is not followed) and `origin` (VARCHAR(12): `natural` the table's mix, `physical` a law of the star's metals and age and the temperature the ice formed at, `decay` a radioactive isotope at the body's age, `radiogenic` a daughter of the body's own decays; `extinct` and `cosmogenic` in the second part). No row means no record (a row saved before v235, a body with no stored composition). `physics/isotope_record.py`, [isotope-record.md](../design/composition/isotope-record.md).
+
+### `moon_isotopes`
+
+Moon counterpart of `planet_isotopes` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`).
+
+### `rogue_planet_isotopes`
+
+Rogue planet counterpart of `planet_isotopes` — identical shape, `rogue_planet_id` FK -> `rogue_planets.id` (`ON DELETE CASCADE`).
+
 ### `moon_interior_layers`
 
 Moon counterpart of `planet_interior_layers` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
@@ -2012,6 +2026,22 @@ row per sector address a backfill reached or a fill generated. See
 | `total_mass_kg` | DOUBLE | nullable | The summed mass (kg) of the bodies in it (v162, DB.108); 0 for a generated sector with none, NULL before a fill or when a body has no stored mass. See "v168 (DB.108)". |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
+### `effect_ledger`
+
+Added in v240 (GEN.1465). For every body of a system and every effect that acts on it, the share of each source's contribution in the largest source's (1.0 for the largest); it changes no result (`physics/effect_ledger.py`, `reports/gen1465-effect-ledger-design-2026-11-08.md`). The effects: 1 light, 2 UV, 3 tide, 4 heating, 5 Kozai and secular forcing, 6 precession, 7 eccentricity perturbation. Every source is computed; a source whose share is under `tuning.EFFECT_LEDGER_FLOOR` (1e-3, 0.1 percent) is not a row of its own but is added to the (body, effect) summary row. The five gravity effects (tide, heating, secular, precession, eccentricity) store only their largest source and the summary row; the other sources are recomputed on demand from stored masses and orbits.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | NOT NULL | The system the receiving body is in; FK -> `star_systems.id` (`ON DELETE CASCADE`). First in the primary key, so a system's rows sit together. |
+| `body_type`, `source_type` | TINYINT UNSIGNED | NOT NULL | The receiving body's and the source's kind table (`effect_ledger.BODY_CODES`: 1 stars, 2 planets, 3 moons, 4 asteroid_belts, 5 comets, 6 black_holes, 7 neutron_stars); `source_type` 0 on the summary row. |
+| `body_id`, `source_id` | BIGINT UNSIGNED | NOT NULL | Their row ids in those tables; `source_id` 0 on the summary row. |
+| `effect` | TINYINT UNSIGNED | NOT NULL | The effect's code. |
+| `share` | FLOAT | NOT NULL | The source's contribution over the largest source's (CHECK 0 or more); on the summary row, the sum of the shares under the floor. |
+| `n_below` | INT UNSIGNED | nullable | Summary row only: how many sources were under the floor. |
+| `largest_value` | DOUBLE | nullable | Summary row only: the largest source's contribution in the effect's own unit (CHECK over 0). |
+
+Primary key `(star_system_id, body_type, body_id, effect, source_type, source_id)`; no other index. Left out of the fingerprint (it records, it does not decide). A galaxy made before v240 has no rows, which reads as no ledger.
+
 ### `chart_ledger`
 
 Added in v201 (GEN.1127). One row for each sector cell that has been charted, keyed by the cell's address (`shell_index`, `band_index`, `wedge_index`, not `sectors.id`, so a row survives a sector row that is replaced). A cell is a whole sector, so it is charted or it is not; the uncharted remainder is every cell with no row. It replaces `sector_stats.filled_at` (dropped in v200), so there is one record of the charted state. Written by the save of a sector, cleared when a sector is deleted (`db/chart_ledger.py`).
@@ -2023,6 +2053,28 @@ Added in v201 (GEN.1127). One row for each sector cell that has been charted, ke
 | `generator_epoch` | SMALLINT UNSIGNED | nullable | The generator epoch it was charted under; a cell charted under an older epoch is stale. |
 | `charted_at` | TIMESTAMP(3) | NOT NULL | When the fill saved the sector (the old `sector_stats.filled_at`). |
 | `topped_up_at` | TIMESTAMP(3) | nullable | When the rogue top-up of its region run filled the cell (GEN.1120); NULL until it does. A cell keeps one top-up. |
+
+### `sector_facets` and `galaxy_totals`
+
+Added in v237 (DB.121, `db/galaxy_counts.py`). The galaxy's counts, kept as they change instead of counted again whenever a sector is added. Derived data: every row is made from the stored bodies, in the same transaction as the sector's save (`store.record_sector_stats`), edit (`store.refresh_edited_sectors`) or emptying (`store.forget_sector_fill`); `planetgen fill-block-totals` makes them all again and `check-counts` compares them with a full count. A page reads them only while they are whole (every sector with filled stats has its `total` rows, and no more) and counts the tables otherwise. Nothing in `star_systems` was changed: its FULLTEXT key makes an added column copy the whole table. What no sector holds (a system filed in no sector or in a sector with no grid address, a moon of a free planet) is counted when it is asked, so a read is the stored rows plus one small count.
+
+`sector_facets`: one row for each count of each generated sector, keyed by the sector's address like `sector_stats`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `shell_index`, `band_index`, `wedge_index` | INT | NOT NULL | Primary key with `facet` and `value`: the sector's address in the galaxy grid. |
+| `facet` | VARCHAR(16) | NOT NULL | `total` (values `systems`, `stars`, `planets`, `moons`, `belts`, `habitable`), or `binary` (`yes`, `no`), `octant`, `spectral`, `yerkes`, `class`, `body`, `life`, `moon_class`, `moon_body`, `moon_life`. |
+| `value` | VARCHAR(40) | NOT NULL | The facet's value. A facet value with no body is not stored; the six `total` rows always are. |
+| `n` | INT UNSIGNED | NOT NULL | How many. Indexed with the facet and value (`idx_sector_facets_facet`) so a sum over the galaxy reads the index alone. |
+
+`galaxy_totals`: the one row, `id` 1, that is the sum of every sector's `total` rows plus the mass and luminosity of `sector_stats`.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | TINYINT UNSIGNED | NOT NULL | Primary key; always 1. |
+| `systems`, `stars`, `planets`, `moons`, `belts`, `habitable_worlds` | BIGINT | NOT NULL | The totals over the generated sectors. |
+| `mass_kg`, `luminosity_sol` | DOUBLE | NOT NULL | The sum of `sector_stats.total_mass_kg` and `total_luminosity_sol` over the filled sectors, moved by the difference at each change (a float sum, so `check-counts` allows a relative 1e-9). |
+| `updated_at` | TIMESTAMP | NOT NULL | When the row last moved. |
 
 ### `sky_tier_draws`
 
@@ -2298,12 +2350,14 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │             ├──1───* planet_reflection_spectrum
                   │             ├──1───* planet_interior_layers
                   │             ├──1───* planet_deposit_types
+                  │             ├──1───* planet_isotopes
                   │             ├──1───* planet_gases
                   │             └──1───* moons
                   │                       │
                   │                       ├──1───* moon_reflection_spectrum
                   │                       ├──1───* moon_interior_layers
                   │                       ├──1───* moon_deposit_types
+                  │                       ├──1───* moon_isotopes
                   │                       └──1───* moon_gases
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
@@ -2588,6 +2642,10 @@ Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading F
 
 Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a center of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
 
+
+### v239 (GEN.1476): `galaxy_block_light_parts`, the block light sums kept as the scatter is written
+
+Migration 0239 creates `galaxy_block_light_parts`: one row for each sector cell `(shell_index, band_index, wedge_index)` that holds a bright star no system was built around or a scattered phenomenon not yet built, with the same eleven sums `galaxy_block_lights` holds (`star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz`, `star_lt`, `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy`, `point_lpz`) for that cell. `store.insert_bright_stars` and `store.insert_phenomenon_scatter`, which every scatter, backfill and sky draw writes through, add each batch's sums to its cells in the same transaction as the rows (`db/block_lights.note_rows`), so a rolled-back batch leaves nothing and a retried one adds once. The block light stage (`refresh-block-lights`) rolls the parts up to the rows of `galaxy_block_lights` (`block_lights.roll`) and the uncharted sector index takes its cells from them, so neither reads `bright_stars` and `phenomenon_scatter` again (the stage read them up to four times and took 63 minutes and most of its memory on a full galaxy). A sector build or delete puts its cell right (`block_lights.sync_cells`), clearing a scatter takes its sums out (`forget_parts`), and the parts are checked against the tables' unbuilt counts before they are used (`parts_current`); when they differ, or the table is empty on a galaxy made before v236, the stage makes them again from the objects (`rebuild(parts=True)`). `fill-map-luminosity` puts right the cells it fills in the same transaction, and `planetgen fill-block-totals` always rebuilds, as the repair and the proof. Derived data: no foreign key, left out of the fingerprint; the migration leaves the table empty.
 ### v146 (MAP.258): the block ladder's root and `galaxy_block_stats` for every level
 
 Migration 0146 widens `galaxy_block_stats.m` from SMALLINT UNSIGNED to INT UNSIGNED, fills the table again and makes the nebula block tables again. The block ladder (`galaxy/drill.py`) was 243, 81, 27, 9 and 3 shells deep and now runs up from 243 through 729, 2,187, 6,561, 19,683 and 59,049 to a root of 177,147 shells (708 kpc, past the grid's 262 kpc reach): the root's one block shell is one row of three wedges and holds the whole galaxy, so a walk from the root starts with three blocks. The single-space map's nodes are these blocks. A level's rows and wedges are its parent's counts times a rounded ratio, so putting levels above 243 moved the rows and wedges of every level below it: a block `(243, shell, band, wedge)` is another block than it was, and every stored per-block aggregate names the wrong block. The table gets a row for each of the eleven levels above a sector (a bigger block adds up the stored rows of its children, as before), and the 177,147 level does not fit SMALLINT UNSIGNED's 65,535. The migration empties the table and fills it from `sectors` and `sector_stats` a shell at a time, and, when `nebula_block_state` holds its row, makes `nebula_block_stats` and `nebula_block_classes` again from the nebulae (`db.nebula_blocks.rebuild`, the five stage levels they keep), so a stopped run can be started again. The stages and map windows still stop at the level-243 blocks (`drill.STAGE_LEVELS`). The version is detected from `galaxy_block_stats.m` being INT UNSIGNED.

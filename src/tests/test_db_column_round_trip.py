@@ -13,7 +13,7 @@ loads fails). The exceptions below each say why.
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import rings, surface_liquid_world
+from planetgen.physics import regional_temperature, rings, surface_liquid_world
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.publicids import pid
@@ -25,7 +25,10 @@ BOOKKEEPING_TABLES = {
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
     "orbit_nodes", "dark_members", "designations", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
-    "orbital_events", "orbital_event_bodies", "chart_ledger",
+    "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
+    "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
+    "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
@@ -40,9 +43,34 @@ CHANCE = "chance"
 CONTAINMENT = ("inside_nebula_id", "inside_remnant_id")
 SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant")
 
+SOLVED_AIR_ONLY = (
+    "dose_belt_msv_yr", "dose_gcr_msv_yr", "dose_ground_msv_yr", "dose_helio_mult", "dose_sep_msv_yr", "eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind",
+    "eq_co2_scrub", "eq_dust", "eq_gas_filter", "eq_mobility", "eq_rad_suit", "eq_rad_suit_rec", "eq_shelter", "eq_shelter_rec", "eq_supply", "eq_supply_rec",
+    "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_carbon_fraction", "ground_clay_fraction", "ground_evaporite_fraction", "ground_felsic_fraction",
+    "ground_grain", "ground_ice_fraction", "ground_intermediate_fraction", "ground_metal_fraction", "ground_ocean_fraction", "ground_oxidized_fraction",
+    "ground_sulfur_fraction", "ground_type", "ground_ultramafic_fraction", "groundwater", "hydrosphere", "ice_shell_km", "l_chem", "l_ener", "l_rad", "l_solv",
+    "land_fraction", "life_fauna", "life_flora", "life_microbial", "life_sentient", "mantle_delta_iw", "mantle_redox", "ocean_class", "ocean_depth_km", "ocean_fraction",
+    "ocean_liquid", "ocean_ph", "ocean_phosphate_umol_l", "outside_hours_day", "outside_hours_limit", "ozone_column_du", "ozone_loss_flag", "phi4", "phi4_air",
+    "phi4_pressure", "phi4_radiation", "phi4_suitability", "phi4_temperature", "phi4_water", "phosphorus", "relative_humidity", "roundness_ratio",
+    "shelter_column_g_cm2", "surface_dose_msv_yr", "temp_area_always", "temp_area_most", "temp_blue_share", "temp_cold_share", "temp_coldest_day", "temp_coldest_k",
+    "temp_coldest_lat_deg", "temp_coldest_lon_deg", "temp_green_share", "temp_hot_share", "temp_hottest_day", "temp_hottest_k", "temp_hottest_lat_deg",
+    "temp_hottest_lon_deg", "temp_livable_area", "temp_livable_belt_only", "temp_livable_share", "temp_livable_time", "temp_site_coldest_k", "temp_site_hottest_k",
+    "temp_site_lat_deg", "temp_site_livable_time", "temp_site_lon_deg", "temp_site_longest_out_days", "temp_site_mean_k", "tide_range_neap_m", "tide_range_spring_m",
+    "tier_air", "tier_pressure", "tier_radiation", "tier_suitability", "tier_temperature", "tier_water", "water_activity", "water_base_pressure_pa", "yield_strength_pa",
+)
+"""tuple: The columns a rogue planet gets only from the scoring of a world whose air was solved (the habitability score, doses, equipment, ground and ocean): about 1 Earth mass or
+less. The other rogue planets hold the placeholder 100 kPa and are not scored (Train 21: main's galaxy holds 2 such of 29 rocky ones, the moved sample none)."""
+
 NULL_IN_THIS_GALAXY = {
     # GEN.1047: the ids of the oddities a body was given; a rare outcome of a rate on a gated population, so a small galaxy may hold none.
     **{(table, "oddities"): CHANCE for table in ("planets", "moons", "rogue_planets")},
+    # GEN.1458: the other suns in a planet's sky, kept for a planet of a system with a second sun; a moon is read on its planet's sky (not stored) and a rogue planet has no star
+    ("planets", "sky_suns"): CHANCE,
+    ("moons", "sky_suns"): "a moon is not given the suns of the sky (GEN.1458)",
+    ("rogue_planets", "sky_suns"): "a rogue planet has no star (GEN.1458)",
+    # The latitude bands are stored only for a rogue planet whose air was solved (about 1 Earth mass or less); the rest hold the placeholder 100 kPa, no star and no bands. The
+    # moved sample of the Train 21 galaxy holds 13 rocky rogues, all heavier than 2 Earth masses, so it is chance whether one is light enough (main's holds 2 of 29).
+    **{("rogue_planets", name): CHANCE for name in (*regional_temperature.FIELDS, *SOLVED_AIR_ONLY)},
     # GEN.1111: the rogue planets of this small galaxy are dark, lifeless and without a surface liquid, so these are never set on them, and two
     # (GEN.1323: the rocky ones keep an envelope, which leaves the solid-only roundness and strength empty)
     # child tables hold nothing.
@@ -235,6 +263,7 @@ NEVER_READ = {
                                           "top_radius_fraction", "water_liquid")),
         ("rogue_planet_life_class_scores", ("id", "life_class", "rogue_planet_id", "score")),
         ("rogue_planet_deposit_types", ("age_window_gyr_end", "age_window_gyr_start", "capped_by_host", "deposit_type", "endowment_kg", "grade", "id", "key_element", "rogue_planet_id", "status")),
+        ("rogue_planet_isotopes", ("element", "fraction", "id", "initial_ratio", "isotope", "origin", "rogue_planet_id")),
         ("rogue_planet_reflection_spectrum", ("id", "position", "rogue_planet_id", "spectrum_type", "value"))) for column in columns},
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
@@ -244,13 +273,13 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
+        "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "planet_isotopes", "moon_isotopes", "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life", "system_config_slots", "system_configs", "belt_members", "irregular_moons", "field_members")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"), ("field_members", "field_id"), ("belt_members", "belt_id"), ("irregular_moons", "planet_id"), ("irregular_sets", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
-        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"),
+        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"), ("planet_deposit_types", "planet_id"), ("moon_deposit_types", "moon_id"), ("planet_isotopes", "planet_id"), ("moon_isotopes", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     # GEN.1084: the irregular moons are stored and read back by `store.load_star_system` (test_irregular_moons_stored.py), and whether the seeded galaxy has a giant that caught any is chance; no page or API line shows them yet.

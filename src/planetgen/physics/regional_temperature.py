@@ -31,7 +31,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants
+from planetgen.physics import constants, sky_suns
 from planetgen.physics import unit_registry as units
 
 _yr_to_s = units.converter("yr", "s")
@@ -106,12 +106,20 @@ def _daily_insolation(latitude, declination):
             + np.cos(latitude) * np.cos(declination) * np.sin(hour)) / math.pi
 
 
-def _annual_insolation(latitude, tilt):
+def _annual_insolation(latitude, tilt, suns=()):
     """The year's mean at `latitude` (array, radians) on a circular orbit with axial tilt `tilt` (radians), units of the
-    solar constant: the mean of the day's over `_SEASON_STEPS` points of the year."""
+    solar constant: the mean of the day's over `_SEASON_STEPS` points of the year. `suns` are the other suns in the sky (`sky_suns.Sun`, GEN.1458): each stands at the
+    declination of its own direction all year and takes its share of the light, the host the rest."""
     longitude = (np.arange(_SEASON_STEPS) + 0.5) / _SEASON_STEPS * 2.0 * math.pi
     declination = np.arcsin(math.sin(tilt) * np.sin(longitude))
-    return _daily_insolation(np.asarray(latitude)[:, None], declination[None, :]).mean(axis=1)
+    host = _daily_insolation(np.asarray(latitude)[:, None], declination[None, :]).mean(axis=1)
+    if not suns:
+        return host
+    folded = min(tilt, math.pi - tilt) if tilt > math.pi / 2.0 else tilt
+    total = (1.0 - sum(sun.share for sun in suns)) * host
+    for share, sin_declination, _ in sky_suns.terms(folded, suns):
+        total = total + share * _daily_insolation(np.asarray(latitude), np.full(np.shape(latitude), math.asin(max(-1.0, min(1.0, sin_declination)))))
+    return total
 
 
 def column_in_earths(pressure_pa, gravity_ms2):

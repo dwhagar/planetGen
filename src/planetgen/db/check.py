@@ -395,19 +395,37 @@ def check_ids(ctx):
     return problems
 
 
+def _bad_value_sql(column, low, high, low_in, high_in):
+    """The SQL condition under which a value of `column` (the row aliased `t`) breaks its `VALUE_RULES` rule."""
+    bad = []
+    if low is not None:
+        bad.append(f"t.`{column}` {'<' if low_in else '<='} {low}")
+    if high is not None:
+        bad.append(f"t.`{column}` {'>' if high_in else '>='} {high}")
+    return f"t.`{column}` IS NOT NULL AND ({' OR '.join(bad)})"
+
+
 def check_values(ctx):
-    """Columns holding numbers no generator can write."""
+    """Columns holding numbers no generator can write. One scan of each table counts every rule on it (a conditional sum per rule,
+    PERF.258); only a rule that finds rows is read again, for the rows it lists."""
     problems = []
-    for table, column, low, high, low_in, high_in in VALUE_RULES:
-        bad = []
-        if low is not None:
-            bad.append(f"t.`{column}` {'<' if low_in else '<='} {low}")
-        if high is not None:
-            bad.append(f"t.`{column}` {'>' if high_in else '>='} {high}")
+    rules_by_table = {}
+    for rule in VALUE_RULES:
+        rules_by_table.setdefault(rule[0], []).append(rule)
+    counts = {}
+    for table, rules in rules_by_table.items():
         scope_sql, params = ctx.scope.where(_SECTOR_OF[table])
-        where = f"t.`{column}` IS NOT NULL AND ({' OR '.join(bad)}){scope_sql}"
-        total = ctx.rows(f"SELECT COUNT(*) AS n FROM `{table}` t WHERE {where}", params)[0]["n"]
+        sums = ", ".join(f"COALESCE(SUM(CASE WHEN {_bad_value_sql(*rule[1:])} THEN 1 ELSE 0 END), 0) AS n{index}"
+                         for index, rule in enumerate(rules))
+        row = ctx.rows(f"SELECT {sums} FROM `{table}` t WHERE 1 = 1{scope_sql}", params)[0]
+        for index, rule in enumerate(rules):
+            counts[rule] = int(row[f"n{index}"])
+    for rule in VALUE_RULES:
+        table, column = rule[0], rule[1]
+        total = counts[rule]
         if total:
+            scope_sql, params = ctx.scope.where(_SECTOR_OF[table])
+            where = f"{_bad_value_sql(*rule[1:])}{scope_sql}"
             rows = ctx.rows(f"SELECT t.id AS id, t.`{column}` AS v FROM `{table}` t WHERE {where}"
                             f" LIMIT {MAX_ROWS_SHOWN}", params)
             problems.append(Problem(
@@ -417,7 +435,7 @@ def check_values(ctx):
 
 
 def check_counts(ctx):
-    """A sector's stats count the systems it holds (a warning only)."""
+    """A sector's stats count the systems it holds, and the galaxy's stored counts (DB.121) the rows the tables hold (a warning only)."""
     scope_sql, params = ctx.scope.where("s.id")
     rows = ctx.rows(
         "SELECT s.shell_index AS r, s.band_index AS l, s.wedge_index AS p, st.actual_systems AS stated,"
@@ -426,11 +444,18 @@ def check_counts(ctx):
         " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index"
         f" WHERE st.actual_systems IS NOT NULL{scope_sql}"
         " HAVING stated <> actual ORDER BY r, l, p", params)
-    if not rows:
-        return []
-    return [Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
-                    [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}"
-                     for row in rows], warning=True)]
+    problems = []
+    if rows:
+        problems.append(Problem(f"{len(rows)} sector(s) hold a different number of systems than their stats say.",
+                                [f"sector {row['r']}/{row['l']}/{row['p']}: stats {row['stated']}, found {row['actual']}"
+                                 for row in rows], warning=True))
+    if ctx.scope.everything:
+        # DB.121: the running totals and the sectors' facet rows against a full count of the tables (`planetgen fill-block-totals` repairs).
+        from planetgen.db import galaxy_counts
+        found = galaxy_counts.problems(ctx.conn)
+        if found:
+            problems.append(Problem("The stored galaxy counts differ from a full count.", found, warning=True))
+    return problems
 
 
 def check_object_index(ctx):

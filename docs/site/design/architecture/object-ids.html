@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interstellar object IDs (GEN.64, replaced by GEN.1256) - planetGen docs</title>
+<meta name="description" content="Built (Boss, 2026-10-09 22:39Z): the uid column is an 80-bit birth-location ID (the first layout; the default is 96 bits, BINARY(12), Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md) (GEN.170 layou...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/object-ids.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/object-ids.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="interstellar-object-ids-gen64-replaced-by-gen1256">Interstellar object IDs (GEN.64, replaced by GEN.1256)</h1><p class="meta">docs/design/architecture/object-ids.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#where-it-applies">Where it applies</a></li><li style="margin-left:0px"><a href="#planned-an-id-for-everything-and-names-from-ids">Planned: an ID for everything, and names from IDs</a></li><li style="margin-left:14px"><a href="#the-naming-key-gen70-control-schema-v9">The naming key (GEN.70, control schema v9)</a></li><li style="margin-left:14px"><a href="#local-names-from-the-object-id-gen1255-codec_version-2">Local names from the Object ID (GEN.1255, CODEC_VERSION 2)</a></li><li style="margin-left:14px"><a href="#names-shown-for-ids-gen71-gen1256">Names shown for IDs (GEN.71, GEN.1256)</a></li><li style="margin-left:14px"><a href="#unique-ids-for-every-object-gen69-and-gen170-schema-v78">Unique IDs for every object (GEN.69 and GEN.170, schema v78)</a></li><li style="margin-left:14px"><a href="#members-of-a-belt-gen1065">Members of a belt (GEN.1065)</a></li><li style="margin-left:14px"><a href="#what-the-codec-guarantees-gen120">What the codec guarantees (GEN.120)</a></li><li style="margin-left:0px"><a href="#scatter-rows-gen1254">Scatter rows (GEN.1254)</a></li></ul></details>
+<p><strong>Built (Boss, 2026-10-09 22:39Z):</strong> the <code>uid</code> column is an 80-bit birth-location ID (the first layout; the default is 96 bits, <code>BINARY(12)</code>, Boss, 2026-10-15, see intergalactic-and-halo-contents.md and numeric-precision-audit.md) (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 are built too; design in <a href="object-id-options.html">object-id-options.md</a>).</p>
+<p><strong>GEN.1256 (Boss, 2026-11-04, answers 1, 1, 1, 1):</strong> the 76-bit position ID of GEN.64 is gone. Every object that is not a generated star system (a rogue planet, standalone black hole or neutron star, nebula, supernova remnant and its collapsed core, quasar, interstellar comet or asteroid field) keeps its Object ID (<code>uid</code>, <code>galaxy/object_uid.py</code>) in its printed form (<code>FE81000A2B-0000005-000</code>) as the stored <code>name</code>, and the API shows it by its local name (GEN.1255) with the birth sector beside it. The position-ID layout, its type codes, the collision chain and <code>_claim_object_ids</code> were removed with no alias. Star systems keep their generated names, and the stars, planets and moons inside any system are named from the system as before (<code>&lt;ID&gt; A</code>, <code>&lt;ID&gt; II</code>).</p>
+<h2 id="where-it-applies">Where it applies</h2>
+<ul>
+<li><code>insert_sector</code> marks every phenomenon and remnant core of a galaxy-placed sector as named by its Object ID (<code>store._name_by_object_id</code>, <code>PENDING_ID_NAME</code>); the INSERT that gives the row its <code>uid</code> writes the printed ID as its <code>name</code> (<code>store._named_by_uid</code>), so these objects never touch <code>system_name_registry</code>. A bright-sweep system goes through the registry like any system.</li>
+<li>A standalone save with a galaxy position (<code>planetgen phenomenon --sector-id</code>) takes its name in <code>assign_uids</code>.</li>
+<li>A name given by hand (<code>--name</code>) is kept.</li>
+<li>An object with no galaxy position (<code>planetgen sector</code>, a <code>phenomenon</code> with no sector) keeps its generated name or designation, and its core stays <code>&lt;remnant&gt; Core</code>.</li>
+<li>Migration <code>object_id_names</code> rewrote the 19-digit names of an older galaxy from the row's <code>uid</code>; a row with no <code>uid</code> kept its name.</li>
+</ul>
+<h2 id="planned-an-id-for-everything-and-names-from-ids">Planned: an ID for everything, and names from IDs</h2>
+<p>Boss (2026-10-03, 2026-10-07) asked to drop word-salad names entirely
+and to give everything in the galaxy a unique ID, including sectors that
+haven't been filled. The plan:</p>
+<ol>
+<li><strong>Research</strong> the cheapest way to make those IDs: this document's packed
+position ID, an ID derived from a sector's address (so an unfilled
+sector has one before any row exists), a hash of the seed and address,
+or a database sequence; compared for cost, collision risk and stability
+when content moves or is regenerated in place.</li>
+<li><strong>IDs for every object</strong>: sectors, systems, stars, planets, moons,
+belts, comets and phenomena.</li>
+<li><strong>A naming key</strong> in the control database, drawn from the galaxy seed
+when the galaxy is created and changeable by an admin.</li>
+<li><strong>Names from the codec</strong>: <code>planetgen.names.gated_phoneme_codec</code>
+(<code>src/planetgen/names/gated_phoneme_codec.py</code>, moved there from the repo root by GEN.120) turns an
+ID into pronounceable words and back, keyed by a domain and the naming
+key, so a name is unique because its ID is, and changing the key
+renames the codec's objects without rewriting rows. Boss's decisions
+of 2026-10-08 (03:57Z and 04:00Z): stars and sectors keep the
+word-salad method, and planets, moons and belts keep the &quot;<system> I&quot;
+pattern, so the codec names only the objects with no star-derived name
+(the GEN.64 kinds above, whose hex ID becomes words, and
+constellations). A wide binary's planets are &quot;&lt;word 1&gt; I&quot;,
+&quot;&lt;word 1&gt; II&quot;, star B's &quot;&lt;word 2&gt; I&quot;, &quot;&lt;word 2&gt; II&quot;, never &quot;A I&quot;
+(Boss, 2026-10-07 17:11Z; GEN.71), where the two words are the wide
+pair's word-salad name.</li>
+<li><strong>No removal</strong> of the word-salad code, the word lists, the nltk
+corpus or the name registries: stars, sectors, planets, moons and
+belts still use them.</li>
+</ol>
+<h3 id="the-naming-key-gen70-control-schema-v9">The naming key (GEN.70, control schema v9)</h3>
+<p>The key is 8 hex digits in the control database's <code>galaxy_naming</code> (one
+row per galaxy database), drawn as the first 32 bits of SHA-256(galaxy
+seed || <code>&quot;naming-key&quot;</code>) when <code>planetgen plan</code> makes a new seed (planning
+again over the same seed keeps the stored key) and changeable on the Stats
+page or by <code>POST /api/admin/naming-key</code>. <code>names/naming_key.py</code> turns an
+ID, a kind and the key into a name: the codec domain is <code>&lt;key&gt;:&lt;kind&gt;</code>
+for the kinds in <code>naming_key.KINDS</code> (the GEN.64 kinds without the
+bright-sweep system, plus <code>constellation</code>). The codec derives its
+permutation from the domain's CRC32, so a kind has 128 permutations and
+two keys can occasionally name an object alike; the ID stays the
+identity. <code>CODEC_VERSION</code> is stored beside the key and the Stats page
+warns when the code's differs; bump it whenever the codec's golden words
+change. Stars, sectors, planets, moons and belts do not use the key.</p>
+<h3 id="local-names-from-the-object-id-gen1255-codec_version-2">Local names from the Object ID (GEN.1255, <code>CODEC_VERSION</code> 2)</h3>
+<p>Boss chose (5:14 PM EST on 2026-11-04, research in <code>reports/id-names-without-region-prefix-2026-11-04.md</code>) that an ID-derived name is
+the local part of the Object ID only, with the sector shown beside it, and that the 96-bit ID stays the identity. The position-ID name above
+spells a whole 19-digit ID as four words, so objects born near each other share their leading words; the Object ID's place is 56 of its
+96 bits and cannot be spelled word by word on a boundary. <code>naming_key.local_name(uid, key)</code> spells only the serial and body number
+(28 + 12 bits, 10 hex digits) as two words, in its own codec domain <code>&lt;key&gt;:local</code> (not a member of <code>KINDS</code>; no object of that kind exists),
+so the sector's words never appear: <code>Zaidonr Jaisonn</code>.</p>
+<p>Spelled directly, serials 0, 1, 2 share their first word. The 26 count bits of the serial (the two kind bits stay as they are) are first
+scrambled by <code>y = (a * x + b) mod 2**26</code>, a bijection for odd <code>a</code>, with <code>a</code> and <code>b</code> drawn from SHA-256 of the key and the sector, so every
+sector has its own scramble. <code>a</code> is the first candidate that keeps the first 4,096 serials of the sector at least 256 apart after the
+scramble (<code>SPREAD_SERIALS</code>, <code>SPREAD_GAP</code>): a first word holds all but the lowest eight bits of the scrambled count, so those serials
+have first words of their own. Inside a sector a local name is exact (the spelling is a bijection of the 40 bits) and reverses with
+<code>naming_key.uid_of_local_name(name, sector, key)</code>; on its own it can be shared with an object of another sector (about 1 in 27 at
+10 million objects), so a name that stands alone is shown with its sector, <code>local_name_with_sector</code>: <code>Zaidonr Jaisonn, sector 0000B0001803E8</code>. A key change renames every local name without rewriting a row. The bodies of one system share the first word and
+differ in the second.</p>
+<p>What this item does not do: it adds the functions, the version and the tests. Using the local name for rogue planets and the other
+phenomena, and showing the name and sector on pages, the API and search are GEN.1256, GEN.1257, UX.259
+and API.38.</p>
+<h3 id="names-shown-for-ids-gen71-gen1256">Names shown for IDs (GEN.71, GEN.1256)</h3>
+<p>The <code>name</code> column of a codec-named object keeps its printed Object ID (the identity). Every JSON answer of the API passes through <code>api/naming.NamingJSONProvider</code>, which replaces a <code>name</code> that is such an ID with its local name under the galaxy's key (<code>naming_key.local_name</code>) and adds <code>name_sector</code>, the birth sector's 14 hex digits, beside it. The pages call the API in-process, so the maps, lists, info panels and the nebula page all show the local name. The key is read once per request (cached 5 s per process, dropped when an admin changes it) and <code>query.galaxy_content_state</code> mixes it into its <code>base</code>, so a key change refreshes the tile and page caches, and nothing is stored in words, so a key change renames all at once. With no key drawn, or in the CLI, the ID is shown. Lists sorted by name order by the printed ID, that is by birth sector and then serial. <code>GET /api/lookup?text=</code> accepts a printed ID, or a local name followed by its sector (<code>Banhunm Finkap, sector 00FA0FFFE9E240</code>, <code>naming_key.uid_of_typed_name</code>); a local name without its sector is ambiguous and finds nothing by itself. The wide-pair rule (never &quot;A I&quot;; test in <code>test_body_names.py</code>) was already in force from GEN.62.</p>
+<h3 id="unique-ids-for-every-object-gen69-and-gen170-schema-v78">Unique IDs for every object (GEN.69 and GEN.170, schema v78)</h3>
+<p>Every object has a <code>uid</code> column. A sector's is its designation as an
+integer (<code>BIGINT UNSIGNED</code>, unique; it needs no row: <code>uid.sector_uid(shell, band, wedge)</code> is the ID of a sector nobody has generated). Every other
+object's is the 80-bit <code>BINARY(10)</code> (the first layout; 96 bits, <code>BINARY(12)</code>, is the default, Boss, 2026-10-15) of <code>planetgen/galaxy/object_uid.py</code>,
+unique on its own: birth sector 40 bits, serial 28 bits, body number 12
+bits (layout and rules in <a href="object-id-options.html">object-id-options.md</a>
+section 0).</p>
+<ul>
+<li>The sector fill (<code>store._UidIssuer</code>) gives a sector's systems, then its
+phenomena, generated serials 0, 1, 2 ... in insertion order, and a
+system's stars, planets, moons, belts and comets body numbers 1, 2, 3
+... in insertion order. Saving the same sector again from the same
+galaxy seed gives every object the ID it had; position is never an input.</li>
+<li>A row saved later (an admin-added body or system, a system saved on its
+own, a sector with no grid address) is a run-time birth: <code>store.assign_uids</code>
+takes the next serial of the sector's <code>id_counters</code> row (kind 01), or for
+a body the system's next body number. A system with no sector is born at
+the core (shell 0, band 0, wedge 0).</li>
+<li>A row that already has a <code>uid</code> keeps it, so a system whose content is
+regenerated in place (<code>replace_system_content</code>) keeps its own ID.</li>
+<li>Counters only move up and <code>planetgen reset</code> keeps them, so a number is
+never given twice.</li>
+<li>A field cloud (GEN.47, GEN.176) is stored by whichever sector reaches it
+first, but is born in the sector holding the center of the space it
+fills: the mean of the interior points of its shape on the fixed
+24-cell grid (<code>NebulaShape.interior_centroid</code>), scaled by its radius,
+added to its center and rounded to 1 mpc (<code>nebula_field.centroid_mpc</code>).
+Its serial is field-drawn (kind 10): its rank among every field cloud
+born in that sector, cells in index order and clouds in a cell in draw
+order (<code>nebula_field.cloud_object_id</code>), worked out from the galaxy seed
+alone, so the ID does not depend on save order and the birth sector
+need not exist yet. Nebulae and remnants a sector generates itself
+keep a generated serial in that sector.</li>
+<li>A container (DB.85: a globular cluster or a superbubble, a row of
+<code>galaxy_containers</code>) is born in the sector holding its center and has a
+region serial (kind 11): its rank among the containers born in that
+sector, counted in a fixed order (clusters by name and seed, then
+bubbles by column and draw; <code>generation/containers.build</code>), worked out
+from the galaxy seed alone.</li>
+</ul>
+<h3 id="members-of-a-belt-gen1065">Members of a belt (GEN.1065)</h3>
+<p>A belt's members take no body number of their own (the body field is 12 bits and a belt can hold far more bodies than that). A member is designated <code>&lt;belt ID&gt;.&lt;rank hex&gt;</code>, such as <code>FE81000A2B-0000005-003.0042</code>: the belt's printed ID, a point, and the member's rank by the mass drawn once at birth (1 is the heaviest), at least four hex digits and up to eight. <code>galaxy/object_uid.designation(belt_id, rank)</code> prints it and <code>parse_designation(text)</code> reads it back (the belt's ID by <code>parse_id</code>); both are pure, read no stream and no naming key, and give a member one text. A member has no name: <code>naming_key</code> lists the kinds it renames and belt members are not among them. A rank above the belt's individual count (<code>is_on_demand</code>) names a body drawn on demand and never stored. A belt member that a planet captures keeps this designation and gains a parent link to the planet (<code>captured_member(belt_id, rank, planet_id)</code>, the planet in the same system); a body from a reservoir that is no belt of the system prints <code>&lt;planet ID&gt;.&lt;rank hex&gt;</code> (<code>outside_reservoir_member</code>), the body field untouched; <code>parse_captured</code> reads either back (TEST.495, <a href="../systems/captured-asteroid-moons.html">captured-asteroid-moons.md</a> section 4). Design: <a href="../systems/belt-evolution.html">belt-evolution.md</a> section 9.</p>
+<h3 id="what-the-codec-guarantees-gen120">What the codec guarantees (GEN.120)</h3>
+<p>Tests: <code>src/tests/test_gated_phoneme_codec.py</code>. Its golden words are
+pinned: moving one renames objects, so it needs a naming key or version
+key change first.</p>
+<ul>
+<li><strong>Encoding</strong> is deterministic and uses no database or hash round: the
+ID's digits are shifted by a domain-keyed permutation, split into words
+and spelled with gated phonemes.</li>
+<li><strong>Two IDs of the same length never share a name</strong> (checked exhaustively
+for words of up to five digits, and over 100,000 random 19-digit IDs).</li>
+<li><strong>Decoding needs the ID's length.</strong> A word can read as more than one
+length (&quot;bar&quot; is the digits <code>08</code> or <code>00B</code>), so about half of the names
+of 19-digit IDs have two readings of different lengths. <code>decode(phrase, domain, length=19)</code> is exact; without <code>length</code> it answers only when one
+length fits and otherwise says to pass it. The original file decoded by
+taking the longest phoneme at each step, which gave the wrong digits for
+about one ID in five from five digits up; decoding now accepts only
+the reading the encoder would have written. The encoder is untouched, so
+names are the same as with the original file.</li>
+<li>The module needs no packages beyond the standard library (the original
+used <code>pygtrie</code> and <code>more_itertools</code>, which this project does not install).</li>
+</ul>
+<p>A bright star placed by the backfill shows its ID until its sector is
+generated, and only then gets its name.</p>
+<h2 id="scatter-rows-gen1254">Scatter rows (GEN.1254)</h2>
+<p>A star of <code>bright_stars</code> and a scattered phenomenon of <code>phenomenon_scatter</code> have an Object ID from the moment the scatter writes them: <code>uid</code>
+(<code>BINARY(12)</code>, unique, NULL for a row made before migration 0213). It is the ID the object keeps when its sector is charted. The module is
+<code>db/scatter_uids.py</code>.</p>
+<ul>
+<li><strong>Birth sector and body.</strong> The row's own sector, body number 0, serial kind generated.</li>
+<li><strong>Serial.</strong> The row's rank in its sector among the rows written in the same call, brightest first (<code>luminosity_w</code> of a star,
+<code>map_luminosity_sol</code> of a phenomenon), then the row's <code>seed</code>, then its row number. The rank continues from the sector's counter (<code>id_counters</code>
+kinds <code>scatstar</code> and <code>scatphen</code>, scope the sector's seven bytes), so a backfill that adds dimmer stars later takes the next numbers and no
+number is given twice. The same rows give the same IDs whatever order they were inserted in, and a cleared scatter (<code>clear_bright_stars</code>,
+<code>clear_phenomenon_scatter</code>) forgets its counters and starts from serial 0 again.
+<strong>A scatter serial depends on the run order, by design (GEN.1302):</strong> the rank is within one write, so a sector whose dimmer stars an earlier
+backfill wrote and whose brighter ones the first fill added numbers them differently from one whose first fill wrote them all at once. The IDs
+stay unique and never change once issued; <code>test_order_independence</code> puts a sector's scatter serials in brightness order before it compares.
+Run-order-independent scatter IDs (a serial block for each mass ring) would be a new item with an epoch.</li>
+<li><strong>Stars and phenomena do not share a counter.</strong> Stars take serials from 0, phenomena from 2^25 (<code>PHENOMENON_SERIAL_BASE</code>), 33 million each.</li>
+<li><strong>When.</strong> <code>store.insert_bright_stars</code> and <code>store.insert_phenomenon_scatter</code> call <code>scatter_uids.assign</code> when they have written their rows:
+one window query ranks the rows with no <code>uid</code> per sector, three joined updates move the counters and write the IDs. A row inserted by other means
+stays NULL (NULLs do not collide in the unique index) until a writer runs.</li>
+<li><strong>The fill.</strong> A sector's fill starts its own serials past the stars' counter (<code>_UidIssuer</code>, <code>scatter_uids.next_star_serial</code>), so a system the
+fill makes is never given a serial a scatter star holds. A system built round a scatter star takes the star's <code>uid</code> (<code>entry.bright_star_uid</code>), a built
+scattered phenomenon takes its row's (<code>entry.scatter_uid</code>), and <code>POST /api/uncharted-systems/&lt;id&gt;/generate</code> does the same. The old ID of a
+deleted system comes back when its star is built again.</li>
+<li><strong>Not done here.</strong> The row number of an uncharted star is still in its URL and its page title; naming from the ID is GEN.1255's codec, applied to
+these rows by GEN.1256 and GEN.1257.</li>
+<li><strong>Cost.</strong> The column and its unique index, about 24 bytes a row: 0.65 GB at 26.9 million rows, 5.3 GB at 220 million. The rank is an extra pass
+over the rows a call wrote, not over the table.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

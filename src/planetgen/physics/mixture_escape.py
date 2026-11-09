@@ -76,7 +76,8 @@ def kept_in_column(subject, fractions, pressure_pa=None):
     mass_sol, luminosity = subject.get("host_mass_solar"), subject.get("luminosity_solar")
     return thermosphere.kept_shares(fractions, mass, radius, teq, pressure, age, flux, mass_sol,
                                     luminosity * constants.SOLAR_LUMINOSITY if luminosity else None,
-                                    magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"))
+                                    magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"),
+                                    companions=subject.get("xuv_companions") or ())
 
 
 def survivors(fractions, kept):

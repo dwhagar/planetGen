@@ -288,6 +288,7 @@ class Air:
         retention_cap_pa (float or None): The most pressure the retention regime of the recipe (`d6`) lets the air keep, Pa; `None` for no cap. The life stage keeps the
             oxygen it adds inside it (`biogenic_oxygen.apply`, GEN.1340).
         knee (bool): The air did not settle and `temperature_k` is the knee its answers chatter across (`sliding_temperature`, GEN.1344), not the last answer.
+        co2_sink (CarbonSink or None): The carbon sink of the last step (GEN.1309 A); `None` for a body whose air had no carbon to weather.
     """
 
     mixture: object
@@ -305,6 +306,7 @@ class Air:
     albedo: object = None
     retention_cap_pa: object = None
     knee: bool = False
+    co2_sink: object = None
 
     @property
     def greenhouse_factor(self):
@@ -508,6 +510,21 @@ def long_lived_geology(heat_flux_w_m2):
 
 
 @dataclass(frozen=True)
+class CarbonSink:
+    """
+    The carbon sink of the air's last step (GEN.1309 A): the CO2 the volcanoes delivered as a pressure (`supply_bar`), the pressure the sink held at the temperature the step
+    solved at (`solved_bar`, `solved_temperature_k`) and `kept_at(temperature_k)`, the pressure it holds at another surface temperature (the branch the body took:
+    continental weathering, seafloor weathering or the sealed ocean's chemistry). The life stage asks it again after the oxygen has burned the reduced gases and
+    the air has found another temperature (`biogenic_oxygen.rebalance_co2`).
+    """
+
+    supply_bar: float
+    solved_bar: float
+    solved_temperature_k: float
+    kept_at: object
+
+
+@dataclass(frozen=True)
 class WaterWorld:
     """
     The carbon sink of a body with an ocean (`waterworld_carbon`): which of the three sinks it has and the draws they take.
@@ -533,7 +550,7 @@ def water_world_of(setting, design):
     return WaterWorld(sealed=sealed, draws=draws, law=law)
 
 
-def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late):
+def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late, record=None):
     """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`. `sulfur` is
     `(lifetimes, age_s, oxidized_share)` for the sulfate and sulfide balance (`sulfur_balance`); `late` is the carbon and nitrogen the late accretion
     left (`_late_accretion`), atoms per 100 g of mantle, that the share of an element adds to its degassed share (the gas is at the surface already)."""
@@ -566,17 +583,21 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         if weathers and carbon > 0.0:
             supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
             kind = waterworld_carbon.sink_kind(water_world.sealed, 1.0 - setting.ocean_cover)
-            if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
-                kept_bar = surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover,
-                                                               lambda p_bar: temperature_k, *cycle)
-            elif kind == waterworld_carbon.SEAFLOOR_WEATHERING:
-                kept_bar = waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: temperature_k,
-                                                               water_world.law, cycle[2])
-            else:
+            anion_charge = chloride_mol_m2 + 2.0 * sulfate_mol_m2
+
+            def kept_at(ts_k):
+                """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
+                if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
+                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover, lambda p_bar: ts_k, *cycle)
+                if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
+                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[2])
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
-                kept_bar = waterworld_carbon.ocean_pco2(carbon / setting.area_m2, temperature_k, setting.water_kg / setting.area_m2,
-                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium,
-                                                        anion_charge_mol_m2=chloride_mol_m2 + 2.0 * sulfate_mol_m2).pco2_bar
+                return waterworld_carbon.ocean_pco2(carbon / setting.area_m2, ts_k, setting.water_kg / setting.area_m2, setting.gravity_m_s2,
+                                                    sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=anion_charge).pco2_bar
+
+            kept_bar = kept_at(temperature_k)
+            if record is not None:
+                record["sink"] = CarbonSink(supply_bar=supply_bar, solved_bar=kept_bar, solved_temperature_k=temperature_k, kept_at=kept_at)
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
         return shares_
 
@@ -660,6 +681,7 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    sink_record = {}        # the carbon sink of the latest step (`CarbonSink`), for the life stage's second balance (GEN.1309 A)
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
@@ -677,7 +699,7 @@ def solve(setting, start_temperature_k):
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
-                         water_world, late)
+                         water_world, late, sink_record)
         try:
             with _draw_stream(seed):
                 mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares, escape=escape_bar is not None,
@@ -783,7 +805,7 @@ def solve(setting, start_temperature_k):
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
                condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
-               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee)
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"))
 
 
 def _retention_cap_pa(mixture, subject):

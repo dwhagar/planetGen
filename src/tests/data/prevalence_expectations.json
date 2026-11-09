@@ -10,7 +10,8 @@
   "GEN.941": "Train 3 (epoch 125, 7:27 AM EDT 10-30) moved this share. Every census cell is a forced star type, and forced types are now stars of the population model (GEN.941; their mass, age and metallicity come from the tracks of GEN.935 and the mass function of GEN.927 to GEN.930, not from the hand-made letter ranges), the spectral letters follow the Pecaut and Mamajek table (GEN.943), giants settle at the final age (GEN.961) and a world gets no life class before its first life step (GEN.1001). The ranges are the post-cut-over (GEN.646) ones and stay until the star and planet chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "TEST.656": "Train 12 (epoch 134, merged 2:42 PM EST 11-06) cut the moon census to a few bodies: GEN.1082 to GEN.1084 put captured moons in the irregular store, which the census does not read, so a rocky planet's `moons` holds only the moons of a giant impact (a 1 in 12 draw) or a binary capture, 24 moons in 300 planets at A0V ecosphere, 11 hot, 1 at M2V ecosphere, 5 at K5V hot, against 500 to 700 in the reference. The moon ranges are those of the reference's population, and a share of 8 to 24 bodies swings by 0.1 to 0.2, so the K5V ecosphere unlimited share (1 of 8) and the M2V cold microbial and none shares (7 of 78, 0.090 against 0.077) are sampling width, not a change in the bodies. The M2V hot moon cell is empty by physics: 15 of its 300 planets (orbits of 0.03 to 0.12 AU, spin periods of 4 to 29 h) were born with a moon and the tide brought 12 of them down onto the planet (`fallen_moons`, GEN.959) and the rest were lost, so no moon remains. Re-baseline the moon ranges after the last 8.1 train (TEST.430), with the census reading the irregular moons.",
   "GEN.1327": "Train 13 (epoch 135, merged 1:03 AM EST 11-07) moved three shares just past a range that is itself a 95 percent bound of an earlier run: A0V and F5V ecosphere planets with an unlimited life ceiling (0.223 against 0.232 and 0.167 against 0.188 at 300 draws, one standard deviation of a share this size is about 0.025) and G2V hot planets in Class C (0.120 against 0.119). GEN.1282 re-orders the draws of the deferred climate and GEN.1304 warms temperate wet worlds, so these cells reshuffle; the sweep letters were checked on resamples (reports/gen1327-sweep-life-letters-2026-11-07.md) and the capable share did not move. A sampling-sized shift, not a fault; the ranges stay until the re-baseline after the last 8.1 train (TEST.660).",
-  "GEN.1338": "Train 14 (epoch 136, merged 5:24 AM EST 11-07) moved seven planet shares just past a range that is a 95 percent bound of an earlier run, in both directions: F5V ecosphere planets in Class N (0.110 against 0.166), G2V ecosphere planets in Class E (0.143 against 0.138) and with no life ceiling (0.623 against 0.611), K0III ecosphere planets with no ceiling (0.697 against 0.673), M2V cold planets in Class J (0.083 against 0.062), G2V cold planets with an unlimited ceiling (1 body in 207 against a floor of 0.005) and G2V hot planets with no Yellow tier (none in 300 against a floor of 0.003). Each census draws 300 planets a cell on a new random stream after a train that moves draws (GEN.1282), and the edges of the ranges are 95 percent bounds, so a share sits just past an edge in a few cells each time; the cells that were flagged after train 13 went back inside (6 of 11), as they are expected to. A sampling-sized shift, not a fault; the ranges stay until the re-baseline after the last 8.1 train (TEST.660). The three moon flags are cells of 3 to 14 moons and carry TEST.656."
+  "GEN.1338": "Train 14 (epoch 136, merged 5:24 AM EST 11-07) moved seven planet shares just past a range that is a 95 percent bound of an earlier run, in both directions: F5V ecosphere planets in Class N (0.110 against 0.166), G2V ecosphere planets in Class E (0.143 against 0.138) and with no life ceiling (0.623 against 0.611), K0III ecosphere planets with no ceiling (0.697 against 0.673), M2V cold planets in Class J (0.083 against 0.062), G2V cold planets with an unlimited ceiling (1 body in 207 against a floor of 0.005) and G2V hot planets with no Yellow tier (none in 300 against a floor of 0.003). Each census draws 300 planets a cell on a new random stream after a train that moves draws (GEN.1282), and the edges of the ranges are 95 percent bounds, so a share sits just past an edge in a few cells each time; the cells that were flagged after train 13 went back inside (6 of 11), as they are expected to. A sampling-sized shift, not a fault; the ranges stay until the re-baseline after the last 8.1 train (TEST.660). The three moon flags are cells of 3 to 14 moons and carry TEST.656.",
+  "GEN.1353": "Trains 15 to 18 (epochs 137 to 140, merged 11-07 to 10:45 AM EST 11-08) moved 17 shares of the class census past a range. Nine are moon shares in cells where moons are few since train 12 (TEST.656): Class D too common in A0V ecosphere (0.739 against 0.670), A0V hot (0.900 against 0.657), F5V cold (0.884 against 0.870) and M2V hot moons (1.000 against 0.720, with Class C absent), and the life ceiling in F5V cold moons (microbial 0.041 against a floor of 0.104, none 0.959 against 0.895), F5V hot moons (none 0.955 against 0.878), G2V cold moons (no microbial ceiling, floor 0.0015) and G2V hot moons (none 0.750 against a floor of 0.817). Eight are planet shares: A0V ecosphere planets in the Red tier (0.591 against a floor of 0.625), the Yellow tier (0.396 against 0.371) and with a microbial ceiling (0.100 against 0.073), F5V ecosphere planets with no life ceiling (0.902 against 0.736), F5V hot planets with a microbial ceiling (0.062 against 0.040), A0V cold planets with no Class V (floor 0.012) and G2V ecosphere planets with no Class N (floor 0.010). The F5V ecosphere no-ceiling share is the one large move. The likely source is GEN.1397 (life is decided by conditions and the habitable request no longer redraws a body), with GEN.1398 and GEN.1399 and the new draws of epochs 137 to 140, but it is not isolated to one item. The ranges are 95 percent bounds of a 300-draw reference on a stream that moves with every train (GEN.1282), so a few shares sit past an edge each time. 18 tags whose range holds again are removed. A tag, not a fault; the ranges stay until the re-baseline after the last 8.1 train (TEST.660), which also decides whether the F5V share is a fault."
  },
  "cells": {
   "A0V/cold/moon": {
@@ -44,7 +45,6 @@
      "source": "post-cut-over (GEN.646) share 0.126 at 8656686b7"
     },
     "D": {
-     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9585,
      "min": 0.7278,
@@ -171,7 +171,8 @@
      "kind": "stand-in",
      "max": 0.3412,
      "min": 0.0121,
-     "source": "post-cut-over (GEN.646) share 0.177 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.177 at 8656686b7",
+     "anomaly": "GEN.1353"
     }
    },
    "n_ref": 300,
@@ -247,7 +248,8 @@
      "kind": "stand-in",
      "max": 0.6697,
      "min": 0.3697,
-     "source": "post-cut-over (GEN.646) share 0.520 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.520 at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "K": {
      "kind": "stand-in",
@@ -294,7 +296,8 @@
      "kind": "stand-in",
      "max": 0.0732,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.007 of 300 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.007 of 300 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "none": {
      "kind": "stand-in",
@@ -306,8 +309,7 @@
      "kind": "stand-in",
      "max": 0.6352,
      "min": 0.2315,
-     "source": "post-cut-over (GEN.646) share 0.433 of 300 scored bodies at 8656686b7",
-     "anomaly": "GEN.1327"
+     "source": "post-cut-over (GEN.646) share 0.433 of 300 scored bodies at 8656686b7"
     }
    },
    "classes": {
@@ -389,13 +391,15 @@
      "kind": "stand-in",
      "max": 0.9681,
      "min": 0.6252,
-     "source": "post-cut-over (GEN.646) share 0.797 of 300 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.797 of 300 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "Yellow": {
      "kind": "stand-in",
      "max": 0.3706,
      "min": 0.0294,
-     "source": "post-cut-over (GEN.646) share 0.200 of 300 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.200 of 300 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     }
    }
   },
@@ -443,7 +447,8 @@
      "kind": "stand-in",
      "max": 0.6569,
      "min": 0.3377,
-     "source": "post-cut-over (GEN.646) share 0.497 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.497 at 8656686b7",
+     "anomaly": "GEN.1353"
     }
    },
    "n_ref": 559,
@@ -592,13 +597,15 @@
      "kind": "stand-in",
      "max": 0.3653,
      "min": 0.104,
-     "source": "post-cut-over (GEN.646) share 0.235 of 699 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.235 of 699 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "none": {
      "kind": "stand-in",
      "max": 0.8948,
      "min": 0.6331,
-     "source": "post-cut-over (GEN.646) share 0.764 of 699 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.764 of 699 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "unlimited": {
      "kind": "stand-in",
@@ -619,7 +626,8 @@
      "kind": "stand-in",
      "max": 0.8697,
      "min": 0.6009,
-     "source": "post-cut-over (GEN.646) share 0.735 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.735 at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "K": {
      "kind": "stand-in",
@@ -798,7 +806,6 @@
    "barred": [],
    "ceilings": {
     "microbial": {
-     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3284,
      "min": 0.0603,
@@ -814,8 +821,7 @@
      "kind": "stand-in",
      "max": 0.0518,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.002 of 566 scored bodies at 8656686b7",
-     "anomaly": "TEST.656"
+     "source": "post-cut-over (GEN.646) share 0.002 of 566 scored bodies at 8656686b7"
     }
    },
    "classes": {
@@ -823,8 +829,7 @@
      "kind": "stand-in",
      "max": 0.0576,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.004 at 8656686b7",
-     "anomaly": "TEST.656"
+     "source": "post-cut-over (GEN.646) share 0.004 at 8656686b7"
     },
     "C": {
      "anomaly": "GEN.1160",
@@ -880,7 +885,6 @@
    "barred": [],
    "ceilings": {
     "microbial": {
-     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2086,
      "min": 0.0033,
@@ -890,7 +894,8 @@
      "kind": "stand-in",
      "max": 0.7363,
      "min": 0.3304,
-     "source": "post-cut-over (GEN.646) share 0.533 of 300 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.533 of 300 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "unlimited": {
      "kind": "stand-in",
@@ -1016,7 +1021,8 @@
      "kind": "stand-in",
      "max": 0.8784,
      "min": 0.556,
-     "source": "post-cut-over (GEN.646) share 0.717 of 442 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.717 of 442 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "unlimited": {
      "kind": "stand-in",
@@ -1083,7 +1089,8 @@
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "none": {
      "anomaly": "GEN.728",
@@ -1192,7 +1199,8 @@
      "kind": "stand-in",
      "max": 0.1515,
      "min": 0.0015,
-     "source": "post-cut-over (GEN.646) share 0.060 of 670 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.060 of 670 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "none": {
      "kind": "stand-in",
@@ -1404,8 +1412,7 @@
      "kind": "stand-in",
      "max": 0.0642,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.006 of 528 scored bodies at 8656686b7",
-     "anomaly": "TEST.656"
+     "source": "post-cut-over (GEN.646) share 0.006 of 528 scored bodies at 8656686b7"
     }
    },
    "classes": {
@@ -1500,8 +1507,7 @@
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.037 at 8656686b7",
-     "anomaly": "GEN.1338"
+     "source": "post-cut-over (GEN.646) share 0.037 at 8656686b7"
     },
     "F": {
      "anomaly": "GEN.728",
@@ -1550,7 +1556,8 @@
      "kind": "stand-in",
      "max": 0.337,
      "min": 0.0097,
-     "source": "post-cut-over (GEN.646) share 0.173 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.173 at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "P": {
      "kind": "stand-in",
@@ -1610,7 +1617,8 @@
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8173,
-     "source": "post-cut-over (GEN.646) share 0.922 of 551 scored bodies at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.922 of 551 scored bodies at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "unlimited": {
      "kind": "stand-in",
@@ -1778,8 +1786,7 @@
      "kind": "stand-in",
      "max": 0.1257,
      "min": 0.0033,
-     "source": "post-cut-over (GEN.646) share 0.030 of 300 scored bodies at 8656686b7",
-     "anomaly": "GEN.1338"
+     "source": "post-cut-over (GEN.646) share 0.030 of 300 scored bodies at 8656686b7"
     }
    }
   },
@@ -2112,7 +2119,6 @@
      "source": "post-cut-over (GEN.646) share 0.053 at 8656686b7"
     },
     "E": {
-     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1057,
      "min": 0.0,
@@ -2591,14 +2597,12 @@
      "anomaly": "TEST.656"
     },
     "none": {
-     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.7999,
      "source": "post-cut-over (GEN.646) share 0.913 of 481 scored bodies at 8656686b7"
     },
     "unlimited": {
-     "anomaly": "TEST.656",
      "kind": "stand-in",
      "max": 0.0717,
      "min": 0.0,
@@ -2948,14 +2952,12 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "Red": {
-     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.9756,
      "min": 0.6377,
      "source": "post-cut-over (GEN.646) share 0.807 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
-     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3623,
      "min": 0.0244,
@@ -2967,14 +2969,12 @@
    "barred": [],
    "ceilings": {
     "microbial": {
-     "anomaly": "TEST.656",
      "kind": "stand-in",
      "max": 0.077,
      "min": 0.0019,
      "source": "post-cut-over (GEN.646) share 0.011 of 534 scored bodies at 8656686b7"
     },
     "none": {
-     "anomaly": "TEST.656",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.923,
@@ -3084,8 +3084,7 @@
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
-     "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7",
-     "anomaly": "GEN.1338"
+     "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "K": {
      "anomaly": "GEN.941",
@@ -3108,7 +3107,6 @@
      "source": "post-cut-over (GEN.646) share 0.257 at 8656686b7"
     },
     "T": {
-     "anomaly": "GEN.829",
      "kind": "stand-in",
      "max": 0.45,
      "min": 0.02,
@@ -3328,13 +3326,15 @@
      "kind": "stand-in",
      "max": 0.7014,
      "min": 0.2804,
-     "source": "post-cut-over (GEN.646) share 0.491 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.491 at 8656686b7",
+     "anomaly": "GEN.1353"
     },
     "D": {
      "kind": "stand-in",
      "max": 0.7196,
      "min": 0.2986,
-     "source": "post-cut-over (GEN.646) share 0.509 at 8656686b7"
+     "source": "post-cut-over (GEN.646) share 0.509 at 8656686b7",
+     "anomaly": "GEN.1353"
     }
    },
    "n_ref": 275,

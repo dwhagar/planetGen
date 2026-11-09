@@ -36,7 +36,7 @@ import pytest
 from scipy import stats
 
 from planetgen import tuning
-from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, planet_type, radiation as rad, surface_air)
+from planetgen.physics import (air_column, atmosphere, body_radiation, climate_draws, constants, gases, planet_type, radiation as rad, radiation_field, surface_air)
 from tests.class_sweep_cli import sample_bodies
 
 SYSTEMS = 20
@@ -51,16 +51,16 @@ MIN_CLASSES = 8
 
 
 EXTRA_SYSTEMS_MAX = 12
-"""int: The systems added, one at a time, when the sweep drew no giant (the rules and the tests that break them need one; a draw of 14 systems may hold none, which GEN.974's
+"""int: The systems added, one at a time, when the sweep drew no giant or no moon (the rules and the tests that break them need both; a draw of 14 systems may hold none, which GEN.974's
 change of every wet body's albedo made of seed 15, as the habitable-world requests draw again on the new conditions)."""
 
 
 @pytest.fixture(scope="module")
 def swept():
-    """`(body, is_moon)` for every planet and moon of the sweep, with systems added one by one until a giant is in it (at most `EXTRA_SYSTEMS_MAX`)."""
+    """`(body, is_moon)` for every planet and moon of the sweep, with systems added one by one until a giant and a moon are in it (at most `EXTRA_SYSTEMS_MAX`)."""
     bodies = sample_bodies(SYSTEMS, SEED, HABITABLE_SHARE)
     extra = 0
-    while not any(body.body_type == "g" for body, _ in bodies) and extra < EXTRA_SYSTEMS_MAX:
+    while not (any(body.body_type == "g" for body, _ in bodies) and any(is_moon for _, is_moon in bodies)) and extra < EXTRA_SYSTEMS_MAX:
         extra += 1
         bodies = bodies + sample_bodies(1, SEED + 1000 + extra)
     return bodies
@@ -81,7 +81,7 @@ def _starlight_w_m2(body):
     luminosity = getattr(getattr(body, "star", None), "luminosity", None)
     if not distance_au or not luminosity:
         return None
-    return climate_draws.starlight_w_m2(luminosity, distance_au * constants.AU_TO_KM)
+    return radiation_field.starlight_w_m2(body.star, distance_au)       # GEN.1441: the host's light and every other star's
 
 
 def _same(a, b):
@@ -159,7 +159,8 @@ def dose_problems(body, is_moon):
     if not low * (1.0 - 1e-9) <= gcr <= high * (1.0 + 1e-9):
         problems.append(f"cosmic-ray dose {gcr:.4g} is outside {low:.4g} to {high:.4g}, what the column and the field give")
     star = body.star
-    free = rad.free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), getattr(body, "_star_distance_au", None), getattr(star, "flare_alpha", None))
+    free = rad.free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), getattr(body, "_star_distance_au", None), getattr(star, "flare_alpha", None)) \
+        + rad.companion_free_sep_msv_yr(star, getattr(body, "_star_distance_au", None))       # GEN.1442: the particles of the other stars too
     if not math.isclose(sep, rad.sep_dose_msv_yr(free, column, cutoff), rel_tol=1e-6, abs_tol=1e-12):
         problems.append(f"stellar-particle dose {sep:.4g} is not what the column, the field and the flares give")
     return problems
@@ -277,13 +278,13 @@ class _Brighter:
 
 
 def test_a_greenhouse_that_disagrees_with_the_temperature_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * surface_air.MAX_SURFACE_TEMPERATURE_K)
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _air_on_the_light_now(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * surface_air.MAX_SURFACE_TEMPERATURE_K)
     body.greenhouse_factor += 1.0
     assert any("albedo and greenhouse give" in text for text in climate_problems(body))
 
 
 def test_a_surface_held_at_the_cap_with_a_cooler_greenhouse_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * surface_air.MAX_SURFACE_TEMPERATURE_K)
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _air_on_the_light_now(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * surface_air.MAX_SURFACE_TEMPERATURE_K)
     body.surface_temperature = surface_air.MAX_SURFACE_TEMPERATURE_K
     assert any("cap" in text for text in climate_problems(body))
 
@@ -303,14 +304,14 @@ def test_a_dose_that_is_not_its_terms_is_named(swept):
 
 
 def test_a_cosmic_ray_dose_the_column_does_not_give_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m)
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b))
     body.dose_gcr_msv_yr *= 100.0
     body.surface_dose_msv_yr = body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr
     assert any("cosmic-ray dose" in text for text in dose_problems(body, is_moon))
 
 
 def test_a_stellar_particle_dose_the_flares_do_not_give_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and b.dose_sep_msv_yr > 0.0)
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b) and b.dose_sep_msv_yr > 0.0)
     body.dose_sep_msv_yr *= 3.0
     body.surface_dose_msv_yr = body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr
     assert any("stellar-particle dose" in text for text in dose_problems(body, is_moon))
@@ -327,7 +328,7 @@ def test_a_giant_with_a_dose_and_a_planet_with_a_belt_are_named(swept):
 
 
 def test_an_ultraviolet_index_that_is_not_the_spectrums_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and body_radiation.dna_dose_index(b) is not None)
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b) and body_radiation.dna_dose_index(b) is not None)
     body.uv_surface_index = body.uv_surface_index * 2.0 + 1.0
     assert any("UV index" in text for text in ultraviolet_problems(body, is_moon))
 
