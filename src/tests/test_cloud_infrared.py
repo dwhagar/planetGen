@@ -58,7 +58,7 @@ def test_the_layers_hold_the_whole_depth_between_the_base_and_the_top():
     pressure = np.exp(np.linspace(np.log(1.0e3), np.log(9.2e6), 40))
     mass = np.gradient(pressure) / 8.87
     temperature = np.where(pressure < 3.0e5, 250.0, 700.0)
-    depth = ci.layer_depth(pressure, mass, temperature, 25.0, 1.0)
+    depth = ci.layer_depth(pressure, mass, temperature, 25.0, 1.0, 367.0)
     assert depth.shape == (40, line_opacity.BANDS)
     assert depth.sum(axis=0) == pytest.approx(ci.effective_depth(25.0, 1.0), rel=1e-9)
     inside = depth.sum(axis=1) > 0.0
@@ -69,20 +69,28 @@ def test_the_layers_hold_the_whole_depth_between_the_base_and_the_top():
 def test_no_cloud_and_no_cool_air_give_no_depth():
     pressure = np.exp(np.linspace(np.log(1.0e3), np.log(9.2e6), 40))
     mass = np.gradient(pressure) / 8.87
-    assert not ci.layer_depth(pressure, mass, np.full(40, 250.0 + 400.0 * (pressure > 3.0e5)), 0.0, 1.0).any()
-    assert not ci.layer_depth(pressure, mass, np.full(40, 700.0), 25.0, 1.0).any()
+    assert not ci.layer_depth(pressure, mass, np.full(40, 250.0 + 400.0 * (pressure > 3.0e5)), 0.0, 1.0, 367.0).any()
+    assert not ci.layer_depth(pressure, mass, np.full(40, 700.0), 25.0, 1.0, 367.0).any()
+
+
+def test_the_base_temperature_is_the_callers_so_a_cooler_base_puts_the_cloud_higher():
+    pressure = np.exp(np.linspace(np.log(1.0e3), np.log(9.2e6), 60))
+    mass = np.gradient(pressure) / 8.87
+    temperature = 700.0 * (pressure / 9.2e6) ** 0.2
+    warm_base = ci.layer_depth(pressure, mass, temperature, 25.0, 1.0, 400.0).sum(axis=1)
+    cool_base = ci.layer_depth(pressure, mass, temperature, 25.0, 1.0, 300.0).sum(axis=1)
+    assert pressure[warm_base > 0].max() > pressure[cool_base > 0].max()
 
 
 def test_an_all_cool_air_puts_the_base_at_the_ground():
     pressure = np.exp(np.linspace(np.log(1.0e3), np.log(1.0e5), 40))
     mass = np.gradient(pressure) / 9.81
-    depth = ci.layer_depth(pressure, mass, np.full(40, 300.0), 20.0, 1.0)
+    depth = ci.layer_depth(pressure, mass, np.full(40, 300.0), 20.0, 1.0, 367.0)
     assert depth[-1].any() and depth.sum(axis=0) == pytest.approx(ci.effective_depth(20.0, 1.0), rel=1e-9)
 
 
 def test_the_top_ratio_is_the_published_pressure_ratio():
     assert ci.TOP_OVER_BASE_PRESSURE == pytest.approx(0.0267 / 1.391)
-    assert sulfuric_cloud.number("base_temperature_k") == 367.0
 
 
 EDGES = np.arange(0.0, 1100.0, 100.0)

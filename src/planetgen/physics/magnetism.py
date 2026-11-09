@@ -56,7 +56,7 @@ import cmath
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry
+from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior, magnetic_geometry, radiation_field
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -298,6 +298,7 @@ def generate_induced_field(moon, parent):
     no parent field or a parent that turns with it. Call once the moon's
     water, orbit and core are set and the parent's field exists."""
     moon.induced_moment_a_m2 = 0.0
+    apply_parent_magnetosphere(moon, parent)       # GEN.1452: a moon inside the parent's magnetosphere holds off the parent's field, not the wind
     parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0)
     synodic = synodic_period_s(getattr(parent, "rotation_period_hours", None), moon.period)
     orbit_radius_m = _au_to_m(moon.distance)
@@ -323,7 +324,7 @@ def generate_stellar_induction(planet):
         synodic = synodic_period_s(getattr(planet.star, "rotation_period_hours", None), period)
     if synodic is None:
         return
-    excitation_t = STELLAR_EXCITATION_SHARE * IMF_EARTH_T * math.sqrt(wind_pressure_pa(planet.star, distance) / EARTH_WIND_PA)
+    excitation_t = STELLAR_EXCITATION_SHARE * IMF_EARTH_T * math.sqrt(wind_pressure_at(planet.star, distance) / EARTH_WIND_PA)
     planet.induced_moment_a_m2 = _ocean_and_core_moment(planet, excitation_t, synodic)
 
 
@@ -353,18 +354,78 @@ def wind_pressure_pa(star, distance_au):
     return EARTH_WIND_PA * min(surface_flux ** 1.3, cap) / distance_au ** 2
 
 
+def wind_pressure_at(star, distance_au):
+    """
+    The pressure of the winds of every star on a body at `distance_au` from its host `star` (GEN.1452): the host's own (`wind_pressure_pa`, the number the generator has always used)
+    plus, for each companion `radiation_field` attached to the host, its wind at 1 AU times the mean of `1 / d^2` between the body and the companion
+    (`radiation_field.mean_inverse_square`, the same geometry that adds the companions' light). A wind is a momentum flux and falls as `1 / d^2`, so the pressures add; the directions do
+    not (the standoff is taken against the sum, the upper bound: winds from opposite sides squeeze the field more than their sum on one side). A companion with no radius, luminosity or X-ray
+    ratio (and not a pulsar) gives none, rather than the Earth's wind. A lone star gives `wind_pressure_pa` to the last digit.
+    """
+    total = wind_pressure_pa(star, distance_au)
+    for companion in radiation_field.companions_of(star):
+        other = companion.star
+        if getattr(other, "pulsar_type", None) not in PULSING_TYPES and (getattr(other, "radius", None) is None or getattr(other, "luminosity", None) is None
+                                                                         or getattr(other, "log_lx_lbol", None) is None):
+            continue
+        total += wind_pressure_pa(other, 1.0) * radiation_field.mean_inverse_square(distance_au, companion.axis_au, companion.eccentricity)
+    return total
+
+
+def magnetosphere_pressure_pa(parent_moment_a_m2, orbit_m):
+    """The pressure of a planet's own field at `orbit_m` on its equator, Pa: `B^2 / (2 mu0)` with the dipole's `B = mu0 M / (4 pi r^3)` (GEN.1452). Inside the planet's magnetosphere the
+    plasma the field holds, not the wind, is what a moon's own field pushes against; the field's pressure is the stand-in for it (Ganymede's standoff in Jupiter's field comes out at 2.4 radii, the
+    Galileo flybys saw about 2)."""
+    if parent_moment_a_m2 <= 0.0 or orbit_m <= 0.0:
+        return 0.0
+    field_t = VACUUM_PERMEABILITY * parent_moment_a_m2 / (4.0 * math.pi * orbit_m ** 3)
+    return field_t * field_t / (2.0 * VACUUM_PERMEABILITY)
+
+
+def apply_parent_magnetosphere(moon, parent):
+    """
+    GEN.1452: a moon that orbits inside its parent's magnetosphere (closer than the parent's magnetopause standoff) is not in the wind at all; its own field's standoff is set against the pressure of
+    the parent's field at its orbit (`magnetosphere_pressure_pa`), and its `magnetopause_rp` is made again with that (the belts and the moon's induced field already read the parent's field).
+    A moon outside the parent's magnetopause, or whose parent has no field, keeps the wind's standoff. No draws. Call once the parent's field and magnetopause and the moon's own field and orbit are set.
+    """
+    parent_moment = getattr(parent, "magnetic_moment_a_m2", None) or 0.0
+    standoff_rp = getattr(parent, "magnetopause_rp", None)
+    moment = getattr(moon, "magnetic_moment_a_m2", None)
+    if not parent_moment or not standoff_rp or not moment or not getattr(moon, "distance", None):
+        return
+    orbit_m = _au_to_m(moon.distance)
+    if orbit_m >= standoff_rp * _km_to_m(parent.radius):
+        return
+    pressure = magnetosphere_pressure_pa(parent_moment, orbit_m)
+    if pressure <= 0.0:
+        return
+    standoff_earth_radii = EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3) * (pressure / EARTH_WIND_PA) ** (-1 / 6)
+    moon.magnetopause_rp = standoff_earth_radii * constants.EARTH_RADIUS_KM / moon.radius
+
+
 def magnetopause_rp(body, star_distance_au):
     """Rule 5's standoff in radii of `body` (GEN.843: Earth's 9.75 Earth radii scaled to the field and the wind, then divided by the
     body's own radius), or `None` with no field."""
     moment = getattr(body, "magnetic_moment_a_m2", None)
     if not moment:
         return None
-    pressure = wind_pressure_pa(body.star, star_distance_au)
+    pressure = wind_pressure_at(body.star, star_distance_au)
     if pressure <= 0.0:   # GEN.1111: a body with no star has no wind to hold off, so no standoff
         return None
     standoff_earth_radii = (EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3)
                             * (pressure / EARTH_WIND_PA) ** (-1 / 6))
     return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius
+
+
+def _with_companions(host_value, star, star_distance_au, band):
+    """GEN.1442: the host's own value of a band plus what the other stars of the system put on the body (`radiation_field.companion_part`); a lone star's value
+    is returned as it was (a band no source has stays `None`)."""
+    if not star_distance_au:
+        return host_value
+    extra = radiation_field.companion_part(star, star_distance_au, band)
+    if extra == 0.0:
+        return host_value
+    return (host_value or 0.0) + extra
 
 
 def update_exposure(body, star_distance_au):
@@ -374,7 +435,8 @@ def update_exposure(body, star_distance_au):
     planet's)."""
     body._star_distance_au = star_distance_au
     star = body.star
-    body.xuv_flux_earth = activity.xuv_flux_earth(star, star_distance_au)
-    body.xuv_exposure_index = activity.exposure_index(star, star_distance_au)
-    body.flare_irradiation_index = activity.flare_irradiation_index(star, star_distance_au)
+    body.xuv_flux_earth = _with_companions(activity.xuv_flux_earth(star, star_distance_au), star, star_distance_au, "xuv_flux_earth")
+    body.xuv_exposure_index = _with_companions(activity.exposure_index(star, star_distance_au), star, star_distance_au, "exposure_index")
+    body.flare_irradiation_index = _with_companions(activity.flare_irradiation_index(star, star_distance_au), star, star_distance_au,
+                                                    "flare_irradiation_index")
     body.magnetopause_rp = magnetopause_rp(body, star_distance_au) if star_distance_au else None

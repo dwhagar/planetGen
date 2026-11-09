@@ -58,6 +58,7 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -324,14 +325,14 @@ def giant_energy_flux_w_m2(body):
     return constants.STEFAN_BOLTZMANN_CONSTANT * giant_draw.effective_temperature_k(starlight, giant_draw.own_flux_w_m2(body)) ** 4
 
 
-def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
+def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2, companion_w_m2=0.0):
     """The light or chemical power available to life, W/m2 (see the module
     docstring). `luminosity_w` and `distance_au` describe the star (either
-    `None`: no light)."""
+    `None`: no light); `companion_w_m2` is the light the system's other stars add at the body (`radiation_field.companion_light_w_m2`, GEN.1441)."""
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2)
+    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2)
     return max(light, chemical)
 
 
@@ -558,7 +559,8 @@ def generate(body, internal_flux_w_m2):
     star = getattr(body, "star", None)
     body.energy_flux_w_m2 = energy_flux_w_m2(
         values, getattr(star, "luminosity", None), getattr(body, "_star_distance_au", None),
-        internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0))
+        internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0),
+        radiation_field.companion_light_w_m2(star, getattr(body, "_star_distance_au", None)) if star is not None and getattr(body, "_star_distance_au", None) else 0.0)
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
     body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
     body.groundwater = groundwater(values)

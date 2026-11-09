@@ -32,6 +32,7 @@ Use:
 import math
 
 from planetgen.physics import bulk_structure, constants, envelope_escape, orbit_elements, super_puff
+from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -152,14 +153,15 @@ def kept_with_tide(body, start, tides=False):
     mass_earth = _kg_to_mearth(body.mass)
     luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
-    insolation = luminosity / distance_au ** 2
+    insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
     flux_floor = bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0]       # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
     flux = max(insolation, flux_floor)
     step_ratio = None
     if tides and getattr(body, "axial_tilt_deg", None) is not None:
         def step_ratio(mass, fraction, radius):
             return tidal_ratio(body, mass, fraction, flux, radius)
-    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, radius_ratio=step_ratio)
+    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, distance_au=distance_au if radiation_field.companions_of(star) else None,
+                                               emitters=radiation_field.xuv_emitters(star, distance_au), radius_ratio=step_ratio)      # GEN.1442: the other stars' XUV too
     if left <= 0.0:
         return None
     fraction = left / (mass_earth + left)

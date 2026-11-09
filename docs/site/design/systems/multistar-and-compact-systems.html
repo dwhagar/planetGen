@@ -71,7 +71,7 @@ that is the highest number of stars we've seen in orbit around each other&quot;,
 and &quot;exotic star systems that have black holes, neutron stars, or similar as
 the central star for systems, binary systems.&quot;</li>
 <li>Storage (Boss, GEN.128): a tree of pairs, each pair's orbit around its
-barycentre.</li>
+barycenter.</li>
 <li>Wide-pair planet names (Boss, 2026-10-07 17:11Z, GEN.71): a wide binary's
 planets are &quot;&lt;word 1&gt; I&quot;, &quot;&lt;word 1&gt; II&quot; and the second star's &quot;&lt;word 2&gt; I&quot;,
 never &quot;A I&quot; (<a href="../architecture/object-ids.html">object-ids.md</a>, &quot;The naming key&quot;). GEN.62 (done,
@@ -135,7 +135,7 @@ since GEN.103 the odds of the two together are multiplied by <code>F([Fe/H]) / F
 the host for S-type planets and NULL for a close pair's planets.</li>
 <li><strong>Maps and update.</strong> <code>web/maps/systemscene.py</code> gives each body an <code>around</code> of
 <code>barycenter</code> or <code>star:&lt;id&gt;</code>; <code>physics/body_positions.positions_at</code> balances a
-close pair on the barycentre by <code>secondary_mass_fraction</code>;
+close pair on the barycenter by <code>secondary_mass_fraction</code>;
 <code>db/store.py advance_orbital_phases</code> advances phases with one set-based UPDATE
 per table (<a href="../orbits/orbital-updates.html">orbital-updates.md</a>, &quot;Positions at any time&quot;).</li>
 <li><strong>Compact objects.</strong> <code>generation/phenomena/compact_remnant.py</code> has <code>BlackHole</code>
@@ -170,12 +170,12 @@ has a notion of a bound group of stars. What they imply, and what changes:</p>
 <tr>
 <td>Stage 1 integrates every entity with <code>parent_system_id IS NULL</code> (stars, remnants, rogues) on its own, under the point masses around it</td>
 <td>Full Algorithm, Master Simulation Workflow</td>
-<td>A star pair would be two independent roots: a partner at 0.1 AU pulls about 4e12 times harder than a star 1 pc away, and a period of days is far inside any galactic step. <strong>A hierarchy is one root at its barycentre with the total mass</strong>; its stars are leaves of the tree.</td>
+<td>A star pair would be two independent roots: a partner at 0.1 AU pulls about 4e12 times harder than a star 1 pc away, and a period of days is far inside any galactic step. <strong>A hierarchy is one root at its barycenter with the total mass</strong>; its stars are leaves of the tree.</td>
 </tr>
 <tr>
 <td>Stage 3 (<code>ExecuteStarSystemUpdates</code>): Phase A shifts every child by its star's displacement; Phase B advances each child's Kepler orbit about the star</td>
 <td>Full Algorithm, Star System Engine</td>
-<td>Stays, and generalizes. Phase A moves the root node by the barycentre's displacement; Phase B advances each node's relative orbit analytically (mean anomaly by <code>n dt mod 2 pi</code>, <a href="../orbits/orbital-updates.html">orbital-updates.md</a> section 10.4); star offsets follow from the tree walk in 6.1. <code>parent_system_id</code> becomes &quot;node or star&quot;.</td>
+<td>Stays, and generalizes. Phase A moves the root node by the barycenter's displacement; Phase B advances each node's relative orbit analytically (mean anomaly by <code>n dt mod 2 pi</code>, <a href="../orbits/orbital-updates.html">orbital-updates.md</a> section 10.4); star offsets follow from the tree walk in 6.1. <code>parent_system_id</code> becomes &quot;node or star&quot;.</td>
 </tr>
 <tr>
 <td><code>CheckPlanetaryHillCrossings</code>: occupants of a body's Hill sphere are captured, deflected or ejected</td>
@@ -185,7 +185,7 @@ has a notion of a bound group of stars. What they imply, and what changes:</p>
 <tr>
 <td>Point-mass table with one row per body (id, mass, mu, position, velocity, tier)</td>
 <td>Update Algorithms, Analytical Point-Mass Table Computation</td>
-<td>One row per system at its barycentre with the total mass (GEN.109); tier from the total mass. Internal structure is read from <code>orbit_nodes</code>.</td>
+<td>One row per system at its barycenter with the total mass (GEN.109); tier from the total mass. Internal structure is read from <code>orbit_nodes</code>.</td>
 </tr>
 <tr>
 <td>Top 10 influencers; <code>R_search = sqrt(G M_max / a_min)</code>; the <code>a_min</code> filter</td>
@@ -587,7 +587,7 @@ pair merges. Direct integration of equal-mass triples (1, 1, 1 Msun; e_in = e_ou
 <tbody>
 <tr>
 <td>coplanar</td>
-<td>pericentre ratio 2 and 3 disrupted, 4 and above stable (the criterion asks 3.93: on the boundary)</td>
+<td>pericenter ratio 2 and 3 disrupted, 4 and above stable (the criterion asks 3.93: on the boundary)</td>
 </tr>
 <tr>
 <td>60 degrees</td>
@@ -603,7 +603,7 @@ pair merges. Direct integration of equal-mass triples (1, 1, 1 Msun; e_in = e_ou
 many real triples are near-coplanar at small period ratio. A generator must screen
 or draw inclinations with a coplanar preference. The screen tested (quadrupole
 maximum eccentricity, Kozai time against 10 Gyr, an octupole widening for eccentric
-outer orbits, a pericentre floor of 4 times the children's extent):</p>
+outer orbits, a pericenter floor of 4 times the children's extent):</p>
 <pre><code>kl_unsafe(a_in, e_in, m_in, parent, mut_incl, extent_sum, age_yr = 1e10):
     x = (5/3) (1 - e_in^2) cos^2(mut_incl)
     if x &gt;= 1: return False                      # no Kozai window
@@ -614,7 +614,7 @@ outer orbits, a pericentre floor of 4 times the children's extent):</p>
     t_kl = (2 / (3 pi)) (P_out^2 / P_in) (parent.mass / m3) (1 - parent.e^2)^1.5
     return t_kl &lt; age_yr and a_in (1 - e_max) &lt; 4 * extent_sum
 </code></pre>
-<p>&quot;Extent&quot; is the largest distance of any star of the subtree from its barycentre (a
+<p>&quot;Extent&quot; is the largest distance of any star of the subtree from its barycenter (a
 star's radius, or <code>a (1 + e)</code> plus the children's extents). A first version that
 used stellar radii where a subsystem's real extent applied let 7 of 180 levels
 fail (mergers at inclination 73 to 127 degrees); using final extents and
@@ -634,7 +634,7 @@ for 2+2 [S]). Shuffle the leaves over the shape.</li>
 inclination with the parent; set <code>a_hi = a_parent (1 - e_parent) / (safety * MA01_ratio)</code>; draw <code>a</code> from the log-normal truncated to <code>[2.5 * sum of the children's extents, a_hi]</code>; draw e (circular below 7 days); require the
 Eggleton-Kiseleva test and <code>kl_unsafe</code> false; retry up to 60 times, else restart
 the hierarchy.</li>
-<li>Post-check every level with the final extents (pericentre at least twice the
+<li>Post-check every level with the final extents (pericenter at least twice the
 children's extents; Kozai screen).</li>
 </ol>
 <p>Defaults: <code>safety = 1.0</code>, Kozai screen on, inner eccentricity capped at 0.8. All
@@ -642,7 +642,7 @@ draws come from the seeded stream in a fixed order (GEN.55/GEN.56).</p>
 <h3 id="54-n-body-test-summary">5.4 N-body test summary</h3>
 <p>REBOUND 5.2.2 (WHFast, IAS15 as checker) in the research sandbox. Failure means a
 body unbound or ejected, a semimajor axis changed by more than a factor of 2, or
-the inner pericentre falling below the children's physical extent. No tides,
+the inner pericenter falling below the children's physical extent. No tides,
 general relativity or mass loss.</p>
 <div class="table"><table>
 <thead>
@@ -877,7 +877,7 @@ CASCADE), <code>parent_node_id</code> (NULL for the root), <code>slot</code> ('a
 'member'. Keep 'primary'/'secondary'/'single' for N &lt;= 2 so queries and tests
 keep working during the migration.</li>
 <li><strong><code>planets</code></strong>: add nullable <code>host_node_id</code> beside <code>star_id</code> (P-type planets orbit
-a node's barycentre, S-type a star).</li>
+a node's barycenter, S-type a star).</li>
 <li><strong>Migration of N=2 data:</strong> one root node per existing pair, copied from the
 <code>binary_*</code> columns; keep <code>star_systems.binary_*</code>, <code>is_binary</code> and
 <code>binary_configuration</code> as a root summary until nothing reads them. Add the table
@@ -885,12 +885,12 @@ to <code>_db.ID_BLOCK_TABLES</code> and the cascade lists (<a href="../architect
 <li>A walk to the root is at most 6 steps, so <code>depth</code> and <code>path</code> avoid recursive
 queries.</li>
 </ul>
-<p>A star's offset from the system barycentre is the sum, up the tree, of
+<p>A star's offset from the system barycenter is the sum, up the tree, of
 <code>-/+ (other child's mass / node mass) * relative_vector</code>. The repo does this for
 one level (<code>binary_primary_position_*</code>); a loop generalizes it.</p>
 <h3 id="62-eccentric-pair-orbits">6.2 Eccentric pair orbits</h3>
 <p>Pair orbits are circular today on purpose. Eccentricities up to 0.9 at inner levels
-need real orbits: the stability criteria depend on pericentre, and a circular
+need real orbits: the stability criteria depend on pericenter, and a circular
 picture of an e = 0.8 orbit shows stars where they never are. Store
 <code>mean_anomaly_deg</code> as the phase: it still advances linearly, so the set-based
 <code>UPDATE ... SET phase = phase + 360 * dt / period</code> in <code>advance_orbital_phases</code> stays
@@ -901,7 +901,7 @@ comets): N-1 Kepler solves per system. <code>physics/body_positions.positions_at
 agree).</p>
 <p>As built (TEST.477, the overlap verifier): <code>physics/clearance.py</code> <code>audit(rows)</code> reads only what a finished system stores (its stars,
 the nodes of its tree, planets, moons and belts, <code>stored_rows</code> reads them with plain SELECTs) and lists every place two bodies
-overlap or a limit the generator promises is broken (a <strong>hard</strong> violation: Roche fill at pericentre, overlap of a node's two sides,
+overlap or a limit the generator promises is broken (a <strong>hard</strong> violation: Roche fill at pericenter, overlap of a node's two sides,
 stability by Mardling and [R4574] together, node masses, a planet inside its
 star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
 the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
@@ -911,11 +911,11 @@ the Hill radius or touching their planet, a belt over a planet's orbit) and the 
 generator promises 10; it is the one entry of <code>KNOWN</code>, expected to fail). Not yet checked, because the rows do not hold what it needs:
 the history rule, the Kozai-Lidov screen and the 3+1 quadruple margin (GEN.1006 4.3 and section 5).</p>
 <p>As built (MAP.255): <code>orbitpositions.js</code> walks the scene's <code>tree</code> the way <code>system_tree.member_offsets_au</code> does (the slot-1 child of a node
-on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
+on the node's Kepler orbit, both children about the node's center by the other's mass, a group node's members at its center, the
 wide pair's first star shifted to the origin) and <code>relativeAt</code> answers each star relative to the star its scene orbit names, or to
 the frame's origin. A scene with stars and no tree is refused.</p>
-<p>As built (MAP.213, slice A, the 3D system view): <code>relativeAt</code> also answers a point for each node's centre of mass (<code>node:&lt;n&gt;</code>, <code>virtual</code>),
-stars hang from their node's centre and nodes from their parent's, <code>nodePaths</code> gives each child's real ellipse about its node's centre
+<p>As built (MAP.213, slice A, the 3D system view): <code>relativeAt</code> also answers a point for each node's center of mass (<code>node:&lt;n&gt;</code>, <code>virtual</code>),
+stars hang from their node's center and nodes from their parent's, <code>nodePaths</code> gives each child's real ellipse about its node's center
 (the slot-0 child opposite the slot-1 child, each at the other's share), and the compressed layout (<code>systemscale.js</code>) scales each node on
 its own: the node's separation is as many units as its two sides need to clear at periapsis (a star with bodies going round it needs
 their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
@@ -963,7 +963,7 @@ the bracketed structure string is the quick index.</li>
 <code>positions_at</code> does for a close pair. No mutual perturbation is needed for a
 stable hierarchy over game time spans (secular precession and Kozai-Lidov are
 ignored, a documented simplification).</li>
-<li><strong>GEN.109:</strong> sector point-mass tables hold one entry per system at its barycentre
+<li><strong>GEN.109:</strong> sector point-mass tables hold one entry per system at its barycenter
 with the total mass (section 2). <code>BinaryStarProxy._calculate_system_perimeter_static</code>
 should use the total mass.</li>
 <li><strong>Plumbing:</strong> migrate N=2 through the new tables first, so the old code paths are
@@ -983,7 +983,7 @@ the planet's total light as a fraction of its mean, 0 for a lone star. For a pla
 one star of a wide pair it is the companion's <code>L_c (1/periapsis^2 - 1/apoapsis^2)</code> over
 the mean total <code>L_h/d^2 + L_c/(a^2 sqrt(1 - e^2))</code>; for a circumbinary planet it is
 <code>4 delta / d</code> with <code>delta = |L1 r1 - L2 r2| / (L1 + L2)</code> the luminosity centroid's offset
-from the barycentre (<code>r1 = a m2/M</code>, <code>r2 = a m1/M</code>). The Temperature domain scores the
+from the barycenter (<code>r1 = a m2/M</code>, <code>r2 = a m1/M</code>). The Temperature domain scores the
 worse of the cold and hot extremes <code>T (1 -+ f/2)^(1/4)</code> of the cycle, and the wet-bulb
 test reads the hot one. The equilibrium temperature itself still comes from the host star's
 light alone: the companion's mean share is at most a few percent of a planet's light
@@ -1275,7 +1275,7 @@ generator puts (a) and (b) around black holes only through the companion and lea
 </tr>
 <tr>
 <td><strong>Supermassive black hole</strong> (<code>mass_class = &quot;supermassive&quot;</code>)</td>
-<td>the galactic centre's S-star cluster as a phenomenon description only</td>
+<td>the galactic center's S-star cluster as a phenomenon description only</td>
 <td>any star system</td>
 </tr>
 </tbody>

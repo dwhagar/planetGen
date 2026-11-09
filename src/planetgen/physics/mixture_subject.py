@@ -27,6 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
+from planetgen.physics import radiation_field
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -132,8 +133,14 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))
     if not distance_au:
         return quantities
-    insolation = quantities["luminosity_solar"] / distance_au ** 2
+    insolation = quantities["luminosity_solar"] / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
     quantities["insolation"] = insolation
+    # GEN.1442: the host's distance (the light is the total, so the host's XUV cannot take its distance from it) and the other stars' XUV sources; a lone star
+    # keeps `None` and an empty tuple, which give the loss laws their old expressions
+    companions = radiation_field.companions_of(star)
+    if companions:
+        quantities["host_distance_au"] = distance_au
+        quantities["xuv_companions"] = tuple(radiation_field.xuv_emitters(star, distance_au))
     quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
     snow_line = getattr(star, "snow_line_au", None)
     if snow_line:
@@ -148,7 +155,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     zone_edges = getattr(star, "habitable_zone", None)
     if zone_edges:
         inner, outer = zone_edges
-        quantities["zone"] = "h" if distance_au < inner else ("c" if distance_au > outer else "e")
+        lit_au = distance_au / math.sqrt(radiation_field.light_ratio(star, distance_au))        # GEN.1441: as far as a body of a lone star with this much light
+        quantities["zone"] = "h" if lit_au < inner else ("c" if lit_au > outer else "e")
     # GEN.806: the index `magnetism.update_exposure` stored for the distance the body sits at; the one implementation (`activity.exposure_index`) answers
     # for a distance it was not stored for (the mantle's redox is read at another)
     stored = getattr(body, "xuv_exposure_index", None)
@@ -158,7 +166,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["xuv_index"] = index
     if getattr(star, "log_lx_lbol", None) is not None:
         quantities["log_lx_lbol"] = star.log_lx_lbol
-    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
+    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
         teq = climate_draws.equilibrium_temperature_k(albedo, flux)
@@ -171,7 +179,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

@@ -142,10 +142,10 @@ regenerated in place (<code>replace_system_content</code>) keeps its own ID.</li
 <li>Counters only move up and <code>planetgen reset</code> keeps them, so a number is
 never given twice.</li>
 <li>A field cloud (GEN.47, GEN.176) is stored by whichever sector reaches it
-first, but is born in the sector holding the centre of the space it
+first, but is born in the sector holding the center of the space it
 fills: the mean of the interior points of its shape on the fixed
 24-cell grid (<code>NebulaShape.interior_centroid</code>), scaled by its radius,
-added to its centre and rounded to 1 mpc (<code>nebula_field.centroid_mpc</code>).
+added to its center and rounded to 1 mpc (<code>nebula_field.centroid_mpc</code>).
 Its serial is field-drawn (kind 10): its rank among every field cloud
 born in that sector, cells in index order and clouds in a cell in draw
 order (<code>nebula_field.cloud_object_id</code>), worked out from the galaxy seed
@@ -153,7 +153,7 @@ alone, so the ID does not depend on save order and the birth sector
 need not exist yet. Nebulae and remnants a sector generates itself
 keep a generated serial in that sector.</li>
 <li>A container (DB.85: a globular cluster or a superbubble, a row of
-<code>galaxy_containers</code>) is born in the sector holding its centre and has a
+<code>galaxy_containers</code>) is born in the sector holding its center and has a
 region serial (kind 11): its rank among the containers born in that
 sector, counted in a fixed order (clusters by name and seed, then
 bubbles by column and draw; <code>generation/containers.build</code>), worked out
