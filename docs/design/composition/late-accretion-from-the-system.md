@@ -65,3 +65,16 @@ a heavy belt and no giant; a giant between the belt and the planet lowers it by 
 1. Is the published veneer range of the Earth (0.2 to 0.7 percent of its mass) the right target for the calibration, with the share and the collision constants honestly marked as fitted (L3 or L4)?
    Recommended: yes; nothing else measures it.
 2. Is one extra air solve per rocky planet an acceptable cost for the end-of-making pass? Recommended: yes, with the skip when the fraction barely moves.
+
+## Slice 0 result (built: `physics/late_supply.py`, rows LS1 to LS4 of section 6.254, census `tests/audit/late_supply_census.py`)
+
+The law is the shared-sink form: each body takes the scattered part of a belt's early mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`, so a giant next to a belt takes most of it and the planets
+inside take what is left (the ejection is the denominator, not a second shield). With a stand-in inward share of 0.1 an Earth-like planet inside a belt of a few to tens of Earth masses reaches the
+published 0.2 to 0.7 percent of its mass (test). In a census of 581 generated rocky planets of 0.3 to 3 Earth masses of single stars (`reports/gen1493-late-supply-census-2026-11-09.md`):
+
+* the inward share at which the median planet that takes anything takes the mean of the present law is 0.105, so 0.1 stands (row LS1, L3);
+* systems with a giant give a median 20 times lower than systems without one (the giant takes the share), a physical difference the single number never showed;
+* 179 of the 581 planets (31 percent) take nothing, because no belt lies outside them: slice 1 needs an answer for these (a floor from planetesimals that never formed a belt, or a belt-free supply
+  from the planets' own accretion tail); the single number gave them all something, so leaving them at zero would be a step backwards;
+* the spread across planets (10th to 90th percentile a factor of about 1,500) is far wider than the log-normal scatter of the law (sigma 0.65 in ln, `impact_history.LATE_ACCRETED_LN_SIGMA`), which comes from belts that differ by orders of
+  magnitude in mass; slice 1 either accepts it or narrows it with a floor, a call for Boss with the sample in hand.

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1526 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1500 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
 | T4 | 78 | 11 | 3 | 21 | 12 | 125 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 188 | 104 | 30 | 75 | 2 | 399 |
+| T6 | 189 | 104 | 30 | 76 | 4 | 403 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 867 | 300 | 74 | 235 | 50 | 1526 |
+| All | 868 | 300 | 74 | 236 | 52 | 1530 |
 
 ## How the labels were given
 
@@ -2684,3 +2684,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value | predicted only | - | - |
+
+## 6.254 Stand-ins of the late supply a planet takes from the reservoirs of its system
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| LS1 | P | T6 | L3 | `late_supply.INWARD_SHARE` 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies | 0.03 to 0.5 | belts of a few to tens of Earth masses | a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5 | a scattering integration of the belt against the system's planets | fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, `reports/gen1493-late-supply-census-2026-11-09.md`) | predicted only | GEN.1493 | replace (GEN.1493) |
+| LS2 | P | T6 | L4 | `late_supply.RELATIVE_SPEED_SHARE` 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor | 0.2 to 0.8 | bodies on near-circular orbits | a measured impact-speed distribution on a rocky planet that differs by more than a factor of two | the speed from the scattered orbits' eccentricities | no source: an eccentricity of a few tenths | predicted only | GEN.1493 | no data |
+| LS3 | P | T6 | L4 | `late_supply.OUTER_REACH` 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge | 2 to 6 | giants outside a belt | a giant at 4 times a belt's edge whose measured scattering of that belt is negligible | the giant's chaotic zone width (the Hill-radius law of the clearing) | no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters | predicted only | GEN.1493 | no data |
+| LS4 | T | T6 | L0 | each body takes the scattered mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census) | none | bodies the planetesimals cross | a system whose measured veneer is set by the star's capture or by planetesimals outside any belt | an Opik collision probability per orbit with the lifetimes of the crossing population | design; the form is the Safronov focusing factor | predicted only | - | - |

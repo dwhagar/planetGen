@@ -59733,6 +59733,178 @@
       ],
       "slug": "6-252-stand-ins-of-the-effect-ledger",
       "title": "Stand-ins of the effect ledger"
+    },
+    {
+      "key": "6.254",
+      "number": "6.254",
+      "rows": [
+        {
+          "burn_down": [
+            "replace",
+            "GEN.1493",
+            "L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "belts of a few to tens of Earth masses"
+            ],
+            [
+              "What would show it wrong",
+              "a dynamical model of a primordial belt whose inward-scattered share is outside 0.03 to 0.5"
+            ],
+            [
+              "What replaces it",
+              "a scattering integration of the belt against the system's planets"
+            ],
+            [
+              "Evidence",
+              "fitted: at 0.105 the median planet of 581 generated rocky planets that takes anything takes the mean of the present late-accretion law (census, reports/gen1493-late-supply-census-2026-11-09.md)"
+            ]
+          ],
+          "id": "LS1",
+          "key": "6.254:LS1",
+          "kind": "P",
+          "slug": "6-254-ls1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1493",
+          "what": "late_supply.INWARD_SHARE 0.1: the share of a belt's primordial mass that is scattered onto planet-crossing orbits and shared among the bodies"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "bodies on near-circular orbits"
+            ],
+            [
+              "What would show it wrong",
+              "a measured impact-speed distribution on a rocky planet that differs by more than a factor of two"
+            ],
+            [
+              "What replaces it",
+              "the speed from the scattered orbits' eccentricities"
+            ],
+            [
+              "Evidence",
+              "no source: an eccentricity of a few tenths"
+            ]
+          ],
+          "id": "LS2",
+          "key": "6.254:LS2",
+          "kind": "P",
+          "slug": "6-254-ls2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": "GEN.1493",
+          "what": "late_supply.RELATIVE_SPEED_SHARE 0.4: the speed of a scattered planetesimal against a body as a share of the body's orbital speed, for the focusing factor"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+            ],
+            [
+              "The range it moves in",
+              "2 to 6"
+            ],
+            [
+              "Where it holds",
+              "giants outside a belt"
+            ],
+            [
+              "What would show it wrong",
+              "a giant at 4 times a belt's edge whose measured scattering of that belt is negligible"
+            ],
+            [
+              "What replaces it",
+              "the giant's chaotic zone width (the Hill-radius law of the clearing)"
+            ],
+            [
+              "Evidence",
+              "no source: scattering goes both ways and a giant a few times out takes most of what a belt scatters"
+            ]
+          ],
+          "id": "LS3",
+          "key": "6.254:LS3",
+          "kind": "P",
+          "slug": "6-254-ls3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L4",
+          "unread": "GEN.1493",
+          "what": "late_supply.OUTER_REACH 3.0: a body beyond a ring shares its planetesimals when it lies within this many times the ring's outer edge"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "bodies the planetesimals cross"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose measured veneer is set by the star's capture or by planetesimals outside any belt"
+            ],
+            [
+              "What replaces it",
+              "an Opik collision probability per orbit with the lifetimes of the crossing population"
+            ],
+            [
+              "Evidence",
+              "design; the form is the Safronov focusing factor"
+            ]
+          ],
+          "id": "LS4",
+          "key": "6.254:LS4",
+          "kind": "T",
+          "slug": "6-254-ls4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "each body takes the scattered mass in proportion to R^2 (1 + v_esc^2 / v_rel^2) / a^2; the star as a sink, the scattering time, moons' weights and planetesimals that never formed a belt are left out (a planet no belt reaches takes nothing: 31 percent of the census)"
+        }
+      ],
+      "slug": "6-254-stand-ins-of-the-late-supply-a-planet-takes-from-the-reservoirs-of-its-system",
+      "title": "Stand-ins of the late supply a planet takes from the reservoirs of its system"
     }
   ]
 }
