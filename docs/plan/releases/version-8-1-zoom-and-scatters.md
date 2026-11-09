@@ -481,7 +481,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1501 | Dark members of the orbit tree give light: neutron star cooling, black hole accretion disk, brown dwarf cooling | GEN.1443 | Split from GEN.1443 at Lane 11's request, 2026-11-09. |
 | GEN.1502 | Tidal locking and spin-down torques from every body of a system (GEN.1446 part 2) | GEN.1446 | Split from GEN.1446 at Lane 23's request, 2026-11-09. |
 | GEN.1503 | Tidal heating from every body of a system (GEN.1446 part 3) | GEN.1446 | Split from GEN.1446 at Lane 23's request, 2026-11-09. |
-| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | Lane 03 finding gating PR 5876, 2026-11-09. |
+| GEN.1504 | (bug) The secular exchange changes a planet's inclination and node but leaves its spin tilt and axis | none | Lane 04 bisect after Train 21, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123 | Generation rescan audit, 2026-11-09. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
