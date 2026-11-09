@@ -369,6 +369,13 @@ TABLES = {
         "Lsun*pc": ("star_lpx", "star_lpy", "star_lpz", "point_lpx", "point_lpy", "point_lpz"),
         "Lsun*K": ("star_lt",),
     },
+    "galaxy_block_light_parts": {
+        "index": ("shell_index", "band_index", "wedge_index"),
+        "count": ("star_count", "point_count"),
+        "Lsun": ("star_luminosity_sol", "point_luminosity_sol"),
+        "Lsun*pc": ("star_lpx", "star_lpy", "star_lpz", "point_lpx", "point_lpy", "point_lpz"),
+        "Lsun*K": ("star_lt",),
+    },
     "region_stats": {
         "index": ("shell_index", "band_index", "wedge_index"),
         "count": ("sector_count", "capacity", "clump_count"),

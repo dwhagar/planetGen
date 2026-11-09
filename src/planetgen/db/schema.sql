@@ -1952,6 +1952,30 @@ CREATE TABLE IF NOT EXISTS galaxy_block_lights (
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- galaxy_block_light_parts (v236, GEN.1476): the same sums `galaxy_block_lights` holds, for each sector cell (`shell_index`, `band_index`, `wedge_index`)
+-- that holds a bright star no system was built around or a scattered phenomenon not yet built. The two scatter writers (`store.insert_bright_stars`,
+-- `store.insert_phenomenon_scatter`) add each batch's sums to its cells in the transaction that writes the rows (`db/block_lights.note_rows`), so the
+-- block light totals are rolled up from these rows (`block_lights.roll`) and the uncharted sector index takes its cells from them, and neither reads the two
+-- scatter tables again. A sector build or delete puts its cell right (`block_lights.sync_cells`); the parts are checked against the tables' unbuilt counts
+-- before they are used and made again when they differ. Derived data, no foreign key.
+CREATE TABLE IF NOT EXISTS galaxy_block_light_parts (
+    shell_index          INT NOT NULL,
+    band_index           INT NOT NULL,
+    wedge_index          INT NOT NULL,
+    star_count           BIGINT UNSIGNED NOT NULL,
+    star_luminosity_sol  DOUBLE NOT NULL,
+    star_lpx              DOUBLE NOT NULL,
+    star_lpy              DOUBLE NOT NULL,
+    star_lpz              DOUBLE NOT NULL,
+    star_lt              DOUBLE NOT NULL,
+    point_count          BIGINT UNSIGNED NOT NULL,
+    point_luminosity_sol DOUBLE NOT NULL,
+    point_lpx             DOUBLE NOT NULL,
+    point_lpy             DOUBLE NOT NULL,
+    point_lpz             DOUBLE NOT NULL,
+    PRIMARY KEY (shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- region_stats (v161, DB.107): one row per named region of the Galaxy Map (`galaxy/named_regions.py`): a 9-block, `(shell_index,
 -- band_index, wedge_index)` (the level, 9, is implied), that holds at least one generated sector. `sector_count` is how many of
 -- its sectors are generated and `capacity` how many its outline holds (the share charted is `sector_count / capacity`),

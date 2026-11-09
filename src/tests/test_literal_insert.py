@@ -46,7 +46,8 @@ def test_a_long_run_is_cut_into_statements_under_the_size_cap(conn, monkeypatch)
     real = conn.execute_literal
 
     def record(sql):
-        sent.append(len(sql))
+        if sql.startswith("INSERT INTO bright_stars"):      # not the parts rows the write also adds (GEN.1476)
+            sent.append(len(sql))
         return real(sql)
 
     monkeypatch.setattr(conn, "execute_literal", record)
