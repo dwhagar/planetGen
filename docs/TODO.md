@@ -13377,6 +13377,16 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 12 (storage). Prerequisites: GEN.1497. Related: GEN.1465, GEN.1479.
   Filed by the TODO thread.
 
+- [ ] **GEN.1499 Planets forced by a companion star: add the companion's stellar term (apsidal rate and forced eccentricity) to the planets' secular exchange**
+  Split from GEN.1492 by TODO (2026-11-09) at Lane 22's request. Source: docs/design/systems/belt-secular-excitation-by-companions.md (PR 5880), which says GEN.1450's secular_chain has no stellar term. Do: add the companion star's A_c and B_c (first-order secular theory, Laplace coefficients from resonant_chains._laplace) to the planets' matrices in physics/secular_chain.py, so a planet in a close binary carries its forced eccentricity and the companion's precession; reuse the GEN.1492 slice 0 functions (physics/belt_forcing.py) instead of writing a second model. A lone-star system must give today's numbers. Stand-ins registered in GEN.725 with tier and tweak level. Done: a planet beside a close companion shows the forced eccentricity the census predicts; a lone-star system is unchanged. Lock item (epoch, golden) when a stored value changes.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22 (after GEN.1492 slice 0) or Lane 23 (secular). Prerequisites: GEN.1492. Related: GEN.1450, GEN.1492, GEN.1447.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1500 Mutual inclination of the orbits of the stars in a binary or triple, so a companion can force inclination and Kozai pumping has an input**
+  Split from GEN.1492 by TODO (2026-11-09) at Lane 22's request. Source: docs/design/systems/belt-secular-excitation-by-companions.md (PR 5880): the generator's star orbits are coplanar and carry no mutual inclination. Do: read first how the star orbits are drawn and stored (radiation_field.companions_of, the stability and hierarchy code) and report; then draw a mutual inclination per star orbit from the physics (formation by turbulent fragmentation against disk-driven alignment, from the research already registered or a new secondary source), store it in a column registered in db/column_units.py, and feed it to GEN.1447's Kozai screen, GEN.1492's forced inclination and GEN.1467. Reuse the existing star-orbit storage. A lone star has no value. Stand-ins registered in GEN.725. Done: every multiple has its mutual inclination; the Kozai screen reads it; the report shows how many systems change verdict. Lock item (new column, migration, epoch).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 23 (tides and secular) or Lane 22. Prerequisites: none. Related: GEN.1447, GEN.1467, GEN.1492, GEN.1499.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
