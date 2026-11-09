@@ -459,7 +459,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.234", "6.234 Stand-ins of the superionic boundaries of water and ammonia",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.243", "6.243 Stand-ins of the flavor tree's line weights and chances",
+    ("6.253", "6.253 Stand-ins of the flavor tree's line weights and chances",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.237", "6.237 Stand-ins of the materials seen since the textbooks",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -472,6 +472,12 @@ SECTIONS = (
     ("6.241", "6.241 Stand-ins of the dose from the radiation field",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.242", "6.242 Stand-ins of the drift and evaporation of the ices in the disk",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.243", "6.243 Stand-ins of the spacing of orbits against every neighbour",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.245", "6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.247", "6.247 Stand-ins of the belt dust and comet influx of a planet",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""

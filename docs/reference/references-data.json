@@ -86335,6 +86335,29 @@
    "volume": "",
    "year": 2014
   },
+  "10.1016/b978-0-08-095975-7.01301-2": {
+   "authors": [
+    [
+     "Dauphas",
+     "N."
+    ],
+    [
+     "Morbidelli",
+     "A."
+    ]
+   ],
+   "book": "Treatise on Geochemistry",
+   "doi": "10.1016/b978-0-08-095975-7.01301-2",
+   "editors": [],
+   "journal": "Treatise on Geochemistry",
+   "page": "1",
+   "publisher": "Elsevier",
+   "src": "crossref",
+   "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2014
+  },
   "10.1016/b978-0-12-066266-1.50009-0": {
    "authors": [
     [
@@ -89223,6 +89246,45 @@
    "title": "Noble gases recycled into the mantle through cold subduction zones",
    "type": "journal-article",
    "volume": "471",
+   "year": 2017
+  },
+  "10.1016/j.epsl.2017.08.032": {
+   "authors": [
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Ji",
+     "M."
+    ],
+    [
+     "Wang",
+     "C. Z."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2017.08.032",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "40",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles",
+   "type": "journal-article",
+   "volume": "478",
    "year": 2017
   },
   "10.1016/j.epsl.2018.05.033": {
@@ -282577,7 +282639,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5213,
+ "id_next": 5215,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283044,6 +283106,7 @@
   "10.1016/b978-0-08-095975-7.00201-1": "R3417",
   "10.1016/b978-0-08-095975-7.00301-6": "R3842",
   "10.1016/b978-0-08-095975-7.00315-6": "R4687",
+  "10.1016/b978-0-08-095975-7.01301-2": "R5214",
   "10.1016/b978-0-12-066266-1.50009-0": "R0179",
   "10.1016/b978-0-12-066266-1.50016-8": "R0178",
   "10.1016/b978-0-12-434750-2.50049-6": "R2540",
@@ -283141,6 +283204,7 @@
   "10.1016/j.epsl.2016.09.013": "R0518",
   "10.1016/j.epsl.2017.03.008": "R1182",
   "10.1016/j.epsl.2017.04.046": "R4135",
+  "10.1016/j.epsl.2017.08.032": "R5213",
   "10.1016/j.epsl.2018.05.033": "R2936",
   "10.1016/j.epsl.2018.06.029": "R4725",
   "10.1016/j.epsl.2018.07.006": "R3356",

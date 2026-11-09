@@ -51,11 +51,11 @@ def _labels(found):
     return [(stage.key, stage.skip is not None) for stage in found]
 
 
-def test_a_random_start_galaxy_run_has_fourteen_stages_and_skips_none_of_them():
+def test_a_random_start_galaxy_run_has_fifteen_stages_and_skips_none_of_them():
     found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
         ("start", False), ("neighborhood", False), ("link", False), ("mass", False), ("luminosity", False),
-        ("phenomena", False), ("phenomena-index", False), ("nebula-draw", False),
+        ("phenomena", False), ("phenomena-index", False), ("nebula-clear", False), ("nebula-draw", False),
         ("backfill", False), ("population", False), ("territories", False), ("settle", False),
         ("run-blocks", False), ("block-lights", False)]
 
@@ -69,7 +69,7 @@ def test_the_block_light_totals_are_the_last_stage_of_a_galaxy_run():
 
 def test_a_galaxy_run_of_one_sector_and_its_neighborhood_has_both_stages():
     found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0", "--wedge", "1", "--radius-pc", "20"))
-    assert [stage.key for stage in found][:3] == ["sectors", "neighborhood", "link"] and len(found) == 14
+    assert [stage.key for stage in found][:3] == ["sectors", "neighborhood", "link"] and len(found) == 15
     assert [stage.key for stage in stages.galaxy_stages(_galaxy("--center-sector", "1", "--radius-pc", "20"))][:2] \
         == ["sectors", "link"]
 
@@ -80,14 +80,14 @@ def test_a_sectors_run_has_the_sector_stages_alone():
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
     found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0"))
-    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 13
+    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 14
 
 
 def test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own():
     assert [s.key for s in stages.plan_stages(_plan())] == ["skeleton"]
     for flag, keys in (("--mass", ["mass", "block-lights"]), ("--luminosity", ["luminosity", "block-lights"]),
-                       ("--phenomena", ["phenomena", "phenomena-index", "nebula-draw", "block-lights"]),
-                       ("--nebula-field", ["nebula-draw"]), ("--band", ["band"])):
+                       ("--phenomena", ["phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "block-lights"]),
+                       ("--nebula-field", ["nebula-clear", "nebula-draw"]), ("--band", ["band"])):
         assert [s.key for s in stages.scatter_stages(_scatter(flag))] == keys, flag
         assert [s.key for s in stages.for_command("scatter", _scatter(flag))] == keys
     assert stages.scatter_stages(_scatter("--mass")) != stages.scatter_stages(_scatter("--luminosity"))
@@ -112,16 +112,16 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 1 of 14: Generate the starting sector")
+    assert text.startswith("Stage 1 of 15: Generate the starting sector")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
-    assert "Stage 2 of 14: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 4 of 14: Scatter the massive stars -- skipped: no layers" in text
-    assert "Stage 10 of 14: Run the population pass -- skipped: not needed" in text
-    assert "Stage 11 of 14: Recompute the territories -- skipped: not needed" in text
-    assert "Stage 12 of 14: Save the sector paths" in text
-    assert "Stage 13 of 14: Update the map's block totals -- skipped: not needed" in text
-    assert "Stage 14 of 14: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
-    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 14
+    assert "Stage 2 of 15: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 4 of 15: Scatter the massive stars -- skipped: no layers" in text
+    assert "Stage 11 of 15: Run the population pass -- skipped: not needed" in text
+    assert "Stage 12 of 15: Recompute the territories -- skipped: not needed" in text
+    assert "Stage 13 of 15: Save the sector paths" in text
+    assert "Stage 14 of 15: Update the map's block totals -- skipped: not needed" in text
+    assert "Stage 15 of 15: Make the block light totals -- skipped: not needed" in text      # PERF.251: the last of a galaxy run
+    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 15
 
 
 def test_a_stage_key_the_run_does_not_have_is_ignored():
@@ -141,7 +141,7 @@ def test_the_new_galaxy_job_counts_every_stage_of_every_step():
     steps = _steps("new_galaxy", {"confirm": "db"})
     found = jobs.job_stages(steps)
     assert [s["label"] for s in found][:3] == [generate_page.DATA_CHECK_LABEL, "Reset the galaxy", "Plan the galaxy"]
-    assert len(found) == 16 and found[-1]["n"] == 16
+    assert len(found) == 17 and found[-1]["n"] == 17
     assert not any(s["skipped"] for s in found)
 
 
@@ -153,9 +153,9 @@ def test_ticking_skip_the_scatter_leaves_the_scatter_steps_out():
 
 def test_a_plan_job_lists_its_scatter_steps_stages():
     found = jobs.job_stages(_steps("plan", {"confirm": "db"}))
-    assert [s["label"] for s in found][-8:] == [
+    assert [s["label"] for s in found][-9:] == [
         "Scatter the massive stars", "Make the block light totals", "Scatter the bright stars",
-        "Make the block light totals", "Scatter the phenomena", "Index the phenomena", "Draw the nebula field",
+        "Make the block light totals", "Scatter the phenomena", "Index the phenomena", "Clear the earlier nebula field", "Draw the nebula field",
         "Make the block light totals"]
 
 
@@ -164,7 +164,7 @@ def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     job = {"stages": jobs.job_stages(steps), "step": 6, "finished": False,
            "progress": {"stage": {"index": 1, "total": 2, "label": "Scatter the massive stars", "skipped": None}}}
     view = generate_page.stage_view(job)
-    assert view["stage_text"] == "Stage 7 of 16: Scatter the massive stars"
+    assert view["stage_text"] == "Stage 7 of 17: Scatter the massive stars"
     states = [s["state"] for s in view["stage_list"]]
     assert states[:6] == ["done"] * 6 and states[6] == "running" and "waiting" in states
     assert "skipped" not in states
@@ -212,7 +212,7 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
     assert history["population"]["skipped"] and history["territories"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
-    assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 14
+    assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 15
 
 
 def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_config, monkeypatch):
@@ -287,7 +287,7 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
         for command, args in runs:
             assert stages.estimate_seconds(conn, command, args) is None   # nothing recorded yet
         for key, seconds, settings in (("skeleton", 5.0, {"max_ring": 60}), ("phenomena", 7.0, {"mass_limit_sol": 8.0}),
-                                       ("phenomena-index", 1.0, {}), ("nebula-draw", 2.0, {}), ("block-lights", 3.0, {}),
+                                       ("phenomena-index", 1.0, {}), ("nebula-clear", 1.0, {}), ("nebula-draw", 2.0, {}), ("block-lights", 3.0, {}),
                                        ("mass", 11.0, {"mass_limit_sol": 8.0}),
                                        ("luminosity", 13.0, {"mass_limit_sol": 8.0})):
             conn.execute(
@@ -296,7 +296,7 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
                 " VALUES ('d', 'plan', ?, 1, 4, 'x', 0, NOW(6), NOW(6), ?, 1, ?, '{}', ?)",
                 (key, seconds, json.dumps(settings), generation_stats.current_version_key()))
         conn.commit()
-        assert [stages.estimate_seconds(conn, command, args) for command, args in runs] == [5.0, 13.0, 14.0, 16.0]
+        assert [stages.estimate_seconds(conn, command, args) for command, args in runs] == [5.0, 14.0, 14.0, 16.0]
         # A stage with no time stored makes the estimate unknown.
         assert stages.estimate_seconds(conn, "scatter", _scatter("--band")) is None
     finally:
@@ -407,7 +407,7 @@ def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_sta
 
 def test_a_single_stage_run_and_a_web_run_have_no_command_line_overall_bar(monkeypatch):
     monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
-    stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
+    stages.begin(stages.scatter_stages(_scatter("--band")))
     assert stages.overall_progress() is None
     stages.finish()
     monkeypatch.setenv(progress_file.ENV_VAR, "/tmp/progress-from-the-web.json")
@@ -440,16 +440,16 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
-    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "17")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "18")
     stages.begin(stages.galaxy_stages(_galaxy()))
     stages.enter("start")
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 4 of 17: Generate the starting sector")      # a step of 14 stages: the banner names the step
+    assert text.startswith("Stage 4 of 18: Generate the starting sector")      # a step of 15 stages: the banner names the step
     assert "stages (stages" not in text
-    assert "Stage 5 of 17: Generate the neighborhood -- skipped: not needed" in text
-    assert "Stage 15 of 17: Save the sector paths" in text
+    assert "Stage 5 of 18: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 16 of 18: Save the sector paths" in text
 
 
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
@@ -457,10 +457,10 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
     monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
-    stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-    stages.enter("nebula-draw")
+    stages.begin(stages.scatter_stages(_scatter("--band")))
+    stages.enter("band")
     stages.finish()
-    assert lines == ["Stage 1 of 1: Draw the nebula field",         # no banner here, so these two are the mentions
+    assert lines == ["Stage 1 of 1: Add the dimmer band of bright stars",         # no banner here, so these two are the mentions
                      "Stage 1 of 1 finished after 0 s"]               # UX.122: and the stage says it finished
 
 
@@ -470,14 +470,14 @@ def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
-    stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-    stages.enter("nebula-draw")
+    stages.begin(stages.scatter_stages(_scatter("--band")))
+    stages.enter("band")
     stages.finish()
     assert lines == []
-    stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-    stages.skip("nebula-draw", "nothing to scatter")
+    stages.begin(stages.scatter_stages(_scatter("--band")))
+    stages.skip("band", "nothing to scatter")
     stages.finish()
-    assert lines == ["Stage 4 of 13: Draw the nebula field -- skipped: nothing to scatter"]
+    assert lines == ["Stage 4 of 13: Add the dimmer band of bright stars -- skipped: nothing to scatter"]
 
 
 def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
@@ -510,7 +510,7 @@ def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
     stages.begin(stages.galaxy_stages(_galaxy()))
     try:
-        assert stages._numbering() == (0, 14)
+        assert stages._numbering() == (0, 15)
     finally:
         stages.finish()
 
@@ -521,7 +521,7 @@ def test_the_runner_and_the_stages_agree_on_the_variables_that_number_a_jobs_sta
 
 
 def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
-    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 16 stages (16 stages and 10 steps with the data check, GEN.590, PERF.172)."""
+    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 17 stages (17 stages and 10 steps with the data check, GEN.590, PERF.172)."""
     import sys
     from planetgen.web import job_runner
     steps = _steps("new_galaxy", {"confirm": "db"})
@@ -529,7 +529,7 @@ def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
               "argv": [sys.executable, "-c", "import os; print(os.environ['PLANETGEN_STAGE_OFFSET'], os.environ['PLANETGEN_STAGE_TOTAL'])"]}
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
-    assert counts == [1, 1, 1, 2, 1, 2, 2, 4, 1, 1] and sum(counts) == 16
+    assert counts == [1, 1, 1, 2, 1, 2, 2, 5, 1, 1] and sum(counts) == 17
     job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
     job_dir.mkdir(parents=True)
     (job_dir / "job.json").write_text(json.dumps({
@@ -537,15 +537,15 @@ def test_the_new_galaxy_log_counts_every_stage_not_every_step(tmp_path):
         "cwd": str(tmp_path), "env": {}, "steps": shown}))
     assert job_runner.run(str(job_dir)) == 0
     log_text = (job_dir / "output.log").read_text()
-    assert "=== Stage 1 of 16: " in log_text and "=== Stage 3 of 16: " in log_text
-    assert "=== Stages 4 to 5 of 16: " in log_text and "of 10" not in log_text
-    assert "=== Stages 4 to 5 of 16 finished after " in log_text
+    assert "=== Stage 1 of 17: " in log_text and "=== Stage 3 of 17: " in log_text
+    assert "=== Stages 4 to 5 of 17: " in log_text and "of 10" not in log_text
+    assert "=== Stages 4 to 5 of 17 finished after " in log_text
     from planetgen.util import logrecord
     records = [logrecord.parse_file_line(line) for line in (job_dir / "records.log").read_text().splitlines()]
     # UX.123: the page and the download hold the display line (with its time) of each stage mark, the records file the record
     assert [logrecord.display_line(r) for r in records if r.event] == [line for line in log_text.splitlines() if " job: === " in line]
     assert sum(1 for r in records if r.event == logrecord.STAGE_START) == 10
-    assert "\n3 16\n" in log_text      # the sectors step's process was told its stages start at 4 of 16
+    assert "\n3 17\n" in log_text      # the sectors step's process was told its stages start at 4 of 17
 
 
 def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):
@@ -592,8 +592,8 @@ def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_th
     log.set_record_file(str(path))
     log.configure(log.NORMAL)
     try:
-        stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-        stages.enter("nebula-draw")
+        stages.begin(stages.scatter_stages(_scatter("--band")))
+        stages.enter("band")
         stages.finish()
         for handler in log._logger.handlers:
             handler.flush()
@@ -601,11 +601,11 @@ def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_th
         log.set_record_file(None)
         log.configure(log.NORMAL)
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
-    assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Draw the nebula field"),
+    assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Add the dimmer band of bright stars"),
                                                        ("stage.finish", "Stage 1 of 1 finished after 0 s")]
     assert records[0].fields == {"event": "stage.start", "stage": 1, "stages": 1}
     assert records[1].fields == {"event": "stage.finish", "stage": 1, "stages": 1, "seconds": 0.0}
-    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Draw the nebula field ===",
+    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Add the dimmer band of bright stars ===",
                                                     "=== Stage 1 of 1 finished after 0 s ==="]
 
 
@@ -618,8 +618,8 @@ def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path,
     log.set_record_file(str(path))
     log.configure(log.NORMAL)
     try:
-        stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-        stages.enter("nebula-draw")
+        stages.begin(stages.scatter_stages(_scatter("--band")))
+        stages.enter("band")
         stages.fail("MySQL went away")
         stages.fail("again")                                  # nothing is open any more: nothing more is said
         for handler in log._logger.handlers:
@@ -629,9 +629,9 @@ def test_a_stage_that_fails_says_so_in_the_console_and_the_record_file(tmp_path,
         log.configure(log.NORMAL)
     records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
     assert [(r.event, r.severity, r.message) for r in records] == [
-        ("stage.start", "info", "Stage 1 of 1: Draw the nebula field"),
+        ("stage.start", "info", "Stage 1 of 1: Add the dimmer band of bright stars"),
         ("stage.failed", "error", "Stage 1 of 1 failed after 0 s: MySQL went away")]
-    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Draw the nebula field ===",
+    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Add the dimmer band of bright stars ===",
                                                     "=== Stage 1 of 1 failed after 0 s: MySQL went away ==="]
     assert stages._state["stages"] == [] and stages._state["open"] is None
 
@@ -641,8 +641,8 @@ def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys
     from planetgen.cli import generate
 
     def handler(args):
-        stages.begin(stages.scatter_stages(_scatter("--nebula-field")))
-        stages.enter("nebula-draw")
+        stages.begin(stages.scatter_stages(_scatter("--band")))
+        stages.enter("band")
         raise RuntimeError("the sky fell")
 
     monkeypatch.setitem(generate._COMMAND_HANDLERS, "check-math", handler)
@@ -656,3 +656,38 @@ def test_a_command_that_raises_ends_its_open_stage_as_failed(monkeypatch, capsys
     finally:
         log.configure(log.NORMAL)
     assert "=== Stage 1 of 1 failed after 0 s: RuntimeError: the sky fell ===" in capsys.readouterr().out
+
+
+def test_the_executor_records_the_speeds_the_units_report_and_builds_the_rows_counts_from_them(monkeypatch):
+    """OPS.123 slice 1: a unit says what it drew (`samples`) and wrote (`row`); the executor records the speeds under the stage's workers
+    and sums the counts, so no command carries a hook for either."""
+    class Recorder:
+        def __init__(self):
+            self.seen, self.flushed = [], 0
+
+        def record(self, kind, density, seconds, **kwargs):
+            self.seen.append((kind, density, seconds, kwargs))
+
+        def flush(self):
+            self.flushed += 1
+
+    recorder = Recorder()
+    monkeypatch.setattr(stages, "speed_stats", lambda mysql_config: recorder)
+    results = [
+        {"samples": [{"kind": "scatter-mass", "density": 0.5, "seconds": 2.0, "systems": 10, "stars": 12}],
+         "row": {"objects": 12, "touched": [3, 4]}},
+        {"row": {"objects": 0, "touched": []}},                           # a unit that drew nothing reports no sample (PERF.53)
+        {"samples": [{"kind": "scatter-mass", "density": 0.7, "seconds": 3.0, "systems": 20, "stars": 21},
+                     {"kind": "phenomena-write", "density": 0.0, "seconds": 1.0, "systems": 5, "stars": 5}],
+         "row": {"objects": 21, "touched": [4, 5]}},
+    ]
+    stages.record_unit_samples(object(), 3, results)
+    assert [(kind, density, seconds, kwargs["systems"], kwargs["stars"], kwargs["workers"])
+            for kind, density, seconds, kwargs in recorder.seen] == [
+        ("scatter-mass", 0.5, 2.0, 10, 12, 3), ("scatter-mass", 0.7, 3.0, 20, 21, 3), ("phenomena-write", 0.0, 1.0, 5, 5, 3)]
+    assert recorder.flushed == 1
+    stages.record_unit_samples(object(), 3, [{"row": {"objects": 1, "touched": [1]}}])
+    assert recorder.flushed == 1, "nothing to record, nothing flushed"
+    assert stages.stage_row_metrics({"row_totals": {"shells": 9}}, results) == {"shells": 9, "shells_modified": 3, "objects": 33}
+    assert stages.stage_row_metrics({"row_totals": {"shells": 9}}, [{}]) == {"shells": 9}
+    assert stages.stage_row_metrics(None, []) == {}
