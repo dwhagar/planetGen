@@ -4661,9 +4661,9 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | open |
 | MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | open |
 | MAP.416 | Census of cloud and haze data by class | none | open |
-| MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | MAP.416 | open |
+| MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | none | dropped, folded into MAP.280 |
 | MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | open |
-| MAP.419 | Separate cloud sphere with a day and night terminator, near tier only | MAP.418 | open |
+| MAP.419 | Separate cloud sphere with a day and night terminator, near tier only | none | dropped, folded into MAP.280 |
 | MAP.420 | Coloured haze shell and limb, sized from tau_haze | MAP.418 | open |
 | MAP.421 | Giants get a haze and cloud-deck tint | MAP.418 | open |
 | MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | open |

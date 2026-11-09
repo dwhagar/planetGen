@@ -1542,6 +1542,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Status (TODO, 2026-11-09): built since this was filed: MAP.350 bakes a white cloud layer, a veil and a haze contrast into the ground texture, and MAP.277 gives the limb glow and the body's day and night line. Still open here, and this item now also holds the two render items filed by mistake as duplicates (MAP.417 and MAP.419, dropped): (a) a world in vapour or hycean state, or under an opaque deck (Venus, Titan), paints the cloud or haze deck as the surface, tinted by the atmosphere colour, not the ground under a contrast wash; (b) a separate cloud sphere (a second alpha texture on a slightly larger sphere that turns slightly faster) with a day and night terminator from the star direction, near tier only, painted once and cached (about 128 KB per body, one extra draw call). Report reports/render-belts-haze-clouds-2026-11-09.md. Boss (6:11 PM EST on 2026-11-09): not needed in 8.1. Follow-ups MAP.416 (census first), MAP.418 (colour by material), MAP.420 (haze shell), MAP.421 (giants), MAP.422 (info panel line).
   Prerequisites: DB.96.
 
 - [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
@@ -13536,38 +13537,28 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; do this first.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: none. Related: MAP.350, MAP.417.
-  Filed by the TODO thread.
-
-- [ ] **MAP.417 (bug) Opaque-deck worlds paint the cloud or haze deck as the surface**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Venus, Titan, vapour and hycean worlds still draw the ground under a contrast wash. Do: paint the deck as the surface, tinted by the atmosphere colour, reusing the solidpaint branches (draft sections 4.2 items 4 and 6).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.416. Related: MAP.416, MAP.350.
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: none. Related: MAP.350, MAP.280.
   Filed by the TODO thread.
 
 - [ ] **MAP.418 (bug) Cloud and haze colour come from the dominant condensate or haze material**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Water white, sulfuric acid pale yellow, CO2 grey-white, dust tan, tholin orange. Do: find where the material is read from stored air and sulfuric_cloud (ask TODO or Lane 14 if unclear) and carry one hex per layer on the look record.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.416. Related: MAP.416, MAP.417.
-  Filed by the TODO thread.
-
-- [ ] **MAP.419 Separate cloud sphere with a day and night terminator, near tier only**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A second alpha texture on a slightly larger sphere that turns slightly faster, plus the terminator from the star direction; painted once and cached (draft section 9, about 128 KB per body, one extra draw call).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.418.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.416. Related: MAP.416, MAP.280.
   Filed by the TODO thread.
 
 - [ ] **MAP.420 Coloured haze shell and limb, sized from tau_haze**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A detached haze shell for hazy bodies only (Titan-like), reusing the glow shell shader in bodyRendering.js.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.418.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.418, MAP.277.
   Filed by the TODO thread.
 
 - [ ] **MAP.421 Giants get a haze and cloud-deck tint from tau_haze and tau_cloud when stored**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. The veil is skipped for giants today. Tint the bands from the stored values and leave them as they are when none is stored; hot giants keep their thermal glow.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.416, MAP.418.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.416, MAP.418.
   Filed by the TODO thread.
 
 - [ ] **MAP.422 The info panel line says which of cloud and haze were drawn, and from what**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Extend colour_account.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.418.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 11 (map). Prerequisites: MAP.418. Related: MAP.418.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

@@ -512,13 +512,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | MAP.413 | (bug) The belt member page draws its body | MAP.412 | Boss, 2026-11-09 (render report). |
 | MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | Boss, 2026-11-09 (render report). |
 | MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | Boss, 2026-11-09 (render report). |
-| MAP.416 | Census of cloud and haze data by class | none | Boss, 2026-11-09 (render report). |
-| MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | MAP.416 | Boss, 2026-11-09 (render report). |
-| MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | Boss, 2026-11-09 (render report). |
-| MAP.419 | Separate cloud sphere with a day and night terminator, near tier only | MAP.418 | Boss, 2026-11-09 (render report). |
-| MAP.420 | Coloured haze shell and limb, sized from tau_haze | MAP.418 | Boss, 2026-11-09 (render report). |
-| MAP.421 | Giants get a haze and cloud-deck tint | MAP.418 | Boss, 2026-11-09 (render report). |
-| MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | Boss, 2026-11-09 (render report). |
 | GEN.1430 | Flavor text tree: the data file, the walk, the draw, the line ids and slots, and the tests (replaces the four tuning lists and the index key) |  | Boss, 2026-11-08. |
 | GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
