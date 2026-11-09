@@ -34,6 +34,7 @@ import json
 import math
 import os
 from dataclasses import dataclass, field
+from statistics import NormalDist
 
 from planetgen.physics import acid_medium, aerosols, air_column, atmosphere, constants, elements, sulfuric_vapor
 
@@ -112,25 +113,16 @@ def _shares(values):
     return gas, {formula: pressure / total for formula, pressure in gas.items()}
 
 
-def acid_cloud(values, gas=None):
+def acid_cloud_of_column(column, temperature_k, skin=None):
     """
-    The `Cloud` of a body's air, or `None`: gate 2. The water at a level is the surface mixing ratio, never more than that level's saturation (a cold trap),
-    the acid vapor `acid_vapor_share_of_so2` of the sulfur dioxide at every level, and the liquid is where `sulfuric_vapor.condenses`.
+    The `Cloud` of an `air_column.AirColumn` (the ground at `temperature_k`, the air turning isothermal at `skin`, else the grey factor of the ground), or `None`:
+    gate 2. The water at a level is the surface mixing ratio, never more than that level's saturation (a cold trap), the acid vapor `acid_vapor_share_of_so2`
+    of the sulfur dioxide at every level, and the liquid is where `sulfuric_vapor.condenses`. The base is the warmest such level.
     """
-    if gas is None:
-        gas, share = _shares(values)
-    else:
-        total = sum(gas.values())
-        share = {formula: pressure / total for formula, pressure in gas.items()} if total > 0.0 else {}
-    temperature = values.get("surface_temperature_k")
-    gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
-    if not gas or not temperature or gravity <= 0.0:
-        return None
-    water, acid = share.get("H2O", 0.0), share.get("SO2", 0.0) * number("acid_vapor_share_of_so2")
+    water, acid = column.fraction("H2O"), column.fraction("SO2") * number("acid_vapor_share_of_so2")
     if water < number("cloud_water_min_share") or acid <= 0.0:
         return None
-    column = air_column.from_partials(air_column.partials_pa(values), gravity)
-    pressure, level_k = aerosols.profile(column, temperature, skin_k=acid_medium.skin_k(values, temperature))
+    pressure, level_k = aerosols.profile(column, temperature_k, skin_k=skin)
     window = []
     for p, t in zip(pressure, level_k):
         saturation = aerosols.saturation_pa("H2O", float(t))
@@ -144,6 +136,18 @@ def acid_cloud(values, gas=None):
     base = max(window, key=lambda level: level[1])
     solution = sulfuric_vapor.composition(base[1], base[2])
     return Cloud(base[1], base[0], min(level[0] for level in window), solution.weight_percent)
+
+
+def acid_cloud(values, gas=None):
+    """The `Cloud` of a body's stored `values` (see `acid_cloud_of_column`; the skin is `acid_medium.skin_k`), or `None`: gate 2."""
+    if gas is None:
+        gas = atmosphere.gas_partials_pa(values)
+    temperature = values.get("surface_temperature_k")
+    gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
+    if not gas or not temperature or gravity <= 0.0 or sum(gas.values()) <= 0.0:
+        return None
+    column = air_column.from_partials(air_column.partials_pa(values), gravity)
+    return acid_cloud_of_column(column, temperature, acid_medium.skin_k(values, temperature))
 
 
 def uv_c_flux_w_m2(values):
@@ -203,16 +207,43 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
     return Chemistry(tuple(present), gates, cloud, absent)
 
 
-def absorber_depth(cloud_tau_550, so2_share, wavelength_um):
+def absorber_depth(cloud_tau_550, so2_share, wavelength_um, center_um=None, fwhm_um=None):
     """
-    The absorption optical depth of V10 at `wavelength_um`: a Gaussian band (center `absorber_center_um`, full width `absorber_fwhm_um`) whose peak is
-    `absorber_depth_per_cloud_depth` of the cloud's depth at 550 nm, scaled down in proportion to the sulfur dioxide below `absorber_so2_reference_share`.
+    The absorption optical depth of V10 at `wavelength_um`: a Gaussian band (center `absorber_center_um`, full width `absorber_fwhm_um`, or the `center_um`
+    and `fwhm_um` given) whose peak is `absorber_depth_per_cloud_depth` of the cloud's depth at 550 nm, scaled down in proportion to the sulfur dioxide below
+    `absorber_so2_reference_share`.
     """
-    sigma = number("absorber_fwhm_um") / (2.0 * math.sqrt(2.0 * math.log(2.0)))
+    center = number("absorber_center_um") if center_um is None else center_um
+    fwhm = number("absorber_fwhm_um") if fwhm_um is None else fwhm_um
+    sigma = fwhm / (2.0 * math.sqrt(2.0 * math.log(2.0)))
     strength = number("absorber_depth_per_cloud_depth") * cloud_tau_550 * min(1.0, so2_share / number("absorber_so2_reference_share"))
-    return strength * math.exp(-0.5 * ((wavelength_um - number("absorber_center_um")) / sigma) ** 2)
+    return strength * math.exp(-0.5 * ((wavelength_um - center) / sigma) ** 2)
 
 
 def absorber_spread_um():
     """`(center_sigma, fwhm_sigma)`, the stated uncertainties of the band, micron, for a caller that varies the band inside them."""
     return number("absorber_center_sigma_um"), number("absorber_fwhm_sigma_um")
+
+
+GOLDEN_CENTER, GOLDEN_WIDTH = 1.6180339887498949, 2.7182818284590452
+"""float: The multipliers that make the band's center and width from the one stored `aerosol_draw` (fractional part of `aerosol_draw` times each), so the two
+are not the same number and no column is added."""
+SPREAD_LIMIT_SIGMA = 2.0
+"""float: How far, in stated sigmas, the draw may move the band (the tails past two sigma are not used)."""
+
+
+def _shift_sigmas(unit):
+    """A normal deviate in sigmas for `unit` in [0, 1), held to `SPREAD_LIMIT_SIGMA` either way."""
+    low = NormalDist().cdf(-SPREAD_LIMIT_SIGMA)
+    return NormalDist().inv_cdf(min(max(unit, low), 1.0 - low))
+
+
+def absorber_band(cloud_tau_550, so2_share, wavelengths_um, draw=0.5):
+    """
+    `absorber_depth` at each of `wavelengths_um`, a list: the absorption optical depth V10 puts in the acid cloud on those wavelengths. The band's center and
+    width move inside their stated uncertainties (`absorber_spread_um`) by the body's stored `draw` (0.5 is the published band).
+    """
+    center_sigma, fwhm_sigma = absorber_spread_um()
+    center = number("absorber_center_um") + center_sigma * _shift_sigmas((draw * GOLDEN_CENTER) % 1.0)
+    fwhm = max(0.0, number("absorber_fwhm_um") + fwhm_sigma * _shift_sigmas((draw * GOLDEN_WIDTH) % 1.0))
+    return [absorber_depth(cloud_tau_550, so2_share, wavelength, center, fwhm) for wavelength in wavelengths_um]

@@ -135,6 +135,12 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         return quantities
     insolation = quantities["luminosity_solar"] / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
     quantities["insolation"] = insolation
+    # GEN.1442: the host's distance (the light is the total, so the host's XUV cannot take its distance from it) and the other stars' XUV sources; a lone star
+    # keeps `None` and an empty tuple, which give the loss laws their old expressions
+    companions = radiation_field.companions_of(star)
+    if companions:
+        quantities["host_distance_au"] = distance_au
+        quantities["xuv_companions"] = tuple(radiation_field.xuv_emitters(star, distance_au))
     quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
     snow_line = getattr(star, "snow_line_au", None)
     if snow_line:
@@ -173,7 +179,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

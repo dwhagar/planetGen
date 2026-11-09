@@ -133,3 +133,19 @@ def test_a_body_with_no_air_reads_the_unfiltered_light_and_one_with_no_star_has_
         body_radiation.surface_spectrum(_earth(ozone_column_du=0.0)).top_dna_dose_w_m2())
     assert body_radiation.dna_dose_index(_earth(star=None)) is None
     assert body_radiation.dna_dose_index(_earth(distance=None)) is None
+
+
+def test_every_star_of_a_system_adds_its_own_spectrum_to_the_dose():
+    """GEN.1442: an equal companion at 5 AU adds its time-averaged part (1 / (R^2 - d^2) of a lone star's 1 / d^2) to the DNA dose and the UV index; the two
+    spectra are added, not the fluxes, so a companion of another colour counts by its own spectrum."""
+    from planetgen.physics import radiation_field
+    lone = _earth()
+    host = _sun()
+    radiation_field.attach(host, [radiation_field.Companion(_sun(), 1, 5.0, 0.0)])
+    pair = _earth(star=host)
+    ratio = 1.0 + 1.0 / (5.0 ** 2 - 1.0) * 1.0
+    assert body_radiation.dna_dose_w_m2(pair) == pytest.approx(body_radiation.dna_dose_w_m2(lone) * ratio, rel=1e-3)
+    assert body_radiation.uv_index(pair) == pytest.approx(body_radiation.uv_index(lone) * ratio, rel=1e-3)
+    assert body_radiation.dna_dose_index(pair) > body_radiation.dna_dose_index(lone)
+    bare = dict(atmospheric_pressure=0.0, p_n2_kpa=0.0, p_o2_kpa=0.0, p_ar_kpa=0.0)
+    assert body_radiation.dna_dose_index(_earth(star=host, **bare)) > body_radiation.dna_dose_index(_earth(**bare))

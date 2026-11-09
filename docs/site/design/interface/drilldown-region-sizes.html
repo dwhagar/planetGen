@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Click-centred drill-down: step sizes and region shapes (MAP.146 study) - planetGen docs</title>
+<title>Click-centered drill-down: step sizes and region shapes (MAP.146 study) - planetGen docs</title>
 <meta name="description" content="Status (2026-10-15): decided and built as MAP.151, the region data layer (#1539: galaxy/region.py, galaxy/window.py, /galaxy/window, tilecache.fetchwindow), with the free camera MAP.150 (#1382).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
@@ -43,14 +43,14 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../" data-here="design/interface/drilldown-region-sizes.html"><a href="../../index.html">Site index</a></nav>
 <main>
-<h1 id="click-centred-drill-down-step-sizes-and-region-shapes-map146-study">Click-centred drill-down: step sizes and region shapes (MAP.146 study)</h1><p class="meta">docs/design/interface/drilldown-region-sizes.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#1-answer-in-brief">1. Answer in brief</a></li><li style="margin-left:0px"><a href="#2-what-the-code-does-today-checked-in-the-repo">2. What the code does today (checked in the repo)</a></li><li style="margin-left:0px"><a href="#3-what-a-region-really-holds">3. What a region really holds</a></li><li style="margin-left:0px"><a href="#4-fill-on-demand-cost-why-width-is-the-wrong-dial-for-filling">4. Fill-on-demand cost (why width is the wrong dial for filling)</a></li><li style="margin-left:0px"><a href="#5-options-compared">5. Options compared</a></li><li style="margin-left:14px"><a href="#51-fixed-ladders-what-sizes">5.1 Fixed ladders (what sizes)</a></li><li style="margin-left:14px"><a href="#52-region-shape">5.2 Region shape</a></li><li style="margin-left:14px"><a href="#53-where-the-cache-and-the-query-cost-sit-the-real-difference">5.3 Where the cache and the query cost sit (the real difference)</a></li><li style="margin-left:14px"><a href="#54-continuous-or-budget-sized-zoom">5.4 Continuous or budget-sized zoom</a></li><li style="margin-left:14px"><a href="#55-the-size-menu-for-the-recommendation-cells-across-g--3-to-15">5.5 The size menu for the recommendation (cells across g = 3 to 15)</a></li><li style="margin-left:0px"><a href="#6-edges-poles-and-the-axis">6. Edges, poles and the axis</a></li><li style="margin-left:0px"><a href="#7-nesting-open-question-1">7. Nesting (open question 1)</a></li><li style="margin-left:0px"><a href="#8-how-the-recommendation-answers-map146s-three-open-questions">8. How the recommendation answers MAP.146's three open questions</a></li><li style="margin-left:0px"><a href="#9-what-i-could-not-measure">9. What I could not measure</a></li><li style="margin-left:0px"><a href="#10-method-and-files">10. Method and files</a></li><li style="margin-left:0px"><a href="#11-built-so-far-map151a">11. Built so far (MAP.151a)</a></li><li style="margin-left:0px"><a href="#12-built-so-far-map151c-server">12. Built so far (MAP.151c, server)</a></li><li style="margin-left:0px"><a href="#13-built-so-far-map151d-first-part-the-window-stage">13. Built so far (MAP.151d, first part: the window stage)</a></li><li style="margin-left:0px"><a href="#14-built-so-far-map151b-the-3-ary-ladder">14. Built so far (MAP.151b, the 3-ary ladder)</a></li></ul></details>
+<h1 id="click-centered-drill-down-step-sizes-and-region-shapes-map146-study">Click-centered drill-down: step sizes and region shapes (MAP.146 study)</h1><p class="meta">docs/design/interface/drilldown-region-sizes.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#1-answer-in-brief">1. Answer in brief</a></li><li style="margin-left:0px"><a href="#2-what-the-code-does-today-checked-in-the-repo">2. What the code does today (checked in the repo)</a></li><li style="margin-left:0px"><a href="#3-what-a-region-really-holds">3. What a region really holds</a></li><li style="margin-left:0px"><a href="#4-fill-on-demand-cost-why-width-is-the-wrong-dial-for-filling">4. Fill-on-demand cost (why width is the wrong dial for filling)</a></li><li style="margin-left:0px"><a href="#5-options-compared">5. Options compared</a></li><li style="margin-left:14px"><a href="#51-fixed-ladders-what-sizes">5.1 Fixed ladders (what sizes)</a></li><li style="margin-left:14px"><a href="#52-region-shape">5.2 Region shape</a></li><li style="margin-left:14px"><a href="#53-where-the-cache-and-the-query-cost-sit-the-real-difference">5.3 Where the cache and the query cost sit (the real difference)</a></li><li style="margin-left:14px"><a href="#54-continuous-or-budget-sized-zoom">5.4 Continuous or budget-sized zoom</a></li><li style="margin-left:14px"><a href="#55-the-size-menu-for-the-recommendation-cells-across-g--3-to-15">5.5 The size menu for the recommendation (cells across g = 3 to 15)</a></li><li style="margin-left:0px"><a href="#6-edges-poles-and-the-axis">6. Edges, poles and the axis</a></li><li style="margin-left:0px"><a href="#7-nesting-open-question-1">7. Nesting (open question 1)</a></li><li style="margin-left:0px"><a href="#8-how-the-recommendation-answers-map146s-three-open-questions">8. How the recommendation answers MAP.146's three open questions</a></li><li style="margin-left:0px"><a href="#9-what-i-could-not-measure">9. What I could not measure</a></li><li style="margin-left:0px"><a href="#10-method-and-files">10. Method and files</a></li><li style="margin-left:0px"><a href="#11-built-so-far-map151a">11. Built so far (MAP.151a)</a></li><li style="margin-left:0px"><a href="#12-built-so-far-map151c-server">12. Built so far (MAP.151c, server)</a></li><li style="margin-left:0px"><a href="#13-built-so-far-map151d-first-part-the-window-stage">13. Built so far (MAP.151d, first part: the window stage)</a></li><li style="margin-left:0px"><a href="#14-built-so-far-map151b-the-3-ary-ladder">14. Built so far (MAP.151b, the 3-ary ladder)</a></li></ul></details>
 <p><strong>Status (2026-10-15):</strong> decided and built as MAP.151, the region data layer (#1539: <code>galaxy/region.py</code>, <code>galaxy/window.py</code>, <code>/galaxy/window</code>, <code>tilecache.fetch_window</code>), with the free camera MAP.150 (#1382). The cells, frame and block sizes below are those of the cylinder grid; the spherical sector switch (Boss, 2026-10-15) redid the block ladder, built as MAP.205 and MAP.206 on 2026-10-15 (see spherical-block-ladder.md).</p>
 <p>Research only, 2026-10-09. No code, TODO.md or PR changes. Boss decides.</p>
-<p>Question (Boss): MAP.146 keeps the old 243 / 27 / 3 / 1 sector steps, centred on the click. Is there anything more effective or efficient, with more granular control?</p>
+<p>Question (Boss): MAP.146 keeps the old 243 / 27 / 3 / 1 sector steps, centered on the click. Is there anything more effective or efficient, with more granular control?</p>
 <h2 id="1-answer-in-brief">1. Answer in brief</h2>
 <p><strong>Recommendation: split MAP.146 into a frame and a data window, and size the window by &quot;cells across&quot;.</strong></p>
 <ol>
-<li><strong>Frame (what the user sees and what a fill or backfill acts on):</strong> a round region (the ADM.30 cylinder) centred exactly on the clicked sector. Described as a layer range, a ring range and, per ring, one slot arc (which may wrap across slot 0 or be the whole ring). Free, exact, follows the cursor for a hover preview.</li>
+<li><strong>Frame (what the user sees and what a fill or backfill acts on):</strong> a round region (the ADM.30 cylinder) centered exactly on the clicked sector. Described as a layer range, a ring range and, per ring, one slot arc (which may wrap across slot 0 or be the whole ring). Free, exact, follows the cursor for a hover preview.</li>
 <li><strong>Data window (what the map reads and caches):</strong> the existing nested cells (243, 27, 3, 1 sectors a side) that cover the frame. The existing per-block stage cache serves them unchanged. A window of 9 cells across touches at most 8 cached stage files.</li>
 <li><strong>Size = number of cells across the window</strong>, odd, 3 to 11, changed by wheel or keys; the default of 9 reproduces 243 / 27 / 3 / 1. That gives 19 distinct widths (3 to 2,673 sectors) instead of 4, with no change to the block ladder, the nested-wedge rule or the stage queries.</li>
 <li><strong>Fill size is chosen by a system budget, not by width.</strong> The same width holds 1,000 times more systems at the core than at the rim.</li>
@@ -69,7 +69,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>1</td>
 <td>Exact frame + aligned data window, size = cells across, existing 9-ary cells</td>
-<td>Recommended. Exact centring, 729 aggregate rows per click from at most 8 warm stage files, 19 widths.</td>
+<td>Recommended. Exact centering, 729 aggregate rows per click from at most 8 warm stage files, 19 widths.</td>
 </tr>
 <tr>
 <td>2</td>
@@ -78,7 +78,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>3</td>
-<td>MAP.146 default: 243 / 27 / 3 / 1, exact centre, its own child grid</td>
+<td>MAP.146 default: 243 / 27 / 3 / 1, exact center, its own child grid</td>
 <td>Simple and correct, but every click is a unique cache key and a cold scan: about 3.2 M row reads at width 243.</td>
 </tr>
 <tr>
@@ -89,7 +89,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>5</td>
 <td>Other fixed ladders (ratio 2, 3, 4, 5, 7)</td>
-<td>Only change the step size; the cache and centring problems of option 3 stay. Ratio 3 needs 7 clicks, ratio 2 needs 10.</td>
+<td>Only change the step size; the cache and centering problems of option 3 stay. Ratio 3 needs 7 clicks, ratio 2 needs 10.</td>
 </tr>
 <tr>
 <td>6</td>
@@ -102,14 +102,14 @@ main{padding:16px 16px 60px}}
 <h2 id="2-what-the-code-does-today-checked-in-the-repo">2. What the code does today (checked in the repo)</h2>
 <ul>
 <li><code>galaxy/drill.py</code> / <code>galaxyprisms.js</code>: nested blocks 243, 27, 3, 1 sectors a side (9, 9, 3 per step). A block is <code>(m, ring, wedge, slab)</code>. Wedge counts nest (each child ring's count is a whole multiple of its parent's), so every parent wedge line is a child wedge line.</li>
-<li><strong>There are two caches, and only one is keyed by block.</strong> The MAP.146 text says &quot;cached cube tiles ... keyed by fixed block&quot;. That is the <strong>stage cache</strong>: <code>tilecache.fetch_stage</code> stores one JSON per block key <code>m.ring.wedge.slab</code>, filled by <code>queryDb.galaxy_stage</code>. The <strong>cube tiles</strong> (<code>/api/galaxy/tiles</code>, the stars, clouds and bright stars) are an octree of fixed cubes chosen from the view radius (at most 3 tiles per axis, 27 per view, star budget 150 to 850 per tile, 4,000 in a finest tile). They are already free-floating and need no change for centred regions.</li>
+<li><strong>There are two caches, and only one is keyed by block.</strong> The MAP.146 text says &quot;cached cube tiles ... keyed by fixed block&quot;. That is the <strong>stage cache</strong>: <code>tilecache.fetch_stage</code> stores one JSON per block key <code>m.ring.wedge.slab</code>, filled by <code>queryDb.galaxy_stage</code>. The <strong>cube tiles</strong> (<code>/api/galaxy/tiles</code>, the stars, clouds and bright stars) are an octree of fixed cubes chosen from the view radius (at most 3 tiles per axis, 27 per view, star budget 150 to 850 per tile, 4,000 in a finest tile). They are already free-floating and need no change for centered regions.</li>
 <li><code>galaxy_stage</code> for a block reads the generated sectors in the block (member rings and layers by index, one <code>(ring AND slot BETWEEN)</code> clause per ring: 243 clauses at m = 243) and groups them into children in Python. Its cost grows with the generated sectors in the block, up to 243^3 = 14.3 M. The design doc's &quot;scale note&quot; already says a per-level count table is needed once generated sectors reach millions.</li>
-<li>Key space today (upper bounds, default galaxy): about 2,600 blocks at 243, 1.29 M at 27 and 892 M at 3. Under exact-sector centring the key is (centre sector, width): 23.9 B centres per width.</li>
+<li>Key space today (upper bounds, default galaxy): about 2,600 blocks at 243, 1.29 M at 27 and 892 M at 3. Under exact-sector centering the key is (center sector, width): 23.9 B centers per width.</li>
 <li>Drawing is not the constraint: each stage draws one prism per child (729 at most) plus stars from the tile budget. None of that depends on how the region is cut.</li>
 <li>Cell squareness of the nested wedges (centreline arc over cell edge, innermost two block rings skipped): 9-ary 0.945 to 1.062; 7-ary 0.93 to 1.08; 5-ary 0.90 to 1.125; 3-ary 0.835 to 1.25.</li>
 </ul>
 <h2 id="3-what-a-region-really-holds">3. What a region really holds</h2>
-<p>Model: the default galaxy (<code>planetgen plan</code> shape: disc scale length 2,600 pc, height 300 pc, bulge 1,580 pc, bar, thick disc), the real skeleton from <code>build_layer_extents</code>, 4 pc sectors. Mean systems per cell is E x relative density, with E = 6.31 systems at density 1, averaged round each ring (arm contrast is not in the figures). Totals: 3,764 rings, layers -1,020 to 1,020, 23.92 B cells (matches the 23.9 B in the sector-size study), 301 B systems.</p>
+<p>Model: the default galaxy (<code>planetgen plan</code> shape: disk scale length 2,600 pc, height 300 pc, bulge 1,580 pc, bar, thick disk), the real skeleton from <code>build_layer_extents</code>, 4 pc sectors. Mean systems per cell is E x relative density, with E = 6.31 systems at density 1, averaged round each ring (arm contrast is not in the figures). Totals: 3,764 rings, layers -1,020 to 1,020, 23.92 B cells (matches the 23.9 B in the sector-size study), 301 B systems.</p>
 <p>Systems per cell: core 970, ring 100 854, ring 500 209, Sun radius (ring 2,050) 10, ring 3,000 2.3, ring 3,600 0.9. Median cell 2.7 systems; 95th percentile 47; 99th 193.</p>
 <p><strong>Region contents by click position and width W</strong> (round region, radius W/2 sectors, half-height (W-1)/2 layers; sectors / systems):</p>
 <div class="table"><table>
@@ -144,7 +144,7 @@ main{padding:16px 16px 60px}}
 <td>304 M / 73 B</td>
 </tr>
 <tr>
-<td>inner disc (ring 500)</td>
+<td>inner disk (ring 500)</td>
 <td>27 / 5.6 K</td>
 <td>603 / 126 K</td>
 <td>15.6 K / 3.3 M</td>
@@ -162,7 +162,7 @@ main{padding:16px 16px 60px}}
 <td>266 M / 1.3 B</td>
 </tr>
 <tr>
-<td>outer disc (ring 3,000)</td>
+<td>outer disk (ring 3,000)</td>
 <td>27 / 63</td>
 <td>603 / 1.4 K</td>
 <td>15.6 K / 36 K</td>
@@ -211,7 +211,7 @@ main{padding:16px 16px 60px}}
 <td>2,457 days</td>
 </tr>
 <tr>
-<td>inner disc (ring 500)</td>
+<td>inner disk (ring 500)</td>
 <td>2 min</td>
 <td>53 min</td>
 <td>22.6 h</td>
@@ -227,7 +227,7 @@ main{padding:16px 16px 60px}}
 <td>28 days</td>
 </tr>
 <tr>
-<td>outer disc (ring 3,000)</td>
+<td>outer disk (ring 3,000)</td>
 <td>2 s</td>
 <td>35 s</td>
 <td>15 min</td>
@@ -358,7 +358,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Odd widths are needed so the centre cell is exact; powers of two cannot centre. A finer ladder gives finer control, but it only adds steps: it does nothing for the cache or for how centring is computed. Ratio 3 also costs squareness, because nested wedge counts must be whole multiples of the parent's (a ratio of 3 forces rounding by up to a third).</p>
+<p>Odd widths are needed so the center cell is exact; powers of two cannot center. A finer ladder gives finer control, but it only adds steps: it does nothing for the cache or for how centering is computed. Ratio 3 also costs squareness, because nested wedge counts must be whole multiples of the parent's (a ratio of 3 forces rounding by up to a third).</p>
 <h3 id="52-region-shape">5.2 Region shape</h3>
 <p>The ring/slot grid is built so a slot's arc is 0.94 to 1.06 of an edge at every ring. That decides the three shapes:</p>
 <div class="table"><table>
@@ -374,7 +374,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><strong>Same arc (angle)</strong> (MAP.146 default)</td>
 <td>grows with radius: at ring 500, W = 243 spans 0.76 to 1.24 of W; W = 729 spans 0.27 to 1.73</td>
-<td>inner edge reaches the axis when click ring &lt;= half-width: the region becomes a wedge from the axis, not centred</td>
+<td>inner edge reaches the axis when click ring &lt;= half-width: the region becomes a wedge from the axis, not centered</td>
 <td>Wedge-shaped; worst of the three away from the rim</td>
 </tr>
 <tr>
@@ -386,7 +386,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td><strong>Round region</strong> (cylinder around the click, ADM.30's definition)</td>
 <td>constant</td>
-<td>centred; ring arcs come from the law of cosines; one arc per ring, or the whole ring</td>
+<td>centered; ring arcs come from the law of cosines; one arc per ring, or the whole ring</td>
 <td>Best. Reuses ADM.30; needs slot ranges that can wrap across slot 0</td>
 </tr>
 </tbody>
@@ -399,7 +399,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <th></th>
 <th>today's fixed blocks</th>
-<th>MAP.146 default (exact centre, own grid)</th>
+<th>MAP.146 default (exact center, own grid)</th>
 <th>recommended: exact frame + aligned data window</th>
 </tr>
 </thead>
@@ -407,7 +407,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>cache key</td>
 <td>block</td>
-<td>(centre sector, width): practically unique per click</td>
+<td>(center sector, width): practically unique per click</td>
 <td>existing block stage keys; a 9-wide window touches at most 8 files (2 per axis)</td>
 </tr>
 <tr>
@@ -429,7 +429,7 @@ main{padding:16px 16px 60px}}
 <td>(g+1)^3 = 1,000 cells for g = 9 (x1.37), because a frame not on the lattice touches 10 cells per axis; x1.73 for g = 5, x2.37 for g = 3</td>
 </tr>
 <tr>
-<td>centring</td>
+<td>centering</td>
 <td>to the block</td>
 <td>exact sector</td>
 <td>frame exact; data cells whole</td>
@@ -467,7 +467,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Prisms drawn are g^3: 27 at g = 3, 729 at g = 9, 1,331 at g = 11, 3,375 at g = 15 (a stage today has at most 729 children). Centring error of a data window on a click: at most half a cell, so 16.7% of the width at g = 3, 10% at g = 5, 5.6% at g = 9 and 4.5% at g = 11. The frame itself is exactly centred.</p>
+<p>Prisms drawn are g^3: 27 at g = 3, 729 at g = 9, 1,331 at g = 11, 3,375 at g = 15 (a stage today has at most 729 children). Centering error of a data window on a click: at most half a cell, so 16.7% of the width at g = 3, 10% at g = 5, 5.6% at g = 9 and 4.5% at g = 11. The frame itself is exactly centered.</p>
 <h2 id="6-edges-poles-and-the-axis">6. Edges, poles and the axis</h2>
 <ul>
 <li><strong>Galaxy edge and top of the stack.</strong> Monte Carlo on 150 random clicks per row (round region, half-height W/2). Share of clicks whose region has less than 98% / 75% / 50% of its nominal sectors inside the outline:</li>
@@ -503,7 +503,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Sliding the centre inward so the region fits (toward the axis and toward the plane) brings all of these to 1% or less, but the click is then no longer central (by up to W/2 at the rim). Clipping at the outline is exact and costs nothing; I recommend clipping, with the label saying &quot;reaches the galaxy edge&quot;, and no slide for W &lt;= 81. The poles are thin: at layer 900 the outline reaches only ring 261, at layer 1,000 ring 44 (compare 3,763 on the plane).</p>
+<p>Sliding the center inward so the region fits (toward the axis and toward the plane) brings all of these to 1% or less, but the click is then no longer central (by up to W/2 at the rim). Clipping at the outline is exact and costs nothing; I recommend clipping, with the label saying &quot;reaches the galaxy edge&quot;, and no slide for W &lt;= 81. The poles are thin: at layer 900 the outline reaches only ring 261, at layer 1,000 ring 44 (compare 3,763 on the plane).</p>
 <ul>
 <li><strong>Axis.</strong> Any click within W/2 of ring 0 gives a region that covers whole rings; it is the core, 4.1% of all systems at W = 243 and 25.8% at W = 729, so it cannot be treated as a corner case. The round region handles it; the strip and the same-arc wedge do not.</li>
 <li><strong>Slot wrap.</strong> Ranges need <code>(start, length)</code> modulo the ring's slot count, and a length of at least N means the whole ring. SQL needs two <code>BETWEEN</code> clauses where it wraps. <code>_block_slot_range</code> and the ADM.29 column range do not wrap today.</li>
@@ -552,11 +552,11 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>With data on the fixed cells nothing depends on nesting, so there is no reason to clamp: the user gets what they clicked. Up should mean &quot;same centre, one size larger&quot;, and Back the history. The breadcrumb needs a new label (centre sector and width) in place of block names. Clamping to the parent is cheap (a slide of about 3% of the width on average at ratio 9) if Boss prefers strict nesting.</p>
+<p>With data on the fixed cells nothing depends on nesting, so there is no reason to clamp: the user gets what they clicked. Up should mean &quot;same center, one size larger&quot;, and Back the history. The breadcrumb needs a new label (center sector and width) in place of block names. Clamping to the parent is cheap (a slide of about 3% of the width on average at ratio 9) if Boss prefers strict nesting.</p>
 <h2 id="8-how-the-recommendation-answers-map146s-three-open-questions">8. How the recommendation answers MAP.146's three open questions</h2>
 <ol>
 <li>Nesting: no. See section 7.</li>
-<li>First click from the whole galaxy: centred like the rest. The opening view stays the fixed pre-built view (MAP.134); the first window is cells of 243 sectors, 9 across, centred on the clicked 243-cell.</li>
+<li>First click from the whole galaxy: centered like the rest. The opening view stays the fixed pre-built view (MAP.134); the first window is cells of 243 sectors, 9 across, centered on the clicked 243-cell.</li>
 <li>&quot;Same arc or same slot count&quot;: neither. Use the round region around the click (ADM.30's definition). Same arc distorts away from the rim (0.76 to 1.24 at ring 500, W = 243); same slots misses the far side of the axis.</li>
 </ol>
 <p>The three other items in MAP.146 change as follows: the cube tile cache is unaffected (octree keys, not blocks); the stage cache is kept, not rekeyed, and no new tile type is needed; the fill and backfill actions (MAP.120, ADM.29) take the frame's exact layer, ring and slot-arc ranges (the stats panel takes whole cells); the settle step takes the same ranges.</p>
@@ -565,8 +565,8 @@ main{padding:16px 16px 60px}}
 <li><strong>Draw time.</strong> No browser or GPU here. Draw cost is from the code's caps (prisms per stage, tile budgets), not a frame time.</li>
 <li><strong>Database timings.</strong> No MySQL here. Row counts above come from the geometry and a lattice decomposition, not from queries. The 3.2 M row figure is on a cube lattice with a 9-ary pyramid; the real wedge cells differ at the edges. Stage file sizes are unknown (the 200 MB default holds an unknown number).</li>
 <li><strong>Fill rate.</strong> 25 ms per system is from the 2026-10-09 study and the open PERF items (PERF.43 to PERF.47) may change it; the fill times scale with whatever the rate becomes. The figures are single-process.</li>
-<li><strong>Star counts.</strong> Means from the density model, averaged round each ring (the arm contrast, +/-40% of the thin disc, is not included, and a region on an arm crest holds more than the table). Cells the model predicts below one system but the outline admits (the outline test uses the maximum over azimuth) hold 0 or 1 in practice. The totals check: 301 B in the model against about 298 B in the sector-size study.</li>
-<li><strong>Usability.</strong> Whether 5.6% centring error of a data window, or the hover preview, feels right is untested; the frame is exact, so I expect it not to matter.</li>
+<li><strong>Star counts.</strong> Means from the density model, averaged round each ring (the arm contrast, +/-40% of the thin disk, is not included, and a region on an arm crest holds more than the table). Cells the model predicts below one system but the outline admits (the outline test uses the maximum over azimuth) hold 0 or 1 in practice. The totals check: 301 B in the model against about 298 B in the sector-size study.</li>
+<li><strong>Usability.</strong> Whether 5.6% centering error of a data window, or the hover preview, feels right is untested; the frame is exact, so I expect it not to matter.</li>
 <li><strong>Wheel behaviour.</strong> The 19-width menu is computed, not tried.</li>
 <li><strong>Monte Carlo</strong> uses 150 clicks per row; shares of 1% to 3% are noisy.</li>
 <li><strong>Pyramid decomposition.</strong> Does not model the real wedge geometry; the 3-ary and 2-ary rows are indicative only.</li>
@@ -579,11 +579,11 @@ main{padding:16px 16px 60px}}
 </ul>
 <p>Run from <code>src</code> with <code>PYTHONPATH=.</code>; they need numpy and astropy (and scipy for the stubbed import chain).</p>
 <h2 id="11-built-so-far-map151a">11. Built so far (MAP.151a)</h2>
-<p><code>planetgen/galaxy/region.py</code> is the frame of section 5.2: <code>Region</code> (centre, reach across the plane, layers either side) lists a round region as one <code>RingArc</code> per ring (first slot, count, whole ring) with the wrap of section 6, counts it without visiting a cell, hands out <code>Span</code>s and non-wrapping slot ranges for SQL, and yields the same <code>(ring, layer, slot, x, y, z, distance)</code> cells the ADM.30 fills used to pick by walking a sphere. The fills use it. Still to build: the 3-ary block ladder (MAP.151b), per-level aggregates and the window query (MAP.151c), and the map reading windows (MAP.151d).</p>
+<p><code>planetgen/galaxy/region.py</code> is the frame of section 5.2: <code>Region</code> (center, reach across the plane, layers either side) lists a round region as one <code>RingArc</code> per ring (first slot, count, whole ring) with the wrap of section 6, counts it without visiting a cell, hands out <code>Span</code>s and non-wrapping slot ranges for SQL, and yields the same <code>(ring, layer, slot, x, y, z, distance)</code> cells the ADM.30 fills used to pick by walking a sphere. The fills use it. Still to build: the 3-ary block ladder (MAP.151b), per-level aggregates and the window query (MAP.151c), and the map reading windows (MAP.151d).</p>
 <h2 id="12-built-so-far-map151c-server">12. Built so far (MAP.151c, server)</h2>
-<p><code>planetgen/galaxy/window.py</code> is the data window of section 1: <code>window_cells(centre, g)</code> lists the cells of one ladder level whose centres lie within <code>g/2</code> cells of the middle cell across the plane and <code>(g-1)/2</code> slabs of its layer (the frame is <code>region.Region</code> over the lattice of blocks, in units of a sector edge, with the level's wedge counts), <code>window_parents</code> names the stages they come from, and <code>crop_stages</code> cuts those stages to the window. <code>/galaxy/window?at=&amp;g=</code> (<code>tilecache.fetch_window</code>) serves it from the stage cache: nine cells across touch at most 12 stage files for blocks of 27 or 243 sectors a side away from the axis, and up to 64 level-3 stages for a window of sectors (the last ladder step is 3, not 9). No new cache files, no new query and no migration. The map does not read it yet (MAP.151d).</p>
+<p><code>planetgen/galaxy/window.py</code> is the data window of section 1: <code>window_cells(center, g)</code> lists the cells of one ladder level whose centers lie within <code>g/2</code> cells of the middle cell across the plane and <code>(g-1)/2</code> slabs of its layer (the frame is <code>region.Region</code> over the lattice of blocks, in units of a sector edge, with the level's wedge counts), <code>window_parents</code> names the stages they come from, and <code>crop_stages</code> cuts those stages to the window. <code>/galaxy/window?at=&amp;g=</code> (<code>tilecache.fetch_window</code>) serves it from the stage cache: nine cells across touch at most 12 stage files for blocks of 27 or 243 sectors a side away from the axis, and up to 64 level-3 stages for a window of sectors (the last ladder step is 3, not 9). No new cache files, no new query and no migration. The map does not read it yet (MAP.151d).</p>
 <h2 id="13-built-so-far-map151d-first-part-the-window-stage">13. Built so far (MAP.151d, first part: the window stage)</h2>
-<p>The map has a second kind of stage beside the container with its picks: a window of <code>g</code> (3 to 11) cells (<code>galaxystages.js</code>'s <code>windowStage</code>; the address holds the camera and the window is worked out from it, MAP.228), <code>g</code> cells across around a cell of any level, read from <code>/galaxy/window</code>. Its cells come from <code>galaxyprisms.js</code>'s <code>windowCells</code>, the page's copy of <code>window.py</code> (a test holds the two together). There is nothing to pick but a cell: a click opens the window one size down, centred on the cell clicked (<code>windowInto</code>), Up opens it one size up, centred on the cell holding the centre (<code>windowOut</code>), and a window's breadcrumb runs from the galaxy down through the windows of each level. Nothing links to it yet: the galaxy and the arc, slab and segment picks still open as before. The next step makes the galaxy itself a window (level 243, wide enough for the whole disk), retires the picks and containers and deletes <code>drill.py</code>'s container rules (MAP.150, MAP.151d second part), and the 3-ary ladder follows.</p>
+<p>The map has a second kind of stage beside the container with its picks: a window of <code>g</code> (3 to 11) cells (<code>galaxystages.js</code>'s <code>windowStage</code>; the address holds the camera and the window is worked out from it, MAP.228), <code>g</code> cells across around a cell of any level, read from <code>/galaxy/window</code>. Its cells come from <code>galaxyprisms.js</code>'s <code>windowCells</code>, the page's copy of <code>window.py</code> (a test holds the two together). There is nothing to pick but a cell: a click opens the window one size down, centered on the cell clicked (<code>windowInto</code>), Up opens it one size up, centered on the cell holding the center (<code>windowOut</code>), and a window's breadcrumb runs from the galaxy down through the windows of each level. Nothing links to it yet: the galaxy and the arc, slab and segment picks still open as before. The next step makes the galaxy itself a window (level 243, wide enough for the whole disk), retires the picks and containers and deletes <code>drill.py</code>'s container rules (MAP.150, MAP.151d second part), and the 3-ary ladder follows.</p>
 <h2 id="14-built-so-far-map151b-the-3-ary-ladder">14. Built so far (MAP.151b, the 3-ary ladder)</h2>
 <p>The block ladder is now <strong>243 / 81 / 27 / 9 / 3 / 1</strong> sectors a side, every level three times its child (<code>galaxy/drill.py</code>, <code>DRILL_LEVELS</code> and <code>DRILL_STEP</code>; <code>galaxyprisms.js</code> is the same rules). Option 2 of section 5.1 was taken without its top level: a 729 block is about 2.9 kpc across, coarser than the 243-block galaxy home that tops the map, so the home stays at 243. Each level's wedge count is its parent ring's (<code>ring // 3</code>) times <code>max(1, round(target / parent))</code>, so every parent wedge line is a child wedge line; a wedge's centreline arc is 0.83 to 1.25 of a block edge at every level (measured out to the default galaxy's edge ring: 243 0.85 to 1.18, 81 0.83 to 1.23, 27 0.83 to 1.24, 9 0.84 to 1.25, 3 0.84 to 1.25). A block's parent slab is <code>floor((slab + 1) / 3)</code>, and a click on a block opens a window one level down, a third the size, so a zoom step changes the cells by a third and a window of the same nine cells across covers a third of the span.</p>
 <p>Cells bigger than a sector are read from the stored block totals (<code>galaxy_block_stats</code>, DB.25) in one query, <code>queryDb.galaxy_window</code>, served at <code>/api/galaxy/window</code> and reached through <code>/galaxy/window</code>; with a ladder this fine a window of nine cells across touches up to 64 parent blocks, so reading each parent's stage file would cost up to 64 queries on a cold cache. A window of sectors still needs the names, so it is cut from the stages of its level-3 parents. The totals of the old ladder mean something else on the new one, so migration 0090 (data only) empties <code>galaxy_block_stats</code> and fills it again.</p>

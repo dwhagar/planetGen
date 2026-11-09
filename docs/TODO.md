@@ -13401,11 +13401,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): a lock item for Train 22 or later, after GEN.1471 is on main. Prerequisites: GEN.1472. Related: GEN.1471, GEN.1396, GEN.1363, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1474 Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities**
-  Found by Lane 21 while building GEN.1450 (PR 5812, 2026-11-08): with the secular exchange of all planets of a star, 77 of 120 multi-planet stars change and the rocky mean eccentricity goes from 0.048 to 0.039, because hot draws are cooled and the spacing refuses the rise; the draw of the eccentricity for multi-planet systems (MULTI_SIGMA 0.083) is hotter than the spacing and the secular exchange can hold. Not tuned in GEN.1450. Do: compare the generated eccentricity distribution of planets in systems of 2 or more planets with the published multi-planet statistics (the Kepler multis; second-hand citations accepted), decide whether the width of the draw, the spacing rule or neither is wrong, and fix the one that is; any tuned number is registered in GEN.725 with tier and tweak level; a generator change, so a new epoch with --affects; scripts/test.py changed --resume. Reuse the orbit-element draw, the clearance ledger and the secular rates of GEN.1450; do not add a second draw.
-  Version 8.1. Owner (TODO, proposed Lane 21, confirm with TODO before taking): a lock item for Train 22 or later, after GEN.1450 is on main. Prerequisites: GEN.1450. Related: GEN.1447, GEN.1460, GEN.725.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1475 Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first)**
   Found by Lane 21 in the GEN.1469 read (reports/gen1469-companion-disk-truncation-read-2026-11-09.md): the disk is already cut at the companion by the stability limit, so a separate truncation radius changes nothing, but the disk's lifetime near a close companion is not modelled (observed disks around close binaries disperse sooner), and it would change planet counts. Do: find a published relation for the disk lifetime against companion separation (second-hand sources accepted by Boss's rule; stand-ins registered in GEN.725 with tier and tweak level), then shorten the disk lifetime used for the oligarch chain and the giant formation window accordingly; a generator change, so a new epoch with --affects; scripts/test.py changed --resume. Reuse the ledger's a_crit_au and the disc lifetime already drawn; no second draw.
   Version 8.1. Owner (TODO, proposed Lane 21, confirm with TODO before taking): waits for a source; then a lock item. Prerequisites: none. Related: GEN.1469, GEN.1463, GEN.1447, GEN.725.
@@ -13446,11 +13441,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13 (job system), after OPS.123. Prerequisites: OPS.123, GEN.1476. Related: PERF.252.
   Filed by the TODO thread.
 
-- [ ] **PERF.257 Warm-up keeps its app per worker and starts with a stamp check (audit C8)**
-  Generation rescan audit (Boss asked, 8:29 PM EST on 2026-11-08; reports/generation-rescans-and-stored-fields-2026-11-09.md, section references below). The 11-06 timing found 85 percent of an unchanged warm-up's node phases was building the Flask app in every unit (about 7.5 s the first time in a process, 0.07 s the second), and _warm_node_chunk still builds it per chunk; an unchanged rerun took 22 min 48 s of 28 min. Do: a worker builds the app once and keeps it; the stage opens with a stamp check (the map's tile stamp equals the stamp the last warm-up finished under, so the stage is one empty unit). Done: an unchanged rerun takes minutes. No epoch. Reuse web/warmup.py and the tile stamp; measure before and after.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13 (performance), lock-free. Prerequisites: none. Related: PERF.239.
-  Filed by the TODO thread.
-
 - [ ] **DB.121 Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9)**
   Generation rescan audit (Boss asked, 8:29 PM EST on 2026-11-08; reports/generation-rescans-and-stored-fields-2026-11-09.md, section references below). countcache is remade whenever the content stamp moves (every new sector), about 3 s per million systems per count. Do: a one-row galaxy_totals table (systems, stars, planets, habitable worlds, mass, luminosity; about 80 bytes) updated by deltas in the same transaction as record_sector_stats on sector save and delete, and a sector_facets table (about 8 rows a sector at 16 bytes) holding counts by sector and facet; unfiltered counts read the one row, filter-menu counts sum over sectors; the existing check-counts compares them with a full count as the proof. Migration, schema.sql, db/column_units.py. Lock item (migration), no epoch.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 12 (storage). Prerequisites: none. Related: GEN.1476, GEN.1465.
@@ -13461,14 +13451,14 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13 (galaxy, performance); step 1 lock-free, step 2 lock. Prerequisites: none. Related: GEN.1476, PERF.256, VIEW.25.
   Filed by the TODO thread.
 
-- [ ] **GEN.1482 Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds**
-  Generation rescan audit (Boss, 8:49 PM EST on 2026-11-08: 'build the entire chain C1 to C11 ASAP'; reports/generation-rescans-and-stored-fields-2026-11-09.md). The audit read settle-sector-paths and the scatter stages but not store.link_sector_neighbors (the link stage, 70 ms a sector) or the web code that reads the stored fields. Boss asked to check the link-sector-neighbours read. Do: read link-neighbors and report whether each sector reads its neighbours more than once per run (the same 5 by 5 by 5 shape as settle), whether it can share the chunk read of GEN.1477, and whether it already works only on the sectors the run saved; fix it with the same chunked union read if so; a result that is bit-identical (the link rows compared before and after); no epoch. Reuse GEN.1477's chunking and cellkey; add no second reader.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13 (galaxy, performance), lock-free, right after GEN.1477. Prerequisites: GEN.1477. Related: GEN.1478.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1483 Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3)**
   Generation rescan audit (Boss, 8:49 PM EST on 2026-11-08: 'build the entire chain C1 to C11 ASAP'; reports/generation-rescans-and-stored-fields-2026-11-09.md). nebula_blocks.rebuild loads the whole nebula_field and the stored nebulae into arrays right after the slabs wrote them; catch_up (an id watermark) already covers nebulae the field does not hold. Do: the slabs leave their block sums as GEN.1476's scatter units leave block-light parts, and the rebuild becomes a roll-up; keep the full rebuild as the proof; measure the field draw's peak memory and time before and after. Lower priority than GEN.1476 and GEN.1477. Reuse GEN.1476's parts pattern; no epoch.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 12 (storage), after GEN.1476. Prerequisites: GEN.1476. Related: GEN.1476.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1484 Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light**
+  Found by Lane 15 in GEN.1462 (reports/gen1462-eclipse-census-2026-11-09.md, 2026-11-09). Sibling planets and moons cover under 1e-4 of a planet's light for 93 percent of planets, so nothing changes for them. A circumbinary planet loses a median 3e-4 of its light, and up to 1.9 percent, to its two stars eclipsing each other (56 planets in the census). Do: apply the eclipse functions GEN.1462 built as a per-planet factor in the light law, so the stored light of a circumbinary planet carries it; the factor is 1.0 for every other planet, and a lone-star system must give today's numbers. This changes stored light, so it is a lock item (epoch, golden). The eclipse functions are also the on-demand sources for the GEN.1465 effect ledger; reuse them and add no second eclipse model.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 15 (offered), lock item for a train after GEN.1462 is on main. Prerequisites: GEN.1462. Related: GEN.1441, GEN.1465.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
@@ -13819,12 +13809,6 @@ clears each one.
   changed --resume; no fixed content from the Milky Way or the Solar
   System; built code needs a caller.
   Prerequisites: none (runs after GEN.1356 merges). Related: GEN.1356, GEN.475, GEN.477, TEST.685.
-
-- [ ] **PERF.249 A hypergiant system takes 5 to 11 minutes and 8.4 GB and ends with 0 planets (bug)**
-  8.1 first-pass bug hunt on main c8a5644 (as the Bug Hunt lane reported 2026-11-07, report /mnt/project-files/reports/release-bughunt-8.1.md; the red rows are in /mnt/project-files/reports/release-bughunt-8.1/known-red.csv). Size M; lock-free unless the owner finds a generated value changes. High. A K00 hypergiant system: reconcile_moved_planet re-runs band_climate, which calls array_split about 152 million times. Same family: 900 s timeouts in seasonal_swing._anderson and detmath.matmul for a forced belt plus habitable world, test_barred_world, and the census and prevalence files. Do: find the loop, cache or vectorize it, keep the output bit-identical (or say it changes and ride an epoch), and make a test that bounds the time of a hypergiant system. Part 1 merged (PR 5634, Lane 15, 8:14 PM EST on 2026-11-07): band_climate no longer splits a fast-spinning world's record into one empty window per solar day; output bit-identical. Remaining: the 8.4 GB run and the 900 s timeouts in seasonal_swing._anderson and detmath.matmul (the slowest K00 seed Lane 15 found took 53 s in gas equilibrium and _anderson); the Bug Hunt lane holds the seed and the test that timed out. Owner (proposed by TODO): Lane 15. Rules: tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.237.
-  Filed by the TODO thread.
 
 - [ ] **GEN.1387 Barred world redraw rate is 22.75 per system against a ceiling of 0.0183; barred_world_limit is 1 and 2 in test_barred_world[104] and [160] (bug)**
   REWORKED: folded into GEN.1397. The redraw storm comes from class E (deep-frozen, GEN.1142) and W still sitting on tuning.HABITABLE_PLANET_CLASSES; GEN.1397 deletes the list, so the storm and this item's test ceiling are fixed there. Close GEN.1387 when GEN.1397 merges and test_barred_world passes. Held for Boss's E/W question: no longer needed (the list goes).

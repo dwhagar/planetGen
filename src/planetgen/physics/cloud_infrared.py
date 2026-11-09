@@ -14,7 +14,7 @@ infrared bands and puts it in the layers of an air column.
 * **Scattering in a non-scattering solver.** The column solver absorbs and emits only, so the scattered part is scaled by the similarity
   relation: the depth the solver sees is `tau_ext (1 - omega g)`, the absorbed part plus the scattering that is not forward.
 * **Where it sits.** The cloud's mass is spread evenly in pressure over the layers between its base and its top. The base is the layer
-  where the air is cooler than `sulfuric_cloud.base_temperature_k` going up; the top is `top_over_base_pressure` of the base pressure.
+  where the air is cooler than the base temperature the air's acid fixes (`sulfuric_cloud.window`, GEN.1424) going up; the top is `top_over_base_pressure` of the base pressure.
 
 Limits: the indices are for 298 K droplets (the cloud is 250 to 370 K; the temperature dependence of the acid's infrared bands is small
 compared with the strength spread of 76 to 81 percent); the indices are held at their 400 and 7500 cm-1 values outside that range; the scattering is
@@ -26,7 +26,7 @@ import os
 
 import numpy as np
 
-from planetgen.physics import elements, sulfuric_cloud
+from planetgen.physics import elements
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "acid_cloud_optics.json")
 
@@ -76,12 +76,13 @@ def effective_depth(tau_550, radius_um, weight_percent=DEFAULT_WEIGHT_PERCENT):
     return tau_550 * ratio * (1.0 - omega * g)
 
 
-def layer_depth(layer_pressure_pa, layer_mass_kg_m2, layer_temperature_k, tau_550, radius_um, weight_percent=DEFAULT_WEIGHT_PERCENT):
+def layer_depth(layer_pressure_pa, layer_mass_kg_m2, layer_temperature_k, tau_550, radius_um, base_temperature_k, weight_percent=DEFAULT_WEIGHT_PERCENT):
     """
     The cloud's depth in each layer of an air column, shape (layers, bands): zero without a cloud (`tau_550` of 0, or no layer that cool).
 
     Args:
         layer_pressure_pa, layer_mass_kg_m2, layer_temperature_k (ndarray): Each layer's pressure, mass per area and temperature (top first).
+        base_temperature_k (float): The temperature of the cloud base, the warmest level where the air's acid condenses (`sulfuric_cloud.window`).
     """
     pressure = np.asarray(layer_pressure_pa, dtype=float)
     mass = np.asarray(layer_mass_kg_m2, dtype=float)
@@ -89,7 +90,7 @@ def layer_depth(layer_pressure_pa, layer_mass_kg_m2, layer_temperature_k, tau_55
     depth = np.zeros((len(pressure), DOCUMENT["bands"]))
     if tau_550 <= 0.0:
         return depth
-    warm = temperature > sulfuric_cloud.number("base_temperature_k")
+    warm = temperature > base_temperature_k
     first_warm = int(np.argmax(warm)) if warm.any() else len(pressure)
     if first_warm == 0:
         return depth
