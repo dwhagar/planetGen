@@ -6569,6 +6569,9 @@ def clear_bright_stars(conn):
     scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    from planetgen.db import block_lights
+
+    block_lights.forget_parts(conn, "stars")      # GEN.1476: their light leaves the parts with them
     scatter_uids.forget(conn, scatter_uids.STAR_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
@@ -6821,6 +6824,9 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    from planetgen.db import block_lights
+
+    block_lights.forget_parts(conn, "points")      # GEN.1476: their light leaves the parts with them
     scatter_uids.forget(conn, scatter_uids.PHENOMENON_COUNTER)
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
@@ -7068,9 +7074,13 @@ def insert_phenomenon_scatter(conn, rows, batch_size=5000):
     (`_insert_literal_rows`), which costs about half what the driver's own
     per-value escaping does over tens of millions of rows (PERF.73).
     Returns the rows written."""
+    from planetgen.db import block_lights      # GEN.1476: the light of the rows is added to its cells' parts in this transaction
+
+    rows = rows if isinstance(rows, (list, tuple)) else list(rows)
     written = _insert_literal_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows, batch_size)
     if written:
         scatter_uids.assign(conn, "phenomenon_scatter")     # GEN.1254: the rows just written get their Object IDs
+        block_lights.note_rows(conn, "phenomenon_scatter", PHENOMENON_SCATTER_COLUMNS, rows)
     return written
 
 
@@ -7593,9 +7603,13 @@ def insert_bright_stars(conn, rows, batch_size=10000):
     Returns:
         int: Rows written.
     """
+    from planetgen.db import block_lights      # GEN.1476: the light of the rows is added to its cells' parts in this transaction
+
+    rows = rows if isinstance(rows, (list, tuple)) else list(rows)
     written = _insert_literal_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows, batch_size)
     if written:
         scatter_uids.assign(conn, "bright_stars")     # GEN.1254: the rows just written get their Object IDs
+        block_lights.note_rows(conn, "bright_stars", BRIGHT_STAR_COLUMNS, rows)
     return written
 
 

@@ -48,10 +48,6 @@ def test_the_touch_log_counts_rows_a_statement_processes_even_when_it_changes_no
 
 # --- GEN.1476: the running block totals equal a rebuild, byte for byte -----------------------------------------------------------
 
-@pytest.mark.xfail(strict=True, reason="GEN.1476 is not built: the refresh the stored lights have now (`block_lights.refresh_chain`) adds a block's sums in another order than "
-                                       "`rebuild`, so after a sector is deleted every luminosity sum of the 11 rows differs from the rebuild by one unit in the last place "
-                                       "(star_luminosity_sol, star_lpy, star_lpz). GEN.1476 sums parts in unit-key order with math.fsum so the bits are identical; when it lands "
-                                       "this passes: remove this mark then (strict, so it cannot be forgotten).")
 def test_the_block_lights_equal_a_rebuild_after_a_sector_is_deleted_and_made_again(mysql_config):
     """Wired on the refresh the stored lights have now (a saved sector takes its stars out of its blocks, a deleted one puts them back); GEN.1476's scatter units and
     sector edits call `assert_totals_equal_a_rebuild` in the same three steps."""

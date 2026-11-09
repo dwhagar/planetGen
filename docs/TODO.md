@@ -13468,6 +13468,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, lock item for a train after GEN.1451 and GEN.1450. Prerequisites: GEN.1451, GEN.1450. Related: GEN.1451, GEN.1450, GEN.1474.
   Filed by the TODO thread.
 
+- [ ] **GEN.1493 The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed**
+  Found by Lane 22 in GEN.1453 (2026-11-09). Today a planet's late accretion is one Solar-System number (0.7 percent of its mass times mass^-1/3, GEN.739) worked out inside the planet's atmosphere draw, which runs before the system adds its belts, so a belts-and-giants influx cannot feed the air. Slice A (the derived influx index of every planet, GEN.1440 with GEN.1453) comes first. Do: design first (a note under docs/design/), then the build: let the atmosphere draw read the influx from the system's belt and comet reservoirs, shielded or scattered by the giants and stirred by a companion, in place of the single late-accretion number, without a second path; a lone star with the Solar System's architecture must stay inside the published range. This reorders the planet and belt draws, so it is a lock item with a wide epoch (--affects plan, scatter, fill). Reuse the slice A influx function; stand-ins registered in GEN.725.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, design first; lock item for a later train. Prerequisites: GEN.1440, GEN.1453. Related: GEN.1440, GEN.1453, GEN.739.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

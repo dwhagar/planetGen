@@ -2321,10 +2321,17 @@ def fill_map_luminosity_unit(params, report):
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
+        # GEN.1476: the light of an unbuilt phenomenon that gets its value now is in its cell's part, so the cells are put right in the same transaction and the
+        # block light stage rolls the parts up instead of making them again from every object.
+        cells = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+            "SELECT DISTINCT shell_index, band_index, wedge_index FROM phenomenon_scatter WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL"
+            " AND map_luminosity_sol IS NULL AND built_at IS NULL", (params["low"], params["high"])).fetchall()]
         cursor = conn.execute(
             f"UPDATE phenomenon_scatter SET map_luminosity_sol = {map_luminosity_sql()}"
             " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
             (params["low"], params["high"]))
+        if cells:
+            block_lights.sync_cells(conn, cells)
         conn.commit()
         return {"filled": cursor.rowcount, "ids": params["high"] - params["low"] + 1}
     finally:
@@ -2512,23 +2519,27 @@ BLOCK_LIGHTS_UNITS_SHARE, BLOCK_LIGHTS_ROLL_SHARE = 70.0, 15.0
 a rough guess of the time each takes on a full galaxy, here so none of them looks like a stage that stopped."""
 
 
-def make_block_lights(conn, report, say, run_id=None):
+def make_block_lights(conn, report, say, run_id=None, rebuild=False):
     """
     The block light totals and then the uncharted sector rows (MAP.259, MAP.402), on one bar (PERF.251): the units of shells, the levels above them added up and the
     index of the uncharted cells, one share each, so the bar moves in all three.
+
+    The totals are rolled up from the parts the scatter writers kept (`db.block_lights.roll`, GEN.1476), and the uncharted cells are the parts' too, so
+    neither reads the two scatter tables; the parts are checked first and made again from the objects when they do not match. `rebuild` makes them
+    again from the objects whatever the check says: `fill-block-totals` is the repair and the proof.
 
     Args:
         conn (Connection): A writable connection.
         report (callable): `report(done, total)` on the scale of `BLOCK_LIGHTS_BAR_TOTAL`.
         say (callable): `say(text)` for the phases of the work.
         run_id (int, optional): The run the uncharted rows are recorded under.
+        rebuild (bool): Make the parts and the totals again from the objects.
 
     Returns:
         tuple: The block light rows written, the uncharted sector rows made.
     """
     total = BLOCK_LIGHTS_BAR_TOTAL
     index_start = BLOCK_LIGHTS_UNITS_SHARE + BLOCK_LIGHTS_ROLL_SHARE
-    shells = uncharted_index.shells_with_objects(conn)       # counted first, so the index has its share of the bar before the lights end
 
     def units(done, count):
         report(BLOCK_LIGHTS_UNITS_SHARE * done / count, total)
@@ -2539,9 +2550,13 @@ def make_block_lights(conn, report, say, run_id=None):
     def indexed(done, count):
         report(index_start + (total - index_start) * done / count, total)
 
-    written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above)
+    if rebuild:
+        written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
+    else:
+        written, _used = block_lights.roll(conn, on_progress=units, on_phase=say, on_above=above)
     report(index_start, total)
-    made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells)
+    shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
+    made = uncharted_index.index(conn, on_progress=indexed, on_phase=say, run_id=run_id, shells=shells, from_parts=True)
     report(total, total)
     return written, made
 
@@ -2562,8 +2577,8 @@ def refresh_block_lights(mysql_config, args=None):
             with run_common._generation_progress() as progress:
                 log.set_console(progress.console)
                 try:
-                    log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and "
-                               "phenomenon again; a full galaxy takes a while)...")
+                    log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
+                               "made again from every pre-placed object only when they do not match)...")
                     last_line = [time.monotonic()]
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
@@ -2604,7 +2619,7 @@ def fill_block_totals(args):
             + ", ".join("-".join(str(part) for part in address) for address in addresses)))
         conn.commit()
         lights, uncharted = make_block_lights(conn, lambda done, total: log.debug(f"block light totals {done:.0f}/{total:.0f}"), log.normal,
-                                              getattr(args, "generation_run_id", None))      # MAP.402
+                                              getattr(args, "generation_run_id", None), rebuild=True)      # MAP.402; the repair makes the parts again too (GEN.1476)
     finally:
         conn.close()
     log.normal(f"Made {stats:,} generated block totals, {lights:,} block light totals and {uncharted:,} uncharted sector rows.")
@@ -2796,7 +2811,7 @@ def refresh_block_lights_unit(params, report):
     lines = []
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        written, _made = make_block_lights(conn, report, lines.append, params.get("run_id"))      # MAP.402: a sector row for every cell the scatter left something in
+        written, _made = make_block_lights(conn, report, lines.append, params.get("run_id"), rebuild=bool(params.get("rebuild")))      # MAP.402: a sector row for every cell the scatter left something in
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
         return {"written": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}"}
     finally:
@@ -2811,16 +2826,18 @@ class BlockLightsFollower(followed.Follower):
     label = "Make the block light totals"
     repeatable = True
 
-    def __init__(self, args):
+    def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
+        self.rebuild = rebuild      # make the parts again from the objects whatever the check says (GEN.1476)
 
     def params(self):
-        return {"run_id": getattr(self.args, "generation_run_id", None)}      # the run the uncharted rows (MAP.402) are recorded under
+        return {"run_id": getattr(self.args, "generation_run_id", None),      # the run the uncharted rows (MAP.402) are recorded under
+                "rebuild": self.rebuild}
 
     def on_plan(self, plan):
-        log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and phenomenon again; "
-                   "a full galaxy takes a while)...")
+        log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept"
+                   + ("; made again from every pre-placed object)..." if self.rebuild else ")..."))
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 
