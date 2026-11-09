@@ -16,7 +16,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena import starless_host
 from planetgen.generation.star import Star
-from planetgen.physics import constants, envelope_capture, planet_classes, planet_type
+from planetgen.physics import constants, envelope_capture, planet_classes, planet_type, super_puff
 from planetgen.util import draw
 
 EARTH = constants.EARTH_MASS_TO_KG
@@ -73,6 +73,20 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     assert max(row.radius for row in ordinary) <= 7.5
     assert max((row.radius for row in sweep), default=0.0) <= 9.0
     assert max(row.density for row in ordinary if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE) < 6.0
+
+
+def test_no_puffed_planet_escapes_the_super_puff_type(sweep):
+    """GEN.1470: a transitional planet of up to 30 Earth masses under 0.1 g/cc is typed a super-puff whatever its period (the type is mass and density)."""
+    puffed = [row for row in sweep if row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE and row.density < 0.1 and row.mass <= 30.0]
+    assert all(row.planet_type == planet_type.SUPER_PUFF for row in puffed), puffed
+
+
+def test_the_super_puff_share_of_the_inner_sub_neptunes_is_counted_inside_a_hundred_days(sweep):
+    """Row PF3 is a share of the 2 to 10 Earth-mass sub-Neptunes inside 100 days; with the type free of the period the count is made inside 100 days here, not by the type."""
+    inner = [row for row in sweep if row.days <= INNER_DAYS and 2.0 <= row.mass <= 10.0 and row.envelope >= planet_type.TERRESTRIAL_MAX_ENVELOPE]
+    assert len(inner) >= 10
+    share = sum(row.planet_type == planet_type.SUPER_PUFF for row in inner) / len(inner)
+    assert share <= 4.0 * super_puff.START_SHARE, (len(inner), share)        # one planet in a sweep this small is a tenth: a guard against the type sweeping up the sub-Neptunes, not a measurement of the row
 
 
 def test_a_planet_with_an_envelope_is_a_gas_dwarf_or_an_ice_giant_not_a_rocky_letter(sweep):
