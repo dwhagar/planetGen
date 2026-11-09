@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3753] - 2026-11-09
+
+**Headline:** The four scatter commands no longer carry a finish hook: the work queue's executor records their speeds and counts from what each unit reports (OPS.123 slice 1).
+
+### Changed
+- **A unit reports what it drew and wrote; the executor records it.** `scatter_shells_unit` and `scatter_phenomena_unit` now return `samples` (kind, density, seconds, systems, stars) and `row` (objects written, shells touched), and the plan carries `row_totals` (the shell count only the cut knows). `finish_stage` calls `stages.record_unit_samples` and `stages.stage_row_metrics` for every stage, so the `finish=` hooks of `scatter-mass`, `scatter-luminosity`, `scatter-phenomena` and `scatter-backfill` (and `run_plan.finish_scatter`, `finish_scatter_phenomena`, `_speed_stats`) are gone. The five warm-family finish hooks stay until slice 2. The stored speeds and the stage rows are the same.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3752] - 2026-11-09
 
 **Headline:** Moons and the planets of a wide pair are held to every neighbour they have, not to the last or the outermost one alone.
