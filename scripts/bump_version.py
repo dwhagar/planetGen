@@ -82,6 +82,9 @@ TODO_MAP_FILE = os.path.join("docs", "plan", "todo-number-map.md")
 GOLDEN_DIR = os.path.join("src", "tests", "golden")
 EPOCHS_FILE = os.path.join(GOLDEN_DIR, "epochs.json")
 GENERATION_OUTPUT_RE = re.compile(r"^generation-output: changed[ \t]*$", re.M)
+GENERATION_AFFECTS_RE = re.compile(r"^generation-affects:[ \t]*(?P<list>[^\n]*?)[ \t]*$", re.M)
+GENERATION_STAGES = ("plan", "scatter", "fill", "population")
+"""tuple: The stages of generation a change can alter, the `stages` list of `epochs.json` (a test keeps the two equal)."""
 API_VERSION_FILE = os.path.join("src", "planetgen", "api", "version.py")
 API_VERSIONS_FILE = os.path.join("docs", "reference", "api-versions.json")
 API_VERSION_NOTE_RE = re.compile(r"^api-version: changed[ \t]*$", re.M)
@@ -234,6 +237,33 @@ def current_versions(root):
 
 # -- fragments ---------------------------------------------------------------
 
+def parse_generation_affects(body):
+    """
+    The stages a note says its change alters, from its `generation-affects: fill, scatter` line.
+
+    Returns:
+        tuple or None: The stages in `GENERATION_STAGES` order; `()` for `generation-affects: none` (the change alters no generated
+        output); `None` when the note has no such line (it says nothing, so a train must assume every stage).
+
+    Raises:
+        ValueError: The line names something that is not a stage, or mixes `none` with stages, or is empty.
+    """
+    found = GENERATION_AFFECTS_RE.search(body)
+    if found is None:
+        return None
+    names = [part.strip().lower() for part in found.group("list").split(",") if part.strip()]
+    if not names:
+        raise ValueError("'generation-affects:' names no stage; write the stages (" + ", ".join(GENERATION_STAGES) + ") or 'none'")
+    if "none" in names:
+        if names != ["none"]:
+            raise ValueError("'generation-affects: none' cannot be mixed with stages")
+        return ()
+    unknown = [name for name in names if name not in GENERATION_STAGES]
+    if unknown:
+        raise ValueError(f"'generation-affects:' names {', '.join(unknown)}; the stages are " + ", ".join(GENERATION_STAGES) + " or 'none'")
+    return tuple(stage for stage in GENERATION_STAGES if stage in names)
+
+
 def validate_fragment_body(filename, body):
     """Returns a list of problems with one note's contents (empty if fine)."""
     problems = []
@@ -252,6 +282,10 @@ def validate_fragment_body(filename, body):
     first = lines[0].strip()
     if not first.startswith("### "):
         problems.append(f"{CHANGES_DIR}/{filename} must start with a section heading ({allowed})")
+    try:
+        parse_generation_affects(body)
+    except ValueError as exc:
+        problems.append(f"{CHANGES_DIR}/{filename}: {exc}")
     for line in lines:
         if line.startswith("### ") and line[4:].strip() not in SECTIONS:
             problems.append(f"{CHANGES_DIR}/{filename} has heading {line.strip()!r}; use one of {allowed}")
@@ -330,7 +364,7 @@ def merge_bodies(new, old):
                 if name not in found:
                     order.append(name)
                     found[name] = []
-            elif name is not None:
+            elif name is not None and not GENERATION_AFFECTS_RE.match(line):     # a bookkeeping line for the train runner, not release text
                 found[name].append(line)
         return order, found
 
