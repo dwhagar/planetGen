@@ -1,9 +1,9 @@
 {
   "note": "TEST.700: candidate numbers of test_population._candidate that hold a technological civilization; written by python -m tests.civilized_pins refresh",
   "seeds": [
-    66,
-    69,
-    104,
-    126
+    37,
+    41,
+    50,
+    68
   ]
 }
