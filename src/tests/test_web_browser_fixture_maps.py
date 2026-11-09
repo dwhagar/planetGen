@@ -975,19 +975,18 @@ def test_a_superbubble_has_a_crisp_rim_brighter_than_its_fill_and_a_fill_fainter
 
 
 def test_layers_far_from_the_center_are_built_relative_to_origins_of_their_own(page, far_site):
-    """MAP.240: a superbubble 250 kpc out, a polity's dots and capital there, and the sectors a job made 150 kpc out keep every buffer
+    """MAP.240: a superbubble 250 kpc out, and a polity's dots and capital there keep every buffer
     value within 10 kpc of the origin of the object that holds it (the object carries the origin as its position, in double
     precision), where a float32 of the absolute place is 0.016 pc off at 250 kpc."""
-    _open_galaxy(page, far_site, "?made=0,9999999999&show=superbubbles")
+    _open_galaxy(page, far_site, "?show=superbubbles")
     page.evaluate("() => document.querySelector(\"[data-action='territories']\").click()")   # it sits in the closed Menu
     page.wait_for_function(f"() => ({BUFFER_EXTENTS})().some((e) => e.layer === 'territory dots')", timeout=20000)
     extents = page.evaluate(BUFFER_EXTENTS)
     layers = {e["layer"] for e in extents}
-    assert {"superbubbles", "made rings", "territory dots"} <= layers, layers
+    assert {"superbubbles", "territory dots"} <= layers, layers
     for e in extents:
         assert e["extentPc"] <= SAFE_EXTENT_PC, e
     far = {e["layer"] for e in extents if max(abs(v) for v in e["origin"]) > 100000}
-    assert {"superbubbles", "territory dots"} <= far or "made rings" in far, (far, extents)
     assert {"superbubbles", "territory dots"} <= far, "the bubble and the dots are really out there"
     assert sum(1 for e in extents if e["layer"] == "territory dots") >= 2, "dots spread over several kpc are split into cubes"
 

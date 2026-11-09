@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Globular clusters in generation - planetGen docs</title>
+<meta name="description" content="Boss&#x27;s research of 2026-10-09 (18:45Z, &quot;Procedural Generation and Dynamical Modeling of Globular Clusters in Galactic-Scale Architectures&quot;), digested against how the generator works today, with the numbers checked by calculation.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/globular-clusters.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/globular-clusters.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="globular-clusters-in-generation">Globular clusters in generation</h1><p class="meta">docs/design/galaxy/globular-clusters.md</p><details class="toc"><summary>On this page (14 headings)</summary><ul><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-what-bosss-research-says">1. What Boss's research says</a></li><li style="margin-left:0px"><a href="#2-what-the-generator-has-today-s">2. What the generator has today [S]</a></li><li style="margin-left:0px"><a href="#3-storing-a-cluster-the-density-component">3. Storing a cluster: the density component</a></li><li style="margin-left:0px"><a href="#4-stars-from-the-component">4. Stars from the component</a></li><li style="margin-left:0px"><a href="#5-populations-inside-a-cluster">5. Populations inside a cluster</a></li><li style="margin-left:0px"><a href="#6-motion-and-update">6. Motion and update</a></li><li style="margin-left:0px"><a href="#7-planets-in-clusters">7. Planets in clusters</a></li><li style="margin-left:0px"><a href="#8-clusters-per-galaxy">8. Clusters per galaxy</a></li><li style="margin-left:0px"><a href="#9-slices">9. Slices</a></li><li style="margin-left:0px"><a href="#open-questions-for-boss-defaults-written-into-the-handoff">Open questions for Boss (defaults written into the handoff)</a></li><li style="margin-left:0px"><a href="#corrections-to-the-pasted-text">Corrections to the pasted text</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Boss's research of 2026-10-09 (18:45Z, &quot;Procedural Generation and Dynamical Modeling of Globular Clusters in Galactic-Scale Architectures&quot;), digested against how the generator works today, with the numbers checked by calculation. It answers Boss's question of 18:32Z, &quot;What do we need to know in order to model globular clusters in generation?&quot;, and settles the decision he was asked: store a cluster as a density component, not as hand-placed stars.</p>
+<p>Informs: GEN.9 and VIEW.2 (other galaxies), GEN.100 and GEN.130 (the captured-giant pulsar planet, left out until clusters exist), GEN.134 (the metallicity gradient, item 4), GEN.84 and GEN.133 (stellar populations), GEN.42 and PERF.34 (sampling and cost)
+Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation. Slice 1 and the synthetic generator of slice 4 are built (GEN.159, schema v97): the <code>galaxy_components</code> table, the King tables (<code>planetgen/physics/king.py</code>) and <code>planetgen/generation/clusters.py</code>, which draws the clusters of every galaxy, the Milky Way's included, from the galaxy seed (<code>cluster_count</code> from the halo mass; no galaxy gets the real catalogue, Boss 2026-10-16, see &quot;Superseded in part&quot; below). The cluster density in the sector gate is built too (GEN.160, <code>planetgen/galaxy/component_field.py</code>, since GEN.237 the one field for clusters and satellites): a cell's density is the King profile integrated over its cube, <code>GalaxyShape.components</code> carries it into <code>relative_density</code>, <code>population_densities</code>, the profile and the skeleton's bound, and <code>planetgen plan</code> draws the clusters before it walks the outline. The component pass (GEN.324, <code>generation/component_pass.py</code>) draws a cluster's stars and phenomena on demand from the King profile, with the mean system mass of its age (<code>Component.mean_system_mass_solar</code>, 0.47 solar masses at 11 Gy); a cluster's place in the sector profile is the <code>cluster</code> region with a population of its own (<code>galaxy/profile.py</code>, GEN.235). The bright-first fill of cluster sectors (GEN.161) and the planets of cluster stars (the hard-soft cull of section 7, GEN.162) and the captured-giant pulsar planet (GEN.163, which <code>pulsar_planets.py</code> leaves off) are not built.</p>
+<p>Evidence tags: [B] a claim from Boss's research text, its cited paper not opened by this digest (the research environment cannot reach arXiv or journal sites); [C] computed here, re-runnable with <code>/mnt/project-files/research/scripts/globular/calc.py</code> (numpy only, seeded); [S] read from the repository; [R] recalled and unconfirmed.</p>
+<p>Related notes: <a href="galaxy-disk-density.html">galaxy-disk-density.md</a> (the density model a cluster adds to), <a href="../generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a> (how a sector is filled), <a href="../orbits/orbital-updates.html">orbital-updates.md</a> (the velocity and epoch design a cluster's orbit uses), <a href="../systems/compact-remnant-regions.html">compact-remnant-regions.md</a> (millisecond pulsars), <a href="../systems/exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a> (pulsar-planet types), <a href="star-types-by-galactic-radius.html">star-types-by-galactic-radius.md</a> (GEN.134), <a href="multiple-galaxies.html">multiple-galaxies.md</a> (the galaxies that get a cluster system), <a href="../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a> (cost per system).</p>
+<h2 id="summary">Summary</h2>
+<p><strong>What the generator needs to know, in one list.</strong> (1) A cluster record: position, velocity, mass, King concentration, half-mass radius, age, metallicity, a core-collapse flag. (2) A way to turn it into stars on demand. (3) A metallicity value, which the generator does not have at all. (4) A rule that culls planets by local density and metallicity. (5) A count and mass function for clusters in a generated galaxy. Boss's text covers all five; the checks below confirm the central choice and correct five points.</p>
+<ol>
+<li><strong>Density component, not stored stars: confirmed by arithmetic [C].</strong> A Milky Way-like system of 157 clusters holds about 1.8e8 systems, 0.2% of the galaxy's 1e11. Generating them all at the measured 5 to 17 ms per system is 10 to 34 days on one worker. It is also 262,000 sectors (mean 1,670 per cluster) that would otherwise be empty. Only the bright-first backfill (generate the giants and blue stragglers, fill the dim rest on demand) is affordable.</li>
+<li><strong>&quot;Millions of stars in a 4 pc sector&quot; is true only for the most massive clusters [C].</strong> A 47 Tucanae-like cluster (8e5 Msun, half-mass radius 6 pc) puts 1.1e5 to 5.5e5 systems in its central sector depending on where the sector edge falls; a typical one (2e5 Msun, 5 pc) puts 3e4 to 8e4. Only omega Centauri-class clusters (3.6e6 Msun [R]) reach millions. The 4 pc sector holds 6.3 systems at local density, so a 47 Tuc core sector is about 2e4 to 9e4 times denser.</li>
+<li><strong>Use King models, not Plummer [C].</strong> Plummer's inverse is exact (the half-mass radius is 1.305 a; sampled and analytic mass fractions agree to 0.0004), but it has no edge: a typical cluster fills 5,245 sectors with at least one system against 965 for a King model with the same mass and half-mass radius. A King model is one table per concentration <code>W0</code> scaled by length, so no per-cluster table is stored (section 3).</li>
+<li><strong>The metallicity range is too narrow [R].</strong> Boss's text gives [Fe/H] from -2.3 to -0.5. The Milky Way's bulge clusters run to about 0 (NGC 6528 and 6553 near -0.1 and -0.2 [R]), and -2.3 is 0.5% of solar [C], metal-poor, not &quot;nearly pristine&quot;. Sample the two-peak mixture but do not cap it at -0.5.</li>
+<li><strong>Blue stragglers are not linear in the encounter rate.</strong> The text's &quot;Dynamic Filtering&quot; step says to scale blue stragglers and millisecond pulsars &quot;linearly with Γ&quot;, but its own section 6 says blue stragglers scale as <code>M_core^0.4 to 0.5</code>. The first is right for X-ray binaries and millisecond pulsars [R, [R2046]], the second for blue stragglers [R, [R2397] gives 0.38]; they are different laws (section 5).</li>
+<li><strong>The cluster's own orbit is slow on game time scales [C].</strong> At 200 km/s a cluster crosses a 4 pc sector in 19,600 years, so stars stored as offsets from the cluster center stay valid for a century and more; the sector address of a cluster star is derived from the center, not stored per star (section 6).</li>
+</ol>
+<p><strong>Recommendation.</strong> Build in four slices (section 9): the metallicity value and a cluster table with the real Milky Way catalogue; the sampling and the bright-first fill; the planet cull and pulsar planets; the synthetic cluster systems for other galaxies. Slice 1 needs Boss's decision on one input, the catalogue file (section 8).</p>
+<p><strong>Superseded in part (Boss, 2026-10-16, 4:11 PM EDT).</strong> Wherever this note says the real Milky Way catalogue is loaded as rows, or that the Milky Way gets its real clusters, it no longer applies: no galaxy gets real clusters and there is no option to pick a Milky Way preset. The Harris file (kept at <code>/mnt/project-files/data/harris/mwgc.dat</code>, [R1827], 2010 edition) is a reference for building the procedure that generates a realistic cluster system: the generator's laws are calculated or derived from published science and checked statistically against the file (GEN.297). The sections below that describe loading the catalogue describe what the file contains, not what the generator does.</p>
+<h2 id="1-what-bosss-research-says">1. What Boss's research says</h2>
+<ul>
+<li><strong>Storage.</strong> A cluster is a metadata node (position, mass, radii, metallicity) that the sector engine samples; the Milky Way's roughly 160 clusters are loaded from the [R1827]/2010 and Baumgardt and Hilker catalogues; other galaxies get a synthetic system [B].</li>
+<li><strong>Count.</strong> <code>N_GC = S_N 10^(-0.4 (M_V + 15))</code>; <code>S_N</code> about 1 for spirals, about 5 for ellipticals, above 10 for central giants [B].</li>
+<li><strong>Mass function.</strong> Lognormal, turnover near 2e5 Msun (<code>M_V</code> about -7.4) in nearly all galaxies [B].</li>
+<li><strong>Metallicity.</strong> Bimodal, peaks near -1.5 (halo, extended, accreted, high dispersion) and -0.5 (bulge or thick disk, concentrated, rotating, formed in situ) [B].</li>
+<li><strong>Structure.</strong> Core radius about 1 pc, half-mass radius 3 to 10 pc, tidal radius 30 to 100 pc [B]. Plummer: <code>rho = 3M/(4 pi a^3) (1 + r^2/a^2)^(-5/2)</code>, <code>r = a (X^(-2/3) - 1)^(-1/2)</code>. King: dimensionless central potential <code>W0</code>, concentration <code>c = log10(r_t/r_c)</code>, a precomputed table of cumulative mass against radius. About 20% of Milky Way clusters are core collapsed, with a central cusp <code>rho ~ r^(-0.7 to -1.3)</code> [B].</li>
+<li><strong>Stars.</strong> Age 10 to 13 Gyr, turn-off near 0.85 Msun; stars on the giant branches and the horizontal branch; metal-poor stars hotter and brighter at the same mass; horizontal-branch colour set by metallicity and a second parameter [B].</li>
+<li><strong>Blue stragglers.</strong> From collisions and binary mass transfer; <code>Γ ~ rho_c^2 r_c^3 / sigma</code>; <code>N_BSS ~ M_core^0.4 to 0.5</code> [B].</li>
+<li><strong>Planets.</strong> Giant planet occurrence rises with metallicity and is suppressed below [Fe/H] -1; wide orbits (above about 10 AU) are soft and ionized, tight orbits (below 1 to 2 AU) are hard and survive; millisecond pulsars are 10 to 100 times over-represented; PSR B1620-26 b in M4 is the captured-circumbinary example [B].</li>
+<li><strong>Motion.</strong> The cluster follows an eccentric halo orbit; its stars add a Maxwellian dispersion of 1 to 15 km/s [B].</li>
+</ul>
+<h2 id="2-what-the-generator-has-today-s">2. What the generator has today [S]</h2>
+<ul>
+<li>Density is one smooth analytic function (<code>galaxy/density.py</code>): a bar bulge, a thin disk with spiral arms, a thick disk and a halo floor. <code>population_densities</code> splits it into four populations, <code>young</code>, <code>intermediate</code>, <code>old</code> and <code>bulge</code>, each with an age range (<code>tuning.STELLAR_POPULATION_AGE_RANGES_GY</code>: bulge 8 to 12 Gyr, old 3 to 10 Gyr). A sector's expected system count is 6.3 times <code>relative_density</code> at its center; a sector is generated only if that is at least 1.</li>
+<li><code>sample_living_star</code> draws mass and age together and redraws until the star has not collapsed; with a population it uses that population's age range. The main-sequence lifetime law gives 10 Gyr at 1 Msun and 13 Gyr at 0.9 Msun [S, run]. So a cluster population aged 10 to 13 Gyr removes the heavy stars by itself, with no separate turn-off rule: at 12 Gyr the turn-off is 0.93 Msun in the code, against Boss's 0.85 [B] for metal-poor stars. The 8% gap is metallicity (metal-poor stars burn faster [R]), which the code does not model.</li>
+<li>There is no metallicity anywhere (GEN.134, item 4, defers a gradient &quot;only if planet occurrence is later tied to it&quot;). Giant planets today do not depend on it. This note is that reason.</li>
+<li>Bright stars are placed first and the dim ones filled later by luminosity level (GEN.44, <code>star_population.py</code>); the cost is 5 ms per system in memory and 16.6 ms per system in a filled sector [S, performance note].</li>
+<li>Boss decided at 18:37Z that the captured-giant pulsar-planet type (type B) stays out until a cluster model exists [S, TODO GEN.130].</li>
+</ul>
+<h2 id="3-storing-a-cluster-the-density-component">3. Storing a cluster: the density component</h2>
+<p><strong>Record.</strong> One row per cluster: galaxy, name, source (<code>catalogue</code> or <code>generated</code>), position and velocity in the galaxy frame (the velocity design of orbital-updates.md), epoch, total mass, half-mass radius, King <code>W0</code>, age, [Fe/H], core-collapse flag, and the tidal radius derived from them. Everything else is computed.</p>
+<p><strong>King tables [C].</strong> A King model is self-similar: for a fixed <code>W0</code> the density, cumulative mass and tidal radius are one curve in units of the King radius <code>r0</code>. A solver that integrates <code>W'' + 2W'/x = -9 rho(W)/rho(W0)</code> reproduces the textbook concentrations (<code>c</code> = 0.67, 1.03, 1.53, 2.12, 2.74 for <code>W0</code> = 3, 5, 7, 9, 12), so ten tables for <code>W0</code> = 3 to 12 (integrated on a fine grid, then resampled to about 2,000 points on a log grid) cover every cluster, built once and scaled by <code>r0 = r_h / (r_h in units of r0)</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><code>W0</code></th>
+<th><code>c</code></th>
+<th><code>r_t / r0</code></th>
+<th><code>r_h / r0</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3</td>
+<td>0.67</td>
+<td>4.7</td>
+<td>1.26</td>
+</tr>
+<tr>
+<td>5</td>
+<td>1.03</td>
+<td>10.7</td>
+<td>2.00</td>
+</tr>
+<tr>
+<td>7</td>
+<td>1.53</td>
+<td>33.7</td>
+<td>3.92</td>
+</tr>
+<tr>
+<td>9</td>
+<td>2.12</td>
+<td>131</td>
+<td>15.4</td>
+</tr>
+<tr>
+<td>12</td>
+<td>2.74</td>
+<td>548</td>
+<td>86.4</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>What clusters look like in the sector grid [C].</strong> Four exemplars, <code>MEAN_M</code> = 0.47 Msun per system (derived for an 11 Gy cluster, GEN.598; the first draft recalled 0.4):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Cluster</th>
+<th>Systems</th>
+<th>Central density (Msun/pc^3)</th>
+<th>King radius</th>
+<th><code>r_t</code></th>
+<th>Central sector (systems)</th>
+<th>Sectors with at least 1 system</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>typical (2e5 Msun, <code>r_h</code> 5 pc, <code>W0</code> 5)</td>
+<td>4.3e5</td>
+<td>1.1e3</td>
+<td>2.5 pc</td>
+<td>27 pc</td>
+<td>2.6e4 to 7.2e4</td>
+<td>905</td>
+</tr>
+<tr>
+<td>47 Tuc-like (8e5, 6 pc, 9)</td>
+<td>1.7e6</td>
+<td>1.9e5</td>
+<td>0.39 pc</td>
+<td>51 pc</td>
+<td>9.3e4 to 4.7e5</td>
+<td>5,500</td>
+</tr>
+<tr>
+<td>compact (5e5, 3 pc, 12)</td>
+<td>1.1e6</td>
+<td>3.2e7</td>
+<td>0.03 pc</td>
+<td>19 pc</td>
+<td>8.8e4 to 4.1e5</td>
+<td>375</td>
+</tr>
+<tr>
+<td>sparse (5e4, 8 pc, 3)</td>
+<td>1.1e5</td>
+<td>38</td>
+<td>6.4 pc</td>
+<td>30 pc</td>
+<td>2.8e3 to 4.3e3</td>
+<td>1,040</td>
+</tr>
+</tbody>
+</table></div>
+<p>(&quot;to&quot;: the range between the cluster centered on a sector corner and in a sector's middle.) Central densities of 1e4 to 1e6 Msun/pc^3 [B] belong to the dense end only: a typical cluster is about 1e3. A galaxy's real density at the Sun is 0.099 systems/pc^3, so the 47 Tuc core is 4.9e6 times denser.</p>
+<p><strong>Why this must be a density component.</strong> Each cluster's tidal sphere (<code>r_t</code>) is a bounded region, so the sector gate (<code>predicted_star_count</code>) needs one extra term: the sum of the cluster densities at the sector, with a spatial index so a sector tests only clusters whose sphere meets it, not all 157 (or 12,000 in a giant elliptical). The skeleton's upper-bound density function (<code>_bound_raw_density_at</code>) must include the cluster peak or the sector gate rejects cluster sectors outside the disk. The population mix at a cluster sector is simply 100% &quot;cluster&quot; population.</p>
+<p><strong>Tidal radius [C].</strong> (The generator now takes <code>M_gal(&lt;R)</code> from the galaxy's own enclosed mass, GEN.339; the figures here are the 220 km/s isothermal halo's, kept as the estimate they were.) For an isothermal halo of 220 km/s, <code>r_t = R (M / (2 M_gal(&lt;R)))^(1/3)</code> gives, for a 2e5 Msun cluster at 1, 4, 8, 20 and 50 kpc, 21, 52, 83, 153 and 281 pc (5e4 Msun: 13 to 177 pc; 1e6 Msun: 35 to 481 pc). The text's 30 to 100 pc is right for 8 kpc. Use the pericenter distance for an eccentric orbit. The King model's own <code>r_t</code> (19 to 51 pc above) is smaller than the Jacobi radius, so clusters underfill their tidal sphere. Rule: take <code>r_t</code> from the King solution and, if it exceeds the Jacobi radius at pericenter, lower <code>W0</code> until it does not.</p>
+<p><strong>Core-collapsed clusters.</strong> About 20% of Milky Way clusters [B]. Flag them in the catalogue; for generated clusters draw the flag with probability rising with <code>W0</code> and <code>t_rh</code> below the age. The King core is replaced by a power-law cusp <code>rho ~ r^(-alpha)</code>, alpha 0.7 to 1.3 [B] inside the radius where the cusp meets the King curve. Slice 2 can use <code>W0</code> = 12 as a stand-in; the cusp is a refinement, not a prerequisite. The compact exemplar above (<code>W0</code> 12) already puts 3.2e7 Msun/pc^3 at its center.</p>
+<h2 id="4-stars-from-the-component">4. Stars from the component</h2>
+<ul>
+<li><strong>Radius by inverse transform.</strong> Draw a mass fraction <code>X</code>, look it up in the King table (one <code>bisect</code> on a monotone array: O(log n), effectively constant), scale by <code>r0</code>, add a random direction. Plummer's closed form needs no table but has the infinite tail above; use it only truncated at <code>r_t</code>.</li>
+<li><strong>Per-sector draw.</strong> The exact block-first draw of sampling-backfill-and-resume.md applies unchanged: the expected count in a sector is the integral of the cluster density over the cube, evaluated once per sector (a cube integral of the table, or a Monte Carlo of the table at plan time).</li>
+<li><strong>Age and mass.</strong> Add a population <code>cluster</code> to <code>STELLAR_POPULATION_AGE_RANGES_GY</code> with the cluster's own age (10 to 13 Gyr); the redraw loop drops stars above the turn-off. White dwarfs and the giant branch come out of the existing evolution code. The horizontal branch is not modelled by the code and is a recorded gap (section 7).</li>
+<li><strong>Mean mass.</strong> A Kroupa mass function between 0.1 and 0.85 Msun has a mean of 0.30 Msun [C]; the mean per system used above (0.47 Msun for an 11 Gy cluster, derived from the generator's own mass function, remnants and multiplicity) includes remnants and binaries. The real present-day mass function is also depleted of low-mass stars by evaporation [R], so a count of <code>M</code> over the mean is an estimate to within a factor of about 1.5.</li>
+<li><strong>Velocity.</strong> Bulk cluster velocity plus a Maxwellian draw at the local dispersion <code>sigma(r)</code>. The 1 to 15 km/s range [B] is the central line-of-sight (1-D) value, which is what the Harris catalogue lists [R]; if the text meant the 3-D value, multiply by 1.7. The virial estimates [C] are 2 to 11 km/s for the four exemplars, so the range holds. Use the King model's own <code>sigma(r)</code> falling with radius, not a constant.</li>
+<li><strong>Bright first.</strong> At 12 Gyr the visible stars below the turn-off are the large majority, and they are dim. The bright-first level (<code>GEN.44</code>) draws the giants, horizontal branch and blue stragglers first (hundreds to thousands per cluster) and leaves the dim main sequence to the lazy fill, exactly as for the galactic bulge.</li>
+</ul>
+<h2 id="5-populations-inside-a-cluster">5. Populations inside a cluster</h2>
+<p><strong>Metallicity prerequisite.</strong> Add one number per star, [Fe/H], defaulting from the position (a mild disk gradient, GEN.134 item 4, about -0.06 dex per kpc [R]; clusters carry their own). This is not a change to every system: it feeds three things, the planet-occurrence factor (section 7), a small colour and luminosity offset, and the main-sequence lifetime (metal-poor stars live shorter). Do the first slice without the latter two.</p>
+<p><strong>Two-peak sampling.</strong> Boss's peaks are -1.5 and -0.5 [B]; real peaks move with galaxy mass and the widths are not given in the text (about 0.3 dex each [R]). Draw from a two-Gaussian mixture truncated at about [-2.4, 0.0]. Positions: draw the metal-rich clusters from the bulge-plus-thick-disk density the generator already has (as a probability density by rejection), and the metal-poor from a spherical power law near <code>r^-3.5</code> with a core of a few kpc [R], which is the halo the density model lacks. In the Milky Way table both come from the catalogue.</p>
+<p><strong>Blue stragglers [R].</strong> <code>N_BSS ~ M_core^0.4</code> ([R2397]: 0.38 ± 0.04), nearly independent of <code>Γ</code> at fixed core mass, with typical clusters holding tens to a few hundred. Place them as stars of 1 to 1.7 Msun on the main sequence (a merger product's mass) drawn within the core radius.</p>
+<p><strong>Millisecond pulsars and X-ray binaries [R].</strong> Counts scale with <code>Γ</code> (the number of dynamical encounters), which is why dense and core-collapsed clusters host most pulsars: 340 known in 45 clusters [S, compact-remnant-regions.md]. Relative to the 47 Tuc-like exemplar, <code>Γ ~ rho_c^2 r_c^3 / sigma</code> is 0.016 for the typical cluster, 16 for the compact one and 0.001 for the sparse one [C]; a spread of four orders of magnitude, so the rule is roughly &quot;most pulsars come from the top few clusters&quot;. The text's 10 to 100 times over-representation per unit mass [B] agrees with the existing note's 10 times [S]; the two ends have different scopes (X-ray binaries are about 100 times, observed millisecond pulsars depend on selection [R]). Default: 10 times for generated clusters, scaled by <code>Γ</code> rank.</p>
+<p><strong>Collisions [C].</strong> A star in a 1e5 pc^-3 core meets another within its lifetime with probability about 0.1 (collision time 1.3e11 yr), 0.8 at 1e6 pc^-3 and 0.014 at 1e4 pc^-3 (focusing-dominated formula [R, Binney and Tremaine]). That is enough for the observed hundreds of blue stragglers in the densest clusters and negligible in the sparse ones.</p>
+<h2 id="6-motion-and-update">6. Motion and update</h2>
+<ul>
+<li><strong>Orbit.</strong> A cluster is one body with a galactic velocity and an epoch, stored like a star system (orbital-updates.md). A typical halo orbit is 200 km/s; the cluster covers its own 5 pc half-mass radius in 24,000 years and a 4 pc sector in 19,600 years [C]. Inside the cluster, stars at 10 km/s drift 0.001 pc per century, and the crossing time is 0.3 to 4 million years [C].</li>
+<li><strong>Consequence.</strong> Within a few hundred years the cluster's internal structure is frozen and the whole thing moves rigidly. Store each cluster star's offset from the cluster center (like a moon from its planet), never an absolute position; its absolute position and sector address come from the center at the query time. This is one level of the existing relative-to-primary hierarchy and avoids re-addressing 5e5 stars on every update.</li>
+<li><strong>Open design point.</strong> The &quot;every object stores a sector address&quot; rule of the physics design assumes an object moves slowly in the sector grid. A cluster moves one sector in about 20,000 years, so the stored address of a cluster star is stale after that long. Default: a cluster star's sector is derived from the center's sector path (the Hermite spline of orbital-updates.md), not stored. Boss to confirm.</li>
+<li><strong>Evaporation and tidal shocks.</strong> Cluster mass loss over billions of years is in the text [B]; it is not needed for a single epoch. Store the mass at the generation epoch.</li>
+</ul>
+<h2 id="7-planets-in-clusters">7. Planets in clusters</h2>
+<p><strong>Chemical barrier [R].</strong> Giant planet occurrence rises with host metallicity roughly as <code>10^(2.0 [Fe/H])</code> ([R1377] form): 1 at solar, 0.1 at -0.5, 0.01 at -1.0, 0.001 at -1.5 and 3e-5 at -2.3 [C]. A search of 47 Tucanae's core for hot Jupiters ([R1567] [R]) found none where field rates predicted several; the metal-poor suppression (47 Tuc is -0.7) is the usual explanation, with disk photoevaporation and encounters as alternatives. Rule: multiply the giant-planet probability by <code>10^(2 [Fe/H])</code>, capped at 1. Terrestrial planets are far less sensitive and stay near their normal rate for [Fe/H] above -1, falling below it [R].</p>
+<p><strong>Dynamical barrier [C].</strong> A planet is hard if its orbital speed exceeds the cluster's dispersion, soft otherwise. The boundary is <code>a_h = G M_host / sigma^2</code>: for a 0.5 Msun host, 440 AU at 1 km/s, 18 AU at 5, 4.4 at 10 and 2.0 at 15 km/s; the text's &quot;about 10 AU soft, below 1 to 2 AU hard&quot; corresponds to <code>sigma</code> 6 to 15 km/s. Soft orbits are ionized when a star passes within about <code>a</code>; the expected number of such passes in 12 Gyr is <code>n pi a^2 v t (1 + 2 G M / (a v^2))</code> with <code>v = sqrt(6) sigma</code>. With <code>a &gt;= a_h</code> the survival probability is <code>exp(-that)</code>, which is near zero at once above <code>a_h</code> for any core density of 100 pc^-3 or more:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Local density <code>n</code> (pc^-3)</th>
+<th><code>sigma</code> (km/s)</th>
+<th><code>a_h</code> (AU)</th>
+<th>Planets beyond <code>a_h</code> survive 12 Gyr?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>4.8e5 (47 Tuc core)</td>
+<td>11.5</td>
+<td>3.4</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1e4</td>
+<td>8</td>
+<td>6.9</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1e3</td>
+<td>6</td>
+<td>12</td>
+<td>no</td>
+</tr>
+<tr>
+<td>1e2</td>
+<td>3</td>
+<td>49</td>
+<td>no</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the cull is a hard cut at <code>a_h</code>: drop every planet with <code>a &gt; a_h(sigma(r))</code>, keep those inside (they are hardened, the rate of host collisions being about 0.1 per star at the very densest core [C]). Because <code>a_h</code> depends on <code>sigma</code> only, the cut applies from the cluster center outward with <code>sigma(r)</code> from the King model; nothing needs a density fit. A planet in the outer part of a cluster, where <code>sigma</code> is 1 to 3 km/s, may still lie out to 50 to 440 AU. Boss's &quot;survival decays exponentially in <code>a</code>, density and age&quot; [B] is the soft-regime formula above and reduces to this cut. <strong>Built differently (GEN.325):</strong> the generator cuts at the orbit where the expected passes of that formula reach one (<code>physics/planet_survival.py</code>), not at <code>a_h</code>, because <code>a_h</code> is far too small in the nuclear disk (realistic-galactic-core.md section 7); in the four cluster rows above it is 0.07, 1.5, 6.9 and 31 AU against <code>a_h</code> of 3.4, 6.9, 12 and 49, so the densest cores lose more than the hard cut would have taken.</p>
+<p><strong>Free-floating planets [R].</strong> Ionized planets are not lost from the generator's point of view: they become rogue planets in the cluster, which the interstellar-object rates already model; this note adds no rate.</p>
+<p><strong>Pulsar planets, type B [C, S].</strong> The 0.7% of millisecond pulsars with planets, 25% of them the captured-giant type [S, exotic note], gives 0.175% of cluster millisecond pulsars. PSR B1620-26 b is 1 of about 340 [C, 0.29%]. The two agree within the small-number scatter (one object). Rule: once clusters exist, enable type B, restricted to millisecond pulsars whose position lies inside a cluster. Host: a pulsar plus a white-dwarf companion with a circumbinary giant; the giant is allowed despite the metallicity cull because it formed around a different star and was captured.</p>
+<p><strong>Not modelled by the code and recorded as gaps.</strong> The horizontal branch (its colour is a metallicity and &quot;second parameter&quot; effect [B, R]); isochrone interpolation across metallicity (the code has analytic star models, not isochrones); the second-generation chemical populations of clusters [R]; neutron star and black hole retention after natal kicks, which is low in clusters [R] but matters for how many remnants a cluster keeps.</p>
+<h2 id="8-clusters-per-galaxy">8. Clusters per galaxy</h2>
+<p><strong>Milky Way.</strong> Load the catalogue as persistent rows. The authoritative inputs [B] are the Harris catalogue (1996, 2010 edition), [R0290] (with later updates) for masses, structural parameters and dispersion profiles, and the Gaia-based velocities [R4516]. <strong>Boss's input needed:</strong> the repository has no catalogue file, and this environment could not download one. Supply the Harris catalogue table (public; about 157 rows with position, distance, <code>[Fe/H]</code>, <code>c</code>, <code>r_c</code>, <code>r_h</code>, <code>M_V</code>, <code>sigma_v</code>, and a core-collapse flag), or approve a one-time ingestion script that downloads it where the network allows. Catalogue positions are heliocentric (l, b, d); convert with the section 2.2 transform of galaxy-coordinate-system.md, and keep the real names.</p>
+<p><strong>Generated galaxies.</strong> <code>N_GC = S_N 10^(-0.4 (M_V + 15))</code> [B]; the generated galaxies already carry <code>M_V</code> (multiple-galaxies.md). Checks [C]: the Milky Way (<code>M_V</code> -20.9) has 157 clusters, so <code>S_N</code> = 0.69 (the text's &quot;about 1&quot; is round); an <code>M_V</code> -22 elliptical at <code>S_N</code> 5 has 3,155; a <code>M_V</code> -22.5 central giant at <code>S_N</code> 12 has 12,000. Draw <code>S_N</code> by morphology: spirals 0.5 to 1.5, ellipticals 2 to 8, central giants 8 to 15 [R]. The cluster system's mass is 6e-4 of the Milky Way's stellar mass [C] (3.1e7 of about 5e10 Msun); for ellipticals the fraction is several times higher [R], consistent with the larger <code>S_N</code>.</p>
+<p><strong>Masses.</strong> Lognormal with peak 2e5 Msun [B]; the width is missing from the text. Default: 0.5 dex (about 1.2 magnitudes in <code>M_V</code> [R]); truncated at 1e4 and 3e6 Msun. A 157-cluster draw with this width gives 1.8e8 systems and a median central sector of 1.1e5 systems, with the most massive cluster putting 2.8e6 systems in its central sector [C].</p>
+<h2 id="9-slices">9. Slices</h2>
+<ol>
+<li><strong>Metallicity and the cluster table.</strong> An [Fe/H] column on stars with the default gradient; the cluster table and the King tables; the Milky Way catalogue loaded once Boss supplies it. Tests: the King solver against the five textbook concentrations; the cluster's total expected count equals <code>M / 0.4</code> to within sampling error.</li>
+<li><strong>Sampling and fill.</strong> The cluster term in <code>relative_density</code> and in the skeleton's bound; the <code>cluster</code> population; bright-first level for cluster sectors. Tests: a cluster's sampled radial profile matches its table; no sector above the gate is skipped; the sector counts match the table above (to a few percent).</li>
+<li><strong>Planets and pulsars.</strong> The metallicity factor, the <code>a_h</code> cut, type-B pulsar planets in clusters, and the blue straggler count.</li>
+<li><strong>Synthetic systems.</strong> <code>S_N</code>, the mass function, the metallicity mixture, positions from the bulge and halo, for generated galaxies.</li>
+</ol>
+<p>Not on the list: the collapse cusp, the horizontal branch and isochrones, evaporation, and the second chemical generation; each is a refinement with no effect on counts.</p>
+<h2 id="open-questions-for-boss-defaults-written-into-the-handoff">Open questions for Boss (defaults written into the handoff)</h2>
+<ol>
+<li><strong>Catalogue file</strong> for the Milky Way (section 8): supply the table, or approve a one-time download script. Default: wait for the file; build the synthetic generator first.</li>
+<li><strong>Cluster stars' sector addresses</strong> are derived from the cluster center, not stored (section 6). Default: derived.</li>
+<li><strong>Planet cut</strong>: hard cut at <code>a_h(sigma)</code> (section 7) rather than the smooth exponential. Default: hard cut.</li>
+<li><strong>Blue stragglers and pulsars follow two different laws</strong>: <code>M_core^0.4</code> for blue stragglers, <code>Γ</code> for millisecond pulsars. Default: as in section 5.</li>
+<li><strong>Mass-function width</strong> 0.5 dex and <code>S_N</code> ranges by morphology are recalled, not in the text. Default: as in section 8.</li>
+</ol>
+<h2 id="corrections-to-the-pasted-text">Corrections to the pasted text</h2>
+<ul>
+<li>&quot;Millions of stars within a 4 pc sector&quot; is true only above about 3e6 Msun; 1e5 to 6e5 for typical and 47 Tuc-like clusters.</li>
+<li>The metallicity range stops at -0.5; the real range reaches about 0 [R].</li>
+<li>-2.3 is 0.5% of solar, not nearly pristine.</li>
+<li>The &quot;Dynamic Filtering&quot; step scales blue stragglers and millisecond pulsars &quot;linearly with Γ, accounting for a sub-linear dependence in the most massive cores&quot;, while section 6 of the same text gives blue stragglers as <code>M_core^0.4 to 0.5</code>. Two laws are mixed: linear in <code>Γ</code> is the pulsar and X-ray-binary law; the sub-linear one belongs to blue stragglers.</li>
+<li>The tidal radius is given as 30 to 100 pc fixed; it follows from the cluster's mass and orbit (section 3).</li>
+<li>The 1 to 15 km/s dispersion is the 1-D central value, not the 3-D one [R].</li>
+<li>The turn-off mass is 0.93 Msun in the repository's lifetime law at 12 Gyr, not 0.85; the gap is metallicity (section 2).</li>
+<li>Section 7.2 says planets in hard orbits are hardened &quot;counterintuitively&quot;; that is Heggie's law for binaries, and it holds for a planet only while its orbital speed exceeds the perturber's.</li>
+<li>The cited &quot;[R1396]&quot; and &quot;[R2056], Planet formation in globular clusters&quot; could not be checked; titles and years should be confirmed before they are quoted [B].</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>[C] numbers all come from <code>calc.py</code> (King solver, Plummer sampling, tidal radius, hard-soft radius, survival, encounter rates, timescales, cluster counts, a 157-cluster Monte Carlo). The exemplar parameters (mass, half-mass radius, concentration) are round numbers chosen to span the real range, not a catalogue fit. [R] items to check once papers are reachable: Fischer and Valenti's exponent 2.0; Knigge's 0.38; Gilliland's null result; the mass-function width; the <code>S_N</code> ranges by morphology; the halo power-law index; the Harris catalogue's [Fe/H] ceiling; the 20% core-collapse fraction; the 100 times X-ray binary over-abundance; the 0.3 dex widths of the metallicity peaks.</p>
+<h2 id="sources">Sources</h2>
+<p>Boss's research text (cited, not opened): [R0162, R1396]; Harris and van [R0288, R2056, R2359, R4736]. Recalled and used here: [R1377, R1567, R2046, R2397]; Binney and Tremaine, Galactic Dynamics (collision time). Repository: <code>galaxy/density.py</code>, <code>generation/star_population.py</code>, <code>physics/stellar_evolution.py</code>, <code>tuning.py</code> (population ages, <code>DEFAULT_SECTOR_EDGE_PC</code>), <code>physics/constants.py</code> (<code>LOCAL_STELLAR_DENSITY_LY3</code>).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The system body ledger and the barycenter that includes the belts (GEN.1066) - planetGen docs</title>
+<meta name="description" content="Status: built and wired.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/system-bodies-ledger.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/system-bodies-ledger.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-system-body-ledger-and-the-barycenter-that-includes-the-belts-gen1066">The system body ledger and the barycenter that includes the belts (GEN.1066)</h1><p class="meta">docs/design/systems/system-bodies-ledger.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-question-and-the-answer">1. The question and the answer</a></li><li style="margin-left:0px"><a href="#2-the-row">2. The row</a></li><li style="margin-left:0px"><a href="#3-the-sums">3. The sums</a></li><li style="margin-left:0px"><a href="#4-the-view-gen1241">4. The view (GEN.1241)</a></li><li style="margin-left:0px"><a href="#5-what-is-not-here">5. What is not here</a></li><li style="margin-left:0px"><a href="#6-tests">6. Tests</a></li></ul></details>
+<p>Status: built and wired. The pure module is <code>physics/system_bodies.py</code>; the view over the typed tables is <code>api/system_bodies.py</code> (GEN.1241), read by <code>GET /api/systems/&lt;id&gt;/bodies</code> and by the &quot;Mass and barycenter&quot; panel of the system page (<code>web/system_ledger.py</code>). Written 2026-11-04 as the lane reported. Follows belt-evolution.md section 5 (Boss, 4:19 PM EDT 2026-10-30) and unified-system-barycentre.md.</p>
+<h2 id="1-the-question-and-the-answer">1. The question and the answer</h2>
+<p>Planets, moons, belts, comets and rings each live in their own typed table, so no query answers &quot;what does this system weigh&quot; or &quot;where is its center of mass with the belts in it&quot;. The decision asked for: <strong>a view, not a table.</strong> One generated list of rows, built from the typed tables when asked, with no new storage and no second copy to keep in step. A stored table would duplicate every mass and every orbit and would go stale the moment one of its sources changed; the rows are cheap to build (a system has at most a few hundred stored bodies, because a belt stores at most 300 L1 members), and the view is the single place the sums are made.</p>
+<h2 id="2-the-row">2. The row</h2>
+<p><code>id</code>, <code>parent</code>, <code>kind</code>, <code>mass_kg</code>, <code>radius_km</code>, <code>density_kg_m3</code>, <code>a_au</code>, <code>e</code>, <code>i_deg</code>, <code>status</code>, <code>tier</code>, and <code>position_au</code> (relative to the parent's center, as the typed tables store it).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>kind</th>
+<th>comes from</th>
+<th>parent</th>
+<th>notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>star</td>
+<td><code>stars</code></td>
+<td>none (root) or a star</td>
+<td>a companion star is a body about the primary here; close pairs keep the tree convention in <code>system_tree.py</code></td>
+</tr>
+<tr>
+<td>planet</td>
+<td><code>planets</code></td>
+<td>star</td>
+<td>status <code>planet</code> or <code>dwarf planet</code> (belt-evolution.md 3.2)</td>
+</tr>
+<tr>
+<td>moon</td>
+<td><code>moons</code></td>
+<td>planet, or a belt member that has a moon</td>
+<td></td>
+</tr>
+<tr>
+<td>belt</td>
+<td><code>asteroid_belts</code></td>
+<td>star</td>
+<td>a container: mass zero, its mass is the sum of its children</td>
+</tr>
+<tr>
+<td>belt_member</td>
+<td>the L1 rows of a belt (GEN.1069)</td>
+<td>belt</td>
+<td>tier <code>L1</code>, status <code>minor body</code> or <code>dwarf planet</code></td>
+</tr>
+<tr>
+<td>extended</td>
+<td>the belt's remainder (L2 and L3, <code>belt_ledger.Ledger.remainder_kg</code>)</td>
+<td>belt</td>
+<td>tier <code>L3</code>; one point at the belt's center</td>
+</tr>
+<tr>
+<td>comet</td>
+<td><code>comets</code></td>
+<td>star</td>
+<td></td>
+</tr>
+<tr>
+<td>ring</td>
+<td>the ring system of a planet</td>
+<td>planet</td>
+<td>one extended mass at the planet's center</td>
+</tr>
+</tbody>
+</table></div>
+<p>The view reads exact column names when it is written (the typed tables are the source of truth; this note does not repeat them). <code>check</code> makes the list a tree: one root, parents that exist and are of an allowed kind, no cycle, finite non-negative masses, and no mass on a belt itself.</p>
+<h2 id="3-the-sums">3. The sums</h2>
+<ul>
+<li><strong>Mass is conserved</strong> (belt-evolution.md section 3). <code>subtree_mass_kg(belt)</code> is the L1 members plus the extended remainder, and <code>belt_mass_residual(rows, belt, belt_mass)</code> is that against the belt's stored mass, so a ledger that does not add up is a number. <code>belt_ledger</code> already guarantees at least five percent of the belt stays in the remainder.</li>
+<li><strong>Positions are stored relative, derived absolute</strong> (unified-system-barycentre.md section 2). A body's place in the system frame is the sum of the offsets down its chain of parents (<code>absolute_positions_au</code>), so a moon is its planet's place plus its own offset and nothing above needs to know.</li>
+<li><strong>The barycenter is <code>sum(m r) / sum(m)</code></strong> over every row with a mass, belts and rings included (<code>barycenter_au</code>); the central object sits at minus that (<code>central_offset_au</code>). For one planet it is the two-body formula, for a moon the moon's share of the total mass. This is the &quot;reflex&quot; the planets columns store today for planets alone, now with the belts in it.</li>
+<li><strong>The belt test.</strong> <code>belt_wobble_au</code> is the distance between where the barycenter puts the star with the belts and without them. A round, centered belt gives zero; one heavy member on one side gives <code>m a / (M + m)</code>. The belts' wobble of a generated star is therefore a measurable number, and the Solar System's (the Sun's wobble from the belts is a test target, never an input) is the first check once the view is wired.</li>
+</ul>
+<h2 id="4-the-view-gen1241">4. The view (GEN.1241)</h2>
+<p><code>api/system_bodies.build</code> takes the stars, planets, moons and comets from the system scene (<code>web/maps/systemscene.build_scene</code>, which places them from the stored rows and already knows what each goes round), adds the mass a belt and a comet store, the rings (<code>planets.ring_mass_kg</code>), the bodies a belt keeps (<code>belt_members</code>, placed from their elements and mean anomaly by <code>relative_position_au</code>) and the belt's remainder below them (the stored belt mass less the kept bodies, one extended mass at the belt's center), and checks the list as a tree. The frame has the primary star (the origin star of a wide binary, else the first) at the origin; a body that goes round the center of a close pair is placed from that center. Moons of rings and of belt bodies are not in the rows (the typed tables hold none). A belt body is at the mean anomaly it was drawn with and the planets are where the orbits were last advanced to, so the belt wobble is the size of the pull, not its direction on a date.</p>
+<h2 id="5-what-is-not-here">5. What is not here</h2>
+<ul>
+<li>The view over the typed tables, and where it is read (the system page, the map, the N-body export): the wiring item, which needs the belt member rows (GEN.1069) and the L2 on-demand draw to exist.</li>
+<li>A time series: positions are one instant; a caller loop advances the orbits (<code>relative_position_au</code> turns elements and a mean anomaly into a position).</li>
+<li>Close binaries as the origin of two stars, and moons of moons: the first keeps its own convention, the second is excluded by the no-satellite line of the unified rule (a belt member that has a moon is the only exception, as small-body binaries exist).</li>
+<li>Per-body gravitational interaction: the ledger is for sums, not integration.</li>
+</ul>
+<h2 id="6-tests">6. Tests</h2>
+<p><code>tests/test_system_bodies.py</code>: the tree checks and their reasons, chained positions, subtree and total mass, the barycenter against the two-body formula and with a moon, a round belt against a heavy member (the wobble), the belt residual, and elements to positions.</p>
+<p><code>tests/test_system_bodies_view.py</code> walks the API and the page on the generated sample galaxy: one tree from the primary star, the masses adding up, the barycenter against the star's offset, each belt's rows against its stored mass, belt bodies named by belt and rank, printed IDs and the panel.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

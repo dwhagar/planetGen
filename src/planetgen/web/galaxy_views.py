@@ -164,7 +164,6 @@ def galaxy():
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     initial_view = fetch_nodes(db, opening_request(galaxy_shape))
     course = _course_from_args()
-    made = _made_from_args()
     pick = _pick_from_args()
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
@@ -176,7 +175,6 @@ def galaxy():
         locate_path=url_for("web.galaxy_locate"),
         territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
-        made=made,
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         pick=pick,
@@ -228,7 +226,7 @@ def _generating_page(running):
 def _course_from_args():
     """
     The NAV course the map should draw, from `?course=<from>,<to>` (the
-    NAV result's "Show on Galaxy Map" link, the drill-down's section
+    NAV result's link to the map, the drill-down's section
     9.4) or `?via=<a>,<b>,...` (the waypoints, NAV.49; `?course=` wins), or `None`. A course that can't be drawn is simply not drawn;
     an endpoint that doesn't exist is the usual 404.
     """
@@ -254,35 +252,6 @@ def _course_from_args():
             raise
         log.exception(f"API error while plotting a course for the galaxy map: {exc}")
         return None
-
-
-def _made_from_args():
-    """
-    The sectors a generate job made, from `?made=<since>,<until>` (Unix
-    seconds, the job page's "Show on Galaxy Map", ADM.31), or `None`. The
-    map highlights them and opens on the smallest stage holding them.
-    """
-    raw = (request.args.get("made") or "").strip()
-    if not raw:
-        return None
-    parts = raw.split(",")
-    try:
-        since = float(parts[0])
-        until = float(parts[1]) if len(parts) > 1 and parts[1] else None
-    except ValueError:
-        return None
-    try:
-        made = apiclient.get_galaxy_made(db_name(), since, until)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while finding the sectors a job made: {exc}")
-        return None
-    if not made["items"]:
-        return {"total": 0, "points": [], "sectors": []}
-    return {
-        "total": made["total"],
-        "points": [{"x": i["x"], "y": i["y"], "z": i["z"]} for i in made["items"]],
-        "sectors": [[i["shell_index"], i["band_index"], i["wedge_index"]] for i in made["items"]],
-    }
 
 
 def _json_error(message, status):

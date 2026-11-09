@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The iron branch of a rocky planet (GEN.512) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-24 (lane &quot;Source and tune atmosphere draws&quot;).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/iron-branch-tuning.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/iron-branch-tuning.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-iron-branch-of-a-rocky-planet-gen512">The iron branch of a rocky planet (GEN.512)</h1><p class="meta">docs/design/composition/iron-branch-tuning.md</p><details class="toc"><summary>On this page (4 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-changed">1. What changed</a></li><li style="margin-left:0px"><a href="#2-the-tuning-computed-through-the-harness">2. The tuning (COMPUTED through the harness)</a></li><li style="margin-left:0px"><a href="#3-what-the-tuning-shows-and-its-limits">3. What the tuning shows, and its limits</a></li><li style="margin-left:0px"><a href="#4-stand-ins">4. Stand-ins</a></li></ul></details>
+<p>Status: built 2026-10-24 (lane &quot;Source and tune atmosphere draws&quot;). Code <code>src/planetgen/physics/bulk_draw.py</code> (<code>IRON_BRANCH_TABLE</code>, <code>iron_branch_ratios</code>, <code>branch_ratios</code>), the tuning sample <code>src/planetgen/physics/iron_branch_tuning.py</code>, targets <code>t5-outlier-share</code> and <code>t5-within-share</code> in <code>physics/data/tuning_targets.json</code>, tests <code>src/tests/test_iron_branch.py</code>. It is builder B4 of <a href="tunable-gaps.html">tunable-gaps.md</a> and row T5 of the body tables; the data are read in <a href="tunable-gaps-sources/group2-delivery-retention.html">tunable-gaps-sources/group2-delivery-retention.md</a> section 2.5.</p>
+<h2 id="1-what-changed">1. What changed</h2>
+<p>A rocky planet's core was exactly its star's iron: <code>dry_partition</code> took the star's Fe/Mg, so two planets of one star had one core mass fraction (CMF) and no planet was ever iron-rich. Now <code>draw_terrestrial</code> draws, after the graphite and before the partition, one branch from <code>IRON_BRANCH_TABLE</code>:</p>
+<ul>
+<li><strong>star-matched</strong> (weight 0.99): the planet's Fe/Mg is the star's times 10 to a normal of <code>IRON_SCATTER_DEX</code> (0.05 dex), slope 1;</li>
+<li><strong>iron-enriched</strong> (weight <code>IRON_ENRICHED_WEIGHT</code>, 0.01): the CMF of the dry part is uniform from 0.5 to 0.8 (<code>RANGES[&quot;enriched_cmf&quot;]</code>; the top is the cap of the observed iron-rich rocky planets, [R3545]) and never below the star-matched CMF, and the Fe/Mg that gives it is solved by bisection.</li>
+</ul>
+<p>A moon and the classes D, S and C (icy, small, carbon) have no branch and draw nothing for it. A body given both a mass and a radius (the inverse route) infers its CMF from them and has no branch. The draw order is part of the generator epoch. The coreless branch has no count (no planet is known to lack a core) and is not drawn: derive it from the water fraction [R1248] when that is built.</p>
+<h2 id="2-the-tuning-computed-through-the-harness">2. The tuning (COMPUTED through the harness)</h2>
+<p>The published statistic is about inferred CMF, not true CMF, so the simulated side measures each planet. <code>iron_branch_tuning.sampler</code> draws a host from the generator's own star model, the planet (mass 1 to 10 Earth masses, period 0.5 to 30 d, radius from the CMF, a planet above 1.8 R_E dropped), the measurement the sample would make (<code>mass_radius_sample.observe</code>: the model of GEN.505), the CMF inferred from the measured mass and radius, and its 1-sigma error from the two errors. A planet is an outlier when its inferred CMF is more than 2 sigma above the star-matched value, and within when it is inside 1 sigma. The precisely-measured cut is the <code>mass-radius-sample</code> selection model.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Published</th>
+<th>Simulated at the shipped knobs (3000 seeds)</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>t5-outlier-share</code>: planets 2 sigma more iron-rich than the star</td>
+<td>1 of 21 [R3546]</td>
+<td>0.053</td>
+<td>within 2 sigma (z 0.08)</td>
+</tr>
+<tr>
+<td><code>t5-within-share</code>: planets within 1 sigma of the star</td>
+<td>15 of 20 [R0541]</td>
+<td>0.61</td>
+<td>within 2 sigma (z -1.3)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-what-the-tuning-shows-and-its-limits">3. What the tuning shows, and its limits</h2>
+<ul>
+<li><strong>Noise alone makes about 4 percent of planets outliers</strong> (0.043 with no enriched branch and no scatter), against the published 4.8 percent: the data need no enriched branch. This agrees with Plotnykov's mock test (mass-radius scatter alone reproduces the outliers about 15 percent of the time). The weight is therefore an upper limit; 0.01 is the value at which the simulated share equals 1 of 21, and the data (exact interval 0.001 to 0.238 for 1 of 21) allow up to about 0.2. The widest bracket in the sources is 0 (Brinkman, 0 of 20 distinct) to 0.23 (Adibekyan, 5 of 22, heterogeneous); the newer homogeneous paper wins the center.</li>
+<li><strong>The scatter is not measured.</strong> The within-1-sigma share is 0.59 with no scatter and 0.57 at 0.1 dex, both inside the interval of 15 of 20 (0.53 to 0.89): the measurement error dominates. 0.05 dex is a stand-in between none and the 0.1 of CMF (about 0.2 dex) the body master suggested; replace it when a homogeneous sample of more than the 21 planets exists (Plotnykov says 150 are needed).</li>
+<li><strong>The slope stays 1.</strong> The published slope is 0.94 (+1.02/-1.07), and 1.3 +- 1.0 or 5.6 +- 1.6 by fit on the same data: consistent with 1, not measured. A slope other than 1 needs a pivot (the reference composition the slope turns about) that the generator's star model does not state; not built.</li>
+<li><strong>Power</strong> (GEN.665): the outlier target refuses a share of 0.30 and the within target refuses 0.5 and 1.0, but neither refuses the low side of the outlier share (the proportion cannot go below 0), and both are weak against small changes.</li>
+<li><strong>Validity:</strong> the data cover 1 to 1.8 R_E, hosts of 0.8 to 1.2 solar masses and 1 to 10 Earth masses, FGK hosts; the generator draws the branch for every rocky planet, so M-dwarf and heavier planets are flagged extrapolations.</li>
+<li>The coreless branch, the CMF cap of 0.8 as a planet-formation limit (Mercury is only a label here) and the hosts' own CMF are not tuned.</li>
+</ul>
+<h2 id="4-stand-ins">4. Stand-ins</h2>
+<p>The scatter (0.05 dex) and the enriched CMF range (0.5 to 0.8 from the exoplanet cap) are partly verified by the limits above; the weight is tuned. Each is in the rows' <code>limit</code> text.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

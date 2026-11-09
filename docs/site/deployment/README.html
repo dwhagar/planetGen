@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deploying planetGen - planetGen docs</title>
+<meta name="description" content="planetGen&#x27;s web interface is one Flask app: every page and the JSON API (/api).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/deployment/README.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="deployment/README.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="deploying-planetgen">Deploying planetGen</h1><p class="meta">docs/deployment/README.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#choose-a-platform">Choose a platform</a></li><li style="margin-left:0px"><a href="#what-every-setup-has-in-common">What every setup has in common</a></li><li style="margin-left:0px"><a href="#behind-a-reverse-proxy-proxy_fix">Behind a reverse proxy: proxy_fix</a></li><li style="margin-left:0px"><a href="#mysql-accounts">MySQL accounts</a></li><li style="margin-left:0px"><a href="#the-first-admin-login">The first admin login</a></li><li style="margin-left:0px"><a href="#updating-a-running-site">Updating a running site</a></li><li style="margin-left:0px"><a href="#after-deploying">After deploying</a></li></ul></details>
+<p>planetGen's web interface is one Flask app: every page and the JSON API
+(<code>/api</code>). It runs from a git checkout, reads <code>config.json</code> at the repo
+root, and talks to one MySQL server and one Redis server
+(<code>redis.url</code> in <a href="../reference/config.html"><code>config.json</code></a>; the Generate page's jobs,
+the work queue, the rate limits and the login lockouts run on it). This page compares the
+supported ways to host it and covers what they share. Each guide has the
+full steps for its platform.</p>
+<h2 id="choose-a-platform">Choose a platform</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Guide</th>
+<th>Web server</th>
+<th>App server</th>
+<th>Install scripts</th>
+<th>Admin Generate page</th>
+<th>HTTPS</th>
+<th>Good for</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux (Debian, Ubuntu)</td>
+<td><a href="apache.html">Apache</a></td>
+<td>Apache2</td>
+<td>mod_wsgi (daemon mode)</td>
+<td><code>install.sh</code>, <code>update.sh</code> do everything but the vhost</td>
+<td>Works</td>
+<td>certbot <code>--apache</code></td>
+<td>The reference setup; least manual work</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><a href="nginx.html">nginx</a></td>
+<td>nginx</td>
+<td>gunicorn under systemd</td>
+<td><code>install.sh</code>, <code>update.sh</code>, plus a systemd unit and a site file</td>
+<td>Works</td>
+<td>certbot <code>--nginx</code></td>
+<td>Servers that already run nginx</td>
+</tr>
+<tr>
+<td>Linux</td>
+<td><a href="caddy.html">Caddy</a></td>
+<td>Caddy</td>
+<td>gunicorn under systemd</td>
+<td>As for nginx</td>
+<td>Works</td>
+<td>Automatic</td>
+<td>The shortest web server config</td>
+</tr>
+<tr>
+<td>macOS</td>
+<td><a href="macos.html">macOS</a></td>
+<td>Homebrew nginx</td>
+<td>gunicorn under launchd</td>
+<td><code>install.sh</code></td>
+<td>Works</td>
+<td>certbot or your own certificate</td>
+<td>A Mac you already have. macOS Server is discontinued</td>
+</tr>
+<tr>
+<td>A rented server</td>
+<td><a href="paas.html">VPS and PaaS</a></td>
+<td>Any Linux option</td>
+<td>Any Linux option</td>
+<td>As on Linux</td>
+<td>Works</td>
+<td>As on Linux</td>
+<td>Hosting you don't run at home</td>
+</tr>
+</tbody>
+</table></div>
+<p>Whatever the platform, on Linux add <a href="fail2ban.html">fail2ban</a> to ban
+addresses that keep guessing admin passwords.</p>
+<h2 id="what-every-setup-has-in-common">What every setup has in common</h2>
+<ul>
+<li>
+<p><strong>The downloaded data sets.</strong> Setup downloads the published data the generator reads into <code>/var/cache/planetgen/datasets</code> (or <code>PLANETGEN_DATA_DIR</code>), and a bulk run refuses to start without them. Every set, its URLs and how to install it by hand are in the <a href="../repo/README.html#external-files">External files</a> section of the README.</p>
+</li>
+<li>
+<p><strong>One process, five threads.</strong> Apache's <code>WSGIDaemonProcess processes=1 threads=5</code>, gunicorn <code>--workers 1 --threads 5</code>. The rate limits and login lockouts count on
+Redis (<code>ratelimit.storage_uri</code> empty = the server in <code>redis.url</code>), so
+more processes share them; <code>memory://</code> is only right with one process
+(<a href="../reference/api.html#rate-limiting"><code>api.md</code></a>).</p>
+</li>
+<li>
+<p><strong>Threads, because of the live job log.</strong> The admin Generate page streams
+a running job's output over Server-Sent Events (<code>/admin/generate/jobs/&lt;id&gt;/stream</code>,
+ADM.22). Each open stream holds one of the five threads, so the app
+server must be threaded (the settings above are; a single-threaded
+worker would be held by one viewer). A response ends after about 40
+seconds, under mod_wsgi's <code>request-timeout=60</code>, and the browser
+reconnects by itself, resuming where it stopped. A proxy in front must
+not buffer the stream (the response sends <code>X-Accel-Buffering: no</code> for
+nginx).</p>
+</li>
+<li>
+<p><strong>The same entry point.</strong> Every app server loads <code>src/html/wsgi.py</code>
+and its <code>application</code> object. gunicorn, from planetGen's own virtual environment
+(<code>/usr/local/planetgen/venv</code>, <a href="apache.html#planetgens-own-python">apache.md</a>):
+<code>/usr/local/planetgen/venv/bin/gunicorn --pythonpath &lt;checkout&gt;/src/html wsgi:application</code>.</p>
+</li>
+<li>
+<p><strong>Static files from the web server.</strong> <code>/static/</code> maps to
+<code>src/html/static/</code>, with <code>X-Content-Type-Options: nosniff</code>. A URL with
+<code>?v=</code> (every page adds the release version) is cached for a year
+(<code>public, max-age=31536000, immutable</code>); one without is <code>no-cache</code>.
+Nothing else in the checkout is served from disk. Every other URL goes
+to the app, including the old <code>/&lt;name&gt;.py</code> page URLs, which the app
+redirects.</p>
+</li>
+<li>
+<p><strong>Security headers from the app.</strong> The app sets
+<code>Content-Security-Policy</code>, <code>X-Frame-Options</code>, <code>X-Content-Type-Options</code>,
+<code>Referrer-Policy</code>, and <code>Strict-Transport-Security</code> on HTTPS requests.
+Don't repeat them in the web server.</p>
+</li>
+<li>
+<p><strong>HTTPS.</strong> The admin session cookie is <code>Secure</code>, so <code>/login</code> and the
+admin pages only work over HTTPS.</p>
+</li>
+<li>
+<p><strong>A 60-second limit</strong> on a request, compression for text responses,
+and a 1 MB request body limit (the API only takes small JSON bodies).</p>
+</li>
+<li>
+<p><strong>Runtime directories</strong> owned by the account the app runs as, mode
+750: the Galaxy Map tile cache (<code>tile_cache.dir</code>, default
+<code>/var/cache/planetgen/tiles</code>) and the Generate jobs (<code>jobs.dir</code>,
+default <code>/var/lib/planetGen/jobs</code>). On Linux, <code>install.sh</code> and
+<code>update.sh</code> create both (<code>examples/apache/create-cache-dir.sh</code>), and
+move jobs left in the old default, <code>/var/lib/planetgen/jobs</code>, into the
+new one (a running job stays until it finishes).</p>
+</li>
+<li>
+<p><strong>Root does not trust the folders <code>config.json</code> names (SEC.44).</strong> The Settings
+page can rewrite <code>config.json</code>, so <code>create-cache-dir.sh</code>, <code>set-permissions.sh</code>,
+<code>setup-debug-log.sh</code> and the <code>update.log</code> start ask <code>examples/apache/rootpaths.py</code>
+before they make, re-own or write into the tile cache, the jobs folder, the
+debug log or the log folder. A path passes when it is plain (letters, digits and
+<code>_ . / + @ : -</code>), sits under <code>/var/lib</code>, <code>/var/cache</code>, <code>/var/log</code>, <code>/srv</code>, <code>/opt</code>, a home
+folder (<code>/home</code>, <code>/Users</code>: a user may install there on a shared machine, so
+the folders on the way may be the user's, never the web user's, and none may
+start with a dot), the checkout or a folder listed in root's
+<code>PLANETGEN_ROOT_PATH_PARENTS</code>, is not a system service's folder, has no
+symbolic link on the way, has no folder above it that the web user can
+change (root-owned elsewhere), and, if it exists, is already the web user's, left by an
+earlier run or empty. A refused folder is skipped with a warning; the install or
+update goes on. A folder given in root's own environment
+(<code>PLANETGEN_TILE_CACHE_DIR</code>, <code>PLANETGEN_JOBS_DIR</code>, <code>PLANETGEN_LOG_FILE</code>,
+<code>PLANETGEN_LOG_DIR</code>) is the operator's and is not checked.</p>
+</li>
+<li>
+<p><strong>The code belongs to root; the web user owns only its own folders
+(SEC.37).</strong> <code>install.sh</code> and <code>update.sh</code> run git, Python and the scripts in
+the checkout (<code>/var/lib/planetGen</code>) as root, so nothing there that the web
+user can write may ever run as root. Everything in the checkout is root's
+with the web user's group (<code>www-data</code> on Debian and Ubuntu), read-only to
+the web user: directories 750, files 640, scripts and <code>*.py</code> files 750.
+Only the <code>state/</code> directory (770: the maintenance flag, the secret key,
+the backups and <code>config.json</code>), the Generate jobs directory and the tile
+cache and log folders belong to the web user (<code>www-data:www-data</code>).
+<code>config.json</code> lives in <code>state/</code> so the Settings page can replace it, and
+<code>/var/lib/planetGen/config.json</code> is a root-owned link to it; the first
+<code>update.sh</code> after this change moves an old plain <code>config.json</code> there. The
+bytecode is compiled as root. A fresh <code>install.sh</code> and an <code>update.sh</code> end
+with the same ownership because both run <code>set-permissions.sh</code>. The virtual environment (<code>/usr/local/planetgen/venv</code>) and the
+NLTK corpus stay root's, since <code>install.sh</code> and <code>update.sh</code> run their
+Python as root. The web server is kept out of the checkout by the
+directory rules in the example Apache site: nothing is served from disk
+but <code>static/</code>, and nothing runs but the WSGI app. The debug log, when
+<code>debug</code> is on, belongs to the app's account, mode 0660. On Linux
+<code>install.sh</code> and <code>update.sh</code> set all of this (<code>set-permissions.sh</code>,
+<code>setup-debug-log.sh</code>); the macOS guide gives the manual equivalent.</p>
+</li>
+<li>
+<p><strong>Redis settings.</strong> Redis holds the work queue, rate limits and
+login lockouts, and out of the box keeps nothing on disk between
+saves, so a crash loses all of it. <a href="https://github.com/dwhagar/planetGen/blob/main/examples/redis/planetgen.conf"><code>examples/redis/planetgen.conf</code></a>
+turns on the append-only file (<code>appendonly yes</code>, <code>appendfsync everysec</code>), <code>maxmemory-policy noeviction</code>, a <code>maxmemory 4gb</code> guard and
+a loopback-only <code>bind</code>. Add those lines to your Redis config (on Debian
+and Ubuntu <code>/etc/redis/redis.conf</code>, or end it with <code>include /path/to/planetgen.conf</code>) and restart Redis. <code>install.sh</code> and
+<code>update.sh</code> check the running server and, for each setting that is off,
+print the exact line to add; they never edit your Redis config. One
+Redis serves everything. Give it a user with a password and switch
+the passwordless <code>default</code> user off (<a href="https://github.com/dwhagar/planetGen/blob/main/examples/redis/planetgen-acl.conf"><code>examples/redis/planetgen-acl.conf</code></a>
+has the lines): loopback keeps the network out, not the other users of the
+machine, and a queued job names a function a worker runs. The steps, in
+order, for a new and for an existing install, are in
+<a href="../repo/INSTALL.html">INSTALL.md</a> (&quot;Give Redis a user and a password&quot;);
+<code>redis.url</code> then carries the password
+(<code>redis://planetgen:PASSWORD@127.0.0.1:6379/0</code>). <code>install.sh</code> and
+<code>update.sh</code> warn, with those lines, while the passwordless user is on; the
+warning goes away when the connection logs in as a user of its own.</p>
+</li>
+<li>
+<p><strong>The NLTK <code>words</code> corpus</strong> somewhere the app's account can read:
+<code>/usr/local/share/nltk_data</code> on Linux and macOS, or a folder named by
+<code>NLTK_DATA</code>.</p>
+</li>
+<li>
+<p><strong>An optional population pass.</strong> After the database step, the install
+and update scripts ask whether to run <code>planetgen population</code>
+(species, civilizations, territories): y/N, default N after 30
+seconds, and skipped when there is no terminal or console to ask on.
+<code>POPULATION=1</code> runs it without asking. It
+can be run by hand any time.</p>
+</li>
+</ul>
+<h2 id="behind-a-reverse-proxy-proxy_fix">Behind a reverse proxy: <code>proxy_fix</code></h2>
+<p>With Apache and mod_wsgi, Apache owns the client's connection, so the app
+sees the client's real address and whether the request came over HTTPS.
+With nginx, Caddy or Apache's <code>mod_proxy</code> in front of gunicorn,
+the app only sees the proxy. Then:</p>
+<ul>
+<li>every visitor has the proxy's address, so they all share one
+rate-limit budget, and a few visitors can get everyone a 429;</li>
+<li>every request looks like plain HTTP, so the app never sends
+<code>Strict-Transport-Security</code>;</li>
+<li>the debug log records the proxy's address for every request.</li>
+</ul>
+<p><code>config.json</code>'s <code>proxy_fix</code> fixes this. Each field is the number of
+proxies to trust for one header:</p>
+<pre><code class="language-json">&quot;proxy_fix&quot;: {&quot;x_for&quot;: 1, &quot;x_proto&quot;: 1, &quot;x_host&quot;: 0}
+</code></pre>
+<p><code>x_for</code> takes the client address from <code>X-Forwarded-For</code>, <code>x_proto</code> the
+scheme from <code>X-Forwarded-Proto</code>, <code>x_host</code> the host from
+<code>X-Forwarded-Host</code>. All three are 0 by default, which changes nothing.
+The environment variables <code>PLANETGEN_PROXY_FIX_X_FOR</code>, <code>_X_PROTO</code> and
+<code>_X_HOST</code> override the file. See <a href="../reference/config.html"><code>config.md</code></a>.</p>
+<p>Rules:</p>
+<ul>
+<li>Use 1 for one proxy on the same machine, which is every guide here.
+Leave <code>x_host</code> at 0: every example passes the original <code>Host</code> header
+through.</li>
+<li>Only turn it on when the app server can be reached <strong>only</strong> through
+that proxy: a Unix socket, or <code>127.0.0.1</code>. Anyone who can reach the app
+server directly can set these headers and choose their own address.</li>
+<li>The proxy must set or append the headers. nginx, Caddy and Apache's
+<code>mod_proxy</code> do, as configured in the examples.</li>
+<li>Leave it at 0 under Apache + mod_wsgi.</li>
+</ul>
+<p>Check it: request a page over HTTPS and look for
+<code>Strict-Transport-Security</code> in the response. With <code>debug</code> on, the debug
+log's <code>API request: ... from &lt;address&gt;</code> lines should show the client's
+address, not <code>127.0.0.1</code>.</p>
+<h2 id="mysql-accounts">MySQL accounts</h2>
+<p>planetGen needs MySQL 8.0.19 or later (MariaDB is not supported). One
+account is used everywhere: the generation CLIs, <code>planetgen.cli.migrate</code> (run by
+<code>install.sh</code> and <code>update.sh</code>), and the web app's reads and writes. There
+is no separate read-only or write account to configure:
+<code>WRITE_MYSQL_CONFIG</code> and <code>CONTROL_MYSQL_CONFIG</code> reuse <code>MYSQL_CONFIG</code>
+(<code>src/planetgen/api/config.py</code>). Set it once in <code>config.json</code>'s <code>mysql</code>
+section (or <code>PLANETGEN_MYSQL_*</code>; see <a href="../reference/config.html"><code>config.md</code></a>).</p>
+<p>That account creates and changes the schema, so it needs full rights on
+the game database (<code>mysql.database</code>, default <code>planetgen</code>), on the
+<strong>control schema</strong> (<code>control_database</code>, default <code>planetgen_control</code>,
+which <code>planetgen.cli.migrate</code> creates: admin logins, sessions, API keys, audit
+log; see <a href="../reference/database-schema.html#the-control-schema"><code>database-schema.md</code></a>),
+and on any other game databases that share the prefix. For example:</p>
+<pre><code class="language-sql">CREATE DATABASE planetgen CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'planetgen'@'localhost' IDENTIFIED BY 'a long random password';
+GRANT ALL PRIVILEGES ON `planetgen%`.* TO 'planetgen'@'localhost';
+</code></pre>
+<p>Use <code>'planetgen'@'%'</code> (or the web host's address) when MySQL runs on
+another machine. If you want the web app on a less privileged account
+than the one <code>install.sh</code> runs as, give the web app's process its own
+<code>PLANETGEN_MYSQL_USER</code>/<code>_PASSWORD</code>. That account still needs <code>SELECT</code>,
+<code>INSERT</code>, <code>UPDATE</code> and <code>DELETE</code> on the game and control schemas, because
+the admin pages and the API's write endpoints write through it.</p>
+<h2 id="the-first-admin-login">The first admin login</h2>
+<p>The first <code>planetgen.cli.migrate</code> run against an empty control schema creates the
+admin <code>admin</code> with a random password and prints it once, in a boxed
+block (on Linux, in <code>install.sh</code>'s step 2/8). Only its hash is stored.
+Log in at <code>https://&lt;your site&gt;/login</code>; you are sent to <code>/account</code> to
+choose your own username and password, and the other admin pages stay
+locked until you do. If the password is lost, see
+<a href="../reference/api.html#resetting-the-admin-login"><code>api.md</code></a>.</p>
+<h2 id="updating-a-running-site">Updating a running site</h2>
+<p><code>sudo ./update.sh</code> takes the <strong>update guard</strong> (<code>planetgen.cli.update_guard</code>, <code>planetgen/admin/updateguard.py</code>)
+before it changes anything, so the only thing that runs is the update:</p>
+<ol>
+<li><strong>It lists the running and queued work</strong> (a Generate job, a <code>planetgen</code> run from the command line, jobs on the
+shared queues, an orbital update, a Galaxy Map warm-up from an earlier update) and <strong>stops, having changed and
+canceled nothing, unless you agree to cancel it</strong> (DB.29). On a terminal it asks (y/N) and waits 30 seconds:
+silence is a no. A run started by systemd or cron, or with no terminal, asks nothing and takes that as no: it
+refuses with exit status 1 and names the work; add <code>--yes</code> to cancel it: <code>sudo ./update.sh --yes</code>. Each piece is stopped through its own
+cancel path and the update waits (up to 10 minutes) until none is left; one that does not stop is reported and the update stops before any change.</li>
+<li><strong>It closes the site</strong>: maintenance mode on with the cause &quot;update&quot; and a lock, <code>update.lock</code>, in the state
+folder (<code>/var/lib/planetGen/state</code>). Visitors get the &quot;being updated&quot; page; admins can still sign in.</li>
+<li><strong>Nothing new starts</strong> until the update ends: the Generate page and the API refuse to queue work (&quot;the site is
+being updated&quot;), the queue's workers exit with status 75, and the orbital update exits with 75 without moving
+anything (its timer simply tries again at its next firing).</li>
+<li><strong>A good update opens the site again</strong> at its end (a closing an admin made earlier stays; the conversion to the
+spherical sector grid keeps the site closed until the new Galaxy Map is built). <strong>A failed update leaves the
+site closed</strong>, says which step failed and how to open it, because the database may be half migrated:
+<code>python3 -m planetgen.cli.maintenance off</code>. The lock is released, so <code>./update.sh</code> can be run again.</li>
+</ol>
+<p>A job whose worker was killed (the out-of-memory killer, a restart) used to stay &quot;running&quot; in Redis for ever and hold
+the update; the guard and every worker now clear such a job when they start. When a job is stuck some other way,
+<code>sudo ./update.sh --reset-jobs</code> (or <code>python3 -m planetgen.cli.reset_jobs</code> on its own, <code>--dry-run</code> to only look) stops
+what the guard lists, kills the queue workers on the machine, and empties the jobs table and the work lease of the
+control database and the queues in Redis (the RQ keys only: the admin's worker count and the caches stay). It cancels
+without asking, so use it when nothing needs to finish.</p>
+<p><code>python3 -m planetgen.cli.migrate</code> run by hand does the same when it has something to migrate (<code>--yes</code>
+works there too). <code>update.sh</code> never edits your Redis configuration or your Apache site.</p>
+<h2 id="after-deploying">After deploying</h2>
+<p>Run the <a href="server-checklist.html">server checklist</a>. It has the commands
+for each platform.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

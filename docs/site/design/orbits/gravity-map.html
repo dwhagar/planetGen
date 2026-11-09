@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gravity map: the field of a sector as a heat map - planetGen docs</title>
+<meta name="description" content="Status (2026-10-15): decided; not built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/orbits/gravity-map.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/orbits/gravity-map.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="gravity-map-the-field-of-a-sector-as-a-heat-map">Gravity map: the field of a sector as a heat map</h1><p class="meta">docs/design/orbits/gravity-map.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#what-is-drawn">What is drawn</a></li><li style="margin-left:0px"><a href="#how-it-is-computed">How it is computed</a></li><li style="margin-left:0px"><a href="#the-smooth-galaxy-and-the-generated-stars-map383">The smooth galaxy and the generated stars (MAP.383)</a></li><li style="margin-left:0px"><a href="#colours">Colours</a></li><li style="margin-left:0px"><a href="#the-size-of-a-gradient-measure-comes-from-the-orbital-thresholds-planned">The size of a gradient measure comes from the orbital thresholds (planned)</a></li><li style="margin-left:0px"><a href="#items">Items</a></li></ul></details>
+<p><strong>Status (2026-10-15):</strong> decided; not built. GEN.198, GEN.199, PERF.72, TEST.131 and MAP.167 to MAP.170 are open. This is the third phase of 9.0 (Boss folded 9.1 into 9.0 on 2026-11-05).</p>
+<p>Boss (2026-10-10 20:57Z): the orbits are worked out from point-mass
+vectors, so show &quot;a gravitational map of a sector, probably using colors
+and calculating it per zone ... the gravitational gradients of the vector
+field as kind of a heat map of the inside of the sector&quot;. Foundations are
+phase 2; the feature roll-out is phase 3 and phase 3 of 9.0 (9.1 was folded into 9.0 on 2026-11-05; its foundations are built in 8.2, 8.3 and 8.5).</p>
+<h2 id="what-is-drawn">What is drawn</h2>
+<p>The field has three useful scalars at every point, and the map offers each
+as a mode (one at a time, switchable in the map Menu):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Quantity</th>
+<th>Unit</th>
+<th>Reads as</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pull</td>
+<td>the size of the acceleration vector, |g|</td>
+<td>m/s^2</td>
+<td>where gravity is strong</td>
+</tr>
+<tr>
+<td>Well depth</td>
+<td>the potential, Phi</td>
+<td>m^2/s^2</td>
+<td>how deep the wells are</td>
+</tr>
+<tr>
+<td>Tidal strength (shown as <em>Stretch</em>)</td>
+<td>the size of the gradient of g (the tidal tensor's largest eigenvalue)</td>
+<td>1/s^2</td>
+<td>where space is stretched; Lagrange points show as saddles</td>
+</tr>
+</tbody>
+</table></div>
+<p>The gradient mode is what Boss called the gradients of the vector field.
+Lagrange and saddle points (where g is nearly zero but the gradient is not)
+are marked.</p>
+<h2 id="how-it-is-computed">How it is computed</h2>
+<ul>
+<li><strong>Zones.</strong> A sector (edge 4 pc, <code>DEFAULT_SECTOR_EDGE_PC</code>) is cut into
+equal zones; the default is 16 per edge (0.25 pc), a setting. The field
+is sampled at each zone's center.</li>
+<li><strong>Sources.</strong> Every point mass in the sector and its neighbours: <strong>one per
+star system</strong> (its stars, planets and moons together at the system's place,
+which changes the field at a zone's size by under 0.1 percent; MAP.386,
+<code>db/gravity_sources.py</code>), stand-alone black holes and neutron stars (the
+same table the orbital update reads); rogue planets, comets and asteroid
+fields are below the tolerance and left out. The System Map's orbital-plane
+version reads the bodies themselves (MAP.169). The galaxy's own smooth
+potential (GEN.115) is the background, joined by the rule in &quot;The smooth
+galaxy and the generated stars&quot; below (MAP.383). Plummer softening keeps a
+zone that holds a source finite.</li>
+<li><strong>Near and far.</strong> Sources close to a zone are summed exactly; distant
+ones are summed as one point per cell (mass and center of mass) of a
+hierarchy with 0.5 pc leaf cells, the way a tree code does
+(MAP.385, <code>galaxy/gravity_tree.py</code>; the MAP.151 region is the data window and
+holds no masses). The cost study (PERF.72) fixes the split, the opening
+angle (0.3 to 0.7, chosen to a pair budget) and checks it against the exact
+sum; the kernel is <code>galaxy/gravity_kernel.py</code> (MAP.384).</li>
+<li><strong>Cache.</strong> One file per sector in a cache directory (<code>galaxy/gravity_cache.py</code>,
+MAP.387), keyed by a stamp of the rule, the settings, the potential and, for
+every sector within 4 edges, its <code>modified_at</code> and its rows' count and latest
+<code>modified_at</code>. The orbital update (GEN.105) writes the rows it moves, so a
+moved star changes the stamp of the grids that reach its sector and of no
+other, and the next read works only those out again. The file holds the
+<em>local</em> field (generated stars less the smooth galaxy's own stars, 16^3 zones,
+ten float32 values each: the pull, the potential and the tidal tensor); the
+reader adds the smooth galaxy at the zone. The job is <code>db/gravity_grid.py</code> (it
+imports numba, so a worker runs it; the web app reads the files and never
+imports it). Derived data: never part of the galaxy, no migration.</li>
+<li><strong>Slices and volumes.</strong> The map shows one slab (a plane slice) at a time
+and can show the whole volume as transparent layers; on the System Map it
+is the orbital plane.</li>
+</ul>
+<h2 id="the-smooth-galaxy-and-the-generated-stars-map383">The smooth galaxy and the generated stars (MAP.383)</h2>
+<p>The smooth potential (<code>galaxy/potential.py</code>, GEN.115) already holds the mass of the stars the generator draws: its disks, bulge and halo are fitted to the
+same density model. Adding the generated stars on top of it counts that mass twice. Measured on generated blocks (<code>reports/map383-background-rule-2026-11-05.md</code>),
+the double count is small in the pull (0.02 percent of the smooth pull at the solar circle, 0.3 percent in the bulge) and in the potential, and
+<strong>large in the tidal strength: the tidal norm is off by about 36 percent at the median and 67 to 80 percent at the 95th percentile</strong>, because the smooth tidal
+trace is the mean stellar density (<code>4 pi G rho</code>) and a sum of point masses has none between the stars.</p>
+<p>The rule (points 1 to 4 and 6 are MAP.383's; point 5 is a recommendation MAP.167 confirms):</p>
+<ol>
+<li><strong>Field = smooth galaxy + generated stars - the smooth galaxy's own stars in the same sectors.</strong> The last term is each generated sector's share of the
+smooth model's stellar mass, spread through the sector as a cube and softened by the zone edge, and summed by the same tree as the generated stars.
+Equivalent: the smooth field plus the <em>fluctuation</em> of the generated stars about their mean.</li>
+<li><strong>The mass subtracted is the smooth potential's own stellar density</strong> (the Poisson density of its disk and sphere terms, closed forms), not the density
+model's expected mass. The two differ by 15 to 19 percent where measured (solar circle: potential 0.026 against model 0.031 Msun per pc^3; bulge: 3.68
+against 3.10) because the potential's disks and spheres are stand-ins (GP1 to GP3). Using the potential's own mass changes the tidal norm by 5 to 7
+percent against subtracting the model's, and removes that mismatch from the map instead of showing it as stars that are not there.
+GEN.1285 (<code>galaxy/stellar_table.py</code>) closes the mismatch at its source: the potential's stellar density, pull and potential now include a table of the
+density model's difference from the profiles, so the potential's own stellar mass is the model's to about 2 percent and the subtraction here and the
+density model agree. The cache stamp reads the table, so files made before it are made again.</li>
+<li><strong>A sector that is not generated adds nothing and subtracts nothing</strong> (its generated and subtracted mass would be equal), so the near region needs no
+expected-mass cells for holes.</li>
+<li><strong>Dark halo, gas, black hole and every other smooth term stay in the background untouched.</strong></li>
+<li><strong>The map has two readings of each quantity.</strong> The <em>total</em> field (the rule above) and the <em>local</em> field (generated stars minus their mean). In the pull
+the local field is 0.03 to 0.09 percent of the total, so a total-pull map shows the galaxy and none of the stars; the tidal local field is as large as the
+smooth one (100 to 130 percent). The Pull and Well depth modes therefore draw the local field by default with the total as a switch; Tidal strength draws the total.</li>
+<li><strong>A generated sector holds less than the model expects in the sample measured</strong> (see the report: 85 percent of the systems and 78 percent of the mass in a
+125-sector solar-circle block, 98 and 95 percent in one bulge sector), so the local field shows a small real deficit. The rule leaves it visible on
+purpose; the generator side is filed as its own bug.</li>
+</ol>
+<h2 id="colours">Colours</h2>
+<p>A perceptual, colour-blind-safe ramp on a log scale, with the same rule as
+the Galaxy Map tint: density of the effect sets transparency and no fill
+goes above 50% opacity, so stars and routes stay readable. The legend states
+the unit under the Customary or metric choice (UX.36 number formatting).</p>
+<h2 id="the-size-of-a-gradient-measure-comes-from-the-orbital-thresholds-planned">The size of a gradient measure comes from the orbital thresholds (planned)</h2>
+<p>Boss (2026-10-10 22:14Z): &quot;add note to TODO for the future plan of gravitational map, use the preset minimum movement values from the orbital system to build the size of each gradient measure.&quot;</p>
+<p>The orbital update system already fixes, per scale, the smallest movement that counts (<code>THRESHOLDS_M</code> in <code>physics/position.py</code>, section 3 of <a href="orbital-updates.html">orbital-updates.md</a>, pinned by <code>test_update_due.py</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scale</th>
+<th>Preset minimum movement</th>
+<th>In metres</th>
+<th>Objects</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Galactic</td>
+<td>0.01 mpc (about 2 AU, 3.1e8 km)</td>
+<td><code>0.01 * PARSEC_M / 1000</code></td>
+<td>stars, black holes, neutron stars, stand-alone bodies</td>
+</tr>
+<tr>
+<td>System</td>
+<td>0.01 AU (about 1.5e6 km)</td>
+<td><code>0.01 * AU</code></td>
+<td>planets, companion stars</td>
+</tr>
+<tr>
+<td>Planetary</td>
+<td>100,000 km</td>
+<td><code>1.0e8</code></td>
+<td>moons and other satellites</td>
+</tr>
+</tbody>
+</table></div>
+<p>The plan, to be settled in GEN.198, GEN.199 and PERF.72:</p>
+<ul>
+<li><strong>Step of a gradient measure.</strong> The tidal tensor and the size of the gradient are taken by differencing the field over a step. That step is the preset minimum movement of the scale being drawn: galactic for a sector grid, system for a System Map grid, planetary for a planet or moon neighbourhood. Below it the orbital system itself says an object has not moved, so a finer difference measures nothing the rest of the galaxy can see.</li>
+<li><strong>Size of a zone.</strong> A zone edge is a whole number of those steps, so the gradient of a zone is the difference of two samples that are a real number of steps apart. The default sector grid (16 zones of 0.25 pc over a 4 pc edge) is 250 mpc, which is 25,000 galactic steps. A zone is never finer than one step; a setting that asks for finer zones is refused.</li>
+<li><strong>When a zone changes.</strong> A source that has not moved by its own threshold has not moved in the orbital system, so it does not change the grid: the cache (GEN.199) is thrown away only for the zones a source left or entered once it passes its threshold, which is the same event that sets its next update due time (GEN.106).</li>
+<li><strong>One set of numbers.</strong> The grid reads the thresholds from the same constants as the orbital update, not a copy, so changing a threshold there changes the gradient step and the cache rule together.</li>
+</ul>
+<h2 id="items">Items</h2>
+<p>Built: the rule (MAP.383), kernel (MAP.384), hierarchy and lists (MAP.385), point masses (MAP.386), grid job and cache (MAP.387), and the perf guard
+(PERF.243, <code>tests/test_perf_gravity_grid.py</code>: the list fits the pair budget exactly on every machine, the time is held against the machine's own pair rate,
+the 0.25 s ceiling of the densest sector is opt-in with <code>PLANETGEN_RUN_PERF_BENCHMARK=1</code>), the endpoint (API.24), and the Sector Map layer (MAP.168,
+<code>static/gravitylayer.js</code>). and the System Map layer (MAP.169, <code>static/systemgravity.js</code>). Still open: the rest below.</p>
+<p><strong>The Sector Map layer (MAP.168).</strong> The View menu's <em>Gravity</em> row (off at first; <code>show=gravity</code> in the address, with <code>gravity=pull|depth|tidal</code> and <code>gslab=&lt;1..16&gt;|all</code>) draws
+one slab of the sector's 16 x 16 x 16 grid as colored zones, or every slab thinly. The numbers are the <strong>total</strong> field (Boss, 2026-11-05). The smooth galaxy is 99.9
+percent of the pull and its slope across a sector is 700 to 900 times the stars' wells in the depth, so colors over the total are one ramp: the colors come from
+<code>field=centered</code> (the smooth galaxy held at the sector's center), stretched over the sector's own 2nd to 98th percentile on a log scale (at most 4 decades below the
+top), and the Key says so and gives the smooth galaxy's level and its change across the sector. A sector with no variation draws nothing and says that. The saddle
+points show as small white diamonds that can be hovered. No <em>stars only</em> switch (Boss, 2026-11-06). Measured on real sector grids in
+<code>reports/gravity-range-2026-11-06/</code>.</p>
+<p><strong>The wording (UX.94).</strong> The reader sees <em>Pull</em> (how hard gravity tugs on a ship at a spot), <em>Well depth</em> (how far down in a gravity well the spot lies) and <em>Stretch</em> (how
+much gravity pulls a ship apart, nose from tail; the tidal strength, <code>tidal</code> in the address and the API), each with a one-line explanation under the buttons and as the button's tip.
+Numbers are written the way the site writes them (<code>numberformat.js</code>): the pull through the acceleration unit ladder, so it follows the Metric or Customary choice (meters or feet
+per second squared), the depth and the stretch in their scientific units to three figures. Both maps' Map help explains the modes, what the colors cover (the view's middle 96%
+of values on a log scale), the Hill spheres and what a saddle point is (a spot where pulls cancel, so a ship could hover, still stretched). No item code is in any of the words.</p>
+<p><strong>The System Map layer (MAP.169).</strong> The same row on the System Map draws the orbital plane of the scene on show: the point-mass field of the stars, planets and moons drawn in it
+(each softened by its own radius; the galaxy's pull is below what a system can show), in the same three modes, colors and Key. The map is a log radial diagram (or one
+linear scale in a moon system), so the picture is turned back into the kilometres each pixel stands for before the field is worked out (<code>pixelToKm</code>), and drawn only
+between the first and last orbit, where the scale stands for a distance. The Hill sphere of each planet (by its star, or both stars of a close pair) or moon (by its planet),
+<code>d (m / 3M)^(1/3)</code>, is outlined and mapped forward point by point; the five Lagrange points of each such pair (<code>physics/lagrange_geometry.py</code>'s geometry, repeated in
+<code>systemgravity.js</code> for the page) are marked, L4 ahead along the stored motion. The markers carry <code>data-masskg</code>, <code>data-vxkms</code>/<code>data-vykms</code> and the scene <code>data-hostkg</code>.</p>
+<p>GEN.198 field evaluator; TEST.131 its tests; PERF.72 cost study; GEN.199
+per-zone grid and cache (phase 2). MAP.167 umbrella; API.24 endpoint;
+MAP.168 Sector Map layer; MAP.169 System Map layer; UX.94 wording and
+legend (phase 3, phase 3 of 9.0). MAP.170 Galaxy Map layer (phase 3+).
+Course planning (NAV.6) does not use the evaluator: it plans around keep-out spheres.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

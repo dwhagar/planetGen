@@ -1,0 +1,2602 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture: how planetGen fits together - planetGen docs</title>
+<meta name="description" content="This document is the map of the program.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/architecture/architecture.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/architecture/architecture.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="architecture-how-planetgen-fits-together">Architecture: how planetGen fits together</h1><p class="meta">docs/design/architecture/architecture.md</p><details class="toc"><summary>On this page (15 headings)</summary><ul><li style="margin-left:0px"><a href="#contents">Contents</a></li><li style="margin-left:0px"><a href="#the-big-picture">The big picture</a></li><li style="margin-left:0px"><a href="#map-of-the-repository">Map of the repository</a></li><li style="margin-left:14px"><a href="#top-level">Top level</a></li><li style="margin-left:14px"><a href="#scripts">scripts/</a></li><li style="margin-left:14px"><a href="#examples">examples/</a></li><li style="margin-left:14px"><a href="#srcplanetgen">src/planetgen/</a></li><li style="margin-left:14px"><a href="#srchtml">src/html/</a></li><li style="margin-left:14px"><a href="#srctests">src/tests/</a></li><li style="margin-left:14px"><a href="#githubworkflows-and-changes">.github/workflows/ and changes/</a></li><li style="margin-left:0px"><a href="#flow-1-generating-a-galaxy">Flow 1: generating a galaxy</a></li><li style="margin-left:0px"><a href="#flow-2-storing-and-migrating-the-database">Flow 2: storing and migrating the database</a></li><li style="margin-left:0px"><a href="#flow-3-serving-a-page-and-a-map">Flow 3: serving a page and a map</a></li><li style="margin-left:0px"><a href="#flow-4-admin-login-and-background-generate-jobs">Flow 4: admin login and background Generate jobs</a></li><li style="margin-left:0px"><a href="#flow-5-install-update-and-releases">Flow 5: install, update and releases</a></li></ul></details>
+<p>This document is the map of the program. It says which file holds what,
+and it traces the main flows (generating a galaxy, storing it, serving it,
+running admin jobs, shipping a release) through those files. Use it to
+find where something lives before you open the code.</p>
+<p>It does not repeat the reference docs. For details, follow the links:
+<a href="../../reference/api.html">api.md</a> (the JSON API), <a href="../../reference/database-schema.html">database-schema.md</a>
+(tables and columns), <a href="../../reference/html-interface.html">html-interface.md</a> (the web
+pages), <a href="../../reference/config.html">config.md</a> (<code>config.json</code>), <a href="../../reference/testing.html">testing.md</a>
+(the test suite) and <a href="../../deployment/README.html">deployment/</a> (servers).
+The other files in this folder are topic designs; they explain why a part
+works the way it does.</p>
+<p><strong>Keeping it current.</strong> A PR that adds, moves, renames or removes a module,
+script, workflow or top-level folder updates this file in the same PR. If a
+flow below changes shape (a new step, a new cache, a new process), update
+its diagram too. Each module's own docstring stays the detailed source of
+truth; this file only needs one line per module.</p>
+<h2 id="contents">Contents</h2>
+<ul>
+<li><a href="#the-big-picture">The big picture</a></li>
+<li><a href="#map-of-the-repository">Map of the repository</a>
+<ul>
+<li><a href="#top-level">Top level</a></li>
+<li><a href="#scripts">scripts/</a></li>
+<li><a href="#examples">examples/</a></li>
+<li><a href="#srcplanetgen">src/planetgen/</a></li>
+<li><a href="#srchtml">src/html/</a></li>
+<li><a href="#srctests">src/tests/</a></li>
+<li><a href="#githubworkflows-and-changes">.github/workflows/ and changes/</a></li>
+</ul>
+</li>
+<li><a href="#flow-1-generating-a-galaxy">Flow 1: generating a galaxy</a></li>
+<li><a href="#flow-2-storing-and-migrating-the-database">Flow 2: storing and migrating the database</a></li>
+<li><a href="#flow-3-serving-a-page-and-a-map">Flow 3: serving a page and a map</a></li>
+<li><a href="#flow-4-admin-login-and-background-generate-jobs">Flow 4: admin login and background Generate jobs</a></li>
+<li><a href="#flow-5-install-update-and-releases">Flow 5: install, update and releases</a></li>
+</ul>
+<h2 id="the-big-picture">The big picture</h2>
+<p>planetGen has three layers that share one Python package:</p>
+<ol>
+<li><strong>Generation.</strong> <code>planetgen</code> and the <code>generation/</code>, <code>physics/</code>, <code>galaxy/</code>,
+<code>population/</code>, <code>names/</code> and <code>describe/</code> packages under <code>src/planetgen/</code>
+build stars, planets, sectors and whole galaxies from physics models
+and random draws.</li>
+<li><strong>Storage.</strong> <code>src/planetgen/db/store.py</code> writes those objects into a
+MySQL database (<code>schema.sql</code>), reads them back, and migrates old
+databases forward. A second, separate schema (<code>control_schema.sql</code>)
+holds admin logins.</li>
+<li><strong>Serving.</strong> One Flask app (<code>planetgen/web/app.py</code>, started by <code>src/html/wsgi.py</code>) serves both the JSON API
+(<code>/api/...</code>) and the HTML pages. The pages never query the database
+themselves; they call the API in-process through <code>planetgen/web/lib/apiclient.py</code>,
+and the API reads through <code>planetgen.db.query</code> and <code>store.py</code>. Redis sits beside
+MySQL: the work queue (RQ), the rate limits, the login throttle and a running job's
+progress live there (see <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a>).</li>
+</ol>
+<p>Around those sit the installers (<code>install.sh</code> and <code>update.sh</code>), maintenance tools (<code>planetgen.cli.orbits</code>,
+<code>planetgen.cli.migrate</code>, ...), the tests, and the release workflows.</p>
+<pre><code class="language-mermaid">flowchart LR
+    CLI[&quot;planetgen&lt;br/&gt;(CLI)&quot;] --&gt; SO[&quot;generation/, physics/, galaxy/&lt;br/&gt;(src/planetgen/)&quot;]
+    SO --&gt; DB[&quot;store.py&quot;]
+    DB --&gt; MySQL[(&quot;MySQL&lt;br/&gt;content schema&lt;br/&gt;+ control schema&quot;)]
+    Browser[&quot;Browser&quot;] --&gt; WSGI[&quot;src/html/wsgi.py&quot;]
+    WSGI --&gt; Web[&quot;src/planetgen/web/&lt;br/&gt;HTML pages&quot;]
+    Web --&gt; Client[&quot;planetgen/web/lib/apiclient.py&lt;br/&gt;(in-process)&quot;]
+    Client --&gt; API[&quot;src/planetgen/api/&lt;br/&gt;JSON API&quot;]
+    API --&gt; Q[&quot;planetgen.db.query&quot;]
+    Q --&gt; MySQL
+    API --&gt; DB
+    Web -. &quot;admin Generate&quot; .-&gt; Jobs[&quot;web/jobs.py -&gt; RQ -&gt; web/job_runner.py&quot;]
+    Jobs --&gt; CLI
+</code></pre>
+<h2 id="map-of-the-repository">Map of the repository</h2>
+<h3 id="top-level">Top level</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/generate.py"><code>planetgen</code></a></td>
+<td>The single generation CLI, with six subcommands: <code>system</code>, <code>sector</code>, <code>galaxy</code>, <code>plan</code>, <code>phenomenon</code> and <code>population</code> (the population and politics pass over what is stored). <code>galaxy</code> also runs that pass as one of its stages; <code>sector</code> and <code>phenomenon</code> only generate (PERF.124). Also the library functions other code calls: <code>generate_sector</code>, <code>generate_sector_neighborhood</code>, <code>build_skeleton</code>, <code>scatter_bright_stars</code>. Installed as the <code>planetgen</code> console script (<code>setup.py</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/install.sh"><code>install.sh</code></a></td>
+<td>One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, <code>planetgen.cli.migrate</code>, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/update.sh"><code>update.sh</code></a></td>
+<td><code>git reset --hard</code> to the branch tip, then the same checks as <code>install.sh</code>, changing only what is missing, but never the population pass (run <code>planetgen population</code> by hand). Safe to run on a schedule.</td>
+</tr>
+<tr>
+<td><code>setup.py</code>, <code>pyproject.toml</code></td>
+<td>The Python package (<code>planetgen</code>, from <code>src/</code>) and its dependency floors and extras (<code>api</code>, <code>test</code>, <code>browser</code>).</td>
+</tr>
+<tr>
+<td><code>INSTALL.md</code>, <code>config.schema.json</code></td>
+<td>The installation guide, and the JSON schema <code>config.json</code> is checked against.</td>
+</tr>
+<tr>
+<td><code>requirements.lock</code>, <code>requirements-server.lock</code></td>
+<td>Hash-pinned dependency locks, written by <code>scripts/lock-requirements.sh</code>.</td>
+</tr>
+<tr>
+<td><code>config.json.example</code></td>
+<td>Template for the per-deployment <code>config.json</code> (gitignored). See <a href="../../reference/config.html">config.md</a>.</td>
+</tr>
+<tr>
+<td><code>pytest.ini</code></td>
+<td>Puts <code>src</code> on the path for the tests, sets the 15-minute per-test timeout and declares the markers (<code>db</code>, <code>slow</code>, <code>browser</code>, <code>generation</code>, <code>heavy</code>, <code>area_*</code>, ...).</td>
+</tr>
+<tr>
+<td><code>CHANGELOG.md</code>, <code>README.md</code></td>
+<td>Release history and the project front page. Both are stamped by the release flow, never edited for the version by hand.</td>
+</tr>
+<tr>
+<td><code>changes/</code></td>
+<td>Pending release notes, one file per PR. See <a href="#flow-5-install-update-and-releases">Flow 5</a>.</td>
+</tr>
+<tr>
+<td><code>docs/</code></td>
+<td>Reference docs, <code>design/</code> topic designs, <code>analysis/</code> reviews, <code>deployment/</code> server guides, <code>TODO.md</code> (open work) and <code>plan/</code> (one plan per phase of it).</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="scripts">scripts/</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/deploy-common.sh"><code>scripts/deploy-common.sh</code></a></td>
+<td>Steps shared by <code>install.sh</code> and <code>update.sh</code> (sourced by both; <code>offer_population_pass</code> is the installer's alone): pick the Python, NLTK corpus, Apache modules or gunicorn launchd daemon, mod_wsgi check, import check, and <code>migrate_or_reset_db</code> (the y/N &quot;delete the galaxy instead?&quot; prompt), and <code>offer_population_pass</code> (the y/N &quot;run the population pass now?&quot; prompt, default No after 30 seconds, skipped with no terminal; <code>POPULATION=1</code> runs it without asking).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/install-python-deps.sh"><code>scripts/install-python-deps.sh</code></a></td>
+<td>Makes the libraries importable by the system Python: plain pip, or apt first on an externally managed (PEP 668) Python, or a venv on macOS. <code>--check</code> installs only what is missing or too old.</td>
+</tr>
+<tr>
+<td><code>scripts/probe_requirements.py</code></td>
+<td>Reports each requirement as ok, missing, old or broken. Used by <code>install.sh</code> and <code>update.sh</code>. Standard library only.</td>
+</tr>
+<tr>
+<td><code>scripts/lock_pins.py</code></td>
+<td>Reads <code>requirements.lock</code> for <code>install-python-deps.sh</code> (constraints, resolve). Standard library only.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/test.py"><code>scripts/test.py</code></a></td>
+<td>Picks and runs a slice of the test suite (<code>changed</code>, <code>quick</code>, <code>full --check</code>, <code>budget</code>, ...; TEST.139). See <a href="../../reference/testing.html">testing.md</a>.</td>
+</tr>
+<tr>
+<td><code>scripts/generate_db_models.py</code></td>
+<td>Writes <code>planetgen/db/models.py</code> (SQLAlchemy <code>Table</code> declarations) from <code>schema.sql</code> (DB.11).</td>
+</tr>
+<tr>
+<td><code>scripts/check_redis_settings.py</code></td>
+<td>Warns about Redis server settings that do not suit planetGen (OPS.48); run by <code>install.sh</code> and <code>update.sh</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/build_architecture_map.py"><code>scripts/build_architecture_map.py</code></a></td>
+<td>Writes <code>docs/generated/architecture-map.html</code>, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); <code>--check</code> fails when a module of the package is missing from the page. Its page shell is <code>scripts/architecture_map/template.html</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/build_reference_pages.py"><code>scripts/build_reference_pages.py</code></a></td>
+<td>Writes, or with <code>--check</code> checks, the data of the References pages (<code>docs/references/overview.json</code>, <code>citations.json</code>, <code>papers.json</code>, <code>data.json</code>, <code>stand-ins.json</code> and <code>fitted.json</code>) from the reference list, the stand-in registry and the tuning targets; <code>papers.json</code> has a row for each source, with its field read from the journal, and its totals; <code>update.sh</code> runs it in step 3 (DOC.88, DOC.89).</td>
+</tr>
+<tr>
+<td><code>scripts/build_unit_ladders.py</code></td>
+<td>Writes the browser's copy of the unit ladders (<code>static/unitladders.js</code>) from <code>planetgen/util/ladders.py</code> (UX.23).</td>
+</tr>
+<tr>
+<td><code>scripts/build_unit_registry.py</code></td>
+<td>Writes the browser's copy of the unit registry (<code>static/unitregistry.js</code>: every unit, its kind, factor and offset, and <code>convert</code>) from <code>planetgen/physics/unit_registry.py</code> (UX.140).</td>
+</tr>
+<tr>
+<td><code>scripts/vendor_shoelace.py</code></td>
+<td>Copies the parts of Shoelace the site uses into <code>static/vendor/shoelace/</code>.</td>
+</tr>
+<tr>
+<td><code>scripts/build_todo_docs.py</code>, <code>scripts/todo_docs/</code></td>
+<td>Builds the three browsable TODO pages from the TODO sources.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/build_global_docs.py"><code>scripts/build_global_docs.py</code></a></td>
+<td>Rebuilds, or with <code>--check</code> checks, every global document in order (the architecture map, the plan pages, the docs index); only the TODO thread runs it, and the tests that compare them with their sources are the <code>globaldocs</code> tests, skipped unless <code>PLANETGEN_GLOBAL_DOCS=1</code> (DOC.69).</td>
+</tr>
+<tr>
+<td><code>scripts/bench_nav.py</code>, <code>scripts/star_type_by_radius.py</code></td>
+<td>Developer tools: times <code>nav_between</code> on a large synthetic galaxy (NAV.10); star types against distance from the core (GEN.133).</td>
+</tr>
+<tr>
+<td><code>scripts/lock-requirements.sh</code></td>
+<td>Rewrites <code>requirements.lock</code> with <code>uv</code>. Run by a developer after changing a requirement, never on a server.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/scripts/bump_version.py"><code>scripts/bump_version.py</code></a></td>
+<td>Turns <code>changes/</code> notes into releases: bumps <code>_version.py</code>, the README badge and <code>CHANGELOG.md</code> together. Also the PR check (<code>--check-pr</code>).</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="examples">examples/</h3>
+<p>Copy-and-edit configuration for each kind of server. The guides in
+<a href="../../deployment/README.html">deployment/</a> say which files to use.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>examples/apache/</code></td>
+<td>The Apache vhost (<code>planetgen.conf.example</code>) and the helpers <code>install.sh</code>/<code>update.sh</code> call: <code>set-permissions.sh</code>, <code>create-cache-dir.sh</code> (tile cache and jobs directories, via <code>deploy-paths.py</code>), <code>setup-debug-log.sh</code>, <code>apache-identity.sh</code>.</td>
+</tr>
+<tr>
+<td><code>examples/redis/</code></td>
+<td>The Redis settings planetGen needs (AOF every second, no eviction); <code>update.sh</code> only warns, it never edits the server's own config.</td>
+</tr>
+<tr>
+<td><code>examples/fail2ban/</code></td>
+<td>A fail2ban filter and jail for repeated failed logins.</td>
+</tr>
+<tr>
+<td><code>examples/nginx/</code>, <code>examples/caddy/</code></td>
+<td>Reverse-proxy configs for gunicorn behind nginx or Caddy.</td>
+</tr>
+<tr>
+<td><code>examples/macos/</code></td>
+<td>launchd plists (gunicorn, orbit update, update) and the Homebrew nginx config.</td>
+</tr>
+<tr>
+<td><code>examples/systemd/</code></td>
+<td>The gunicorn service and a drop-in that reloads the web server after an update.</td>
+</tr>
+<tr>
+<td><code>examples/maintenance/</code></td>
+<td>Scheduled maintenance: systemd timers and units for <code>planetgen.cli.orbits</code> (per database) and <code>update.sh</code>, <code>install-maintenance-timer.sh</code> (also makes launchd daemons on macOS).</td>
+</tr>
+<tr>
+<td><code>examples/systems/</code></td>
+<td>Sample system files for <code>planetgen system --system-file</code> (Solar System, Tatooine, ...). See <a href="../../reference/example-systems.html">example-systems.md</a> and <a href="../../reference/system-file-format.html">system-file-format.md</a>. Checked by <code>test_examples.py</code>.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="srcplanetgen">src/planetgen/</h3>
+<p>The package. Generation, physics, the galaxy, storage, the API and the pages all live under it; the groups below follow its folders.</p>
+<h4 id="package-root">Package root</h4>
+<p>The package root. The groups below are by role.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/_version.py"><code>_version.py</code></a></td>
+<td>The package version, stamped by the release workflow (never edited by hand).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/tuning.py"><code>tuning.py</code></a></td>
+<td>Constants specific to this program's design, not physical fact: generation-tuning knobs and probabilities.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgengeneration">src/planetgen/generation/</h4>
+<p>Building the objects a run creates, and the commands that run it. Generation code works in natural units and knows nothing about the database; <code>db/store.py</code> is the one place that converts and stores.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/__init__.py"><code>__init__.py</code></a></td>
+<td>Generation: building the objects a run creates, and the commands that run it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/belt.py"><code>belt.py</code></a></td>
+<td><code>AsteroidBelt</code>: an asteroid belt within a star system and its composition.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/binary.py"><code>binary.py</code></a></td>
+<td><code>BinaryStarProxy</code>: a close (P-type) binary treated as one central star for planet generation.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/bright_stars.py"><code>bright_stars.py</code></a></td>
+<td>Bright-star pre-placement: every star at least <code>tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL</code> bright is drawn and placed galaxy-wide right after <code>planetgen plan</code>, into <code>bright_stars</code>, while every sector stays unfilled.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/comet.py"><code>comet.py</code></a></td>
+<td><code>Comet</code>: a star-bound comet on a real Kepler or Barker orbit.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/config.py"><code>config.py</code></a></td>
+<td><code>SystemConfig</code>: every generation option for a system (mostly tri-state flags), from the CLI or a system file.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/directives.py"><code>directives.py</code></a></td>
+<td>Generation directives for a sector (GEN.96): minimums a run asks of a sector, such as &quot;at least 5 systems&quot;, &quot;at least 2 habitable worlds&quot; or &quot;at least 3 G-type stars&quot;.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/evolution.py"><code>evolution.py</code></a></td>
+<td>The speculative evolutionary timeline for a habitable planet, from its host star's spectral class.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/life.py"><code>life.py</code></a></td>
+<td>Whether and how life arises on a planet or moon: biochemistry, evolution speed and timeline.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/limits.py"><code>limits.py</code></a></td>
+<td>Upper bounds on the generation inputs an admin can type, checked by the Generate pages, the API and <code>planetgen</code>'s own argument parsing alike.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/luminosity_floor.py"><code>luminosity_floor.py</code></a></td>
+<td>The luminosity floor presets (GEN.184): the brightness above which every star is scattered galaxy-wide.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/object_first.py"><code>object_first.py</code></a></td>
+<td>The object-first scatter (PERF.58): decide how many objects a shell holds, then where, instead of walking every band of every shell.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/object_timing.py"><code>object_timing.py</code></a></td>
+<td>How long each generated object takes, per object and per object type (PERF.92), on top of the per-stage and per-job records (PERF.67).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena_plausibility.py"><code>phenomena_plausibility.py</code></a></td>
+<td>The exotic-phenomena plausibility anomaly finder (a developer report).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomenon_scatter.py"><code>phenomenon_scatter.py</code></a></td>
+<td>Phenomenon pre-placement (GEN.100): the black holes, neutron stars, planetary nebulae and supernova remnants of the whole galaxy, its hypervelocity stars and the nucleus, drawn and placed right after <code>planetgen plan</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/planet.py"><code>planet.py</code></a></td>
+<td><code>Planet</code>: one planet or moon, its state and its description text.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/plausibility.py"><code>plausibility.py</code></a></td>
+<td>The physical-plausibility anomaly finder (a developer report, not part of a run).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/prevalence.py"><code>prevalence.py</code></a></td>
+<td>Prevalence: how much more or less often a sector or galaxy run's systems get a feature than they would by chance (GEN.52).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_common.py"><code>run_common.py</code></a></td>
+<td>What every generation command shares: the console progress bar, the <code>--strict</code> refuse-or-warn rule, the run's counts, the work queue a run hands its sectors to, and the statistics and estimate a bulk run checks first.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_galaxy.py"><code>run_galaxy.py</code></a></td>
+<td>The <code>galaxy</code> command: many sectors placed as one galaxy, each at its shell/band/wedge address in the spherical grid, with its systems inside the sector's own cell.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_phenomenon.py"><code>run_phenomenon.py</code></a></td>
+<td>The <code>phenomenon</code> command: one exotic stellar phenomenon (a black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet or asteroid field), on demand.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_plan.py"><code>run_plan.py</code></a></td>
+<td>The <code>plan</code> command: the galaxy's density skeleton (<code>galaxy_shape</code>, <code>galaxy_shell</code>) that a run consults, and the galaxy-wide star and phenomenon scatters with their per-sector bands.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_population.py"><code>run_population.py</code></a></td>
+<td>The <code>population</code> command: species, civilizations and territories from what is already stored (<code>planetgen.population.model</code>), and the same pass as a stage of a <code>galaxy</code> run.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_sector.py"><code>run_sector.py</code></a></td>
+<td>The <code>sector</code> command and the sector build both it and <code>galaxy</code> use (<code>generate_sector</code>): one <code>SpaceSector</code> of systems, phenomena, star-hosted nebulae, fast stars and, at the center, the nucleus.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/run_system.py"><code>run_system.py</code></a></td>
+<td>The <code>system</code> command: one star system, built from <code>SystemConfig</code> (the tri-state <code>+name</code>/<code>-name</code> options and <code>--system-file</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/stages.py"><code>stages.py</code></a></td>
+<td>The stages of a generation command, numbered and announced as the run reaches them (UX.89).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/star.py"><code>star.py</code></a></td>
+<td><code>Star</code>: mass, radius, temperature, luminosity, habitable zone, Hill sphere and galactic orbit.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/star_labels.py"><code>star_labels.py</code></a></td>
+<td>How a run's logs name kinds of star: the sector fill's summary line (&quot;3 G-type, 1 K-type giant&quot;) and the bright-star scatter's per-shell lines (GEN.131) use the same words, so a log reads the same whichever step wrote it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/star_population.py"><code>star_population.py</code></a></td>
+<td>The star population model split at a luminosity threshold, so a galaxy's bright stars are drawn and placed at plan time and each sector is later filled with only the dimmer rest.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/stats.py"><code>stats.py</code></a></td>
+<td>How fast this server generates and how much space it takes (PERF.10), and the size and time estimate every bulk generation shows before it writes anything (PERF.3).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/steps.py"><code>steps.py</code></a></td>
+<td>Steps (PERF.51): the one way a generation or maintenance run reports the progress of a piece of work.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/system.py"><code>system.py</code></a></td>
+<td><code>StarSystem</code>: builds a whole system (star or binary, planets, moons, belts, comets, life data) and renders it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/validation.py"><code>validation.py</code></a></td>
+<td>One place to validate a planet, a lunar system (a planet and its moons) and a star system (TODO ADM.5).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/wide_binary.py"><code>wide_binary.py</code></a></td>
+<td><code>WideBinaryPair</code>: a wide (S-type) binary where each star keeps its own planets.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgengenerationphenomena">src/planetgen/generation/phenomena/</h4>
+<p>The standalone phenomena (outside any system).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/__init__.py"><code>__init__.py</code></a></td>
+<td>The standalone phenomena: asteroid fields, compact remnants, nebulae, quasars, rogue planets, interstellar comets and supernova remnants.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/asteroid_field.py"><code>asteroid_field.py</code></a></td>
+<td><code>AsteroidField</code>: a standalone field of asteroid debris.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/compact_remnant.py"><code>compact_remnant.py</code></a></td>
+<td><code>BlackHole</code> and <code>NeutronStar</code>, the end states of a massive star's collapse, which can anchor a system in place of a star.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/nebula.py"><code>nebula.py</code></a></td>
+<td><code>Nebula</code>: a standalone interstellar gas and dust cloud.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/quasar.py"><code>quasar.py</code></a></td>
+<td><code>Quasar</code>: a galaxy's own central supermassive black hole in its active phase.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/rogue.py"><code>rogue.py</code></a></td>
+<td><code>RoguePlanet</code> and <code>InterstellarComet</code>: unbound objects between the stars.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/generation/phenomena/supernova_remnant.py"><code>supernova_remnant.py</code></a></td>
+<td><code>SupernovaRemnant</code>: the expanding wreckage of a star's supernova.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenphysics">src/planetgen/physics/</h4>
+<p>The constants and the maths behind every generated body.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/__init__.py"><code>__init__.py</code></a></td>
+<td>Physics: the constants and the maths behind every generated body.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/activity.py"><code>activity.py</code></a></td>
+<td>Stellar activity (GEN.86): each star's X-ray and XUV output, whether its corona is still saturated, how often it flares, and the XUV it has put out over its life.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/atmosphere.py"><code>atmosphere.py</code></a></td>
+<td>Mantle redox and atmosphere species for planets and moons (GEN.85).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/body_positions.py"><code>body_positions.py</code></a></td>
+<td>Where every body of a system is at any time (MAP.70), from the scene <code>GET /api/systems/&lt;id&gt;/scene</code> returns (<code>web/maps/systemscene.py</code>). Built and tested, but no production Python calls it yet (only tests; the map runs on its browser twin <code>orbitpositions.js</code>); the callers are planned in MAP.253, NAV.6, GEN.212 and VIEW.14.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/constants.py"><code>constants.py</code></a></td>
+<td>Universal physical and mathematical constants and unit conversions.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/formation.py"><code>formation.py</code></a></td>
+<td>Protoplanetary disk physics: the snow line, the minimum-mass solar nebula's surface density, and the isolation mass a planet can grow to.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/habitability.py"><code>habitability.py</code></a></td>
+<td>The planetary habitability index (GEN.84): the reference maths of docs/design/habitability/habitability-index.md section 7, every constant with its source.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/habitability_world.py"><code>habitability_world.py</code></a></td>
+<td>The habitability score of every planet and moon (GEN.89): turns a body's stored air, water, temperature, radiation and light into the <code>World</code> that <code>habitability.scores</code> reads (GEN.84) and stores the result.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/hii.py"><code>hii.py</code></a></td>
+<td>H II regions from their stars' ionizing photons (GEN.150).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/hydrosphere.py"><code>hydrosphere.py</code></a></td>
+<td>Water on planets, moons and rogue planets (GEN.88).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/imf.py"><code>imf.py</code></a></td>
+<td>The initial mass function (GEN.926): the one place the generator's stellar mass function lives, a piecewise power law read from <code>tuning.IMF_BREAKS_SOL</code> and <code>IMF_SLOPES</code>; the draw of a star's mass, the number or mass of stars in a range, the segments a mass grid is built on.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/insolation.py"><code>insolation.py</code></a></td>
+<td>Summed insolation of a planet in a multi-star system (GEN.148).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/kepler.py"><code>kepler.py</code></a></td>
+<td>Two-body Kepler and Barker propagation for eccentric and parabolic orbits.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/light_travel.py"><code>light_travel.py</code></a></td>
+<td>Light-travel positions (VIEW.5): where an object appears to be to an observer. Built and tested, but no production Python calls it yet (only tests); the callers are planned in VIEW.12, VIEW.2 and VIEW.18.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/magnetism.py"><code>magnetism.py</code></a></td>
+<td>Planetary magnetic fields and the star's radiation at the planet (GEN.86).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/mass_boundaries.py"><code>mass_boundaries.py</code></a></td>
+<td>The masses where one kind of object gives way to another (GEN.933): hydrogen-burning and deuterium-burning limits, the brown dwarf upper limit, the core collapse edge, the white dwarf progenitor floor, Chandrasekhar, and the spectral-class mass edges, each with a source and a tier; the mass function, companions, rogue bodies and plausibility bounds read them here.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/mathcheck.py"><code>mathcheck.py</code></a></td>
+<td>A fixed list of checks that the generator's math gives the right answers (TEST.63): pytest runs it first and stops the suite if it fails, and the website runs it once at startup.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/orbits.py"><code>orbits.py</code></a></td>
+<td>Orbital mechanics for generated systems: the habitable zone, Hill spheres and mutual Hill radii, the stability limit and orbital positions.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/oxygen_fugacity.py"><code>oxygen_fugacity.py</code></a></td>
+<td>One oxygen-fugacity scale (GEN.498): the [R1951] iron-wustite buffer as the reference every stored delta-IW is on, the [R1464] buffers and the [R4154] scale converted to it, the CO<sub>2</sub>/CO and H<sub>2</sub>O/H2 gas ratios at a delta-IW, and Sossi's melt Fe3+ law. Built and tested; the callers are planned in GEN.451, GEN.456 and GEN.513.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/photometry.py"><code>photometry.py</code></a></td>
+<td>The photometry library, first part (GEN.416): a spectrum to a colour (CIE 1931, linear sRGB, the sRGB curve) and a star's colour from its temperature. Built and tested, but no production Python calls it yet (only tests); the callers are planned in GEN.418, GEN.419 and VIEW.11.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/photolysis.py"><code>photolysis.py</code></a></td>
+<td>The photolysis lifetime table (GEN.496): each species' lifetime at 1 AU from the quiet Sun, active-Sun factors and the species-specific rate ratios around a 4000 K and a 10000 K star, and the rate in a place from the star's flux and temperature. Built and tested; the callers are planned in GEN.495, GEN.413 and the atmosphere work.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/saturation.py"><code>saturation.py</code></a></td>
+<td>The saturation pressure of the gases and ices (GEN.470): <code>saturation(species, T)</code> in Pa with a status (<code>ok</code>, <code>cold-unverified</code>, <code>below-fit</code>, <code>above-triple</code>, <code>above-critical</code>) and the phase of the condensate, from the Fray and Schmitt polynomials for the solid (water by Feistel and Wagner, hydrogen by Clausius-Clapeyron) and the Wagner fits for the liquid, with the switch temperatures of multi-fit species as labelled stand-ins. The cold end of N<sub>2</sub>, CO, CH<sub>4</sub>, O<sub>2</sub> and NH<sub>3</sub> is the laboratory fits of [R0418, R1708] (with a switch for the 1.19 of the 2026 preprint) and carbon dioxide is Span and Wagner (GEN.497). GEN.452 makes the atmosphere read it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/planets.py"><code>planets.py</code></a></td>
+<td>What a planet or moon physically is: zone, class, radius, mass, density, composition, atmosphere, temperature, moons and orbital position.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/position.py"><code>position.py</code></a></td>
+<td><code>SpatialPosition3D</code> keeps where one body is in three frames at once, each in Cartesian, cylindrical and spherical form, and keeps all of them in step: setting any coordinate, in any frame and any form, recomputes the rest.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/protection.py"><code>protection.py</code></a></td>
+<td>The one habitability describer (GEN.218): the protective gear a visitor needs on a world and the rows (domain, colour, score, sentence) and paragraph that say where each of the six PHI-6 categories falls and why (GEN.208, GEN.216).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/protection_limits.py"><code>protection_limits.py</code></a></td>
+<td>Every limit of the human visitor's habitability bands and protective gear in one table (GEN.208), so that a later per-species limit (the canon has races that live in conditions humans cannot) replaces a row here and nothing else.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/radiation.py"><code>radiation.py</code></a></td>
+<td>Surface radiation dose, UV and galactic hazards (GEN.87).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/ozone.py"><code>ozone.py</code></a></td>
+<td>The ozone column in Dobson units from the oxygen level and the star's temperature (GEN.413): the [R2466] fit by host, F-star scaling, the structure spread and the abiotic branch; stored as <code>ozone_column_du</code> and read by the UV index.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/proton_range.py"><code>proton_range.py</code></a></td>
+<td>The kinetic energy a proton needs to cross a column of a gas or rock, and its rigidity, from the NIST PSTAR tables (GEN.453); mixtures by Bragg's rule. The cutoff behind the stellar-particle dose of <code>radiation.py</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/rogue_surface.py"><code>rogue_surface.py</code></a></td>
+<td>A rogue planet has no star, so its surface is set by its own heat alone (Boss's research, 2026-10-01; [R4219], Burrows et al.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/sector_path.py"><code>sector_path.py</code></a></td>
+<td>A body with no closed orbit (a star, a rogue planet, a hyperbolic or parabolic comet, an interstellar object) crosses a sector on a path that is not a straight line when it passes a heavy mass.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/field_kernel.py"><code>field_kernel.py</code></a></td>
+<td>The numba-compiled gravity kernel (PERF.88): <code>accelerations</code> and <code>potentials</code> over a <code>MassTable</code>, and the sector-path integrator <code>sector_path.integrate_path</code> calls. Kept out of the web app's import path.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/species_limits.py"><code>species_limits.py</code></a></td>
+<td>A species' environment limits are the human visitor's table (<code>protection_limits.LIMIT_ROWS</code>) with some rows replaced: <code>overrides</code>, a dict <code>{limit name: value}</code>, empty for a species with the human limits.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/spin.py"><code>spin.py</code></a></td>
+<td>Every rotating body's spin: a unit axis (the direction of its angular velocity, right-handed) and a rate (its rotation period), so the spin vector is <code>axis * 2 pi / period</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/state_vectors.py"><code>state_vectors.py</code></a></td>
+<td>Conversion between a two-body orbit's elements and its state vector, with the Kepler solver (GEN.122, GEN.66).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/stellar_evolution.py"><code>stellar_evolution.py</code></a></td>
+<td>Draws a star as physics: a Chabrier IMF mass (the primary function, <code>generation/primary_mass_function.py</code>), an age from the star-formation history and the evolved state, main sequence through remnant.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/physics/units.py"><code>units.py</code></a></td>
+<td>Distance conversions between light-years, parsecs, milliparsecs and AU.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgengalaxy">src/planetgen/galaxy/</h4>
+<p>The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The sector grid is <code>spherical.py</code> (see <a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/__init__.py"><code>__init__.py</code></a></td>
+<td>The galaxy: its sector grid, density model and outline, seeds and version keys, object IDs, sectors, nebula fields and navigation.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/density.py"><code>density.py</code></a></td>
+<td>The galaxy density model (<code>docs/design/galaxy/galaxy-disk-density.md</code>): an exponential thin disk with spiral arms, a thick disk and a boxy bar bulge, fitted to published Milky Way structure (GEN.118, GEN.119).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/drill.py"><code>drill.py</code></a></td>
+<td>The Galaxy Map's block ladder on shells (<code>docs/design/galaxy/spherical-block-ladder.md</code>): blocks of 243, 81, 27, 9 and 3 shells deep, each nested inside one of the next size up, keyed <code>m.shell.band.wedge</code>, with the closed-form chain from a sector up and the children of a block.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/frame.py"><code>frame.py</code></a></td>
+<td>Distances from the galactic axis and center, and the local axes a sector carries (<code>sector_orientation</code>), the offset of a binary companion (<code>binary_companion_offset_pc</code>), which the offsets of <code>star_systems.position_x/y/z_mpc</code> and the Sector Map's scenes are expressed in.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/galactic_orbit.py"><code>galactic_orbit.py</code></a></td>
+<td>A star system's circular orbit around the galactic center: its speed, period and phase, and the text every &quot;Galactic Orbit&quot; row shows.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/keepout.py"><code>keepout.py</code></a></td>
+<td>The keep-out radius of an object (NAV.24): how close a course should come before it counts as entering the object's gravity.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nav_graph.py"><code>nav_graph.py</code></a></td>
+<td>A k-nearest-neighbor graph over systems' positions and its shortest hop-by-hop path (Dijkstra): the &quot;optimal route via adjacent systems&quot; half of NAV.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/navigation.py"><code>navigation.py</code></a></td>
+<td>Pure math for the NAV feature: the course (distance, bearing, mark) between two absolute 3D positions, and warp and fold travel times along that distance.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nodecut.py"><code>nodecut.py</code></a></td>
+<td>Which sector-block nodes the Galaxy Map fetches and draws for a camera (MAP.261): the blocks opened by projected size, the hand-over weights, the budget; <code>static/galaxynodecut.js</code> is its twin.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nebula_field.py"><code>nebula_field.py</code></a></td>
+<td>Dark-family nebulae (giant molecular clouds, dark clouds, Bok globules and star-forming cores, classes M-Q) are tens of light-years across, far bigger than a 13 ly sector.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/nebula_shape.py"><code>nebula_shape.py</code></a></td>
+<td>A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/object_uid.py"><code>object_uid.py</code></a></td>
+<td>The object ID (GEN.170, docs/design/architecture/object-id-options.md section 0): one fixed-length ID for every object in the galaxy, made of where it was born and which birth it was.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/objectref.py"><code>objectref.py</code></a></td>
+<td>One reference form for every object (NAV.7): <code>&lt;kind&gt;:&lt;id&gt;</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/region.py"><code>region.py</code></a></td>
+<td>Regions of the sector grid for the generation commands (a neighborhood, a ball round a sector, a course's cells), described as ranges of shells, bands and wedges.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/remnant_distribution.py"><code>remnant_distribution.py</code></a></td>
+<td>Where neutron stars and black holes are, against where stars are (GEN.132).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/sector.py"><code>sector.py</code></a></td>
+<td><code>SpaceSector</code> and <code>SectorSystemEntry</code> classes, which store a named collection of star systems laid out in three-dimensional space.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/seed.py"><code>seed.py</code></a></td>
+<td>The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see docs/design/generation/reproducible-galaxies.md, section 3).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/skeleton.py"><code>skeleton.py</code></a></td>
+<td>Finds, for a given <code>galaxyDensity.GalaxyShape</code>, the one structural fact worth precomputing about the whole galaxy: which cells of the spherical sector grid (<code>galaxy/spherical.py</code>) can hold any content, and how far out each shell reaches.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/span.py"><code>span.py</code></a></td>
+<td>A span of the galaxy's sector grid (ADM.29): a range of shells, a range of bands and, inside one shell and band, an arc of wedges -- the shape the Generate page's and <code>planetgen galaxy</code>'s span fills describe.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/spherical.py"><code>spherical.py</code></a></td>
+<td>Every galaxy-placed sector is one cell of a grid of spherical shells centered on the galactic origin (<code>docs/design/galaxy/spherical-sector-coordinates.md</code>, the plan; Boss, 2026-10-15).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/straight_line.py"><code>straight_line.py</code></a></td>
+<td>Where an object that is not on a galactic orbit is at a given time (GEN.137).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/system_position.py"><code>system_position.py</code></a></td>
+<td>Where everything in a star system is in the galaxy (GEN.74).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/uid.py"><code>uid.py</code></a></td>
+<td>A sector's ID (GEN.69): its designation (<code>spherical.provisional_sector_designation</code>), shell, biased band and wedge packed into one integer.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/version_check.py"><code>version_check.py</code></a></td>
+<td>The mixed-version warning (DB.7): a galaxy extended by a different release holds sectors made by more than one version, and reproduces only sector by sector.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/version_history.py"><code>version_history.py</code></a></td>
+<td>The version keys an update has run under (OPS.13; docs/design/generation/reproducible-galaxies.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/version_key.py"><code>version_key.py</code></a></td>
+<td>The version key (DB.6; docs/design/generation/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/galaxy/window.py"><code>window.py</code></a></td>
+<td>The Galaxy Map's data windows (MAP.151): <code>g</code> cells across, a ball of the center block's size, found in closed form per shell.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenpopulation">src/planetgen/population/</h4>
+<p>Species, civilizations, polities and facilities.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/__init__.py"><code>__init__.py</code></a></td>
+<td>Population: species, civilizations, polities and facilities.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facilities.py"><code>facilities.py</code></a></td>
+<td>Facilities: starbases, colonies and outposts (schema v42).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facility_attrs.py"><code>facility_attrs.py</code></a></td>
+<td>What a facility carries beyond its place (POP.10): a type with the values of that type's fields, an affiliation and five ratings.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facility_icons.py"><code>facility_icons.py</code></a></td>
+<td>The icons a facility type may use (POP.10).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facility_ratings.py"><code>facility_ratings.py</code></a></td>
+<td>The five ratings of a facility (POP.10): crime, housing, resources, maintenance and health, each Green, Yellow or Red.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facility_suggest.py"><code>facility_suggest.py</code></a></td>
+<td>Suggested ratings for a facility (POP.10).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/facility_types.py"><code>facility_types.py</code></a></td>
+<td>Facility types and their typed fields (POP.10, schema v89).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/model.py"><code>model.py</code></a></td>
+<td>The population pass (GEN.80): names the species of every world with a technological civilization, dates them and gives each spacefaring species a polity and its reach.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/population/tech.py"><code>tech.py</code></a></td>
+<td>Six domain indices, each an integer 0 to 7 (Energy, Materials, Information, Medical, Propulsion, Defense), drawn from a species' age, and the tech level as their weighted sum.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgennames">src/planetgen/names/</h4>
+<p>How generated things are named.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/__init__.py"><code>__init__.py</code></a></td>
+<td>Names: how generated things are named.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/bodies.py"><code>bodies.py</code></a></td>
+<td>Derived names for the stars, planets and moons inside one star system.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/gated_phoneme_codec.py"><code>gated_phoneme_codec.py</code></a></td>
+<td>A reversible, deterministic codec from hexadecimal identifiers to pronounceable names.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/naming_key.py"><code>naming_key.py</code></a></td>
+<td>The naming key (GEN.70; docs/design/architecture/object-ids.md, &quot;Planned&quot; step 3).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/uniqueness.py"><code>uniqueness.py</code></a></td>
+<td>Name-uniqueness decoration -- pure functions, no database access.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/wordlists.py"><code>wordlists.py</code></a></td>
+<td>The data for the procedural name generator: base names, prefixes, suffixes and syllables.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/names/wordsalad.py"><code>wordsalad.py</code></a></td>
+<td>The syllable and phoneme-salad name generator, its validity checks, and sector names.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgendescribe">src/planetgen/describe/</h4>
+<p>One description of a star system for every output that shows one (see <a href="system-description.html">system-description.md</a>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/__init__.py"><code>__init__.py</code></a></td>
+<td>One description of a star system, for every output that shows one (docs/design/architecture/system-description.md, UX.104).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/build.py"><code>build.py</code></a></td>
+<td><code>describe(system)</code>: the Document of a star system (docs/design/architecture/system-description.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/markdown.py"><code>markdown.py</code></a></td>
+<td>A Document as Markdown, on request (docs/design/architecture/system-description.md, section 4).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/model.py"><code>model.py</code></a></td>
+<td>The Document's node constructors and its checker (docs/design/architecture/system-description.md, section 3).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/quantity.py"><code>quantity.py</code></a></td>
+<td>Writes a Document's inline text and quantities as a string (docs/design/architecture/system-description.md, section 4).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/render.py"><code>render.py</code></a></td>
+<td>The walk the plain-string renderers share (docs/design/architecture/system-description.md, section 4): a Document's sections in order, each as a heading, its blocks and its child sections.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/describe/text.py"><code>text.py</code></a></td>
+<td>A Document as plain text for a terminal, with no markup (docs/design/architecture/system-description.md, section 4).</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenutil">src/planetgen/util/</h4>
+<p>Helpers every package can use.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/__init__.py"><code>__init__.py</code></a></td>
+<td>Shared helpers every planetgen package can use.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/checks.py"><code>checks.py</code></a></td>
+<td><code>finite_domain</code>, the decorator that gives a numeric physics helper one contract: it returns finite numbers or raises <code>ValueError</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/generator_epoch.py"><code>generator_epoch.py</code></a></td>
+<td>The generator epoch (OPS.56): the integer a PR bumps when it changes what a seed generates, read from <code>src/tests/golden/epochs.json</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/detmath.py"><code>detmath.py</code></a></td>
+<td>Maths that gives the same bits on every Python and machine (GEN.135): <code>hypot</code>, <code>dist</code>, <code>fsum</code> and a BLAS-free <code>matmul</code>, in place of <code>math.hypot</code>, <code>math.dist</code> and <code>@</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/draw.py"><code>draw.py</code></a></td>
+<td>Every random draw generation makes goes through here (GEN.56; see docs/design/generation/reproducible-galaxies.md, section 5).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/format.py"><code>format.py</code></a></td>
+<td>The text every number, distance, speed, duration, temperature, pressure and age is shown in, for the generator's Markdown and for the web pages.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/ladders.py"><code>ladders.py</code></a></td>
+<td>The data behind every measurement the site shows (UX.23): for each quantity a ladder of units, smallest first, and the rule for which one a value is shown in.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/log.py"><code>log.py</code></a></td>
+<td>A single, shared logging channel for <code>planetgen</code> and every planetGen module -- everything routes through here instead of bare <code>print()</code> calls, so <code>--debug</code>/<code>--quiet</code>/<code>--silent</code> behave consistently everywhere.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/logpaths.py"><code>logpaths.py</code></a></td>
+<td>The debug switch and the two log locations, read straight from <code>config.json</code> (or the environment) with the standard library alone.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/poisson.py"><code>poisson.py</code></a></td>
+<td>Poisson counts for any mean in constant time (PERF.60).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/random.py"><code>random.py</code></a></td>
+<td>Seeded sampling helpers: power-law and bounded-bell draws and the one log-uniform draw.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/serialization.py"><code>serialization.py</code></a></td>
+<td>The allowlist <code>to_dict</code>/<code>from_dict</code> helpers the generator's classes share.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/settings.py"><code>settings.py</code></a></td>
+<td>One Pydantic model, <code>Settings</code>, describes every <code>config.json</code> option: its type, default, help text, unit, whether it is a secret, whether changing it needs a restart, which environment variable overrides it and whether the web may edit it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/stagemark.py"><code>stagemark.py</code></a></td>
+<td>The one wording for &quot;where a job is&quot;: <code>&quot;Stage 4 of 12&quot;</code> for one stage and <code>&quot;Stages 4 to 12 of 12&quot;</code> for a run of them.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenqueue">src/planetgen/queue/</h4>
+<p>The work queue and the API's long jobs, on Redis with RQ.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/__init__.py"><code>__init__.py</code></a></td>
+<td>The work queue: runs of generation and the API's long jobs, on Redis with RQ.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/api_jobs.py"><code>api_jobs.py</code></a></td>
+<td>Long API work on the Redis queue (PERF.24 step 4): a route that would hold a web worker for minutes queues the work with <code>submit</code>, answers <code>202 Accepted</code> with the job's id at once, and the client reads the outcome from <code>GET /api/jobs/&lt;id&gt;</code> (<code>status</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/commands.py"><code>commands.py</code></a></td>
+<td>Commands, and the step list the wrapper builds from a request (PERF.118, docs/design/operations/redis-and-the-work-queue.md 5.12 and docs/design/architecture/command-inventory.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/hourdisplay.py"><code>hourdisplay.py</code></a></td>
+<td>The time left shown as whole hours (UX.3), by the rule of section 2.4 of docs/design/operations/performance-eta-queue-and-caching.md.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/load.py"><code>load.py</code></a></td>
+<td>The server's load for the admin queue page (ADM.10), as the three numbers &quot;x / x / x&quot; over the last 1, 5 and 15 minutes: the load average (<code>os.getloadavg</code>), runnable processes decaying over each window.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/pagejobs.py"><code>pagejobs.py</code></a></td>
+<td>Slow page requests as jobs (PERF.105; design in docs/design/operations/slow-page-answers.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/pause.py"><code>pause.py</code></a></td>
+<td>The pause of the work queues (PERF.152): one flag in Redis, <code>planetgen:queue:paused</code>, written by the admin Queue page's Pause and Resume and read by every worker before it takes a job.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/progress_file.py"><code>progress_file.py</code></a></td>
+<td>Machine-readable progress for a run started from the web interface.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/progress_rate.py"><code>progress_rate.py</code></a></td>
+<td>The rate behind every generation progress bar's ETA (PERF.7, PERF.37): work finished per second as an exponentially weighted average over time, so the estimate follows the run's current speed (a dense stretch of the galaxy, more workers, a busy database) instead of rich's own short window, and stays steady while many workers report at once.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/redisclient.py"><code>redisclient.py</code></a></td>
+<td>The one place a Redis client is made (PERF.94, finding F9 of docs/design/operations/redis-and-the-work-queue.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/redishealth.py"><code>redishealth.py</code></a></td>
+<td>What the admin Stats page shows about Redis (ADM.54): whether it answers, and the settings and figures that decide whether the work queue survives a restart (docs/design/operations/redis-and-the-work-queue.md, section 2.3): the append-only file, the memory policy, the memory used, the last save, and how many workers are alive.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/redisqueue.py"><code>redisqueue.py</code></a></td>
+<td>The work queue on Redis with RQ (PERF.24): the connection, the queues, the serializers and timeouts of their jobs, and the detached workers that run them.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/roughtime.py"><code>roughtime.py</code></a></td>
+<td>A rough time for work nothing has timed yet (PERF.184).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/runcontrol.py"><code>runcontrol.py</code></a></td>
+<td>What an admin can do to a run in Redis (PERF.99, docs/design/operations/redis-and-the-work-queue.md 5.5 and 5.6): cancel it, clear one that has stopped answering, delete a finished one, and keep its log.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/runeta.py"><code>runeta.py</code></a></td>
+<td>The time left in a run (PERF.96, PERF.33), as a pure function of the counters <code>runrecord.read_run</code> returns: no Redis, no clock of its own (<code>now</code> is passed), so the terminal bar, the Generate and Queue pages, the banner (UX.3) and a migration bar all show the same number and a test can drive it with a fake clock.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/runrecord.py"><code>runrecord.py</code></a></td>
+<td>A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/runview.py"><code>runview.py</code></a></td>
+<td>A run as the pages show it (PERF.99): <code>runrecord.read_run</code>'s dict turned into plain JSON-able numbers and words, in one place, so the Queue page's API, the Generate page and the job log all say the same thing about the same run.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/runline.py"><code>runline.py</code></a></td>
+<td>The one waiting list for work that cannot start yet (PERF.154): a run that finds the machine taken and a Generate page job that finds a job running each take a place in one Redis list (<code>queue.max_waiting</code>, 8 by default), first come first served within their kind, refused with the list named when it is full. Replaces the interim <code>runwait.py</code> (PERF.153) and ADM.123's <code>next.json</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/stagetimes.py"><code>stagetimes.py</code></a></td>
+<td>What this server has learned about how long each kind of stage takes (PERF.184): when a stage of a queue run ends, its wall seconds and its cost per worker second go into a Redis hash, one field per stage key, as a running average that leans on the newest run.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/stopall.py"><code>stopall.py</code></a></td>
+<td>Stop everything (PERF.186): the one way to end all work on the host and keep it from starting again until an admin says so.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/units.py"><code>units.py</code></a></td>
+<td>A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1): the units of one stage queued on the bulk queue, run by the idle-timeout workers (<code>workers.ensure_workers</code>), and followed by the process that started the run until the stage is done.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/warmphases.py"><code>warmphases.py</code></a></td>
+<td>What the warm-up has done, phase by phase, for the admin page (PERF.141, docs/design/operations/cache-warm-up.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/warmstart.py"><code>warmstart.py</code></a></td>
+<td>The warm-up that starts by itself (PERF.141, docs/design/operations/cache-warm-up.md).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/work.py"><code>work.py</code></a></td>
+<td>The machine's worker count and a task's seed.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/workers.py"><code>workers.py</code></a></td>
+<td>The workers of the shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/wrapper.py"><code>wrapper.py</code></a></td>
+<td>The wrapper of a <code>planetgen galaxy</code> or <code>planetgen plan</code> run (PERF.118, docs/design/operations/redis-and-the-work-queue.md 5.12): the one place that knows the order of the run's commands, and the only code that starts one.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgendb">src/planetgen/db/</h4>
+<p>The content database: writing, reading, migrating and checking it. <code>schema.sql</code> and <code>control_schema.sql</code> are the SQL; <code>migrations/versions/</code> holds one Alembic revision per schema version.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/__init__.py"><code>__init__.py</code></a></td>
+<td>The content database (MySQL): writing, reading, migrating and checking it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/alembic_runner.py"><code>alembic_runner.py</code></a></td>
+<td>Runs the Alembic revisions in <code>planetgen/db/migrations/</code> against a planetGen content database (DB.11).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/migrations/helpers.py"><code>migrations/helpers.py</code></a></td>
+<td>What a revision uses on a big table: instant columns, online indexes, updates in committed pages with progress, and the existence checks (DB.18).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/check.py"><code>check.py</code></a></td>
+<td>The database checks <code>planetgen check-db</code> runs (and the Generate page's &quot;Check the database&quot; button, which runs it as a job): each is a command of its own (<code>check-revision</code> ... <code>check-systems</code>) that looks for damage in a galaxy database and changes nothing.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/corridor.py"><code>corridor.py</code></a></td>
+<td>The objects near a straight segment of the galaxy, for routing and course steering.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/countcache.py"><code>countcache.py</code></a></td>
+<td>Counts and filter-menu totals that are too big to take inside a web request (PERF.64).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/edits.py"><code>edits.py</code></a></td>
+<td>Writes an admin's edits back to the content database (TODO ADM.1): a star system changed in memory (a body regenerated, removed, reclassified, or a new star), a phenomenon regenerated in place, and a sector deleted with everything in it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/fingerprint.py"><code>fingerprint.py</code></a></td>
+<td>A canonical SHA-256 digest of each sector's generated content, and one for a region, so two builds can be compared (<code>docs/design/generation/reproducible-galaxies.md</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/login.py"><code>login.py</code></a></td>
+<td><code>connect(...)</code> is <code>pymysql.connect(...)</code> that explains a failed login: the account's password is wrong, or its authentication plugin can't finish with this pymysql.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/models.py"><code>models.py</code></a></td>
+<td>The content database's tables as SQLAlchemy <code>Table</code> objects on <code>metadata</code> (DB.11).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/near.py"><code>near.py</code></a></td>
+<td><code>objects_within</code>: what is within N parsecs of a place, for every kind of object (systems with their bodies, facilities and the standalone phenomena).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/objectindex.py"><code>objectindex.py</code></a></td>
+<td>Builds and refreshes <code>object_index</code> from the live tables, counts it against the cache budget and checks it against them (PERF.140).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/query.py"><code>query.py</code></a></td>
+<td>The read layer and a list/query CLI: listings, <code>sector_detail</code>/<code>system_detail</code>, <code>search</code>, <code>nav_between</code> and every Galaxy Map query.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/render.py"><code>render.py</code></a></td>
+<td>On-demand rendering of a stored star system's text.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/sector_paths.py"><code>sector_paths.py</code></a></td>
+<td><code>compute_sector_paths</code> and <code>settle_sectors</code>: the path every system, rogue planet and interstellar comet takes from where it is now to where it leaves its sector, saved when a run settles.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/shell_specs.py"><code>shell_specs.py</code></a></td>
+<td>The galaxy's outline as the Generate page shows it (ADM.28): how many shells it has, how far out they reach, and how many sectors are charted in each.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/sky_sphere.py"><code>sky_sphere.py</code></a></td>
+<td>The stars of a sphere above a luminosity floor, as arrays, from the charted systems, the pre-placed bright stars and the scattered phenomena (cluster members are among them, by <code>cluster_id</code>), with the cell levels the sphere reached (VIEW.22).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/species_fit.py"><code>species_fit.py</code></a></td>
+<td>Which species could live where (POP.12).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/stats.py"><code>stats.py</code></a></td>
+<td>Read-only statistics about one content database, for the admin stats page (<code>html/adminstats.py</code>, via <code>GET /api/admin/stats</code> and <code>GET /api/admin/duplicate-names</code> in <code>planetgen/api/admin.py</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/stones.py"><code>stones.py</code></a></td>
+<td>Stepping stones for a route from system to system (NAV).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/store.py"><code>store.py</code></a></td>
+<td>The write path and the schema bookkeeping: saves generated objects, loads them back, allocates ids, migrates and checks versions.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenadmin">src/planetgen/admin/</h4>
+<p>Admin accounts and security: sign-in, lockouts, the activity log, edits and maintenance mode.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/__init__.py"><code>__init__.py</code></a></td>
+<td>Admin accounts and security: sign-in and its two-step codes, lockouts, the activity log, and admin edits to stored systems.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/activity_log.py"><code>activity_log.py</code></a></td>
+<td>The activity log: every admin and system action, separate from the debug log.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/auth.py"><code>auth.py</code></a></td>
+<td>Admin authentication/authorization: password hashing, web-session and API-key lifecycle, credential rotation, and the audit log -- all against the control schema (<code>control_schema.sql</code>), never the per-galaxy content schema.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/edits.py"><code>edits.py</code></a></td>
+<td>An admin's edits to a stored star system (ADM.1): regenerate or remove a planet, moon or belt (ADM.8), change a body's class (ADM.6) or a single star's type (ADM.7), made on the <code>StarSystem</code> that <code>store.load_star_system</code> returns and written back with <code>db/edits.py</code>'s <code>save_system_edits</code>; every edit is stabilized by <code>validation.stabilize_star_system</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/maintenance.py"><code>maintenance.py</code></a></td>
+<td>One switch that makes the whole site, pages and API alike, unavailable to everyone but a signed-in admin (or an admin's API key): used while the sector maps are rebuilt.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/recipes.py"><code>recipes.py</code></a></td>
+<td>Generate recipes (ADM.125): an admin's named, saved Generate forms in the control database (<code>generate_recipes</code>); every function takes the account name and only touches that account's rows.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/admin/throttle.py"><code>throttle.py</code></a></td>
+<td>The login throttle: the per-address lockout and the per-username backoff.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgencli">src/planetgen/cli/</h4>
+<p>The command-line tools, each run as <code>python3 -m planetgen.cli.&lt;name&gt;</code> (the generator is <code>planetgen</code>). They read the database settings from <code>config.json</code> or <code>PLANETGEN_MYSQL_*</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/__init__.py"><code>__init__.py</code></a></td>
+<td>The command-line tools.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/benchmark.py"><code>benchmark.py</code></a></td>
+<td><code>planetgen benchmark</code> (PERF.31): where a generation run spends its time, from the plan to a finished fill.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/checkdb.py"><code>checkdb.py</code></a></td>
+<td><code>planetgen check-db</code> (PERF.126): builds the list of the database-check commands (one per check) for the wrapper to run as a check run, and prints the report: one pass or fail line per check, exit 1 on damage and 2 when a check could not run.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/config.py"><code>config.py</code></a></td>
+<td>Checks and documents the settings (<code>planetgen.cli.config</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/generate.py"><code>generate.py</code></a></td>
+<td><code>planetgen</code>: the single entry point for every generator, dispatched by subcommand.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/forget_devices.py"><code>forget_devices.py</code></a></td>
+<td>Revokes every trusted-device cookie of one admin (SEC.22).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/lift_lockout.py"><code>lift_lockout.py</code></a></td>
+<td>Lifts login lockouts (SEC.1, SEC.21) by address, username or all, from the command line.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/lockouts.py"><code>lockouts.py</code></a></td>
+<td>Lists the login lockouts (SEC.1, SEC.21) from the command line, for an admin locked out of the web interface itself.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/maintenance.py"><code>maintenance.py</code></a></td>
+<td>Turns maintenance mode on or off (UX.112).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/migrate.py"><code>migrate.py</code></a></td>
+<td>Brings the configured planetGen MySQL database's <code>schema_migrations</code> bookkeeping up to the current schema (<code>planetgen/db/schema.sql</code>), applying any migration step in between -- a no-op for a database that's already current.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/orbits.py"><code>orbits.py</code></a></td>
+<td>Advances every orbit and galactic position by the real time elapsed since the last run; meant for a monthly timer.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/query.py"><code>query.py</code></a></td>
+<td>List/query what's already stored in the planetGen database, from the command line; the queries themselves are <code>planetgen.db.query</code>'s.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/reset.py"><code>reset.py</code></a></td>
+<td>Empties every generated table (<code>TRUNCATE</code>), keeping the schema and its version, so a fresh galaxy can be generated.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/reset_two_factor.py"><code>reset_two_factor.py</code></a></td>
+<td>Turns off one admin's two-factor sign-in (SEC.26), for a lost phone.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/stage_progress.py"><code>stage_progress.py</code></a></td>
+<td>The progress bar of the maintenance commands: one bar over the command's steps and a second over the items inside the current step.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/version_history.py"><code>version_history.py</code></a></td>
+<td>Records the version key every galaxy database was updated under (OPS.13); <code>planetgen versions</code> lists it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/warm.py"><code>warm.py</code></a></td>
+<td><code>planetgen warm</code> (PERF.127): builds the list of the cache-warming commands (one per family) for the wrapper to run, so the first visitor after a release (or after the cache was cleared) isn't the one who waits for the Galaxy Map, the lists, the pages and the search.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/cli/worker.py"><code>worker.py</code></a></td>
+<td>One RQ worker for planetGen's queues, at the lowered priority generation workers always run at.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenapi">src/planetgen/api/</h4>
+<p>The JSON API under <code>/api</code> (see <a href="../../reference/api.html">api.md</a>).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/__init__.py"><code>__init__.py</code></a></td>
+<td>The JSON API over the planetGen database (served under <code>/api</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/admin.py"><code>admin.py</code></a></td>
+<td><code>/api/admin/stats</code> and <code>/api/admin/duplicate-names</code> (backed by <code>planetgen.db.stats</code>), <code>/api/admin/login-failures</code>, and <code>/api/admin/lockouts</code> (list and lift).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/auth.py"><code>auth.py</code></a></td>
+<td><code>/api/auth/*</code>: login, logout, me, change-credentials, API keys. Sets the session cookie.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/authz.py"><code>authz.py</code></a></td>
+<td>Resolves the calling admin from the session cookie or a Bearer API key; the <code>require_admin</code> decorator; audit helper.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/common.py"><code>common.py</code></a></td>
+<td><code>ApiError</code> and the control-schema connection, shared by <code>routes.py</code> and <code>auth.py</code> without an import cycle.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/config.py"><code>config.py</code></a></td>
+<td>API configuration: the MySQL config, cookie and rate-limit settings, from <code>config.json</code> and the environment.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/edits.py"><code>edits.py</code></a></td>
+<td>Admin editing endpoints (TODO ADM.1): delete and regenerate one planet, moon, asteroid belt, phenomenon or sector (ADM.8), change a planet's or moon's class (ADM.6) and change a single-star system's star (ADM.7).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/facility_types.py"><code>facility_types.py</code></a></td>
+<td>Facility types and their typed fields (POP.10, schema v89): anyone may read them, an admin defines them.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/idpaths.py"><code>idpaths.py</code></a></td>
+<td>Where each API answer carries an object ID (API.23).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/ids.py"><code>ids.py</code></a></td>
+<td>Object IDs as the API's public reference (API.23).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/limiter.py"><code>limiter.py</code></a></td>
+<td>The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/loginguard.py"><code>loginguard.py</code></a></td>
+<td>The checks around every password check: the per-address lockout and per-username backoff (<code>planetgen/admin/throttle.py</code>, kept in Redis next to Flask-Limiter's counts, in memory only for a <code>memory://</code> storage or while Redis is down), and the log line and audit row for each refused sign-in.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/naming.py"><code>naming.py</code></a></td>
+<td>Names from IDs in the API's answers (GEN.71).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/population.py"><code>population.py</code></a></td>
+<td>Its own blueprint for the population read routes: <code>/api/population</code> (status), <code>/api/species</code>, <code>/api/polities</code>, <code>/api/systems/&lt;id&gt;/owner</code>, <code>/api/planets/&lt;id&gt;/species</code>, <code>/api/territories</code>. Backed by <code>planetgen/population/model.py</code>; shares <code>routes.py</code>'s connection and pagination.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/routes.py"><code>routes.py</code></a></td>
+<td>Every <code>/api/...</code> content route: databases, sectors, systems (detail, text, sections, near), nav, <code>/api/galaxy/*</code> (sectors, phenomena, shape with its <code>bright_stars</code> status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, <code>POST /api/systems</code> with an optional <code>sector_id</code> to add a system to a stored sector, <code>PATCH /api/systems/&lt;id&gt;</code> with <code>regenerate</code> to rebuild one in place).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/schemas.py"><code>schemas.py</code></a></td>
+<td>Request bodies as Pydantic models (ADM.21).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/version.py"><code>version.py</code></a></td>
+<td>The API version (API.22): one sequential integer, like the database schema number.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/workqueue.py"><code>workqueue.py</code></a></td>
+<td>Admin endpoints behind the work queue page (ADM.10, <code>web/queue_page.py</code>): the queue's state (workers active, the server's load, the machine's holder, the whole-queue pause), the runs in Redis (PERF.99) with their stages and log, and cancel, clear and delete on them.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenweb">src/planetgen/web/</h4>
+<p>The HTML pages (see <a href="../../reference/html-interface.html">html-interface.md</a>). <code>templates/</code> holds one Jinja2 template per page, all extending <code>base.html</code>, and <code>partials/</code> the shared fragments.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/__init__.py"><code>__init__.py</code></a></td>
+<td>The pages blueprint and <code>init_app</code>: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog and registers every page module.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/admin_pages.py"><code>admin_pages.py</code></a></td>
+<td><code>/login</code>, <code>/logout</code>, <code>/account</code>, <code>/admin</code> (API keys), <code>/admin/stats</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/app.py"><code>app.py</code></a></td>
+<td><code>create_app</code>: the Flask application factory. Registers the API blueprints and the page blueprint, the rate limiter, proxy fix, security headers and error handlers (including the 503 BUSY and 504 QUERY_TIMEOUT answers).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/class_pages.py"><code>class_pages.py</code></a></td>
+<td><code>/classes</code>, <code>/classes/&lt;type&gt;</code> and <code>/classes/&lt;type&gt;/&lt;code&gt;</code>, from <code>planetgen/web/lib/classref.py</code>; <code>class_url</code> for the pages that link a class.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/references_pages.py"><code>references_pages.py</code></a></td>
+<td><code>/references</code> (DOC.88), the one out-of-universe section, and <code>/references/stand-ins</code>, <code>/references/stand-ins/&lt;slug&gt;</code> and <code>/references/fitted</code> (DOC.90): static pages that opens with the Out of universe banner, from <code>planetgen/web/lib/references_site.py</code> and <code>docs/references/*.json</code>; and <code>/references/papers</code> and <code>/references/data</code> (DOC.89), the sources with their links, where each is used, views by A to Z, area, field, year, and type, totals, and a search, and the data sets, archives, standards, and terms of use.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/csrf.py"><code>csrf.py</code></a></td>
+<td>Signed double-submit CSRF protection for every page POST.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/edit_actions.py"><code>edit_actions.py</code></a></td>
+<td>The admin Delete and Regenerate buttons (TODO ADM.8) on the sector, system and phenomenon pages, and the system page's Change class (ADM.6) and Change star (ADM.7) forms.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/errors.py"><code>errors.py</code></a></td>
+<td>HTML error pages (404, 502, 500 without tracebacks).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/facility_type_pages.py"><code>facility_type_pages.py</code></a></td>
+<td>The admin Facility types page (POP.10): <code>/admin/facility-types</code> lists every facility type with its typed fields and lets an admin add, change, retire and delete types and their fields.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/galaxy_views.py"><code>galaxy_views.py</code></a></td>
+<td><code>/galaxy</code> (the 3D Galaxy Map page and Quadrant tables, closed with a page saying a generation is running while a run changes the galaxy (PERF.149); <code>?course=&lt;from&gt;,&lt;to&gt;</code> draws a NAV course), <code>/galaxy/tiles</code> and <code>/galaxy/stage</code> (JSON the map script fetches, through the tile cache), <code>/galaxy/locate</code> (the address bar's name lookup) and <code>/galaxy/territories</code> (the Territories overlay; its button shows only once a polity exists).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/generate_page.py"><code>generate_page.py</code></a></td>
+<td><code>/admin/generate</code> (new galaxy, plan, generate sectors, reset), <code>/admin/generate/status</code>, <code>/admin/generate/jobs/&lt;id&gt;</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/helpers.py"><code>helpers.py</code></a></td>
+<td><code>render_page</code>, <code>db_name</code>, <code>page_url</code>, breadcrumbs, <code>current_admin</code>, <code>generate_target</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/job_runner.py"><code>job_runner.py</code></a></td>
+<td>Runs one admin Generate job's steps in order inside its RQ worker, writing <code>state.json</code> and <code>output.log</code>, honoring the <code>cancel</code> file.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/jobs.py"><code>jobs.py</code></a></td>
+<td>Background job directories, the one-job lock, queuing the job on RQ with a burst worker started detached, cancel, listing.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maintenance_gate.py"><code>maintenance_gate.py</code></a></td>
+<td>The request hook for maintenance mode (UX.112; <code>admin/maintenance.py</code> holds the switch).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maintenance_page.py"><code>maintenance_page.py</code></a></td>
+<td><code>/maintenance</code> (UX.112): what a visitor sees while maintenance mode is on (<code>admin/maintenance.py</code>, <code>web/maintenance_gate.py</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/galaxy_status_page.py"><code>galaxy_status_page.py</code></a></td>
+<td><code>/galaxy-status</code> (UX.3): public JSON saying whether a background run is changing the galaxy, which <code>static/galaxybanner.js</code> polls every 30 s.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/nav_page.py"><code>nav_page.py</code></a></td>
+<td><code>/nav</code>: pick two endpoints, show course, route and NAV map, with &quot;Show on Galaxy Map&quot; (<code>galaxy_course</code> builds the course's waypoints for <code>/galaxy?course=</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/nearby_page.py"><code>nearby_page.py</code></a></td>
+<td>The What's nearby page, <code>/nearby</code> (NAV.44): pick a place, type a distance in parsecs, list what is there.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/population_pages.py"><code>population_pages.py</code></a></td>
+<td>The population pages (POP.1 to POP.4), read from the population API (<code>api/population.py</code>, schema v44):</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/queue_page.py"><code>queue_page.py</code></a></td>
+<td>The admin work queue page (ADM.10, PERF.99): <code>/admin/queue</code> lists the runs in Redis newest first, <code>/admin/queue/&lt;run id&gt;</code> shows one with its stages and log tail, and cancel, clear and delete act on a run.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/searchpage.py"><code>searchpage.py</code></a></td>
+<td>Search page request parsing and URL building.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/sector_page.py"><code>sector_page.py</code></a></td>
+<td><code>/sector/&lt;id&gt;</code>: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (generate neighborhood), and the NAV pick mode (<code>?pick=from</code> or <code>?pick=to</code>, a &quot;Choosing a destination&quot; banner and &quot;Use as destination&quot; links).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/system_facilities.py"><code>system_facilities.py</code></a></td>
+<td>The system page's Facilities panel and the admin facility form: <code>preview</code> (placement rules and orbit, nothing saved), <code>save</code> (<code>POST /api/facilities</code>) and <code>remove</code> (<code>DELETE /api/facilities/&lt;id&gt;</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/system_page.py"><code>system_page.py</code></a></td>
+<td><code>/admin/generate/system</code>: a one-off system shown on the page, never saved (runs <code>planetgen system --output</code>).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/system_pages.py"><code>system_pages.py</code></a></td>
+<td><code>/system/&lt;id&gt;</code>, <code>/phenomena</code>, <code>/phenomenon/&lt;type&gt;/&lt;id&gt;</code>. Links class labels to <code>/classes</code>; hands a facility POST to <code>system_facilities.py</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/system_species.py"><code>system_species.py</code></a></td>
+<td>The system page's &quot;Species that could live here&quot; panel (POP.12): for each rocky planet and moon, the species that could live there unaided or with equipment.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/tables.py"><code>tables.py</code></a></td>
+<td>The data tables' JSON route (<code>/table/&lt;name&gt;</code>, UX.41) and the helper list pages call to draw one.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/transport.py"><code>transport.py</code></a></td>
+<td>The in-process transport that lets <code>apiclient</code> call the API routes without a socket.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/views.py"><code>views.py</code></a></td>
+<td><code>/</code> (home), <code>/sectors</code>, <code>/systems</code> and <code>/search</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/warmup.py"><code>warmup.py</code></a></td>
+<td>The cache families as commands (<code>warm-galaxy-map</code>, <code>warm-lists</code>, ... PERF.127), each warming one family of pages ahead of the first visitor (MAP.134, PERF.104); <code>planetgen warm</code> runs the list.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenweblib">src/planetgen/web/lib/</h4>
+<p>Shared page-building code.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/__init__.py"><code>__init__.py</code></a></td>
+<td>Shared page-building code.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/apiclient.py"><code>apiclient.py</code></a></td>
+<td>The API client every page uses: in-process inside Flask (via <code>web/transport.py</code>), over HTTP (<code>api_base_url</code>) anywhere else.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/classref.py"><code>classref.py</code></a></td>
+<td>The class reference catalog behind <code>/classes</code>, built once per process from the generator's own tables, never hand-copied.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/reference_urls.py"><code>reference_urls.py</code></a></td>
+<td>Where the References pages are (<code>/references/...</code>) and how an id becomes an address (DOC.87): <code>reference_path(kind, id)</code>, <code>anchor</code>, the method <code>AREAS</code>. Pages link there through <code>web.helpers.reference_link</code>, never by a hand-written address.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/references_site.py"><code>references_site.py</code></a></td>
+<td>The text of the References pages, with the numbers read from <code>docs/references/*.json</code> (built by <code>scripts/build_reference_pages.py</code>), the stand-in index, the page of one stand-in and the Fitted to a result page (DOC.90).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/references_usage.py"><code>references_usage.py</code></a></td>
+<td>Where each source is used (DOC.89): reads the citation IDs in the code, data, stand-in rows, and design notes, and gives the area of each place from the name of its file. Computed when the Papers page is first asked for, not committed.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/datatable.py"><code>datatable.py</code></a></td>
+<td>The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/facility_display.py"><code>facility_display.py</code></a></td>
+<td>How a facility's type, affiliation, ratings and field values read on a page (POP.10): the rating chips and the small text cells of the Facilities table.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/estimatecache.py"><code>estimatecache.py</code></a></td>
+<td>The Generate page's size-and-time estimate kept in Redis (PERF.109), served while the generator epoch, the galaxy's data version and the speed statistics are as they were; concurrent identical requests run it once.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/galaxystatus.py"><code>galaxystatus.py</code></a></td>
+<td>Whether a run is changing the galaxy, read from the run record in Redis (UX.3): the public part of the record, the hour figure (kept in Redis so every visitor sees one), a 5 s per-process cache; no banner when Redis is down, the run has gone quiet or it names another database. <code>/galaxy</code> reads it too (PERF.149): while a run is changing the galaxy the page answers <code>503</code> with the stage and the banner's sentence (<code>templates/galaxy_generating.html</code>, checking again every 30 s) instead of the map, and shows the map again when the run has ended.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/fmt.py"><code>fmt.py</code></a></td>
+<td>Escaping and formatting helpers (<code>esc</code>, distances, UTC times).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/habitability_ref.py"><code>habitability_ref.py</code></a></td>
+<td>The text of the habitability page (<code>/help/habitability</code>, UX.90, UX.180): the five equipment levels, the six PHI-6 domains with their Blue, Green, Yellow and Red thresholds, the compact-host rule and the chips a planet row shows.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/modulegraph.py"><code>modulegraph.py</code></a></td>
+<td>The modules a page's script pulls in, for <code>&lt;link rel=&quot;modulepreload&quot;&gt;</code> hints (MAP.161).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/pagecache.py"><code>pagecache.py</code></a></td>
+<td>Cache of the API's public GET answers for the pages (PERF.2, PERF.104): in memory per process and shared through Redis, each answer served only while the data tags it read are unchanged (<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/pagetags.py"><code>pagetags.py</code></a>, <a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/db/dataversion.py"><code>dataversion.py</code></a>), capped by age and size. <code>page_cache</code> in <code>config.json</code>; <code>PLANETGEN_PAGE_CACHE=off</code> turns it off. See <a href="../operations/cache-warm-up.html">cache-warm-up.md</a>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/slowpages.py"><code>slowpages.py</code></a></td>
+<td>The cost rule for slow page requests and what a page sees of them (PERF.105): inside <code>allow_pending()</code> a cache miss that is slow raises <code>Pending</code> carrying the job (<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/queue/pagejobs.py"><code>queue/pagejobs.py</code></a>) that builds the answer into the page cache; Redis down builds it in the request and <code>take_notice()</code> says so. See <a href="../operations/slow-page-answers.html">slow-page-answers.md</a>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/slowroute.py"><code>slowroute.py</code></a></td>
+<td><code>@slow_route</code> for a view whose answers may be slow (UX.118): when a job is building the answer the visitor gets the page's frame with a progress bar (<code>slow_loading.html</code>, <code>202</code>) and <code>static/slowload.js</code> polls the job and swaps the finished page in. <code>/phenomena</code> and <code>/search</code> use it.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/xfetch.py"><code>xfetch.py</code></a></td>
+<td>Fetching a costly value shortly before it expires (PERF.110, XFetch): <code>xfetch_early</code> is the decision, <code>AgedCache</code> the in-process cache the admin Stats page's database figures use; the page cache uses the decision for its own costly entries.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/pagination.py"><code>pagination.py</code></a></td>
+<td>The site's one pager.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/privatedir.py"><code>privatedir.py</code></a></td>
+<td>Safe private fallback directories in the system temp folder.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/singleflight.py"><code>singleflight.py</code></a></td>
+<td>One build of each Galaxy Map node or stage at a time (PERF.38).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/systempage.py"><code>systempage.py</code></a></td>
+<td>The system page's body list and data tables.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/tabledisplay.py"><code>tabledisplay.py</code></a></td>
+<td>Star and planet display strings computed from raw columns.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/tilecache.py"><code>tilecache.py</code></a></td>
+<td>On-disk cache of Galaxy Map nodes and drill stages, invalidated by <code>/api/galaxy/changes</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/lib/tilepack.py"><code>tilepack.py</code></a></td>
+<td>The packed form of a Galaxy Map node (MAP.159): what the tile cache stores and what <code>/galaxy/tiles</code> sends.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srcplanetgenwebmaps">src/planetgen/web/maps/</h4>
+<p>The map panels and their data.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/__init__.py"><code>__init__.py</code></a></td>
+<td>The map panels.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/galaxymap.py"><code>galaxymap.py</code></a></td>
+<td>Quadrant and Zone classification of sectors.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/galaxymap3d.py"><code>galaxymap3d.py</code></a></td>
+<td>Builds the Galaxy Map panel and its first embedded nodes.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/navmap.py"><code>navmap.py</code></a></td>
+<td>The NAV page's top-down SVG of origin, destination and route.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/phenomenonmap.py"><code>phenomenonmap.py</code></a></td>
+<td>A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/phenomenonrender.py"><code>phenomenonrender.py</code></a></td>
+<td>The phenomenon page's View panel: which view suits each type (<code>view_kind</code>), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/starmap.py"><code>starmap.py</code></a></td>
+<td>Data for the 3D Sector Map (systems, phenomena, neighbor indicators).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/systemmap.py"><code>systemmap.py</code></a></td>
+<td>The System Map: a top-down SVG of real body positions.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/web/maps/systemscene.py"><code>systemscene.py</code></a></td>
+<td>The 3D system view's data (MAP.69): one star system as JSON that a client can draw with orbits in three dimensions.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="srchtml">src/html/</h3>
+<p><code>wsgi.py</code> is the entry point and <code>static/</code> is what the browser loads. The Flask app itself is <code>planetgen/web/app.py</code>, with the JSON API in <code>planetgen/api/</code> and the pages in <code>planetgen/web/</code>; they are listed above.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/html/wsgi.py"><code>src/html/wsgi.py</code></a></td>
+<td>The WSGI <code>application</code> for mod_wsgi and gunicorn. Puts <code>src/html</code> and <code>src</code> on <code>sys.path</code>, calls <code>create_app()</code>, and undoes an older <code>/api</code> mount prefix.</td>
+</tr>
+</tbody>
+</table></div>
+<h4 id="srchtmlstatic">src/html/static/</h4>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/src/html/static/galaxymap3d.js"><code>galaxymap3d.js</code></a></td>
+<td>The 3D Galaxy Map (three.js): scene, the Free look camera, node fetching from <code>/galaxy/nodes</code> into an IndexedDB node store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to <code>galaxystageview.js</code>.</td>
+</tr>
+<tr>
+<td><code>galaxystages.js</code></td>
+<td>The drill-down's stage rules with no drawing: which blocks a stage holds, the address (<code>?cam=</code> the camera, <code>&amp;sector=</code>, <code>&amp;open=1</code>; MAP.228) and the stage a camera looks at, breadcrumb, labels, the flight path. No three.js import; tested under node.</td>
+</tr>
+<tr>
+<td><code>galaxystageview.js</code></td>
+<td>The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, the find-a-place box and the one <code>goTo</code> (MAP.336). Created by <code>galaxymap3d.js</code>, which opens on it.</td>
+</tr>
+<tr>
+<td><code>galaxyprisms.js</code></td>
+<td>Sector-grid cells, block level of detail, density shading and the <code>drill*</code> ladder rules (the page's copy of <code>galaxy/spherical.py</code>, <code>galaxy/drill.py</code> and <code>galaxy/window.py</code>; <code>tests/test_galaxyprisms.py</code> and <code>tests/test_galaxydrill.py</code> hold them equal). No three.js import, so tests run it under node.</td>
+</tr>
+<tr>
+<td><code>galaxyblocks.js</code></td>
+<td>Builds the block scene's typed arrays, in a Web Worker when it can.</td>
+</tr>
+<tr>
+<td><code>sectorscene.js</code>, <code>galaxysector.js</code></td>
+<td>One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68).</td>
+</tr>
+<tr>
+<td><code>systemmap.js</code></td>
+<td>System Map clicks, moon drill-in and the 3D body spheres.</td>
+</tr>
+<tr>
+<td><code>bodyRendering.js</code></td>
+<td>Shared three.js sphere, glow and granulation helpers for the two maps above and the phenomenon view.</td>
+</tr>
+<tr>
+<td><code>generatebuttons.js</code></td>
+<td>Admin &quot;Generate&quot; forms on an ungenerated sector (Sector Map and Galaxy Map); Generate neighborhood asks for a radius in light years (13 to 652) and estimates the sector count.</td>
+</tr>
+<tr>
+<td><code>phenomenonrender.js</code></td>
+<td>The phenomenon View panel's three.js render (neutron star beams, accretion disks, rogue planet, comet), one still frame under reduced motion.</td>
+</tr>
+<tr>
+<td><code>generatejobs.js</code></td>
+<td>Live progress of the current Generate job (polls <code>/admin/generate/status</code>).</td>
+</tr>
+<tr>
+<td><code>mapzoom.js</code>, <code>phenomenonmap.js</code></td>
+<td>Shared SVG viewBox zoom/pan, and its use on the phenomenon diagram.</td>
+</tr>
+<tr>
+<td><code>unitladder.js</code>, <code>unitladders.js</code></td>
+<td>The browser copy of the unit ladders (<code>format.format_quantity</code>, UX.23): <code>unitladders.js</code> is generated from <code>planetgen/util/ladders.py</code> by <code>scripts/build_unit_ladders.py</code>, <code>unitladder.js</code> is the one algorithm, with the distance, speed and time formatters the maps call (they read the registry unit they are for; <code>formatMeasure</code> shows a <code>Quantity</code>). <code>unitregistry.js</code> (generated by <code>scripts/build_unit_registry.py</code>) and <code>quantity.js</code> are the browser's registry and <code>Quantity</code> (UX.140, UX.128).</td>
+</tr>
+<tr>
+<td><code>numberformat.js</code></td>
+<td>The browser copy of <code>format.format_number</code> (scientific notation from the 7th whole digit, or the 5th when decimals are shown; UX.36). The shared unit ladders are in <a href="units-and-number-formatting.html">units-and-number-formatting.md</a>.</td>
+</tr>
+<tr>
+<td><code>localtime.js</code></td>
+<td>Rewrites UTC times into the viewer's time zone.</td>
+</tr>
+<tr>
+<td><code>galaxybanner.js</code></td>
+<td>Keeps the galaxy banner current (UX.3): asks <code>/galaxy-status</code> every 30 s and when a hidden tab returns.</td>
+</tr>
+<tr>
+<td><code>theme.js</code></td>
+<td>Light/dark/system theme switch and header menu closing.</td>
+</tr>
+<tr>
+<td><code>copycode.js</code></td>
+<td>The system page's Copy button.</td>
+</tr>
+<tr>
+<td><code>style.css</code>, <code>favicon.svg</code></td>
+<td>Site styles (CSS tokens for both themes) and icon.</td>
+</tr>
+<tr>
+<td><code>objecttree.js</code></td>
+<td>The summary tree (UX.172): toggle buttons, lazy loading of a level from <code>/object/&lt;ref&gt;/tree</code>, &quot;Show more&quot;, the WAI-ARIA tree keys; <code>embedTree</code> places one in a data table's cell (UX.174).</td>
+</tr>
+<tr>
+<td><code>bodyview.js</code></td>
+<td>The rendered example on an object page (UX.171): the look record painted by <code>solidpaint.js</code> and <code>starpaint.js</code> and shaded as a lit sphere on a 2D canvas.</td>
+</tr>
+<tr>
+<td><code>bookmarks.js</code></td>
+<td>Bookmarks on the Galaxy Map (MAP.23): saved views kept in the browser, their button, menu and NAV select over <code>savedlist.js</code>.</td>
+</tr>
+<tr>
+<td><code>savedcourse.js</code></td>
+<td>A saved course (NAV.17): the record with both forms (the direct line and the route) as an entry of the <code>course</code> kind of the saved-list store, and the sentences that say what changed when it is opened again.</td>
+</tr>
+<tr>
+<td><code>savedlist.js</code></td>
+<td>The saved-list store (UX.129): one list of one kind of saved entry (bookmarks; saved courses next) behind a backend that may answer later, with the browser's <code>localStorage</code> as the local backend and a hook for the galaxy instance stamp.</td>
+</tr>
+<tr>
+<td><code>breadcrumb.js</code></td>
+<td>The one breadcrumb every page and map uses (NAV.14).</td>
+</tr>
+<tr>
+<td><code>components.js</code></td>
+<td>The shared Shoelace component set (UX.40): buttons, menus and, as pages adopt them, dialogs and form fields.</td>
+</tr>
+<tr>
+<td><code>connectionnote.js</code></td>
+<td>When to tell the admin a live job-log stream was lost (ADM.40): the stream ends on purpose every few seconds to stay under the server's request timeout.</td>
+</tr>
+<tr>
+<td><code>datatable.js</code></td>
+<td>The site's data table (UX.41), taking over the table a list page rendered (partials/datatable.html, web/lib/datatable.py).</td>
+</tr>
+<tr>
+<td><code>datatablestate.js</code></td>
+<td>The data table's logic without the page (UX.41): the query a state turns into, which pages the visible rows need, and the store that keeps the pages already fetched.</td>
+</tr>
+<tr>
+<td><code>dialogmenus.js</code></td>
+<td>What picking a menu item does: opens a dialog or goes to a page (UX.26, UX.27, UX.31).</td>
+</tr>
+<tr>
+<td><code>facilityform.js</code></td>
+<td>The system page's &quot;Place a facility&quot; form (web/templates/system.html, web/system_facilities.py).</td>
+</tr>
+<tr>
+<td><code>galaxysystem.js</code></td>
+<td>A star system opened in place on the Galaxy Map (MAP.125), using <code>systemview3d.js</code> at the system's position.</td>
+</tr>
+<tr>
+<td><code>galaxynodecut.js</code></td>
+<td>The sector-block nodes the Galaxy Map fetches and draws for a camera, opened by projected size, and the hand-over weight of each (MAP.261; twin of <code>galaxy/nodecut.py</code>).</td>
+</tr>
+<tr>
+<td><code>starbuffer.js</code></td>
+<td>The Galaxy Map's one star buffer (MAP.267): relative-to-eye pairs for positions and the dense slot store the node-by-node fill uses.</td>
+</tr>
+<tr>
+<td><code>galaxyglow.js</code></td>
+<td>The Galaxy Map's unresolved glow, the choosing half (MAP.266): a blob per node from the light its aggregate stores less the stars it lists, and how strongly it shows.</td>
+</tr>
+<tr>
+<td><code>galaxyglowlayer.js</code></td>
+<td>The glow drawn (MAP.266): a screen-sized quad per blob under the stars, each at the share the cut gives its node; the Menu's <code>glow</code> layer switches it.</td>
+</tr>
+<tr>
+<td><code>galaxyplane.js</code></td>
+<td>The plane view of the Galaxy Map (MAP.371): a grid of rings at round distances in a 60 degree wedge of the galaxy (arcs about the galactic center, or rings about the selection) on a plane through the focus or the galaxy's midplane, with a label on each ring, and (MAP.372) a budgeted layer of stems from the selection, the placed names, the stars about the pointer and the brightest nearby stars down to their shadow on that plane; switched by the Menu's Plane view, Plane at galactic midplane and Stems buttons, with a height stretch (MAP.373: a bead at up to 10 times the height, stated in a note on the grid) and spherical-coordinate labels (radius, longitude, latitude from the galactic or sector center, or distance, bearing, elevation from the selection) (the camera's tilt preset is <code>planeTilt</code> in <code>galaxystageview.js</code>).</td>
+</tr>
+<tr>
+<td><code>galaxynebulae.js</code></td>
+<td>The nebula regions chosen (MAP.176): the blobs of each drawn node's <code>nebula_regions</code>, their look and the 600 budget; drawn by <code>galaxyglowlayer.js</code>, switched by the Menu's <code>nebulae-&lt;family&gt;</code> layers.</td>
+</tr>
+<tr>
+<td><code>sectorreach.js</code></td>
+<td>Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152).</td>
+</tr>
+<tr>
+<td><code>systemreach.js</code></td>
+<td>Which star's system the camera wants up in an opened sector, by the size of its disk, and how much of it shows (MAP.152).</td>
+</tr>
+<tr>
+<td><code>groupfade.js</code></td>
+<td>Draws a scene group at a share of its strength: the fade of a sector's or a system's scene coming in (MAP.152).</td>
+</tr>
+<tr>
+<td><code>generatefinder.js</code></td>
+<td>The Add sectors form's named-sector finder (ADM.4, ADM.108).</td>
+</tr>
+<tr>
+<td><code>generateplace.js</code></td>
+<td>The Add sectors form's choices: shows the one panel of the choice made (ADM.108).</td>
+</tr>
+<tr>
+<td><code>generatestarmix.js</code></td>
+<td>The Generate page's star mix: single stars, close binaries and wide pairs must total 100% (ADM.45).</td>
+</tr>
+<tr>
+<td><code>generatelevers.js</code></td>
+<td>The Generate task pages' shape dials: the line under them (disk crest, planned-star share, outline) read from <code>/admin/generate/shape-report</code> (GEN.617, ADM.124).</td>
+</tr>
+<tr>
+<td><code>generatesize.js</code></td>
+<td>The line under the Add sectors and Check forms: the sectors, systems, stars, database growth and time the run would make, read a moment after each change from <code>/admin/generate/task/&lt;key&gt;/size</code> (ADM.126); the palette adds the same figures to a typed command.</td>
+</tr>
+<tr>
+<td><code>adminshell.js</code></td>
+<td>The admin shell's density switch: compact by default, the choice kept in the browser (ADM.92).</td>
+</tr>
+<tr>
+<td><code>adminpalette.js</code></td>
+<td>The Ctrl+K palette, its typed commands and the keyboard set (ADM.120, ADM.121, ADM.122).</td>
+</tr>
+<tr>
+<td><code>adminjobstrip.js</code></td>
+<td>The job strip on every admin page: the running and the queued job, Cancel, Discard and Start now (ADM.119, ADM.123).</td>
+</tr>
+<tr>
+<td><code>gridopacity.js</code></td>
+<td>The translucent blocks of a drill-down stage add up along the line of sight (MAP.188).</td>
+</tr>
+<tr>
+<td><code>logfollow.js</code></td>
+<td>The admin log boxes (<code>pre[data-follow-end]</code>: the Update page's log, a queue run's log) scroll to the last line on load and when the text changes; scrolling up pauses it, scrolling back to the end resumes it (kept across the Update page's reload).</td>
+</tr>
+<tr>
+<td><code>joblog.js</code></td>
+<td>The job output box: a terminal (Xterm.js) that shows the job's raw output as it streams (ADM.22).</td>
+</tr>
+<tr>
+<td><code>mapcontrol.js</code></td>
+<td>The camera and input controller the Galaxy Map's drill-down and the Sector Map's scene share (MAP.64).</td>
+</tr>
+<tr>
+<td><code>mapcore.js</code></td>
+<td>The helpers the Galaxy Map, the Sector Map and the System Map share, so each is written once (MAP.63).</td>
+</tr>
+<tr>
+<td><code>mapnavpad.js</code></td>
+<td>The Galaxy Map's on-map controls: a direction star of four arrows and a middle button that moves the center the view turns and zooms about, a readout of where the center is while it moves (MAP.200), and the log ruler with its named stops and distance readout (MAP.336).</td>
+</tr>
+<tr>
+<td><code>coursediagram.js</code></td>
+<td>NAV.69: links the Course Diagram in the Galaxy Map's course readout to the map's course: a click on a stop of the diagram selects it on the map and centers the map on it, a click on a ring on the map marks the stop in the diagram.</td>
+</tr>
+<tr>
+<td><code>coursehops.js</code></td>
+<td>NAV.36: draws a jump through unknown space on the Galaxy Map's course red, dashed and glowing (solid runs of known hops, one glowing run per unknown hop).</td>
+</tr>
+<tr>
+<td><code>findplace.js</code>, <code>findplacebox.js</code></td>
+<td>The find-a-place box (MAP.336): what a typed line can be (coordinates, designations, object IDs, regions, names, recent places) and the box that lists it.</td>
+</tr>
+<tr>
+<td><code>maplogruler.js</code></td>
+<td>The named scales of the map's log ruler and the distance readout's words (MAP.336).</td>
+</tr>
+<tr>
+<td><code>regionlanding.js</code></td>
+<td>The cluster of a region's heaviest sectors a &quot;densest&quot; Go to a region lands on (MAP.336).</td>
+</tr>
+<tr>
+<td><code>mappick.js</code></td>
+<td>The picking, hover and info-panel layer every 3D map shares (MAP.65).</td>
+</tr>
+<tr>
+<td><code>menuplace.js</code></td>
+<td>Button menus that open where they can be seen instead of out of the bottom of the window (UX.85).</td>
+</tr>
+<tr>
+<td><code>navpick.js</code></td>
+<td>Picking a NAV course on the maps; the Galaxy Map and the Sector Map hold one pick state (NAV.29, NAV.33).</td>
+</tr>
+<tr>
+<td><code>navtimes.js</code></td>
+<td>The NAV result page's travel-times table with a Warp/Fold switch (UX.70).</td>
+</tr>
+<tr>
+<td><code>nearfield.js</code></td>
+<td>The near field of the fly-through map: what stands close to the camera dissolves and a see-through tube thins what stands between the camera and the focus (MAP.149).</td>
+</tr>
+<tr>
+<td><code>nebulalook.js</code></td>
+<td>How a nebula is painted on the Galaxy Map, per theme (MAP.175).</td>
+</tr>
+<tr>
+<td><code>nebulaview.js</code></td>
+<td>A nebula page's 3D view: the nebula drawn from its own points by the maps' volume layer, with the brightest stars round it (MAP.105, MAP.142).</td>
+</tr>
+<tr>
+<td><code>objectref.js</code></td>
+<td>The browser mirror of <code>planetgen/galaxy/objectref.py</code>'s public form (<code>parse_public</code>, <code>format_public</code>).</td>
+</tr>
+<tr>
+<td><code>orbitclock.js</code></td>
+<td>The 3D system view's time control: the years past the scene's epoch (MAP.70).</td>
+</tr>
+<tr>
+<td><code>orbitpositions.js</code></td>
+<td>Where every body of a system is at any time: the browser twin of <code>planetgen/physics/body_positions.py</code> (MAP.70).</td>
+</tr>
+<tr>
+<td><code>pagecrumbs.js</code></td>
+<td>The breadcrumb of a server-rendered page.</td>
+</tr>
+<tr>
+<td><code>picker.js</code></td>
+<td>The one selection every map and page shares: a reference to an object, moved by one of four calls (NAV.13).</td>
+</tr>
+<tr>
+<td><code>shoelace-theme.css</code></td>
+<td>Shoelace in the site's own colours.</td>
+</tr>
+<tr>
+<td><code>shoelaceicons.js</code></td>
+<td>Points Shoelace's icons at the files under <code>vendor/shoelace/assets/</code>.</td>
+</tr>
+<tr>
+<td><code>starfade.js</code></td>
+<td>Stars fade in and out as the camera nears or leaves the node that lists them (MAP.152, MAP.153).</td>
+</tr>
+<tr>
+<td><code>starlight.js</code></td>
+<td>How much brighter a star's point of light is drawn than its luminosity alone would make it (MAP.87).</td>
+</tr>
+<tr>
+<td><code>starmagnitude.js</code></td>
+<td>The Galaxy Map's star visibility law: opacity follows apparent magnitude against a limiting magnitude (MAP.148).</td>
+</tr>
+<tr>
+<td><code>systemnav.js</code></td>
+<td>The NAV buttons of a body's info panel on the System Map, in both views (NAV.50).</td>
+</tr>
+<tr>
+<td><code>systempage3d.js</code></td>
+<td>The system page's switch between the Diagram and the 3D view (MAP.74).</td>
+</tr>
+<tr>
+<td><code>systemscale.js</code></td>
+<td>How the 3D system view maps real kilometres to what is drawn (MAP.71).</td>
+</tr>
+<tr>
+<td><code>systemcourse.js</code></td>
+<td>A NAV course's legs inside one system, turned from kilometers into the units the 3D system view draws in, so the line meets the heliopause sphere and the bodies (NAV.22).</td>
+</tr>
+<tr>
+<td><code>systemview3d.js</code></td>
+<td>The 3D system view: one star system from <code>GET /api/systems/&lt;id&gt;/scene</code> drawn with three.js (MAP.72, MAP.73).</td>
+</tr>
+<tr>
+<td><code>tilepack.js</code></td>
+<td>Reads the packed Galaxy Map nodes <code>/galaxy/nodes</code> sends and the node store keeps (MAP.159, MAP.260).</td>
+</tr>
+<tr>
+<td><code>viewmenu.js</code></td>
+<td>The View menu's shared builder: a fold per heading with counts, checkboxes, group boxes, a mark where a layer differs from its default, fold state kept in the browser (UX.278). Used by the System Map and the sector page.</td>
+</tr>
+<tr>
+<td><code>viewmenusearch.js</code></td>
+<td>The search over the View menu's entries: which match what a visitor typed (name, group, keywords) and which headings and groups to open. A pure function; no box uses it yet (UX.279).</td>
+</tr>
+<tr>
+<td><code>unitpreference.js</code></td>
+<td>The reader's unit preference: Automatic, Metric only or Customary (UX.78).</td>
+</tr>
+<tr>
+<td><code>units.js</code></td>
+<td>Shows every server-rendered measurement in the reader's unit system (UX.78).</td>
+</tr>
+<tr>
+<td><code>vendor/</code></td>
+<td>Vendored three.js and its license notices.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="srctests">src/tests/</h3>
+<p>Run with <code>pytest</code> from the repo root. Database tests need MySQL and skip
+without it. See <a href="../../reference/testing.html">testing.md</a>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path or pattern</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>conftest.py</code></td>
+<td>The <code>mysql_config</code> fixture: a throwaway database per test.</td>
+</tr>
+<tr>
+<td><code>webpage_support.py</code>, <code>bughunt_support.py</code>, <code>fuzz_support.py</code></td>
+<td>Shared fixtures: a live API on a background thread, bug-hunt helpers, Hypothesis profiles (<code>ci</code>, <code>deep</code>).</td>
+</tr>
+<tr>
+<td>Generation: <code>test_systems.py</code>, <code>test_planets.py</code>, <code>test_moons.py</code>, <code>test_star_*.py</code>, <code>test_wide_binary.py</code>, <code>test_evolution.py</code>, <code>test_comet_data.py</code>, <code>test_phenomena*.py</code>, <code>test_quasar.py</code>, <code>test_facilities.py</code>, <code>test_*_motion.py</code>, <code>test_heliosphere_model.py</code>, ...</td>
+<td>Unit and behavior tests for one generation module each.</td>
+</tr>
+<tr>
+<td>Galaxy: <code>test_galaxy_*.py</code> (including <code>test_galaxy_spherical.py</code>, the shell/band/wedge grid), <code>test_galaxydrill.py</code>, <code>test_galaxyprisms.py</code>, <code>test_galaxystages.py</code>, <code>test_skeleton_shape.py</code>, <code>test_bright_star_*.py</code>, <code>test_sector_gen.py</code>, <code>test_space_sector.py</code></td>
+<td>Grid, density, skeleton, drill-down stages, bright stars, sector fill. <code>test_galaxyprisms.py</code> and <code>test_galaxystages.py</code> run the JS under node.</td>
+</tr>
+<tr>
+<td>Population: <code>test_population.py</code></td>
+<td>The population pass: timeline parsing, civilization odds, eras, reach, claims, the pass against MySQL, and the read routes.</td>
+</tr>
+<tr>
+<td>Names: <code>test_names.py</code>, <code>test_name_*.py</code>, <code>test_body_names.py</code></td>
+<td>Name generation and uniqueness.</td>
+</tr>
+<tr>
+<td>Database: <code>test_db_persistence.py</code>, <code>test_query_db_*.py</code>, <code>test_migrate_progress.py</code>, <code>test_serialization.py</code></td>
+<td>Save, load, queries, migrations.</td>
+</tr>
+<tr>
+<td>API and pages: <code>test_api.py</code>, <code>test_admin_*.py</code>, <code>test_login_backoff.py</code>, <code>test_web_*.py</code> (including <code>test_web_facilities.py</code>), <code>test_*map*.py</code>, <code>test_systempage.py</code>, <code>test_tilecache.py</code>, <code>test_page_cache.py</code>, <code>test_class_pages.py</code>, <code>test_phenomenon_views.py</code>, <code>test_generatebuttons.py</code>, <code>test_pagination.py</code>, <code>test_page_shell.py</code></td>
+<td>Routes, auth, pages, maps, caches, class pages, facility form, phenomenon views. <code>test_web_a11y.py</code> drives Chromium with axe-core (<code>vendor/axe-core</code>).</td>
+</tr>
+<tr>
+<td>Tooling: <code>test_deploy_scripts.py</code>, <code>test_install_python_deps.py</code>, <code>test_bump_version.py</code>, <code>test_version_sync.py</code>, <code>test_examples.py</code>, <code>test_edge_admin_scripts.py</code></td>
+<td>Installers, dependency script, release script, version consistency, example files, admin scripts on broken input.</td>
+</tr>
+<tr>
+<td><code>test_bughunt_*.py</code></td>
+<td>Seeded, exhaustive bug hunts across generation, database, API and rendering.</td>
+</tr>
+<tr>
+<td><code>test_fuzz_*.py</code></td>
+<td>Property-based (Hypothesis) brute-force tests.</td>
+</tr>
+<tr>
+<td><code>test_physical_plausibility.py</code>, <code>test_phenomena_plausibility.py</code>, <code>test_full_matrix.py</code>, <code>test_sector_generation_perf.py</code></td>
+<td>Slow or opt-in invariant, matrix and performance checks.</td>
+</tr>
+<tr>
+<td><code>*_cli.py</code></td>
+<td>Not tests: interactive tools (plausibility reports, climate tuning, galaxy shape visualizer).</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="githubworkflows-and-changes">.github/workflows/ and changes/</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Path</th>
+<th>What it holds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/.github/workflows/ci.yml"><code>ci.yml</code></a></td>
+<td>Never on a push or PR (Boss, 2026-10-10): daily at 07:00 UTC on <code>main</code>, and by hand on any branch except <code>claude/*</code>. A math check (<code>planetgen.physics.mathcheck</code>) gates the rest: <code>pytest</code> on Python 3.12 and 3.13 against MySQL 8.0 and 8.4 and MariaDB 11.4 (with 2 and 4 generation workers in two legs), the browser layout and accessibility tests in Chromium, <code>install.sh</code> then <code>update.sh</code> run for real on Linux, the installers on macOS under bash 3.2, a dependency audit, and the dispatch of <code>dev-*</code> branches.</td>
+</tr>
+<tr>
+<td><code>deep-fuzz.yml</code></td>
+<td>Weekly, Mondays 06:17 UTC (and on demand): the fuzz tests with the <code>deep</code> profile.</td>
+</tr>
+<tr>
+<td><code>release-note.yml</code></td>
+<td>On every PR: <code>bump_version.py --check-pr</code> requires one valid note in <code>changes/</code> (or the <code>no-release</code> label).</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/.github/workflows/stamp-version.yml"><code>stamp-version.yml</code></a></td>
+<td>After a merge to <code>main</code> that touches <code>changes/</code>: runs <code>bump_version.py --commit</code> and pushes <code>Release x.y.z</code>.</td>
+</tr>
+<tr>
+<td><a href="https://github.com/dwhagar/planetGen/blob/main/changes/README.md"><code>changes/README.md</code></a></td>
+<td>How to write a note: `<short-name>.&lt;patch</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="flow-1-generating-a-galaxy">Flow 1: generating a galaxy</h2>
+<p>A galaxy is built in two passes. <code>planetgen plan</code> stores the galaxy's
+shape and outline and scatters its bright stars and phenomena. Then
+sectors are filled, either in bulk (<code>planetgen galaxy</code>, with a mode for a
+random start, one sector, a shell, a span of addresses, a course or a
+neighborhood) or on demand when an admin asks for a neighborhood. Every
+sector is addressed by <code>(shell, band, wedge)</code> in the spherical grid
+(<a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>).</p>
+<pre><code class="language-mermaid">flowchart TD
+    Plan[&quot;planetgen plan&lt;br/&gt;run_plan&quot;] --&gt; Skel[&quot;build_skeleton&lt;br/&gt;density.build_galaxy_shape&lt;br/&gt;skeleton.build_shell_extents&quot;]
+    Skel --&gt; SaveSkel[&quot;store.save_galaxy_shape&lt;br/&gt;galaxy_shape, galaxy_shell&quot;]
+    SaveSkel --&gt; Phen[&quot;scatter_phenomena&lt;br/&gt;phenomenon_scatter (per shell, on the queue)&quot;]
+    Phen --&gt; Scatter[&quot;scatter_bright_stars&lt;br/&gt;mass pass, then luminosity pass&lt;br/&gt;bright_stars.scatter_shell&quot;]
+    Scatter --&gt; BS[(&quot;bright_stars,&lt;br/&gt;phenomenon_scatter tables&quot;)]
+    Phen --&gt; BS
+
+    Galaxy[&quot;planetgen galaxy&lt;br/&gt;run_galaxy&quot;] --&gt; Bounds[&quot;store.get_galaxy_bounds&lt;br/&gt;(refuses if never planned)&quot;]
+    Bounds --&gt; Mode[&quot;mode: random start, one sector, shell,&lt;br/&gt;span, course, neighborhood&quot;]
+    Mode --&gt; At[&quot;generate_and_save_sector_at&lt;br/&gt;(per address, on the queue)&quot;]
+    OnDemand[&quot;API: generate-neighborhood&lt;br/&gt;generate_sector_neighborhood&quot;] --&gt; At
+    At --&gt; Fill[&quot;_fill_context&lt;br/&gt;bright_stars.FillContext&quot;]
+    BS --&gt; Fill
+    Fill --&gt; GenSec[&quot;generate_directed_sector&lt;br/&gt;generate_sector: SpaceSector in a SectorCell&quot;]
+    GenSec --&gt; Pre[&quot;_add_preplaced_systems&lt;br/&gt;StarSystem around each bright star&quot;]
+    GenSec --&gt; Dim[&quot;StarSystem per Poisson draw&lt;br/&gt;(dim stars only)&quot;]
+    GenSec --&gt; Ph[&quot;scattered and local phenomena&lt;br/&gt;nebulae, remnants, rogues, ...&quot;]
+    Pre --&gt; Save[&quot;store.save_sector -&gt; insert_sector&quot;]
+    Dim --&gt; Save
+    Ph --&gt; Save
+    Save --&gt; DB[(&quot;sectors, star_systems, stars,&lt;br/&gt;planets, moons, phenomena&quot;)]
+    DB --&gt; After[&quot;after the run: link_after_run,&lt;br/&gt;the scatters, backfill_after_run,&lt;br/&gt;population, settle_after_run&quot;]
+</code></pre>
+<p><strong>Plan.</strong> <code>run_plan</code> in <code>planetgen/generation/run_plan.py</code> builds a
+<code>GalaxyShape</code> (<code>galaxy/density.py</code>) and finds each shell's reach with
+<code>skeleton.build_shell_extents</code>: the highest band the shell has to cover
+before the density drops under one star per sector. It stores the shape
+(<code>galaxy_shape</code>) and the outline (<code>galaxy_shell</code>, one row per shell) and
+then scatters the phenomena and bright stars. Sector positions are never
+stored up front; they are pure functions of the <code>(shell, band, wedge)</code>
+address (<code>galaxy/spherical.py</code>). The run's stages (<code>generation/stages.py</code>)
+are numbered and announced as it goes.</p>
+<p><strong>Scatter.</strong> <code>scatter_phenomena</code> (<code>phenomenon_scatter.py</code>) places the
+galaxy's black holes, neutron stars, planetary nebulae and supernova
+remnants, plus the special objects, one task per run of shells, with the
+object-first rule (<code>object_first.py</code>): decide how many objects a shell
+holds, then where. <code>scatter_bright_stars</code> then draws the stars in two
+passes (GEN.185): the mass pass places every star born at or above the
+stellar mass limit, and the luminosity pass places every lighter star at
+least as bright as the luminosity floor, skipping sectors a pass-one star
+already marks (<code>bright_stars.scatter_shell</code>, <code>canonical_bands</code>). Both write
+<code>bright_stars</code> in batches, leave out sectors that are already filled, and
+can be redone alone (<code>--redo-scatters</code>).</p>
+<p><strong>Sector fill.</strong> Every <code>galaxy</code> mode ends in <code>generate_and_save_sector_at</code>
+(<code>run_galaxy.py</code>). It loads the sector's <code>FillContext</code> (population mix,
+its unfilled bright stars, its unbuilt scattered phenomena), then calls
+<code>generate_directed_sector</code> and <code>generate_sector</code> in <code>run_sector.py</code>, inside
+the sector's own seed (<code>galaxy/seed.py</code>) so the run's order and worker
+count do not matter. That builds a full <code>StarSystem</code> around each pre-placed
+bright star from its stored seed, draws the remaining systems from dim
+stars only (the expected count shrinks by the bright share), places each
+one with Hill-sphere spacing (<code>SpaceSector.add_system</code>), and adds
+phenomena. The center sector may also get a quasar
+(<code>add_galactic_nucleus</code>).</p>
+<p><strong>System.</strong> <code>StarSystem</code> (<code>generation/system.py</code>) builds its star or binary
+(<code>star.py</code>, <code>binary.py</code>, <code>wide_binary.py</code>, <code>phenomena/compact_remnant.py</code>),
+then planets and moons (<code>planet.py</code> over <code>physics/planets.py</code>), belts and
+comets, then applies life data (<code>life.py</code>). Names come from
+<code>names/gated_phoneme_codec.py</code> and <code>names/bodies.py</code>. <code>object_timing.py</code>
+records how long each kind of object took.</p>
+<p><strong>Save.</strong> <code>store.save_sector</code> runs <code>insert_sector</code> in one transaction,
+with rows written in multi-row batches and ids taken from <code>id_blocks</code>: it
+reserves a unique sector name, inserts the sector with its grid address,
+inserts every system (<code>insert_star_system</code>, which inserts stars, planets,
+moons, belts and comets), marks bright stars filled, inserts phenomena
+with their galaxy-frame placement, and refreshes the sector's stats.</p>
+<p><strong>After the run.</strong> A <code>galaxy</code> run saves its sectors without linking them
+and then does the shared steps once for the whole run: <code>link_after_run</code>
+(<code>store.link_sector_neighbors</code>: containment, nearest systems and quadrants
+for the new sectors and the lists of those around them),
+the scatters, <code>backfill_after_run</code> (the bright stars the new sectors
+need from the space around them), the population pass, and
+<code>settle_after_run</code> (<code>db/sector_paths.py</code>: the path of every body in the
+new sectors and their neighbours, so each path sees the final set of
+neighbours).</p>
+<p><code>planetgen system</code> and <code>planetgen sector</code> build the same objects
+without a galaxy (a cube sector, no address). <code>planetgen system --output FILE</code> writes the page and saves nothing.</p>
+<p><strong>Population (optional).</strong> Species, civilizations, polities and
+territories are a separate pass over what is already stored, so system
+generation does not change and an old galaxy can be populated without a
+regenerate. It is off by default: it runs from <code>planetgen population</code>,
+as a stage of a <code>planetgen galaxy</code> run, or when
+someone answers y to the installer's prompt (Flow 5).</p>
+<pre><code class="language-mermaid">flowchart TD
+    PopCLI[&quot;planetgen population&lt;br/&gt;run_population&quot;] --&gt; Pass[&quot;population.run_population&quot;]
+    After[&quot;planetgen galaxy&lt;br/&gt;run_population_stage&quot;] --&gt; Pass
+    Inst[&quot;install.sh / update.sh&lt;br/&gt;offer_population_pass&quot;] -.-&gt; PopCLI
+    Pass --&gt; Scan[&quot;scan_life_worlds&lt;br/&gt;planets past the watermark,&lt;br/&gt;parse_timeline, has_civilization&quot;]
+    Scan --&gt; Civ[&quot;refresh_civilizations&lt;br/&gt;era_for_age, found or dissolve polities,&lt;br/&gt;reach_ly&quot;]
+    Civ --&gt; Terr[&quot;refresh_territories&lt;br/&gt;store.sectors_reached_by,&lt;br/&gt;add_claims (strongest claim wins)&quot;]
+    Scan --&gt; PT[(&quot;species,&lt;br/&gt;population_state&quot;)]
+    Civ --&gt; Pol[(&quot;polities&quot;)]
+    Terr --&gt; SO[(&quot;system_owners&quot;)]
+</code></pre>
+<p><code>scan_life_worlds</code> reads the planets past a stored watermark
+(<code>population_state</code>), so a rerun only looks at new planets. It parses each
+life world's evolution text (<code>parse_timeline</code>), seeds its draws from the
+planet id, names the species and, for a civilization, draws an age and an
+era. <code>refresh_civilizations</code> recomputes eras from stored ages, founds one
+polity per spacefaring species and sets its reach from its age.
+<code>refresh_territories</code> rebuilds <code>system_owners</code> from scratch: each polity
+claims the systems in the sectors its reach touches, a claim's strength is
+reach over distance, and the strongest claim on a system wins (ties go to
+the lower polity id). <code>planetgen population</code> runs the scan and the polities and <code>--rescan</code> forgets everything and starts over; <code>refresh_territories</code> is <code>planetgen territories</code> (PERF.125).</p>
+<h2 id="flow-2-storing-and-migrating-the-database">Flow 2: storing and migrating the database</h2>
+<p>There are two schemas. The <strong>content schema</strong> (<code>schema.sql</code>) holds one
+galaxy; a server can host several, chosen by name prefix. The <strong>control
+schema</strong> (<code>control_schema.sql</code>, default <code>planetgen_control</code>) holds admin
+accounts for the whole deployment. Each has its own version table.</p>
+<pre><code class="language-mermaid">flowchart TD
+    Any[&quot;any writer&lt;br/&gt;(planetgen, tests)&quot;] --&gt; GC[&quot;store.get_connection&lt;br/&gt;ensure_schema=True&quot;]
+    GC --&gt; ES[&quot;_ensure_schema&lt;br/&gt;runs schema.sql (CREATE IF NOT EXISTS)&lt;br/&gt;seeds schema_migrations = SCHEMA_VERSION&quot;]
+    ES --&gt; Content[(&quot;content schema&quot;)]
+
+    RO[&quot;read-only callers&lt;br/&gt;(db.query.open_readonly, API)&quot;] --&gt; NoDDL[&quot;get_connection&lt;br/&gt;ensure_schema=False&quot;]
+    NoDDL --&gt; Content
+
+    Inst[&quot;install.sh / update.sh&lt;br/&gt;deploy-common migrate_or_reset_db&quot;] --&gt; Status[&quot;planetgen.cli.migrate --status&lt;br/&gt;store.schema_status&quot;]
+    Status --&gt;|&quot;steps pending&quot;| Ask{&quot;delete the galaxy&lt;br/&gt;instead? (y/N, 30 s)&quot;}
+    Status --&gt;|&quot;current&quot;| Mig
+    Ask --&gt;|&quot;N&quot;| Mig[&quot;planetgen.cli.migrate&lt;br/&gt;store.migrate_database&lt;br/&gt;each Alembic revision&quot;]
+    Ask --&gt;|&quot;y&quot;| Reset[&quot;planetgen.cli.reset --yes&lt;br/&gt;(admin logins kept)&quot;]
+    Reset --&gt; Mig
+    Mig --&gt; Content
+    Mig --&gt; Boot[&quot;admin.auth.bootstrap_control_schema&lt;br/&gt;CREATE DATABASE, control_schema.sql,&lt;br/&gt;seed first admin&quot;]
+    Boot --&gt; Control[(&quot;control schema&quot;)]
+</code></pre>
+<p><strong>Creating.</strong> Any read-write connection (<code>store.get_connection</code> with its
+default <code>ensure_schema=True</code>) applies <code>schema.sql</code>. Every statement is
+<code>CREATE ... IF NOT EXISTS</code>, so a new database comes out at the current
+<code>SCHEMA_VERSION</code> and an existing one is untouched. Read-only callers pass
+<code>ensure_schema=False</code>, since their account may lack <code>CREATE</code>.</p>
+<p><strong>Migrating.</strong> <code>schema.sql</code> always describes the current shape. An older
+database is moved forward by <code>store.migrate_database</code>, which runs every
+Alembic revision (<code>planetgen/db/migrations/versions/</code>, run through
+<code>planetgen.db.alembic_runner</code>) above the stored version, in order. A revision's
+id is its schema version, so <code>SCHEMA_VERSION</code> is the head revision's number.
+Databases older than v130 (the baseline) are refused with <code>SchemaTooOldError</code>
+rather than migrated, and so is a database with tables but no recorded version
+(<code>SchemaVersionMissingError</code>). <code>planetgen.cli.migrate</code> is the CLI wrapper with a progress
+bar. A change to a <code>sectors</code> column rebuilds the whole table, because the FULLTEXT index on <code>sectors.name</code> rules out
+<code>ALGORITHM=INSTANT</code> (DB.84): such changes are batched into as few revisions as possible, each saying in its docstring
+that it rebuilds <code>sectors</code>, and the index stays. A schema change therefore touches <code>schema.sql</code>, a new revision file, the
+regenerated <code>planetgen/db/models.py</code> (<code>scripts/generate_db_models.py</code>), and
+<a href="../../reference/database-schema.html">database-schema.md</a>; the steps are in
+<code>src/planetgen/db/migrations/README.md</code>.</p>
+<p><strong>Control schema.</strong> After the content migration, <code>planetgen.cli.migrate</code> calls
+<code>admin.auth.bootstrap_control_schema</code>. It creates the control database if
+needed, applies <code>control_schema.sql</code>, and seeds an <code>admin</code> user with a
+random password when there is none. <code>planetgen.cli.migrate</code> prints that password
+once.</p>
+<p><strong>The sector-grid switch.</strong> Revision <code>0091</code> converted the cylinder sector
+grid to shells, bands and wedges in place (renumbering the object IDs from
+the new sectors). The migration turns maintenance mode on, which closes the
+site and the API to everyone but the admin until the Galaxy Map has been
+rebuilt; revision <code>0092</code> made the block totals on shells, and <code>planetgen warm</code>
+turns that maintenance off again once the opening view is built
+(<code>planetgen/admin/maintenance.py</code>, <code>planetgen.cli.maintenance</code>). An admin's own
+maintenance stays on.</p>
+<p><strong>Other writers.</strong> <code>planetgen.cli.reset</code> truncates generated tables.
+<code>planetgen.cli.orbits</code> advances orbits (<code>store.advance_orbital_phases</code>,
+<code>advance_galactic_positions</code>, <code>refresh_after_motion</code>). The population
+pass (Flow 1) writes <code>species</code>, <code>polities</code>, <code>system_owners</code> and
+<code>population_state</code>; the work queue's progress and job counters live in Redis, not MySQL (see <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a>). The API's system writes go through
+<code>store.add_system_to_sector</code> (a new system in a stored sector, placed clear
+of the others' Hill spheres, with containment and nearest systems filled
+in) and <code>store.replace_star_system_content</code> (regenerate a system's bodies in
+place, keeping its id, name, position and links). Page text is not
+stored; <code>db/render.py</code> renders it from rows when asked.</p>
+<h2 id="flow-3-serving-a-page-and-a-map">Flow 3: serving a page and a map</h2>
+<p>Every request enters through <code>wsgi.py</code>. The HTML pages and the JSON API
+are one Flask app. A page view never opens a database connection: it calls
+<code>planetgen/web/lib/apiclient.py</code>, which, inside a Flask request, runs the API route
+in-process (<code>web/transport.py</code>).</p>
+<pre><code class="language-mermaid">flowchart TD
+    B[&quot;Browser GET /sector/42&quot;] --&gt; W[&quot;wsgi.py application&quot;]
+    W --&gt; App[&quot;web/app.py create_app&lt;br/&gt;maintenance gate, security headers,&lt;br/&gt;limiter, CSRF&quot;]
+    App --&gt; View[&quot;web/sector_page.py&quot;]
+    View --&gt; AC[&quot;lib/apiclient.get_sector&quot;]
+    AC --&gt; PC{&quot;lib/pagecache&lt;br/&gt;fresh copy?&quot;}
+    PC --&gt;|&quot;yes&quot;| JSON
+    PC --&gt;|&quot;no&quot;| T[&quot;web/transport.py&lt;br/&gt;in_process_transport&lt;br/&gt;(no socket)&quot;]
+    T --&gt; R[&quot;api/routes.py&lt;br/&gt;GET /api/sectors/42&quot;]
+    R --&gt; Q[&quot;db.query.open_readonly&lt;br/&gt;db.query.sector_detail&quot;]
+    Q --&gt; DB[(&quot;content schema&quot;)]
+    R --&gt; JSON[&quot;JSON&quot;]
+    JSON --&gt; View
+    View --&gt; Lib[&quot;web/maps/starmap.py (scene data),&lt;br/&gt;lib/pagination.py, lib/fmt.py&quot;]
+    Lib --&gt; Tpl[&quot;templates/sector.html&quot;]
+    Tpl --&gt; B
+    B -. &quot;loads&quot; .-&gt; JS[&quot;static/ map scripts + three.js&quot;]
+</code></pre>
+<p><strong>A page.</strong> <code>wsgi.py</code> builds the app with <code>web/app.py</code>'s <code>create_app</code>,
+which installs the maintenance gate first (while maintenance mode is on
+anyone but a signed-in admin gets a 503 and the &quot;being updated&quot; page), then
+registers the API blueprints and calls <code>web.init_app</code>. A page view
+(for example <code>web/sector_page.py</code>) calls an <code>apiclient</code> function. Because
+<code>transport.install()</code> ran at startup, the call goes straight through the
+app's own WSGI callable: same route, validation and auth as over HTTP,
+without a socket. The API route reads through <code>planetgen.db.query</code> (listings,
+details, search, nav) or <code>store.load_*</code>. The view then builds map data with
+<code>lib/</code> helpers and renders a Jinja template. Errors become HTML pages
+(<code>web/errors.py</code>); under <code>/api</code> they stay JSON.</p>
+<p><strong>The page cache.</strong> Before a public GET (one that sends no cookie, so
+every visitor gets the same answer), <code>apiclient._request</code> asks the app's
+<code>pagecache.ResponseCache</code> (installed by <code>web.init_app</code>). A hit skips the
+API and the database; a miss stores the raw JSON body with the data tags it
+read and their counters (<code>planetgen.db.dataversion</code>, in Redis), also in Redis
+so every worker and the warm-up share it. A copy is served only while its
+counters stand. Any successful <code>POST</code>, <code>PATCH</code>, <code>PUT</code> or <code>DELETE</code> under <code>/api</code>
+bumps the tags it changes before the response goes out
+(<code>pagetags.change_for_write</code>), so only the answers that read them are rebuilt;
+the population pass, the orbital update and generation do the same when they
+finish. At most once per <code>stamp_seconds</code> per database, the cache reads the
+same content stamp the tile cache uses (<code>GET /api/galaxy/changes</code>), the
+backstop for a change nobody recorded: sectors and systems added by a direct
+database edit are seen within 15 seconds by default. Nothing is kept past
+<code>max_age_seconds</code> (5 minutes by default) in a process. It fails open (no Redis,
+no cache), and <code>page_cache</code> in <code>config.json</code> tunes or disables it. The
+warm-up fills the shared copies after an update (<code>planetgen warm</code>,
+<a href="../operations/cache-warm-up.html">cache-warm-up.md</a>).</p>
+<p><strong>Admin writes from the pages.</strong> The system page's facility form
+(<code>web/system_facilities.py</code>) previews a placement against
+<code>planetgen.population.facilities.check_facility</code> and <code>GET /api/facilities/orbit</code>, then saves with <code>POST /api/facilities</code> or removes
+with <code>DELETE /api/facilities/&lt;id&gt;</code>, each a plain CSRF-checked POST with a
+303 back to the page. Like every API write it bumps the data tags it changes
+(the page cache).</p>
+<p><strong>The Galaxy Map.</strong> <code>/galaxy</code> (<code>web/galaxy_views.py</code>) draws the 3D map on the
+shell grid, and the sector page's Sector Map is the same map locked to its
+sector. The pieces:</p>
+<ul>
+<li><strong>Nodes.</strong> <code>static/galaxymap3d.js</code> fetches the sector-block nodes that
+<code>static/galaxynodecut.js</code> picks for the camera (a block opens into its
+children as it grows on screen; MAP.261) from <code>/galaxy/nodes</code>, a packed
+binary body (<code>web/lib/tilepack.py</code> writes it, <code>static/tilepack.js</code> reads it;
+MAP.159), and keeps them in IndexedDB (<code>planetgen-nodes</code>), with only a small
+record of the cache stamp in <code>localStorage</code>. A node is a block of the ladder
+below, not a cube of space; its glow comes from the stored
+<code>galaxy_block_lights</code> table (<code>db/block_lights.py</code>, MAP.259) and its read is
+<code>db/nodes.py</code> (MAP.260).</li>
+<li><strong>Named regions.</strong> A region is a 9-block of the ladder that holds a generated sector (<code>galaxy/named_regions.py</code>: name, anchor,
+framing sphere, extent); <code>region_stats</code> (<code>db/region_stats.py</code>, DB.107) stores its sector count, capacity (so the share
+charted), extent and summed mass, kept by the same hooks as <code>galaxy_block_stats</code>. The mass of a sector (<code>sector_stats.total_mass_kg</code>, <code>db/sector_mass.py</code>,
+DB.108) is the sum of its bodies; a block and a region add up the sectors'.</li>
+<li><strong>The block ladder.</strong> The drill-down's stages (<code>/galaxy/stage</code>) and data
+windows (<code>/galaxy/window</code>, MAP.151) are blocks of 243, 81, 27, 9 and 3
+shells (<code>galaxy/drill.py</code>, <code>galaxy/window.py</code>, <code>docs/design/galaxy/spherical-block-ladder.md</code>).
+<code>db.query.galaxy_stage</code> and <code>galaxy_window</code> read each block's totals from the
+stored <code>galaxy_block_stats</code> table (schema 92, kept by <code>db/block_stats.py</code>) and
+the sectors of a level-3 block from <code>sectors</code> and <code>sector_stats</code>. The totals
+are sums of each sector's <code>sector_stats</code> figures, and three things keep them
+true (DB.83): a <code>galaxy</code> run refreshes the blocks above the sectors it saved
+once at its end, a sector visited or regenerated and a sector deleted refresh
+the chain above it, and an edit that changes what a sector holds
+(<code>db.edits.save_system_edits</code>, the system delete) first states the sector's
+figures again from its rows (<code>store.refresh_edited_sectors</code>) and then
+refreshes the chain. The orbit update does not: a system it refiles into
+another sector stays counted where it was generated, as <code>check-db</code>'s count
+warning says. <code>planetgen fill-block-totals</code> makes the block rows again from
+the sectors' figures.</li>
+<li><strong>Address bar.</strong> A sector designation (such as <code>C8030005</code>), <code>shell/band/wedge</code>
+or <code>shell N band N wedge N</code>, <code>x, y, z</code> in parsecs or a name. A name goes to <code>/galaxy/locate</code>, which calls
+<code>db.query.galaxy_locate</code> through the API.</li>
+<li><strong>NAV course.</strong> The NAV result links to <code>/galaxy?course=&lt;from&gt;,&lt;to&gt;</code>.
+<code>galaxy_views._course_from_args</code> asks <code>nav_page.galaxy_course</code> for the
+waypoints. &quot;Start Here&quot; and &quot;End Here&quot; in an object's panel
+(<code>static/navpick.js</code>, NAV.29) and a pick mode (<code>?pick=to&amp;from=...</code>) work
+as before.</li>
+<li><strong>Territories.</strong> <code>/galaxy/territories</code> merges <code>/api/territories</code> (owned
+systems and capitals) with <code>/api/polities</code> (names, colors, counts); the
+button and legend appear only when <code>/api/polities</code> counts at least one
+polity.</li>
+</ul>
+<pre><code class="language-mermaid">flowchart TD
+    JS[&quot;static/galaxymap3d.js&quot;] --&gt; LS{&quot;node in&lt;br/&gt;IndexedDB?&quot;}
+    LS --&gt;|&quot;yes&quot;| Draw[&quot;draw&lt;br/&gt;(tilepack.js, galaxyblocks.js)&quot;]
+    LS --&gt;|&quot;no&quot;| GT[&quot;GET /galaxy/nodes&lt;br/&gt;web/galaxy_views.py&quot;]
+    GT --&gt; TC[&quot;lib/tilecache.fetch_nodes_wire&quot;]
+    TC --&gt; Stamp[&quot;current_stamp&lt;br/&gt;(at most once per 60 s:&lt;br/&gt;GET /api/galaxy/changes)&quot;]
+    Stamp --&gt; Disk{&quot;node on disk for&lt;br/&gt;this generation?&quot;}
+    Disk --&gt;|&quot;yes&quot;| Out[&quot;packed nodes&quot;]
+    Disk --&gt;|&quot;no&quot;| API[&quot;apiclient.get_galaxy_nodes&lt;br/&gt;GET /api/galaxy/nodes&quot;]
+    API --&gt; QT[&quot;db.nodes.galaxy_nodes&quot;]
+    QT --&gt; DB[(&quot;content schema&quot;)]
+    API --&gt; Write[&quot;write node file&quot;]
+    Write --&gt; Out
+    Out --&gt; Draw
+</code></pre>
+<p>There are three cache levels. The browser keeps nodes in IndexedDB, keyed
+by the cache generation. The web process keeps node files under
+<code>tile_cache.dir</code> (<code>planetgen/web/lib/tilecache.py</code>). The database is the source.
+Freshness comes from <code>db.query.galaxy_changes</code>, which reads the
+<code>modified_at</code> columns and names only the nodes that changed; a change it
+cannot pin down starts a new generation. <code>update.sh</code> ends by warming the
+map's opening view (<code>planetgen warm</code>, MAP.134).</p>
+<h2 id="flow-4-admin-login-and-background-generate-jobs">Flow 4: admin login and background Generate jobs</h2>
+<pre><code class="language-mermaid">flowchart TD
+    LP[&quot;POST /login&lt;br/&gt;web/admin_pages.py&quot;] --&gt; ACL[&quot;apiclient.auth_login&quot;]
+    ACL --&gt; AL[&quot;POST /api/auth/login&lt;br/&gt;api/auth.py&quot;]
+    AL --&gt; RL[&quot;per-IP limit&lt;br/&gt;10 per minute (limiter.py)&quot;]
+    RL --&gt; BO{&quot;loginguard:&lt;br/&gt;address or username locked?&lt;br/&gt;(Redis)&quot;}
+    BO --&gt;|&quot;yes&quot;| E429[&quot;429 + Retry-After&quot;]
+    BO --&gt;|&quot;no&quot;| Auth[&quot;admin.auth.authenticate&lt;br/&gt;(control schema)&quot;]
+    Auth --&gt;|&quot;fail&quot;| Rec[&quot;count against address and username,&lt;br/&gt;log + audit row, 401&quot;]
+    Auth --&gt;|&quot;ok&quot;| Sess[&quot;admin.auth.create_session&lt;br/&gt;stores SHA-256 of token&quot;]
+    Sess --&gt; Cookie[&quot;Set-Cookie (HttpOnly, Secure, SameSite=Strict)&lt;br/&gt;relayed to the page response&quot;]
+
+    Gen[&quot;POST /admin/generate&lt;br/&gt;web/generate_page.py&lt;br/&gt;(CSRF + fresh admin)&quot;] --&gt; SJ[&quot;web/jobs.start_job&lt;br/&gt;job.json, take 'active' lock&quot;]
+    SJ --&gt; Spawn[&quot;queue on RQ, start detached:&lt;br/&gt;python3 -m planetgen.cli.worker --burst&quot;]
+    Spawn --&gt; Steps[&quot;each step in order:&lt;br/&gt;planetgen.cli.reset --yes, planetgen plan --no-bright-stars,&lt;br/&gt;planetgen plan --bright-stars-only, planetgen galaxy ...&quot;]
+    Steps --&gt; Files[&quot;state.json, output.log,&lt;br/&gt;progress.json (queue/progress_file.py)&quot;]
+    Poll[&quot;static/generatejobs.js&lt;br/&gt;GET /admin/generate/status&quot;] --&gt; Files
+</code></pre>
+<p><strong>Login.</strong> The <code>/login</code> page posts the form through <code>apiclient.auth_login</code>
+to <code>POST /api/auth/login</code>. That route is limited per IP (10 a minute), then
+checks the lockouts (<code>api/loginguard.py</code>, <code>planetgen/admin/throttle.py</code>):
+3 failures from one address lock it for 5 minutes, doubling up to a day,
+and 10 for one username lock it for 1 second, doubling up to 15 minutes,
+both kept in Redis (SEC.30). The
+password is checked against the control schema (<code>admin.auth.authenticate</code>).
+On success <code>admin.auth.create_session</code> stores only a hash of a new token,
+and the raw token goes back as the session cookie. <code>admin_pages.py</code>
+relays that <code>Set-Cookie</code> onto the page response.</p>
+<p><strong>Every later request.</strong> <code>api/authz.py</code> resolves the admin from the
+session cookie or a <code>Bearer</code> API key. <code>require_admin(fresh=True)</code> also
+refuses an admin who still has to change the seeded credentials (<code>/account</code>
+does that). Page forms carry a CSRF token checked by <code>web/csrf.py</code> on every
+non-API POST.</p>
+<p><strong>Jobs.</strong> <code>/admin/generate</code> turns a form into a list of command lines
+(<code>generate_page.py</code>) and calls <code>web/jobs.start_job</code>. That writes <code>job.json</code>
+into a new job directory, takes the one-job lock (a hash in Redis), queues
+<code>web/job_runner.run</code> as an RQ job and starts a burst worker for it,
+detached from the web server, so a request timeout or a
+server reload does not stop it. The runner runs each step with the site's
+database in <code>PLANETGEN_MYSQL_*</code> and <code>PLANETGEN_PROGRESS_FILE</code> set; it
+writes <code>state.json</code> and <code>output.log</code>, and <code>planetgen</code> writes
+<code>progress.json</code>. The page only reads those files: the status (<code>/admin/generate/status</code>, polled by <code>static/generatejobs.js</code>) and the job's log (<code>/admin/generate/jobs/&lt;id&gt;/stream</code>, a live stream that ends on purpose every few seconds, and <code>.../log</code>, shown by <code>static/joblog.js</code> in a terminal box). Cancel
+writes a <code>cancel</code> file the runner watches. A lock left by a dead runner is
+cleared by the next <code>start_job</code>. The job itself is only that list of steps; the work a step does is a run on the Redis work queue (below), and the Queue page, the job's page and cancel read and act on the runs in Redis (<code>queue/runview.py</code>, <code>queue/runcontrol.py</code>: a run started under a job is listed under it, and canceling the job cancels its runs). See <a href="../operations/redis-and-the-work-queue.html">redis-and-the-work-queue.md</a> for the design and how it was built (PERF.86).</p>
+<p>Planning runs the bright-star scatter as its own step (<code>planetgen plan --bright-stars-only</code> after <code>plan --no-bright-stars</code>), so the job shows its
+progress bar and count; &quot;Skip all scatters&quot; leaves it out, and
+&quot;Rebuild the bright stars&quot; runs it alone on the stored plan. Each step of a <code>planetgen galaxy</code>, <code>plan</code>, <code>scatter</code>, <code>sector</code> or <code>system</code> command is a stage of a run on the Redis work queue: the wrapper (<code>queue/wrapper.py</code>) turns the arguments into the list of commands to run (<code>queue/commands.py</code>), writes the run's record in Redis (<code>queue/runrecord.py</code>: its stages, counters, results, log events) and cuts the first stage into units; a unit is an RQ job on the bulk queue carrying JSON, run by the idle-timeout workers (<code>queue/workers.py</code>, <code>planetgen.cli.worker</code>) that <code>ensure_workers</code> starts, and the unit that finishes the last of a stage queues the next stage, so the command that started the run only follows it. A chunk of sectors, a chunk of a shell scatter and a backfill block are each one unit. Generate
+neighborhood (on the Sector Map and the Galaxy Map, <code>static/generatebuttons.js</code>)
+asks for a radius in light years, 13 to 652, and asks again past about
+5,000 sectors.</p>
+<p>The one-off system page (<code>/admin/generate/system</code>, <code>web/system_page.py</code>)
+does not use jobs: it runs <code>planetgen system --output</code> in a temporary
+directory and waits, since a system takes about a second.</p>
+<h2 id="flow-5-install-update-and-releases">Flow 5: install, update and releases</h2>
+<pre><code class="language-mermaid">flowchart TD
+    subgraph Server[&quot;On a server&quot;]
+        I[&quot;install.sh&quot;] --&gt; DC[&quot;scripts/deploy-common.sh&quot;]
+        U[&quot;update.sh&lt;br/&gt;git reset --hard origin/branch&quot;] --&gt; DC
+        I --&gt; PD[&quot;scripts/install-python-deps.sh&lt;br/&gt;probe_requirements.py, lock_pins.py&quot;]
+        U --&gt; PDC[&quot;install-python-deps.sh --check&quot;]
+        DC --&gt; NL[&quot;NLTK words corpus&quot;]
+        DC --&gt; RD[&quot;ensure_redis, check_redis_settings&lt;br/&gt;(warns, never edits Redis config)&quot;]
+        DC --&gt; WM[&quot;warm_galaxy_map&lt;br/&gt;planetgen warm&quot;]
+        DC --&gt; MR[&quot;migrate_or_reset_db -&gt; planetgen.cli.migrate&quot;]
+        I --&gt; POP{&quot;offer_population_pass&lt;br/&gt;run it? (y/N, 30 s;&lt;br/&gt;POPULATION=1 skips the question)&quot;}
+        POP --&gt;|&quot;y&quot;| GP[&quot;planetgen population&quot;]
+        DC --&gt; WS[&quot;Apache modules / gunicorn daemon&quot;]
+        I --&gt; EX[&quot;examples/apache/*.sh&lt;br/&gt;permissions, cache + jobs dirs, debug log&quot;]
+        U --&gt; EX
+        T[&quot;examples/maintenance timers&quot;] --&gt; U
+        T --&gt; UO[&quot;planetgen.cli.orbits&quot;]
+    end
+    subgraph Release[&quot;On GitHub&quot;]
+        PR[&quot;PR adds changes/NAME.LEVEL.md&quot;] --&gt; RN[&quot;release-note.yml&lt;br/&gt;bump_version.py --check-pr&quot;]
+        PR --&gt; CI[&quot;ci.yml&quot;]
+        RN --&gt; Merge[&quot;merge to main&quot;]
+        CI --&gt; Merge
+        Merge --&gt; SV[&quot;stamp-version.yml&lt;br/&gt;bump_version.py --commit&quot;]
+        SV --&gt; Out[&quot;_version.py, README badge,&lt;br/&gt;CHANGELOG.md, note deleted,&lt;br/&gt;'Release x.y.z' commit&quot;]
+    end
+    Out -. &quot;next update.sh pull&quot; .-&gt; U
+</code></pre>
+<p><strong>Install.</strong> <code>install.sh</code> (Linux and macOS) follows numbered steps.
+Shared steps live in <code>scripts/deploy-common.sh</code>, so install and update
+cannot drift.
+Libraries come from <code>scripts/install-python-deps.sh</code> (pip with
+<code>--require-hashes</code> from <code>requirements.lock</code>, or apt on an externally
+managed Python). Redis must answer at <code>redis.url</code>: <code>ensure_redis</code> installs and starts <code>redis-server</code> on a local address when nothing does, and <code>check_redis_settings</code> only warns about settings that do not suit planetGen (<code>examples/redis/planetgen.conf</code>). The database step is <code>planetgen.cli.migrate</code> (Flow 2).
+After it (in <code>install.sh</code>, after the NLTK corpus, which the species names
+need), <code>offer_population_pass</code> asks whether to run <code>planetgen population</code>. The answer defaults to No after 30 seconds, and with no
+terminal the question is skipped. <code>POPULATION=1</code>
+runs it without asking. The update script never asks or runs it
+(OPS.7).
+<code>install.sh --skip-database</code> skips both. The
+<code>examples/apache/</code> helpers set permissions and create the tile cache, jobs
+directory and debug log.</p>
+<p><strong>Update.</strong> <code>update.sh</code> forces the checkout to the
+branch tip (untracked files such as <code>config.json</code> are kept), then run each
+check and change only what is missing. The maintenance timers in
+<code>examples/maintenance/</code> can run it, and <code>planetgen.cli.orbits</code>, on a schedule. It ends by warming the Galaxy Map's opening view (<code>warm_galaxy_map</code>, <code>planetgen warm</code>, MAP.134).</p>
+<p><strong>Releases.</strong> A PR never edits the version. It adds one note under
+<code>changes/</code> named <code>&lt;short-name&gt;.&lt;patch|minor|major&gt;.md</code>; <code>release-note.yml</code>
+checks it with <code>bump_version.py --check-pr</code>. After the merge,
+<code>stamp-version.yml</code> runs <code>bump_version.py --commit</code>: each pending note
+becomes its own release (oldest merge first), bumping
+<code>src/planetgen/_version.py</code>, the README <code>**Version:**</code> badge and
+<code>CHANGELOG.md</code> together, and the bot pushes <code>Release x.y.z</code> to <code>main</code>.
+<code>test_version_sync.py</code> checks the three stay in step. Servers pick the
+release up on their next <code>update.sh</code>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

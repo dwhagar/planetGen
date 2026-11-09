@@ -974,19 +974,21 @@ def expand_save_sector_paths(params):
     The `settle-sector-paths` command's stage (PERF.107, PERF.115): the sectors to settle (those saved since `params["since"]`,
     or `params["sector_ids"]`, and with `params["expand"]` (the default) the sectors around them,
     `sector_paths.sectors_to_settle`) are found once, here, and cut in order into static chunks of `SETTLE_UNIT_SECTORS`
-    (at most `SETTLE_UNITS_MAX` chunks), the same at any worker count. Each sector's paths depend only on the final
+    (at most `SETTLE_UNITS_MAX` chunks) in the order of the sectors' cell keys (GEN.1477: a chunk is a block of sectors that sit together and read the point masses around them once), the same at any worker count. Each sector's paths depend only on the final
     sectors around it and are saved with the sector, so the chunks cannot collide. A stage with nothing to settle is one
     empty unit, so the stage still stores its row.
     """
     created = _sectors_since(params)
-    if params.get("expand", True):
+    sectors = sorted(set(created))
+    if sectors or params.get("expand", True):
         conn = store.get_connection(_mysql_config_of(params))
         try:
-            sectors = sector_paths.sectors_to_settle(conn, created)
+            if params.get("expand", True):
+                sectors = sector_paths.sectors_to_settle(conn, created)
+            # In cell-key order a chunk is a block of sectors that sit together and reads its neighbourhoods once (GEN.1477).
+            sectors = sector_paths.sectors_in_cell_order(conn, sectors)
         finally:
             conn.close()
-    else:
-        sectors = sorted(set(created))
     size = max(SETTLE_UNIT_SECTORS, -(-len(sectors) // SETTLE_UNITS_MAX))
     # One unit may spread a crowded sector's bodies over processes; a stage of many units already fills the workers.
     workers = params["workers"] if len(sectors) <= size else 1

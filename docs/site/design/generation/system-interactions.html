@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Everything in a system affects everything else in the system - planetGen docs</title>
+<meta name="description" content="The design principle behind every physics item of the generator, and a register of the code paths that still count only the host star or only one pair of bodies.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/system-interactions.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/system-interactions.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="everything-in-a-system-affects-everything-else-in-the-system">Everything in a system affects everything else in the system</h1><p class="meta">docs/design/generation/system-interactions.md</p>
+<p>The design principle behind every physics item of the generator, and a register of the code paths that still count only the host star or only one pair of bodies.</p>
+<p>Informs: GEN.1441, GEN.1442, GEN.1443, GEN.1444, GEN.1445, GEN.1446, GEN.1447, GEN.1448, GEN.1449, GEN.1450, GEN.1451, GEN.1452, GEN.1453, GEN.1454, GEN.1455, GEN.1456, GEN.1457, GEN.1458, GEN.1459, GEN.1460, GEN.1461, GEN.1462</p>
+<p>Status: plan, 2026-11-08; the principle is Boss's, the register is a first pass by reading the code (a search for host-only and pair-only effects), not a proof that nothing else is missing</p>
+<h2 id="the-principle">The principle</h2>
+<p>Boss, 2:58 PM EST on 2026-11-08: &quot;Everything in a system effects everything else in the system.&quot;</p>
+<p>Every body of a system (stars and other star-like objects, planets, moons, belts and asteroids, comets, rings) acts on every other body of the same system through its 3D position, averaged over the orbits: light, UV, X-ray, flares and particle dose; gravity as tides and as secular, resonant and scattering perturbations; wind and magnetic fields; dust and impacts. An effect that reads the host star alone, or one pair of bodies alone, is a simplification. It may stay only where it is stated and registered in GEN.725 with a tier, a tweak level and a reason (a test shows the missing terms are below a stated size).</p>
+<h2 id="rules-for-new-items">Rules for new items</h2>
+<ol>
+<li>Say which sources and which receivers the effect covers. The default is all bodies of the system on all bodies of the system.</li>
+<li>Use the 3D positions and the system bounds already stored, averaged over the orbits (mean of 1/d^2 for light, mean of 1/d^3 for tides); do not use the host's distance as a stand-in for the distance to every source.</li>
+<li>A lone star with no other body must give the numbers of before the change; a test says so.</li>
+<li>Where a term is dropped (shadowing, higher-order resonances, an unknown source), say so in the item and register the simplification in GEN.725.</li>
+<li>Every such change ships with a before and after census that shows how many bodies move (GEN.1445 for radiation, GEN.1448 for tides and secular effects).</li>
+</ol>
+<h2 id="register-of-host-only-and-pair-only-code-paths-first-pass">Register of host-only and pair-only code paths (first pass)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Effect</th>
+<th>Where it is today</th>
+<th>Item</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mean light, temperature, climate, albedo, habitable zone</td>
+<td>Host star alone; only the size of the light swing counts the other stars</td>
+<td>GEN.1441</td>
+</tr>
+<tr>
+<td>UV, X-ray, flare and particle dose, ozone, atmosphere loss</td>
+<td>Host star alone</td>
+<td>GEN.1442</td>
+</tr>
+<tr>
+<td>Sky and day text</td>
+<td>Host star alone</td>
+<td>GEN.1443</td>
+</tr>
+<tr>
+<td>Belt, asteroid and comet temperature, ice survival and dose</td>
+<td>Host star alone</td>
+<td>GEN.1444</td>
+</tr>
+<tr>
+<td>Tide raisers of a planet (ocean tide, spin, locking)</td>
+<td>The host star and the planet's own moons; no companion star, no sibling planet</td>
+<td>GEN.1446</td>
+</tr>
+<tr>
+<td>Tidal heating and tidal locking of planets and moons</td>
+<td>The host and the body's own moons; the eccentricity heating reads the host mass alone</td>
+<td>GEN.1446</td>
+</tr>
+<tr>
+<td>Kozai and secular pumping</td>
+<td>Used for stellar triples only (physics/stability.py), not for planets or moons</td>
+<td>GEN.1447</td>
+</tr>
+<tr>
+<td>Moon stability, Hill limit and moon spin-down</td>
+<td>The planet's Hill sphere from the star alone; torques from the star and the planet's moons only</td>
+<td>GEN.1449</td>
+</tr>
+<tr>
+<td>Planet chain stability and secular exchange</td>
+<td>Mutual Hill spacing of neighbours; no Laplace-Lagrange exchange along the chain, no companion star in the spacing</td>
+<td>GEN.1450</td>
+</tr>
+<tr>
+<td>Belt and disk edges</td>
+<td>Belt birth reads the planet chain and the host mass; truncation by a companion star and the sweep of sibling planets are partial</td>
+<td>GEN.1451</td>
+</tr>
+<tr>
+<td>Stellar wind, magnetopause, radiation belts</td>
+<td>The host star's wind alone</td>
+<td>GEN.1452</td>
+</tr>
+<tr>
+<td>Impact and comet flux</td>
+<td>The host star's debris disk and its own belts; no scattering by other giants, no companion-stirred cloud</td>
+<td>GEN.1453</td>
+</tr>
+<tr>
+<td>Obliquity and spin-orbit secular drift</td>
+<td>Torques of the host star and own moons; no sibling planet or companion</td>
+<td>GEN.1454</td>
+</tr>
+<tr>
+<td>Trojan and Lagrange stability</td>
+<td>One planet with its star</td>
+<td>GEN.1455</td>
+</tr>
+<tr>
+<td>Ejection and scattering</td>
+<td>The star's disk and a rate; no giant or companion scatterer</td>
+<td>GEN.1456</td>
+</tr>
+<tr>
+<td>Comet orbits</td>
+<td>Two-body about the host</td>
+<td>GEN.1457</td>
+</tr>
+<tr>
+<td>Seasonal swing, eclipses and a moon's extra night</td>
+<td>One sun's declination; a moon darkened by its planet only</td>
+<td>GEN.1458, GEN.1461, GEN.1462</td>
+</tr>
+<tr>
+<td>Settled eccentricity</td>
+<td>Tidal wearing-down by the host; no pumping set against it</td>
+<td>GEN.1459</td>
+</tr>
+<tr>
+<td>Orbit spacing and Hill checks</td>
+<td>Circular Hill radius, the last neighbour only, the outermost planet of each star of a pair</td>
+<td>GEN.1460</td>
+</tr>
+</tbody>
+</table></div>
+<p>The full audit, with 35 entries, files and guessed sizes, is /mnt/project-files/reports/host-only-audit-2026-11-08.md (Lane 05). It lists what it did not read: planet mass and giant draw from the host's disk (a companion's truncation of the disk), hydrosphere and interior heat, web page text, and companion placement; a second pass is needed there.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

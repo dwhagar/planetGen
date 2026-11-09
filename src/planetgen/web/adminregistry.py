@@ -35,6 +35,7 @@ SECTION_DESTINATION = {
     "admin_queue": "jobs",
     "admin_update": "overview",
     "admin_stats": "data",
+    "admin_generated": "data",
     "admin_facility_types": "data",
     "account": "account",
 }
@@ -94,6 +95,8 @@ PAGES = (
           "admin_queue", "queue", "workers", "cache", "warm", "redis"),
     _page("stats", "Stats", "Counts, names, lockouts, and sign-in failures.", "data", "admin_stats",
           "statistics", "lockouts", "login failures", "duplicate names"),
+    _page("generated", "Generated so far", "Sectors, systems, planets and moons made since a time, newest first: follow a run.", "data",
+          "admin_generated", "search", "systems", "sectors", "planets", "moons", "run", "progress", "so far", "made"),
     _page("facility-types", "Facility types", "The facility types the generator may place.", "data",
           "admin_facility_types", "facilities", "types", danger="rewrites"),
     _page("account", "Account", "Your sign-in, password, two-factor codes, and API keys.", "account", "account",

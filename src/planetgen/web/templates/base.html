@@ -207,7 +207,6 @@ subhead (badges or actions under the <h1>). -#}
       <input id="admin-find-q" type="search" name="q" placeholder="Search admin" autocomplete="off" data-admin-find>
       <button type="submit">Search</button>
     </form>
-    <label class="admin-density"><input type="checkbox" data-admin-density> Compact</label>
   </div>
   {{ admin_jobstrip(admin_job(), url_for('web.generate_status'), url_for('web.generate')) }}
   <script src="{{ static_url('adminshell.js') }}"></script>

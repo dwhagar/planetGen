@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gemini batch 1: claim-by-claim check - planetGen docs</title>
+<meta name="description" content="Status: research result.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/gemini-batch1-check.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/gemini-batch1-check.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="gemini-batch-1-claim-by-claim-check">Gemini batch 1: claim-by-claim check</h1><p class="meta">docs/design/research/gemini-batch1-check.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#1-result">1. Result</a></li><li style="margin-left:0px"><a href="#2-how-the-check-was-done">2. How the check was done</a></li><li style="margin-left:0px"><a href="#3-the-claims">3. The claims</a></li><li style="margin-left:0px"><a href="#4-figures-that-can-be-used">4. Figures that can be used</a></li><li style="margin-left:0px"><a href="#5-conflicts-between-two-read-sources-boss-to-decide">5. Conflicts between two read sources (Boss to decide)</a></li><li style="margin-left:0px"><a href="#6-still-open-for-bosss-research-list">6. Still open for Boss's research list</a></li><li style="margin-left:0px"><a href="#7-not-checked">7. Not checked</a></li><li style="margin-left:0px"><a href="#8-files">8. Files</a></li></ul></details>
+<p>Status: research result. Written 2026-10-17 by the Gemini batch 1 checking thread (finished 11:49 AM EDT as the lane clock reported; read-only) and filed by the TODO thread on 2026-10-17. Boss chose the single checking thread by card at 11:17 AM EDT (relayed in words by the coordinator). It checks 51 of the claims of the first Gemini batch (<a href="gap-filling-plan.html">gap-filling-plan.md</a> section 7): 10 agree, 17 partly, 16 are contradicted by a read source, 4 are unsupported and 4 are misattributed. Every Gemini figure stays labelled &quot;Gemini, unverified&quot;; the figures of section 4 are the verified or computed ones that replace them. The three conflicts between two verified sources of section 5 are Decided, widen and keep both (Boss's cards, tapped 12:02 PM EDT (read from the session log and relayed in words by the coordinator)): the thick-to-thin height ratio is drawn from 2.5 (Yoachim) to 4.2 [R0865], the thick-to-thin mass ratio against Vc is widened between the two trends, and the cluster system radius against the galaxy's is drawn from about 3.5 to about 6 times, every source kept in the record. The scripts, digitised data and logs are in <code>/mnt/project-files/reports/gemini-batch1-check-2026-10-17-files/</code>. The theory section of the paste (about 30 claims) was not screened.</p>
+<p>Written 2026-10-17 by the Gemini batch 1 checking thread, finished 11:49 AM EDT as the lane clock reported. Read-only: no code, no TODO.md, no docs/plan edits. TODO files it.</p>
+<p>The paste is the Gemini text Boss gave the gap-filling thread at 10:52 AM EDT (copy: <code>/mnt/project-files/reports/gap-filling-plan-2026-10-17-files/gemini-batch-1-unverified.txt</code>). Every Gemini figure below is labelled Gemini, unverified. Boss's standing rules applied: verified and partly verified material is usable unless contradictory; on contradiction the verified source wins; recall-only or unreachable figures are placeholders and labelled so; Gemini theory never overrides a figure; nothing is taken from the Milky Way as content.</p>
+<h2 id="1-result">1. Result</h2>
+<p>51 claims checked: 20 by the gap-filling thread (rows 1 to 20, copied from its section 7.2 and revised here where this pass found more) and 31 new (rows 21 to 51).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Verdict</th>
+<th>Rows 1 to 20</th>
+<th>Rows 21 to 51</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>agrees</td>
+<td>5</td>
+<td>5</td>
+<td>10</td>
+</tr>
+<tr>
+<td>partly agrees</td>
+<td>4</td>
+<td>13</td>
+<td>17</td>
+</tr>
+<tr>
+<td>contradicted by a read source</td>
+<td>9</td>
+<td>7</td>
+<td>16</td>
+</tr>
+<tr>
+<td>unsupported (not found in a reachable source)</td>
+<td>1</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>misattributed (right number or idea, wrong paper or quantity)</td>
+<td>1</td>
+<td>3</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Total</td>
+<td>20</td>
+<td>31</td>
+<td>51</td>
+</tr>
+</tbody>
+</table></div>
+<p>Five of the plan's twenty moved after more reading: rows 3 and 4 (agrees to partly, because the [R0865] catalogue disagrees with the Yoachim and Dalcanton numbers the plan compared with), row 16 (unsupported to contradicted, because the Courteau scatter could be read off Fig 2), row 19 (inconsistent to partly, because [R3531, R3532] was found) and row 20 (unsupported to contradicted, because the halo formation redshift could be computed from [R0894]). Row 7, which the plan counted as agrees (partly), is counted here as partly.</p>
+<p>What the check shows, in four lines:</p>
+<ul>
+<li>Numbers copied from a real table or figure (the Illustris and D'Souza curves at low mass, the thick and thin disk ranges, the globular cluster size 2.7 pc, the nuclear cluster mass range) are close or right.</li>
+<li>Numbers written with a plus-or-minus that look fitted (the age-velocity normalisations, the occupation center 8.6, the nuclear cluster exponent 0.65, the halo formation redshift line, the stellar-to-halo zero point) are mostly in no source, and where a source was read they are wrong by 0.3 to 0.9 dex or more.</li>
+<li>Four attributions are wrong in a way that matters: the 10^8.6 occupation center is Benitez-Llambay and Frenk's no-reionization limit, the 1.9 stellar-to-halo slope is [R1522, R1523]'s modification of [R0320], the nuclear dispersion exponent 0.25 is the Neumayer occupation fraction law, and the [R3531, R3532] thick disk ages cover three Fornax S0 galaxies.</li>
+<li>Three places where two read sources disagree with each other need Boss (section 5).</li>
+</ul>
+<h2 id="2-how-the-check-was-done">2. How the check was done</h2>
+<p>Papers were downloaded from arXiv, pdftotext was used for the text, and curves in figures were read from the vector paths of the PDF (<code>pdftocairo -svg</code>), calibrated on the axis tick marks and validated against numbers printed in each paper's own text. Labels: <strong>V</strong> read in the text of the paper, <strong>D</strong> computed or digitised here from a V source (script <code>scripts/compute_checks.py</code>, output <code>compute_checks.out.txt</code>), <strong>2nd</strong> read only through another paper's account of it, <strong>GEN.406</strong> taken from that research note where it had read the paper. Where two sources were read the one with the better treatment is named.</p>
+<p>Papers opened (arXiv ids): [R3790] (1511.08804), [R1169] (1404.2123), [R0338] (2004.06124), [R3273] (2001.03626), [R3209] (1806.06891), [R0865] (1709.00457), [R0860] (2101.04478), [R0861] and 2012 (1108.0037, 1209.1513), [R3531] and b (1901.04310, 1904.01260), [R3530] proceedings (2301.10666), [R3928] (2410.05761), [R0908] (astro-ph/0610721), [R1811] (1409.6306), [R2268] (1602.01838), [R0090] (0901.3553), [R0090] (0812.3405), [R2287] (1905.11414), [R1027] (1601.07905), [R0894] (1409.5228), [R1523] (1404.5313), ELVIS (1310.6746), [R0320] (1207.6105), [R3730] (2101.12216), [R2917] (1307.8130), [R2193] (astro-ph/0508219). [R0876] (0910.3211) and [R0097] (1701.02741) were fetched and not examined. Not opened: [R1410, R2269, R3749] (1310.1979 only the earlier plan's text search), [R1387, R1669] and 2018, [R3232] (their numbers come from GEN.406), [R1168, R1524, R1816, R3508] (GEN.406).</p>
+<p>The [R0865] catalogue (VizieR J/A+A/610/A5, table B, 124 galaxies) was parsed by the VizieR Courteau and Comerón thread (<code>/mnt/project-files/reports/vizier-courteau-comeron-2026-10-17-files/</code>). I used its parser and tables read-only, re-ran the regressions on my own (rows 3, 4, 30, 31) and quote its output (<code>analyse_c18.out.txt</code>) only where it is cited as such. That thread's own report is not yet filed; its numbers may be restated there.</p>
+<h2 id="3-the-claims">3. The claims</h2>
+<p>Request column: R1 to R15 are the requests of GEN.531; &quot;build&quot; names the item that reads the figure.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Gemini, unverified</th>
+<th>Request or build item</th>
+<th>Source read (place)</th>
+<th>Verdict</th>
+<th>Corrected figure or note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Halo star counts reach no lower than M* about 3.8e10</td>
+<td>R1, GEN.401</td>
+<td>six measured haloes span 3.8e10 to 8e10 ([R1816], GEN.406)</td>
+<td>agrees</td>
+<td>none</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Ex situ fraction rises steeply with M*, about 0.1 at Milky Way mass</td>
+<td>R2, GEN.401</td>
+<td>[R3790] abstract (V); Fig 3 digitised (row 21)</td>
+<td>agrees</td>
+<td>digitised median 0.15 at M* 6e10 (D); the abstract says about 0.1</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Scale height ratio thick/thin 2.5 to 3.8, baseline 3.0 ± 0.4</td>
+<td>R3, GEN.401</td>
+<td>Yoachim and Dalcanton: 2.5 ± 30 percent (GEN.406); [R0865] catalogue table B, 124 galaxies, ratio of scale heights (D)</td>
+<td>partly (two read sources disagree)</td>
+<td>Yoachim 2.5; Comerón catalogue median 4.24, mean 4.61. Gemini's range overlaps only Yoachim. See section 5 item 1</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Scale length ratio thick/thin 1.0 to 1.3</td>
+<td>R3, GEN.401</td>
+<td>Yoachim and Dalcanton formula 0.95 to 1.18 over 89 to 255 km/s (GEN.406); catalogue table B outermost section, median 1.46 over 104 galaxies, 1.57 over the 6 with simple profiles (VizieR thread output)</td>
+<td>partly</td>
+<td>Gemini's upper end 1.3 sits below the Comerón median; the profile type matters (breaks)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Vertical heating index 0.46 ± 0.03</td>
+<td>R4, GEN.447</td>
+<td>[R4043: Table 2]: 0.441 ± 0.007 (V)</td>
+<td>agrees</td>
+<td>0.441</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Dispersions rise linearly with height; low- and high-alpha follow the same law; 3 to 20 kpc</td>
+<td>R4</td>
+<td>[R4043] abstract, same wording (V). Gemini cites &quot;[R4043] GALAH DR3&quot;; the paper read is [R4043]</td>
+<td>agrees (attribution loose)</td>
+<td>none</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Mean cluster half-light radius 2.7 ± 0.3 pc, invariant over a range of 10^5 in host galaxy luminosity, a standard ruler</td>
+<td>R9, GEN.297</td>
+<td>[R2193] abstract and section 4 (V)</td>
+<td>partly</td>
+<td>2.7 ± 0.35 pc holds only after correction for galactocentric radius, surface brightness and host colour. The paper's host luminosity range is a factor of about 350 (variation about 10 percent), not 10^5 (row 41). Standard ruler: yes</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Blue clusters about 20 percent larger than red</td>
+<td>R9</td>
+<td>[R2193]: red about 17 percent smaller, blue/red 1.20 (V)</td>
+<td>agrees</td>
+<td>Gemini's table writes this ratio as &quot;1.20 ± 0.08&quot;, the ± belongs to the system radius ratio of row 17</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Occupation half-point 10^8.6 Msun (center of the erf)</td>
+<td>R15, R12, GEN.369</td>
+<td>[R0338] text and Figs 10, 11 (V, D)</td>
+<td>contradicted</td>
+<td>Their z=0 center with early reionization is 10^9.4 Msun/h (V); digitised simulation erf fit 10^9.33, width 0.21 dex (D). <strong>10^8.6 Msun/h is the paper's limit with no reionization at all</strong> (V, text of section 5); at z_re = 4 the center is 10^8.87 (D, Fig 11)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Occupation reaches 1 at 10^9.3 and 0 at 10^7.8</td>
+<td>R15</td>
+<td>same paper, Fig 10 digitised (D)</td>
+<td>contradicted</td>
+<td>simulation 0.005 at 10^8.55, 0.10 at 10^9.0, 0.78 at 10^9.5, 0.99 at 10^9.8 (D)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Thick/thin mass ratio log = 0.35 - 1.10 log(Vc/100)</td>
+<td>R3</td>
+<td>[R0865] catalogue table B regression on 124 galaxies (D, VizieR thread output)</td>
+<td>contradicted (slope agrees, zero point does not)</td>
+<td>catalogue fit log(M_thick/M_thin) = -0.058 - 1.086 ± 0.178 log(Vc/100), rms 0.27 dex. Slope matches Gemini's -1.10 ± 0.15; the zero point is 0.41 dex lower (ratio 0.87 at 100 km/s against Gemini 2.2). The plan's hard bound also rejects Gemini's line</td>
+</tr>
+<tr>
+<td>12</td>
+<td>sigma_z(10 Gyr) = 38.5 ± 1.8 km/s</td>
+<td>R4, GEN.447</td>
+<td>[R4043: Table 2]: 21.1 ± 0.2 (V)</td>
+<td>contradicted</td>
+<td>21.1 ± 0.2</td>
+</tr>
+<tr>
+<td>13</td>
+<td>sigma_R(10 Gyr) = 62.0 ± 2.5 km/s</td>
+<td>R4</td>
+<td>same table: 39.4 ± 0.3 (V)</td>
+<td>contradicted</td>
+<td>39.4 ± 0.3</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Radial heating index 0.42 ± 0.03</td>
+<td>R4</td>
+<td>same table: 0.251 ± 0.006 (V)</td>
+<td>contradicted</td>
+<td>0.251 ± 0.006</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Nuclear cluster mass slope 0.65 ± 0.10, attributed to [R3273]</td>
+<td>R9, GEN.280</td>
+<td>[R3273] Eq 1 (V): 0.48; Georgiev 1.0 to 1.36 (GEN.406)</td>
+<td>contradicted</td>
+<td>0.48, zero point 6.51 at M* 1e9</td>
+</tr>
+<tr>
+<td>16</td>
+<td>RMS of log(Vc/sigma0) = 0.12 dex for 64 late-type galaxies</td>
+<td>R5, GEN.447</td>
+<td>[R0908] Fig 2, 79 markers digitised against Eq 5 (D)</td>
+<td>contradicted</td>
+<td>rms about the paper's own line log(Vc/s0) = 0.63 - 0.11 C28 is 0.097 dex; by class: ellipticals 0.050, S0 to Sab 0.081, Sb to Sbc 0.095, Sc to Scd 0.076, lenticulars 0.133. The paper prints no RMS</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Blue/red cluster system radius ratio 1.20 ± 0.08 from [R1410, R2269, R3749]</td>
+<td>R7, GEN.403</td>
+<td>[R2268] conclusions (V); [R1811] (V)</td>
+<td>unsupported</td>
+<td>the ratio is in none of the papers read: [R2268] gives one galaxy (NGC 3607) with blue 95 ± 50 and red 40 ± 29 arcsec (ratio 2.4 with an error of about 2); [R1811] say qualitatively that the blue clusters are more extended. [R1410, R3749] not opened</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Low-mass stellar-to-halo slope 1.90 and zero point 6.80 at 1e10, from UniverseMachine</td>
+<td>R11, GEN.369</td>
+<td>[R1523], the ELVIS paper (1310.6746); [R0320] Eq 3 (V); computed (D)</td>
+<td>misattributed</td>
+<td>the slope 1.92 is [R1523]'s change of the asymptotic slope in [R0320] Eq 3, &quot;based on the expectation alpha = (1 + a_dm)/(1 + a_star)&quot;, used again by [R1027]. [R0319] fits only 10^10.5 to 10^15. With alpha = 1.92 the relation gives log M* 4.57 at 1e9 and 6.49 at 1e10 (D); Gemini's 4.90 and 6.80 are 0.31 to 0.33 dex higher and are in no source</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Thick-disk start 12 to 13 Gyr lookback at z = 2.5 to 4.0 [R3531, R3532]</td>
+<td>R6, GEN.386</td>
+<td>[R3531, R3532] abstracts and sections 5 and 6.3 (V); redshift conversion (D)</td>
+<td>partly</td>
+<td>[R3532]: thick disks of FCC 153 and FCC 177 are &quot;old, about 12 to 13 Gyr&quot; (V); FCC 170 star formation history peaks near 14 Gyr and stops about 11 Gyr (V). Only three Fornax S0 galaxies. Redshift pairing is wrong: with a Planck-like cosmology 12 Gyr is z = 3.5 and 13 Gyr is z = 6.8; z of 2.5 to 4 is 11.2 to 12.3 Gyr (D)</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Halo formation redshift z50 = 1.20 - 0.35 log(M/1e12) from [R0876, R1027, R1168]</td>
+<td>R10, GEN.403</td>
+<td>[R0894] analytic mass history, Eqs 12 and 16 with their fits for the formation redshift and q (V), solved here (D)</td>
+<td>contradicted</td>
+<td>z50 = 1.02 (1e10), 0.74 (1e12), 0.47 (1e14), slope about -0.14 per dex (D; same for Omega_m 0.27 and 0.31). Gemini 1.9, 1.2, 0.5, slope -0.35. Only the 1e14 value agrees. The look-back times Gemini gives are consistent with its own redshifts (arithmetic fine). The sources it names were not found to hold this line</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Table: Illustris median ex situ fraction 0.02, 0.035, 0.05, 0.12, 0.30, 0.55, 0.80 at log M* 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0, with 16 to 84 bands</td>
+<td>R2, GEN.401</td>
+<td>[R3790] Fig 3 (page 8), Illustris-1 median and band digitised (D)</td>
+<td>partly</td>
+<td>digitised: 0.026, 0.036, 0.060, 0.105, 0.193, 0.436, 0.719; agrees within 0.02 up to 10.5, Gemini is 0.08 to 0.11 too high from 11.0 to 12.0. Band at 11.0: Gemini 0.15 to 0.52, figure 0.08 to 0.38. Table in <code>data/rg16_fig3_illustris1_digitised.csv</code></td>
+</tr>
+<tr>
+<td>22</td>
+<td>Ex situ crossover (fraction 0.5) at M* 1.5e11, +- 0.2e11</td>
+<td>R2, R14</td>
+<td>same figure (D)</td>
+<td>contradicted</td>
+<td>the median crosses 0.5 at log M* 11.61 (4.1e11); at 1.5e11 the digitised fraction is 0.27</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Accreted light fraction (SDSS stacked) 0.02, 0.08, 0.22, 0.45, 0.68 at log M* 10.0 to 12.0 and &quot;less than 0.01&quot; at 9.0 and 9.5, as the empirical counterpart for early types</td>
+<td>R2, R14</td>
+<td>[R1169] abstract, Figs 13(b) and 16(b) digitised (V, D)</td>
+<td>misattributed</td>
+<td>the stacks cover log M* 10.0 to 11.4 only, so 9.0, 9.5, 11.5, 12.0 are not from the paper. Gemini's 10.0 to 11.0 values follow the <strong>low-concentration</strong> (late-type) series: 0.025, 0.04, 0.20 (D). The high-concentration (early-type) series is 0.33 at 10.1 rising to 0.70 at 11.2, which matches the abstract &quot;30 to 70 percent&quot; (V). Table in <code>data/dsouza14_fig13b_fig16b_digitised.csv</code></td>
+</tr>
+<tr>
+<td>24</td>
+<td>Accreted outer envelope (R &gt; 5 Re) up to 80 percent of the light in massive early types</td>
+<td>R14</td>
+<td>[R1169] abstract (V)</td>
+<td>partly</td>
+<td>the outer Sersic component reaches 70 percent at log M* 11.2 in the high-concentration stacks, the upper end of the sample; &quot;R &gt; 5 Re&quot; and 80 percent are not the paper's wording</td>
+</tr>
+<tr>
+<td>25</td>
+<td>IllustrisTNG and EAGLE give higher ex situ fractions at fixed mass than older models</td>
+<td>R2, R14</td>
+<td>[R3730] introduction (2nd): much higher accreted fractions in TNG than in Illustris; [R1024] found EAGLE similar to TNG</td>
+<td>agrees (second hand)</td>
+<td>the digitised Illustris curve is therefore the low end of the simulations</td>
+</tr>
+<tr>
+<td>26</td>
+<td>The cause is better AGN feedback suppressing late in situ star formation</td>
+<td>R14</td>
+<td>[R3730], discussion of Fig 6 (V)</td>
+<td>unsupported</td>
+<td>the paper attributes differences to the star formation and feedback sub-grid models and cites AGN feedback with the opposite sign. Theory, label as such</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Dwarfs (M* below 3e10) grow overwhelmingly in situ, fraction below 0.10 in simulations</td>
+<td>R1, GEN.401</td>
+<td>[R3790] Fig 3 (D); [R3730] abstract (V)</td>
+<td>agrees (simulation dependent)</td>
+<td>Illustris 0.03 to 0.06 at log M* 9 to 10; Magneticum predicts higher accretion fractions for low-mass galaxies (V, abstract)</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Occupation table at log M200 7.5, 8.0, 8.3, 8.6, 9.0, 9.5, 10.0: 0.00, 0.05, 0.22, 0.50, 0.88, 0.99, 1.00</td>
+<td>R2, R15, GEN.369</td>
+<td>[R0338] Fig 10, simulation circles and EPS model digitised (D)</td>
+<td>contradicted</td>
+<td>simulation: 0.000, 0.000, 0.001, 0.009, 0.104, 0.781, 0.994; EPS model 0.000, 0.000, 0.000, 0.002, 0.072, 0.822, 1.000 (M200 in Msun/h as in the paper). Data in <code>data/blf20_fig10_occupation_digitised.json</code></td>
+</tr>
+<tr>
+<td>29</td>
+<td>Occupation erf width 0.25 ± 0.04 dex</td>
+<td>R15</td>
+<td>erf fit to the digitised Fig 10 (D)</td>
+<td>agrees</td>
+<td>width 0.21 (simulation) and 0.205 (model with simulated histories), center 9.33 to 9.37; within 1 sigma of Gemini's width</td>
+</tr>
+<tr>
+<td>30</td>
+<td>Thick/thin mass ratio 0.20 to 0.45 above Vc 200 km/s, 1.2 to 2.5 below 100 km/s</td>
+<td>R3, GEN.401</td>
+<td>[R0865] section 8 (V): 0.2 to 1 above 120 km/s, up to about 3 at low mass; catalogue table B binned (D)</td>
+<td>partly</td>
+<td>catalogue medians: 1.13 (below 100 km/s, N 16), 0.73 (100 to 150, 55), 0.45 (150 to 200, 44), 0.42 (200 and above, 9); 16 to 84 percent 0.86 to 1.83 and 0.19 to 0.88 at the ends. Gemini's ranges sit near the medians but narrower than the spread</td>
+</tr>
+<tr>
+<td>31</td>
+<td>Power laws against M*: scale length thin 0.20 ± 0.04, thick 0.22 ± 0.03; scale height thin 0.27 ± 0.04, thick 0.19 ± 0.03</td>
+<td>R3</td>
+<td>[R0865] table B regressions in physical units (D)</td>
+<td>contradicted</td>
+<td>heights: thin 0.378 ± 0.029, thick 0.451 ± 0.032, ratio rises with M* (+0.073 ± 0.025), Gemini's pair implies it falls; lengths (outermost section): thin 0.28 ± 0.08, thick 0.35 ± 0.04. Comerón's own height regressions (Table 4) are linear in Vc, not power laws in M*. Single catalogue, outermost-section choice, one reading</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Circular-velocity exponent of the vertical dispersion normalisation gamma about 0.50</td>
+<td>R4, GEN.447</td>
+<td>[R2917] abstract (V, via GEN.406)</td>
+<td>unsupported</td>
+<td>Martinsson prints central sigma_z,0 = (0.248 ± 0.038) V(2.2 hR), proportional to the rotation speed; no source for 0.5 was found. The surface-density explanation is theory</td>
+</tr>
+<tr>
+<td>33</td>
+<td>Vc = sqrt 2 sigma0 for massive galaxies, log offset 0.15; Vc at least 2 sigma0 for dwarfs and pure disks</td>
+<td>R5</td>
+<td>[R0908] abstract and Eq 5 (V)</td>
+<td>agrees</td>
+<td>the plan marked this as inconsistent; the abstract says massive galaxies scatter about the sqrt 2 line and dwarfs and pure disks (C28 about 2.8) have Vc about 2 sigma0. log10 sqrt 2 = 0.1505</td>
+</tr>
+<tr>
+<td>34</td>
+<td>&quot;Across the benchmark sample of 64 late-type galaxies of [R0908]&quot;</td>
+<td>R5</td>
+<td>[R0908] section 2 (V)</td>
+<td>misattributed</td>
+<td>64 is the compilation of an earlier paper (P05 in the text): 40 high surface brightness spirals and 24 ellipticals; Courteau adds 66 spirals, and Fig 2 has 79 markers (E, S0 and spirals) by my count</td>
+</tr>
+<tr>
+<td>35</td>
+<td>The scatter correlates with concentration C28 and bulge-to-total</td>
+<td>R5</td>
+<td>[R0908] Eq 5 and text after it (V)</td>
+<td>partly</td>
+<td>it is the mean ratio that depends on C28 (log Vc/s0 = 0.63 - 0.11 C28) and on B/T (Vc/s0 = 2(1 - B/T) for spirals), not the scatter</td>
+</tr>
+<tr>
+<td>36</td>
+<td>Thick-disk stars: more than 80 percent formed in a starburst of 1.5 to 2.5 Gyr ending about 10.5 Gyr ago</td>
+<td>R6, GEN.386</td>
+<td>[R3532] section 6.3 and [R3531] section 5.4 (V)</td>
+<td>partly</td>
+<td>Pinna: first phase &quot;2 to 4 Gyr long&quot; (V); FCC 170 stops near 11 Gyr (V). Duration and end are close but wider; three S0 galaxies</td>
+</tr>
+<tr>
+<td>37</td>
+<td>Thick disks universally alpha-enhanced, [alpha/Fe] above +0.25</td>
+<td>R6</td>
+<td>[R3531, R3532] abstracts (V); [R3928] abstract (V)</td>
+<td>partly</td>
+<td>thick disks are [Mg/Fe]-enhanced in the three Fornax S0 galaxies; in eight star-forming disks the thick-thin [Mg/Fe] differences &quot;are not sharp&quot; (Sattler). The +0.25 threshold was not found</td>
+</tr>
+<tr>
+<td>38</td>
+<td>Thick-disk start time almost independent of host mass 1e9 to 1e11</td>
+<td>R6, GEN.386</td>
+<td>[R0860] abstract (V); [R3928] abstract and text (V)</td>
+<td>contradicted</td>
+<td>[R0860] predicts the youngest thick-disk stars at 4 to 6 Gyr below M* 1e10 and about 10 Gyr at Milky Way mass (a prediction, tested on massive galaxies only). Sattler measured eight disks at 4e9 to 6e10: thick-disk mean ages mostly below 8 Gyr, about 4 Gyr on average, only about 2 Gyr older than the thin disks, star formation extending to recent times</td>
+</tr>
+<tr>
+<td>39</td>
+<td>Cluster system half-number radius R_e,GCS about 2.5 to 4.0 times the galaxy effective radius</td>
+<td>R7, R8, GEN.403</td>
+<td>[R1408, R2038] (GEN.406): 3.5 and 3.7 ± 0.4; [R2268] Eq 5 (V)</td>
+<td>partly (two read sources disagree)</td>
+<td>[R2268]: R_e(GCS) = (6.5 ± 1.3) R_e(galaxy) - 13 ± 6 kpc over twelve galaxies, about 6 times. Section 5 item 3</td>
+</tr>
+<tr>
+<td>40</td>
+<td>Cluster system extent R_GCS,ext: 2 to 8 kpc (log M* 8.5 to 9.5), 10 to 25 kpc (9.5 to 10.3), above 100 kpc (above 11)</td>
+<td>R8, GEN.403</td>
+<td>none found</td>
+<td>unsupported</td>
+<td>&quot;extent where the density drops to the background&quot; is not defined in any source read; the half-number radius laws (GEN.406) are not comparable at this definition. [R1539, R1811] are the reading jobs for R8</td>
+</tr>
+<tr>
+<td>41</td>
+<td>Cluster half-light radius invariant over a range of 10^5 in host luminosity</td>
+<td>R9</td>
+<td>[R2193] section 4 (V)</td>
+<td>contradicted</td>
+<td>&quot;over a factor of about 350 in galaxy luminosity the mean r_h varies by only about 10 percent after accounting for internal and local factors&quot;</td>
+</tr>
+<tr>
+<td>42</td>
+<td>Nucleation fraction above 80 to 90 percent at M* 1e9 to 1e10, below 20 percent under 1e7, declining above 1e11</td>
+<td>R9, GEN.280</td>
+<td>[R3273], occupation fraction text near Fig 3 (V)</td>
+<td>partly</td>
+<td>nucleated in 80 percent or more of early types near 1e9; falls steadily to nearly zero at 1e6; the decline starts above 1e9, not 1e11; below 25 percent for dwarfs around nearby spirals; 20 percent in the Lauer high-mass sample</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Nuclear cluster mass 1e6 to 1e7 at M* 1e9 to 1e10</td>
+<td>R9</td>
+<td>[R3273] Eq 1 (V), evaluated (D)</td>
+<td>agrees</td>
+<td>3.2e6 at 1e9 and 9.8e6 at 1e10</td>
+</tr>
+<tr>
+<td>44</td>
+<td>Nuclear cluster dispersion proportional to M_NSC^0.25, 15 to 50 km/s</td>
+<td>R9, GEN.280</td>
+<td>[R3273] (V)</td>
+<td>misattributed</td>
+<td>the 1/4 power in the paper is the <strong>occupation fraction</strong> increasing as M*^(1/4) at low mass; no dispersion law found. Milky Way cluster 50 ± 3 km/s is one object</td>
+</tr>
+<tr>
+<td>45</td>
+<td>Below 1e9 nuclear clusters are old and metal-poor from cluster inspiral; above, in situ starbursts</td>
+<td>R9</td>
+<td>[R3273] Fig 9 and the cluster inspiral discussion (V)</td>
+<td>partly</td>
+<td>below 1e9 &quot;about half&quot; of the nuclei are more metal-poor than their hosts; above, most are more metal-rich. &quot;dominated&quot; overstates</td>
+</tr>
+<tr>
+<td>46</td>
+<td>Ultra-faint dwarfs: r_h 20 to 300 pc, mean about 80 pc, scatter 0.35 dex, at -7 &lt; M_V &lt; -2</td>
+<td>R13, GEN.369</td>
+<td>[R3209: Table 3] (Plummer r_h) and Table 6 (V, D)</td>
+<td>partly</td>
+<td>15 ultra-faint dwarfs: 27.7 to 234 pc, mean 75, geometric mean 58, sigma 0.29 dex (all 24 objects in the magnitude range: 7.6 to 234 pc, sigma 0.39). Data in <code>data/munoz18_table3_table6_rh_plummer_MV.csv</code></td>
+</tr>
+<tr>
+<td>47</td>
+<td>The size distribution is flat and uncorrelated with M_V</td>
+<td>R13</td>
+<td>same tables (D)</td>
+<td>contradicted</td>
+<td>among the 15 ultra-faint dwarfs r(log r_h, M_V) = -0.88: brighter ones are larger. (Gemini's own range of 20 to 300 pc at a fixed luminosity is also at odds with this)</td>
+</tr>
+<tr>
+<td>48</td>
+<td>Ultra-faint dwarfs form an extended, dark-matter-dominated sequence distinct from globular clusters</td>
+<td>R13</td>
+<td>[R3209] discussion and conclusions (V)</td>
+<td>contradicted</td>
+<td>the paper says the once-clear size dichotomy &quot;has blurred considerably&quot;, with a possible paucity of satellites at 30 to 100 pc and 1e5 Lsun; dark matter dominance is not a photometric result</td>
+</tr>
+<tr>
+<td>49</td>
+<td>Total accreted stellar mass set by the largest destroyed satellite; quiescent hosts (no major merger since z=2) get 1e8 to 1e9, late-merger hosts 1e10 to 1e10.5</td>
+<td>GEN.401 spread</td>
+<td>[R1027] abstract and text (V)</td>
+<td>partly</td>
+<td>quiescent is defined as no major merger (mass ratio above 0.3) since z = 2 (matches); totals range 1e8 to 1e10.5 with the quiescent ones lower and their progenitors 1e8 to 1e9; one or two dwarfs make most of the mass. The split of totals into 1e8 to 1e9 and 1e10 to 1e10.5 is not printed</td>
+</tr>
+<tr>
+<td>50</td>
+<td>Stellar-mass scatter at fixed halo mass 0.50 dex (field, [R1386] at 1e9) against below 0.19 dex (satellites, Nadler); the difference is survival selection</td>
+<td>R11, GEN.369</td>
+<td>GEN.406 rows from the [R1387] abstract and [R3232: Table 1]</td>
+<td>partly</td>
+<td>numbers agree with the sources GEN.406 read; Fitts is 2017 and for haloes near 1e10, not 2018 at 1e9; the survival-selection reconciliation is Gemini theory</td>
+</tr>
+<tr>
+<td>51</td>
+<td>Reionization redshift: overdense regions 8.5 to 10, voids 5.5 to 6.5, giving 500 Myr more collapse; suppression below Vmax 20 km/s</td>
+<td>R12, GEN.369</td>
+<td>[R0090] section 4.1 (V); [R0090] abstract (V); [R2287] abstract (V); ages (D)</td>
+<td>partly</td>
+<td>Busha: Milky Way mass haloes reionize at z_re 6.3 to 11.6 (95 percent), median 7.7, peak near 6; Alvarez: clusters in regions reionized first, 10 &lt; z &lt; 15, and Milky Way mass haloes follow the global distribution. Direction right, numbers not printed in those terms. Ages: z 8.5 to 6.5 is 0.25 Gyr, z 10 to 5.5 is 0.57 Gyr (D)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Rows are one reading deep unless the source column says two. The table of values behind each D is in <code>gemini-batch1-check-2026-10-17-files/compute_checks.out.txt</code>.</p>
+<h2 id="4-figures-that-can-be-used">4. Figures that can be used</h2>
+<p>Verified or partly verified, usable under the standing rule. Each keeps its evidence label; none is a default for a Milky Way value.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Label</th>
+<th>Feeds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Median ex situ stellar fraction against M* (simulation, Illustris-1)</td>
+<td>0.026 at 1e9, 0.060 at 1e10, 0.12 at 4.7e10, 0.19 at 1e11, 0.34 at 2e11, 0.54 at 4.7e11, 0.72 at 1e12; 16 to 84 band in the file</td>
+<td>[R3790] Fig 3</td>
+<td>D from V</td>
+<td>GEN.401, GEN.403 (answers R2 part 1). Label it Illustris-1, the low end of the simulations (rows 25, 27)</td>
+</tr>
+<tr>
+<td>Outer-component light fraction against M*, SDSS stacks</td>
+<td>high concentration 0.33 (10.1), 0.53 (10.9), 0.70 (11.2); low concentration 0.025 (10.1), 0.18 (10.9), 0.24 (11.2)</td>
+<td>[R1169] Figs 13(b), 16(b)</td>
+<td>D from V</td>
+<td>answers R2 part 2; covers log M* 10.0 to 11.4 only</td>
+</tr>
+<tr>
+<td>Occupation fraction against halo mass, z = 0, early reionization</td>
+<td>table in file; center 10^9.33 Msun/h, width 0.21 dex (erf fit); 0.78 at 10^9.5, 0.10 at 10^9.0</td>
+<td>[R0338] Fig 10</td>
+<td>D from V</td>
+<td>GEN.369 (answers R2 part 3 and R15; mass is in Msun/h)</td>
+</tr>
+<tr>
+<td>Centre of the occupation erf against reionization redshift</td>
+<td>10^8.65 (none), 8.68 (z 2), 8.87 (z 4), 9.14 (z 6), 9.29 (z 8), 9.36 (z 10), 9.38 (z 12) Msun/h</td>
+<td>same, Fig 11</td>
+<td>D from V</td>
+<td>GEN.369; with Busha's z_re spread of 6.3 to 11.6 this gives the per-galaxy cutoff of R12 without Gemini</td>
+</tr>
+<tr>
+<td>Thick/thin mass ratio against Vc</td>
+<td>log(M_thick/M_thin) = -0.058 - 1.086 ± 0.178 log(Vc/100), rms 0.27 dex; medians 1.13, 0.73, 0.45, 0.42 in four Vc bins</td>
+<td>[R0865] catalogue (VizieR), 124 galaxies</td>
+<td>D from V (catalogue)</td>
+<td>GEN.401 (answers part of R3); conflicts with Yoachim (section 5 item 2)</td>
+</tr>
+<tr>
+<td>Thick/thin height ratio</td>
+<td>median 4.24, mean 4.61 (124 galaxies)</td>
+<td>same</td>
+<td>D from V</td>
+<td>GEN.401; conflicts with Yoachim 2.5 (section 5 item 1)</td>
+</tr>
+<tr>
+<td>Thin and thick heights and outer lengths against M*</td>
+<td>heights slope 0.38 and 0.45; outer lengths 0.28 and 0.35 (errors in row 31)</td>
+<td>same</td>
+<td>D from V</td>
+<td>GEN.401</td>
+</tr>
+<tr>
+<td>Courteau Vc/sigma0 scatter</td>
+<td>0.097 dex about the paper's line (79 markers); 0.05 to 0.13 by class</td>
+<td>[R0908] Fig 2</td>
+<td>D from V</td>
+<td>GEN.447, GEN.401 (answers R5; the authors' table would only refine)</td>
+</tr>
+<tr>
+<td>Low-mass stellar-to-halo relation with the steeper slope</td>
+<td>[R0320] Eq 3 with z=0 parameters and slope 1.92: log M* 3.61, 4.57, 5.53, 6.49, 7.44 at log Mh 8.5 to 10.5</td>
+<td>[R0320] and [R1522, R1523]</td>
+<td>D from V</td>
+<td>GEN.369 (R11, part: the scatter is still the Fitts to Nadler bracket)</td>
+</tr>
+<tr>
+<td>Halo formation redshift against halo mass</td>
+<td>z50 = 1.27, 1.15, 1.02, 0.88, 0.74, 0.60, 0.47, 0.35 at log M 8 to 15</td>
+<td>[R0894] analytic history</td>
+<td>D from V</td>
+<td>GEN.403 (R10, as an analytic mean; a simulation fit is still open)</td>
+</tr>
+<tr>
+<td>Nuclear cluster mass against host</td>
+<td>log M_NSC = 0.48 log(M*/1e9) + 6.51; occupation about 80 percent near 1e9, falling both sides</td>
+<td>[R3273]</td>
+<td>V</td>
+<td>GEN.280, GEN.297</td>
+</tr>
+<tr>
+<td>Ultra-faint dwarf sizes</td>
+<td>15 objects, Plummer r_h 27.7 to 234 pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with brightness (r = -0.88)</td>
+<td>[R3209: Tables 3], 6</td>
+<td>D from V</td>
+<td>GEN.369 (R13)</td>
+</tr>
+<tr>
+<td>Cluster half-light radius</td>
+<td>2.7 ± 0.35 pc in the reference state; red about 17 percent smaller than blue; weak dependence on galactocentric radius, surface brightness, host colour</td>
+<td>[R2193]</td>
+<td>V</td>
+<td>GEN.297</td>
+</tr>
+<tr>
+<td>Thick-disk ages</td>
+<td>12 to 13 Gyr (FCC 153, 177), peak about 14 and end about 11 Gyr (FCC 170), three S0; mean about 4 Gyr in eight star-forming disks at 4e9 to 6e10; youngest thick stars 4 to 6 Gyr below 1e10 and about 10 Gyr near Milky Way mass ([R0860] prediction)</td>
+<td>[R3531, R3532]; [R0860, R3928]</td>
+<td>V</td>
+<td>GEN.386 (R6, partly)</td>
+</tr>
+<tr>
+<td>Reionization redshift spread of Milky Way mass haloes</td>
+<td>95 percent between 6.3 and 11.6, median 7.7</td>
+<td>[R0090]</td>
+<td>V</td>
+<td>GEN.369 (R12)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-conflicts-between-two-read-sources-boss-to-decide">5. Conflicts between two read sources (Boss to decide)</h2>
+<p>Standing rule: the verified source wins over a contradicting one. Here both are verified, so the choice belongs to Boss.</p>
+<ol>
+<li><strong>Thick/thin scale height ratio.</strong> [R4824]: 2.5 ± 30 percent. [R0865] catalogue: median 4.24 (mean 4.61, 124 galaxies, VizieR). The two fits are different surveys and decomposition methods, and Comerón's has the better point-spread-function treatment. Gemini's range sits on the Yoachim side.</li>
+<li><strong>Thick/thin mass ratio against Vc.</strong> Yoachim: 0.53 (Vc/100)^-2.3. Comerón catalogue: 0.87 (Vc/100)^-1.09 with 0.27 dex scatter. They differ by a factor of 1.6 at 100 km/s and a factor of 5 at 255 km/s. The VizieR thread's output also shows 48 of the 124 catalogue galaxies above the plan's hard bound; that is its finding and has not been re-run here.</li>
+<li><strong>Cluster system radius against galaxy radius.</strong> [R1408, R2038]: about 3.5 and 3.7 ± 0.4. [R2268] Eq 5: about 6 (12 galaxies, slope 6.5 ± 1.3). Definitions and samples differ.</li>
+</ol>
+<h2 id="6-still-open-for-bosss-research-list">6. Still open for Boss's research list</h2>
+<p>Left over after this pass (R numbers from GEN.531):</p>
+<ul>
+<li><strong>R1</strong> observed stellar halo masses at M* 3e9 to 3e10: nothing new; no observational source reached. Gemini asserts only a detection limit.</li>
+<li><strong>R4</strong> age-velocity normalisation for galaxies other than the Milky Way: still open. Gemini's 38.5 and 62.0 (rows 12 and 13) are rejected; the Vc exponent has no source (row 32).</li>
+<li><strong>R6</strong> the start of thick-disk star formation against host mass for star-forming low-mass disks: [R3928] gives mean ages only; the oldest ages need its star formation history table.</li>
+<li><strong>R7</strong> the blue to red system radius ratio: still open. [R1410, R3749] and Forbes and Ponman are the next papers to open; [R2268] gives single-galaxy ratios with large errors.</li>
+<li><strong>R8</strong> cluster system radii at M* 10^8.5 to 10^10.3: still open (row 40). [R1811] half-number radii and [R1539] are the reading jobs.</li>
+<li><strong>R9</strong> cluster ages against host mass [R3508] not opened here.</li>
+<li><strong>R10</strong> a simulation fit of halo age against halo mass: [R0876, R1168] not examined (the analytic [R0894] curve is available).</li>
+<li><strong>R11</strong> the dwarf stellar-to-halo relation with scatter: [R0545, R1524] not opened; the [R1522, R1523] slope 1.92 is available.</li>
+<li><strong>R14</strong> an observational accreted halo fraction above 1e11 for early types: still open; D'Souza reaches 11.4 and only as an outer-component proxy.</li>
+<li><strong>R15</strong> [R1669, R1670] not found; the width is taken from the Benitez-Llambay and Frenk figure.</li>
+<li><strong>Closed in the sense of a usable table</strong> by this pass: R2 (all three curves), R5 (as a digitised scatter), R12 (via the z_re table and Busha), R13 (Muñoz table), and parts of R3, R6, R10.</li>
+</ul>
+<h2 id="7-not-checked">7. Not checked</h2>
+<ul>
+<li>Section 6 of the paste (theory frontiers: warm, self-interacting and fuzzy dark matter, thick-disk origin paradigms, cluster bimodality origins, assembly bias, about 30 claims) was not screened. It is theory, labelled so, and never a default.</li>
+<li>Not checked: thin-disk onset 8 to 10 Gyr and inside-out growth (3.2), the first sentence of 2.1 attributing &quot;universal double-exponential&quot; to [R0861, R0862], 2012, 2018, the specific claim that WDM explains the low occupation below 10^8.5, the Vmax 20 km/s threshold, and the instrument and survey names of 1.1 (GHOSTS, Dragonfly). None changes a number used in a build item.</li>
+<li>The Muñoz selection of the 15 ultra-faint dwarfs is by name; Indus I and Laevens 1 were left out because their classification was not read.</li>
+</ul>
+<h2 id="8-files">8. Files</h2>
+<p>All under <code>/mnt/project-files/reports/gemini-batch1-check-2026-10-17-files/</code>:</p>
+<ul>
+<li><code>data/rg16_fig3_illustris1_digitised.csv</code>, <code>data/dsouza14_fig13b_fig16b_digitised.csv</code>, <code>data/blf20_fig10_occupation_digitised.json</code>, <code>data/blf20_fig11_m50_vs_zre_digitised.json</code>, <code>data/courteau07_fig2_marker_pixels.json</code>, <code>data/munoz18_table3_table6_rh_plummer_MV.csv</code>.</li>
+<li><code>scripts/compute_checks.py</code> (every D number; run <code>python3 -I compute_checks.py ../data</code>), <code>scripts/extract_munoz.py</code>, and the figure-reading helpers <code>svgdump.py</code>, <code>rg16.py</code>, <code>court_dig.py</code>, <code>get.sh</code> (they point at the session scratch folder and are kept as a record of the method).</li>
+<li><code>compute_checks.out.txt</code>: the output of the computation script.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

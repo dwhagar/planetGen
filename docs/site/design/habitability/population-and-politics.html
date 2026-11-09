@@ -1,0 +1,1661 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Population and politics: species, civilizations and territories - planetGen docs</title>
+<meta name="description" content="Design for POP.1 to POP.4 (docs/TODO.md, &quot;Population and Politics&quot;), extended on 2026-10-09 with the design for POP.7 to POP.10: tech levels (the tech-level draw, its parameters, band names and the age definition), the limiting-domain an...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/habitability/population-and-politics.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/habitability/population-and-politics.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="population-and-politics-species-civilizations-and-territories">Population and politics: species, civilizations and territories</h1><p class="meta">docs/design/habitability/population-and-politics.md</p><details class="toc"><summary>On this page (35 headings)</summary><ul><li style="margin-left:0px"><a href="#what-existed-before">What existed before</a></li><li style="margin-left:0px"><a href="#the-model">The model</a></li><li style="margin-left:14px"><a href="#life-worlds-and-their-dominant-species-52">Life worlds and their dominant species (52)</a></li><li style="margin-left:14px"><a href="#civilization-age-54">Civilization age (54)</a></li><li style="margin-left:14px"><a href="#the-species-database-53">The species database (53)</a></li><li style="margin-left:14px"><a href="#governments-and-territories-51">Governments and territories (51)</a></li><li style="margin-left:14px"><a href="#when-it-runs">When it runs</a></li><li style="margin-left:0px"><a href="#tech-levels-pop7-pop8-pop9">Tech levels (POP.7, POP.8, POP.9)</a></li><li style="margin-left:14px"><a href="#what-the-source-says-and-what-the-research-changed">What the source says and what the research changed</a></li><li style="margin-left:14px"><a href="#the-six-scales">The six scales</a></li><li style="margin-left:14px"><a href="#age-the-definition">Age: the definition</a></li><li style="margin-left:14px"><a href="#drawing-the-indices">Drawing the indices</a></li><li style="margin-left:14px"><a href="#is-the-age-prior-reasonable">Is the age prior reasonable?</a></li><li style="margin-left:14px"><a href="#the-weighted-sum-hides-a-spike-limiting-domain-and-lopsided-species">The weighted sum hides a spike: limiting domain and lopsided species</a></li><li style="margin-left:14px"><a href="#tech-bands">Tech bands</a></li><li style="margin-left:14px"><a href="#fit-with-the-code-pop9">Fit with the code (POP.9)</a></li><li style="margin-left:14px"><a href="#notes-for-a-later-head-count">Notes for a later head-count</a></li><li style="margin-left:0px"><a href="#facility-types-and-ratings-pop10">Facility types and ratings (POP.10)</a></li><li style="margin-left:14px"><a href="#what-exists">What exists</a></li><li style="margin-left:14px"><a href="#data-model">Data model</a></li><li style="margin-left:14px"><a href="#how-programmable">How programmable</a></li><li style="margin-left:14px"><a href="#icons">Icons</a></li><li style="margin-left:14px"><a href="#ratings">Ratings</a></li><li style="margin-left:14px"><a href="#setting-ratings">Setting ratings</a></li><li style="margin-left:14px"><a href="#affiliation">Affiliation</a></li><li style="margin-left:14px"><a href="#as-built-pop10-part-1-types-and-fields">As built (POP.10, part 1: types and fields)</a></li><li style="margin-left:14px"><a href="#api-and-ui-sketch">API and UI sketch</a></li><li style="margin-left:0px"><a href="#storage-schema-v44">Storage (schema v44)</a></li><li style="margin-left:14px"><a href="#planned-columns-pop9-pop10-one-new-schema-version-each">Planned columns (POP.9, POP.10; one new schema version each)</a></li><li style="margin-left:0px"><a href="#presentation">Presentation</a></li><li style="margin-left:0px"><a href="#decisions">Decisions</a></li><li style="margin-left:0px"><a href="#why-it-works-this-way">Why it works this way</a></li><li style="margin-left:0px"><a href="#open-points-found-in-this-review">Open points found in this review</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>Design for POP.1 to POP.4 (<code>docs/TODO.md</code>, &quot;Population and Politics&quot;),
+extended on 2026-10-09 with the design for POP.7 to POP.10: tech levels
+(the tech-level draw, its parameters, band names and the age definition),
+the limiting-domain and lopsided-species handling, and facility types with
+ratings.</p>
+<p>Informs: POP.7, POP.8, POP.9, POP.10 (new sections); POP.1 to POP.6 are built.</p>
+<p><strong>Status (2026-10-15, checked against the number map):</strong> everything in the table below is built. The first rows are the original pass (7.49.0 to 7.58.2); the web pages (POP.5) and the later items are built since.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Built in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The pass, the four tables (schema v44) and the read API</td>
+<td>7.49.0, PR #169</td>
+</tr>
+<tr>
+<td>1 in 1,000 civilization chance</td>
+<td>7.49.0, PR #169 (commit b62d0aa)</td>
+</tr>
+<tr>
+<td>Galaxy Map Territories overlay</td>
+<td>7.54.0, PR #179</td>
+</tr>
+<tr>
+<td>Overlay hidden until a polity exists</td>
+<td>7.58.1, PR #181</td>
+</tr>
+<tr>
+<td>Optional and off by default; <code>GET /api/population</code></td>
+<td>7.58.2, PR #180</td>
+</tr>
+<tr>
+<td>Web pages (Species list and page, polity page, &quot;Dominant species&quot;, &quot;Territory of ...&quot;)</td>
+<td>POP.5, PR #184 (<code>web/population_pages.py</code>)</td>
+</tr>
+<tr>
+<td>Tech levels (POP.7 to POP.9) and facility types (POP.10)</td>
+<td>designed here (2026-10-09); POP.7 and POP.9 PR #1461, POP.8 PR #1422, POP.10 PR #1524</td>
+</tr>
+</tbody>
+</table></div>
+<p>Boss's decisions are recorded in &quot;Decisions&quot;, and the reasons for the main
+choices in &quot;Why it works this way&quot;.</p>
+<h2 id="what-existed-before">What existed before</h2>
+<ul>
+<li>Every habitable-zone planet (never a moon) gets an evolutionary
+timeline (<code>evolution.get_evolutionary_timeline</code>), stored as paragraphs
+in <code>planet_evolutionary_paragraphs</code>. The furthest milestone it reached
+is one of <code>abiogenesis</code>, <code>photosynthesis</code>, <code>complex_cells</code>,
+<code>multicellularity</code>, <code>technological_civilization</code>, recoverable with
+<code>evolution.life_stage_from_paragraphs</code>. Planet classes cap the
+milestone (<code>PLANET_CLASS_MAX_LIFE_STAGE</code>).</li>
+<li>Each timeline has a pace (<code>fast</code>, <code>normal</code>, <code>slow</code>); the milestone ages
+for each pace live in <code>program_constants.EVOLUTIONARY_TIMELINES</code>, and
+the host star's age is stored on <code>stars.age_gy</code>.</li>
+<li>A system's galactic position is its sector's <code>center_*_pc</code> plus the
+system's own <code>position_*_mpc</code> / 1000.</li>
+</ul>
+<p>Before v44 nothing named a species, dated a civilization or claimed a
+system.</p>
+<h2 id="the-model">The model</h2>
+<h3 id="life-worlds-and-their-dominant-species-52">Life worlds and their dominant species (52)</h3>
+<p>A <strong>life world</strong> is a planet whose milestone is <code>multicellularity</code> or
+<code>technological_civilization</code> (<code>tuning.LIFE_WORLD_STAGES</code>): complex
+life. As first built (7.49.0) every life world got a named dominant
+species. Since GEN.80 (PR #448) only a world with a technological
+civilization gets a species row (see &quot;Civilization age&quot;); a world with
+complex life and no civilization, and the simpler biospheres (microbes,
+mats, single cells), keep their life chemistry and get none. The pass reads the milestone and both ages (the
+system's age and the milestone's) back out of the stored paragraph text
+(<code>population.parse_timeline</code>); a planet whose text can't be read is
+skipped.</p>
+<p>Each world that gets a species gets exactly one row in <code>species</code>: a generated name, the
+homeworld planet and system, its biochemistry (<code>life_chemical</code>), the
+milestone it reached, and a few traits derived from the homeworld so a
+species reads like it belongs to its planet:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Trait</th>
+<th>From</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>build</code></td>
+<td>surface gravity</td>
+<td>gracile (&lt; 0.7 g), medium, robust (&gt; 1.4 g)</td>
+</tr>
+<tr>
+<td><code>climate</code></td>
+<td>surface temperature</td>
+<td>cold (&lt; 250 K), temperate, hot (&gt; 320 K)</td>
+</tr>
+<tr>
+<td><code>size</code></td>
+<td>a random draw weighted by <code>build</code></td>
+<td>small, medium, large (a robust build leans small, a gracile one large)</td>
+</tr>
+</tbody>
+</table></div>
+<p>A missing gravity counts as 1 g and a missing temperature as 288 K.</p>
+<p>Names come from the star-name generator (<code>generate_phoneme_salad_name</code>
+over <code>STAR_NAMES</code>, <code>STAR_PREFIXES</code> and <code>STAR_SUFFIXES</code>, at most 10
+letters, checked by <code>is_name_valid</code>, which applies <code>offensive_words.txt</code>).
+Species names are unique across the galaxy, like stars and systems: after
+50 colliding draws a number is appended (&quot;Voranthis 2&quot;).</p>
+<h3 id="civilization-age-54">Civilization age (54)</h3>
+<p>The timeline's <code>technological_civilization</code> milestone only says the
+window for a civilization has opened, and it opens on about one generated
+system in seven (measured on 150 generated sectors: 235 such worlds among
+1,639 systems). Taken literally that would fill the galaxy with empires, so a world past
+the milestone has a civilization now only with <code>CIVILIZATION_CHANCE</code>
+(default 1 in 1,000, moved by the generating run's intelligent-life
+prevalence, <code>system_configs.prevalence_intelligent_life</code>), or always when
+its system was generated with intelligent life forced on
+(<code>system_configs.intelligent_life</code>). That gives about one civilization per
+7,000 systems. Every other world past the milestone gets no species: since
+GEN.80 (PR #448) species, polities and population are made only for
+worlds with a technological civilization, and a population pass removes
+any stored species without one.</p>
+<p><strong>Spacing.</strong> At the disk's local density (about 0.1 systems per cubic
+parsec) one civilization per 7,000 systems is 1.4e-5 civilizations per
+cubic parsec [C]. That is a mean spacing of 134 ly (n^(-1/3)), a mean
+nearest-neighbor distance of 74 ly, an 82% chance that the nearest other
+civilization is within 100 ly, and 1.7 other civilizations inside a 100 ly
+sphere on average. This document (and the docstring of
+<code>tuning.CIVILIZATION_CHANCE</code>, which still says so) used to say neighbors
+sit &quot;roughly 150 to 200 ly apart&quot; and that territories at the 100 ly cap
+&quot;just about meet&quot;. That was optimistic: 150 to 200 ly is above the mean spacing, and territories at
+the cap overlap on average instead of touching. The overlap is resolved by
+the weighted Voronoi split below (<code>reach / distance</code>). Only the spacefaring
+civilizations (about 83%) hold territory, and a polity reaches the cap
+only at about 800,000 years (25 ly at 50,000 years, 50 ly at 200,000), so
+younger polities are smaller; about 46% of civilizations (the Ancient and
+Elder eras) sit at the cap [C, from the 10,000-species run under &quot;Tech
+levels&quot;].</p>
+<p>A civilization is younger than its window. Its age is a log-uniform draw
+between 100 years (<code>CIVILIZATION_MIN_AGE_YEARS</code>) and the window (<code>system age - milestone age</code>, both read back from the stored paragraph), so ages
+spread evenly across orders of magnitude and none is older than its star
+allows. A window shorter than 100 years (the stored ages are rounded to
+10 million years, so this is rounding) gives 100 years.</p>
+<p>Age is counted in years since the industrial transition, the point where
+the Energy index crosses about 1.5 to 2 (&quot;Tech levels&quot;, &quot;Age: the
+definition&quot;). The era thresholds and the tech-level curve both depend on
+that reading.</p>
+<p>Age maps to an <strong>era</strong>, which is what the pages show and what drives
+everything else:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Era</th>
+<th>Age (years)</th>
+<th>Spacefaring</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Industrial</td>
+<td>&lt; 300</td>
+<td>no</td>
+<td>one world, spaceflight just beginning (Earth is 266 years past its industrial transition)</td>
+</tr>
+<tr>
+<td>Interplanetary</td>
+<td>300 to 2,000</td>
+<td>no</td>
+<td>settles its own system</td>
+</tr>
+<tr>
+<td>Interstellar</td>
+<td>2,000 to 50,000</td>
+<td>yes</td>
+<td>first colonies on nearby stars</td>
+</tr>
+<tr>
+<td>Established</td>
+<td>50,000 to 1 million</td>
+<td>yes</td>
+<td>a stable territory</td>
+</tr>
+<tr>
+<td>Ancient</td>
+<td>1 million to 100 million</td>
+<td>yes</td>
+<td>at the reach cap</td>
+</tr>
+<tr>
+<td>Elder</td>
+<td>&gt; 100 million</td>
+<td>yes</td>
+<td>at the reach cap; reads as legendary</td>
+</tr>
+</tbody>
+</table></div>
+<p>The era thresholds live in <code>program_constants.CIVILIZATION_ERAS</code> so they
+can be tuned without a migration: every pass recomputes <code>species.era</code> and
+<code>species.spacefaring</code> from the stored age.</p>
+<h3 id="the-species-database-53">The species database (53)</h3>
+<p><strong>Spacefaring</strong> means era Interstellar or later. The species database is
+the <code>species</code> table itself, filtered by <code>spacefaring = 1</code>; non-spacefaring
+species and plain life worlds stay in the same table so a later pass can
+promote them if eras are retuned.</p>
+<h3 id="governments-and-territories-51">Governments and territories (51)</h3>
+<p>Each spacefaring species founds one <strong>polity</strong> (<code>polities</code> table): its
+name is the species name plus a form of government picked stably from
+the species id out of 14 (<code>program_constants.GOVERNMENT_FORMS</code>:
+Hegemony, Concord, Republic, Union, Directorate, Dominion, Assembly,
+Commonwealth, Collective, Compact, Federation, Sovereignty, Ascendancy,
+League), its capital is the homeworld system, and its map color is a
+golden-ratio hue from the species id, so neighboring ids differ.</p>
+<p>A polity's <strong>reach</strong> grows with the square root of its age, like a
+diffusing frontier:</p>
+<pre><code>reach_ly = min(TERRITORY_REACH_CAP_LY, 5 * sqrt(age_years / 2000))
+</code></pre>
+<p>(5 is <code>TERRITORY_BASE_REACH_LY</code>, 2,000 years the start of the
+Interstellar era), so a new interstellar civilization holds its neighbors
+within 5 ly, one 50,000 years old 25 ly, one 200,000 years old 50 ly, and
+anything older than about 800,000 years sits at the cap (default 100 ly).
+Reach is 0 before a species is spacefaring.</p>
+<p>Every generated system within some polity's reach is <strong>owned</strong> by the
+polity with the strongest claim, <code>reach / distance</code> (a weighted Voronoi
+split: at the same distance the polity with the longer reach wins). An
+exact tie goes to the lower polity id. A capital always owns its own
+system, and a polity whose capital was never placed in the galaxy (a
+standalone system, or a sector made with no galaxy) holds only its
+capital. Ownership is stored per system in <code>system_owners</code>
+(<code>star_system_id</code> primary key, <code>polity_id</code>, <code>distance_ly</code>), which is what
+the 3D territory overlay draws: each owned system is a point colored by
+its polity, and the polity's reach is a sphere around its capital.</p>
+<h3 id="when-it-runs">When it runs</h3>
+<p><code>planetgen population</code> is a separate pass over what is already stored
+(<code>population.run_pass</code>), so it works on a galaxy generated before v44
+with no regenerate:</p>
+<ol>
+<li><code>scan_life_worlds</code>: scan planets above a watermark on <code>planets.id</code>
+(kept in <code>population_state</code>), 5,000 ids per query, recover each one's
+milestone, and add <code>species</code> rows for new life worlds. Traits, the
+civilization draw and the age come from a generator seeded by the
+planet id; names come from the shared name generator.</li>
+<li><code>refresh_civilizations</code>: recompute every species' era from its stored
+age (cheap; picks up retuned thresholds), dissolve the polity of any
+species no longer spacefaring, found polities for newly spacefaring
+species, and update every polity's reach.</li>
+<li><code>refresh_territories</code>: recompute ownership from scratch. Each polity
+looks only at the sectors its reach touches
+(<code>_db.sectors_reached_by</code>), then the systems in them, so the cost is
+the sum of the territories, not polities times all systems.</li>
+</ol>
+<p>Flag: <code>--rescan</code> (forget every species, and with them every polity and
+territory, and scan every planet again). Step 3 is the command <code>planetgen territories</code> (PERF.125); run it after the population pass and after a <code>--rescan</code>.</p>
+<p>Population is optional and off by default (Boss, 2026-10-01): nothing
+runs it unless asked. <code>planetgen galaxy</code> and <code>planetgen sector</code> run
+the whole pass after they save only with <code>--population</code> (this replaced
+7.49.0's <code>--no-population</code>); since PERF.124 <code>sector</code> has no such option and only <code>galaxy</code> runs the pass, as a stage. <code>install.sh</code> offers to
+run it after the database step (<code>offer_population_pass</code>), y/N with a 30-second timeout defaulting to
+No and skipped with no terminal; <code>POPULATION=1</code> runs it without asking. Nothing in system generation itself
+changes.</p>
+<h2 id="tech-levels-pop7-pop8-pop9">Tech levels (POP.7, POP.8, POP.9)</h2>
+<p>As built (POP.8): <code>planetgen/population/tech.py</code> draws the six indices
+(<code>draw_indices</code>), computes the tech level (<code>tech_level</code>), the band name
+(<code>band_name</code>), the limiting domain and the lopsided flag, with every number of
+the parameter table below in <code>tuning.py</code> (<code>TECH_*</code>). Run on species aged
+log-uniformly under the shipped windows it gives the table of results
+below (medians 3.0 Industrial, 4.0 Interplanetary, 5.2 Interstellar, 6.0 to
+6.1 for the three oldest eras; p5 about 2.0 to 4.9; p95 up to 7.0 because the
+indices are rounded to integers and a lopsided species can reach 7). Two
+readings of the text that the doc leaves open: the collapse rate &quot;per decade
+of age&quot; is per decade of log10 age past 100 years (which gives the stated 30%
+of species with a collapse), and a species' ceiling and each domain's ceiling
+are clipped at 7.</p>
+<p>As built (POP.9): the population pass fills the <code>species</code> columns of DB.27
+(<code>refresh_tech_levels</code>, called at the start of <code>refresh_civilizations</code>). A
+species with no indices, and a <code>tech_source</code> other than <code>'admin'</code>, gets its six
+indices, <code>tech_level</code> and <code>tech_source = 'generated'</code> from
+<code>draw_indices(civilization_age_years, draw.Stream(f&quot;tech:{homeworld planet id}&quot;))</code>.
+Species made before the columns therefore get theirs on the next pass, a pass
+never redraws a species that has them, and a hand edit (<code>'admin'</code>) is never
+overwritten. The band name, the limiting domain and the lopsided flag are
+derived when a row is read, never stored, so tuning the bands needs no
+migration. <code>/api/species</code> returns all of them, sorts by <code>tech</code> and filters by
+<code>tech_min</code>/<code>tech_max</code> and <code>&lt;domain&gt;_min</code>/<code>&lt;domain&gt;_max</code>; the Species table has
+a Tech level column (&quot;4.35 Fusion&quot;) and a species page lists the six indices,
+the limiting domain and the lopsided note beside its age and era.</p>
+<p>This section is the POP.8 design: how the six domain indices
+are drawn from a species' age, era and world. POP.9 builds the storage. Boss's
+source is <a href="../research/imported/technological-assessment.html">Technological Assessment.md</a>
+(uploaded, not edited); &quot;TA&quot; below cites its sections. Evidence tags: [S]
+seen in search results, [C] computed, [R] recalled and unconfirmed (see
+&quot;Evidence notes&quot;).</p>
+<h3 id="what-the-source-says-and-what-the-research-changed">What the source says and what the research changed</h3>
+<p>Carried over unchanged from TA:</p>
+<ul>
+<li>Six domains, each scored as an index from 0 to 7 by named technology
+bands (TA, &quot;Domain Index Specifications&quot;): Energy (EI), Materials (MI),
+Information (II), Medical (MeI), Propulsion (PI), Defense (DI).</li>
+<li>The weighted formula (TA, &quot;Domain Weighting System&quot;), weights summing
+to 1: <code>TL = 0.25 EI + 0.20 MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI</code>.</li>
+<li>The reason for the weights (TA, &quot;Weighting Rationale&quot;): Energy sets the
+limit of all work; Materials is the structural bottleneck; Information
+governs analysis and automation; Medical is mastery of organisms;
+Propulsion and Defense are applications downstream of Energy and
+Materials. TA's worked example (E4 M3 I6 Me5 P<sub>4</sub> D3 gives TL 4.25) was
+recomputed and is right [C].</li>
+</ul>
+<p>Changed or added by the research (2026-10-09):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Topic</th>
+<th>TA</th>
+<th>Now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Weights</td>
+<td>Stated as a priority order</td>
+<td>Kept as the headline formula. They barely matter in practice: equal weights move TL by 0.03 on average (0.27 at most) and keep the same ranking (Spearman 0.9986) on 10,000 simulated species [C]. No calibration work is needed.</td>
+</tr>
+<tr>
+<td>Index values</td>
+<td>A band per index, no rule for fractions</td>
+<td>Stored as integers 0 to 7. A fractional value in the draw means: index k is routine technology in the leading society (TRL 9), and k + f means a fraction f of band k + 1's headline items are demonstrated (TRL 6 or higher). Admins can use the same rule by hand.</td>
+</tr>
+<tr>
+<td>Calibration</td>
+<td>None</td>
+<td>Earth in 2026 scores E 3.0, M 3.0, I 3.4, Me 3.2, P 3.0, D 3.2, so TL about 3.1 [judgment against the bands, R]. TA's example (TL 4.25) is a 22nd to 23rd century Earth, not an exotic alien. Index 7 is a rarely reached ceiling.</td>
+</tr>
+<tr>
+<td>Age</td>
+<td>Not mentioned</td>
+<td><code>civilization_age_years</code> is defined as years since the industrial transition (below).</td>
+</tr>
+<tr>
+<td>What the sum hides</td>
+<td>Says weights guard against &quot;jump gates with no metallurgy&quot;</td>
+<td>The sum charges that species only 0.6 TL points. Handled by a limiting-domain value and a lopsided flag (below).</td>
+</tr>
+<tr>
+<td>Text problems</td>
+<td>Pasted LaTeX debris in the title and first paragraph (&quot;TL}TL\text{TL}TL&quot;), &quot;an species&quot;, Defense 5 (Gauss guns exist as prototypes) is ahead of readiness of Defense 4 (lasers being fielded)</td>
+<td>Source left alone; the ladders below are cleaned copies. Earth sits at D about 3.2 and Defense is not strictly ordered by readiness.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="the-six-scales">The six scales</h3>
+<p>Condensed from TA, &quot;Domain Index Specifications&quot; sections 1 to 6. The
+source file keeps the full lists.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Energy (TA 1)</th>
+<th>Materials (TA 2)</th>
+<th>Information (TA 3)</th>
+<th>Medical (TA 4)</th>
+<th>Propulsion (TA 5)</th>
+<th>Defense (TA 6)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Muscle, open fire</td>
+<td>Wood, stone, bone, hides, raw clay</td>
+<td>Oral tradition, tally marks, cave art</td>
+<td>Poultices, bone setting, cautery</td>
+<td>Walking, pack animals, rafts</td>
+<td>Wood and stone weapons, hide padding, wicker shields</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Draft animals, waterwheels, windmills</td>
+<td>Bronze, forged iron, high-carbon steel, fired brick</td>
+<td>Alphabetic writing, arithmetic, scrolls, codices</td>
+<td>Surgery without sterility, early pharmacology</td>
+<td>Wheeled carts, multi-masted ships</td>
+<td>Metal blades, mail and plate, siege engines</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Coal steam, DC generation, petroleum engines</td>
+<td>Structural steel, cast iron, vulcanized rubber, early plastics</td>
+<td>Movable type, telegraph, analog radio</td>
+<td>Anesthesia, germ theory, antibiotics, blood typing</td>
+<td>Locomotives, motor vehicles, submersibles, atmospheric flight, chemical rockets</td>
+<td>Black powder, rifled artillery, ironclads, early armored vehicles</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fission, AC grids, gas turbines, chemical cells</td>
+<td>Precision plastics, titanium alloys, industrial composites</td>
+<td>Digital computing, packet networks, cellular</td>
+<td>Transplants, CT/PET/MRI, antivirals, diagnostic beds</td>
+<td>Jets, nuclear vessels, multistage orbital rockets</td>
+<td>Automatic firearms, guided missiles, Kevlar</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Controlled fusion, micro fuel cells, room-temperature superconductors</td>
+<td>Carbon nanotube structures, grown supermaterials</td>
+<td>Early true AI, VR networks, neural interfaces</td>
+<td>Gene selection, tissue engineering, basic cybernetics</td>
+<td>Transit grids, space elevators, gravitic lift, sublight interplanetary ships</td>
+<td>Electrolasers, directed-energy cannons, powered battlesuits, combat robots</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Gravity-induction and mass reactors, He-3 fusion networks</td>
+<td>Molecularly woven composite armor, nanotech matrices</td>
+<td>Hyper-immersion networks, system-wide neural grids, biodroids</td>
+<td>Cross-species splicing, artificial wombs, full bionic replacement, automed pods</td>
+<td>Gravitic hovercraft, non-tactical warp, static jump gates</td>
+<td>Gauss guns, particle beams, personal force screens, nanotech armor</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Antimatter annihilation, micro-fusion cells, local energy taps</td>
+<td>Liquid-state alloys, crystal carbon armor, isotope-encoded matter</td>
+<td>Atomic-scale memory, self-directing AI, instant subspace relays</td>
+<td>Cellular rejuvenation, mind uploading, automed regeneration, nanite symbionts</td>
+<td>Tactical warp, quantum slipstream, short-range transporters</td>
+<td>Compact phasers, molecular disruptors, ship-wide deflectors</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Zero-point extraction, cosmic energy taps, mass-to-energy conversion</td>
+<td>Living metal, programmable matter, forcefield hybrids</td>
+<td>Subatomic computation, quantum god-minds, temporal-gate processing</td>
+<td>Regeneration rays, metamorphosis, age reversal, immortality</td>
+<td>Space-folding drives, chronal engines, planetary wormhole networks</td>
+<td>Disintegrators, nuclear dampers, black-hole bombs, living-metal plating</td>
+</tr>
+</tbody>
+</table></div>
+<p>Cross-checks against real frameworks [S unless marked]:</p>
+<ul>
+<li>Energy against Kardashev/Sagan: K = (log10 P - 6) / 10 with P in watts;
+Earth, 620 EJ in 2023, is 19.6 TW and K = 0.729 [C]. Using Cook's
+per-capita ladder (about 4,000, 12,000, 26,000, 77,000 and 230,000
+kcal/day from hunter-gatherer to 1970s USA [R, secondary summaries]),
+a factor of about 3.9 per index fits Energy 0 to 3; extrapolated to 7
+that is 2.7 MW per person, 2e16 W for 8e9 people, K = 1.03. So the
+top Energy index is only a Type I civilization. Old (&quot;Elder&quot;)
+civilizations are physically far beyond that but saturate at 7 here. If
+they should feel different, add a derived power display (Sagan K), not
+more indices.</li>
+<li>The Energy ladder describes the leading society, not the world average
+(Earth's mean is 2.4 kW per person, below the Energy 2 value).</li>
+<li>Barrow's scale (smallest scale a civilization controls) agrees with
+Materials: 4 is atomic-precision manufacturing, 6 to 7 subatomic.</li>
+<li>The UNDP Human Development Index is the precedent for combining
+normalized dimensions with a geometric mean, so a very low dimension
+drags the total (see the limiting domain below).</li>
+</ul>
+<h3 id="age-the-definition">Age: the definition</h3>
+<p><code>civilization_age_years</code> is a log-uniform draw from 100 years up to the
+window since the milestone, and the era thresholds only make sense if age
+zero is the industrial transition: Earth is 266 years past 1760, at the
+Industrial/Interplanetary boundary with spaceflight just starting. So:</p>
+<blockquote>
+<p><strong>Civilization age is the number of years since the industrial
+transition, the point where the Energy index crosses about 1.5 to 2.</strong></p>
+</blockquote>
+<p>On the fitted curve below, Energy reaches 1.5 at about 21 years and 2.0 at
+about 51 years [C]. Pre-industrial species never occur (minimum age 100
+years), which matches the shipped behavior. The curve still works down to
+about 10 years, if admin-made pre-industrial species (TL 0 to 2) are ever
+wanted.</p>
+<h3 id="drawing-the-indices">Drawing the indices</h3>
+<p>Each index is a logistic in log10 of effective age, because time spent
+per technological tier falls by orders of magnitude (about 3.3 million
+years of Stone Age, about 2,100 of Bronze Age, 600 to 700 of Iron Age,
+about 80 for the Industrial Revolution [S]; about 5,800 years at Energy 1
+against about 180 at Energy 2 [R]; world population doubling times of
+about 123, 47 and 48 years between 1804, 1927, 1974 and 2022 [C from S
+dates]). A logistic in linear time has the wrong shape.</p>
+<p>For each species, from its stored age <code>A</code> in years, using
+<code>draw.Stream(f&quot;tech:{planet_id}&quot;)</code> (a stream of its own, see &quot;Fit with the
+code&quot;):</p>
+<ol>
+<li><strong>Effective age.</strong> Collapse events are a Poisson process, 0.10 per
+decade of age beyond 100 years. At each event the effective age is
+multiplied by a draw between 0.01 and 0.30 and then keeps growing with
+real time. With 12% probability progress freezes at a plateau age drawn
+between 10^2.7 and 10^6 years.</li>
+<li><strong>Shared pace.</strong> <code>z ~ N(0, 0.30)</code> decades, the whole species being
+quicker or slower, plus trait shifts (below).</li>
+<li><strong>Raw index</strong> for domain <code>d</code>:
+<code>7 / (1 + exp(-k * (log10(A_eff) - m - shift_d)))</code>, where
+<code>shift_d = offset_d + z + t(4) * 0.09</code>.</li>
+<li><strong>Soft ceiling.</strong> A species ceiling <code>c ~ N(6.2, 0.6)</code> clipped to 4 to
+7, a domain ceiling <code>c + N(0, 0.4)</code>, and a soft minimum of the raw
+index and the ceiling (sharpness 5). Physical limits are universal; what
+varies is how much of the technology tree a species finds.</li>
+<li><strong>Prerequisite clamps</strong>, in this order: Information at most
+Materials + 1.5; Medical at most min(Information, Materials) + 1.5;
+Propulsion at most min(Energy, Materials, Information) + 1.0;
+Defense at most min(Energy, Materials) + 1.0.</li>
+<li><strong>Lopsided species.</strong> With 3% probability one domain is raised by 1.5
+to 3.0 after the clamps (capped at 7). This is the only way large
+spreads appear.</li>
+<li>Round to integers 0 to 7; <code>tech_level</code> is the weighted sum.</li>
+</ol>
+<p>Domain offsets (decades; negative = earlier) are solved so the median
+vector at 266 years equals Earth's: Energy +0.066, Materials +0.066,
+Information -0.171, Medical -0.053, Propulsion +0.066, Defense -0.053.
+Information and Medicine lead the calendar and Energy, Materials and
+Propulsion lag, as Earth's history shows; the prerequisite clamps give
+Energy and Materials the structural lead.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>k</code></td>
+<td>0.97</td>
+<td>Index gained per decade of log age at the midpoint</td>
+</tr>
+<tr>
+<td><code>m</code></td>
+<td>2.655</td>
+<td>Center, log10 years (about 450 years); the curve is 7 x logistic, so 3.5 there</td>
+</tr>
+<tr>
+<td><code>sigma_shared</code></td>
+<td>0.30 decades</td>
+<td>Species-wide pace spread (a factor of 2 in time per sigma)</td>
+</tr>
+<tr>
+<td><code>sigma_domain</code></td>
+<td>0.09 decades, t(4)</td>
+<td>Per-domain noise, heavy-tailed, sd about 0.13 decades</td>
+</tr>
+<tr>
+<td><code>ceil_mean</code>, <code>ceil_sd</code>, <code>ceil_dom_sd</code>, <code>soft</code></td>
+<td>6.2, 0.6, 0.4, 5.0</td>
+<td>Per-species ceiling</td>
+</tr>
+<tr>
+<td><code>p_stagnate</code>, plateau range</td>
+<td>0.12, 10^2.7 to 10^6 years</td>
+<td>Frozen progress</td>
+</tr>
+<tr>
+<td><code>collapse_rate</code>, <code>collapse_keep</code></td>
+<td>0.10 per decade, 0.01 to 0.30</td>
+<td>Collapses, share of effective age kept</td>
+</tr>
+<tr>
+<td><code>p_spike</code>, spike size</td>
+<td>0.03, +1.5 to +3.0</td>
+<td>Lopsided species</td>
+</tr>
+<tr>
+<td>Prerequisite margins</td>
+<td>I: M + 1.5; Me: min(I, M) + 1.5; P: min(E, M, I) + 1.0; D: min(E, M) + 1.0</td>
+<td>Clamps</td>
+</tr>
+</tbody>
+</table></div>
+<p>Trait hooks are all 0 until the trait exists (today <code>species</code> stores
+only <code>build</code>, <code>climate</code> and <code>size</code>): homeworld harshness from the
+habitability tier (GEN.89, GEN.92; -0.15 decades x harshness 0 to 1,
+default 0.5 with no effect until it exists), resource richness (-0.10 on
+Energy and Materials), tool-use dexterity (-0.08 on Materials and
+Propulsion), militarism (-0.12 on Defense, where &quot;defense lags in peaceful
+species&quot; lives) and lifespan (-0.06 on Medical). These coefficients are
+design levers with no empirical basis, small on purpose (at most a 40%
+change in effective time).</p>
+<p><strong>Fit.</strong> Seven anchors (Earth 2026 at age 266 plus the era boundaries)
+against the plain logistic, before noise and ceilings, RMSE 0.17 TL [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Age (years)</th>
+<th>100</th>
+<th>266</th>
+<th>300</th>
+<th>2,000</th>
+<th>50,000</th>
+<th>1 million</th>
+<th>100 million</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Anchor TL</td>
+<td>2.2</td>
+<td>3.1</td>
+<td>3.3</td>
+<td>4.8</td>
+<td>6.0</td>
+<td>6.5</td>
+<td>6.9</td>
+</tr>
+<tr>
+<td>Curve</td>
+<td>2.4</td>
+<td>3.1</td>
+<td>3.2</td>
+<td>4.6</td>
+<td>6.2</td>
+<td>6.7</td>
+<td>7.0</td>
+</tr>
+</tbody>
+</table></div>
+<p>The soft ceiling then lowers the old-age end to about 6.1; the anchors at
+6.5 and 6.9 are deliberately sacrificed so old species are not all 7.</p>
+<p><strong>Results</strong> on 10,000 species using the real <code>civilization_age</code> (windows
+drawn uniformly from 0 to 7.5 Gy, rounded to 10 My like the stored text;
+seeds 1 to 3 agree within 1 percentage point per band) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Era</th>
+<th>Share of species</th>
+<th>TL p5</th>
+<th>TL median</th>
+<th>TL p95</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Industrial (&lt; 300 y)</td>
+<td>6.3%</td>
+<td>2.03</td>
+<td>2.92</td>
+<td>3.92</td>
+</tr>
+<tr>
+<td>Interplanetary</td>
+<td>10.7%</td>
+<td>2.92</td>
+<td>4.02</td>
+<td>4.98</td>
+</tr>
+<tr>
+<td>Interstellar</td>
+<td>18.8%</td>
+<td>4.29</td>
+<td>5.41</td>
+<td>6.11</td>
+</tr>
+<tr>
+<td>Established</td>
+<td>17.8%</td>
+<td>4.98</td>
+<td>6.04</td>
+<td>6.54</td>
+</tr>
+<tr>
+<td>Ancient</td>
+<td>27.8%</td>
+<td>4.96</td>
+<td>6.10</td>
+<td>6.73</td>
+</tr>
+<tr>
+<td>Elder</td>
+<td>18.6%</td>
+<td>4.98</td>
+<td>6.12</td>
+<td>6.77</td>
+</tr>
+</tbody>
+</table></div>
+<p>Median index by age (3,000 draws each) [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Age (y)</th>
+<th>E</th>
+<th>M</th>
+<th>I</th>
+<th>Me</th>
+<th>P</th>
+<th>D</th>
+<th>TL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>100</td>
+<td>2.46</td>
+<td>2.45</td>
+<td>2.84</td>
+<td>2.63</td>
+<td>2.44</td>
+<td>2.63</td>
+<td>2.59</td>
+</tr>
+<tr>
+<td>266 (Earth)</td>
+<td>3.10</td>
+<td>3.10</td>
+<td>3.50</td>
+<td>3.30</td>
+<td>3.09</td>
+<td>3.29</td>
+<td>3.23</td>
+</tr>
+<tr>
+<td>1,000</td>
+<td>4.08</td>
+<td>4.08</td>
+<td>4.45</td>
+<td>4.26</td>
+<td>4.08</td>
+<td>4.27</td>
+<td>4.20</td>
+</tr>
+<tr>
+<td>2,000</td>
+<td>4.54</td>
+<td>4.53</td>
+<td>4.88</td>
+<td>4.70</td>
+<td>4.53</td>
+<td>4.71</td>
+<td>4.64</td>
+</tr>
+<tr>
+<td>5,000</td>
+<td>5.06</td>
+<td>5.06</td>
+<td>5.32</td>
+<td>5.20</td>
+<td>5.05</td>
+<td>5.20</td>
+<td>5.15</td>
+</tr>
+<tr>
+<td>50,000</td>
+<td>5.87</td>
+<td>5.87</td>
+<td>5.98</td>
+<td>5.93</td>
+<td>5.86</td>
+<td>5.92</td>
+<td>5.88</td>
+</tr>
+<tr>
+<td>1,000,000 and older</td>
+<td>6.1</td>
+<td>6.1</td>
+<td>6.1</td>
+<td>6.1</td>
+<td>6.1</td>
+<td>6.1</td>
+<td>6.1</td>
+</tr>
+</tbody>
+</table></div>
+<p>The median at 266 years sits above Earth's 3.13 because the curve is
+convex there and the noise is symmetric in time. By integer-index band the
+shares are: TL 2 to 3 3.0%, 3 to 4 7.5%, 4 to 5 11.6%, 5 to 6 34.0%, 6 to 7
+40.6%, nothing below 2. The set is top-heavy because the log-uniform age
+puts 64% of civilizations above 50,000 years (next section), not because
+of the tech curve. Indices correlate 0.92 to 0.94 across the whole set and
+0.76 to 0.79 at a fixed age. 30% of species have had a collapse (50% of
+Elder), 8% are stagnated, and 5% of Elder end below TL 5. Adding 25%
+fast-pace windows (milestone at 0.08 Gy, window under about 20 My, often
+rounding to age 100 years) raises Industrial to 12% and cuts the
+spacefaring share from 83% to 76%; that tail is an artifact of the 10 My
+rounding.</p>
+<p>Propulsion reaches 4 (sublight interplanetary ships) at a median age of
+1,040 years and 5 (warp, jump gates) at 4,600 years. The shipped
+Interstellar era (from 2,000 years) therefore corresponds to Propulsion
+about 4.5, slow sublight colonization, consistent with a 5 ly reach that
+then grows with the square root of age. No era retune is needed, but warp
+drive is not what defines &quot;Interstellar&quot; here.</p>
+<h3 id="is-the-age-prior-reasonable">Is the age prior reasonable?</h3>
+<p>Share of civilizations per era under physically motivated priors, on the
+same windows [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Age prior</th>
+<th>Industrial</th>
+<th>Interplanetary</th>
+<th>Interstellar</th>
+<th>Established</th>
+<th>Ancient</th>
+<th>Elder</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Log-uniform (shipped)</td>
+<td>6.6</td>
+<td>11.1</td>
+<td>18.8</td>
+<td>17.7</td>
+<td>26.2</td>
+<td>19.7</td>
+</tr>
+<tr>
+<td>Uniform births, no extinction</td>
+<td>0.1</td>
+<td>0.0</td>
+<td>0.0</td>
+<td>0.1</td>
+<td>7.0</td>
+<td>92.9</td>
+</tr>
+<tr>
+<td>Uniform births, mean life 100 ky</td>
+<td>0.4</td>
+<td>1.7</td>
+<td>37.8</td>
+<td>60.1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Uniform births, mean life 1 My</td>
+<td>0.1</td>
+<td>0.2</td>
+<td>4.6</td>
+<td>57.9</td>
+<td>37.2</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>With a constant birth rate and long or no lifetimes, an average
+civilization is very old and Earth-like ones are rare coincidences. The
+shipped prior guarantees variety and is kept. Consequences: 83% of
+civilizations are spacefaring; the top-heavy TL distribution follows from
+the prior; and a designer who wants fewer godlike species should lower
+<code>ceil_mean</code> (not simulated at other values), not change the age prior,
+which also drives territory sizes.</p>
+<h3 id="the-weighted-sum-hides-a-spike-limiting-domain-and-lopsided-species">The weighted sum hides a spike: limiting domain and lopsided species</h3>
+<p>TA motivates the weights by saying a species with jump gates and no
+metallurgy is &quot;fundamentally constrained by its resource base&quot;, but a flat
+weighted sum does not enforce that. Weighted, geometric and harmonic
+means (the last two on index + 1, minus 1) and the minimum [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>Weighted</th>
+<th>Geometric</th>
+<th>Harmonic</th>
+<th>Min</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TA example (E4 M3 I6 Me5 P<sub>4</sub> D3)</td>
+<td>4.25</td>
+<td>4.14</td>
+<td>4.04</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Earth 2026</td>
+<td>3.13</td>
+<td>3.13</td>
+<td>3.12</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Jump gates, no metallurgy (E3 M0 I3 Me3 P5 D3)</td>
+<td>2.60</td>
+<td>2.16</td>
+<td>1.55</td>
+<td>0</td>
+</tr>
+<tr>
+<td>One 7 among 2s (Information)</td>
+<td>3.00</td>
+<td>2.65</td>
+<td>2.43</td>
+<td>2</td>
+</tr>
+<tr>
+<td>All 3</td>
+<td>3.00</td>
+<td>3.00</td>
+<td>3.00</td>
+<td>3</td>
+</tr>
+<tr>
+<td>E, M at 2, the rest at 6</td>
+<td>4.20</td>
+<td>3.78</td>
+<td>3.38</td>
+<td>2</td>
+</tr>
+<tr>
+<td>E, M at 6, the rest at 2</td>
+<td>3.80</td>
+<td>3.39</td>
+<td>3.04</td>
+<td>2</td>
+</tr>
+</tbody>
+</table></div>
+<p>The last two rows are the problem: advanced applications on a primitive
+base outrank the opposite. In the generated set it rarely arises: the
+weighted-to-geometric gap has mean 0.006 and maximum 0.13 TL, and only
+0.9% of species spread 2 or more between their highest and lowest index,
+all from the 3% lopsided ones. The prerequisite clamps do the structural
+job the weights cannot, so this matters mostly for admin edits and the
+lopsided species.</p>
+<p>Handling (recommended):</p>
+<ul>
+<li><code>tech_level</code> is TA's weighted sum, unchanged (it is Boss's formula).</li>
+<li><strong>Limiting domain</strong>: the lowest of Energy, Materials and Information
+(the foundation domains; ties resolve in that order). Derived from the
+stored integers when displayed or served, not stored.</li>
+<li><strong>Lopsided</strong>: true when the highest index minus the lowest is at least
+3. Also derived.</li>
+<li>Optional <code>tech_balanced</code>: the weighted geometric mean of (index + 1),
+minus 1, shown beside TL if Boss wants one alternative number. The
+geometric mean follows the HDI precedent and the Xenobiology doc's use
+of a geometric mean for its habitability scores.</li>
+<li>Do not replace the sum with the minimum: on the generated set that loses
+0.38 TL on average and lets whichever domain was randomly lowest decide
+the ranking.</li>
+</ul>
+<h3 id="tech-bands">Tech bands</h3>
+<p>Named bands, centered on an integer so &quot;TL 3 to 4&quot; is a band (names are
+admin-editable constants):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TL</th>
+<th>Name</th>
+<th>Typical content</th>
+<th>Earth analog</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>under 0.5</td>
+<td>Primal</td>
+<td>Fire, stone, hides</td>
+<td>to about 10,000 BCE</td>
+</tr>
+<tr>
+<td>0.5 to 1.5</td>
+<td>Agrarian</td>
+<td>Draft animals, bronze and iron, writing, sailing</td>
+<td>to about 1760</td>
+</tr>
+<tr>
+<td>1.5 to 2.5</td>
+<td>Industrial</td>
+<td>Steam, steel, telegraph, antibiotics</td>
+<td>1760 to about 1940</td>
+</tr>
+<tr>
+<td>2.5 to 3.5</td>
+<td>Atomic</td>
+<td>Fission, digital networks, jets, orbital rockets</td>
+<td>about 1940 to now (Earth 3.1)</td>
+</tr>
+<tr>
+<td>3.5 to 4.5</td>
+<td>Fusion</td>
+<td>Fusion, true AI, nanotube materials, in-system ships</td>
+<td>TA's example</td>
+</tr>
+<tr>
+<td>4.5 to 5.5</td>
+<td>Gravitic</td>
+<td>Gravity induction, immersion networks, warp or gates</td>
+<td></td>
+</tr>
+<tr>
+<td>5.5 to 6.5</td>
+<td>Antimatter</td>
+<td>Annihilation power, self-directing AI, tactical warp</td>
+<td></td>
+</tr>
+<tr>
+<td>6.5 to 7</td>
+<td>Transcendent</td>
+<td>Zero-point power, programmable matter</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>The age era says how long a civilization has existed and the tech band
+says what it can do, so the species page shows both, with the tech band as
+the primary label for &quot;what are they like&quot;.</p>
+<h3 id="fit-with-the-code-pop9">Fit with the code (POP.9)</h3>
+<ul>
+<li>A pure function beside <code>species_traits</code> and <code>civilization_age</code> in
+<code>planetgen/population/model.py</code>: <code>draw_indices(age_years, rng, traits)</code>
+returning the six integers. It uses its own seeded stream
+(<code>draw.Stream(f&quot;tech:{planet_id}&quot;)</code>). It must not draw from the
+<code>draw.Stream(planet_id)</code> that <code>scan_life_worlds</code> uses for traits, the
+civilization draw and the age, or every stored species' age changes on
+the next pass. <code>draw.Stream</code> already has <code>random</code>, <code>uniform</code> and <code>gauss</code>;
+Poisson counts (Knuth's method) and t(4) variates (a gauss divided by
+<code>sqrt(-0.5 * ln(u1 * u2))</code>) are three lines each, so no numpy or scipy
+is needed. The simulation used numpy for those two draws only.</li>
+<li><code>refresh_civilizations</code> already recomputes era from stored age on every
+pass; it also fills the indices of any species whose indices are NULL,
+which delivers POP.9's &quot;existing species get theirs on the next
+population pass&quot;.</li>
+<li>When an admin edits an index by hand, <code>tech_source</code> is <code>'admin'</code> and no
+pass redraws it.</li>
+<li>GEN.92 and GEN.89 change which worlds reach <code>technological_civilization</code>
+and the window, not the tech curve, as long as <code>civilization_age_years</code>
+keeps its meaning. The draw needs only a 0 to 1 harshness number from
+the habitability score.</li>
+<li>Storage is under &quot;Storage&quot;, below.</li>
+</ul>
+<h3 id="notes-for-a-later-head-count">Notes for a later head-count</h3>
+<p><code>species</code> has no population yet, so nothing conflicts today. For when one
+is added [S unless marked]: Earth had about 8 billion people on 15
+November 2022; growth has fallen almost continuously since the 1960s, so
+use a logistic to a capacity with a falling rate, not an exponential.
+Published Earth carrying-capacity estimates run from about 2 billion to 40
+billion, with outliers of hundreds of billions from photosynthesis limits,
+and there is no consensus, so derive capacity from habitable area times a
+density parameter by tier, not from energy. Energy per capita does not cap
+population before Energy 5 or 6: 8e9 people at Energy 3 draw about 2e13 W,
+0.01% of the 1.7e17 W of sunlight on an Earth-size planet, and about 3% at
+Energy 6 [C]. Leave it out.</p>
+<h2 id="facility-types-and-ratings-pop10">Facility types and ratings (POP.10)</h2>
+<p>Built as POP.10 (PR #1524; see &quot;As built (POP.10, part 1: types and fields)&quot; below); the text that follows is the research design for &quot;facility types that are programmable
+and can be selected from a dropdown&quot;, with affiliation and
+Green/Yellow/Red ratings for crime, housing, resources, maintenance and
+health (Boss, 2026-10-03).</p>
+<h3 id="what-exists">What exists</h3>
+<p><code>facilities</code> (schema v42, <code>population/facilities.py</code>,
+<code>tuning.FACILITY_KINDS</code>, <code>tuning.FACILITY_RULES</code>) has a fixed <code>kind</code>
+(colony, outpost, mining-colony, station, starbase) with a CHECK, a
+placement (terrestrial, orbital, asteroid, standalone) and host columns.
+<code>FACILITY_RULES</code> decides which kinds go on which host. The placement form
+(<code>web/system_facilities.py</code>, <code>static/facilityform.js</code>) has no type list,
+affiliation or ratings.</p>
+<h3 id="data-model">Data model</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Fits &quot;values in columns&quot;</th>
+<th>Search</th>
+<th>Admin-defined fields</th>
+<th>Cost</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fixed enum (today)</td>
+<td>yes</td>
+<td>yes</td>
+<td>no</td>
+<td>none</td>
+</tr>
+<tr>
+<td>Type table + JSON column of values</td>
+<td>no</td>
+<td>generated columns, different syntax on MySQL 8.4 and MariaDB 11.4 [R]</td>
+<td>yes</td>
+<td>low</td>
+</tr>
+<tr>
+<td>Type table + JSON Schema driven forms</td>
+<td>no</td>
+<td>as above</td>
+<td>yes</td>
+<td>a validator and a form generator (@jsfe/shoelace 0.4.0 was last released about two years ago [S], so do not depend on it)</td>
+</tr>
+<tr>
+<td><strong>Type table + typed field definitions + typed value rows</strong></td>
+<td><strong>yes</strong></td>
+<td><strong>yes, one join</strong></td>
+<td><strong>yes</strong></td>
+<td>moderate, a few hundred lines</td>
+</tr>
+<tr>
+<td>One table per type</td>
+<td>yes</td>
+<td>yes</td>
+<td>no, DDL per type</td>
+<td>not for admin-defined types</td>
+</tr>
+</tbody>
+</table></div>
+<p>Chosen: the fourth row. A <strong>type refines a kind</strong> (&quot;Agricultural colony&quot;
+is a colony), so <code>kind</code> keeps driving <code>FACILITY_RULES</code> and the placement
+checks, and those are untouched.</p>
+<pre><code>facility_types        id, name (unique), kind, icon, description, sort_order, active
+facility_type_fields  id, type_id FK CASCADE, key (regex ^[a-z][a-z0-9_]{0,31}$), label,
+                      datatype CHECK IN ('int','decimal','text','bool','choice'), unit,
+                      required, min_value, max_value, choices (newline-separated text),
+                      default_text, sort_order, UNIQUE(type_id, key)
+facility_field_values facility_id FK CASCADE, field_id FK RESTRICT (retire fields, do not delete),
+                      value_int BIGINT, value_dec DOUBLE, value_text VARCHAR(255), value_bool TINYINT,
+                      PRIMARY KEY (facility_id, field_id)
+facilities (+)        type_id FK RESTRICT NULL, affiliation_polity_id FK SET NULL NULL,
+                      affiliation_name VARCHAR(255) NULL,
+                      rating_crime, rating_housing, rating_resources, rating_maintenance,
+                      rating_health  TINYINT UNSIGNED NULL CHECK (NULL or 1..3),
+                      ratings_source VARCHAR(16), ratings_note TEXT, ratings_set_at TIMESTAMP
+</code></pre>
+<p>Values are validated with a Pydantic model built from the field
+definitions by <code>pydantic.create_model</code> (Pydantic 2.13.5 is in
+<code>requirements.lock</code>). Field definitions export to JSON Schema mechanically
+if that is wanted later; <code>jsonschema</code> 4.25.1 is the last release found
+that lists Python 3.9 (4.26.0 and Pydantic 2.14.0 need 3.10 or newer [C,
+PyPI JSON API]), so check the lock's Python markers before adding it. The
+rating columns are not custom fields: they sit on every facility, are
+searched (&quot;show red health everywhere&quot;) and need indexes.</p>
+<h3 id="how-programmable">How programmable</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Meaning</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Fixed list in code (today)</td>
+<td>replaced</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Admin-defined types: name, icon, parent kind, defaults</td>
+<td>do</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Typed custom fields, validated server side</td>
+<td>do</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Declarative rules (which fields show when, default rating thresholds, from a closed list of operations)</td>
+<td>maybe later</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Expression engine for computed fields</td>
+<td>only if asked; <code>simpleeval</code> 1.0.8, MIT, Python 3.9 or newer [C, PyPI]</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Admin scripts</td>
+<td>no: arbitrary code from a web form is a code-execution hole and nothing here needs it</td>
+</tr>
+</tbody>
+</table></div>
+<p>Safety for levels 1 and 2: admin scope only (the API already has scopes),
+keys restricted by the regex, labels rendered through Jinja autoescape, at
+most 24 fields per type, bounded choice lists, icon names checked against
+a vendored allowlist.</p>
+<h3 id="icons">Icons</h3>
+<p>Shoelace's default icon library is Bootstrap Icons, MIT licensed
+(<code>@shoelace-style/shoelace</code> 2.20.1 ships the licence; <code>bootstrap-icons</code>
+1.13.1 has 2,078 SVGs, 1.2 MB [C]). The project vendors only <code>gear.svg</code>
+plus five system icons under <code>static/vendor/shoelace/assets/</code>, registers
+resolvers in <code>static/shoelaceicons.js</code>, and its CSP is <code>default-src 'self'</code>, so icons must be local. Vendor a curated subset (60 to 100 icons,
+about 60 KB) with the licence file beside it. The admin picks from the
+allowlist in a dropdown with a preview; the stored value is the icon's
+name. Names confirmed present in 1.13.1 [C]: <code>check-circle-fill</code>,
+<code>exclamation-triangle-fill</code>, <code>x-octagon-fill</code>, <code>dash-circle-fill</code>,
+<code>shield-check</code>, <code>shield-exclamation</code>, <code>people-fill</code>, <code>house-door</code>,
+<code>box-seam</code>, <code>wrench-adjustable</code>, <code>heart-pulse</code>, <code>building</code>,
+<code>rocket-takeoff</code>, <code>cash-stack</code>, <code>fuel-pump</code>, <code>moon-stars</code>. Not checked
+against the vendored Shoelace version beyond its licence file.</p>
+<h3 id="ratings">Ratings</h3>
+<p>Boss's wording is Green/Yellow/Red; project management usually says
+Red/Amber/Green [S]. Keep Boss's wording in the UI and database, and reuse
+the chip component of the habitability tiers (Blue, Green, Yellow, Red;
+<a href="habitability-index.html">habitability-index.md</a>). Green is the good end for
+all five dimensions.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Dimension</th>
+<th>Green</th>
+<th>Yellow</th>
+<th>Red</th>
+<th>Icon</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Crime</td>
+<td>Low</td>
+<td>Elevated</td>
+<td>High</td>
+<td><code>shield-check</code> / <code>shield-exclamation</code></td>
+</tr>
+<tr>
+<td>Housing</td>
+<td>Ample</td>
+<td>Tight</td>
+<td>Overcrowded</td>
+<td><code>house-door</code></td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>Sufficient</td>
+<td>Strained</td>
+<td>Critical</td>
+<td><code>box-seam</code></td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td>Sound</td>
+<td>Deferred</td>
+<td>Failing</td>
+<td><code>wrench-adjustable</code></td>
+</tr>
+<tr>
+<td>Health</td>
+<td>Healthy</td>
+<td>At risk</td>
+<td>Crisis</td>
+<td><code>heart-pulse</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Storage: five nullable TINYINT columns, 1 = Green, 2 = Yellow, 3 = Red,
+NULL = not assessed; the API speaks &quot;green&quot;, &quot;yellow&quot;, &quot;red&quot;. An ordinal
+is what Boss asked for, sorts and aggregates (<code>MAX(rating)</code> is
+worst-of), and a numeric score would invite false precision. An &quot;overall&quot;
+is the worst of the five, derived and never stored.</p>
+<p><strong>Accessibility.</strong> WCAG 1.4.1 (Level A) forbids colour as the only means
+of conveying information [S]. A chip is one of three distinct icon shapes
+(circle-check, triangle-exclamation, octagon-x), plus the word (&quot;Yellow&quot;),
+plus an <code>aria-label</code> with the dimension (&quot;Crime: Yellow, elevated&quot;).
+Palette (Okabe-Ito [S]): bluish green <code>#009E73</code>, orange <code>#E69F00</code>
+(labelled &quot;Yellow&quot;), vermillion <code>#D55E00</code>. Measured [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Green</th>
+<th>Yellow</th>
+<th>Red</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Contrast on white / on #121212</td>
+<td>3.4 / 5.5</td>
+<td>2.2 / 8.3</td>
+<td>3.9 / 4.8</td>
+</tr>
+<tr>
+<td>Black text on the fill</td>
+<td>6.1</td>
+<td>9.3</td>
+<td>5.4</td>
+</tr>
+</tbody>
+</table></div>
+<p>Black text on the fills passes 4.5:1 for all three and the fill does not
+depend on the theme, so the colour goes in the chip's fill, with a 1 px
+dark ring for 3:1 non-text contrast on pale surfaces. Under simulated
+colour blindness the CIELAB distance for classic <code>#2e7d32</code>/<code>#c62828</code> is 19
+(protan) and 16 (deutan), against 37 and 53 for <code>#009E73</code>/<code>#D55E00</code> [C,
+recalled simulation matrices, indicative]. Yellow against red under
+deutan is only 18, the weakest pair, so the icon shape and word carry the
+distinction. Check the final design in greyscale.</p>
+<h3 id="setting-ratings">Setting ratings</h3>
+<p>Admin-set by default, because nothing in the data model gives a true value
+(no population count, crime figure or housing stock). A &quot;suggest&quot; action
+fills unset ratings and marks <code>ratings_source = 'generated'</code>, so admin
+edits are never overwritten. A first rule set (design suggestion, not
+run): each score 0 to 1, Green at or above 0.66, Yellow at or above 0.33,
+Red below, with seeded noise of +/- 0.1 from the facility id so reruns
+are stable.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rating</th>
+<th>Inputs</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Health</td>
+<td>species Medical index, host habitability (PHI-4), the host's radiation domain (<code>phi4_radiation</code>) and the food rung of its Suitability, orbital or surface</td>
+<td>0.4 Medical/7 + 0.2 habitability + 0.2 radiation + 0.2 food</td>
+</tr>
+<tr>
+<td>Housing</td>
+<td>host habitability, the host's Suitability (<code>phi4_suitability</code>), Materials index, kind</td>
+<td>0.25 habitability + 0.25 Suitability + 0.3 Materials/7 + 0.2 kind size</td>
+</tr>
+<tr>
+<td>Resources</td>
+<td>host richness (belt against bare orbit), Energy index, distance to the owner's capital; on a living world its Flora and Fauna</td>
+<td>0.4 host richness + 0.3 Energy/7 + 0.3 (1 - distance/reach); on a living world 0.3 host richness + 0.2 biota + 0.25 Energy/7 + 0.25 (1 - distance/reach)</td>
+</tr>
+<tr>
+<td>Maintenance</td>
+<td>Materials and Energy index, distance to capital, harshness</td>
+<td>similar</td>
+</tr>
+<tr>
+<td>Crime</td>
+<td>Information index, polity government form, distance from capital, unaffiliated penalty</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>POP.37 sources and weights. Habitability is the host's stored <code>phi4</code>, radiation its <code>phi4_radiation</code>, Suitability its
+<code>phi4_suitability</code>. Food is the Suitability food rung (<code>habitability.food_score</code>) worked out again from the host's stored
+Microbial, Flora and Fauna scores (<code>life_scores.food_stage</code>; microbes under ice or in a deep aquifer count as none), so
+Health agrees with the Suitability sentence (&quot;no food readily available&quot;). Biota is (Flora + Fauna) over 18; it is read
+only where Flora or Fauna is above 0, so a belt, an orbit, a lifeless world and a world with no score keep the first
+Resources weights and a living world's Resources can rate above a lifeless world of the same richness. An orbital host
+reads the orbital habitability constant for habitability, radiation, Suitability and food. A rating that was already set
+(including one generated before POP.37) is never changed; clear a rating to get the new suggestion.</p>
+<p>Inputs that exist today: the host (type, body type, gravity, temperature),
+distance (<code>system_owners.distance_ly</code>), and after POP.9 the six indices;
+habitability arrives with GEN.89. Reds on harsh hosts are legitimate and
+give the habitability tier an immediate use.</p>
+<h3 id="affiliation">Affiliation</h3>
+<p>A nullable FK to <code>polities</code> with <code>ON DELETE SET NULL</code>, plus
+<code>affiliation_name</code>, a text snapshot written whenever the FK is set.
+<code>planetgen population --rescan</code> deletes every species and with them every
+polity and ids are reassigned; polities exist only after the optional pass
+has run; and a facility may belong to nobody (&quot;independent&quot;). A bare FK
+would lose every affiliation on a rescan. The system's owner
+(<code>GET /api/systems/&lt;id&gt;/owner</code>) is the default when placing a facility,
+editable by the admin. A MySQL CHECK cannot use a column that is in an
+<code>ON DELETE SET NULL</code> FK [R], so this is validated in code like
+<code>_db.add_facility</code> does for hosts.</p>
+<h3 id="as-built-pop10-part-1-types-and-fields">As built (POP.10, part 1: types and fields)</h3>
+<p><code>population/facility_types.py</code> holds the rules (create, change and delete
+types and fields; <code>parse_value</code> checks one value against a field) and
+<code>api/facility_types.py</code> the <code>/api/facility-types</code> routes, documented in
+<code>docs/reference/api.md</code>. Rules beyond the sketch: a type that facilities use keeps its
+kind and cannot be deleted (retire it with <code>active</code>); a field with stored
+values cannot be deleted, change datatype, drop an option in use or narrow
+its range past a stored value; a required field added to a type in use
+needs a <code>default_text</code>, which every facility of the type takes. The icon
+allowlist is <code>population/facility_icons.py</code>. Facilities taking a type,
+affiliation, ratings and field values, the rating suggestion and the web
+form follow in later parts.</p>
+<p><strong>Part 2</strong> (facilities taking a type, affiliation, ratings and field
+values): <code>population/facility_attrs.py</code> checks and stores them
+(<code>store.add_facility</code>/<code>update_facility</code>), <code>population/facility_ratings.py</code>
+holds the colour words and the per-dimension wording, and <code>GET /api/facilities</code> filters and sorts by them (<code>db/query.list_facilities</code>).
+Saving ratings by hand marks them <code>admin</code>.</p>
+<p><strong>Part 3</strong> (suggested ratings): <code>population/facility_suggest.py</code> is the first
+rule set of &quot;Setting ratings&quot;, with the weights in the module docstring and
+the constants in <code>tuning.FACILITY_RATING_*</code>, <code>FACILITY_KIND_SIZE</code> and
+<code>FACILITY_HOST_RICHNESS</code>. The government form is not read yet (nothing
+stores more than its name); nearness is the system's distance from its
+polity's capital over the polity's reach. A rating that is set is never
+changed; the facility is marked <code>generated</code> only when no rating was set by
+hand. One example type, &quot;Research outpost&quot;, installs with
+<code>POST /api/facility-types/examples</code>.</p>
+<p><strong>Part 4</strong> (the web): the system page's Facilities table gains Type, Affiliation and
+Ratings columns, worst rating first (<code>web/lib/facility_display.py</code>); a rating
+chip is the dimension's glyph and name, one of three status shapes (circle with
+a check, triangle, octagon with a cross) and the word, with an <code>aria-label</code>, on
+the Okabe-Ito fills with black text (<code>.rating</code> in <code>style.css</code>). The placement
+form takes a type (filtered to the chosen kind, its fields shown for the chosen
+type), an affiliation (the system's owner by default, or free text) and the
+five ratings; each facility has an edit form for affiliation and ratings and a
+&quot;Suggest the unset ratings&quot; button. <code>/admin/facility-types</code>
+(<code>web/facility_type_pages.py</code>) manages types and fields. The 64 icons a type may
+use are vendored Bootstrap Icons 1.13.1 (MIT licence file kept beside them).</p>
+<h3 id="api-and-ui-sketch">API and UI sketch</h3>
+<p><code>/api/facility-types</code> (admin CRUD, public read). <code>POST /api/facilities</code>
+accepts <code>type_id</code>, <code>affiliation_polity_id</code> or <code>affiliation_name</code>, the five
+ratings as strings, and <code>fields</code> as an object keyed by field key.
+<code>GET /api/facilities</code> filters by type, affiliation and any rating. The
+system page's facility form gets a type <code>sl-select</code> (UX.49 is moving form
+fields to Shoelace) and builds the custom-field inputs from the type
+definition; the Facilities panel adds the five chips as a compact strip
+and sorts worst rating first.</p>
+<h2 id="storage-schema-v44">Storage (schema v44)</h2>
+<ul>
+<li><code>species</code>: id, name (unique), homeworld_planet_id (unique),
+star_system_id, life_chemical, life_stage (<code>multicellularity</code> or
+<code>technological_civilization</code>), build, climate, size,
+civilization_age_years, era, spacefaring (every stored species has a
+civilization since GEN.80).</li>
+<li><code>polities</code>: id, name (unique), species_id (unique), capital_system_id,
+government, color (<code>#rrggbb</code>), reach_ly.</li>
+<li><code>system_owners</code>: star_system_id (primary key), polity_id, distance_ly.</li>
+<li><code>population_state</code>: one row (<code>id = 1</code>), the planet-id watermark.</li>
+</ul>
+<p><code>_migrate_v43_to_v44</code> creates the four tables empty. Deleting a planet or
+system cascades to its species, the species to its polity, and the polity
+to its ownership rows. Since GEN.80 <code>life_stage</code> is always
+<code>technological_civilization</code>.</p>
+<h3 id="planned-columns-pop9-pop10-one-new-schema-version-each">Planned columns (POP.9, POP.10; one new schema version each)</h3>
+<ul>
+<li><code>species</code> (POP.9): <code>energy_index</code>, <code>materials_index</code>,
+<code>information_index</code>, <code>medical_index</code>, <code>propulsion_index</code>,
+<code>defense_index</code> (TINYINT UNSIGNED, CHECK 0..7, NULL until drawn),
+<code>tech_level</code> DECIMAL(3,2) computed from the integers and indexed for
+range search, and <code>tech_source</code> (<code>'generated'</code> or <code>'admin'</code>, so a pass
+never redraws a hand-edited species). The CHECKs are fine on MySQL
+because these are plain columns, not columns of a cascading FK [R].
+Rounding left 105 distinct <code>tech_level</code> values among 10,000 simulated
+species [C]. Limiting domain and the lopsided flag are derived, not
+stored.</li>
+<li><code>facility_types</code>, <code>facility_type_fields</code>, <code>facility_field_values</code> and
+new columns on <code>facilities</code> (type, affiliation, five ratings, rating
+source): the layout under &quot;Data model&quot; in the facility section.</li>
+</ul>
+<h2 id="presentation">Presentation</h2>
+<ul>
+<li><strong>API</strong> (<code>src/planetgen/api/population.py</code>, its own blueprint):
+<code>GET /api/population</code> (whether a pass has run and whether any species,
+polity or owned system exists, so pages can hide themselves),
+<code>GET /api/species</code> (paged, <code>?spacefaring=</code>), <code>GET /api/species/&lt;id&gt;</code>,
+<code>GET /api/planets/&lt;id&gt;/species</code>, <code>GET /api/polities</code> (paged),
+<code>GET /api/polities/&lt;id&gt;</code> (with a page of its systems),
+<code>GET /api/systems/&lt;id&gt;/owner</code> (404 for an unknown system), and
+<code>GET /api/territories</code> (at most 20,000 owned systems, nearest their
+capitals first, with each polity's capital and reach). Documented in
+<code>docs/reference/api.md</code>.</li>
+<li><strong>Galaxy Map:</strong> a Territories button draws each polity's reach as a soft
+ball of its color around its capital and its systems as dots, with a
+legend naming each polity, its government and its system count (page
+endpoint <code>/galaxy/territories</code>, which merges <code>/api/territories</code> with
+<code>/api/polities</code>). It draws the same at every zoom. The button and
+legend appear only when <code>/api/polities</code> counts at least one polity.</li>
+<li><strong>Web pages (built as POP.5, PR #184; this list is the research design):</strong> a Species list (paged, spacefaring
+filter), a species page, a polity page listing its systems, &quot;Dominant
+species&quot; on a life world's planet card and &quot;Territory of ...&quot; on an
+owned system's page. With POP.9 the species page shows the six indices,
+the tech level with its band name, the limiting domain and the age era
+side by side, and the species list can be searched by <code>tech_level</code> range
+and by each index.</li>
+</ul>
+<h2 id="decisions">Decisions</h2>
+<p>Boss accepted every recommended default on 2026-10-01:</p>
+<ol>
+<li>Named dominant species on multicellular worlds and up. Superseded by
+GEN.80 (PR #448, a bug report from Boss's 2026-10-07 list): only worlds
+with a technological civilization get a species.</li>
+<li>Species names unique across the galaxy.</li>
+<li>One polity per spacefaring species.</li>
+<li>Territory reach cap 100 ly.</li>
+<li>Territories recompute automatically after each fill. Superseded the
+same day: population is optional and off by default everywhere,
+including fills and install/update (see &quot;When it runs&quot;).</li>
+<li>Civilizations on 1 in 1,000 worlds past the milestone.</li>
+</ol>
+<p>Decisions already taken for POP.7 to POP.10:</p>
+<ol start="7">
+<li>Boss (2026-10-03 05:38Z): generate a tech level for every technological
+species using &quot;Technological Assessment.md&quot; (POP.7). The six domains,
+the 0 to 7 scales and the weights 0.25 / 0.20 / 0.20 / 0.15 / 0.10 /
+0.10 are Boss's own document and stay as written.</li>
+<li>Boss (2026-10-03 05:38Z): facility types that are programmable and
+chosen from a dropdown when adding a facility; facility data includes
+an affiliation and a place for Green/Yellow/Red ratings of crime,
+housing, resources, maintenance and health (POP.10).</li>
+<li>Boss (GEN.80, 2026-10-07): species, polities and population are made
+only for worlds whose life reaches a technological civilization.</li>
+</ol>
+<p>Everything else in the tech-level and facility sections (age definition,
+logistic curve and its parameters, limiting domain, band names, the
+declarative type model, palette, the suggest-ratings rules) is a
+recommendation until Boss decides.</p>
+<h2 id="why-it-works-this-way">Why it works this way</h2>
+<ul>
+<li><strong>A pass over stored rows, not part of generation.</strong> Everything it
+needs (the milestone and ages in the evolution text, each system's
+position) is already in the database, so an existing galaxy can be
+populated without a regenerate and system generation stays untouched.
+Territories depend on neighboring systems, which a single <code>StarSystem</code>
+cannot see while it is being built.</li>
+<li><strong>A watermark plus derived tables.</strong> Only new planets need scanning;
+eras, polities and ownership are derived from stored ages and
+positions, so they are cheap to rebuild from scratch on every run.
+Retuning <code>CIVILIZATION_ERAS</code> or the reach constants needs no
+migration.</li>
+<li><strong>Seeded by planet id.</strong> Traits, the civilization draw and the age come
+out the same on every run and on every server, so a rerun does not
+reshuffle the galaxy. Names are the exception (they use the shared
+generator), and a polity's government and color follow its species id,
+so <code>--rescan</code> changes those too.</li>
+<li><strong>1 in 1,000.</strong> The milestone alone made nearly every seventh system a
+polity on a 150-sector test fill (commit b62d0aa). The chance was
+picked to keep civilizations scarce; the spacing it gives is 134 ly on
+average, so cap-sized territories overlap (see &quot;Civilization age&quot;).</li>
+<li><strong>Log-uniform ages, square-root reach.</strong> Ages spread across orders of
+magnitude, so all six eras occur; reach grows like a diffusing frontier
+and stops at a cap so the oldest polities don't swallow the galaxy.</li>
+<li><strong><code>reach / distance</code>.</strong> A weighted Voronoi split gives every system one
+owner and lets an older polity hold more ground than a young neighbor,
+with no overlap to store.</li>
+<li><strong>A logistic in log age, integers 0 to 7, a stream of its own.</strong> Tier
+durations fall by orders of magnitude, so a logistic in linear time has
+the wrong shape. TA defines each index as a band of named technologies,
+so indices are small integers. A separate seeded stream means adding the
+tech draw cannot change any stored age.</li>
+<li><strong>Types refine kinds.</strong> Keeping <code>kind</code> leaves <code>FACILITY_RULES</code> and the
+placement checks alone, and typed value rows keep the project's rule of
+values in columns.</li>
+<li><strong>Optional and off by default.</strong> Boss's choice on 2026-10-01; no
+further reason is written down. It keeps scheduled <code>update.sh</code> runs and
+plain fills from spending time on the pass, and the pages and overlay
+hide themselves when it has not run.</li>
+</ul>
+<h2 id="open-points-found-in-this-review">Open points found in this review</h2>
+<ul>
+<li><code>planetgen population --rescan</code>'s help says it gives &quot;new names,
+ages and borders&quot;. Names are new, and so are governments and colors
+(they follow the new species ids), but ages, traits and the
+civilization draw are seeded by the planet id and come out the same,
+so borders stay the same unless the constants were retuned.</li>
+<li>The module docstring of <code>planetgen/population/model.py</code> still says the
+pass runs &quot;after every <code>galaxy</code>/<code>sector</code> run&quot;; since 7.58.2 it does
+only with <code>--population</code>.</li>
+<li>The docstring of <code>tuning.CIVILIZATION_CHANCE</code> repeats the &quot;150-200 ly /
+just about meet&quot; wording corrected under &quot;Civilization age&quot;.</li>
+<li>&quot;Technological Assessment.md&quot; has pasted LaTeX debris in its title and
+first paragraph and &quot;an species&quot;; it is Boss's upload and was left alone.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>The research environment could read only search-result text, not the
+papers or pages themselves. Items to verify when paper access is allowed:</p>
+<ul>
+<li>[R] Cook's per-capita energy figures and Morris's index components came
+from secondary summaries (P2P wiki, an arXiv table, a Grokipedia
+summary); the factor of 3.9 per Energy index is a fit by eye. Maddison
+levels other than the 1 CE and growth-multiple figures are not quoted for
+that reason.</li>
+<li>[R] Earth's domain vector for 2026 and for 1760 to 1920 is a judgment of
+TA's band descriptions; the dates (fission 1942 to 1954, steam 1712 to
+1769) and the tier durations (about 5,800 and 180 years) are from memory.
+Boss should review the Earth scoring, because it anchors the whole curve.</li>
+<li>[R] Traveller and GURPS levels (TL0 stone age, TL10 to 11 interstellar)
+were not verified; no mapping to TA is offered. Star Trek and
+Civilization tech trees were not reviewed.</li>
+<li>[R] The colour-blindness distances used matrices
+typed from memory, applied in linear RGB; they are indicative. Contrast
+ratios are exact WCAG computations [C].</li>
+<li>[R] That a MySQL CHECK cannot use a column in an <code>ON DELETE SET NULL</code> or
+<code>CASCADE</code> FK is from memory of the manual (it matches the note in
+<code>docs/reference/database-schema.md</code>); verify against the MySQL 8.4 and MariaDB 11.4
+manuals, as well as the JSON and generated-column syntax differences.</li>
+<li>[R] The Newman and Sagan diffusion models were not checked against the
+5 ly reach at 2,000 years rising with the square root of age (about
+0.0025 c of frontier speed at the start).</li>
+<li>Simulation: exact percentages move by about a point per numpy seed
+(seeds 1 to 3 tested). The real distribution of <code>window_years</code> in a
+generated galaxy was approximated (uniform windows, with an optional
+fast-pace mixture), not read from a database. <code>ceil_mean</code> was not
+simulated at other values. The suggest-ratings rules were not run.</li>
+<li>[S] Every URL below was seen in search results only; statements
+attributed to them are the search tool's summaries. The Sagan formula
+and K = 0.73 were confirmed by computation. Packages marked &quot;read
+directly&quot; were fetched from their registries.</li>
+</ul>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>Sagan interpolation, Earth K 0.73: scienceabc.com/nature/universe/what-is-kardashev-scale, kardashev1.com/scale, en.wikipedia.org/wiki/Kardashev_scale</li>
+<li>Morris energy capture: pzacad.pitzer.edu/~lyamane/ianmorris.pdf, wiki.p2pfoundation.net/Energy-Capture_Per-Capita_Index, eh.net review of &quot;The Measure of Civilization&quot;</li>
+<li>Cook energy stages: wiki.p2pfoundation.net/Evolution_of_Energy_Capture_Throughout_Human_History, arxiv.org/pdf/1406.6328</li>
+<li>HDI geometric mean: data.un.org/_Docs/FAQs_2011_HDI.pdf, roiw.org/2019/n4/roiw12370.pdf</li>
+<li>Maddison: oecd.org &quot;The World Economy&quot; (2001), h-net.org/reviews/showrev.php?id=30336</li>
+<li>Barrow scale: centauri-dreams.org/2023/12/12/seti-musings-on-the-barrow-scale</li>
+<li>TRL: esto.nasa.gov/files/trl_definitions.pdf, nasa.gov technology-readiness-levels</li>
+<li>Traveller and GURPS: wiki.travellerrpg.com/Technology_Level/meta, gurps.fandom.com/wiki/Tech_Level</li>
+<li>Era durations: en.wikipedia.org (Stone Age, Bronze Age), britannica.com/event/Industrial-Revolution</li>
+<li>Population: en.wikipedia.org/wiki/World_population_milestones; Energy Institute Statistical Review 2023 (620 EJ)</li>
+<li>Colour: w3.org/WAI/WCAG22/Understanding/use-of-color.html, developer.mozilla.org Use_of_color, sci-draw.com Okabe-Ito reference, rebelsguidetopm.com RAG</li>
+<li>Forms and JSON: github.com/json-schema-form-element/jsfe, npmjs.com/package/@jsfe/shoelace, pypi.org/project/jsonschema</li>
+<li>Read directly: pypi.org/pypi/jsonschema/json, pypi.org/pypi/pydantic/json, pypi.org/pypi/simpleeval/json, registry.npmjs.org/bootstrap-icons (1.13.1), registry.npmjs.org/@shoelace-style/shoelace (2.20.1), raw.githubusercontent.com/twbs/icons/main/LICENSE</li>
+<li>Repo: <code>Technological Assessment.md</code>, this document, <a href="habitability-index.html">habitability-index.md</a>, <code>docs/reference/database-schema.md</code>, <code>docs/reference/html-interface.md</code>, <code>src/planetgen/population/model.py</code> and <code>facilities.py</code>, <code>src/planetgen/tuning.py</code>, <code>src/planetgen/util/draw.py</code>.</li>
+<li>Simulation scripts (<code>fit.py</code>, <code>techsim.py</code>, <code>analysis2.py</code>, <code>priors.py</code>, <code>rag.py</code>, <code>wsens.py</code>) were run in the research session's scratchpad and are not in the repo; the results are the tables above.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

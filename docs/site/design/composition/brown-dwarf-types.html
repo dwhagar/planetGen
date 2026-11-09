@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brown dwarf type against temperature (GEN.517) - planetGen docs</title>
+<meta name="description" content="Status: built 2026-10-23 by lane M (builder B9).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/brown-dwarf-types.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/brown-dwarf-types.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="brown-dwarf-type-against-temperature-gen517">Brown dwarf type against temperature (GEN.517)</h1><p class="meta">docs/design/composition/brown-dwarf-types.md</p><details class="toc"><summary>On this page (5 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-finding">1. The finding</a></li><li style="margin-left:0px"><a href="#2-what-it-does-not-do">2. What it does not do</a></li><li style="margin-left:0px"><a href="#3-wired-into-the-generator-gen760">3. Wired into the generator (GEN.760)</a></li><li style="margin-left:0px"><a href="#4-the-hot-end-the-hydrogen-burning-limit-by-age-gen494">4. The hot end: the hydrogen-burning limit by age (GEN.494)</a></li><li style="margin-left:0px"><a href="#5-the-air-the-oxide-to-hydride-transition-the-lithium-test-and-the-alkali-chlorides-gen1374">5. The air: the oxide to hydride transition, the lithium test and the alkali chlorides (GEN.1374)</a></li></ul></details>
+<p>Status: built 2026-10-23 by lane M (builder B9). Module <code>planetgen/physics/brown_dwarf_types.py</code>, data <code>physics/data/brown_dwarf_teff_map.json</code>, rows g1 to g5 of the atmosphere recipes (<code>scripts/atmosphere_recipes_data.py</code>), tests <code>src/tests/test_brown_dwarf_types.py</code>.</p>
+<h2 id="1-the-finding">1. The finding</h2>
+<p>The type of a brown dwarf is not a weighted draw: it is a function of the effective temperature with a scatter ([R2374: Table 13], 525 L, T and Y dwarfs within 20 pc; READ). The rows g1 to g5 of part 09 are that map seen from the temperature, as soft windows with one softness of 100 K and edges that were design values (2200, 1300, 700, 500 K). The map gives the edges and the softness:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Boundary</th>
+<th>Spectral type</th>
+<th>Temperature (K)</th>
+<th>Scatter (K)</th>
+<th>Design edge</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>late M and L</td>
+<td>L0</td>
+<td>2238</td>
+<td>134</td>
+<td>2200</td>
+</tr>
+<tr>
+<td>L and T</td>
+<td>between L8.75 and T0</td>
+<td>1273</td>
+<td>79</td>
+<td>1300</td>
+</tr>
+<tr>
+<td>T and late T (NH<sub>3</sub>-rich)</td>
+<td>T8</td>
+<td>686</td>
+<td>79</td>
+<td>700</td>
+</tr>
+<tr>
+<td>T and Y</td>
+<td>Y0</td>
+<td>460</td>
+<td>79</td>
+<td>500</td>
+</tr>
+</tbody>
+</table></div>
+<p>The rows now use these edges and the scatter of each boundary (<code>phi((edge - teff_k)/scatter)</code> differences), so a dwarf at the temperature of a boundary is half one class and half the other, and the weights follow <code>brown_dwarf_types.type_probabilities</code>. The test pins the recipe to the module at twelve temperatures.</p>
+<h2 id="2-what-it-does-not-do">2. What it does not do</h2>
+<ul>
+<li>The late-M rows (g1) have no fit in Table 13 (the map starts at L0); the 2238 K edge is the map's L0 and the 2800 K cap is the repo's maximum for a rogue body. The row stays partly verified with that limit.</li>
+<li>Row g4 is not a type: T8 and T9 are late T, NH<sub>3</sub>-rich, and the Y0 dwarfs start at 460 K (observed 371 to 510 K). The row stays partly verified; its edge at T8 is a design choice on the map.</li>
+<li>The map is for field dwarfs. Young low-gravity L dwarfs are up to 300 K cooler than field dwarfs of the same type [R1370], so a gravity term is needed below about 500 Myr; it is not modelled.</li>
+<li>The mass function (alpha 0.6 +/- 0.1) and the evolution tracks that give a dwarf its temperature are not part of this change; the census of Kirkpatrick Table 15 is not machine readable here (NOT REACHED), so no count-per-bin target exists.</li>
+<li>The recipes were not read by the generator when this was built (GEN.517); the type draw is wired in section 3.</li>
+</ul>
+<h2 id="3-wired-into-the-generator-gen760">3. Wired into the generator (GEN.760)</h2>
+<p><code>brown_dwarf.spectral_type(temperature_k)</code> draws the type of every brown dwarf through this map: the temperature it reads on the map is the dwarf's own plus a Gaussian offset of the scatter of the piece its mean type is on (134 K among L dwarfs, 79 K among T and Y dwarfs), and the type is the map read backwards (<code>brown_dwarf_types.number_of_teff</code>, <code>drawn_number</code>) at that temperature. The L/T transition, where the map is nearly flat (18 K per subtype), spreads a type over several subtypes, as the census does; a dwarf that reads as L0 or hotter after the offset is a late-M dwarf, named by the stellar scale.</p>
+<p>The draw is on a stream of the temperature alone, so a free brown dwarf's page, which reads the stored effective temperature, gives the type the generator drew, and a brown dwarf member of a multi-star system stores it with the member. The old inversion of the mean relation (<code>tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS</code>, <code>brown_dwarf.type_temperature_k</code>, <code>spectral_number</code>) is gone: the data file is the one table. Source tier: Verified ([R2374: Table 13]); the offset is the paper's scatter (tweak scale L0); the field-dwarf map's missing gravity term for young dwarfs stays a gap (section 2). Generator epoch: the types of brown dwarfs change (GEN.760).</p>
+<h2 id="4-the-hot-end-the-hydrogen-burning-limit-by-age-gen494">4. The hot end: the hydrogen-burning limit by age (GEN.494)</h2>
+<p>The two edges the map could not give are the hot ones. [R0254] (A&amp;A 577, A42, section 3.3; READ) put the hydrogen-burning limit at 0.07 solar masses and its temperature at about 2900 K at 1 Myr and 2950 K at 10 Myr. The BHAC15 table held in the project files (<code>baraffe_isochrones</code>) gives the whole curve for the limit mass: 2897 K at 1 Myr, 2946 K at 10 Myr, 2794 K at 100 Myr, 2047 K at 1 Gyr, 1627 K at 5 Gyr and 1626 K at 10 Gyr. <code>physics/substellar_ceiling.py</code> reads it (<code>ceiling_k(age)</code>, <code>HOTTEST_K</code> 2950 K, <code>oldest_age_gyr(temperature)</code>).</p>
+<p>What it settles: the late-M-like brown dwarf (row g1, 2238 K and up) is a young object. A brown dwarf is as hot as 2300 K only until about 0.55 Gyr (as hot as the L0 edge, 2238 K, until 0.64 Gyr), and at 1 Gyr the hottest is already near 2050 K, at 5 Gyr near 1630 K (the mid-L dwarfs). The 2800 K of the rogue-body clip is 150 K under the table's peak and is the same for every age. The row's hot edge becomes 2950 K at the wiring step, and the age dependence stays in the cooling track itself once the tracks are the Baraffe ones (GEN.948), which have the limit built in. Row g4 (T8 to Y0) is not a separate type; its edges are the map's own (T8 686 K, Y0 460 K, scatter 79 K), so it is a derivation from Table 13 and the &quot;design choice&quot; in its limit text goes when the wiring step edits the rows.</p>
+<p><strong>Wired (GEN.494, step 2, train 7):</strong> <code>brown_dwarf.effective_temperature_k</code>, <code>luminosity_sol</code> and <code>state</code> and <code>rogue_surface.giant_internal_flux_w_m2</code> cap a body below 0.07 solar masses at <code>substellar_ceiling.hottest_k(age)</code> and one at or above it at <code>HOTTEST_K</code>; <code>tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K</code> (2800 K) is gone, and the hot edge of row g1 is 2950 K. The cooling tracks (<code>baraffe_isochrones.cooling_track</code>, GEN.948) are BHAC15 already, so the change is mostly at the peak: a brown dwarf under about 0.1 Gy that the old clip held at 2800 K now keeps its track temperature up to 2950 K (0.065 solar masses at 10 My: 2924 K, was 2800 K). Under the GEN.948 tracks no body below the limit mass is above the limit mass's curve (the table itself is BHAC15), so the cap binds only at the peak. A cap asked for with the Baraffe table missing and told to disregard that gives the 2950 K peak at every age (recorded as a stand-in); the cooling track itself needs the table.</p>
+<p>Not done: the limit moves with [Fe/H] (GEN.936); the young low-gravity L dwarfs of section 2 still need a gravity term. Source tier T1 (Verified), tweak L0 (registry SB1 and SB2).</p>
+<h2 id="5-the-air-the-oxide-to-hydride-transition-the-lithium-test-and-the-alkali-chlorides-gen1374">5. The air: the oxide to hydride transition, the lithium test and the alkali chlorides (GEN.1374)</h2>
+<p><code>mixture_giant</code> is the chemistry of a brown dwarf's air (rows g1 to g6 choose the regime; the layer is the 1 bar photosphere). Before GEN.1374 it put the titanium, vanadium, calcium and chromium of the air into one cloud at the forsterite temperature (about 1,700 K at 1 bar), carried no lithium or chlorine, and had no hydride of iron or chromium. Now, with [R2725, R2731] read for the numbers:</p>
+<ul>
+<li><strong>TiO and VO leave before the iron</strong> (Ca, Ti and V condense in the titanates at 1963 K at 1 bar, V in solid solution), the iron at 1838 K, forsterite near 1700 K, chromium metal at 1518 K. FeH and CrH (made from atoms, [R5162]) are in the gas between: a dwarf of about 1,900 K has no TiO or VO and has FeH and CrH, as the late M to early L bands do; FeH goes with the iron cloud, CrH with the chromium cloud.</li>
+<li><strong>The lithium test.</strong> Lithium is in the element budget at the protosolar 3.25 (the photosphere's is burned); a dwarf above the lithium-burning mass (<code>stellar_abundances.lithium_burning_limit_sol</code>) has none, one below it keeps it, as atomic Li down to 1520 K at 1 bar and as LiCl below (LiOH and LiH beside it). The change of carrier reproduces the review's 1520 K.</li>
+<li><strong>The alkali chlorides.</strong> Chlorine (5.31, [R0168: Table 2]) is in the budget, so K gives way to KCl near 980 K at 1 bar as the review has it (the KCl cloud takes one chlorine per potassium), and NaCl and LiCl are listed.</li>
+</ul>
+<p>Not done: the age dependence of the lithium burning (the limit is by mass only, as the dwarf's makeup has it); the lithium of the host's own element set (Li scales with [Fe/H] here); Li<sub>2</sub>S and LiF condensation; the line wings themselves, which are an opacity and not a composition (the monatomic Na and K that carry them are what the air now follows); TiH and VH (no equilibrium constant held). Cold enough (under about 680 K at 1 bar) the lithium is condensed as LiCl, the condensate the NASA file holds (the review names Li<sub>2</sub>S and LiF, which it lacks). Registry GEN.725, section 6.220 (BD1 to BD5).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

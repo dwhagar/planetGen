@@ -3,12 +3,6 @@
  "title": "The sulfuric acid cloud rules",
  "description": "The cloud of sulfuric acid droplets of an air that holds sulfur dioxide, an oxidiser and water (GEN.1019, docs/design/composition/line-opacity.md; the supply gates are those of physics/data/acid_medium.json). The numbers are the brackets of the published Venus cloud models, used as the range a Venus-like air draws from; nothing in the generator names Venus. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4).",
  "numbers": {
-  "base_temperature_k": {
-   "value": 367.0,
-   "tier": "T3",
-   "tweak": "L1",
-   "basis": "The temperature at the cloud base: [R0157: Table 1] gives the lower cloud at 47.5 to 50.5 km, 367 to 345 K and 1.39 to 0.98 bar, and say acid vapor exists down to about 38 km (4 bar, temperature not printed). The base is the first level going up the dry adiabat where the air is this cool, the ground where it already is"
-  },
   "optical_depth_low": {
    "value": 20.0,
    "tier": "T3",

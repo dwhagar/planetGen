@@ -1,0 +1,1656 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deployment Configuration - planetGen docs</title>
+<meta name="description" content="This document describes config.json, the single per-deployment configuration file for the whole planetGen project -- the command-line tools (planetgen, planetgen.db.query, planetgen.cli.migrate, planetgen.cli.orbits, planetgen.cli.reset,...">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/config.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/config.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="deployment-configuration">Deployment Configuration</h1><p class="meta">docs/reference/config.md</p><details class="toc"><summary>On this page (16 headings)</summary><ul><li style="margin-left:0px"><a href="#what-its-for">What it's for</a></li><li style="margin-left:0px"><a href="#location-repo-root">Location: repo root</a></li><li style="margin-left:0px"><a href="#precedence">Precedence</a></li><li style="margin-left:0px"><a href="#saving-settings">Saving settings</a></li><li style="margin-left:0px"><a href="#the-settings-page">The settings page</a></li><li style="margin-left:14px"><a href="#update-configjson">Update config.json</a></li><li style="margin-left:0px"><a href="#backups">Backups</a></li><li style="margin-left:14px"><a href="#the-backups-screen-export-and-import">The backups screen, export and import</a></li><li style="margin-left:14px"><a href="#web-link-previews-and-search-engines">Web, link previews and search engines</a></li><li style="margin-left:0px"><a href="#options">Options</a></li><li style="margin-left:0px"><a href="#details-of-each-option">Details of each option</a></li><li style="margin-left:0px"><a href="#the-activity-log">The activity log</a></li><li style="margin-left:0px"><a href="#why-the-real-file-is-gitignored-but-the-example-isnt">Why the real file is gitignored but the example isn't</a></li><li style="margin-left:0px"><a href="#setup">Setup</a></li><li style="margin-left:0px"><a href="#relationship-to-planetgen_-environment-variables">Relationship to PLANETGEN_* environment variables</a></li><li style="margin-left:14px"><a href="#planetgen_workers-not-a-configjson-option">PLANETGEN_WORKERS: not a config.json option</a></li></ul></details>
+<p>This document describes <code>config.json</code>, the single per-deployment
+configuration file for the whole planetGen project -- the command-line
+tools (<code>planetgen</code>, <code>planetgen.db.query</code>, <code>planetgen.cli.migrate</code>, <code>planetgen.cli.orbits</code>,
+<code>planetgen.cli.reset</code>, ...) and the Flask app (the API in
+<code>../src/planetgen/api/</code> and the pages in <code>../src/planetgen/web/</code>) all read it -- and
+<a href="https://github.com/dwhagar/planetGen/blob/main/config.json.example"><code>../config.json.example</code></a>, the committed
+template it's copied from.</p>
+<h2 id="what-its-for">What it's for</h2>
+<p>Before this file existed, every one of those entry points read its own
+handful of <code>PLANETGEN_*</code> environment variables (<code>planetgen.db.store.MySQLConfig</code>,
+<code>../src/planetgen/api/config.py</code>, <code>../src/planetgen/web/lib/apiclient.py</code>),
+each with its own hardcoded default. That works, but it means a
+deployment that just wants &quot;one MySQL server, one account, one API base
+URL&quot; still has to either edit code or set half a dozen <code>SetEnv</code>/
+<code>EnvironmentFile</code> lines to get there. <code>config.json</code> is a single JSON file,
+edited once per deployment, holding every one of those settings in one
+place.</p>
+<p>It is loaded by <a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/settings.py"><code>../src/planetgen/util/settings.py</code></a>:
+one Pydantic model, <code>Settings</code>, holds every option with its type, default,
+help text, unit, whether it is a secret, whether a change needs a restart
+and which environment variable overrides it. A <code>config.json</code> that only sets
+the fields it needs to change is enough; anything it omits keeps its
+default value, a value of the wrong type stops the program with a message
+naming the field, and <code>python3 -m planetgen.cli.config check</code> validates the
+file without starting anything (an option name it doesn't know is an
+error there, so a typo such as <code>ratelimt</code> is caught). The debug switch and
+the two log locations are read by the standard-library-only
+<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/util/logpaths.py"><code>../src/planetgen/util/logpaths.py</code></a> instead, because the
+installers run it as root before any virtual environment exists.</p>
+<h2 id="location-repo-root">Location: repo root</h2>
+<p><code>config.json</code> lives at the repo root -- next to <code>src/</code> -- rather than
+inside <code>../src/html/</code> itself (its <em>example</em>
+template, <a href="https://github.com/dwhagar/planetGen/blob/main/config.json.example"><code>../config.json.example</code></a>, lives at the
+repo root too, since a template holds only placeholder values, not
+secrets). This mirrors how Apache's <code>DocumentRoot</code> for this application is
+<code>../src/html/</code> alone (see
+<a href="https://github.com/dwhagar/planetGen/blob/main/examples/apache/planetgen.conf.example"><code>../examples/apache/planetgen.conf.example</code></a>),
+and the other web servers only serve <code>src/html/static/</code> from disk (see
+<a href="../deployment/README.html"><code>deployment/</code></a>), so <code>config.json</code>, outside those
+trees, can never be requested over HTTP no matter how the site's rules
+are written. This matters because
+<code>config.json</code> holds real MySQL credentials, unlike the placeholder fields
+its now-removed predecessor (<code>webconfig.json</code>) only ever reserved for
+them.</p>
+<p>It also has to be unreadable by other local users. <code>install.sh</code> and
+<code>update.sh</code> (through <code>examples/apache/set-permissions.sh</code>) keep it in the
+state folder (<code>/var/lib/planetGen/state/config.json</code>), owned by
+<code>&lt;apache user&gt;:&lt;apache group&gt;</code>, mode <code>640</code> (the code tree is root's since
+SEC.37, so only the state folder can be written by the web app); the file in
+the checkout, <code>/var/lib/planetGen/config.json</code>, is a root-owned link to it,
+and an old plain <code>config.json</code> is moved there by the next <code>install.sh</code> or
+<code>update.sh</code>. The web app (<code>www-data</code> for Apache and
+the gunicorn unit alike) can read and replace it, root can read it, nobody else can. The macOS
+guide sets the same rule by hand. A login user who runs the
+generator or the maintenance scripts from a shell without <code>sudo</code> needs to
+be in Apache's group (<code>sudo usermod -aG www-data &lt;user&gt;</code>, then log in
+again) to read it. After creating or copying a new <code>config.json</code>, re-run
+<code>sudo examples/apache/set-permissions.sh</code> (or <code>sudo ./update.sh</code>), or set
+it by hand: <code>sudo mv config.json state/config.json &amp;&amp; sudo ln -s state/config.json config.json &amp;&amp; sudo chown www-data:www-data state/config.json &amp;&amp; sudo chmod 640 state/config.json</code> (from <code>/var/lib/planetGen</code>).</p>
+<h2 id="precedence">Precedence</h2>
+<p>Every setting below has up to four sources, checked in this order:</p>
+<ol>
+<li>An explicit function/CLI argument (e.g. <code>planetgen sector --mysql-password ...</code>,
+or a test building its own <code>MySQLConfig(...)</code> directly) -- always wins.</li>
+<li>The matching <code>PLANETGEN_*</code> environment variable, if set and not empty
+(a MySQL option set to an empty value counts).</li>
+<li><code>config.json</code>, the one file that holds all program configuration. It is your own
+copy of <code>config.json.example</code>: the example is only a template that documents every
+option and its default, and nothing ever writes to it or overwrites your copy
+(<code>update.sh</code> leaves <code>config.json</code> alone, and an option added in a later release has
+its default in the code, so an older copy keeps working). The Admin settings page
+(ADM.43) and <code>python3 -m planetgen.cli.config set</code> edit <code>config.json</code> itself; see
+<a href="#saving-settings">Saving settings</a>. If the file does not exist they say so and
+create nothing.</li>
+<li>The built-in default (matching <code>config.json.example</code>'s values).</li>
+</ol>
+<p>Environment variables are still checked <em>before</em> <code>config.json</code> rather than
+being replaced by it, so a single shared <code>config.json</code> can still be
+overridden per-process where that's needed -- most notably
+<code>planetgen-orbits@.service</code>'s per-instance <code>PLANETGEN_MYSQL_DATABASE=%i</code>
+(see <a href="https://github.com/dwhagar/planetGen/tree/main/examples/maintenance"><code>../examples/maintenance/</code></a>), which relies on
+one templated systemd unit overriding just the database name per timer
+instance while everything else comes from the shared credentials file (or
+now, <code>config.json</code>).</p>
+<h2 id="saving-settings">Saving settings</h2>
+<p>The writer (<code>planetgen.util.settings_writer</code>) is the only thing that writes
+<code>config.json</code>; the command line and the Admin settings page (<code>/admin/settings</code>,
+below) both use it. The file lives in the state folder, which must belong to the web server's user (<code>update.sh</code>
+and <code>set-permissions.sh</code> see to that), so the page can replace it; when it doesn't,
+the page lists the options and says so instead of offering a Save button.</p>
+<ul>
+<li><strong>Who may change what.</strong> The web (an admin) changes the options the table marks
+&quot;any admin&quot;; the Owner (from 8.2) the &quot;the Owner&quot; ones; only the command line,
+run on the server, changes &quot;command line only&quot; options: the database, the
+secrets that open the host (<code>secret_key</code>), <code>jobs.python</code>, the log paths. A secret
+can be replaced but never read back: pages, diffs, audit rows and logs show
+<code>(set)</code>, <code>(empty)</code> or <code>(changed)</code>.</li>
+<li><strong>Checked first.</strong> An option that doesn't exist, that the caller's role may not
+change, or whose value doesn't fit its type or range is refused, each at its own
+option name, and nothing at all is saved. What is stored is the value the model
+parsed (<code>&quot;30&quot;</code> is stored as <code>30</code>). An option left equal to its default is not
+stored.</li>
+<li><strong>Everything else stays.</strong> The file is edited as parsed JSON: keys the model
+doesn't know and the order of the keys are kept; only the changed options move.</li>
+<li><strong>Written atomically.</strong> A temporary file in the same folder, <code>fsync</code>, the old
+file's mode, a rename, then <code>fsync</code> of the folder: a reader sees the old file or
+the new one, never half of one. A lock file next to it keeps two saves (two
+admins, or the page and the command line) from interleaving.</li>
+<li><strong>Backed up.</strong> Just before a save, restore or import replaces the file, a
+settings-only backup archive is taken (<a href="#backups">backups</a> below): the old file,
+who is making the change and when. The newest <code>settings.backups_kept</code>
+(default 20, 1 to 200) archives are kept. A restore from the web puts back only
+the options an admin may change; the command line puts the whole file back.</li>
+<li><strong>Audited.</strong> One <code>admin_audit_log</code> row per changed option (<code>config.update</code>,
+<code>config.restore</code>; target <code>config:&lt;option&gt;</code>; detail <code>{&quot;old&quot;:..,&quot;new&quot;:..}</code>) and
+one <code>DB</code> line in the activity log. A secret's values are written <code>(changed)</code>.</li>
+<li><strong>Restart.</strong> The result lists the changed options marked &quot;after a restart&quot;.</li>
+</ul>
+<h2 id="the-settings-page">The settings page</h2>
+<p><code>/admin/settings</code> (Admin, Settings tab; ADM.84) lists every option of the model
+from the model itself, so an option added with <code>settings.opt(...)</code> appears there
+with its help, default, limits and unit and needs no page code. Each shows where
+the value in use comes from: the default, <code>config.json</code>, or an environment
+variable (which still wins over the file; the page and the review say so). Change
+what you want and press Review the changes: a bad value is sent back with its
+message at its option and nothing is saved; a good form shows the old and new
+value of each changed option, marks the ones that need a restart, and Save these
+changes writes it as described in <a href="#saving-settings">Saving settings</a>. Use the
+default removes a key from the file; a secret's box is write-only (empty keeps
+it, typing replaces it, Clear it removes it). While a saved option still needs a
+restart of the web server, every admin page shows a banner naming it; the banner
+goes when the server restarts. The page is described in <a href="html-interface.html">html-interface.md</a>.</p>
+<h3 id="update-configjson">Update config.json</h3>
+<p>A release that adds an option does not touch a site's own <code>config.json</code> (the file
+is never overwritten), so an older file simply lacks the new keys and the program
+uses their defaults. The <strong>Update config.json</strong> link on the settings page
+(<code>/admin/settings/update</code>, ADM.140; any admin) brings the file up to the version
+without losing what the site has set. It shows a preview first and writes nothing
+until its one button is pressed:</p>
+<ul>
+<li><strong>Settings to add.</strong> Every option the model has and the file lacks, with the
+default it will be written with. An option the web cannot change (the database
+section) is added with its default too and never altered otherwise. A secret is
+added with its default and its value is never shown.</li>
+<li><strong>Recommended, not set.</strong> The options a site should have in its file whatever the
+default is (<code>should_set</code> in <code>settings.opt</code>), each with the reason. One that also
+names a value (<code>recommended</code>) has a box, ticked to begin with, and a ticked box
+writes that value instead of the default; an option only the site can fill, such
+as <code>base_url</code>, is listed with its reason and no box. An option the file already
+has any key for is never listed and never changed.</li>
+<li><strong>Stale keys.</strong> Keys the model no longer knows, shown by name only. They stay in
+the file unless their box is ticked.</li>
+</ul>
+<p>Every value already in the file is kept exactly, and so is the order of its keys.
+The write is the settings page's own (see <a href="#saving-settings">Saving settings</a>): a
+settings-only backup archive of the old file first, an atomic replace, and one
+<code>admin_audit_log</code> row per key added or taken out (<code>config.update_file</code>). A file
+changed by someone else after the page was drawn is refused, and a failed write
+leaves the old file. The API is <code>POST /api/admin/settings/update/plan</code> (nothing
+written) and <code>POST /api/admin/settings/update</code>
+(<a href="https://github.com/dwhagar/planetGen/blob/main/src/planetgen/api/settings.py">api/settings.py</a>).</p>
+<h2 id="backups">Backups</h2>
+<p><code>planetgen.backup</code> (ADM.87) takes every backup as one <code>backups/&lt;UTC time&gt;.tar.bz2</code> in
+the state folder (<code>/var/lib/planetGen/state</code>, <code>PLANETGEN_STATE_DIR</code> moves it), mode
+0600, owned by the web user (<code>set-permissions.sh</code> keeps the folder 700). It holds
+<code>manifest.json</code> (format 1, time, who, why, the version and, per part, its folder,
+sizes and SHA-256) and one folder per part: <code>settings/</code> (a copy of <code>config.json</code>,
+secrets included, which is why the archive is private and its download is for the
+Owner) and <code>parity/</code> (DB.40: a copy of the sector repair file, <code>sector-parity.pgpr</code>,
+taken with the file locked against every save and cut at its last whole record; the
+manifest keeps its size, the sectors it covers and the groups as the part's <code>info</code>;
+the option <code>settings.backup_parity</code>, on by default, switches it off for a very large
+galaxy), and <code>control/</code> (the control database) when that part arrives in 9.0. A save on
+the settings page takes an archive of the settings part alone; <code>python3 -m planetgen.cli.backup take</code> takes every part. A parity copy is refused, with the
+reason, when the live file is damaged behind its last record (<code>planetgen repair-db</code>
+makes it again from the database).</p>
+<p><code>python3 -m planetgen.cli.backup restore --part parity ARCHIVE</code> puts the copy back (DB.41). It is refused, before
+anything is backed up or changed, while a save is writing parity, when the galaxy database cannot be reached, and when
+the part is empty or its file is damaged. Otherwise a safety archive of the live file is taken, the copy is written
+beside the live file, synced and renamed over it, and then it is checked against the database (the check of DB.8, with the
+stale-record rule of DB.9): a record that no longer matches the rows because the database changed since the backup is made
+again from the rows and is not damage, a member whose sector is gone is let go, and the result says how many sectors the
+copy holds no record of (unprotected until their next save or <code>planetgen refresh-parity</code>) and which sectors are damaged
+(for <code>planetgen repair-db</code>).</p>
+<p>Retention is the option <code>settings.backups_kept</code>: the newest archives are kept, the
+rest deleted, but never the newest archive that holds every part. A restore verifies
+the archive first, backs up what it is about to replace in a safety archive, then
+restores the whole archive or only the parts named; a part this build has no
+provider for is skipped and reported, and the archive keeps it. The galaxy database is
+not in an archive: it is regenerated from its seed or repaired from parity.</p>
+<h3 id="the-backups-screen-export-and-import">The backups screen, export and import</h3>
+<p><code>/admin/settings/backups</code> (ADM.85; a link on the settings page) is the one screen for
+archives. It lists them newest first (when, who, why, which parts and how big), and
+<strong>Back up now</strong> makes one of every part. <strong>Compare and restore</strong> opens an archive: it
+is checked against its hashes, the settings part is compared with today's
+<code>config.json</code> (every option a restore would change, a secret as <code>(changed)</code>, a backup
+that no longer fits the model refused with the reason), and the parts ticked are
+restored: the whole archive, or one part. The restore makes a safety archive of what
+it replaces first, writes a <code>config.restore</code> audit row per changed option and a
+<code>backup.restore</code> row, and from the web puts back only the options an admin may change.
+<strong>Download</strong> is the Owner's, from 8.2 (an archive holds every secret); until then
+archives are read on the server.</p>
+<p><strong>Export</strong> downloads the options set in <code>config.json</code> that an admin may change, as
+JSON in the file's own layout with <code>config_version</code>: never a secret and never a
+command-line-only option. <strong>Import</strong> takes such a file and checks it exactly as an
+edit is checked (each option's role, type and range; unknown keys and keys an admin
+may not set are errors; a file from a newer release is refused), shows the review
+diff, and saves it as <code>config.import</code> with a backup first. It sets the options the
+file names and leaves every other option as it is; one bad value changes nothing.</p>
+<h3 id="web-link-previews-and-search-engines">Web, link previews and search engines</h3>
+<p>The <code>site</code>, <code>web</code>, <code>icons</code>, <code>seo</code> and <code>og</code> sections (ADM.44) set what the pages tell
+browsers, search engines and chat programs. All of them apply to the next page view
+with no restart; the settings page shows them under Site, Web pages, Icons, Search
+engines and Link previews. They are all read at request time by <code>planetgen.web.seo</code>.</p>
+<ul>
+<li><strong>The address.</strong> Canonical links, <code>og:url</code>, <code>og:image</code>, the sitemap and the robots.txt
+<code>Sitemap:</code> line are built from <code>base_url</code> (the Owner changes it), never from the
+request's Host header. While it is still <code>http://localhost/</code> none of those absolute
+addresses is written and <code>/sitemap.xml</code> is a 404.</li>
+<li><strong>The title and tab.</strong> <code>web.title_template</code> (<code>{title} - {site_name}</code>), <code>site.language</code>
+(the <code>lang</code> of every page and the Open Graph locale), <code>site.tagline</code> (under the home
+page heading, and the description of pages that give none), the theme colours.</li>
+<li><strong>What may be indexed.</strong> <code>seo.indexing</code> is <code>off</code> (robots.txt disallows <code>/</code>, every page
+says <code>noindex</code>), <code>top_pages</code> (the home page, the class, species, polity and galaxy
+pages and the lists) or <code>all</code> (also the system, sector and phenomenon pages);
+<code>seo.detail_pages = index</code> does the same for the generated pages alone. Millions of
+generated pages look like scaled content to a search engine, so they stay out by
+default. The data and tool routes (search, navigation, the Galaxy Map's nodes, the
+<code>/scene</code> and <code>/table</code> data) answer <code>X-Robots-Tag: noindex</code> and are disallowed in
+robots.txt; the admin, login and account pages say <code>noindex,nofollow</code>. A page that has
+a query (<code>?page=2</code>, a filter) is not indexed but its links are followed, and its
+canonical link drops tracking and sort parameters. A page the code has not classified
+is treated as a tool route, and a test fails until it is classified on purpose
+(<code>planetgen.web.seo</code>).</li>
+<li><strong>robots.txt.</strong> Generated from the routes: every tool and private route is disallowed
+with <code>*</code> wildcards, <code>block_ai_crawlers</code> adds the AI crawlers, <code>robots_extra</code> is
+appended and <code>robots_override</code> replaces the whole file. A line that is not a
+directive is refused where it is typed; an override that disallows <code>/</code> while
+<code>indexing</code> is not <code>off</code> is allowed but warned about, since it hides the site.</li>
+<li><strong>Sitemaps.</strong> <code>/sitemap.xml</code> is an index of <code>/sitemap-pages.xml</code> and, when the
+generated pages may be indexed, <code>/sitemap-systems-&lt;n&gt;.xml</code> and
+<code>/sitemap-sectors-&lt;n&gt;.xml</code> of at most <code>seo.sitemap_max_urls</code> addresses each, built
+from the database 500 at a time and kept for <code>seo.sitemap_cache_hours</code>. Phenomena are
+not listed. The number of files comes from a count that may be an estimate, so the
+last may be empty.</li>
+<li><strong>Other files.</strong> <code>/.well-known/security.txt</code> and <code>/humans.txt</code> serve the text in
+<code>seo.security_txt</code> and <code>seo.humans_txt</code> (404 while empty); <code>/site.webmanifest</code> is served
+while <code>icons.manifest_enabled</code>; <code>seo.privacy_note</code> is shown on the account page.</li>
+<li><strong>Link previews.</strong> <code>og.enabled</code> adds Open Graph and Twitter tags to the public pages
+(never the admin, login or account ones). The picture is <code>og.default_image</code>, else the
+built-in 1200 by 630 one. <code>og.generated_cards</code> is for a per-system and per-sector card:
+with it on, <code>/og/&lt;system|sector&gt;/&lt;id&gt;.png</code> draws the card with a renderer installed
+by <code>planetgen.web.seo_pages.register_card_renderer</code> (the drawer is VIEW.3; with none,
+every page uses the default picture), caches it in <code>og.card_cache_dir</code> (the state
+folder's <code>og-cards</code> by default) up to <code>og.card_cache_mb</code>, and falls back to the default
+picture when it can't draw.</li>
+<li><strong>Icons and pictures.</strong> The icon options hold the name of an uploaded file, not a
+path: upload on the Images page (<code>/admin/settings/images</code>, linked from the settings
+page). A picture is checked on upload (PNG, JPEG, ICO or a sandboxed SVG; size and
+squareness where they matter; at most 1 MiB), stored as <code>&lt;16 hex digits of its SHA-256&gt;.&lt;ext&gt;</code> in <code>web.assets_dir</code> (the state folder's <code>assets</code> by default) and served
+at <code>/site-assets/&lt;name&gt;</code> for a year (its name is its content). Uploading and removing
+save the setting through the same writer, so they are backed up and audited. These site pictures take no GIF; an account's own picture (docs/reference/api.md, <code>POST /api/auth/avatar</code>) is the one place a GIF is accepted.</li>
+</ul>
+<h2 id="options">Options</h2>
+<p>The table is generated from the settings model (<code>src/planetgen/util/settings.py</code>, ADM.42); change an option there and run <code>python3 -m planetgen.cli.config docs</code>. Next to each option: its type, default, whether a change applies at once or after a restart, who may change it from the web (&quot;command line only&quot; means on the server only) and the environment variable that overrides it.</p>
+<!-- BEGIN GENERATED OPTIONS (python -m planetgen.cli.config docs) -->
+<div class="table"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Setting</th>
+<th>Type</th>
+<th>Default</th>
+<th>Applies</th>
+<th>Edited</th>
+<th>Environment</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>config_version</code></td>
+<td>Settings file version</td>
+<td>whole number (format version)</td>
+<td>1</td>
+<td>at once</td>
+<td>command line only</td>
+<td>none</td>
+<td>The settings file format version; a file without one is version 1.</td>
+</tr>
+<tr>
+<td><code>site_name</code></td>
+<td>Site name</td>
+<td>text</td>
+<td>planetGen</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Display name for this deployment, shown in the header, the home page heading, every page title, and the footer.</td>
+</tr>
+<tr>
+<td><code>base_url</code></td>
+<td>Site address</td>
+<td>text</td>
+<td>http://localhost/</td>
+<td>at once</td>
+<td>the Owner</td>
+<td>none</td>
+<td>The address this site is reached at, as an absolute http or https address with a trailing slash. Canonical links, link previews, the sitemap and emailed links are built from it, never from the request's Host header.</td>
+</tr>
+<tr>
+<td><code>api_base_url</code></td>
+<td>API address</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_API_BASE_URL</code></td>
+<td>Base URL of the Flask API's /api mount point (for example https://example.org/api). The update asks it whether the site answers, and web/lib/apiclient.py calls it outside the Flask app. There is no default: nothing guesses a loopback address, so it must be set for either to work.</td>
+</tr>
+<tr>
+<td><code>debug</code></td>
+<td>Debug log</td>
+<td>true or false</td>
+<td>false</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_DEBUG</code></td>
+<td>Debug mode: every decision the generator makes, every random roll, every SQL statement, queue event, and request, written to the console of each planetgen command (stdout) and to log_file. The output is large.</td>
+</tr>
+<tr>
+<td><code>debug_areas</code></td>
+<td>Debug areas</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_DEBUG_AREAS</code></td>
+<td>Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib (comma separated; a leading - leaves one out). Empty writes everything but branch, which logs every conditional jump of the program's own code and is written only when named.</td>
+</tr>
+<tr>
+<td><code>log_file</code></td>
+<td>Debug log file</td>
+<td>text</td>
+<td>/var/log/planetgen.log</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_LOG_FILE</code></td>
+<td>Where the debug log goes.</td>
+</tr>
+<tr>
+<td><code>record_file</code></td>
+<td>Record file</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_RECORD_FILE</code></td>
+<td>A file every log line of a planetgen command is also written to as a record: one per line, the time in UTC. Empty writes none; the --record-file option does the same for one command.</td>
+</tr>
+<tr>
+<td><code>record_format</code></td>
+<td>Record file form</td>
+<td>&quot;logfmt&quot; or &quot;json&quot;</td>
+<td>logfmt</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_RECORD_FORMAT</code></td>
+<td>The form of the record file's lines: logfmt (key=value) or json (one object per line).</td>
+</tr>
+<tr>
+<td><code>log_dir</code></td>
+<td>Activity log folder</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_LOG_DIR</code></td>
+<td>The folder of the always-on activity log and of the long jobs' logs (warmup.log, tiles.log, orbits.log, update.log) and of error.log, which holds every error and crash of every program; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS.</td>
+</tr>
+<tr>
+<td><code>log_rotation</code></td>
+<td>Log rotation</td>
+<td>&quot;auto&quot;, &quot;system&quot;, or &quot;app&quot;</td>
+<td>auto</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td>none</td>
+<td>How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app).</td>
+</tr>
+<tr>
+<td><code>settings.backups_kept</code></td>
+<td>Settings backups kept</td>
+<td>whole number (backups)</td>
+<td>20</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many backup archives are kept. One is made just before every settings save, restore or import replaces the file, and by Back up now; the oldest is deleted once there are more than this, but never the newest archive that holds every part.</td>
+</tr>
+<tr>
+<td><code>settings.backup_parity</code></td>
+<td>Back up the repair file</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Put a copy of the sector repair file (the parity file) in every full backup archive, so a galaxy whose live repair file is lost can still be repaired from a backup. The copy is as big as the file (about 7 percent of the sectors' size); switch it off for a very large galaxy. The settings backup made before each save never holds it.</td>
+</tr>
+<tr>
+<td><code>site.tagline</code></td>
+<td>Tagline</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A short line shown under the home page's heading and used as the description of pages that give none of their own.</td>
+</tr>
+<tr>
+<td><code>site.language</code></td>
+<td>Language</td>
+<td>text</td>
+<td>en</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The pages' language as a code (en, de, en-GB): the <code>lang</code> of every page and the Open Graph locale.</td>
+</tr>
+<tr>
+<td><code>web.title_template</code></td>
+<td>Page title format</td>
+<td>text</td>
+<td>{title} - {site_name}</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How a page's title is written in the browser tab and in search results; {title} is the page's own title and {site_name} the site name.</td>
+</tr>
+<tr>
+<td><code>web.theme_color_light</code></td>
+<td>Browser color, light theme</td>
+<td>text</td>
+<td>#f6f7fb</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The browser's toolbar color on phones for the light theme, as #rrggbb.</td>
+</tr>
+<tr>
+<td><code>web.theme_color_dark</code></td>
+<td>Browser color, dark theme</td>
+<td>text</td>
+<td>#14151e</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The same for the dark theme.</td>
+</tr>
+<tr>
+<td><code>web.assets_dir</code></td>
+<td>Uploaded images folder</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td><code>PLANETGEN_ASSETS_DIR</code></td>
+<td>Where uploaded icons and images are kept; empty means the assets folder in the state folder.</td>
+</tr>
+<tr>
+<td><code>icons.favicon_svg</code></td>
+<td>Site icon (SVG)</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The site icon as an uploaded SVG; empty uses the built-in one. Set it by uploading on the Images page.</td>
+</tr>
+<tr>
+<td><code>icons.favicon_png</code></td>
+<td>Site icon (PNG or ICO)</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A PNG or ICO icon for browsers that do not take an SVG; empty offers none. Set it by uploading on the Images page.</td>
+</tr>
+<tr>
+<td><code>icons.apple_touch_icon</code></td>
+<td>Home-screen icon</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The 180 by 180 PNG iPhones and iPads use for a home-screen bookmark. Set it by uploading on the Images page.</td>
+</tr>
+<tr>
+<td><code>icons.manifest_enabled</code></td>
+<td>Installable site</td>
+<td>true or false</td>
+<td>false</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Serve /site.webmanifest, which names the site, its icon and its theme color for browsers that can install it.</td>
+</tr>
+<tr>
+<td><code>seo.indexing</code></td>
+<td>Search engine indexing</td>
+<td>&quot;off&quot;, &quot;top_pages&quot;, or &quot;all&quot;</td>
+<td>top_pages</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Whether search engines may index the site: off (robots.txt disallows everything and every page says noindex), top_pages (the home, class, species, polity, galaxy and list pages), or all (also the system, sector, and phenomenon pages).</td>
+</tr>
+<tr>
+<td><code>seo.detail_pages</code></td>
+<td>Index generated pages</td>
+<td>&quot;noindex&quot; or &quot;index&quot;</td>
+<td>noindex</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Whether the generated system, sector, and phenomenon pages may be indexed when indexing is top_pages. Millions of generated pages look like scaled content to search engines, so they stay out by default; a small galaxy can switch this to index.</td>
+</tr>
+<tr>
+<td><code>seo.description</code></td>
+<td>Search description</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The description search engines show for pages that give none of their own (about 155 characters are shown); empty uses the tagline.</td>
+</tr>
+<tr>
+<td><code>seo.keywords</code></td>
+<td>Keywords</td>
+<td>list of text</td>
+<td>empty list</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Keywords for the keywords meta tag. Google has ignored it since 2009; some smaller engines still read it.</td>
+</tr>
+<tr>
+<td><code>seo.json_ld</code></td>
+<td>Structured data</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Add a WebSite block (schema.org) to the home page.</td>
+</tr>
+<tr>
+<td><code>seo.robots_extra</code></td>
+<td>Extra robots.txt lines</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Lines added to the end of the generated robots.txt.</td>
+</tr>
+<tr>
+<td><code>seo.robots_override</code></td>
+<td>Replace robots.txt</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Replaces the generated robots.txt entirely when not empty. A mistake here can hide the whole site from search engines.</td>
+</tr>
+<tr>
+<td><code>seo.block_ai_crawlers</code></td>
+<td>Block AI crawlers</td>
+<td>true or false</td>
+<td>false</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Disallow the crawlers that collect text to train AI models (GPTBot, ClaudeBot, CCBot, Google-Extended, Applebot-Extended) in robots.txt.</td>
+</tr>
+<tr>
+<td><code>seo.sitemap_enabled</code></td>
+<td>Sitemap</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Serve /sitemap.xml and list it in robots.txt.</td>
+</tr>
+<tr>
+<td><code>seo.sitemap_max_urls</code></td>
+<td>Sitemap size</td>
+<td>whole number (addresses)</td>
+<td>50000</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most addresses in one sitemap file (the limit is 50,000).</td>
+</tr>
+<tr>
+<td><code>seo.sitemap_cache_hours</code></td>
+<td>Sitemap refresh</td>
+<td>whole number (hours)</td>
+<td>24</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How long a built sitemap is reused.</td>
+</tr>
+<tr>
+<td><code>seo.security_txt</code></td>
+<td>security.txt</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The text of /.well-known/security.txt (RFC 9116 needs a Contact and an Expires line); empty serves none.</td>
+</tr>
+<tr>
+<td><code>seo.humans_txt</code></td>
+<td>humans.txt</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The text of /humans.txt; empty serves none.</td>
+</tr>
+<tr>
+<td><code>seo.privacy_note</code></td>
+<td>Privacy note</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A short note shown on the account page about what the site keeps.</td>
+</tr>
+<tr>
+<td><code>og.enabled</code></td>
+<td>Link previews</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Add Open Graph and Twitter tags to the public pages, so a link shows a title, a description, and a picture when shared.</td>
+</tr>
+<tr>
+<td><code>og.site_name</code></td>
+<td>Name in previews</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The site name in link previews; empty uses the site name.</td>
+</tr>
+<tr>
+<td><code>og.image_alt</code></td>
+<td>Preview picture description</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A description of the default preview picture for people who cannot see it.</td>
+</tr>
+<tr>
+<td><code>og.default_image</code></td>
+<td>Preview picture</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The picture link previews show (a PNG or JPEG about 1200 by 630); empty uses the built-in one. Set it by uploading on the Images page.</td>
+</tr>
+<tr>
+<td><code>og.twitter_card</code></td>
+<td>X (Twitter) card style</td>
+<td>&quot;summary&quot; or &quot;summary_large_image&quot;</td>
+<td>summary_large_image</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How X (Twitter) draws a preview: a large picture or a small one.</td>
+</tr>
+<tr>
+<td><code>og.twitter_site</code></td>
+<td>X (Twitter) account</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The site's X (Twitter) account, as @name; empty names none.</td>
+</tr>
+<tr>
+<td><code>og.generated_cards</code></td>
+<td>Preview picture per page</td>
+<td>true or false</td>
+<td>false</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Draw a preview picture per system and sector instead of one for the whole site. Off until a card drawer is installed; every page then uses the default picture.</td>
+</tr>
+<tr>
+<td><code>og.card_cache_mb</code></td>
+<td>Preview picture disk use</td>
+<td>number (MB)</td>
+<td>100</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How much disk the drawn preview pictures may use.</td>
+</tr>
+<tr>
+<td><code>og.card_cache_dir</code></td>
+<td>Preview picture folder</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td>none</td>
+<td>Where drawn preview pictures are cached; empty means the state folder.</td>
+</tr>
+<tr>
+<td><code>mysql.host</code></td>
+<td>Database host</td>
+<td>text</td>
+<td>127.0.0.1</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_HOST</code></td>
+<td>The MySQL server's host name or address.</td>
+</tr>
+<tr>
+<td><code>mysql.port</code></td>
+<td>Database port</td>
+<td>whole number (port number)</td>
+<td>3306</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_PORT</code></td>
+<td>The server's port.</td>
+</tr>
+<tr>
+<td><code>mysql.user</code></td>
+<td>Database user</td>
+<td>text</td>
+<td>planetgen</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_USER</code></td>
+<td>The account every entry point connects with; give it whatever grants the most demanding caller needs.</td>
+</tr>
+<tr>
+<td><code>mysql.password</code></td>
+<td>Database password</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_PASSWORD</code></td>
+<td>That account's password. <strong>Secret.</strong></td>
+</tr>
+<tr>
+<td><code>mysql.database</code></td>
+<td>Galaxy database</td>
+<td>text</td>
+<td>planetgen</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_DATABASE</code></td>
+<td>The galaxy database the pages show and the generators fill.</td>
+</tr>
+<tr>
+<td><code>mysql.database_prefix</code></td>
+<td>Galaxy database prefix</td>
+<td>text</td>
+<td>planetgen</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_MYSQL_DATABASE_PREFIX</code></td>
+<td>The schema-name prefix the database picker lists, for a deployment with several galaxies on one server.</td>
+</tr>
+<tr>
+<td><code>mysql.statement_timeout_seconds</code></td>
+<td>Longest page query</td>
+<td>number (seconds)</td>
+<td>10</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The longest any statement on the web interface's and API's read-only connections may run (0 turns the limit off). A query it stops gives a 504 page, or a QUERY_TIMEOUT error from the API.</td>
+</tr>
+<tr>
+<td><code>control_database</code></td>
+<td>Control database</td>
+<td>text</td>
+<td>planetgen_control</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_CONTROL_DATABASE</code></td>
+<td>The MySQL schema holding admin identities, sessions, API keys, and the audit log. Never listed or selectable as a galaxy.</td>
+</tr>
+<tr>
+<td><code>redis.url</code></td>
+<td>Redis address</td>
+<td>text</td>
+<td>redis://127.0.0.1:6379/0</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_REDIS_URL</code></td>
+<td>The Redis server the work queue, the rate limits and the login lockouts use.</td>
+</tr>
+<tr>
+<td><code>queue.interactive_workers</code></td>
+<td>Workers for short jobs</td>
+<td>whole number (workers)</td>
+<td>1</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many workers are kept for short jobs: edits, estimates and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.</td>
+</tr>
+<tr>
+<td><code>queue.maintenance_workers</code></td>
+<td>Workers for upkeep during a run</td>
+<td>whole number (workers)</td>
+<td>1</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many workers run the cache warm-up, the node prefetch and the database check while a generation run is live. They are taken out of the generation worker count (a generation worker finishes its unit and leaves when they are needed), so the host's total does not grow; with no generation run live they may use the whole count.</td>
+</tr>
+<tr>
+<td><code>queue.max_host_workers</code></td>
+<td>Most workers on this host</td>
+<td>whole number (workers)</td>
+<td>0</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The most worker processes planetgen may run on this host at once, every queue and command together: a start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a burst of requests, or several commands starting workers together, from filling the memory and getting MySQL killed.</td>
+</tr>
+<tr>
+<td><code>queue.long_workers</code></td>
+<td>Workers for long jobs</td>
+<td>whole number (workers)</td>
+<td>1</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a large settle, which can run for hours). They have a lane of their own so a long job can never hold the workers kept for short ones.</td>
+</tr>
+<tr>
+<td><code>queue.long_job_seconds</code></td>
+<td>Long job limit</td>
+<td>number (seconds)</td>
+<td>60</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>A job expected to take longer than this goes to the long lane. A job with no estimate counts as short.</td>
+</tr>
+<tr>
+<td><code>queue.sky_limit</code></td>
+<td>Sky limit built by charting</td>
+<td>number (magnitude)</td>
+<td>7.5</td>
+<td>at once</td>
+<td>any admin</td>
+<td><code>PLANETGEN_SKY_LIMIT</code></td>
+<td>The limiting magnitude of the sky charting builds for each system's neighbourhood: when a run charts sectors, the stars a system's sky shows to this magnitude are drawn over the 50 parsec cells the new sectors lie in, after the bright-star backfill, so a visitor never waits for them. A cell already drawn costs nothing. Fainter limits draw more stars and take longer: 7.5 is a dust-free naked-eye sky, about half an hour a cell on one worker. 0 turns it off; otherwise 2 to 9. The command line's --sky-limit overrides it for a run.</td>
+</tr>
+<tr>
+<td><code>queue.unit_ceiling_seconds</code></td>
+<td>Unit length ceiling</td>
+<td>number (seconds)</td>
+<td>300</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The longest a unit of a generation stage is expected to run. A stage is cut into units no longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a worker waits to hand its place to a lane that needs it.</td>
+</tr>
+<tr>
+<td><code>queue.wait_minutes</code></td>
+<td>Longest wait for a run</td>
+<td>number (minutes)</td>
+<td>60</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait).</td>
+</tr>
+<tr>
+<td><code>queue.max_waiting</code></td>
+<td>Waiting list length</td>
+<td>whole number (entries)</td>
+<td>8</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many entries the one waiting list holds: generation runs and API jobs that wait for the machine, and Generate page jobs that wait for the running job. One more than this is refused, naming the list.</td>
+</tr>
+<tr>
+<td><code>ratelimit.default</code></td>
+<td>API request limit</td>
+<td>text</td>
+<td>200 per day;50 per hour</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td><code>PLANETGEN_RATELIMIT_DEFAULT</code></td>
+<td>Flask-Limiter's default limit for the API.</td>
+</tr>
+<tr>
+<td><code>ratelimit.storage_uri</code></td>
+<td>Where limits are counted</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td><code>PLANETGEN_RATELIMIT_STORAGE_URI</code></td>
+<td>Where limits count; empty means the Redis server in redis.url, memory:// counts per process (right with exactly one worker).</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.search</code></td>
+<td>Search limit</td>
+<td>text</td>
+<td>30 per minute</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Limit per client address on /search and /galaxy/locate. Empty turns it off.</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.galaxy</code></td>
+<td>Galaxy Map page limit</td>
+<td>text</td>
+<td>60 per minute</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Limit on /galaxy, the Galaxy Map page. Empty turns it off.</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.galaxy_tiles</code></td>
+<td>Map data limit</td>
+<td>text</td>
+<td>600 per minute</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window, /galaxy/near, and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.health</code></td>
+<td>Health check limit</td>
+<td>text</td>
+<td>60 per minute</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Limit on /api/health. Empty turns it off.</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages.other</code></td>
+<td>Other pages limit</td>
+<td>text</td>
+<td>300 per minute</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Limit on every other page, counted together. Empty turns it off.</td>
+</tr>
+<tr>
+<td><code>api_log.internal</code></td>
+<td>Log the pages' own API calls</td>
+<td>&quot;all&quot; or &quot;off&quot;</td>
+<td>all</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Whether the calls the web pages make to the API in-process (about six for each page view) are written to the activity log as API lines: all, or off.</td>
+</tr>
+<tr>
+<td><code>login_allowlist</code></td>
+<td>Never-locked-out addresses</td>
+<td>list of text</td>
+<td>empty list</td>
+<td>after a restart</td>
+<td>the Owner</td>
+<td><code>PLANETGEN_LOGIN_ALLOWLIST</code></td>
+<td>Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. Environment: comma- or space-separated.</td>
+</tr>
+<tr>
+<td><code>admin_cookie_insecure</code></td>
+<td>Admin login over plain HTTP</td>
+<td>true or false</td>
+<td>false</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_ADMIN_COOKIE_INSECURE</code></td>
+<td>Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it.</td>
+</tr>
+<tr>
+<td><code>secret_key</code></td>
+<td>Form signing key</td>
+<td>text</td>
+<td>empty</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_SECRET_KEY</code></td>
+<td>Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder (mode 0600), so every worker and restart shares it. <strong>Secret.</strong></td>
+</tr>
+<tr>
+<td><code>password_hash.memory_kib</code></td>
+<td>Password hashing memory</td>
+<td>whole number (KiB)</td>
+<td>19456</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PASSWORD_HASH_MEMORY_KIB</code></td>
+<td>Memory one admin password check uses, in KiB (Argon2id). 19456 (19 MiB) with time_cost 2 and parallelism 1 is OWASP's minimum; raise it where the host has the memory to spare. A stored hash made with other numbers is re-hashed at that admin's next sign-in.</td>
+</tr>
+<tr>
+<td><code>password_hash.time_cost</code></td>
+<td>Password hashing passes</td>
+<td>whole number (passes)</td>
+<td>2</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PASSWORD_HASH_TIME_COST</code></td>
+<td>Passes over that memory for one admin password check (Argon2id).</td>
+</tr>
+<tr>
+<td><code>password_hash.parallelism</code></td>
+<td>Password hashing threads</td>
+<td>whole number (threads)</td>
+<td>1</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PASSWORD_HASH_PARALLELISM</code></td>
+<td>Threads one admin password check uses (Argon2id).</td>
+</tr>
+<tr>
+<td><code>proxy_fix.x_for</code></td>
+<td>Proxies for the visitor's address</td>
+<td>whole number (proxies)</td>
+<td>0</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PROXY_FIX_X_FOR</code></td>
+<td>Reverse proxies to trust for X-Forwarded-For, the client address (0 = off).</td>
+</tr>
+<tr>
+<td><code>proxy_fix.x_proto</code></td>
+<td>Proxies for the scheme</td>
+<td>whole number (proxies)</td>
+<td>0</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PROXY_FIX_X_PROTO</code></td>
+<td>Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off).</td>
+</tr>
+<tr>
+<td><code>proxy_fix.x_host</code></td>
+<td>Proxies for the host name</td>
+<td>whole number (proxies)</td>
+<td>0</td>
+<td>after a restart</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PROXY_FIX_X_HOST</code></td>
+<td>Reverse proxies to trust for X-Forwarded-Host (0 = off).</td>
+</tr>
+<tr>
+<td><code>cache.max_mb</code></td>
+<td>Disk cache size</td>
+<td>number (MB)</td>
+<td>1024</td>
+<td>at once</td>
+<td>any admin</td>
+<td><code>PLANETGEN_CACHE_MAX_MB</code></td>
+<td>How much disk the site's stored caches (today the Galaxy Map's nodes and stages) may use, in all. When it is full the warm-up stops, the nodes it built ahead stay, and the nodes a visit asked for are dropped, the least recently visited first (0 turns the disk caches off).</td>
+</tr>
+<tr>
+<td><code>cache.warm_on_change</code></td>
+<td>Rebuild caches after changes</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td><code>PLANETGEN_WARM_ON_CHANGE</code></td>
+<td>Start the warm-up by itself after anything that changes what the site shows (a generation run, the orbital update, an edit), so the caches are rebuilt without waiting for the next update. It rebuilds only what the change touched.</td>
+</tr>
+<tr>
+<td><code>cache.warm_settle_seconds</code></td>
+<td>Wait before rebuilding</td>
+<td>number (seconds)</td>
+<td>60</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How long the automatic warm-up waits after the first change before it starts, so a burst of edits is one warm-up and not one for each.</td>
+</tr>
+<tr>
+<td><code>tile_cache.dir</code></td>
+<td>Map cache folder</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td><code>PLANETGEN_TILE_CACHE_DIR</code></td>
+<td>Where the Galaxy Map's nodes are cached on disk; empty means /var/cache/planetgen/tiles.</td>
+</tr>
+<tr>
+<td><code>tile_cache.warm_zoom_floor</code></td>
+<td>Closest map block built ahead</td>
+<td>whole number (shells)</td>
+<td>9</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Finest block level of the zoom run <code>planetgen warm</code> builds from the opening view in to the galaxy's center, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).</td>
+</tr>
+<tr>
+<td><code>tile_cache.build_workers</code></td>
+<td>Whole-map build processes</td>
+<td>whole number (processes)</td>
+<td>0</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Processes <code>planetgen.cli.tiles</code> (the whole-galaxy map build) builds nodes in at once, at the lowered priority queue workers run at; 0 is one per core less the workers kept for short and long jobs.</td>
+</tr>
+<tr>
+<td><code>tile_cache.prefetch_per_visit</code></td>
+<td>Nodes prefetched per visit</td>
+<td>whole number (nodes)</td>
+<td>128</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most nodes one request for nodes queues to be built in the background: the children of the nodes it asked for, then their parents and the parents' other children (0 turns the background build off).</td>
+</tr>
+<tr>
+<td><code>tile_cache.prefetch_per_minute</code></td>
+<td>Nodes prefetched per minute</td>
+<td>whole number (nodes)</td>
+<td>600</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most nodes the background build queues in a minute, all requests together.</td>
+</tr>
+<tr>
+<td><code>tile_cache.prefetch_max_queued</code></td>
+<td>Prefetch queue limit</td>
+<td>whole number (jobs)</td>
+<td>8</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The background build queues nothing while this many of its jobs (16 nodes each) or other upkeep work already wait.</td>
+</tr>
+<tr>
+<td><code>page_cache.enabled</code></td>
+<td>Page answer cache</td>
+<td>true or false</td>
+<td>true</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td><code>PLANETGEN_PAGE_CACHE</code></td>
+<td>Keep the API's public answers in memory, per WSGI process.</td>
+</tr>
+<tr>
+<td><code>page_cache.max_entries</code></td>
+<td>Cached answers</td>
+<td>whole number (answers)</td>
+<td>2000</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most answers kept.</td>
+</tr>
+<tr>
+<td><code>page_cache.max_mb</code></td>
+<td>Answer cache memory</td>
+<td>number (MB)</td>
+<td>64</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most memory the answers may take.</td>
+</tr>
+<tr>
+<td><code>page_cache.stamp_seconds</code></td>
+<td>Change check interval</td>
+<td>number (seconds)</td>
+<td>15</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>How often the galaxy's content stamp is checked.</td>
+</tr>
+<tr>
+<td><code>page_cache.max_age_seconds</code></td>
+<td>Answer lifetime in memory</td>
+<td>number (seconds)</td>
+<td>300</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Nothing is kept longer than this.</td>
+</tr>
+<tr>
+<td><code>page_cache.shared_seconds</code></td>
+<td>Answer lifetime in Redis</td>
+<td>number (seconds)</td>
+<td>21600</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>How long an answer is kept in Redis, where every web process and the warm-up share it. Each answer is served only while the data it read has not changed, so this only bounds the memory.</td>
+</tr>
+<tr>
+<td><code>page_cache.warm_max_objects</code></td>
+<td>Pages built ahead</td>
+<td>whole number (objects)</td>
+<td>5000</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>Most sector pages, system pages and phenomenon pages the warm-up builds (each, nearest the galaxy center first); the rest are built on their first visit, and the warm-up says how many it left out.</td>
+</tr>
+<tr>
+<td><code>page_cache.stored_counts</code></td>
+<td>Use stored table counts</td>
+<td>true or false</td>
+<td>true</td>
+<td>at once</td>
+<td>any admin</td>
+<td><code>PLANETGEN_COUNT_CACHE</code></td>
+<td>Table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting whole tables in the request (off: exact counts at any price).</td>
+</tr>
+<tr>
+<td><code>jobs.dir</code></td>
+<td>Job files folder</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td><code>PLANETGEN_JOBS_DIR</code></td>
+<td>Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs.</td>
+</tr>
+<tr>
+<td><code>jobs.keep</code></td>
+<td>Finished jobs kept</td>
+<td>whole number (jobs)</td>
+<td>20</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How many finished jobs are kept.</td>
+</tr>
+<tr>
+<td><code>jobs.python</code></td>
+<td>Python for jobs</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PYTHON</code></td>
+<td>The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only.</td>
+</tr>
+<tr>
+<td><code>generation.cell_cap</code></td>
+<td>Systems a cell may hold</td>
+<td>number (systems)</td>
+<td>5000</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>The most systems one cell of the galaxy may expect before it is filled only with the stars at or above the fill luminosity cap (the rest is left unresolved, its count and mass shown on the sector page). A new galaxy takes this value when its plan starts and keeps it, so a change affects only galaxies planned afterwards, never cells already stored; the command line's --cell-star-ceiling sets one galaxy's own and wins over this. A lower cap fills fewer systems in a crowded cell and makes the galaxy smaller and quicker to build; a higher one fills more and takes more disk and time.</td>
+</tr>
+<tr>
+<td><code>generation.weirdness_dial</code></td>
+<td>Oddity rate</td>
+<td>number (times the sourced rate)</td>
+<td>1.0</td>
+<td>at once</td>
+<td>any admin</td>
+<td>none</td>
+<td>How often the worlds the generator makes get the rare, physically plausible oddities of the oddity table (a planet tipped onto its side, a slow backwards day, an iron-rich core, a ring from a fallen moon). 1 is the rate the sources give, 0 turns every oddity off, 2 doubles every chance. It applies to the worlds generated afterwards; a world already made keeps what it has. A run that names its own dial (the generator page, an administrator's force) uses that instead.</td>
+</tr>
+<tr>
+<td><code>parity.enabled</code></td>
+<td>Sector repair file</td>
+<td>true or false</td>
+<td>false</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td><code>PLANETGEN_PARITY</code></td>
+<td>Keep a parity file beside the database that can rebuild a damaged sector: every saved or edited sector updates the parity of its group, which costs a few milliseconds a save and about 7 percent of the sectors' size in disk space. Off, saves write no parity and <code>planetgen refresh-parity</code> builds it later.</td>
+</tr>
+<tr>
+<td><code>parity.dir</code></td>
+<td>Repair file folder</td>
+<td>text</td>
+<td>empty</td>
+<td>at once</td>
+<td>command line only</td>
+<td><code>PLANETGEN_PARITY_DIR</code></td>
+<td>Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the database is on if you can: a parity file on the same failing disk protects nothing.</td>
+</tr>
+<tr>
+<td><code>parity.group_size</code></td>
+<td>Sectors per repair group</td>
+<td>whole number (sectors)</td>
+<td>32</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Sectors in one parity group (G). Any <code>parity_blocks</code> damaged sectors of a group are rebuilt from the rest, which are read to do it: a bigger group costs less disk and more reading. A change applies to the groups made afterwards.</td>
+</tr>
+<tr>
+<td><code>parity.parity_blocks</code></td>
+<td>Repair blocks per group</td>
+<td>whole number (blocks)</td>
+<td>2</td>
+<td>after a restart</td>
+<td>any admin</td>
+<td>none</td>
+<td>Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A change applies to the groups made afterwards.</td>
+</tr>
+</tbody>
+</table></div>
+<!-- END GENERATED OPTIONS -->
+<h2 id="details-of-each-option">Details of each option</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>site_name</code></td>
+<td>Display name for this deployment, e.g. <code>&quot;planetGen&quot;</code>. The pages show it in the header, the home page heading, every <code>&lt;title&gt;</code>, and the footer (when it isn't the default).</td>
+</tr>
+<tr>
+<td><code>base_url</code></td>
+<td>The base URL this deployment is served from, e.g. <code>&quot;http://localhost/&quot;</code> or <code>&quot;https://planetgen.example.com/&quot;</code>. Not yet read by any page -- reserved for future absolute-URL generation (e.g. constructing shareable links) that can't be derived from a request alone.</td>
+</tr>
+<tr>
+<td><code>api_base_url</code></td>
+<td>Base URL of the Flask API's <code>/api</code> mount point, the address <code>update.sh</code> asks whether the site answers (<code>api_base_url</code> plus <code>/health</code>) and the one <code>../src/planetgen/web/lib/apiclient.py</code> calls outside the Flask app (the pages call the API in-process). There is no default and nothing falls back to a loopback address (OPS.86): set it to the address Apache or gunicorn serves the API at, for example <code>https://example.org/api</code>; the update stops before it changes the database when it is empty. Equivalent to <code>PLANETGEN_API_BASE_URL</code>.</td>
+</tr>
+<tr>
+<td><code>debug</code></td>
+<td>Debug mode. When true, every part of planetGen writes everything it decides: each <code>planetgen</code> command (and each other command: <code>python3 -m planetgen.cli.*</code>) writes every decision, random draw (with its source line and the probabilities it refers to), SQL statement, run, stage, unit, worker and cache event to <strong>stdout</strong>, with an ISO timestamp to the millisecond, and the same lines go to <code>log_file</code> along with the <code>html/</code> pages', the API's and the workers' (every web request, API call and admin access check, and every error with its traceback). The lines of the queue workers that do a run's work are relayed to the stdout of the command that started the run, as they are written. A job the Generate page starts shows them in its job log. The output is large (a single system writes about 265 KB) and the run takes a quarter to two thirds longer, so <code>install.sh</code>/<code>update.sh</code> install a logrotate config for the file (daily, or past 100 MB; 7 compressed copies kept); <code>debug_areas</code> limits what is written. A command whose result goes to stdout (<code>--output -</code>) writes its debug lines to stderr; <code>--quiet</code> still silences the console. The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See <code>../src/planetgen/util/log.py</code>. Equivalent to <code>PLANETGEN_DEBUG</code> (<code>1</code> on, <code>0</code> off).</td>
+</tr>
+<tr>
+<td><code>debug_areas</code></td>
+<td>Limits debug mode to some areas: <code>decision</code>, <code>draw</code>, <code>sql</code>, <code>queue</code>, <code>cache</code>, <code>web</code>, <code>lib</code> (comma separated; a leading <code>-</code> leaves one out, as in <code>-draw</code>). Empty, the default, writes everything but <code>branch</code>, which logs every conditional jump in planetGen's own code (hundreds of thousands of lines for one system, about 15 times the run time) and is written only when named (<code>branch</code>, or <code>all,branch</code>). Equivalent to <code>PLANETGEN_DEBUG_AREAS</code> and to <code>--debug-areas</code>.</td>
+</tr>
+<tr>
+<td><code>log_file</code></td>
+<td>Where the debug log goes; default <code>/var/log/planetgen.log</code>. With <code>debug</code> on, <code>install.sh</code>/<code>update.sh</code> create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (<code>sudo usermod -aG www-data &lt;user&gt;</code>, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to <code>PLANETGEN_LOG_FILE</code>.</td>
+</tr>
+<tr>
+<td><code>log_dir</code></td>
+<td>The folder of the always-on <strong>activity log</strong> (<code>planetgen.log</code>; see <a href="#the-activity-log">The activity log</a> below) and of the <strong>warm-up log</strong> (<code>warmup.log</code>, OPS.96: <code>planetgen warm</code> appends every cache warm-up to it itself, in local time with its zone, a line at the start and one at the end). Empty (the default) means the platform's standard place: <code>/var/log/planetgen</code> on Linux, <code>/Library/Logs/planetgen</code> on macOS. <code>install.sh</code>/<code>update.sh</code> create it (root and Apache's group, mode 2770; the file Apache's user and group, mode 0660). Equivalent to <code>PLANETGEN_LOG_DIR</code>.</td>
+</tr>
+<tr>
+<td><code>log_rotation</code></td>
+<td>How the activity log is rotated: <code>&quot;auto&quot;</code> (the default), <code>&quot;system&quot;</code> or <code>&quot;app&quot;</code>. <code>&quot;system&quot;</code> leaves it to logrotate or newsyslog (the program reopens the file after it is moved); <code>&quot;app&quot;</code> makes the program rotate it itself (100 MB per file, 30 old copies). <code>&quot;auto&quot;</code> means <code>&quot;system&quot;</code> where <code>install.sh</code>/<code>update.sh</code> installed <code>/etc/logrotate.d/planetgen-log</code> or <code>/etc/newsyslog.d/planetgen-log.conf</code>, else <code>&quot;app&quot;</code>. No environment variable.</td>
+</tr>
+<tr>
+<td><code>mysql.host</code>/<code>mysql.port</code>/<code>mysql.user</code>/<code>mysql.password</code>/<code>mysql.database</code></td>
+<td>The one MySQL connection every entry point uses -- the generation CLIs, <code>install.sh</code>/<code>planetgen.cli.migrate</code>, and the Flask API's reads and writes alike (see <code>planetgen.db.store.MySQLConfig</code>). There's no separate write-capable override: give this account whatever grants the most demanding caller needs. Equivalent to <code>PLANETGEN_MYSQL_HOST</code>/<code>_PORT</code>/<code>_USER</code>/<code>_PASSWORD</code>/<code>_DATABASE</code>.</td>
+</tr>
+<tr>
+<td><code>mysql.statement_timeout_seconds</code></td>
+<td>The longest any one statement on the web interface's and API's read-only connections may run, in seconds (default 10; 0 turns the limit off). Uses MySQL's <code>MAX_EXECUTION_TIME</code>. A query stopped by it gives a 504 &quot;Took too long&quot; page, or a <code>QUERY_TIMEOUT</code> error from the API, instead of holding a web worker until Apache's request timeout. Generation, migrations and admin writes are never limited. Separately, the web interface's and API's control-database connections wait at most 5 seconds for a row another transaction has locked (<code>WEB_LOCK_WAIT_SECONDS</code> in <code>tuning.py</code>, not an option); a login or session refresh then goes ahead without noting its last-login time, and other requests answer a 503 &quot;Busy&quot; page or API error that retries by itself.</td>
+</tr>
+<tr>
+<td><code>mysql.database_prefix</code></td>
+<td>The schema-name prefix <code>list_databases</code>/<code>resolve_database</code> filter by, for a deployment with more than one game database on one server (e.g. <code>planetgen</code>, <code>planetgen_alpha</code>, ...). Equivalent to <code>PLANETGEN_MYSQL_DATABASE_PREFIX</code>.</td>
+</tr>
+<tr>
+<td><code>control_database</code></td>
+<td>Name of the separate MySQL schema holding admin identities/sessions/API keys/audit log (see <code>../src/planetgen/db/control_schema.sql</code>), reached via the account above. Never listed by <code>/api/databases</code> or selectable with <code>?db=</code>, even when it shares <code>mysql.database_prefix</code> (as the default <code>planetgen_control</code> does). Equivalent to <code>PLANETGEN_CONTROL_DATABASE</code>.</td>
+</tr>
+<tr>
+<td><code>redis.url</code></td>
+<td>The Redis server the work queue runs on (PERF.24): a <code>planetgen</code> run with more than one worker queues its tasks there (without Redis it runs one sector at a time), and the admin Generate page's jobs run there (without Redis none starts). Default <code>&quot;redis://127.0.0.1:6379/0&quot;</code>; <code>PLANETGEN_REDIS_URL</code> overrides it. <code>install.sh</code>/<code>update.sh</code> check that it answers and, on Linux with a local address, install and start <code>redis-server</code> when it doesn't; on macOS they say to run <code>brew install redis &amp;&amp; brew services start redis</code>.</td>
+</tr>
+<tr>
+<td><code>ratelimit.default</code>/<code>ratelimit.storage_uri</code></td>
+<td>Flask-Limiter's default rate limit and storage backend for the API (see <code>../src/planetgen/api/config.py</code>). <code>storage_uri</code> is empty by default, which means the Redis server in <code>redis.url</code>; the login lockouts (SEC.1, SEC.21) count there too (SEC.30), so every worker shares them and a restart keeps them. <code>memory://</code> counts in each process instead (right with exactly one worker). A Redis outage falls back to counting in memory. Equivalent to <code>PLANETGEN_RATELIMIT_DEFAULT</code>/<code>PLANETGEN_RATELIMIT_STORAGE_URI</code>.</td>
+</tr>
+<tr>
+<td><code>ratelimit.pages</code></td>
+<td>Per-client-IP limits on the HTML pages and <code>/api/health</code> (see <code>../src/planetgen/api/limiter.py</code> and <a href="html-interface.html#rate-limits"><code>html-interface.md</code></a>): <code>search</code> (<code>/search</code> and <code>/galaxy/locate</code>, default <code>&quot;30 per minute&quot;</code>), <code>galaxy</code> (<code>/galaxy</code>, <code>&quot;60 per minute&quot;</code>), <code>galaxy_tiles</code> (the Galaxy Map's data and scene routes: <code>/galaxy/tiles</code>, <code>/galaxy/stage</code>, <code>/galaxy/window</code>, <code>/galaxy/near</code>, <code>/galaxy/territories</code>, the uncharted and nebula routes and <code>/sector/&lt;id&gt;/scene</code>, <code>&quot;600 per minute&quot;</code>), <code>health</code> (<code>/api/health</code>, <code>&quot;60 per minute&quot;</code>) and <code>other</code> (every other page, counted together, <code>&quot;300 per minute&quot;</code>). A name left out keeps its default; an empty string turns that limit off. No environment variable.</td>
+</tr>
+<tr>
+<td><code>proxy_fix.x_for</code>/<code>proxy_fix.x_proto</code>/<code>proxy_fix.x_host</code></td>
+<td>How many reverse proxies to trust for the client address (<code>X-Forwarded-For</code>), the scheme (<code>X-Forwarded-Proto</code>) and the host (<code>X-Forwarded-Host</code>); werkzeug's <code>ProxyFix</code>, applied in <code>create_app</code> (<code>../src/planetgen/web/app.py</code>). All <code>0</code> (the default) means off: the app uses the connection's own address and scheme, which is right under Apache + mod_wsgi. Behind nginx, Caddy or Apache's <code>mod_proxy</code> in front of gunicorn, set <code>x_for</code> and <code>x_proto</code> to <code>1</code>: otherwise every visitor shares the proxy's address (one rate-limit budget for everyone) and the app never sends <code>Strict-Transport-Security</code>. Only turn it on when the app server is reachable through that proxy alone (a Unix socket or <code>127.0.0.1</code>), since whoever connects can set these headers. A value that isn't a whole number 0 or above stops the app at startup. See <a href="../deployment/README.html#behind-a-reverse-proxy-proxy_fix"><code>deployment/README.md</code></a>. Equivalent to <code>PLANETGEN_PROXY_FIX_X_FOR</code>/<code>PLANETGEN_PROXY_FIX_X_PROTO</code>/<code>PLANETGEN_PROXY_FIX_X_HOST</code>.</td>
+</tr>
+<tr>
+<td><code>login_allowlist</code></td>
+<td>Client addresses or networks (<code>&quot;198.51.100.7&quot;</code>, <code>&quot;10.0.0.0/8&quot;</code>, IPv6 too) that are never locked out after failed logins (SEC.1); loopback (<code>127.0.0.0/8</code>, <code>::1</code>) never is either. Put your own fixed address here if you'd rather never be locked out, and a reverse proxy's address if <code>proxy_fix</code> can't be used. A bad entry is skipped with a warning. Equivalent to <code>PLANETGEN_LOGIN_ALLOWLIST</code> (comma- or space-separated).</td>
+</tr>
+<tr>
+<td><code>admin_cookie_insecure</code></td>
+<td>When true, the admin session cookie is sent over plain HTTP. Only for local development without TLS in front of the app (e.g. <code>python src/html/wsgi.py</code>) -- a production deployment must never set this. With it the cookie is named <code>pg_admin_session</code>; otherwise it is <code>__Host-pg_admin_session</code> (SEC.32). Equivalent to <code>PLANETGEN_ADMIN_COOKIE_INSECURE=1</code>.</td>
+</tr>
+<tr>
+<td><code>secret_key</code></td>
+<td>Signs the CSRF tokens on the Flask-served pages' forms (<code>src/planetgen/web/csrf.py</code>). Set it to a long random string (e.g. <code>python3 -c &quot;import secrets; print(secrets.token_hex(32))&quot;</code>) and keep it private. If empty, the app makes a random one at startup and logs a warning: forms still work, but a form left open across an app restart fails once and has to be resubmitted. Equivalent to <code>PLANETGEN_SECRET_KEY</code>.</td>
+</tr>
+<tr>
+<td><code>password_hash.memory_kib</code>/<code>password_hash.time_cost</code>/<code>password_hash.parallelism</code></td>
+<td>The cost of the Argon2id hash an admin password is stored as (SEC.32): memory in KiB, passes over it, and threads. The defaults, 19456 (19 MiB), 2 and 1, are OWASP's minimum for Argon2id, about a tenth of a second on a small host; raise the memory where the host has room (each sign-in attempt holds that much while it checks, and the app server runs several at once). A hash stored with other numbers (or by an older release, as PBKDF2 or scrypt) is replaced at that admin's next successful sign-in. Equivalent to <code>PLANETGEN_PASSWORD_HASH_MEMORY_KIB</code>/<code>PLANETGEN_PASSWORD_HASH_TIME_COST</code>/<code>PLANETGEN_PASSWORD_HASH_PARALLELISM</code>.</td>
+</tr>
+<tr>
+<td><code>tile_cache.dir</code></td>
+<td>Where the web pages (the Flask-served <code>/galaxy</code> and <code>/galaxy/nodes</code>, in the WSGI daemon) keep their on-disk cache of 3D Galaxy Map nodes (see <code>../src/planetgen/web/lib/tilecache.py</code>), (its size is <code>cache.max_mb</code>, below). An empty <code>dir</code> (the default) means <code>/var/cache/planetgen/tiles</code>, which <code>install.sh</code>/<code>update.sh</code> create for Apache's user (via <code>examples/apache/create-cache-dir.sh</code>, which also creates a <code>dir</code> you set here); if it's missing and Apache can't create it, the cache falls back to a private (mode 0700) <code>planetgen-tiles</code> folder in the system temp directory; an existing one that isn't a real directory owned by Apache's user, or that other users can write to, is refused (the cache is then off) rather than reused. Equivalent to <code>PLANETGEN_TILE_CACHE_DIR</code>.</td>
+</tr>
+<tr>
+<td><code>cache.max_mb</code></td>
+<td>How much disk the stored caches may use in all (default 1024; <code>0</code> turns the disk caches off; <code>PLANETGEN_CACHE_MAX_MB</code>; it replaces <code>tile_cache.max_mb</code>, which is no longer read). Today only the Galaxy Map's nodes are stored; the object index and the stored lists will share it and are kept first. When it is full <code>planetgen warm</code> stops (it says how many nodes it left out), the nodes it built ahead stay, and the nodes a visit asked for are dropped, the least recently visited first (PERF.133, PERF.139).</td>
+</tr>
+<tr>
+<td><code>page_cache.enabled</code>/<code>max_entries</code>/<code>max_mb</code>/<code>stamp_seconds</code>/<code>max_age_seconds</code></td>
+<td>The defaults are <code>true</code>, 2000, 64, 15 and 300, as in <code>config.json.example</code>. The web pages keep the API's public answers in memory, per WSGI process (see <code>../src/planetgen/web/lib/pagecache.py</code>), so a repeat visit doesn't query the database. Any successful write through the API clears it; a new galaxy stamp (sectors or systems added, edited or deleted, by <code>planetgen</code> jobs too) is noticed within <code>stamp_seconds</code>; nothing is kept longer than <code>max_age_seconds</code>. <code>PLANETGEN_PAGE_CACHE=off</code> (or <code>enabled: false</code>) turns it off. <code>stored_counts</code> (default <code>true</code>; <code>PLANETGEN_COUNT_CACHE</code> overrides it) is separate: table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting rows on every page view (<code>../src/planetgen/db/countcache.py</code>).</td>
+</tr>
+<tr>
+<td><code>jobs.dir</code>/<code>jobs.keep</code>/<code>jobs.python</code></td>
+<td>The admin Generate page's background jobs (see <code>../src/planetgen/web/jobs.py</code>). <code>dir</code> is where each job's command lines, status and output are kept; empty (the default) means <code>/var/lib/planetGen/jobs</code>, which <code>install.sh</code>/<code>update.sh</code> create for Apache's user (via <code>examples/apache/create-cache-dir.sh</code>), falling back to a private (mode 0700) <code>planetgen-jobs</code> folder in the system temp directory, refused under the same conditions as the tile cache's fallback. <code>keep</code> is how many finished jobs are kept (default 20). <code>python</code> is the interpreter that runs <code>planetgen</code> and <code>planetgen.cli.reset</code>; empty means the web app's own Python (under mod_wsgi, <code>&lt;sys.prefix&gt;/bin/python3</code>). Equivalent to <code>PLANETGEN_JOBS_DIR</code>/<code>PLANETGEN_PYTHON</code>; <code>keep</code> has no environment variable.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-activity-log">The activity log</h2>
+<p>Separate from the debug log, planetGen always writes a short record of
+who did what to <code>planetgen.log</code> in <code>log_dir</code> (SEC.28,
+<code>../src/planetgen/admin/activity_log.py</code>): sign-ins, refused requests,
+every change to the database and every API call. It is on whatever <code>debug</code> says; with
+<code>debug</code> on, each line is copied into the debug log too. Passwords,
+session tokens and API keys are never written.</p>
+<p>Every line has the same shape, so a tool such as fail2ban can match it
+(<a href="../deployment/fail2ban.html"><code>deployment/fail2ban.md</code></a> has a ready filter and jail):</p>
+<pre><code class="language-text">2026-10-01T04:00:00-0400 planetgen[1234]: AUTH login.failed ip=203.0.113.5 user=&quot;admin&quot;
+2026-10-01T04:00:09-0400 planetgen[1234]: DB sector.update ip=203.0.113.5 user=&quot;boss&quot; target=sector:42 detail=&quot;{'name': 'Home'}&quot;
+</code></pre>
+<p>That is: the time local with the offset of its zone, <code>planetgen[&lt;process id&gt;]:</code>, the category, the
+event, <code>ip=</code> (the client address, or <code>-</code> with none, as on the command
+line), <code>user=</code> (always quoted; the admin, the username as typed, or the
+login name that ran a command; <code>-</code> when nobody), then any further
+<code>key=value</code> fields. The address always comes before anything a visitor
+typed and is written only when it is a real IPv4 or IPv6 address (else
+<code>-</code>). Every value that isn't a plain number or token is quoted, with <code>&quot;</code>
+and <code>\</code> escaped and control characters written as <code>\xNN</code>, so a crafted
+username can't start a new line or fake a field; quoted values are cut
+at 200 characters.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Events</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AUTH</code></td>
+<td><code>login.ok</code>; <code>login.failed</code> (wrong username or password); <code>login.locked</code> (refused unchecked while the address or username is locked, with <code>scope=ip</code> or <code>scope=user</code> and <code>retry_after=</code>); <code>lockout.start</code> (a failure that started a lock, with <code>scope=</code>, <code>subject=</code> and <code>seconds=</code>); <code>login.ratelimited</code> (past the per-address limit); <code>logout</code>; <code>credentials.changed</code> (with <code>old_user=</code> after a rename); <code>password.failed</code> (a wrong current password on <code>/account</code>); <code>login.password_ok</code> (right password, two-factor code still to come); <code>totp.failed</code> (a wrong two-factor code); <code>totp.recovery_used</code> (with <code>left=</code>); <code>totp.enabled</code>, <code>totp.disabled</code>; <code>apikey.create</code>, <code>apikey.revoke</code></td>
+</tr>
+<tr>
+<td><code>AUTHZ</code></td>
+<td><code>login.required</code> (an admin route with no session or key); <code>session.invalid</code> (an expired, ended or unknown session cookie); <code>apikey.invalid</code> (an unknown or revoked API key); <code>credentials.unchanged</code> (an admin route refused until the first credentials are changed); <code>admin.required</code> (an admin-only page action refused); <code>csrf.failed</code> (a form token that doesn't match); each with <code>path=</code></td>
+</tr>
+<tr>
+<td><code>DB</code></td>
+<td>every write through the web interface or API (<code>sector.create</code>, <code>system.update</code>, <code>star.rename</code>, <code>facility.create</code>, <code>lockout.lift</code>, ...: the same action names as <code>admin_audit_log</code>, with <code>target=</code> and <code>detail=</code>; <code>planetgen.cli.lockouts</code> writes <code>lockout.lift</code>, <code>devices.revoke</code> and <code>totp.reset</code> too); <code>migrate</code> (each schema migration step, <code>db=</code>, <code>from_version=</code>, <code>to_version=</code>)</td>
+</tr>
+<tr>
+<td><code>GEN</code></td>
+<td><code>generate.start</code> and <code>generate.finish</code> for each <code>planetgen</code> run that writes the database (<code>command=</code>, <code>db=</code>; the finish line adds <code>status=ok/failed/interrupted</code>, <code>seconds=</code>, <code>sectors=</code>, <code>systems=</code>, <code>phenomena=</code>); <code>job.start</code> and <code>job.cancel</code> for the admin Generate page</td>
+</tr>
+<tr>
+<td><code>API</code></td>
+<td><code>call</code> for every request to <code>/api/...</code> (API.15), written when the answer is ready: <code>user=</code> (the owner of the API key, the signed-in user, <code>god</code> for a command-line tool, or <code>-</code>), <code>via=</code> (<code>key</code>, <code>session</code>, <code>anonymous</code> or <code>console</code>), <code>method=</code>, <code>route=</code> (the matched route, <code>-</code> for none), <code>path=</code>, <code>status=</code> (the HTTP response code), <code>ms=</code>, <code>bytes_in=</code>, <code>bytes_out=</code>, <code>rid=</code> (also sent back as <code>X-Request-Id</code>), <code>ua=</code>, <code>client_api=</code> (the API version the client sent), and when they apply <code>key_id=</code> and <code>key_prefix=</code> (never the key), <code>internal=1</code> (a call a web page made to the API in-process, about six for each page view) and <code>ratelimited=1</code>. A command-line tool that does what an API route does writes the same line with <code>user=&quot;god&quot;</code>, <code>via=console</code> and <code>status=200</code> or <code>500</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The API lines use HTTP response codes, for parity with the web server's own logs; a request the web server refuses before it reaches the program (a 413 from <code>LimitRequestBody</code>, a failed TLS handshake) appears only in the web server's log. <code>api_log.internal</code> set to <code>off</code> leaves out the calls the web pages make to the API in-process; the default logs all of them. Request bodies, tokens and <code>Authorization</code> headers are never written. The address is the client's full address, kept as long as the file is (the rotation below: 30 copies of up to 100 MB).</p>
+<p>Failed and locked sign-ins and wrong current passwords also go into the
+control database's <code>admin_audit_log</code> (kept 90 days), which the admin
+Stats page lists under &quot;Failed sign-ins&quot;.</p>
+<p>Rotation: <code>install.sh</code>/<code>update.sh</code> (as root, through
+<code>examples/apache/setup-debug-log.sh</code>) install the system's own rotation,
+so nobody has to edit these by hand. For a setup without the installer,
+the samples are:</p>
+<p>Linux, <code>/etc/logrotate.d/planetgen-log</code> (the user and group are the web
+server's: <code>www-data</code> on Debian and Ubuntu, <code>apache</code> on RHEL and Fedora):</p>
+<pre><code class="language-conf">/var/log/planetgen/*.log {
+    daily
+    maxsize 100M
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d-%s
+    su root www-data
+    create 0660 www-data www-data
+}
+</code></pre>
+<p>macOS, <code>/etc/newsyslog.d/planetgen-log.conf</code> (newsyslog runs every hour
+by itself; <code>$D0</code> rotates at midnight, the size column in KB rotates
+sooner past 100 MB, <code>J</code> compresses with bzip2, <code>N</code> means no process to
+signal):</p>
+<pre><code class="language-conf"># logfilename                              [owner:group]  mode count size(KB) when flags
+/Library/Logs/planetgen/planetgen.log      _www:_www      660  30    102400   $D0  JN
+</code></pre>
+<p>The program reopens the file after either tool moves it, so no restart
+or <code>copytruncate</code> is needed. A process that can't open the file
+carries on without it and prints one warning to stderr (only when the
+folder exists, so a development checkout stays quiet). A login user who
+runs <code>planetgen</code> from a shell needs to be in the web server's group to
+append to it, as for the debug log.</p>
+<h2 id="why-the-real-file-is-gitignored-but-the-example-isnt">Why the real file is gitignored but the example isn't</h2>
+<p><code>config.json</code> (the real, per-deployment file) is listed in
+<a href="https://github.com/dwhagar/planetGen/blob/main/.gitignore"><code>../.gitignore</code></a>, next to the existing <code>*.db</code>/<code>db.sqlite3</code>
+entries -- it's deployment-specific configuration that holds real MySQL
+credentials, and committing it would either leak those values or force
+every deployment to share one repo-tracked file. <code>../config.json.example</code>
+is the opposite: a template with placeholder values, meant to be
+committed so a fresh checkout always has a shape to copy from, exactly
+the same split already used for
+<code>../examples/apache/planetgen.conf.example</code> (committed template, edited
+into a site-specific vhost file that itself doesn't live in the repo).</p>
+<h2 id="setup">Setup</h2>
+<p>Copy the template at the repo root and edit it for this deployment:</p>
+<pre><code class="language-bash">cp config.json.example config.json
+</code></pre>
+<p>Then fill in <code>mysql.host</code>/<code>mysql.user</code>/<code>mysql.password</code>/<code>mysql.database</code>
+(and <code>control_database</code>, if this deployment names its control schema
+something other than the default -- see
+<a href="../deployment/README.html#mysql-accounts"><code>deployment/README.md</code></a>) for this
+deployment's actual database server. <code>site_name</code>/<code>base_url</code> are cosmetic
+and safe to leave as-is.</p>
+<p>If <code>config.json</code> doesn't exist at all, <code>planetgen.util.settings.get_settings()</code>
+falls back to the built-in defaults shown in <code>config.json.example</code>, so
+every entry point keeps working (against <code>127.0.0.1:3306</code> as user
+<code>planetgen</code>) without this step -- exactly the environment-variable-only
+behavior this project had before <code>config.json</code> existed.</p>
+<h2 id="relationship-to-planetgen_-environment-variables">Relationship to <code>PLANETGEN_*</code> environment variables</h2>
+<p><code>config.json</code> doesn't replace the <code>PLANETGEN_*</code> environment variables --
+see &quot;Precedence&quot; above. In short: <code>config.json</code> is where a deployment
+sets its defaults once; environment variables (the web server's or
+service's own environment -- not an Apache <code>SetEnv</code>, which never reaches
+<code>os.environ</code> under mod_wsgi -- a systemd <code>EnvironmentFile</code>, a launchd
+<code>EnvironmentVariables</code>, or a shell export) remain the way to override
+one of those defaults for a single process, most importantly the
+per-instance database name <code>planetgen-orbits@.service</code> needs.</p>
+<h3 id="planetgen_workers-not-a-configjson-option"><code>PLANETGEN_WORKERS</code>: not a <code>config.json</code> option</h3>
+<p>The number of worker processes a generation run uses is set by <code>--workers N</code> on the <code>planetgen</code> command, else by the
+<code>PLANETGEN_WORKERS</code> environment variable (a number, or <code>auto</code>); with neither, a run uses 80% of the cores (one fewer when
+the database is on the same machine, so it keeps a core). A positive number is used as given. More than one worker needs
+the Redis server in <code>redis.url</code>; without it a run generates one sector at a time. The admin Generate page's jobs run <code>planetgen</code>, so
+they use it too. The test suite sets it to 1 (<a href="testing.html"><code>testing.md</code></a>).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

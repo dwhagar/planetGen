@@ -4655,7 +4655,7 @@
           "fields": [
             [
               "Evidence",
-              "READ ([R2381: Eq. 4]: Na0 = 0.028 of the crust from [R1494]; calcium from the crust of AM48; rock density 3000 kg per m3)"
+              "READ ([R2381: Eq. 4]: Na0 = 0.028 of the crust from [R1494], which is the Na2O of a mid-ocean ridge basalt, so the sodium is 0.0208 (GEN.1349); calcium from the crust of AM48, all of it leached as [R2381] assume, neglecting Ca-mineral formation (no source gives a free share, GEN.1349); rock density 3000 kg per m3)"
             ],
             [
               "What it is",
@@ -4663,7 +4663,7 @@
             ],
             [
               "The range it moves in",
-              "0.028, fixed"
+              "0.0208, derived from the Na2O of 0.028 (CRUST_NA2O_WT)"
             ],
             [
               "Where it holds",
@@ -11787,11 +11787,11 @@
           "fields": [
             [
               "What it is",
-              "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the water-activity line through the Venus cloud levels (80 percent at activity 3e-3, 0.39 per percent in ln) and the 0.3 reference albedo for the cold top"
+              "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the 0.3 reference albedo for the cold top (the acid strength is the solution model of sulfuric_vapor, GEN.1425 part B, not a fitted line)"
             ],
             [
               "The range it moves in",
-              "the gates a factor of 10 either way; the line slope 0.3 to 0.5; the window edges 10 K"
+              "the gates a factor of 10 either way; the window edges 10 K"
             ],
             [
               "Where it holds",
@@ -11799,7 +11799,7 @@
             ],
             [
               "What would show it wrong",
-              "a measured acid strength against water activity (the [R4877] sulfuric acid model) and the Venus cloud profile of Pioneer Venus and Venus Express"
+              "the Venus cloud profile of Pioneer Venus and Venus Express"
             ],
             [
               "What replaces it",
@@ -11807,7 +11807,7 @@
             ],
             [
               "Evidence",
-              "each number carries its own tier and tweak in the file; the weakest are the gates (design) and the slope outside 75 to 98 percent (the true curve bends)"
+              "each number carries its own tier and tweak in the file; the weakest are the gates (design)"
             ]
           ],
           "id": "LF61",
@@ -11818,7 +11818,7 @@
           "tier_code": "T8",
           "tweak": "L3",
           "unread": null,
-          "what": "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the water-activity line through the Venus cloud levels (80 percent at activity 3e-3, 0.39 per percent in ln) and the 0.3 reference albedo for the cold top"
+          "what": "acid_medium.json numbers (GEN.888): the least sulfur dioxide 1e-6, oxidant 0.001 and water 1e-9 of the air for sulfuric acid to form, the liquid window 283 to 373 K, the cloud pressures 0.3 to 3 bar, the 81 percent by weight that counts as concentrated, the 0.3 reference albedo for the cold top (the acid strength is the solution model of sulfuric_vapor, GEN.1425 part B, not a fitted line)"
         },
         {
           "burn_down": [
@@ -12161,11 +12161,7 @@
           "what": "biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth"
         },
         {
-          "burn_down": [
-            "no data",
-            "-",
-            "the oxygen balance has one measured world; Earth's fluxes are recalled [R1859, R1980] and calibrate the scale; tier stays"
-          ],
+          "burn_down": null,
           "fields": [
             [
               "What it is",
@@ -21543,11 +21539,11 @@
           "fields": [
             [
               "What it is",
-              "the acid cloud base temperature 367 K (sulfuric_cloud.json base_temperature_k): the first level up the dry adiabat that cool, the ground when it already is"
+              "the acid cloud base: no fixed temperature; it is the warmest level of the air's dry adiabat where its own acid vapor and water condense by the curves of sulfuric_vapor (sulfuric_cloud.window, GEN.1425 part B), the ground where the ground already is"
             ],
             [
               "The range it moves in",
-              "345 to 367 K; the 38 km level (about 4 bar, temperature not printed)"
+              "the acid vapor share of the sulfur dioxide and the water floor (rows CG1, CG2 of 6.229)"
             ],
             [
               "Where it holds",
@@ -21555,26 +21551,26 @@
             ],
             [
               "What would show it wrong",
-              "a Venus-like air whose cloud base lies at another temperature than the dry adiabat gives"
+              "a Venus-like air whose base lies far from 345 to 367 K, or at a pressure far from 0.98 to 1.39 bar (the dry adiabat of the profile puts a Venus-like 367 K level at about 2.9 bar, so the pressure is not matched)"
             ],
             [
               "What replaces it",
-              "a cloud base from the saturation of sulfuric acid in the weight-percent solution"
+              "a cloud base from the saturation of sulfuric acid in the cloud microphysics"
             ],
             [
               "Evidence",
-              "[R0157: Table 1] read: lower cloud 47.5 to 50.5 km, 367 to 345 K, 1.39 to 0.98 bar"
+              "[R0157: Table 1] read for the check: lower cloud 47.5 to 50.5 km, 367 to 345 K, 1.39 to 0.98 bar"
             ]
           ],
           "id": "SC1",
           "key": "6.62:SC1",
-          "kind": "P",
+          "kind": "T",
           "slug": "6-62-sc1",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
           "unread": null,
-          "what": "the acid cloud base temperature 367 K (sulfuric_cloud.json base_temperature_k): the first level up the dry adiabat that cool, the ground when it already is"
+          "what": "the acid cloud base: no fixed temperature; it is the warmest level of the air's dry adiabat where its own acid vapor and water condense by the curves of sulfuric_vapor (sulfuric_cloud.window, GEN.1425 part B), the ground where the ground already is"
         },
         {
           "burn_down": null,
@@ -21893,7 +21889,7 @@
           "fields": [
             [
               "What it is",
-              "the acid strength read for the optics, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables"
+              "the acid strength read for the optics where the caller gives none, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables; sulfuric_cloud.infrared_cloud gives the strength of the air's own cloud base (GEN.1424)"
             ],
             [
               "The range it moves in",
@@ -21905,11 +21901,11 @@
             ],
             [
               "What would show it wrong",
-              "the strength of the acid drawn from the air's water (acid_medium) differs from 80"
+              "the strength of the acid at the cloud base (sulfuric_cloud.window) is outside the 76 to 81 percent tables by more than 10 percent"
             ],
             [
               "What replaces it",
-              "acid_medium.weight_percent at the cloud level"
+              "the optics tables at the strength of the cloud base"
             ],
             [
               "Evidence",
@@ -21924,7 +21920,7 @@
           "tier_code": "T3",
           "tweak": "L0",
           "unread": null,
-          "what": "the acid strength read for the optics, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables"
+          "what": "the acid strength read for the optics where the caller gives none, 80 percent (DEFAULT_WEIGHT_PERCENT), linearly between the 76 and 81 percent tables; sulfuric_cloud.infrared_cloud gives the strength of the air's own cloud base (GEN.1424)"
         },
         {
           "burn_down": null,
@@ -42493,7 +42489,7 @@
           "fields": [
             [
               "What it is",
-              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+              "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
             ],
             [
               "The range it moves in",
@@ -42524,7 +42520,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it"
+          "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
         },
         {
           "burn_down": [
@@ -44173,6 +44169,314 @@
           "tweak": "L0",
           "unread": null,
           "what": "isotope_record.potassium_40_argon_moles: the 40Ar of the air is 10.72 percent of the 40K that has decayed, times the interior's degassed share (surface_pressure.degassed_share), over the moles of argon in the air"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ESS_INITIAL_RATIO: 53Mn/55Mn 7e-6, 129I/127I 1.28e-4, 244Pu/238U 7e-3"
+            ],
+            [
+              "The range it moves in",
+              "the printed 2 sigma (1e-6, 0.03e-4, 1e-3)"
+            ],
+            [
+              "Where it holds",
+              "the early Solar System's first solids"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ratio outside the printed range; 60Fe is taken from the gamma-ray mean instead"
+            ],
+            [
+              "What replaces it",
+              "none (read from the review)"
+            ],
+            [
+              "Evidence",
+              "[R2768: Table 2]; 244Pu/238U of 0.0068 in an older value is within the range"
+            ]
+          ],
+          "id": "ISO10",
+          "key": "6.236:ISO10",
+          "kind": "T",
+          "slug": "6-236-iso10",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ESS_INITIAL_RATIO: 53Mn/55Mn 7e-6, 129I/127I 1.28e-4, 244Pu/238U 7e-3"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.EXTINCT_MEAN_OVER_ESS 0.1: the mean ratio of 53Mn, 129I and 244Pu in a galaxy's gas over the early Solar System's"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.33 (the 26Al range of 3 to 25 times under)"
+            ],
+            [
+              "Where it holds",
+              "any galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a measured interstellar 53Mn, 129I or 244Pu; a galactic-chemical-evolution model with production ratios"
+            ],
+            [
+              "What replaces it",
+              "the steady state from nucleosynthetic yields"
+            ],
+            [
+              "Evidence",
+              "[R2768: Sec. 3.2] gives the 26Al range only; 53Mn, 129I and 244Pu have no gamma-ray line"
+            ]
+          ],
+          "id": "ISO11",
+          "key": "6.236:ISO11",
+          "kind": "T",
+          "slug": "6-236-iso11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.EXTINCT_MEAN_OVER_ESS 0.1: the mean ratio of 53Mn, 129I and 244Pu in a galaxy's gas over the early Solar System's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 14C 1.6 atoms/cm2/s"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 2.1"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air at a modulation of 650 MV"
+            ],
+            [
+              "What would show it wrong",
+              "a production model of the Earth's air under 1.2 or over 2.1"
+            ],
+            [
+              "What replaces it",
+              "CRAC-type yield functions of the body's own air and flux"
+            ],
+            [
+              "Evidence",
+              "[R5203: Table 1 and Sec. 3.2] (1.47 at 802 MV from 2.36e26 atoms a year), [R5205: Sec. 2] (1.6 to 2)"
+            ]
+          ],
+          "id": "ISO12",
+          "key": "6.236:ISO12",
+          "kind": "T",
+          "slug": "6-236-iso12",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 14C 1.6 atoms/cm2/s"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COSMOGENIC_RATE_EARTH 3H 0.345 atoms/cm2/s; EARTH_COLUMN_G_CM2 1033; EARTH_TARGETS_PER_G N 3.22e22, O 8.67e21; EARTH_DIPOLE_A_M2 7.8e22"
+            ],
+            [
+              "The range it moves in",
+              "tritium 0.14 to 0.8 (earlier estimates, 0.32 for [R5206])"
+            ],
+            [
+              "Where it holds",
+              "the Earth's air at 650 MV"
+            ],
+            [
+              "What would show it wrong",
+              "a measured global tritium production outside 0.14 to 0.8"
+            ],
+            [
+              "What replaces it",
+              "the same yield functions"
+            ],
+            [
+              "Evidence",
+              "[R5204: Sec. 3, Table 1, Eq. 4]; [R5203: Eq. 6 and Sec. 3.2]"
+            ]
+          ],
+          "id": "ISO13",
+          "key": "6.236:ISO13",
+          "kind": "T",
+          "slug": "6-236-iso13",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.COSMOGENIC_RATE_EARTH 3H 0.345 atoms/cm2/s; EARTH_COLUMN_G_CM2 1033; EARTH_TARGETS_PER_G N 3.22e22, O 8.67e21; EARTH_DIPOLE_A_M2 7.8e22"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's"
+            ],
+            [
+              "The range it moves in",
+              "100 to 200 g/cm2"
+            ],
+            [
+              "Where it holds",
+              "air columns from a few to many thousand g/cm2"
+            ],
+            [
+              "What would show it wrong",
+              "a yield-function profile whose column integral differs from this law by over 30 percent for a 100 g/cm2 air"
+            ],
+            [
+              "What replaces it",
+              "the altitudinal yield functions of a thin-air model"
+            ],
+            [
+              "Evidence",
+              "the tritium maximum at about 40 g/cm2 ([R5204: Sec. 3]) bounds it; no paper in hand prints an attenuation length"
+            ]
+          ],
+          "id": "ISO14",
+          "key": "6.236:ISO14",
+          "kind": "T",
+          "slug": "6-236-iso14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.ATTENUATION_G_CM2 150: the column of air catches 1 - exp(-X/150) of the cascade, over the Earth's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's"
+            ],
+            [
+              "The range it moves in",
+              "m of 0 to 10"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a cutoff-rigidity model of a body with a dipole whose global rate differs from this law by over 30 percent"
+            ],
+            [
+              "What replaces it",
+              "the geomagnetic cutoff integrated over the body (R_c from the dipole)"
+            ],
+            [
+              "Evidence",
+              "the polar and global values of tritium ([R5204: Table 1]); the interpolation in the moment is a form chosen to hit 1 at the Earth and the polar value at none"
+            ]
+          ],
+          "id": "ISO15",
+          "key": "6.236:ISO15",
+          "kind": "T",
+          "slug": "6-236-iso15",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.NO_FIELD_FACTOR 0.72 / 0.345 = 2.09: a body with no dipole gets the Earth's polar rate over its global mean; the factor falls as 1/(1 + 1.09 m) with the dipole moment m in Earth's"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the carbon of an ocean world's air and surface ocean over the air's is the Earth's single value; the body's dissolved carbon is not stored"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean"
+            ],
+            [
+              "The range it moves in",
+              "10 to 100"
+            ],
+            [
+              "Where it holds",
+              "bodies with a surface ocean"
+            ],
+            [
+              "What would show it wrong",
+              "an ocean world whose dissolved carbon is stored and differs from the air's by a factor other than 54"
+            ],
+            [
+              "What replaces it",
+              "the body's own dissolved inorganic carbon"
+            ],
+            [
+              "Evidence",
+              "the Earth's 41 000 Gt of exchangeable carbon over 760 Gt of air; one planet"
+            ]
+          ],
+          "id": "ISO16",
+          "key": "6.236:ISO16",
+          "kind": "T",
+          "slug": "6-236-iso16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "isotope_record.OCEAN_CARBON_OVER_AIR 54: air plus surface ocean carbon over the air's, for a body with a surface ocean"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
+            ],
+            [
+              "The range it moves in",
+              "25 to 40 K"
+            ],
+            [
+              "Where it holds",
+              "comets of any star"
+            ],
+            [
+              "What would show it wrong",
+              "a comet whose measured D/H differs from the law at 30 K by over a factor of 2 for a star of another metallicity"
+            ],
+            [
+              "What replaces it",
+              "the comet's own formation distance and the disk model"
+            ],
+            [
+              "Evidence",
+              "comets form at one distance in units of the star's snow line, so one temperature; the anchor is comet 67P [R0088, R5174]"
+            ]
+          ],
+          "id": "ISO17",
+          "key": "6.236:ISO17",
+          "kind": "T",
+          "slug": "6-236-iso17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.COMET_ICE_K 30 K: the temperature a comet's ice formed at, for every star (the cold calibration point)"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",
@@ -56073,8 +56377,914 @@
       "title": "Known gaps kept as watch lines"
     },
     {
+      "key": "6.239",
+      "number": "6.239",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the body's orbit round its host and the other source's orbit round the host are taken coplanar (mean_inverse_square); a mutual inclination only lengthens the mean separation, so this is the upper bound on the companion's part"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "bodies well inside their host's window"
+            ],
+            [
+              "What would show it wrong",
+              "a stored mutual inclination of a companion's orbit that is large (tens of degrees) and a companion near the planet's orbit"
+            ],
+            [
+              "What replaces it",
+              "the average over the mutual inclination"
+            ],
+            [
+              "Evidence",
+              "derived: the mean of 1 / (R^2 + d^2 - 2 R d cos(phi)) over phi is exactly 1 / (R^2 - d^2) for coplanar circles"
+            ]
+          ],
+          "id": "RF1",
+          "key": "6.239:RF1",
+          "kind": "T",
+          "slug": "6-239-rf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the body's orbit round its host and the other source's orbit round the host are taken coplanar (mean_inverse_square); a mutual inclination only lengthens the mean separation, so this is the upper bound on the companion's part"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "hierarchies as hierarchical as the stability test makes them"
+            ],
+            [
+              "What would show it wrong",
+              "a triple with an inner pair wide enough that its members' separate positions change the mean light by over a tenth"
+            ],
+            [
+              "What replaces it",
+              "the members' positions inside the subtree"
+            ],
+            [
+              "Evidence",
+              "derived: planet_zones.companion_orbits; the stability test keeps the inner pair well inside the outer axis"
+            ]
+          ],
+          "id": "RF2",
+          "key": "6.239:RF2",
+          "kind": "T",
+          "slug": "6-239-rf2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the source's orbit is averaged on ORBIT_SAMPLES = 96 points uniform in mean anomaly"
+            ],
+            [
+              "The range it moves in",
+              "48 to 400 points"
+            ],
+            [
+              "Where it holds",
+              "eccentricities under 0.9"
+            ],
+            [
+              "What would show it wrong",
+              "a result that moves by over 1e-4 between 96 and 400 points"
+            ],
+            [
+              "What replaces it",
+              "an analytic average"
+            ],
+            [
+              "Evidence",
+              "numerical choice; the test compares the grid with a 400 by 360 brute-force average over both orbits"
+            ]
+          ],
+          "id": "RF3",
+          "key": "6.239:RF3",
+          "kind": "P",
+          "slug": "6-239-rf3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the source's orbit is averaged on ORBIT_SAMPLES = 96 points uniform in mean anomaly"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (radiation_field.light_ratio), against the host's habitable-zone edges"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions whose spectrum is like the host's"
+            ],
+            [
+              "What would show it wrong",
+              "a companion of very different temperature, whose light the zone edges of the host do not describe"
+            ],
+            [
+              "What replaces it",
+              "edges made from the combined spectrum"
+            ],
+            [
+              "Evidence",
+              "derived: the edges are fixed by the light a lone star gives at a distance"
+            ]
+          ],
+          "id": "RF4",
+          "key": "6.239:RF4",
+          "kind": "T",
+          "slug": "6-239-rf4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a body's zone letter (hot, ecosphere, cold) uses its distance over the square root of the total light over the host's own (radiation_field.light_ratio), against the host's habitable-zone edges"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any system with a remnant"
+            ],
+            [
+              "What would show it wrong",
+              "a remnant whose measured XUV or disk power the stored values leave out"
+            ],
+            [
+              "What replaces it",
+              "stand-in values per remnant kind, registered with tier and tweak"
+            ],
+            [
+              "Evidence",
+              "design; nothing invented here: absent stays absent"
+            ]
+          ],
+          "id": "RF5",
+          "key": "6.239:RF5",
+          "kind": "P",
+          "slug": "6-239-rf5",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no l_xuv_w, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them"
+        }
+      ],
+      "slug": "6-239-stand-ins-of-the-radiation-field-of-a-system",
+      "title": "Stand-ins of the radiation field of a system"
+    },
+    {
+      "key": "6.240",
+      "number": "6.240",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the pressures of the winds of the host and of each companion add as scalars (momentum flux per area, each falling as the time-averaged 1/d^2 of the companion's orbit round the host); the standoff is taken against the sum, the upper bound where winds meet from opposite sides"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a body well inside its host's window"
+            ],
+            [
+              "What would show it wrong",
+              "a magnetohydrodynamic run of two winds that puts the standoff of a planet between two stars outside the sum's by over 20 percent"
+            ],
+            [
+              "What replaces it",
+              "a vector sum with the stars' directions at each phase"
+            ],
+            [
+              "Evidence",
+              "the wind is a momentum flux that falls as the inverse square of the distance, as the host's does in wind_pressure_pa; same geometry as RF1 to RF3"
+            ]
+          ],
+          "id": "WN1",
+          "key": "6.240:WN1",
+          "kind": "P",
+          "slug": "6-240-wn1",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the pressures of the winds of the host and of each companion add as scalars (momentum flux per area, each falling as the time-averaged 1/d^2 of the companion's orbit round the host); the standoff is taken against the sum, the upper bound where winds meet from opposite sides"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "systems whose companion is a remnant or a brown dwarf with partial data"
+            ],
+            [
+              "What would show it wrong",
+              "a stored wind of such a companion"
+            ],
+            [
+              "What replaces it",
+              "a wind law for remnants and brown dwarfs"
+            ],
+            [
+              "Evidence",
+              "the same rule as RF5: no stored value gives none of that band"
+            ]
+          ],
+          "id": "WN2",
+          "key": "6.240:WN2",
+          "kind": "P",
+          "slug": "6-240-wn2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "a companion with no stored radius, luminosity or X-ray ratio (and not a pulsar) gives no wind, where the host alone falls back to the Earth's wind scaled by the distance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "magnetosphere_pressure_pa: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's B^2 / (2 mu0) at the moon's orbit, in place of the wind"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "an airless moon or one with a thin air inside a planet's field"
+            ],
+            [
+              "What would show it wrong",
+              "a measured standoff of a moon inside a planet's field that differs from this pressure's by over a factor of 1.5 in radius"
+            ],
+            [
+              "What replaces it",
+              "a plasma model of the planet's magnetosphere (the plasma pressure adds to the field's)"
+            ],
+            [
+              "Evidence",
+              "Ganymede in Jupiter's field comes out at 2.4 radii against the Galileo flybys' about 2 (read from memory, not from the paper)"
+            ]
+          ],
+          "id": "WN3",
+          "key": "6.240:WN3",
+          "kind": "T",
+          "slug": "6-240-wn3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "magnetosphere_pressure_pa: the pressure a moon's field pushes against inside its parent's magnetosphere is the dipole field's B^2 / (2 mu0) at the moon's orbit, in place of the wind"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets with a field"
+            ],
+            [
+              "What would show it wrong",
+              "a moon known to sit outside the parent's magnetopause that the test counts inside"
+            ],
+            [
+              "What replaces it",
+              "the standoff along the moon's local time (the magnetopause is farther on the day side)"
+            ],
+            [
+              "Evidence",
+              "the standoff of the wind's balance is the nose; the tail is farther, the flanks about the same"
+            ]
+          ],
+          "id": "WN4",
+          "key": "6.240:WN4",
+          "kind": "T",
+          "slug": "6-240-wn4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon is inside its parent's magnetosphere when its orbit is closer than the parent's magnetopause_rp radii"
+        }
+      ],
+      "slug": "6-240-stand-ins-of-the-stellar-wind-of-a-system-and-a-moon-in-its-parent-s-field",
+      "title": "Stand-ins of the stellar wind of a system and a moon in its parent's field"
+    },
+    {
+      "key": "6.241",
+      "number": "6.241",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the ozone column is drawn from the host's temperature alone (ozone.draw_column_du); a companion's ultraviolet makes ozone as the host's colour would"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "companions of the host's own colour or fainter in the ultraviolet"
+            ],
+            [
+              "What would show it wrong",
+              "a companion of much hotter or cooler colour that gives most of the ultraviolet at the body"
+            ],
+            [
+              "What replaces it",
+              "the ozone fit through the field's ultraviolet-weighted colour"
+            ],
+            [
+              "Evidence",
+              "derived: the fit has no flux axis, only the star's temperature; the DNA dose still adds each star's own spectrum through the one ozone column"
+            ]
+          ],
+          "id": "DS1",
+          "key": "6.241:DS1",
+          "kind": "T",
+          "slug": "6-241-ds1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the ozone column is drawn from the host's temperature alone (ozone.draw_column_du); a companion's ultraviolet makes ozone as the host's colour would"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the free-space particle dose of each source is FREE_MSV_YR * sqrt(N33 w) / d^2 added over sources (each with its own flare rate and size slope); doses add and the sources do not shield one another"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "stars with a stored flare rate"
+            ],
+            [
+              "What would show it wrong",
+              "a measured flare rate of a close pair that is not the sum of the two"
+            ],
+            [
+              "What replaces it",
+              "a fitted pair rate"
+            ],
+            [
+              "Evidence",
+              "derived: the host's law applied to each source at its time-averaged distance"
+            ]
+          ],
+          "id": "DS2",
+          "key": "6.241:DS2",
+          "kind": "P",
+          "slug": "6-241-ds2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the free-space particle dose of each source is FREE_MSV_YR * sqrt(N33 w) / d^2 added over sources (each with its own flare rate and size slope); doses add and the sources do not shield one another"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a companion's XUV history follows the same decay law as a host of its mass and luminosity (activity.coronal_xuv_at, its stored log_lx_lbol where it has one), starting from the system's age"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "main-sequence and giant companions"
+            ],
+            [
+              "What would show it wrong",
+              "a companion much younger or older than the host, or a remnant with a stored XUV history of its own"
+            ],
+            [
+              "What replaces it",
+              "the companion's own stored age and spin history"
+            ],
+            [
+              "Evidence",
+              "derived: the host's law; remnants without a stored XUV power give none (RF5)"
+            ]
+          ],
+          "id": "DS3",
+          "key": "6.241:DS3",
+          "kind": "T",
+          "slug": "6-241-ds3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a companion's XUV history follows the same decay law as a host of its mass and luminosity (activity.coronal_xuv_at, its stored log_lx_lbol where it has one), starting from the system's age"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "clear-sky doses"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose air cuts the stars' light differently by incidence angle"
+            ],
+            [
+              "What replaces it",
+              "a per-star zenith angle"
+            ],
+            [
+              "Evidence",
+              "derived: the kernel is run once per star with the same column and the sums of its linear outputs (DNA dose, UV index) are taken"
+            ]
+          ],
+          "id": "DS4",
+          "key": "6.241:DS4",
+          "kind": "P",
+          "slug": "6-241-ds4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the ultraviolet spectra of the stars are added at the ground with one air column and one ozone column; the ozone layer's temperature is that of the whole field's flux"
+        }
+      ],
+      "slug": "6-241-stand-ins-of-the-dose-from-the-radiation-field",
+      "title": "Stand-ins of the dose from the radiation field"
+    },
+    {
       "key": "6.242",
       "number": "6.242",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+            ],
+            [
+              "The range it moves in",
+              "normalization 1e-5 to 1e-3; exponents fixed by the form"
+            ],
+            [
+              "Where it holds",
+              "a viscous disc of 0.01 to 0.1 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a measured pebble flux (drift in resolved discs), or a disc model with a different age law"
+            ],
+            [
+              "What replaces it",
+              "a chemistry and pebble-flux model such as the CHEMCOMP code of [R5210]"
+            ],
+            [
+              "Evidence",
+              "form and numbers of [R5211], recalled, paper not opened; [R5210] abstract read for the use. Read the paper at the build (T3 to T1)"
+            ]
+          ],
+          "id": "DE1",
+          "key": "6.242:DE1",
+          "kind": "T",
+          "slug": "6-242-de1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.PEBBLE_FLUX_EARTH_MASSES_PER_YR 9.5e-5 at 1 Myr, solids over gas to the 5/3, star mass to the 1/3, age to the -1/3: the pebble mass flux through the disc"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+            ],
+            [
+              "The range it moves in",
+              "60 to 250 AU at 1 Myr"
+            ],
+            [
+              "Where it holds",
+              "a disc of 10 to 300 AU"
+            ],
+            [
+              "What would show it wrong",
+              "a resolved disc whose dust ring front moves at another pace"
+            ],
+            [
+              "What replaces it",
+              "as DE1"
+            ],
+            [
+              "Evidence",
+              "[R5211], recalled; the number is computed from the two recalled efficiencies"
+            ]
+          ],
+          "id": "DE2",
+          "key": "6.242:DE2",
+          "kind": "T",
+          "slug": "6-242-de2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.FRONT_AU_AT_1_MYR 122 (growth efficiency 0.05, solids over gas 0.01): the pebble growth front reaches r_g = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+            ],
+            [
+              "The range it moves in",
+              "step against a decay of one growth time at the edge"
+            ],
+            [
+              "Where it holds",
+              "all discs; the M dwarf rows are suspect (0.017 Myr)"
+            ],
+            [
+              "What would show it wrong",
+              "an M dwarf disc with pebbles at 1 Myr or more"
+            ],
+            [
+              "What replaces it",
+              "a gradual decay law from a disc model"
+            ],
+            [
+              "Evidence",
+              "my simplest form that conserves the dust; speculative, section 4 of the note"
+            ]
+          ],
+          "id": "DE3",
+          "key": "6.242:DE3",
+          "kind": "P",
+          "slug": "6-242-de3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+            ],
+            [
+              "The range it moves in",
+              "t_nu 0.2 to 2 Myr"
+            ],
+            [
+              "Where it holds",
+              "a Sun-like disc"
+            ],
+            [
+              "What would show it wrong",
+              "accretion rates at 1 to 2 Myr outside 3e-9 to 3e-8 solar masses per year"
+            ],
+            [
+              "What replaces it",
+              "a measured accretion history by mass"
+            ],
+            [
+              "Evidence",
+              "standard viscous disc theory; the numbers are mine, sized to 1e-8 solar masses per year at 1 to 2 Myr"
+            ]
+          ],
+          "id": "DE4",
+          "key": "6.242:DE4",
+          "kind": "P",
+          "slug": "6-242-de4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+            ],
+            [
+              "The range it moves in",
+              "alpha 1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "gas between a line and a place inside it"
+            ],
+            [
+              "What would show it wrong",
+              "a measured turbulence of discs far from 1e-3"
+            ],
+            [
+              "What replaces it",
+              "a viscous-spreading model of the lines"
+            ],
+            [
+              "Evidence",
+              "steady-disc theory, alpha from the observed range; the boxcar is my simplest form, speculative"
+            ]
+          ],
+          "id": "DE5",
+          "key": "6.242:DE5",
+          "kind": "P",
+          "slug": "6-242-de5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+            ],
+            [
+              "The range it moves in",
+              "0.35 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "the water line, other lines when asked"
+            ],
+            [
+              "What would show it wrong",
+              "a measured ice-to-rock ratio just outside a snow line"
+            ],
+            [
+              "What replaces it",
+              "a diffusion model of the line"
+            ],
+            [
+              "Evidence",
+              "[R5209] abstract read: local vapor enhanced by more than an order of magnitude under nominal conditions, solids enhanced outside the front; the band width (a gas scale height) is mine"
+            ]
+          ],
+          "id": "DE6",
+          "key": "6.242:DE6",
+          "kind": "T",
+          "slug": "6-242-de6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned disk_drift.COLD_FINGER_LEAK 0.9: the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "all ices"
+            ],
+            [
+              "What would show it wrong",
+              "none: it follows from the front"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "geometry of the front, section 2.1 of the note"
+            ]
+          ],
+          "id": "DE7",
+          "key": "6.242:DE7",
+          "kind": "D",
+          "slug": "6-242-de7",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "all discs"
+            ],
+            [
+              "What would show it wrong",
+              "E = 1 not reproducing the static gas (the build's test)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "disk_condensation._gas_and_solid_atoms, E = 1 recovers GEN.1363"
+            ]
+          ],
+          "id": "DE8",
+          "key": "6.242:DE8",
+          "kind": "D",
+          "slug": "6-242-de8",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+            ],
+            [
+              "The range it moves in",
+              "core mass 10 to 20 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "giants with a disc"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose age of gas gathering is measured or modelled otherwise"
+            ],
+            [
+              "What replaces it",
+              "a formation-history model per giant"
+            ],
+            [
+              "Evidence",
+              "my derivation to avoid a draw; speculative"
+            ]
+          ],
+          "id": "DE9",
+          "key": "6.242:DE9",
+          "kind": "P",
+          "slug": "6-242-de9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches its core mass, capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the open points of the note"
+            ],
+            [
+              "What would show it wrong",
+              "a measure in which the enrichment ratio is clearly lower in discs with giants"
+            ],
+            [
+              "What replaces it",
+              "each as its own item"
+            ],
+            [
+              "Evidence",
+              "listed in section 6 of the note as not modelled"
+            ]
+          ],
+          "id": "DE10",
+          "key": "6.242:DE10",
+          "kind": "P",
+          "slug": "6-242-de10",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planned: the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
+        }
+      ],
+      "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disk",
+      "title": "Stand-ins of the drift and evaporation of the ices in the disk"
+    },
+    {
+      "key": "6.245",
+      "number": "6.245",
       "rows": [
         {
           "burn_down": null,
@@ -56101,13 +57311,13 @@
             ],
             [
               "Evidence",
-              "PREDICTED. READ [R5208: Section 3.1]"
+              "PREDICTED. READ [R5213: Section 3.1]"
             ]
           ],
           "id": "SE1",
-          "key": "6.242:SE1",
+          "key": "6.245:SE1",
           "kind": "T",
-          "slug": "6-242-se1",
+          "slug": "6-245-se1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -56139,13 +57349,13 @@
             ],
             [
               "Evidence",
-              "PREDICTED. READ [R5208: Section 3.1]"
+              "PREDICTED. READ [R5213: Section 3.1]"
             ]
           ],
           "id": "SE2",
-          "key": "6.242:SE2",
+          "key": "6.245:SE2",
           "kind": "T",
-          "slug": "6-242-se2",
+          "slug": "6-245-se2",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -56177,13 +57387,13 @@
             ],
             [
               "Evidence",
-              "PREDICTED. READ [R5208: Section 3.1, Section 5]"
+              "PREDICTED. READ [R5213: Section 3.1, Section 5]"
             ]
           ],
           "id": "SE3",
-          "key": "6.242:SE3",
+          "key": "6.245:SE3",
           "kind": "T",
-          "slug": "6-242-se3",
+          "slug": "6-245-se3",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -56219,9 +57429,9 @@
             ]
           ],
           "id": "SE4",
-          "key": "6.242:SE4",
+          "key": "6.245:SE4",
           "kind": "P",
-          "slug": "6-242-se4",
+          "slug": "6-245-se4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
@@ -56229,7 +57439,7 @@
           "what": "bulk_structure mantle table (_MANTLE_RHO to 2.8 TPa, a Gibbs minimisation of the [R4233] end-members, no dissociation steps) is kept as it is"
         }
       ],
-      "slug": "6-242-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
+      "slug": "6-245-stand-ins-of-the-dissociation-of-mgsio3-in-the-mantles-of-massive-rocky-planets",
       "title": "Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets"
     }
   ]

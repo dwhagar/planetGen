@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where each star type and phenomenon belongs: what is built and what is left (GEN.103) - planetGen docs</title>
+<meta name="description" content="Boss (2026-10-07 11:47Z) asked for the tiered structure of where stars of different types sit in the galaxy, and for the kinds of phenomena with similar restrictions, added to the density and type draws.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/generation/placement-by-population.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/generation/placement-by-population.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="where-each-star-type-and-phenomenon-belongs-what-is-built-and-what-is-left-gen103">Where each star type and phenomenon belongs: what is built and what is left (GEN.103)</h1><p class="meta">docs/design/generation/placement-by-population.md</p><details class="toc"><summary>On this page (11 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-decides-where-a-thing-goes">1. What decides where a thing goes</a></li><li style="margin-left:0px"><a href="#2-built-the-placement-table">2. Built: the placement table</a></li><li style="margin-left:0px"><a href="#3-left-three-rules-for-the-type-draws">3. Left: three rules for the type draws</a></li><li style="margin-left:14px"><a href="#31-close-pairs-rise-as-metallicity-falls">3.1 Close pairs rise as metallicity falls</a></li><li style="margin-left:14px"><a href="#31b-the-check-that-the-numbers-act-as-expected-test196">3.1b The check that the numbers act as expected (TEST.196)</a></li><li style="margin-left:14px"><a href="#32-massive-multiples-sit-in-young-regions">3.2 Massive multiples sit in young regions</a></li><li style="margin-left:14px"><a href="#33-wide-pairs-survive-less-where-it-is-dense">3.3 Wide pairs survive less where it is dense</a></li><li style="margin-left:0px"><a href="#4-how-the-rules-reach-the-draw">4. How the rules reach the draw</a></li><li style="margin-left:0px"><a href="#5-what-closes-gen103">5. What closes GEN.103</a></li><li style="margin-left:0px"><a href="#6-check-of-the-pasted-reference-list-2026-10-16-615-pm-edt">6. Check of the pasted reference list (2026-10-16, 6:15 PM EDT)</a></li><li style="margin-left:0px"><a href="#7-bosss-answers-612-to-615-pm-edt-2026-10-16">7. Boss's answers (6:12 to 6:15 PM EDT, 2026-10-16)</a></li></ul></details>
+<p>Boss (2026-10-07 11:47Z) asked for the tiered structure of where stars of different types sit in the galaxy, and for the
+kinds of phenomena with similar restrictions, added to the density and type draws. This note is the review of
+2026-10-16 turned into a table: which placement rules the code already has, and which three population-dependent rules
+for the type draws are still missing, each with a way to calculate it and, for two of them, the constants Boss supplied on 2026-10-16.</p>
+<p>Nothing here is a fixed catalogue. Every number a rule uses comes from the sector profile (<code>galaxy/profile.py</code>), which is
+a function of the galaxy shape, the cell's address and the galaxy seed. A rule below either reads a profile field or
+names the physical law that turns profile fields into the number. Where a law needs a constant from the literature the
+note says so, marks it for Boss's research, and the code reads it from <code>tuning.py</code> with its source named.</p>
+<p>Informs: GEN.103, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.275.
+Status: 3.1 and 3.3 built (GEN.103); 3.2 dropped by Boss (2026-10-17, 10:07 AM EDT, GEN.373); check TEST.196 queued. Design dated 2026-10-16. Evidence tags: [S] read from the repository, [R] recalled and unconfirmed, [C] computed here.</p>
+<h2 id="1-what-decides-where-a-thing-goes">1. What decides where a thing goes</h2>
+<p>A cell's profile carries nine populations (<code>profile.populations</code>, each with a density, a share of the cell's stars, an age
+window, a metallicity peak, a velocity dispersion and a rotation rule) and a <code>kind_factors</code> map. Two kinds of rule sit
+on top of them, and the first is complete.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Question it answers</th>
+<th>Where it lives</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Density</td>
+<td>How many systems does the cell hold?</td>
+<td><code>galaxy/density.relative_density</code>; <code>profile.expected_systems</code></td>
+<td>built</td>
+</tr>
+<tr>
+<td>Population mix</td>
+<td>Which populations are they from?</td>
+<td><code>galaxy/density.population_densities</code>; <code>profile.mix</code>, <code>profile.populations</code></td>
+<td>built (GEN.234)</td>
+</tr>
+<tr>
+<td>Age and metallicity</td>
+<td>How old, how metal rich?</td>
+<td><code>tuning.STELLAR_POPULATION_AGE_RANGES_GY</code>; <code>profile._fe_h</code>; <code>bright_stars.py</code> reads <code>populations[...].fe_h</code></td>
+<td>built (GEN.158, GEN.234)</td>
+</tr>
+<tr>
+<td>Per-kind rate factors</td>
+<td>How much of a phenomenon does the place scale?</td>
+<td><code>profile.kind_factors_at</code>; <code>run_sector.py</code> multiplies <code>phenomenon_rate_per_star</code></td>
+<td>built (GEN.236)</td>
+</tr>
+<tr>
+<td>Scatter placement</td>
+<td>Where do the single objects go?</td>
+<td><code>phenomenon_scatter.py</code>, one weight per band and longitude bin</td>
+<td>built (GEN.278)</td>
+</tr>
+<tr>
+<td>Type draws by population</td>
+<td>Does the place change how many stars a system holds and how far apart they sit?</td>
+<td><code>generation/multistar.py</code></td>
+<td><strong>not built</strong> (section 3)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-built-the-placement-table">2. Built: the placement table</h2>
+<p>Each row is a kind the registry (<code>generation/phenomena/registry.py</code>) already places, with the rule that decides where. The
+&quot;Follows&quot; column is what the draw is weighted by; no row has a position or a count written into it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind (registry gate)</th>
+<th>Follows</th>
+<th>Why</th>
+<th>Where it is in the code</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>star-system (stellar density)</td>
+<td>total density; the population draws the age and [Fe/H]</td>
+<td>the field stars are the populations</td>
+<td><code>density.population_densities</code>, <code>star_population.py</code></td>
+</tr>
+<tr>
+<td>bright-star (stellar density)</td>
+<td>density, population by population</td>
+<td>the bright tail of each population's mass function</td>
+<td><code>bright_stars.py</code> (pre-placed, per mass cell)</td>
+</tr>
+<tr>
+<td>black-hole, neutron-star (stellar density)</td>
+<td>stars, factor 1</td>
+<td>born where massive stars were, then kicked into the disk's thickness</td>
+<td><code>kind_factors</code> 1; <code>phenomenon_scatter</code> band density</td>
+</tr>
+<tr>
+<td>neutron-star, magnetar (young stars)</td>
+<td>the young population and its arm contrast, none in the halo or a cluster</td>
+<td>too young to have drifted</td>
+<td><code>SCATTER_CLASS_GATES</code>, <code>phenomenon_scatter.py</code></td>
+</tr>
+<tr>
+<td>nebula (hot stars)</td>
+<td>the cold gas fraction around the cell's own hot stars</td>
+<td>emission and reflection nebulae need a hot star and gas</td>
+<td><code>kind_factors[&quot;nebula&quot;]</code></td>
+</tr>
+<tr>
+<td>molecular-cloud (nebula field)</td>
+<td>cold gas fraction times the young share against the solar circle's</td>
+<td>the places that form stars</td>
+<td><code>kind_factors[&quot;molecular-cloud&quot;]</code></td>
+</tr>
+<tr>
+<td>supernova-remnant (stellar density)</td>
+<td>the gas fraction, none in the halo or in clusters, kept inside a superbubble</td>
+<td>the shell shines only where it meets gas</td>
+<td><code>kind_factors[&quot;supernova-remnant&quot;]</code></td>
+</tr>
+<tr>
+<td>planetary-nebula, brown-dwarf (stellar density)</td>
+<td>stars, factor 1</td>
+<td>every population makes both</td>
+<td><code>kind_factors</code> 1</td>
+</tr>
+<tr>
+<td>rogue-planet, comet (stellar density)</td>
+<td>the planet occurrence at the cell's [Fe/H], averaged over its populations</td>
+<td>planets favour metal-rich stars</td>
+<td><code>metallicity.planet_occurrence_factor</code></td>
+</tr>
+<tr>
+<td>hypervelocity-star, runaway-star</td>
+<td>the central black hole; the stars' own speeds</td>
+<td>not a population effect</td>
+<td><code>wanderer</code> pass; <code>flag_fast_stars</code></td>
+</tr>
+<tr>
+<td>quasar</td>
+<td>the nucleus</td>
+<td>one per galaxy</td>
+<td><code>nucleus</code> pass</td>
+</tr>
+</tbody>
+</table></div>
+<p>The cluster and satellite populations (GEN.160, GEN.237) are placed by the component field, not by a gate: their density
+is the components' systems in the cell's cube.</p>
+<h2 id="3-left-three-rules-for-the-type-draws">3. Left: three rules for the type draws</h2>
+<p><code>multistar-and-compact-systems.md</code> section 6.6 names three effects of the population on a system's stars. 3.1 and 3.3
+are built (GEN.103: <code>generation/place_terms.py</code>, <code>StarSystem._companion</code>, <code>wide_binary.py</code>); 3.2 is not, and the scatter's
+member trees (<code>multistar.py</code>) read the star's mass and nothing about the place.
+Each rule below is a function of fields the profile already holds. The constants are the only things to look up, and
+they sit in <code>tuning.py</code> with a source.</p>
+<h3 id="31-close-pairs-rise-as-metallicity-falls">3.1 Close pairs rise as metallicity falls</h3>
+<p>[R3109] corrected five surveys for their selection biases and found
+one consistent trend: the intrinsic fraction of solar-type primaries (about 0.6 to 1.5 solar masses) with a companion inside
+10 AU (periods under 10^4 days) is <strong>53% +-12% at [Fe/H] -3.0, 40% +-6% at -1.0, 24% +-4% at -0.2 and 10% +-3% at +0.5</strong>
+[S: the abstract, read through search results; the paper's full text could not be opened from this environment].
+[R0223] found the same direction in APOGEE: metal-poor stars ([Fe/H] below about -0.5) are
+two to three times as often in multiples as metal-rich ones (above about 0). [R0281] reproduces it in
+radiation-hydrodynamic simulations, where low opacity lets the disk fragment more and the companions migrate inside
+10 AU [R].</p>
+<p>Rule (Boss, 6:12 to 6:15 PM EDT, decided): the close-companion chance follows one pooled line in [Fe/H], read at the star's own
+[Fe/H] (<code>PopulationProfile.fe_h</code>, peak and scatter, drawn per population by the cell), for <strong>every primary mass, with no fade</strong>.
+<code>F</code> is the straight line between the four points above, held flat past the ends; <code>F(0)</code> is 20%. The factor
+<code>F(fe_h) / F(0)</code> multiplies the <strong>odds</strong> <code>p / (1 - p)</code> of the close share the generator already has (Boss, 7:19 PM EDT, on a card: the odds
+form, not the chance), and nothing else moves:</p>
+<ul>
+<li>Built in GEN.448 (it was two rolls, &quot;has a companion&quot; then a coin flip between close and wide): the chance of a companion,
+<code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[class]</code> (O 0.90, early B 0.84, mid B 0.76, B 0.65, A 0.55, F 0.47, G 0.44, K 0.40, M 0.26; GEN.449), is shared between
+the close range (0.05 to 0.25 AU), the inner range (0.25 to 10 AU) and the outer range (10 AU and out) by Moe and Di Stefano's
+companions per decade of period (<code>generation/companion_classes.py</code>; <a href="../systems/multistar-and-compact-systems.html">multistar-and-compact-systems.md</a> 4).
+The points describe companions inside 10 AU, so the close and inner ranges together are <code>p_in0 = P_binary(class) * (their share)</code> (G 0.126, O 0.41 before the place's cut), and the outer range is <code>p_out</code>.</li>
+<li>New: <code>odds_in = p_in0 / (1 - p_in0) * F(fe_h) / F(0)</code>, so <code>p_in = odds_in / (1 + odds_in)</code>; <code>p_out</code> is unchanged (answer 3:
+no dependence); one roll then picks close, wide or single from <code>p_in</code> (split between the close and inner ranges as before the factor), <code>p_out</code> and the rest, with <code>p_in + p_out</code> held to at most 1: where the sum
+would pass 1 the outer share is cut to <code>1 - p_in</code>, the one place the share beyond 10 AU moves with [Fe/H], an exception to answer 3 that the wide-flatness check skips. The place then keeps the part of each range under its widest axis (3.3); what it drops is lost from the chances, not moved to another range.</li>
+<li>Why the odds: the chance form lets a massive star's close share run to 1 (an O star at [Fe/H] -3.0 would have a companion inside 10 AU every time),
+against the O and early-B surveys that find no change within about 30%; the odds form never passes 1 and moves a star that is already likely
+to have a companion less. It uses no constant beyond the four points (a fade above 2 solar masses, which Boss declined, or a per-mass ceiling would).</li>
+<li>A G dwarf inside 10 AU then gets 0.28, 0.22, 0.15 and 0.07 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, against 53, 40, 24 and 10%
+(+-12, 6, 4, 3) in the paper [C]: the shape follows the line (the odds ratios equal <code>F / F(0)</code>), the level is about 0.6 of it (0.52 to 0.67 at the four points). The cause is not settled [R]:
+Table 13's 0.15 companions inside log P 3.7 are a count per primary, and the generator's chance is the fraction of stars with one. An O star inside 10 AU goes from 0.41 at [Fe/H] 0 to 0.54 at -0.7 (+31%).</li>
+</ul>
+<p>The factor is a function of the star's own [Fe/H] and nothing else, so no population is named.</p>
+<p>GEN.705: the tree draw (<code>multistar.close_trend</code>, <code>draw_member_tree</code>) applies the factor. The <code>star-count</code> table is the Sun's neighbourhood (<code>F(0)</code>);
+the primary's share of companions inside 10 AU is the part of its period law under the period of 10 AU (<code>_inside_share</code>); that part's chance goes through
+<code>close_binary_trend.scaled_close_chance</code>, the outside part keeps its chance (it gives way only past 1), the counts of 2 to 7 stars keep their proportions, and the root pair's period draw
+gives the inside range the matching odds (<code>_Builder.period_days</code>). A system build passes the primary's [Fe/H] (<code>Placed.fe_h</code>), as the scatter does.</p>
+<p>What the sources limit:</p>
+<ul>
+<li><strong>Which stars the four points describe.</strong> Field solar-type dwarfs and subgiants, pooled over the disk and halo samples the
+five surveys hold; they are not four populations. The -3.0 end rests on the Carney-Latham halo sample and the +0.5 end on
+Kepler and APOGEE, so the line between them is an interpolation of a pooled trend, not a measurement per population. Boss chose
+the pooled line (answer 1) over a per-population one, which no source gives.</li>
+<li><strong>Mass: all masses, which the sources do not support above about 1.5 solar masses.</strong> The points are for 0.6 to 1.5 solar masses.
+Moe, Kratter and Badenes argue the close fraction of massive stars does not change with metallicity [R]; the BLOeM survey [R4551] finds early-B stars at the Small Cloud's
+metallicity ([Fe/H] about -0.7) <em>more</em> often close than in the Milky Way, so early B may follow the trend while O stars do not.
+Boss's decision is to apply the line to every mass, on the odds, and let the check (3.1b) show where the numbers leave the published ranges.
+What the line does to a massive star is in the table below: the plain factor would have pushed O stars below [Fe/H] about -0.7 past the observed
+ceiling (0.77 at -0.7 against 0.69 +-0.09), which is why Boss chose the odds form.</li>
+<li><strong>Wide pairs.</strong> Answer 3: no metallicity dependence, so the rule moves the close share only. [R1235]
+say the wide fraction is flat in [Fe/H] beyond about 250 AU and anticorrelated below about 200 AU; [R2062] find it peaks
+near [Fe/H] 0 and falls to both sides for 10^3 to 10^4 AU, and [R3298] say the sign depends on separation range
+and temperature. Wide pairs start at 0.25 AU (<code>WIDE_BINARY_SEPARATION_MIN_AU</code>, GEN.448); the outer range, 10 AU and out, carries no trend, and the inner range carries the close-binary one, so the 10 to 200 AU anticorrelation is left out; that is Boss's rule.</li>
+<li><strong>Iron or alpha.</strong> [R2965] find the close fraction follows the alpha abundance more
+steeply than iron, with a high alpha abundance suppressing it at most [Fe/H]. The generator has no alpha abundance. Used with [Fe/H] alone the rule would give the thick disk
+more close pairs than a high-alpha sample shows. [R: from the abstract only]</li>
+</ul>
+<p>What the pooled line does to each class (chance of a companion inside 10 AU at the Sun's neighbourhood, with the factor on the odds, from the generator's table, all [C]):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>[Fe/H]</th>
+<th>F</th>
+<th>F / F(0)</th>
+<th>O</th>
+<th>B</th>
+<th>A</th>
+<th>F</th>
+<th>G</th>
+<th>K</th>
+<th>M</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>-3.0</td>
+<td>53%</td>
+<td>2.65</td>
+<td>0.65</td>
+<td>0.50</td>
+<td>0.39</td>
+<td>0.32</td>
+<td>0.28</td>
+<td>0.26</td>
+<td>0.18</td>
+</tr>
+<tr>
+<td>-1.0</td>
+<td>40%</td>
+<td>2.00</td>
+<td>0.58</td>
+<td>0.43</td>
+<td>0.33</td>
+<td>0.26</td>
+<td>0.22</td>
+<td>0.21</td>
+<td>0.15</td>
+</tr>
+<tr>
+<td>-0.7</td>
+<td>34%</td>
+<td>1.70</td>
+<td>0.54</td>
+<td>0.39</td>
+<td>0.29</td>
+<td>0.23</td>
+<td>0.20</td>
+<td>0.18</td>
+<td>0.13</td>
+</tr>
+<tr>
+<td>-0.4</td>
+<td>28%</td>
+<td>1.40</td>
+<td>0.49</td>
+<td>0.35</td>
+<td>0.25</td>
+<td>0.20</td>
+<td>0.17</td>
+<td>0.16</td>
+<td>0.11</td>
+</tr>
+<tr>
+<td>-0.2</td>
+<td>24%</td>
+<td>1.20</td>
+<td>0.45</td>
+<td>0.31</td>
+<td>0.22</td>
+<td>0.17</td>
+<td>0.15</td>
+<td>0.14</td>
+<td>0.09</td>
+</tr>
+<tr>
+<td>0.0</td>
+<td>20%</td>
+<td>1.00</td>
+<td>0.41</td>
+<td>0.28</td>
+<td>0.19</td>
+<td>0.15</td>
+<td>0.13</td>
+<td>0.12</td>
+<td>0.08</td>
+</tr>
+<tr>
+<td>+0.5</td>
+<td>10%</td>
+<td>0.50</td>
+<td>0.26</td>
+<td>0.16</td>
+<td>0.11</td>
+<td>0.08</td>
+<td>0.07</td>
+<td>0.06</td>
+<td>0.04</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="31b-the-check-that-the-numbers-act-as-expected-test196">3.1b The check that the numbers act as expected (TEST.196)</h3>
+<p>Boss (6:15 PM EDT): &quot;build into that a check to see if the numbers act as expected.&quot; It is TEST.196, owner Core 4, in the census harness next
+to TEST.186 (Core 3's; ask before editing <code>census.py</code>). It fills seeded sectors across the [Fe/H] range, counts the share of
+primaries with a companion inside 10 AU by primary-mass bin and [Fe/H] bin, and compares each bin to the expected range below plus
+the binomial allowance of its sample (three standard errors), and shows the wide share is flat in [Fe/H]. It fails the run when a bin with a published
+range is outside it, prints every bin (also the ones with no range), and writes the table to the audit report. The ranges are reference values for the check
+and are never read by the draw.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Primary mass bin</th>
+<th>Expected close share (inside 10 AU)</th>
+<th>Source</th>
+<th>What the check does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.6 to 1.5 Msun (G, late F, early K)</td>
+<td>the shape: 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5, as ratios to the value at 0 (2.65, 2.0, 1.2, 0.5); the level at [Fe/H] 0: 0.15 +-0.03 companions inside log P 3.7</td>
+<td>[R3109] [S: abstract]; [R3108: Table 13]</td>
+<td>fails when a ratio is outside its range widened by the sampling error, or the level outside Table 13's</td>
+</tr>
+<tr>
+<td>7 +-2 Msun (mid B)</td>
+<td>at least 23 +-7% (companions at periods 100 to 1500 d only, mass ratio 0.1 to 1); [Fe/H] about 0</td>
+<td>[R3108] [S: search summary of the abstract]</td>
+<td>fails below the lower bound at [Fe/H] -0.2 to 0</td>
+</tr>
+<tr>
+<td>28 +-8 Msun (O)</td>
+<td>between 35 +-12% (periods 100 to 1500 d) and about 69 +-9% ([R3892], periods to about 3000 d, intrinsic binary fraction)</td>
+<td>[R3108, R3892] [S: search summaries]</td>
+<td>fails outside the span at [Fe/H] -0.2 to 0</td>
+</tr>
+<tr>
+<td>O and early B across [Fe/H] -0.7 to +0.1</td>
+<td>the same value within about 30% (no trend)</td>
+<td>no source</td>
+<td>fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gave 1.29 for O at -0.7 before GEN.448 and gives 1.32 now, see below)</td>
+</tr>
+<tr>
+<td>below 0.6 Msun, 1.5 to 5 Msun</td>
+<td>no number verified in this environment; the close fraction rises with mass</td>
+<td>[R3108] (not opened)</td>
+<td>printed, never fails, until Boss does the research</td>
+</tr>
+<tr>
+<td>outer share (10 AU and out), all masses</td>
+<td>no change with [Fe/H] (answer 3)</td>
+<td>the rule itself</td>
+<td>fails when two [Fe/H] bins differ by more than the allowance; skips the O and B bins where the companion chance saturates (see above)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Predicted first-run result, from the table above (GEN.448 changed the levels): the G-dwarf bins keep the pooled line's shape (the odds ratios equal <code>F / F(0)</code>) at a level of
+0.13 at [Fe/H] 0, inside one standard error of Table 13's 0.15 +-0.03 and about 0.6 of the pooled line's 0.20, so the check compares ratios, not the line's absolute values (the absolute
+values would fail by construction: the 53, 40, 24 and 10% belong to the paper's own normalisation, whose cause is open). The O bin is 0.45 at [Fe/H] -0.2 and 0.54 at -0.7,
+between the 35% floor and the 69% ceiling, and the O and early-B flatness ratio (the inside-10-AU chance at -0.7 over 0) is 1.32 for O and 1.43 for B, outside the 1.3 edge of the row above: the odds form moves a star with a lower inside-10-AU chance more, and GEN.448 lowered it (O 0.45 to 0.41). Whether the edge widens or the check reads only O is open for TEST.196 and Boss; the B figure was already 1.36 before. If a run lands outside a range, the check fails it and reports the bin: it stays the safeguard
+for the next change, such as an alpha-abundance term or a different metallicity law.</p>
+<p><strong>TEST.196 (built, 2026-10-23).</strong> <code>tests/audit/close_binary.py</code> draws 4000 primaries in each of six mass bins (0.4, 1, 3, 7, 12 and 28 solar masses) at seven [Fe/H] (-3.0 to +0.5) with the generator's own companion draw (<code>StarSystem._companion</code>, and <code>wide_binary.sample_wide_binary_separation_au</code> for a wide pair's axis; the Sun's neighbourhood as the place), and <code>tests/test_close_binary_check.py</code> fails the run when a row of the table above is outside its range widened by three standard errors: the G dwarf ratios to [Fe/H] 0 (2.17, 1.82, 1.18, 0.54 at -3.0, -1.0, -0.2, +0.5 against the ranges 2.05 to 3.25, 1.7 to 2.3, 1.0 to 1.4, 0.35 to 0.65), mid B at least 16%, O between 23% and 78% at -0.2 and 0, the O and early-B flatness (the share at -0.7 over +0.1 is 1.40 and 1.44, inside a stand-in edge of 1.5 either way until the sources' own range is read), and the outer share flat in [Fe/H] for the M, G and A bins. The G dwarf level at 0 is 0.125 against Table 13's 0.15 +-0.03, printed and never failing. The report prints every bin, the ones with no range too (<code>close_binary.format_report</code>).</p>
+<h3 id="32-massive-multiples-sit-in-young-regions">3.2 Massive multiples sit in young regions</h3>
+<p>Observed: high-mass stars are far more often in multiples than low-mass ones, and the most massive sit in clusters and
+associations. The mass dependence is already in <code>BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS</code> and
+<code>hosts.STAR_COUNT_PROBABILITIES</code> (the <code>star-count</code> table); the place dependence is not. The <code>prevalence</code> argument of <code>draw_member_tree</code> already scales
+the chance of five or more stars, so the place only has to set it.</p>
+<p>Rule: <code>prevalence</code> is the young share against the solar circle's, clamped to 0 to some cap, where the young share is the profile's
+<code>populations[&quot;young&quot;].share</code> over the reference <code>profile._reference_young_share(shape)</code> that <code>kind_factors_at</code> already
+uses. That makes the knob 1 where a cell looks like the solar circle, above 1 in arms and associations and 0 in the halo. The cap on the rise is the one constant (a design default for Boss, since the five-or-more column is a tail).
+The five-or-more columns are the ones that scale, which is how the knob works today.</p>
+<h3 id="33-wide-pairs-survive-less-where-it-is-dense">3.3 Wide pairs survive less where it is dense</h3>
+<p>Two limits cut the widest axis a pair can keep. Both are functions of the cell and the second also of the stars' age.</p>
+<p><strong>The encounter limit.</strong> Passing stars and clouds unbind soft pairs [R0229, R1880]. [R2166] restate the 1985 result: the semi-major axis at which <strong>half of
+the pairs of age t survive</strong> is</p>
+<pre><code>a_1/2 = 0.002 * (M_1 + M_2) * sigma / (G * rho_2 * t)
+</code></pre>
+<p>with sigma the dispersion of the <strong>relative</strong> velocity between the pair and the perturbers (3 sigma^2 is their mean-square relative
+velocity; Jiang and Tremaine take 29 km/s one-dimensional for the Sun's neighbourhood and &quot;choose the relative velocity dispersion to be
+2^(1/2) times this, so sigma = 40 km/s&quot;), t the pair's age and rho_2 = the integral of n(M) M^2 dM, the second moment of the perturbers' mass
+function (units of solar masses squared per cubic parsec; their equation 47 gives 0.029 for rho_2 and 0.045 solar masses per cubic parsec
+for the mass density rho_1, so the mass-weighted perturber mass rho_2 / rho_1 is 0.64 solar masses) [S: read in the paper, 2026-10-17]. The
+constant 0.002 is Bahcall, Hut and Tremaine's, reproduced through equation (1).
+The same source gives its worked value: 3.1 x 10^4 AU for M_1 + M_2 = 2, sigma = 50 km/s, rho_2 = 0.03 and t = 10 Gyr, which I
+reproduced to 31,300 AU [C]. It is linear in 1/rho_2 and 1/t, which is what the code needs: a_1/2 follows the cell's density
+and the star's age with nothing stored by place. In the solar neighbourhood (a one-dimensional sigma of 30 km/s, rho 0.08 solar masses per pc^3, the default
+mass-weighted perturber mass of 1.19 solar masses below) it gives 1.4 x 10^4 AU for two solar masses at 10 Gyr, just under Boss's
+2 to 5 x 10^4 AU and Jiang and Tremaine's 50% survival near 30,000 AU, because the generator counts the remnants they leave out (see GEN.447 below).</p>
+<p><strong>GEN.447 (built, 2026-10-17).</strong> Two corrections to the first version of this limit, which read sigma as the population's own
+dispersion and used 0.4 solar masses for the perturber mass: <code>place_terms.RELATIVE_VELOCITY_FACTOR</code> (root 2) multiplies the
+population's one-axis dispersion (the profile's three-axis total over root 3, GEN.284), and <code>place_terms.mass_weighted_perturber_mass_solar</code>
+computes <code>&lt;M^2&gt; / &lt;M&gt;</code> from the generator's own initial mass function (<code>tuning.IMF_BREAKS_SOL</code>, <code>IMF_SLOPES</code>), aged to each
+population's age range at a steady rate (<code>tuning.STELLAR_POPULATION_AGE_RANGES_GY</code>), with the remnants of what has left the main
+sequence: stars up to the turn-off where the main-sequence lifetime of [R2055] (<code>ms_lifetime.mass_for_lifetime_gy</code>) reaches the age, white dwarfs from the
+<code>WHITE_DWARF_PROGENITOR_SOL</code> range by the initial-final relation (<code>WD_IFMR_*</code>), neutron stars and black holes from the windows of initial mass the generator draws them from (<code>remnant_progenitors</code>,
+<code>explosion-islands.md</code>) above the white dwarf range, the last two uniform over their mass ranges as the generator draws them. A cell takes the share-weighted mix of the populations it holds (<code>from_profile</code>). The two corrections go
+opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.44 solar masses for the whole disk against
+the 0.4 used before, makes it about 3.6 times shorter, so the limit is about 2.5 times shorter than the first version's. For the stars alone,
+aged over the disk's 10 Gyr of star formation, the mass-weighted mean is 0.568 (GEN.927; 0.553 on the Kroupa function), 12% under Jiang and Tremaine's 0.644 (the check in
+<code>tests/test_place_terms.py</code>); the rest of the 1.44 is remnants.
+<strong>The black holes do most of it:</strong> 0.18% of the stars formed (those above 20 solar masses) leave a 12.5 solar mass hole, which holds
+about 2.2 times the second moment of all the stars. That is the initial mass function's arithmetic (it gives about 1e8 holes for
+1e11 stars, the order of the Galaxy's estimated number), but it rests on every such hole staying in the disk; kicks that eject
+holes would lower it, and Jiang and Tremaine count observed stars only. The follow-up question for Boss and TEST.196 is whether the
+perturbers should include the dark remnants; the stars-only value is <code>remnants=False</code>.</p>
+<p><strong>GEN.554 (2026-10-21): the black holes follow the failed share.</strong> The neutron stars and black holes of the cohort now come from the windows of initial mass of the failed share of the middle draw at solar metallicity (13.6% of the 8 to 150 solar mass stars, <code>explosion-islands.md</code>; the natal kick of <code>natal-kick.md</code> ejects 16% of the neutron stars, which lets the cap on the black hole share rise), not from the old 20 to 100 solar mass range (29% of them). The perturber mass of the whole disk falls from 1.44 to 1.01 solar masses (the stars alone stay 0.553), the encounter limits lengthen by 1.4 times (the table of limits by place below is the new one), and the black holes' count falls to 7e7 for 5e10 solar masses of stars, under the published 1e8 to 1e9 (the shares a galaxy can draw, up to 45%, give 2.4e8 and are inside it). The figures below this paragraph (1.44, 175, the 0.61 share, the 0.29 of core-collapse stars) are the GEN.541 check as it was made.</p>
+<p><strong>GEN.927 and GEN.928 (2026-10-30): the mass function is Chabrier's, and the placed stars are its primaries.</strong> The single-star function is now the [R0705] log-normal below one solar mass and a 2.3 power law above it (<code>docs/design/galaxy/stellar-mass-function.md</code>), which has fewer very light stars than the Kroupa broken line: the mass-weighted perturber mass of the stars alone rises from 0.553 to 0.568 and of the whole disk from 1.01 to 1.19, the black holes' count for 5e10 solar masses of stars from 7e7 to 1.0e8 (the lower end of the published 1e8 to 1e9, so the gap the test used to record is closed), and the mean mass of a system from 0.50 to 0.52 solar masses (the placed stars are the primaries, each system's companions are the rest of the stars). The encounter limits shorten by 15% (the table below).</p>
+<p><strong>GEN.541 (checked 2026-10-18): the black hole inputs hold, so the remnants stay in.</strong> Four sources, read in full where quoted:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Input</th>
+<th>The generator</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Black holes among core-collapse stars</td>
+<td>0.29 of the stars from 8 to 150 solar masses (those from 20 up)</td>
+<td>[R4251: Table 4], read: the share of stars from 9 to 120 solar masses that explode is 55 to 74% for the four calibrated engines, so 26 to 45% leave a hole</td>
+</tr>
+<tr>
+<td>Mean hole mass</td>
+<td>12.5 solar masses (uniform from 5 to 20)</td>
+<td>the same paper, section 5.2: 9 solar masses if only the helium core collapses, 14 if the whole star does; [R3348: Table 10], single holes in the disk 14.2 and the bulge 11.7; [R3397] 7.8 +- 1.2 for the 16 holes of transient X-ray binaries, a sample chosen by flux</td>
+</tr>
+<tr>
+<td>Number in the Galaxy</td>
+<td>1.6e8 holes for 5e10 solar masses of stars (2.5e8 for 5e10 of stars after the return fraction 0.37)</td>
+<td>[R3348]: 1.2e8 single holes and 9.3e6 in binaries; the older estimates they list run from 1e8 to 1e9 ([R4040] to [R4366])</td>
+</tr>
+<tr>
+<td>The shape of the mass function</td>
+<td>uniform from 5 to 20</td>
+<td>Olejak: a peak at 10 to 15 solar masses falling to a tail (to 113 for one merger product); [R1328]: 15 of 20 holes in a low peak, the rest in a high peak (13.5 to 28)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Every one of the generator's inputs lies inside the published range, so by the source rule (the widest range stands
+when sources disagree) the draw stays as it is. Its effect on the perturber mass, the disk's 10 Gy of star formation, with the
+other inputs as above (<code>place_terms</code>, &lt;M^2&gt; / <M> in solar masses):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Black holes</th>
+<th>Mean mass</th>
+<th>&lt;M^2&gt;</th>
+<th>Perturber mass</th>
+<th>Share of the second moment</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>none (stars, white dwarfs and neutron stars)</td>
+<td></td>
+<td></td>
+<td>0.60</td>
+<td>0</td>
+</tr>
+<tr>
+<td>the generator: uniform 5 to 20</td>
+<td>12.5</td>
+<td>175</td>
+<td>1.44</td>
+<td>0.61</td>
+</tr>
+<tr>
+<td>Farr et al.'s two peaks, 0.75 at 7.8 and 0.25 at 20</td>
+<td>10.8</td>
+<td>153</td>
+<td>1.34</td>
+<td>0.58</td>
+</tr>
+<tr>
+<td>Ozel et al.'s narrow peak, 7.8 +- 1.2</td>
+<td>7.8</td>
+<td>62</td>
+<td>0.89</td>
+<td>0.36</td>
+</tr>
+<tr>
+<td>the generator's shape, Olejak et al.'s number (half)</td>
+<td>12.5</td>
+<td>175</td>
+<td>1.03</td>
+<td>0.44</td>
+</tr>
+<tr>
+<td>Ozel et al.'s peak and Olejak et al.'s number</td>
+<td>7.8</td>
+<td>62</td>
+<td>0.75</td>
+<td>0.22</td>
+</tr>
+</tbody>
+</table></div>
+<p>The stars alone give 0.57 (Jiang and Tremaine's observed 0.64). So the black holes carry 0.2 to 0.6 of the
+second moment depending on which published mass function and count is taken, and the generator's default sits at the top
+of that range because its count is about twice Olejak et al.'s and its mean mass is above the X-ray binaries'. A galaxy of
+that many holes does hide them in <code>rho_2</code>; the observed stars-only figure does not, which is why <code>remnants=False</code> stays
+for the comparison. <code>tests/test_place_terms.py::test_the_black_hole_inputs_lie_inside_the_published_ranges</code> records the
+three ranges that hold.</p>
+<p><strong>The tidal limit.</strong> A pair of total mass M has a Jacobi radius of (G M / (4 Omega^2 - kappa^2))^(1/3), and
+4 Omega^2 - kappa^2 = 4 A (A - B) from Oort's constants. Boss's text wrote the last form with 2 A (A - B), which does not match
+its own first form; with A = 15.3 and B = -11.9 km/s/kpc the correct one gives 4 Omega^2 - kappa^2 = 1.75 x 10^-30 s^-2 (his
+&quot;about 2 x 10^-30&quot;) and <strong>1.73 pc</strong> for 2 solar masses, which matches Jiang and Tremaine's 1.7 pc; the 2 A (A - B) form would give 2.18 pc [C].
+Section 6.6 of <a href="../systems/multistar-and-compact-systems.html">multistar-and-compact-systems.md</a> takes this form from the galactic potential at the cell,
+the one the orbital update uses. Where the cell holds only its density, (M / (3 rho))^(1/3) is the same limit written with the local
+mass density (1.9 pc for 0.1 solar masses per pc^3 [C]) and serves as the check.</p>
+<p>The widest axis a wide pair may keep is the smaller of the two (answer 4: a <strong>sharp cut</strong> at a_1/2, a pair wider than that does not exist). It takes the
+place of the fixed 10,000 AU cap (<code>WIDE_BINARY_SEPARATION_MAX_AU</code>, answer 5), as section 6.6 now says: the axis is drawn from the companion lines of Moe and Di Stefano (GEN.448, 3.1) from the 0.25 AU lower edge, up to the limit instead of 10,000 AU. A cell whose limit is under 0.25 AU keeps no wide pair: the wide roll then gives the primary alone
+(the pair dissolved), which is the whole effect at the very center. Before GEN.448 the lower edge was 50 AU and the wide roll was a coin flip of 0.5; now the chances of the ranges the place keeps are the part of the birth distribution (to 20,000 AU) under its limit, so a tight place loses chances in proportion (<code>companion_classes.odds</code>). Today's shape, a 2 solar mass pair of age 10 Gyr, the density of the
+model's <code>relative_density</code> times <code>E / edge^3</code> times the cell's mean system mass (<code>galaxy.system_mass</code>, GEN.545; the rows below are worked out at the derived mean, about 0.52, GEN.928), the default perturber mass of 1.19 (GEN.927; 1.01 on the Kroupa mass function, 1.44 before the black holes followed the failed share) and the one-dimensional sigma [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Place</th>
+<th>rho (solar masses per pc^3)</th>
+<th>sigma (km/s)</th>
+<th>Encounter limit a_1/2</th>
+<th>Tidal limit</th>
+<th>Widest axis kept</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8.2 kpc out, in the plane</td>
+<td>0.048</td>
+<td>30</td>
+<td>13,900 AU</td>
+<td>496,000 AU</td>
+<td>13,900 AU</td>
+</tr>
+<tr>
+<td>bulge, 500 pc from the center</td>
+<td>6.9</td>
+<td>120</td>
+<td>387 AU</td>
+<td>94,600 AU</td>
+<td>387 AU</td>
+</tr>
+<tr>
+<td>bulge, 100 pc from the center</td>
+<td>77</td>
+<td>120</td>
+<td>35 AU</td>
+<td>42,400 AU</td>
+<td>35 AU</td>
+</tr>
+<tr>
+<td>10 pc from the center</td>
+<td>660</td>
+<td>120</td>
+<td>4 AU</td>
+<td>20,700 AU</td>
+<td>4 AU</td>
+</tr>
+<tr>
+<td>2 pc from the center</td>
+<td>61,000</td>
+<td>150</td>
+<td>under 1 AU</td>
+<td>4,600 AU</td>
+<td>under 1 AU, or none under 0.25 AU</td>
+</tr>
+</tbody>
+</table></div>
+<p>So the encounter limit, not the tide, decides everywhere, and the old fixed cap of 10,000 AU is a little under the disk's limit
+(13,900 AU) and far too wide in the bulge. That is the intended consequence of 6.6, and it is a visible one: a
+bulge sector holds only tight pairs. The reference density <code>rho_2</code> and sigma come from the profile (<code>gas.mass_solar</code>
+and <code>dark_matter</code> are left out of rho, which would shorten the limit a little). The sigma used is the share-weighted rms of the
+cell's populations (<code>profile._dispersion_kms</code>: the disk's, bulge's and halo's from the galaxy's own structure, GEN.532; the rest the one-axis <code>tuning.STELLAR_POPULATION_DISPERSION_KMS</code> times root 3, so every value the profile holds is a three-axis total, and <code>place_terms.from_profile</code> divides by root 3 again, GEN.284). The age is the star's own, so a young pair keeps a wider axis than an old one.</p>
+<h2 id="4-how-the-rules-reach-the-draw">4. How the rules reach the draw</h2>
+<p>Built. The close-pair factor reads the primary's own [Fe/H] (<code>primary_star.metallicity_fe_h</code>), so it needs nothing from the cell.
+The wide-pair limit needs the cell's density and dispersion: <code>place_terms.from_profile(profile)</code> builds a <code>PlaceTerms</code> once per
+cell (<code>FillContext.place_terms</code>), <code>FillContext.apply</code> and the pre-placed bright stars put it on <code>SystemConfig.PLACE_TERMS</code>, and a
+system with none takes the Sun's neighbourhood (<code>tuning.SOLAR_NEIGHBOURHOOD_*</code>). <code>StarSystem._companion</code> rolls none, close or wide
+in one draw and <code>WideBinaryPair</code> draws its axis up to <code>wide_pair_limit_au</code>. It is a function of the cell, so the same seed gives
+the same stars wherever a run lands (the GEN.39 rule), and it stays out of the stellar evolution constants. Section 3.2 would need
+the same record to carry the young-share prevalence.</p>
+<h2 id="5-what-closes-gen103">5. What closes GEN.103</h2>
+<ul>
+<li>3.1 and 3.3 are built to Boss's five answers (section 7). 3.2 needed a design cap on the prevalence; Boss dropped it (GEN.373, 2026-10-17, 10:07 AM EDT, his card answer as Core 4 reported it), so
+<code>prevalence</code> stays as built and the multi-star items (GEN.269 and GEN.270 to GEN.275, Core 3) can read <code>PlaceTerms</code> once they need it.</li>
+<li>TEST.196 (3.1b) follows, in the census harness (TEST.186, Core 3's).</li>
+</ul>
+<h2 id="6-check-of-the-pasted-reference-list-2026-10-16-615-pm-edt">6. Check of the pasted reference list (2026-10-16, 6:15 PM EDT)</h2>
+<p>Boss pasted the research; each entry was checked against what search results show of the source. The papers themselves
+could not be opened (arxiv.org is not reachable from this environment), so &quot;confirmed&quot; means the title, authors, journal and the quoted
+result appear together in at least one source result; numbers that rest on a secondary source are marked.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pasted citation</th>
+<th>Result</th>
+<th>What was found</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3109]</td>
+<td>confirmed</td>
+<td>Title &quot;The Close Binary Fraction of Solar-type Stars Is Strongly Anticorrelated with Metallicity&quot;, [R3109]. Points 53, 40, 24, 10% (section 3.1). Periods under 10^4 d and 0.6 to 1.5 solar masses, not 10^3.5 d and 0.6 to 1.2.</td>
+</tr>
+<tr>
+<td>[R0223]</td>
+<td>corrected</td>
+<td>Volume and page right. The title is &quot;Stellar Multiplicity Meets Stellar Evolution and Metallicity: The APOGEE View&quot;, with Mazzola among the authors; the pasted title, &quot;Stellar multiplicity in the APOGEE survey. I. ...&quot;, and the author list (Maoz, Ciotti, Krajnovic, Shen, Simon) are wrong. Finding: metal-poor stars have 2 to 3 times the multiplicity of metal-rich.</td>
+</tr>
+<tr>
+<td>[R1235]</td>
+<td>corrected</td>
+<td>The metallicity paper is [R1235], MNRAS Letters, &quot;The wide binary fraction of solar-type stars: emergence of metallicity dependence at a &lt; 200 AU&quot; [R1235]. MNRAS 480, 4884 (2018) (DOI sty2186) is a different 2018 Gaia wide-binary paper; its authors were not checked. The pasted title is wrong.</td>
+</tr>
+<tr>
+<td>[R1236]</td>
+<td>corrected</td>
+<td>Journal right. Title is &quot;A million binaries from Gaia eDR3: sample selection and validation of Gaia parallax uncertainties&quot; [R1236], not &quot;...validation of theoretical models&quot;. Its sample runs to 1 pc. A truncation of the separation distribution at 2 to 5 x 10^4 AU was not found in it: one review says chance alignments dominate beyond about 30,000 AU, and a different study finds a break near 0.1 pc. Could not confirm.</td>
+</tr>
+<tr>
+<td>[R2474]</td>
+<td>confirmed</td>
+<td>&quot;Gravitational Instabilities in Circumstellar Disks&quot;, pages 271-311, [R2474].</td>
+</tr>
+<tr>
+<td>[R0281]</td>
+<td>corrected</td>
+<td>The metallicity work is [R0281], &quot;The statistical properties of stars and their dependence on metallicity&quot; ([R0281]; the 2014 &quot;effects of opacity&quot; paper is MNRAS 442, 285). It found low metallicity gives more small-scale fragmentation, matching the close-binary trend. The pasted year and title are wrong, and 484, 2341 could not be confirmed.</td>
+</tr>
+<tr>
+<td>[R1880]</td>
+<td>confirmed in substance</td>
+<td>The result (&quot;soft binaries widen and dissolve, hard ones harden&quot;) is cited as Heggie's law in the search results; the volume and page were not seen.</td>
+</tr>
+<tr>
+<td>[R0229]</td>
+<td>corrected</td>
+<td>Volume and page right. The title is &quot;Maximum mass of objects that constitute unseen disk material&quot;, not &quot;Maximum sizes of compact perturbations in the Galaxy&quot;.</td>
+</tr>
+<tr>
+<td>[R2166]</td>
+<td>confirmed</td>
+<td>&quot;The Evolution of Wide Binary Stars&quot;, [R2166]. 1.7 pc Jacobi radius for a solar-mass pair confirmed; 50% survival near 30,000 AU is a secondary source's reading.</td>
+</tr>
+<tr>
+<td>[R4204]</td>
+<td>corrected</td>
+<td>Astrophysical Journal Letters 972, L19, &quot;Close Encounters of Wide Binaries Induced by the Galactic Tide: Implications for Stellar Mergers and Gravitational-wave Sources&quot; [R4204], by Stegmann, Vigna-Gomez, Rantala, Wagg, Zwick, Renzo, van Son, de Mink and White; not Physical Review D, and Antonini and Perets are not authors. It finds pairs wider than about 10^5 AU are torn apart by the tide, which does not support &quot;natal cluster dissolution&quot;.</td>
+</tr>
+<tr>
+<td>Gammie criterion, t_cool under 3 / Omega</td>
+<td>not checked</td>
+<td>Standard disk-fragmentation criterion; no source needed for the rule.</td>
+</tr>
+<tr>
+<td>Boss's diffusive formula</td>
+<td>wrong as typed</td>
+<td>a = (G M^2 / (8 pi G^2 n M_*^2 ln Lambda T))^(1/2) is not a length (units of mass times time) and holds no velocity dispersion; replaced by the form in 3.3.</td>
+</tr>
+<tr>
+<td>Jacobi form &quot;2 A (A - B)&quot;</td>
+<td>wrong as typed</td>
+<td>The first form, 4 Omega^2 - kappa^2, equals 4 A (A - B) (section 3.3).</td>
+</tr>
+</tbody>
+</table></div>
+<p>Sources added for the TEST.196 ranges (2026-10-16, 6:28 PM EDT; same method: search summaries only, the papers could not be opened):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Citation</th>
+<th>Result</th>
+<th>What was found</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3108]</td>
+<td>confirmed</td>
+<td>&quot;Mind Your Ps and Qs&quot; [R3108]. Binary fraction for periods 100 to 1500 d and mass ratio 0.1 to 1: 23 +-7% for mid-B primaries (7 +-2 Msun), 35 +-12% for O primaries (28 +-8 Msun). The companion count rises from 0.48 +-0.04 (solar-type) to 2.1 +-0.3 (O), but that counts all separations. Table 13 holds the per-mass multiplicity statistics; its close-fraction rows could not be read.</td>
+</tr>
+<tr>
+<td>[R3892]</td>
+<td>confirmed</td>
+<td>Intrinsic binary fraction 0.69 +-0.09 for Galactic O stars, periods up to about 3000 d.</td>
+</tr>
+<tr>
+<td>[R3892] (VLT-FLAMES Tarantula Survey VIII, A&amp;A)</td>
+<td>confirmed in substance</td>
+<td>0.51 +-0.04 for log P 0.15 to 3.5 in 30 Doradus; volume and page not seen.</td>
+</tr>
+<tr>
+<td>BLOeM [R4551]</td>
+<td>confirmed in substance</td>
+<td>Early-B close fraction at the Small Cloud's metallicity higher than the Milky Way's and the Large Cloud's, hinting at an anticorrelation for B stars; O stars constant (observed 45 +-4%, modelled about 0.70).</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="7-bosss-answers-612-to-615-pm-edt-2026-10-16">7. Boss's answers (6:12 to 6:15 PM EDT, 2026-10-16)</h2>
+<ol>
+<li><strong>Close-binary trend.</strong> One pooled field line (53, 40, 24, 10%), read at the star's own [Fe/H] (3.1).</li>
+<li><strong>Mass range.</strong> Every star mass, no fade, with a check that the numbers act as expected: TEST.196 (3.1b). The note records that the sources
+support the line only for 0.6 to 1.5 solar masses. Boss then chose, on a card (7:19 PM EDT), to apply the factor to the <strong>odds</strong> of a close companion,
+so a massive star's share stays inside the published span.</li>
+<li><strong>Wide pairs.</strong> No metallicity dependence.</li>
+<li><strong>Encounter limit.</strong> A sharp cut at a_1/2.</li>
+<li><strong>The 10,000 AU cap.</strong> Replaced by the derived limit (3.3); a cell whose limit is under the 0.25 AU lower edge keeps no wide pair (the lower edge was 50 AU before GEN.448).</li>
+</ol>
+<p>Design defaults chosen here, for Boss to overrule: where the close and wide chances together pass 1 (O stars below [Fe/H] about -0.5) the wide share gives way (3.1); the wide chance is not scaled by the
+log range kept (3.3); a dissolved wide pair leaves the primary alone (3.3).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

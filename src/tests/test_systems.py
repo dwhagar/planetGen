@@ -38,12 +38,11 @@ STAR_TYPES = [
     "K1III", "F0IB", "M2VII", "K5IV", "A0II", "M3IA+", "M50", "K8VI",
 ]
 
-HOT_STARS = ("O5V",)
+HOT_STARS = ("O5V", "M3IA+", "M50")
 HOT_STAR_TRIALS = 2
-"""A hot star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
+"""A hot or hypergiant star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
 test that builds fifteen of them ran for twenty minutes and hit the 900 s timeout. The O5V case builds two (four took 600 s on the GEN.1282 branch, 150 s each); the belt and the overlap checks are
-kept for each, and the request is not asked to give a world in two builds (one ecosphere draw in thirty around an O5V meets it, so two systems
-may give none), which the cooler stars' fifteen still ask."""
+kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason."""
 
 # A star whose ecosphere no planet can hold an air in (a white dwarf's lies at about 0.02 AU; a flaring red dwarf's, now and then) is
 # answered `unmet` for a habitable world (GEN.688) rather than by a world that is not what its conditions say.
@@ -469,24 +468,23 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
     retroactively overwritten whenever ASTEROID_BELT is required.
 
     The belt is still guaranteed; the habitable world no longer is (GEN.1130: the request raises the odds and never forces,
-    and a system the request did not reach is saved as it came), so what is asked of the request is that it answers, and that
-    over the trials it did raise the odds enough to give a world now and then (TEST.307: it was checked as "a world, or
-    `unmet_requirements` says so", and the request has not been a requirement since GEN.1130).
+    and a system the request did not reach is saved as it came), so what is asked of the request is that it answers (TEST.307:
+    it was checked as "a world, or `unmet_requirements` says so", and the request has not been a requirement since GEN.1130).
+
+    It was also asked that 15 trials gave a world at least once. Since GEN.1397 a world that meets the request is found by the
+    conditions and no class is drawn again until one fits, so a system the request aimed at has one in `hit` of cases
+    (`tuning.PREVALENCE_FORCED_HIT_RATES`, 0.069), and 15 trials have none about one time in three: the assertion was a coin
+    toss and is gone. The odds are the arithmetic of `tests/test_prevalence.py` and the count of `measure_habitable_count`.
     """
     failures_belt = 0
-    with_world = 0
     trials = HOT_STAR_TRIALS if star_type in HOT_STARS else 15
     for _ in range(trials):
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if habitable_request.count(system.all_planets) > 0:
-            with_world += 1
         assert system.habitable_request == ("aim" if habitable_request.count(system.all_planets) > 0 else "unmet")
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
-    if star_type not in HOT_STARS:
-        assert with_world >= 1, f"{star_type}: HABITABLE_WORLD=True gave no habitable world in any of {trials} trials"
 
 
 def test_wide_binary_asteroid_belts_forced_do_not_overlap_across_stars():

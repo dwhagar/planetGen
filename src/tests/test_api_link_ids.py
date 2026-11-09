@@ -115,8 +115,8 @@ def test_every_get_endpoint_is_audited_or_has_a_reason_it_carries_no_link():
 
 AUDITED_ENDPOINTS = (
     "api.containers_list", "api.container_detail", "api.container_contents", "api.containers_at", "api.facility_list",
-    "api.facility_orbit", "api.galaxy_cell", "api.galaxy_changes_route", "api.galaxy_charted_regions_route",
-    "api.galaxy_locate_route", "api.galaxy_made", "api.galaxy_nebula_cover_route", "api.galaxy_nodes_route",
+    "api.facility_orbit", "api.galaxy_cell", "api.galaxy_changes_route", "api.galaxy_charted_regions_route", "api.generated",
+    "api.galaxy_locate_route", "api.galaxy_nebula_cover_route", "api.galaxy_nodes_route",
     "api.galaxy_phenomena", "api.galaxy_sectors", "api.galaxy_shape", "api.galaxy_stage_route", "api.galaxy_stamp_route",
     "api.galaxy_superbubbles", "api.galaxy_window_route", "api.lookup_route", "api.moon_life_air", "api.moon_life_readings",
     "api.nav", "api.near", "api.object_children_route", "api.object_list", "api.object_ref_route", "api.object_sheet_route",
@@ -195,7 +195,7 @@ def test_every_endpoint_answer_carries_object_ids_only(mysql_config):
         f"/api/containers/{container}", f"/api/containers/{container}/contents", f"/api/containers/at?x={cx}&y={cy}&z={cz}",
         "/api/containers", "/api/galaxy/charted-regions", "/api/galaxy/nebula-cover", "/api/galaxy/stamp", "/api/galaxy/changes",
         "/api/galaxy/shape", "/api/table-estimates", "/api/facilities/orbit?host_type=planet&host_id=" + planet["id"],
-        "/api/facilities", "/api/sectors", f"/api/sectors/{sector_id}", f"/api/sectors/{sector_id}/facilities", "/api/systems",
+        "/api/facilities", "/api/sectors", f"/api/sectors/{sector_id}", f"/api/sectors/{sector_id}/facilities", "/api/systems", "/api/generated?kind=systems&since=0",
         f"/api/systems/{system_id}", f"/api/systems/{system_id}/scene", f"/api/systems/{system_id}/bodies", f"/api/systems/{system_id}/description",
         f"/api/systems/{system_id}/facilities", f"/api/systems/{system_id}/text", f"/api/systems/{system_id}/owner",
         f"/api/systems/{system_id}/habitable-species", "/api/phenomena", f"/api/phenomena/{rogue['type']}/{rogue['id']}",
@@ -205,7 +205,7 @@ def test_every_endpoint_answer_carries_object_ids_only(mysql_config):
         f"/api/near?from=system:{system_id}&distance=30", f"/api/near?from=planet:{planet['id']}&distance=30",
         "/api/near?point=5,5,5&distance=30", "/api/search?q=Audit", f"/api/search?q={detail['name']}",
         f"/api/lookup?text={detail['name']}", f"/api/lookup?text={system_id}", f"/api/galaxy/nodes?keys={','.join(chain)}",
-        f"/api/galaxy/stage?at={chain[-2]}", "/api/galaxy/stage", "/api/galaxy/sectors", "/api/galaxy/made?since=0",
+        f"/api/galaxy/stage?at={chain[-2]}", "/api/galaxy/stage", "/api/galaxy/sectors",
         "/api/galaxy/phenomena", "/api/galaxy/locate?q=Audit", f"/api/galaxy/locate?q={detail['name']}",
         "/api/galaxy/cell?x=5&y=5&z=5", f"/api/galaxy/window?at={chain[-3]}", "/api/galaxy/superbubbles",
         f"/api/nav?from=system:{system_id}&to=system:{other}",

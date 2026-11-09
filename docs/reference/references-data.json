@@ -74237,6 +74237,37 @@
    "volume": "121",
    "year": 2016
   },
+  "10.1002/2016jd025034": {
+   "authors": [
+    [
+     "Poluianov",
+     "S. V."
+    ],
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Mishev",
+     "A. L."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2016jd025034",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "8125",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions",
+   "type": "journal-article",
+   "volume": "121",
+   "year": 2016
+  },
   "10.1002/2016je005206": {
    "arxiv": "1712.06987",
    "authors": [
@@ -88764,6 +88795,33 @@
    "title": "Olivine rheology, shear stress, and grain growth in the lithospheric mantle: Geological constraints from the Kaapvaal craton",
    "type": "journal-article",
    "volume": "333-334",
+   "year": 2012
+  },
+  "10.1016/j.epsl.2012.05.036": {
+   "authors": [
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Mishev",
+     "A."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2012.05.036",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "114",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere",
+   "type": "journal-article",
+   "volume": "337-338",
    "year": 2012
   },
   "10.1016/j.epsl.2012.06.015": {
@@ -111161,6 +111219,29 @@
    "volume": "114",
    "year": 2009
   },
+  "10.1029/2008jd010557": {
+   "authors": [
+    [
+     "Masarik",
+     "J."
+    ],
+    [
+     "Beer",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2008jd010557",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "2008JD010557",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere",
+   "type": "journal-article",
+   "volume": "114",
+   "year": 2009
+  },
   "10.1029/2008jd010702": {
    "authors": [
     [
@@ -113821,6 +113902,34 @@
    "publisher": "American Geophysical Union (AGU)",
    "src": "crossref",
    "title": "K/U of the MORB Source and Silicate Earth",
+   "type": "journal-article",
+   "volume": "125",
+   "year": 2020
+  },
+  "10.1029/2020jd033147": {
+   "arxiv": "2009.07700",
+   "authors": [
+    [
+     "Poluianov",
+     "S. V."
+    ],
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2020jd033147",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "e2020JD033147",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)",
    "type": "journal-article",
    "volume": "125",
    "year": 2020
@@ -137765,6 +137874,29 @@
    "volume": "570",
    "year": 2014
   },
+  "10.1051/0004-6361/201424343": {
+   "authors": [
+    [
+     "Lambrechts",
+     "M."
+    ],
+    [
+     "Johansen",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201424343",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A107",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs",
+   "type": "journal-article",
+   "volume": "572",
+   "year": 2014
+  },
   "10.1051/0004-6361/201424412": {
    "arxiv": "1409.0466",
    "authors": [
@@ -143631,6 +143763,29 @@
    "title": "The best place and time to live in the Milky Way",
    "type": "journal-article",
    "volume": "647",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202039640": {
+   "authors": [
+    [
+     "Schneider",
+     "A. D."
+    ],
+    [
+     "Bitsch",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202039640",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A71",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "How drifting and evaporating pebbles shape giant planets",
+   "type": "journal-article",
+   "volume": "654",
    "year": 2021
   },
   "10.1051/0004-6361/202040058": {
@@ -157257,6 +157412,29 @@
    "title": "The Origin of the Mass‐Metallicity Relation: Insights from 53,000 Star‐forming Galaxies in the Sloan Digital Sky Survey",
    "type": "journal-article",
    "volume": "613",
+   "year": 2004
+  },
+  "10.1086/423611": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Zahnle",
+     "K. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/423611",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "490",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts",
+   "type": "journal-article",
+   "volume": "614",
    "year": 2004
   },
   "10.1086/423697": {
@@ -171767,6 +171945,37 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "814",
+   "year": 2015
+  },
+  "10.1088/0004-637x/815/2/109": {
+   "authors": [
+    [
+     "Piso",
+     "A. M. A."
+    ],
+    [
+     "Öberg",
+     "K. I."
+    ],
+    [
+     "Birnstiel",
+     "T."
+    ],
+    [
+     "Murray-Clay",
+     "R. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/815/2/109",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "109",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION",
+   "type": "journal-article",
+   "volume": "815",
    "year": 2015
   },
   "10.1088/0004-637x/815/2/110": {
@@ -188418,6 +188627,50 @@
    "volume": "435",
    "year": 2013
   },
+  "10.1093/mnras/stt1468": {
+   "arxiv": "1308.1272",
+   "authors": [
+    [
+     "Pavlov",
+     "A. K."
+    ],
+    [
+     "Blinov",
+     "A. V."
+    ],
+    [
+     "Konstantinov",
+     "A. N."
+    ],
+    [
+     "Ostryakov",
+     "V. M."
+    ],
+    [
+     "Vasilyev",
+     "G. I."
+    ],
+    [
+     "Vdovina",
+     "M. A."
+    ],
+    [
+     "Volkov",
+     "P. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stt1468",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2878",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst",
+   "type": "journal-article",
+   "volume": "435",
+   "year": 2013
+  },
   "10.1093/mnras/stt1544": {
    "authors": [
     [
@@ -197403,6 +197656,37 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "Galaxy Zoo: finding offset discs and bars in SDSS galaxies★",
+   "type": "journal-article",
+   "volume": "469",
+   "year": 2017
+  },
+  "10.1093/mnras/stx1103": {
+   "authors": [
+    [
+     "Booth",
+     "R. A."
+    ],
+    [
+     "Clarke",
+     "C. J."
+    ],
+    [
+     "Madhusudhan",
+     "N."
+    ],
+    [
+     "Ilee",
+     "J. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stx1103",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3994",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemical enrichment of giant planets and discs due to pebble drift",
    "type": "journal-article",
    "volume": "469",
    "year": 2017
@@ -282332,7 +282616,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5209,
+ "id_next": 5214,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -282357,6 +282641,7 @@
   "10.1002/2016gl071766": "R4770",
   "10.1002/2016gl071930": "R1302",
   "10.1002/2016jb013150": "R1073",
+  "10.1002/2016jd025034": "R5203",
   "10.1002/2016je005206": "R1727",
   "10.1002/2016je005240": "R2008",
   "10.1002/2017gc006937": "R1931",
@@ -282881,6 +283166,7 @@
   "10.1016/j.epsl.2011.11.022": "R3337",
   "10.1016/j.epsl.2012.03.028": "R1401",
   "10.1016/j.epsl.2012.04.019": "R0792",
+  "10.1016/j.epsl.2012.05.036": "R5207",
   "10.1016/j.epsl.2012.06.015": "R1953",
   "10.1016/j.epsl.2012.10.011": "R4307",
   "10.1016/j.epsl.2012.10.014": "R2500",
@@ -282894,7 +283180,7 @@
   "10.1016/j.epsl.2016.09.013": "R0518",
   "10.1016/j.epsl.2017.03.008": "R1182",
   "10.1016/j.epsl.2017.04.046": "R4135",
-  "10.1016/j.epsl.2017.08.032": "R5208",
+  "10.1016/j.epsl.2017.08.032": "R5213",
   "10.1016/j.epsl.2018.05.033": "R2936",
   "10.1016/j.epsl.2018.06.029": "R4725",
   "10.1016/j.epsl.2018.07.006": "R3356",
@@ -283576,6 +283862,7 @@
   "10.1029/2008gl033669": "R0791",
   "10.1029/2008gl036373": "R4760",
   "10.1029/2008ja014014": "R4669",
+  "10.1029/2008jd010557": "R5206",
   "10.1029/2008jd010702": "R3789",
   "10.1029/2009gl037497": "R0770",
   "10.1029/2009gl040635": "R1840",
@@ -283645,6 +283932,7 @@
   "10.1029/2020gl091733": "R1559",
   "10.1029/2020ja028927": "R1413",
   "10.1029/2020jb020245": "R1321",
+  "10.1029/2020jd033147": "R5204",
   "10.1029/2020je006639": "R0300",
   "10.1029/2020je006655": "R1514",
   "10.1029/2020je006711": "R2676",
@@ -284155,6 +284443,7 @@
   "10.1051/0004-6361/201424171": "R5094",
   "10.1051/0004-6361/201424184": "R3294",
   "10.1051/0004-6361/201424299": "R0470",
+  "10.1051/0004-6361/201424343": "R5211",
   "10.1051/0004-6361/201424412": "R0864",
   "10.1051/0004-6361/201424692": "R1245",
   "10.1051/0004-6361/201424896": "R3134",
@@ -284253,6 +284542,7 @@
   "10.1051/0004-6361/202039037": "R4108",
   "10.1051/0004-6361/202039141": "R4528",
   "10.1051/0004-6361/202039507": "R4177",
+  "10.1051/0004-6361/202039640": "R5210",
   "10.1051/0004-6361/202040058": "R2433",
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
@@ -284659,6 +284949,7 @@
   "10.1086/422087": "R0700",
   "10.1086/422919": "R0362",
   "10.1086/423264": "R4423",
+  "10.1086/423611": "R5209",
   "10.1086/423697": "R2323",
   "10.1086/423912": "R0662",
   "10.1086/424372": "R1346",
@@ -285027,6 +285318,7 @@
   "10.1088/0004-637x/813/2/101": "R4484",
   "10.1088/0004-637x/813/2/82": "R3723",
   "10.1088/0004-637x/814/1/13": "R3002",
+  "10.1088/0004-637x/815/2/109": "R5212",
   "10.1088/0004-637x/815/2/110": "R3166",
   "10.1088/0026-1394/20/4/003": "R0310",
   "10.1088/0034-4885/56/2/001": "R4014",
@@ -285420,6 +285712,7 @@
   "10.1093/mnras/stt1245": "R0877",
   "10.1093/mnras/stt1271": "R4678",
   "10.1093/mnras/stt1376": "R4649",
+  "10.1093/mnras/stt1468": "R5205",
   "10.1093/mnras/stt1544": "R1835",
   "10.1093/mnras/stt1600": "R4228",
   "10.1093/mnras/stt1765": "R0084",
@@ -285626,6 +285919,7 @@
   "10.1093/mnras/stx027": "R3740",
   "10.1093/mnras/stx076": "R0074",
   "10.1093/mnras/stx1026": "R2509",
+  "10.1093/mnras/stx1103": "R5208",
   "10.1093/mnras/stx1149": "R4778",
   "10.1093/mnras/stx1205": "R3496",
   "10.1093/mnras/stx1232": "R2110",
@@ -287572,6 +287866,7 @@
   "arxiv:1307.4368": "R0106",
   "arxiv:1307.7161": "R2143",
   "arxiv:1307.8130": "R2917",
+  "arxiv:1308.1272": "R5205",
   "arxiv:1308.4402": "R3457",
   "arxiv:1308.4456": "R1949",
   "arxiv:1308.6282": "R1088",
@@ -288212,6 +288507,7 @@
   "arxiv:2009.06593": "R1672",
   "arxiv:2009.07282": "R4494",
   "arxiv:2009.07695": "R2183",
+  "arxiv:2009.07700": "R5204",
   "arxiv:2009.07761": "R4729",
   "arxiv:2009.10098": "R1754",
   "arxiv:2009.12377": "R3190",

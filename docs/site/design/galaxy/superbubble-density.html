@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Superbubbles shape the stars: the bubble field as a density modulation - planetGen docs</title>
+<meta name="description" content="Status: plan.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/superbubble-density.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/superbubble-density.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="superbubbles-shape-the-stars-the-bubble-field-as-a-density-modulation">Superbubbles shape the stars: the bubble field as a density modulation</h1><p class="meta">docs/design/galaxy/superbubble-density.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-exists-today-survey-of-main-2026-10-16-933-pm-edt">1. What exists today (survey of main, 2026-10-16, 9:33 PM EDT)</a></li><li style="margin-left:0px"><a href="#2-what-a-bubble-does-to-the-stars-young-only-boss-938-pm-edt-strengths-checked-in-gen391">2. What a bubble does to the stars (young only, Boss 9:38 PM EDT; strengths checked in GEN.391)</a></li><li style="margin-left:0px"><a href="#3-the-modulation">3. The modulation</a></li><li style="margin-left:0px"><a href="#4-stored-or-derived">4. Stored or derived</a></li><li style="margin-left:0px"><a href="#5-touch-points">5. Touch points</a></li><li style="margin-left:0px"><a href="#6-the-drawn-layer">6. The drawn layer</a></li><li style="margin-left:0px"><a href="#7-decided-boss-2026-10-16-938-and-939-pm-edt">7. Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT)</a></li></ul></details>
+<p><strong>Status:</strong> plan. Boss asked for it on 2026-10-16 at 9:27 PM EDT; nothing is built. GEN.391 turns this plan into the checked design before any code. Boss decided the three open choices on 2026-10-16 at 9:38 and 9:39 PM EDT (section 7).</p>
+<p>Boss (2026-10-16, 9:27 PM EDT): &quot;instead of drawing the bubbles, we need a way to store the regions and have them adjust the star density function for the space they occupy, which means finding a way to shift the probability to favor one part of a sector over another. TODO should think about how to do that so when sectors get built they follow the bubbles without having to draw them.&quot;</p>
+<h2 id="1-what-exists-today-survey-of-main-2026-10-16-933-pm-edt">1. What exists today (survey of main, 2026-10-16, 9:33 PM EDT)</h2>
+<ul>
+<li><code>galaxy/superbubble_field.py</code> (GEN.254) is already derived from the seed and stores nothing: 250 pc columns, each with its own seeded Poisson draw of bubbles (radius log-uniform 50 to 500 pc, center height about the young layer, ambient gas), cached per column with <code>lru_cache</code>. There is no function that cuts a box through bubbles.</li>
+<li>Nothing in it changes a star's count or position. Bubbles only remove molecular clouds (<code>nebula_field.cloud_kept</code>), set the cell's gas and ambient medium in the profile (<code>galaxy/profile.py:302-307</code>), and are drawn on the Galaxy Map as three faint great circles (<code>galaxymap3d.js:2604-2639</code>).</li>
+<li>The stellar density is a function of the shape alone (<code>galaxy/density.py</code>: <code>relative_density</code>, <code>population_densities</code>, <code>population_densities_array</code>, <code>total_density_array</code>; three copies of the term sum, tested against each other). <code>ComponentField</code> (clusters and satellites) is the established way to carry seeded extra structure on the shape (<code>shape.components</code>, attached with <code>shape._replace</code> at <code>generation/run_plan.py:313</code> and <code>db/store.py:7508</code>, hashed by identity).</li>
+<li>The sector fill takes its count from a point value at the cell center (<code>profile_at</code>, <code>profile.py:291-316</code>, then <code>generation/run_sector.py:654</code>) and places stars uniformly in the cell (<code>galaxy/sector.py:874-880</code>). The bright-star scatter thins by true density over a certified bound (<code>generation/object_first.py:98-132</code> <code>band_majorants</code>, <code>generation/bright_stars.py:433-457</code>); the phenomena scatter has no certified bound and uses bin-center values with uniform positions inside the wedge (<code>generation/phenomenon_scatter.py:312-338</code>).</li>
+<li>A remnant in a bubble is sized by the cavity's interior density (GEN.298: <code>SystemConfig.AMBIENT_DENSITY_CM3</code>, rule in <code>intergalactic-and-halo-contents.md</code> section 5); the remnant rate keeps its factor, and the modulation below acts on the young stars only, so the remnants and the stars do not count the bubble twice (GEN.391 checks).</li>
+<li>Planned and different: <code>region_density_overrides</code> (DB.38, ADM.94, 8.6) store one 0.1 to 10 multiplier per whole sector region at fill; a bubble is a continuous seeded factor, so the two are complementary and share only the multiplicative read.</li>
+</ul>
+<h2 id="2-what-a-bubble-does-to-the-stars-young-only-boss-938-pm-edt-strengths-checked-in-gen391">2. What a bubble does to the stars (young only, Boss 9:38 PM EDT; strengths checked in GEN.391)</h2>
+<p>A bubble is a gas structure, so it acts on young populations and leaves old ones alone: stars are collisionless and a 100 Myr-old star does not notice a cavity. The effect is a factor on the population weights, not a cut of the whole density.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Effect</th>
+<th>Source named from memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Young (under the bubble's age)</td>
+<td>Inside: new star formation is suppressed once the gas is swept out. On the shell: swept-up gas collapses, so a share of new stars forms in a thin shell (collect and collapse).</td>
+<td>[R4916] for the Local Bubble</td>
+</tr>
+<tr>
+<td>Intermediate</td>
+<td>Half-way between young and old, by age range</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Old, bulge, halo, clusters, satellites</td>
+<td>none</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<p>The bubble's own OB association belongs to the young-cluster work (GEN.244, components); the field carries only the shell enhancement and the interior suppression, so the association is not counted twice. How strong each term is, how thick the shell is and how the strength scales with the bubble's radius are numbers GEN.391 takes from the papers, and where they are missing it asks Boss for research.</p>
+<h2 id="3-the-modulation">3. The modulation</h2>
+<p>For a point <code>x</code> and a bubble of center <code>c</code> and radius <code>R</code>, depth <code>d = |x - c| / R</code>. Each young or intermediate population <code>p</code> gets a factor <code>m_p(d)</code>: below 1 inside, above 1 in a shell about <code>d = 1</code>, equal to 1 far outside, smooth in <code>d</code> (no step), so a bubble that cuts through part of a sector shifts the probability inside that sector toward its rim and away from its inside. Overlapping bubbles multiply. The density the rest of the code sees is <code>population_densities(x)[p] * m_p(x)</code>.</p>
+<ul>
+<li><strong>Bound.</strong> The scatter needs <code>density &lt;= bound</code>. A suppression needs no change to the bound, only a looser one; a shell boost needs the bound multiplied by <code>max(1, m_max)</code>, with <code>m_max</code> certified over the band: the product of <code>1 + A</code> of the bubbles that reach the band, or one global figure. <code>bright_stars._spots</code> multiplies its <code>wanted</code> by the exact <code>m(point)</code> and its <code>check=True</code> assertion tests the whole product.</li>
+<li><strong>Count and position in a cell.</strong> The cell's expected count uses the cell mean of the factor (a short sub-sampled quadrature, as <code>ComponentField</code> does for the cube), not the center value. Positions inside the cell follow the factor by rejection against the cell's maximum, so a sector that straddles a rim holds more young stars on the rim side.</li>
+<li><strong>Phenomena pass.</strong> It thins each candidate by <code>m(x) / m_max</code> at its position, because its bin-center counts lose the within-wedge shape.</li>
+<li><strong>No recursion.</strong> The bubbles' own placement reads the gas tracer (<code>nebula_field.gas_factor</code>), which reads the young density; the modulation must not feed back into that read. The placement reads a bubble-free density (<code>with_bubbles=False</code> or a <code>_stellar_density</code> underneath), and <code>density.py</code> cannot import <code>superbubble_field</code> at module level (it imports <code>nebula_field</code>, which imports <code>density</code>).</li>
+<li><strong>Carry.</strong> A <code>BubbleField</code> handle carries the galaxy seed on the shape like <code>ComponentField</code>; <code>profile_at</code> receives the seed through it, which also removes the trap that <code>run_galaxy.py:152</code> and <code>:688</code> do not pass <code>galaxy_seed</code> today.</li>
+</ul>
+<h2 id="4-stored-or-derived">4. Stored or derived</h2>
+<p>The regions stay derived from the seed (no fixed content, Boss 4:11 and 4:14 PM EDT): the same seed gives the same bubbles on every worker and every run, nothing is written, and an in-memory index per column serves lookups. A stored copy would drift from the seed and would need a migration for nothing. The edit-everything work (8.6) can later store an admin's override of one bubble as a region override (DB.38); it is not part of this chain. DB.85 does store a row for each bubble (<code>galaxy_containers</code>), written at a plan from the same <code>all_bubbles</code> call that the field answers with, so a stored row and the field cannot disagree for one seed and shape; the rows exist to name a bubble (an object ID) and to answer which containers hold a point and what a bubble holds, and the density lookups still read the field.</p>
+<h2 id="5-touch-points">5. Touch points</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>What changes</th>
+<th>Who edits it now</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>galaxy/density.py</code></td>
+<td>one call per term-sum copy (<code>population_densities</code>, <code>population_densities_array</code>, <code>total_density_array</code>) to a new <code>galaxy/density_modulation.py</code>; the factor never enters the term sums themselves</td>
+<td>Core 3 (GEN.319), Core 4 (GEN.134); GEN.379 (8.3) rewrites the same three functions into components, so the factor stays one call site that GEN.379 keeps</td>
+</tr>
+<tr>
+<td><code>galaxy/superbubble_field.py</code></td>
+<td><code>box_cut</code>, the bound, the bubble-free read</td>
+<td>nobody</td>
+</tr>
+<tr>
+<td><code>generation/object_first.py</code> and <code>generation/bright_stars.py</code></td>
+<td>fold <code>m_max</code> into <code>band_majorants</code>, multiply <code>wanted</code></td>
+<td>Core 3 (GEN.322, GEN.323)</td>
+</tr>
+<tr>
+<td><code>generation/phenomenon_scatter.py</code></td>
+<td>thin by <code>m(x) / m_max</code></td>
+<td>Core 3 (GEN.323)</td>
+</tr>
+<tr>
+<td><code>galaxy/profile.py</code>, <code>galaxy/sector.py</code>, <code>generation/run_sector.py</code>, <code>run_galaxy.py</code></td>
+<td>cell-mean count, in-cell positions, the seed passed on</td>
+<td>Core 3, Core 4 (GEN.134)</td>
+</tr>
+<tr>
+<td><code>generation/run_plan.py</code>, <code>db/store.py</code></td>
+<td>attach the field to the shape like <code>ComponentField</code></td>
+<td>Core 1 owns migrations; no migration here</td>
+</tr>
+<tr>
+<td><code>galaxy/nebula_field.py</code></td>
+<td>read the bubble-free density</td>
+<td>Core 3 (GEN.319)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The chain waits until Core 3's GEN.322, GEN.323 and GEN.319 have merged, so no lane edits a file under another's feet; GEN.391 (design) can be done before and names the interfaces.</p>
+<h2 id="6-the-drawn-layer">6. The drawn layer</h2>
+<p>MAP.235 (the layer, toggle and key row) and MAP.236 (clearer bounds, more transparent) draw the bubbles. Once the stars follow the bubbles, a drawn bubble is a debug and explanation layer, not the way the bubbles are shown. Decided (Boss, 9:38 PM EDT): keep it as an optional layer that is off by default and keep MAP.236, at lower priority, for when it is on.</p>
+<h2 id="7-decided-boss-2026-10-16-938-and-939-pm-edt">7. Decided (Boss, 2026-10-16, 9:38 and 9:39 PM EDT)</h2>
+<ol>
+<li><strong>Young only.</strong> A bubble changes the young and intermediate star density only; old stars, halo, bulge, clusters and satellites are unchanged.</li>
+<li><strong>Optional overlay.</strong> The drawn layer (MAP.235) stays, off by default; MAP.236 stays at lower priority.</li>
+<li><strong>Stay in 8.1.</strong> The chain (GEN.391 to GEN.395, TEST.206, DOC.61) stays in 8.1 as planned: design in phase 3, build in phase 5. It does not hold the 8.1 headline GEN.301 but it does hold the 8.1 stamp.</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

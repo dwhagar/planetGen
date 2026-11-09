@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login brute-force protection - planetGen docs</title>
+<meta name="description" content="Research notes and the recommended design for protecting planetGen&#x27;s login against password guessing.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/login-brute-force-protection.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/login-brute-force-protection.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="login-brute-force-protection">Login brute-force protection</h1><p class="meta">docs/design/operations/login-brute-force-protection.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-the-site-had-before-2026-10-01">1. What the site had before (2026-10-01)</a></li><li style="margin-left:0px"><a href="#2-standard-methods">2. Standard methods</a></li><li style="margin-left:0px"><a href="#3-recommended-design">3. Recommended design</a></li><li style="margin-left:0px"><a href="#4-decisions-for-boss">4. Decisions for Boss</a></li><li style="margin-left:0px"><a href="#5-libraries-done">5. Libraries (done)</a></li><li style="margin-left:0px"><a href="#6-when-a-long-job-holds-a-lock-adm53">6. When a long job holds a lock (ADM.53)</a></li></ul></details>
+<p>Research notes and the recommended design for protecting planetGen's
+login against password guessing. Written 2026-10-01 for Boss's request
+to plan the login blocking work before any code changes. Which pieces
+are built, and in what order, is tracked in <code>docs/TODO.md</code>.</p>
+<p>Status: every step is built (SEC.20, SEC.1, SEC.21, SEC.23, SEC.22, SEC.24,
+SEC.25, SEC.26 and SEC.27; the activity log of SEC.28 carries the log
+lines). Two-factor sign-in is optional per admin; a trusted device does
+not skip the code; only the command line resets another admin's.
+Passwords are now hashed with PBKDF2-SHA256 at 600,000 rounds (about
+175 ms on the build machine, next to no memory), re-hashed on login.
+Section 1 describes the site as it was before them.</p>
+<h2 id="1-what-the-site-had-before-2026-10-01">1. What the site had before (2026-10-01)</h2>
+<ul>
+<li><strong>Per-IP rate limit.</strong> <code>POST /api/auth/login</code> allows 10 attempts a
+minute per client address (<code>auth.LOGIN_RATE_LIMIT</code>, Flask-Limiter,
+<code>memory://</code> storage). The web <code>/login</code> form calls the same route
+in-process and passes the real visitor's address through.</li>
+<li><strong>Per-username backoff.</strong> <code>src/planetgen/api/loginbackoff.py</code>: 10 free
+failures per username, then a lock of 1 s doubling to 15 minutes,
+answered with 429 and <code>Retry-After</code> before the password is checked.
+Unknown usernames are counted like real ones, so a lock doesn't reveal
+which usernames exist. It is kept in memory: a restart forgets it, and
+each worker process keeps its own counts (the deployment guides run
+one process with five threads, so today there is one set of counts).</li>
+<li><strong>Passwords.</strong> At least 12 characters, not equal to the username,
+hashed with werkzeug's <code>generate_password_hash</code> (werkzeug 3.1.9 from
+the lock files; its default is scrypt with N = 2^15, r = 8, p = 1).
+Login time is the same for known and unknown usernames.</li>
+<li><strong>Sessions.</strong> <code>HttpOnly</code>, <code>Secure</code>, <code>SameSite=Strict</code> cookie, a fixed
+lifetime, stored as a SHA-256 hash; changing credentials ends every
+other session.</li>
+</ul>
+<p>Gaps found while reading the code:</p>
+<ol>
+<li><strong>No record of failed logins.</strong> Nothing writes a failed or locked
+login anywhere (the audit log only records admin actions), so there
+is nothing to alert on and nothing for an external tool to watch.</li>
+<li><strong>The web form hides failures from the access log.</strong> A wrong
+password on <code>/login</code> answers 200 with an error message
+(<code>web/admin_pages.py</code>), so Apache's access log can't tell a failed
+login from a page view.</li>
+<li><strong>The current-password check on <code>/account</code> isn't throttled.</strong>
+<code>POST /api/auth/change-credentials</code> re-checks the current password,
+but a wrong one isn't counted by the backoff, and the web <code>/account</code>
+form only falls under the shared 300-a-minute page limit (in-process
+API calls skip the API's default limits). Someone holding a stolen
+session cookie can guess the password there quickly.</li>
+<li><strong>Lockouts are easy to trigger on purpose.</strong> Anyone who knows an
+admin's username can keep it locked for 15 minutes at a time. The
+planned per-IP lockout (up to a day) adds the same risk for everyone
+behind a shared address, or for every visitor at once if the site
+sits behind a proxy whose address isn't unwrapped (<code>proxy_fix</code>).</li>
+</ol>
+<h2 id="2-standard-methods">2. Standard methods</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Stops</th>
+<th>Costs</th>
+<th>Fit here</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per-IP throttling</td>
+<td>One machine guessing fast</td>
+<td>Blocks everyone behind a shared address (NAT, office, proxy)</td>
+<td>Yes, already built (10 a minute); the lockout adds a longer penalty</td>
+</tr>
+<tr>
+<td>Per-account throttling with exponential backoff</td>
+<td>Slow guessing of one account from many addresses</td>
+<td>Lockout-as-DoS against the real owner</td>
+<td>Yes, already built</td>
+</tr>
+<tr>
+<td>Hard lockout (account disabled until an admin unlocks)</td>
+<td>Everything</td>
+<td>An attacker can disable every account</td>
+<td>No: delays that expire are the standard choice</td>
+</tr>
+<tr>
+<td>Trusted-device cookie</td>
+<td>Lockout-as-DoS: a browser that has logged in before skips the per-account lock</td>
+<td>A signed cookie and a small table</td>
+<td>Yes, recommended</td>
+</tr>
+<tr>
+<td>CAPTCHA after N failures</td>
+<td>Bots</td>
+<td>Third-party service, privacy, accessibility; solvers are cheap</td>
+<td>No: needs an outside service on a self-hosted site</td>
+</tr>
+<tr>
+<td>Proof-of-work challenge</td>
+<td>Bulk guessing</td>
+<td>JavaScript, CPU on phones</td>
+<td>No: the throttles already bound guessing</td>
+</tr>
+<tr>
+<td>Breached and common password blocklist</td>
+<td>Credential stuffing and dictionary guesses</td>
+<td>A word list in the repo, checked when a password is set</td>
+<td>Yes, recommended</td>
+</tr>
+<tr>
+<td>Slow password hash</td>
+<td>Offline cracking after a database leak</td>
+<td>CPU and memory per login</td>
+<td>Yes, already in place; check the cost</td>
+</tr>
+<tr>
+<td>Two-factor (TOTP)</td>
+<td>A guessed or leaked password alone</td>
+<td>Authenticator app, recovery codes</td>
+<td>Yes, the strongest single step, for admins</td>
+</tr>
+<tr>
+<td>Logging failed logins with the address</td>
+<td>Nothing alone; enables alerts and outside tools</td>
+<td>One log line and one table</td>
+<td>Yes, first</td>
+</tr>
+<tr>
+<td>fail2ban watching a log</td>
+<td>Repeat offenders, at the firewall before Apache</td>
+<td>Root setup on the server, Linux only</td>
+<td>Yes, optional, documented</td>
+</tr>
+<tr>
+<td>mod_evasive or mod_security at Apache</td>
+<td>Floods and known attack patterns</td>
+<td>Tuning, false positives</td>
+<td>Mention only</td>
+</tr>
+</tbody>
+</table></div>
+<p>What the references say:</p>
+<ul>
+<li><strong>NIST SP 800-63B-4</strong> (2025): the verifier must rate-limit failed
+attempts on an account, at most 100 consecutive failures, and may use
+delays that grow, CAPTCHA, or address allowlisting; it prefers delays
+over permanent lockout. It asks for a minimum of 15 characters for a
+password used alone (8 when it is one of two factors), support for at
+least 64 characters, no composition rules, and a check against a list
+of breached, common and expected passwords.</li>
+<li><strong>OWASP</strong> (Authentication, Credential Stuffing and Password Storage
+cheat sheets): throttle both per account and per address; prefer
+lockouts that expire and grow over permanent ones; let a known device
+through a per-account lock (&quot;device cookies&quot;); keep error messages the
+same for every failure; log every failure with its address; hash with
+argon2id (19 MiB, 2 passes), scrypt (N = 2^17, r = 8, p = 1) or
+PBKDF2-HMAC-SHA256 (600,000 rounds); offer multi-factor sign-in.</li>
+</ul>
+<h2 id="3-recommended-design">3. Recommended design</h2>
+<p>In build order. Each step stands on its own.</p>
+<ol>
+<li><strong>Log every failed and locked login.</strong> One line per failure in the
+debug log (or a dedicated auth log) with the time, the client address
+and the username, and a row in the control database's audit log
+(<code>login.failed</code>, <code>login.locked</code>). The web <code>/login</code> form answers 401
+for a wrong password so the access log shows it too. This is what
+alerts, the admin page and fail2ban read.</li>
+<li><strong>Per-IP lockout in Redis</strong> (Boss's numbers; first in the control database's <code>login_throttle</code> table, moved to Redis by SEC.30): 3
+failures from one address lock it for 5 minutes, doubling with each
+further lockout up to 1 day; 429 and <code>Retry-After</code>, checked before the
+password, shared by every worker and kept across restarts. Safeguards
+that come with it:
+<ul>
+<li><code>127.0.0.1</code>, <code>::1</code> and a configured allowlist are never locked.</li>
+<li>If every request comes from one address that looks like a proxy
+(Apache in front with <code>proxy_fix</code> unset), the app warns at start-up
+and in the admin stats page instead of locking that address.</li>
+<li>A successful login from an address resets its failure count; the
+doubling level decays (for example halves after a day without a
+lockout) instead of resetting at once, so an attacker can't clear it
+with one right guess.</li>
+<li>An admin command (<code>planetgen</code> or a small <code>planetgen-admin</code>
+script) and an admin page list and lift lockouts.</li>
+</ul>
+</li>
+<li><strong>Move the per-username backoff into the same store</strong>, so it is
+shared across workers and restarts; the numbers stay as they are.</li>
+<li><strong>Trusted-device cookie.</strong> A successful login sets a long-lived,
+signed, per-account device cookie (its hash stored in the control
+database). A login from a browser holding a valid device cookie for
+that username skips the per-username lock (the per-IP limit still
+applies), so an attacker can't lock the real admin out. Changing
+credentials revokes the account's device cookies.</li>
+<li><strong>Count wrong current passwords.</strong> A wrong current password on
+change-credentials counts as a failed login for that username and
+address, with the same lock.</li>
+<li><strong>Password blocklist.</strong> When a password is set, refuse it if it is on
+a bundled list of common and breached passwords (for example the top
+100,000 from a public breach corpus, shipped in the repo, offline).
+An online check against Have I Been Pwned's k-anonymity range API is
+an option that sends only the first five characters of the hash.</li>
+<li><strong>Hashing cost.</strong> Measure the current scrypt cost on the target
+server; if a login takes well under 250 ms, raise it (scrypt N = 2^16
+or 2^17, or PBKDF2-SHA256 at 600,000 rounds if memory is tight, since
+scrypt N = 2^17 uses 128 MiB per login). Re-hash on the next
+successful login when a stored hash uses older settings.</li>
+<li><strong>Two-factor sign-in (TOTP) for admins.</strong> Optional per account at
+first, with single-use recovery codes stored hashed; the Owner (once
+user accounts exist) may be required to use it. The second step is
+throttled like the password step.</li>
+<li><strong>fail2ban recipe</strong> in <code>docs/deployment/</code> (Linux): a filter for the
+auth log line from step 1 and a jail that bans an address at the
+firewall after repeated failures, with the server's own addresses
+ignored. Optional, not installed by <code>install.sh</code>.</li>
+</ol>
+<p>Alerts (an email to admins after a lockout, or many failures) wait for
+SMTP settings in the user-accounts work; until then the admin stats page
+shows recent failures and current lockouts.</p>
+<h2 id="4-decisions-for-boss">4. Decisions for Boss</h2>
+<p>Defaults are taken so work can start; each can change.</p>
+<ul>
+<li>Keep both limits (per address and per username)? Default: yes.</li>
+<li>Does a correct password from a locked address get in? Default: no,
+the lock is checked first, as the username backoff does now.</li>
+<li>Minimum password length: stay at 12, or 15 as NIST asks for a
+password used alone? Default: 12 plus the blocklist until two-factor
+exists, then revisit.</li>
+<li>Is the blocklist offline only, or may the server call Have I Been
+Pwned? Default: offline only.</li>
+<li>Two-factor optional or required for admins? Default: optional, and
+required for the Owner once roles exist.</li>
+</ul>
+<h2 id="5-libraries-done">5. Libraries (done)</h2>
+<p>The design above stays; its implementation moved to libraries
+(library-migration.md), and the lockout rules, the activity log and the
+fail2ban lines did not change:</p>
+<ul>
+<li><strong>SEC.29</strong> (PR #612): one-time codes on pyotp and QR codes on segno
+(<code>admin/auth.py</code>), with the same secrets, step and window, so enrolled
+admins kept working.</li>
+<li><strong>SEC.30</strong> (PR #643): request limits on Flask-Limiter, and the
+lockout counters (<code>admin/throttle.py</code> <code>RedisStore</code>, used by
+<code>api/loginguard.py</code>) on the Redis server in <code>redis.url</code>, shared by
+every worker and kept across restarts. The control database's
+<code>login_throttle</code> table was dropped (control schema v8).</li>
+<li><strong>SEC.31</strong> (PR #457) is a bug fix, not a library move: a sign-in
+form sent a second time after the first already signed in no longer
+ends on a &quot;form expired&quot; error (<code>web/csrf.py</code>).</li>
+</ul>
+<p>Still open: the password hash is PBKDF2-SHA256 (OWASP lists it last) and
+user accounts add reset and invite flows that need the same throttles;
+both are planned in <a href="../interface/settings-seo-and-accounts.html">settings-seo-and-accounts.md</a>
+(parts B2, B3 and B5).</p>
+<h2 id="6-when-a-long-job-holds-a-lock-adm53">6. When a long job holds a lock (ADM.53)</h2>
+<p>A long generation job can hold a control-schema row (an account, a session, the audit log) locked for many seconds, and the app has five threads. Without a limit, a few sign-ins queued behind one lock would stop every page. Since ADM.53 (#1318):</p>
+<ul>
+<li><strong>A short wait.</strong> The web's connections wait <code>WEB_LOCK_WAIT_SECONDS</code> (5 s, <code>tuning.py</code>) for a locked row, not the server's 50 s.</li>
+<li><strong>Informational writes are skipped.</strong> A sign-in's last-login time and a session's last-seen time (written at most every <code>LAST_SEEN_REFRESH_SECONDS</code>, 60 s) go through <code>admin/auth.py</code>'s <code>_write_if_not_locked</code>: when the row is locked past the wait, the write is dropped with a line in the activity log, and the sign-in or request carries on. The login itself does not fail or hang for a note about itself.</li>
+<li><strong>The 503 Busy page.</strong> A request that needed a locked row and could not get it answers 503 with <code>Retry-After</code> (<code>web/errors.py</code>'s <code>busy_page</code>, shown by <code>web/app.py</code>): a page that says the database is busy with another job, changes nothing, and asks again by itself; an API request gets <code>BUSY</code> as JSON. A statement that ran past <code>mysql.statement_timeout_seconds</code> is the separate 504 page.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
