@@ -7411,7 +7411,7 @@ def refresh_edited_sectors(conn, sector_ids):
         if found.rowcount:
             block_stats.refresh_chain(conn, address)
             done.append(address)
-            counted.append((sector_id, address, figures_before))
+        counted.append((sector_id, address, figures_before))    # a change of class or life moves no figure above, so `rowcount` says nothing here
     for sector_id, address, before in counted:    # DB.121: the sectors' counts and the running totals, last (the totals row is locked last)
         galaxy_counts.refresh(conn, sector_id, address, before)
     return done

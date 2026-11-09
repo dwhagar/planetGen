@@ -48,7 +48,7 @@ def _tables(conn, table):
 
 def test_a_generated_sector_has_its_rows_and_the_totals_follow(galaxy):
     conn, sectors = galaxy
-    assert galaxy_counts.usable(conn) and galaxy_counts.problems(conn) == []
+    assert galaxy_counts.problems(conn) == []
     row = _row(conn)
     assert row["systems"] == _tables(conn, "star_systems") == 2
     assert row["stars"] == _tables(conn, "stars") and row["planets"] == _tables(conn, "planets") and row["moons"] == _tables(conn, "moons")
@@ -81,10 +81,9 @@ def test_the_reads_give_what_counting_the_tables_gives(galaxy):
     conn, _sectors = galaxy
     stored = query._search_facet_type(conn), query._search_facet_spectral(conn), query._search_facet_class(conn), query._search_facet_body(conn)
     assert query.count_systems(conn) == 2
-    conn.execute("DELETE FROM galaxy_totals")                       # not whole any more: the reads count the tables
+    conn.execute("DELETE FROM galaxy_totals")                       # a galaxy from before the tables: every sector is `outside`, the tables are counted
     conn.execute("DELETE FROM sector_facets")
     conn.commit()
-    assert not galaxy_counts.usable(conn)
     assert (query._search_facet_type(conn), query._search_facet_spectral(conn), query._search_facet_class(conn),
             query._search_facet_body(conn)) == stored
     assert query.systems_facets(conn)["binary"] and query.count_systems(conn) == 2
@@ -130,7 +129,7 @@ def test_emptying_a_cell_takes_its_rows_out(galaxy):
     with conn:
         edits.delete_sector_with_contents(conn, sectors[0])
     assert _row(conn)["systems"] == 1
-    assert galaxy_counts.usable(conn) and galaxy_counts.problems(conn) == []
+    assert galaxy_counts.problems(conn) == []
     left = conn.execute("SELECT COUNT(*) AS n FROM sector_facets WHERE shell_index = 0 AND band_index = 0 AND wedge_index = 0").fetchone()["n"]
     assert left == 0
 
@@ -147,14 +146,27 @@ def test_a_system_in_no_sector_is_counted_when_asked(galaxy):
     assert query._stored_systems_facets(conn)["placement"] == [{"value": "sector", "count": 2}, {"value": "standalone", "count": 1}]
 
 
-def test_rows_that_are_not_whole_are_reported_and_not_used(galaxy):
+def test_a_sector_with_no_rows_is_counted_from_the_tables(galaxy):
+    """A cell filled by hand, or a galaxy from before the tables: the systems of a sector with no rows are `outside`, so a read is right."""
     conn, _sectors = galaxy
     with conn:
         conn.execute("DELETE FROM sector_facets WHERE shell_index = 0 AND band_index = 0 AND wedge_index = 0")
-    assert not galaxy_counts.usable(conn) and galaxy_counts.totals(conn) is None and galaxy_counts.facet(conn, "class") is None
-    assert galaxy_counts.problems(conn)
+    assert galaxy_counts.problems(conn)                      # the totals row still holds that sector's counts: reported
     galaxy_counts.rebuild(conn)
-    assert galaxy_counts.usable(conn) and galaxy_counts.problems(conn) == []
+    assert galaxy_counts.problems(conn) == []
+    assert galaxy_counts.totals(conn)["systems"] == 2
+
+
+def test_systems_in_a_grid_sector_that_was_never_filled_are_counted(galaxy):
+    """A system put by hand into a cell whose stats are not filled has no rows: it is counted when asked, not lost."""
+    from tests.test_storage_checksum import _system
+    conn, _sectors = galaxy
+    with conn:
+        loose = conn.execute("INSERT INTO sectors (name, edge_mpc, shell_index, band_index, wedge_index) VALUES ('Unfilled', 4000, 5, 5, 5)").lastrowid
+        system, config = _system()
+        store.insert_star_system(conn, system, config, sector_id=loose)
+    assert galaxy_counts.totals(conn)["systems"] == 3 == _tables(conn, "star_systems")
+    assert galaxy_counts.problems(conn) == []
 
 
 def test_a_total_that_drifted_is_reported(galaxy):

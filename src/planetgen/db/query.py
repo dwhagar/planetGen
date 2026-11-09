@@ -1114,9 +1114,7 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
 
     def exact(c):
         if not join_sql and not where_sql:
-            stored = galaxy_counts.totals(c)    # DB.121: no filter, so the running total while it is whole
-            if stored is not None:
-                return stored["systems"]
+            return galaxy_counts.totals(c)["systems"]    # DB.121: no filter, so the running total and what no sector's rows hold
         return c.execute(f"SELECT {counted} AS n FROM star_systems ss{join_sql}{where_sql}", params).fetchone()["n"]
 
     def estimate(c):
@@ -1130,13 +1128,11 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
 
 
 def _stored_systems_facets(conn):
-    """`systems_facets` with no filter from the stored sector counts (`db.galaxy_counts`), or `None` when they are not whole. A system is in a
+    """`systems_facets` with no filter from the stored sector counts and what no sector's rows hold (`db.galaxy_counts`). A system is in a
     sector unless its `sector_id` is NULL, so the standalone ones are the one count made here."""
     total = galaxy_counts.totals(conn)
     binaries = galaxy_counts.facet(conn, "binary")
     octants = galaxy_counts.facet(conn, "octant")
-    if total is None or binaries is None or octants is None:
-        return None
     standalone = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id IS NULL").fetchone()["n"]
     placement = {"sector": total["systems"] - standalone, "standalone": standalone}
     return {
@@ -1159,9 +1155,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
     """
     def exact(c):
         if sector_id is None and binary is None and not octants and in_sector is None and stars is None and not values:
-            stored = _stored_systems_facets(c)    # DB.121: no filter at all, so the stored sector counts while they are whole
-            if stored is not None:
-                return stored
+            return _stored_systems_facets(c)    # DB.121: no filter at all, so the stored sector counts and what no sector's rows hold
 
         def counts(select, **filters):
             base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, "values": values, **filters}
@@ -7123,14 +7117,8 @@ def _append_size_clause(clauses, params, column, size_range):
 # the database (never a fixed/static enumeration). ---
 
 def _search_facet_type(conn):
-    stored = galaxy_counts.totals(conn)    # DB.121: the running totals while they are whole
-    if stored is not None:
-        star_c, planet_c, moon_c, belt_c = stored["stars"], stored["planets"], stored["moons"], stored["belts"]
-    else:
-        star_c = conn.execute("SELECT COUNT(*) AS c FROM stars").fetchone()["c"]
-        planet_c = conn.execute("SELECT COUNT(*) AS c FROM planets").fetchone()["c"]
-        moon_c = conn.execute("SELECT COUNT(*) AS c FROM moons").fetchone()["c"]
-        belt_c = conn.execute("SELECT COUNT(*) AS c FROM asteroid_belts").fetchone()["c"]
+    stored = galaxy_counts.totals(conn)    # DB.121: the running totals and what no sector's rows hold
+    star_c, planet_c, moon_c, belt_c = stored["stars"], stored["planets"], stored["moons"], stored["belts"]
     opts = []
     for value, label, count in (
         ("star", "Stars", star_c),
@@ -7147,9 +7135,6 @@ def _search_facet_spectral(conn):
     """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
     then any other letter the stars hold."""
     counts = galaxy_counts.facet(conn, "spectral")
-    if counts is None:
-        counts = {row["v"]: row["c"] for row in conn.execute(
-            "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
     letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
     for letter in letters:
@@ -7163,9 +7148,6 @@ def _search_facet_luminosity(conn):
     """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
     stars hold."""
     counts = galaxy_counts.facet(conn, "yerkes")
-    if counts is None:
-        counts = {row["v"]: row["c"] for row in conn.execute(
-            "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
     classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
         {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
@@ -7174,17 +7156,13 @@ def _search_facet_luminosity(conn):
     ]
 
 
-def _body_facet_rows(conn, table, facet, column, where=""):
-    """`[{"v", "c"}]` in the order of the values: the stored sector counts of `facet` while they are whole (`db.galaxy_counts`, DB.121),
-    else the count of `column` over `table`."""
-    stored = galaxy_counts.facet(conn, facet)
-    if stored is not None:
-        return [{"v": value, "c": n} for value, n in sorted(stored.items())]
-    return conn.execute(f"SELECT {column} AS v, COUNT(*) AS c FROM {table}{where} GROUP BY v ORDER BY v").fetchall()
+def _body_facet_rows(facet, conn):
+    """`[{"v", "c"}]` in the order of the values: the stored sector counts of `facet` and what no sector's rows hold (`db.galaxy_counts`, DB.121)."""
+    return [{"v": value, "c": n} for value, n in sorted(galaxy_counts.facet(conn, facet).items())]
 
 
 def _search_facet_class(conn):
-    rows = _body_facet_rows(conn, "planets", "class", "planet_class", " WHERE planet_class IS NOT NULL")
+    rows = _body_facet_rows("class", conn)
     opts = []
     for row in rows:
         info = PLANET_CLASSES.get(row["v"], {})
@@ -7194,7 +7172,7 @@ def _search_facet_class(conn):
 
 
 def _search_facet_body(conn):
-    rows = _body_facet_rows(conn, "planets", "body", "body_type")
+    rows = _body_facet_rows("body", conn)
     return [
         {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
         for row in rows
@@ -7226,10 +7204,8 @@ def life_class_counts(conn, table, scope="", params=()):
 
 def _life_class_facet(conn, table):
     """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each lives on
-    (`life_class_counts`), from the stored sector counts when they are whole (`db.galaxy_counts`, DB.121)."""
-    stored = galaxy_counts.facet(conn, "moon_life" if table == "moons" else "life")
-    rows = ([{"v": value, "c": n} for value, n in sorted(stored.items())] if stored is not None
-            else life_class_counts(conn, table))
+    (`life_class_counts`), from the stored sector counts and what no sector's rows hold (`db.galaxy_counts`, DB.121)."""
+    rows = _body_facet_rows("moon_life" if table == "moons" else "life", conn)
     return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
 
 
@@ -7326,7 +7302,7 @@ def _equipment_clause(alias, tags, clauses, params):
 
 
 def _search_facet_moon_class(conn):
-    rows = _body_facet_rows(conn, "moons", "moon_class", "planet_class", " WHERE planet_class IS NOT NULL")
+    rows = _body_facet_rows("moon_class", conn)
     opts = []
     for row in rows:
         info = PLANET_CLASSES.get(row["v"], {})
@@ -7336,7 +7312,7 @@ def _search_facet_moon_class(conn):
 
 
 def _search_facet_moon_body(conn):
-    rows = _body_facet_rows(conn, "moons", "moon_body", "body_type")
+    rows = _body_facet_rows("moon_body", conn)
     return [
         {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
         for row in rows

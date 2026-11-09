@@ -17,15 +17,14 @@ now kept as they change:
   by the difference between a sector's old rows and its new ones (`refresh`, `forget`). The row is locked last in a
   transaction, like `galaxy_shape`'s, so two workers saving at once wait only for the commit.
 
-What no sector holds is counted when it is asked (`outside`): the systems filed in no sector or in a sector with no grid
-address, their bodies, and the moons of free planets. They are few; a stored count of them would be one more thing to keep
-true. A read is `stored + outside`, one row (or a sum over the sectors' facet rows) and one small count, for any size of
-galaxy.
+What no sector's rows hold is counted when it is asked (`outside`): the systems filed in no sector or in a sector with no rows, their
+bodies, and the moons of free planets. They are few in a built galaxy; a stored count of them would be one more thing to keep true.
+A read is `stored + outside`, one row (or a sum over the sectors' facet rows) and one small count, for any size of galaxy.
 
-The rows are only used while they are whole (`usable`): the sectors that have `total` rows are the sectors that have their
-stats filled. A galaxy that was made before this table, or a deletion that missed it, reads the old way until
-`rebuild` (the migration, `planetgen fill-block-totals`) makes them again, and `check-counts` compares them with a full
-count. Nothing here changes a generated value: the counts are read from the rows a sector holds.
+A galaxy made before this table, or a cell filled by hand, has no rows for a sector: the systems in a sector with no rows are counted
+from the tables with the rest (`outside`), so a read is right whatever the rows hold, and `rebuild` (the migration, `planetgen
+fill-block-totals`) only makes the reads fast. `check-counts` compares the rows and the totals with a full count. Nothing here changes
+a generated value: the counts are read from the rows a sector holds.
 """
 
 TOTALS = ("systems", "stars", "planets", "moons", "belts", "habitable")
@@ -35,7 +34,14 @@ FACETS = ("binary", "octant", "spectral", "yerkes", "class", "body", "life", "mo
 """tuple: The facets a sector keeps beside `total`. Their names are the search page's facets (`query.SEARCH_TAG_FACETS`) where
 there is one."""
 
-_OUTSIDE_SYSTEMS = "SELECT id FROM star_systems WHERE sector_id IS NULL OR sector_id IN (SELECT id FROM sectors WHERE shell_index IS NULL)"
+_HELD = ("SELECT s.id FROM sectors s JOIN sector_facets f ON f.shell_index = s.shell_index AND f.band_index = s.band_index"
+         " AND f.wedge_index = s.wedge_index AND f.facet = 'total' AND f.value = 'systems'")
+"""str: The sectors that have rows: what `sector_facets` holds. Whatever lies in any other sector is `outside`, so a sector with no rows
+(a cell filled by hand, a galaxy from before the table, a sector in the middle of a rebuild) is counted from the tables and a read is
+right without them."""
+
+_OUTSIDE_WHERE = f"sector_id IS NULL OR sector_id NOT IN ({_HELD})"
+_OUTSIDE_SYSTEMS = f"SELECT id FROM star_systems WHERE {_OUTSIDE_WHERE}"
 
 
 def _in_scope(column, kind, sector_id, free=True):
@@ -65,7 +71,7 @@ def counts_in(conn, kind, sector_id=None):
     if kind == "sector":
         where, params = "sector_id = ?", (sector_id,)
     else:
-        where, params = "(sector_id IS NULL OR sector_id IN (SELECT id FROM sectors WHERE shell_index IS NULL))", ()
+        where, params = f"({_OUTSIDE_WHERE})", ()
     systems = 0
     for row in conn.execute(f"SELECT is_binary AS b, quadrant AS q, COUNT(*) AS n FROM star_systems WHERE {where} GROUP BY b, q", params).fetchall():
         systems += row["n"]
@@ -162,21 +168,10 @@ def stats_figures(conn, address):
     return _stats_figures(conn, address)
 
 
-def usable(conn):
-    """Whether the stored rows are whole: every sector whose stats are filled has its `total` rows, and no more. Two small
-    counts, one over `sector_stats`'s level key and one index-only over `sector_facets`."""
-    filled = conn.execute("SELECT COUNT(*) AS n FROM sector_stats WHERE bright_level_sol = 0").fetchone()["n"]
-    kept = conn.execute("SELECT COUNT(*) AS n FROM sector_facets WHERE facet = 'total' AND value = 'systems'").fetchone()["n"]
-    return int(filled) == int(kept)
-
-
 def totals(conn):
     """
-    The galaxy's counts in full, as `{"systems", "stars", "planets", "moons", "belts"}` (the stored row plus `outside`), or `None`
-    when the stored rows are not whole (`usable`): the caller counts the old way then.
+    The galaxy's counts in full, as `{"systems", "stars", "planets", "moons", "belts"}`: the stored row plus `outside`.
     """
-    if not usable(conn):
-        return None
     row = conn.execute("SELECT systems, stars, planets, moons, belts FROM galaxy_totals WHERE id = 1").fetchone()
     stored = {name: int(row[name]) for name in TOTALS if name != "habitable"} if row else {name: 0 for name in TOTALS if name != "habitable"}
     rest = counts_in(conn, "outside")
@@ -185,11 +180,8 @@ def totals(conn):
 
 def facet(conn, name):
     """
-    One facet's counts over the galaxy, as `{value: n}` (the sectors' rows summed plus `outside`), or `None` when the stored
-    rows are not whole.
+    One facet's counts over the galaxy, as `{value: n}`: the sectors' rows summed plus `outside`.
     """
-    if not usable(conn):
-        return None
     found = {row["value"]: int(row["n"]) for row in conn.execute(
         "SELECT value, SUM(n) AS n FROM sector_facets WHERE facet = ? GROUP BY value", (name,)).fetchall()}
     for (key, value), n in counts_in(conn, "outside").items():
@@ -210,7 +202,7 @@ def rebuild(conn, on_progress=None, batch=200):
         "SELECT s.id AS id, st.shell_index AS shell, st.band_index AS band, st.wedge_index AS wedge FROM sector_stats st"
         " LEFT JOIN sectors s ON s.shell_index = st.shell_index AND s.band_index = st.band_index AND s.wedge_index = st.wedge_index"
         " WHERE st.bright_level_sol = 0 ORDER BY s.id").fetchall()
-    # A filled sector whose row was lost still has stats and holds nothing: its rows are zeros, as `usable` expects.
+    # A filled sector whose row was lost still has stats and holds nothing: its rows are zeros.
     done = 0
     for row in sectors:
         _replace(conn, (row["shell"], row["band"], row["wedge"]), counts_in(conn, "sector", row["id"]))
@@ -234,12 +226,10 @@ def rebuild(conn, on_progress=None, batch=200):
 def problems(conn):
     """
     What differs between the stored counts and a full count, as a list of sentences (empty when they agree): the
-    `usable` guard, then the totals row against the sum of the sectors' rows, the mass and luminosity against the stats rows,
-    and the whole galaxy's tables against `totals` and each facet.
+    totals row against the sum of the sectors' rows, the mass and luminosity against the stats rows, and the whole galaxy's tables
+    against the stored counts and `outside`.
     """
     found = []
-    if not usable(conn):
-        return ["The stored galaxy counts are not whole (a sector has no rows or one is left over): `planetgen fill-block-totals` makes them again."]
     row = conn.execute("SELECT * FROM galaxy_totals WHERE id = 1").fetchone()
     sums = {r["value"]: int(r["n"]) for r in conn.execute("SELECT value, SUM(n) AS n FROM sector_facets WHERE facet = 'total' GROUP BY value").fetchall()}
     for name in TOTALS:

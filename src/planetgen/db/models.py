@@ -3494,6 +3494,37 @@ sector_stats = sa.Table(
 )
 
 
+sector_facets = sa.Table(
+    'sector_facets',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('facet', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('value', sa.String(40), primary_key=True, nullable=False),
+    sa.Column('n', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Index('idx_sector_facets_facet', 'facet', 'value', 'n'),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_totals = sa.Table(
+    'galaxy_totals',
+    metadata,
+    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('systems', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('stars', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('planets', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('moons', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('belts', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 sector_system_counts = sa.Table(
     'sector_system_counts',
     metadata,
