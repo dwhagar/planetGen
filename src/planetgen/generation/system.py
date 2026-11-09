@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -2227,6 +2227,26 @@ class StarSystem:
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")
 
+    def _kozai_pumping(self):
+        """
+        GEN.1447: every moon is the inner body of the triple (its planet, the moon, the planet's star): the star's torque, averaged over both orbits, pumps the moon's eccentricity when their
+        planes are inclined by 39.2 to 140.8 degrees and nothing faster turns the moon's orbit (`physics.kozai_bodies`). A survivor takes the eccentricity of its place in the cycle at the
+        star's age and a moon whose maximum puts its periapsis inside the Roche limit or the planet is lost. It runs after the secular exchange and before the tide wears an eccentricity down
+        (`settle_orbit` wears the pumped one). `self.kozai_outcomes` counts the moons screened and what became of them (a record for the census, not stored).
+        """
+        self.kozai_outcomes = {"screened": 0, "cycling": 0, "lost": 0}
+        for _star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a' or not planet.moons:
+                    continue
+                self.kozai_outcomes["screened"] += len(planet.moons)
+                lost = kozai_bodies.pump_moons(planet, self.effect_ledger)
+                self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
+                for moon in lost:
+                    planet.moons.remove(moon)
+                    self.kozai_outcomes["lost"] += 1
+                    log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
+
     @staticmethod
     def _planet_problems(planets):
         """The problems of one star's planets for the secular exchange to compare: their spacing and each planet with its moons."""
@@ -2250,6 +2270,7 @@ class StarSystem:
         """
         with log.timed_phase("settle pass"):
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
+            self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)
             if self.binary_type == "wide":

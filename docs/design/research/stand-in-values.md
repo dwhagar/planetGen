@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1540 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1514 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 182 | 20 | 11 | 1 | 0 | 214 |
-| T2 | 144 | 59 | 1 | 1 | 0 | 205 |
+| T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
-| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 191 | 106 | 30 | 75 | 2 | 404 |
-| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
+| T4 | 81 | 11 | 3 | 21 | 12 | 128 |
+| T5 | 78 | 24 | 6 | 1 | 1 | 110 |
+| T6 | 192 | 106 | 30 | 75 | 2 | 405 |
+| T7 | 50 | 19 | 9 | 31 | 0 | 109 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 873 | 302 | 74 | 235 | 50 | 1534 |
+| All | 879 | 302 | 74 | 235 | 50 | 1540 |
 
 ## How the labels were given
 
@@ -2702,3 +2702,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
 | FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
 | FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |
+
+## 6.262 Stand-ins of the Kozai-Lidov pumping of moons
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| KZ1 | P | T4 | L0 | kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero) | 1e-4 to 1e-2 | bodies drawn with an eccentricity of nearly zero | the cycle of a body with a drawn eccentricity under 1e-3 reaches a peak that depends on the floor | the seed taken from the octupole term and the mutual perturbations | no source; the value only keeps the equations from sticking at a circular start | predicted only | - | - |
+| KZ2 | P | T6 | L0 | kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied | 2 to 5 | moons and planets with a distant third body | a triple under the ratio whose integrated eccentricity differs from the averaged peak by tens of percent | an N-body check of the closest triples | the stability cut (`stability.stable`) is the physical limit and is the caller's; this only stops the averaged equations where they cannot hold | predicted only | - | - |
+| KZ3 | P | T2 | L0 | kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: `J2 = f q`, `q = w^2 R^3 / G M` | rocky 0.2 to 0.4, giant 0.1 to 0.2 | planets with a rotation period | a planet whose measured J2 is off by more than a third | a J2 from the planet's interior (the structure solver's moment of inertia and Love number) | Earth 1.08e-3 over 3.45e-3, Jupiter 1.47e-2 over 8.9e-2, Saturn 1.63e-2 over 15.5e-2 (recalled, not opened) | predicted only | - | - |
+| KZ4 | P | T5 | L0 | kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle | 0.5 to 2 | moons and planets with siblings or a bulge | an integrated orbit with a precession rate within a factor of two of the Kozai rate that still reaches the averaged peak | the full precession-resonance criterion of the secular problem | the rate the star turns the orbit is `1 / t_kl`, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal (Tremaine, Touma and Namouni 2009; Innanen et al 1997) | predicted only | - | - |
+| KZ5 | P | T5 | L0 | a moon that formed in place (`moon_origin` disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (`kozai_bodies.laplace_tilt_rad`) | none | moons of planets with a spin axis | a regular moon far outside the Laplace radius whose plane is observed to sit at the equator and not the planet's orbit | a model of the disk's warp with distance | a circumplanetary disk is held in the local Laplace plane by the same two torques (Tremaine, Touma and Namouni 2009); the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352) | predicted only | - | - |
+| KZ6 | P | T7 | L0 | the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (`_orbit_birth`); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide | none | captured moons that cycle | a cycling moon whose eccentricity after the tide is higher than the cycle's peak | the tide and the cycle integrated together | the tide's wear (GEN.842) is computed from the birth eccentricity; keeping that number the pumped one lets it do what it already does | predicted only | - | - |

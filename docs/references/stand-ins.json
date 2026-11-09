@@ -60053,6 +60053,242 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.262",
+      "number": "6.262",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "bodies drawn with an eccentricity of nearly zero"
+            ],
+            [
+              "What would show it wrong",
+              "the cycle of a body with a drawn eccentricity under 1e-3 reaches a peak that depends on the floor"
+            ],
+            [
+              "What replaces it",
+              "the seed taken from the octupole term and the mutual perturbations"
+            ],
+            [
+              "Evidence",
+              "no source; the value only keeps the equations from sticking at a circular start"
+            ]
+          ],
+          "id": "KZ1",
+          "key": "6.262:KZ1",
+          "kind": "P",
+          "slug": "6-262-kz1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with a distant third body"
+            ],
+            [
+              "What would show it wrong",
+              "a triple under the ratio whose integrated eccentricity differs from the averaged peak by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "an N-body check of the closest triples"
+            ],
+            [
+              "Evidence",
+              "the stability cut (stability.stable) is the physical limit and is the caller's; this only stops the averaged equations where they cannot hold"
+            ]
+          ],
+          "id": "KZ2",
+          "key": "6.262:KZ2",
+          "kind": "P",
+          "slug": "6-262-kz2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+            ],
+            [
+              "The range it moves in",
+              "rocky 0.2 to 0.4, giant 0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "planets with a rotation period"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose measured J2 is off by more than a third"
+            ],
+            [
+              "What replaces it",
+              "a J2 from the planet's interior (the structure solver's moment of inertia and Love number)"
+            ],
+            [
+              "Evidence",
+              "Earth 1.08e-3 over 3.45e-3, Jupiter 1.47e-2 over 8.9e-2, Saturn 1.63e-2 over 15.5e-2 (recalled, not opened)"
+            ]
+          ],
+          "id": "KZ3",
+          "key": "6.262:KZ3",
+          "kind": "P",
+          "slug": "6-262-kz3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with siblings or a bulge"
+            ],
+            [
+              "What would show it wrong",
+              "an integrated orbit with a precession rate within a factor of two of the Kozai rate that still reaches the averaged peak"
+            ],
+            [
+              "What replaces it",
+              "the full precession-resonance criterion of the secular problem"
+            ],
+            [
+              "Evidence",
+              "the rate the star turns the orbit is 1 / t_kl, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal (Tremaine, Touma and Namouni 2009; Innanen et al 1997)"
+            ]
+          ],
+          "id": "KZ4",
+          "key": "6.262:KZ4",
+          "kind": "P",
+          "slug": "6-262-kz4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "moons of planets with a spin axis"
+            ],
+            [
+              "What would show it wrong",
+              "a regular moon far outside the Laplace radius whose plane is observed to sit at the equator and not the planet's orbit"
+            ],
+            [
+              "What replaces it",
+              "a model of the disk's warp with distance"
+            ],
+            [
+              "Evidence",
+              "a circumplanetary disk is held in the local Laplace plane by the same two torques (Tremaine, Touma and Namouni 2009); the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352)"
+            ]
+          ],
+          "id": "KZ5",
+          "key": "6.262:KZ5",
+          "kind": "P",
+          "slug": "6-262-kz5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "captured moons that cycle"
+            ],
+            [
+              "What would show it wrong",
+              "a cycling moon whose eccentricity after the tide is higher than the cycle's peak"
+            ],
+            [
+              "What replaces it",
+              "the tide and the cycle integrated together"
+            ],
+            [
+              "Evidence",
+              "the tide's wear (GEN.842) is computed from the birth eccentricity; keeping that number the pumped one lets it do what it already does"
+            ]
+          ],
+          "id": "KZ6",
+          "key": "6.262:KZ6",
+          "kind": "P",
+          "slug": "6-262-kz6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+        }
+      ],
+      "slug": "6-262-stand-ins-of-the-kozai-lidov-pumping-of-moons",
+      "title": "Stand-ins of the Kozai-Lidov pumping of moons"
     }
   ]
 }
