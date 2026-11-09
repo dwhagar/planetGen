@@ -38,13 +38,13 @@ from planetgen.queue import commands, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
-    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights",
+    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
 galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that
 saves nothing twice (a sector already saved is skipped, a total made again is the same total)."""
 
-REWIND_WITH = {"finish-phenomena": "scatter-phenomena", "scatter-luminosity": "scatter-mass"}
+REWIND_WITH = {"finish-phenomena": "scatter-phenomena", "scatter-luminosity": "scatter-mass", "draw-nebula-field": "empty-nebula-field"}
 """dict: The command whose stage stopped -> the command of the stage before it that runs again with it. The special
 phenomena are added to the rows the shells wrote, and the bright stars of a run that draws both passes are split from the
 massive ones at a limit the run stores when it ends, so neither can be emptied alone."""

@@ -52,7 +52,8 @@ def _conclude(params, plan, results, seconds):
 
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
-    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena"):
+    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
+                 "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
             kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), prepare=(__name__, "_prepare"),
             conclude=(__name__, "_conclude")))
@@ -159,6 +160,17 @@ def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_in
     assert (found.first, found.stopped) == (1, 2)
     assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None]
     assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
+
+
+def test_a_nebula_field_draw_that_stopped_is_carried_on_with_the_clearing_of_the_earlier_field(conn):
+    """OPS.123: the clearing was the draw's `prepare`, run again with the draw; as a stage of its own it is rewound with it."""
+    steps = [_step("start", "plain"), _step("nebula-clear", "empty-nebula-field"), _step("nebula-draw", "draw-nebula-field"),
+             _step("blocks", "plain")]
+    run_id = _stopped(conn, steps, "nebula-draw", 0)
+    found = _plan(conn, run_id)
+    assert (found.first, found.stopped) == (1, 2)
+    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
+    assert "empty-nebula-field" in finish_run.FINISHABLE and finish_run.REWIND_WITH["draw-nebula-field"] == "empty-nebula-field"
 
 
 def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together(conn):
