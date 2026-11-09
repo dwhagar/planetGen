@@ -1,4 +1,0 @@
-**Headline:** The settle step reads the stars around a block of sectors once instead of once per sector, so it spends far less time reading the database (GEN.1477).
-
-### Changed
-- **`settle-sector-paths` settles sectors in cell-key order and reads each neighbourhood once per chunk.** Each sector's paths see the point masses of the sectors within 2.5 edges of it, about 125 sectors, and the step used to read all of them again for every sector it settled. The stage now cuts its sectors in the order of their centers' cell keys (the Morton order of `galaxy/cellkey.py`), so a chunk of 100 sectors is a block that sits together, and `sector_paths.settle_sectors` reads the union of the chunk's neighbourhoods one time (`_Neighbourhoods`) and builds each sector's mass table from it. The point masses are read in sector then id order and the paths saved are bit-for-bit those a read of the sector's own neighbourhood saves; the chunks differ only in which sectors they hold.
