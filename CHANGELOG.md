@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3749] - 2026-11-09
+
+**Headline:** The settle step reads the stars around a block of sectors once instead of once per sector, so it spends far less time reading the database (GEN.1477).
+
+### Changed
+- **`settle-sector-paths` settles sectors in cell-key order and reads each neighbourhood once per chunk.** Each sector's paths see the point masses of the sectors within 2.5 edges of it, about 125 sectors, and the step used to read all of them again for every sector it settled. The stage now cuts its sectors in the order of their centers' cell keys (the Morton order of `galaxy/cellkey.py`), so a chunk of 100 sectors is a block that sits together, and `sector_paths.settle_sectors` reads the union of the chunk's neighbourhoods one time (`_Neighbourhoods`) and builds each sector's mass table from it. The point masses are read in sector then id order and the paths saved are bit-for-bit those a read of the sector's own neighbourhood saves; the chunks differ only in which sectors they hold.
+
+## [8.0.3748] - 2026-11-09
+
+**Headline:** The design note for how pebbles drift in and evaporate at the ice lines of the disc is written, with its stand-ins registered and four new papers in the registry; no generated output changes.
+
+### Changed
+
+- **GEN.1472 is a design note, not code.** `docs/design/composition/disk-drift-evaporation.md` describes how the gas of the disc gets the ice that pebbles carry inward and evaporate at each line, as one enrichment ratio per ice that is exactly the static budget of GEN.1363 when it is 1, with the clocks (pebble front, flux, the edge, viscous lag), the cold finger, and the age a giant gathers its gas, which it derives without a new draw. Its first numbers for the Sun say the gas inside the water line has a C/O near 0.2 while the pebbles last (0.38 in the static budget) and near 1.0 afterward, and that outside the water line the effect is small and may not lower the giants' C/O above 0.8. Section 4 of the note says which parts are read, recalled or speculative. Ten stand-ins are registered (section 6.242, rows DE1 to DE10, tiers T3 to T6, tweak L0) and the registry gets [R5208], [R5209] and [R5210] (abstracts read), [R5211] (form recalled, not opened) and [R5212] (title only). The build is GEN.1473. No code changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3747] - 2026-11-09
 
 **Headline:** A merge train's epoch now alters only the stages its items say they alter, instead of all four.
