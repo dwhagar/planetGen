@@ -287,16 +287,39 @@ def test_a_pulsar_planet_with_no_orbit_distance_takes_the_snow_lines_ice_and_sti
         assert rows["H-2"]["fraction"] > 0.0
 
 
+def _ratios(*args, **kwargs):
+    return {key: ratio for key, _label, _text, ratio in ir.sheet_rows(ir.small_body_record(*args, **kwargs))}
+
+
 def test_a_comets_ices_are_the_cold_anchor_and_a_belts_follow_the_distance_from_the_snow_line():
-    comet = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a"))
-    assert 0.5 * ir.COMET_D_H < comet["isotope_ice_d_h"] < 2.0 * ir.COMET_D_H                # comet 67P's 5.3e-4, scattered by the draw (sigma 0.3 in ln)
-    assert 1.0 / comet["isotope_ice_n15"] == pytest.approx(140.0, rel=0.05)
-    near = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 2.7 * 1.496e8, 2.7, "b"))
-    far = dict((key, ratio) for key, _l, _t, ratio in ir.ice_sheet_rows("belt", 0.0, 4.5, 0.1, 80.0 * 1.496e8, 2.7, "b"))
-    assert far["isotope_ice_d_h"] > 2.0 * near["isotope_ice_d_h"] and far["isotope_ice_n15"] > near["isotope_ice_n15"]     # colder, more enriched (same scatter: one seed)
-    assert ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a") == ir.ice_sheet_rows("comet", 0.0, 4.5, 0.4, None, None, "a")
+    comet = _ratios("comet", 0.0, 4.5, 0.4, seed="a")
+    assert 0.5 * ir.COMET_D_H < comet["isotope_D/H"] < 2.0 * ir.COMET_D_H                # comet 67P's 5.3e-4, scattered by the draw (sigma 0.3 in ln)
+    assert 1.0 / comet["isotope_15N/14N"] == pytest.approx(140.0, rel=0.05)
+    near = _ratios("belt", 0.0, 4.5, 0.1, 2.7 * 1.496e8, 2.7, "b")
+    far = _ratios("belt", 0.0, 4.5, 0.1, 80.0 * 1.496e8, 2.7, "b")
+    assert far["isotope_D/H"] > 2.0 * near["isotope_D/H"] and far["isotope_15N/14N"] > 0.0 and "isotope_15N/14N" not in near     # colder, more enriched (same scatter: one seed); nitrogen freezes only far out
+    assert ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a") == ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a")
+    assert ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a") != ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="b")      # a body always shows the same line, another body another scatter
 
 
-def test_a_body_with_no_ice_or_no_host_shows_no_ice_lines():
-    assert ir.ice_sheet_rows("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") == [] and ir.ice_sheet_rows("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") == []
-    assert ir.ice_sheet_rows("comet", None, 4.5, 0.4, None, None, "a") == [] and ir.ice_sheet_rows("comet", 0.0, None, 0.4, None, None, "a") == []
+def test_a_small_bodys_record_is_the_planets_law_on_the_same_row_fields():
+    record = ir.small_body_record("comet", 0.0, 4.5, 0.4, seed="a")
+    assert {row["origin"] for row in record} >= {"natural", "physical"} and all(set(row) == set(ir.ROW_FIELDS) for row in record)
+    by_isotope = {row["isotope"]: row["fraction"] for row in record}
+    assert by_isotope["H-2"] / by_isotope["H-1"] == pytest.approx(_ratios("comet", 0.0, 4.5, 0.4, seed="a")["isotope_D/H"])
+
+
+def test_a_member_with_its_own_fractions_and_an_interstellar_body_with_no_star_get_a_record():
+    member = ir.small_body_record("belt_member", 0.0, 4.5, 0.3, 60.0 * 1.496e8, 2.7, "m", rock_fraction=0.6, metal_fraction=0.1, water_fraction=0.25, ice_fraction=0.05)
+    assert member and {row["isotope"] for row in member} >= {"H-2", "N-15"}
+    outer = ir.galactic_gas_metallicity(12000.0)
+    inner = ir.galactic_gas_metallicity(4000.0)
+    assert inner > outer                                                                              # the gas is richer toward the center
+    assert ir.small_body_record("interstellar_comet", outer, None, 0.4, seed=7) and ir.small_body_record("asteroid_field", inner, None, 0.1, seed=8)
+    with pytest.raises(ValueError):
+        ir.small_body_record("planet", 0.0, 4.5, 0.4)
+
+
+def test_a_body_with_no_ice_shows_no_ice_lines():
+    assert not [key for key in _ratios("belt", 0.0, 4.5, 0.0, 4.0e8, 2.7, "a") if key != "isotope_count"]
+    assert not [key for key in _ratios("belt", 0.0, 4.5, None, 4.0e8, 2.7, "a") if key != "isotope_count"]
