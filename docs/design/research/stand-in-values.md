@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1490 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1493 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1464 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1467 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 107 | 47 | 9 | 10 | 0 | 173 |
 | T4 | 74 | 11 | 3 | 21 | 10 | 119 |
 | T5 | 73 | 24 | 6 | 1 | 1 | 105 |
-| T6 | 179 | 104 | 27 | 76 | 2 | 388 |
+| T6 | 182 | 104 | 27 | 76 | 2 | 391 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 835 | 300 | 71 | 236 | 48 | 1490 |
+| All | 838 | 300 | 71 | 236 | 48 | 1493 |
 
 ## How the labels were given
 
@@ -2552,7 +2552,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RF5 | P | T7 | L1 | a source with no stored value of a band gives none of that band (a neutron star or white dwarf that stores no `l_xuv_w`, a black hole with a disk that stores no luminosity); remnants without a stored spectrum or luminosity get a stand-in when the dose item (GEN.1442) reads them | none | any system with a remnant | a remnant whose measured XUV or disk power the stored values leave out | stand-in values per remnant kind, registered with tier and tweak | design; nothing invented here: absent stays absent | predicted only | - | - |
 | RF6 | T | T6 | L0 | a belt is lit by the mean of the field across its ring: the ratio of the ring's mean total light to its mean host light (`radiation_field.ring_light_ratio`, 16 equal-width annuli weighted by area) multiplies the host's luminosity for the temperature its makeup is drawn at and for the taxa of its members, each member still at its own distance from the host (GEN.1444) | annuli 8 to 64 | rings narrow against the companion's distance | a belt whose bodies sit in one part of the ring (a resonant clump, a narrow family) where the companion's share differs from the ring's mean by over a tenth | the light at each member's own distance | derived: the mean of a smooth ratio over the ring; the test compares the 16 annuli with a 2000-annulus sum | predicted only | - | - |
 | RF7 | T | T6 | L0 | whether a belt is on the icy or the rocky side of its star's snow line (its size law) uses the belt's lit distance, its distance over the square root of the ring's light ratio, against the star's drawn snow line (GEN.1444); the snow line itself and the disk's solids the belt grew from (`belt_ledger.belt_state`) stay the formation ones, as for planets (`born_beyond_snow_line`) | none | companions that were present while the disk lasted or not at all | a belt past the snow line whose ice a companion's light would have sublimated, or one inside the line that a companion's disk truncation kept cold | a present-day ice line from the ring's temperature and the ice's sublimation (`condensate_shares.ICE_CONDENSATION_K`) | design; the same rule as the zone letter of a planet (RF4) | predicted only | - | - |
-| RF8 | T | T6 | L0 | a comet's chance of showing activity reads the light at its perihelion: `_activity_chance` of the perihelion over the square root of the total light over the host's own (`radiation_field.lit_distance_au`), against the fixed distance `COMET_ACTIVITY_PERIHELION_THRESHOLD_AU`, which is not scaled by the host's luminosity (a lone star gives the numbers of before) (GEN.1444) | the threshold | comets of stars near the Sun's luminosity | a comet of a faint or bright star whose activity distance moves with its luminosity | an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light | design; a lone star unchanged | predicted only | - | - |
+| RF8 | T | T6 | L0 | a comet's chance of showing activity reads the light at its perihelion: `_activity_chance` of the perihelion over the square root of the total light over the host's own (`radiation_field.lit_distance_au`), against the fixed distance `COMET_ACTIVITY_PERIHELION_THRESHOLD_AU`, which GEN.1491 scales by the host's luminosity (row CA2; a lone star gives the numbers of before) (GEN.1444) | the threshold | comets of stars near the Sun's luminosity | a comet of a faint or bright star whose activity distance moves with its luminosity | an activity distance from the sublimation flux of water ice, scaled by the host's and the companions' light | design; a lone star unchanged | predicted only | - | - |
 
 ## 6.240 Stand-ins of the stellar wind of a system and a moon in its parent's field
 
@@ -2613,3 +2613,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
 | IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
 | IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+
+## 6.249 Stand-ins of the distance at which a comet turns active
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CA1 | P | T6 | L0 | `tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU` 3.0, `COMET_ACTIVITY_MAX_CHANCE` 0.9 and `COMET_ACTIVITY_MIN_CHANCE` 0.05: the Sun's activity distance and the chances at its ends are kept as they were; they are the distance round the Sun at which a nucleus is lit enough to sublimate its water | the three numbers | a comet lit like one round the Sun | a measured share of active comets by perihelion that departs from the line by more than the scatter | a chance from the sublimation rate of water at the nucleus's temperature | recalled from Comets II (the water-ice sublimation limit near 3 AU); not re-read here | predicted only | - | - |
+| CA2 | T | T6 | L0 | a comet's perihelion is read as the distance from the Sun at which it would be lit as much: the lit distance (GEN.1444) over `sqrt(L / Lsun)`, the equal-flux law of an airless body in starlight (`comet_activity.solar_equivalent_au`); a host of exactly the Sun's luminosity, or no star, gives the numbers of before | none | comets with no atmosphere, so no greenhouse or conduction of heat that depends on more than the flux | a comet of a bright or faint star whose activity begins at a distance that is not close to `3 AU sqrt(L / Lsun)` | the activity distance from the sublimation flux of water ice and the nucleus's albedo and rotation | derived: the same flux at `d sqrt(Lsun / L)`; the disk's `L^0.25 r^-0.62` is for a passively heated disk and is not used | predicted only | - | - |
+| CA3 | T | T6 | L0 | a star's spectrum and the comet's size do not change the distance: only the luminosity does | none | comets of stars of any type | a comet whose activity differs between a blackbody and a hot-star spectrum at the same flux | an absorption of the nucleus's albedo in the star's band | design | predicted only | - | - |

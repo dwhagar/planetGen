@@ -58,6 +58,11 @@ distance, not on orbit type: `cometData._activity_chance` falls linearly from
 0.9 at `q = 0` to 0.05 at `q >= 3 AU` (`COMET_ACTIVITY_*`). Interstellar
 comets keep a flat roll (`INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5`).
 
+The distance is the Sun's, read for the host (GEN.1491): a comet's perihelion is first made the distance from a lone star that is lit as much (every star's light
+counts, GEN.1444), then divided by `sqrt(L / Lsun)` (`physics/comet_activity.py`), the distance round the Sun that gives the same flux on an airless body. So 3 AU round
+the Sun is 30 AU round a star of 100 solar luminosities and 0.3 AU round one of 0.01. A host of the Sun's luminosity, alone, gives the old chance. The disk's temperature
+law is not used: it is for a passively heated disk, not a bare nucleus. Rows CA1 to CA3 of section 6.249.
+
 ### Names
 
 `cometData.comet_designation` (7.31.0, schema v40) names a star-bound comet
