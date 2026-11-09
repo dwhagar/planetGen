@@ -74,7 +74,7 @@ Every object in a system acts on every other by 3D position (docs/design/generat
 
 1. **First: the effect ledger GEN.1465** (Lane 12 with Lane 23: table design, column units, migration), so every later item fills it as it lands. Lane 12 posts the design to TODO before the build; Boss's okay for the storage size is asked then.
 2. **Lane 23, in this order:** GEN.1446 (tides between all bodies), GEN.1447 (Kozai and secular), GEN.1464 (belts, asteroids and comets as tiny sources), GEN.1467 (mutual tides, spin and precession of stars of a multiple), GEN.1454 (spin and obliquity), GEN.1459 (settled eccentricity), GEN.1449 (moon systems), GEN.1448 (census), after the fudge chain items already in hand.
-3. **Lane 21:** GEN.1460 (Hill checks and spacing against every neighbour, built), GEN.1450 (planet chains; split the secular exchange with Lane 23 before coding), GEN.1469 (companion truncation of the disk: the read first).
+3. **Lane 21:** GEN.1460 (Hill checks and spacing against every neighbour, built), GEN.1450 (planet chains; split the secular exchange with Lane 23 before coding), GEN.1469 (companion truncation of the disk: read done 2026-11-09, closed as a finding; the disk is already cut at the stability limit; the close-companion disk lifetime is GEN.1475).
 4. **Lane 22:** GEN.1444 (after GEN.1441), then GEN.1451 (belts and disks), GEN.1453 (impact and comet flux), GEN.1455 (Trojans), GEN.1456 (ejection and scattering, with Lane 13), GEN.1457 (comet orbits).
 5. **Lane 15:** GEN.1458 (seasons, with the stored spin-axis azimuth), GEN.1461 (day share), GEN.1462 (eclipses).
 6. **Lane 13:** GEN.1466 (galactic tide and passing stars on the outer edge), and the sector and hook jobs of the job system.
