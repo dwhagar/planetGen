@@ -163,7 +163,7 @@ def note_rows(conn, table, columns, rows):
         light = row[light_at]
         if light is not None and not stars:
             light = _float32(light)
-        cells.setdefault((row[cell_at[0]], row[cell_at[1]], row[cell_at[2]]), []).append(
+        cells.setdefault((int(row[cell_at[0]]), int(row[cell_at[1]]), int(row[cell_at[2]])), []).append(
             (light, row[x_at], row[y_at], row[z_at], row[temperature_at] if stars else None))
     held = set()
     addresses = sorted(cells)
