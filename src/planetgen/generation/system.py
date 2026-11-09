@@ -2205,6 +2205,10 @@ class StarSystem:
                 for body in (obj, *obj.moons):
                     if planetPhysics.settle_orbit(body):
                         log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+                # the tides above can move a giant's eccentricity, and with it the mean light its radius was sized on (`orbit_elements.flux_distance_au`): size it again
+                # on the final orbit (a giant the tables moved by under `SETTLE_TOLERANCE` is left as it is)
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled again to {obj.radius:.0f} km on its final orbit")
                 if planetPhysics.settle_envelope(obj):
                     log.debug(f"{obj.name}: kept a hydrogen envelope of {obj.envelope_mass_fraction:.3g} of its mass, radius {obj.radius:.0f} km")
                 if planetPhysics.finish_orbit_oddities(obj):
