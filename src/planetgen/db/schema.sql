@@ -5166,6 +5166,22 @@ CREATE TABLE IF NOT EXISTS chart_ledger (
 
 
 -- ---------------------------------------------------------------------
+-- system_summary (v236, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
+-- own rows, so the jobs that refresh them (`rescore-habitability`) take only the systems that are not current. `habitability_stamp` is the stamp
+-- of the code that scored the system's planets and moons (`db/derived_stamp.py`: a hash of the physics source, so a changed formula is a different
+-- stamp); NULL until the system is scored. Written by the system save and by `store.refresh_habitability`. It is a side table, not columns of
+-- `star_systems`, because that table has a FULLTEXT key and adding a column to it copies every row. A system's row goes with it.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS system_summary (
+    star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    habitability_stamp  INT UNSIGNED NULL,
+
+    CONSTRAINT fk_system_summary_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
 -- mass rings under it) over spheres centered on the system's 50 parsec cell (the cell the glow band is kept for) with the star backfill, and records each sphere here: `kind` (luminosity or mass),
 -- the band's range (`band_low`, `band_high`: Lsun for a band, solar masses for a ring; NULL for no upper edge), the center and `radius_pc` (padded by the cell's half diagonal so every system in the cell
