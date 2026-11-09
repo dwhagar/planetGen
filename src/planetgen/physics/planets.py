@@ -492,14 +492,18 @@ def settle_giant(planet):
     Returns:
         bool: Whether the giant's radius moved.
     """
-    if not giant_draw.settle(planet):
+    moved = giant_draw.settle(planet)
+    stale = bool(getattr(planet, "_air_stale", False))       # the secular exchange moved the orbit and with it the mean light (GEN.1505)
+    planet._air_stale = False
+    if not moved and not stale:
         # The radius stayed (the tables moved it by under the tolerance, or the giant was sized another way), but the star's age rose after the flux was
         # stored and the giant's own heat falls with the age: the flux it radiates is made again at the final age.
         if not planet.is_moon and getattr(planet, "energy_flux_w_m2", None) is not None:
             planet.energy_flux_w_m2 = habitability_world.giant_energy_flux_w_m2(planet)
         return False
-    planet.volume = (4 / 3) * math.pi * planet.radius ** 3
-    calculate_surface_gravity(planet)
+    if moved:
+        planet.volume = (4 / 3) * math.pi * planet.radius ** 3
+        calculate_surface_gravity(planet)
     stream = draw.Stream(f"settle-giant-air:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
                          f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
@@ -509,7 +513,7 @@ def settle_giant(planet):
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
-    return True
+    return moved
 
 
 def _check_given_bounds(mass_kg, radius_km):
@@ -991,6 +995,8 @@ def stale_air(planet):
     for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):        # a giant is not made again by the refresh (its moons are)
         if getattr(body, "_age_drawn", None) is not None:
             body._age_drawn = 0.0
+    if planet.body_type == "g":
+        planet._air_stale = True                 # `settle_giant` makes a giant's air again on the orbit it has now, whether or not its radius moves (GEN.1505)
 
 
 def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
@@ -1084,7 +1090,7 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
             body.eccentricity = 0.5 * (low + high)
             low, high = (body.eccentricity, high) if keeps_spacing(planets) else (low, body.eccentricity)
         body.eccentricity = low
-    for i in moved:
+    for i in sorted(set(moved) | {i for i, body in enumerate(bodies) if body.eccentricity != old[i]}):      # any change of the eccentricity moves the mean light
         body = bodies[i]
         phase = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z), body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
         old_inclination, old_node = body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0
@@ -1096,7 +1102,7 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         update_orbital_position(body, phase, math.degrees((result.periapsis_longitude[i] - result.node_longitude[i]) % (2.0 * math.pi)))
         for moon in getattr(body, "moons", ()):
             moon.host_eccentricity = body.eccentricity
-        if abs(body.eccentricity - old[i]) > ECCENTRICITY_SETTLE_TOLERANCE:
+        if body.eccentricity != old[i] or i in moved:
             stale_air(body)
     return "held by the spacing" if held else "exchanged"
 
