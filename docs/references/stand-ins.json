@@ -28603,11 +28603,11 @@
           "fields": [
             [
               "What it is",
-              "super_puff.MAX_MASS_EARTH 10 (no age in the gate since GEN.1347), PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
+              "super_puff.CLASS_MAX_MASS_EARTH 30 and DENSITY_RANGE_G_CM3 (0.03, 0.1): the type (mass and density, any period and any age since GEN.1470; the 10 to 100 day window is gone); super_puff.START_MAX_MASS_EARTH 10 and START_MAX_PERIOD_D 100: only who can START as a puff (GEN.1343)"
             ],
             [
               "The range it moves in",
-              "Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days"
+              "Lee and Chiang's class is 2 to 6 Earth masses and under 50 days; the design table is 10 Earth masses and 10 to 100 days; the survey catalogues say sub-Saturn mass and density about 0.3 or less (Marston, Becker and Howe 2026, arXiv 2606.11330, abstract read, no number); 30 is the top of the radius law (LOPEZ_MAX_MASS_EARTH)"
             ],
             [
               "Where it holds",
@@ -28615,15 +28615,15 @@
             ],
             [
               "What would show it wrong",
-              "a super-puff heavier than 10 Earth masses (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, which the obliquity tide of GEN.1347 now inflates)"
+              "a super-puff heavier than 30 Earth masses, or a puffed planet the generator makes that a survey would not call one (older ones exist: [R3079: Sec. 5] gives Kepler-79 d 1.9 to 3.4 Gyr, Kepler-27 b and Kepler-31 c 4.7 Gyr, which the obliquity tide of GEN.1347 now inflates; Kepler-51 d is at 130 days and Kepler-87 c at 191, recalled)"
             ],
             [
               "What replaces it",
-              "the age-dependent radius of a measured sample"
+              "the age-dependent radius of a measured sample; the loss worked out on the inflated radius (GEN.1480)"
             ],
             [
               "Evidence",
-              "the design table (weird-worlds.md W15), [R2609] Introduction and Sec. 4 (read), Kepler-51 d 0.038 g/cc (read)"
+              "the design table (weird-worlds.md W15), [R2609] Introduction and Sec. 4 (read), Kepler-51 d 0.038 g/cc (read); GEN.1470 (the period window missed 5 of 5 puffed planets of 180 seeded systems)"
             ]
           ],
           "id": "PF1",
@@ -28634,7 +28634,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "super_puff.MAX_MASS_EARTH 10 (no age in the gate since GEN.1347), PERIOD_RANGE_D (10, 100) and DENSITY_RANGE_G_CM3 (0.03, 0.1): the gate"
+          "what": "super_puff.CLASS_MAX_MASS_EARTH 30 and DENSITY_RANGE_G_CM3 (0.03, 0.1): the type (mass and density, any period and any age since GEN.1470; the 10 to 100 day window is gone); super_puff.START_MAX_MASS_EARTH 10 and START_MAX_PERIOD_D 100: only who can START as a puff (GEN.1343)"
         },
         {
           "burn_down": null,
@@ -28687,7 +28687,7 @@
             ],
             [
               "The range it moves in",
-              "0.01 to 0.10 (the gate passes 0.84 percent of the sub-Neptunes inside 100 days at 0.05 and at 0; 3 percent with every core started as a puff)"
+              "0.01 to 0.10 (the type passed 0.84 percent of the sub-Neptunes inside 100 days at 0.05 and at 0 when it had a period window, 3 percent with every core started as a puff; since GEN.1470 the type has no window and the count is made inside 100 days itself, test_the_super_puff_share_of_the_inner_sub_neptunes_is_counted_inside_a_hundred_days)"
             ],
             [
               "Where it holds",

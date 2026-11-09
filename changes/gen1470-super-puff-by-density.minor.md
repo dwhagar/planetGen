@@ -7,3 +7,4 @@
 - The sweep test now also checks that no puffed planet escapes the type. The loss of the envelope on the inflated radius is GEN.1480.
 
 generation-output: changed
+generation-affects: fill
