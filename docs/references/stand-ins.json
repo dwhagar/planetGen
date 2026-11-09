@@ -58089,7 +58089,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
-          "unread": null,
+          "unread": "by design",
           "what": "disk_drift.DISC_MASS_SOLAR 0.05 and VISCOUS_TIME_MYR 0.5: the viscous gas flux Mdot_g = Mdot_0 (1 + t / t_nu)^(-3/2), Mdot_0 = Md_0 / (2 t_nu); the disc mass cancels in the enrichment ratio"
         },
         {
