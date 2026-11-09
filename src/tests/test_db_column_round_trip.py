@@ -28,6 +28,7 @@ BOOKKEEPING_TABLES = {
     "orbital_events", "orbital_event_bodies", "chart_ledger", "system_summary",
     "galaxy_block_light_parts",    # GEN.1476: the parts the block light totals roll up, read by db/block_lights.roll, not by a page's loader
     "galaxy_totals", "sector_facets",    # DB.121: the galaxy's running counts and the stored facet counts, read by db/galaxy_counts and the queries that serve the totals
+    "body_history",        # GEN.1497: the numbers a body's history leaves, kept by the system save; the readers follow in the effect-ledger chain
     "effect_ledger",       # GEN.1465: kept by the generator beside each system; the readers (the API and the sheet) follow in the effect-ledger chain
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
@@ -68,6 +69,7 @@ NULL_IN_THIS_GALAXY = {
     ("planets", "sky_suns"): CHANCE,
     ("moons", "sky_suns"): "a moon is not given the suns of the sky (GEN.1458)",
     ("rogue_planets", "sky_suns"): "a rogue planet has no star (GEN.1458)",
+    **{("rogue_planets", name): "a rogue planet has no star, so no day (GEN.1496)" for name in ("days_per_year", "night_hours", "polar_circle_deg", "solar_day_hours")},
     # GEN.1484: the light a circumbinary planet keeps after its stars eclipse each other; a small galaxy may hold no planet of a close pair, a moon and a rogue planet are given none
     ("planets", "light_factor"): CHANCE,
     ("moons", "light_factor"): "a moon keeps all its planet's light (GEN.1484)",
