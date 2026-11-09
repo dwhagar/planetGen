@@ -607,7 +607,7 @@ def test_the_phenomena_scatter_gives_the_same_rows_at_any_worker_count_and_recor
     assert len(one) > 50
     conn = redisqueue.connect()
     assert [step["kind"] for run in runs for step in runrecord.read_steps(conn, run)] == [
-        "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights"]
+        "scatter-phenomena", "finish-phenomena", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights"]
     run = runrecord.read_run(conn, runs[0])
     assert run["state"] == "done" and run["stages"][0]["done"] == run["stages"][0]["units"] > 1
     monkeypatch.setattr(wrapper, "run", real)
@@ -628,7 +628,7 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
     assert shape.to_json() == {key: value for key, value in expansion.plan.items()
-                                      if key not in ("filled", "outline_shells", "min_mass_solar")} \
+                                      if key not in ("filled", "outline_shells", "min_mass_solar", "row_totals")} \
         and len(shape.tasks) == len(expansion.units) > 1
     conn = store.get_connection(mysql_config)
     try:
