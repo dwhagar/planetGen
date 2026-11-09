@@ -449,7 +449,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1371 | Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle | GEN.1364 | |
 | GEN.1373 | Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase |  | |
 | GEN.1425 | Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it |  | Boss, 2026-11-08. |
-| GEN.1426 | Super-Earth mantle density splits: the high-pressure mantle phase changes (post-perovskite and the deeper transitions) as density steps in the interior of massive rocky planets |  | Boss, 2026-11-08. |
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting |  | Lane 11, 2026-11-08. |
 | GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) |  | Lane 15, 2026-11-08. |
 | GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body |  | Boss, 2026-11-08. |
@@ -493,6 +492,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1489 | Cosmic-ray production of cosmogenic isotopes on airless and ocean-covered surfaces, and beryllium-10 and aluminium-26 in air | none | Lane 14 isotope leftovers, 2026-11-09. |
 | GEN.1490 | Mantle against ocean isotope split, and the xenon excess from iodine-129 and plutonium-244 | none | Lane 14 isotope leftovers, 2026-11-09. |
 | GEN.1491 | Comet activity distance scales with the host's luminosity, not a fixed Sun-based constant | GEN.1444 | Lane 22 finding in GEN.1444, 2026-11-09. |
+| GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system | GEN.1451, GEN.1450 | Lane 22 finding in GEN.1451, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | Generation rescan audit, 2026-11-09. |
 | DB.121 | Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9) |  | Generation rescan audit, 2026-11-09. |
