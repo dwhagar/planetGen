@@ -13404,6 +13404,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed Lane 14, confirm with TODO before taking): a lock item for Train 22 or later, after GEN.1471 is on main. Prerequisites: GEN.1472. Related: GEN.1471, GEN.1396, GEN.1363, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1474 Multi-planet eccentricity draw (orbit_elements.MULTI_SIGMA 0.083) is hotter than the planet spacing holds: re-derive it from the observed multi-planet eccentricities**
+  Found by Lane 21 while building GEN.1450 (PR 5812, 2026-11-08): with the secular exchange of all planets of a star, 77 of 120 multi-planet stars change and the rocky mean eccentricity goes from 0.048 to 0.039, because hot draws are cooled and the spacing refuses the rise; the draw of the eccentricity for multi-planet systems (MULTI_SIGMA 0.083) is hotter than the spacing and the secular exchange can hold. Not tuned in GEN.1450. Do: compare the generated eccentricity distribution of planets in systems of 2 or more planets with the published multi-planet statistics (the Kepler multis; second-hand citations accepted), decide whether the width of the draw, the spacing rule or neither is wrong, and fix the one that is; any tuned number is registered in GEN.725 with tier and tweak level; a generator change, so a new epoch with --affects; scripts/test.py changed --resume. Reuse the orbit-element draw, the clearance ledger and the secular rates of GEN.1450; do not add a second draw.
+  Version 8.1. Owner (TODO, proposed Lane 21, confirm with TODO before taking): a lock item for Train 22 or later, after GEN.1450 is on main. Prerequisites: GEN.1450. Related: GEN.1447, GEN.1460, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
