@@ -200,3 +200,27 @@ def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn,
     assert block_lights.parts_current(conn)
     _assert_same(_parts(conn), _from_tables(conn))
     assert any(sums[7] > 0 for sums in _parts(conn).values())      # the fill's values are in the parts
+
+
+def test_the_phenomena_count_comes_from_the_class_counters_when_the_scatter_has_them(conn):
+    stars, points = _rows()
+    _write(conn, stars, points)
+    assert block_lights.parts_current(conn)      # no class rows: the scan of the table answers
+    conn.execute("INSERT INTO phenomenon_scatter_classes (kind, subtype, placed, built) VALUES ('black-hole', '', ?, 0)", (len(points),))
+    conn.commit()
+    assert block_lights._unbuilt_points(conn) == len(points) and block_lights.parts_current(conn)
+    conn.execute("UPDATE phenomenon_scatter_classes SET placed = placed + 1")      # the counters say one more than the parts hold
+    conn.commit()
+    assert not block_lights.parts_current(conn)
+
+
+def test_many_cells_are_put_right_together_and_a_cell_with_no_part_is_left_alone(conn):
+    stars, points = _rows()
+    _write(conn, stars, points)
+    conn.execute("DELETE FROM galaxy_block_light_parts WHERE shell_index IN (10, 13)")
+    conn.commit()
+    cells = [(10, 1, 2), (13, 3, 3), (99, 9, 9), (12, 0, 1)]      # two gone, one that never had a part and holds nothing, one intact
+    block_lights.sync_cells(conn, cells + cells)
+    conn.commit()
+    _assert_same(_parts(conn), _from_tables(conn))
+    assert block_lights.parts_current(conn)

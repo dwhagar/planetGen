@@ -348,11 +348,20 @@ def forget_parts(conn, kind):
 
 def sync_cells(conn, addresses):
     """Makes the parts of each sector cell in `addresses` what the object tables hold for it now: a sector was built, or deleted, or its
-    objects pruned, so its unbuilt objects are no longer the ones the scatter wrote (GEN.1476)."""
-    for address in addresses:
-        shell, band, wedge = (int(value) for value in address)
-        conn.execute("DELETE FROM galaxy_block_light_parts WHERE shell_index = ? AND band_index = ? AND wedge_index = ?", (shell, band, wedge))
-        found = _object_sums(conn, "shell_index = ? AND band_index = ? AND wedge_index = ?", (shell, band, wedge), by_address=True)
+    objects pruned, or a batch reached a cell that already had a part, so its unbuilt objects are no longer the ones the part sums (GEN.1476).
+    It works 500 cells at a time: one read of which cells have a part (a plain read, so a cell with none takes no gap lock), one delete of those, one
+    grouped read of the cells' objects and one insert."""
+    cells = sorted({(int(address[0]), int(address[1]), int(address[2])) for address in addresses})
+    for start in range(0, len(cells), 500):
+        chunk = cells[start:start + 500]
+        marks = ", ".join("(?, ?, ?)" for _ in chunk)
+        flat = [value for cell in chunk for value in cell]
+        held = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in conn.execute(
+            f"SELECT shell_index, band_index, wedge_index FROM galaxy_block_light_parts WHERE (shell_index, band_index, wedge_index) IN ({marks})", flat).fetchall()]
+        if held:
+            conn.execute("DELETE FROM galaxy_block_light_parts WHERE (shell_index, band_index, wedge_index) IN ("
+                         + ", ".join("(?, ?, ?)" for _ in held) + ")", [value for cell in held for value in cell])
+        found = _object_sums(conn, f"(shell_index, band_index, wedge_index) IN ({marks})", flat, by_address=True)
         _write_parts(conn, [tuple(cell) + tuple(_part_row(sums)) for cell, sums in sorted(found.items())])
 
 
@@ -519,14 +528,24 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
     return written
 
 
+def _unbuilt_points(conn):
+    """How many scattered phenomena are not built. `phenomenon_scatter_classes` keeps it exactly (`placed - built`, the Phenomena table reads it); when it holds the
+    scatter it answers with one small read. Without it (a scatter not finished, a table filled by hand) the answer is a scan of `phenomenon_scatter`, which has no
+    index on `built_at`."""
+    held = conn.execute("SELECT COUNT(*) AS n, COALESCE(SUM(placed), 0) AS placed, COALESCE(SUM(built), 0) AS built FROM phenomenon_scatter_classes").fetchone()
+    if held["n"]:
+        return int(held["placed"]) - int(held["built"])
+    return conn.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE {_POINTS_WHERE}").fetchone()["n"]
+
+
 def parts_current(conn):
-    """Whether the parts hold every unbuilt object once: their counts equal the tables' unbuilt counts. A galaxy scattered before the parts
+    """Whether the parts hold every unbuilt object once: their counts equal the unbuilt counts of the scatter. The stars are counted by the index of
+    `star_system_id` (a covering `ref` read of the NULL entries, no table scan), the phenomena by `_unbuilt_points`. A galaxy scattered before the parts
     existed, a prune or a clear that did not reach them, or a scatter written by a writer that did not note its rows, fails this, and `roll` then
     rebuilds (GEN.1476)."""
     held = conn.execute("SELECT COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_light_parts").fetchone()
     stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
-    points = conn.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE {_POINTS_WHERE}").fetchone()["n"]
-    return int(held["stars"]) == stars and int(held["points"]) == points
+    return int(held["stars"]) == stars and int(held["points"]) == _unbuilt_points(conn)
 
 
 def roll(conn, on_progress=None, on_phase=None, on_above=None):
