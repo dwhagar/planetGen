@@ -106,11 +106,14 @@ def test_quantities_read_like_the_unit_ladders():
 
 
 def test_headings_follow_the_tree_in_each_format():
-    document = next(iter(_documents()))
+    # Whether a seeded system has a moon is the draw's (`MOONS` forces a chance at moons, not a moon): the first seeded document had one until Train 21 changed what the seed draws, so the
+    # document is the first of the three that has a moon, and one with none at all is the failure.
+    document = next((d for d in _documents() if any(s["kind"] == "moon" for s in model.sections(d))), None)
+    assert document is not None, "none of the three seeded systems has a moon"
     markdown = describe.render(document, "markdown")
     assert markdown.startswith(f"# {document['title']}\n")
     moons = [s for s in model.sections(document) if s["kind"] == "moon"]
-    assert moons and f"\n### {moons[0]['title']}\n" in markdown
+    assert f"\n### {moons[0]['title']}\n" in markdown
 
 
 def test_a_stored_system_renders_like_the_generated_one(mysql_config):
