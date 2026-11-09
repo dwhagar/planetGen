@@ -1,8 +1,0 @@
-**Headline:** A belt that lies near a companion star now holds only the solids of the disk the companion left it, not those of the whole disk.
-
-### Changed
-- **A companion star cuts the disk its host's belts are made of (GEN.1451).** `physics/disk_truncation.py` gives the radius where a companion's tide ends a disk: `0.733` of the host's Roche lobe (Eggleton's fit) at the companion's periastron, or the stability limit past which no orbit holds (`Star.a_crit_au`), whichever is nearer. `belt_origin.build` cuts every candidate stretch there before its mass is worked out, so the belt's primordial mass, what the giants clear from it and what the collisions leave are those of the stretch that is left (the cut used to come after the mass, which kept the whole disk's mass for a belt the stability limit had shortened). A stretch with nothing left is no belt, and the outer disk's scatter shares read the cut edge. In a census of 240 seeds generated with and without the cut, 19 of the 50 belts of stars with a companion (a dark one counts) changed mass and none of the 123 belts of lone stars did. A lone star has no limit and gives the belts of before to the last digit (tests and census `tests/audit/belt_light_census.py truncation`). Only giants clear spans from a belt: a smaller planet's chaotic zone lies inside the five Hill radii no belt may take (a test; registry row DT3). A companion's secular excitation of a belt (forced eccentricity) is not built (DT4). Reused, not rebuilt: the companions each star carries (GEN.1441), `Star.a_crit_au` from the clearance ledger, `belt_origin.build` and `_fits`. No migration.
-
-generation-affects: fill, population
-
-generation-output: changed
