@@ -486,6 +486,26 @@ def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_source
     assert rows["chemistry_dredge_up_helium"]["source"]
 
 
+def test_a_star_lists_the_isotopes_of_its_surface_and_a_red_giant_shows_the_dredged_carbon(client, mysql_config):
+    """GEN.1488: the surface isotope lines come from the same makeup as the chemistry rows; a main-sequence star has burned its deuterium, a red giant shows the dredged carbon ratio."""
+    from planetgen.physics import constants, isotope_record
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    _set_star(mysql_config, star["id"], state="main-sequence", yerkes_class="V", mass_kg=constants.SOLAR_MASS_TO_KG, metallicity_fe_h=0.0, age_gy=4.6)
+    main = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert main["isotope_D/H"]["raw"] == pytest.approx(isotope_record.SURFACE_D_H, rel=1e-6) and main["isotope_count"]["raw"] > 20
+    assert 0.005 < main["isotope_13C/12C"]["raw"] < 0.02
+    assert _rows(client.get(f"/api/objects/{ref}/sheet").get_json())["isotope_13C/12C"]["raw"] == main["isotope_13C/12C"]["raw"]
+    _set_star(mysql_config, star["id"], state="red-giant", yerkes_class="III", mass_kg=1.5 * constants.SOLAR_MASS_TO_KG, metallicity_fe_h=0.0, age_gy=2.5)
+    giant = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert 1.0 / giant["isotope_13C/12C"]["raw"] == pytest.approx(isotope_record.DREDGED_C12_OVER_C13)
+
+
 def test_a_star_with_no_metallicity_shows_no_chemistry(client, mysql_config):
     system_id = _save_wide_binary_with_moons(mysql_config)
     conn = store.get_connection(mysql_config)

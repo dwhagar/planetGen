@@ -1,7 +1,0 @@
-**Headline:** A rocky planet's sheet now shows how much belt dust and how many comets reach it each year, shielded by the giants in the way.
-
-### Added
-- **The dust and comet influx of a planet (GEN.1440, GEN.1453 slice A).** `physics/influx.py` works out, from the belts and comets stored for a star and the giants of its system, the mass a planet takes in each year: each belt loses `M / t` to collisions and a share of that drifts inward, a comet reservoir sends its nucleus in over its lifetime, the planet takes the share `R^2 / (4 a^2)` of the stream, and each giant between the source and the planet ejects the share `1 - exp(-Theta / THETA_EJECT)` of what drifts past (the rule the swept disk of the giants already uses). It is a pure function of stored data, derived when the sheet is made (`describe/influx_row.py`), so no column holds it and a rescan cannot leave a stale copy. A sample of 120 whole systems (`tests/audit/influx_sample.py`) shows the influx varying with the belts of the system and a giant shielding the planets inside it. Stand-ins IF1 to IF6 are registered (section 6.247). The air does not read it yet: that needs the belts built before the planet's atmosphere, GEN.1493. Reused, not rebuilt: `scatter.safronov_number` and `THETA_EJECT`, the stored belts, comets and giants, the sheet's derived-row pattern (the eclipse row). No migration.
-
-generation-output: unchanged
-generation-affects: none

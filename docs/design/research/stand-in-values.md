@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1483 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1485 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1457 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1459 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 181 | 20 | 11 | 1 | 0 | 213 |
 | T2 | 139 | 59 | 1 | 1 | 0 | 200 |
-| T3 | 104 | 46 | 9 | 10 | 0 | 169 |
+| T3 | 104 | 47 | 9 | 10 | 0 | 170 |
 | T4 | 73 | 11 | 3 | 21 | 10 | 118 |
-| T5 | 73 | 23 | 6 | 1 | 0 | 103 |
+| T5 | 73 | 23 | 6 | 1 | 1 | 104 |
 | T6 | 179 | 104 | 27 | 76 | 2 | 388 |
 | T7 | 41 | 19 | 9 | 31 | 0 | 100 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 831 | 298 | 71 | 236 | 47 | 1483 |
+| All | 831 | 299 | 71 | 236 | 48 | 1485 |
 
 ## How the labels were given
 
@@ -1950,6 +1950,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO18 | T | T6 | L0 | isotope_record.SMALL_BODY_ICE_COLUMNS: a belt, comet or field holds, beside its water, the NH3, CO2, CH4, N2 and CO of the disk budget at its formation temperature, in the budget's ratios; H2S, the ammonium salts and the noble gases are left out of its elements | the five ices of `disk_condensation.masses_percent` | small bodies with a stored ice fraction and no stored species | a comet whose measured NH3, CO2, CH4, N2 or CO share differs from the budget's by over a factor of 3 | the species shares stored for each small body (comets carry a free-text summary only) | the budget is the disk model's own; the ices a stored summary names are not parsed | predicted only | - | - |
 | ISO19 | T | T6 | L0 | isotope_record.ICE_BUDGET_MARGIN_K 0.1 K: the ice budget of a body formed at the water line is read 0.1 K below it | 0 to 1 K | belts at their snow line | a belt at the snow line whose ice is measured dry | a budget that carries the partial freeze at the line | water condenses below the line only, so a body at the line holds its water; the width is a numerical choice | predicted only | - | - |
 | ISO20 | T | T6 | L0 | isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at `COMET_ICE_K` like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age | the formation temperature 20 to 182 K; the gas gradient of `nebula_composition` | interstellar comets and fields (GEN.1487) | a measured interstellar comet whose D/H differs from the law at 30 K by over a factor of 2 | the disk the body was thrown out of, once stored | an interstellar planetesimal is a thrown-out comet or asteroid, so it keeps their formation temperatures; the host star is not stored | predicted only | - | - |
+| ISO21 | T | T5 | L4 | isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage | 0 to 1e-8 | stars and remnants from the pre-main-sequence on | a measured surface deuterium of a main-sequence star over 1e-8 | a pre-main-sequence burning model of the envelope | deuterium burns above about 1e6 K and a young convective envelope is mixed through that; no measure of a surface D/H exists in the Sun, so the value is a floor, not a fit | predicted only | - | no data |
+| ISO22 | T | T3 | L1 | isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up | 15 to 30 | red giants of 1 to 3 solar masses | a red-giant sample whose median 12C/13C is outside 15 to 30 | the dredge-up grid of `stellar_abundances.first_dredge_up` extended to isotope ratios by mass and metallicity | the CN cycle turns the 12C of the dredged layers into 13C; the 20 is recalled from giant surveys, not read from a paper in hand; mass and metallicity dependence left out | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 

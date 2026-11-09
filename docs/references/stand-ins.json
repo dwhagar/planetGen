@@ -44591,6 +44591,86 @@
           "tweak": "L0",
           "unread": null,
           "what": "isotope_record.small_body_temperature_k and galactic_gas_metallicity: an interstellar comet forms at COMET_ICE_K like a comet; an interstellar field at the water line; a body with no star takes the gas [Fe/H] of its galactic radius and the Earth's reference age"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1e-8"
+            ],
+            [
+              "Where it holds",
+              "stars and remnants from the pre-main-sequence on"
+            ],
+            [
+              "What would show it wrong",
+              "a measured surface deuterium of a main-sequence star over 1e-8"
+            ],
+            [
+              "What replaces it",
+              "a pre-main-sequence burning model of the envelope"
+            ],
+            [
+              "Evidence",
+              "deuterium burns above about 1e6 K and a young convective envelope is mixed through that; no measure of a surface D/H exists in the Sun, so the value is a floor, not a fit"
+            ]
+          ],
+          "id": "ISO21",
+          "key": "6.236:ISO21",
+          "kind": "T",
+          "slug": "6-236-iso21",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L4",
+          "unread": null,
+          "what": "isotope_record.SURFACE_D_H 1e-10: the deuterium over hydrogen at the surface of a star past its protostar stage"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up"
+            ],
+            [
+              "The range it moves in",
+              "15 to 30"
+            ],
+            [
+              "Where it holds",
+              "red giants of 1 to 3 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a red-giant sample whose median 12C/13C is outside 15 to 30"
+            ],
+            [
+              "What replaces it",
+              "the dredge-up grid of stellar_abundances.first_dredge_up extended to isotope ratios by mass and metallicity"
+            ],
+            [
+              "Evidence",
+              "the CN cycle turns the 12C of the dredged layers into 13C; the 20 is recalled from giant surveys, not read from a paper in hand; mass and metallicity dependence left out"
+            ]
+          ],
+          "id": "ISO22",
+          "key": "6.236:ISO22",
+          "kind": "T",
+          "slug": "6-236-iso22",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "isotope_record.DREDGED_C12_OVER_C13 20: the 12C/13C at the surface of a red giant after the first dredge-up"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",

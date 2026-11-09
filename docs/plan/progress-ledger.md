@@ -3021,3 +3021,6 @@ Baseline: PR #1817.
 | GEN.1481 | 8.1 | Stand-in replacements |
 | GEN.1426 | 8.1 | Stand-in replacements |
 | GEN.1460 | 8.1 | Stand-in replacements |
+| GEN.1440 | 8.1 | Stand-in replacements |
+| GEN.1453 | 8.1 | Stand-in replacements |
+| GEN.1487 | 8.1 | Stand-in replacements |

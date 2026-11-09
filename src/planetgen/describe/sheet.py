@@ -1169,24 +1169,29 @@ def _star_distance_ly(conn, system_id):
     return scales.default_galactocentric_ly() if found is None or found["galactic_radius_pc"] is None else units.pc_to_ly(found["galactic_radius_pc"])
 
 
-def _chemistry_rows(conn, row):
+def _star_makeup(conn, row):
     """
-    The chemistry rows of a star (UX.254): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
-    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
-    generator keys its planets' host ratios (mass and the sector's distance from the center, not the age), so nothing is stored. A star with no [Fe/H],
-    one the composition does not cover or one whose downloaded data are missing has none.
+    The composition of a star (`stellar_composition.star_makeup`) from its stored class, mass, [Fe/H], and age, with the draws keyed as the generator keys its planets' host ratios (mass and the sector's distance from
+    the center, not the age), so nothing is stored. `None` for a star with no [Fe/H], one the composition does not cover or one whose downloaded data are missing.
     """
     if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
-        return []
+        return None
     mass_sol = _kg_to_msun(row["mass_kg"])
     key = stellar_composition.abundance_key(mass=row["mass_kg"], distance_ly=_star_distance_ly(conn, row["star_system_id"]))
     try:
         kind = stellar_composition.kind_of(row["yerkes_class"], mass_sol, row["state"], None)
         if kind not in stellar_composition.WITH_BIRTH_COMPOSITION:
-            return []
-        makeup = stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key,
-                                                 wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
+            return None
+        return stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key, wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
     except (stellar_composition.StarMakeupError, fetch.DataMissing):
+        return None
+
+
+def _chemistry_rows(makeup):
+    """
+    The chemistry rows of a star (UX.254, from `_star_makeup`): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the first dredge-up added.
+    """
+    if makeup is None:
         return []
     alpha = stellar_abundances.alpha_enhancement(makeup.birth)
     items = [("chemistry_branch", [_BRANCH_WORDS[makeup.branch]], None),
@@ -1197,6 +1202,15 @@ def _chemistry_rows(conn, row):
         items.append(("chemistry_dredge_up_helium", [model.qty("fraction", rise)], rise))
     return [{"key": key, "label": CHEMISTRY_ROWS[key][0], "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False,
              "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
+
+
+def _star_isotope_rows(makeup, row):
+    """The isotope lines of a star's surface (GEN.1488, `isotope_record.star_surface_record`) from its surface composition (`_star_makeup`) and its [Fe/H] and age; none for a star with no composition."""
+    if makeup is None or makeup.surface is None:
+        return []
+    record = isotope_record.star_surface_record(makeup.surface.elements, row["metallicity_fe_h"], row["age_gy"],
+                                                deuterium_burned=makeup.kind != stellar_composition.PROTOSTAR, dredged_up=makeup.kind == stellar_composition.RED_GIANT)
+    return isotope_record.sheet_rows(record)
 
 
 SMALL_BODY_SHEET_KINDS = ("belt", "comet", "interstellar_comet", "asteroid_field")
@@ -1377,7 +1391,10 @@ def sheet(conn, kind, object_id):
             by_group["physical"].append({"key": PECULIAR_FIELD_KEY, "label": "Polar magnetic field", "value": field, "text": inline_text(field),
                                          "raw": peculiar.field_gauss, "stored": True, "absent": False, "source": None, "show_absent": False})
     if kind == "star":
-        by_group["composition"].extend(_chemistry_rows(conn, row))
+        makeup = _star_makeup(conn, row)
+        by_group["composition"].extend(_chemistry_rows(makeup))
+        for key, label, text, ratio in _star_isotope_rows(makeup, row):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
