@@ -24,6 +24,7 @@ from planetgen.describe import sheet as sheet_registry
 from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
+from planetgen.names import bodies as body_names
 from planetgen.web import formerly
 from planetgen.web.lib import apiclient
 from planetgen.web.lib import bodyview, day_counter, facility_display, life_air_chart, planet_layout, planet_summary
@@ -434,13 +435,13 @@ def _bodies(detail):
     return found
 
 
-def belt_name(belt):
-    """A belt's name: it has none stored, so it is numbered by its place out from the star."""
-    return f"Asteroid belt {belt['orbital_index'] + 1}"
+def belt_name(belt, belts):
+    """A belt's name: it has none stored, so it is numbered among the belts of its own star by its place out from the star, from 1 (GEN.1508)."""
+    return body_names.belt_label(body_names.belt_number(belt, belts))
 
 
-def _name_of(kind, row):
-    return belt_name(row) if kind == "belt" else row["name"]
+def _name_of(kind, row, detail):
+    return belt_name(row, detail["belts"]) if kind == "belt" else row["name"]
 
 
 def _find(detail, kind, printed_id):
@@ -484,7 +485,7 @@ def neighbours(detail, kind, row):
         return None, None
 
     def entry(peer):
-        return None if peer is None else {"ref": _ref(kind, peer), "kind": kind, "name": _name_of(kind, peer),
+        return None if peer is None else {"ref": _ref(kind, peer), "kind": kind, "name": _name_of(kind, peer, detail),
                                           "url": item_url(_ref(kind, peer))}
 
     return (entry(peers[index - 1]) if index > 0 else None), (entry(peers[index + 1]) if index + 1 < len(peers) else None)

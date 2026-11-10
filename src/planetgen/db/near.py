@@ -42,7 +42,7 @@ stopping at the first sphere that holds K, so it is cheap wherever the place is.
 import heapq
 import math
 
-from planetgen.db import query, region, search_values, uncharted
+from planetgen.db import belt_names, query, region, search_values, uncharted
 from planetgen.galaxy import objectref as object_ref
 from planetgen.util import detmath
 
@@ -295,9 +295,9 @@ def _bodies_of(conn, system_id, system_name, wanted, ranges=None):
                              {"ref": _ref("planet", row["planet_id"]), "kind": "planet",
                               "name": planet_names.get(row["planet_id"])}))
     if "belt" in wanted:
-        for row in conn.execute("SELECT id, orbital_index FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
-                                (system_id,)).fetchall():
-            rows.append(("belt", row["id"], f"Asteroid belt {row['orbital_index'] + 1}", parent))
+        numbers = belt_names.numbers_for_systems(conn, [system_id])
+        for row in conn.execute("SELECT id FROM asteroid_belts WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
+            rows.append(("belt", row["id"], belt_names.label(numbers[row["id"]]), parent))
     if "comet" in wanted:
         for row in conn.execute("SELECT id, name FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
             rows.append(("comet", row["id"], row["name"], parent))
