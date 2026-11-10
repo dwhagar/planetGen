@@ -544,3 +544,18 @@ def test_no_queue_tile_is_a_bare_number(admin_client, conn):
     assert len(values) == 3
     assert [v for v in values if re.fullmatch(r"[\d.,\s/]*", v.strip()) and "/" not in v] == []
     assert any(v.endswith(("worker", "workers")) for v in values) and any(v.endswith(("run", "runs")) for v in values)
+
+
+def test_the_units_route_lists_what_the_follower_last_judged(admin_client, control_config, conn):
+    """OPS.138: `GET /api/admin/work/<id>/units`."""
+    import json
+    from planetgen.queue import unitbeat, unitwatch
+    run_id = _run(conn, queued=False)
+    now = unitbeat.server_time(conn)
+    for unit, still in ((2, 2000.0), (0, 0.0)):
+        conn.hset(runrecord.progress_key(run_id, 0), unit, json.dumps({"done": 5.0, "estimate": 100.0, "beat": now - 1.0, "started": now - 2500.0, "moved": now - still,
+                                                                       "phase": "p", "waiting_on": "", "restarts": 0}))
+    unitwatch.UnitWatch(conn, run_id, 0, "test", record_error=lambda *a, **k: None).check()
+    body = admin_client.get(f"/api/admin/work/{run_id}/units").get_json()
+    assert [(item["stage"], item["unit"], item["state"]) for item in body["units"]] == [(0, 0, "working"), (0, 2, "quiet")]
+    assert admin_client.get("/api/admin/work/20260101-000000-00000000/units").status_code == 404

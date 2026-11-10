@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
@@ -130,6 +130,24 @@ def run_detail(run_id):
                                 "kind": fields.get("kind", "log"), "message": fields.get("message", ""),
                                 **{name: fields[name] for name in runrecord.EVENT_FIELD_NAMES if name in fields}}
                                for entry_id, fields in events]})
+
+
+@bp.route("/<run_id>/units")
+@require_admin()
+def run_units(run_id):
+    """
+    `GET /api/admin/work/<id>/units` -- what each running unit of the run is doing (OPS.138): `{"units": [{"stage", "unit", "state", "severity", "reason", "actionable", "agreed",
+    "counter", "rate", "projected_finish_seconds", "still_seconds", "over_limit", "phase", "waiting_on", "done", "estimate", "restarts", "resident_mb", "beat_age_seconds",
+    "running_seconds"}]}`, as the process that follows the run last judged them (`unitwatch`, the judge of `beatjudge`). `state` is `working`, `slow`, `waiting`, `quiet`, `looping`
+    or `dead`; only the stage being followed has units, and a run that is over has none.
+    """
+    run_id = _run_id(run_id)
+    connection = _connection()
+    run = runrecord.read_run(connection, run_id) if connection is not None else None
+    if run is None:
+        raise ApiError("No such run.", 404)
+    units = [{"stage": index, "unit": unit, **shown} for index in range(len(run["stages"])) for unit, shown in sorted(unitwatch.read(connection, run_id, index).items())]
+    return jsonify({"units": units})
 
 
 @bp.route("/<run_id>/log")
