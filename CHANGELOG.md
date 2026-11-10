@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3802] - 2026-11-10
+
+**Headline:** The run-job stage-numbering test plans a 60 pc galaxy, not a 300 pc one, so it takes under a minute instead of several.
+
+### Changed
+
+- `tests/test_run_job.py::test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_run` planned a 300 pc galaxy and scattered mass and luminosity on it: 280 s on a lane machine beside four other jobs, and Lane 05 saw it red alone on main after its 120 s limit while it passed on the branch in 179 s. What the test checks (the stages numbered from the step's offset, the progress file, one run in the history, the stored galaxy) does not depend on the size, so the plan edge is 60 pc: 46 s alone, the whole file 192 s. The generator is unchanged.
+
+generation-affects: none
+
 ## [8.0.3801] - 2026-11-10
 
 **Headline:** A killed run can be carried on from the Queue page: a Resume run button, and a stored killed flag on the run record that says when to show it (OPS.144).
