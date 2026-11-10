@@ -13561,6 +13561,16 @@ clears each one.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.418. Related: MAP.418.
   Filed by the TODO thread.
 
+- [ ] **GEN.1512 Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table, so a very hot giant's gas is made of the other elements only**
+  Lane 04, 7:07 PM EST on 2026-11-09 (the zeta_ophiuchi example crashed on a very hot giant: 'no species holds P at 7555 K'; PR 5928 works around it by making the gas of the other elements above that temperature). Do: research the high-temperature phosphorus species (atomic P, P2, PO and the others a hot giant holds above 6000 K) and their thermochemical data (secondary sources are fine), add them to the gas table with the source tier in GEN.725, and remove the workaround if the data covers the range. Research first, then a small build; the build changes stored gas mixtures of the hottest giants, so it is a lock item for a train.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14 (atmosphere classes), research then lock item. Prerequisites: none. Related: PR 5928, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1513 (bug) EquilibriumError 'no convergence at 5788 K and 174174 bar' on a very hot, very high-pressure giant in cap_ices / equilibrium_at; the zeta_ophiuchi example crashes about once in 8 unseeded runs**
+  Lane 04, 7:07 PM EST on 2026-11-09 (seen once in 8 runs of the unseeded zeta_ophiuchi example after PR 5928). Do: reproduce with the failing temperature and pressure, find why the equilibrium solve does not converge at that point (step control, starting guess, a phase switch near the limit), fix the solver or bound the case with a stated stand-in registered in GEN.725, and make the test search seeds for the case instead of depending on luck (TEST.714). Generation-affecting only if a stored giant changes; say so in the PR.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (offered), with Lane 14 input. Prerequisites: none. Related: GEN.1512, TEST.714.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
