@@ -1542,6 +1542,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Status (TODO, 2026-11-09): built since this was filed: MAP.350 bakes a white cloud layer, a veil and a haze contrast into the ground texture, and MAP.277 gives the limb glow and the body's day and night line. Still open here, and this item now also holds the two render items filed by mistake as duplicates (MAP.417 and MAP.419, dropped): (a) a world in vapour or hycean state, or under an opaque deck (Venus, Titan), paints the cloud or haze deck as the surface, tinted by the atmosphere colour, not the ground under a contrast wash; (b) a separate cloud sphere (a second alpha texture on a slightly larger sphere that turns slightly faster) with a day and night terminator from the star direction, near tier only, painted once and cached (about 128 KB per body, one extra draw call). Report reports/render-belts-haze-clouds-2026-11-09.md. Boss (6:11 PM EST on 2026-11-09): not needed in 8.1. Follow-ups MAP.416 (census first), MAP.418 (colour by material), MAP.420 (haze shell), MAP.421 (giants), MAP.422 (info panel line).
   Prerequisites: DB.96.
 
 - [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
@@ -13447,7 +13448,7 @@ clears each one.
 
 - [ ] **OPS.139 Heartbeat part 6: the admin Queue page shows each live unit's last beat age, counter, phase, rate and state badge**
   Boss, 5:16 PM EST on 2026-11-09 ('implement the heartbeat as described'); research in reports/heartbeat-research-2026-11-09.md. Detail: per-unit rows on the existing admin_queue.html from the API of OPS.138 (last beat age, done of estimate, phase, rate, state badge: working, slow, waiting, quiet, looping, dead); the run line keeps 'last heard from'; flags show in the run log and the error.log tail the admin already shows. No new page. Build together with PERF.147 (the progress bar with ETA reads the same counter and estimate; build once, let both read it). Done: the page shows the rows for a running galaxy. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 11 (with PERF.147). Prerequisites: OPS.138. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 13 (admin, with PERF.147; Lane 11 is not running, Boss priority). Prerequisites: OPS.138. Related: PERF.254, OPS.122, OPS.130, PERF.147, OPS.123.
   Filed by the TODO thread. Top priority (Boss: he wants to finally generate a full galaxy).
 
 - [ ] **OPS.140 Heartbeat part 7: the stuck action: dump the stack, stop the unit, requeue once, then fail with the dump; the time limit becomes a backstop only**
@@ -13472,7 +13473,7 @@ clears each one.
 
 - [ ] **OPS.144 Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it**
   Boss, 5:16 PM EST on 2026-11-09 ('admin panel needs a button to resume a run, it doesn't have one now, and we need a flag that tells us if a run was killed so we know when to show it'). Read first, then build on it: resume of a stopped run already exists as finish-run (PERF.182; generation/finish_run.py: plan, last_incomplete, FINISHABLE, REWIND_WITH; the Generate page's 'Finish the last run' and the typed command 'finish run'); the admin Queue page only has the queue pause and stop-all resumes (queue-resume, queue-resume-all). Do: (1) run record: a stored field killed (with by, at and reason: heartbeat stuck, memory kill, stop-all, admin cancel, process death) set by every path that ends a run without finishing it, reusing runrecord and the existing stop paths; the heartbeat items OPS.140 and OPS.141 set it when they stop or fail a unit; (2) admin Queue page: a Resume run button shown when the newest run has killed set and finish_run.plan says it can be finished, with the reason shown; it calls the same finish_run code as the Generate page (reuse, add no second resume path), confirmation like the other queue actions, and the API gets the action; (3) the Generate page's Finish button reads the same flag. Done: a run killed by stop-all, by a heartbeat stop and by a dead process each shows the button on the admin page; Resume carries it on from the first unfinished stage; a finished run shows no button; tests. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-09): Lane 11 (admin, with OPS.139) or Lane 13. Prerequisites: none. Related: PERF.182, OPS.139, OPS.140, OPS.141, ADM.148.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 13 (admin, with OPS.139; Boss priority, first after OPS.134). Prerequisites: none. Related: PERF.182, OPS.139, OPS.140, OPS.141, ADM.148.
   Filed by the TODO thread. Top priority (Boss).
 
 - [ ] **GEN.1506 The Auto level of the Rogues dial means Few, not Normal**
@@ -13493,6 +13494,82 @@ clears each one.
 - [ ] **GEN.1507 The mantle's 136Xe/130Xe is a derived sheet line, like the 129Xe one: solar wind plus the measured excess, with the plutonium share scaled by the body's birth 244Pu/238U**
   From Lane 14's GEN.1490 report (reports/gen1490-xenon-136-and-reservoirs-2026-11-09.md, 2026-11-09). The mantle's 136Xe/130Xe can be derived, as the 129Xe line is: the solar-wind value 1.797 plus the Earth's measured excess 0.68, of which the plutonium share 0.28 scales with the body's birth 244Pu/238U relative to the early Solar System's (the source and tiers are in the report). Do: add the line to the isotope sheets, derived from stored values (no migration, no stored value, no new column), with the stand-ins ISO35 to ISO38 registered in GEN.725 with tier and tweak level. Reuse the 129Xe derivation code. Done: the 136Xe/130Xe line shows on a body's isotope sheet and moves with its birth 244Pu/238U; Earth-like bodies land at the measured excess; nothing stored changes. Lock-free (page text read at build). GEN.1490 closes when this merges.
   Version 8.1. Owner (TODO, 2026-11-09): Lane 14. Prerequisites: none. Related: GEN.1490.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1508 (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 or count only that system's belts**
+  Boss live observation, 5:57 PM EST on 2026-11-09 ('why am I getting asteroid belts with numbers like Asteroid Belt 5, but it's the only one?'); Boss did not name the system. Do: find a system with a lone belt numbered above 1 by searching generated systems (a query over belts per system against the number in the name); find the cause: the number may come from a slot index, a global or per-star count, or belts merged, dropped or cut (GEN.1451 disk cuts, GEN.1453 belts) after naming. Boss rule (6:04 PM EST on 2026-11-09): belts are numbered by distance from their star, closest first (1, 2, 3, and so on), each star's own belts counting from 1; a lone belt is Belt 1. Boss (6:05 PM EST): only belts that actually exist get a number; dropped, merged or empty belts take none, so the numbering has no gaps. Fix so the numbering follows that rule (read the naming rules in the design docs first and update them). Existing names change on regeneration (testing mode: new epochs fine). Check comets, dwarf planets and other small-body names for the same fault. Done: a sample of generated systems has contiguous belt numbers from 1; a lone belt is not numbered above 1; a test. Lock-free if the number is made at display; a lock item (epoch, generation-affects fill) if names are stored, which is likely since the names are stored and existing names change on regeneration.
+  Version 8.1. Owner (TODO, 2026-11-09): Lane 22 (belts). Prerequisites: none. Related: GEN.1451, GEN.1453, GEN.1492.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1509 Design: belt bodies at or above the smallest planet class floor get full planet status**
+  Boss rule (6:08 PM EST on 2026-11-09): asteroid belt bodies get full planet status for their class; if a belt body is big enough to be a dwarf planet it gets a class, using the floor of the smallest planet class, and if it is that size or bigger it gets planet status, class, physics and the rest. Report only (reports/): (1) what the class floor is today (the smallest planet class's lower mass and radius edge, where it is defined, and whether the Ceres-size dwarf planets sit above it); (2) how many belt members a typical sample of generated systems has at or above that floor (a query over belt_members against the floor, by belt and star type); (3) the generation-time and storage cost of running those bodies through the planet generator, with a cap if the count is large; (4) how the promoted body is stored (a planet-table row with a belt parent link, or the belt_members row extended) and what happens to its designation, name and belt mass share (the belt loses the mass of its promoted bodies, so GEN.1259 and GEN.1261 shares stay conserved); (5) the render path: a promoted body draws through planet_look, not member_look (MAP.412), and the belt page and system views list it as a planet. The generator is the one planet generator, reused, with no second path; below the floor a body stays a small body. Lane 21 gives the composition and class input.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22 (belts), with Lane 21 (composition and class). Prerequisites: GEN.1070. Related: GEN.1070, GEN.1259, GEN.1261, GEN.1510, MAP.412.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1510 Build: belt bodies at or above the class floor run through the planet generator and are stored as planets**
+  Boss, 6:08 PM EST on 2026-11-09. Build the design of GEN.1509: each belt member at or above the smallest planet class floor is generated by the same planet generator as every other planet (class, physics, composition, air if it holds any, moons by the same rule), with its orbit and mass taken from the belt member and the belt's mass share reduced to match; below the floor the member stays a small body. Reuse the planet generator and the GEN.1070 member storage; no second path and no backward-compat shim. Stored belt members and planet rows change, so this is a lock item (migration, epoch, golden, a generation-affects line). Cap the promoted bodies per belt if the GEN.1509 report finds the count large. Tests search seeds for a belt with a promoted body instead of pinning one (TEST.714).
+  Boss decisions (7:27 PM EST on 2026-11-09, on the GEN.1509 report reports/belt-bodies-as-planets-2026-11-09.md): (1) per belt, the 10 heaviest round bodies are promoted (about 7 per system, about +30 percent generation time); the rest of the round members stay small bodies; (2) names: promoted bodies take their place in distance order among the star's planets, so the planets after them are renamed (numerals shift); this changes stored planet names and the object index rows on regeneration, so the migration, the epoch and the objectindex rebuild must carry it, and the golden changes; (3) composition and density come from the belt member, with input from Lane 21. Storage per the report: a planets row with belt_id and belt_rank columns (the pair irregular_moons already uses), the belt mass reduced by what is promoted.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, lock item for a train (Lane 21 input). Prerequisites: GEN.1509. Related: GEN.1070, GEN.1509, GEN.1511, TEST.714.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1511 Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census**
+  Boss, 6:08 PM EST on 2026-11-09. Once GEN.1510 stores promoted belt bodies as planets: their name and designation follow the planet rules (not Belt member), the belt page lists them as planets, the system list, 2D map and 3D view show them with the planet look (MAP.412 to MAP.415 draw only the small members), the planet class census counts them, and the API shows them as planets with a belt parent. Add a census report of promoted bodies by class and by star type. Lock-free where it is only display; lock if the API version bumps (follow the API rule).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, with Lane 11 for the map. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, MAP.412, MAP.414.
+  Filed by the TODO thread.
+
+- [ ] **MAP.412 (bug) bodylook.member_look: a look record for a belt member**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Belt members (GEN.1070) have a page but no picture. Do: add bodylook.member_look(member) giving the colour from the taxon and the rock, metal, water and ice fractions through asteroid_grain_color, plus radius, density, seed and lumpy; reuse planet_look and seed_for. Members at or above the planet class floor (GEN.1509) draw through planet_look instead. No query change.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: none. Related: MAP.413, MAP.414, GEN.1509.
+  Filed by the TODO thread.
+
+- [ ] **MAP.413 (bug) The belt member page draws its body**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Reuse bodyview.js and lumpyview.js with the look from MAP.412 so the page shows its body, one body per page.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.412. Related: MAP.412, MAP.279, MAP.363.
+  Filed by the TODO thread.
+
+- [ ] **MAP.414 (bug) The 3D system view draws the largest members of each belt as lumpy meshes**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Today the view draws a belt as random seeded points and ignores the members. Do: draw the top N members by radius as lumpy meshes (tiered by projected size, dust points stay for the rest), reusing lumpymesh.js and the existing tier and LRU rules, one shared geometry cache; N capped (say 200 per belt).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.412. Related: MAP.412, MAP.415.
+  Filed by the TODO thread.
+
+- [ ] **MAP.415 Belt draw cap setting and a determinism test**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A cap setting for N in MAP.414 (admin or per belt) and a test that the same belt draws the same members (a hash of the chosen member ids).
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.414. Related: MAP.414.
+  Filed by the TODO thread.
+
+- [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: none. Related: MAP.350, MAP.280.
+  Filed by the TODO thread.
+
+- [ ] **MAP.418 (bug) Cloud and haze colour come from the dominant condensate or haze material**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Water white, sulfuric acid pale yellow, CO2 grey-white, dust tan, tholin orange. Do: find where the material is read from stored air and sulfuric_cloud (ask TODO or Lane 14 if unclear) and carry one hex per layer on the look record.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.416. Related: MAP.416, MAP.280.
+  Filed by the TODO thread.
+
+- [ ] **MAP.420 Coloured haze shell and limb, sized from tau_haze**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A detached haze shell for hazy bodies only (Titan-like), reusing the glow shell shader in bodyRendering.js.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.418. Related: MAP.418, MAP.277.
+  Filed by the TODO thread.
+
+- [ ] **MAP.421 Giants get a haze and cloud-deck tint from tau_haze and tau_cloud when stored**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. The veil is skipped for giants today. Tint the bands from the stored values and leave them as they are when none is stored; hot giants keep their thermal glow.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.418. Related: MAP.416, MAP.418.
+  Filed by the TODO thread.
+
+- [ ] **MAP.422 The info panel line says which of cloud and haze were drawn, and from what**
+  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Extend colour_account.
+  Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: MAP.418. Related: MAP.418.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1512 Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table, so a very hot giant's gas is made of the other elements only**
+  Lane 04, 7:07 PM EST on 2026-11-09 (the zeta_ophiuchi example crashed on a very hot giant: 'no species holds P at 7555 K'; PR 5928 works around it by making the gas of the other elements above that temperature). Do: research the high-temperature phosphorus species (atomic P, P2, PO and the others a hot giant holds above 6000 K) and their thermochemical data (secondary sources are fine), add them to the gas table with the source tier in GEN.725, and remove the workaround if the data covers the range. Research first, then a small build; the build changes stored gas mixtures of the hottest giants, so it is a lock item for a train.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 14 (atmosphere classes), research then lock item. Prerequisites: none. Related: PR 5928, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1513 (bug) EquilibriumError 'no convergence at 5788 K and 174174 bar' on a very hot, very high-pressure giant in cap_ices / equilibrium_at; the zeta_ophiuchi example crashes about once in 8 unseeded runs**
+  Lane 04, 7:07 PM EST on 2026-11-09 (seen once in 8 runs of the unseeded zeta_ophiuchi example after PR 5928). Do: reproduce with the failing temperature and pressure, find why the equilibrium solve does not converge at that point (step control, starting guess, a phase switch near the limit), fix the solver or bound the case with a stated stand-in registered in GEN.725, and make the test search seeds for the case instead of depending on luck (TEST.714). Generation-affecting only if a stored giant changes; say so in the PR.
+  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (offered), with Lane 14 input. Prerequisites: none. Related: GEN.1512, TEST.714.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
