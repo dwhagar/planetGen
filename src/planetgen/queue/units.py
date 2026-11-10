@@ -130,13 +130,32 @@ def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     return chunks
 
 
+def _unit_limit(stage_timeout, args):
+    """
+    The time limit of one unit (OPS.134): the stage's (`unit_timeout` of the stage's expected seconds), or, for a unit whose `args["expected_seconds"]` says how long it alone is predicted to take, the limit of that if it is longer.
+    A stage's expected seconds are what earlier runs of the stage took, mostly its small units; a unit that is many times a typical one (a sky cell, half an hour in a stage of seconds) names its own.
+    """
+    own = args.get(EXPECTED_SECONDS_ARG) if isinstance(args, dict) else None
+    if own is None:
+        return stage_timeout
+    try:
+        return max(stage_timeout, unit_timeout(float(own)))
+    except (TypeError, ValueError):
+        return stage_timeout
+
+
+EXPECTED_SECONDS_ARG = "expected_seconds"
+"""str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for its own time limit (`_unit_limit`)."""
+
+
 def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
     """
     Queues the units of stage `stage` of the run.
 
     Args:
         units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
-            and the unit's predicted cost for the stage's bar and ETA.
+            and the unit's predicted cost for the stage's bar and ETA. The dict may name `expected_seconds`, the unit's own
+            predicted time, which sets its time limit when longer than the stage's (`_unit_limit`).
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
 
@@ -153,7 +172,7 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
         queue.enqueue_many([
             queue.prepare_data(
                 UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost), job_id=job_id(run_id, stage, index),
-                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+                timeout=_unit_limit(timeout, args), result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
 
