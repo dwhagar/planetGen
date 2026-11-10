@@ -553,21 +553,24 @@ def test_a_run_ended_from_outside_its_work_is_flagged_killed_and_one_that_failed
     class JobTimeoutException(Exception):
         pass
 
+    class Job:
+        func_name = "x"
+
+        def __init__(self, run_id):
+            self.args = (run_id, 0, 1)
+
     canceled = _run(conn, title="canceled", queued=False)
     runcontrol.cancel_run(conn, canceled, who="boss")
     cleared = _run(conn, title="cleared", queued=False)
-    conn.hset(runrecord.run_key(cleared), "updated", "1")            # long silent: stale
     runrecord.finish_run(conn, cleared, "failed", error="cleared by boss: it showed no sign of life", killed=True)
     timed_out = _run(conn, title="timed out", queued=False)
-    job = type("Job", (), {"args": (timed_out, 0, 0), "func_name": "x"})()
-    units.unit_failed(job, conn, JobTimeoutException, JobTimeoutException("Task exceeded maximum timeout value (1885 seconds)"), None)
+    units.unit_failed(Job(timed_out), conn, JobTimeoutException, JobTimeoutException("Task exceeded maximum timeout value (1885 seconds)"), None)
     broke = _run(conn, title="broke", queued=False)
-    job = type("Job", (), {"args": (broke, 0, 0), "func_name": "x"})()
-    units.unit_failed(job, conn, ValueError, ValueError("bad value"), None)
+    units.unit_failed(Job(broke), conn, ValueError, ValueError("bad value"), None)
     flags = {title: runrecord.read_run(conn, run_id) for title, run_id in
              (("canceled", canceled), ("cleared", cleared), ("timed out", timed_out), ("broke", broke))}
     assert [flags[title]["killed"] for title in ("canceled", "cleared", "timed out", "broke")] == [True, True, True, False]
-    assert flags["canceled"]["killed_reason"] == "canceled by boss" and "maximum timeout" not in (flags["broke"]["killed_reason"] or "")
+    assert flags["canceled"]["killed_reason"] == "canceled by boss" and flags["broke"]["killed_reason"] is None
     assert "1885" in flags["timed out"]["killed_reason"]
 
 
