@@ -2338,18 +2338,18 @@ def _id_batches(top, size):
 def expand_fill_map_luminosity(params):
     """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `MAP_LUMINOSITY_BATCH_IDS` (a whole
     multiple of it past `units.MAX_UNITS` ranges) of `phenomenon_scatter`, its cost the ids it covers; `detail` holds the
-    highest id and the rows still empty."""
+    highest id. It does not count the rows still empty: no index serves `mass_solar IS NOT NULL AND map_luminosity_sol IS NULL`,
+    so the count was a read of the whole table before the first unit started (the units read the same rows, a range each, in
+    parallel and under the memory gate)."""
     conn = store.get_connection(_mysql_config_of(params))
     try:
         top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
-        remaining = int(conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar IS NOT NULL"
-                                     " AND map_luminosity_sol IS NULL").fetchone()["n"])
     finally:
         conn.close()
     return commands.Expansion(
         [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
          for low, high in _id_batches(top, units.coarsen(top, MAP_LUMINOSITY_BATCH_IDS))],
-        {"top": top, "remaining": remaining})
+        {"top": top})
 
 
 def fill_map_luminosity_unit(params, report):
@@ -2426,7 +2426,7 @@ class MapLuminosityFollower(BatchFollower):
     noun = "filled"
 
     def plan_line(self, detail):
-        return f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet."
+        return f"Map luminosity: the scattered rows up to id {detail['top']:,} that have a mass and no value yet are filled."
 
     def on_done(self, conclusion):
         log.normal(f"Filled the map luminosity of {self.total:,} scattered rows.")
