@@ -860,7 +860,7 @@
       "epoch": 144,
       "first_release": null,
       "pending": true,
-      "reason": "Train 22: comet activity by host luminosity, late supply and late accretion of the air, water drift and evaporation of the disk ices, close companions line up with their plane, circumbinary eclipse light, rogue planets with no day, flavor tree, body history",
+      "reason": "Train 22: comet activity by host luminosity, late supply and late accretion of the air (the air made again keeps its class, spin, dose and scores), water drift and evaporation of the disk ices, close companions line up with their plane, spin axis follows the secular exchange, circumbinary eclipse light, rogue planets with no day, flavor tree, body history",
       "affects": ["scatter", "fill", "population"]
     }
   ]
