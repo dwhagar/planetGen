@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3800] - 2026-11-10
+
+**Headline:** `planetgen fill-map-luminosity` no longer reads the whole scatter table once before its first unit starts.
+
+### Changed
+
+- The expansion of the fill counted `phenomenon_scatter` rows with a mass and no map luminosity yet to print how many there were. No index serves that condition, so on a full galaxy the count was a read of the whole table, single-threaded and outside the memory gate, before any unit ran. It is gone; the plan line names the highest id instead. The units read the same rows, a bounded id range each, in parallel and under the gate.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3799] - 2026-11-10
 
 **Headline:** Generating a system is about 9 percent faster, with every stored value identical.
