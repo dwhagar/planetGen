@@ -13135,7 +13135,8 @@ clears each one.
 
 - [ ] **GEN.1541 The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C)**
   Lane 23 (as the lane reported 3:53 PM EST on 2026-11-11), left out of GEN.1464 part B (registry TS7): belt members and dwarf planets are counted inside their belt's mass, so the tide a large asteroid or dwarf planet raises on its own moons is not built. Do: treat a belt member that has moons as a tide source for them (ocean tide, locking, heating) through physics/tide_sources.py, check it against the Pluto and Charon sized cases the generator makes, and register any constant in GEN.725. Lock item.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 23. Prerequisites: GEN.1464 (parts A and B). Related: GEN.1464, GEN.1446, GEN.1502, GEN.1503.
+  Status (TODO, 3:25 PM EST on 2026-11-11): Lane 23 found the generator makes no moons for belt members or dwarf planets, so there is no body for this tide to act on yet. GEN.1510 (PR 6019, Train 25) promotes the round belt bodies to full planets made by the planet generator, and they then carry moons and the ordinary tide terms of GEN.1446. When GEN.1510 is on main, check whether a promoted body has moons and reads tide_sources like any planet; if it does, this item closes as covered by GEN.1510. What stays open after that is only the small unpromoted members (asteroid binaries), which need their own satellite system with a size law and population statistics: file that as a new item then, with a source.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 23, blocked on GEN.1510 (PR 6019). Prerequisites: GEN.1464 (parts A and B), GEN.1510. Related: GEN.1464, GEN.1446, GEN.1502, GEN.1503, GEN.1509, GEN.1510.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
