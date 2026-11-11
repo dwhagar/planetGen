@@ -600,11 +600,12 @@ def _sky_units(params, centers):
     units = []
     for cell in sorted(cells):
         center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
-        owed = [tier for tier in (*tiers.luminosity, *tiers.rings)
-                if not ledger.drawn(tier.ledger, float(tier.low), tier.high, center, sky_charting.padded_radius(tier))]
+        owed = sky_charting.owed_tiers(tiers, ledger, center)
         if owed:
             seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
-            units.append(({"database": params["database"], "sky": {"center": list(center), "limit": limit}}, max(seconds / SKY_SECTOR_SECONDS, 1.0)))
+            # OPS.134: the unit's own expected seconds, which its time limit is a multiple of (`units.enqueue_units`): the stage's average is the sectors' and a cell takes half an hour
+            units.append(({"database": params["database"], "sky": {"center": list(center), "limit": limit}, "expected_seconds": seconds},
+                          max(seconds / SKY_SECTOR_SECONDS, 1.0)))
     return units
 
 
@@ -654,7 +655,7 @@ SKY_UNIT_CONNECTION_TRIES = 3
 def _sky_unit(unit_args, report):
     """
     The unit of one observer cell's sky tiers (VIEW.25, `sky_charting.chart`): every tier the ledger does not hold, from the top down, each in committed batches; a tier stopped part way
-    goes on from its last batch. `report(done, total)` counts the tiers.
+    goes on from its last batch. `report(done, total)` counts the predicted cell visits of the tiers (`sky_charting.chart`'s `progress`), so it moves with every batch (OPS.134).
 
     Returns:
         dict: As `backfill_bright_stars_unit`, with `sectors` 0, `stars` the stars drawn, `visited` 0, no `shells`, and `sky`: `stars`, `seconds`, `spheres` (tiers drawn), `cell` and `floors` (`sky_charting.chart`).
@@ -664,9 +665,7 @@ def _sky_unit(unit_args, report):
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = store.get_connection(_mysql_config_of(unit_args))
         try:
-            steps_done = [0]
-            # a tier is the progress step; `chart` draws tiers one after another, so a batch tick is the only call it makes between them
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=lambda batches, cells, stars: report(steps_done[0], steps_done[0] + 1))
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), progress=report)
             break
         except BaseException as exc:
             conn.rollback()
@@ -3069,13 +3068,28 @@ def _run_stages(args, title, tail):
         run_common._print_estimate(exc)
         run_common._finish_stats(args)
         return None
+    if title == "galaxy":
+        _skip_block_lights(args, sectors)
     followers = sectors + tail(wrapper.opened_by(sectors[0].key))
     listed = stages.galaxy_stages(args) if title == "galaxy" else stages.sectors_stages(args)
-    assert [f.key for f in followers] == [stage.key for stage in listed], "the followers are the stage list"
+    assert [f.key for f in followers] == [stage.key for stage in listed if not stage.skip], "the followers are the stage list less the stages that stand"
     stages.begin(listed, args, title)
     followed.run_followed(args, followers, f"{title.capitalize()}")
     stages.finish()
     return started_at
+
+
+def _skip_block_lights(args, sectors):
+    """
+    Adds the block light stage to the stages that stand (`args.stage_skips`) when the run generates no sector and every scatter stands (PERF.256,
+    `run_plan.block_lights_skip`): with a sector to make, the backfill or a fill can still change a light, and a stage that plans its sectors when it
+    opens (a neighborhood) is not known to make none.
+    """
+    skips = getattr(args, "stage_skips", None) or {}
+    if skips and all(follower.key == "sectors" and getattr(follower, "count", None) == 0 for follower in sectors):
+        reason = run_plan.block_lights_skip(args, skips)
+        if reason is not None:
+            args.stage_skips = {**skips, stages.BLOCK_LIGHTS_STAGE.key: reason}
 
 
 def run_sectors(args):
@@ -3106,12 +3120,17 @@ def run_galaxy(args):
     Args:
         args (argparse.Namespace): Validated arguments (`command == "galaxy"`).
     """
+    args.stage_skips = run_plan.stored_scatter_skips(args)       # PERF.256: a scatter that is stored and current is not planned
+
     def tail(since):
         stars, _book = run_plan.bright_star_followers(args)
         phenomena, _book = run_plan.phenomena_followers(args)
-        return [LinkFollower(args, since), *stars, *phenomena,
-                BackfillFollower(args, since), run_population.population_follower(args),
-                run_population.territories_follower(args), SettleFollower(args, since),
-                RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
+        planned = [LinkFollower(args, since), *stars, *phenomena,
+                   BackfillFollower(args, since), run_population.population_follower(args),
+                   run_population.territories_follower(args), SettleFollower(args, since),
+                   RunBlocksFollower(args, since), run_plan.BlockLightsFollower(args)]       # PERF.251: the block lights are the last thing a galaxy run makes
+        for key, reason in args.stage_skips.items():
+            log.normal(f"Not planned: the stage '{key}' ({reason}).")
+        return [follower for follower in planned if follower.key not in args.stage_skips]
 
     _run_stages(args, "galaxy", tail)

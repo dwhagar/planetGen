@@ -51,6 +51,7 @@ against the mantle and is not followed, so its radiogenic heat counts with the m
 hydrosphere is made before it, and reads the heat of a stagnant lid) and a row from before GEN.721 are stagnant.
 """
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -516,8 +517,15 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     return result(warm, warm_released_j, tide_w(warm), core=warm_core)
 
 
+@functools.lru_cache(maxsize=4096)
 def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
-    """`heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium."""
+    """
+    `heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium.
+
+    Equal calls give the one stored result (PERF.198): every argument is an immutable value and `Heat` is frozen, `heat` draws nothing, and the settle-to-final-age
+    and the tide's decay-time loops ask for the same body again with the same forcing (about two calls in three of a system are repeats), so the answer is the
+    same object the first call returned, bit for bit.
+    """
     return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k)
 
 
@@ -632,10 +640,17 @@ def heat_of(body):
     heats its ice shell (`icy_tide`, GEN.960) and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row
     from before GEN.699). No draws.
     """
+    return heat_at(body, getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
+
+
+def heat_at(body, age_gy):
+    """
+    The `Heat` of a rocky body at `age_gy` (`heat_of` at its star's age): the same stored content, interior, lid and surface, the tide of the orbit stored with it, run to that age
+    (GEN.1463: the heat the body gave off when its life began). `None` for a body with no stored content or interior. No draws.
+    """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return None
-    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
 

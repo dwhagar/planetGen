@@ -34,6 +34,7 @@ from planetgen.galaxy import sky_band
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars, scatter_companions, sky_tiers
+from planetgen.queue import unitbeat
 from planetgen.util import detmath
 
 CELL_PAD_PC = sky_band.CELL_PC * math.sqrt(3.0) / 2.0
@@ -265,7 +266,8 @@ class DrawLock:
         self.conn = conn
 
     def __enter__(self):
-        got = self.conn.execute("SELECT GET_LOCK(?, ?) AS got", (self.NAME, self.WAIT_SECONDS)).fetchone()["got"]
+        with unitbeat.waiting("sky lock"):          # OPS.136: the beat says the unit waits for the lock, not that it is stuck
+            got = self.conn.execute("SELECT GET_LOCK(?, ?) AS got", (self.NAME, self.WAIT_SECONDS)).fetchone()["got"]
         if got != 1:
             raise RuntimeError("another sky draw has held the lock for hours")
         return self
@@ -371,10 +373,38 @@ def built_to_pc(conn, observer_pc):
     return max(d.radius_pc - detmath.dist(d.center, observer) for d in holding.draws)
 
 
-def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None):
+def owed_tiers(tiers, ledger, center):
+    """The tiers of a `plan` that the ledger holds no sphere for around `center`: what a draw of the cell still has to do, in `plan`'s order (luminosity bands, then rings)."""
+    return [tier for tier in (*tiers.luminosity, *tiers.rings)
+            if not ledger.drawn(tier.ledger, float(tier.low), tier.high, center, padded_radius(tier))]
+
+
+TIER_PROGRESS_SHARE = 0.9
+"""float: How much of a tier's predicted visits the unit's progress counts in a straight line; past it the counter creeps toward the tier's end without reaching it (`tier_progress`), so a tier that runs over its prediction still moves the counter."""
+
+
+def tier_progress(visits, seen):
+    """
+    How many of a tier's predicted `visits` its progress counts once `seen` cells have been walked: `seen` while it is within `TIER_PROGRESS_SHARE` of the prediction, then the rest of the tier approached but never reached (it creeps as `x / (1 + x)`, slowly but without a stop). It rises with every cell, so a counter
+    built on it (OPS.134) is never still while the tier works, however far the walk runs past what `sky_tiers` predicted.
+    """
+    visits = max(float(visits), 1.0)
+    straight = TIER_PROGRESS_SHARE * visits
+    if seen <= straight:
+        return float(seen)
+    rest = visits - straight
+    over = (seen - straight) / rest
+    return straight + rest * over / (1.0 + over)
+
+
+def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, tiers=None, center=None, progress=None):
     """
     Draws the sky tiers of the cell of `observer_pc` for `limit_mag`: the luminosity bands from the top band down, then the mass rings from the top ring down, each as `draw_tier`, one draw at a time in the galaxy (`DrawLock`). Tiers the ledger holds are skipped. `tiers` (with
     its `center`) is a table already built by `plan`, so a caller that costed it first does not build it twice.
+
+    Args:
+        progress (callable, optional): Called as `progress(done, total)` after each batch and each tier (OPS.134), in the predicted cell visits of the tiers the ledger lacks: the visits of the tiers drawn, and for the one being drawn the cells walked so far
+            (`tier_progress`). `done` rises with every batch, so a unit that reports it shows a moving counter for as long as it works.
 
     Returns:
         dict: `center`, `cell`, `limit_mag`, `tiers` (a `Drawn` each, in the order drawn), `stars`, `cells`, `seconds`, `dropped` (the luminosity bands the visit budget cut off) and `floors` (`sky_tiers.floor_table` at `FLOOR_DISTANCES_PC`: the dimmest star the stored sky shows at each distance and whether the table draws it).
@@ -386,12 +416,29 @@ def chart(conn, observer_pc, limit_mag, *, generator_epoch=None, on_batch=None, 
     drawn = []
     with DrawLock(conn):
         ledger = sky_tier_ledger.read(conn)
+        total = max(sum(max(float(tier.visits), 1.0) for tier in owed_tiers(tiers, ledger, center)), 1.0)
+        finished = 0.0
         # From the top down: a cell is inside every sphere of the bands above the one being drawn, so each band touches the level the one before it left.
         for tier in (*sorted(tiers.luminosity, key=lambda tier: -tier.low), *sorted(tiers.rings, key=lambda tier: -tier.low)):
-            result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=on_batch, ledger=ledger)
+            seen = [0]
+
+            def tick(batches, cells, stars, tier=tier, seen=seen, finished=finished):
+                """A batch is in: the caller's tick, and the counter."""
+                seen[0] += cells
+                if on_batch is not None:
+                    on_batch(batches, cells, stars)
+                if progress is not None:
+                    progress(finished + tier_progress(tier.visits, seen[0]), total)
+
+            result = draw_tier(context, tier, center, generator_epoch=generator_epoch, on_batch=tick, ledger=ledger)
             drawn.append(result)
             if not result.skipped:
                 ledger = sky_tier_ledger.read(conn)        # the next tier's cells see what this one drew
+                finished += max(float(tier.visits), 1.0)
+                if progress is not None:
+                    progress(finished, total)
+        if progress is not None:
+            progress(total, total)        # a tier another draw finished meanwhile is skipped: the unit still ends full
     return {"center": tuple(center), "cell": sky_band.cell_of(observer_pc), "limit_mag": float(limit_mag), "tiers": drawn,
             "stars": sum(d.stars for d in drawn), "cells": sum(d.cells for d in drawn), "seconds": time.perf_counter() - started,
             "dropped": [tier.key for tier in tiers.dropped],

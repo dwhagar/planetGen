@@ -50,10 +50,14 @@ EARTH_BURIAL_MOL_YR = 1.0e13
 EARTH_REDUCTANT_MOL_YR = 3.0e12
 """float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R1980] few 1e12). T3, L3."""
 
-EARTH_STORE_MOL = 5.0e21
+EARTH_STORE_MOL = 4.0e21
 """float: The oxygen the ocean's iron and the crust's sulfides and iron take before the air holds any, mol (`B`), chosen so that the first
-oxygen follows the first photosynthesis by 0.7 Gyr when `S` and `R` are Earth's (the Great Oxidation came some 0.3 to 1 Gyr after oxygenic
-photosynthesis began). T9, L3."""
+oxygen follows the first photosynthesis by 0.7 Gyr when `S` is Earth's and `R` is Earth's at that age, from the model's own heat history of an
+Earth-mass body (GEN.1463: 2.2 times today's heat when the biomarkers appear, 2.7 Ga, falling to 1.9 times at the rise; it was 5e21 while `R` was held
+at today's value), the Great Oxidation coming some 0.3 to 1 Gyr after oxygenic photosynthesis began. T3, L1."""
+
+RISE_STEP_GYR = 0.25
+"""float: The step, Gyr, of the integral of the surplus `S - R(age)` in `rise_age_gyr`; the heat flow it reads changes by under 10 percent over a step after the first Gyr."""
 
 EARTH_AREA_M2 = 4.0 * math.pi * (constants.EARTH_RADIUS_KM * 1000.0) ** 2
 EARTH_OCEAN_FRACTION = 0.71
@@ -184,6 +188,26 @@ def reductant_flux(body, area_m2):
     return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None))
 
 
+def reductant_history_factor(body, age_gyr):
+    """
+    `R(age) / R(now)` of a rocky body (GEN.1463): the heat its interior gave off at `age_gyr` over the heat it gives off at its star's age (`interior_heat.heat_at`, the body's own
+    thermal history, the tide stored with it counted as it is), so the reductant that the volcanoes and the crust gave the oxygen to was larger when the body was young, in the
+    proportion `reductant_flux` already takes from the heat. 1 for a body with no thermal history stored, none at all, or no heat now.
+    """
+    if body is None:
+        return 1.0
+    from planetgen.physics import interior_heat
+    now_age = getattr(getattr(body, "star", None), "age", None)
+    if not now_age:
+        return 1.0
+    then, now = interior_heat.heat_at(body, min(max(age_gyr, 0.0), now_age)), interior_heat.heat_at(body, now_age)       # no history beyond the star's age: R is what it is now
+    if then is None or now is None:
+        return 1.0
+    tide = getattr(body, "tidal_flux_w_m2", None) or 0.0
+    flux_now = now.own_flux_w_m2 + tide
+    return 1.0 if flux_now <= 0.0 else (then.own_flux_w_m2 + tide) / flux_now
+
+
 def productivity(body, area_m2):
     """`S`, mol/yr, of a body with a sunlit sea (0 for one without)."""
     if getattr(body, "hydrosphere", None) not in LIVING_HYDROSPHERES:
@@ -279,9 +303,10 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
 def rise_age_gyr(body, starts, extra_store_mol=0.0):
     """
     The age, Gyr, at which the oxygen of several oxygenic classes first rises on `body` (GEN.1213), or `None` when it never does. `starts` is a list of
-    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R` of the producers there
-    are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun; the oxygen rises
-    when it is full. One class gives `age + profile_of(body).delay_gyr`, the single-class result.
+    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R(age)` of the producers
+    there are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun and `R` with the
+    heat the body gave off at that age (GEN.1463, `reductant_history_factor`); the oxygen rises when it is full. The surplus is summed in steps of `RISE_STEP_GYR` (the
+    last step cut where the store fills) from the first producers' age; past the star's age the reductant is held at its value now.
     """
     starts = sorted((age, share) for age, share in starts if age is not None and share > 0.0)
     if not starts:
@@ -289,19 +314,23 @@ def rise_age_gyr(body, starts, extra_store_mol=0.0):
     full = profile_of(body, 1.0, extra_store_mol)
     if full.source_mol_yr <= 0.0:
         return None
-    filled = 0.0
-    carried = 0.0
-    for index, (age, share) in enumerate(starts):
-        carried += share
-        surplus = full.source_mol_yr * carried - full.reductant_mol_yr
-        end = starts[index + 1][0] if index + 1 < len(starts) else None
-        if surplus <= 0.0:
-            continue
-        need = full.store_mol - filled
-        if end is None or surplus * (end - age) * 1e9 >= need:
-            return age + need / surplus / 1e9
-        filled += surplus * (end - age) * 1e9
-    return None
+    horizon = getattr(getattr(body, "star", None), "age", None) or 0.0       # the thermal history ends at the star's age; past it R is what it is now
+    filled, age, carried, index = 0.0, starts[0][0], 0.0, 0
+    while True:
+        while index < len(starts) and starts[index][0] <= age + 1e-12:
+            carried += starts[index][1]
+            index += 1
+        if age >= horizon and index >= len(starts):
+            surplus = full.source_mol_yr * carried - full.reductant_mol_yr
+            return None if surplus <= 0.0 else age + (full.store_mol - filled) / surplus / 1e9      # the surplus at the horizon runs on
+        end = min(age + RISE_STEP_GYR, starts[index][0]) if index < len(starts) else age + RISE_STEP_GYR
+        surplus = full.source_mol_yr * carried - full.reductant_mol_yr * reductant_history_factor(body, 0.5 * (age + end))
+        if surplus > 0.0:
+            need = full.store_mol - filled
+            if surplus * (end - age) * 1e9 >= need:
+                return age + need / surplus / 1e9
+            filled += surplus * (end - age) * 1e9
+        age = end
 
 
 def apply(body, target_mol):

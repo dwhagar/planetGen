@@ -82,7 +82,7 @@ def test_a_job_has_the_stages_of_its_commands_with_the_block_lights_once_at_the_
     args = _job_args(mysql_config, NEW_GALAXY)
     parts = job.build_parts(args.job, args)           # nothing is read from a database that has no galaxy yet
     keys = [stage.key for stage in job.stage_list(parts)]
-    assert keys == ["skeleton", "start", "neighborhood", "link", "mass-clear", "mass", "luminosity-clear", "luminosity", "phenomena", "phenomena-index",
+    assert keys == ["skeleton", "start", "neighborhood", "link", "mass-clear", "mass", "luminosity-clear", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index",
                     "nebula-clear", "nebula-draw", "block-lights", "backfill", "settle"]
     followers = followed.dedupe([f for part in parts for f in part.followers])
     assert [f.key for f in followers] == keys
@@ -214,7 +214,7 @@ def test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_r
     monkeypatch.setenv(progress_file.ENV_VAR, str(progress))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "2")
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "8")
-    spec = json.dumps([{"command": "plan", "argv": ["--seed", "0123456789ABCDEF0123456789ABCDEF", "--edge", "300pc"]},
+    spec = json.dumps([{"command": "plan", "argv": ["--seed", "0123456789ABCDEF0123456789ABCDEF", "--edge", "60pc"]},
                        {"command": "scatter", "argv": ["--mass", *FLOOR]},
                        {"command": "scatter", "argv": ["--luminosity", *FLOOR]}])
     monkeypatch.setattr(sys, "argv", [

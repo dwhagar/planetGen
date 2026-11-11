@@ -49,3 +49,14 @@ A belt in a system with a close companion shows a higher mean eccentricity than 
 1. The companion's periapsis direction is not stored anywhere; slice 0 draws it per system from a stream of its own. Is that acceptable, or should the star orbit store it (a column and a migration)?
 2. Planets are not forced by a companion star today. File that as its own item (it would reuse slice 0)?
 3. Mutual inclination of star orbits does not exist; forced inclination and Kozai pumping wait for it. File that as its own item?
+
+## Slice 0 result (built: `physics/belt_forcing.py`, rows FE1 to FE4 of section 6.256, census `tests/audit/belt_forcing_census.py`)
+
+- `companion_rates`, `planet_rate`, `forced_vector`, `combined` and `periapsis_rad` as designed; the forced vector of a far companion matches `(5/4) alpha e' / (1 - e'^2)` to 3 percent, points along the companion's periapsis, is zero for a circular companion or a lone star, is cut by a giant beside the belt, and adds as a vector for two companions. Nothing is wired, stored or drawn; output is unchanged.
+- Census of 300 generated pairs (499 belts of stars with a companion): none lies beyond `ALPHA_LIMIT`; the median alpha at the belt's middle is 0.013, the median forced eccentricity is 0.023 of the drawn rms (10th and 90th percentile 4e-5 and 0.52), 19 belts (4 percent) are forced harder than their members are drawn, and the star's planets cut the forcing by half or more for 31 percent of the belts (`reports/gen1492-belt-forcing-census-2026-11-09.md`). Slice 1 therefore changes the members of a minority of belts.
+
+## Slice 1 result (wired: `AsteroidBelt._force_by_companions`, `give_secular_planets`, `StarSystem._give_belts_their_planets`)
+
+- Each stored member's eccentricity and periapsis are the vector sum of the drawn orbit and the forced vector at the member's own distance, diluted by the star's planets once the orbits are final; a lone star gives today's members exactly (tested), as does a member outside the theory. Tests: `tests/test_belt_forced_members.py`.
+- Census of 300 generated pairs (499 belts of stars with a companion): 116,575 of 146,892 members move, in 497 belts, mostly slightly; 11 belts (2 percent) have their mean eccentricity raised by half or more (`reports/gen1492-forced-members-census-2026-11-09.md`). The mean eccentricity of the moved belts is 0.317 before and after, since the forced vector has a random direction against the drawn periapsis: the forcing widens the spread and aligns the periapses rather than raising the mean.
+- Not done: the belt's stored rms eccentricity (belt-level field) is not recomputed from the forced members; nothing reads it for the members.

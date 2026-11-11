@@ -38,13 +38,14 @@ from planetgen.queue import commands, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
-    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
+    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
 galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that
 saves nothing twice (a sector already saved is skipped, a total made again is the same total)."""
 
-REWIND_WITH = {"finish-phenomena": ("scatter-phenomena",), "scatter-mass": ("clear-bright-stars",),
+REWIND_WITH = {"finish-phenomena": ("scatter-phenomena",), "scatter-phenomena": ("drop-phenomenon-indexes",),
+               "drop-phenomenon-indexes": ("empty-phenomenon-scatter",), "scatter-mass": ("clear-bright-stars",),
                "scatter-luminosity": ("scatter-mass", "clear-bright-stars"), "draw-nebula-field": ("empty-nebula-field",)}
 """dict: The command whose stage stopped -> the commands of the stage before it that runs again with it (the nearest one before it
 counts). The special phenomena are added to the rows the shells wrote, a pass is drawn over what its clearing left, and the bright stars
@@ -161,7 +162,8 @@ def plan(conn, run_id, galaxy_seed, build, database):
     if run["state"] in runrecord.LIVE_STATES:
         if not runrecord.holder_is_dead(conn, run_id):
             raise CannotFinish(f"Run {run_id} ({run['title']}) is still running.")
-        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended")
+        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended",
+                             killed=True)
         run = runrecord.read_run(conn, run_id)
     if run["state"] == "done":
         raise CannotFinish(f"Run {run_id} ({run['title']}) was done; there is nothing to finish.")

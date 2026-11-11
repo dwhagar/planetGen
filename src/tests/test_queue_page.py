@@ -9,6 +9,9 @@ Tests that take the `mysql_config` fixture (see `conftest.py`) are skipped, not 
 configured/reachable; those that take `redis_server` when there is no Redis.
 """
 
+import ast
+import inspect
+
 import pytest
 from html import escape as html_escape
 
@@ -254,6 +257,47 @@ def test_the_run_page_shows_its_stages_and_log(admin_client, conn):
     assert admin_client.get("/admin/queue/not-a-run").status_code == 404
 
 
+def _publish_unit(conn, run_id, unit, **fields):
+    """A verdict on a running unit as the follower publishes it (`unitwatch.view`)."""
+    import json
+    shown = {"state": "working", "severity": "", "reason": "", "actionable": False, "agreed": False, "counter": True, "rate": None, "projected_finish_seconds": None,
+             "still_seconds": 0.0, "over_limit": False, "phase": "", "waiting_on": "", "done": 0.0, "estimate": 0.0, "restarts": 0, "resident_mb": None,
+             "beat_age_seconds": 1.0, "running_seconds": 10.0, **fields}
+    conn.hset(runrecord.unitstate_key(run_id, 0), unit, json.dumps(shown))
+
+
+def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_state_the_worst_first(admin_client, conn):
+    """OPS.139: the Queue run page draws the verdicts `GET /api/admin/work/<id>/units` serves, the units that need a look on top."""
+    run_id = _run(conn, queued=False)
+    _publish_unit(conn, run_id, 0, state="working", phase="drawing tier 3", done=1200.0, estimate=4000.0, rate=12.5, resident_mb=812.0, beat_age_seconds=2.0)
+    _publish_unit(conn, run_id, 1, state="quiet", actionable=True, agreed=True, reason="no beat for 400 s", phase="waiting", waiting_on="gate", counter=False, beat_age_seconds=400.0)
+    _publish_unit(conn, run_id, 2, state="slow", severity="flag", done=10.0, estimate=1000.0, rate=0.02, projected_finish_seconds=3600.0)
+    html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    assert "Running units" in html and "3 units: 1 working, 1 slow, 1 quiet" in html
+    assert html.index("unit-quiet") < html.index("unit-slow") < html.index("unit-working")
+    assert "1,200 of 4,000" in html and "drawing tier 3" in html and "12.5 a second" in html and "812 MB" in html
+    assert "waiting (waiting on gate)" in html and "no counter" in html and "6 m 40 s ago" in html and "to be stopped" in html
+    assert "50.0 s each" in html and "1 h 00 m" in html
+
+
+def test_the_run_page_has_no_unit_table_without_running_units_or_once_the_run_is_over(admin_client, conn):
+    run_id = _run(conn, queued=False)
+    assert "Running units" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    _publish_unit(conn, run_id, 0)
+    assert "Running units" in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    runcontrol.cancel_run(conn, run_id, who="boss")
+    assert "Running units" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+
+
+def test_the_unit_rows_are_capped_and_the_rest_counted(web_app):
+    from planetgen.web import queue_page
+    run = {"stages": [{"label": "Sectors"}]}
+    shown = [{"stage": 0, "unit": number, "state": "working", "counter": True, "beat_age_seconds": 1.0} for number in range(queue_page.UNIT_ROWS_SHOWN + 3)]
+    rows, summary, hidden = queue_page._unit_rows(run, shown)
+    assert len(rows) == queue_page.UNIT_ROWS_SHOWN and hidden == 3 and summary.startswith(f"{len(shown)} units: ")
+    assert queue_page._unit_rows(run, []) == ([], "", 0)
+
+
 def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_download_holds(admin_client, conn):
     """UX.123: the page draws each event with the logging layer's display line, the download writes the same record as a file line."""
     from planetgen.util import logrecord
@@ -306,6 +350,18 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert "The queue is paused" in admin_client.get("/admin/queue").get_data(as_text=True)
     _post(web_app, admin_client, action="queue-resume")
     assert "The queue is paused" not in admin_client.get("/admin/queue").get_data(as_text=True)
+
+
+def test_a_solo_hold_is_named_on_the_page_with_who_holds_it_and_can_be_lifted_there(web_app, admin_client, control_config, conn, monkeypatch):
+    """OPS.145: the pause that holds the queue for a restarted unit says why and by whom, and the button lifts it."""
+    from planetgen.queue import pause
+    monkeypatch.setattr(pause, "_solo_is_over", lambda connection, solo: False)
+    assert pause.hold_solo("20261109-120000-abcd", 3, 7, "job-7", conn)
+    page = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "The queue is held by run 20261109-120000-abcd" in page and "solo run of unit 7 (stage 3) after a restart" in page and "Lift the hold" in page
+    assert "The queue is paused" not in page
+    assert _post(web_app, admin_client, action="queue-resume").status_code == 303
+    assert not pause.is_paused(conn) and "The queue is held" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
 def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, admin_client, control_config, conn):
@@ -544,3 +600,117 @@ def test_no_queue_tile_is_a_bare_number(admin_client, conn):
     assert len(values) == 3
     assert [v for v in values if re.fullmatch(r"[\d.,\s/]*", v.strip()) and "/" not in v] == []
     assert any(v.endswith(("worker", "workers")) for v in values) and any(v.endswith(("run", "runs")) for v in values)
+
+
+def test_the_units_route_lists_what_the_follower_last_judged(admin_client, control_config, conn):
+    """OPS.138: `GET /api/admin/work/<id>/units`."""
+    import json
+    from planetgen.queue import unitbeat, unitwatch
+    run_id = _run(conn, queued=False)
+    now = unitbeat.server_time(conn)
+    for unit, still in ((2, 2000.0), (0, 0.0)):
+        conn.hset(runrecord.progress_key(run_id, 0), unit, json.dumps({"done": 5.0, "estimate": 100.0, "beat": now - 1.0, "started": now - 2500.0, "moved": now - still,
+                                                                       "phase": "p", "waiting_on": "", "restarts": 0}))
+    unitwatch.UnitWatch(conn, run_id, 0, "test", record_error=lambda *a, **k: None, stuck=False).check()
+    body = admin_client.get(f"/api/admin/work/{run_id}/units").get_json()
+    assert [(item["stage"], item["unit"], item["state"]) for item in body["units"]] == [(0, 0, "working"), (0, 2, "quiet")]
+    assert admin_client.get("/api/admin/work/20260101-000000-00000000/units").status_code == 404
+
+
+# --- OPS.144: the killed flag and Resume run ----------------------------------------------------------------
+
+def test_a_run_ended_from_outside_its_work_is_flagged_killed_and_one_that_failed_by_its_own_code_is_not(conn):
+    """A canceled run, a cleared one, a unit RQ ended at its time limit and a unit whose worker was lost are killed; a unit that raised an error of its own is a failure, not a kill."""
+    class JobTimeoutException(Exception):
+        pass
+
+    class Job:
+        func_name = "x"
+
+        def __init__(self, run_id):
+            self.args = (run_id, 0, 1)
+
+    canceled = _run(conn, title="canceled", queued=False)
+    runcontrol.cancel_run(conn, canceled, who="boss")
+    cleared = _run(conn, title="cleared", queued=False)
+    runrecord.finish_run(conn, cleared, "failed", error="cleared by boss: it showed no sign of life", killed=True)
+    timed_out = _run(conn, title="timed out", queued=False)
+    units.unit_failed(Job(timed_out), conn, JobTimeoutException, JobTimeoutException("Task exceeded maximum timeout value (1885 seconds)"), None)
+    broke = _run(conn, title="broke", queued=False)
+    units.unit_failed(Job(broke), conn, ValueError, ValueError("bad value"), None)
+    flags = {title: runrecord.read_run(conn, run_id) for title, run_id in
+             (("canceled", canceled), ("cleared", cleared), ("timed out", timed_out), ("broke", broke))}
+    assert [flags[title]["killed"] for title in ("canceled", "cleared", "timed out", "broke")] == [True, True, True, False]
+    assert flags["canceled"]["killed_reason"] == "canceled by boss" and flags["broke"]["killed_reason"] is None
+    assert "1885" in flags["timed out"]["killed_reason"]
+
+
+def test_mark_killed_keeps_the_first_reason_and_works_on_a_live_run(conn):
+    run_id = _run(conn, queued=False)
+    assert runrecord.read_run(conn, run_id)["killed"] is False
+    runrecord.mark_killed(conn, run_id, "stuck: counter frozen")
+    runrecord.mark_killed(conn, run_id, "something later")
+    run = runrecord.read_run(conn, run_id)
+    assert run["killed"] and run["killed_reason"] == "stuck: counter frozen" and run["state"] == "running"
+
+
+def test_resume_run_is_offered_on_a_killed_run_that_can_be_carried_on_and_starts_finish_run(web_app, admin_client, control_config, conn, monkeypatch):
+    started = []
+    monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, title, steps, kw)) or "20261001-000000-abcd")
+    from planetgen.web import generate_page
+    asked = []
+
+    def finish_status(database, run_id=None):
+        asked.append(run_id)
+        return {"error": None, "run": run_id, "title": "Generate sectors", "stopped_in": "Scatter", "carried": ["A", "B"], "again": ["Scatter", "Index"]}
+
+    monkeypatch.setattr(generate_page, "finish_status", finish_status)
+    killed = _run(conn, title="Generate sectors", database=control_config.database, queued=False)
+    runrecord.finish_run(conn, killed, "failed", error="unit 1 of stage Scatter failed: JobTimeoutException", killed=True)
+    plain = _run(conn, title="Plain failure", database=control_config.database, queued=False)
+    runrecord.finish_run(conn, plain, "failed", error="unit 1 failed: ValueError")
+    page = admin_client.get(f"/admin/queue/{killed}").get_data(as_text=True)
+    assert f"/admin/queue/confirm/resume?run={killed}" in page and "This run was killed" in page
+    assert "/admin/queue/confirm/resume" not in admin_client.get(f"/admin/queue/{plain}").get_data(as_text=True)
+    confirm = admin_client.get(f"/admin/queue/confirm/resume?run={killed}").get_data(as_text=True)
+    assert "keeps 2 finished stages" in confirm and "Scatter" in confirm
+    response = _post(web_app, admin_client, action="resume", run=killed)
+    assert response.status_code == 303 and "/generate" in response.headers["Location"]
+    kind, title, steps, kw = started[-1]
+    assert kind == "finish_run" and steps[0]["argv"][-3:] == ["finish-run", "--run", killed] and kw["database"] == control_config.database
+    assert asked and set(asked) == {killed}
+
+
+def test_resume_run_is_refused_when_the_run_cannot_be_carried_on(web_app, admin_client, control_config, conn, monkeypatch):
+    monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
+    from planetgen.web import generate_page
+    monkeypatch.setattr(generate_page, "finish_status", lambda database, run_id=None: {"error": "The galaxy was planned again."})
+    killed = _run(conn, title="Generate sectors", database=control_config.database, queued=False)
+    runrecord.finish_run(conn, killed, "canceled", error="canceled by boss")
+    assert "/admin/queue/confirm/resume" not in admin_client.get(f"/admin/queue/{killed}").get_data(as_text=True)
+    response = admin_client.get(f"/admin/queue/confirm/resume?run={killed}")
+    assert response.status_code == 303
+    response = _post(web_app, admin_client, action="resume", run=killed)
+    assert "planned again" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+
+
+def test_the_jobs_route_and_the_page_list_the_jobs_that_are_running_by_their_beats(admin_client, control_config, conn):
+    """OPS.142: `GET /api/admin/work/jobs` and the Jobs running now panel."""
+    from planetgen.queue import jobbeat
+    assert admin_client.get("/api/admin/work/jobs").get_json()["jobs"] == []
+    with jobbeat.beating("web", "job-7", label="Fill the map", conn=conn) as beat:
+        beat.phase("step 1 of 2: Fill")
+        beat.write()
+        body = admin_client.get("/api/admin/work/jobs").get_json()
+        assert [(job["kind"], job["job"], job["label"], job["state"], job["phase"]) for job in body["jobs"]] == [("web", "job-7", "Fill the map", "working", "step 1 of 2: Fill")]
+        html = admin_client.get("/admin/queue").get_data(as_text=True)
+        assert "Jobs running now" in html and "Generate page job" in html and "Fill the map" in html and "step 1 of 2: Fill" in html
+    assert "Jobs running now" not in admin_client.get("/admin/queue").get_data(as_text=True)
+
+
+def test_the_two_duration_formats_stay_apart():
+    """The run, stage, ETA and heartbeat figures use `_duration` ("3 m 05 s", "12.4 s"); only the other-job rows use `_beat_gap` ("4 min"). OPS.142 once defined a second `_duration` that replaced the first at import."""
+    assert queue_page._duration(185) == "3 m 05 s" and queue_page._duration(12.4) == "12.4 s" and queue_page._duration(None) == ""
+    assert queue_page._beat_gap(5) == "5 s" and queue_page._beat_gap(240) == "4 min" and queue_page._beat_gap(7800) == "2 h 10 min"
+    names = [node.name for node in ast.parse(inspect.getsource(queue_page)).body if isinstance(node, ast.FunctionDef)]
+    assert len(names) == len(set(names)), "a function is defined twice in web/queue_page.py"

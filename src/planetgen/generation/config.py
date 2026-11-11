@@ -26,7 +26,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 # The SystemConfig attributes that make up a system's generation "recipe" --
 # i.e. everything a `--system-file` JSON document can set (see
 # `run_system.apply_system_file`) -- as opposed to `system_flavor_count` /
-# `recent_flavor_texts`, which are run-time bookkeeping rather than
+# `used_flavor_ids`, which are run-time bookkeeping rather than
 # configuration. `to_dict`/`from_dict` use this list so a config round-trips
 # through JSON in exactly the shape `--system-file` already expects.
 SERIALIZABLE_FIELDS = [
@@ -62,7 +62,7 @@ class SystemConfig:
 
     def __init__(self):
         self.system_flavor_count = 0
-        self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition
+        self.used_flavor_ids = [] # The flavor line ids this system has shown, so no line shows twice (GEN.1430; it replaces the recency list)
         self.TYPE_IA_SHARE = None
         """
         float or None: The share of supernova remnants that are Type Ia where the remnant is made (the sector

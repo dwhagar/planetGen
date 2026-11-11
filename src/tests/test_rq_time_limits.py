@@ -164,7 +164,7 @@ def test_a_job_over_its_limit_is_ended_and_reported_failed(own_queue, monkeypatc
 
 # --- Each site ----------------------------------------------------------------------------------------------
 
-def test_the_units_of_a_stage_get_a_multiple_of_its_expected_time_or_the_ceiling(redis_server, limits):
+def test_the_units_of_a_stage_get_the_ceiling_whatever_their_expected_time(redis_server, limits):
     connection = redisqueue.connect(redis_server)
     run_id = f"timed-{secrets.token_hex(4)}"
     try:
@@ -172,7 +172,21 @@ def test_the_units_of_a_stage_get_a_multiple_of_its_expected_time_or_the_ceiling
         units.enqueue_units(connection, run_id, 1, "scatter-mass", [({}, 1.0)])
     finally:
         redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
-    assert [timeout for _name, _func, timeout in limits] == [20_000, redisqueue.MAX_TIMEOUT_SECONDS]
+    assert [timeout for _name, _func, timeout in limits] == [redisqueue.MAX_TIMEOUT_SECONDS] * 2       # OPS.140: a backstop only
+
+
+def test_a_unit_that_names_its_own_expected_time_gets_the_same_ceiling_as_any_other(redis_server, limits):
+    """OPS.134 gave a sky cell its own limit because the stage's (10 x 188.5 s) ended a cell that takes half an hour; OPS.140 made every unit's limit the 6 hour backstop, so a unit's own expected time changes nothing here."""
+    connection = redisqueue.connect(redis_server)
+    run_id = f"timed-{secrets.token_hex(4)}"
+    try:
+        units.enqueue_units(connection, run_id, 0, "scatter-backfill",
+                            [({"items": []}, 1.0), ({"sky": {}, "expected_seconds": 1826.0}, 1.0), ({"expected_seconds": 10.0}, 1.0), ({"expected_seconds": "soon"}, 1.0)],
+                            expected_seconds=188.5)
+    finally:
+        redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
+    stage_limit = max(units.unit_timeout(188.5), 1)
+    assert [timeout for _name, _func, timeout in limits] == [stage_limit] * 4 and stage_limit == redisqueue.MAX_TIMEOUT_SECONDS
 
 
 @pytest.fixture

@@ -83,6 +83,11 @@ def _phenomenon_sources():
     return sources
 
 
+BELT_NAME_SQL = ("CONCAT('Asteroid belt ', 1 + (SELECT COUNT(*) FROM asteroid_belts b2 WHERE b2.star_system_id = t.star_system_id AND b2.star_id <=> t.star_id "
+                "AND (b2.orbital_index < t.orbital_index OR (b2.orbital_index = t.orbital_index AND b2.id < t.id))))")
+"""str: A belt's indexed name (GEN.1508): numbered among the belts of its own star, closest first, from 1 (`names.bodies.belt_number`); `orbital_index` is the slot among all its bodies."""
+
+
 def _sources():
     ss = "JOIN star_systems ss ON ss.id = t.star_system_id"
     placed = "(ss.galaxy_x_pc IS NOT NULL)"
@@ -100,7 +105,7 @@ def _sources():
                         joins="LEFT JOIN star_systems ss ON ss.id = t.star_system_id"
                               " LEFT JOIN planets pl ON pl.id = t.planet_id"
                               " LEFT JOIN rogue_planets rp ON rp.id = t.rogue_planet_id", scope="moon"),
-        "belt": _select("belt", "asteroid_belts", "CONCAT('Asteroid belt ', t.orbital_index + 1)", "ss.sector_id",
+        "belt": _select("belt", "asteroid_belts", BELT_NAME_SQL, "ss.sector_id",
                         "ss.id", "ss.uid", "t.density", "t.mass_kg", "NULL", placed, joins=ss, scope="system"),
         "comet": _select("comet", "comets", "t.name", "ss.sector_id", "ss.id", "ss.uid", "t.period_class", "NULL",
                          "t.nucleus_diameter_km / 2", placed, joins=ss, scope="system"),

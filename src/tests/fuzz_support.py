@@ -70,6 +70,40 @@ def deterministic_entropy(seed):
         yield rng
 
 
+SEARCH_SEEDS = 64
+"""int: How many seeds `first_seed_with` tries by default. A case that a seed draws one time in ten is found within 64 seeds all but one time in a thousand."""
+
+
+def first_seed_with(build, wanted, *, seeds=range(SEARCH_SEEDS), what="the case"):
+    """
+    `(seed, built)` of the first seed in `seeds` whose `build(seed)`, made under `deterministic_entropy(seed)`, `wanted` accepts.
+
+    TEST.714: a test that needs a rare case (a moon, a ring, a close pair, a belt with a companion) must not pin the one seed that gave it the day it
+    was written, since any change to what the seeds draw (a train that adds a draw) moves it away. It searches a bounded number of seeds for the case
+    instead, and fails, naming how many it tried, when none has it (the case became rarer than the bound allows, or never occurs: that is the finding).
+    The search stops at the first, so a seed that has the case early costs one build.
+
+    Args:
+        build (callable): `seed -> object`, called inside `deterministic_entropy(seed)`.
+        wanted (callable): `object -> bool`, called inside the same block.
+        seeds (iterable): The seeds to try, in order.
+        what (str): The case, for the failure's words.
+
+    Raises:
+        pytest.fail.Exception: No seed of `seeds` had the case.
+    """
+    import pytest
+
+    tried = 0
+    for seed in seeds:
+        with deterministic_entropy(seed):
+            built = build(seed)
+            if wanted(built):
+                return seed, built
+        tried += 1
+    pytest.fail(f"none of {tried} seeds had {what}")
+
+
 def scaled(n):
     """`n` examples under `ci`, scaled up with the active profile -- for a
     test whose single example is expensive (a whole system or sector), so

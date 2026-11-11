@@ -146,7 +146,7 @@ def test_the_class_that_lives_on_a_world_is_stored_among_the_classes_it_supports
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     """
     Regression test for the Phase 0 bug (see TODO.md): flavor text used to be
-    rolled -- and system_config.system_flavor_count/recent_flavor_texts
+    rolled -- and system_config.system_flavor_count/used_flavor_ids
     mutated -- at render time, so describing a planet twice double-rolled and
     double-mutated shared state. planetLife.decide_flavor_text now makes that decision
     once, at generation time, and the Document is a pure read of the
@@ -171,15 +171,15 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
 
 
 def test_the_flavor_line_is_stored_as_a_key_and_read_back_from_it(host_star, monkeypatch):
-    """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
+    """DB.51, GEN.1430: the line is kept as its id in the flavor tree (`physics/flavor_tree.py`) and read back from it."""
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
     planet = make_planet(host_star, "e")
     planet.life_class, planet.life_class_variant, planet.life_stage = 3, "b", "multicellularity"
     planetLife.decide_flavor_text(planet)
-    category, index = planet.flavor_key.split(":")
-    assert category == "habitable"
-    assert planet.flavor_text == prog_c.HABITABLE_FLAVOR[int(index)]
-    assert planetLife.flavor_key("planet", prog_c.PLANET_FLAVOR[3]) == "planet:3"
+    from planetgen.physics import flavor_tree
+    assert planet.flavor_key in flavor_tree.load()[1]
+    assert planet.flavor_text == flavor_tree.text_of(planet.flavor_key)
+    assert planetLife.flavor_line("planet:3") == flavor_tree.text_of("planet:3")
     assert planetLife.flavor_line(None) is None
 
 

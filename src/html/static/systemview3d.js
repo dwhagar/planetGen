@@ -220,6 +220,39 @@ export function buildSystemScene(scene, layout, options) {
   dots.userData.relativeLayer = "system dots";   // MAP.240: in the system's own units, inside a group at the system
   group.add(dots);
 
+  // MAP.414: the heaviest bodies a belt stores (`belt.members`, the scene's `systemscene._belt_members`) are drawn one by one, each a
+  // sphere or, when its weight has not made it round, a lump (MAP.279), at the place its stored orbit puts it at the epoch, painted from
+  // its look like any body. They are not pickable or in `entries` (a belt has thousands of dust points; these are a few hundred), so they
+  // keep a world position of their own in `memberPlaces` for the painter to size its texture by.
+  const memberPlaces = []; // {hung, local, place} kept in step by update
+  function addBeltMembers(belt) {
+    const members = belt.members || [];
+    if (!members.length) return;
+    const memberGroup = new THREE.Group();
+    memberGroup.userData.relativeLayer = "system belts";
+    members.forEach((member) => {
+      const look = member.look;
+      const radius = Math.max(layout.radiusFor("belt_member", member.radius_km), 1e-9);
+      const color = colorOf({ look: look });
+      const lump = isLumpy(look) ? lumpyGeometry(THREE, look, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]) : null;
+      const mesh = new THREE.Mesh(
+        lump ? lump.geometry : new THREE.SphereGeometry(1, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]),
+        new THREE.MeshLambertMaterial({ color: color, emissive: color, emissiveIntensity: nightFill(look) }));
+      mesh.scale.setScalar(radius);
+      const local = layout.place(belt.around, member.position_km);
+      mesh.position.set(local[0], local[1], local[2]);
+      mesh.userData.member = member.designation;
+      memberGroup.add(mesh);
+      const ref = "belt_member:" + member.designation;
+      const place = { x: 0, y: 0, z: 0, radius: radius };
+      byRef[ref] = place;      // read by the painter for the body's size on screen; not an entry, so never picked, labelled or dotted
+      objects[ref] = mesh;
+      paintable.push({ ref: ref, look: look });
+      memberPlaces.push({ hung: memberGroup, local: local, place: place });
+    });
+    hang(belt.around, memberGroup);
+  }
+
   scene.belts.forEach((belt) => {
     const random = randomStream(belt.id * 2654435761);
     const positions = new Float32Array(BELT_PARTICLES * 3);
@@ -238,6 +271,7 @@ export function buildSystemScene(scene, layout, options) {
     points.userData.ref = belt.ref;
     points.userData.relativeLayer = "system belts";
     hang(belt.around, points);
+    addBeltMembers(belt);
     // MAP.321: where the belt's symbol sits, on the belt's ring half way across it, riding what the belt goes round.
     beltAnchors.push({
       ref: belt.ref, kind: "belt", name: belt.name || "Asteroid belt", body: belt, hung: points,
@@ -317,6 +351,11 @@ export function buildSystemScene(scene, layout, options) {
       const p = parent === "barycenter" ? [0, 0, 0] : placed[parent];
       hangers[parent].forEach((object) => object.position.set(p[0], p[1], p[2]));
     }
+    memberPlaces.forEach((one) => {
+      one.place.x = one.hung.position.x + one.local[0];
+      one.place.y = one.hung.position.y + one.local[1];
+      one.place.z = one.hung.position.z + one.local[2];
+    });
     beltAnchors.forEach((anchor) => {
       anchor.x = anchor.hung.position.x + anchor.local[0];
       anchor.y = anchor.hung.position.y + anchor.local[1];

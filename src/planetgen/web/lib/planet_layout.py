@@ -41,7 +41,7 @@ def split_blocks(blocks):
     """
     The description's blocks of a planet or moon sorted by where the page puts them: `phi6` (the ratings table and the
     radiation and survival equipment tables), `life` (what the life looks like), `flavor` (the "Sensors show ..." line,
-    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth). The facts table of the body, the class
+    which the page puts under the Sensor view, UX.276) and `rest` (anything else the page still shows, such as a gas giant's depth and the sky text of GEN.1443). The facts table of the body, the class
     sentence, the atmosphere and composition summaries, and the life class, system age and milestone sentences (`life-class`, `timeline`
     and `milestone`, which the Life section says from the stored columns and the life readings, UX.251) are dropped.
     """
@@ -54,7 +54,7 @@ def split_blocks(blocks):
             parts["life"].append(block)
         elif kind == "prose" and block["role"] == "flavor":
             parts["flavor"].append(block)
-        elif kind == "prose" and block["role"] == "depth":
+        elif kind == "prose" and block["role"] in ("depth", "sky"):
             parts["rest"].append(block)
     return parts
 

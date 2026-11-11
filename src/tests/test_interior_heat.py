@@ -431,3 +431,18 @@ def test_a_mantle_still_warming_under_a_great_tide_keeps_its_radiogenic_heat_as_
     assert steady.own_w == pytest.approx(1.0e13)
     cooling = ih.Heat(total_w=5.0e13, radiogenic_w=1.0e13, primordial_w=4.0e13, mantle_temperature_k=3000.0, flux_w_m2=1.0, released_j=0.0)
     assert cooling.own_w == 5.0e13
+
+
+def test_equal_heat_flow_calls_give_the_one_stored_result_and_the_bits_of_the_uncached_run():
+    system = StarSystem(system_config=SystemConfig())          # PERF.198: a body the tide loops ask about twice
+    rocky = [p for p in system.planets if radiogenic.content_of(p) is not None and ih.interior_of(p) is not None]
+    if not rocky:
+        pytest.skip("this system drew no rocky planet with a stored interior")
+    body = rocky[0]
+    args = (radiogenic.content_of(body), ih.interior_of(body), body.mass, body.radius, body.star.age, radiogenic.rock_of(body), None, ih.STAGNANT,
+            ih.SURFACE_TEMPERATURE_K)
+    ih.heat_flow.cache_clear()
+    first, second = ih.heat_flow(*args), ih.heat_flow(*args)
+    assert first is second
+    assert ih.heat_flow.cache_info().hits >= 1
+    assert first == ih.heat_flow.__wrapped__(*args)

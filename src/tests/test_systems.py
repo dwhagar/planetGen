@@ -38,11 +38,11 @@ STAR_TYPES = [
     "K1III", "F0IB", "M2VII", "K5IV", "A0II", "M3IA+", "M50", "K8VI",
 ]
 
-HOT_STARS = ("O5V", "M3IA+", "M50")
+HOT_STARS = ("O5V", "M3IA+", "M50", "B2V")
 HOT_STAR_TRIALS = 2
 """A hot or hypergiant star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
 test that builds fifteen of them ran for twenty minutes and hit the 900 s timeout. The O5V case builds two (four took 600 s on the GEN.1282 branch, 150 s each); the belt and the overlap checks are
-kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason."""
+kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason. B2V joined on 11-09: its fifteen systems took 716 s on a lane machine beside four other jobs (about 48 s each), the red Lane 11 saw at the 900 s limit on main."""
 
 # A star whose ecosphere no planet can hold an air in (a white dwarf's lies at about 0.02 AU; a flaring red dwarf's, now and then) is
 # answered `unmet` for a habitable world (GEN.688) rather than by a world that is not what its conditions say.
@@ -532,7 +532,7 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     Regression test for the Phase 0 bug (see TODO.md): both
     Planet._generate_life_and_flavor_paragraphs and StarSystem.__str__ used
     to roll flavor text and mutate system_config.system_flavor_count/
-    recent_flavor_texts at render time (inside the text writers)
+    used_flavor_ids at render time (inside the text writers)
     rather than at generation time, so calling either twice on the same
     object double-rolled and double-mutated shared counters. Flavor text is
     now decided once during StarSystem.__init__ (system-level in
@@ -548,14 +548,14 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     assert system.system_config.system_flavor_count > 0
 
     flavor_count_after_generation = system.system_config.system_flavor_count
-    recent_flavor_after_generation = list(system.system_config.recent_flavor_texts)
+    recent_flavor_after_generation = list(system.system_config.used_flavor_ids)
 
     first_render = render_support.text(system)
     second_render = render_support.text(system)
 
     assert first_render == second_render
     assert system.system_config.system_flavor_count == flavor_count_after_generation
-    assert system.system_config.recent_flavor_texts == recent_flavor_after_generation
+    assert system.system_config.used_flavor_ids == recent_flavor_after_generation
 
 
 def test_binary_system_star_properties_are_sane():

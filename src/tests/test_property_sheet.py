@@ -245,11 +245,12 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
-                                                              if any(s.group == key for s in sheet.SPECS[kind]) or (kind, key) == ("star", "composition")]    # UX.254: the star's derived chemistry
+                                                              if any(s.group == key for s in sheet.SPECS[kind]) or (kind, key) == ("star", "composition")
+                                                              or (key == "dust" and sheet.influx_row.INFLUX_KEY in rows)]    # UX.254: the star's derived chemistry
         mass = rows["mass_kg"]
         assert mass["stored"] and mass["value"][0]["qty"]["kind"] == "mass" and mass["value"][0]["qty"]["value"] > 0
         assert mass["text"] and mass["text"] != sheet.NOT_STORED
