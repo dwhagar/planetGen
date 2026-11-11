@@ -41,3 +41,16 @@ def test_a_star_gets_the_same_edge_every_time_and_it_moves_no_other_draw():
     with draw.bound(99):
         assert disk_size.edge_au(star) == edge
     assert disk_size.median_edge_au(disk_size.formation_mass_solar(star)) / 4.0 <= edge <= disk_size.median_edge_au(disk_size.formation_mass_solar(star)) * 4.0
+
+
+def test_the_growth_limit_is_the_suns_tuned_value_scaled_with_the_disk_and_the_core_taper_starts_there():
+    from planetgen import tuning
+    from planetgen.physics import planet_mass
+    assert disk_size.growth_limit_au(1.0) == pytest.approx(tuning.PLANET_OUTER_GROWTH_AU)
+    assert disk_size.growth_limit_au(0.25) == pytest.approx(0.5 * tuning.PLANET_OUTER_GROWTH_AU)
+    assert disk_size.growth_limit_au(0.38) < disk_size.growth_limit_au(0.7) < tuning.PLANET_OUTER_GROWTH_AU < disk_size.growth_limit_au(1.3)
+    # a 0.25 Msun star's cores fall off from half the Sun's distance: at the same distance beyond it they are lighter relative to the untapered mass than the Sun's
+    star_kg, far = 0.25 * 1.98847e30, 3.0 * disk_size.growth_limit_au(0.25)
+    tapered = planet_mass.oligarch_core_kg(far, star_kg, 0.8, 1.0, 1.0, 10.0)
+    inside = planet_mass.oligarch_core_kg(disk_size.growth_limit_au(0.25), star_kg, 0.8, 1.0, 1.0, 10.0)
+    assert tapered < inside

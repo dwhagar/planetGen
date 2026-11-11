@@ -11,7 +11,7 @@ it reads no class, writes none and draws only from the stream it is given.
    disk builds nothing the size of a planet; a heavy one builds a chain. No coin flip decides whether a star has planets.
 2. **The chain.** From an inner edge (a period near 5 days, [R3193, R3196]) outwards oligarchs form one feeding zone after another, each
    at the isolation mass (`formation.isolation_mass_kg`) and `separation` mutual Hill radii from the last (`OLIGARCH_SEPARATION_MEDIAN`,
-   drawn per system). The outer disk has built less (`PLANET_OUTER_GROWTH_AU`).
+   drawn per system). The outer disk has built less (`disk_size.growth_limit_au`, GEN.1539).
 3. **The thinning.** Pu and Wu 2015 [R3621] integrated tight chains and fitted the chance that one survives: a pair of spacing
    `K` mutual Hill radii lasts `tau` orbits of its inner planet with probability `1 - exp(-x^2)`, `x = 0.5 K - 0.6 - 0.35 log10 tau`. Each
    pair of the chain gets an instability time drawn from that law; the earliest to go collides (the two merge, keeping their angular

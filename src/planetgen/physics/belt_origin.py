@@ -13,7 +13,7 @@ in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in pla
 
 - `gap`: two neighbours of the chain stand more than `GAP_SPACING_K` mutual Hill radii apart (the thinned chains cluster at 12 to 20), and the
   space between them, less five Hill radii of each, is wide enough: the solids there did not grow into a planet.
-- `tail`: the chain stops short of `growth_limit_au`, where the disk has built less (`PLANET_OUTER_GROWTH_AU`), and the space past its last
+- `tail`: the chain stops short of `growth_limit_au`, where the disk has built less (`disk_size.growth_limit_au`, the Sun's `PLANET_OUTER_GROWTH_AU` scaled to the star, GEN.1539), and the space past its last
   rocky planet is a belt (a last giant ends the chain, the outer disk takes over).
 - `snow-line-bump`: solids pile up at the snow line as the system formed it (the formation snow line is stored); where that stretch is free of
   planets and is not already inside a gap or tail (which then take it as a second cause) it is its own belt.
@@ -473,7 +473,7 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         star_mass_kg (float): The star's mass at formation.
         snow_line_au (float): The snow line now (the disk's surface density reads it).
         formation_snow_line_au (float): The snow line when the system formed (stored on the belt).
-        growth_limit_au (float): Where the disk built less (`tuning.PLANET_OUTER_GROWTH_AU`).
+        growth_limit_au (float): Where the disk built less (`disk_size.growth_limit_au`).
         disk_edge_au (float): The outer edge of the disk.
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.

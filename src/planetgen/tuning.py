@@ -107,7 +107,7 @@ PLANET_INNER_DISK_STEEPENING = 0.75
 # Beyond this distance the cores of the outer disk have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
-# stand-in (tier T6, tweak L3) tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
+# stand-in (tier T6, tweak L3) for the Sun, scaled to other stars with the disk's median edge (`disk_size.growth_limit_au`, GEN.1539), tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
 # snow line ([R4271]: about 0.5 per star, recalled).
 PLANET_OUTER_GROWTH_AU = 11.36
 PLANET_OUTER_GROWTH_EXPONENT = 2.889
