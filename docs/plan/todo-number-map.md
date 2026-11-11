@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.48 |
 | TEST | TEST.715 |
 | USR | USR.33 |
-| OPS | OPS.147 |
+| OPS | OPS.148 |
 | DOC | DOC.120 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2936,6 +2936,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.144 | Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it | none | open |
 | OPS.145 | Heartbeat part 11: after a unit is restarted, the other tasks pause and the restarted unit runs alone until it completes | OPS.140 | open |
 | OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | open |
+| OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
