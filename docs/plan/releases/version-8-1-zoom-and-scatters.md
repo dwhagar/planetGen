@@ -494,6 +494,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1514 | Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
 | GEN.1515 | Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
 | GEN.1516 | Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
+| GEN.1517 | (bug) The water drift model starts the gas inside each ice line as pure evaporated ice | GEN.1473 | Lane 14, 2026-11-11. |
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | OPS.134 | Heartbeat part 1: the sky unit reports real progress and gets its own expected time (the bug behind the 11-08 full-galaxy failure) | none | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
