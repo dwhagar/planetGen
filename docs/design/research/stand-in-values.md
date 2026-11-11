@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1538 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1539 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1512 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1513 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 111 | 47 | 9 | 10 | 0 | 177 |
 | T4 | 80 | 11 | 3 | 21 | 12 | 127 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
+| T5 | 77 | 24 | 6 | 1 | 1 | 109 |
 | T6 | 192 | 106 | 30 | 75 | 2 | 405 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 877 | 302 | 74 | 235 | 50 | 1538 |
+| All | 878 | 302 | 74 | 235 | 50 | 1539 |
 
 ## How the labels were given
 
@@ -727,6 +727,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | RD4 | P | T6 | L1 | recipe row f7: the tail of the giant planets' C/O is uniform 0.8 to 1.5 (6 of 69 retrieved planets above 0.8, a share 0.043 to 0.087) | upper end 1.0 to 2.0 | giant planets and brown dwarfs | a retrieved C/O above 1.5 on a giant, or a tail share outside 0.043 to 0.087 | the retrieved C/O of more planets (JWST, ground high-resolution) | test_tuned_draws | predicted only | - | - |
 | RD5 | P | T4 | L4 | recipe rows h2 and h3: the softness of the hot-giant regime edges, 100 K around the computed equilibrium lines | 50 to 200 K | giants hotter than 1000 K | a regime change measured sharper or broader than 100 K | the pressure and metallicity spread of the equilibrium edges themselves | test_equilibrium_edges | predicted only | - | no data |
 | RD6 | P | T6 | L1 | recipe row k7: the width of the comet gases known from 67P alone (N2, O2, OCS, SO2, Ar, Kr, Xe), 0.6 dex, the spread of CO | 0.4 to 0.8 dex | comets with a coma | a second comet's measured N2 or O2 outside the 67P value by more than 0.6 dex | measured ratios of these gases in more comets | test_comet_population | predicted only | - | - |
+| RD7 | D | T5 | L0 | recipe rows h1 to h3 (GEN.994): the hot-giant regime edges are `equilibrium_edges` computed at the layer's pressure on a reference gas, solar metals and C/O 0.55 (atmosphere_recipes.REGIME_EDGE_METALLICITY, REGIME_EDGE_C_TO_O), with the thermally dissociated regime beginning where 0.9 of the water is left (REGIME_EDGE_WATER_SHARE); they replace the table of anchors the rows held, which were the same lines rounded to a kelvin | metals 1 to 10 times solar moves the methane line up to 270 K at 100 bar and 75 K at 0.1 bar; C/O 0.3 to 1 | giants with a day side hotter than 700 K | a hot giant retrieved with its regime change far from the computed line, or a giant whose metals and C/O differ much from the reference | the edges at the giant's own metals and C/O (the next refinement of `docs/design/composition/equilibrium-chemistry.md`) | test_equilibrium_edges | predicted only | - | - |
 
 ## 6.41 Stand-ins of the derived taxon kernel
 
