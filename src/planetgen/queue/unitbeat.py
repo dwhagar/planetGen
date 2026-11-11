@@ -12,10 +12,15 @@ the follower can judge it (`queue/beatjudge.py`, OPS.137) and a person can see i
 * **The clock is Redis's.** `beat`, `started` and `moved` are seconds on the Redis server clock (`TIME`), so a lane machine and the server cannot disagree; `moved` is worked out from this process's
   monotonic clock when the counter changed, set against the server time of the write.
 * **The record** is one JSON object in the unit's field: `done`, `estimate`, `beat`, `started`, `moved` (absent until `done` first changes), `phase`, `waiting_on`, `restarts` (how many times the
-  current phase label has begun again) and `resident_mb` (optional). `read` gives a `beatjudge.Beat` for each unit of a stage.
+  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140). `read` gives a `beatjudge.Beat` for each unit of a stage.
 """
 
+import faulthandler
 import json
+import os
+import signal
+import socket
+import tempfile
 import threading
 import time
 from contextlib import contextmanager
@@ -27,6 +32,37 @@ COUNTER_WRITE_SECONDS = 2.0
 
 TICK_SECONDS = 0.5
 """float: How often the thread looks at whether a write is due (nothing is sent to Redis on a tick that writes nothing)."""
+
+
+DUMP_SIGNAL = getattr(signal, "SIGUSR1", None)
+"""The signal that has a horse write the stack of every thread of its process (OPS.140); `None` where the system has none."""
+
+_dump_file = None       # the file `faulthandler` writes to; kept open for the life of the process, because a signal after the unit must still land somewhere harmless
+
+
+def stack_path(run_id, stage, unit):
+    """Where the horse of a unit writes its stack when asked (`dump_stacks`): a file in the system's temporary folder, read by the process that follows the run (the same machine)."""
+    return os.path.join(tempfile.gettempdir(), "planetgen-stacks", f"{run_id}-s{stage}-u{unit}.txt")
+
+
+def register_dump(path):
+    """
+    Has this process write the stack of every thread to `path` when it is sent `DUMP_SIGNAL` (`faulthandler`: it works from the signal handler in C, so it answers even when the
+    work loop holds the interpreter). The file stays registered after the unit, so a late signal does no harm. Returns whether it was registered.
+    """
+    global _dump_file
+    if DUMP_SIGNAL is None:
+        return False
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handle = open(path, "w", encoding="utf-8")
+        faulthandler.register(DUMP_SIGNAL, file=handle, all_threads=True, chain=False)
+    except (OSError, ValueError, RuntimeError):
+        return False
+    _dump_file, previous = handle, _dump_file
+    if previous is not None:
+        previous.close()
+    return True
 
 
 def server_time(conn):
@@ -41,7 +77,9 @@ class UnitBeat:
     after a last write, on exit.
     """
 
-    def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS):
+    def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS,
+                 stack_file=None):
+        self.stack_file = stack_file
         self.conn, self.key, self.unit = conn, runrecord.progress_key(run_id, stage), str(unit)
         self.clock = clock
         self.beat_seconds = beatjudge.BEAT_SECONDS if beat_seconds is None else beat_seconds
@@ -93,7 +131,10 @@ class UnitBeat:
             self._started_server = now_server - (self.clock() - self._started_at)
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
-                    "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1)}
+                    "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
+                    "pid": os.getpid(), "host": socket.gethostname()}
+            if self.stack_file:
+                made["stack_file"] = self.stack_file
             if self._moved_at is not None:
                 made["moved"] = now_server - (self.clock() - self._moved_at)
             written = self._done
@@ -130,6 +171,8 @@ class UnitBeat:
     def __enter__(self):
         global _current
         self._outer, _current = _current, self
+        if self.stack_file:
+            register_dump(self.stack_file)
         self._thread = threading.Thread(target=self._run, name=f"beat-{self.unit}", daemon=True)
         self._thread.start()
         return self

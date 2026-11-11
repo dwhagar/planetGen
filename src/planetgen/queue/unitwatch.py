@@ -9,6 +9,7 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
   and a unit that works again gets one line saying so. A unit that starts working is not announced. A reading that fails (Redis down for a moment) is skipped, never a verdict.
 * **Acting needs two checks in a row** (`beatjudge.agreed`): `UnitWatch.agreed()` lists the units whose last two checks both say dead or quiet, which is what the stuck action
   (OPS.140) takes. A unit whose counter moves is never in it.
+* **Stuck units are acted on** by `unitstuck.Stuck` (OPS.140): dumped, stopped, queued again once, then the run fails.
 * **Only this process judges.** The process that only watches a run (`wrapper.follow`) does not make a watch, so two processes never log the same change twice.
 
     watch = unitwatch.UnitWatch(conn, run_id, stage, kind)
@@ -18,7 +19,7 @@ can read them (`runrecord.unitstate_key`, served by `GET /api/admin/work/<id>/un
 import json
 import time
 
-from planetgen.queue import beatjudge, runrecord, unitbeat
+from planetgen.queue import beatjudge, runrecord, unitbeat, unitstuck
 
 
 class UnitWatch:
@@ -33,9 +34,10 @@ class UnitWatch:
         history_of (callable, optional): `history_of(kind) -> beatjudge.History`; a plain `History()` where left out (OPS.135 supplies the recorded gaps).
         starved (callable, optional): `starved() -> bool`, whether the host is starved (the quiet limit doubles).
         record_error (callable, optional): `record_error(message, **fields)`, how an error-level change reaches `error.log` (`log.record_error("queue", ...)` where left out).
+        stuck (unitstuck.Stuck, optional): What is done with the units that two checks in a row call dead or quiet (OPS.140); a `unitstuck.Stuck` of this stage where left out, `False` for none.
     """
 
-    def __init__(self, conn, run_id, stage, kind, history_of=None, starved=None, record_error=None):
+    def __init__(self, conn, run_id, stage, kind, history_of=None, starved=None, record_error=None, stuck=None):
         self.conn = conn
         self.run_id = run_id
         self.stage = stage
@@ -47,6 +49,7 @@ class UnitWatch:
         self._previous = {}         # the verdict of the check before
         self._current = {}          # the verdict now
         self._announced = {}        # (state, severity) each unit was last logged in; a unit not in it has only worked
+        self.stuck = unitstuck.Stuck(conn, run_id, stage, record_error=record_error, forget=self.forget) if stuck is None else (stuck or None)
 
     def history(self):
         return beatjudge.History() if self.history_of is None else self.history_of(self.kind)
@@ -70,7 +73,14 @@ class UnitWatch:
         for unit, verdict in sorted(verdicts.items()):
             self._announce(unit, verdict, found[unit])
         self._publish(verdicts, found, now)
+        if self.stuck is not None:
+            self.stuck.step(self.agreed(), self._current)
         return dict(verdicts)
+
+    def forget(self, unit):
+        """A unit that was queued again starts afresh: nothing of its last attempt is remembered."""
+        for held in (self._beats, self._previous, self._current, self._announced):
+            held.pop(unit, None)
 
     def clear(self):
         """Removes the published verdicts (the stage is over)."""

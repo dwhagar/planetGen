@@ -156,6 +156,11 @@ def progress_key(run_id, index):
     return _k("run", run_id, f"s{index}", "progress")
 
 
+def stuck_key(run_id, index):
+    """The hash of what the heartbeat action did to each unit of stage `index` (OPS.140: `unitstuck`), one JSON field to a unit."""
+    return _k("run", run_id, f"s{index}", "stuck")
+
+
 def unitstate_key(run_id, index):
     """The hash of the verdict on each running unit of stage `index` (OPS.138: `unitwatch`), one JSON field to a unit."""
     return _k("run", run_id, f"s{index}", "unitstate")
@@ -692,7 +697,7 @@ def _keys_of(conn, run_id, every=False):
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), plan_key(run_id, index)]
+                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), plan_key(run_id, index)]
     return keys
 
 
