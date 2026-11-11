@@ -489,6 +489,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1530 | Stripped helium star light: a luminosity from its mass (stellar-state tables) and an XUV share, in dark_light.source_of (stand-in row DL7 notes the gap) | GEN.1501 | Lane 11 follow-up, 2026-11-11. |
 | GEN.1531 | Roche-lobe overflow feeds a black hole: a companion that fills its lobe makes the hole a bright X-ray source (transfer rate from the companion's evolution state) | GEN.1501 | Lane 11 follow-up, 2026-11-11. |
 | GEN.1533 | Give the GEN.1497 body history table a reader: nothing in production code reads the stored history yet | GEN.1497 | Lane 14 sweep, 2026-11-11. |
+| GEN.1534 | A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs) | none | Lane 21 GEN.946 triage, 2026-11-11. |
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
 | TEST.715 | The constants completeness gate: turn the GEN.945 census into a test with a committed baseline of unregistered constant names that may only shrink | none | Lane 21 GEN.945 audit, 2026-11-11. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
