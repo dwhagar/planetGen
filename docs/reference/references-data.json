@@ -118892,6 +118892,33 @@
    "volume": "361",
    "year": 1993
   },
+  "10.1038/361615a0": {
+   "authors": [
+    [
+     "Laskar",
+     "J."
+    ],
+    [
+     "Joutel",
+     "F."
+    ],
+    [
+     "Robutel",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/361615a0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "615",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Stabilization of the Earth's obliquity by the Moon",
+   "type": "journal-article",
+   "volume": "361",
+   "year": 1993
+  },
   "10.1038/368365a0": {
    "authors": [
     [
@@ -282982,7 +283009,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5227,
+ "id_next": 5228,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284484,6 +284511,7 @@
   "10.1038/356157a0": "R1738",
   "10.1038/359226a0": "R0624",
   "10.1038/361608a0": "R2571",
+  "10.1038/361615a0": "R5227",
   "10.1038/368365a0": "R0584",
   "10.1038/370194a0": "R2071",
   "10.1038/370441a0": "R3861",

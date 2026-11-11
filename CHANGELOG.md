@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3858] - 2026-11-11
+
+**Headline:** A script now draws the same few hundred seeded systems on two builds and counts how many bodies a change moved in ocean tide, tidal heating, locking, spin, tilt and eccentricity; no generated world changes.
+
+### Changed
+
+- GEN.1448: new `scripts/census_interactions.py` (`draw` then `compare`). It draws seeded systems of the six census star types, records for each planet and moon the spring ocean tide range, tidal heating flux, locking state, spin period, tilt and eccentricity (and any Kozai loss a build records), and a second run on another build is compared body by body; a system whose body count changed is counted apart. It is run before and after GEN.1446, GEN.1449, GEN.1454 and GEN.1450 land so each says what it did to the world.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3857] - 2026-11-11
+
+**Headline:** a unit that has just left a long wait is no longer stopped as stuck, and the heartbeat has one test that runs every rule on a fake clock.
+
+### Changed
+
+- OPS.143: `tests/test_heartbeat_rules.py` drives the whole chain (a horse that beats, the follower's watch, the stuck action, the stale rule, the job rows) over hours of fake time: work, slow, a long wait, quiet and stopped, the false kill (a moving counter at ten times its estimate for six hours is flagged and never touched), dead, stuck twice, the stale rule for every mix of states, and the API, web and tile jobs.
+- Fixed, found by that test: the time a unit spent waiting on the gate, the sky lock or MySQL counted as time its counter stood still, so a unit that left a wait of more than five minutes was judged quiet at once and stopped after two polls. The horse now writes the completed waits since the counter last changed (`waited`) and the judge subtracts them.
+- Fixed, found by that test: a unit queued again by the pass that found its stop had taken effect was looked up in the verdicts the watch had just forgotten, which raised a `KeyError` in the follower; it is skipped now.
+
+## [8.0.3856] - 2026-11-11
+
+**Headline:** The Queue run page lists each running unit with its state, last beat, counter, phase and rate, the ones that need a look first.
+
+### Changed
+- **Running units on the run page (OPS.139).** `/admin/queue/<run>` of a live run gets a "Running units" table drawn from `GET /api/admin/work/<id>/units` (OPS.138, through `apiclient.admin_work_units`): stage, unit, a state badge (working, slow, waiting, quiet, looping, dead; the reason is its tooltip), what it is doing and what it waits on, the counter (`done of estimate`, or "no counter"), the rate, the time left at that rate, the age of its last beat, how long it has run, its memory, and "to be stopped" on a unit two checks in a row have called quiet or dead. A summary line counts the states; the worst states are listed first and at most 200 rows are drawn. A run that is over, or one with no unit judged yet, has no table. Reused, not rebuilt: the verdicts and their view (`unitwatch.view`), the route, `_duration`, `counted`, the page's panel/table markup and `.badge`. No migration.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3855] - 2026-11-11
+
+**Headline:** The Queue pages show run durations, ETA ranges and heartbeat ages in their original form again ("3 m 05 s", "12.4 s").
+
+### Fixed
+- **OPS.142 defined a second `_duration` in `web/queue_page.py`**, which replaced the first at import and changed every figure that used it. The other-job rows' short form is now `_beat_gap`; a test checks the two forms and that no function of the module is defined twice.
+generation-output: none
+
+## [8.0.3854] - 2026-11-11
+
+**Headline:** The program can now work out how far a planet's tilt wanders under the pull of its star, moons, sibling planets and a companion star; nothing reads it yet, so no planet changes.
+
+### Changed
+
+- GEN.1454 (part 1): new `physics/obliquity_variation.py`. From a planet's spin, its moons, the star and a companion it works out the precession of the spin axis; set against the nodal modes of the secular exchange (GEN.1450) it gives the range of the planet's obliquity, whether the tilt sits in a resonance and whether two resonances overlap into a chaotic zone. The Earth with its Moon comes out at 22.6 to 24.3 degrees against the 22.1 to 24.5 measured, and without the Moon it swings about five times as far. It is a lower bound for the chaos of the full theory. Registry section 6.271 (OB1 to OB5). Part 2 will use it in the settle pass, the seasonal swing and the oddity table. The pendulum picture and the Moon-less Earth case follow [R2571, R5227].
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3853] - 2026-11-11
 
 **Headline:** A very hot giant now keeps its phosphorus in the gas: atomic phosphorus and four phosphorus molecules are in the gas table, and the stop-gap that dropped phosphorus above 6000 K is gone.
