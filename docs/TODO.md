@@ -12994,16 +12994,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, with Lane 11 for the map. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, MAP.412, MAP.414.
   Filed by the TODO thread.
 
-- [ ] **MAP.414 (bug) The 3D system view draws the largest members of each belt as lumpy meshes**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Today the view draws a belt as random seeded points and ignores the members. Do: draw the top N members by radius as lumpy meshes (tiered by projected size, dust points stay for the rest), reusing lumpymesh.js and the existing tier and LRU rules, one shared geometry cache; N capped (say 200 per belt).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.412. Related: MAP.412, MAP.415.
-  Filed by the TODO thread.
-
-- [ ] **MAP.415 Belt draw cap setting and a determinism test**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A cap setting for N in MAP.414 (admin or per belt) and a test that the same belt draws the same members (a hash of the chosen member ids).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.414. Related: MAP.414.
-  Filed by the TODO thread.
-
 - [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: none. Related: MAP.350, MAP.280.
