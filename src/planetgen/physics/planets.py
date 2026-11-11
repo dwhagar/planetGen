@@ -1170,6 +1170,21 @@ SECULAR_BISECTION_STEPS = 12
 """int: The steps of the bisection for the largest eccentricity the spacing allows a planet (the interval narrows to 2.4e-4 of the rise)."""
 
 
+def belt_rings_of(planets, planet_axes_au):
+    """`(axes_au, masses_kg)` of the rings every belt among `planets` pulls the planets of axes `planet_axes_au` with (GEN.1464): each belt with a mass cut into `secular_chain.belt_rings`, the rings
+    near a planet left out (`secular_chain.clear_rings`)."""
+    from planetgen.physics import secular_chain
+
+    axes, masses = [], []
+    for belt in planets:
+        if getattr(belt, "body_type", None) != "a" or not (getattr(belt, "mass_kg", 0.0) or 0.0) > 0.0:
+            continue
+        ring_axes, ring_masses = secular_chain.clear_rings(*secular_chain.belt_rings(belt.lower_limit, belt.upper_limit, belt.mass_kg), planet_axes_au)
+        axes += ring_axes
+        masses += ring_masses
+    return axes, masses
+
+
 def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     """
     GEN.1450: gives the planets of one star the orbits the Laplace-Lagrange secular exchange (`secular_chain`) leaves them at the star's age, from the eccentricities and inclinations the
@@ -1180,8 +1195,12 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     is not broken: the eccentricities the exchange lowers are lowered, then those it raises are raised planet by planet, each to what the exchange gave or, if the spacing will not hold,
     to the most it will (a bisection). A chain packed to the screen's limit therefore keeps its eccentricities and takes the rest of the exchange (the inclinations, the periapses, the nodes).
 
+    The belts of the star pull too (GEN.1464): a belt's mass, spread over its annulus (`secular_chain.belt_rings`), adds its pull to the apsidal and nodal rate of every planet; the belt's rings keep
+    a flat circular orbit and are not moved (`secular_chain.evolve`, `fixed_axes_au`), so a belt changes how fast a planet's orbit turns and how far a neighbour's pull raises it, and takes no part
+    in the exchange of eccentricity. A ring within `secular_chain.BELT_ALPHA_LIMIT` of a planet is left out.
+
     Args:
-        planets (list): One star's planets and belts in orbital order (belts and moons do not take part).
+        planets (list): One star's planets and belts in orbital order (the belts pull the planets as rings; moons do not take part).
         host_mass_kg (float): The star's mass.
         age_yr (float): The star's age, years.
         keeps_spacing (callable): Given `planets`, whether their spacing and the moons' stable ranges hold (no problem beyond those the system already had), asked with the new
@@ -1199,8 +1218,9 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     for body in bodies:
         orbit = body.orbit_from_vector()
         start.append((orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
+    ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]
