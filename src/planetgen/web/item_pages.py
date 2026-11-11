@@ -258,6 +258,27 @@ def sheet_view(sheet):
     return [group for group in groups if group["rows"]]
 
 
+EJECTA_ROWS = (("Mass", "ejecta_mass_sol", "swept_mass_sol"), ("Hydrogen share", "ejecta_mass_fraction_h", "swept_mass_fraction_h"),
+               ("Helium share", "ejecta_mass_fraction_he", "swept_mass_fraction_he"),
+               ("Heavy-element share", "ejecta_mass_fraction_z", "swept_mass_fraction_z"))
+"""tuple: The rows of a remnant's two-column table (GEN.1272): the label, the key of the ejecta's value and the key of the swept-up gas's value."""
+
+
+def ejecta_view(sheet):
+    """
+    A supernova remnant's ejecta and swept-up gas side by side (GEN.1272): `{"columns": ["Ejecta", "Swept-up gas"], "rows": [{"label", "cells": [html]}]}`
+    with the mass and the hydrogen, helium and heavy-element shares of each, a figure the remnant does not store a dash. `None` for anything that is not a
+    remnant, or a remnant with none of them stored.
+    """
+    rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
+    if not any(rows.get(key, {}).get("stored") for _, ejecta, swept in EJECTA_ROWS for key in (ejecta, swept)):
+        return None
+    dash = trusted_html("&mdash;")
+    return {"columns": ["Ejecta", "Swept-up gas"],
+            "rows": [{"label": label, "cells": [_value_html(rows[key]) if rows.get(key, {}).get("stored") else dash for key in (ejecta, swept)]}
+                     for label, ejecta, swept in EJECTA_ROWS]}
+
+
 def bands_view(sheet):
     """
     The table of the seven bands of a planet or moon (GEN.1108) as the page draws it: `{"caption", "columns": [label], "rows": [{"label", "cells": [html]}]}`, the bands as columns
@@ -384,7 +405,8 @@ def sheet_context(sheet):
     total = sum(len(group["rows"]) for group in sheet["groups"])
     notes = [sheet_registry.MISSING_SENTENCES[key] for key in sheet_registry.MISSING_SENTENCES
              if key in (sheet.get("missing") or ())]
-    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes}
+    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes,
+            "ejecta": ejecta_view(sheet)}
 
 
 def region_row(found):
