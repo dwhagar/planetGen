@@ -12,10 +12,15 @@ the follower can judge it (`queue/beatjudge.py`, OPS.137) and a person can see i
 * **The clock is Redis's.** `beat`, `started` and `moved` are seconds on the Redis server clock (`TIME`), so a lane machine and the server cannot disagree; `moved` is worked out from this process's
   monotonic clock when the counter changed, set against the server time of the write.
 * **The record** is one JSON object in the unit's field: `done`, `estimate`, `beat`, `started`, `moved` (absent until `done` first changes), `phase`, `waiting_on`, `restarts` (how many times the
-  current phase label has begun again) and `resident_mb` (optional). `read` gives a `beatjudge.Beat` for each unit of a stage.
+  current phase label has begun again), `resident_mb` (optional), and `pid`, `host` and `stack_file` (where the follower sends `DUMP_SIGNAL`, OPS.140). `read` gives a `beatjudge.Beat` for each unit of a stage.
 """
 
+import faulthandler
 import json
+import os
+import signal
+import socket
+import tempfile
 import threading
 import time
 from contextlib import contextmanager
@@ -27,6 +32,37 @@ COUNTER_WRITE_SECONDS = 2.0
 
 TICK_SECONDS = 0.5
 """float: How often the thread looks at whether a write is due (nothing is sent to Redis on a tick that writes nothing)."""
+
+
+DUMP_SIGNAL = getattr(signal, "SIGUSR1", None)
+"""The signal that has a horse write the stack of every thread of its process (OPS.140); `None` where the system has none."""
+
+_dump_file = None       # the file `faulthandler` writes to; kept open for the life of the process, because a signal after the unit must still land somewhere harmless
+
+
+def stack_path(run_id, stage, unit):
+    """Where the horse of a unit writes its stack when asked (`dump_stacks`): a file in the system's temporary folder, read by the process that follows the run (the same machine)."""
+    return os.path.join(tempfile.gettempdir(), "planetgen-stacks", f"{run_id}-s{stage}-u{unit}.txt")
+
+
+def register_dump(path):
+    """
+    Has this process write the stack of every thread to `path` when it is sent `DUMP_SIGNAL` (`faulthandler`: it works from the signal handler in C, so it answers even when the
+    work loop holds the interpreter). The file stays registered after the unit, so a late signal does no harm. Returns whether it was registered.
+    """
+    global _dump_file
+    if DUMP_SIGNAL is None:
+        return False
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        handle = open(path, "w", encoding="utf-8")
+        faulthandler.register(DUMP_SIGNAL, file=handle, all_threads=True, chain=False)
+    except (OSError, ValueError, RuntimeError):
+        return False
+    _dump_file, previous = handle, _dump_file
+    if previous is not None:
+        previous.close()
+    return True
 
 
 def server_time(conn):
@@ -41,8 +77,11 @@ class UnitBeat:
     after a last write, on exit.
     """
 
-    def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS):
-        self.conn, self.key, self.unit = conn, runrecord.progress_key(run_id, stage), str(unit)
+    def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS,
+                 stack_file=None, hash_key=None, extra=None):
+        self.stack_file = stack_file
+        self.extra = dict(extra or {})
+        self.conn, self.key, self.unit = conn, hash_key or runrecord.progress_key(run_id, stage), str(unit)
         self.clock = clock
         self.beat_seconds = beatjudge.BEAT_SECONDS if beat_seconds is None else beat_seconds
         self.counter_write_seconds = COUNTER_WRITE_SECONDS if counter_write_seconds is None else counter_write_seconds
@@ -53,6 +92,9 @@ class UnitBeat:
         self._thread = None
         self._done = self._estimate = 0.0
         self._moved_at = None                       # this process's monotonic clock when `done` last changed
+        self._changed_at = self.clock()             # when the gap now running began: the unit's start, then each change of `done`
+        self._waited = 0.0                          # seconds of the gap now running spent waiting on a lock or the gate (not stuck, so not part of the gap)
+        self._longest_gap = 0.0                     # the longest gap between two changes of `done` so far (OPS.135)
         self._phase, self._waiting, self._phases = "", "", {}
         self._started_at = self.clock()
         self._started_server = None
@@ -65,7 +107,18 @@ class UnitBeat:
         with self._lock:
             if float(done) != self._done:
                 self._moved_at = self.clock()
+                self._close_gap(self._moved_at)
             self._done, self._estimate = float(done), float(estimate)
+
+    def _close_gap(self, now):
+        """The gap that ends at `now` (the counter changed, or the unit ended), less the time spent waiting inside it. Called with the lock held."""
+        self._longest_gap = max(self._longest_gap, now - self._changed_at - self._waited)
+        self._changed_at, self._waited = now, 0.0
+
+    def longest_gap(self):
+        """The longest seconds this unit's counter stood still between two changes, from its start to its end, not counting the time it spent waiting on a lock or the gate (OPS.135)."""
+        with self._lock:
+            return max(self._longest_gap, self.clock() - self._changed_at - self._waited, 0.0)
 
     def phase(self, text):
         """The unit begins `text`; the same label beginning again counts as a restart of the phase."""
@@ -78,11 +131,13 @@ class UnitBeat:
         """The unit waits for `tag` (`gate`, `sky lock` or `mysql`) inside the block."""
         with self._lock:
             before, self._waiting = self._waiting, tag
+        began = self.clock()
         try:
             yield
         finally:
             with self._lock:
                 self._waiting = before
+                self._waited += max(self.clock() - began, 0.0)
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -93,7 +148,11 @@ class UnitBeat:
             self._started_server = now_server - (self.clock() - self._started_at)
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
-                    "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1)}
+                    "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
+                    "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
+            if self.stack_file:
+                made["stack_file"] = self.stack_file
+            made.update(self.extra)
             if self._moved_at is not None:
                 made["moved"] = now_server - (self.clock() - self._moved_at)
             written = self._done
@@ -130,6 +189,8 @@ class UnitBeat:
     def __enter__(self):
         global _current
         self._outer, _current = _current, self
+        if self.stack_file:
+            register_dump(self.stack_file)
         self._thread = threading.Thread(target=self._run, name=f"beat-{self.unit}", daemon=True)
         self._thread.start()
         return self

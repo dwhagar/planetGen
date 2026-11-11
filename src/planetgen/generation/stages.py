@@ -80,7 +80,8 @@ def sectors_stages(args):
 NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
 """Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
 
-PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
+PHENOMENA_STAGES = (Stage("phenomena-clear", "Clear the earlier phenomena"), Stage("phenomena-unindex", "Take off the phenomenon indexes"),
+                    Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
                     NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
@@ -96,8 +97,13 @@ run's own block totals, so it adds up what the run left and nothing after it cha
 
 
 def galaxy_stages(args):
-    """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
-    return sectors_stages(args) + [
+    """
+    The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172). A stage whose result is stored and current is
+    listed as skipped with its reason and is not run (PERF.256): `args.stage_skips`, `{stage key: reason}`, which `run_galaxy` works out from the database
+    (`run_plan.stored_scatter_skips`) before it plans the sectors; the estimate counts such a stage as no time.
+    """
+    skips = getattr(args, "stage_skips", None) or {}
+    listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
         BRIGHT_CLEAR_STAGE["mass"],
         Stage("mass", "Scatter the massive stars"),
@@ -110,6 +116,7 @@ def galaxy_stages(args):
         Stage("run-blocks", "Update the map's block totals"),
         BLOCK_LIGHTS_STAGE,
     ]
+    return [Stage(stage.key, stage.label, skips[stage.key]) if stage.key in skips else stage for stage in listed]
 
 
 def plan_stages(args):

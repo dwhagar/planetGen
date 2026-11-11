@@ -2124,6 +2124,7 @@ SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'plane
 """str: What a stage that needs the plan says when the galaxy has none (said when the stage opens, PERF.203)."""
 
 NEBULA_DRAW_KEY = "nebula-draw"
+NEBULA_CLEAR_KEY = "nebula-clear"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
 
@@ -2959,7 +2960,7 @@ class _PhenomenaBook:
 class PhenomenaFollower(followed.Follower):
     """
     The shells of the phenomenon scatter as a stage of a run (PERF.106): the `scatter-phenomena` command's units, a
-    run of shells each. The earlier scatter was emptied when the stage opened (`prepare_scatter_phenomena`).
+    run of shells each. The earlier scatter was emptied, and the indexes taken off, by the two stages before it (OPS.123).
     """
 
     key = "phenomena"
@@ -3067,7 +3068,9 @@ def phenomena_followers(args, refuse=None, tag=""):
         RuntimeError: The skeleton was never built.
     """
     book = _PhenomenaBook()
-    followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+    followers = [EmptyPhenomenonScatterFollower(args, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+                 DropPhenomenonIndexesFollower(args),
+                 PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
                  EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return followers, book
@@ -3125,16 +3128,72 @@ def planned_phenomena(args, refuse=None, tag=""):
     return followed.Planned(followers + [BlockLightsFollower(args)], "Phenomena", book.summary)
 
 
-def prepare_scatter_phenomena(params):
-    """The `prepare` of the `scatter-phenomena` command (PERF.172), when its stage opens: empties the earlier scatter, and
-    takes off the indexes: none to keep up to date while tens of millions of rows go in, built once at the end
-    (`finish_phenomena_unit`, PERF.73)."""
+def expand_empty_phenomenon_scatter(params):
+    """The `empty-phenomenon-scatter` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def empty_phenomenon_scatter_unit(params, report):
+    """
+    The `empty-phenomenon-scatter` command's unit (OPS.123; the first half of the `prepare` of `scatter-phenomena` before it, PERF.172):
+    empties the earlier phenomenon scatter before it is drawn again (`store.clear_phenomenon_scatter`).
+
+    Returns:
+        dict: `emptied`, always true.
+    """
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.clear_phenomenon_scatter(conn)
+    finally:
+        conn.close()
+    return {"emptied": True}
+
+
+def expand_drop_phenomenon_indexes(params):
+    """The `drop-phenomenon-indexes` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def drop_phenomenon_indexes_unit(params, report):
+    """
+    The `drop-phenomenon-indexes` command's unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172):
+    takes off the table's indexes: none to keep up to date while tens of millions of rows go in, built once at the end
+    (`finish_phenomena_unit`, PERF.73).
+
+    Returns:
+        dict: `dropped`, always true.
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
         store.drop_phenomenon_scatter_indexes(conn)
     finally:
         conn.close()
+    return {"dropped": True}
+
+
+class EmptyPhenomenonScatterFollower(followed.Follower):
+    """
+    The emptying of the earlier phenomenon scatter as a stage of a run (OPS.123): the `empty-phenomenon-scatter` command, one unit,
+    the first of the scatter. It reads the same deferred settings as the shells (`_phenomena_settings`), so a scatter that is refused
+    because its rows are stored is refused before anything is emptied.
+    """
+
+    key = "phenomena-clear"
+    label = "Clear the earlier phenomena"
+
+    def __init__(self, args, settings):
+        super().__init__(args)
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
+
+
+class DropPhenomenonIndexesFollower(followed.Follower):
+    """The taking off of the phenomenon table's indexes as a stage of a run (OPS.123): the `drop-phenomenon-indexes` command, one unit."""
+
+    key = "phenomena-unindex"
+    label = "Take off the phenomenon indexes"
 
 
 def conclude_scatter_phenomena(params, plan, results, seconds):
@@ -3333,6 +3392,67 @@ def _refuse_stored_scatter_of(args, kind):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         _refuse_stored_scatter(conn, kind)
+    finally:
+        conn.close()
+
+
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
+
+
+def _scatter_stands(conn, kinds, current, behind):
+    """Whether every kind of `kinds` was drawn to its end and recorded (`record_scatter_epoch`; every clear forgets it, so a record is a finished draw, rows or none: a nebula field can be
+    drawn and empty) under an epoch no later epoch changed the scatter stage of (`epoch_record.needs`)."""
+    recorded = store.scatter_epochs(conn)
+    return all(kind in recorded and not behind("scatter", recorded[kind], current) for kind in kinds)
+
+
+def stored_scatter_skips(args):
+    """
+    The stages of a `galaxy` run that need not run because what they draw is stored and current (PERF.256; the planner rule "a job whose outputs are present is not
+    planned"): `{stage key: reason}`, empty when nothing stands. A scatter stands when it was drawn to its end (`scatter_epochs` holds its record), the generator epoch it was drawn under is not one that changed the scatter
+    stage (`epoch_record.needs`), and the settings the request would draw it with are the stored ones: the luminosity floor, the stellar mass limit and the seed of the star
+    passes; the seed and the lowest compact mass of the phenomena (the galaxy's seed derives the nebula field's). The two star passes stand or are drawn together, as `galaxy` draws them
+    (the bright stars are split from the massive ones at the mass limit), and the nebula field is drawn again whenever the phenomena are. Reads the database and changes nothing; a galaxy with no skeleton or no seed has no skips.
+    """
+    from planetgen.galaxy import epoch_record
+    from planetgen.util import generator_epoch
+
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None or skeleton.galaxy_seed is None:
+            return {}
+        current, behind = generator_epoch.generator_epoch(), epoch_record.needs
+        floor, stored = float(args.bright_star_min_luminosity), store.bright_star_scatter_settings(conn)
+        limit, stored_limit = _stellar_mass_limit(args, conn), store.bright_star_mass_limit(conn)
+        stars = (stored is not None and stored_limit is not None and math.isclose(stored[0], floor, rel_tol=1e-12) and math.isclose(stored_limit, limit, rel_tol=1e-12)
+                 and stored[1] == _bright_star_seed(skeleton, "scatter") and _scatter_stands(conn, ("mass", "luminosity"), current, behind)
+                 and not (store.scatter_epochs(conn).get("band") is not None and behind("scatter", store.scatter_epochs(conn)["band"], current)))
+        found = store.phenomenon_scatter_settings(conn)
+        compact = _compact_mass_limit(args, conn)
+        phenomena = (found is not None and found[1] is not None and found[0] == _phenomenon_scatter_seed(skeleton) and math.isclose(found[1], compact, rel_tol=1e-12)
+                     and _scatter_stands(conn, ("phenomena",), current, behind))
+        field = phenomena and _scatter_stands(conn, ("nebula-field",), current, behind)
+        standing = {"stars": stars, "phenomena": phenomena, "nebula-field": field}
+        reasons = {"stars": "the star scatter is stored under the current epoch with these settings",
+                   "phenomena": "the phenomena scatter is stored under the current epoch with these settings",
+                   "nebula-field": "the nebula field is stored under the current epoch"}
+        return {key: reasons[kind] for kind, keys in STORED_SCATTER_STAGES.items() if standing[kind] for key in keys}
+    finally:
+        conn.close()
+
+
+def block_lights_skip(args, skips):
+    """
+    The reason the block light stage of a `galaxy` run need not run, or `None` (PERF.256): every scatter stands (`skips` holds the stages of all of them, `stored_scatter_skips`) and the stored
+    totals hold every unbuilt object (`block_lights.totals_current`). The caller asks only for a run that generates no sector, since a backfill or a fill can still change a light.
+    """
+    if not all(key in skips for keys in STORED_SCATTER_STAGES.values() for key in keys):
+        return None
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        return "the scatters stand and the block light totals hold every pre-placed object" if block_lights.totals_current(conn) else None
     finally:
         conn.close()
 

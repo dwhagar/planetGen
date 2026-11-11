@@ -55,6 +55,10 @@ quench formula falls at 850 to 1100 K for Kzz 1e2 to 1e5, Zahnle and Marley's 11
 CHEMISTRY_FLOOR_K = 300.0
 """float: A colder layer is equilibrated at this temperature (the hydride limit; the fits of several gases start here)."""
 
+CHEMISTRY_CEILING_K = max(row.range_k[1] for row in species_thermo.SPECIES.values() if not row.condensed)
+"""float: A hotter layer is equilibrated at this temperature, the top of the gas table (20,000 K): above it the table has no gas to make (an irradiated giant of an O star is 27,000 K at the quoted layer, the zeta
+Ophiuchi example). Ionization is not modelled, so such a layer is the neutral and molecular gas of the hottest temperature the table reaches; a stand-in of tier "from needed output", tweak L0, until the table is extended."""
+
 ADIABAT_EXPONENT = 2.0 / 7.0
 """float: The dry adiabat of a diatomic gas, d ln T / d ln P, for the temperature on the way down to the quench level."""
 
@@ -545,7 +549,7 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     budget, taken = remove_ammonium_hydrosulfide(budget, temperature, pressure, log_enrichment)
     if taken:
         condensed["ammonium_hydrosulfide"] = taken
-    chemistry_k = max(temperature, CHEMISTRY_FLOOR_K)
+    chemistry_k = min(max(temperature, CHEMISTRY_FLOOR_K), CHEMISTRY_CEILING_K)
     everything = tuple(species_thermo.GASES)
     without_co = tuple(name for name in everything if name != "CO")
 
@@ -558,7 +562,7 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     layer_budget = budget
     if quench is not None:
         quench_k, quench_bar = quench
-        deep = gas_equilibrium.solve(budget, max(quench_k, CHEMISTRY_FLOOR_K), quench_bar).moles
+        deep = gas_equilibrium.solve(budget, min(max(quench_k, CHEMISTRY_FLOOR_K), CHEMISTRY_CEILING_K), quench_bar).moles
         carriers = deep.get("CO", 0.0) + deep.get("CH4", 0.0)
         frozen = deep.get("CO", 0.0) / carriers if carriers > 0.0 else 0.0
         constants_drawn.update(quench_k=quench_k, quench_bar=quench_bar)
