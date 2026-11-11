@@ -20,7 +20,8 @@ with `J(beta)` the length of the track along which `A > 0`.
 
 **Three geometries.**
 
-* `orbiting_the_star` (a sibling planet inside the observer's orbit; both circle the star): `D = a_obs - a_c`, `omega = |v_c - v_obs| / D` at conjunction, `T = 1 / |1/P_c - 1/P_obs|`,
+* `orbiting_the_star` (a sibling planet inside the observer's orbit; both circle the star): `D = a_obs - a_c`, `omega = (v_c - v_obs) / D + v_obs / a_obs` at conjunction (`transit_rate`: the direction to
+  the blocker turns with their speed difference and the direction to the star turns with the observer's own orbit), `T = 1 / |1/P_c - 1/P_obs|`,
   `beta_max = a_c sin(i) / D`. The star is at `a_obs` and subtends `R_s / a_obs`.
 * `orbiting_the_observer` (a moon of the observer, or of a sister moon taken at the planet's distance): `D = a`, the blocker's direction goes round once in the synodic period
   `T = 1 / |1/P_m - 1/P_obs|`, `omega = 2 pi / T`, `beta_max = i`.
@@ -30,7 +31,7 @@ with `J(beta)` the length of the track along which `A > 0`.
 
 The orbits are circular and the observer is taken as a point, as everywhere in the model (the disk of a world is a few arc seconds in the sky of the Moon-Earth pair). The textbook
 cases are the Moon and the Sun for the Earth (the Moon touches the Sun's disk for 1.5e-4 of the time and covers 3.6e-5 of its light on average, from `5.1` degrees of inclination) and the transits of
-Venus (eight in 243 years, about six hours each, 2.4e-5 of the time).
+Venus (four in 243 years, about six hours each, 1.2e-5 of the time; the circular orbits give 9.1e-6, one transit in 81 years against one in 61).
 
 Stand-ins are the rows EC1 to EC4 of section 6.249 of the gap plan. GEN.1484 applies `light_factor_of` (a planet of a close pair) to the light the planet is generated with.
 """
@@ -102,6 +103,15 @@ def _shares(alpha_c, alpha_s, beta_max, omega_times_period):
     return crossed_i / (math.pi * alpha_s * alpha_s * omega_times_period), crossed_j / omega_times_period
 
 
+def transit_rate(observer_distance, observer_period, blocker_distance, blocker_period):
+    """The rate, radians per unit of the periods' time, at which the direction to a blocker inside the observer's orbit parts from the direction to the star at their conjunction: the blocker's
+    lateral speed against the observer's over the gap between them, plus the turn of the direction to the star as the observer itself circles it (`v_obs / a_obs`). Lengths in any one unit."""
+    gap = observer_distance - blocker_distance
+    v_observer = _TWO_PI * observer_distance / observer_period
+    v_blocker = _TWO_PI * blocker_distance / blocker_period
+    return abs((v_blocker - v_observer) / gap + v_observer / observer_distance)
+
+
 def orbiting_the_star(star_radius_km, observer_au, observer_period_yr, blocker_radius_km, blocker_au, blocker_period_yr, inclination_deg, km_per_au):
     """`(mean_covered, touched_share)` of a star's light at a body `observer_au` from it, by a blocker that circles the same star inside the observer's orbit (a sibling planet)."""
     if not (observer_au > blocker_au > 0.0) or observer_period_yr <= 0.0 or blocker_period_yr <= 0.0 or not star_radius_km or not blocker_radius_km:
@@ -110,8 +120,7 @@ def orbiting_the_star(star_radius_km, observer_au, observer_period_yr, blocker_r
     alpha_c = blocker_radius_km / (gap_au * km_per_au)
     alpha_s = star_radius_km / (observer_au * km_per_au)
     synodic = 1.0 / abs(1.0 / blocker_period_yr - 1.0 / observer_period_yr)
-    speed = abs(_TWO_PI * blocker_au / blocker_period_yr - _TWO_PI * observer_au / observer_period_yr)
-    omega = speed / gap_au                                        # rad per yr at the conjunction
+    omega = transit_rate(observer_au, observer_period_yr, blocker_au, blocker_period_yr)        # rad per yr at the conjunction
     beta_max = blocker_au * math.sin(math.radians(inclination_deg)) / gap_au
     return _shares(alpha_c, alpha_s, beta_max, omega * synodic)
 
