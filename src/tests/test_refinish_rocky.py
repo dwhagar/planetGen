@@ -110,3 +110,51 @@ def test_a_moon_the_planets_history_replaced_is_made_again_at_the_final_age_too(
         for moon in planet.moons:
             if moon.body_type != "g":
                 assert not planets.age_moved(moon), (moon.name, moon._age_drawn, moon.star.age)
+
+
+def test_a_planet_whose_orbit_settled_is_made_again_though_the_age_did_not_move(host_star):
+    """GEN.1402: the air was made on the orbit it had; an eccentricity worn down past the tolerance makes the end stages again, once."""
+    planet = _rocky(host_star)
+    planet.eccentricity = 0.4
+    planets.remake_end_stages(planet, planet)         # the air on the 0.4 orbit
+    assert planets.orbit_moved(planet) is False and planets.refinish_rocky(planet) == 0
+    planet.eccentricity = 0.4 - 0.5 * planets.ECCENTRICITY_SETTLE_TOLERANCE
+    assert planets.orbit_moved(planet) is False
+    planet.eccentricity = 0.4 - 2.0 * planets.ECCENTRICITY_SETTLE_TOLERANCE
+    assert planets.orbit_moved(planet) is True and planets.age_moved(planet) is False
+    assert planets.refinish_rocky(planet) == 1
+    assert planets.orbit_moved(planet) is False and planets.refinish_rocky(planet) == 0
+
+
+def test_the_moons_of_a_planet_whose_orbit_settled_are_made_again_too(host_star):
+    planet = _rocky(host_star, moon_count=1)
+    if not planet.moons:
+        pytest.skip("no moon in the draw")
+    planet.eccentricity = 0.4
+    for moon in planet.moons:
+        moon.host_eccentricity = 0.4
+        planets.remake_end_stages(moon, planet)
+    planet.eccentricity = 0.2
+    for moon in planet.moons:
+        moon.host_eccentricity = 0.2
+    assert all(planets.orbit_moved(moon) for moon in planet.moons)
+    assert planets.refinish_rocky(planet) >= 1
+    assert not any(planets.orbit_moved(moon) for moon in planet.moons)
+
+
+def test_a_giant_whose_orbit_settled_is_made_again_on_the_orbit_but_not_for_the_age(host_star):
+    giant = None
+    for seed in range(60):
+        candidate = class_support.draw_planet(host_star, 3.0, seed, SystemConfig(), mass=300.0 * EARTH_KG, moon_count=0)
+        if candidate.body_type == "g":
+            giant = candidate
+            break
+    if giant is None:
+        pytest.skip("no giant in the draws")
+    giant.eccentricity = 0.4
+    planets.remake_end_stages(giant, giant)
+    host_star.age = 8.0
+    assert planets.refinish_rocky(giant) == 0       # the age alone leaves a giant
+    giant.eccentricity = 0.2
+    assert planets.refinish_rocky(giant) == 1
+    assert planets.orbit_moved(giant) is False
