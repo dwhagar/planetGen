@@ -13224,6 +13224,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.1352.
   Filed by the TODO thread. Boss-visible bug.
 
+- [ ] **TEST.717 (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory**
+  Lane 23 (as the lane reported 6:39 PM EST on 2026-11-11), found while building GEN.1317: the two files fail together on plain main on a lane machine, because the subprocess tests of the status command read the machine's /var/cache/planetgen/datasets instead of a data directory the test sets; not from any open PR. Do: reproduce on a machine with and without that folder, make the subprocess tests set the data directory (reuse the existing test environment helper) so they do not read the machine's folder, and add a test that fails when a test leaks the machine path. Lock-free, tests only.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.1317, TEST.715.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

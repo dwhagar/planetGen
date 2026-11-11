@@ -22,7 +22,7 @@ release is stamped.
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.717 |
+| TEST | TEST.718 |
 | USR | USR.33 |
 | OPS | OPS.148 |
 | DOC | DOC.120 |
@@ -4532,6 +4532,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | open |
 | TEST.715 | The constants completeness gate: turn the GEN.945 census into a test with a committed baseline of unregistered constant names that may only shrink | none | open |
 | TEST.716 | The citation check's stop list ignores role words and time zones before a year ("Train Manager, 2026", "9:29 AM EST 2026") | none | done, PR #6053 |
+| TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
