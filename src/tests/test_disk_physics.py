@@ -128,9 +128,8 @@ def test_disk_physics_ceiling_never_exceeds_absolute_max():
 
 def test_more_luminous_star_has_a_larger_snow_line_and_disk():
     # A hotter/more luminous star's disk both starts its ice line farther
-    # out and (via DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) is truncated
-    # farther out -- real disks around hotter stars are observed to run
-    # larger, not smaller.
+    # out -- real disks around hotter stars are observed to run larger
+    # (the gas disk's edge grows with star mass too: `disk_size.edge_au`).
     dim = snow_line_au(0.01 * constants.SOLAR_LUMINOSITY)
     bright = snow_line_au(100 * constants.SOLAR_LUMINOSITY)
     assert bright > dim
