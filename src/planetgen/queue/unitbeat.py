@@ -91,6 +91,9 @@ class UnitBeat:
         self._thread = None
         self._done = self._estimate = 0.0
         self._moved_at = None                       # this process's monotonic clock when `done` last changed
+        self._changed_at = self.clock()             # when the gap now running began: the unit's start, then each change of `done`
+        self._waited = 0.0                          # seconds of the gap now running spent waiting on a lock or the gate (not stuck, so not part of the gap)
+        self._longest_gap = 0.0                     # the longest gap between two changes of `done` so far (OPS.135)
         self._phase, self._waiting, self._phases = "", "", {}
         self._started_at = self.clock()
         self._started_server = None
@@ -103,7 +106,18 @@ class UnitBeat:
         with self._lock:
             if float(done) != self._done:
                 self._moved_at = self.clock()
+                self._close_gap(self._moved_at)
             self._done, self._estimate = float(done), float(estimate)
+
+    def _close_gap(self, now):
+        """The gap that ends at `now` (the counter changed, or the unit ended), less the time spent waiting inside it. Called with the lock held."""
+        self._longest_gap = max(self._longest_gap, now - self._changed_at - self._waited)
+        self._changed_at, self._waited = now, 0.0
+
+    def longest_gap(self):
+        """The longest seconds this unit's counter stood still between two changes, from its start to its end, not counting the time it spent waiting on a lock or the gate (OPS.135)."""
+        with self._lock:
+            return max(self._longest_gap, self.clock() - self._changed_at - self._waited, 0.0)
 
     def phase(self, text):
         """The unit begins `text`; the same label beginning again counts as a restart of the phase."""
@@ -116,11 +130,13 @@ class UnitBeat:
         """The unit waits for `tag` (`gate`, `sky lock` or `mysql`) inside the block."""
         with self._lock:
             before, self._waiting = self._waiting, tag
+        began = self.clock()
         try:
             yield
         finally:
             with self._lock:
                 self._waiting = before
+                self._waited += max(self.clock() - began, 0.0)
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -132,7 +148,7 @@ class UnitBeat:
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
                     "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
-                    "pid": os.getpid(), "host": socket.gethostname()}
+                    "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
             if self.stack_file:
                 made["stack_file"] = self.stack_file
             if self._moved_at is not None:

@@ -156,6 +156,11 @@ def progress_key(run_id, index):
     return _k("run", run_id, f"s{index}", "progress")
 
 
+def gaps_key(run_id):
+    """The hash of the longest counter gap of each command the run ran, seconds (OPS.135: `commandgaps`)."""
+    return _k("run", run_id, "gaps")
+
+
 def stuck_key(run_id, index):
     """The hash of what the heartbeat action did to each unit of stage `index` (OPS.140: `unitstuck`), one JSON field to a unit."""
     return _k("run", run_id, f"s{index}", "stuck")
@@ -642,6 +647,12 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
         now=now)
     if state != "done":
         _log_unrun_dependents(conn, run_id, state, now)
+    else:
+        try:
+            from planetgen.queue import commandgaps
+            commandgaps.fold(conn, run_id)          # OPS.135: what the commands learned about how long a counter stands still
+        except Exception:   # noqa: BLE001 -- the history is for the next run; the end of this one does not wait on it
+            pass
     pipe = conn.pipeline()
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
@@ -687,7 +698,7 @@ def _keys_of(conn, run_id, every=False):
     """The keys the run keeps for `KEEP_SECONDS` once it is over (the stage count comes from the record), and with
     `every` the ones that expire by themselves too (the banner figure, the sign of life, the debug stream)."""
     stages = len(json.loads(conn.hget(run_key(run_id), "stages") or "[]"))
-    keys = [run_key(run_id), events_key(run_id)]
+    keys = [run_key(run_id), events_key(run_id), gaps_key(run_id)]
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
