@@ -160,21 +160,7 @@ def test_black_hole_spin_follows_the_beta_draw():
     assert spin.black_hole_horizon_period_s(10 * constants.SOLAR_MASS_TO_KG, 0.0) == math.inf
 
 
-@pytest.mark.parametrize(
-    "seed",
-    [
-        pytest.param(
-            seed,
-            marks=pytest.mark.xfail(
-                strict=True,
-                reason="GEN.1504: the secular exchange (GEN.1450) turns the orbit but not the stored spin tilt",
-            ),
-        )
-        if seed in (0, 4, 5)
-        else seed
-        for seed in range(6)
-    ],
-)
+@pytest.mark.parametrize("seed", range(6))
 def test_every_generated_system_body_spins(seed):
     with deterministic_entropy(seed):
         system = StarSystem(system_config=SystemConfig())

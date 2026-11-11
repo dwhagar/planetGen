@@ -1898,6 +1898,27 @@
           "x-slider": null,
           "x-summary": "Where uploaded icons and pictures are stored."
         },
+        "belt_bodies_drawn": {
+          "default": 200,
+          "description": "How many of each asteroid belt's heaviest stored bodies the 3D system view draws one by one, as lumps or balls among the belt's dust (0 draws only the dust). More bodies look fuller and cost the browser more memory.",
+          "maximum": 2000,
+          "minimum": 0,
+          "title": "Belt Bodies Drawn",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "look",
+          "x-label": "Belt bodies drawn in 3D",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "How many of each belt's heaviest bodies the 3D system view draws one by one.",
+          "x-unit": "bodies"
+        },
         "theme_color_dark": {
           "default": "#14151e",
           "description": "The same for the dark theme.",
@@ -2448,6 +2469,7 @@
       "$ref": "#/$defs/Web",
       "default": {
         "assets_dir": "",
+        "belt_bodies_drawn": 200,
         "theme_color_dark": "#14151e",
         "theme_color_light": "#f6f7fb",
         "title_template": "{title} - {site_name}"

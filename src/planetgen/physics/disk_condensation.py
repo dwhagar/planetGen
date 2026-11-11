@@ -313,24 +313,45 @@ def line_au(species, luminosity_w):
     return _m_to_au(distance_m)
 
 
-def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble):
-    """`(carbon gas, oxygen gas, carbon solid, oxygen solid)` in atoms per 10^4 hydrogen at `temperature_k` (the rock's oxygen is solid at any temperature below its line)."""
+def _gas_and_solid_atoms(temperature_k, carbon, oxygen, nitrogen, sulfur, noble, ice_weights=None):
+    """
+    `(carbon gas, oxygen gas, carbon solid, oxygen solid)` in atoms per 10^4 hydrogen at `temperature_k` (the rock's oxygen is solid at any temperature below its line).
+
+    `ice_weights` (`{species: E}`, from `disk_drift.ice_weights`; GEN.1473) multiplies the vapor of each ice that evaporated on the way to this place: its atoms in the gas are `E` times
+    the static ones, the solids stay the static ones. `None` and weights of 1 are the static budget (GEN.1363) exactly.
+    """
     held = inventory(carbon, oxygen, nitrogen, sulfur, noble)
     frozen = condensed(temperature_k, carbon, oxygen, nitrogen, sulfur, noble)
     carbon_solid = frozen.get("C", 0.0) + frozen.get("CO", 0.0) + frozen.get("CO2", 0.0) + frozen.get("CH4", 0.0)
     oxygen_solid = held.rock_oxygen + frozen.get("H2O", 0.0) + frozen.get("CO", 0.0) + 2.0 * frozen.get("CO2", 0.0)
-    return held.carbon - carbon_solid, held.oxygen - oxygen_solid, carbon_solid, oxygen_solid
+    carbon_gas = held.carbon - carbon_solid
+    oxygen_gas = held.oxygen - oxygen_solid
+    for species, weight in (ice_weights or {}).items():
+        if species not in held.moles or temperature_k < LINES_K[species]:
+            continue                                  # a frozen ice is not in the gas, whatever its weight
+        extra = (weight - 1.0) * held.moles[species]
+        carbon_gas += extra * ICE_CARBON.get(species, 0)
+        oxygen_gas += extra * ICE_OXYGEN.get(species, 0)
+    return carbon_gas, oxygen_gas, carbon_solid, oxygen_solid
 
 
-def _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid):
-    """`sigma` of `envelope_c_over_o`: the multiple of the frozen solids the envelope holds, that makes its carbon and oxygen `enrichment` times the star's."""
-    metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
+ICE_CARBON = {"CO": 1, "CO2": 1, "CH4": 1}
+"""dict: The carbon atoms in a molecule of each ice (`_gas_and_solid_atoms` weights the vapor by these)."""
+
+ICE_OXYGEN = {"H2O": 1, "CO": 1, "CO2": 2}
+"""dict: The oxygen atoms in a molecule of each ice."""
+
+
+def _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid, metals_star=None):
+    """`sigma` of `envelope_c_over_o`: the multiple of the frozen solids the envelope holds, that makes its carbon and oxygen `enrichment` times the star's (`metals_star`, the budget's carbon and oxygen; the sum of the four when not given)."""
+    if metals_star is None:
+        metals_star = carbon_gas + oxygen_gas + carbon_solid + oxygen_solid
     metals_solid = carbon_solid + oxygen_solid
     return max(enrichment * metals_star - (carbon_gas + oxygen_gas), 0.0) / metals_solid if metals_solid > 0.0 else 0.0
 
 
 @finite_domain()
-def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
+def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0, ice_weights=None):
     """
     The carbon over oxygen atoms of a giant's envelope that formed where the disk was at `temperature_k` and holds `enrichment` times its star's heavy elements (GEN.1363 part C).
 
@@ -343,13 +364,16 @@ def envelope_c_over_o(temperature_k, enrichment, carbon=1.0, oxygen=1.0):
         temperature_k (float): The disk temperature where the giant formed.
         enrichment (float): The envelope's heavy elements over its star's (`f5` of the giant recipe); zero or more.
         carbon, oxygen (float): The star's C and O over its rock-forming metals, over the Sun's (`bulk_draw.ice_forming_ratios`).
+        ice_weights (dict): `{species: E}` of the ices that evaporated on the way to the giant's place at the age it gathered its gas (`disk_drift.giant_ice_weights`, GEN.1473: the pebbles
+            carry ice inward faster than the gas); `None` for the static disk, which is every `E` equal to 1.
     """
     if not temperature_k > 0.0:
         raise ValueError("the temperature must be positive")
     if not enrichment >= 0.0:
         raise ValueError("the enrichment must be zero or more")
-    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0)
-    sigma = _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid)
+    carbon_gas, oxygen_gas, carbon_solid, oxygen_solid = _gas_and_solid_atoms(temperature_k, carbon, oxygen, 1.0, 1.0, 1.0, ice_weights)
+    held = inventory(carbon, oxygen)
+    sigma = _planetesimal_share(enrichment, carbon_gas, oxygen_gas, carbon_solid, oxygen_solid, held.carbon + held.oxygen)
     oxygen_total = oxygen_gas + sigma * oxygen_solid
     if oxygen_total <= 1e-12:
         return None

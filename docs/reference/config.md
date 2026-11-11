@@ -314,6 +314,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `web.theme_color_light` | Browser color, light theme | text | #f6f7fb | at once | any admin | none | The browser's toolbar color on phones for the light theme, as #rrggbb. |
 | `web.theme_color_dark` | Browser color, dark theme | text | #14151e | at once | any admin | none | The same for the dark theme. |
 | `web.assets_dir` | Uploaded images folder | text | empty | at once | command line only | `PLANETGEN_ASSETS_DIR` | Where uploaded icons and images are kept; empty means the assets folder in the state folder. |
+| `web.belt_bodies_drawn` | Belt bodies drawn in 3D | whole number (bodies) | 200 | at once | any admin | none | How many of each asteroid belt's heaviest stored bodies the 3D system view draws one by one, as lumps or balls among the belt's dust (0 draws only the dust). More bodies look fuller and cost the browser more memory. |
 | `icons.favicon_svg` | Site icon (SVG) | text | empty | at once | any admin | none | The site icon as an uploaded SVG; empty uses the built-in one. Set it by uploading on the Images page. |
 | `icons.favicon_png` | Site icon (PNG or ICO) | text | empty | at once | any admin | none | A PNG or ICO icon for browsers that do not take an SVG; empty offers none. Set it by uploading on the Images page. |
 | `icons.apple_touch_icon` | Home-screen icon | text | empty | at once | any admin | none | The 180 by 180 PNG iPhones and iPads use for a home-screen bookmark. Set it by uploading on the Images page. |
