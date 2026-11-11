@@ -4,11 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-<<<<<<< HEAD
-There are 1541 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
-=======
-There are 1585 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
->>>>>>> origin/main
+There are 1588 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,11 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-<<<<<<< HEAD
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1515 |
-=======
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1559 |
->>>>>>> origin/main
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1562 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -57,25 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 185 | 20 | 11 | 1 | 0 | 217 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
-<<<<<<< HEAD
-| T3 | 111 | 47 | 9 | 10 | 0 | 177 |
-| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 192 | 107 | 30 | 75 | 2 | 406 |
-| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
-| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 41 | 18 | 5 | 90 | 34 | 188 |
-| All | 877 | 305 | 74 | 235 | 50 | 1541 |
-=======
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 82 | 12 | 4 | 22 | 12 | 132 |
 | T5 | 78 | 24 | 6 | 1 | 1 | 110 |
-| T6 | 200 | 107 | 30 | 82 | 4 | 423 |
+| T6 | 200 | 108 | 30 | 82 | 4 | 424 |
 | T7 | 49 | 19 | 9 | 34 | 0 | 111 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 899 | 310 | 75 | 248 | 53 | 1585 |
->>>>>>> origin/main
+| T9 | 44 | 18 | 5 | 92 | 35 | 194 |
+| All | 899 | 313 | 75 | 248 | 53 | 1588 |
 
 ## How the labels were given
 
