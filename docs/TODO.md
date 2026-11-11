@@ -13314,6 +13314,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 14, lock item for a train. Related: GEN.1468.
   Filed by the TODO thread.
 
+- [ ] **GEN.1522 (bug) A giant next to a very hot star (27,560 K quoted air) crashes the build: the gas table ends at 20,000 K**
+  Lane 04 (as the lane reported 10:08 AM EST on 2026-11-11), found chasing the zeta Ophiuchi example red: seed 152 of the example stops with 'no species can be made of these elements at this temperature'; a giant near the O star has its air quoted at 27,560 K and the gas table ends at 20,000 K. Do: clamp the giant's chemistry temperature at the table top, as the floor already clamps cold (PR 5980, lock-free: before this the build crashed, so no stored output changes), with a test; register the clamp as a stand-in in GEN.725 (tier from needed output, tweak L0, replace when the gas table is extended past 20,000 K).
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
