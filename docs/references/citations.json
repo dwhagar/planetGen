@@ -18103,7 +18103,7 @@
     },
     "R3621": {
       "kind": "paper",
-      "label": "Pu and Wu 2015b",
+      "label": "Pu and Wu 2015",
       "title": "Spacing of Kepler Planets: Sculpting by Dynamical Instability"
     },
     "R3622": {
@@ -26120,11 +26120,6 @@
       "kind": "paper",
       "label": "Laskar et al. 1993",
       "title": "Stabilization of the Earth's obliquity by the Moon"
-    },
-    "R5228": {
-      "kind": "paper",
-      "label": "Pu (濮勃南) and Wu (武延庆) 2015a",
-      "title": "SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY"
     }
   }
 }
