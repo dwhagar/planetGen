@@ -230,3 +230,38 @@ def test_a_giant_with_the_medians_f7_keeps_its_disks_c_over_o_and_a_lightly_mixe
     bulk = mixture_giant._disk_c_over_o(subject, math.log10(18.0))             # 18 times the star's heavy elements in the planet
     assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0))
     assert bulk > dc.envelope_c_over_o(100.0, 18.0) + 0.04                     # the envelope carries a share of the bulk, so less of the oxygen-rich solids
+
+
+# --- GEN.1516: the ice weights of the pebble drift reach the nitrogen, sulfur and noble gases -------------------------------------------------
+
+ALL_LINES = tuple(dc.LINES_K)
+
+
+def test_weights_of_one_give_the_static_envelope_factors_at_every_temperature():
+    for temperature in (30.0, 60.0, 110.0, 150.0, 300.0, 700.0):
+        weights = {species: 1.0 for species in ALL_LINES if species in dc.LINES_K and dc.LINES_K[species] <= temperature}
+        for enrichment in (0.2, 1.0, 4.0):
+            assert dc.envelope_enrichments(temperature, enrichment, ice_weights=weights) == pytest.approx(dc.envelope_enrichments(temperature, enrichment), rel=1e-12)
+    assert dc.envelope_enrichments(110.0, 4.0, ice_weights={}) == dc.envelope_enrichments(110.0, 4.0)
+
+
+def test_a_noble_gas_ice_that_the_pebbles_carried_in_is_the_gas_times_its_weight_and_one_that_was_not_is_absent():
+    got = dc.envelope_enrichments(300.0, 4.0, ice_weights={"Ar": 3.0, "Kr": 0.0, "Xe": 1.5})
+    assert got["Ar"] == pytest.approx(3.0) and got["Kr"] == 0.0 and got["Xe"] == pytest.approx(1.5)
+
+
+def test_the_nitrogen_and_the_sulfur_take_the_weights_of_their_ices():
+    n2 = 2.0 * dc.inventory().moles["N2"]
+    nh3 = dc.inventory().moles["NH3"]
+    total = n2 + nh3 + dc.ammonium_salts()
+    got = dc.envelope_enrichments(300.0, 4.0, ice_weights={"NH3": 3.0, "N2": 2.0, "H2S": 2.0})
+    assert got["N"] == pytest.approx((total + 2.0 * nh3 + n2) / total)
+    sulfur = dc.solar_per_1e4_h("S")
+    h2s = sulfur * dc.SULFUR_AS_H2S
+    troilite = sulfur * (1.0 - dc.SULFUR_AS_H2S)
+    assert got["S"] == pytest.approx((sulfur - troilite + h2s + 4.0 * troilite) / sulfur)
+
+
+def test_a_weight_on_an_ice_the_giant_formed_colder_than_the_line_of_is_ignored_because_that_ice_is_frozen_there():
+    assert dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 2.0, "NH3": 0.0, "Ar": 0.0}) == dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 1.0, "NH3": 1.0, "Ar": 1.0})
+    assert dc.envelope_enrichments(40.0, 4.0, ice_weights={"H2O": 2.0})["Ar"] > 1.0                    # argon still freezes at 40 K: the solids' share, whatever the water's weight
