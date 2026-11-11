@@ -1067,6 +1067,14 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).
+  `GET /api/admin/work/<id>/units` (OPS.138) answers `{"units": [...]}`, one
+  per running unit of the followed stage: `"stage"`, `"unit"`, `"state"`
+  ("working", "slow", "waiting", "quiet", "looping" or "dead"), `"severity"`,
+  `"reason"`, `"actionable"`, `"agreed"` (two checks in a row), `"counter"`,
+  `"rate"`, `"projected_finish_seconds"`, `"still_seconds"`, `"over_limit"`,
+  `"phase"`, `"waiting_on"`, `"done"`, `"estimate"`, `"restarts"`,
+  `"resident_mb"`, `"beat_age_seconds"`, `"running_seconds"`, as the process
+  that follows the run last judged them; empty once the run is over.
 - `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
   cancel stops a live run now: its waiting units are taken off the queue,
   its started units are sent RQ's stop command, and the machine is free
