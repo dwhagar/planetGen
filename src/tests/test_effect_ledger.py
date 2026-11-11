@@ -87,8 +87,8 @@ def test_the_same_pair_noted_twice_adds_up_and_rows_carry_the_stored_ids():
 def test_an_object_the_save_did_not_file_is_skipped_and_counted():
     book = ledger.EffectLedger()
     planet, star, ghost = object(), object(), object()
-    book.add("light", planet, star, 1.0)
-    book.add("light", planet, ghost, 0.5)
+    book.add("tide", planet, star, 1.0)
+    book.add("tide", planet, ghost, 0.5)
     rows = book.rows(1, {id(planet): ("planets", 1), id(star): ("stars", 1)})
     assert [row["source_id"] for row in rows] == [1, 0] and book.missing == 1
 
@@ -123,6 +123,7 @@ def test_a_saved_system_keeps_its_ledger_and_deleting_the_system_takes_the_rows(
     moon = planet.moons[0]
     system.effect_ledger = ledger.EffectLedger()      # generation fills light and ultraviolet itself; this test sets its own numbers
     system.effect_ledger.add("light", planet, system.star, 1361.0)
+    system.effect_ledger.add("light", planet, moon, 10.0)      # a second source, since a lone one is not a row
     system.effect_ledger.add("tide", moon, planet, 1.0)
     system.effect_ledger.add("tide", moon, system.star, 1e-9)
     conn = store.get_connection(mysql_config)
@@ -130,7 +131,7 @@ def test_a_saved_system_keeps_its_ledger_and_deleting_the_system_takes_the_rows(
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         rows = conn.execute("SELECT * FROM effect_ledger WHERE star_system_id = ? ORDER BY effect, body_type, body_id, source_type, source_id", (system_id,)).fetchall()
-        assert len(rows) == 4    # light: the star and the summary; tide on the moon: the planet and the summary (the star is under the floor)
+        assert len(rows) == 5    # light: the star, the moon and the summary; tide on the moon: the planet and the summary (the star is under the floor)
         tide = [row for row in rows if row["effect"] == 3]
         assert sorted(row["share"] for row in tide) == [pytest.approx(1e-9), 1.0]
         summary = next(row for row in tide if row["source_type"] == 0)
@@ -188,15 +189,61 @@ def test_a_generated_system_notes_the_light_and_ultraviolet_of_each_star_on_each
     assert [p.distance for p in again.planets] == [p.distance for p in system.planets]
 
 
+def _binary_system_with_planets():
+    cfg = SystemConfig()
+    cfg.PLANETS = True
+    cfg.MAX_PLANETS = True
+    cfg.BINARY_SYSTEM = True
+    for seed in range(60):
+        with draw.bound(seed):
+            system = StarSystem(system_config=cfg)
+        if len(system.stars) > 1 and system.planets:
+            return system, cfg
+    pytest.fail("no binary system with planets in 60 seeds")
+
+
+def _ledger_count(conn, system_id):
+    return conn.execute("SELECT COUNT(*) AS n FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchone()["n"]
+
+
 @pytest.mark.fresh_database
-def test_a_saved_generated_system_keeps_its_light_and_ultraviolet_rows(mysql_config):
-    system, cfg = _system_with_a_moon()
+def test_a_lone_star_system_saves_no_light_rows_and_a_binary_saves_light_and_ultraviolet(mysql_config):
+    lone, cfg = _system_with_a_moon()
+    binary, binary_cfg = _binary_system_with_planets()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            lone_id = store.insert_star_system(conn, lone, cfg)
+            binary_id = store.insert_star_system(conn, binary, binary_cfg)
+        assert _ledger_count(conn, lone_id) == 0      # the lone source is the host star: nothing is implied away
+        effects = {row["effect"] for row in conn.execute("SELECT DISTINCT effect FROM effect_ledger WHERE star_system_id = ?", (binary_id,)).fetchall()}
+        assert effects == {1, 2}      # light and ultraviolet only; the gravity effects are computed on demand
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+@pytest.mark.fresh_database
+def test_an_edit_of_a_system_clears_its_rows_and_a_deleted_phenomenon_takes_its_own(mysql_config):
+    from planetgen.db import edits
+    system, cfg = _binary_system_with_planets()
     conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
-        effects = {row["effect"] for row in conn.execute("SELECT DISTINCT effect FROM effect_ledger WHERE star_system_id = ?", (system_id,)).fetchall()}
-        assert effects == {1, 2}      # light and ultraviolet only; the gravity effects are computed on demand
+            assert _ledger_count(conn, system_id) > 0
+            edits.save_system_edits(conn, system_id, store.load_star_system(conn, system_id))
+        assert _ledger_count(conn, system_id) == 0
+        star_ids = [row["id"] for row in conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+        planet_id = conn.execute("SELECT MIN(id) AS id FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+        first, second = star_ids[:2]
+        with conn:      # one row with the first star as source, one with it as receiver, one that has nothing to do with it
+            conn.execute("INSERT INTO effect_ledger (star_system_id, body_type, body_id, effect, source_type, source_id, share) VALUES (?, 2, ?, 1, 1, ?, 1.0)", (system_id, planet_id, first))
+            conn.execute("INSERT INTO effect_ledger (star_system_id, body_type, body_id, effect, source_type, source_id, share) VALUES (?, 1, ?, 1, 1, ?, 1.0)", (system_id, first, second))
+            conn.execute("INSERT INTO effect_ledger (star_system_id, body_type, body_id, effect, source_type, source_id, share) VALUES (?, 2, ?, 1, 1, ?, 1.0)", (system_id, planet_id, second))
+            edits.forget_ledger_rows(conn, "stars", "id = ?", (first,))
+            edits.forget_ledger_rows(conn, "star_systems")      # a table the ledger does not name has no rows
+        assert _ledger_count(conn, system_id) == 1
     finally:
         conn.rollback()
         conn.close()

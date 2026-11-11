@@ -375,3 +375,35 @@ def test_a_refusal_names_the_run_that_holds_the_machine(conn):
     text = str(refused.value)
     assert f"run {first} is running" in text and "Check the data sets" in text and "check kind" in text
     assert "1970-01-01 00:01:40 UTC" in text and runrecord._owner() in text
+
+
+# --- OPS.141: the stale rule on the states of the running units --------------------------------------------
+
+def _judged(conn, run_id, states, stage=0):
+    import json
+    for unit, state in states.items():
+        conn.hset(runrecord.unitstate_key(run_id, stage), unit, json.dumps({"state": state}))
+
+
+def test_a_run_with_one_long_unit_whose_count_moves_is_not_stale_however_long_it_goes_without_an_event(conn):
+    run_id = runrecord.start_run(conn, "Fill", _stages(), now=1000.0)
+    _judged(conn, run_id, {0: "working"})
+    run = runrecord.read_run(conn, run_id)
+    assert runrecord.is_stale(run, now=1000.0 + 20 * 3600) is False, "no unit finished and no event for 20 hours, and the unit still moves"
+    _judged(conn, run_id, {0: "waiting", 1: "slow", 2: "looping"})
+    assert runrecord.is_stale(runrecord.read_run(conn, run_id), now=1000.0 + 20 * 3600) is False, "waiting, slow and looping are for a person, not a clear"
+
+
+def test_a_run_is_stale_when_every_unit_that_is_running_is_dead_or_quiet_even_soon_after_an_event(conn):
+    run_id = runrecord.start_run(conn, "Fill", _stages(), now=1000.0)
+    _judged(conn, run_id, {0: "dead", 1: "quiet"})
+    run = runrecord.read_run(conn, run_id)
+    assert runrecord.is_stale(run, now=1000.0 + 1.0) is True
+    _judged(conn, run_id, {2: "working"})
+    assert runrecord.is_stale(runrecord.read_run(conn, run_id), now=1000.0 + 1.0) is False, "one unit that works keeps the run alive"
+
+
+def test_with_no_unit_judged_the_old_rule_stands(conn):
+    run_id = runrecord.start_run(conn, "Fill", _stages(), now=1000.0)
+    run = runrecord.read_run(conn, run_id)
+    assert not runrecord.is_stale(run, now=1000.0 + 100.0) and runrecord.is_stale(run, now=1000.0 + 200.0)

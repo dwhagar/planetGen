@@ -28,6 +28,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
+| data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
+| data | fudge_table.json | GEN.1314 | the width of every class edge, built from the matrix (GEN.1313); `class_fit` will read it per edge in GEN.1314 and that item deletes this line |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
@@ -252,3 +254,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
 | function | planetgen.physics.secular_chain.precession_rates | GEN.1447 | each planet's own apsidal and nodal rates from its siblings and relativity; the Kozai screen of a planet with a distant companion (Lane 23) compares its cycle time against the apsidal rate, and the spin-orbit drift of GEN.1454 against the nodal one |
 | module | planetgen.physics.eclipses | by design | the eclipse shares and times of a body in front of a star are worked out for the tests and the census; no stored value reads them yet (stand-in EC4, section 6.249) (GEN.1462) |
+| module | planetgen.physics.belt_forcing | GEN.1492 | a companion star's forced eccentricity of a belt's members (calibration slice, read by the census and the tests); slice 1 wires it into the belt members |
+| row | 6.256:FE4 | GEN.1492 | the alpha limit is read with the belt forcing module when slice 1 wires it |

@@ -162,7 +162,8 @@ def plan(conn, run_id, galaxy_seed, build, database):
     if run["state"] in runrecord.LIVE_STATES:
         if not runrecord.holder_is_dead(conn, run_id):
             raise CannotFinish(f"Run {run_id} ({run['title']}) is still running.")
-        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended")
+        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended",
+                             killed=True)
         run = runrecord.read_run(conn, run_id)
     if run["state"] == "done":
         raise CannotFinish(f"Run {run_id} ({run['title']}) was done; there is nothing to finish.")

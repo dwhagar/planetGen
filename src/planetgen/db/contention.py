@@ -105,9 +105,11 @@ class MySQLGate:
     def grant(self, need):
         """Takes the exclusive grant, waiting up to `GRANT_TIMEOUT_S` for another unit's. Returns whether it was granted."""
         from planetgen.db import store
+        from planetgen.queue import unitbeat
         holder = store.get_connection(self._config)
         try:
-            ok = holder.execute("SELECT GET_LOCK(?, ?) AS ok", (self.name, GRANT_TIMEOUT_S)).fetchone()["ok"] == 1
+            with unitbeat.waiting("mysql"):         # OPS.136: a unit waiting for another unit's grant is waiting, not stuck
+                ok = holder.execute("SELECT GET_LOCK(?, ?) AS ok", (self.name, GRANT_TIMEOUT_S)).fetchone()["ok"] == 1
         except Exception:
             holder.close()
             raise

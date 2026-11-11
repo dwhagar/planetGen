@@ -226,6 +226,15 @@ def test_a_sphere_then_the_sector_backfill_gives_the_stars_of_the_sector_backfil
 
 # --- the queue's unit -------------------------------------------------------------------------------------------------------------------------------
 
+def test_the_progress_of_a_tier_rises_with_every_cell_even_past_what_was_predicted():
+    """OPS.134: the counter of a sky unit never stands still while it works; a tier that runs over its prediction creeps toward the tier's end and does not reach it."""
+    steps = [sky_charting.tier_progress(100.0, seen) for seen in range(0, 5000, 7)]
+    assert steps == sorted(set(steps)), "strictly rising"
+    assert sky_charting.tier_progress(100.0, 45) == 45.0 and sky_charting.tier_progress(100.0, 90) == 90.0
+    assert 90.0 < sky_charting.tier_progress(100.0, 91) < sky_charting.tier_progress(100.0, 10 ** 6) < 100.0
+    assert sky_charting.tier_progress(0.0, 0) == 0.0 and sky_charting.tier_progress(0.0, 3) < 1.0
+
+
 def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_config, monkeypatch):
     """`_sky_units` makes one unit for each observer cell the ledger does not hold all of; the unit draws its tiers, and a second look finds nothing owed."""
     from planetgen.generation import run_galaxy
@@ -241,9 +250,14 @@ def test_the_queue_draws_the_sky_tiers_of_each_observer_cell_once(galaxy, mysql_
     params = {"database": named, "sky_limit": 7.5}
     units = run_galaxy._sky_units(params, [SPHERE_CENTER, SPHERE_CENTER])       # two sectors of one cell: one unit
     assert len(units) == 1 and units[0][1] >= 1.0 and units[0][0]["sky"]["limit"] == 7.5
+    assert units[0][0]["expected_seconds"] >= 0.0          # OPS.134: the unit's own time, for its own limit (the toy tiers predict no visits)
     before = _stored_stars(conn)
-    result = run_galaxy.backfill_bright_stars_unit(units[0][0], lambda done, total: None)
-    conn.commit()                                                       # a new snapshot: the unit wrote through its own connection
+    reports = []
+    result = run_galaxy.backfill_bright_stars_unit(units[0][0], lambda done, total: reports.append((done, total)))
+    conn.commit()
+    # OPS.134: the counter moved with the batches and the tiers (it read 0 of 1 for the whole unit), up to every owed tier's visits
+    assert len(reports) >= 2 and len({total for _done, total in reports}) == 1
+    assert [done for done, _total in reports] == sorted(done for done, _total in reports) and reports[-1][0] == reports[-1][1] > reports[0][0] > 0.0                                                       # a new snapshot: the unit wrote through its own connection
     assert result["sky"]["spheres"] == 2 and result["stars"] == result["sky"]["stars"] == len(new_stars(conn, before))
     assert len(ledger_module.read(conn).draws) == 2
     floors = result["sky"]["floors"]                                  # VIEW.47: the unit reports the floor against distance, whole enough to cross the queue as JSON
