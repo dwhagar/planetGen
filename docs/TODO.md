@@ -12909,7 +12909,7 @@ clears each one.
   goldens and TEST.430 re-baseline; letters near edges move. Needs the oxygen window as ruled (Boss, 11:19 PM EST on 2026-11-06: oxygen judged by partial pressure, carbon dioxide too on the oxygen-water classes, GEN.1320, GEN.1321, GEN.1330); its oxygen and carbon dioxide widths are stored in pressure units. Lock item. Done: the class
   census passes on the re-baselined ranges and each moved letter is
   explained.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 23 (built GEN.1313), lock item for Train 24 (class edges change); prerequisites GEN.1313 (merged, PR 5944). Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430, GEN.1331.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
@@ -12953,6 +12953,7 @@ clears each one.
   re-derived table rides it. Version 8.1. Owner: the thread "Run fudge cap
   simulation sweep". Filed by the TODO thread.
   Prerequisites: GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
+  Status (TODO, 2026-11-11): GEN.1313 is built (PR 5944, Lane 23, report reports/fudge-table/fudge-table-first-build-2026-11-11.md): 31 stand-in rows measured on 471 rocky bodies with frozen-body runs, so only the constant moves; mass and gravity use the tier-scaled fallback. Scope left for this revisit (Lane 23's note): price the 53 population rows (they shift which worlds exist, not one world's width) with a run that holds the draw count or measures class-share distributions per row; 9 rows were unstable in some seed and are listed in the report.
 
 - [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
   REWORKED: a request for class E is no longer snapped into the ecosphere once GEN.1397 removes the life list (an E request is a deep-frozen world); PR 5640 keeps its behaviour for the other classes, and GEN.1397 owns the E change.
