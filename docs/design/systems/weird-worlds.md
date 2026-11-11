@@ -60,7 +60,7 @@ Columns: what it is and the real examples; the trigger from inputs we already st
 | W13 | **Lava ocean planet with rock-vapour air.** 55 Cnc e, K2-141 b (supersonic Na, SiO winds, [R3282]), CoRoT-7 b, TOI-561 b dense volatile air over magma (Hu 2024) | locked, equilibrium T above about 1,500 K | covered | night side freezes the vapour; day side evaporates | Y |
 | W14 | **Disintegrating planet.** Kepler-1520 b (KIC 12557548 b), K2-22 b, KOI-2700 b: dust tails, mass loss up to about 1 Earth mass per Gyr [R3666, R3903] | rocky, under about 0.1 Earth mass, period under 1 d, magma ocean | three in a Kepler and K2 sample of order 1e5 stars, so about 1e-5 per star, 1 in 1,000 ultra-short-period planets [R] | tail of dust, deep transit, mass declining, planet dies in Gyr | N |
 | W15 | **Super-puff.** Kepler-51 b c d (below 0.1 g/cc, 5 to 9 Earth radii, 2 to 8 Earth masses), Kepler-79, Kepler-87 c, WASP-107 b ([R2609, R2674, R3079] tides on inflated young planets) | gas dwarf or ice giant, mass under 10 Earth, young age under 1 Gyr, orbit 10 to 100 d, hazes | under 1 percent of sub-Neptunes [R] | huge radius, density 0.03 to 0.1; fades as the star ages | built (GEN.1343; the tidal inflation of its radius waits for a drawn obliquity (GEN.1347); since GEN.1470 the type is a density under 0.1 g/cc and a mass up to 30 Earth masses at any period and age, while the start stays 2 to 10 Earth masses inside 100 d) |
-| W16 | **Helium-rich envelope.** after photoevaporation H escapes first, leaving He-dominated air (Hu 2015, [R2840]) | sub-Neptune, strong XUV history, envelope loss above 90 percent | follows from the existing escape model if it fractionates | He-dominated air, no hydrogen | P (check) |
+| W16 | **Helium-rich envelope.** after photoevaporation H escapes first, leaving He-dominated air (Hu 2015, [R2840]) | sub-Neptune that lost half of its envelope or more (GEN.1095, WR13: no 90 percent line; radius 1.6 to 2.5 Earth radii, helium mass share over 40 percent) | follows from the escape model: `helium_fractionation` is run on the loss history of every planet that lost half (GEN.1527); the row names those at 0.4 or over | the envelope mixture takes the helium of the history in place of the star's; **built (GEN.1527, lever L8)** | Y |
 | W17 | **Very low or very high water.** Kepler-138 d, TOI-1452 b water-rich candidates; desiccated cores | disc ice share tail | already in mass fractions | ocean world vs dust world | Y |
 
 ### 3.3 Air, climate, surface
@@ -185,7 +185,7 @@ An oddity row may only change one of these inputs. Everything else follows from 
 | L5 History | collisions, migration, mass loss, age at which an event hit | W10, W14, W16, W21, G1, G2 |
 | L6 Moon and ring set | moon origin, retrograde moons, rings | W8, W9, G1, G8 |
 | L7 Air state (bistable only) | which branch of snowball or warm, collapsed or kept | W19, W20 |
-| L8 A name on the finished body | no input moves; the row only says what the finished body is (GEN.1523) | W26 |
+| L8 A name on the finished body | no input moves; the row only says what the finished body is (GEN.1523, GEN.1527) | W16, W26 |
 
 The dial (section 4.4) scales how often a qualifying body gets an oddity. The gates are: host type and mass, body mass and kind, age, orbit, and the history record. So "the core things" are the seven levers plus those gates.
 

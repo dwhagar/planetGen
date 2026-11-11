@@ -458,6 +458,7 @@ def apply_envelope(planet):
             del planet._formation_fractions
     if result is None:                  # it kept an envelope before and keeps none now: the drawn core again
         planet.envelope_helium_fraction = planet.envelope_z_fraction = None
+        planet._envelope_helium_y = None
         planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
@@ -471,7 +472,8 @@ def apply_envelope(planet):
                 setattr(planet, name, value * keep)
         planet.envelope_mass_fraction = fraction
         planet._captured_envelope = fraction
-        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
+        planet._envelope_helium_y = envelope_capture.helium_share(planet, start, tides=True)       # GEN.1527: hydrogen leaves first from a planet that lost half its envelope or more (W16); None otherwise
+        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's (its helium share changed by that loss) and the star's heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
         planet._tidal_radius_km = planet.radius if tide_ratio > 1.0 + 1e-9 else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate (GEN.1480: the ratio itself; the loss follows the tide, so an uninflated envelope is not the one to compare with)
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
@@ -732,13 +734,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
-    apply_hycean_oddity(planet)
+    apply_finished_body_oddities(planet)
 
 
-def apply_hycean_oddity(planet):
+def apply_finished_body_oddities(planet):
     """
-    The row of lever L8 (GEN.1523, W26: the Hycean box of `hycean_candidate`) on the finished body: the mass, radius, density and equilibrium temperature are settled once the air and the
-    envelope share are, and the row names the body or not (it moves nothing). It is rolled again each time the air is made, from its own stream.
+    The rows of lever L8 (GEN.1523, W26: the Hycean box of `hycean_candidate`; GEN.1527, W16: the helium-rich envelope of `helium_fractionation`) on the finished body: the mass, radius, density and
+    equilibrium temperature are settled once the air and the envelope share are, and a row names the body or not (it moves nothing). It is rolled again each time the air is made, from its own stream.
     """
     oddities.drop(planet, ("L8",))
     oddities.apply(planet, levers=("L8",))

@@ -270,7 +270,7 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing",
                   "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities",
                   "planetgen.physics.disintegrating_planet", "planetgen.physics.rings",
-                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.hycean_candidate")
+                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.hycean_candidate", "planetgen.physics.helium_fractionation")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 
@@ -325,6 +325,7 @@ def quantities_of(body):
 
         put("density_g_cm3", hycean_candidate.density_g_cm3(mass / constants.EARTH_MASS_TO_KG, radius / constants.EARTH_RADIUS_KM))
     put("equilibrium_temperature_k", _equilibrium_temperature_k(body))
+    put("envelope_helium_y", getattr(body, "_envelope_helium_y", None))      # GEN.1527: set by `envelope_capture.helium_share` when the loss changed it
     host_radius_km = getattr(getattr(body, "star", None), "radius", None)
     if getattr(body, "distance", None) and host_radius_km and not getattr(body, "is_moon", False):
         put("distance_over_host_radius", body.distance * constants.AU_TO_KM / host_radius_km)
