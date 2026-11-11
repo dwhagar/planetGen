@@ -47794,16 +47794,16 @@
           "burn_down": [
             "no data",
             "-",
-            "L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined"
+            "L4, a body that fits no class takes the nearest of the ordinary families by the fudge rule with no cap; no survey says what such a body is called, so the family list is fitted to keep the stored class defined"
           ],
           "fields": [
             [
               "What it is",
-              "class_fit.HOLE_FLOOR 0.01 and NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class takes the class with the highest geometric mean of its memberships lifted to 0.01, among the ordinary worlds with air, and stores a match of 0"
+              "class_fit.NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class (even with its gravity and air amount set aside) takes the nearest class by the fudge rule with no cap (fewest values moved, then the smallest move) among the ordinary worlds with air, and stores a match of 0"
             ],
             [
               "The range it moves in",
-              "the floor 0.001 to 0.1; the families"
+              "the families"
             ],
             [
               "Where it holds",
@@ -47815,7 +47815,7 @@
             ],
             [
               "What replaces it",
-              "a distance measure on the domains of the class-by-domain matrix once the hole bodies are sorted by Boss"
+              "a missing class for the hole bodies once Boss sorts them (GEN.1306)"
             ],
             [
               "Evidence",
@@ -47830,7 +47830,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "class_fit.HOLE_FLOOR 0.01 and NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class takes the class with the highest geometric mean of its memberships lifted to 0.01, among the ordinary worlds with air, and stores a match of 0"
+          "what": "class_fit.NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class (even with its gravity and air amount set aside) takes the nearest class by the fudge rule with no cap (fewest values moved, then the smallest move) among the ordinary worlds with air, and stores a match of 0"
         }
       ],
       "slug": "6-189-stand-ins-of-the-holes-of-the-best-fit-classifier",
