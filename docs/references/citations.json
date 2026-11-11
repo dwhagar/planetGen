@@ -26080,6 +26080,16 @@
       "kind": "paper",
       "label": "Parai and Mukhopadhyay 2015",
       "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts"
+    },
+    "R5220": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2016",
+      "title": "Planet Hunters IX. KIC 8462852 – where's the flux?"
+    },
+    "R5221": {
+      "kind": "paper",
+      "label": "Boyajian et al. 2018",
+      "title": "The First Post- Kepler Brightness Dips of KIC 8462852"
     }
   }
 }
