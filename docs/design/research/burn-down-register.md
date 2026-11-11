@@ -304,7 +304,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.270:AUD16 | no data | - | the pulsar catalogue is not held (GEN.945 section 5); the scale of 1.0 is the physical rate, the recycled share has no source |
 | 6.270:AUD20 | no data | - | no comet orbit catalogue or interstellar visitor count is held; the shares are design choices |
 | 6.270:AUD21 | no data | - | needed output: a belt has some width; no measured width distribution is held |
-| 6.270:AUD23 | no data | - | the MIST and BHAC15 tracks are held but not read for this factor yet; any read replaces it |
+| 6.270:AUD23 | no data | - | read on 2026-11-11 (GEN.1525): the factor 2.0 fits MIST's nuclear arrival within 0.32 dex while the BHAC15 radius-settled times prefer about 1.0; the track is stretched onto those times, so the factor only sets the nuclear-arrival stand-in below MIST's mass reach, and it stays tuned to MIST (PR 6008) |
 | 6.270:AUD24 | no data | - | only the Sweeney and others ratios are read; no kinematic sample of remnants is held |
 | 6.270:AUD28 | no data | - | a design choice of the flavor rebuild (GEN.1430); no data exists |
 | 6.254:LS1 | replace | GEN.1493 | L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it |
