@@ -406,3 +406,17 @@ def test_the_ice_caps_still_refuse_a_layer_that_cycles_with_oxygen_to_spare():
         total_moles = 1.0
     with pytest.raises(MixtureError, match="did not settle"):
         mg.cap_ices({"H": 1.0, "O": 0.5}, 100.0, 1.0, lambda trial: Cycling(), iterations=5)
+
+
+@pytest.mark.parametrize("layer_k", [20000.0, 27559.5, 5.0e4])
+def test_a_layer_hotter_than_the_gas_table_is_equilibrated_at_the_top_of_the_table(layer_k):
+    """A giant lit by an O star has a quoted layer far above the table's 20,000 K (the zeta Ophiuchi example drew one at 27,560 K and the build stopped with 'no species can be made'): the gas is the
+    table's own at its hottest temperature, and the temperature drawn is the one kept."""
+    cool = giant()
+    hot = giant(t_layer_k=layer_k, tday_k=layer_k, teq_k=layer_k, teff_k=layer_k)
+    with draw.bound(3):
+        recipe = RECIPES.draw_all(cool, categories="abdcefghijkl")
+        result = mg.giant_mixture(hot, recipe)
+    assert mg.CHEMISTRY_CEILING_K == 20000.0
+    assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-6)
+    assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.1
