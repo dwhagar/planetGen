@@ -548,6 +548,23 @@ def parts_current(conn):
     return int(held["stars"]) == stars and int(held["points"]) == _unbuilt_points(conn)
 
 
+def totals_current(conn):
+    """
+    Whether the stored block light totals hold every unbuilt object once (PERF.256): at each level the totals carry, the objects counted in the rows equal the
+    unbuilt objects of the scatter, counted as `parts_current` counts them (the stars by the index of `star_system_id`, the phenomena by `_unbuilt_points`), and no
+    level is missing where there are objects. A scatter whose last stage did not end (the totals are then missing or partial) fails this, so the stage that makes
+    them is planned again; a galaxy run that left the scatter as it was and the totals whole does not plan it. The counts do not see a luminosity a later
+    `fill-map-luminosity` left unfilled; that command makes its own totals.
+    """
+    stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
+    points = _unbuilt_points(conn)
+    held = {row["m"]: (int(row["stars"]), int(row["points"])) for row in conn.execute(
+        "SELECT m, COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_lights GROUP BY m").fetchall()}
+    if stars + points == 0:
+        return not held
+    return len(held) == len(LEVELS) and all(found == (stars, points) for found in held.values())
+
+
 def roll(conn, on_progress=None, on_phase=None, on_above=None):
     """
     The block light rows made from the parts, the stage a scatter ends with (GEN.1476): the same rows `rebuild` makes, without reading the

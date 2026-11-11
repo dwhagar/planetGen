@@ -96,8 +96,13 @@ run's own block totals, so it adds up what the run left and nothing after it cha
 
 
 def galaxy_stages(args):
-    """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
-    return sectors_stages(args) + [
+    """
+    The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172). A stage whose result is stored and current is
+    listed as skipped with its reason and is not run (PERF.256): `args.stage_skips`, `{stage key: reason}`, which `run_galaxy` works out from the database
+    (`run_plan.stored_scatter_skips`) before it plans the sectors; the estimate counts such a stage as no time.
+    """
+    skips = getattr(args, "stage_skips", None) or {}
+    listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
         BRIGHT_CLEAR_STAGE["mass"],
         Stage("mass", "Scatter the massive stars"),
@@ -110,6 +115,7 @@ def galaxy_stages(args):
         Stage("run-blocks", "Update the map's block totals"),
         BLOCK_LIGHTS_STAGE,
     ]
+    return [Stage(stage.key, stage.label, skips[stage.key]) if stage.key in skips else stage for stage in listed]
 
 
 def plan_stages(args):
