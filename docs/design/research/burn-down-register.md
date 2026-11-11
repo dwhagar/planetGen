@@ -164,12 +164,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
-| 6.150:CF2 | no data | - | the 0.5 g and 2 g lines of the habitable classes have no measured soft edge; the width is hand-picked until the GEN.1207 sweep shows how far the class scatter reaches |
-| 6.150:CF3 | no data | - | the temperature shoulder is hand-picked; a measured scatter of one class at fixed insolation would replace it |
-| 6.150:CF4 | no data | - | the pressure shoulder is hand-picked on a log scale; no source gives a soft edge for the survival pressure limits |
-| 6.150:CF5 | no data | - | the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width |
-| 6.150:CF6 | no data | - | the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies |
-| 6.150:CF7 | no data | - | the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits |
 | 6.155:LR1 | no data | - | the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score |
 | 6.155:LR2 | no data | - | the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class |
 | 6.155:LR3 | no data | - | the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class |
@@ -193,13 +187,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
 | 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
 | 6.185:BPO4 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it |
-| 6.183:DM1 | no data | - | no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff |
-| 6.183:DM2 | no data | - | no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C |
-| 6.183:DM3 | no data | - | no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does |
 | 6.183:DM5 | no data | - | the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md) |
 | 6.183:DM6 | no data | - | no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep |
 | 6.183:DM7 | no data | - | no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened |
-| 6.183:DM8 | no data | - | no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit |
 | 6.183:DM9 | no data | - | no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve |
 | 6.91:SS16 | no data | - | the Blue edge and the Blue share are a lenient cut set on a sweep of generated bodies (Boss: near 0.8 livable); a survey of what people call a comfortable world would replace them |
 | 6.91:SS17 | no data | - | the credit for a place that needs a suit is a design choice so a suit-everywhere world reads Yellow, not Red; Boss's decision on that reading would replace it |
@@ -257,7 +247,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF72 | no data | - | no survey of the share of the sunlit ocean's energy that retinal pigments supply is in hand; the share and the band are the order of the recalled literature |
 | 6.198:AW6 | no data | - | L3, the class Z gravity floor 0.5 g was chosen from a sweep of 2,212 bodies (GEN.1306); it goes when the gravity edges of Z are fixed from heavy-world physics (GEN.1136) |
 | 6.198:AW7 | no data | - | L3, the class Z temperature top 1500 K was chosen from the same sweep; it goes when the top is fixed from the temperature at which a thin air is lost (the retention fit) |
-| 6.201:OP2 | no data | - | L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology |
 | 6.206:EC1 | no data | - | L3, the median starting envelope 0.1 of the mass was set to the middle of the recipe bracket so that the valley targets and the sweep (45 percent above 2.0 inside 100 days) are met; no measured envelope fraction of the sub-Neptunes of that mass is in hand, and a gas-accretion model of the core replaces it |
 | 6.206:EC2 | no data | - | L3, the exponent 3 below 3.72 Earth masses was chosen so that the Earth and Venus come out bare and the 2 Earth-mass planets keep thin envelopes; no source was read for it, and a gas-capture model of a core in a disk of its own mass and temperature replaces it |
 | 6.206:EC7 | no data | - | L3, every second draw of a class request being a late core was tuned so that class V (2 g and more) is reachable; it goes when the generator draws the formation time of a core against the disk's lifetime |
@@ -298,3 +287,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.236:ISO21 | no data | - | no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same |
 | 6.247:IF1 | no data | - | L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1 |
 | 6.247:IF2 | no data | - | L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years |
+| 6.261:CP1 | no data | - | L3, the two caps (0.25 and 1.0 widths) come from one sweep of 1,624 bodies that closed its near misses and fits there; a measured spread of one class at fixed inputs would give a cap per quantity |

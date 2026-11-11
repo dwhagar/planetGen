@@ -259,8 +259,6 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
     ("6.136", "6.136 Stand-ins of the core's thermal history",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.150", "6.150 Stand-ins of the shoulders of the best-fit classes",
-     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.156", "6.156 Stand-ins of the two cuts of the body type",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.186", "6.186 Stand-ins of the massive moons of rocky planets",

@@ -133,6 +133,7 @@ def apply_class(planet):
     """
     planet.planet_class = None
     planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
+    planet.class_fudge_values = planet.class_fudge_amount = None
     planet_type.fill(planet)            # GEN.1219: terrestrial, transitional, super-puff or gas, from the envelope share (GEN.1226) and the super-puff gate (GEN.1343)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     detail = planet_classes.classify_detail(planet)
@@ -142,6 +143,9 @@ def apply_class(planet):
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
+    # GEN.1314: the values the class needed moved to fit (NULL for a full fit) and how far, in widths of the fudge table
+    planet.class_fudge_values = ",".join(detail.fudge_values) or None
+    planet.class_fudge_amount = detail.fudge_amount
 
 
 @finite_domain()

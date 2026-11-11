@@ -4,6 +4,7 @@ conditions and `physics/class_fit.py` scores a body against them. `planet_classe
 """
 
 import json
+import math
 import os
 
 import pytest
@@ -29,32 +30,61 @@ def test_no_class_relies_on_an_earlier_one_saying_no():
     assert "order" not in document and all("order" not in row for row in document["classes"])
 
 
-def test_every_quantity_a_condition_reads_has_a_shoulder_and_a_registry_basis():
+def test_every_edge_a_condition_reads_has_a_width_in_the_fudge_table_and_the_hand_shoulders_are_gone():
     for cls in cf.CLASSES:
         for condition in cls.when:
             if "equals" not in condition:
-                assert condition["quantity"] in cf.SHOULDERS
-    for name, entry in cf.SHOULDERS.items():
-        assert entry["basis"].startswith(("CF", "DM"))
-        assert ("absolute" in entry) != ("relative" in entry)
+                assert condition.get("min", condition.get("lt")) in cf.WIDTHS[condition["quantity"]]["edges"]
+    document = json.load(open(cf.DATA_FILE, encoding="utf-8"))
+    assert "shoulders" not in document and "shoulder_note" not in document      # GEN.1314: replaced by the table, not kept beside it
+    assert hasattr(cf, "WIDTHS") and not hasattr(cf, "SHOULDERS")
 
 
-def test_the_shoulder_basis_rows_are_registered():
+def test_the_fudge_rows_are_registered():
     text = open(os.path.join(os.path.dirname(__file__), "..", "..", "docs", "design", "research", "gap-filling-plan.md"), encoding="utf-8").read()
-    for entry in cf.SHOULDERS.values():
-        assert f"| {entry['basis']} |" in text
+    for row in ("FT1", "FT2", "FT3", "FT4", "CP1", "CP2"):
+        assert f"| {row} |" in text
 
 
 def test_membership_is_a_straight_line_across_the_shoulder():
+    width = cf.WIDTHS["temperature_k"]["edges"][273.15]
     edge_min = {"quantity": "temperature_k", "min": 273.15}
     assert cf.membership(edge_min, {"temperature_k": 273.15}) == 1.0
-    assert cf.membership(edge_min, {"temperature_k": 268.15}) == pytest.approx(0.5)
-    assert cf.membership(edge_min, {"temperature_k": 263.15}) == 0.0
+    assert cf.membership(edge_min, {"temperature_k": 273.15 - width / 2}) == pytest.approx(0.5)
+    assert cf.membership(edge_min, {"temperature_k": 273.15 - width}) == 0.0
     edge_lt = {"quantity": "temperature_k", "lt": 320.0}
+    width = cf.WIDTHS["temperature_k"]["edges"][320.0]
     assert cf.membership(edge_lt, {"temperature_k": 319.0}) == 1.0
-    assert cf.membership(edge_lt, {"temperature_k": 325.0}) == pytest.approx(0.5)
-    assert cf.membership(edge_lt, {"temperature_k": 330.0}) == 0.0
+    assert cf.membership(edge_lt, {"temperature_k": 320.0 + width / 2}) == pytest.approx(0.5)
+    assert cf.membership(edge_lt, {"temperature_k": 320.0 + 2 * width}) == 0.0
     assert cf.membership(edge_lt, {"temperature_k": None}) == 0.0
+
+
+def test_a_pressure_edge_is_measured_in_the_log_of_a_ratio():
+    edge = {"quantity": "pressure_pa", "min": 50000.0}
+    width = cf.WIDTHS["pressure_pa"]["edges"][50000.0]
+    assert cf.overshoot(edge, {"pressure_pa": 50000.0 * math.exp(-width / 2)}) == pytest.approx(0.5)
+    assert cf.overshoot(edge, {"pressure_pa": 0.0}) == math.inf
+
+
+def test_the_fudge_rule_fits_fully_first_then_the_fewest_values_then_the_smallest_move():
+    # a body past one edge by a quarter width needs one value moved; a class past two edges needs two, so one value beats two however small the two are
+    earth = body()
+    full = cf.classify(earth)
+    assert (full.letter, full.fudge_values, full.fudge_amount) == ("M", (), 0)
+    width = cf.WIDTHS["temperature_k"]["edges"][275.0]
+    near = cf.classify(body(surface_temperature_k=275.0 - 0.1 * width))
+    assert near.fudge_values and 0.0 < near.match < 1.0 and near.fudge_amount <= cf.CAP_TIERS[0]
+    assert cf.classify(body(surface_temperature_k=275.0 - 3 * width)).match < near.match
+
+
+def test_the_smaller_cap_tier_is_tried_before_the_larger():
+    within_first = {"gravity_g": 0.2}
+    within_second = {"gravity_g": 0.9}
+    past = {"gravity_g": 1.0}
+    assert cf.tier_of(within_first) == 0 and cf.tier_of(within_second) == 1 and cf.tier_of(past) is None
+    assert cf.match_of({}) == 1.0 and cf.match_of(past) == 0.0
+    assert cf.match_of({"gravity_g": 0.5, "pressure_pa": 0.5}) == pytest.approx(0.5)
 
 
 def test_a_body_inside_a_class_box_keeps_the_trees_letter_at_full_match():
