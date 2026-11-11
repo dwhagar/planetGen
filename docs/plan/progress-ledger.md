@@ -3085,3 +3085,4 @@ Baseline: PR #1817.
 | PERF.256 | 8.1 | Planet generation |
 | GEN.1522 | 8.1 | Planet generation |
 | GEN.1407 | 8.1 | Planet generation |
+| GEN.1532 | 8.1 | Planet generation |

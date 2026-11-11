@@ -13208,9 +13208,9 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 11. Prerequisites: GEN.1501. Related: GEN.1501, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1532 (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure**
-  Lane 14 (as the lane reported 11:16 AM EST on 2026-11-11), from the GEN.1407 K-dwarf probe (reports/gen1407-k-dwarf-zone-edges-2026-11-11.md): 555 of 632 class T planets in the K5V sample sit at 1.000 bar within 0.1 percent, which looks like a pinned placeholder pressure and not a result of the air solver. Do: find where class T bodies get that pressure (the class T path, GEN.822/830/837 were retired earlier), say whether it is a placeholder or a real floor/cap, replace it with the physics (or register it as a stand-in with tier and tweak in GEN.725), and report the pressure spread before and after on the K5V and G2V samples. Changes what seeds draw, so a lock item.
-  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 14. Prerequisites: none. Related: GEN.1407, GEN.822, GEN.830, GEN.837, GEN.725.
+- [ ] **UX.297 A groundless body (sub-Neptune or gas dwarf) shows its pressure as a reference level, not a surface pressure, on the sheet, the page and the docs**
+  Lane 14 (as the lane reported 11:21 AM EST on 2026-11-11), closing GEN.1532: a rocky planet under a deep hydrogen envelope has no ground (planet_type.has_ground is false), so its air is solved at the 1 bar reference level exactly as a giant's is (surface_air.REFERENCE_PRESSURE_BAR, 'a convention, not a stand-in'); 101 of 101 class T bodies at 1.000 bar in a 106-body K5V check have no ground. A reader seeing '1.000 bar' reads it as a surface pressure. Do: label the pressure 'reference level' wherever it is shown for a groundless body (bodylook.py already says it for giants), plus a docs line. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14. Prerequisites: none. Related: GEN.1334, GEN.1532.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
