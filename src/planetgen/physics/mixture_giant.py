@@ -114,7 +114,8 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     if temperature is None:
         return None
     return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
-                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature))
+                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature),
+                                               disk_drift.edge_temperature_k())
 
 
 def _disk_ice_weights(subject, temperature):
@@ -140,7 +141,8 @@ def _disk_enrichments(subject, log_enrichment_over_host):
         return {}
     return disk_condensation.envelope_enrichments(
         temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
-        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0))
+        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0), _disk_ice_weights(subject, temperature),
+        disk_drift.edge_temperature_k())
 
 
 def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
