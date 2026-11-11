@@ -257,6 +257,47 @@ def test_the_run_page_shows_its_stages_and_log(admin_client, conn):
     assert admin_client.get("/admin/queue/not-a-run").status_code == 404
 
 
+def _publish_unit(conn, run_id, unit, **fields):
+    """A verdict on a running unit as the follower publishes it (`unitwatch.view`)."""
+    import json
+    shown = {"state": "working", "severity": "", "reason": "", "actionable": False, "agreed": False, "counter": True, "rate": None, "projected_finish_seconds": None,
+             "still_seconds": 0.0, "over_limit": False, "phase": "", "waiting_on": "", "done": 0.0, "estimate": 0.0, "restarts": 0, "resident_mb": None,
+             "beat_age_seconds": 1.0, "running_seconds": 10.0, **fields}
+    conn.hset(runrecord.unitstate_key(run_id, 0), unit, json.dumps(shown))
+
+
+def test_the_run_page_lists_the_running_units_with_their_beat_counter_phase_and_state_the_worst_first(admin_client, conn):
+    """OPS.139: the Queue run page draws the verdicts `GET /api/admin/work/<id>/units` serves, the units that need a look on top."""
+    run_id = _run(conn, queued=False)
+    _publish_unit(conn, run_id, 0, state="working", phase="drawing tier 3", done=1200.0, estimate=4000.0, rate=12.5, resident_mb=812.0, beat_age_seconds=2.0)
+    _publish_unit(conn, run_id, 1, state="quiet", actionable=True, agreed=True, reason="no beat for 400 s", phase="waiting", waiting_on="gate", counter=False, beat_age_seconds=400.0)
+    _publish_unit(conn, run_id, 2, state="slow", severity="flag", done=10.0, estimate=1000.0, rate=0.02, projected_finish_seconds=3600.0)
+    html = admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    assert "Running units" in html and "3 units: 1 working, 1 slow, 1 quiet" in html
+    assert html.index("unit-quiet") < html.index("unit-slow") < html.index("unit-working")
+    assert "1,200 of 4,000" in html and "drawing tier 3" in html and "12.5 a second" in html and "812 MB" in html
+    assert "waiting (waiting on gate)" in html and "no counter" in html and "6 m 40 s ago" in html and "to be stopped" in html
+    assert "50.0 s each" in html and "1 h 00 m" in html
+
+
+def test_the_run_page_has_no_unit_table_without_running_units_or_once_the_run_is_over(admin_client, conn):
+    run_id = _run(conn, queued=False)
+    assert "Running units" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    _publish_unit(conn, run_id, 0)
+    assert "Running units" in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+    runcontrol.cancel_run(conn, run_id, who="boss")
+    assert "Running units" not in admin_client.get(f"/admin/queue/{run_id}").get_data(as_text=True)
+
+
+def test_the_unit_rows_are_capped_and_the_rest_counted(web_app):
+    from planetgen.web import queue_page
+    run = {"stages": [{"label": "Sectors"}]}
+    shown = [{"stage": 0, "unit": number, "state": "working", "counter": True, "beat_age_seconds": 1.0} for number in range(queue_page.UNIT_ROWS_SHOWN + 3)]
+    rows, summary, hidden = queue_page._unit_rows(run, shown)
+    assert len(rows) == queue_page.UNIT_ROWS_SHOWN and hidden == 3 and summary.startswith(f"{len(shown)} units: ")
+    assert queue_page._unit_rows(run, []) == ([], "", 0)
+
+
 def test_the_run_page_log_lines_are_the_display_lines_of_the_records_the_download_holds(admin_client, conn):
     """UX.123: the page draws each event with the logging layer's display line, the download writes the same record as a file line."""
     from planetgen.util import logrecord
