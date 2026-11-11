@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1610 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1579 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1584 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 202 | 107 | 30 | 82 | 4 | 425 |
+| T6 | 207 | 107 | 30 | 82 | 4 | 430 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 919 | 310 | 75 | 248 | 53 | 1605 |
+| All | 924 | 310 | 75 | 248 | 53 | 1610 |
 
 ## How the labels were given
 
@@ -2828,3 +2828,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AUD27 | P | T6 | L0 | `giant_tilt.MASS_RANGE_EARTH` (5, 30): the planet masses the merger tilt draws for | 5 to 30 Earth masses | ice giants and gas dwarfs (row GT3) | a tilted giant outside the range | the design table, row GT3 | the design table; the rate is registered as GT3 | predicted only | - | - |
 | AUD28 | P | T9 | L4 | `tuning.FLAVOR_CHANCE_PLANET` 0.05 and `FLAVOR_CHANCE_SYSTEM` 0.05: how often flavor text is added | 0 to 0.2 | every planet and system page | none: a design choice of the flavor rebuild | the flavor rebuild (GEN.1430 to GEN.1438) | design; dropped or replaced with the rebuild | predicted only | - | no data |
 | AUD29 | P | T9 | L0 | `generation.limits.MAX_GENERATE_RADIUS_PC` 200, `bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS` 0.02 and `tuning.MAX_STARS_CEILING` 64: run limits of the program | as set | the generate and band code | a run that needs more than the limit | none: limits of the program, not of the physics | out of scope for the physics; listed so the audit of GEN.945 finds every shortlisted name registered | predicted only | - | - |
+
+## 6.271 Stand-ins of the spin axis and obliquity under every body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| OB1 | P | T6 | L0 | `obliquity_variation.fluid_love_number` and `dynamical_ellipticity`: the Darwin-Radau fluid Love number `k_f = (3/2) / (1 + (5/2)(1 - (3/2) C/MR^2)^2)` and `E = k_f q / 3 / (C/MR^2)` of a planet | none (a formula) | a planet that has settled to the shape its spin gives it | the Earth's E off the measured 0.003274 by more than 5 percent, or a stiff planet's (Mars 0.0054 against 0.0041) taken to matter more than the Moon-less result's lower-bound character | the planet's stored J2 and moment of inertia, once the figure is stored | `test_obliquity_variation.py`: the Earth's 0.00319 against 0.003274 measured (2.6 percent); Mars's fluid value is 23 percent low, which the module states | predicted only | - | - |
+| OB2 | P | T6 | L0 | `obliquity_variation.precession_constant_rad_yr`: `alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2))` over the star, the moons and a companion | none (a formula) | a spinning planet with its moons in the equator | the Earth's alpha off 50.3 arcsec a year by more than 10 percent | none | `test_obliquity_variation.py`: Sun 16.0, Sun and Moon 53.96 against 50.3 measured (7 percent) | predicted only | - | - |
+| OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
+| OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
+| OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
