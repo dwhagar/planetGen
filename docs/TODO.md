@@ -13579,6 +13579,21 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 05 (offered by the audit), after OPS.133 step 1. Prerequisites: OPS.133. Related: OPS.133, GEN.1479.
   Filed by the TODO thread.
 
+- [ ] **GEN.1514 Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: replace the step in the pebble flux at the pebble end with a smooth decay, keep stand-in DE3 registered in GEN.725 with its tier and tweak level, and report how many giants' envelopes change.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1515 Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: derive the lag window from the disk's drift speed, keep stand-in DE5 registered in GEN.725, and report the change in the drifted ice weights.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1516 Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: extend the envelope enrichment so N2, NH3, H2S, Ar, Kr and Xe follow the drifted ice weights through their volatility lines, register each stand-in in GEN.725, and report the change in the giants' bulk gas (it changes it the most of the three, so build it first).
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
