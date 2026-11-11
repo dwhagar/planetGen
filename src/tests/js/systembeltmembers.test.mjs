@@ -93,3 +93,19 @@ test("a belt with no members draws as before", () => {
   assert.ok(Object.keys(built.objects).every((ref) => !ref.startsWith("belt_member:")));
   built.dispose();
 });
+
+test("the same members draw the same meshes twice: places, sizes and shapes", () => {
+  const members = [member("A.0001", 470, false, [2.8 * AU_KM, 0, 0]), member("A.0002", 40, true, [0, 2.9 * AU_KM, 1e6]), member("A.0003", 9, true, [-2.6 * AU_KM, 1e7, 0])];
+  const digest = () => {
+    const scene = sceneWithBelt(members);
+    const built = View.buildSystemScene(scene, S.createLayout(scene, S.MODE_COMPRESSED), { glow: false });
+    const out = members.map((one) => {
+      const mesh = built.objects["belt_member:" + one.designation];
+      return [mesh.position.x, mesh.position.y, mesh.position.z, mesh.scale.x, mesh.geometry.attributes.position.count,
+        Array.from(mesh.geometry.attributes.position.array.slice(0, 30))];
+    });
+    built.dispose();
+    return JSON.stringify(out);
+  };
+  assert.equal(digest(), digest());
+});

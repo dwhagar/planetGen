@@ -51,6 +51,7 @@ from planetgen.web.maps.bodylook import comet_nucleus_color, member_look, planet
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import system_bodies as ledger
 from planetgen.physics import unit_registry as units
+from planetgen.util import settings
 
 _kg_to_msun = units.converter("kg", "Msun")
 
@@ -196,19 +197,18 @@ def _planet(planet, around, kind="planet", parent=None):
     return item
 
 
-BELT_MEMBERS_DRAWN = 200
-"""int: How many of a belt's stored bodies the 3D view draws one by one (MAP.414, MAP.415 sets it): the heaviest, since a belt keeps them by rank. The rest stay the belt's dust."""
-
 _MEMBER_COLUMNS = ("member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, taxon, density_g_cm3, "
                    "rock_fraction, metal_fraction, water_fraction, ice_fraction, status")
 
 
-def _belt_members(conn, belt, limit=BELT_MEMBERS_DRAWN):
+def _belt_members(conn, belt, limit=None):
     """
-    The heaviest `limit` bodies a belt stores (MAP.414), each with its designation, radius, `look` (`bodylook.member_look`, its id the designation, so the page of the body
+    The heaviest `limit` bodies a belt stores (MAP.414; `limit` is the `web.belt_bodies_drawn` setting unless given, MAP.415), each with its designation, radius, `look` (`bodylook.member_look`, its id the designation, so the page of the body
     (MAP.413) and this view draw the same one) and `position_km`: where its stored orbit puts it, relative to what the belt goes round, at the belt's epoch.
     A body that has since become a moon is no longer in the belt and is left out.
     """
+    if limit is None:
+        limit = settings.get_settings().web.belt_bodies_drawn
     if limit <= 0:
         return []
     uid = belt.get("uid")

@@ -124,12 +124,13 @@ def test_the_endpoint_returns_the_scene_and_404s_for_a_missing_system(saved):
 
 
 def test_a_belt_carries_its_heaviest_bodies_with_their_looks_and_places(mysql_config):
-    """MAP.414: each belt of the scene lists the heaviest bodies it stores (at most `BELT_MEMBERS_DRAWN`) by rank, each with the designation the body's page prints, its radius, a
+    """MAP.414: each belt of the scene lists the heaviest bodies it stores (at most the `web.belt_bodies_drawn` setting) by rank, each with the designation the body's page prints, its radius, a
     `member_look` whose seed is the designation's, and where its stored orbit puts it, a distance from the belt's star inside the orbit's reach."""
     import math
 
     from planetgen.galaxy import object_uid
-    from planetgen.web.maps import bodylook, systemscene
+    from planetgen.util import settings
+    from planetgen.web.maps import bodylook
     from tests.fuzz_support import first_seed_with
 
     def build(seed):
@@ -152,7 +153,7 @@ def test_a_belt_carries_its_heaviest_bodies_with_their_looks_and_places(mysql_co
     drawn = [belt for belt in scene["belts"] if belt["members"]]
     assert drawn
     for belt in scene["belts"]:
-        assert len(belt["members"]) == min(kept[belt["id"]], systemscene.BELT_MEMBERS_DRAWN)
+        assert len(belt["members"]) == min(kept[belt["id"]], settings.get_settings().web.belt_bodies_drawn)
         assert [m["rank"] for m in belt["members"]] == sorted(m["rank"] for m in belt["members"])
         for member in belt["members"]:
             assert member["designation"] == object_uid.designation(object_uid.from_bytes(stored[belt["id"]]), member["rank"])
@@ -224,3 +225,37 @@ def test_a_belt_with_no_stored_id_still_names_its_bodies():
 
     members = systemscene._belt_members(_MembersOnly([_stored_row(1)]), {"id": 9, "uid": None})
     assert members[0]["designation"] == "9.0001"
+
+
+def test_the_same_belt_draws_the_same_bodies_and_a_smaller_cap_draws_the_first_of_them():
+    """MAP.415: the bodies drawn are a pure function of the belt's stored rows and the number asked for, the heaviest by rank: two builds have one hash of designations, positions and looks, and a
+    smaller cap draws the front of the larger one's list."""
+    import hashlib
+    import json
+
+    from planetgen.galaxy import object_uid
+    from planetgen.web.maps import systemscene
+
+    uid = object_uid.to_bytes(object_uid.parse_id("0000FE81000A2B-0000005-003"))
+    rows = [_stored_row(rank) for rank in range(1, 9)]
+
+    def drawn(limit):
+        return systemscene._belt_members(_MembersOnly(rows[:limit]), {"id": 7, "uid": uid}, limit=limit)
+
+    def digest(members):
+        return hashlib.sha256(json.dumps(members, sort_keys=True).encode()).hexdigest()
+
+    assert digest(drawn(8)) == digest(drawn(8))
+    assert [m["designation"] for m in drawn(3)] == [m["designation"] for m in drawn(8)][:3]
+    assert digest(drawn(3)) == digest(drawn(8)[:3])
+
+
+def test_the_cap_is_the_setting_unless_the_caller_gives_one():
+    from planetgen.util import settings
+    from planetgen.web.maps import systemscene
+
+    conn = _MembersOnly([_stored_row(1)])
+    systemscene._belt_members(conn, {"id": 7, "uid": None})
+    assert f"LIMIT {settings.get_settings().web.belt_bodies_drawn}" in conn.asked[0][0]
+    quiet = _MembersOnly([_stored_row(1)])
+    assert systemscene._belt_members(quiet, {"id": 7, "uid": None}, limit=0) == [] and quiet.asked == []
