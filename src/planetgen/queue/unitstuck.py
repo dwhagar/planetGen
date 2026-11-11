@@ -9,7 +9,10 @@ still for far longer than this command has ever stood still (`beatjudge`: dead a
 2. **stopped**: RQ's stop command (`rq.command.send_stop_job_command`), the way a cancel stops one;
 3. **queued again, once**: RQ does not retry a job that was stopped on purpose, so this module does it: it takes the job out of the registry it sits in, clears the unit's stale beat
    and queues the same job (`redisqueue.requeue_job`) once the horse is gone;
-4. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
+4. **run alone (OPS.145)**: the queue is held (`pause.hold_solo`, the one pause flag, naming the reason and the run) so that every other task waits, and the memory gate and the
+   scheduler give the restarted unit the host (`memorygate.Claim.solo`); the hold lifts when the unit completes or the run ends, here or, if this follower is gone, when the unit's
+   job has ended (`pause.state`), and an admin can lift it from the Queue page;
+5. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
 
 A unit whose counter moves is never here, at any size over its estimate: `beatjudge` only calls dead and quiet actionable. Every stop or failure sets the run's killed flag
 (`runrecord.mark_killed`, OPS.144; `finish_run(killed=True)` for the failure) with the reason. What was done to each unit is kept in `runrecord.stuck_key` (one JSON field to a unit), so a follower that is restarted
@@ -24,7 +27,7 @@ import time
 import rq
 from rq import command
 
-from planetgen.queue import redisqueue, runrecord, unitbeat
+from planetgen.queue import pause, redisqueue, runrecord, unitbeat
 
 DUMP_WAIT_SECONDS = 3.0
 """float: How long the follower waits for a horse to write its stack after the signal."""
@@ -90,15 +93,17 @@ class Stuck:
         stop (callable, optional): `stop(job_id)`, how a started job is stopped; RQ's stop command where left out.
         record_error (callable, optional): `record_error(message, **fields)`, how a failure reaches `error.log`.
         forget (callable, optional): `forget(unit)`, told when a unit is queued again, so the watch starts afresh on it.
+        solo (bool, optional): Hold the queue so the restarted unit runs alone (OPS.145; on; the tests of the stop alone turn it off).
     """
 
-    def __init__(self, conn, run_id, stage, dump=None, stop=None, record_error=None, forget=None):
+    def __init__(self, conn, run_id, stage, dump=None, stop=None, record_error=None, forget=None, solo=True):
         self.conn, self.run_id, self.stage = conn, run_id, stage
         self.key = runrecord.stuck_key(run_id, stage)
         self._dump = dump or request_dump
         self._stop = stop or self._stop_with_rq
         self._record_error = record_error
         self._forget = forget
+        self._solo = solo
 
     # --- one pass, made at every poll -----------------------------------------------------------------------
 
@@ -106,10 +111,12 @@ class Stuck:
         """
         Follows the stops under way, then acts on the units in `agreed` (`unitwatch.UnitWatch.agreed()`), whose verdicts are in `verdicts`. Does nothing for a run that is not live.
         """
-        if runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) not in runrecord.LIVE_STATES:
+        live = runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) in runrecord.LIVE_STATES
+        done = {int(unit) for unit in self.conn.smembers(runrecord.done_key(self.run_id, self.stage))}
+        self._lift_when_over(done, live)
+        if not live:
             return
         now = unitbeat.server_time(self.conn)
-        done = {int(unit) for unit in self.conn.smembers(runrecord.done_key(self.run_id, self.stage))}
         records = self.records()
         for unit, record in sorted(records.items()):
             if record.get("phase") == "stopping" and unit not in done:
@@ -122,6 +129,26 @@ class Stuck:
             if runrecord._s(self.conn.hget(runrecord.run_key(self.run_id), "state")) not in runrecord.LIVE_STATES:
                 return
             self._act(unit, record, now, verdicts[unit])
+
+    def _lift_when_over(self, done, live):
+        """Lifts the solo hold of this stage once its unit is complete or the run has ended."""
+        solo = pause.solo_of(self.conn)
+        if solo is None or (solo.get("run"), solo.get("stage")) != (self.run_id, self.stage):
+            return
+        if not live or int(solo["unit"]) in done:
+            if pause.lift_solo(self.run_id, self.stage, solo["unit"], self.conn):
+                runrecord.log(self.conn, self.run_id, f"unit {solo['unit']} is {'complete' if live else 'no longer running'}: the queue is released", "info", "unit-solo-over",
+                              stage=self.stage, unit=solo["unit"])
+
+    def _hold_for_solo_run(self, unit, job):
+        """Holds the queue for the restarted `unit` (unless it is turned off or the queue is paused already, by hand or for another unit) and says so in the run log."""
+        if not self._solo:
+            return
+        if pause.hold_solo(self.run_id, self.stage, unit, job.id, self.conn):
+            runrecord.log(self.conn, self.run_id, f"the queue is held so that unit {unit} runs alone; it lifts when the unit completes or fails, or when you resume the queue", "warning",
+                          "unit-solo-hold", stage=self.stage, unit=unit)
+        else:
+            runrecord.log(self.conn, self.run_id, f"the queue is paused already, so unit {unit} will not run alone", "warning", "unit-solo-hold", stage=self.stage, unit=unit)
 
     def records(self):
         """`{unit: {attempts, phase, at, reason, dump}}` of what has been done in this stage."""
@@ -163,8 +190,9 @@ class Stuck:
 
     def _requeue(self, unit, record, job):
         self.conn.hdel(runrecord.progress_key(self.run_id, self.stage), unit)       # the beat of the stopped attempt would read as dead beside the new one
-        redisqueue.requeue_job(job, self.conn)
+        redisqueue.requeue_job(job, self.conn, at_front=True)           # at the front: it is the one job the held workers are to reach
         self.conn.hset(self.key, unit, json.dumps({**record, "phase": "requeued"}))
+        self._hold_for_solo_run(unit, job)
         if self._forget is not None:
             self._forget(unit)
         runrecord.log(self.conn, self.run_id, f"unit {unit} was stopped and is queued again", "warning", "unit-requeued", stage=self.stage, unit=unit)
@@ -172,6 +200,7 @@ class Stuck:
     def _fail(self, unit, reason, first, second, now):
         from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
         name = wrapper.stage_name(self.conn, self.run_id, self.stage)
+        pause.lift_solo(self.run_id, self.stage, unit, self.conn)
         runrecord.mark_killed(self.conn, self.run_id, reason)
         shown = (f"\nfirst time:\n{first[:MESSAGE_STACK_CHARS]}" if first else "") + (f"\nthis time:\n{second[:MESSAGE_STACK_CHARS]}" if second else "")
         runrecord.finish_run(self.conn, self.run_id, "failed", error=f"unit {unit} of stage {name} was stuck twice and the run stops: {reason}{shown}", now=now,

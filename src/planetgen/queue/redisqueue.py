@@ -202,10 +202,11 @@ def queue(name, connection):
     return TimedQueue(name, connection=connection, serializer=serializer_for(name))
 
 
-def requeue_job(job, connection):
+def requeue_job(job, connection, at_front=False):
     """
     Queues the existing job `job` again on the queue it came from (OPS.140): it is taken out of the started and failed registries it may sit in, and queued with the time limit it
-    was made with. RQ does not retry a job that was stopped on purpose, so a unit stopped by the heartbeat action is queued again here.
+    was made with, at the back or, with `at_front` (OPS.145: the unit that is to run alone), at the front. RQ does not retry a job that was stopped on purpose, so a unit
+    stopped by the heartbeat action is queued again here.
     """
     target = queue(job.origin, connection)
     for registry in (target.started_job_registry, target.failed_job_registry):
@@ -213,7 +214,7 @@ def requeue_job(job, connection):
             registry.remove(job, delete_job=False)
         except Exception:       # noqa: BLE001 -- it was not in that one
             pass
-    return target.enqueue_job(job)
+    return target.enqueue_job(job, at_front=at_front)
 
 
 def fetch_job(job_id, connection=None, serializer=JsonSerializer):
