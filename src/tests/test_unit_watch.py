@@ -30,7 +30,7 @@ def _lines(conn, run_id):
 
 
 def _watch(conn, run_id, errors):
-    return unitwatch.UnitWatch(conn, run_id, 0, "test", record_error=lambda message, **fields: errors.append(message))
+    return unitwatch.UnitWatch(conn, run_id, 0, "test", record_error=lambda message, **fields: errors.append(message), stuck=False)
 
 
 def test_a_unit_that_goes_quiet_is_logged_once_and_again_when_it_works(conn, run_id):
