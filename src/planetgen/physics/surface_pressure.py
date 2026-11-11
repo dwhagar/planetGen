@@ -74,6 +74,10 @@ OUTGASSING_EXPONENT = (1.0, 2.0, "uniform")
 LAND_FRACTION_EARTH = 0.29
 """float: The land share of the Earth's surface, the reference of the weathering law."""
 
+OCEAN_COVER_EARTH = 0.71
+"""float: The ocean share of the Earth's surface (1 - `LAND_FRACTION_EARTH`, rounded): the sea that waters the Earth's land, and the cover above which a larger sea adds no rain to the land
+(GEN.1403, `wet_land_fraction`). [Stand-in WL1, tier Marginal educated guess from physics, tweak L1.]"""
+
 CO2_MODERN_BAR = 288e-6
 """float: The preindustrial CO2 pressure of the Earth [R2628]."""
 
@@ -142,6 +146,16 @@ def draw_cycle(constants):
             bracket(constants, "outgassing_exponent", OUTGASSING_EXPONENT))
 
 
+def wet_land_fraction(land_fraction, ocean_cover):
+    """
+    The share of the surface that is wet land (GEN.1403): the land, `land_fraction`, times the share of the Earth's ocean cover the world has, `min(1, ocean_cover / OCEAN_COVER_EARTH)`.
+    Silicate weathering needs rain to run off the rock, and the rain on the land comes from the sea, so a dry world's land weathers less than its area says and a world with the Earth's
+    ocean or more waters all of it. (Abbot et al. 2012 [R0009] find the weathering of a world nearly insensitive to its land fraction, because less land is rained on harder: that is a
+    statement about land at a given sea, and does not make a land with no sea at all wet.)
+    """
+    return max(land_fraction, 0.0) * min(1.0, max(ocean_cover, 0.0) / OCEAN_COVER_EARTH)
+
+
 def carbonate_pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_of, alpha, t_e_k, exponent):
     """
     The CO2 pressure at which silicate weathering takes as much as the volcanoes give (the stable root).
@@ -153,7 +167,7 @@ def carbonate_pco2_bar(supply_bar, heat_flux_w_m2, land_fraction, temperature_of
     Args:
         supply_bar (float): The CO2 the volcanoes have delivered, as a pressure: all of it if weathering cannot keep up.
         heat_flux_w_m2 (float): The body's heat flow `q`.
-        land_fraction (float): The share of the surface above sea level.
+        land_fraction (float): The share of the surface that is wet land (`wet_land_fraction`: land above sea level, as much as the ocean waters).
         temperature_of (callable): `Ts(p_bar)`, the surface temperature with that much CO2 in the air.
         alpha, t_e_k, exponent (float): The law's draws (`draw_cycle`).
 

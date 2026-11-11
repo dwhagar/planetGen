@@ -599,7 +599,7 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
             def kept_at(ts_k):
                 """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
                 if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
-                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover, lambda p_bar: ts_k, *cycle)
+                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, surface_pressure.wet_land_fraction(1.0 - setting.ocean_cover, setting.ocean_cover), lambda p_bar: ts_k, *cycle)
                 if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
                     return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[2])
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)

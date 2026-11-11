@@ -93,3 +93,18 @@ def test_a_greenhouse_that_warms_with_the_pressure_still_has_one_root_below_the_
 def test_a_body_with_no_volcanism_is_taken_to_the_floor_and_a_cold_still_world_keeps_its_supply():
     assert _balance(flux=0.0) == sp.MIN_PCO2_BAR
     assert _balance(supply_bar=0.02, temperature=lambda p: 150.0) == 0.02
+
+
+def test_wet_land_is_the_land_the_sea_waters_GEN1403():
+    earth = sp.wet_land_fraction(sp.LAND_FRACTION_EARTH, sp.OCEAN_COVER_EARTH)
+    assert earth == pytest.approx(sp.LAND_FRACTION_EARTH), "the Earth is the reference: all of its land is wet"
+    assert sp.wet_land_fraction(0.5, 0.5) == pytest.approx(0.5 * 0.5 / sp.OCEAN_COVER_EARTH)
+    assert sp.wet_land_fraction(0.1, 0.9) == pytest.approx(0.1), "a sea above the Earth's cover adds no rain to the land"
+    assert sp.wet_land_fraction(1.0, 0.0) == 0.0, "a world with land and no sea weathers nothing"
+    assert sp.wet_land_fraction(-0.1, 0.5) == 0.0 and sp.wet_land_fraction(0.3, -0.1) == 0.0
+
+
+def test_a_dry_world_with_all_land_holds_more_carbon_dioxide_than_the_land_alone_would_say_GEN1403():
+    dry_land = _balance(land=sp.wet_land_fraction(1.0, 0.1))
+    land_alone = _balance(land=1.0)
+    assert dry_land > land_alone
