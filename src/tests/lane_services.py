@@ -279,6 +279,22 @@ def dataset_problems(say=print, run=None):
     return problems
 
 
+def fudge_table_problems(say=print, run=None):
+    """
+    Builds the fudge table into the cache folder when it is missing or was built for another epoch or other inputs (GEN.1317: update.sh does it on a server; the build is the fast mode,
+    a fraction of a second). Returns one sentence when the table is still not current after it.
+    """
+    run = run or _run
+    script = [sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "scripts", "build_fudge_table.py")]
+    if run([*script, "--status"]).returncode == 0:
+        return []
+    say("preflight: the fudge table is missing or stale; building it")
+    run([*script, "--update"])
+    if run([*script, "--status"]).returncode != 0:
+        return ["the fudge table could not be built (python3 scripts/build_fudge_table.py --update); bulk generation would refuse to start"]
+    return []
+
+
 def preflight(environ, browser=True, say=print):
     """
     Makes a run's footing sound.
@@ -321,6 +337,7 @@ def preflight(environ, browser=True, say=print):
             say("preflight: Redis is up again")
     problems += package_problems(browser)
     problems += dataset_problems(say)
+    problems += fudge_table_problems(say)
     return problems
 
 

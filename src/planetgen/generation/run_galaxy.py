@@ -25,6 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
+from planetgen.physics import fudge_table
 from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
@@ -2061,6 +2062,10 @@ def require_datasets(disregard=None):
     Raises:
         DatasetsMissing: Naming each dataset that is missing and why, each file's URL and the setup command.
     """
+    try:
+        fudge_table.require_current()       # GEN.1317: the fudge table update builds from the epoch, refused like a missing dataset
+    except fudge_table.FudgeTableStale as stale:
+        raise DatasetsMissing(str(stale)) from None
     disregard = fetch.disregarding_missing_data() if disregard is None else disregard
     missing = datasetCatalogue.missing()
     if not missing or (disregard and all(located.dataset.fallback for located in missing)):

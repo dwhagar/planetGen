@@ -33,6 +33,12 @@
 #      where each piece comes from (GEN.600). Then the data of the References
 #      pages (`scripts/build_reference_pages.py`, DOC.88), built from the
 #      reference list and the stand-in registry; a failure only warns.
+#      And the fudge table (GEN.1317): `scripts/build_fudge_table.py --update`
+#      compares the table in PLANETGEN_DATA_DIR with the generator epoch and
+#      the registry, the stored matrix and the class table, builds it again
+#      from the stored matrix when any differs (a fraction of a second) and
+#      leaves a current one alone. A failure only warns; bulk generation
+#      refuses to start without a current table.
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end). Generation does not run it (PERF.170); the
 #      admin page can run it any time.
@@ -247,6 +253,7 @@ log_info "The API address (api_base_url in config.json) is ${API_HEALTH_URL%/hea
 log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
+build_fudge_table
 build_reference_pages
 
 log_stage 4 9 "Checking the generator's math"
@@ -294,6 +301,9 @@ install_maintenance_units || log_warning "the maintenance units were not all set
 note_changed_example_configs "$before" "$after"
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     log_warning "the math check failed (step 4): charted data may be wrong until it is fixed."
+fi
+if [[ "$FUDGE_TABLE_FAILED" == 1 ]]; then
+    log_warning "the fudge table could not be built (step 3): bulk generation refuses to start until it is."
 fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."

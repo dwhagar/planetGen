@@ -4,6 +4,8 @@ Builds the fudge table (GEN.1313, part 3 of the fudge table) from the stand-in b
 
     python scripts/build_fudge_table.py            # write src/planetgen/physics/data/fudge_table.json
     python scripts/build_fudge_table.py --check    # build in memory and fail if the committed file differs
+    python scripts/build_fudge_table.py --update   # what update.sh runs (GEN.1317): build the table with its header into PLANETGEN_DATA_DIR unless it is current
+    python scripts/build_fudge_table.py --status   # say whether the table in PLANETGEN_DATA_DIR is current (exit 0), stale or missing (exit 1)
 
 The width of a class quantity is how far it could move if the stand-ins that make it were wrong by what the registry says they could be (design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md,
 section 3):
@@ -33,6 +35,7 @@ import os
 import re
 import statistics
 import sys
+import time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HERE, "..", "src"))
@@ -234,7 +237,10 @@ def assemble(passes, regenerated=None):
     if regenerated:
         with open(regenerated, encoding="utf-8") as handle:
             population = sorted(set(json.load(handle)) - set(rows) - set(unstable))
-    return {"sample": {"mode": "frozen end stages (planets.remake_end_stages) of the rocky planets and moons of the systems below",
+    from planetgen.util import generator_epoch
+
+    return {"epoch": generator_epoch.generator_epoch(),      # the epoch of the checkout the passes were assembled on (GEN.1317: the table's header says how old the matrix is)
+            "sample": {"mode": "frozen end stages (planets.remake_end_stages) of the rocky planets and moons of the systems below",
                        "passes": [{"seed": screened["seed"], "systems": screened["systems"], "bodies": screened["bodies"], "rows_run": len(screened["results"])} for screened in screens]},
             "rows": rows, "unstable_rows": unstable, "partly_unstable_rows": partly, "population_rows": population}
 
@@ -251,12 +257,60 @@ def make():
     return render(build(matrix, stand_in_sensitivity.read_rows(), class_conditions()))
 
 
+def update(force=False, say=print):
+    """
+    Update's step (GEN.1317): the table in `PLANETGEN_DATA_DIR` is left alone when its header is current (a hash of three small files, under a second, update stays a no-op on a
+    current server) and built again from the stored matrix when it is missing or stale: the fast mode, a fraction of a second. Returns 0, or 1 when the build failed.
+    """
+    from planetgen.physics import fudge_table
+
+    found, reason = fudge_table.state()
+    if found == "current" and not force:
+        say(f"fudge table: current (epoch {fudge_table.header_of(fudge_table.data_file())['epoch']}), nothing to do")
+        return 0
+    say(f"fudge table: {found} ({reason}); building it from the stored matrix")
+    try:
+        started = time.time()
+        table = json.loads(make())
+        with open(MATRIX, encoding="utf-8") as handle:
+            measured = json.load(handle).get("epoch")
+        table["header"] = {**fudge_table.current_inputs(), "matrix_epoch": measured}
+        path = fudge_table.data_file()
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        temporary = path + ".new"
+        with open(temporary, "w", encoding="utf-8") as handle:
+            handle.write(render(table))
+        os.replace(temporary, path)
+        os.chmod(path, 0o644)
+    except (OSError, ValueError, KeyError) as problem:
+        say(f"fudge table: the build failed ({problem}); bulk generation refuses to start until it is built")
+        return 1
+    say(f"fudge table: built into {path} in {time.time() - started:.2f} s")
+    age = fudge_table.matrix_age_epochs(table["header"])
+    if age is None:
+        say("fudge table: the stored sensitivity matrix does not say when it was measured; refresh it with scripts/stand_in_sensitivity.py when the stand-ins have moved (about 1.5 hours on four cores)")
+    elif age > fudge_table.MATRIX_MAX_AGE_EPOCHS:
+        say(f"fudge table: the stored sensitivity matrix was measured {age} epochs ago; refresh it (scripts/stand_in_sensitivity.py screen --frozen, about 1.5 hours on four cores)")
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
     parser.add_argument("--check", action="store_true", help="fail if the committed table differs from the matrix")
+    parser.add_argument("--update", action="store_true", help="build the table with its header into PLANETGEN_DATA_DIR unless it is current (what update.sh runs)")
+    parser.add_argument("--force", action="store_true", help="with --update: build even when the table is current")
+    parser.add_argument("--status", action="store_true", help="exit 0 when the table in PLANETGEN_DATA_DIR is current, 1 when stale or missing")
     parser.add_argument("--assemble", nargs="+", metavar="PASS.json", help="write fudge_matrix.json from the frozen screening passes (the first the full pass), then build the table")
     parser.add_argument("--regenerated", help="with --assemble: the matrix JSON of the old regenerate-the-system runs, for the population rows")
     args = parser.parse_args(argv)
+    if args.status:
+        from planetgen.physics import fudge_table
+
+        found, reason = fudge_table.state()
+        print(f"fudge table: {found}" + (f" ({reason})" if reason else ""))
+        return 0 if found == "current" else 1
+    if args.update:
+        return update(force=args.force)
     if args.assemble:
         with open(MATRIX, "w", encoding="utf-8") as handle:
             handle.write(json.dumps(assemble(args.assemble, args.regenerated), indent=1) + "\n")

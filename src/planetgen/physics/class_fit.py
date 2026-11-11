@@ -40,10 +40,11 @@ import os
 from collections import namedtuple
 from collections.abc import Mapping
 
-from planetgen.physics import class_domains, elements, planet_classes
+from planetgen.physics import class_domains, elements, fudge_table, planet_classes
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_class_fit.json")
-FUDGE_FILE = os.path.join(elements.DATA_DIRECTORY, "fudge_table.json")
+FUDGE_FILE = fudge_table.FIXTURE
+"""str: The fixture table; `_load` reads `fudge_table.widths_file()`, which is the built table when it is current (GEN.1317) and this file otherwise."""
 
 
 class FitError(ValueError):
@@ -67,7 +68,7 @@ class FitClass:
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
         document = json.load(handle)
-    with open(FUDGE_FILE, encoding="utf-8") as handle:
+    with open(fudge_table.widths_file(), encoding="utf-8") as handle:
         fudge = json.load(handle)
     classes = tuple(FitClass(row) for row in document["classes"])
     widths = {quantity: {"unit": entry["unit"], "edges": {row["edge"]: row["width"] for row in entry["edges"]}} for quantity, entry in fudge["quantities"].items()}

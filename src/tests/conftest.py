@@ -543,9 +543,12 @@ def _downloaded_data_present():
     from unittest import mock
 
     from planetgen.datasets import catalogue
+    from planetgen.physics import fudge_table
 
     real = catalogue.missing
-    with mock.patch.object(catalogue, "missing", lambda: real() if _DATASETS_ARE_REAL else []):
+    real_fudge = fudge_table.require_current      # GEN.1317: a test machine builds no fudge table (update.sh does), so the gate passes for the session; `real_datasets` gets the real check
+    with mock.patch.object(catalogue, "missing", lambda: real() if _DATASETS_ARE_REAL else []), \
+            mock.patch.object(fudge_table, "require_current", lambda: real_fudge() if _DATASETS_ARE_REAL else None):
         yield
 
 

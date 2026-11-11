@@ -1171,6 +1171,23 @@ check_math() {
     fi
 }
 
+# The fudge table (GEN.1317, Boss 6:28 PM EST 2026-11-06): `scripts/build_fudge_table.py --update` compares the table in the data folder with the generator epoch,
+# the stand-in registry, the stored matrix and the class table, and builds it again when any differs. A current table is left alone in under a second, so update stays
+# a no-op on a current server; the build itself (the fast mode, from the stored matrix) takes a fraction of a second, so update never waits for it. A failure only warns
+# (repeated at the end): bulk generation refuses to start until the table is built.
+FUDGE_TABLE_FAILED=0
+build_fudge_table() {
+    log_info "Checking the fudge table against the generator epoch:"
+    if PLANETGEN_DATA_DIR="${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" "$PYTHON" "$SCRIPT_DIR/scripts/build_fudge_table.py" --update; then
+        FUDGE_TABLE_FAILED=0
+        chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
+    else
+        FUDGE_TABLE_FAILED=1
+        log_warning "the fudge table could not be built (above); bulk generation refuses to start until it is."
+        log_warning "         run 'python3 scripts/build_fudge_table.py --update' to see why."
+    fi
+}
+
 # Builds the data of the References pages (DOC.88): `scripts/build_reference_pages.py` writes docs/references/*.json from the
 # reference list and the stand-in registry. The files are committed, so on a current checkout this changes nothing; it makes sure
 # a server never shows numbers older than its own registries. A failure only warns: /references then says its pages are not built.

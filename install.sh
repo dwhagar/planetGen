@@ -152,6 +152,7 @@ log_stage 3 8 "Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR and the stat
 # Skipped when it's already there (scripts/deploy-common.sh).
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
+build_fudge_table
 
 if (( ! SKIP_DATABASE )); then
     # After the corpus: the population pass names species with it.

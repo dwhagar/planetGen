@@ -34,6 +34,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 def cache(tmp_path, monkeypatch):
     """An empty cache folder: nothing has been downloaded. The process-wide switch is put back after the test."""
     support.reset_caches(tmp_path / "cache", monkeypatch)
+    support.install_fudge_table()      # GEN.1317: these tests are about the datasets; the fudge table is current
     yield tmp_path / "cache"
     fetch.set_disregard_missing_data(False)
     fetch._STAND_INS.clear()

@@ -45,6 +45,19 @@ def reset_caches(cache_folder, monkeypatch):
         loader.cache_clear()
 
 
+def install_fudge_table():
+    """Builds the fudge table (GEN.1317) into the cache folder `reset_caches` set, so a test of the data gate sees a table that is current."""
+    import pathlib
+    import sys
+
+    scripts = str(pathlib.Path(__file__).resolve().parents[2] / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    import build_fudge_table
+
+    assert build_fudge_table.update(say=lambda text: None) == 0
+
+
 def install(monkeypatch, module, dataset, payloads):
     """Points `module.DATASET` at a copy whose pieces are the fixture bytes, and fetches it."""
     pieces = tuple(dataclasses.replace(piece, url="https://example.org/" + piece.name, size=len(payloads[piece.name]),

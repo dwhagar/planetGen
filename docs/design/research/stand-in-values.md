@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1578 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1580 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1552 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1554 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 82 | 12 | 4 | 22 | 12 | 132 |
 | T5 | 79 | 24 | 6 | 1 | 1 | 111 |
 | T6 | 200 | 106 | 30 | 71 | 4 | 411 |
-| T7 | 51 | 19 | 9 | 34 | 0 | 113 |
+| T7 | 51 | 20 | 9 | 34 | 0 | 114 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 17 | 5 | 93 | 35 | 194 |
-| All | 902 | 310 | 75 | 238 | 53 | 1578 |
+| T9 | 45 | 17 | 5 | 93 | 35 | 195 |
+| All | 903 | 311 | 75 | 238 | 53 | 1580 |
 
 ## How the labels were given
 
@@ -2740,6 +2740,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
 | FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
 | FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (`UNCAPPED_CLIP_LN`); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities | factor 5 to 20 for the lone log edge | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the factor of ten for a lone log edge is a stated choice | predicted only | - | - |
+| FT6 | P | T7 | L1 | `fudge_table.MATRIX_MAX_AGE_EPOCHS` 50: the sensitivity matrix behind the fudge table may be 50 generator epochs old before `build_fudge_table.py --update` says it needs a full refresh; the table itself is rebuilt from the matrix, the class fit and the stand-in rows in 0.3 s (fast mode) whenever the registry or the class fit changes | 20 to 200 epochs | how often a person is told to rerun the hours-long matrix | a stand-in whose range changed by a factor of 2 or more while the matrix still reads as current (the epoch count does not see a changed row) | a per-row stamp: refresh only the rows whose registry text changed | design: GEN.1317; the registry hash already catches an edited row, the age only bounds drift in the code behind the matrix | predicted only | - | - |
+| FT7 | P | T9 | L0 | `fudge_table.registry_hash`: the table is current only when the hash of the gap-plan rows (the lines that begin with a row id) equals the hash stamped in its header, so an edit to any stand-in row makes the table stale and bulk generation refuses to run on it | any edit | every stand-in row | a wording-only edit to a row that is read as a change and forces a rebuild nobody needed (costs 0.3 s) | hash of the range columns only | design: GEN.1317; a coarse hash costs a fast rebuild, a fine one risks a table that no longer matches its inputs | predicted only | - | - |
 | CP1 | P | T9 | L3 | `class_fit.CAP_TIERS` = 0.25 and 1.0 widths: the most a value may be moved to place a body in a class, tried smaller tier first; the sweep of 1,624 bodies (reports/fudge-cap-sweep-2026-11-06.md) closed its near misses at 0.25 width and its remaining fits by 1 | 0.15 to 0.4 and 0.75 to 1.5 | bodies that fit no class fully | a body of an obvious class that needs more than 1 width, or a class set whose near misses all close at 0.1 | a per-quantity cap from a measured spread of one class | reports/fudge-cap-sweep-2026-11-06.md | predicted only | - | no data |
 | CP2 | P | T9 | L1 | `class_fit.match_of`: a class that needs no move scores 1; one that needs moves within the largest cap scores `1 - total / (values * 1.0)` (total of the moves in widths, thermal quantities one value); one past the cap scores 0 | none: the formula is a definition of the score | bodies placed by the fudge rule | a score whose order disagrees with the fewest-values order of the rule | none | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 4c | predicted only | - | - |
 

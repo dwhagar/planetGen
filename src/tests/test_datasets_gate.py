@@ -29,6 +29,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 def cache(tmp_path, monkeypatch):
     """An empty cache folder: nothing has been downloaded."""
     support.reset_caches(tmp_path / "cache", monkeypatch)
+    support.install_fudge_table()      # GEN.1317: these tests are about the datasets; the fudge table is current
     return tmp_path / "cache"
 
 

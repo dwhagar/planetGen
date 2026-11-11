@@ -60569,6 +60569,82 @@
           "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
         },
         {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "fudge_table.MATRIX_MAX_AGE_EPOCHS 50: the sensitivity matrix behind the fudge table may be 50 generator epochs old before build_fudge_table.py --update says it needs a full refresh; the table itself is rebuilt from the matrix, the class fit and the stand-in rows in 0.3 s (fast mode) whenever the registry or the class fit changes"
+            ],
+            [
+              "The range it moves in",
+              "20 to 200 epochs"
+            ],
+            [
+              "Where it holds",
+              "how often a person is told to rerun the hours-long matrix"
+            ],
+            [
+              "What would show it wrong",
+              "a stand-in whose range changed by a factor of 2 or more while the matrix still reads as current (the epoch count does not see a changed row)"
+            ],
+            [
+              "What replaces it",
+              "a per-row stamp: refresh only the rows whose registry text changed"
+            ],
+            [
+              "Evidence",
+              "design: GEN.1317; the registry hash already catches an edited row, the age only bounds drift in the code behind the matrix"
+            ]
+          ],
+          "id": "FT6",
+          "key": "6.261:FT6",
+          "kind": "P",
+          "slug": "6-261-ft6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "fudge_table.MATRIX_MAX_AGE_EPOCHS 50: the sensitivity matrix behind the fudge table may be 50 generator epochs old before build_fudge_table.py --update says it needs a full refresh; the table itself is rebuilt from the matrix, the class fit and the stand-in rows in 0.3 s (fast mode) whenever the registry or the class fit changes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "fudge_table.registry_hash: the table is current only when the hash of the gap-plan rows (the lines that begin with a row id) equals the hash stamped in its header, so an edit to any stand-in row makes the table stale and bulk generation refuses to run on it"
+            ],
+            [
+              "The range it moves in",
+              "any edit"
+            ],
+            [
+              "Where it holds",
+              "every stand-in row"
+            ],
+            [
+              "What would show it wrong",
+              "a wording-only edit to a row that is read as a change and forces a rebuild nobody needed (costs 0.3 s)"
+            ],
+            [
+              "What replaces it",
+              "hash of the range columns only"
+            ],
+            [
+              "Evidence",
+              "design: GEN.1317; a coarse hash costs a fast rebuild, a fine one risks a table that no longer matches its inputs"
+            ]
+          ],
+          "id": "FT7",
+          "key": "6.261:FT7",
+          "kind": "P",
+          "slug": "6-261-ft7",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "fudge_table.registry_hash: the table is current only when the hash of the gap-plan rows (the lines that begin with a row id) equals the hash stamped in its header, so an edit to any stand-in row makes the table stale and bulk generation refuses to run on it"
+        },
+        {
           "burn_down": [
             "no data",
             "-",
