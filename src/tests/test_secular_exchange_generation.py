@@ -7,7 +7,7 @@ import pytest
 from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import planets as planetPhysics
+from planetgen.physics import planets as planetPhysics, radiation_field
 from planetgen.util import draw
 
 
@@ -36,7 +36,7 @@ def test_every_star_reports_an_outcome_the_exchange_knows(systems):
 def test_a_star_with_one_planet_is_left_as_it_was(systems):
     for system in systems:
         for star, planets in validation.star_lists(system):
-            if len([p for p in planets if p.body_type != 'a']) < 2:
+            if len([p for p in planets if p.body_type != 'a']) < 2 and not radiation_field.companions_of(star):      # (a lone planet beside a companion star is forced by it, GEN.1499)
                 assert system.secular_outcomes[star.name] == "unchanged"
 
 
@@ -174,3 +174,24 @@ def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass(
     assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
     assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
     assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])
+
+
+def test_the_stars_of_a_binary_are_given_to_the_exchange_as_companions(monkeypatch):
+    """GEN.1499: each star's exchange is handed the other stars of its system (mass, axis, eccentricity, periapsis); a single star is handed none."""
+    seen = []
+    original = planetPhysics.secular_exchange
+
+    def spy(planets, host_mass_kg, age_yr, keeps_spacing, companions=()):
+        seen.append(list(companions))
+        return original(planets, host_mass_kg, age_yr, keeps_spacing, companions)
+
+    monkeypatch.setattr(planetPhysics, "secular_exchange", spy)
+    cfg = SystemConfig()
+    cfg.PLANETS = True
+    cfg.MAX_PLANETS = True
+    cfg.BINARY_SYSTEM = True
+    with draw.bound(3):
+        StarSystem(system_config=cfg)
+    assert seen and any(seen), "a binary hands its companion to the exchange"
+    mass, axis, eccentricity, periapsis = next(c for companions in seen for c in companions)
+    assert mass > 0.0 and axis > 0.0 and 0.0 <= eccentricity < 1.0 and 0.0 <= periapsis < 2.0 * math.pi
