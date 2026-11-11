@@ -314,6 +314,8 @@ def compute(values, alpha_deg=0.0):
     rotation = values.get("rotation_period_hours")
     if not mean or mean <= 0.0 or not rotation or rotation <= 0.0:
         return []
+    if values.get("starless") or values.get("day_share_mean") == 0.0:
+        return []           # GEN.1496: no star is ever up (a rogue planet, or the moon of one), so there is no sun for a band to follow
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
     period_years = values.get("period_years")

@@ -15,7 +15,7 @@ from planetgen.generation import comet as comet_generation
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.comet import Comet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import belt_ledger, condensate_shares, radiation_field as rf
+from planetgen.physics import belt_ledger, comet_activity, condensate_shares, radiation_field as rf
 from planetgen.util import draw
 from tests.test_radiation_field import star as plain_star
 from tests.test_systems import make_config
@@ -127,7 +127,7 @@ def test_the_members_of_a_belt_are_drawn_under_the_same_light_as_its_makeup(syst
 
 @pytest.fixture()
 def seen_activity(monkeypatch):
-    """The perihelion distance each comet's activity chance was asked for."""
+    """The distance (round the Sun, GEN.1491: the lit distance over the root of the host's luminosity in suns) each comet's activity chance was asked for."""
     asked = []
     real = comet_generation._activity_chance
 
@@ -142,7 +142,7 @@ def seen_activity(monkeypatch):
 def test_a_comet_of_a_lone_star_is_active_by_its_perihelion(system, host, seen_activity):
     with draw.bound(8):
         comet = Comet(system.system_config, 1.0, orbit_type="elliptical", star=host)
-    assert seen_activity == [comet.perihelion_distance_au]
+    assert seen_activity == [comet_activity.solar_equivalent_au(rf.lit_distance_au(host, comet.perihelion_distance_au), host.luminosity)]
 
 
 def test_a_comet_is_active_by_the_light_at_its_perihelion(system, host, seen_activity):
@@ -152,7 +152,7 @@ def test_a_comet_is_active_by_the_light_at_its_perihelion(system, host, seen_act
     with draw.bound(8):
         near = Comet(system.system_config, 1.0, orbit_type="elliptical", star=host)
     assert near.perihelion_distance_au == lone.perihelion_distance_au
-    assert seen_activity[1] == pytest.approx(rf.lit_distance_au(host, near.perihelion_distance_au), rel=1e-12)
+    assert seen_activity[1] == pytest.approx(comet_activity.solar_equivalent_au(rf.lit_distance_au(host, near.perihelion_distance_au), host.luminosity), rel=1e-12)
     assert seen_activity[1] < seen_activity[0]
     assert comet_generation._activity_chance(seen_activity[1]) >= comet_generation._activity_chance(seen_activity[0])
 

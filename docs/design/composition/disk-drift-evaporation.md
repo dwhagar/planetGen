@@ -1,6 +1,6 @@
 # Drift and evaporation of water and the other ices in the disc (GEN.1472)
 
-Item GEN.1472, Lane 14. A design note; nothing in `src/` changes with it. The build is GEN.1473 (after GEN.1471 is on main). Boss's rule for this note (7:44 PM EST 11-08): build the model, secondary and tertiary citations are accepted by default, and speculative theory that fits the physics is allowed, as long as every part says which it is. Every stand-in is a row in the registry (section 6.242 of `docs/design/research/gap-filling-plan.md`, rows DE1 to DE10).
+Item GEN.1472, Lane 14. A design note, built by GEN.1473 (`physics/disk_drift.py`; section 7 says what the build changed and what it measured). Boss's rule for this note (7:44 PM EST 11-08): build the model, secondary and tertiary citations are accepted by default, and speculative theory that fits the physics is allowed, as long as every part says which it is. Every stand-in is a row in the registry (section 6.242 of `docs/design/research/gap-filling-plan.md`, rows DE1 to DE10).
 
 ## 0. What this note decides
 
@@ -99,3 +99,12 @@ What this says, before the build:
 - `leak = 0.9` is read off an abstract's order of magnitude; the net flux does not depend on it, the band does.
 - Not modelled: a giant that has formed blocks the pebbles for the inner disc (the isolation mass); planets that eat pebbles on the way; ice in the soot line; photoevaporation of the gas. Each would lower `E` further in; none is needed to set the sign of the first build.
 - The moons' circumplanetary discs (`moon_disk_zone`) use their own lines; they are out of this note.
+
+## 7. What the build changed and measured (GEN.1473)
+
+**Built.** `physics/disk_drift.py` holds the clocks, `enrichment_ratio`, `ice_weights`, `gathering_age_myr` and `giant_ice_weights`; `disk_condensation._gas_and_solid_atoms` and `envelope_c_over_o` take `ice_weights` (`None` and weights of 1 are the static budget exactly, a test); `mixture_subject` gives a giant its stored snow line (`disk_snow_line_au`); `mixture_giant._disk_c_over_o` passes the weights. No new random draw. Stand-ins DE1 to DE10 are rows of section 6.242, and DE1 and DE2 are now read (T1): the pebble flux and the front are Eq. 14 and Eq. 10 of [R5211], and the growth efficiency of 0.05 that gives the 122 AU is the paper's sticking efficiency of 0.5 over its grain growth ratio of 10. The paper does not state when the flux ends (DE3 stays my step at the disc's edge).
+
+**Differences from the note.** (1) The star-mass term of the pebble flux (the paper's 1/3 power) is replaced by the disc-mass scale (the 1.8 power of `tuning.DISK_MASS_STELLAR_MASS_EXPONENT`), so the disc mass cancels in the ratio as section 2.1 says; with the 1/3 power it would not cancel and the ratio of a 1.5 solar-mass star would be half the Sun's. (2) The nitrogen, sulfur and noble gases of `envelope_enrichments` keep their static values; the first build moves the carbon and oxygen only. (3) The doc's 49 AU edge is 18 snow lines of a 2.7 AU snow line; a 2.3 AU snow line (the Sun's) gives an edge of 41 AU and a pebble epoch of 0.20 Myr.
+
+**Measured** (reports/gen1473-drift-measure-2026-11-09.md, 2,787 generated giants of all stars): for G and K stars the share of giants over C/O 0.8 falls from 18 to 12 and 11 percent and the median is unchanged (0.42); the share under 0.35 rises by 2 points; F stars do not move. M dwarfs move a lot (median 0.62 to 0.44, over 0.8: 39 to 12 percent) because 99 percent of their giants gather their gas as the pebbles end, within the lag from the line; that row stands on DE3 and DE5, which are the two stand-ins to revisit first.
+
