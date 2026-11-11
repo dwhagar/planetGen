@@ -121,3 +121,143 @@ def test_the_endpoint_returns_the_scene_and_404s_for_a_missing_system(saved):
     body = client.get(f"/api/systems/{pid('system', ids[0])}/scene").get_json()
     assert body["system"]["id"] == pid("system", ids[0]) and body["planets"] and "epoch" in body
     assert client.get("/api/systems/999999999/scene").status_code == 404
+
+
+def test_a_belt_carries_its_heaviest_bodies_with_their_looks_and_places(mysql_config):
+    """MAP.414: each belt of the scene lists the heaviest bodies it stores (at most the `web.belt_bodies_drawn` setting) by rank, each with the designation the body's page prints, its radius, a
+    `member_look` whose seed is the designation's, and where its stored orbit puts it, a distance from the belt's star inside the orbit's reach."""
+    import math
+
+    from planetgen.galaxy import object_uid
+    from planetgen.util import settings
+    from planetgen.web.maps import bodylook
+    from tests.fuzz_support import first_seed_with
+
+    def build(seed):
+        cfg = SystemConfig()
+        cfg.ASTEROID_BELT = True
+        return StarSystem(system_config=cfg), cfg
+
+    _seed, (system, cfg) = first_seed_with(build, lambda built: any(getattr(b, "members", None) for b in built[0].planets if b.body_type == "a"), what="a belt that stores bodies")
+    sector = SpaceSector("Belt Scene Sector", edge_ly=11.5)
+    sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
+    store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = conn.execute("SELECT id FROM star_systems LIMIT 1").fetchone()["id"]
+        scene = build_scene(conn, system_id)
+        stored = {row["id"]: row["uid"] for row in conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_system_id = ?", (system_id,)).fetchall()}
+        kept = {row["id"]: conn.execute("SELECT COUNT(*) AS n FROM belt_members WHERE belt_id = ? AND status <> 'moon'", (row["id"],)).fetchone()["n"] for row in scene["belts"]}
+    finally:
+        conn.close()
+    drawn = [belt for belt in scene["belts"] if belt["members"]]
+    assert drawn
+    for belt in scene["belts"]:
+        assert len(belt["members"]) == min(kept[belt["id"]], settings.get_settings().web.belt_bodies_drawn)
+        assert [m["rank"] for m in belt["members"]] == sorted(m["rank"] for m in belt["members"])
+        for member in belt["members"]:
+            assert member["designation"] == object_uid.designation(object_uid.from_bytes(stored[belt["id"]]), member["rank"])
+            assert member["radius_km"] > 0.0 and member["look"]["kind"] == "belt_member"
+            assert member["look"]["seed"] == bodylook.seed_for("belt_member", member["designation"])
+            assert 0.0 < math.dist(member["position_km"], (0.0, 0.0, 0.0)) < 10.0 * belt["outer_km"]
+
+
+class _Rows:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def fetchall(self):
+        return self.rows
+
+
+class _MembersOnly:
+    """A connection that answers the one query `_belt_members` asks, with the rows given and the SQL kept."""
+
+    def __init__(self, rows):
+        self.rows, self.asked = rows, []
+
+    def execute(self, sql, params=()):
+        self.asked.append((sql, params))
+        return _Rows(self.rows)
+
+
+def _stored_row(rank, **changes):
+    row = {"member_rank": rank, "mass_kg": 1.0e20 / rank, "radius_km": 200.0 / rank, "distance_km": 3.0e8 + 1.0e6 * rank, "eccentricity": 0.1, "inclination_deg": 5.0 * rank,
+           "ascending_node_deg": 40.0, "arg_periapsis_deg": 70.0, "mean_anomaly_deg": 30.0 * rank, "taxon": "C", "density_g_cm3": 1.5, "rock_fraction": 0.7, "metal_fraction": 0.1,
+           "water_fraction": 0.2, "ice_fraction": 0.0, "status": "minor body"}
+    row.update(changes)
+    return row
+
+
+def test_the_members_of_a_belt_are_the_heaviest_stored_ones_placed_by_their_orbits():
+    """MAP.414 without a database: the query asks for the belt's bodies by rank, never the ones that became moons, up to the cap; the designation is the belt ID's and the rank's, the
+    look is the body page's, and the position is on the stored orbit (distance from the star between periapsis and apoapsis, the plane tilted by the inclination)."""
+    import math
+
+    from planetgen.galaxy import object_uid
+    from planetgen.physics import constants as pc
+    from planetgen.web.maps import bodylook, systemscene
+
+    belt_id = object_uid.parse_id("0000FE81000A2B-0000005-003")
+    uid = object_uid.to_bytes(belt_id)
+    rows = [_stored_row(rank) for rank in (1, 2, 3)]
+    conn = _MembersOnly(rows)
+    members = systemscene._belt_members(conn, {"id": 7, "uid": uid}, limit=2)
+    sql, params = conn.asked[0]
+    assert "ORDER BY member_rank" in sql and "LIMIT 2" in sql and "status <> 'moon'" in sql and params == (7,)
+    assert len(members) == 3      # the stub returns what it holds; the LIMIT is the database's
+    for member, row in zip(members, rows):
+        rank = row["member_rank"]
+        assert member["rank"] == rank and member["designation"] == object_uid.designation(belt_id, rank)
+        assert member["radius_km"] == row["radius_km"]
+        assert member["look"]["kind"] == "belt_member" and member["look"]["seed"] == bodylook.seed_for("belt_member", member["designation"])
+        distance = math.dist(member["position_km"], (0.0, 0.0, 0.0))
+        a_km = row["distance_km"]
+        assert a_km * (1.0 - row["eccentricity"]) * (1.0 - 1e-9) <= distance <= a_km * (1.0 + row["eccentricity"]) * (1.0 + 1e-9)
+        sine = member["position_km"][2] / distance
+        assert abs(sine) <= math.sin(math.radians(row["inclination_deg"])) * (1.0 + 1e-9)
+    printed = systemscene._belt_members(_MembersOnly(rows), {"id": 7, "uid": object_uid.format_id(belt_id)}, limit=2)
+    assert [m["designation"] for m in printed] == [m["designation"] for m in members], "the printed form of the ID names the same bodies as the column's bytes"
+    assert systemscene._belt_members(_MembersOnly(rows), {"id": 7, "uid": uid}, limit=0) == []
+    assert pc.AU_TO_KM > 1.0e8
+
+
+def test_a_belt_with_no_stored_id_still_names_its_bodies():
+    from planetgen.web.maps import systemscene
+
+    members = systemscene._belt_members(_MembersOnly([_stored_row(1)]), {"id": 9, "uid": None})
+    assert members[0]["designation"] == "9.0001"
+
+
+def test_the_same_belt_draws_the_same_bodies_and_a_smaller_cap_draws_the_first_of_them():
+    """MAP.415: the bodies drawn are a pure function of the belt's stored rows and the number asked for, the heaviest by rank: two builds have one hash of designations, positions and looks, and a
+    smaller cap draws the front of the larger one's list."""
+    import hashlib
+    import json
+
+    from planetgen.galaxy import object_uid
+    from planetgen.web.maps import systemscene
+
+    uid = object_uid.format_id(object_uid.parse_id("0000FE81000A2B-0000005-003"))      # the text `query.system_detail` gives a belt
+    rows = [_stored_row(rank) for rank in range(1, 9)]
+
+    def drawn(limit):
+        return systemscene._belt_members(_MembersOnly(rows[:limit]), {"id": 7, "uid": uid}, limit=limit)
+
+    def digest(members):
+        return hashlib.sha256(json.dumps(members, sort_keys=True).encode()).hexdigest()
+
+    assert digest(drawn(8)) == digest(drawn(8))
+    assert [m["designation"] for m in drawn(3)] == [m["designation"] for m in drawn(8)][:3]
+    assert digest(drawn(3)) == digest(drawn(8)[:3])
+
+
+def test_the_cap_is_the_setting_unless_the_caller_gives_one():
+    from planetgen.util import settings
+    from planetgen.web.maps import systemscene
+
+    conn = _MembersOnly([_stored_row(1)])
+    systemscene._belt_members(conn, {"id": 7, "uid": None})
+    assert f"LIMIT {settings.get_settings().web.belt_bodies_drawn}" in conn.asked[0][0]
+    quiet = _MembersOnly([_stored_row(1)])
+    assert systemscene._belt_members(quiet, {"id": 7, "uid": None}, limit=0) == [] and quiet.asked == []
