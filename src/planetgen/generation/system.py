@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
+from planetgen.physics import belt_forcing, bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -2242,7 +2242,9 @@ class StarSystem:
             def keeps(group, baseline=baseline):
                 return all(tuple(problem) in baseline for problem in self._planet_problems(group))
 
-            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
+            companions = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au))      # GEN.1499: the other stars force the planets too
+                          for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
+            outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps, companions) if (len(bodies) > 1 or (bodies and companions)) else "unchanged"
             self.secular_outcomes[star.name] = outcome
             if outcome != "unchanged":
                 log.debug(f"{star.name}: secular exchange of its planets: {outcome}")

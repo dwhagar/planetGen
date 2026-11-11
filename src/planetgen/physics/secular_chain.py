@@ -213,7 +213,7 @@ def _drive(matrix, start, years, held, damped=False):
     return out
 
 
-def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=(), damping_per_yr=None):
+def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=(), damping_per_yr=None, apsidal_extra_rad_yr=None, forcing=None):
     """
     The orbits `years` later (negative for earlier): the `Exchange` of planets of the semi-major axes (AU), masses (kg), eccentricities, longitudes of periapsis, inclinations and
     longitudes of node (radians). A planet already beyond the limits of the theory (`LINEAR_ECCENTRICITY_LIMIT`, `LINEAR_INCLINATION_LIMIT_RAD`) is held where it is: it keeps its
@@ -226,6 +226,11 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     `damping_per_yr` (GEN.1459) is each planet's rate (1 / year) at which its own tide wears its eccentricity down, `1 / tau` of `orbit_elements.circularisation_time_yr`: the eccentricity vectors
     then follow `dz/dt = (i A - Gamma) z`, so a mode the planets keep pumping settles where the pumping and the wear-down balance and a mode with nothing to renew it dies away as `exp(-t / tau)`.
     The inclinations are not damped (the tide of the orbit does not act on them to first order). Without it the exchange is the undamped one.
+
+    A companion star's pull (GEN.1499, `belt_forcing.companion_rates`) is `apsidal_extra_rad_yr`, the rate it adds to each planet's apsidal turning (the diagonal of `A`), and `forcing`, the complex
+    `sum B_c exp(i varpi_c)` that pushes each planet's eccentricity vector toward the companion's periapsis: `dz/dt = i (A z - f)`. The planets then circle (and, with the damping, settle on) the forced
+    vector `z_eq = A^-1 f` that the other planets and the companion's turning of the periapsis leave, `z(t) = z_eq + exp(i A t) (z(0) - z_eq)`; a planet held beyond the theory keeps its orbit. The
+    forcing is of the eccentricities only (the stars' orbits are coplanar here, as in `belt_forcing`).
     """
     count = len(a_au)
     A, B = matrices([*a_au, *fixed_axes_au], [*masses_kg, *fixed_masses_kg], host_mass_kg, rows=count)
@@ -238,10 +243,20 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     held_e[count:] = True
     held_i[count:] = True
     damped = damping_per_yr is not None and any(g > 0.0 for g in damping_per_yr)
+    forced = forcing is not None and any(abs(f) > 0.0 for f in forcing)
     A_e = A
+    if apsidal_extra_rad_yr is not None:
+        A_e = A.copy()
+        for j, rate in enumerate(apsidal_extra_rad_yr):
+            A_e[j, j] += rate
     if damped:
-        A_e = A.astype(complex) + 1j * np.diag([*[float(g) for g in damping_per_yr], *([0.0] * pad)])[:A.shape[0], :A.shape[1]]
-    z = _drive(A_e, z0, years, held_e, damped)[:count]
+        A_e = A_e.astype(complex) + 1j * np.diag([*[float(g) for g in damping_per_yr], *([0.0] * pad)])[:A.shape[0], :A.shape[1]]
+    if forced:
+        z_eq = np.zeros(count + pad, dtype=complex)
+        z_eq[:count] = np.linalg.solve(A_e[:count, :count], np.array([complex(x) for x in forcing]))    # the fixed point the planets and the companion's turn leave (z' = i (A z - f) = 0)
+        z = (z_eq + _drive(A_e, z0 - z_eq, years, held_e, damped))[:count]
+    else:
+        z = _drive(A_e, z0, years, held_e, damped)[:count]
     w = _drive(B, w0, years, held_i)[:count]
     held_e, held_i = held_e[:count], held_i[:count]
     e_new = np.abs(z)

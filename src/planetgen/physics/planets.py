@@ -1090,7 +1090,7 @@ def belt_rings_of(planets, planet_axes_au):
     return axes, masses
 
 
-def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
+def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing, companions=()):
     """
     GEN.1450: gives the planets of one star the orbits the Laplace-Lagrange secular exchange (`secular_chain`) leaves them at the star's age, from the eccentricities and inclinations the
     generator made them with (after `generate_orbit_shape`, the spacing pass and the moons; the exchange comes before the tide wears an eccentricity down again, so `settle_orbit` takes the
@@ -1110,14 +1110,16 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         age_yr (float): The star's age, years.
         keeps_spacing (callable): Given `planets`, whether their spacing and the moons' stable ranges hold (no problem beyond those the system already had), asked with the new
             eccentricities set.
+        companions (iterable): The other stars the host has, each `(mass_kg, axis_au, eccentricity, periapsis_rad)` (GEN.1499): each turns the planets' periapses and pushes their eccentricity
+            vectors toward its own periapsis (`belt_forcing.companion_rates`), so a planet beside a companion settles on a forced eccentricity. A lone planet is exchanged when it has a companion.
 
     Returns:
         str: One of `SECULAR_OUTCOMES`.
     """
-    from planetgen.physics import secular_chain
+    from planetgen.physics import belt_forcing, secular_chain
 
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
-    if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
+    if len(bodies) < (1 if companions else 2) or not host_mass_kg > 0.0 or not age_yr > 0.0:
         return "unchanged"
     start, damping = [], []
     for body in bodies:
@@ -1129,8 +1131,17 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
         damping.append(1.0 / tide_time_yr if damped else 0.0)
         start.append((birth if damped else orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
     ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
+    extra, forcing = [], []
+    for body in bodies:
+        turn, push = 0.0, 0j
+        for mass, axis, eccentricity, periapsis in companions:
+            rate, force = belt_forcing.companion_rates(body.distance, host_mass_kg, mass, axis, eccentricity)
+            turn += rate
+            push += force * complex(math.cos(periapsis), math.sin(periapsis))
+        extra.append(turn)
+        forcing.append(push)
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping, extra, forcing)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]

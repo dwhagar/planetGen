@@ -208,3 +208,27 @@ def test_a_planet_the_others_keep_pumping_settles_above_the_decay_of_its_own_tid
     pair["masses_kg"] = [3e24, 1.0]
     alone = sc.evolve(**pair, years=years, damping_per_yr=[rate, 0.0]).eccentricity[0]
     assert alone == pytest.approx(wear_only, rel=5e-3)
+
+
+# GEN.1499: a companion star forces the planets' eccentricity vectors
+
+def test_a_planet_with_a_tide_settles_on_the_forced_eccentricity_the_belt_theory_gives_and_points_along_the_companions_periapsis():
+    import numpy as np
+    from planetgen.physics import belt_forcing
+    mass = 1.98847e30
+    turn, push = belt_forcing.companion_rates(1.0, mass, 0.5 * mass, 20.0, 0.4)
+    assert turn > 0.0 and push > 0.0
+    periapsis = 1.0
+    result = sc.evolve([1.0], [6e24], mass, [0.0], [0.0], [0.0], [0.0], 1.0e9, damping_per_yr=[1e-8], apsidal_extra_rad_yr=[turn], forcing=[push * np.exp(1j * periapsis)])
+    expected = belt_forcing.forced_vector(1.0, mass, [(0.5 * mass, 20.0, 0.4, periapsis)], belt_forcing.planet_rate(1.0, [], [], mass))
+    assert result.eccentricity[0] == pytest.approx(abs(expected), rel=1e-4)
+    assert result.periapsis_longitude[0] == pytest.approx(periapsis, abs=1e-3)
+    # without a tide the planet circles the forced vector: from a circular start it swings between 0 and twice the forced eccentricity
+    swing = [sc.evolve([1.0], [6e24], mass, [0.0], [0.0], [0.0], [0.0], years, apsidal_extra_rad_yr=[turn], forcing=[push * np.exp(1j * periapsis)]).eccentricity[0] for years in (2.0e8, 3.1e8, 4.7e8)]
+    assert max(swing) <= 2.0 * abs(expected) * (1.0 + 1e-6)
+
+
+def test_no_forcing_and_no_extra_turn_is_the_exchange_without_a_companion():
+    pair = _pair()
+    plain = sc.evolve(**pair, years=3.0e8)
+    assert sc.evolve(**pair, years=3.0e8, apsidal_extra_rad_yr=[0.0, 0.0], forcing=[0j, 0j]) == plain
