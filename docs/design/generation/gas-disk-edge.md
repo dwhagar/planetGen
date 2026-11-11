@@ -30,3 +30,7 @@ Planet, giant, belt and comet counts, the outer reaches of the planet lists, the
 ## Not done
 
 A scatter that depends on the disk's mass, a disk age spread, and a different edge for the dust (the gas edge is what the model uses; the dust edge would be about 1/2.5 of it).
+
+## The growth limit (GEN.1539)
+
+`tuning.PLANET_OUTER_GROWTH_AU` (11.36 au, tuned on the Sun against the giants' occurrence and the Neptune-mass counts) is where the disk has built less: beyond it the cores of `planet_mass.oligarch_core_kg` fall off, and the oligarch chain stops so an outer-disk belt can start there. It was the same distance for every star, which put the start of an outer-disk belt at 11.4 au even for a 0.4 Msun star whose disk is 60 au across. `disk_size.growth_limit_au(M)` now scales it as the disk's median edge is, mass to the half power, so the limit is 11.4 percent of the edge for every star and the Sun's value is unchanged (7.0 au at 0.38 Msun, 12.9 au at 1.28 Msun). It reads the median, not the star's own scattered edge, so it is a function of the mass alone. Stand-in DS5 (tier educated guess from physics, tweak L1); a growth-time model of the oligarchs would replace it.
