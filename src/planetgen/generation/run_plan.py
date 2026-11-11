@@ -23,7 +23,7 @@ import types
 
 import pymysql
 
-from planetgen.queue import commands, progress_rate, units, wrapper
+from planetgen.queue import commands, progress_rate, taskprogress, units, wrapper
 from planetgen.db import block_lights, block_stats, galaxy_counts, containers as containersDb, contention, derived_stamp, nebula_blocks, query, sky_tier_ledger as skyTierLedger, storage_checksum, store, uncharted_index
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
@@ -859,8 +859,8 @@ class _ShellTracker:
     (`wrapper.run`), so every change holds `lock`.
     """
 
-    SLOW_TASK_SECONDS = 30.0
-    FAST_TASK_SECONDS = 20.0
+    SLOW_TASK_SECONDS = taskprogress.SHOW_SECONDS      # PERF.147: a task gets its own bar after 15 s (it was 30 s), the one threshold every bar shares
+    FAST_TASK_SECONDS = 10.0
 
     def __init__(self, progress, label, weights, clock=time.monotonic, prior=None, bar=None, sizes=None, names=None):
         self.progress = progress
