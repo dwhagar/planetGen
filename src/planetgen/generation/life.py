@@ -32,7 +32,7 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
+from planetgen.physics import adaptation_draw, adaptation_traits, aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, flavor_tree, life_supply, life_timeline, planet_classes, planet_type, radiation, surface_liquid_world, trace_air
 from planetgen.physics import carbide_deposits, hydrothermal_deposits, sedimentary_deposits
 from planetgen.util import draw
 from planetgen.util import log
@@ -462,22 +462,9 @@ def _set_evolutionary_state(planet, state):
     planet.life_system_age_gyr = state["system_age_gyr"] if state else None
 
 
-def _flavor_lists():
-    return {"habitable": tuning.HABITABLE_FLAVOR, "planet": tuning.PLANET_FLAVOR, "orbital": tuning.ORBITAL_FLAVOR}
-
-
-def flavor_key(category, text):
-    """The `category:index` key of the flavor line `text` in a `tuning` flavor list (`habitable`, `planet` or
-    `orbital`)."""
-    return f"{category}:{_flavor_lists()[category].index(text)}"
-
-
 def flavor_line(key):
-    """The flavor line a `flavor_key` names, or `None` for no key."""
-    if key is None:
-        return None
-    category, index = key.split(":")
-    return _flavor_lists()[category][int(index)]
+    """The flavor line a stored `flavor_key` (a line id of `physics/data/flavor_tree.json`) names, or `None` for no key."""
+    return flavor_tree.text_of(key)
 
 
 def decide_flavor_text(planet):
@@ -501,55 +488,21 @@ def decide_flavor_text(planet):
                          `recent_flavor_texts` are updated when a flavor is
                          selected.
     """
-    if not (draw.random() < tuning.FLAVOR_CHANCE_PLANET
-            and planet.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
+    system_config = planet.system_config
+    with draw.bound(draw.Stream(flavor_tree.seed_of("roll", planet))):       # the body's own stream: the roll does not depend on the order the bodies were made in
+        rolled = draw.random()
+    if not (rolled < tuning.FLAVOR_CHANCE_PLANET and system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
         log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
         return
 
-    selected_flavor = None
-    system_config = planet.system_config
-
-    # Filter out recently used flavor texts
-    available_habitable_flavor = [f for f in tuning.HABITABLE_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_planet_flavor = [f for f in tuning.PLANET_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_orbital_flavor = [f for f in tuning.ORBITAL_FLAVOR if f not in system_config.recent_flavor_texts]
-
-    # If all flavors of a category have been recently used, reset to the full list
-    if not available_habitable_flavor:
-        available_habitable_flavor = tuning.HABITABLE_FLAVOR
-    if not available_planet_flavor:
-        available_planet_flavor = tuning.PLANET_FLAVOR
-    if not available_orbital_flavor:
-        available_orbital_flavor = tuning.ORBITAL_FLAVOR
-
-    # Check for habitable and multicellular/technological life
-    is_habitable = planet.life_class is not None
-    # The orbital list is for a body with no ground to put a wreck on: a gas giant or a body under a deep envelope (GEN.1334), or a rock whose whole surface is molten. It is judged by the stored
-    # conditions of the body, never by its class letter (GEN.1399: the class is decided last).
-    has_no_ground = not planet_type.has_ground(planet) or getattr(planet, "surface_liquid", None) in surface_liquid_world.LAVA_IDS
-    has_multicellular_life = planet.life_stage in ("multicellularity", "technological_civilization")
-
-    if is_habitable and has_multicellular_life:
-        selected_flavor = draw.choice(available_habitable_flavor)
-        flavor_category = "habitable (multicellular/technological life present)"
-        flavor_list = "habitable"
-    elif not has_no_ground:
-        selected_flavor = draw.choice(available_planet_flavor)
-        flavor_category = "planet (a ground to stand on)"
-        flavor_list = "planet"
-    else:
-        selected_flavor = draw.choice(available_orbital_flavor)
-        flavor_category = "orbital (no ground: a gas body, a deep envelope or a molten surface)"
-        flavor_list = "orbital"
-
-    if selected_flavor:
-        log.choice("Planet flavor text", selected_flavor, f"category: {flavor_category}")
-        planet.flavor_key = flavor_key(flavor_list, selected_flavor)
-        system_config.system_flavor_count += 1
-        planet.flavor_text_count += 1
-
-        # Add the selected flavor text to the recent list
-        system_config.recent_flavor_texts.append(selected_flavor)
-        # Keep the recent_flavor_texts list to a maximum size
-        if len(system_config.recent_flavor_texts) > tuning.MAX_RECENT_FLAVOR_TEXTS:
-            system_config.recent_flavor_texts.pop(0) # Remove the oldest entry
+    # The tree (GEN.1430) gathers every line whose gates pass on the body's stored conditions (a ground to stand on or none, molten all over, multicellular or technological life),
+    # never the class letter (GEN.1399: the class is decided last), takes out the ids already used in the system and draws one by weight.
+    option = flavor_tree.draw_line("planet", planet, system_config.used_flavor_ids)
+    if option is None:
+        log.debug("Planet flavor text: none (the tree offers no line this body has not already shown in its system)")
+        return
+    log.choice("Planet flavor text", option.text, f"line: {option.id}")
+    planet.flavor_key = option.id
+    system_config.system_flavor_count += 1
+    planet.flavor_text_count += 1
+    system_config.used_flavor_ids.append(option.id)

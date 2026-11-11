@@ -50,7 +50,7 @@ def _starlight_w_m2(entry):
     host = entry.parent if entry.is_moon else entry.body
     eccentricity = entry.body.host_eccentricity if entry.is_moon else entry.body.eccentricity
     distance_au = orbit_elements.flux_distance_au(host.distance, eccentricity)
-    return radiation_field.starlight_w_m2(entry.star, distance_au)       # GEN.1441: the host's light and every other star's
+    return radiation_field.starlight_w_m2(entry.star, distance_au) * (getattr(entry.body, "light_factor", None) or 1.0)       # GEN.1441: the host's light and every other star's; GEN.1484: the share a circumbinary planet keeps after the eclipses
 
 
 def _close(value, expected, rel=REL):

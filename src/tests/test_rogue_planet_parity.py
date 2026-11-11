@@ -18,7 +18,7 @@ Since GEN.1111 a rogue planet IS a `Planet`, built by the planet code against a 
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import planet_type
+from planetgen.physics import daylight, outside_hours, planet_type, regional_temperature
 from planetgen.db import models, store
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena import starless_host
@@ -104,6 +104,10 @@ def test_a_rocky_planet_with_no_light_is_warmed_by_its_own_heat_only_when_it_has
 
 STARLIGHT_FIELDS = frozenset({"magnetopause_rp", "uv_surface_index"})
 """The stored quantities that need a star: the stellar wind that holds off a planet's field, and the ultraviolet a star gives the surface."""
+
+NO_SUN_FIELDS = frozenset({*daylight.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS})
+"""The stored quantities of a day under a star (GEN.1496): the solar day, the night, the polar circle, the days a year, the latitude bands that follow a sun and the hours outside they set; a body under
+no star has none, and its day share and daylight hours are 0."""
 
 LIQUID_SURFACE_FIELDS = frozenset({
     "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
@@ -220,7 +224,7 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
+        allowed = STARLIGHT_FIELDS | NO_SUN_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
         if (bound.envelope_mass_fraction or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
             allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:
