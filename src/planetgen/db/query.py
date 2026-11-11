@@ -4503,37 +4503,30 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
 
 def galaxy_placed_sectors(conn):
     """
-    Every sector with a galaxy position, plus its live system count -- the
+    Every sector with a galaxy position, plus its system count -- the
     data the `/galaxy` Galaxy Map (`planetgen/web/maps/galaxymap.py`) plots.
     Unplaced sectors (`center_x_pc IS NULL`) have nothing to plot and are
     excluded at the query itself.
 
-    The system count is a scan of every system in the galaxy, which no longer fits the web limit of a request once the galaxy holds millions
-    of systems (MAP.424: /galaxy gave 504 and the warm-up stopped). It is a stored count (`countcache`, as the table pages' counts are): the
-    answer made under the galaxy's current content stamp is served as it is, an older one is served while one background count makes the next,
-    and with no answer at all the sectors come back at once with `system_count` `None` (not counted yet) for the map to draw as it draws zero.
+    The count is read from `sector_system_counts`, the stored table the Sectors list reads (`list_sectors`), made by one background
+    `refresh_sector_system_counts` through `countcache`. It used to be a scan of every system in the galaxy on every request, which passed the
+    web limit once the galaxy held millions of systems (MAP.424: /galaxy gave 504 and the warm-up stopped). A sector made since the last
+    refresh has no row yet and comes back with `system_count` `None` (not counted yet; the map reads it as zero).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`, `shell_index`, `system_count` (`None` until the first stored count is made).
+            `galactic_radius_pc`, `shell_index`, `system_count`.
     """
-    return _counted(conn, "galaxy-placed-sectors", lambda counting: _placed_sectors(counting, True), lambda quick: _placed_sectors(quick, False))
-
-
-def _placed_sectors(conn, counted):
-    """`galaxy_placed_sectors`' rows, with each sector's system count (`counted`) or without it (`system_count` `None`: no scan of the systems)."""
-    count_sql, join_sql = (
-        ("COALESCE(counts.n, 0)", "LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems WHERE sector_id IS NOT NULL GROUP BY sector_id) counts "
-                                  "ON counts.sector_id = sec.id") if counted else ("NULL", ""))
+    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     rows = conn.execute(
         f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, {count_sql} AS system_count
+               sec.galactic_radius_pc, sec.shell_index, c.system_count AS system_count
         FROM sectors sec
-        {join_sql}
+        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id
         WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
         ORDER BY sec.galactic_radius_pc
         """,

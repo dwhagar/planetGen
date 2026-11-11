@@ -246,16 +246,16 @@ def _placed(mysql_config):
 
 
 def test_the_sectors_the_galaxy_map_plots_carry_their_system_count_from_a_stored_count(counting, mysql_config):
-    """MAP.424: the per-sector system count scanned every system on every request and passed the web limit; it is a stored count now, exact once made."""
+    """MAP.424: the per-sector system count scanned every system on every request and passed the web limit; it is read from `sector_system_counts` now, exact once made."""
     _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
-    rows = _placed(mysql_config)
-    assert [row["name"] for row in rows] == ["One"] and rows[0]["system_count"] == 1
+    assert [row["name"] for row in _placed(mysql_config)] == ["One"]
+    assert _until(lambda: _placed(mysql_config)[0]["system_count"] == 1)
     _place_sector(mysql_config, "Two", (50.0, 5.0, 5.0))
     assert _until(lambda: sorted(row["name"] for row in _placed(mysql_config)) == ["One", "Two"])
     assert _until(lambda: all(row["system_count"] == 1 for row in _placed(mysql_config)))
 
 
-def test_the_sectors_list_never_scans_the_systems_inside_the_request_when_no_count_is_stored(counting, mysql_config, monkeypatch):
+def test_the_galaxy_map_sectors_never_scan_the_systems_inside_the_request_when_no_count_is_stored(counting, mysql_config, monkeypatch):
     """Without a stored answer the sectors come back at once with no count (`None`), the way the table pages fall back to an estimate."""
     _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
     monkeypatch.setattr(countcache, "WAIT_SECONDS", 0.0)
@@ -274,7 +274,7 @@ def test_the_sectors_list_never_scans_the_systems_inside_the_request_when_no_cou
 
 def test_a_sectors_list_under_an_unchanged_stamp_is_not_counted_again(counting, mysql_config, monkeypatch):
     _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
-    assert _placed(mysql_config)[0]["system_count"] == 1
+    assert _until(lambda: _placed(mysql_config)[0]["system_count"] == 1)
     started = []
     real = countcache._start
     monkeypatch.setattr(countcache, "_start", lambda *a: started.append(1) or real(*a))
