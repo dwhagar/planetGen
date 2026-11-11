@@ -212,7 +212,9 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     """
     The enrichment ratio `E` of `species` at `age_myr`: the flux of its ice that the pebbles carry in over the flux the static budget carries with the gas.
 
-    Zero when the species' line is not inside the disk's edge, before the front reaches the line (`arrival_myr`) and from the time the pebbles end (`pebble_end_myr`); between,
+    One, the static budget, for gas that has not crossed the line yet: with `to_au`, when `age_myr` is under the time the gas needs to carry vapor from the line to the place
+    (`lag_myr`), the gas at the place began inside the line with its vapor (GEN.1517; the start state of the disk is the solar gas, not gas with the ices frozen out). Past that
+    the gas crossed the line at `age_myr - lag`: zero when the line is not inside the disk's edge, before the front reaches the line (`arrival_myr`) and from the time the pebbles end (`pebble_end_myr`); between,
     `instant_ratio`. With `to_au` (a place inside the line) the value is the mean over the window `[age - lag_myr, age]` that the gas needs to carry the vapor from the line to the
     place, the window cut at the start of the disk (design note 2.1).
 
@@ -229,11 +231,13 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     line = line_au_of(species, snow_line_au)
     if line >= edge_au(snow_line_au):
         return 0.0
+    lag = 0.0 if to_au is None else lag_myr(line, to_au)
+    if age_myr < lag:
+        return 1.0                                  # the gas at the place has not crossed the line yet: it is the disk's own gas of the start, vapor and all (GEN.1517)
     first = arrival_myr(line, mass_solar)
     last = pebble_end_myr(snow_line_au, mass_solar)
     if first >= last:
         return 0.0
-    lag = 0.0 if to_au is None else lag_myr(line, to_au)
     if lag <= 0.0 or age_myr <= 0.0:
         return instant_ratio(age_myr, mass_solar, metal_ratio) if first <= age_myr < last else 0.0
     window_start = max(age_myr - lag, 0.0)

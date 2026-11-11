@@ -60,8 +60,10 @@ def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_t
     assert lag == pytest.approx(dd.LAG_MYR_PER_AU * (line - place))
     assert dd.lag_myr(5.0, 35.0) == 0.0                                              # a place outside the line has no lag
     first, end = dd.arrival_myr(line), dd.pebble_end_myr(SUN_SNOW_LINE_AU)
-    # before the lagged signal could come (window start at the start of the disk, pebbles not yet at the line): zero
-    assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, to_au=place) == 0.0
+    # before the gas could have crossed the line (the age under the lag): the gas at the place is the disk's own gas of the start, with its vapor (GEN.1517)
+    assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, to_au=place) == 1.0
+    assert dd.enrichment_ratio("CO2", 0.999 * lag, SUN_SNOW_LINE_AU, to_au=place) == 1.0
+    assert dd.enrichment_ratio("CO2", 1.001 * lag, SUN_SNOW_LINE_AU, to_au=place) != 1.0       # past it the gas crossed the line, and the lagged ratio takes over
     # after the pebbles end, the window still holds them: the lagged value is nonzero for as long as the window overlaps the epoch
     late = end + 0.5 * lag
     assert dd.enrichment_ratio("CO2", late, SUN_SNOW_LINE_AU, to_au=place) > 0.0
@@ -128,8 +130,9 @@ def test_the_carbon_and_oxygen_in_the_gas_and_the_solids_stay_the_budget_for_the
 
 
 def test_inside_the_water_line_the_pebble_epoch_gas_is_oxygen_rich_and_the_late_gas_is_the_supply():
-    early = dd.ice_weights(300.0, 0.05, SUN_SNOW_LINE_AU)
+    early = dd.ice_weights(300.0, 0.15, SUN_SNOW_LINE_AU)
     assert early["H2O"] > 1.0
+    assert dd.ice_weights(300.0, 0.05, SUN_SNOW_LINE_AU)["H2O"] == 1.0                    # younger than the lag from the water line: the gas never crossed it (GEN.1517)
     late = dd.ice_weights(300.0, 5.0, SUN_SNOW_LINE_AU)
     assert late["H2O"] == 0.0
     c_static = dc.envelope_c_over_o(300.0, 0.0)
@@ -190,7 +193,7 @@ def test_the_cold_finger_enrichment_is_one_over_one_minus_the_leak_cut_by_the_ic
 
 
 def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_without_keeps_the_static_disk():
-    subject = {"formation_temperature_k": 300.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
+    subject = {"formation_temperature_k": 300.0, "disk_snow_line_au": 0.3, "host_mass_solar": 0.5, "metallicity_fe_h": 0.0}   # a dwarf's giant gathers its gas after the lag from the water line
     assert mixture_giant._disk_ice_weights(subject, 300.0)["H2O"] > 1.0
     assert mixture_giant._disk_ice_weights({"formation_temperature_k": 300.0}, 300.0) is None
     drift = mixture_giant._disk_c_over_o(subject, 0.3)
@@ -199,16 +202,24 @@ def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_withou
     assert math.isfinite(drift)
 
 
-def test_a_giant_subject_with_a_snow_line_gives_its_nitrogen_sulfur_and_noble_gases_the_drift_weights_too():
-    # GEN.1516: `_disk_enrichments` passes the same weights `_disk_c_over_o` does; a subject without a snow line keeps the static factors.
-    subject = {"formation_temperature_k": 250.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
-    drift = mixture_giant._disk_enrichments(subject, 0.6)
+def test_a_giant_subject_hands_the_same_weights_to_its_nitrogen_sulfur_and_noble_gases_as_to_its_carbon_and_oxygen(monkeypatch):
+    # GEN.1516: `_disk_enrichments` passes the weights `_disk_c_over_o` does; a subject without a snow line keeps the static factors.
+    weights = {"H2S": 2.0, "Xe": 3.0, "Kr": 0.5, "Ar": 0.0}
+    monkeypatch.setattr(mixture_giant, "_disk_ice_weights", lambda subject, temperature: weights)
+    drift = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
+    assert drift == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, weights)
+    assert drift["Ar"] == 0.0 and drift["Xe"] == pytest.approx(3.0) and drift["Kr"] == pytest.approx(0.5)
+    monkeypatch.undo()
     static = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
     assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0)
-    assert drift != static
-    weights = mixture_giant._disk_ice_weights(subject, 250.0)
-    assert drift["Ar"] == pytest.approx(weights["Ar"]) and drift["Xe"] == pytest.approx(weights["Xe"])
-    assert all(math.isfinite(value) and value >= 0.0 for value in drift.values())
+
+
+def test_a_giant_that_gathers_its_gas_before_the_vapor_could_reach_it_keeps_the_static_disk():
+    # GEN.1517: a Sun-like giant at 100 K gathers its gas at 0.04 Myr, the argon line is 1 Myr of gas flow away: the gas is the disk's own, with its noble gases
+    subject = {"formation_temperature_k": 100.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
+    weights = mixture_giant._disk_ice_weights(subject, 100.0)
+    assert set(weights.values()) == {1.0}
+    assert mixture_giant._disk_enrichments(subject, 0.6) == pytest.approx(mixture_giant._disk_enrichments({"formation_temperature_k": 100.0}, 0.6), rel=1e-9)
 
 
 def test_a_giant_whose_gas_holds_no_argon_still_makes_a_mixture():

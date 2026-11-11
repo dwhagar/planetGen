@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1547 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1548 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1521 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1522 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 79 | 11 | 4 | 22 | 12 | 128 |
-| T5 | 75 | 24 | 6 | 1 | 1 | 107 |
+| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
 | T6 | 196 | 106 | 30 | 79 | 4 | 415 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 878 | 302 | 75 | 240 | 52 | 1547 |
+| All | 879 | 302 | 75 | 240 | 52 | 1548 |
 
 ## How the labels were given
 
@@ -2604,6 +2604,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE8 | D | T5 | L0 | disk_drift.ice_weights and `disk_condensation._gas_and_solid_atoms(ice_weights=)`: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
 | DE9 | P | T6 | L0 | disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
+| DE11 | D | T5 | L0 | disk_drift.enrichment_ratio: gas at the place that has not crossed a line yet (the age under `lag_myr` from the line to the place) has `E = 1`, the static budget: it is the disc's own gas of the start, which holds every vapor inside its line. Past the lag the gas crossed the line at `age - lag` and the lagged ratio of DE5 applies (a step from 1 to the ratio at the lag, as a gas without diffusion has) | none | gas gathered before the vapor of a line could reach its place | a measured volatile-poor or noble-gas-poor envelope of a giant that gathered its gas early | a transport model with diffusion of the vapor against the gas flow | physics: advection of the start state; the design note of GEN.1472 started the gas at the edge's composition, which is the cold, ice-free supply, and GEN.1517 corrects it | predicted only | - | - |
 
 ## 6.243 Stand-ins of the spacing of orbits against every neighbour
 
