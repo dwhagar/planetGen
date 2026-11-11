@@ -102,10 +102,16 @@ def placed(host, spin_axis, orbit_normal, distance_au):
         return tilt, 0.0, []
     found = []
     for companion in companions:
-        light = radiation_field.companion_light_w_m2(_Only(host, companion), distance_au)
+        light = light_of(host, companion, distance_au)
         offset = tuple(companion.offset_au)
         found.append(Placed(companion.star, light, (_dot(offset, x), _dot(offset, y), _dot(offset, n))))
     return tilt, total, found
+
+
+def light_of(host, companion, distance_au):
+    """The mean light, W/m2, that the one `companion` of `host` puts on a body that circles `host` at `distance_au` (what `placed` and the sky text of GEN.1443 both read)."""
+    from planetgen.physics import radiation_field
+    return radiation_field.companion_light_w_m2(_Only(host, companion), distance_au)
 
 
 def suns_of(host, spin_axis, orbit_normal, distance_au):

@@ -339,7 +339,7 @@ def next_distance_au(distance_au, mass_kg, star_mass_kg, separation=None):
     return distance_au * (1.0 + kappa / 2.0) / (1.0 - kappa / 2.0)
 
 
-def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au=0.0, stream=None):
+def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au=0.0, stream=None, gas_factor=1.0):
     """
     One more planet in an architecture's disk, for a system asked to hold more bodies than the thinning left: the next oligarch out from
     `previous` (a `Seed`, or `None` to start at the disk's inner edge, `first_distance_au`), at the isolation mass of its feeding zone and
@@ -351,7 +351,7 @@ def extra_seed(previous, architecture, star_mass_kg, snow_line_au, metal_ratio, 
     else:
         distance = next_distance_au(previous.distance_au, previous.mass_kg, star_mass_kg, architecture.separation)
     core = planet_mass.oligarch_core_kg(distance, star_mass_kg, snow_line_au, metal_ratio, architecture.disk_scatter, architecture.separation)
-    outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
+    outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
     return Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, 1, False, distance)
 
 
@@ -361,8 +361,9 @@ class Plan:
     past the last one the next oligarchs out (`extra_seed`) for a system asked for more. `seed(i)` is the planet of slot `i`.
     """
 
-    def __init__(self, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, limit=None, floor_au=0.0):
+    def __init__(self, architecture, star_mass_kg, snow_line_au, metal_ratio, fe_h, limit=None, floor_au=0.0, gas_factor=1.0):
         self.architecture = architecture
+        self.gas_factor = gas_factor
         self.seeds = list(architecture.planets if limit is None else architecture.planets[:limit])
         self._context = (star_mass_kg, snow_line_au, metal_ratio, fe_h, floor_au)
 
@@ -372,11 +373,11 @@ class Plan:
     def seed(self, i):
         """The seed of slot `i`, adding oligarchs beyond the last until there is one."""
         while len(self.seeds) <= i:
-            self.seeds.append(extra_seed(self.seeds[-1] if self.seeds else None, self.architecture, *self._context))
+            self.seeds.append(extra_seed(self.seeds[-1] if self.seeds else None, self.architecture, *self._context, gas_factor=self.gas_factor))
         return self.seeds[i]
 
 
-def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0):
+def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, inner=None, maximum=False, floor_au=0.0, gas_factor=1.0):
     """
     The planets of a star (module docstring). Draws, in this order: the disk scatter, the inner system, the outer spacing, the thinning,
     then, for each core past the critical mass beyond the snow line, the gas and migration draws.
@@ -391,6 +392,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         inner (bool or None): `True` gives the star an inner system, `False` none, `None` the observed share (`inner_system_fraction`).
         maximum (bool): The most the disk holds: an inner system, and a starting count two widths of its spread above the mean.
         floor_au (float): The closest a body forms or migrates to, in AU (`sublimation_au`).
+        gas_factor (float): The factor on the chance a core finds gas (`disk_truncation.gas_survival_factor`, GEN.1475); 1 for a star with no companion inside 47 AU.
 
     Returns:
         Architecture: The planets by distance, and what built them.
@@ -419,7 +421,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
     capped_kg, capped = 0.0, 0
     for distance, core, merged in thinned:
         formed_au = distance
-        outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
+        outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source, gas_factor)
         if core > outcome.core_kg:
             capped_kg, capped = capped_kg + core - outcome.core_kg, capped + 1
         migrated = False

@@ -9,7 +9,7 @@ influx on the body, not the dust its own wind lifts (`aerosols.draw_dust` makes 
 
     influx = `EARTH_INFLUX_KG_YR` x (cross-section x focusing) / (the Earth's) x (distance_au)^-`DISTANCE_EXPONENT` x sqrt(M_star / Msun)
 
-* The Earth anchors the scale: about 28 tonnes a day (`EARTH_INFLUX_KG_YR`, [R5220], recalled; the estimates of the different methods run from 5 to 300 tonnes a day).
+* The Earth anchors the scale: about 28 tonnes a day (`EARTH_INFLUX_KG_YR`, [R5228], recalled; the estimates of the different methods run from 5 to 300 tonnes a day).
 * The dust a body meets thins with the star's distance: the density of the zodiacal cloud falls as the distance to the power 1.3 (recalled) and the speed
   at which a body meets it rises as the circular speed, which falls as the distance to the power one half, so the mass per area and time falls as `DISTANCE_EXPONENT` 1.8.
 * A heavier star gives the grains a higher speed, so the flux rises as the square root of its mass; how much dust a star's belts and comets make is not modelled (every star is the Sun's).
@@ -30,7 +30,7 @@ VENUS = dict(mass_kg=4.867e24, radius_m=6.0518e6, distance_au=0.72333, star_mass
 """dict: Venus, the one planet whose cloud holds the species V8 is proposed for: the reference of the supply floor (`sulfur_cloud_set` number `dust_min_share_of_reference`). Source tier T1, tweak level L0."""
 
 EARTH_INFLUX_KG_YR = 1.0e7
-"""float: The mass of cosmic dust that reaches the Earth, kg per year (28 tonnes a day, [R5220], recalled; other methods give 5 to 300 tonnes a day). Stand-in CV11, tier T3, tweak L0."""
+"""float: The mass of cosmic dust that reaches the Earth, kg per year (28 tonnes a day, [R5228], recalled; other methods give 5 to 300 tonnes a day). Stand-in CV11, tier T3, tweak L0."""
 
 DISTANCE_EXPONENT = 1.8
 """float: The mass flux per area falls with the star's distance to this power: the density of the zodiacal dust (1.3, recalled) times the encounter speed (0.5). Stand-in CV12, tier T3, tweak L1."""

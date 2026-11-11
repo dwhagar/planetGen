@@ -22,7 +22,8 @@
     "title_template": "{title} - {site_name}",
     "theme_color_light": "#f6f7fb",
     "theme_color_dark": "#14151e",
-    "assets_dir": ""
+    "assets_dir": "",
+    "belt_bodies_drawn": 200
   },
   "icons": {
     "favicon_svg": "",

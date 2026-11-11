@@ -67,6 +67,7 @@ export function radiusUnitsCompressed(kind, radiusKm) {
   if (kind === "star") return STAR_RADIUS_UNITS * Math.pow(Math.max(radiusKm, 1) / SUN_RADIUS_KM, 0.35);
   if (kind === "comet") return 0.18;
   if (kind === "moon") return 0.12 + 0.12 * Math.log10(1 + radiusKm / 100);
+  if (kind === "belt_member") return 0.03 + 0.03 * Math.log10(1 + radiusKm / 20); // MAP.414: a body of a belt, smaller than any moon
   return 0.35 + 0.45 * Math.log10(1 + radiusKm / 500); // planet
 }
 
@@ -183,6 +184,8 @@ export function createLayout(scene, mode) {
     mode: mode,
     note: NOTES[compressed ? MODE_COMPRESSED : MODE_TRUE],
     radiusOf: (ref) => radii[ref],
+    // The drawn radius of a body that is not in the scene's lists (a belt's member, MAP.414), from its radius in km.
+    radiusFor: (kind, radiusKm) => (compressed ? radiusUnitsCompressed(kind, radiusKm) : radiusKm / UNIT_KM),
     // The drawn offset of a body `rel` km from `around`, in world units.
     place: function (around, rel) {
       if (!compressed) return [rel[0] / UNIT_KM, rel[1] / UNIT_KM, rel[2] / UNIT_KM];

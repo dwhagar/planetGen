@@ -13,7 +13,7 @@ system); everything else is written here from the row of the system detail. Impo
 from html import escape
 
 from planetgen.describe import sheet as sheet_registry
-from planetgen.physics import class_code, habitability
+from planetgen.physics import class_code, habitability, planet_type
 from planetgen.physics.habitability_world import TIER_NAMES
 
 def _class_sentence(name, row, values):
@@ -48,14 +48,15 @@ def _surface_sentence(row, values):
     if row.get("body_type") == "g":
         return None
     parts = []
+    ground = planet_type.has_ground_type(row.get("planet_type"))      # UX.297: no ground, no surface: the numbers are at the 1 bar reference level
     if values.get("surface_temperature_k"):
-        parts.append(f"its surface is {values['surface_temperature_k']}")
+        parts.append(f"its surface is {values['surface_temperature_k']}" if ground else f"its temperature at the 1 bar reference level is {values['surface_temperature_k']}")
     pressure = row.get("atmospheric_pressure_pa")
     airless = pressure is not None and pressure < sheet_registry.VACUUM_LIMIT_PA
     if airless:
         parts.append("it has no atmosphere")
     elif values.get("atmospheric_pressure_pa"):
-        parts.append(f"the air at the surface is {values['atmospheric_pressure_pa']}")
+        parts.append(f"the air at the surface is {values['atmospheric_pressure_pa']}" if ground else f"the air at its reference level is {values['atmospheric_pressure_pa']}")
     if values.get("gravity_g"):
         parts.append(f"gravity is {values['gravity_g']}")
     if not parts:
