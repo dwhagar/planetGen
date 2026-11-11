@@ -99,3 +99,57 @@ def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monke
     with pytest.raises(ValueError):
         run_galaxy._sky_unit(unit, lambda done, total: None)
     assert len(calls) == 1
+
+
+def facts(**changes):
+    return {"uptime": 5000, "aborted_clients": 3, "aborted_connects": 0, "wait_timeout": 28800, "net_read_timeout": 30, "net_write_timeout": 60, "max_allowed_packet": 67108864, **changes}
+
+
+def test_the_verdict_names_a_restart_an_idle_timeout_an_abort_or_nothing_it_can_see():
+    from planetgen.db import connection_loss as loss
+    before = facts()
+    assert "restarted" in loss.verdict(before, facts(uptime=40), 100, 1800)                                  # the uptime fell: the server came back
+    assert "restarted" in loss.verdict(before, facts(uptime=5100), 100, 1800)                                # it grew by 100 s in 1800 s: it was up for only the last 100
+    assert loss.verdict(before, facts(uptime=6800), 29000, 1800).startswith("idle timeout")                  # idle for more than wait_timeout
+    assert "aborted the client" in loss.verdict(before, facts(uptime=6800, aborted_clients=4), 100, 1800)
+    assert "something between" in loss.verdict(before, facts(uptime=6800), 100, 1800)
+    assert "cannot tell" in loss.verdict(facts(uptime=None), facts(), 100, 1800)
+
+
+def test_facts_reads_what_it_can_and_a_refused_status_gives_none():
+    from planetgen.db import connection_loss as loss
+
+    class Refuses:
+        def execute(self, sql, params=()):
+            raise pymysql.err.OperationalError(1227, "Access denied")
+
+    assert loss.facts(Refuses()) == dict.fromkeys(("uptime", "aborted_clients", "aborted_connects", "wait_timeout", "net_read_timeout", "net_write_timeout", "max_allowed_packet"))
+
+
+def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatch):
+    from planetgen.db import connection_loss as loss
+    said, calls = [], []
+    monkeypatch.setattr(loss, "facts", lambda conn: facts(uptime=40 if calls else 5000))
+    monkeypatch.setattr(run_galaxy.log, "normal", said.append)
+    monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
+    monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
+
+    def chart(conn, center, limit, on_batch=None):
+        calls.append(1)
+        if len(calls) == 1:
+            raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
+        return {"tiers": [], "stars": 1, "seconds": 1.0, "cell": (0, 0, 0), "floors": []}
+
+    monkeypatch.setattr(sky_charting, "chart", chart)
+    run_galaxy._sky_unit({"database": {}, "sky": {"center": [0, 0, 0], "limit": 7.5}}, lambda done, total: None)
+    assert any("MySQL connection lost: MySQL was restarted" in line for line in said)
+
+
+def test_facts_reads_a_real_server(mysql_config):
+    from planetgen.db import connection_loss as loss
+    conn = store.get_connection(mysql_config)
+    try:
+        found = loss.facts(conn)
+    finally:
+        conn.close()
+    assert found["uptime"] > 0 and found["wait_timeout"] > 0 and found["max_allowed_packet"] > 0 and found["aborted_clients"] >= 0
