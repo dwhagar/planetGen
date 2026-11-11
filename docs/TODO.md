@@ -13118,6 +13118,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 23, blocked on GEN.1510 (PR 6019). Prerequisites: GEN.1464 (parts A and B), GEN.1510. Related: GEN.1464, GEN.1446, GEN.1502, GEN.1503, GEN.1509, GEN.1510.
   Filed by the TODO thread.
 
+- [ ] **GEN.1542 Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists**
+  Lane 14 (as the lane reported 2:07 PM EST on 2026-11-11), left out of GEN.1425 (PR 6016): V8 and V9 of the Venus sulfur-cloud set stay off by default because V8 needs a per-planet dust supply that is not built. Do: derive the dust a planet can lift into its air from what exists (surface dust and sand from composition and wind, volcanic and impact dust from the activity and age of the body, the air's density and winds), decide the V8 gate from it, register the constants in GEN.725 at the right tier and tweak level, and say in the change note how many bodies gain the V8 layer. Lock item if it changes stored output.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14. Prerequisites: GEN.1425. Related: GEN.1425, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
