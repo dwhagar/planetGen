@@ -37,10 +37,10 @@ RANGE_NM = (400.0, 1050.0)
 DATASET = fetch.Dataset(
     key="methane_visible",
     title="Methane absorption coefficients, 300 to 1050 nm at 1 nm resolution ([R2259], NASA PDS GBAT_0001)",
-    source="[R2259], Icarus 133, 134; NASA PDS Atmospheres Node volume GBAT_0001 (no licence stated)",
+    source="[R2259], Icarus 133, 134; NASA PDS Atmospheres Node volume GBAT_0001 (no license stated)",
     pieces=(fetch.Piece(TABLE, "https://atmos.nmsu.edu/PDS/data/gbat_0001/data/1995low.tab",
                         "d8071e071c2c0a60052ec6c164e151bd42847acf5d9bfbe1e9b2f76bf49a788b", 101250),),
-    replaces="the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands and the windows of a giant's colour",
+    replaces="the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands and the windows of a giant's color",
     fill="AD12",
     fallback="the 35 band means of the gas table (physics/data/gases.json) for methane",
 )

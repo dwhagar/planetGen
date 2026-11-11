@@ -235,6 +235,7 @@ NULL_IN_THIS_GALAXY = {
     **{("field_members", column): CHANCE for column in (
         "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
     ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
+    **{(table, "class_fudge_values"): CHANCE for table in ("moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},

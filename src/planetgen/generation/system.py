@@ -1237,7 +1237,7 @@ class StarSystem:
                 star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)
             with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
                 activity.generate_activity(star)
-            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronisation time {result.sync_time_yr:.3g} yr)")
+            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr)")
         for node_no, pair in under.items():
             if len(pair) == 2:
                 node = by_no[node_no]
