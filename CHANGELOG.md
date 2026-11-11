@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3855] - 2026-11-11
+
+**Headline:** The Queue pages show run durations, ETA ranges and heartbeat ages in their original form again ("3 m 05 s", "12.4 s").
+
+### Fixed
+- **OPS.142 defined a second `_duration` in `web/queue_page.py`**, which replaced the first at import and changed every figure that used it. The other-job rows' short form is now `_beat_gap`; a test checks the two forms and that no function of the module is defined twice.
+generation-output: none
+
 ## [8.0.3854] - 2026-11-11
 
 **Headline:** The program can now work out how far a planet's tilt wanders under the pull of its star, moons, sibling planets and a companion star; nothing reads it yet, so no planet changes.
