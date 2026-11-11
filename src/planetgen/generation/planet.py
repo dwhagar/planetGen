@@ -200,8 +200,8 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavor lists (`flavor_text` reads it).
+        flavor_key (str or None): The id of the flavor line `life.decide_flavor_text` drew from the tree
+                                  `physics/flavor_tree.py` (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
@@ -251,7 +251,7 @@ class Planet(PlanetaryObject):
         *body_strength.FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "collision_count",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "collision_count",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -284,6 +284,8 @@ class Planet(PlanetaryObject):
     collision_count = 0
     """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
 
+    light_factor = None
+    """float or None: The share of its host's light a planet keeps after the eclipses of its sky (`physics/eclipses.py`, GEN.1484): below 1 for a circumbinary planet, `None` (all of it) for every other body."""
     sky_suns = None
     """str or None: The other suns in a planet's sky as JSON text (`physics/sky_suns.py`, GEN.1458); `None` for a lone star, a moon, and a body not yet placed."""
     oddities = ()
@@ -390,6 +392,7 @@ class Planet(PlanetaryObject):
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
         self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
+        self.light_factor = None     # the share of its light it keeps after the eclipses of its sky (`eclipses.light_factor_of`, set with its air, GEN.1484)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.collision_count = collision_count
         self.atm_molar_density = None

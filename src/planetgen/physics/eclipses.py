@@ -32,12 +32,15 @@ The orbits are circular and the observer is taken as a point, as everywhere in t
 cases are the Moon and the Sun for the Earth (the Moon touches the Sun's disk for 1.5e-4 of the time and covers 3.6e-5 of its light on average, from `5.1` degrees of inclination) and the transits of
 Venus (eight in 243 years, about six hours each, 2.4e-5 of the time).
 
-Stand-ins are the rows EC1 to EC3 of section 6.249 of the gap plan.
+Stand-ins are the rows EC1 to EC4 of section 6.249 of the gap plan. GEN.1484 applies `light_factor_of` (a planet of a close pair) to the light the planet is generated with.
 """
 
+import functools
 import math
 
 import numpy as np
+
+from planetgen.physics import constants, spin
 
 TRACK_SAMPLES = 400
 """int: Points along a crossing the area is integrated at."""
@@ -138,3 +141,46 @@ def pair(front_radius_km, behind_radius_km, separation_au, pair_period_yr, baryc
     omega = _TWO_PI * separation_au / (pair_period_yr * barycenter_au)        # rad per yr
     covered, touched = _shares(alpha_c, alpha_s, beta_max, omega * pair_period_yr / 2.0)      # two crossings a period
     return covered, touched
+
+
+@functools.lru_cache(maxsize=4096)
+def _pair_light_lost(radius_a, luminosity_a, radius_b, luminosity_b, separation_au, pair_period_yr, distance_au, inclination_deg, km_per_au):
+    """`pair_light_lost` on numbers (the cache key: a planet asks again for each light it takes, and the crossing integral costs tens of milliseconds)."""
+    total = luminosity_a + luminosity_b
+    if not total > 0.0:
+        return 0.0
+    (large_r, large_l), (small_r, small_l) = sorted(((radius_a, luminosity_a), (radius_b, luminosity_b)), key=lambda star: -star[0])
+    small_covered, _ = pair(large_r, small_r, separation_au, pair_period_yr, distance_au, inclination_deg, km_per_au)
+    large_covered, _ = pair(small_r, large_r, separation_au, pair_period_yr, distance_au, inclination_deg, km_per_au)
+    return (small_covered * small_l + large_covered * large_l) / total / 2.0
+
+
+def pair_light_lost(star_a, star_b, separation_au, pair_period_yr, distance_au, inclination_deg, km_per_au):
+    """
+    The share of the light of a close pair that a planet `distance_au` from its barycenter loses to the stars eclipsing each other, averaged over a long time (GEN.1484). Each period the
+    larger star crosses the smaller one's disk once (covering a share of the smaller one's light, `pair(larger, smaller, ...)`) and the smaller crosses the larger once, so each
+    crossing type is counted once a period, half of what `pair` gives (it counts two crossings of one kind a period). The lost light is the covered share of each star behind times its luminosity,
+    over the pair's total.
+    """
+    return _pair_light_lost(float(star_a.radius), float(star_a.luminosity), float(star_b.radius), float(star_b.luminosity), float(separation_au), float(pair_period_yr),
+                            float(distance_au), float(inclination_deg), float(km_per_au))
+
+
+def light_factor_of(planet):
+    """
+    The share of its host's light a planet keeps after the eclipses of its sky (GEN.1484): 1 less `pair_light_lost` for a planet of a close pair (its host is the pair's proxy, which holds both stars, their
+    separation and period, and the plane they swing in), `None` for every other planet (a lone star, a moon, a planet of one star of a wide pair), so their light is as it was. The sibling planets and
+    moons that cross a star cover under 1e-4 of the light for 93 percent of planets (section 6.249 of the gap plan, rows EC1 to EC4) and are not applied.
+    """
+    host = getattr(planet, "star", None)
+    stars = getattr(host, "stars", None)
+    if getattr(planet, "is_moon", False) or not stars or len(stars) != 2 or not getattr(planet, "distance", None):
+        return None
+    period = getattr(host, "binary_mutual_orbital_period_years", None)
+    plane = (getattr(host, "binary_mutual_orbital_inclination_deg", None), getattr(host, "binary_mutual_orbital_ascending_node_deg", None))
+    if not period or None in plane:
+        return None
+    tilt = spin.obliquity_between(spin.orbit_normal(getattr(planet, "orbital_inclination_deg", None) or 0.0, getattr(planet, "orbital_ascending_node_deg", None) or 0.0),
+                                  spin.orbit_normal(*plane))
+    lost = pair_light_lost(stars[0], stars[1], host.binary_separation_au, period, float(planet.distance), tilt, constants.AU_TO_KM)
+    return None if lost <= 0.0 else max(0.0, 1.0 - lost)

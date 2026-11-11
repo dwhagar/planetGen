@@ -1549,6 +1549,7 @@
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
 -- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
+-- v242 (GEN.1484): `planets`, `moons` and `rogue_planets` gain `light_factor` (DOUBLE, NULL): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other, NULL for every other body.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2568,6 +2569,7 @@ CREATE TABLE IF NOT EXISTS planets (
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3101,6 +3103,7 @@ CREATE TABLE IF NOT EXISTS moons (
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4584,6 +4587,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
+    light_factor                  DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
@@ -5251,7 +5255,7 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 
 
 -- ---------------------------------------------------------------------
--- system_summary (v238, GEN.1479): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
+-- system_summary (v238, GEN.1479; v241, GEN.1478): a narrow row for each star system that says which formula last wrote the numbers derived from the system's
 -- own rows, so the jobs that refresh them (`rescore-habitability`) take only the systems that are not current. `habitability_stamp` is the stamp
 -- of the code that scored the system's planets and moons (`db/derived_stamp.py`: a hash of the physics source, so a changed formula is a different
 -- stamp); NULL until the system is scored. Written by the system save and by `store.refresh_habitability`. It is a side table, not columns of
@@ -5260,11 +5264,43 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 CREATE TABLE IF NOT EXISTS system_summary (
     star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     habitability_stamp  INT UNSIGNED NULL,
+    -- v241 (GEN.1478): what the system's rows add up to, so no reader sums them again (`db/system_summary.py`): the stars' mass, the stars', planets' and
+    -- moons' mass, the brightest star's and all the stars' luminosity (W), and the counts of stars, planets, moons, belts and comets. Written by the system
+    -- save and the editor; NULL for a system with no row of that kind (no star: no mass).
+    stars_mass_kg                DOUBLE NULL,
+    system_mass_kg               DOUBLE NULL,
+    brightest_star_luminosity_w  DOUBLE NULL,
+    total_luminosity_w           DOUBLE NULL,
+    star_count                   SMALLINT UNSIGNED NULL,
+    planet_count                 SMALLINT UNSIGNED NULL,
+    moon_count                   SMALLINT UNSIGNED NULL,
+    belt_count                   SMALLINT UNSIGNED NULL,
+    comet_count                  SMALLINT UNSIGNED NULL,
 
     CONSTRAINT fk_system_summary_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with
+-- (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version`
+-- of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no
+-- result: the draws are kept by the generator on the body and this keeps them for the stored galaxy. It goes with its system (`ON DELETE CASCADE`) and an edit of the system clears its rows (`db/edits.py`).
+CREATE TABLE IF NOT EXISTS body_history (
+    star_system_id      BIGINT UNSIGNED NOT NULL,
+    body_type           TINYINT UNSIGNED NOT NULL,
+    body_id             BIGINT UNSIGNED NOT NULL,
+    birth_eccentricity  DOUBLE NULL CHECK (birth_eccentricity IS NULL OR birth_eccentricity >= 0),
+    birth_spin_rate     DOUBLE NULL,
+    birth_obliquity_deg DOUBLE NULL CHECK (birth_obliquity_deg IS NULL OR birth_obliquity_deg BETWEEN 0 AND 180),
+    capture_draw_1      FLOAT NULL CHECK (capture_draw_1 IS NULL OR capture_draw_1 BETWEEN 0 AND 1),
+    capture_draw_2      FLOAT NULL CHECK (capture_draw_2 IS NULL OR capture_draw_2 BETWEEN 0 AND 1),
+    formula_version     TINYINT UNSIGNED NOT NULL,
+
+    PRIMARY KEY (star_system_id, body_type, body_id),
+    CONSTRAINT fk_body_history_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- sky_tier_draws (v216, VIEW.25): the spheres the sky tiers have drawn. Charting draws the stars a system's sky needs (`generation/sky_tiers.py`: luminosity bands of 50 Lsun and up,
