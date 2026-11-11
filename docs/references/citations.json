@@ -18103,7 +18103,7 @@
     },
     "R3621": {
       "kind": "paper",
-      "label": "Pu and Wu 2015",
+      "label": "Pu and Wu 2015b",
       "title": "Spacing of Kepler Planets: Sculpting by Dynamical Instability"
     },
     "R3622": {
@@ -26080,6 +26080,11 @@
       "kind": "paper",
       "label": "Parai and Mukhopadhyay 2015",
       "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts"
+    },
+    "R5220": {
+      "kind": "paper",
+      "label": "Pu (濮勃南) and Wu (武延庆) 2015a",
+      "title": "SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY"
     }
   }
 }

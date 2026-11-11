@@ -219,6 +219,56 @@ def planet_exclusion(distance_au, eccentricity, mass_kg, central_mass_kg, new_ma
     return inner, outer
 
 
+def edge_gap_hill_radii(inner_au, inner_eccentricity, inner_mass_kg, outer_au, outer_eccentricity, outer_mass_kg, central_mass_kg):
+    """The gap between two planets in mutual Hill radii (at their mean distance), from the inner one's apoapsis to the outer one's periapsis: what the pairwise floor `MUTUAL_HILL_RADII_SEPARATION` counts."""
+    radius = 0.5 * (inner_au + outer_au) * ((inner_mass_kg + outer_mass_kg) / (3.0 * central_mass_kg)) ** (1.0 / 3.0)
+    return (outer_au * (1.0 - outer_eccentricity) - inner_au * (1.0 + inner_eccentricity)) / radius
+
+
+def effective_spacing(gaps):
+    """`K_eff = mean - 0.5 sigma` of a window's gaps in mutual Hill radii (Pu and Wu 2015, Eq. 10; sigma is the population spread)."""
+    mean = sum(gaps) / len(gaps)
+    return mean - 0.5 * math.sqrt(sum((gap - mean) ** 2 for gap in gaps) / len(gaps))
+
+
+def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg, start_au):
+    """
+    The nearest distance, at or beyond `start_au`, a new planet may sit if it is to be the last of a chain of `tuning.CHAIN_WINDOW` planets whose gaps have
+    `effective_spacing` of at least `tuning.CHAIN_K_EFF` mutual Hill radii (GEN.1521).
+
+    Args:
+        inner_planets (list): `(distance_au, eccentricity, mass_kg)` of the planets just inside, in orbital order, with no belt among them; only the last
+            `CHAIN_WINDOW - 1` count. Fewer than that, or a `CHAIN_K_EFF` of 0, leave `start_au` as it is.
+        start_au (float): The pairwise rules' nearest distance.
+
+    The spacing rises with the distance, so it is found by doubling the step from `start_au` and bisecting.
+    """
+    need = tuning.CHAIN_WINDOW - 1
+    if not tuning.CHAIN_K_EFF > 0.0 or len(inner_planets) < need:
+        return start_au
+    window = list(inner_planets)[-need:]
+    gaps = [edge_gap_hill_radii(a[0], a[1], a[2], b[0], b[1], b[2], central_mass_kg) for a, b in zip(window, window[1:])]
+    last = window[-1]
+
+    def spacing(distance):
+        return effective_spacing(gaps + [edge_gap_hill_radii(last[0], last[1], last[2], distance, new_eccentricity, new_mass_kg, central_mass_kg)])
+
+    if spacing(start_au) >= tuning.CHAIN_K_EFF:
+        return start_au
+    high = start_au
+    for _ in range(80):
+        high *= 1.5
+        if spacing(high) >= tuning.CHAIN_K_EFF:
+            break
+    else:
+        return start_au                                  # a gap that no distance closes (a window whose gaps are not finite): leave the pairwise rule
+    low = start_au
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        low, high = (middle, high) if spacing(middle) < tuning.CHAIN_K_EFF else (low, middle)
+    return high
+
+
 def belt_exclusion(lower_au, upper_au, new_mass_kg, central_mass_kg, new_eccentricity=0.0):
     """
     The stretch of semi-major axis a new planet may not take because of a belt on `[lower_au, upper_au]`: its Hill sphere (five Hill radii, the
