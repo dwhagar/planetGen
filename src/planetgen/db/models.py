@@ -67,6 +67,7 @@ asteroid_belts = sa.Table(
     sa.Column('scattered_mass_earth', mysql.DOUBLE(), nullable=True),
     sa.Column('stirred', mysql.TINYINT(), nullable=True),
     sa.Column('origin_history', sa.Text(), nullable=True),
+    sa.Column('flavor_key', sa.String(32), nullable=True),
     sa.Column('origin_sentence', sa.Text(), nullable=True),
     sa.Column('scatter_fates', sa.Text(), nullable=True),
     sa.Column('largest_body_km', mysql.DOUBLE(), nullable=True),

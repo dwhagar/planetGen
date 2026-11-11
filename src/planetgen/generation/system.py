@@ -567,7 +567,8 @@ class StarSystem:
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
             for obj in self.all_planets:
-                if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
+                if obj.body_type == 'a': # An asteroid belt carries no life data; it shows a line of the tree's belt scope (GEN.1433).
+                    planetLife.decide_flavor_text_alone(obj, "belt")
                     continue
                 self._finish_planet(obj)
                 for moon in obj.moons:

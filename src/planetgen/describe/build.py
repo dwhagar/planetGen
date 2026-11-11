@@ -629,6 +629,8 @@ def _belt_section(belt):
         blocks.append(prose("summary", belt.origin_sentence, *belt.origin_history))
     if belt.history:
         blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
+    if belt.flavor_text:      # GEN.1433
+        blocks.append(prose("flavor", f"Sensors show {belt.flavor_text}"))
     return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 

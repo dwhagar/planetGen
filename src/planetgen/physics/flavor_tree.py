@@ -25,7 +25,7 @@ import json
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
+from planetgen.physics import constants, elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
 from planetgen.physics import unit_registry as units
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -35,7 +35,7 @@ _yr_to_h = units.converter("yr", "h")
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 """str: The data file."""
 
-SCOPES = ("system", "planet")
+SCOPES = ("system", "planet", "belt")
 """tuple: The scopes the file holds a tree for."""
 
 QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen", "starless", "is_moon", "tidally_locked")
@@ -124,8 +124,29 @@ def _tree():
     return _cache["tree"]
 
 
-def quantities_of(body):
-    """The named quantities the gates read for `body`: the table of `oddities.quantities_of` and `QUANTITIES`. A quantity the body lacks is left out and a gate on it fails."""
+BELT_QUANTITIES = ("belt_mass_earth", "belt_inner_au", "belt_outer_au", "belt_width_ratio", "belt_largest_body_km", "belt_stirred")
+"""tuple: The quantities of the `belt` scope (GEN.1433): the belt's mass in Earth masses, its edges in AU, the outer edge over the inner, its largest body in km, and whether a giant stirs it (1 or 0)."""
+
+
+def _belt_quantities(belt):
+    """The quantities of an asteroid belt, for the ones it has."""
+    found = {}
+    mass, inner, outer = getattr(belt, "mass_kg", None), getattr(belt, "lower_limit", None), getattr(belt, "upper_limit", None)
+    if mass:
+        found["belt_mass_earth"] = mass / constants.EARTH_MASS_TO_KG
+    if inner and outer:
+        found["belt_inner_au"], found["belt_outer_au"], found["belt_width_ratio"] = inner, outer, outer / inner
+    if getattr(belt, "largest_body_km", None):
+        found["belt_largest_body_km"] = belt.largest_body_km
+    if getattr(belt, "stirred", None) is not None:
+        found["belt_stirred"] = 1 if belt.stirred else 0
+    return found
+
+
+def quantities_of(body, scope="planet"):
+    """The named quantities the gates read for `body`: the table of `oddities.quantities_of` and `QUANTITIES` (a belt's are `BELT_QUANTITIES`). A quantity the body lacks is left out and a gate on it fails."""
+    if scope == "belt":
+        return _belt_quantities(body)
     found = oddities.quantities_of(body)
     ground = planet_type.has_ground(body) and getattr(body, "surface_liquid", None) not in surface_liquid_world.LAVA_IDS
     found["has_ground"] = 1 if ground else 0
@@ -161,7 +182,7 @@ def _life_quantities(body):
 def walk(scope, body, off=()):
     """Every line the tree offers `body` in `scope`, as `Option`s in file order (retired lines are never offered)."""
     trees, lines = _tree()
-    found = quantities_of(body) if body is not None else {}
+    found = quantities_of(body, scope) if body is not None else {}
     options = []
 
     def visit(node, multiplier):
@@ -184,7 +205,7 @@ def walk(scope, body, off=()):
 def seed_of(scope, body, star=None):
     """The seed of the body's own flavor stream: what is final about the body and its star, nothing about the order the system made its bodies in."""
     star = star if star is not None else getattr(body, "star", None)
-    return (f"flavor:{scope}:{getattr(body, 'is_moon', False)}:{getattr(body, 'mass', None)!r}:{getattr(body, 'radius', None)!r}:"
+    return (f"flavor:{scope}:{getattr(body, 'is_moon', False)}:{getattr(body, 'mass', getattr(body, 'mass_kg', None))!r}:{getattr(body, 'radius', getattr(body, 'upper_limit', None))!r}:"
             f"{getattr(body, 'distance', None)!r}:{getattr(star, 'age', None)!r}:{getattr(star, 'mass', None)!r}")
 
 

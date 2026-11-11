@@ -1222,6 +1222,97 @@
      ]
     }
    ]
+  },
+  "belt": {
+   "id": "belt",
+   "lines": [
+    {
+     "id": "belt:0",
+     "weight": 1.0,
+     "text": "a wide ring of rock and ice debris that never gathered into a planet."
+    },
+    {
+     "id": "belt:1",
+     "weight": 1.0,
+     "text": "countless small bodies, so far apart that a ship could cross the ring without passing close to one."
+    },
+    {
+     "id": "belt:2",
+     "weight": 1.0,
+     "text": "a faint band of dust and rock chips, brightest where the pieces collide."
+    }
+   ],
+   "children": [
+    {
+     "id": "belt.stirred",
+     "gate": [
+      {
+       "quantity": "belt_stirred",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:3",
+       "weight": 1.0,
+       "text": "a field kept stirred by a giant's pull, with fresh collision debris across its width."
+      },
+      {
+       "id": "belt:4",
+       "weight": 1.0,
+       "text": "streams of broken rock thrown out of the ring by a giant's gravity."
+      }
+     ]
+    },
+    {
+     "id": "belt.large_body",
+     "gate": [
+      {
+       "quantity": "belt_largest_body_km",
+       "min": 500
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:5",
+       "weight": 1.0,
+       "text": "one large, round body among the rubble, the biggest by far."
+      }
+     ]
+    },
+    {
+     "id": "belt.massive",
+     "gate": [
+      {
+       "quantity": "belt_mass_earth",
+       "min": 0.001
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:6",
+       "weight": 1.0,
+       "text": "a belt heavy enough that its own pull shows in the motion of the planets near it."
+      }
+     ]
+    },
+    {
+     "id": "belt.narrow",
+     "gate": [
+      {
+       "quantity": "belt_width_ratio",
+       "lt": 1.5
+      }
+     ],
+     "lines": [
+      {
+       "id": "belt:7",
+       "weight": 1.0,
+       "text": "a narrow ring with sharp edges, held in a thin line by the pull of a planet."
+      }
+     ]
+    }
+   ]
   }
  }
 }

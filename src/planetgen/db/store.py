@@ -3398,7 +3398,7 @@ BELT_FIELDS = (
     # GEN.1069: where the belt came from and what happened to it; None for a belt made without an origin
     object_rows.optional("origin_cause", "origin"), object_rows.optional("formation_snow_line_au"),
     object_rows.optional("primordial_mass_earth"), object_rows.optional("cleared_mass_earth"), object_rows.optional("scattered_mass_earth"),
-    object_rows.optional("origin_sentence"), object_rows.optional("largest_body_km"),
+    object_rows.optional("origin_sentence"), object_rows.optional("largest_body_km"), object_rows.optional("flavor_key"),
     object_rows.computed("stirred", lambda belt, context: None if belt.stirred is None else int(bool(belt.stirred)),
                          lambda row: {"stirred": None if row["stirred"] is None else bool(row["stirred"])}),
     object_rows.computed("co_causes", lambda belt, context: _json_or_none(belt.co_causes), lambda row: {"co_causes": _json_loads(row["co_causes"], [])}),

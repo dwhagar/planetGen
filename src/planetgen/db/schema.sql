@@ -3446,6 +3446,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     stirred                     TINYINT(1) NULL,  -- v204 (GEN.1069): whether a giant stirs the belt
     origin_history              TEXT NULL,  -- v204 (GEN.1069): the sentences of what shaped the belt, a JSON list
     origin_sentence             TEXT NULL,  -- v204 (GEN.1069): the sentence of where the belt came from, for its page
+    flavor_key                  VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the belt shows, an id of the belt scope of physics/data/flavor_tree.json (NULL for none)
     scatter_fates               TEXT NULL,  -- v204 (GEN.1069): for an outer disk, the share of its mass in each population after the scatter step, a JSON object
     largest_body_km             DOUBLE NULL,  -- v204 (GEN.1069): the largest body of the belt (Dc), km, settled with its mass
     history_text                TEXT NULL,  -- v210 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v205
@@ -5282,6 +5283,7 @@ CREATE TABLE IF NOT EXISTS system_summary (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
+-- v244 (GEN.1433): `asteroid_belts` gain `flavor_key` (VARCHAR(32), NULL): the id of the flavor line the belt shows, a line of the `belt` scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244.
 -- body_history (v243, GEN.1497): the numbers a planet's or moon's history leaves that cannot be worked out again from what is stored (`physics/body_history.py`): the eccentricity and the spin it was born with
 -- (`birth_eccentricity`, `birth_spin_rate`, `birth_obliquity_deg`), the two uniforms that decided whether the spin was caught in a resonance (`capture_draw_1`, `capture_draw_2`) and the `formula_version`
 -- of the set of formulas that wrote the row. A number the body does not have is NULL. `body_type` is the kind table's code (`effect_ledger.BODY_CODES`: 2 planets, 3 moons), `body_id` its row id. It changes no

@@ -68,3 +68,29 @@ def test_a_roll_that_fails_leaves_the_body_without_a_line(monkeypatch):
     body = _body(starless=True)
     life.decide_flavor_text_alone(body)
     assert body.flavor_key is None and body.flavor_text_count == 0
+
+
+def _belt(**extra):
+    values = dict(mass_kg=3.0e21, lower_limit=2.2, upper_limit=3.6, largest_body_km=400.0, stirred=False, distance=2.7, flavor_key=None, flavor_text_count=0,
+                  star=SimpleNamespace(age=3.0, mass=2.0e30))
+    values.update(extra)
+    return SimpleNamespace(**values)
+
+
+def test_a_plain_belt_is_offered_the_three_lines_for_a_plain_belt_and_the_gated_ones_add_to_them():
+    plain = {o.id for o in flavor_tree.walk("belt", _belt())}
+    assert len(plain) >= 3 and all(i.startswith("belt:") for i in plain)
+    assert {o.id for o in flavor_tree.walk("belt", _belt(stirred=True))} - plain
+    assert {o.id for o in flavor_tree.walk("belt", _belt(largest_body_km=900.0))} - plain
+    assert {o.id for o in flavor_tree.walk("belt", _belt(mass_kg=1.0e23))} - plain
+    assert {o.id for o in flavor_tree.walk("belt", _belt(upper_limit=2.8))} - plain
+
+
+def test_a_belt_draws_its_own_line(monkeypatch):
+    monkeypatch.setattr(tuning, "FLAVOR_CHANCE_PLANET", 1.0)
+    belt = _belt()
+    life.decide_flavor_text_alone(belt, "belt")
+    assert belt.flavor_key and belt.flavor_key.startswith("belt:") and flavor_tree.text_of(belt.flavor_key)
+    other = _belt()
+    life.decide_flavor_text_alone(other, "belt")
+    assert other.flavor_key == belt.flavor_key
