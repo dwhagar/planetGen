@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -1178,6 +1178,7 @@ class StarSystem:
         # the first under the node's slot 1, has it turned half way round)
         if not direct and plan.slot_under(next(m for m in plan.members if m.member_no == first), pair_no) == 1:
             pair_node = dataclasses.replace(pair_node, arg_periapsis_deg=(pair_node.arg_periapsis_deg + 180.0) % 360.0)
+        self._tidal_spin_of_stars(nodes, slots, [(first, primary), (second, secondary), *((member.member_no, built[member.member_no]) for member in others)])
         if self.binary_type == "close":
             self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
@@ -1186,6 +1187,50 @@ class StarSystem:
             # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
             # instances (see Star.a_crit_au's own docstring).
             self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
+
+    def _tidal_spin_of_stars(self, nodes, slots, stars):
+        """
+        GEN.1467: the tide a star's partner raises on it. For every lit star of the tree, `star_pair_tides.spin_state` takes its spin toward the pair's orbit over the star's age:
+        a star close enough to its partner has its rotation period set to the pseudo-synchronous one and its spin axis turned toward the orbit normal, and its activity (which reads the
+        spin) is made again from a stream of the star's own, so no draw of the run moves. A star whose partner is far, a lone star, a white dwarf, a neutron star or a black hole
+        keeps what it was drawn with. The pair's apsidal precession (relativity, both tidal bulges, both rotational bulges) is noted in the effect ledger (effect 6) for the two stars of a
+        pair node whose children are both of the `stars`. It runs before the planets and the close pair's merged proxy are made, so both read the finished stars.
+
+        Args:
+            nodes (list): The tree's orbits after the pair's node was set.
+            slots (dict): `member_no -> (parent_node_no, slot)`.
+            stars (list): `(member_no, Star)` of every lit star.
+        """
+        by_no = {node.node_no: node for node in nodes}
+        pole = spin.GALACTIC_POLE
+        under = {}
+        for member_no, star in stars:
+            slot = slots.get(member_no)
+            node = by_no.get(slot[0]) if slot else None
+            if node is None:
+                continue
+            under.setdefault(node.node_no, []).append(star)
+            partner_kg = (node.mass_solar - _kg_to_msun(star.mass)) * constants.SOLAR_MASS_TO_KG
+            if partner_kg <= 0.0 or not star.age:
+                continue
+            result = star_pair_tides.spin_state(star, partner_kg, _km_to_au(node.separation_km), node.eccentricity, star.age * 1.0e9)
+            if not result.changed:
+                continue
+            star.rotation_period_hours = result.rotation_period_hours
+            axis = tuple(getattr(star, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+            if not any(c is None for c in axis):
+                normal = spin.orbit_normal(node.inclination_deg, node.ascending_node_deg)
+                star.spin_axis_x, star.spin_axis_y, star.spin_axis_z = star_pair_tides.aligned_axis(axis, normal, result.obliquity_factor)
+                star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)
+            with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
+                activity.generate_activity(star)
+            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronisation time {result.sync_time_yr:.3g} yr)")
+        for node_no, pair in under.items():
+            if len(pair) == 2:
+                node = by_no[node_no]
+                rate = star_pair_tides.apsidal_precession(pair[0], pair[1], _km_to_au(node.separation_km), node.eccentricity).total / constants.SECONDS_PER_YEAR
+                for receiver, source in ((pair[0], pair[1]), (pair[1], pair[0])):
+                    self.effect_ledger.add("precession", receiver, source, rate)
 
     def _disk_outer_edge_au(self, star):
         """

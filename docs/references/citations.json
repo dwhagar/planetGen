@@ -18103,7 +18103,7 @@
     },
     "R3621": {
       "kind": "paper",
-      "label": "Pu and Wu 2015b",
+      "label": "Pu and Wu 2015",
       "title": "Spacing of Kepler Planets: Sculpting by Dynamical Instability"
     },
     "R3622": {
@@ -26083,7 +26083,6 @@
     },
     "R5220": {
       "kind": "paper",
-<<<<<<< HEAD
       "label": "Kraus et al. 2016",
       "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS"
     },
@@ -26116,10 +26115,6 @@
       "kind": "paper",
       "label": "Fabrycky and Tremaine 2007",
       "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction"
-=======
-      "label": "Pu (濮勃南) and Wu (武延庆) 2015a",
-      "title": "SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY"
->>>>>>> origin/pr-5972
     }
   }
 }

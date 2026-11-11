@@ -6,15 +6,9 @@
   "papers": {
     "books": 31,
     "datasets": 25,
-<<<<<<< HEAD
     "entries": 5130,
     "with_arxiv": 1519,
     "with_doi": 4895,
-=======
-    "entries": 5124,
-    "with_arxiv": 1519,
-    "with_doi": 4889,
->>>>>>> origin/pr-5972
     "without_doi": 235
   },
   "stand_ins": {

@@ -328,7 +328,7 @@ MUTUAL_HILL_RADII_SEPARATION = 10
 # radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
 # equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
 # `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
-# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.263.]
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.271.]
 CHAIN_WINDOW = 4
 CHAIN_K_EFF = 12.0
 
