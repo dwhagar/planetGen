@@ -205,3 +205,16 @@ def test_the_disk_volatile_ratios_of_a_star_are_its_nitrogen_sulfur_and_argon_ov
     star = _body(1000.0, icy=True, distance=2.7).star
     nitrogen, sulfur, noble = bulk_draw.disk_volatile_ratios(star)
     assert 0.2 < nitrogen < 5.0 and 0.2 < sulfur < 5.0 and 0.2 < noble < 5.0          # a [Fe/H] 0 star: within a few times the Sun's per magnesium
+
+
+def test_the_core_light_elements_reach_the_mars_total_and_stay_in_the_clip():
+    """GEN.993, stand-in BC18: Earth's cores hold 0.05 to 0.10 of their metal as light elements and Mars's 0.07 to 0.20 ([R4833]); the draw covers both and never leaves its clip."""
+    with draw.bound(draw.Stream(993)):
+        shares = sorted(bulk_draw.core_light_elements() for _ in range(4000))
+    low, high = bulk_draw.RANGES["core_light_elements"]
+    assert low <= shares[0] and shares[-1] <= high
+    assert shares[len(shares) // 2] == pytest.approx(bulk_draw.CORE_LIGHT_MEDIAN, abs=0.005)
+    assert sum(0.05 <= s <= 0.10 for s in shares) / len(shares) > 0.4      # the Earth's range
+    assert sum(0.15 <= s <= 0.20 for s in shares) / len(shares) > 0.08     # the high half of Mars's range, which the old uniform 0.03 to 0.12 never drew
+    assert max(shares) > 0.2
+
