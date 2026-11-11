@@ -13071,6 +13071,7 @@ clears each one.
 
 - [ ] **GEN.1520 The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)**
   Lane 14, 8:32 AM EST on 2026-11-11, from the GEN.1514 result: with the pebble flux fading smoothly and a disk edge of 18 snow lines (41 AU for the Sun, under 1 AU for a 0.2 solar mass star), the pebbles inside the edge total 48 Earth masses for the Sun, a 15 Earth mass core at 5 AU needs 148, so most giants of dwarf and Sun-like stars gather their gas at the end of the disk, after the pebbles stripped the ices. Argon, krypton and xenon then fall to 0.03 to 0.05 of the star's, worse than before against Jupiter's 2 to 3 times solar. Do: research observed disk radii against stellar mass (secondary sources fine, no tuning to a target), replace the multiplier of 18 snow lines with a mass-dependent edge, register the stand-in in GEN.725, and report how the pebble total, the planet counts and the giants change. Changes planet generation, so a lock item.
+  Status, 1:03 PM EST on 2026-11-11 (Lane 14, deeper literature pass in reports/gen1520-disk-size-by-mass-2026-11-11.md): the first proposal (exponent 0.8, 245 au for the Sun) is withdrawn because direct fits of dust size against stellar mass give 0.2 to 0.6. Recommendation awaiting Boss: gas edge 100 au x (M/Msun)^0.5 with a factor-of-2 scatter per system; alternatives: keep the 18 snow lines and fix noble gases through GEN.1519, or a 150 au middle. Nothing is built until Boss answers.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1514. Related: GEN.1473, GEN.1514, GEN.1516, GEN.1517, GEN.1518.
   Filed by the TODO thread.
 
@@ -13143,6 +13144,11 @@ clears each one.
 - [ ] **GEN.1534 A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs)**
   Lane 21's GEN.946 triage (reports/gen946-no-data-triage-2026-11-11.md), 12:07 PM EST on 2026-11-11: SEP1 cannot be checked against HYG, which is held but incomplete and mixes wide pairs; a Gaia nearby-stars sample (distance-limited, with parallaxes and companions) would. Do: add a setup dataset fetch (small, raw data never in the repo, a licence line for Boss in DATA-LICENSE.md), read the separation distribution from it, move SEP1 from L3 to L1 or L2, update the registry and burn-down lines. Lock item if it moves draws.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 21. Prerequisites: none. Related: GEN.946, GEN.725, GEN.1525.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1535 Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity**
+  Lane 21 (as the lane reported 12:48 PM EST on 2026-11-11), GEN.1454 parts 1 and 2 are PR 6012 (obliquity_variation module) and PR 6013 (chaotic-zone tilt at the end of the settle pass). Left for this part: the companion star's mode (built, not wired); storing the range of obliquity (two columns, one migration) so the seasonal swing can read it; the Cassini state computed from the real precession constant instead of the log-uniform stand-in; an oddity name for chaotic obliquity. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 21. Prerequisites: GEN.1454 (parts 1 and 2). Related: GEN.1454, GEN.1450, GEN.725.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
