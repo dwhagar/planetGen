@@ -34,6 +34,7 @@ from planetgen.galaxy import sky_band
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars, scatter_companions, sky_tiers
+from planetgen.queue import unitbeat
 from planetgen.util import detmath
 
 CELL_PAD_PC = sky_band.CELL_PC * math.sqrt(3.0) / 2.0
@@ -226,7 +227,8 @@ class DrawLock:
         self.conn = conn
 
     def __enter__(self):
-        got = self.conn.execute("SELECT GET_LOCK(?, ?) AS got", (self.NAME, self.WAIT_SECONDS)).fetchone()["got"]
+        with unitbeat.waiting("sky lock"):          # OPS.136: the beat says the unit waits for the lock, not that it is stuck
+            got = self.conn.execute("SELECT GET_LOCK(?, ?) AS got", (self.NAME, self.WAIT_SECONDS)).fetchone()["got"]
         if got != 1:
             raise RuntimeError("another sky draw has held the lock for hours")
         return self
