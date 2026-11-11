@@ -940,6 +940,8 @@ _BODY_RULES = [
      "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
+    (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
+     "a body that fits its class with no value moved (the fit is full, `class_fudge.fit`) has nothing fudged, so the list of values is empty and the amount is 0 or empty (GEN.1314)"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
