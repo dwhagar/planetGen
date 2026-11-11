@@ -39,8 +39,13 @@
   <p class="error">Redis isn't answering, so the runs can't be read. Start Redis (see the install guide), then reload this page.</p>
   {%- else %}
   {%- if queue.paused %}
+  {%- if queue.solo_unit is not none %}
+  <p class="error">The queue is held{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: {{ queue.paused_reason }}. Nothing else starts; units that are running finish or stop at their next batch. The hold lifts by itself when the unit completes or fails.</p>
+  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Lift the hold</a></p>
+  {%- else %}
   <p class="error">The queue is paused{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: no run starts or takes another unit until it is resumed.</p>
   <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Resume the queue</a></p>
+  {%- endif %}
   {%- else %}
   <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-pause') }}">Pause the queue</a>
     <span class="hint">Running units finish; no run starts or takes another until you resume.</span></p>
@@ -51,6 +56,24 @@
   {%- endif %}
   {%- endif %}
 </section>
+{%- if beating %}
+<section class="panel" id="queue-beating" aria-labelledby="queue-beating-heading">
+  <h2 id="queue-beating-heading">Jobs running now</h2>
+  <p>Work that is not a unit of a run, with the sign of life each job gives every few seconds. A job that stops giving it shows as <strong>dead</strong> for an hour.</p>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">Jobs running now, from their beats</caption>
+    <thead><tr><th scope="col">Job</th><th scope="col">State</th><th scope="col">Doing</th><th scope="col">Running</th><th scope="col">Last heard</th></tr></thead>
+    <tbody>
+    {%- for row in beating.rows %}
+    <tr><td>{{ row.kind }}{% if row.label %}: {{ row.label }}{% endif %} <code>{{ row.id }}</code></td><td>{% if row.dead %}<strong class="error">dead</strong>{% else %}{{ row.state }}{% endif %}</td>
+      <td>{{ row.phase }}</td><td>{{ row.running }}</td><td>{{ row.heard }} ago</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{%- endif %}
 {%- if held %}
 <section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
   <h2 id="queue-held-heading">Held jobs</h2>

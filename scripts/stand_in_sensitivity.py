@@ -261,6 +261,57 @@ def read_sample(systems, seed):
     return [read_system(seed + index) for index in range(systems)]
 
 
+# --- The frozen sample: finished bodies whose end stages are made again ----------------------------------------------------------------------------------------------------
+
+SETTLE_LIMIT = 12
+"""int: How many times at most `freeze_sample` makes the bodies again to bring them to the fixed point of their end stages."""
+_FROZEN = []
+"""list: `(body, planet)` of every rocky planet and moon of the systems `freeze_sample` made; `planet` is the body itself for a planet."""
+
+
+def freeze_sample(systems, seed):
+    """Makes `systems` systems from the run seeds `seed`, `seed + 1`, ... once and keeps their rocky planets and moons as `_FROZEN`; returns how many bodies that is."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+
+    config = SystemConfig()
+    config.PLANETS = True
+    _FROZEN.clear()
+    for index in range(systems):
+        with draw.bound(seed + index):
+            system = StarSystem(system_config=config)
+        for planet in system.all_planets:
+            if planet.body_type != "t":
+                continue
+            _FROZEN.append((planet, planet))
+            _FROZEN.extend((moon, planet) for moon in planet.moons)
+    previous = read_frozen()        # making again settles a body the system left short of its fixed point (a lava world's air): repeat until one making is the last, so every later one is the same
+    for _ in range(SETTLE_LIMIT):
+        current = read_frozen()
+        if all(entry["rms"] <= SHARE_EPSILON for entry in summarize(compare(previous, current)[0]).values()):
+            break
+        previous = current
+    return len(_FROZEN)
+
+
+def read_frozen():
+    """`read_sample` for the frozen bodies: makes the air, water, surface, class and spin of every one again from the stream of its own (`planets.remake_end_stages`), so a constant the
+    end stages read moves each body with no other draw of the system moving, and reads `class_fit._found` of each (one 'system' of bodies keyed by position)."""
+    from planetgen.physics import class_fit, planets
+
+    bodies = {}
+    for index, (body, planet) in enumerate(_FROZEN):
+        try:
+            planets.remake_end_stages(body, planet)
+            found = class_fit._found(body)
+        except Exception as error:
+            bodies[(index, -1)] = {"error": type(error).__name__}
+            continue
+        bodies[(index, -1)] = {key: float(value) for key, value in found.items() if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value)}
+    return [bodies]
+
+
 def movement(quantity, base, moved):
     """How far `quantity` moved from `base` to `moved`: the natural log of the ratio for a `LOG_QUANTITIES`, else the plain difference."""
     if quantity in LOG_QUANTITIES:
@@ -270,10 +321,10 @@ def movement(quantity, base, moved):
 
 def compare(base_sample, sample):
     """
-    Per quantity, over the bodies present in both samples: `{quantity: [sum of squared movements, bodies, bodies that moved]}`, and the number of systems whose set of bodies
-    changed (`structure`).
+    Per quantity, over the bodies present in both samples: `{quantity: [sum of squared movements, bodies, bodies that moved, the movements that were not zero]}`, and the number of
+    systems whose set of bodies changed (`structure`).
     """
-    totals = collections.defaultdict(lambda: [0.0, 0, 0])
+    totals = collections.defaultdict(lambda: [0.0, 0, 0, []])
     structure = 0
     for base_bodies, bodies in zip(base_sample, sample):
         if set(base_bodies) != set(bodies):
@@ -290,19 +341,25 @@ def compare(base_sample, sample):
                 entry = totals[quantity]
                 entry[0] += step * step
                 entry[1] += 1
-                entry[2] += abs(step) > SHARE_EPSILON
+                if abs(step) > SHARE_EPSILON:
+                    entry[2] += 1
+                    entry[3].append(abs(step))
     return {quantity: tuple(entry) for quantity, entry in totals.items()}, structure
 
 
 def summarize(totals):
-    """`{quantity: {"rms": ..., "moved": share of bodies}}` of a `compare` result."""
-    return {quantity: {"rms": math.sqrt(entry[0] / entry[1]) if entry[1] else 0.0, "moved": entry[2] / entry[1] if entry[1] else 0.0} for quantity, entry in totals.items()}
+    """`{quantity: {"rms": ..., "moved": share of bodies, "n": bodies paired, "steps": the movements that were not zero, largest first}}` of a `compare` result."""
+    return {quantity: {"rms": math.sqrt(entry[0] / entry[1]) if entry[1] else 0.0, "moved": entry[2] / entry[1] if entry[1] else 0.0, "n": entry[1],
+                       "steps": [float(f"{step:.3g}") for step in sorted(entry[3], reverse=True)]} for quantity, entry in totals.items()}
 
 
 # --- The pass ---------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 _BASELINE = None
 _SETTINGS = None
+_READER = None
+"""callable: Reads the sample a pass runs on, `read_sample` of the settings or `read_frozen`."""
+_FROZEN_MODE = False
 
 
 def _evaluate(task):
@@ -315,11 +372,17 @@ def _evaluate(task):
     for end in ("low", "high"):
         try:
             with override(target["module"], target["name"], target[end]):
-                totals, structure = compare(_BASELINE, read_sample(systems, seed))
+                totals, structure = compare(_BASELINE, _READER())
             result[end] = {"quantities": summarize(totals), "structure": structure}
         except Exception as error:      # an end the generator cannot run (a zero divisor, a value out of its domain) is recorded and the other end still counts
             errors.append(f"{end} end {target[end]:.4g}: {type(error).__name__}: {error}")
             result[end] = {"quantities": {}, "structure": 0}
+    if _FROZEN_MODE and any(entry['rms'] > SHARE_EPSILON for end in ('low', 'high') for entry in result[end]['quantities'].values()):        # the bodies are made again with the constant back: they must be what they were, or the row's ends are not measured from one state
+        try:
+            if any(entry["rms"] > SHARE_EPSILON for entry in summarize(compare(_BASELINE, _READER())[0]).values()):
+                errors.append("the bodies did not return to the baseline")
+        except Exception as error:
+            errors.append(f"return to baseline: {type(error).__name__}: {error}")
     if errors:
         result["errors"] = errors
         if len(errors) == 2:
@@ -328,10 +391,17 @@ def _evaluate(task):
     return result
 
 
-def screen(rows, systems, seed, jobs, progress=print, checkpoint=None):
-    """The screening pass over the overridable `rows` (`classify_rows`): the baseline, then every row at both ends. Returns `{"baseline": ..., "results": [...]}`."""
-    global _BASELINE, _SETTINGS
-    _BASELINE, _SETTINGS = read_sample(systems, seed), (systems, seed)
+def screen(rows, systems, seed, jobs, progress=print, checkpoint=None, frozen=False):
+    """The screening pass over the overridable `rows` (`classify_rows`): the baseline, then every row at both ends. With `frozen` the systems are made once and each override makes the end
+    stages of their rocky planets and moons again (`freeze_sample`, `read_frozen`), so every row is paired. Returns `{"baseline": ..., "results": [...]}`."""
+    global _BASELINE, _SETTINGS, _READER, _FROZEN_MODE
+    _SETTINGS, _FROZEN_MODE = (systems, seed), frozen
+    if frozen:
+        progress(f"frozen sample: {freeze_sample(systems, seed)} rocky planets and moons of {systems} systems")
+        _READER = read_frozen
+    else:
+        _READER = lambda: read_sample(systems, seed)
+    _BASELINE = _READER()
     tasks = [(row["fill_id"], row["target"]) for row in rows if "target" in row]
     order = {fill_id: n for n, (fill_id, _) in enumerate(tasks)}
     results = []
@@ -420,9 +490,9 @@ def report(rows, screened):
 
 def combine(screens):
     """
-    The stand-in by end-result matrix from several screening passes (`--out` files, one per seed): `{fill_id: {"quantities": {quantity: {"rms", "moved", "bodies"}}, "structure": n, "errors": [...]}}`.
+    The stand-in by end-result matrix from several screening passes (`--out` files, one per seed): `{fill_id: {"quantities": {quantity: {"rms", "moved", "passes", "bodies", "steps"}}, "structure": n, "errors": [...]}}`.
     A row's movement in a quantity is the root mean square over every pair of every pass, taken at the end that moves it more; `moved` is the share of paired bodies that moved; a row that
-    appears twice in one pass (a resumed run) counts once, the later entry. `bodies` is how many pairs the row's passes held.
+    appears twice in one pass (a resumed run) counts once, the later entry. `bodies` is how many pairs the row's passes held and `steps` the movements that were not zero (largest first), which the fudge table clips at the half-gap of the class edges.
     """
     matrix = {}
     for screened in screens:
@@ -438,12 +508,15 @@ def combine(screens):
                 ends = [result[end]["quantities"].get(quantity) for end in ("low", "high")]
                 ends = [end for end in ends if end]
                 best = max(ends, key=lambda end: end["rms"])
-                held = entry["quantities"].setdefault(quantity, {"sum_sq": 0.0, "moved": 0.0, "n": 0})
+                held = entry["quantities"].setdefault(quantity, {"sum_sq": 0.0, "moved": 0.0, "n": 0, "steps": [], "bodies": 0})
                 held["sum_sq"] += best["rms"] ** 2
                 held["moved"] += best["moved"]
                 held["n"] += 1
+                held["steps"] += best.get("steps", [])
+                held["bodies"] += best.get("n", 0)
     for entry in matrix.values():
-        entry["quantities"] = {quantity: {"rms": math.sqrt(held["sum_sq"] / held["n"]), "moved": held["moved"] / held["n"], "passes": held["n"]}
+        entry["quantities"] = {quantity: {"rms": math.sqrt(held["sum_sq"] / held["n"]), "moved": held["moved"] / held["n"], "passes": held["n"],
+                                                  "bodies": held["bodies"], "steps": sorted(held["steps"], reverse=True)}
                                for quantity, held in entry["quantities"].items()}
     return matrix
 
@@ -461,6 +534,7 @@ def main(argv=None):
     screen_parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     screen_parser.add_argument("--jobs", type=int, default=4)
     screen_parser.add_argument("--only", help="comma-separated fill ids")
+    screen_parser.add_argument("--frozen", action="store_true", help="make the systems once and, for each override, make the end stages (air, water, surface, class, spin) of the rocky planets and moons again from the stream of each (planets.remake_end_stages): every row is paired, none moves a draw")
     screen_parser.add_argument("--movers-of", help="a screening JSON (--out of an earlier pass): run only the rows that moved a quantity or changed a system's bodies there")
     screen_parser.add_argument("--limit", type=int, help="run only the first N overridable rows (a trial)")
     screen_parser.add_argument("--out", help="write the results as JSON")
@@ -499,7 +573,7 @@ def main(argv=None):
     overridable = [row for row in chosen if "target" in row]
     if args.limit:
         overridable = overridable[:args.limit]
-    screened = screen(overridable, args.systems, args.seed, args.jobs, checkpoint=args.checkpoint)
+    screened = screen(overridable, args.systems, args.seed, args.jobs, checkpoint=args.checkpoint, frozen=args.frozen)
     text = report(rows if not (args.only or args.limit or args.movers_of) else overridable, screened)
     if args.out:
         with open(args.out, "w", encoding="utf-8") as handle:
