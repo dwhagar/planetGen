@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1541 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1548 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1515 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1522 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 183 | 20 | 11 | 1 | 0 | 215 |
-| T2 | 145 | 59 | 1 | 1 | 0 | 206 |
+| T1 | 184 | 20 | 11 | 1 | 0 | 216 |
+| T2 | 146 | 59 | 1 | 1 | 0 | 207 |
 | T3 | 111 | 47 | 9 | 10 | 0 | 177 |
-| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T4 | 81 | 11 | 3 | 21 | 12 | 128 |
 | T5 | 77 | 24 | 6 | 1 | 1 | 109 |
 | T6 | 192 | 106 | 30 | 75 | 2 | 405 |
-| T7 | 51 | 19 | 9 | 31 | 0 | 110 |
-| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T7 | 51 | 22 | 9 | 31 | 0 | 113 |
+| T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 880 | 302 | 74 | 235 | 50 | 1541 |
+| All | 884 | 305 | 74 | 235 | 50 | 1548 |
 
 ## How the labels were given
 
@@ -2704,7 +2704,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | SKY1 | T | T5 | L0 | `sky_view.NIGHT_LIGHT_W_M2` = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2) | 2.6e-3 W/m2 | the eye at night, a body with an air that scatters like Earth's | a sky where a fainter source is called bright (a dark-adapted eye, a thin air) | a threshold from the sky's brightness in the air the body has | measured: the illuminance of the full Moon at Earth is about 0.25 lux; the Sun at Earth gives about 1.3e5 lux | predicted only | - | - |
 | SKY2 | P | T7 | L0 | a source's width is `2 asin(R / d)` with `d` the distance that the mean light gives (`light = L / (4 pi d^2)`, the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word | none | a companion whose orbit is not much wider than the body's | a companion on an eccentric orbit that is at its apoapsis at the epoch of the page | the width from the offset of the source at the epoch (GEN.1458 `offset_au`) | design: the light and the width of the source follow one distance, so the text agrees with the temperature | predicted only | - | - |
-| SKY3 | P | T7 | L0 | the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts | none | systems with no dark member | a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system | the light of a dark member drawn from its mass, age and companion (GEN.1501) | design: the follow-up is filed with the item | predicted only | - | - |
+| SKY3 | P | T7 | L0 | the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) are sources of the field of GEN.1441 like any star (`dark_light.source_of`, rows DL1 to DL7), so the sky text names one when it gives the body the full-Moon light; a white dwarf is a star of the tree and counts | none | systems with no dark member give today's numbers | a dark member whose light at a body of its system is far from what a measured object of its kind gives | a stored light per dark member in the effect ledger, with its drawn age | design: the light of a dark member is worked out from its mass, radius and age (GEN.1501); the ledger does not store it yet | predicted only | - | - |
+| DL1 | P | T7 | L1 | `dark_light.NEUTRON_STAR_PHOTON_ERA_YR` = 1e5 yr and `NEUTRON_STAR_PHOTON_ERA_T_K` = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star (Yakovlev and Pethick 2004; Page and others 2004, 2006) | 1e5 to 1e6 yr; 5e5 to 2e6 K | a neutron star of 1 to 2 solar masses with no fast direct-Urca cooling | a neutron star of the age whose measured surface temperature is off the curve by more than a factor of 2 | a cooling curve by mass and equation of state | 2ND-HAND (reviews of the cooling curves); the curve is a two-power-law fit, not a table | predicted only | - | - |
+| DL2 | P | T7 | L1 | `dark_light.NEUTRON_STAR_PHOTON_ERA_SLOPE` = -0.5 and `NEUTRON_STAR_NEUTRINO_ERA_SLOPE` = -0.1: `d ln T_s / d ln t` of the surface temperature in the photon era (1e6 K at 1e5 yr to about 1e5 K at 1e7 yr) and before it (the surface stays warm while the core cools by neutrinos) | -0.5 in the photon era; -0.1 before it (T8, L0) | ages of 1e3 yr to 1e9 yr | a measured neutron star of 1e6 to 1e9 yr whose temperature is off the line by more than a factor of 3 | the tabulated curve of DL1 | the same cooling curves as DL1; the early slope is an educated guess from the curves' flat start | predicted only | - | - |
+| DL3 | P | T8 | L0 | `dark_light.NEUTRON_STAR_PROGENITOR_LIFE_GY` = 0.03 Gy: the neutron star is younger than its system by the life of the star that collapsed, 0.01 to 0.04 Gy for 8 to 25 solar masses; the age is never taken under 1e-6 Gy | 0.01 to 0.04 Gy | systems of 0.1 Gy or older | a system whose neutron star has the age of the whole system (no collapse delay) | the age of the progenitor from the mass of the neutron star's tree member | design: the main-sequence life of a massive star | predicted only | - | - |
+| DL4 | P | T4 | L0 | `dark_light.DISK_EFFICIENCY` = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk (Shakura and Sunyaev 1973), up to 0.42 for a maximally rotating one | 0.057 to 0.42 | thin disks | an accretion rate that gives a luminosity far from a measured one for the same rate | the efficiency from the hole's spin | 2ND-HAND (textbook value of the thin disk) | predicted only | - | - |
+| DL5 | P | T2 | L0 | `dark_light.ISCO_SCHWARZSCHILD_RADII` = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour | 1 to 3 | a non-rotating hole | a measured disk whose inner edge is far from this | the radius from the spin | derived: the innermost stable orbit of the Schwarzschild metric | predicted only | - | - |
+| DL6 | P | T1 | L0 | `dark_light.EDDINGTON_W_PER_SOLAR_MASS` = 1.26e31 W: the light of a disk never passes the Eddington limit, `4 pi G M m_p c / sigma_T` | none | ionised hydrogen | a measured source that stays over it | none | derived: the balance of radiation and gravity on a proton | predicted only | - | - |
+| DL7 | P | T7 | L1 | a black hole shines only on what the winds of the stars of its tree give it: `dark_light.wind_capture_kg_s`, the Bondi-Hoyle-Lyttleton rate `(G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5)` of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (`brown_dwarf.state`) | none | winds of 1e-14 to 1e-5 solar masses a year | a black hole beside a giant that overflows its lobe, which would be far brighter | the feed from the evolution of the star (overflow) | design: the wind law of `stellar_wind` is the one that sizes the star's bubble, so a star's feed and its heliosphere agree | predicted only | - | - |
 
 ## 6.261 Stand-ins of the fudge table
 

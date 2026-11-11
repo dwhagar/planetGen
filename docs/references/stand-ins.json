@@ -60131,7 +60131,7 @@
           "fields": [
             [
               "What it is",
-              "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
+              "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) are sources of the field of GEN.1441 like any star (dark_light.source_of, rows DL1 to DL7), so the sky text names one when it gives the body the full-Moon light; a white dwarf is a star of the tree and counts"
             ],
             [
               "The range it moves in",
@@ -60139,19 +60139,19 @@
             ],
             [
               "Where it holds",
-              "systems with no dark member"
+              "systems with no dark member give today's numbers"
             ],
             [
               "What would show it wrong",
-              "a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system"
+              "a dark member whose light at a body of its system is far from what a measured object of its kind gives"
             ],
             [
               "What replaces it",
-              "the light of a dark member drawn from its mass, age and companion (GEN.1501)"
+              "a stored light per dark member in the effect ledger, with its drawn age"
             ],
             [
               "Evidence",
-              "design: the follow-up is filed with the item"
+              "design: the light of a dark member is worked out from its mass, radius and age (GEN.1501); the ledger does not store it yet"
             ]
           ],
           "id": "SKY3",
@@ -60162,7 +60162,273 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
+          "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) are sources of the field of GEN.1441 like any star (dark_light.source_of, rows DL1 to DL7), so the sky text names one when it gives the body the full-Moon light; a white dwarf is a star of the tree and counts"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star (Yakovlev and Pethick 2004; Page and others 2004, 2006)"
+            ],
+            [
+              "The range it moves in",
+              "1e5 to 1e6 yr; 5e5 to 2e6 K"
+            ],
+            [
+              "Where it holds",
+              "a neutron star of 1 to 2 solar masses with no fast direct-Urca cooling"
+            ],
+            [
+              "What would show it wrong",
+              "a neutron star of the age whose measured surface temperature is off the curve by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a cooling curve by mass and equation of state"
+            ],
+            [
+              "Evidence",
+              "2ND-HAND (reviews of the cooling curves); the curve is a two-power-law fit, not a table"
+            ]
+          ],
+          "id": "DL1",
+          "key": "6.259:DL1",
+          "kind": "P",
+          "slug": "6-259-dl1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star (Yakovlev and Pethick 2004; Page and others 2004, 2006)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.NEUTRON_STAR_PHOTON_ERA_SLOPE = -0.5 and NEUTRON_STAR_NEUTRINO_ERA_SLOPE = -0.1: d ln T_s / d ln t of the surface temperature in the photon era (1e6 K at 1e5 yr to about 1e5 K at 1e7 yr) and before it (the surface stays warm while the core cools by neutrinos)"
+            ],
+            [
+              "The range it moves in",
+              "-0.5 in the photon era; -0.1 before it (T8, L0)"
+            ],
+            [
+              "Where it holds",
+              "ages of 1e3 yr to 1e9 yr"
+            ],
+            [
+              "What would show it wrong",
+              "a measured neutron star of 1e6 to 1e9 yr whose temperature is off the line by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the tabulated curve of DL1"
+            ],
+            [
+              "Evidence",
+              "the same cooling curves as DL1; the early slope is an educated guess from the curves' flat start"
+            ]
+          ],
+          "id": "DL2",
+          "key": "6.259:DL2",
+          "kind": "P",
+          "slug": "6-259-dl2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_SLOPE = -0.5 and NEUTRON_STAR_NEUTRINO_ERA_SLOPE = -0.1: d ln T_s / d ln t of the surface temperature in the photon era (1e6 K at 1e5 yr to about 1e5 K at 1e7 yr) and before it (the surface stays warm while the core cools by neutrinos)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.NEUTRON_STAR_PROGENITOR_LIFE_GY = 0.03 Gy: the neutron star is younger than its system by the life of the star that collapsed, 0.01 to 0.04 Gy for 8 to 25 solar masses; the age is never taken under 1e-6 Gy"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.04 Gy"
+            ],
+            [
+              "Where it holds",
+              "systems of 0.1 Gy or older"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose neutron star has the age of the whole system (no collapse delay)"
+            ],
+            [
+              "What replaces it",
+              "the age of the progenitor from the mass of the neutron star's tree member"
+            ],
+            [
+              "Evidence",
+              "design: the main-sequence life of a massive star"
+            ]
+          ],
+          "id": "DL3",
+          "key": "6.259:DL3",
+          "kind": "P",
+          "slug": "6-259-dl3",
+          "tier": "T8",
+          "tier_code": "T8",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.NEUTRON_STAR_PROGENITOR_LIFE_GY = 0.03 Gy: the neutron star is younger than its system by the life of the star that collapsed, 0.01 to 0.04 Gy for 8 to 25 solar masses; the age is never taken under 1e-6 Gy"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk (Shakura and Sunyaev 1973), up to 0.42 for a maximally rotating one"
+            ],
+            [
+              "The range it moves in",
+              "0.057 to 0.42"
+            ],
+            [
+              "Where it holds",
+              "thin disks"
+            ],
+            [
+              "What would show it wrong",
+              "an accretion rate that gives a luminosity far from a measured one for the same rate"
+            ],
+            [
+              "What replaces it",
+              "the efficiency from the hole's spin"
+            ],
+            [
+              "Evidence",
+              "2ND-HAND (textbook value of the thin disk)"
+            ]
+          ],
+          "id": "DL4",
+          "key": "6.259:DL4",
+          "kind": "P",
+          "slug": "6-259-dl4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk (Shakura and Sunyaev 1973), up to 0.42 for a maximally rotating one"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.ISCO_SCHWARZSCHILD_RADII = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour"
+            ],
+            [
+              "The range it moves in",
+              "1 to 3"
+            ],
+            [
+              "Where it holds",
+              "a non-rotating hole"
+            ],
+            [
+              "What would show it wrong",
+              "a measured disk whose inner edge is far from this"
+            ],
+            [
+              "What replaces it",
+              "the radius from the spin"
+            ],
+            [
+              "Evidence",
+              "derived: the innermost stable orbit of the Schwarzschild metric"
+            ]
+          ],
+          "id": "DL5",
+          "key": "6.259:DL5",
+          "kind": "P",
+          "slug": "6-259-dl5",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.ISCO_SCHWARZSCHILD_RADII = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "dark_light.EDDINGTON_W_PER_SOLAR_MASS = 1.26e31 W: the light of a disk never passes the Eddington limit, 4 pi G M m_p c / sigma_T"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "ionised hydrogen"
+            ],
+            [
+              "What would show it wrong",
+              "a measured source that stays over it"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "derived: the balance of radiation and gravity on a proton"
+            ]
+          ],
+          "id": "DL6",
+          "key": "6.259:DL6",
+          "kind": "P",
+          "slug": "6-259-dl6",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "dark_light.EDDINGTON_W_PER_SOLAR_MASS = 1.26e31 W: the light of a disk never passes the Eddington limit, 4 pi G M m_p c / sigma_T"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "winds of 1e-14 to 1e-5 solar masses a year"
+            ],
+            [
+              "What would show it wrong",
+              "a black hole beside a giant that overflows its lobe, which would be far brighter"
+            ],
+            [
+              "What replaces it",
+              "the feed from the evolution of the star (overflow)"
+            ],
+            [
+              "Evidence",
+              "design: the wind law of stellar_wind is the one that sizes the star's bubble, so a star's feed and its heliosphere agree"
+            ]
+          ],
+          "id": "DL7",
+          "key": "6.259:DL7",
+          "kind": "P",
+          "slug": "6-259-dl7",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
