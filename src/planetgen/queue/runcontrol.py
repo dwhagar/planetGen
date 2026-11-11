@@ -124,7 +124,7 @@ def clear_run(conn, run_id, who=None, now=None):
         return None
     stopped = stop_units(conn, run)
     runrecord.finish_run(conn, run_id, "failed", error=f"cleared by {who}: it showed no sign of life" if who
-                         else "cleared: it showed no sign of life", now=now)
+                         else "cleared: it showed no sign of life", now=now, killed=True)
     write_log(conn, run_id)
     return stopped
 

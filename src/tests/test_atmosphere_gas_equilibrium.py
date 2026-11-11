@@ -174,3 +174,26 @@ def test_a_nitrogen_gas_with_a_stoichiometric_trace_of_carbon_monoxide_settles_w
 def test_a_gas_of_an_element_no_species_holds_still_raises():
     with pytest.raises(ge.EquilibriumError):
         ge.solve({"Og": 1.0, "N": 1e-15}, 610.0, 1.0)
+
+
+# --- An element the table has gases of, but none in range at the temperature --------------------------------------------------
+
+
+def test_phosphorus_has_no_gas_in_the_table_above_6000_k_and_the_gas_is_the_rest():
+    abundances = {"H": 1.0, "C": 3e-4, "P": 3e-7}
+    assert any(name for name, row in st.SPECIES.items() if "P" in row.elements and not row.condensed and row.range_k[1] <= 6000.0)
+    cool = ge.solve(abundances, 3000.0, 1.0)
+    hot = ge.solve(abundances, 7500.0, 1.0)
+    assert any("P" in st.SPECIES[name].elements for name in cool.moles)
+    assert not any("P" in st.SPECIES[name].elements for name in hot.moles)
+    assert sum(hot.mole_fractions.values()) == pytest.approx(1.0)
+
+
+def test_a_named_list_of_species_drops_the_element_it_has_no_gas_of_in_range_too():
+    hot = ge.solve({"H": 1.0, "P": 3e-7}, 7500.0, 1.0, species=("H2", "H", "P2", "PH3"))
+    assert set(hot.moles) <= {"H2", "H"}
+
+
+def test_an_element_with_no_gas_in_range_is_still_an_error_when_nothing_else_is_left():
+    with pytest.raises(ge.EquilibriumError):
+        ge.solve({"P": 1.0}, 7500.0, 1.0)

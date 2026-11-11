@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
 | T4 | 80 | 11 | 3 | 21 | 12 | 127 |
 | T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 189 | 104 | 30 | 75 | 2 | 400 |
+| T6 | 191 | 106 | 30 | 75 | 2 | 404 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 871 | 300 | 74 | 235 | 50 | 1530 |
+| All | 873 | 302 | 74 | 235 | 50 | 1534 |
 
 ## How the labels were given
 
@@ -2684,6 +2684,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value | predicted only | - | - |
+
+## 6.256 Stand-ins of a companion star's secular forcing of a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FE1 | T | T6 | L0 | the first-order secular forcing: `e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c)` with exact Laplace coefficients and the factors `(1 - e'^2)^(-3/2)` and `(1 - e'^2)^(-5/2)` of an eccentric companion; about `(5/4) alpha e' / (1 - e'^2)` for a small `alpha` | none | `alpha` below `ALPHA_LIMIT`, `e_forced` below 0.3 | members of a measured belt in a close binary whose eccentricities lack the forced part by more than the free scatter | an N-body integration of test bodies in a binary | Murray and Dermott, Solar System Dynamics, sections 7.2 and 7.3 [R3220], recalled; census `reports/gen1492-belt-forcing-census-2026-11-09.md` | predicted only | - | - |
+| FE2 | P | T6 | L1 | the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit) | 0 to 2 pi | systems with a companion | a stored orientation of the star orbit, once one exists | the stored orientation | no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members | predicted only | - | - |
+| FE3 | T | T6 | L0 | the forced inclination is zero: the orbits of stars are coplanar in the generator | none | coplanar star orbits | a mutual inclination of the star orbits, once modelled (filed by TODO) | forced inclination and Kozai pumping from a mutual inclination | design; the generator has no mutual inclination of stars | predicted only | - | - |
+| FE4 | P | T6 | L1 | `belt_forcing.ALPHA_LIMIT` 0.3: the largest `a / a'` the first-order theory is used at | 0.2 to 0.4 | belts cut inside the companion's tide | a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses | a higher-order expansion in `alpha` | recalled: the series in `alpha` converges slowly beyond a third; no belt of the census (499) lies beyond it | predicted only | GEN.1492 | - |
 
 ## 6.261 Stand-ins of the fudge table
 

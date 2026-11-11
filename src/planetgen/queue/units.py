@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, redisqueue, requires, runrecord
+from planetgen.queue import commands, redisqueue, requires, runrecord, unitbeat
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -67,14 +67,15 @@ POLL_SECONDS = 0.25
 ENSURE_SECONDS = 5.0
 """float: How often `follow_stage` has the workers topped up, so a dead one is replaced."""
 
-REPORT_SECONDS = 0.25
-"""float: How often a unit writes its progress."""
-
 ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
 
 class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
+
+
+KILLED_EXCEPTIONS = ("JobTimeoutException", "WorkerLostError", "AbandonedJobError")
+"""tuple[str]: The names of the exceptions with which RQ ends a unit from outside (its time limit, its worker lost): a run a unit ended with one of them was killed (OPS.144), not failed by its own code."""
 
 
 def job_id(run_id, stage, unit):
@@ -130,13 +131,32 @@ def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     return chunks
 
 
+def _unit_limit(stage_timeout, args):
+    """
+    The time limit of one unit (OPS.134): the stage's (`unit_timeout` of the stage's expected seconds), or, for a unit whose `args["expected_seconds"]` says how long it alone is predicted to take, the limit of that if it is longer.
+    A stage's expected seconds are what earlier runs of the stage took, mostly its small units; a unit that is many times a typical one (a sky cell, half an hour in a stage of seconds) names its own.
+    """
+    own = args.get(EXPECTED_SECONDS_ARG) if isinstance(args, dict) else None
+    if own is None:
+        return stage_timeout
+    try:
+        return max(stage_timeout, unit_timeout(float(own)))
+    except (TypeError, ValueError):
+        return stage_timeout
+
+
+EXPECTED_SECONDS_ARG = "expected_seconds"
+"""str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for its own time limit (`_unit_limit`)."""
+
+
 def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
     """
     Queues the units of stage `stage` of the run.
 
     Args:
         units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
-            and the unit's predicted cost for the stage's bar and ETA.
+            and the unit's predicted cost for the stage's bar and ETA. The dict may name `expected_seconds`, the unit's own
+            predicted time, which sets its time limit when longer than the stage's (`_unit_limit`).
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
 
@@ -153,24 +173,9 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
         queue.enqueue_many([
             queue.prepare_data(
                 UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost), job_id=job_id(run_id, stage, index),
-                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+                timeout=_unit_limit(timeout, args), result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
-
-
-class _Reporter:
-    """What a unit calls with its work so far: at most every `REPORT_SECONDS` it writes `done,estimate` to the
-    stage's progress hash for the follower."""
-
-    def __init__(self, conn, run_id, stage, unit):
-        self.conn, self.key, self.unit = conn, runrecord.progress_key(run_id, stage), unit
-        self.last = 0.0
-
-    def __call__(self, done, estimate):
-        now = time.monotonic()
-        if now - self.last >= REPORT_SECONDS:
-            self.last = now
-            self.conn.hset(self.key, self.unit, f"{float(done)},{float(estimate)}")
 
 
 def run_unit(run_id, stage, unit, kind, args, cost=None):
@@ -229,7 +234,8 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
-    result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
+    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
+        result = commands.unit_function(kind)(args, report)
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
@@ -408,7 +414,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
-                               f"{exc_type.__name__}: {exc_value}")
+                               f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
@@ -443,14 +449,14 @@ def horse_killed(job, retpid, ret_val, _rusage):
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
         runrecord.finish_run(conn, run_id, "failed",
                              error=f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}")
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     elif job.func_name == OPEN_FUNCTION:
         run_id, index = job.args[:2]
         log.process_ended("queue", f"The process opening stage {index} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
         runrecord.finish_run(conn, run_id, "failed",
                              error=f"the opening of stage {wrapper.stage_name(conn, run_id, index)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}")
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
 
@@ -490,13 +496,17 @@ def _ended_with(status):
 
 
 def _progress(conn, run_id, stage):
-    """`{unit: (done, estimate)}` of the units reporting now."""
+    """`{unit: (done, estimate)}` of the units reporting now (OPS.136: read from the beat record of each)."""
     found = {}
     for unit, raw in conn.hgetall(runrecord.progress_key(run_id, stage)).items():
+        record = unitbeat.parse(raw)
+        if record is None:
+            continue
         try:
-            done, estimate = (float(part) for part in runrecord._s(raw).split(","))
-            found[int(unit)] = (done, estimate)
-        except ValueError:
+            done, estimate = float(record["done"]), float(record["estimate"])
+            if estimate > 0.0:        # a unit that has not said how much work it has is on the beat record but has no bar
+                found[int(unit)] = (done, estimate)
+        except (KeyError, ValueError, TypeError):
             continue
     return found
 
