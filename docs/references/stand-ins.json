@@ -61233,38 +61233,38 @@
           "fields": [
             [
               "What it is",
-              "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+              "a belt is one tide source (tide_sources.belt_source, GEN.1464): its mass cut into the eight rings of BR1, the rings nearer the receiver than BR2 left out, each ring a circle, summed so that the accelerations of the rings add (M g3 = sum m_i g3_i) and so do their separate torques and heats (M^2 g6 = sum m_i^2 g6_i), turning the line at the mass-weighted rate of the rings; a comet is a source on its own orbit of semi-major axis q / (1 - e) (comet_source), a comet with e of 1 or more or no mass gives nothing"
             ],
             [
               "The range it moves in",
-              "none"
+              "none (BR1 and BR2 are the belt's)"
             ],
             [
               "Where it holds",
-              "the planets and moons of the sample"
+              "the belts of the host's list and the bound comets of the sample"
             ],
             [
               "What would show it wrong",
-              "a system whose belt mass is a large share of a planet's"
+              "a planet less than a tenth from a belt's edge (its nearest rings are left out), a comet on a steeply tilted or near-parabolic orbit whose time near the receiver's circle is not its time in a coplanar mean"
             ],
             [
               "What replaces it",
-              "the belts as sources through the ledger of GEN.1464"
+              "the tide of each of the belt's members and of the comet at its place, from the member roster"
             ],
             [
               "Evidence",
-              "design: the item order; a belt's mass is a small share of its planet's in every sample census"
+              "derived: a tide goes as the sum of the pulls (G m R / d^3), and the rings are the same cut the secular pull uses"
             ]
           ],
           "id": "TS5",
           "key": "6.260:TS5",
-          "kind": "T",
+          "kind": "P",
           "slug": "6-260-ts5",
-          "tier": "T6",
-          "tier_code": "T6",
+          "tier": "T7",
+          "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+          "what": "a belt is one tide source (tide_sources.belt_source, GEN.1464): its mass cut into the eight rings of BR1, the rings nearer the receiver than BR2 left out, each ring a circle, summed so that the accelerations of the rings add (M g3 = sum m_i g3_i) and so do their separate torques and heats (M^2 g6 = sum m_i^2 g6_i), turning the line at the mass-weighted rate of the rings; a comet is a source on its own orbit of semi-major axis q / (1 - e) (comet_source), a comet with e of 1 or more or no mass gives nothing"
         },
         {
           "burn_down": null,
@@ -61303,6 +61303,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the dwarf planets and the largest bodies of a belt are in the mass of their belt (belt.mass_kg holds all of it) and are not sources of their own; a tide on a dwarf planet or large asteroid from the planets that pull it and the tide it raises on its own moons are not built"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the planets and moons of the sample (the belts' census shares are under 1e-6 of the host's pull)"
+            ],
+            [
+              "What would show it wrong",
+              "a belt member big enough to hold a moon that locks or heats (Pluto and Charon: a tide on a moon of a belt member)"
+            ],
+            [
+              "What replaces it",
+              "the dwarf planets of belt_member as bodies with a tide pass of their own (GEN.1464 part C)"
+            ],
+            [
+              "Evidence",
+              "design: the member roster is drawn on demand and the planets' pass runs once at generation"
+            ]
+          ],
+          "id": "TS7",
+          "key": "6.260:TS7",
+          "kind": "T",
+          "slug": "6-260-ts7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the dwarf planets and the largest bodies of a belt are in the mass of their belt (belt.mass_kg holds all of it) and are not sources of their own; a tide on a dwarf planet or large asteroid from the planets that pull it and the tide it raises on its own moons are not built"
         }
       ],
       "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",

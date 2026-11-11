@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1608 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1609 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1582 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1583 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -53,10 +53,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
 | T6 | 202 | 108 | 30 | 82 | 4 | 426 |
-| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
+| T7 | 58 | 19 | 9 | 34 | 0 | 120 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 18 | 5 | 92 | 35 | 194 |
-| All | 919 | 313 | 75 | 248 | 53 | 1608 |
+| All | 920 | 313 | 75 | 248 | 53 | 1609 |
 
 ## How the labels were given
 
@@ -2761,8 +2761,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TS2 | P | T7 | L0 | a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place | none | sources far from the receiver compared with the moons' orbits (every planet's moon system is under a tenth of the planet's Hill sphere) | a planet whose neighbour is close enough that the neighbour's moon system is not small against the gap | each moon of a sibling as its own source on its own orbit | design: the moons' orbits are inside `moon_hill_fraction` of the planet's Hill radius, which is small against the planet-to-planet gap for planets spaced by the mutual-Hill checks | predicted only | - | - |
 | TS3 | P | T7 | L0 | the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (`radiation_field.separations_au`), and two circles closer than `tide_sources._MIN_SEPARATION_SHARE` = 0.01 of the larger are held that far apart | 0.01 | planets spaced by the mutual-Hill rule and eccentricities under 0.5 | an eccentric receiver whose orbit crosses a neighbour's | the receiver's own radius in the average (a double grid) | derived: the grid is the one the radiation field uses for the same orbits; the floor is never reached by neighbours several mutual Hill radii apart | predicted only | - | - |
 | TS4 | P | T7 | L0 | a source other than the host raises a tide that goes round at the synodic rate `abs(n_receiver - n_source)`, on a circle at the distance whose `1 / d^3` is the source's mean, and adds to the spring and neap range as one more raiser | none | any source that is not the receiver's host (the host's own tide moves at the receiver's orbital rate) | a receiver locked to a source it shares an orbit with (a Trojan pair) | the true tide of the moving source at each phase | derived: the tide a body feels at a phase goes as the mean of `1 / d^3` over the pair's phase difference | predicted only | - | - |
-| TS5 | T | T6 | L0 | no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources | none | the planets and moons of the sample | a system whose belt mass is a large share of a planet's | the belts as sources through the ledger of GEN.1464 | design: the item order; a belt's mass is a small share of its planet's in every sample census | predicted only | - | - |
+| TS5 | P | T7 | L0 | a belt is one tide source (`tide_sources.belt_source`, GEN.1464): its mass cut into the eight rings of BR1, the rings nearer the receiver than BR2 left out, each ring a circle, summed so that the accelerations of the rings add (`M g3 = sum m_i g3_i`) and so do their separate torques and heats (`M^2 g6 = sum m_i^2 g6_i`), turning the line at the mass-weighted rate of the rings; a comet is a source on its own orbit of semi-major axis `q / (1 - e)` (`comet_source`), a comet with `e` of 1 or more or no mass gives nothing | none (BR1 and BR2 are the belt's) | the belts of the host's list and the bound comets of the sample | a planet less than a tenth from a belt's edge (its nearest rings are left out), a comet on a steeply tilted or near-parabolic orbit whose time near the receiver's circle is not its time in a coplanar mean | the tide of each of the belt's members and of the comet at its place, from the member roster | derived: a tide goes as the sum of the pulls (`G m R / d^3`), and the rings are the same cut the secular pull uses | predicted only | - | - |
 | TS6 | P | T7 | L0 | the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of `1 / d^6` for two coplanar circles, `((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5` (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (`abs(spin - rate)`); the line turns at the rate of the larger orbit radius | none | coplanar neighbours and companions | a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion | the mean over both orbits with their nodes, and the tide at the synodic frequency | derived: `<(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2))` with `A = a^2 + b^2`, `B = 2 a b` (tested against quadrature); census over 30 systems in the last paragraph of the note | predicted only | - | - |
+| TS7 | T | T6 | L0 | the dwarf planets and the largest bodies of a belt are in the mass of their belt (`belt.mass_kg` holds all of it) and are not sources of their own; a tide on a dwarf planet or large asteroid from the planets that pull it and the tide it raises on its own moons are not built | none | the planets and moons of the sample (the belts' census shares are under 1e-6 of the host's pull) | a belt member big enough to hold a moon that locks or heats (Pluto and Charon: a tide on a moon of a belt member) | the dwarf planets of `belt_member` as bodies with a tide pass of their own (GEN.1464 part C) | design: the member roster is drawn on demand and the planets' pass runs once at generation | predicted only | - | - |
 
 ## 6.261 Stand-ins of the fudge table
 

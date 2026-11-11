@@ -473,7 +473,8 @@ class StarSystem:
             if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
                 # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
                 self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
-            tide_sources.register(self.all_planets)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
+            for bodies in (self.planets, self.secondary_planets, *self.member_planets):    # each host's own list: a belt belongs to the star whose list it stands in
+                tide_sources.register(bodies)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
@@ -622,21 +623,25 @@ class StarSystem:
     def _tide_pass(self):
         """
         The ocean tide of every planet and moon from every body that pulls on it (GEN.1446, `tide_sources`): its host and companion stars, the other planets of
-        its host, its own moons or its planet, and the other moons of its planet. Each pull is also noted in the effect ledger (GEN.1465) as a tide-raising
+        its host, its own moons or its planet, and the other moons of its planet, and (GEN.1464) the belts and comets of its host. Each pull is also noted in the effect ledger (GEN.1465) as a tide-raising
         acceleration, whatever its size.
         """
-        planets = [obj for obj in self.all_planets if obj.body_type != 'a']
-        for obj in planets:
-            siblings = [other for other in planets if other is not obj and other.star is obj.star]
-            for body, parent in ((obj, None), *((moon, obj) for moon in obj.moons)):
-                sources = tide_sources.sources_of(body, parent, siblings)
-                ocean_tides.generate(body, parent, tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent)))
-                for source in sources:
-                    self.effect_ledger.add("tide", body, source.body, tide_sources.acceleration_m_s2(body, source))
-                primary = body.star if parent is None else parent
-                for source_body, power in tide_sources.heating_by_source(body, sources, primary):
-                    if power > 0.0:
-                        self.effect_ledger.add("heating", body, source_body, power)
+        lists = ((self.planets, self.comets), (self.secondary_planets, self.secondary_comets), *((bodies, ()) for bodies in self.member_planets))
+        for bodies, comets in lists:
+            planets = [obj for obj in bodies if obj.body_type != 'a']
+            belts = [obj for obj in bodies if obj.body_type == 'a']
+            for obj in planets:
+                siblings = [other for other in planets if other is not obj and other.star is obj.star] + belts + list(comets)     # GEN.1464: the belts and comets of the host pull too
+                at_planet = tide_sources.planet_sources(obj, siblings)      # the moons share what the planet's place gets
+                for body, parent in ((obj, None), *((moon, obj) for moon in obj.moons)):
+                    sources = tide_sources.sources_of(body, parent, siblings, at_planet)
+                    ocean_tides.generate(body, parent, tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent)))
+                    for source in sources:
+                        self.effect_ledger.add("tide", body, source.body, tide_sources.acceleration_m_s2(body, source))
+                    primary = body.star if parent is None else parent
+                    for source_body, power in tide_sources.heating_by_source(body, sources, primary):
+                        if power > 0.0:
+                            self.effect_ledger.add("heating", body, source_body, power)
 
     def _fill_light_ledger(self):
         """

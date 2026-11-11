@@ -132,3 +132,121 @@ def test_heating_by_source_gives_the_orbit_to_the_primary_and_the_tide_to_the_ot
     assert found["jupiter"] < found["moon"]
     earth.rotation_period_hours = None
     assert [b.name for b, w in tide_sources.heating_by_source(earth, sources, star)] == ["star"]
+
+
+# GEN.1464 part B: belts and comets pull too
+
+class _Belt:
+    body_type = "a"
+
+    def __init__(self, lower, upper, mass_kg, name="belt"):
+        self.lower_limit, self.upper_limit, self.mass_kg, self.name = lower, upper, mass_kg, name
+
+
+class _Comet:
+    def __init__(self, q, e, mass_kg, name="comet"):
+        self.perihelion_distance_au, self.eccentricity, self.mass_kg, self.name = q, e, mass_kg, name
+
+
+def test_a_belt_is_one_source_whose_acceleration_is_the_sum_of_its_rings_and_whose_mass_is_the_belt_mass():
+    from planetgen.physics import secular_chain
+    star, earth, moon, jupiter = _system()
+    belt = _Belt(2.0, 3.2, 3.0e21)
+    source = tide_sources.belt_source(1.0, belt, star.mass, 1.9e-7)
+    axes, masses = secular_chain.belt_rings(2.0, 3.2, 3.0e21)
+    assert source.kind == "belt" and source.body is belt
+    assert source.mass_kg == pytest.approx(3.0e21)       # no ring is within a tenth of an Earth orbit
+    expected = sum(m * tide_sources.circles_mean_inverse_cube(1.0, a) for a, m in zip(axes, masses)) / 3.0e21 / constants.AU_TO_M ** 3
+    assert source.g3 == pytest.approx(expected, rel=1e-12)
+    # an independent read: 400 thin rings of one surface density (mass goes as a da), against the eight of the source
+    edges = [2.0 + 1.2 * i / 400 for i in range(401)]
+    fine = [(0.5 * (lo + hi), hi * hi - lo * lo) for lo, hi in zip(edges, edges[1:])]
+    total = sum(w for _, w in fine)
+    quadrature = sum(w * tide_sources.circles_mean_inverse_cube(1.0, a) for a, w in fine) / total
+    assert source.g3 * constants.AU_TO_M ** 3 == pytest.approx(quadrature, rel=0.02)
+    # rings raise their tides apart: M^2 g6 is the sum of m_i^2 g6_i, so it is under the point mass at the mean of 1/d^6
+    assert 0.0 < source.g6 < source.g3 ** 2 * 1.0
+
+
+def test_a_belt_outside_the_receiver_turns_the_tide_at_its_own_motion_and_one_inside_at_the_receivers():
+    star, earth, moon, jupiter = _system()
+    outside = tide_sources.belt_source(1.0, _Belt(2.0, 3.0, 1e21), star.mass, 123.0)
+    inside = tide_sources.belt_source(5.0, _Belt(2.0, 3.0, 1e21), star.mass, 123.0)
+    assert inside.rate_rad_s == pytest.approx(123.0)
+    assert outside.rate_rad_s == pytest.approx(math.sqrt(constants.G * star.mass / (2.5 * constants.AU_TO_M) ** 3), rel=0.05)
+
+
+def test_rings_next_to_the_receiver_are_left_out_and_a_belt_with_nothing_clear_gives_none():
+    from planetgen.physics import secular_chain
+    star, earth, moon, jupiter = _system()
+    touching = tide_sources.belt_source(1.0, _Belt(0.5, 1.05, 1e21), star.mass, 1.9e-7)
+    assert 0.0 < touching.mass_kg < 1e21
+    assert tide_sources.belt_source(1.0, _Belt(1.0, 1.01, 1e21), star.mass, 1.9e-7) is None
+    assert tide_sources.belt_source(1.0, _Belt(2.0, 3.0, 0.0), star.mass, 1.9e-7) is None
+    assert secular_chain.BELT_ALPHA_LIMIT == 0.9      # the limit is the secular pull's own (reused)
+
+
+def test_planet_and_moon_sources_list_the_belts_and_comets_among_the_siblings_and_nothing_else_changes():
+    star, earth, moon, jupiter = _system()
+    belt, comet = _Belt(2.0, 3.2, 3.0e21), _Comet(0.5, 0.9, 1.0e14)
+    plain = tide_sources.sources_of(earth, None, [earth, jupiter])
+    more = tide_sources.sources_of(earth, None, [earth, jupiter, belt, comet])
+    assert [s.name for s in more[:len(plain)]] == [s.name for s in plain]
+    assert [s.kind for s in more[len(plain):]] == ["belt", "comet"]
+    assert [(s.mass_kg, s.g3) for s in more[:len(plain)]] == [(s.mass_kg, s.g3) for s in plain]
+    moon_more = tide_sources.sources_of(moon, earth, [earth, jupiter, belt, comet])
+    assert {"belt", "comet"} <= {s.kind for s in moon_more}
+    cached = tide_sources.sources_of(moon, earth, [earth, jupiter, belt, comet], tide_sources.planet_sources(earth, [earth, jupiter, belt, comet]))
+    assert [(s.name, s.g3) for s in cached] == [(s.name, s.g3) for s in moon_more]
+
+
+def test_a_belt_pulls_far_less_than_the_host_and_far_more_than_nothing():
+    star, earth, moon, jupiter = _system()
+    belt = _Belt(2.0, 3.2, 3.0e21)
+    sources = {s.kind: s for s in tide_sources.sources_of(earth, None, [belt])}
+    ratio = tide_sources.acceleration_m_s2(earth, sources["belt"]) / tide_sources.acceleration_m_s2(earth, sources["star"])
+    assert 1e-11 < ratio < 1e-8      # 3e21 kg against the Sun's 2e30 kg, at a mean separation of a few AU against one
+
+
+def test_a_comet_is_a_source_on_its_own_orbit_and_an_unbound_or_massless_one_is_not():
+    star, earth, moon, jupiter = _system()
+    comet = _Comet(1.5, 0.8, 5.0e13)
+    source = tide_sources.comet_source(1.0, comet, star.mass, 1.9e-7)
+    axis = 1.5 / 0.2
+    assert source.kind == "comet" and source.mass_kg == 5.0e13
+    assert source.g3 == pytest.approx(tide_sources.orbit_mean_inverse_cube(1.0, axis, 0.8) / constants.AU_TO_M ** 3)
+    assert source.rate_rad_s == pytest.approx(math.sqrt(constants.G * star.mass / (axis * constants.AU_TO_M) ** 3))
+    assert tide_sources.comet_source(1.0, _Comet(1.5, 1.0, 5.0e13), star.mass, 1.9e-7) is None
+    assert tide_sources.comet_source(1.0, _Comet(1.5, 1.4, 5.0e13), star.mass, 1.9e-7) is None
+    assert tide_sources.comet_source(1.0, _Comet(1.5, 0.8, 0.0), star.mass, 1.9e-7) is None
+
+
+def test_a_belt_becomes_one_raiser_at_the_distance_whose_inverse_cube_is_its_mean():
+    star, earth, moon, jupiter = _system()
+    sources = tide_sources.sources_of(earth, None, [_Belt(2.0, 3.2, 3.0e21)])
+    extra = tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(earth, None))
+    assert [r.name for r in extra] == ["belt"]
+    belt = next(s for s in sources if s.kind == "belt")
+    assert extra[0].mass_kg == belt.mass_kg and extra[0].distance_m ** -3 == pytest.approx(belt.g3)
+
+
+def test_register_gives_every_planet_and_moon_the_belts_of_its_own_list_and_no_comets():
+    star, earth, moon, jupiter = _system()
+    belt = _Belt(2.0, 3.2, 3.0e21)
+    tide_sources.register([earth, jupiter, belt])
+    assert belt in earth._tide_siblings and belt in moon._tide_siblings and not hasattr(belt, "_tide_siblings")
+    assert any(r for r in tide_sources.spin_raisers(earth))
+
+
+def test_a_generated_system_with_a_belt_and_comets_notes_them_in_the_tide_ledger():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    config = SystemConfig()
+    config.ASTEROID_BELT, config.COMETS = True, True
+    with draw.bound(3003):
+        system = StarSystem(system_config=config)
+    belts = [p for p in system.planets if p.body_type == "a"]
+    assert belts and system.comets
+    noted = {id(source) for _, pairs in system.effect_ledger.contributions("tide") for source, _ in pairs}
+    assert id(belts[0]) in noted and any(id(c) in noted for c in system.comets)

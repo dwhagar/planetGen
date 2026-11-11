@@ -19,8 +19,12 @@ the fixed grid of `radiation_field` (the radius at points uniform in time), the 
 planet's system (a companion star, a sibling planet) at the planet's place: the moon's own orbit is under the planet's radius by orders of magnitude.
 
 **What it leaves out (stated).** The orbits are taken coplanar (a mutual inclination only lengthens the mean separation, so this is the upper bound on the part of each source);
-a sibling planet and its moons are one point at the planet's place with the sum of their masses; a belt, asteroid or comet is not a source here (GEN.1464 adds them as tiny sources);
-a source with no stored mass or orbit gives nothing.
+a sibling planet and its moons are one point at the planet's place with the sum of their masses; a source with no stored mass or orbit gives nothing; a comet's orbit is taken in the plane too (a long-period comet's tilt only lengthens its mean separation, so its part is the upper bound).
+
+**Belts and comets (GEN.1464).** A belt is one source of kind `belt`: its mass cut into the rings of `secular_chain.belt_rings` (one surface density, the rings nearer the receiver than `BELT_ALPHA_LIMIT` left out, as the secular pull does),
+each ring a circle, summed so that `M g3 = sum m_i g3_i` (the acceleration of the belt is the sum of its rings') and `M^2 g6 = sum m_i^2 g6_i` (rings raise their tides apart); its tide goes round at the mass-weighted
+rate of its rings. A comet is a source of kind `comet` on its own orbit (`orbit_mean_inverse_cube` at its semi-major axis `q / (1 - e)`). The dwarf planets and the largest bodies of a belt are in the mass of
+its belt (`belt.mass_kg` is all it holds) and are not counted again.
 
 **The rate a tide goes round at.** The line from the receiver to a source turns, averaged over the two orbits, at the rate of the larger of the two radii about their primary (the
 winding number of `R e_s - d e_r`): a source farther out than the receiver (a companion star, an outer planet, an outer moon) turns it at the source's own mean motion, one farther in
@@ -34,7 +38,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy import special
 
-from planetgen.physics import constants, radiation_field, spin_torques
+from planetgen.physics import constants, radiation_field, secular_chain, spin_torques
 
 _MIN_SEPARATION_SHARE = 0.01
 """float: Two circles closer than this share of the larger are held that far apart, so the mean cannot blow up (never in a stable system: neighbours stand several Hill radii apart)."""
@@ -59,33 +63,37 @@ class Source:
 
 
 def circles_mean_inverse_cube(a, b):
-    """`< 1 / d^3 >` (1 / length^3, in the unit `a` and `b` are in) between two bodies on circles of radii `a` and `b` in one plane, averaged over their phase difference."""
-    a, b = float(a), float(b)
-    far = max(a, b)
-    gap = max(abs(a - b), _MIN_SEPARATION_SHARE * far)
+    """`< 1 / d^3 >` (1 / length^3, in the unit `a` and `b` are in) between two bodies on circles of radii `a` and `b` in one plane, averaged over their phase difference (`b` may be an array of radii: the means come back as one)."""
+    a = float(a)
+    b = np.asarray(b, dtype=float)
+    far = np.maximum(a, b)
+    gap = np.maximum(np.abs(a - b), _MIN_SEPARATION_SHARE * far)
     m = 4.0 * a * b / (a + b) ** 2
-    return 2.0 * float(special.ellipe(m)) / (math.pi * (a + b) * gap ** 2)
+    result = 2.0 * special.ellipe(m) / (math.pi * (a + b) * gap ** 2)
+    return float(result) if result.ndim == 0 else result
 
 
 def circles_mean_inverse_sixth(a, b):
     """`< 1 / d^6 >` of two circles of radii `a` and `b` in one plane, averaged over their phase difference: `((a^2 + b^2)^2 + 2 a^2 b^2) / |a^2 - b^2|^5` (the torque of a tide goes
     as `1 / d^6`, and for neighbours it is far above the square of the mean of `1 / d^3`)."""
-    a, b = float(a), float(b)
-    gap2 = max(abs(a * a - b * b), _MIN_SEPARATION_SHARE * max(a, b) ** 2)
-    return ((a * a + b * b) ** 2 + 2.0 * a * a * b * b) / gap2 ** 5
+    a = float(a)
+    b = np.asarray(b, dtype=float)
+    gap2 = np.maximum(np.abs(a * a - b * b), _MIN_SEPARATION_SHARE * np.maximum(a, b) ** 2)
+    result = ((a * a + b * b) ** 2 + 2.0 * a * a * b * b) / gap2 ** 5
+    return float(result) if result.ndim == 0 else result
 
 
 def orbit_mean_inverse_sixth(receiver_axis, source_axis, source_eccentricity):
     """`< 1 / d^6 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity`, the circles' mean over the source's orbit."""
     radii = radiation_field.separations_au(source_axis, source_eccentricity or 0.0)
-    return float(np.mean([circles_mean_inverse_sixth(receiver_axis, radius) for radius in radii]))
+    return float(np.mean(circles_mean_inverse_sixth(receiver_axis, radii)))
 
 
 def orbit_mean_inverse_cube(receiver_axis, source_axis, source_eccentricity):
     """`< 1 / d^3 >` between a receiver on the circle `receiver_axis` and a source of semi-major axis `source_axis` and eccentricity `source_eccentricity` about the same primary
     (all in one length unit): the circles' mean averaged over the source's radius at the points of `radiation_field.separations_au`."""
     radii = radiation_field.separations_au(source_axis, source_eccentricity or 0.0)
-    return float(np.mean([circles_mean_inverse_cube(receiver_axis, radius) for radius in radii]))
+    return float(np.mean(circles_mean_inverse_cube(receiver_axis, radii)))
 
 
 def kepler_mean_inverse_cube(axis, eccentricity):
@@ -101,6 +109,42 @@ def _rate(primary_mass_kg, body_mass_kg, axis_m):
 def _mass_of(planet):
     """A planet with its moons, the point the other bodies of the system feel."""
     return float(planet.mass) + sum(float(getattr(moon, "mass", 0.0) or 0.0) for moon in getattr(planet, "moons", ()) or ())
+
+
+def belt_source(receiver_axis_au, belt, host_mass_kg, receiver_rate_rad_s):
+    """
+    The `Source` of a belt on a receiver on the circle `receiver_axis_au` round a host of `host_mass_kg` (GEN.1464): the belt's mass cut into `secular_chain.belt_rings` (the rings nearer than
+    `secular_chain.BELT_ALPHA_LIMIT` to the receiver left out), each ring a circle, with the mass of the rings kept, the mean `1 / d^3` that gives the sum of their accelerations, the mean `1 / d^6` that
+    gives the sum of their (separate) torques and the rate of the line to the rings (a ring outside the receiver turns it at the ring's own motion, one inside at the receiver's), weighted by mass.
+    `None` for a belt with no mass or no ring clear of the receiver.
+    """
+    axes, masses = secular_chain.belt_rings(belt.lower_limit, belt.upper_limit, getattr(belt, "mass_kg", 0.0) or 0.0)
+    axes, masses = secular_chain.clear_rings(axes, masses, [receiver_axis_au])
+    total = sum(masses)
+    if not total > 0.0:
+        return None
+    au3, au6 = constants.AU_TO_M ** 3, constants.AU_TO_M ** 6
+    g3 = sum(m * circles_mean_inverse_cube(receiver_axis_au, a) for a, m in zip(axes, masses)) / total / au3
+    g6 = sum(m * m * circles_mean_inverse_sixth(receiver_axis_au, a) for a, m in zip(axes, masses)) / total ** 2 / au6
+    rate = sum(m * (_rate(host_mass_kg, 0.0, a * constants.AU_TO_M) if a > receiver_axis_au else receiver_rate_rad_s) for a, m in zip(axes, masses)) / total
+    return Source(belt, getattr(belt, "name", None) or "asteroid belt", "belt", total, g3, rate, g6)
+
+
+def comet_source(receiver_axis_au, comet, host_mass_kg, receiver_rate_rad_s):
+    """
+    The `Source` of one bound comet on a receiver on the circle `receiver_axis_au` (GEN.1464): its mass on its own orbit (semi-major axis `q / (1 - e)`), the mean of `1 / d^3` and `1 / d^6` over the orbit's
+    points uniform in time, and the rate of the line to it (the comet's own motion when its axis is outside the receiver's, the receiver's when inside). `None` for a comet with no mass or no bound orbit.
+    """
+    e = getattr(comet, "eccentricity", None)
+    q = getattr(comet, "perihelion_distance_au", None)
+    mass = getattr(comet, "mass_kg", None)
+    if e is None or q is None or not mass or not 0.0 <= e < 1.0 or not q > 0.0:
+        return None
+    axis_au = q / (1.0 - e)
+    g3 = orbit_mean_inverse_cube(receiver_axis_au, axis_au, e) / constants.AU_TO_M ** 3
+    g6 = orbit_mean_inverse_sixth(receiver_axis_au, axis_au, e) / constants.AU_TO_M ** 6
+    rate = _rate(host_mass_kg, 0.0, axis_au * constants.AU_TO_M) if axis_au > receiver_axis_au else receiver_rate_rad_s
+    return Source(comet, getattr(comet, "name", None) or "comet", "comet", float(mass), g3, rate, g6)
 
 
 def planet_sources(planet, siblings):
@@ -122,7 +166,19 @@ def planet_sources(planet, siblings):
         n_star = _rate(host.mass, star.mass, companion.axis_au * constants.AU_TO_M)
         found.append(Source(star, getattr(star, "name", None) or "companion star", "star", star.mass, g3, n_star, g6))
     for other in siblings:
-        if other is planet or not getattr(other, "distance", None):
+        if other is planet:
+            continue
+        if getattr(other, "body_type", None) == "a":
+            source = belt_source(a_au, other, host.mass, n_planet)
+            if source is not None:
+                found.append(source)
+            continue
+        if hasattr(other, "perihelion_distance_au"):
+            source = comet_source(a_au, other, host.mass, n_planet)
+            if source is not None:
+                found.append(source)
+            continue
+        if not getattr(other, "distance", None):
             continue
         b_au = other.distance
         g3 = orbit_mean_inverse_cube(a_au, b_au, getattr(other, "eccentricity", 0.0)) / constants.AU_TO_M ** 3
@@ -132,17 +188,18 @@ def planet_sources(planet, siblings):
     return found
 
 
-def moon_sources(moon, planet, siblings):
+def moon_sources(moon, planet, siblings, at_planet=None):
     """
     Every source of tide on `moon` besides its planet (which `ocean_tides` has): the host star at the planet's place, the host's companion stars, each of `siblings`
-    (the other planets of the host) at the planet's place, and each other moon of `planet` (on its own orbit round the planet).
+    (the other planets, the belts and the comets of the host) at the planet's place, and each other moon of `planet` (on its own orbit round the planet). `at_planet` is `planet_sources(planet, siblings)` when the
+    caller has it already (all the moons of one planet share it).
     """
     found = []
     if not getattr(moon, "distance", None):
         return found
     a_m = moon.distance * constants.AU_TO_M
     n_moon = _rate(planet.mass, moon.mass, a_m)
-    for source in planet_sources(planet, siblings):
+    for source in (planet_sources(planet, siblings) if at_planet is None else at_planet):
         found.append(source)       # a source outside the planet's system turns the line to it at the rate it turns the planet's, whatever the moon does
     for other in getattr(planet, "moons", ()) or ():
         if other is moon or not getattr(other, "distance", None):
@@ -172,9 +229,13 @@ def own_sources(body, parent=None):
     return found
 
 
-def sources_of(body, parent, siblings):
-    """Every source of tide on `body` (a planet, or a moon of `parent`): the ones `ocean_tides` counts and the others (`planet_sources`, `moon_sources`)."""
-    others = moon_sources(body, parent, siblings) if parent is not None else planet_sources(body, siblings)
+def sources_of(body, parent, siblings, at_planet=None):
+    """Every source of tide on `body` (a planet, or a moon of `parent`): the ones `ocean_tides` counts and the others (`planet_sources`, `moon_sources`). `at_planet` is `planet_sources(parent or body, siblings)`
+    when the caller has it already."""
+    if parent is not None:
+        others = moon_sources(body, parent, siblings, at_planet)
+    else:
+        others = planet_sources(body, siblings) if at_planet is None else at_planet
     return [*own_sources(body, parent), *others]
 
 
@@ -209,13 +270,14 @@ def raisers_of(sources, already):
 
 def register(planets):
     """
-    Tells every planet and moon of a system who else pulls on it: `_tide_siblings` (the other planets of its host, with their moons) on each planet and moon, and `_tide_parent` (the planet) on
-    each moon. `planets` is every planet and belt of the system; a belt is not a source here (GEN.1464). Nothing is stored; the spin history reads these (`spin_raisers`) when it is
-    run again at the final age.
+    Tells every planet and moon of a system who else pulls on it: `_tide_siblings` (the other planets of its host, with their moons, and the belts of its list) on each planet and moon, and `_tide_parent`
+    (the planet) on each moon. `planets` is every planet and belt of one list of the system (one host's); a belt is a source (GEN.1464), a comet is not (comets are made after the spin history). Nothing is
+    stored; the spin history reads these (`spin_raisers`) when it is run again at the final age.
     """
     bodies = [planet for planet in planets if getattr(planet, "body_type", None) != "a"]
+    belts = tuple(belt for belt in planets if getattr(belt, "body_type", None) == "a")
     for planet in bodies:
-        siblings = tuple(other for other in bodies if other is not planet and other.star is planet.star)
+        siblings = tuple(other for other in bodies if other is not planet and other.star is planet.star) + belts
         planet._tide_siblings, planet._tide_parent = siblings, None
         for moon in getattr(planet, "moons", ()) or ():
             moon._tide_siblings, moon._tide_parent = siblings, planet
