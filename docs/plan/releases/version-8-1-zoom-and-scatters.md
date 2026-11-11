@@ -490,7 +490,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | Lane 23, 2026-11-11. |
 | GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | Lane 14, 2026-11-11. |
 | GEN.1543 | (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it | GEN.1542 | Lane 14, 2026-11-11. |
-| GEN.1544 | (bug) A planet's cosmogenic isotope rows (Al-26, Be-10) are first made before its magnetic field exists, so they use a field factor of 1.0 until the final-age pass remakes them | none | Train Manager, 2026-11-11. |
+| GEN.1544 | (bug) A planet's cosmogenic isotope rows (Al-26, Be-10) are first made before its magnetic field exists, so they use a field factor of 1.0 until the final-age pass remakes them | none | Train Manager (filed 2026-11-11). |
 | GEN.1545 | (bug) A star whose age is raised for its planets is not evolved again, so its light, temperature, radius, type, X-rays, flares and spin stay at the first-guess age | none | Boss, 2026-11-11. |
 | GEN.1546 | Forward build, item 1: remove the age floor (age_needs, the age-raising code, the trim and belt rebuild after the bump, its retry reason) so the star is made once at its final age | none | Boss, 2026-11-11. |
 | GEN.1547 | Forward build, item 2: key the dice of every end stage to the body (air, albedo, surface water, spin, giant interior), so a remake or a move never re-rolls | GEN.1546 | Boss, 2026-11-11. |
