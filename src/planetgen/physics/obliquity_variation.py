@@ -52,7 +52,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import constants, secular_chain
+from planetgen.physics import constants, oddities, secular_chain
 
 ARCSEC_PER_RAD = 180.0 * 3600.0 / math.pi
 """float: Arcseconds in a radian, for reading the rates in the units the literature prints them in."""
@@ -247,3 +247,12 @@ def chaotic_tilt_deg(variation, u):
         raise ValueError("u must be between 0 and 1")
     nearest, farthest = math.cos(math.radians(variation.minimum_deg)), math.cos(math.radians(variation.maximum_deg))
     return math.degrees(math.acos(nearest + u * (farthest - nearest)))
+
+
+@oddities.register("chaotic_tilt")
+def chaotic_tilt(body, row):
+    """
+    The effect of oddities W6 and W61 (GEN.1535): a planet whose tilt `planets.settle_obliquity` found in a chaotic zone of the spin-orbit resonances. The tilt was drawn from the zone and
+    its range stored, so nothing on the body changes: the effect only lets the table name it, so that the page says why this world's seasons change over the ages.
+    """
+    return None

@@ -1552,6 +1552,7 @@
 -- v244 (GEN.1314): `planets`, `moons` and `rogue_planets` gain `class_fudge_values` (VARCHAR(120), NULL): the values fudged to fit the stored class (quantity names, comma separated; the temperatures as `temperature_k`), NULL for a full fit, and `class_fudge_amount` (DOUBLE, NULL): their total move in widths of the fudge table (`physics/data/fudge_table.json`), 0 for a full fit. A row made before v244 gets them when the galaxy is regenerated.
 -- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
 -- v242 (GEN.1484): `planets`, `moons` and `rogue_planets` gain `light_factor` (DOUBLE, NULL): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other, NULL for every other body.
+-- v244 (GEN.1535): `planets`, `moons` and `rogue_planets` gain `obliquity_min_deg` and `obliquity_max_deg` (DOUBLE, NULL): the lowest and highest tilt a free-spinning planet's axis reaches over the age of its star, from the spin-orbit secular resonances (`physics/obliquity_variation.py`), NULL for a body that was not worked (a moon, a rogue planet, a locked or resonant body); a free-spinning planet with no mode to drive it has a range of its own tilt.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2574,6 +2575,8 @@ CREATE TABLE IF NOT EXISTS planets (
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
+    obliquity_min_deg           DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg           DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -3111,6 +3114,8 @@ CREATE TABLE IF NOT EXISTS moons (
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
+    obliquity_min_deg           DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg           DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -4598,6 +4603,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                  DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
+    obliquity_min_deg             DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg             DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)

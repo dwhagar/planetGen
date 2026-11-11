@@ -220,6 +220,7 @@ EFFECTS = {
     "ring_from_moon": _noop,
     "hycean_box": _noop,
     "helium_enriched": _noop,
+    "chaotic_tilt": _noop,
     "high_eccentricity": _high_eccentricity,
     "polar_orbit": _polar_orbit,
     "resonance_forced": _resonance_forced,

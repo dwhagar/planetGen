@@ -203,6 +203,7 @@ _BODY_GROUPS = (
            ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
+           ("obliquity_min_deg", "Lowest tilt over the star's age"), ("obliquity_max_deg", "Highest tilt over the star's age"),
            ("outside_hours", "Hours a person can work outside per year (dose limit)"),
            ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
            ("solar_day_hours", "Length of the solar day"),
