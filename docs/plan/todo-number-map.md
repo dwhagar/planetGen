@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.297 |
-| MAP | MAP.423 |
+| MAP | MAP.424 |
 | NAV | NAV.78 |
 | GEN | GEN.1527 |
 | PERF | PERF.260 |
@@ -4673,8 +4673,8 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in | none | open |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" | none | open |
 | MAP.411 | Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed | none | done, PR #5737 |
-| MAP.412 | (bug) bodylook.member_look: a look record for a belt member | none | open |
-| MAP.413 | (bug) The belt member page draws its body | MAP.412 | open |
+| MAP.412 | (bug) bodylook.member_look: a look record for a belt member | none | done, PR #5954 |
+| MAP.413 | (bug) The belt member page draws its body | MAP.412 | done, PR #5958 |
 | MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | open |
 | MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | open |
 | MAP.416 | Census of cloud and haze data by class | none | open |
@@ -4684,6 +4684,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.420 | Coloured haze shell and limb, sized from tau_haze | MAP.418 | open |
 | MAP.421 | Giants get a haze and cloud-deck tint | MAP.418 | open |
 | MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | open |
+| MAP.423 | (bug) Hot-star nebulae (emission, reflection, planetary, remnants) near the Sun and in the outer disk are effectively not drawn on the map | GEN.1267 | open |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 
