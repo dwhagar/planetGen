@@ -13189,6 +13189,31 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 15 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **UX.298 The single-system generator page cannot ask for a rogue planet or a starless result**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the control (reusing the generator's existing rogue-planet option; no new option) with wording, a result link and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.299 The single-system generator page has no weirdness dial or oddities control**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the weirdness dial and the oddities choice the CLI already has, with the same wording and limits, and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.300 The single-system generator page has no debug-areas choice for the debug log**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the debug-areas choice the CLI has, writing to the same debug log, and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.301 Phone-width and accessibility check of the single-system generator page and its result document**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Check at phone width and with keyboard and screen-reader basics (labels, contrast, focus order, table scroll), fix the small gaps and file the rest. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.302 The single-system generator page has no life-class, class-letter or fudge override on its form**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Needs a generator option first (a request for a life class or class letter with the fudge shown), so it follows that option and is not lock-free. Do: file the generator option as its own item first, then the form control.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -14182,10 +14207,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.115 update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug)**
-  Boss live observation, relayed by a lane (as the lane reported 11:13 AM EST on 2026-11-07): the pull step of update.sh lists untracked files in its "uncommitted local changes will be overwritten" warning, and set-permissions.sh logs a WARNING when config.json exists in both places. Do: the pull warning ignores untracked files; the both-exist line is an INFO note; nothing is moved or deleted; the deploy-script test asserts no WARNING is printed. Built: PR 5562 (branch claude/project-thread-om7xej, touches update.sh, examples/apache/set-permissions.sh, src/tests/test_deploy_scripts.py), waiting for the changed-tests gate on a lane machine. Done: PR 5562 merged. Lock-free. Goal issue #5433. Version 8.1. Owner: none (the PR is built). Filed by the TODO thread.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
