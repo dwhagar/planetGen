@@ -149,7 +149,7 @@ class UnitBeat:
         with self._lock:
             made = {"done": self._done, "estimate": self._estimate, "beat": now_server, "started": self._started_server,
                     "phase": self._phase, "waiting_on": self._waiting, "restarts": max(0, self._phases.get(self._phase, 1) - 1),
-                    "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
+                    "waited": round(max(self._waited, 0.0), 1), "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
             if self.stack_file:
                 made["stack_file"] = self.stack_file
             made.update(self.extra)
@@ -237,7 +237,7 @@ def beat_of(found):
     return beatjudge.Beat(beat=float(found["beat"]), started=float(found.get("started", found["beat"])), done=float(found.get("done", 0.0)),
                           estimate=float(found.get("estimate") or 0.0), moved=None if found.get("moved") is None else float(found["moved"]),
                           phase=str(found.get("phase", "")), waiting_on=str(found.get("waiting_on", "")), restarts=int(found.get("restarts", 0)),
-                          resident_mb=None if found.get("resident_mb") is None else float(found["resident_mb"]))
+                          waited=float(found.get("waited") or 0.0), resident_mb=None if found.get("resident_mb") is None else float(found["resident_mb"]))
 
 
 def read(conn, run_id, stage):
