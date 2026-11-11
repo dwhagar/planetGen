@@ -9,8 +9,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics import flavor_tree, planet_classes, surface_liquid_world
 
 
-def _body(body_type, surface_liquid=None, life_stage=None, life_class=None):
-    return SimpleNamespace(body_type=body_type, surface_liquid=surface_liquid, life_class=life_class, life_stage=life_stage, system_config=SystemConfig(),
+def _body(body_type, surface_liquid=None, life_stage=None, life_class=None, life_class_id=None, life_animal_grade=0):
+    return SimpleNamespace(body_type=body_type, surface_liquid=surface_liquid, life_class=life_class, life_class_id=life_class_id, life_animal_grade=life_animal_grade, life_stage=life_stage, system_config=SystemConfig(),
                            flavor_key=None, flavor_text_count=0, mass=5.0e24, radius=6400.0, distance=1.0)
 
 
@@ -44,7 +44,7 @@ def test_a_gas_giant_gets_the_lines_of_a_body_with_no_ground():
 
 
 def test_a_world_with_multicellular_life_is_offered_the_life_lines_as_well_as_the_ground_lines():
-    options = flavor_tree.walk("planet", _body("t", life_stage="multicellularity", life_class=3))
+    options = flavor_tree.walk("planet", _body("t", life_stage="multicellularity", life_class=1, life_class_id="1a", life_animal_grade=2))
     families = {option.id.split(":")[0] for option in options}
-    assert families == {"planet", "habitable"}
-    assert {option.id.split(":")[0] for option in flavor_tree.walk("planet", _body("t", life_stage=None, life_class=3))} == {"planet"}
+    assert families == {"planet", "habitable", "life"}
+    assert {option.id.split(":")[0] for option in flavor_tree.walk("planet", _body("t", life_stage=None, life_class=1, life_class_id="1a"))} == {"planet"}

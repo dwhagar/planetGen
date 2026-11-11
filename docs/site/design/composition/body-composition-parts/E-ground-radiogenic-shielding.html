@@ -257,7 +257,7 @@ main{padding:16px 16px 60px}}
 <td>READ</td>
 </tr>
 <tr>
-<td>Fe-oxidized</td>
+<td>Fe-oxidised</td>
 <td>50% nanophase hematite, 50% basalt</td>
 <td>oxidative weathering</td>
 <td>0.21 / 0.21 / 0.21</td>
@@ -823,7 +823,7 @@ main{padding:16px 16px 60px}}
 <td>COMPUTED</td>
 </tr>
 <tr>
-<td>Hematite 60-104 um (oxidized)</td>
+<td>Hematite 60-104 um (oxidised)</td>
 <td>USGS GDS69.c (BECK)</td>
 <td>0.092</td>
 <td>0.086</td>
@@ -841,7 +841,7 @@ main{padding:16px 16px 60px}}
 <td>COMPUTED</td>
 </tr>
 <tr>
-<td>Goethite (oxidized, red)</td>
+<td>Goethite (oxidised, red)</td>
 <td>USGS WS222 (BECK)</td>
 <td>0.030</td>
 <td>0.122</td>
@@ -1808,7 +1808,7 @@ main{padding:16px 16px 60px}}
 </table></div>
 <p>Check of the repo's range law <code>R = 0.0022 E^1.77</code> against PSTAR water (ratio law over PSTAR, COMPUTED): 10 MeV 1.05; 30 MeV 1.02; 60 MeV 1.00; 100 MeV 0.99; 200 MeV 1.00; 400 MeV 1.08; 1000 MeV 1.38. The law is good to 5 percent up to 400 MeV (columns up to about 100 g/cm2 of water). At X = 1000 g/cm2 the law gives a cutoff of 2.33 GV against 3.20 GV from PSTAR water (COMPUTED); that matters only for the stellar-particle dose, which is negligible there. Rock needs 1.22 times the mass of water for the same proton range at 100 MeV (9.39 over 7.718, COMPUTED).</p>
 <h4 id="29d-hadronic-shielding-and-the-column-rule">2.9d Hadronic shielding and the column rule</h4>
-<p>Nuclear interaction length lambda_I in g/cm2 (Particle Data Group atomic and nuclear properties pages, READ). It is a property per gram, independent of phase and density, so one value serves ice, liquid and vapor.</p>
+<p>Nuclear interaction length lambda_I in g/cm2 (Particle Data Group atomic and nuclear properties pages, READ). It is a property per gram, independent of phase and density, so one value serves ice, liquid and vapour.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -1927,7 +1927,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Two independent measures of how much a gram of material is worth in air-equivalent shielding. Nuclear: <code>lambda_air / lambda_material</code>. Ionization: PSTAR range of air over the material's range at 30 to 1000 MeV (COMPUTED). Rock: 0.889 (nuclear) and 0.92 to 0.95 (ionization). Water: 1.082 and 1.13 to 1.14. Iron: 0.682 and 0.73 to 0.80. Rock and water agree within 3 to 6 percent; iron within 7 to 17 percent, so iron needs an energy-dependent weight if it matters. [R0996] (Biogeosciences 4, 545; PDF read) found the cosmic-ray dose-depth peak at 40 g/cm2 for both 1 and 3 g/cm3 dry regolith and at 30 g/cm2 for ice: a ratio of 0.75, against 0.82 from both lambda_I and PSTAR range (COMPUTED), a difference within the reading precision of a peak position.</p>
+<p>Two independent measures of how much a gram of material is worth in air-equivalent shielding. Nuclear: <code>lambda_air / lambda_material</code>. Ionisation: PSTAR range of air over the material's range at 30 to 1000 MeV (COMPUTED). Rock: 0.889 (nuclear) and 0.92 to 0.95 (ionisation). Water: 1.082 and 1.13 to 1.14. Iron: 0.682 and 0.73 to 0.80. Rock and water agree within 3 to 6 percent; iron within 7 to 17 percent, so iron needs an energy-dependent weight if it matters. [R0996] (Biogeosciences 4, 545; PDF read) found the cosmic-ray dose-depth peak at 40 g/cm2 for both 1 and 3 g/cm3 dry regolith and at 30 g/cm2 for ice: a ratio of 0.75, against 0.82 from both lambda_I and PSTAR range (COMPUTED), a difference within the reading precision of a peak position.</p>
 <p>Column rule (a derivation from the table above; the structure is Dartnell's finding that atmosphere and ground columns add as shielding depth, READ, and the weights are COMPUTED):</p>
 <p><code>X_eff = sum over layers k of X_k * (lambda_ref / lambda_k)</code>, with <code>X_k</code> in g/cm2, <code>lambda_ref</code> the interaction length of the medium in which the dose law was calibrated. The repo's law is calibrated on Earth air, so <code>lambda_ref = 90.1</code>. Then a gram of N<sub>2</sub> or CO<sub>2</sub> counts as 1.00 to 1.01, ice 1.08, rock 0.89, iron 0.68. The dose law of the repo is then evaluated at <code>X_eff</code>, not at the atmosphere column alone.</p>
 <h4 id="29e-depth-dose-shape-flagged">2.9e Depth-dose shape (flagged)</h4>
@@ -2063,7 +2063,7 @@ gas_SO2,gas,SO2,64.064,,200.75,263.13,197.64,0.0167,430.34,,7.4,24.94,,,,,,,,atm
 <li>Silicate body. Primary crust from magma-ocean solidification: ultramafic if mantle overturn happened, feldspathic or anorthositic if not (Hu 2012). The overturn rule is a parametrisation: draw <code>overturn</code> with a probability tied to mantle FeO (more FeO means denser late cumulates and overturn) and not to a fixed threshold; the plagioclase-flotation pressure limit is RECALLED and listed in section 5. Primary crust is kept only on bodies with no later volcanism.</li>
 <li>Secondary crust, basaltic: present if the body was convecting and melting; with the stored <code>internal_heat_flux_w_m2</code> and age, require the flux above a floor <code>q_min</code> (parametrisation; log-uniform draw 1e-4 to 1e-3 W/m2 to be tuned, not a published value). Decompression melting works in any convecting mantle [R1719], so the floor is a convenience.</li>
 <li>Tertiary crust, granitoid: needs tectonic reprocessing with water (Hu 2012). Draw it with the existing <code>mobile_lid_chance</code>; the areal fraction <code>f_felsic</code> is a uniform draw in 0 to 0.5 (parametrisation) when the lid is mobile, 0 otherwise.</li>
-<li>Modifications of the dominant silicate crust, each an areal fraction: clay if liquid water ever existed on the surface (ocean flag or past ocean), Fe-oxidized if the atmosphere is oxidizing (O<sub>2</sub> partial pressure above the repo's ozone floor 0.02 kPa) or if the surface carries water-vapor photolysis products, evaporite only where a dried basin is likely (small areal fraction).</li>
+<li>Modifications of the dominant silicate crust, each an areal fraction: clay if liquid water ever existed on the surface (ocean flag or past ocean), Fe-oxidised if the atmosphere is oxidising (O<sub>2</sub> partial pressure above the repo's ozone floor 0.02 kPa) or if the surface carries water-vapour photolysis products, evaporite only where a dried basin is likely (small areal fraction).</li>
 <li>Special: sulfur and SO<sub>2</sub> frost if tidal heating exceeds the radiogenic flux and the part D composition carries sulfur; carbon-rich crust (graphite or carbide) only if the star's C/O is above a threshold from part A (rule NOT REACHED; threshold in section 5).</li>
 <li>Grain state: lava and young surfaces (age since resurfacing below about 0.1 Gyr; parametrisation) use slab or crushed rows; older airless surfaces use powder rows with the space weathering factor of 2.7; surfaces under atmosphere use the powder row without weathering darkening beyond what the atmosphere lane assigns.</li>
 <li>The ground colour is the area-weighted mean of band albedos of the chosen rows.</li>
@@ -2104,7 +2104,7 @@ gas_SO2,gas,SO2,64.064,,200.75,263.13,197.64,0.0167,430.34,,7.4,24.94,,,,,,,,atm
 <td>Ground type of the dominant surface</td>
 <td><code>ground_type</code></td>
 <td>enum</td>
-<td>ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidized, metal</td>
+<td>ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon, evaporite, clay, oxidised, metal</td>
 <td>body</td>
 <td>new</td>
 </tr>

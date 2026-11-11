@@ -322,6 +322,16 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # `Planet.min_orbit_distance`/`physics.planets.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
 
+# Chains of planets need more than the pairwise floor (GEN.1521). Lane 04's N-body spot-check (GEN.1468, reports/gen1468-nbody-screens-2026-11-09.md)
+# found the pairwise screen holds for pairs but three chains of four or more small planets, every pair at 10.0 to 11.4 mutual Hill radii, scattered within
+# 2e4 years. Pu and Wu 2015 ([R5228]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
+# radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
+# equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
+# `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.272.]
+CHAIN_WINDOW = 4
+CHAIN_K_EFF = 12.0
+
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
 # to carry more solid mass around more massive stars, and steeply so --
 # not a flat "1 + log10(solar_masses)" scaling. Disk dust-mass-vs-
@@ -336,16 +346,10 @@ MUTUAL_HILL_RADII_SEPARATION = 10
 DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 
 # Real disks are truncated far short of a star's own galactic-tidal Hill
-# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU) --
-# viscous spreading and photoevaporation cut them off at tens to a few
-# hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
-# scales with the same star-dependent quantity that sets where solids can
-# even condense in the first place: the snow line
-# (`formation.snow_line_au`, drawn per star and stored: `Star.snow_line_au`) --
-# our own Solar System's own giant-planet/Kuiper-belt region extends to
-# roughly this same multiple (~18x) of its own ~2.7 AU snow line. See
-# `StarSystem._plan_architecture`.
-DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU): the
+# gas disk's outer edge is drawn per star from its mass at formation
+# (`physics/disk_size.py`, GEN.1520: 100 au for the Sun, M^0.5, a factor of 2
+# of scatter), and `StarSystem._disk_outer_edge_au` places the planets to it.
 
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the

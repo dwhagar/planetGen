@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
+from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, disk_size, orbit_elements, orbits, planet_type, unit_registry as units
 from planetgen.physics import eclipses, radiation_field
 from planetgen.physics.mixture_base import MixtureError
 
@@ -115,6 +115,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["nh3_mass_fraction"] = fractions.ice * shares.get("NH3", 0.0)
         quantities["water_mass_fraction"] = fractions.water
         quantities["rock_mass_fraction"] = fractions.rock
+    if getattr(body, "_envelope_helium_y", None) is not None:       # GEN.1527: the helium share of a hydrogen-first loss; the envelope mixture takes it for the star's
+        quantities["envelope_helium_y"] = body._envelope_helium_y
     core = getattr(body, "core_mass_earth", None)
     envelope = getattr(body, "envelope_mass_fraction", None)
     if not core and envelope is not None:  # a rocky planet's core is the mass its envelope (none, for a stripped one) leaves
@@ -151,6 +153,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
             if ratios is not None and formation_au:
                 quantities["formation_temperature_k"] = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(snow_line / formation_au)
                 quantities["disk_snow_line_au"] = snow_line                       # GEN.1473: the pebbles' clocks need the stored snow line, the star's mass and metals
+                quantities["disk_edge_au"] = disk_size.edge_au(star)              # GEN.1520: and the edge of the gas disk, where the pebbles end
                 quantities["disk_carbon"], quantities["disk_oxygen"] = ratios
                 quantities["disk_nitrogen"], quantities["disk_sulfur"], quantities["disk_noble"] = bulk_draw.disk_volatile_ratios(star)       # GEN.1372
     zone_edges = getattr(star, "habitable_zone", None)
@@ -180,7 +183,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_edge_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

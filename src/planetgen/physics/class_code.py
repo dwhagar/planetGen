@@ -68,8 +68,9 @@ LETTERS = {
 FAMILIES = {"F": "anoxic water", "G": "dense CO2", "Y": "sulfuric acid", "U": "methane-ethane", "X": "ammonia-water"}
 """dict: The families whose digits 1 to 4 are in use; the oxygen-water family keeps its five positions in five letters (M, R, P, O, H) and so digit 0."""
 
-FIELDS = ("class_variant", "class_match", "runner_up_class", "runner_up_match")
-"""tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1220, GEN.1207): the digit, the match of the class, the runner-up and its match."""
+FIELDS = ("class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount")
+"""tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1220, GEN.1207, GEN.1314): the digit, the match of the class, the runner-up and its match, the
+values that were fudged to fit the class (comma separated quantity names, NULL for a full fit) and the total move in widths of the fudge table (0 for a full fit)."""
 
 _PATTERN = re.compile(r"^([A-Z])([0-9])?$")
 

@@ -57,6 +57,7 @@ KINDS = {
     "comet.ceiling": Kind("comet", False, "a comet drawn again because its orbit lies past the star's ceiling"),
     "comet.tisserand": Kind("comet", False, "a Jupiter-family comet drawn again because its Tisserand parameter about the star's controlling giant is outside the family's range"),
     "comet.composition": Kind("comet", False, "a comet's CO and CO2 shares drawn again because one lies outside the observed bounds"),
+    "disk_edge.scatter": Kind("system", False, "a disk-edge scatter drawn again because it lies beyond the sigma cap"),
     "giant.heavy_mass": Kind("giant", False, "a giant's heavy-element mass drawn again because it lies outside the allowed fraction of its mass"),
     "snow_line.scatter": Kind("system", False, "a snow-line scatter drawn again because it lies beyond the sigma cap"),
     "star.model_redraw": Kind("star", False, "a primary star drawn again because it breaks a directive (mass, age, remnant, luminosity) or is already dead"),

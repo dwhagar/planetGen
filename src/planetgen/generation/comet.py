@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_control, comet_ice_budget, kepler, radiation_field, small_body_composition, spin
+from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_control, comet_ice_budget, disk_size, kepler, radiation_field, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -352,7 +352,7 @@ class Comet(SmallBody):
         if carbon_oxygen is None:
             return None
         stream = draw.Stream(f"comet-zone:{self.perihelion_distance_au!r}:{self.nucleus_diameter_km!r}:{self.arg_periapsis_deg!r}:{self.primary_mass_solar!r}")
-        outer_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+        outer_au = disk_size.edge_au(star)
         return comet_ice_budget.formation_ratios(star.luminosity, star.snow_line_au, outer_au, *carbon_oxygen, stream.random())
 
     def update_orbital_state(self):

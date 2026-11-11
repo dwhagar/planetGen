@@ -11,7 +11,7 @@ not anything about it had changed. A **stamp** on the row says which formula wro
 * a family of derived columns has a stamp column on `star_systems` (`STAMP_COLUMNS`), an unsigned 32-bit number;
 * `current(family)` is the stamp of the code that is running, a hash of the source of the modules that decide the numbers, so a changed
   formula is a different stamp and nobody has to remember to bump anything (`RULE_VERSION` is for the code outside those modules that
-  reads or writes the family: a change to `store.refresh_habitability` itself);
+  reads or writes the family: a change to `store.refresh_habitability` itself; for the ledger, `store.refresh_effect_ledger`);
 * whatever writes the family's columns for a system writes the stamp with them (the system save, `store.refresh_habitability`);
 * a refresh job takes the rows where the column is NULL or not `current(family)` and leaves the others alone, so a rerun after no change
   to the formula touches no row, a run that was stopped carries on where it stopped, and a freshly generated system is never done twice.
@@ -31,15 +31,16 @@ import hashlib
 import importlib.util
 import os
 
-RULE_VERSION = {"habitability": 1}
+RULE_VERSION = {"habitability": 1, "ledger": 1}
 """dict: Per family, a number to bump when the code that reads or writes the family outside its roots' closure changes (for habitability,
 `store.refresh_habitability` and the way a system's bodies are scored)."""
 
-ROOTS = {"habitability": ("planetgen.physics.habitability_world", "planetgen.physics.insolation", "planetgen.physics.orbit_elements")}
+ROOTS = {"habitability": ("planetgen.physics.habitability_world", "planetgen.physics.insolation", "planetgen.physics.orbit_elements"),
+         "ledger": ("planetgen.physics.effect_ledger", "planetgen.physics.light_ledger", "planetgen.physics.radiation_field")}
 """dict: Per family, the modules whose imports (and theirs) make up the source its stamp hashes."""
 
-STAMP_COLUMNS = {"habitability": "habitability_stamp"}
-"""dict: Per family, its stamp column on `star_systems`."""
+STAMP_COLUMNS = {"habitability": "habitability_stamp", "ledger": "ledger_stamp"}
+"""dict: Per family, its stamp column on `system_summary`."""
 
 EXTRA_MODULES = ("planetgen.tuning",)
 """tuple: Modules hashed with every family: the tuning knobs the physics reads."""

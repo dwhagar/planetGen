@@ -31,7 +31,7 @@ mass is that of warm dust a survey could see, a stand-in. [Stand-in BG14, tier M
 from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt, present_state
 from planetgen.generation import remnant_orbits
-from planetgen.physics import belt_origin, bulk_draw, disk_truncation, scatter, swept_hand_on, trojans
+from planetgen.physics import belt_origin, bulk_draw, disk_size, disk_truncation, scatter, swept_hand_on, trojans
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -106,14 +106,14 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
         star (Star): The star the planets orbit.
         planets (list): The `Planet` list (a belt in it is skipped, and its stretch is not counted twice by the caller).
         orbit_floor_au, orbit_ceiling_au (float): The innermost and outermost orbits the star holds.
-        disk_edge_au (float): The disk's outer edge, AU (infinite when the star's light no longer describes its disk: then `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` snow lines).
+        disk_edge_au (float): The disk's outer edge, AU (infinite when the star's light no longer describes its disk: then `disk_size.edge_au(star)`, GEN.1520).
         instability (float): 0 to 1, how much the system's giants scattered each other (`capture_windows.instability_level`), which excites a share of the cold outer disk (`scatter.scatter_shares`).
         disk_scatter (float): The factor the planets' disk was scattered by about the median of its star's mass (`planet_architecture.Architecture.disk_scatter`): the belts are made of the same disk (GEN.1261).
     """
     chain = chain_of(planets)
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
     snow_line_au = star.snow_line_au
-    edge_au = disk_edge_au if disk_edge_au < float("inf") else tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au
+    edge_au = disk_edge_au if disk_edge_au < float("inf") else disk_size.edge_au(star)
     origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
                                 debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
                                 disk_limit_au=disk_truncation.star_disk_limit_au(star))

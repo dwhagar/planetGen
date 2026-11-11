@@ -281,3 +281,23 @@ GEN.228 made new wide (S-type) binaries follow the stability rule (`validation.c
 * **Left alone, and named:** a system that hosts facilities (they would be deleted with the bodies), one built around a bright star the scatter placed, one in a sector with admin edits (the run's rule, GEN.764). A re-roll that raises or still breaks the rule is reported and left as it was; the run exits 1.
 * **A bug this found.** `replace_star_system_content` left the old system's orbit tree (`orbit_nodes`, `dark_members`) in place, so the new stars loaded with the old tree's stability limits and a regenerated wide binary could fail the check. The tree now goes with the new stars. This also fixes an admin's single-system regeneration.
 * **Not covered:** a wide pair that is part of a larger tree (three or more stars) is read like any other and re-rolled as a plain wide binary; the original recipe (forced options) is not stored, so the new system is a fresh draw of the same kind.
+
+## 13. Chains of planets need more than the pairwise floor (GEN.1521, Lane 14, 11-11)
+
+Lane 04's N-body spot-check (GEN.1468, `reports/gen1468-nbody-screens-2026-11-09.md`, 251 stored systems, REBOUND WHFast to 2e4 years) found the pairwise floor holds for pairs (247 of 251 stable, and at 0.6 of the stored spacing 22 percent of the control runs scattered) but three chains of four to twelve small planets around M dwarfs, every pair at 10.0 to 11.4 mutual Hill radii, scattered. The pairwise screen does not see a chain.
+
+**The rule.** A planet that would be the last of `tuning.CHAIN_WINDOW` (4) consecutive planets, with no belt among them, must keep the window's effective spacing `K_eff = mean - 0.5 sigma` of its three gaps (in mutual Hill radii, apoapsis to periapsis as the pairwise floor counts them) at `tuning.CHAIN_K_EFF` (12) or more (`clearance_ledger.chain_distance_au`, read by `validation.min_distance_after_au`, so `space_orbits` and `check_orbit_spacing` both hold it). `K_eff` is the combination Pu and Wu 2015 ([R5228], Eq. 10) found sets the survival of a system with Gaussian gaps; 12 is their minimum spacing for 1e9 years of stability on orbits of eccentricity about 0.02 (about 10 on circular orbits), read in the abstract and section 2. Their stability fit (Eq. 11) gives 95 percent survival to 1 Gyr at a `K_eff` of 12 and 50 percent at 10.2. Obertas, Van Laerhoven and Tamayo 2017 (read in full) find five Earth-mass planets last 1e9 orbits at 8.5 or more on circular orbits, consistent with the 10 to 12 range once eccentricity is allowed. Stand-ins CH1 to CH3 (section 6.271 of the registry).
+
+**What it changes** (the 145 of Lane 04's 251 systems with four or more planets, respaced in order as `space_orbits` does, planets pushed outward only):
+
+| CHAIN_K_EFF | systems with a planet moved | planets moved | median outward shift of a moved planet |
+|---|---|---|---|
+| 0 (off) | 0 | 0 | 0 |
+| 10.5 | 61 (42%) | 176 | 3.7% |
+| 11 | 85 (59%) | 276 | 8.1% |
+| 11.5 | 103 (71%) | 357 | 13.3% |
+| 12 | 108 (74%) | 421 | 20.6% |
+
+The three scattered chains have a minimum `K_eff` of 10.1 to 10.5, so every setting from 10.5 up refuses them. Systems of three planets or fewer, and every system whose planets are far apart, do not change. The count is of the stored systems of the check, not of seeds of the current generator, which could not be run in the lane's container (the datasets are not downloaded there); the share of seeds that change will be of this size.
+
+**What it does not do.** It does not test windows in which the new planet is not the outermost (a planet inserted between two others is checked when the planet outside it is). It does not model eccentricity pumping beyond what `check_orbit_spacing` already sees through apoapsis and periapsis. The scattering time of a chain is not computed; the rule is a floor.

@@ -36,7 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, disk_condensation, disk_drift, gas_equilibrium, saturation, species_thermo, stellar_abundances, unit_registry as units
+from planetgen.physics import constants, disk_condensation, disk_drift, gas_equilibrium, helium_fractionation, saturation, species_thermo, stellar_abundances, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 
@@ -114,20 +114,33 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     if temperature is None:
         return None
     return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
-                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature))
+                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature),
+                                               _disk_edge_temperature_k(subject))
+
+
+def _disk_edge_temperature_k(subject):
+    """
+    The temperature at the edge of the star's gas disk, K (`disk_drift.edge_temperature_k` from the subject's snow line and `disk_edge_au`, GEN.1520), where the disk's solids end; `None` for a
+    subject whose snow line or disk edge is not known, which takes no provenance mixing (the solids' edge is not placed).
+    """
+    snow_line, disk_edge = subject.get("disk_snow_line_au"), subject.get("disk_edge_au")
+    if snow_line is None or disk_edge is None:
+        return None
+    return disk_drift.edge_temperature_k(snow_line, disk_edge)
 
 
 def _disk_ice_weights(subject, temperature):
     """
     The `disk_drift.giant_ice_weights` of the gas the subject gathered (GEN.1473: pebbles carried the ices inward and evaporated them at their lines); `None` for a subject whose snow
-    line or host mass is not known, which keeps the static disk (every `E` equal to 1).
+    line, disk edge or host mass is not known, which keeps the static disk (every `E` equal to 1).
     """
     snow_line = subject.get("disk_snow_line_au")
     host_mass = subject.get("host_mass_solar")
-    if snow_line is None or host_mass is None:
+    disk_edge = subject.get("disk_edge_au")
+    if snow_line is None or host_mass is None or disk_edge is None:
         return None
     metals = subject.get("metallicity_fe_h")
-    return disk_drift.giant_ice_weights(temperature, snow_line, host_mass, 1.0 if metals is None else 10.0 ** metals)
+    return disk_drift.giant_ice_weights(temperature, snow_line, disk_edge, host_mass, 1.0 if metals is None else 10.0 ** metals)
 
 
 def _disk_enrichments(subject, log_enrichment_over_host):
@@ -140,7 +153,8 @@ def _disk_enrichments(subject, log_enrichment_over_host):
         return {}
     return disk_condensation.envelope_enrichments(
         temperature, 10.0 ** log_enrichment_over_host, subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), subject.get("disk_nitrogen", 1.0),
-        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0))
+        subject.get("disk_sulfur", 1.0), subject.get("disk_noble", 1.0), _disk_ice_weights(subject, temperature),
+        _disk_edge_temperature_k(subject))
 
 
 def element_budget(log_enrichment, c_over_o=None, lithium_burned=False, star_log_scale=0.0, disk_factors=None):
@@ -538,6 +552,10 @@ def giant_mixture(subject, recipe, *, log_enrichment=None, family=None):
     for symbol, factor in disk_factors.items():
         constants_drawn[f"enrichment_{symbol.lower()}"] = factor
     budget = element_budget(log_enrichment, c_over_o, lithium_burned, fe_h, disk_factors)
+    helium_y = subject.get("envelope_helium_y") if family == "envelope" else None
+    if helium_y is not None:         # GEN.1527: an envelope that lost hydrogen first (`helium_fractionation`): the helium per hydrogen of its helium mass share, in place of the solar one
+        budget["He"] = helium_y / (1.0 - helium_y) / helium_fractionation.HELIUM_ATOM_MASS_RATIO
+        constants_drawn["envelope_helium_y"] = helium_y
 
     budget, condensed = remove_clouds(
         budget, temperature, pressure, log_enrichment,

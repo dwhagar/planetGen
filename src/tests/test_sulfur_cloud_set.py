@@ -158,3 +158,24 @@ def test_the_band_moves_inside_its_stated_uncertainties_with_the_stored_draw_and
 
 def test_a_band_given_its_own_center_and_width_is_that_gaussian():
     assert sc.absorber_depth(20.0, 1.0e-3, 0.4, center_um=0.4, fwhm_um=0.1) == pytest.approx(sc.number("absorber_depth_per_cloud_depth") * 20.0)
+
+
+def test_the_stored_text_round_trips_and_reads_as_words():
+    """GEN.1425: a body stores the ids of its species in order; a page reads them as the names and the status of each."""
+    found = sc.chemistry(hot_volcanic())
+    text = sc.encode(found)
+    assert text == ",".join(found.species) and sc.species_of(text) == found.species
+    words = sc.sentence(text)
+    assert "sulfuric acid water droplets: observed in a planet (Venus)" in words and words.count(";") == len(found.species) - 1
+    assert sc.encode(sc.chemistry(cold_clean())) is None and sc.species_of(None) == () and sc.sentence(None) == ""
+
+
+def test_a_given_cloud_decides_gate_two_so_it_agrees_with_the_aerosols():
+    """GEN.1425: the cloud the body's aerosols were drawn with is gate 2; a body whose aerosols drew none gets no V1, V6, V7 or V10 though its values would open it."""
+    values = hot_volcanic()
+    assert sc.chemistry(values).has("V1")
+    with_none = sc.chemistry(values, cloud=None)
+    assert not with_none.has("V1") and not with_none.has("V10") and with_none.has("V2")
+    cloud = sc.acid_cloud(values)
+    assert sc.chemistry(values, cloud=cloud).species == sc.chemistry(values).species
+    assert sc.chemistry(cold_clean(), cloud=cloud).species == ()      # no sulfur dioxide: gate 1 stays shut whatever cloud is given
