@@ -13579,6 +13579,26 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 05 (offered by the audit), after OPS.133 step 1. Prerequisites: OPS.133. Related: OPS.133, GEN.1479.
   Filed by the TODO thread.
 
+- [ ] **GEN.1514 Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: replace the step in the pebble flux at the pebble end with a smooth decay, keep stand-in DE3 registered in GEN.725 with its tier and tweak level, and report how many giants' envelopes change.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1515 Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: derive the lag window from the disk's drift speed, keep stand-in DE5 registered in GEN.725, and report the change in the drifted ice weights.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1516 Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: extend the envelope enrichment so N2, NH3, H2S, Ar, Kr and Xe follow the drifted ice weights through their volatility lines, register each stand-in in GEN.725, and report the change in the giants' bulk gas (it changes it the most of the three, so build it first).
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473, GEN.1517 (hold: on the current weights GEN.1516 would erase the noble gases from every Sun-like giant). Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1517 (bug) The water drift model starts the gas inside each ice line as pure evaporated ice, so a giant that gathers early gets no argon, krypton, xenon or CO2 carbon**
+  Lane 14, 8:12 AM EST on 2026-11-11, while building GEN.1516: the GEN.1473 drift model gives a giant's gas zero of every ice whose line is far upstream when the giant gathers its gas early. For a Sun-like star giants gather at 0.02 to 0.11 Myr, but the gas takes 0.6 to 1.6 Myr to travel from the argon, krypton, xenon and CO2 lines to the giant's place, so those weights are 0 and the envelope gets no argon, krypton or xenon (Jupiter measures 2 to 3 times solar). Cause: the design's start state treats the gas inside a line as made only of evaporated pebble ice, but at time zero the gas inside each line is the original solar gas with that vapor already in it, and it stays so until gas from outside the line has flowed in. The same flaw lowers the CO and CO2 carbon in the C/O of GEN.1473 (G stars 18 to 12 percent over C/O 0.8 may be overstated). Do: if the viscous travel time from the line to the giant's place is longer than the gathering age, the gas never crossed the line and keeps weight 1; otherwise the existing lagged ratio. Register the stand-in in GEN.725, report the change in the giants' C/O and noble gases. GEN.1473 (PR 5881) ships in Train 22 as it is, since its C/O change is small and documented; this corrects it on the next train. GEN.1516 waits for this item.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473, GEN.1516.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation

@@ -4,7 +4,11 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
+<<<<<<< HEAD
 There are 1565 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+=======
+There are 1536 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/pr-5956
 
 ## The source tiers
 
@@ -40,13 +44,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1539 |
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1510 |
+>>>>>>> origin/pr-5956
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
+<<<<<<< HEAD
 | T1 | 185 | 20 | 11 | 1 | 0 | 217 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
@@ -57,6 +66,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
 | All | 896 | 302 | 75 | 240 | 52 | 1565 |
+=======
+| T1 | 182 | 20 | 11 | 1 | 0 | 214 |
+| T2 | 146 | 59 | 1 | 1 | 0 | 207 |
+| T3 | 110 | 47 | 9 | 10 | 0 | 176 |
+| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
+| T6 | 191 | 106 | 30 | 75 | 2 | 404 |
+| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
+| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T9 | 41 | 16 | 5 | 90 | 34 | 186 |
+| All | 875 | 302 | 74 | 235 | 50 | 1536 |
+>>>>>>> origin/pr-5956
 
 ## How the labels were given
 
@@ -2756,6 +2777,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
 | FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |
 
+<<<<<<< HEAD
 ## 6.262 Stand-ins of the Kozai-Lidov pumping of moons
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
@@ -2773,3 +2795,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | PHG1 | T | T1 | L0 | the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species | none | 300 to 20000 K for P, 300 to 6000 K for the molecules | a measured partition function or a JANAF value that differs from the fit by more than the fit's own error | a fit that extends the molecules past 6000 K | the fits are the database's own numbers, built by the same script as the other 112 species | predicted only | - | - |
 | PHG2 | T | T5 | L0 | the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there | none | gas above 6000 K at the pressures of a giant (1 bar to 1e4 bar) | a computed or measured abundance of a phosphorus molecule at 6000 K and above that holds more than a few percent of the phosphorus | an extrapolated or ab initio fit of PH, PO and PN above 6000 K | measured with the table: at 5990 K (a solar-ratio hydrogen air with 3e-7 phosphorus) atomic P holds 99.7 percent of the phosphorus at 1 bar and 81 percent at 100 bar, but at 1e4 bar PH holds 82 percent, so the step at 6000 K changes which species carries the phosphorus at the highest pressures but not that it is in the gas | predicted only | - | - |
+=======
+## 6.262 Stand-ins of the gas a close companion leaves a disk
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CD1 | P | T2 | L0 | `disk_truncation.CLOSE_COMPANION_AXIS_AU` 47 AU: a companion inside it hastens the dispersal of the disk's gas | 24 to 106 AU (Kraus et al. 2016: 47 +59/-23) | solar-type hosts with a companion of mass ratio above about 0.4 | a measured disk lifetime or planet occurrence that stays the same inside 47 AU, or changes at a clearly different separation | a lifetime that falls smoothly with separation, once a source gives the curve | Kraus et al. 2016, AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU | predicted only | - | - |
+| CD2 | P | T2 | L0 | `disk_truncation.CLOSE_COMPANION_GAS_SHARE` 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin | 0.19 to 0.48 (S_bin = 0.34 +0.14/-0.15) | close companions at any separation inside the edge (no dependence on separation is modelled) | a disk lifetime or giant occurrence in close binaries more than 0.15 off 0.34 | a separation-dependent share, once a source gives it | Kraus et al. 2012, ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; Kraus et al. 2016 above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md) | predicted only | - | - |
+>>>>>>> origin/pr-5956

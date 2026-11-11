@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -2476,15 +2476,16 @@ class StarSystem:
         outer_au = min(orbit_ceiling_au, disk_edge_au)
 
         sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
+        gas_factor = disk_truncation.gas_survival_factor(star)       # a companion inside 47 AU disperses the disk's gas early (GEN.1475)
 
         def plan_of(architecture, limit=None):
             floor_au = self._orbit_floor_au(star)
             if floor_au > 0.0:
                 architecture = architecture._replace(planets=tuple(s for s in architecture.planets if s.distance_au >= floor_au))
-            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au)
+            return planet_architecture.Plan(self._strip_by_cluster(star, architecture), star.mass, star.snow_line_au, metal_ratio, fe_h, limit, sublimation_au, gas_factor)
 
         def built(maximum=False):
-            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
+            return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au, gas_factor=gas_factor)
 
         if config.PLANETS is False:
             return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0, ())), 0), 0

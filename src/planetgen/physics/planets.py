@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -232,7 +232,8 @@ def generate_planet_properties(planet, zone_override=None):
         kind = planet_kind.kind_of_given(planet.mass if mass_given else None, planet.radius if radius_given else None, beyond)
     else:
         formation = planet_kind.draw_formation(planet.distance, planet.star.mass, planet.star.snow_line_au,
-                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star))
+                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star),
+                                               gas_factor=disk_truncation.gas_survival_factor(planet.star))
         kind = formation.kind
         planet.mass = max(formation.mass_kg, tuning.PLANET_MIN_MASS_KG)
         mass_given = True
