@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3833] - 2026-11-11
+
+**Headline:** A new table, `body_history`, keeps for every planet and moon the numbers its history leaves that cannot be worked out again from the stored values: the eccentricity and the spin (rate and tilt) it was born with and the two draws that decided its spin resonance captures. It changes no result.
+
+### Added
+
+- `body_history` table (migration 0243): one row a planet or moon that has any, filled when the system is saved from what the generator already keeps on the body (`_orbit_birth`, `_birth_spin`), with a `formula_version` so a later change to the formulas can tell the rows it can refill from the rows it must not. Nothing is drawn.
+- An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted; deleting the system deletes its rows.
+- `physics/body_history.py` names the columns and reads them off a body. The Kozai cycle numbers and the tidal lock age are not in it yet: each lane that builds them adds its own column.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3832] - 2026-11-11
 
 **Headline:** A rogue planet, and the moon of one, no longer has a day, daylight or latitude bands from a star it does not have: it is dark all year.
