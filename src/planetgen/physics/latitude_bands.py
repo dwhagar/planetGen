@@ -39,7 +39,7 @@ from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 BAND_WIDTH_DEG = 90.0 / 3.5
 """float: The width of each band in latitude, degrees: the equator band is this wide centered on the equator and each of the three on a side is this wide. [Stand-in LB1, tier T9, tweak L0.]"""
 

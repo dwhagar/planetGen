@@ -36,7 +36,7 @@ import math
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 from planetgen.physics.elements import DataError
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "nasa_glenn_species.json")
@@ -48,7 +48,7 @@ FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS", "AL": "Al", "ALO": "A
 MOLAR_MASS_TOLERANCE_G_MOL = 0.01
 """float: How far the database's molar mass may be from the sum of the element table's atomic weights."""
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K), exact in the SI since 2019."""
 
 

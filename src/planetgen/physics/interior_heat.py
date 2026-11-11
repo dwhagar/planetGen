@@ -75,7 +75,7 @@ REGIME_FIELDS = ("lid_regime",)
 STAGNANT, MOBILE = "stagnant", magnetism.LID_MOBILE
 """str: The two lids. A stagnant lid is one rigid plate; a mobile lid is plate tectonics."""
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
 GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
 """float: Seconds in a gigayear."""
