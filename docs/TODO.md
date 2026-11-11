@@ -8497,46 +8497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   red-giant-branch semiregulars, and the alpha-shift wiring (GEN.1024).
   Prerequisites: none. Related: GEN.922.
 
-- [ ] **GEN.945 Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each**
-  Boss asked (5:44 PM EDT 2026-10-29) for a chain that makes sure the
-  generator consistently uses our downloaded and table data (MIST,
-  Baraffe, Harris, HITRAN and the rest) rather than hand-tuned numbers
-  wherever it can. What exists: the stand-in registry (GEN.725,
-  docs/design/research/stand-in-values.md, 316 rows, source tier T1 to
-  T9 and tweak level L0 to L4; 74 rows are L3 or L4, hand-tuned against
-  a sweep or fitted with no source), the wiring guard GEN.754 (open: a
-  test that fails for a registered table nothing reads), the
-  unused-stored-values chains G1 to G7 (values stored but not shown) and
-  the physics fix plan wiring register (tables built but not read), the
-  star items GEN.935 to GEN.940. What was missing: a sweep of the whole
-  code base, because the registry only holds the constants somebody
-  registered (tuning.py alone holds about 700 constants, and modules
-  hold more) and the GEN.754 guard goes the other way (data nobody
-  reads). Do: list every numeric constant in generation and physics code
-  (tuning.py, module level names, inline literals in draws), classify
-  each as registered, from a table or download, derived, or unregistered
-  hand-tuned; for each unregistered or L3 and L4 one, name the
-  downloaded or available dataset that could replace it (or say none
-  exists and the tier it would carry); rank by how much generated output
-  depends on it; report under /mnt/project-files/reports. Lock-free (no
-  code change). Owner: Bug 2 (proposed by TODO: it owns the audit
-  harnesses and the census). Version 8.1.
-  Research (2026-10-09): Bug 2 accepted this item (as the lane reported
-  5:51 PM EDT 2026-10-29), after TEST.417 (it started TEST.417 then).
-  Relaxed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): replace a hand-tuned constant with a value from a
-  secondary source (a paper that cites a paper) when one exists,
-  otherwise register it as a stand-in with tier and tweak level; neither
-  is a reason to stall a build. The completeness gate of TEST.455 stands
-  (the list of unregistered constants may only shrink).
-  Data we hold (2026-10-29 8:55 PM EDT): The stand-in registry
-  (docs/design/research/stand-in-values.md) lists 316 rows with source,
-  tier and tweak level; the data-use audit ranks which L3 and L4 rows a
-  held dataset could replace (planet formation PM1, PM2, PM6, PM7,
-  radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
-  Catalog sections 1 and 4.
-  Prerequisites: none. Related: GEN.725, GEN.754, GEN.922.
-
 - [ ] **GEN.949 Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets**
   Found by the data-use audit (rank 8, 10-29): giant visible colour
   comes from coarse bins; the better tables are held and not read, and
@@ -13163,12 +13123,8 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 05 (audits). Prerequisites: none. Related: TEST.455, GEN.945, GEN.946, GEN.725.
   Filed by the TODO thread.
 
-- [ ] **GEN.1524 Register the 15 ranked unregistered constants of the GEN.945 audit in the stand-in registry with a tier and tweak level**
-  Lane 21's GEN.945 audit (reports/gen945-constants-audit-2026-11-11.md), 10:19 AM EST on 2026-11-11: 4,032 numeric constants, 2,261 unregistered, 331 of the generator's own look like tuned numbers (142 in tuning.py). Do: add registry rows (GEN.725, tier and tweak as the report proposes) for rows 2, 3, 7, 10, 11 and 14 of its shortlist first (CORE_TIER_FACTOR, supernova type Ia chance, rare compact object rates, comet and belt chances, ICY_MIN_WATER_FRACTION, flavor chances), then the rest; read one secondary source where the report says so; rows 13 and 15 get a validity cell or are listed out of scope. Registry and docs only, lock-free.
-  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 21. Prerequisites: none. Related: GEN.945, GEN.725, GEN.946.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1525 Replace the shortlist constants that held data can check or derive: MIST ages, neutron star EOS maxima, Harris clusters, the mass function integral, the occurrence fit, pre-main-sequence tracks**
+  Owner changed (TODO, 2026-11-11): Lane 21 (row 8, REFERENCE_STELLAR_DENSITY_PC3, stays a registered hand value at 0.14 because 0.0985 would cut the black hole rate below the held range; Harris cluster ranges next).
   Lane 21's GEN.945 audit (reports/gen945-constants-audit-2026-11-11.md), 10:19 AM EST on 2026-11-11: 4,032 numeric constants, 2,261 unregistered, 331 of the generator's own look like tuned numbers (142 in tuning.py). Do: for rows 4, 5, 6, 8, 9 and 12 of the report's shortlist, read the held dataset in place of the number (STAR_FORMATION_AGE_RANGE_GY and COMPACT_REMNANT_AGE_RANGE_GY from disk_history and MIST; the neutron star mass ceiling from the 21 equation-of-state maxima; the globular cluster ranges from the Harris fit; REFERENCE_STELLAR_DENSITY_PC3 from the mass function integral; GIANT_MASS_FUNCTION_SLOPE from the occurrence fit; PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR from MIST and BHAC15), one small PR each, registry rows updated. Several are already named by open items (GEN.935, GEN.743, GEN.968, GEN.297): fold those in rather than duplicating. Each changes what seeds draw, so lock items.
   Version 8.1. Owner (TODO, proposed 2026-11-11): TODO to assign after GEN.1524 (Lane 21 or Lane 14). Prerequisites: GEN.1524. Related: GEN.945, GEN.935, GEN.743, GEN.968, GEN.297, GEN.725.
   Filed by the TODO thread.
