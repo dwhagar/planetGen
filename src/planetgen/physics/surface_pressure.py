@@ -150,7 +150,7 @@ def wet_land_fraction(land_fraction, ocean_cover):
     """
     The share of the surface that is wet land (GEN.1403): the land, `land_fraction`, times the share of the Earth's ocean cover the world has, `min(1, ocean_cover / OCEAN_COVER_EARTH)`.
     Silicate weathering needs rain to run off the rock, and the rain on the land comes from the sea, so a dry world's land weathers less than its area says and a world with the Earth's
-    ocean or more waters all of it. (Abbot et al. 2012 [R0009] find the weathering of a world nearly insensitive to its land fraction, because less land is rained on harder: that is a
+    ocean or more waters all of it. ([R0009] find the weathering of a world nearly insensitive to its land fraction, because less land is rained on harder: that is a
     statement about land at a given sea, and does not make a land with no sea at all wet.)
     """
     return max(land_fraction, 0.0) * min(1.0, max(ocean_cover, 0.0) / OCEAN_COVER_EARTH)
