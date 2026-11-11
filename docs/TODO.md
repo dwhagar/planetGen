@@ -13156,6 +13156,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 21. Prerequisites: GEN.1535. Related: GEN.1535, GEN.1454, GEN.1447, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1537 Class and life census re-tag after trains 22 and 23 (epochs 144 to 146): re-measure the census shares and re-baseline the class and life ranges the trains moved**
+  Lane 11 (as the lane reported 2:07 PM EST on 2026-11-11): the stars, phenomena and life censuses pass on the GEN.1501 build; the systems census raised 7 flags (G2V life abiogenesis, K0III complex cells and multicellularity, zero planets, K giants at 2 to 8 AU, oddity W5) and the class census raised 17, of which 5 are cells with no bodies drawn that look like machine load. Re-run the class census alone, decide each flag (real shift, re-baseline, or fault to file), and re-baseline the ranges the trains moved. Same work as GEN.1353 after train 15.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 11. Prerequisites: GEN.1501. Related: GEN.1353, GEN.1501.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
