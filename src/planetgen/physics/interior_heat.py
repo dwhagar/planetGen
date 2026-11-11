@@ -640,10 +640,17 @@ def heat_of(body):
     heats its ice shell (`icy_tide`, GEN.960) and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row
     from before GEN.699). No draws.
     """
+    return heat_at(body, getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
+
+
+def heat_at(body, age_gy):
+    """
+    The `Heat` of a rocky body at `age_gy` (`heat_of` at its star's age): the same stored content, interior, lid and surface, the tide of the orbit stored with it, run to that age
+    (GEN.1463: the heat the body gave off when its life began). `None` for a body with no stored content or interior. No draws.
+    """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return None
-    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
 

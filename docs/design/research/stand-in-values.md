@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1535 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1509 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 182 | 20 | 11 | 1 | 0 | 214 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
-| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T4 | 81 | 11 | 3 | 21 | 12 | 128 |
 | T5 | 76 | 24 | 6 | 1 | 1 | 108 |
 | T6 | 191 | 106 | 30 | 75 | 2 | 404 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 873 | 302 | 74 | 235 | 50 | 1534 |
+| All | 874 | 302 | 74 | 235 | 50 | 1535 |
 
 ## How the labels were given
 
@@ -493,13 +493,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | BO1 | P | T2 | L3 | biogenic_oxygen.EARTH_BURIAL_MOL_YR 1e13: the source S of oxygen at Earth | 0.5e13 to 2e13 | the oxygen balance | test_biogenic_oxygen.test_earth_numbers_balance_at_the_oxygen_of_earths_air | the oxygen cycle of a measured world | RECALLED ([R1859], about 1e13 mol C a year) | predicted only | - | no data |
 | BO2 | P | T3 | L3 | biogenic_oxygen.EARTH_REDUCTANT_MOL_YR 3e12: the reductant flux R at Earth | 1e12 to 5e12 | the oxygen balance | the same | the same | RECALLED ([R1980] few 1e12) | predicted only | - | no data |
-| BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | - |
+| BO3 | P | T3 | L1 | biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, `biogenic_oxygen.reductant_history_factor`) | 2.1e21 to 7e21 (0.3 to 1 Gyr at Earth's surplus of 7e12 mol a year) | the delay of the oxygen | the same (0.714 Gyr) | a measured Great Oxidation delay, or a sink inventory that sums to a different store | READ ([R0689] section 4.2: oxygenic photosynthesis existed at least 0.3 Gyr, and perhaps 1 Gyr or more, before the initial rise of oxygen, with excess reductants scavenging the oxygen as the explanation proposed; no source sums the sinks into a store, so it stays a stand-in set inside the bracket of the delay; GEN.1405) | predicted only | - | - |
 | BO4 | P | T6 | L3 | biogenic_oxygen.LIGHT_EXPONENT 0.5 and LIGHT_RANGE (0, 2): production goes as the active light to this power | 0.3 to 1.0 | worlds with a sunlit sea | test_biogenic_oxygen.test_the_sea_makes_nothing_outside_its_liquid_range_and_most_near_the_reference | a measured productivity against light | design (production saturates) | predicted only | - | no data |
 | BO5 | T | T4 | L0 | biogenic_oxygen.TEMPERATURE_ACTIVATION_EV 0.32: the Boltzmann factor on production | 0.2 to 0.7 eV | the liquid range | the same | the same | RECALLED (about half a heterotroph's) | predicted only | - | - |
 | BO6 | P | T6 | L3 | biogenic_oxygen.OCEAN_SPAN_K (258, 275, 315, 343): where the liquid range's factor rises to 1 and falls to 0 | a few K each | worlds with a sunlit sea | the same | a measured temperature range of marine production | design | predicted only | - | no data |
 | BO7 | P | T3 | L0 | biogenic_oxygen.EUKARYOTE_MINIMUM_PA 200: the oxygen the air must hold for the wait for complex cells to start | 100 to 2000 Pa | complex cells | test_life_schedule.test_a_chemistry_that_never_makes_oxygen_stops_at_photosynthesis_in_an_air_without_it | a measured oxygen need of early eukaryotes | RECALLED ([R3084], about 1 percent of the present level) | predicted only | - | - |
 | BO8 | P | T7 | L3 | biogenic_oxygen.REDOX_DECADE_PER_UNIT 0.25 and REDOX_FACTOR_RANGE (0.2, 5): a mantle one log unit more reduced puts out and stores 10 ** 0.25 times the reductants | 0.1 to 0.5 | rocky bodies | test_biogenic_oxygen.test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range | a mantle gas model | design | predicted only | - | no data |
 | BO9 | P | T5 | L0 | biogenic_oxygen.REDUCED_GASES: the oxygen each reduced gas takes and the oxides it leaves | none (stoichiometry) | air with H2, CO, CH4, NH3, H2S, C2H6 | test_biogenic_oxygen.test_burning_takes_the_oxygen_the_reduced_gases_want_and_leaves_their_oxides | the chemistry of the full air solver | design (the water goes to the ocean, the sulfur of H2S to the sulfate of the sea) | predicted only | - | - |
+| BO10 | P | T4 | L0 | biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (`interior_heat.heat_at`), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of `RISE_STEP_GYR` (0.25 Gyr) | 0.1 to 0.5 Gyr step | rocky bodies with a stored thermal history | a measured reductant flux of the early Earth far from 2 to 2.5 times today's, or an Archean heat flow of a different ratio | an inventory of the sinks by age (ferrous iron, sulfides, volcanic gases) | design, from the proportionality of R to the heat that `reductant_flux` already uses; the early heat flow is the model's own thermal history ([R1716] box model), 2 to 3 times today's when the biomarkers appear, as the convection laws give for Earth | predicted only | - | - |
 
 ## 6.22 Stand-ins of the class cut-over
 
