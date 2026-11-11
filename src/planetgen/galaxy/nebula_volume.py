@@ -153,8 +153,9 @@ def sample_group(nebulae, inside, density, form_level, max_detail, families, lev
             nearest to in radii owns it.
         inside (callable or None): `inside(points_pc) -> bool array`, which of the (n, 3) lattice points lie in the block; the block's
             own, so two blocks never draw the same place. `None` keeps every point (a test).
-        density (callable): `density(points_pc, field, detail) -> array in 0..1`, one value per row of the (n, 3) `points_pc`;
-            `field` is `"gas"` or `"young"`. `nebula_density.density_at` with the galaxy's seed and shape filled in.
+        density (callable): `density(points_pc, field, detail, anchors) -> array in 0..1`, one value per row of the (n, 3) `points_pc`;
+            `field` is `"gas"` or `"young"`; `anchors` is `(centers, radii)`, the center (n, 3) and radius (n,) in parsecs of the nebula that owns each
+            point (GEN.1267: a young-family nebula anchors its own density). `nebula_density.density_at` with the galaxy's seed and shape filled in.
         form_level (float): The value above which a point is inside a nebula (`nebula_density.FORM_LEVEL`).
         max_detail (int): The most noise octaves the density gives (`nebula_density.MAX_DETAIL`).
         families (tuple[str]): The family names, in the order of the `family` byte of the result.
@@ -199,7 +200,8 @@ def sample_group(nebulae, inside, density, form_level, max_detail, families, lev
     strength = np.zeros(len(points), dtype=np.float64)
     for field in sorted(set(FIELD_OF_FAMILY[families[f]] for f in set(owner_family.tolist()))):
         pick = np.array([FIELD_OF_FAMILY[families[f]] == field for f in owner_family])
-        value = np.asarray(density(points[pick], field, detail), dtype=np.float64)
+        owner = nearest[pick]
+        value = np.asarray(density(points[pick], field, detail, (centers[owner], radii[owner])), dtype=np.float64)
         half = np.array([EDGE_WIDTH[families[f]] / 2.0 for f in owner_family[pick]])
         strength[pick] = _smoothstep(form_level - half, form_level + half, value)
     for family_index in sorted(set(owner_family.tolist())):

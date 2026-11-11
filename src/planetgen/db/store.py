@@ -3733,26 +3733,9 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
-    _store_nebula_shape(conn, cur.lastrowid, nebula)
     store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
-
-
-def _store_nebula_shape(conn, nebula_id, nebula):
-    """Writes `nebula`'s shape (GEN.75) to its row's `shape_*` columns and to
-    `nebula_shape_balls`."""
-    from planetgen.galaxy import nebula_shape
-
-    scalars, balls = nebula_shape.to_columns(nebula.get_shape())
-    sets = ", ".join(f"{column} = ?" for column in scalars)
-    conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
-    storage_checksum.mark_rows(conn, "nebulae", [nebula_id])
-    conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
-    for ball in balls:
-        conn.execute(
-            "INSERT INTO nebula_shape_balls (nebula_id, ball_index, center_x, center_y, center_z, radius)"
-            " VALUES (?, ?, ?, ?, ?, ?)", (nebula_id, *ball))
 
 
 def _placement_values(placement):
@@ -5065,16 +5048,17 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
     """
     Every placed nebula and supernova remnant whose sphere can reach the box
     `low`-`high` (galaxy-frame parsecs, each an `(x, y, z)`), padded by
-    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`.
+    `reach_pc`, as dicts with `column`, `id`, `center` and `radius_pc`, and for a nebula `inside` (the density contour, GEN.1267).
     """
     containers = []
+    galaxy = _lazy_galaxy(conn)
     for table, column in CONTAINER_TABLES:
         max_row = conn.execute(f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL").fetchone()
         if max_row["r"] is None:
             continue
         pad = ly_to_pc(max_row["r"]) + reach_pc
         rows = conn.execute(
-            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly FROM {table}"
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc, radius_ly{', nebula_class' if table == 'nebulae' else ''} FROM {table}"
             " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
             (low[0] - pad, high[0] + pad, low[1] - pad, high[1] + pad, low[2] - pad, high[2] + pad),
         ).fetchall()
@@ -5085,25 +5069,23 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
                 "radius_pc": ly_to_pc(row["radius_ly"]),
             }
             if table == "nebulae":
-                container["shape"] = _lazy_nebula_shape(conn, row["id"])
+                container["inside"] = containment.contour_test(galaxy, row["nebula_class"], container["center"], container["radius_pc"])
             containers.append(container)
     return containers
 
 
-def _lazy_nebula_shape(conn, nebula_id):
-    """A function returning nebula `nebula_id`'s `NebulaShape` (GEN.75),
-    loaded on the first call: most containers never see a point inside
-    their sphere."""
+def _lazy_galaxy(conn):
+    """A function giving the galaxy's `(seed, shape)` for the density contour of a nebula (GEN.1267), read on the first call (building the skeleton
+    takes a while and most containers never see a point inside their sphere), or `None` for a database never planned, whose nebulae are spheres."""
     loaded = []
 
-    def shape():
+    def galaxy():
         if not loaded:
-            from planetgen.db import query
-
-            loaded.append(query.nebula_shape(conn, nebula_id)[1])
+            skeleton = get_galaxy_shape(conn)
+            loaded.append(None if skeleton is None else (skeleton.galaxy_seed, skeleton.shape))
         return loaded[0]
 
-    return shape
+    return galaxy
 
 
 def refresh_containment(conn, sector_ids, on_progress=None):

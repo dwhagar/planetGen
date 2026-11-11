@@ -1757,20 +1757,6 @@ nebula_field = sa.Table(
 )
 
 
-nebula_shape_balls = sa.Table(
-    'nebula_shape_balls',
-    metadata,
-    sa.Column('nebula_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('ball_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('center_x', mysql.DOUBLE(), nullable=False),
-    sa.Column('center_y', mysql.DOUBLE(), nullable=False),
-    sa.Column('center_z', mysql.DOUBLE(), nullable=False),
-    sa.Column('radius', mysql.DOUBLE(), nullable=False),
-    sa.ForeignKeyConstraint(['nebula_id'], ['nebulae.id'], name='fk_nebula_shape_balls_nebula', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
 nebulae = sa.Table(
     'nebulae',
     metadata,
@@ -1804,18 +1790,6 @@ nebulae = sa.Table(
     sa.Column('mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('galactic_radius_pc', mysql.DOUBLE(), nullable=True),
     sa.Column('quadrant', sa.String(4), nullable=True),
-    sa.Column('shape_axis_x', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_axis_y', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_axis_z', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_angle_x', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_angle_y', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_angle_z', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_warp_amplitude', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_warp_frequency', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_warp_octaves', mysql.INTEGER(), nullable=True),
-    sa.Column('shape_noise_seed', mysql.BIGINT(unsigned=True), nullable=True),
-    sa.Column('shape_iso', mysql.DOUBLE(), nullable=True),
-    sa.Column('shape_scale', mysql.DOUBLE(), nullable=True),
     sa.Column('inside_nebula_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('inside_remnant_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
