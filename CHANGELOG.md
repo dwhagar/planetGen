@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3824] - 2026-11-11
+
+**Headline:** The test that checks the habitability gear sentence against the equipment line now compares them the way the page writes them, formulas set properly.
+
+### Changed
+
+- TEST.155: `test_every_scored_body_has_both_equipment_lines_and_its_per_item_specs_in_its_details` compared the Document's gear sentence, where a formula is written as a formula (UX.149: `CO₂`), with the equipment line's plain letters (`CO2`). It passed while none of the first 8 seeds needed a CO2 scrubber and failed once Train 21's draws gave a world that does (Illughoris II). The line and the item names now go through `model.chem_text` first, as the page does. No code under test changed.
+
+generation-affects: none
+
 ## [8.0.3823] - 2026-11-11
 
 **Headline:** Emptying the earlier phenomena and taking off their indexes are steps of their own in a scatter run, no longer a hook of the phenomena shells (OPS.123 slice 3, phenomena verb).
