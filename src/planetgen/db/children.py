@@ -22,7 +22,7 @@ row can say "3 planets, 5 moons" and show its expand arrow without a second requ
 Reads only; row ids throughout (the API turns them into Object IDs, `api/idpaths.py`).
 """
 
-from planetgen.db import query
+from planetgen.db import belt_names, query
 from planetgen.galaxy import objectref
 
 DEFAULT_LIMIT = 50
@@ -204,10 +204,11 @@ def _items(conn, picked):
         below[kind] = _below_counts(conn, kind, ids)
     if "system" in by_kind:
         star_types = _star_types(conn, by_kind["system"])
+    belt_numbers = belt_names.numbers_for_belts(conn, by_kind.get("belt", ()))      # GEN.1508: numbered among the star's own belts, not by slot
     items = []
     for kind, row_id in picked:
         row = rows[kind][row_id]
-        name = f"Asteroid belt {row['orbital_index'] + 1}" if kind == "belt" else row.pop("name", None)
+        name = belt_names.label(belt_numbers[row_id]) if kind == "belt" else row.pop("name", None)
         summary = {key: value for key, value in row.items() if key not in ("id", "name")}
         if kind == "system":
             summary["is_binary"] = bool(summary["is_binary"])

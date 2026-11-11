@@ -775,6 +775,7 @@ def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
     params = json.loads(json.dumps({"database": wrapper.database_args(mysql_config)}))
     expansion = run_plan.expand_fill_map_luminosity(params)
     assert sum(cost for _args, cost in expansion.units) == expansion.plan["top"]
+    assert set(expansion.plan) == {"top"}      # no count of the rows still empty: nothing indexes it, so it was a read of the whole table
     result = commands.run_alone("fill-map-luminosity", json.loads(json.dumps(expansion.units[0][0])))
     assert result["ids"] == expansion.units[0][1] and result["filled"] == 0
 

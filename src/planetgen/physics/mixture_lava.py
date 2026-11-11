@@ -147,6 +147,32 @@ def vapor_pressures(potentials, temperature_k):
     return pressures
 
 
+CARBON_GAS_PRESSURE_STEP = 1.25
+"""float: The factor the gas pressure of the carbon solve rises by each time the solve does not converge (GEN.1513)."""
+CARBON_GAS_PRESSURE_STEPS = 8
+"""int: How many times the carbon solve is tried again at a higher pressure."""
+
+
+def carbon_gas(chemistry_k, gas_pressure, log_fugacity):
+    """
+    `(Equilibrium, gas_pressure)` of carbon over a melt with its oxygen held at `log_fugacity`. When the buffered oxygen takes nearly all of the pressure the
+    solve has no room for the carbon and does not converge (GEN.1296 keeps the oxygen share under `OXYGEN_SHARE_MAX` of the melt's own vapor; the buffer's
+    fugacity at 6000 K can be higher, 1.3e5 bar against 1.4e5 bar of gas in the zeta Ophiuchi example): the gas is then taken at a higher pressure, by
+    `CARBON_GAS_PRESSURE_STEP` at a time (it converged within three steps from 4500 to 6000 K and fugacities of 1e3 to 1e7 bar), as the share rule does.
+
+    Raises:
+        MixtureError: It does not converge at `CARBON_GAS_PRESSURE_STEPS` higher pressures either.
+    """
+    for _ in range(CARBON_GAS_PRESSURE_STEPS + 1):
+        try:
+            return gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, chemistry_k, gas_pressure, fixed_o2_log_fugacity=log_fugacity), gas_pressure
+        except gas_equilibrium.EquilibriumError as failure:
+            if "no convergence" not in str(failure):
+                raise
+            gas_pressure *= CARBON_GAS_PRESSURE_STEP
+    raise MixtureError(f"the carbon gas over the melt does not settle at {chemistry_k:g} K with the oxygen held at 10^{log_fugacity:.2f} bar up to {gas_pressure:.4g} bar")
+
+
 def vapor_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent=None):
     """
     The vapor over `subject`'s molten surface.
@@ -183,8 +209,7 @@ def vapor_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percent
     if volatile_bearing:
         require(subject, ("pressure_bar",))
         gas_pressure = max(subject["pressure_bar"], (pressures.get("O2", 0.0) + pressures.get("O", 0.0)) / OXYGEN_SHARE_MAX)
-        volatile = gas_equilibrium.solve({"C": VOLATILE_BEARING_PER_CARBON}, chemistry_k, gas_pressure,
-                                         fixed_o2_log_fugacity=fo2.log_fo2(redox, chemistry_k))
+        volatile, gas_pressure = carbon_gas(chemistry_k, gas_pressure, fo2.log_fo2(redox, chemistry_k))
         for name, fraction in volatile.mole_fractions.items():
             pressures[name] = pressures.get(name, 0.0) + fraction * gas_pressure
         constants["volatile_bearing"] = True

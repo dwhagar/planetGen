@@ -489,6 +489,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | Boss, 6:08 PM EST on 2026-11-09. |
 | GEN.1510 | Build: belt bodies at or above the class floor run through the planet generator | GEN.1509 | Boss, 6:08 PM EST on 2026-11-09. |
 | GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists, maps and the census | GEN.1510 | Boss, 6:08 PM EST on 2026-11-09. |
+| GEN.1512 | Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table | none | Lane 04, 7:07 PM EST on 2026-11-09. |
+| GEN.1513 | (bug) EquilibriumError 'no convergence' on a very hot, very high-pressure giant | none | Lane 04, 7:07 PM EST on 2026-11-09. |
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | OPS.134 | Heartbeat part 1: the sky unit reports real progress and gets its own expected time (the bug behind the 11-08 full-galaxy failure) | none | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |

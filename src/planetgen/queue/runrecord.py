@@ -448,7 +448,7 @@ def _free_dead_holder(conn, kind):
     holder = active_run(conn, kind)
     if holder is None or not holder_is_dead(conn, holder):
         return False
-    finish_run(conn, holder, "failed", error="its process was gone (killed or restarted) before the run ended")
+    finish_run(conn, holder, "failed", error="its process was gone (killed or restarted) before the run ended", killed=True)
     conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[holder])
     return True
 
@@ -617,10 +617,25 @@ def is_canceling(conn, run_id):
     return _s(conn.hget(run_key(run_id), "state")) == "canceling"
 
 
-def finish_run(conn, run_id, state="done", error=None, now=None):
+KILLED_FIELD = "killed"
+"""str: The run-record field that says the run was ended from outside its work (OPS.144): canceled, cleared, its process gone, a unit killed or ended by its time limit, or stopped by the heartbeat judge. It is what
+the Queue page reads to offer Resume run, and `killed_reason` says why."""
+
+
+def mark_killed(conn, run_id, reason):
+    """
+    Records that the run was ended from outside its work (`KILLED_FIELD`), with `reason`, on a live run or one already over. The judge's stop and fail paths (OPS.140) call this before they end the run; `finish_run` with `killed`
+    calls it for the rest. A reason already recorded is kept.
+    """
+    if conn.hsetnx(run_key(run_id), KILLED_FIELD, "1"):
+        conn.hset(run_key(run_id), "killed_reason", reason or "")
+
+
+def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
     """
     Ends the run in `state` (`done`, `failed` or `canceled`): records it, frees the machine if this run owns
-    it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is.
+    it, and gives the run's keys `KEEP_SECONDS` to live. A run already over is left as it is. A run that was `killed`
+    (ended from outside its work, `mark_killed`) says so on its record; a canceled run always was.
 
     Returns:
         bool: Whether this call ended it.
@@ -631,6 +646,8 @@ def finish_run(conn, run_id, state="done", error=None, now=None):
     if _s(conn.hget(run_key(run_id), "state")) not in LIVE_STATES:
         return False
     conn.hset(run_key(run_id), mapping={"state": state, "finished": now, "updated": now, "error": error or ""})
+    if killed or state == "canceled":
+        mark_killed(conn, run_id, error or state)
     kind = _s(conn.hget(run_key(run_id), "kind")) or GENERATION
     conn.register_script(_RELEASE)(keys=[active_key(kind)], args=[run_id])
     log(conn, run_id, error or f"run {state}", kind=f"run.{state}", level="error" if state == "failed" else "info",
@@ -776,7 +793,7 @@ def read_run(conn, run_id):
     The run as one dict for pages and the ETA (`runeta.estimate`): the record (`id`, `title`, `kind`, `who`, `database`,
     `job`, `argv`, `state`, `current`, `created`, `started`, `updated`, `finished`, `error`) and `stages`, each the declared
     stage with its counters merged in (numbers, `None` where not set yet), and `galaxy_seed`, `build` and `finishes`
-    (PERF.182: `None` for a run that recorded none). `None` for an unknown run.
+    (PERF.182: `None` for a run that recorded none), `killed` and `killed_reason` (OPS.144). `None` for an unknown run.
     """
     pipe = conn.pipeline()
     pipe.hgetall(run_key(run_id))
@@ -792,6 +809,7 @@ def read_run(conn, run_id):
            "database": record.get("database") or "", "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
            "galaxy_seed": record.get("galaxy_seed") or None, "build": record.get("build") or None,
            "finishes": record.get("finishes") or None,
+           "killed": record.get(KILLED_FIELD) == "1", "killed_reason": record.get("killed_reason") or None,
            "state": record.get("state") or "", "error": record.get("error") or None,
            "current": int(float(record.get("current") or 0)),
            "stages": []}
