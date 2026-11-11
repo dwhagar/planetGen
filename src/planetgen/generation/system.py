@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
+from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, moon_resonances, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -2272,6 +2272,17 @@ class StarSystem:
                     self.kozai_outcomes["lost"] += 1
                     log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
 
+    def _moon_resonances(self):
+        """GEN.1449 part 2: every moon pair near a first-order period ratio (captured on the way out, `moon_history`, or just close) forces an eccentricity on both (`moon_resonances`). `self.resonance_outcomes`
+        counts the moons screened and the moons raised (a record for the census, not stored)."""
+        self.resonance_outcomes = {"screened": 0, "raised": 0}
+        for _star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a' or len(planet.moons) < 2:
+                    continue
+                self.resonance_outcomes["screened"] += len(planet.moons)
+                self.resonance_outcomes["raised"] += len(moon_resonances.give_forced_eccentricities(planet))
+
     @staticmethod
     def _planet_problems(planets):
         """The problems of one star's planets for the secular exchange to compare: their spacing and each planet with its moons."""
@@ -2296,6 +2307,7 @@ class StarSystem:
         with log.timed_phase("settle pass"):
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
             self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
+            self._moon_resonances()     # GEN.1449 part 2: the eccentricity moons near a first-order ratio force on each other, before the tide wears an eccentricity down
             self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
             resonant_chains.give_forced_eccentricities(self.planets, self.star.mass)

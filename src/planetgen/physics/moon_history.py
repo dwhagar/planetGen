@@ -14,6 +14,7 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
   that has no moons (TM5).
 * **Each moon** that stays is moved to the distance it reached (`planets.move_orbit`: period, Hill sphere, position and speed follow, the plane, the
   shape and where it is on its orbit do not), and its own spin is run again at that distance when it moved by `RESPIN_FRACTION` (a ten-thousandth) or more.
+* **Two moons that swept a resonance** on the way out are held in it, the inner pushing the outer along (`moon_resonances.capture`, GEN.1449 part 2); the eccentricity the resonance forces is given once the orbits are final.
 * **The lunar system stays one a generated one could be:** `_settle` pushes a moon out to clear the one inside it, and loses one below the innermost orbit (ring material) or whose apoapsis passes the stable range.
 * **A moon that falls** inside its Roche limit is removed and its mass and the time it fell are kept (`fallen_moons`, `ring_origin.FallenMoon`s, which `rings.apply` reads
   through `ring_origin.ring_origin`: the share of it that stays in orbit is a ring, spread for the time since, GEN.1057); a moon dragged below the innermost orbit is kept the same way
@@ -28,7 +29,7 @@ and is left as it is. A history no integrator can finish (`moon_orbits.Integrati
 
 import math
 
-from planetgen.physics import body_spin, constants, moon_orbits, ring_origin, spin, spin_torques
+from planetgen.physics import body_spin, constants, moon_orbits, moon_resonances, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
 RESPIN_FRACTION = 1.0e-4
@@ -121,6 +122,11 @@ def apply(planet, primary_mass_kg):
                 planets.move_orbit(moon, target_au, planet.mass)
             survivors.append(moon)
     survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
+    if len(survivors) > 1:        # GEN.1449 part 2: a pair that swept a first-order resonance on the way out is held in it (`moon_resonances.capture`)
+        held, _ = moon_resonances.capture([m.mass for m in survivors], [m._birth_distance_au for m in survivors], [m.distance for m in survivors])
+        for moon, target_au in zip(survivors, held):
+            if abs(target_au / moon.distance - 1.0) > 1.0e-12:
+                planets.move_orbit(moon, target_au, planet.mass)
     survivors, dragged = _settle(planet, survivors)
     for moon in survivors:
         if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION:

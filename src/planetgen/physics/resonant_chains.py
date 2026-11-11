@@ -200,18 +200,35 @@ def forced_eccentricities(periods_days, masses_kg, host_mass_kg):
     if not host_mass_kg > 0.0 or any(not m > 0.0 for m in masses_kg):
         raise ResonantChainError("masses must be positive")
     periods = [float(p) for p in periods_days]
+    return _forced(periods, masses_kg, host_mass_kg, [pair for chain in find_chains(periods) for pair in chain.pairs])
+
+
+def pair_forced_eccentricities(periods_days, masses_kg, host_mass_kg):
+    """
+    `forced_eccentricities` for every resonant pair, not only the pairs of a chain of three (GEN.1449 part 2: two moons are enough, Io and Europa, Mimas and Tethys). The same forced
+    eccentricity of a first-order resonance, added in quadrature for a body with two resonant neighbours and held to `CROSSING_SHARE` of the room between the orbits.
+    """
+    if len(periods_days) != len(masses_kg):
+        raise ResonantChainError("a mass for each period")
+    if not host_mass_kg > 0.0 or any(not m > 0.0 for m in masses_kg):
+        raise ResonantChainError("masses must be positive")
+    periods = [float(p) for p in periods_days]
+    return _forced(periods, masses_kg, host_mass_kg, find_pairs(periods))
+
+
+def _forced(periods, masses_kg, host_mass_kg, pairs):
+    """The forced eccentricity of each body for the resonant `pairs` (0.0 for a body in none), before the caller's own limits."""
     squares = [0.0] * len(periods)
-    for chain in find_chains(periods):
-        for pair in chain.pairs:
-            inner, outer = _pair_eccentricities(pair, periods, masses_kg, host_mass_kg)
-            squares[pair.inner] += inner ** 2
-            squares[pair.outer] += outer ** 2
-        for pair in chain.pairs:
-            a_in = semi_major_axis_m(periods[pair.inner], host_mass_kg, masses_kg[pair.inner])
-            a_out = semi_major_axis_m(periods[pair.outer], host_mass_kg, masses_kg[pair.outer])
-            limit = CROSSING_SHARE * (a_out - a_in) / (a_out + a_in)
-            for member in (pair.inner, pair.outer):
-                squares[member] = min(squares[member], limit ** 2)
+    for pair in pairs:
+        inner, outer = _pair_eccentricities(pair, periods, masses_kg, host_mass_kg)
+        squares[pair.inner] += inner ** 2
+        squares[pair.outer] += outer ** 2
+    for pair in pairs:
+        a_in = semi_major_axis_m(periods[pair.inner], host_mass_kg, masses_kg[pair.inner])
+        a_out = semi_major_axis_m(periods[pair.outer], host_mass_kg, masses_kg[pair.outer])
+        limit = CROSSING_SHARE * (a_out - a_in) / (a_out + a_in)
+        for member in (pair.inner, pair.outer):
+            squares[member] = min(squares[member], limit ** 2)
     return tuple(math.sqrt(s) for s in squares)
 
 

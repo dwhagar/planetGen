@@ -303,6 +303,9 @@ def settle_orbit(planet):
         return False
     # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
     eccentricity = min(planet.eccentricity, orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), planet.primary_mass_kg, planet.distance))
+    resonance_e = getattr(planet, "_resonance_e", None)
+    if resonance_e:        # GEN.1449 part 2: the resonance renews the eccentricity the tide wears down
+        eccentricity = max(eccentricity, min(resonance_e, planet.eccentricity))
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
