@@ -74,6 +74,10 @@ class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
 
 
+KILLED_EXCEPTIONS = ("JobTimeoutException", "WorkerLostError", "AbandonedJobError")
+"""tuple[str]: The names of the exceptions with which RQ ends a unit from outside (its time limit, its worker lost): a run a unit ended with one of them was killed (OPS.144), not failed by its own code."""
+
+
 def job_id(run_id, stage, unit):
     """The RQ job id of a unit, so a unit can be found from the run (cancel, PERF.99)."""
     return f"{run_id}-s{stage}-u{unit}"
@@ -398,7 +402,7 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
-                               f"{exc_type.__name__}: {exc_value}")
+                               f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
@@ -433,14 +437,14 @@ def horse_killed(job, retpid, ret_val, _rusage):
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
         runrecord.finish_run(conn, run_id, "failed",
                              error=f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}")
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     elif job.func_name == OPEN_FUNCTION:
         run_id, index = job.args[:2]
         log.process_ended("queue", f"The process opening stage {index} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
         from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
         runrecord.finish_run(conn, run_id, "failed",
                              error=f"the opening of stage {wrapper.stage_name(conn, run_id, index)} was killed: "
-                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}")
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
     else:
         log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
 
