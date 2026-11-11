@@ -452,6 +452,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | Lane 06 first pass, 2026-11-11. |
 | UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | Lane 06 first pass, 2026-11-11. |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | Lane 06 first pass, 2026-11-11. |
+| UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | Boss live report, 2026-11-11. |
+| UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | UX.303 builder, 2026-11-11. |
 | GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body |  | Boss, 2026-11-08. |
 | GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | Boss, 2026-11-08. |
 | GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | Boss, 2026-11-08. |

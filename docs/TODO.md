@@ -13229,6 +13229,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.1317, TEST.715.
   Filed by the TODO thread.
 
+- [ ] **UX.303 Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr"**
+  Boss live observation (as relayed 6:40 PM EST on 2026-11-11): the property sheet showed "1.32 x 10^4 mSv/yr". PR 6072 adds a registry kind dose_rate with the ladder DOSE_RATE (nSv/yr to MSv/yr); stored mSv/yr columns are untouched, no migration, no epoch, generation-affects none. Done when PR 6072 merges; display only, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): the radiation-units thread (PR 6072), gate by Lane 03. Prerequisites: none. Related: GEN.568.
+  Filed by the TODO thread. Boss-visible bug.
+
+- [ ] **UX.304 Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g)**
+  From the UX.303 builder, 2026-11-11: follow-up candidates found, not built: sheet rows for the magnetic field in gauss (the ladder exists, would show uT/mT), flare rates (1/yr), accretion rate (Msun/yr), and 1/Gy rates, which still use .4g and go scientific when large; protection.py and the habitability text keep their "mSv a year" wording. Do: put each on its ladder through the unit registry (reuse the dose ladder pattern of UX.303), no stored change. Display only, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06 (UX lane), after UX.301. Prerequisites: UX.303. Related: UX.303, GEN.568.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
