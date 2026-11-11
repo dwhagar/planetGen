@@ -1740,7 +1740,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.942 | Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed | none | done, PR #4321 |
 | GEN.943 | Spectral subclasses from a letter-and-subclass temperature lookup table (Pecaut and Mamajek style), the K/M boundary at about 3,900 K, and a decision on Yerkes class VI (subdwarf) | none | done, PR #3984 |
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) | none | open |
-| GEN.945 | Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each | none | open |
+| GEN.945 | Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each | none | done, report reports/gen945-constants-audit-2026-11-11.md, items TEST.715 and GEN.1524 to GEN.1526 |
 | GEN.946 | Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists | none | done, PRs #4319 and #4320; rest kept as no data |
 | GEN.947 | Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority) | none | done, PR #3984 |
 | GEN.948 | Brown dwarf radius from an age-dependent table [R0254] instead of nine hard-coded points | none | done, PR #4105 |
@@ -3708,7 +3708,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1521 | Chain-aware spacing test for tight chains of small planets (N-body screen follow-up) | GEN.1468 | open |
 | GEN.1522 | (bug) A giant next to a very hot star (27,560 K quoted air) crashes the build: the gas table ends at 20,000 K | none | done (Train 22 or earlier, 2026-11-11) |
 | GEN.1523 | Wire the four built-but-unread physics modules: atmosphere_retention, helium_fractionation, hycean_candidate and small_body_composition.draw_ring | none | open |
-| GEN.1524 | Register the 15 ranked unregistered constants of the GEN.945 audit in the stand-in registry with a tier and tweak level | none | open |
+| GEN.1524 | Register the 15 ranked unregistered constants of the GEN.945 audit in the stand-in registry with a tier and tweak level | none | done, PR #5992 |
 | GEN.1525 | Replace the shortlist constants that held data can check or derive: MIST ages, neutron star EOS maxima, Harris clusters, the mass function integral, the occurrence fit, pre-main-sequence tracks | GEN.1524 | open |
 | GEN.1526 | One definition for repeated physical constants: ICE_DENSITY_KG_M3, BAND_COUNT, AVOGADRO, GAS_CONSTANT, LIQUID_WATER_DENSITY_KG_M3, WATER_MELTING_K | none | open |
 | GEN.1527 | Wire helium fractionation (W16): the envelope-loss history reaches the envelope mixture's helium budget at the capture step | none | open |
