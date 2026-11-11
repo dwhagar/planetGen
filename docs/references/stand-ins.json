@@ -60053,6 +60053,318 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.263",
+      "number": "6.263",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_pair_tides.GYRATION_SQUARED 0.1: the star's moment of inertia over its mass times its radius squared"
+            ],
+            [
+              "The range it moves in",
+              "0.06 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "main-sequence stars and giants"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured moment of inertia is off by more than a factor of two"
+            ],
+            [
+              "What replaces it",
+              "a moment of inertia from the star's structure (polytrope index by mass)"
+            ],
+            [
+              "Evidence",
+              "Hurley, Tout and Pols 2002 take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
+            ]
+          ],
+          "id": "KT1",
+          "key": "6.263:KT1",
+          "kind": "P",
+          "slug": "6-263-kt1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "star_pair_tides.GYRATION_SQUARED 0.1: the star's moment of inertia over its mass times its radius squared"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_pair_tides.ENVELOPE_MASS_SHARE: the convective envelope's share of a dwarf's mass, 1.0 at 0.35 solar masses and under, 0.25 at 0.6, 0.03 at 1.0, 0.003 at 1.3; a giant 0.5"
+            ],
+            [
+              "The range it moves in",
+              "the four points"
+            ],
+            [
+              "Where it holds",
+              "dwarfs and giants below the radiative limit"
+            ],
+            [
+              "What would show it wrong",
+              "an envelope share from a stellar model that differs by a factor of three at a mass"
+            ],
+            [
+              "What replaces it",
+              "the envelope mass from the stellar evolution track of the star"
+            ],
+            [
+              "Evidence",
+              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997)"
+            ]
+          ],
+          "id": "KT2",
+          "key": "6.263:KT2",
+          "kind": "P",
+          "slug": "6-263-kt2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "star_pair_tides.ENVELOPE_MASS_SHARE: the convective envelope's share of a dwarf's mass, 1.0 at 0.35 solar masses and under, 0.25 at 0.6, 0.03 at 1.0, 0.003 at 1.3; a giant 0.5"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_pair_tides.RADIATIVE_MASS_SOL 1.3 and the Kraft smoothstep below 0.5: a dwarf above that mass or hotter than the middle of the Kraft break has a radiative envelope and the dynamical tide"
+            ],
+            [
+              "The range it moves in",
+              "1.2 to 1.5 solar masses"
+            ],
+            [
+              "Where it holds",
+              "main-sequence stars"
+            ],
+            [
+              "What would show it wrong",
+              "an A or F star with a measured synchronisation time off by a factor of ten"
+            ],
+            [
+              "What replaces it",
+              "the convective envelope depth from the stellar track"
+            ],
+            [
+              "Evidence",
+              "the Kraft break at about 6200 to 8000 K is where the convective envelope ends (spin.KRAFT_BREAK_LOW_K and HIGH_K)"
+            ]
+          ],
+          "id": "KT3",
+          "key": "6.263:KT3",
+          "kind": "P",
+          "slug": "6-263-kt3",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "star_pair_tides.RADIATIVE_MASS_SOL 1.3 and the Kraft smoothstep below 0.5: a dwarf above that mass or hotter than the middle of the Kraft break has a radiative envelope and the dynamical tide"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the spin relaxes toward the pseudo-synchronous rate as exp(-age / t_sync) over the whole age with the orbit held at today's axis and eccentricity, never faster than 85 percent of breakup"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "pairs whose orbit has not moved much since birth"
+            ],
+            [
+              "What would show it wrong",
+              "a pair whose orbit was wide and shrank by a factor of two or more (the star kept a faster spin than the formula gives)"
+            ],
+            [
+              "What replaces it",
+              "the orbit and the spin integrated together over the age (with magnetic braking)"
+            ],
+            [
+              "Evidence",
+              "the equilibrium-tide relaxation is linear in the spin; Zahn 1977, Hut 1981; the orbit is held because the generator has no orbit history"
+            ]
+          ],
+          "id": "KT4",
+          "key": "6.263:KT4",
+          "kind": "P",
+          "slug": "6-263-kt4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the spin relaxes toward the pseudo-synchronous rate as exp(-age / t_sync) over the whole age with the orbit held at today's axis and eccentricity, never faster than 85 percent of breakup"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a white dwarf, a neutron star and a black hole (Yerkes class beginning D, N or X) keep their drawn spin"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "compact members of a pair"
+            ],
+            [
+              "What would show it wrong",
+              "a tidally locked white dwarf in a close double"
+            ],
+            [
+              "What replaces it",
+              "the dissipation of a degenerate star (Willems et al 2010)"
+            ],
+            [
+              "Evidence",
+              "a white dwarf's tide is orders of magnitude weaker per unit of R/a; the double white dwarf pairs are measured to be unsynchronised"
+            ]
+          ],
+          "id": "KT5",
+          "key": "6.263:KT5",
+          "kind": "P",
+          "slug": "6-263-kt5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a white dwarf, a neutron star and a black hole (Yerkes class beginning D, N or X) keep their drawn spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 3"
+            ],
+            [
+              "Where it holds",
+              "pairs whose tide reaches the star"
+            ],
+            [
+              "What would show it wrong",
+              "a close binary whose spin-orbit angle is measured to survive the synchronisation time"
+            ],
+            [
+              "What replaces it",
+              "the Hut 1981 obliquity equations"
+            ],
+            [
+              "Evidence",
+              "Hut 1981: the two relax on the same order"
+            ]
+          ],
+          "id": "KT6",
+          "key": "6.263:KT6",
+          "kind": "P",
+          "slug": "6-263-kt6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass"
+            ],
+            [
+              "The range it moves in",
+              "the four values"
+            ],
+            [
+              "Where it holds",
+              "main-sequence stars and giants"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose measured apsidal motion constant is off by a factor of three"
+            ],
+            [
+              "What replaces it",
+              "the constants of a stellar model of the star's mass and age (Claret and Gimenez 2010)"
+            ],
+            [
+              "Evidence",
+              "observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14"
+            ]
+          ],
+          "id": "KT7",
+          "key": "6.263:KT7",
+          "kind": "P",
+          "slug": "6-263-kt7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": null,
+          "what": "star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "triples where the outer orbit is much wider than the inner"
+            ],
+            [
+              "What would show it wrong",
+              "a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own"
+            ],
+            [
+              "What replaces it",
+              "the Kozai and secular terms of GEN.1447 added to the apsidal rate"
+            ],
+            [
+              "Evidence",
+              "the pair node's own tide dominates by the sixth power of the axis ratio"
+            ]
+          ],
+          "id": "KT8",
+          "key": "6.263:KT8",
+          "kind": "P",
+          "slug": "6-263-kt8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin"
+        }
+      ],
+      "slug": "6-263-stand-ins-of-the-mutual-tides-of-the-stars-of-a-pair",
+      "title": "Stand-ins of the mutual tides of the stars of a pair"
     }
   ]
 }

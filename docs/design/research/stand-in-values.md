@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1542 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1516 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 182 | 20 | 11 | 1 | 0 | 214 |
-| T2 | 144 | 59 | 1 | 1 | 0 | 205 |
-| T3 | 110 | 47 | 9 | 10 | 0 | 176 |
+| T2 | 145 | 59 | 1 | 1 | 0 | 206 |
+| T3 | 110 | 47 | 10 | 10 | 0 | 177 |
 | T4 | 80 | 11 | 3 | 21 | 12 | 127 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 191 | 106 | 30 | 75 | 2 | 404 |
-| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
+| T5 | 78 | 24 | 6 | 1 | 1 | 110 |
+| T6 | 192 | 107 | 30 | 75 | 2 | 406 |
+| T7 | 51 | 19 | 9 | 31 | 0 | 110 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 873 | 302 | 74 | 235 | 50 | 1534 |
+| All | 879 | 303 | 75 | 235 | 50 | 1542 |
 
 ## How the labels were given
 
@@ -2702,3 +2702,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
 | FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
 | FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |
+
+## 6.263 Stand-ins of the mutual tides of the stars of a pair
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| KT1 | P | T2 | L0 | star_pair_tides.GYRATION_SQUARED 0.1: the star's moment of inertia over its mass times its radius squared | 0.06 to 0.2 | main-sequence stars and giants | a star whose measured moment of inertia is off by more than a factor of two | a moment of inertia from the star's structure (polytrope index by mass) | Hurley, Tout and Pols 2002 take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened) | predicted only | - | - |
+| KT2 | P | T6 | L1 | star_pair_tides.ENVELOPE_MASS_SHARE: the convective envelope's share of a dwarf's mass, 1.0 at 0.35 solar masses and under, 0.25 at 0.6, 0.03 at 1.0, 0.003 at 1.3; a giant 0.5 | the four points | dwarfs and giants below the radiative limit | an envelope share from a stellar model that differs by a factor of three at a mass | the envelope mass from the stellar evolution track of the star | the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997) | predicted only | - | - |
+| KT3 | P | T5 | L0 | star_pair_tides.RADIATIVE_MASS_SOL 1.3 and the Kraft smoothstep below 0.5: a dwarf above that mass or hotter than the middle of the Kraft break has a radiative envelope and the dynamical tide | 1.2 to 1.5 solar masses | main-sequence stars | an A or F star with a measured synchronisation time off by a factor of ten | the convective envelope depth from the stellar track | the Kraft break at about 6200 to 8000 K is where the convective envelope ends (spin.KRAFT_BREAK_LOW_K and HIGH_K) | predicted only | - | - |
+| KT4 | P | T7 | L0 | the spin relaxes toward the pseudo-synchronous rate as `exp(-age / t_sync)` over the whole age with the orbit held at today's axis and eccentricity, never faster than 85 percent of breakup | none | pairs whose orbit has not moved much since birth | a pair whose orbit was wide and shrank by a factor of two or more (the star kept a faster spin than the formula gives) | the orbit and the spin integrated together over the age (with magnetic braking) | the equilibrium-tide relaxation is linear in the spin; Zahn 1977, Hut 1981; the orbit is held because the generator has no orbit history | predicted only | - | - |
+| KT5 | P | T5 | L0 | a white dwarf, a neutron star and a black hole (Yerkes class beginning D, N or X) keep their drawn spin | none | compact members of a pair | a tidally locked white dwarf in a close double | the dissipation of a degenerate star (Willems et al 2010) | a white dwarf's tide is orders of magnitude weaker per unit of R/a; the double white dwarf pairs are measured to be unsynchronised | predicted only | - | - |
+| KT6 | P | T6 | L0 | star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time | 0.3 to 3 | pairs whose tide reaches the star | a close binary whose spin-orbit angle is measured to survive the synchronisation time | the Hut 1981 obliquity equations | Hut 1981: the two relax on the same order | predicted only | - | - |
+| KT7 | P | T3 | L2 | star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass | the four values | main-sequence stars and giants | a star whose measured apsidal motion constant is off by a factor of three | the constants of a stellar model of the star's mass and age (Claret and Gimenez 2010) | observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14 | predicted only | - | - |
+| KT8 | P | T7 | L0 | a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin | none | triples where the outer orbit is much wider than the inner | a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own | the Kozai and secular terms of GEN.1447 added to the apsidal rate | the pair node's own tide dominates by the sixth power of the axis ratio | predicted only | - | - |

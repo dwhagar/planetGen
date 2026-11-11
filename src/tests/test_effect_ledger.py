@@ -217,7 +217,7 @@ def test_a_lone_star_system_saves_no_light_rows_and_a_binary_saves_light_and_ult
             binary_id = store.insert_star_system(conn, binary, binary_cfg)
         assert _ledger_count(conn, lone_id) == 0      # the lone source is the host star: nothing is implied away
         effects = {row["effect"] for row in conn.execute("SELECT DISTINCT effect FROM effect_ledger WHERE star_system_id = ?", (binary_id,)).fetchall()}
-        assert effects == {1, 2}      # light and ultraviolet only; the gravity effects are computed on demand
+        assert {1, 2} <= effects <= {1, 2, 5, 6}      # light and ultraviolet, the Kozai rate of a moon (5) and the apsidal precession of a pair of stars (6, GEN.1467); the other gravity effects are computed on demand
     finally:
         conn.rollback()
         conn.close()
