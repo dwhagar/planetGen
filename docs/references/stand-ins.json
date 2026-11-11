@@ -4994,9 +4994,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5036,9 +5036,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5078,9 +5078,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5120,9 +5120,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -5276,9 +5276,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants"
           ],
           "fields": [
             [
@@ -28996,9 +28996,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1058",
-            "the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor"
+            "no data",
+            "-",
+            "GEN.1058 built the merger tilt but did not replace this tuned share;  the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor"
           ],
           "fields": [
             [
@@ -51976,9 +51976,9 @@
       "rows": [
         {
           "burn_down": [
-            "replace",
-            "GEN.804",
-            "the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it"
+            "no data",
+            "-",
+            "GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it"
           ],
           "fields": [
             [
@@ -61345,6 +61345,1152 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.270",
+      "number": "6.270",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.METALLICITY_RANGE_FE_H (-3.5, 0.6): the clip on every drawn [Fe/H]"
+            ],
+            [
+              "The range it moves in",
+              "-3.5 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "every star drawn"
+            ],
+            [
+              "What would show it wrong",
+              "a star outside the range in the 1,615-star Brewer table [R0535]"
+            ],
+            [
+              "What replaces it",
+              "the Brewer table's own range, once the draw reads it"
+            ],
+            [
+              "Evidence",
+              "a clip of a measured range; the gas-metallicity cap of +0.7 dex is registered elsewhere; census GEN.945"
+            ]
+          ],
+          "id": "AUD1",
+          "key": "6.270:AUD1",
+          "kind": "B",
+          "slug": "6-270-aud1",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.METALLICITY_RANGE_FE_H (-3.5, 0.6): the clip on every drawn [Fe/H]"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a design factor of Boss's core note; no measurement exists; tier T9 stays"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.CORE_TIER_FACTOR 1.10: how much higher than the baseline the core's scatter limits default until set"
+            ],
+            [
+              "The range it moves in",
+              "1.0 to 1.3"
+            ],
+            [
+              "Where it holds",
+              "the galactic core's scatter limits"
+            ],
+            [
+              "What would show it wrong",
+              "a core limit that the design note's 5.1 (Boss) moves"
+            ],
+            [
+              "What replaces it",
+              "Boss's value in realistic-galactic-core.md 5.1; a design factor, no data"
+            ],
+            [
+              "Evidence",
+              "design; docstring of the constant"
+            ]
+          ],
+          "id": "AUD2",
+          "key": "6.270:AUD2",
+          "kind": "P",
+          "slug": "6-270-aud2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.CORE_TIER_FACTOR 1.10: how much higher than the baseline the core's scatter limits default until set"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE 0.25: the share of supernovae drawn as type Ia"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "supernova remnants of a star-forming galaxy"
+            ],
+            [
+              "What would show it wrong",
+              "a volume-limited supernova count with a type Ia share outside 0.2 to 0.3"
+            ],
+            [
+              "What replaces it",
+              "a supernova rate paper read in full"
+            ],
+            [
+              "Evidence",
+              "core-collapse outnumber type Ia roughly 3 to 1 (Li and others 2011, MNRAS 412, 1441), second-hand"
+            ]
+          ],
+          "id": "AUD3",
+          "key": "6.270:AUD3",
+          "kind": "B",
+          "slug": "6-270-aud3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE 0.25: the share of supernovae drawn as type Ia"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.STAR_FORMATION_AGE_RANGE_GY (0, 10): the age window of the default star-formation history"
+            ],
+            [
+              "The range it moves in",
+              "0 to 10 Gy"
+            ],
+            [
+              "Where it holds",
+              "stars with no population age"
+            ],
+            [
+              "What would show it wrong",
+              "a thin-disk age window other than the disk history's"
+            ],
+            [
+              "What replaces it",
+              "galaxy.disk_history (GEN.935 family)"
+            ],
+            [
+              "Evidence",
+              "the thin disk's 0 to 10 Gy; population ages by position come on top"
+            ]
+          ],
+          "id": "AUD4",
+          "key": "6.270:AUD4",
+          "kind": "T",
+          "slug": "6-270-aud4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.STAR_FORMATION_AGE_RANGE_GY (0, 10): the age window of the default star-formation history"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMPACT_REMNANT_AGE_RANGE_GY (1e-5, 10): the age window of free compact remnants"
+            ],
+            [
+              "The range it moves in",
+              "1e-5 to 10 Gy"
+            ],
+            [
+              "Where it holds",
+              "white dwarfs, neutron stars and black holes drawn free"
+            ],
+            [
+              "What would show it wrong",
+              "a free neutron star younger than its first 10 kyr"
+            ],
+            [
+              "What replaces it",
+              "galaxy.disk_history for the upper edge"
+            ],
+            [
+              "Evidence",
+              "a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)"
+            ]
+          ],
+          "id": "AUD5",
+          "key": "6.270:AUD5",
+          "kind": "P",
+          "slug": "6-270-aud5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.COMPACT_REMNANT_AGE_RANGE_GY (1e-5, 10): the age window of free compact remnants"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
+            ],
+            [
+              "The range it moves in",
+              "1.1 to 2.2 solar masses"
+            ],
+            [
+              "Where it holds",
+              "isolated and binary neutron stars"
+            ],
+            [
+              "What would show it wrong",
+              "a measured neutron star outside the range, or an equation of state whose maximum mass lies under 2.2"
+            ],
+            [
+              "What replaces it",
+              "the maximum masses of the held equations of state (GEN.743, GEN.968)"
+            ],
+            [
+              "Evidence",
+              "compiled radio pulsar timing masses (comment of the constant)"
+            ]
+          ],
+          "id": "AUD6",
+          "key": "6.270:AUD6",
+          "kind": "B",
+          "slug": "6-270-aud6",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1.35 solar masses"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen and oxygen-neon white dwarfs"
+            ],
+            [
+              "What would show it wrong",
+              "a white dwarf outside the range in a large sample"
+            ],
+            [
+              "What replaces it",
+              "the white dwarf cooling sequences held in the catalogue"
+            ],
+            [
+              "Evidence",
+              "the relation read by the star model, the member draw and the disk history"
+            ]
+          ],
+          "id": "AUD7",
+          "key": "6.270:AUD7",
+          "kind": "B",
+          "slug": "6-270-aud7",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_MASS_RANGE_SOLAR (5, 20): the stellar-mass black hole mass draw"
+            ],
+            [
+              "The range it moves in",
+              "5 to 20 solar masses"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes"
+            ],
+            [
+              "What would show it wrong",
+              "gravitational-wave or X-ray binary masses clustering outside 5 to 20"
+            ],
+            [
+              "What replaces it",
+              "a mass spectrum from the gravitational-wave catalogue"
+            ],
+            [
+              "Evidence",
+              "hundreds of black holes per the observations (BH4, Boss 10-18); the draw is a clip"
+            ]
+          ],
+          "id": "AUD8",
+          "key": "6.270:AUD8",
+          "kind": "B",
+          "slug": "6-270-aud8",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_MASS_RANGE_SOLAR (5, 20): the stellar-mass black hole mass draw"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.OPEN_CLUSTER_MASS_RANGE_SOL (50, 1e6): the initial mass range of open clusters (slope -2)"
+            ],
+            [
+              "The range it moves in",
+              "50 to 1e6 solar masses"
+            ],
+            [
+              "Where it holds",
+              "bound clusters of the cluster formation efficiency"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster population with a different slope or ceiling"
+            ],
+            [
+              "What replaces it",
+              "the Harris and Courteau-Comeron tables for the upper end"
+            ],
+            [
+              "Evidence",
+              "[R2542] slope -2 and an upper limit as high as 1e6; [R2530] groups of 100 or more members"
+            ]
+          ],
+          "id": "AUD9",
+          "key": "6.270:AUD9",
+          "kind": "B",
+          "slug": "6-270-aud9",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.OPEN_CLUSTER_MASS_RANGE_SOL (50, 1e6): the initial mass range of open clusters (slope -2)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+            ],
+            [
+              "The range it moves in",
+              "1e4 to 3e6 solar masses"
+            ],
+            [
+              "Where it holds",
+              "globular clusters"
+            ],
+            [
+              "What would show it wrong",
+              "a globular outside the range in the Harris catalogue"
+            ],
+            [
+              "What replaces it",
+              "the Harris catalogue (GEN.297, reader built)"
+            ],
+            [
+              "Evidence",
+              "compared with the catalogue when GEN.297 reads it"
+            ]
+          ],
+          "id": "AUD10",
+          "key": "6.270:AUD10",
+          "kind": "B",
+          "slug": "6-270-aud10",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
+            ],
+            [
+              "The range it moves in",
+              "0.4 to 0.6 dex"
+            ],
+            [
+              "Where it holds",
+              "globular cluster ensembles"
+            ],
+            [
+              "What would show it wrong",
+              "a measured mass function width outside 0.4 to 0.6 dex"
+            ],
+            [
+              "What replaces it",
+              "the Harris catalogue fit (GEN.297)"
+            ],
+            [
+              "Evidence",
+              "recalled; next to CLUSTER_MASS_PEAK_SOL 2e5"
+            ]
+          ],
+          "id": "AUD11",
+          "key": "6.270:AUD11",
+          "kind": "B",
+          "slug": "6-270-aud11",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.HALO_INNER_SLOPE 2.5 and HALO_OUTER_SLOPE 4.5: the stellar halo's inner and outer power-law slopes"
+            ],
+            [
+              "The range it moves in",
+              "inner 2.3 to 3.3; outer 4.6 to 4.8"
+            ],
+            [
+              "Where it holds",
+              "the stellar halo of a spiral"
+            ],
+            [
+              "What would show it wrong",
+              "a halo fit outside the SDSS ranges"
+            ],
+            [
+              "What replaces it",
+              "SDSS and Gaia halo fits (design note)"
+            ],
+            [
+              "Evidence",
+              "SDSS fits quoted in the comment of the constants"
+            ]
+          ],
+          "id": "AUD12",
+          "key": "6.270:AUD12",
+          "kind": "B",
+          "slug": "6-270-aud12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.HALO_INNER_SLOPE 2.5 and HALO_OUTER_SLOPE 4.5: the stellar halo's inner and outer power-law slopes"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.HALO_AXIS_RATIO 0.7 and HALO_SCALE_LENGTH_PC 2600: the halo flattening and the disk scale length its radii are ratios to"
+            ],
+            [
+              "The range it moves in",
+              "flattening 0.6 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "the stellar halo of a spiral"
+            ],
+            [
+              "What would show it wrong",
+              "a flattening outside 0.6 to 0.8, or a thin-disk scale length of the Milky Way far from 2.6 kpc"
+            ],
+            [
+              "What replaces it",
+              "SDSS flattening fits; the Milky Way scale-length papers"
+            ],
+            [
+              "Evidence",
+              "SDSS fits (flattening 0.6 to 0.8) and the Milky Way's 2.6 kpc, quoted in the comment"
+            ]
+          ],
+          "id": "AUD13",
+          "key": "6.270:AUD13",
+          "kind": "B",
+          "slug": "6-270-aud13",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.HALO_AXIS_RATIO 0.7 and HALO_SCALE_LENGTH_PC 2600: the halo flattening and the disk scale length its radii are ratios to"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no intermediate-mass black hole census is held and the count is Boss's (GEN.563, BH4); any census replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE 3e-6: the chance a black hole is intermediate-mass"
+            ],
+            [
+              "The range it moves in",
+              "1e-6 to 1e-5"
+            ],
+            [
+              "Where it holds",
+              "stellar systems drawn black holes"
+            ],
+            [
+              "What would show it wrong",
+              "a census of intermediate-mass black holes that gives a different count"
+            ],
+            [
+              "What replaces it",
+              "an intermediate-mass black hole census"
+            ],
+            [
+              "Evidence",
+              "GEN.563 (Boss, BH4, 12:34 AM EDT 2026-10-18) holds the count; no catalogue held"
+            ]
+          ],
+          "id": "AUD14",
+          "key": "6.270:AUD14",
+          "kind": "P",
+          "slug": "6-270-aud14",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE 3e-6: the chance a black hole is intermediate-mass"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no X-ray binary census is held; only the qualitative share (a minority) is read"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE 1e-3: the chance a black hole shows an accretion disk"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "stellar-mass black holes"
+            ],
+            [
+              "What would show it wrong",
+              "an observed share of luminous accreting black holes outside the range"
+            ],
+            [
+              "What replaces it",
+              "an X-ray binary census"
+            ],
+            [
+              "Evidence",
+              "most black holes are quiescent; only a minority accrete (Cygnus X-1 type); no catalogue held"
+            ]
+          ],
+          "id": "AUD15",
+          "key": "6.270:AUD15",
+          "kind": "P",
+          "slug": "6-270-aud15",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE 1e-3: the chance a black hole shows an accretion disk"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the pulsar catalogue is not held (GEN.945 section 5); the scale of 1.0 is the physical rate, the recycled share has no source"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.PULSAR_RATE_SCALE 1.0 and PULSAR_RECYCLED_CHANCE 1e-4: the scale on the beamed pulsar rate and the share of recycled pulsars"
+            ],
+            [
+              "The range it moves in",
+              "scale 0.5 to 2; recycled 1e-5 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "isolated neutron stars of a stellar population"
+            ],
+            [
+              "What would show it wrong",
+              "a pulsar catalogue count that differs from 1e5 beamed pulsars among about 5e8 neutron stars by more than the scale"
+            ],
+            [
+              "What replaces it",
+              "a pulsar catalogue (to be fetched)"
+            ],
+            [
+              "Evidence",
+              "[R2749] (Living Rev. Relativ. 11, 8) for the beamed share; the pulsar catalogue is not held"
+            ]
+          ],
+          "id": "AUD16",
+          "key": "6.270:AUD16",
+          "kind": "P",
+          "slug": "6-270-aud16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.PULSAR_RATE_SCALE 1.0 and PULSAR_RECYCLED_CHANCE 1e-4: the scale on the beamed pulsar rate and the share of recycled pulsars"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.MAGNETAR_BIRTH_FRACTION 0.10: the share of core collapses that make a magnetar"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.10"
+            ],
+            [
+              "Where it holds",
+              "young supernova remnants"
+            ],
+            [
+              "What would show it wrong",
+              "a magnetar birth share outside 1 to 10 percent"
+            ],
+            [
+              "What replaces it",
+              "a magnetar census"
+            ],
+            [
+              "Evidence",
+              "born in 1 to 10 percent of core collapses, default 10 percent [R1566, R3346]"
+            ]
+          ],
+          "id": "AUD17",
+          "key": "6.270:AUD17",
+          "kind": "B",
+          "slug": "6-270-aud17",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.MAGNETAR_BIRTH_FRACTION 0.10: the share of core collapses that make a magnetar"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.REFERENCE_STELLAR_DENSITY_PC3 0.14: the stellar density near the Sun that phenomenon rates are scaled by"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.15 per pc^3"
+            ],
+            [
+              "Where it holds",
+              "every rate per star of a rare phenomenon"
+            ],
+            [
+              "What would show it wrong",
+              "the generator's own mass function integrated at the Sun differing by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the integral of the generator's mass function (stellar-mass-function.md)"
+            ],
+            [
+              "Evidence",
+              "the solar-neighbourhood density; to be derived and then registered as derived"
+            ]
+          ],
+          "id": "AUD18",
+          "key": "6.270:AUD18",
+          "kind": "D",
+          "slug": "6-270-aud18",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "tuning.REFERENCE_STELLAR_DENSITY_PC3 0.14: the stellar density near the Sun that phenomenon rates are scaled by"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "giants drawn inside their class's range"
+            ],
+            [
+              "What would show it wrong",
+              "an occurrence fit held in the repository that gives a different slope"
+            ],
+            [
+              "What replaces it",
+              "the four occurrence-fit harness JSONs"
+            ],
+            [
+              "Evidence",
+              "[R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants"
+            ]
+          ],
+          "id": "AUD19",
+          "key": "6.270:AUD19",
+          "kind": "B",
+          "slug": "6-270-aud19",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no comet orbit catalogue or interstellar visitor count is held; the shares are design choices"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.COMET_PARABOLIC_CHANCE 0.3 and INTERSTELLAR_COMET_ACTIVE_CHANCE 0.5: the share of bound comets that are parabolic and of interstellar comets that are active"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "comets"
+            ],
+            [
+              "What would show it wrong",
+              "a comet census that gives other shares"
+            ],
+            [
+              "What replaces it",
+              "a comet orbit catalogue and the interstellar visitor count (n = 2)"
+            ],
+            [
+              "Evidence",
+              "design choices; most bound comets are periodic; Borisov active, 'Oumuamua inert"
+            ]
+          ],
+          "id": "AUD20",
+          "key": "6.270:AUD20",
+          "kind": "P",
+          "slug": "6-270-aud20",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.COMET_PARABOLIC_CHANCE 0.3 and INTERSTELLAR_COMET_ACTIVE_CHANCE 0.5: the share of bound comets that are parabolic and of interstellar comets that are active"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "needed output: a belt has some width; no measured width distribution is held"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN 1.1: the least ratio of a belt's outer edge to its inner"
+            ],
+            [
+              "The range it moves in",
+              "1.05 to 1.5"
+            ],
+            [
+              "Where it holds",
+              "asteroid belts of a system"
+            ],
+            [
+              "What would show it wrong",
+              "a belt narrower than the factor in a measured system"
+            ],
+            [
+              "What replaces it",
+              "an asteroid belt width census"
+            ],
+            [
+              "Evidence",
+              "needed output: a belt has some width"
+            ]
+          ],
+          "id": "AUD21",
+          "key": "6.270:AUD21",
+          "kind": "P",
+          "slug": "6-270-aud21",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN 1.1: the least ratio of a belt's outer edge to its inner"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.ICY_MIN_WATER_FRACTION 0.01: the water mass fraction from which a body's surface is ice"
+            ],
+            [
+              "The range it moves in",
+              "0.005 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "rocky and icy bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body of 1 percent water with a bare rock surface in a synthesis run"
+            ],
+            [
+              "What replaces it",
+              "the Bern synthesis fit for the delivered water shares"
+            ],
+            [
+              "Evidence",
+              "an icy body holds guest gases in the cages of its ice skin (surface_air)"
+            ]
+          ],
+          "id": "AUD22",
+          "key": "6.270:AUD22",
+          "kind": "B",
+          "slug": "6-270-aud22",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "hydrosphere.ICY_MIN_WATER_FRACTION 0.01: the water mass fraction from which a body's surface is ice"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the MIST and BHAC15 tracks are held but not read for this factor yet; any read replaces it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR 2.0: the factor between a star's gravitational energy and what it radiates before the main sequence"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "pre-main-sequence stars"
+            ],
+            [
+              "What would show it wrong",
+              "a track set that differs by more than the factor"
+            ],
+            [
+              "What replaces it",
+              "the MIST and BHAC15 pre-main-sequence tracks"
+            ],
+            [
+              "Evidence",
+              "derived from the tracks when pre_main_sequence reads them"
+            ]
+          ],
+          "id": "AUD23",
+          "key": "6.270:AUD23",
+          "kind": "P",
+          "slug": "6-270-aud23",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR 2.0: the factor between a star's gravitational energy and what it radiates before the main sequence"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "only the Sweeney and others ratios are read; no kinematic sample of remnants is held"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.REMNANT_VERTICAL_FACTOR_MAX 4.0: the most times a remnant's layer is as thick as the thin disk"
+            ],
+            [
+              "The range it moves in",
+              "3 to 5"
+            ],
+            [
+              "Where it holds",
+              "compact remnants and black holes"
+            ],
+            [
+              "What would show it wrong",
+              "a remnant scale height ratio above the factor in a kinematic sample"
+            ],
+            [
+              "What replaces it",
+              "a remnant kinematics paper"
+            ],
+            [
+              "Evidence",
+              "Sweeney and others: remnants about 3 times the stars' height, black holes 2.5 times"
+            ]
+          ],
+          "id": "AUD24",
+          "key": "6.270:AUD24",
+          "kind": "P",
+          "slug": "6-270-aud24",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.REMNANT_VERTICAL_FACTOR_MAX 4.0: the most times a remnant's layer is as thick as the thin disk"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "radius_valley.PERIOD_RANGE_D (2, 100) and HOST_MASS_RANGE_SOLAR (0.8, 1.3): the domain of the radius valley survey"
+            ],
+            [
+              "The range it moves in",
+              "2 to 100 d; 0.8 to 1.3 solar masses"
+            ],
+            [
+              "Where it holds",
+              "the simulated Kepler survey of the valley"
+            ],
+            [
+              "What would show it wrong",
+              "a fit used outside the periods or host masses its paper states"
+            ],
+            [
+              "What replaces it",
+              "the fit's paper"
+            ],
+            [
+              "Evidence",
+              "the scope of the fit; a check run by the tuning tests"
+            ]
+          ],
+          "id": "AUD25",
+          "key": "6.270:AUD25",
+          "kind": "B",
+          "slug": "6-270-aud25",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "radius_valley.PERIOD_RANGE_D (2, 100) and HOST_MASS_RANGE_SOLAR (0.8, 1.3): the domain of the radius valley survey"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "iron_branch_tuning.PERIOD_RANGE_D (0.5, 30), HOST_MASS_RANGE_SOLAR (0.8, 1.2) and MASS_RANGE_EARTH (1, 10): the domain of the iron-branch sample"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 30 d; 0.8 to 1.2 solar masses; 1 to 10 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "the simulated sample the iron branch table is tuned to"
+            ],
+            [
+              "What would show it wrong",
+              "a fit used outside the ranges its paper states"
+            ],
+            [
+              "What replaces it",
+              "the fit's paper"
+            ],
+            [
+              "Evidence",
+              "the scope of the fit; run by the tuning tests"
+            ]
+          ],
+          "id": "AUD26",
+          "key": "6.270:AUD26",
+          "kind": "B",
+          "slug": "6-270-aud26",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "by design",
+          "what": "iron_branch_tuning.PERIOD_RANGE_D (0.5, 30), HOST_MASS_RANGE_SOLAR (0.8, 1.2) and MASS_RANGE_EARTH (1, 10): the domain of the iron-branch sample"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "giant_tilt.MASS_RANGE_EARTH (5, 30): the planet masses the merger tilt draws for"
+            ],
+            [
+              "The range it moves in",
+              "5 to 30 Earth masses"
+            ],
+            [
+              "Where it holds",
+              "ice giants and gas dwarfs (row GT3)"
+            ],
+            [
+              "What would show it wrong",
+              "a tilted giant outside the range"
+            ],
+            [
+              "What replaces it",
+              "the design table, row GT3"
+            ],
+            [
+              "Evidence",
+              "the design table; the rate is registered as GT3"
+            ]
+          ],
+          "id": "AUD27",
+          "key": "6.270:AUD27",
+          "kind": "P",
+          "slug": "6-270-aud27",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "giant_tilt.MASS_RANGE_EARTH (5, 30): the planet masses the merger tilt draws for"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "a design choice of the flavor rebuild (GEN.1430); no data exists"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "tuning.FLAVOR_CHANCE_PLANET 0.05 and FLAVOR_CHANCE_SYSTEM 0.05: how often flavor text is added"
+            ],
+            [
+              "The range it moves in",
+              "0 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "every planet and system page"
+            ],
+            [
+              "What would show it wrong",
+              "none: a design choice of the flavor rebuild"
+            ],
+            [
+              "What replaces it",
+              "the flavor rebuild (GEN.1430 to GEN.1438)"
+            ],
+            [
+              "Evidence",
+              "design; dropped or replaced with the rebuild"
+            ]
+          ],
+          "id": "AUD28",
+          "key": "6.270:AUD28",
+          "kind": "P",
+          "slug": "6-270-aud28",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L4",
+          "unread": null,
+          "what": "tuning.FLAVOR_CHANCE_PLANET 0.05 and FLAVOR_CHANCE_SYSTEM 0.05: how often flavor text is added"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "generation.limits.MAX_GENERATE_RADIUS_PC 200, bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS 0.02 and tuning.MAX_STARS_CEILING 64: run limits of the program"
+            ],
+            [
+              "The range it moves in",
+              "as set"
+            ],
+            [
+              "Where it holds",
+              "the generate and band code"
+            ],
+            [
+              "What would show it wrong",
+              "a run that needs more than the limit"
+            ],
+            [
+              "What replaces it",
+              "none: limits of the program, not of the physics"
+            ],
+            [
+              "Evidence",
+              "out of scope for the physics; listed so the audit of GEN.945 finds every shortlisted name registered"
+            ]
+          ],
+          "id": "AUD29",
+          "key": "6.270:AUD29",
+          "kind": "P",
+          "slug": "6-270-aud29",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "generation.limits.MAX_GENERATE_RADIUS_PC 200, bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS 0.02 and tuning.MAX_STARS_CEILING 64: run limits of the program"
+        }
+      ],
+      "slug": "6-270-stand-ins-of-the-constants-the-gen-945-audit-shortlisted",
+      "title": "Stand-ins of the constants the GEN.945 audit shortlisted"
     }
   ]
 }

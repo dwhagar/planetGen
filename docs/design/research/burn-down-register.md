@@ -13,11 +13,11 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 5.2:BC6 | no data | - | exomoons are not observed; the regular satellites of the four giants are the only moons with a composition and the rule against fixed Solar System content keeps them a check; tier T6 stays |
 | 5.3:AT.a1, a2 | no data | - | GEN.482 read the first-hand ranges at the Moon, Mars and Earth (T1 at those three points); only a larger white-dwarf ensemble improves the zero point |
 | 5.3:AT.b5 | no data | - | Boss decided a log-uniform placeholder for sub-percent water on 2026-10-17; no ensemble of exoplanet water contents exists; any measurement replaces it |
-| 6.7:AM64 | replace | GEN.804 | only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
-| 6.7:AM65 | replace | GEN.804 | only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
-| 6.7:AM66 | replace | GEN.804 | only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
-| 6.7:AM67 | replace | GEN.804 | only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
-| 6.7:AM71 | replace | GEN.804 | only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
+| 6.7:AM64 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
+| 6.7:AM65 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
+| 6.7:AM66 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
+| 6.7:AM67 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
+| 6.7:AM71 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; only figure read-offs of [R2184] exist; the upper-atmosphere model that reads the stored XUV replaces the fitted exobase constants |
 | 6.7:AM81 | no data | - | the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them |
 | 6.10:RV2 | no data | - | the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them |
 | 6.10:RV3 | no data | - | the radius valley follow-up (GEN.722) is retired; the widths are fitted to the Kepler occurrence tables ([R1478, R4504] as second-hand widths) and any measured mass-loss width replaces them |
@@ -127,7 +127,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.70:RO14 | no data | - | no survey of the inner moonlets of giants outside the four of the Solar System is in hand |
 | 6.70:RO16 | no data | - | no impact-ejecta experiment on a small moon's surface gives the kept share of the dust |
 | 6.74:SH3 | no data | - | the pressure a given shoreline ratio allows is not measured as a table: only Mars's 6 mbar and Pluto's 10 micro-bar sit at ratios of 1.8 and 0.78; the caps stay the design note's steps until a survey of thin atmospheres fits them |
-| 6.78:GT3 | replace | GEN.1058 | the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
+| 6.78:GT3 | no data | - | GEN.1058 built the merger tilt but did not replace this tuned share;  the share of ice giants with a recorded merger and the impactor mass share are tuned to one Solar System count (Uranus); the impact history of the outer chain, once recorded, gives the merger and its impactor |
 | 6.96:IO2 | no data | - | fitted with the Jupiter row to the retrograde to prograde split; a capture simulation's width replaces it when one is held |
 | 6.96:IO4 | no data | - | no family velocity field is held beyond the recalled tens to hundreds of m/s; the first one replaces the range |
 | 6.83:SX2 | no data | - | no simulation or survey gives the captured share of a swept span for a given migration; replaced by the resonant populations of a Neptune-migration run |
@@ -159,7 +159,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.121:TJ7 | no data | - | L4, no survey of how a swarm's stable share climbs past the neighbour limit exists; an N-body run of the survival of a swarm against separation would replace the ramp of 1.0 |
 | 6.121:TJ8 | no data | - | L4, [R1990] give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0 |
 | 6.41:TK6 | no data | - | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to |
-| 6.130:AB1 | replace | GEN.804 | the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
+| 6.130:AB1 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
@@ -298,6 +298,15 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.236:ISO21 | no data | - | no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same |
 | 6.247:IF1 | no data | - | L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1 |
 | 6.247:IF2 | no data | - | L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years |
+| 6.270:AUD2 | no data | - | a design factor of Boss's core note; no measurement exists; tier T9 stays |
+| 6.270:AUD14 | no data | - | no intermediate-mass black hole census is held and the count is Boss's (GEN.563, BH4); any census replaces it |
+| 6.270:AUD15 | no data | - | no X-ray binary census is held; only the qualitative share (a minority) is read |
+| 6.270:AUD16 | no data | - | the pulsar catalogue is not held (GEN.945 section 5); the scale of 1.0 is the physical rate, the recycled share has no source |
+| 6.270:AUD20 | no data | - | no comet orbit catalogue or interstellar visitor count is held; the shares are design choices |
+| 6.270:AUD21 | no data | - | needed output: a belt has some width; no measured width distribution is held |
+| 6.270:AUD23 | no data | - | the MIST and BHAC15 tracks are held but not read for this factor yet; any read replaces it |
+| 6.270:AUD24 | no data | - | only the Sweeney and others ratios are read; no kinematic sample of remnants is held |
+| 6.270:AUD28 | no data | - | a design choice of the flavor rebuild (GEN.1430); no data exists |
 | 6.254:LS1 | replace | GEN.1493 | L3, the inward share is fitted to the mean of the present law across generated planets; a scattering integration of a primordial belt against the system's planets (slice 3 of GEN.1493) replaces it |
 | 6.254:LS2 | no data | - | L4, no source prints the impact-speed distribution of scattered planetesimals on a rocky planet; the order of a few tenths of the orbital speed stands until a dynamical model of the crossing population gives one |
 | 6.254:LS3 | no data | - | L4, no source gives how far beyond a belt a giant still shares what it scatters; the chaotic-zone width of the clearing law would replace the factor of 3 |
