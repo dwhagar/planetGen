@@ -80,7 +80,8 @@ def sectors_stages(args):
 NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
 """Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
 
-PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
+PHENOMENA_STAGES = (Stage("phenomena-clear", "Clear the earlier phenomena"), Stage("phenomena-unindex", "Take off the phenomenon indexes"),
+                    Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
                     NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
