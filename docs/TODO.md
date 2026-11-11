@@ -9061,19 +9061,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1036. Related: GEN.732, MAP.275.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **GEN.1058 Wire the G1 giant-impact tilt and the ring plane following the equator**
-  Owner changed (TODO, 2026-11-11): Lane 21 (took it from the open list, 9:20 AM EST).
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 9 (with the
-  W5, W3, W4 wiring). Done: tests, harness, census. Owner: Lane 14.
-  Version 8.1.
-  Prerequisites: GEN.1047. Related: GEN.1033.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Lane 11 takes it: the oddity wiring chain as one stacked PR (modules by Lane 21, Aux 7, Lane 14 and Aux 3 are in the repo), then TEST.492 once.
-
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -9838,27 +9825,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   part now reads the stored columns, so it waits for GEN.1276 and
   GEN.1277.
   Prerequisites: GEN.1269. Related: GEN.1269, GEN.1276, GEN.1277.
-
-- [ ] **GEN.1283 The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug)**
-  Owner changed (TODO, 2026-11-11): Lane 21 (took it from the open list, 9:20 AM EST).
-  Lane 11 (as the lane reported, about 5:16 PM EST on 2026-11-05, while
-  fixing PERF.228) found two tests in tests/test_habitability_fill.py
-  red on plain main:
-  test_a_system_comes_back_with_the_numbers_generation_stored and
-  test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
-  The re-score of a 'wide' system, planet 1, gives band1_day_hours 14.21
-  where generation stored 13.60. A re-score must reproduce what
-  generation stored, or a second run changes the galaxy. Do: find which
-  input differs between the generation pass and the re-score (the same
-  class of cause as the day_share_mean fix in values_from_body in
-  GEN.1265: a value generation read from the live body that the re-score
-  reads from the stored row, or the reverse), fix the side that is
-  wrong, and check every band number, not only the day length. Done:
-  both tests pass and a re-score of a generated galaxy changes no stored
-  number. A fix that changes generated numbers is a lock item (epoch).
-  Version 8.1. Owner: Lane 11. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1265, PERF.228.
-  Folded in (2026-11-07, Boss approved the TODO plan): TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug). Its Done line: both pass on plain main under the narrow gate.
 
 - [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
