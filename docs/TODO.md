@@ -13145,6 +13145,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 21. Prerequisites: none. Related: GEN.946, GEN.725, GEN.1525.
   Filed by the TODO thread.
 
+- [ ] **GEN.1535 Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity**
+  Lane 21 (as the lane reported 12:48 PM EST on 2026-11-11), GEN.1454 parts 1 and 2 are PR 6012 (obliquity_variation module) and PR 6013 (chaotic-zone tilt at the end of the settle pass). Left for this part: the companion star's mode (built, not wired); storing the range of obliquity (two columns, one migration) so the seasonal swing can read it; the Cassini state computed from the real precession constant instead of the log-uniform stand-in; an oddity name for chaotic obliquity. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 21. Prerequisites: GEN.1454 (parts 1 and 2). Related: GEN.1454, GEN.1450, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
