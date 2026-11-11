@@ -259,7 +259,6 @@ planetgen.generation.bright_stars:ANGLE_BINS
 planetgen.generation.bright_stars:BANDS_PER_DECADE
 planetgen.generation.bright_stars:CANDIDATE_REPORT
 planetgen.generation.bright_stars:MPC_PER_PC
-planetgen.generation.bright_stars:OBJECT_FIRST_BAND_WEIGHT_STARS
 planetgen.generation.bright_stars:REACH_ESTIMATE_STRIDE
 planetgen.generation.bright_stars:SLOT_REDRAWS
 planetgen.generation.bright_stars:SPHERE_BATCH_CELLS
@@ -292,7 +291,7 @@ planetgen.generation.generator_battery:SCATTER_SEED
 planetgen.generation.generator_battery:SCATTER_THRESHOLD_SOL
 planetgen.generation.generator_battery:SECTOR_ADDRESSES
 planetgen.generation.generator_battery:SECTOR_SYSTEMS
-planetgen.generation.limits:MAX_GENERATE_RADIUS_PC
+planetgen.generation.late_accretion:EARTH_KG
 planetgen.generation.mass_ratio:QUANTILE_BISECTIONS
 planetgen.generation.mass_ratio:_NO_COMPANIONS
 planetgen.generation.multistar:BROWN_DWARF_DESERT_AU
@@ -525,6 +524,7 @@ planetgen.physics.biogenic_oxygen:REBALANCE_DAMPING
 planetgen.physics.biogenic_oxygen:REBALANCE_TOLERANCE
 planetgen.physics.biogenic_oxygen:SUN_TEMPERATURE_K
 planetgen.physics.birth_radioisotopes:WINDOW_MEAN_LIVES
+planetgen.physics.body_history:FORMULA_VERSION
 planetgen.physics.body_strength:BROWN_DWARF_MAX_MASS_SOLAR
 planetgen.physics.body_strength:CORE_FRACTION_LIMIT
 planetgen.physics.bulk_composition:SUM_TOLERANCE
@@ -610,6 +610,8 @@ planetgen.physics.disk_condensation:RECIPE_C_OVER_O_CENTER
 planetgen.physics.disk_condensation:RECIPE_C_OVER_O_CORE_RANGE
 planetgen.physics.disk_condensation:RECIPE_C_OVER_O_CORE_SIGMA_DEX
 planetgen.physics.disk_condensation:RECIPE_C_OVER_O_TAIL_RANGE
+planetgen.physics.disk_drift:INTEGRATION_INTERVALS
+planetgen.physics.disk_drift:MYR_YR
 planetgen.physics.dynamo:EARTH_INNER_CORE_M
 planetgen.physics.dynamo:EARTH_OUTER_CORE_DENSITY_KG_M3
 planetgen.physics.dynamo:EARTH_OUTER_CORE_M
@@ -679,7 +681,6 @@ planetgen.physics.giant_structure:ONE_BAR_PA
 planetgen.physics.giant_structure:STEP_FRACTION
 planetgen.physics.giant_structure:STEP_LN_PA
 planetgen.physics.giant_tilt:LARGE_TILT_DEG
-planetgen.physics.giant_tilt:MASS_RANGE_EARTH
 planetgen.physics.greenhouse_table:DEFAULT_ALOFT_SHARE_OF_PRESSURE
 planetgen.physics.greenhouse_table:FRACTION_FLOOR
 planetgen.physics.greenhouse_table:HIGHEST_SURFACE_K
@@ -707,7 +708,6 @@ planetgen.physics.hydrosphere:ACID_SO2_SHARE
 planetgen.physics.hydrosphere:BRINE_MAX_WATER_FRACTION
 planetgen.physics.hydrosphere:HYCEAN_MIN_H2_SHARE
 planetgen.physics.hydrosphere:ICE_CONDUCTIVITY_A_W_M
-planetgen.physics.hydrosphere:ICY_MIN_WATER_FRACTION
 planetgen.physics.hydrosphere:LIQUID_WATER_DENSITY_KG_M3
 planetgen.physics.hydrosphere:MANTLE_BUFFER_RANGE
 planetgen.physics.hydrosphere:SODA_MIN_CO2_KPA
@@ -733,11 +733,8 @@ planetgen.physics.interior_heat:TIDE_NEGLIGIBLE_SHARE
 planetgen.physics.interior_heat:VISCOSITY_SCALE_COEFFICIENT
 planetgen.physics.iron_branch_tuning:FEO
 planetgen.physics.iron_branch_tuning:FE_H_SIGMA
-planetgen.physics.iron_branch_tuning:HOST_MASS_RANGE_SOLAR
 planetgen.physics.iron_branch_tuning:LIGHT
-planetgen.physics.iron_branch_tuning:MASS_RANGE_EARTH
 planetgen.physics.iron_branch_tuning:OUTLIER_SIGMAS
-planetgen.physics.iron_branch_tuning:PERIOD_RANGE_D
 planetgen.physics.irregular_population:INTEGRAL_STEPS
 planetgen.physics.irregular_population:_KM
 planetgen.physics.irregular_zone:RETROGRADE_INCLINATION_DEG
@@ -752,6 +749,11 @@ planetgen.physics.kepler:UNIVERSAL_TOLERANCE
 planetgen.physics.kepler_recovery:DAY_S
 planetgen.physics.kepler_recovery:IMPACT_NODES
 planetgen.physics.king:_X_FIRST
+planetgen.physics.kozai_bodies:ECCENTRICITY_CEILING
+planetgen.physics.kozai_bodies:MAX_CYCLE_KOZAI_TIMES
+planetgen.physics.kozai_bodies:OCTUPOLE_MAXIMUM
+planetgen.physics.kozai_bodies:STEPS_PER_KOZAI_TIME
+planetgen.physics.late_supply:AU_M
 planetgen.physics.latitude_bands:BAND_COUNT
 planetgen.physics.latitude_bands:_MAX_STEPS
 planetgen.physics.latitude_bands:_MEAN_PHASES
@@ -861,6 +863,8 @@ planetgen.physics.neutron_star_structure:_RESAMPLE_POINTS
 planetgen.physics.neutron_star_structure:_RTOL
 planetgen.physics.neutron_star_structure:_START_FRACTION
 planetgen.physics.nightside_collapse:PRESSURE_FLOOR_PA
+planetgen.physics.obliquity_variation:MODE_AMPLITUDE_FLOOR_RAD
+planetgen.physics.obliquity_variation:MODE_FLOOR_RAD_YR
 planetgen.physics.open_cluster_evolution:_YEAR_PER_MYR
 planetgen.physics.orbits:KOPPARAPU_MASS_RANGE_EARTH
 planetgen.physics.orbits:KOPPARAPU_REFERENCE_TEFF_K
@@ -957,12 +961,10 @@ planetgen.physics.radiogenic:CI_CHONDRITE_K_OVER_U
 planetgen.physics.radius_valley:AGE_GY
 planetgen.physics.radius_valley:BIN_EDGES_D
 planetgen.physics.radius_valley:HISTOGRAM_BINS
-planetgen.physics.radius_valley:HOST_MASS_RANGE_SOLAR
 planetgen.physics.radius_valley:KEPMAG
 planetgen.physics.radius_valley:MASS_BINS_SOLAR
 planetgen.physics.radius_valley:MAX_RADIUS_RATIO
 planetgen.physics.radius_valley:MIN_PLANETS_PER_BIN
-planetgen.physics.radius_valley:PERIOD_RANGE_D
 planetgen.physics.radius_valley:PLANETS
 planetgen.physics.radius_valley:RADIUS_RANGE_EARTH
 planetgen.physics.radius_valley:WIDE_SURVEY_PLANETS
@@ -1169,7 +1171,6 @@ planetgen.tuning:AM_CVN_PERIOD_MINUTES
 planetgen.tuning:AQUIFER_MARS_GRAVITY_M_S2
 planetgen.tuning:AQUIFER_MIN_THICKNESS_KM
 planetgen.tuning:ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX
-planetgen.tuning:ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN
 planetgen.tuning:ASTEROID_FIELD_RADIUS_RANGE_LY
 planetgen.tuning:ASTEROID_FIELD_SIZE_DIGIT_RANGE
 planetgen.tuning:BAR_GAP_EDGE_POWER
@@ -1177,17 +1178,14 @@ planetgen.tuning:BE_DISK_MASS_LOSS_MSUN_YR
 planetgen.tuning:BE_STRIPPED_COMPANION_MASS_RANGE_SOL
 planetgen.tuning:BIRTHLINE_RADIUS_1_SOL_RSUN
 planetgen.tuning:BIRTHLINE_RADIUS_MASS_EXPONENT
-planetgen.tuning:BLACK_HOLE_ACCRETION_DISK_CHANCE
 planetgen.tuning:BLACK_HOLE_CORE_EXCESS
 planetgen.tuning:BLACK_HOLE_CORE_SCALE_PC
 planetgen.tuning:BLACK_HOLE_FORMED_AGE_STEPS
 planetgen.tuning:BLACK_HOLE_FORMED_MASS_STEPS
 planetgen.tuning:BLACK_HOLE_GALAXY_MEAN_POLAR_STEPS
 planetgen.tuning:BLACK_HOLE_GALAXY_MEAN_RADIAL_STEPS
-planetgen.tuning:BLACK_HOLE_INTERMEDIATE_MASS_CHANCE
 planetgen.tuning:BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
 planetgen.tuning:BLACK_HOLE_MAP_BRIGHTNESS
-planetgen.tuning:BLACK_HOLE_MASS_RANGE_SOLAR
 planetgen.tuning:BLACK_HOLE_RETURN_MASS_SOL
 planetgen.tuning:BLACK_HOLE_SPIN_RANGE
 planetgen.tuning:BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE
@@ -1217,9 +1215,6 @@ planetgen.tuning:CLUSTER_HALF_MASS_RADIUS_RANGE_PC
 planetgen.tuning:CLUSTER_HALF_MASS_RADIUS_SIGMA_DEX
 planetgen.tuning:CLUSTER_HALO_DISPERSION_KMS
 planetgen.tuning:CLUSTER_HALO_RADIUS_RANGE_PC
-planetgen.tuning:CLUSTER_MASS_PEAK_SOL
-planetgen.tuning:CLUSTER_MASS_RANGE_SOL
-planetgen.tuning:CLUSTER_MASS_SIGMA_DEX
 planetgen.tuning:CLUSTER_NEAR_EDGES
 planetgen.tuning:CLUSTER_RADIUS_GROWTH
 planetgen.tuning:COLLISION_BORDERLINE_SHARE
@@ -1227,11 +1222,7 @@ planetgen.tuning:COLLISION_EROSION_X
 planetgen.tuning:COLLISION_FIELD_MIN_SHARE
 planetgen.tuning:COLLISION_HIT_AND_RUN_SPEED_RATIO
 planetgen.tuning:COLLISION_MERGE_SPEED_RATIO
-planetgen.tuning:COMET_ACTIVITY_MAX_CHANCE
-planetgen.tuning:COMET_ACTIVITY_MIN_CHANCE
-planetgen.tuning:COMET_PARABOLIC_CHANCE
 planetgen.tuning:COMET_PERIHELION_DISTANCE_RANGE_AU
-planetgen.tuning:COMPACT_REMNANT_AGE_RANGE_GY
 planetgen.tuning:COMPANION_DRAW_ATTEMPTS
 planetgen.tuning:COMPANION_LOG_PERIODS_DAYS
 planetgen.tuning:CONVECTIVE_BINDING_COEFFICIENT
@@ -1239,7 +1230,6 @@ planetgen.tuning:CORE_RING_HEIGHT_BULGE_RATIO
 planetgen.tuning:CORE_RING_RADIUS_BULGE_RATIO
 planetgen.tuning:CORE_RING_WIDTH_BULGE_RATIO
 planetgen.tuning:CORE_STAR_FORMATION_SPAN_GY
-planetgen.tuning:CORE_TIER_FACTOR
 planetgen.tuning:COSMIC_MEAN_DENSITY_CM3
 planetgen.tuning:COURSE_ARC_SAMPLE_RAD
 planetgen.tuning:COURSE_BELOW_RESOLUTION
@@ -1259,7 +1249,6 @@ planetgen.tuning:DISK_HISTORY_RINGS
 planetgen.tuning:DISK_HISTORY_TIME_STEPS
 planetgen.tuning:DISK_ISM_DENSITY_CM3
 planetgen.tuning:DISK_MASS_FRACTION_RANGE
-planetgen.tuning:DISK_MASS_STELLAR_MASS_EXPONENT
 planetgen.tuning:DISK_OUTER_RADIUS_RANGE_AU
 planetgen.tuning:EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS
 planetgen.tuning:EJECTA_SPEED_QUANTILES
@@ -1274,8 +1263,6 @@ planetgen.tuning:FACILITY_RATING_UNAFFILIATED_PENALTY
 planetgen.tuning:FACILITY_RATING_UNKNOWN
 planetgen.tuning:FACILITY_RATING_YELLOW
 planetgen.tuning:FILL_LUMINOSITY_CAP_SOL
-planetgen.tuning:FLAVOR_CHANCE_PLANET
-planetgen.tuning:FLAVOR_CHANCE_SYSTEM
 planetgen.tuning:FOLD_FACTORS_FOR_NAV
 planetgen.tuning:FOLD_FACTOR_LIMIT
 planetgen.tuning:FOLD_SPEED_COEFFICIENT
@@ -1285,14 +1272,9 @@ planetgen.tuning:GAS_SOLAR_MASS_PER_PC3_PER_CM3
 planetgen.tuning:GAS_TO_STELLAR_SCALE_LENGTH_RATIO
 planetgen.tuning:GIANT_DENSITY_BOUNDS_G_CM3
 planetgen.tuning:GIANT_ENGULFMENT_RADIUS_FACTOR
-planetgen.tuning:GIANT_MASS_FUNCTION_SLOPE
 planetgen.tuning:GIANT_MAX_STAR_MASS_RATIO
 planetgen.tuning:GIANT_MERGER_LOSS_RANGE
-planetgen.tuning:HALO_AXIS_RATIO
-planetgen.tuning:HALO_INNER_SLOPE
 planetgen.tuning:HALO_MIN_LUMINOSITY_RANGE_SOL
-planetgen.tuning:HALO_OUTER_SLOPE
-planetgen.tuning:HALO_SCALE_LENGTH_PC
 planetgen.tuning:HAYASHI_TEMPERATURE_1_SOL_K
 planetgen.tuning:HAYASHI_TEMPERATURE_MASS_EXPONENT
 planetgen.tuning:HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
@@ -1309,7 +1291,6 @@ planetgen.tuning:IMF_NODE_SPACING_DEX
 planetgen.tuning:INNER_SYSTEM_PERIOD_LIMIT_DAYS
 planetgen.tuning:INTERIOR_LIQUIDUS_EXPONENT
 planetgen.tuning:INTERIOR_LIQUIDUS_OFFSET_GPA
-planetgen.tuning:INTERSTELLAR_COMET_ACTIVE_CHANCE
 planetgen.tuning:INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM
 planetgen.tuning:INTERSTELLAR_OBJECT_SPEED_KMS_RANGE
 planetgen.tuning:KEEP_OUT_QUASAR_FLUX_W_M2
@@ -1319,7 +1300,6 @@ planetgen.tuning:KING_TABLE_POINTS
 planetgen.tuning:LARGE_STAR_MIN_MASS_SOL
 planetgen.tuning:LOCAL_GROUP_GAS_OVERDENSITY
 planetgen.tuning:MAGNETAR_ACTIVE_LIFETIME_YR
-planetgen.tuning:MAGNETAR_BIRTH_FRACTION
 planetgen.tuning:MAGNETAR_MAGNETIC_FIELD_GAUSS_RANGE
 planetgen.tuning:MAGNETAR_PER_NEUTRON_STAR
 planetgen.tuning:MAGNETAR_SPIN_PERIOD_MS_RANGE
@@ -1328,12 +1308,9 @@ planetgen.tuning:MAIN_SEQUENCE_GRID_MASS_RANGE_SOL
 planetgen.tuning:MASSLESS_MARKER_MASS_SOL
 planetgen.tuning:MAX_FLAVOR_TOTAL
 planetgen.tuning:MAX_PLANET_AGE_ADJUSTMENT_FACTOR
-planetgen.tuning:MAX_RECENT_FLAVOR_TEXTS
-planetgen.tuning:MAX_STARS_CEILING
 planetgen.tuning:MAX_SYSTEM_GENERATION_ATTEMPTS
 planetgen.tuning:METALLICITY_CLUSTER_PEAKS
 planetgen.tuning:METALLICITY_DISK_FALL_DEX_PER_KPC
-planetgen.tuning:METALLICITY_RANGE_FE_H
 planetgen.tuning:METALLICITY_SATELLITE_PEAKS
 planetgen.tuning:MS_LIFETIME_REFERENCE_Z
 planetgen.tuning:NAV_ADJACENCY_K
@@ -1355,7 +1332,6 @@ planetgen.tuning:NEBULA_CLOUD_CLUMP_FRACTION
 planetgen.tuning:NEBULA_CLOUD_PROTOSTAR_MAX
 planetgen.tuning:NEBULA_FIELD_MAX_GAS_FACTOR
 planetgen.tuning:NEUTRON_STAR_KICK_BIRTH_RADII
-planetgen.tuning:NEUTRON_STAR_MASS_RANGE_SOLAR
 planetgen.tuning:NEUTRON_STAR_RETURN_REMNANT_SOL
 planetgen.tuning:NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K
 planetgen.tuning:NUCLEAR_DISK_HEIGHT_RATIO
@@ -1371,7 +1347,6 @@ planetgen.tuning:OPEN_CLUSTER_DISRUPTION_GAMMA
 planetgen.tuning:OPEN_CLUSTER_EVOLUTION_LOSS
 planetgen.tuning:OPEN_CLUSTER_EVOLUTION_LOSS_START_MYR
 planetgen.tuning:OPEN_CLUSTER_MASS_FUNCTION_SLOPE
-planetgen.tuning:OPEN_CLUSTER_MASS_RANGE_SOL
 planetgen.tuning:OPEN_CLUSTER_SOLAR_Z
 planetgen.tuning:ORBIT_UPDATE_ROW_CEILING
 planetgen.tuning:OUTER_CHAIN_START_RATIO
@@ -1388,7 +1363,6 @@ planetgen.tuning:PLANET_ZONE_DISK_CAP_AU
 planetgen.tuning:POISSON_REJECTION_MEAN
 planetgen.tuning:POST_AGB_DISK_MASS_RANGE_SOLAR
 planetgen.tuning:POST_COMMON_ENVELOPE_AXIS_AU
-planetgen.tuning:PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR
 planetgen.tuning:PRE_MAIN_SEQUENCE_LONGEST_YR
 planetgen.tuning:PROGRESS_BAR_SECONDS
 planetgen.tuning:PROGRESS_LOG_SECONDS
@@ -1404,8 +1378,6 @@ planetgen.tuning:PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND
 planetgen.tuning:PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG
 planetgen.tuning:PULSAR_RADIAL_A
 planetgen.tuning:PULSAR_RADIAL_B
-planetgen.tuning:PULSAR_RATE_SCALE
-planetgen.tuning:PULSAR_RECYCLED_CHANCE
 planetgen.tuning:PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND
 planetgen.tuning:PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG
 planetgen.tuning:PULSAR_WIND_XI
@@ -1418,8 +1390,6 @@ planetgen.tuning:QUASAR_RADIATIVE_EFFICIENCY
 planetgen.tuning:RADIATIVE_BINDING_COEFFICIENT
 planetgen.tuning:RADIOGENIC_OFFSET_LIMIT_DEX
 planetgen.tuning:RANDOM_START_MAX_PLACEMENT_ATTEMPTS
-planetgen.tuning:REFERENCE_STELLAR_DENSITY_PC3
-planetgen.tuning:REMNANT_VERTICAL_FACTOR_MAX
 planetgen.tuning:REQUEST_MAX_PLANET_ATTEMPTS
 planetgen.tuning:ROGUE_EARTH_REFERENCE_AGE_GY
 planetgen.tuning:ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR
@@ -1455,7 +1425,6 @@ planetgen.tuning:SNOW_LINE_SCATTER_DEX
 planetgen.tuning:SNOW_LINE_SCATTER_MAX_SIGMA
 planetgen.tuning:SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
 planetgen.tuning:SOLAR_NEIGHBOURHOOD_MASS_DENSITY_SOLAR_PC3
-planetgen.tuning:STAR_FORMATION_AGE_RANGE_GY
 planetgen.tuning:STAR_MODEL_MAX_REDRAWS
 planetgen.tuning:STELLAR_DREDGE_UP_MASSES_SOL
 planetgen.tuning:STELLAR_NS_MASS_FLOOR_SOL
@@ -1471,7 +1440,6 @@ planetgen.tuning:SUN_EFFECTIVE_TEMPERATURE_K
 planetgen.tuning:SUPERBUBBLE_CENTER_HEIGHT_SIGMA_PC
 planetgen.tuning:SUPERBUBBLE_TEMPERATURE_K
 planetgen.tuning:SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE
-planetgen.tuning:SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
 planetgen.tuning:SYMBIOTIC_PERIOD_DAYS
 planetgen.tuning:SYSTEM_COMET_CHANCE
 planetgen.tuning:SYSTEM_COMET_COUNT_RANGE
@@ -1506,7 +1474,6 @@ planetgen.tuning:WARP_VELOCITY_EXPONENT
 planetgen.tuning:WATER_PER_HYDROGEN_MASS
 planetgen.tuning:WD_COOLING_EXPONENT
 planetgen.tuning:WD_COOLING_L0_SOL
-planetgen.tuning:WD_MASS_RANGE_SOL
 planetgen.tuning:WD_MIN_COOLING_AGE_GY
 planetgen.tuning:WEB_LOCK_WAIT_SECONDS
 planetgen.tuning:WHITE_DWARF_AGE_ADDITION_GY
