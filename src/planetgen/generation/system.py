@@ -473,6 +473,7 @@ class StarSystem:
             if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
                 # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
                 self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
+            tide_sources.register(self.all_planets)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
