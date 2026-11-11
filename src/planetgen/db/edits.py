@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store
+from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import effect_ledger, insolation, unit_registry as units
 
@@ -217,11 +217,15 @@ def save_system_edits(conn, system_id, system, stars=()):
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)
     _delete_missing(conn, "asteroid_belts", "star_system_id", system_id, kept_belts)
+    conn.execute(      # GEN.1497: the birth draws of an edited body stay what they were; those of a planet or moon the edit deleted go
+        "DELETE h FROM body_history h LEFT JOIN planets p ON h.body_type = 2 AND p.id = h.body_id LEFT JOIN moons m ON h.body_type = 3 AND m.id = h.body_id"
+        " WHERE h.star_system_id = ? AND p.id IS NULL AND m.id IS NULL", (system_id,))
     for star in stars:
         save_star(conn, star)
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
+    system_summary.refresh(conn, [system_id])    # GEN.1478: the masses, luminosities and counts the edit changed
     store.refresh_system_dose(conn, system_id)   # ADM.132: also works every scored body's habitability, Suitability and life scores out again from the rows just written
     store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)
