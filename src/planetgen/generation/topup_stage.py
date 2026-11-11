@@ -32,15 +32,20 @@ TopUpResult = collections.namedtuple("TopUpResult", ("written", "remainder_kg", 
 drawing, the reason nothing was done (`None` when it ran), the light asteroid fields written for the left-over mass and the mass under the fields' cut."""
 
 
+AUTO_LEVEL = "few"
+"""str: What the Auto level of the Rogues dial means (GEN.1506; Boss, 5:26 PM EST on 2026-11-09, after the PERF.136 measure: at Normal the rogues add about 67 percent to
+generating a sector's systems, at Few about 43 percent). The word the Generate page, the console help and the dial's own text give for Auto (`galaxy/dials.py`)."""
+
+
 def level_word(args_or_value):
-    """The tuning key of the Rogues level (`Few`) from the lever's word (`few`), or from an `args` namespace; Auto (`None`) is `Normal`."""
+    """The tuning key of the Rogues level (`Few`) from the lever's word (`few`), or from an `args` namespace; Auto (`None`) is `AUTO_LEVEL`."""
     value = getattr(args_or_value, "rogues", args_or_value)
-    return "Normal" if value is None else str(value).capitalize()
+    return AUTO_LEVEL.capitalize() if value is None else str(value).capitalize()
 
 
 def galaxy_level(conn):
-    """The Rogues level the stored plan was told (`galaxy_shape_pins`), or `normal` when it was left on Auto."""
-    return dials.choice_pinned(store.get_galaxy_shape_pins(conn), "rogues") or "normal"
+    """The Rogues level the stored plan was told (`galaxy_shape_pins`), or `AUTO_LEVEL` when it was left on Auto."""
+    return dials.choice_pinned(store.get_galaxy_shape_pins(conn), "rogues") or AUTO_LEVEL
 
 
 def topup_sector(conn, address, profile, level, system_config, edge_pc, stream_key=None):

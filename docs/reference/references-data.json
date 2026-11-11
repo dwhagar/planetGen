@@ -85178,6 +85178,25 @@
    "volume": "86",
    "year": 1994
   },
+  "10.1016/0032-0633(62)90129-0": {
+   "authors": [
+    [
+     "Lidov",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0032-0633(62)90129-0",
+   "editors": [],
+   "journal": "P&SS",
+   "page": "719",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The evolution of orbits of artificial satellites of planets under the action of gravitational perturbations of external bodies",
+   "type": "journal-article",
+   "volume": "9",
+   "year": 1962
+  },
   "10.1016/0032-0633(81)90048-9": {
    "authors": [
     [
@@ -152963,6 +152982,25 @@
    "volume": "62",
    "year": 1957
   },
+  "10.1086/108790": {
+   "authors": [
+    [
+     "Kozai",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/108790",
+   "editors": [],
+   "journal": "AJ",
+   "page": "591",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Secular perturbations of asteroids with high inclination and eccentricity",
+   "type": "journal-article",
+   "volume": "67",
+   "year": 1962
+  },
   "10.1086/109857": {
    "authors": [
     [
@@ -153220,6 +153258,37 @@
    "title": "M-Subdwarfs: Spectroscopic Classification and the Metallicity Scale",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "113",
+   "year": 1997
+  },
+  "10.1086/118405": {
+   "authors": [
+    [
+     "Innanen",
+     "K. A."
+    ],
+    [
+     "Zheng",
+     "J. Q."
+    ],
+    [
+     "Mikkola",
+     "S."
+    ],
+    [
+     "Valtonen",
+     "M. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/118405",
+   "editors": [],
+   "journal": "AJ",
+   "page": "1915",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Kozai Mechanism and the Stability of Planetary Orbits in Binary Star Systems",
+   "type": "journal-article",
    "volume": "113",
    "year": 1997
   },
@@ -160539,6 +160608,29 @@
    "volume": "669",
    "year": 2007
   },
+  "10.1086/521702": {
+   "authors": [
+    [
+     "Fabrycky",
+     "D."
+    ],
+    [
+     "Tremaine",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/521702",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1298",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction",
+   "type": "journal-article",
+   "volume": "669",
+   "year": 2007
+  },
   "10.1086/521976": {
    "arxiv": "0707.4481",
    "authors": [
@@ -162787,6 +162879,33 @@
    "type": "journal-article",
    "volume": "136",
    "year": 2008
+  },
+  "10.1088/0004-6256/137/3/3706": {
+   "authors": [
+    [
+     "Tremaine",
+     "S."
+    ],
+    [
+     "Touma",
+     "J."
+    ],
+    [
+     "Namouni",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-6256/137/3/3706",
+   "editors": [],
+   "journal": "AJ",
+   "page": "3706",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "SATELLITE DYNAMICS ON THE LAPLACE SURFACE",
+   "type": "journal-article",
+   "volume": "137",
+   "year": 2009
   },
   "10.1088/0004-6256/137/5/4424": {
    "arxiv": "0903.0183",
@@ -166779,6 +166898,37 @@
    "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY",
    "type": "journal-article",
    "volume": "744",
+   "year": 2011
+  },
+  "10.1088/0004-637x/745/1/19": {
+   "authors": [
+    [
+     "Kraus",
+     "A. L."
+    ],
+    [
+     "Ireland",
+     "M. J."
+    ],
+    [
+     "Hillenbrand",
+     "L. A."
+    ],
+    [
+     "Martinache",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/745/1/19",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "19",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE ROLE OF MULTIPLICITY IN DISK EVOLUTION AND PLANET FORMATION",
+   "type": "journal-article",
+   "volume": "745",
    "year": 2011
   },
   "10.1088/0004-637x/745/1/79": {
@@ -244566,6 +244716,41 @@
    "volume": "151",
    "year": 2016
   },
+  "10.3847/0004-6256/152/1/8": {
+   "authors": [
+    [
+     "Kraus",
+     "A. L."
+    ],
+    [
+     "Ireland",
+     "M. J."
+    ],
+    [
+     "Huber",
+     "D."
+    ],
+    [
+     "Mann",
+     "A. W."
+    ],
+    [
+     "Dupuy",
+     "T. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/0004-6256/152/1/8",
+   "editors": [],
+   "journal": "AJ",
+   "page": "8",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS",
+   "type": "journal-article",
+   "volume": "152",
+   "year": 2016
+  },
   "10.3847/0004-6256/152/2/41": {
    "arxiv": "1605.09788",
    "authors": [
@@ -282824,7 +283009,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5221,
+ "id_next": 5228,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283245,6 +283430,7 @@
   "10.1016/0031-9201(82)90014-0": "R4318",
   "10.1016/0031-9201(93)90163-4": "R2983",
   "10.1016/0031-9201(94)05059-7": "R0632",
+  "10.1016/0032-0633(62)90129-0": "R5222",
   "10.1016/0032-0633(81)90048-9": "R3852",
   "10.1016/0032-0633(81)90078-7": "R4146",
   "10.1016/0032-0633(84)90102-8": "R0282",
@@ -284325,7 +284511,7 @@
   "10.1038/356157a0": "R1738",
   "10.1038/359226a0": "R0624",
   "10.1038/361608a0": "R2571",
-  "10.1038/361615a0": "R5220",
+  "10.1038/361615a0": "R5227",
   "10.1038/368365a0": "R0584",
   "10.1038/370194a0": "R2071",
   "10.1038/370441a0": "R3861",
@@ -285007,6 +285193,7 @@
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
+  "10.1086/108790": "R5221",
   "10.1086/109857": "R2359",
   "10.1086/111875": "R1089",
   "10.1086/112778": "R4727",
@@ -285018,6 +285205,7 @@
   "10.1086/118029": "R3351",
   "10.1086/118116": "R1827",
   "10.1086/118302": "R1582",
+  "10.1086/118405": "R5223",
   "10.1086/118656": "R0906",
   "10.1086/133661": "R0356",
   "10.1086/133942": "R4745",
@@ -285244,6 +285432,7 @@
   "10.1086/519824": "R0363",
   "10.1086/521346": "R3992",
   "10.1086/521587": "R3683",
+  "10.1086/521702": "R5226",
   "10.1086/521976": "R4846",
   "10.1086/522035": "R1051",
   "10.1086/522077": "R0493",
@@ -285298,6 +285487,7 @@
   "10.1088/0004-6256/136/6/2453": "R4049",
   "10.1088/0004-6256/136/6/2782": "R2651",
   "10.1088/0004-6256/136/6/2846": "R0392",
+  "10.1088/0004-6256/137/3/3706": "R5224",
   "10.1088/0004-6256/137/5/4424": "R4298",
   "10.1088/0004-6256/137/5/4478": "R4985",
   "10.1088/0004-6256/137/6/4744": "R2652",
@@ -285399,6 +285589,7 @@
   "10.1088/0004-637x/744/2/137": "R1532",
   "10.1088/0004-637x/744/2/159": "R2599",
   "10.1088/0004-637x/744/2/194": "R5179",
+  "10.1088/0004-637x/745/1/19": "R5225",
   "10.1088/0004-637x/745/1/79": "R2633",
   "10.1088/0004-637x/745/1/85": "R2585",
   "10.1088/0004-637x/746/1/95": "R2598",
@@ -287253,6 +287444,7 @@
   "10.3847/0004-6256/151/1/15": "R3114",
   "10.3847/0004-6256/151/4/96": "R2906",
   "10.3847/0004-6256/151/6/145": "R1924",
+  "10.3847/0004-6256/152/1/8": "R5220",
   "10.3847/0004-6256/152/2/41": "R3618",
   "10.3847/0004-6256/152/2/47": "R0029",
   "10.3847/0004-6256/152/6/157": "R2641",

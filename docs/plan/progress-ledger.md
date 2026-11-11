@@ -3093,3 +3093,13 @@ Baseline: PR #1817.
 | GEN.1465 | 8.1 | Planet generation |
 | GEN.1477 | 8.1 | Planet generation |
 | GEN.1490 | 8.1 | Planet generation |
+| MAP.414 | 8.1 | Planet generation |
+| MAP.415 | 8.1 | Planet generation |
+| GEN.1446 | 8.1 | Planet generation |
+| GEN.1502 | 8.1 | Planet generation |
+| GEN.1503 | 8.1 | Planet generation |
+| GEN.1512 | 8.1 | Planet generation |
+| GEN.1475 | 8.1 | Planet generation |
+| GEN.1506 | 8.1 | Planet generation |
+| GEN.1402 | 8.1 | Planet generation |
+| GEN.1463 | 8.1 | Planet generation |
