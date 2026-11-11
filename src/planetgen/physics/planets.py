@@ -800,6 +800,10 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         planned_objects (int, optional): As above.
         parent_distance_au (float, optional): For a moon, the parent's distance from the star, AU.
     """
+    member = getattr(planet, "belt_member", None)
+    if member is not None:
+        planet.eccentricity = member["eccentricity"]        # GEN.1510: the orbit the belt gave the body, kept; no birth value, so the tides of the star's age do not wear it again
+        return
     if planet.is_moon:
         hill_au = None
         if parent_distance_au is not None and primary_mass_kg and planet.star.mass:
@@ -865,18 +869,26 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
                                  the same name, which this is threaded
                                  straight through from).
     """
-    if planet.is_moon and getattr(planet, "moon_origin", None) is not None:
-        # GEN.714: the orbit follows from how the moon came to be there (a captured one can be retrograde)
-        planet.orbital_inclination_deg = moon_composition.draw_inclination_deg(planet.moon_origin)
-    elif planet.is_moon:
-        planet.orbital_inclination_deg = draw.uniform(0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
+    member = getattr(planet, "belt_member", None)
+    if member is not None:
+        # GEN.1510: a belt member promoted to a planet keeps the plane, the node, the periapsis and the place on its orbit the belt drew for it; no draw
+        planet.orbital_inclination_deg = member["inclination_deg"]
+        planet.orbital_ascending_node_deg = member["node_deg"]
+        arg_periapsis_deg = member["periapsis_deg"]
+        mean_anomaly_rad = math.radians(member["anomaly_deg"])
     else:
-        planet.orbital_inclination_deg = orbit_elements.draw_planet_inclination_deg()  # GEN.727: Rayleigh, as the Kepler multiples are
-    if not planet.is_moon:
-        apply_orbit_oddities(planet)      # GEN.1049: a close giant round a hot star can be given a polar orbit before the spin reads the plane
-    planet.orbital_ascending_node_deg = draw.uniform(0, 360)
-    arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
-    mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
+        if planet.is_moon and getattr(planet, "moon_origin", None) is not None:
+            # GEN.714: the orbit follows from how the moon came to be there (a captured one can be retrograde)
+            planet.orbital_inclination_deg = moon_composition.draw_inclination_deg(planet.moon_origin)
+        elif planet.is_moon:
+            planet.orbital_inclination_deg = draw.uniform(0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
+        else:
+            planet.orbital_inclination_deg = orbit_elements.draw_planet_inclination_deg()  # GEN.727: Rayleigh, as the Kepler multiples are
+        if not planet.is_moon:
+            apply_orbit_oddities(planet)      # GEN.1049: a close giant round a hot star can be given a polar orbit before the spin reads the plane
+        planet.orbital_ascending_node_deg = draw.uniform(0, 360)
+        arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
+        mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
 
     generate_spin(planet, primary_mass_kg)
     true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)

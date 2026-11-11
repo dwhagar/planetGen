@@ -99,7 +99,8 @@ def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
         assert not hasattr(body, "orbital_phase_deg")  # GEN.289: the state vector is the body
 
     for planet in planets:
-        assert 0 <= planet.orbital_inclination_deg <= pc.PLANET_ORBITAL_INCLINATION_MAX_DEG
+        limit = 90.0 if planet.belt_rank is not None else pc.PLANET_ORBITAL_INCLINATION_MAX_DEG      # GEN.1510: a body promoted from a belt keeps the belt's inclination, not a planet's
+        assert 0 <= planet.orbital_inclination_deg <= limit
     for moon in moons:
         # GEN.714: a regular moon lies near the equator, a captured one can be retrograde
         limit = 180.0 if moon.moon_origin == "captured" else pc.MOON_ORBITAL_INCLINATION_MAX_DEG

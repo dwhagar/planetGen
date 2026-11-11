@@ -237,6 +237,11 @@ def belt_needs_pushing(belt, last):
     return _below(belt.distance - apoapsis_au(last), last.min_orbit_distance)
 
 
+def slot_planets(planets):
+    """`planets` without the belt members promoted to planets (GEN.1510, `Planet.belt_rank`): they orbit inside a belt, which is exempt from the spacing of the slots (as the belt is), so the spacing rules do not see them."""
+    return [body for body in planets if getattr(body, "belt_rank", None) is None]
+
+
 def space_orbits(planets):
     """
     Validates and adjusts the distances of `planets` (one star's ordered
@@ -266,6 +271,7 @@ def space_orbits(planets):
         list: The bodies that moved.
     """
     moved = []
+    planets = slot_planets(planets)
     if len(planets) < 2:
         return moved
 
@@ -532,6 +538,7 @@ def check_orbit_spacing(planets):
         list: `Problem`s, empty when it validates.
     """
     problems = []
+    planets = slot_planets(planets)
     for index, (last, body) in enumerate(zip(planets, planets[1:])):
         if _below(inner_edge_au(body), inner_edge_au(last)):
             problems.append(Problem(_label(body), f"it is listed after {_label(last)} but orbits inside it"))
