@@ -1,8 +1,0 @@
-**Headline:** The members of a belt whose star has a companion star now carry the eccentricity and periapsis that the companion's secular pull gives them; a lone star's belt is unchanged.
-
-### Changed
-- **A companion star forces its star's belt members (GEN.1492 slice 1).** `AsteroidBelt._draw_members` now sets each member's eccentricity and periapsis to the vector sum of its drawn (free) orbit and the forced vector of `physics/belt_forcing.py` (slice 0), at the member's own distance, diluted by the apsidal rate of the star's planets (`AsteroidBelt.give_secular_planets`, given once the orbits are final in `StarSystem._give_belts_their_planets`). The companion's periapsis direction is one angle per system from a stream of its own (stand-in FE2, L1); inclination stays as drawn (coplanar star orbits, FE3). A lone star, a circular companion, a member beyond `ALPHA_LIMIT` of the companion or one forced past the linear limit keeps its drawn orbit exactly; the eccentricity is cut at `belt_roster.E_MAX`. Census of 300 generated pairs (499 belts of stars with a companion): the forcing moves 116,575 of 146,892 members in 497 belts, mostly by a small amount (median forced eccentricity 2 percent of the drawn rms); 11 belts (2 percent) have their mean eccentricity raised by half or more (`tests/audit/belt_forced_members_census.py`, `reports/gen1492-forced-members-census-2026-11-09.md`). Reused, not rebuilt: slice 0's `belt_forcing`, `secular_chain.matrices`, `radiation_field.companions_of`. The wiring-register lines of the module and FE4 are gone as it is now read. No migration.
-
-generation-affects: fill
-
-generation-output: changed
