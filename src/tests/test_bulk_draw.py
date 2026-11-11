@@ -208,7 +208,7 @@ def test_the_disk_volatile_ratios_of_a_star_are_its_nitrogen_sulfur_and_argon_ov
 
 
 def test_the_core_light_elements_reach_the_mars_total_and_stay_in_the_clip():
-    """GEN.993, stand-in BC18: Earth's cores hold 0.05 to 0.10 of their metal as light elements and Mars's 0.07 to 0.20 ([R4833]); the draw covers both and never leaves its clip."""
+    """GEN.993, stand-in BC18: Earth's cores hold 0.05 to 0.10 of their metal as light elements and Mars's 0.07 to 0.20 [R4833]; the draw covers both and never leaves its clip."""
     with draw.bound(draw.Stream(993)):
         shares = sorted(bulk_draw.core_light_elements() for _ in range(4000))
     low, high = bulk_draw.RANGES["core_light_elements"]

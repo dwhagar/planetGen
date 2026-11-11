@@ -5,10 +5,10 @@
   },
   "papers": {
     "books": 31,
-    "datasets": 25,
-    "entries": 5132,
+    "datasets": 26,
+    "entries": 5138,
     "with_arxiv": 1519,
-    "with_doi": 4897,
+    "with_doi": 4903,
     "without_doi": 235
   },
   "stand_ins": {
