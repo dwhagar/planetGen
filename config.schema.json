@@ -1007,6 +1007,24 @@
     },
     "Queue": {
       "properties": {
+        "debug_restarted_units": {
+          "default": true,
+          "description": "Run a unit in debug mode when the heartbeat has stopped it as stuck and queued it again: its restarted attempt writes a debug file of its own in the log folder (unit-debug-<job id>-attempt<N>.log, the job id naming the run, stage and unit), with the stack the first attempt was found stuck in at the top and then every phase, counter change, wait (gate, sky lock, MySQL), SQL statement with its timing and memory reading of the attempt. The file is bounded (20 MB, three older copies kept) and the newest 40 such files are kept; the run's log gets one line naming it. Off writes nothing extra.",
+          "title": "Debug Restarted Units",
+          "type": "boolean",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Debug file for restarted units",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "Write a debug file for a unit that is queued again after being found stuck."
+        },
         "interactive_workers": {
           "default": 1,
           "description": "How many workers are kept for short jobs: edits, estimates and slow page answers. They are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run at a higher priority than the bulk workers.",
@@ -2286,6 +2304,7 @@
     "queue": {
       "$ref": "#/$defs/Queue",
       "default": {
+        "debug_restarted_units": true,
         "interactive_workers": 1,
         "long_job_seconds": 60.0,
         "long_workers": 1,

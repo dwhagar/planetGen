@@ -478,6 +478,13 @@ class Queue(_Section):
         env="PLANETGEN_SKY_LIMIT", unit="magnitude", group="speed", ge=0, le=9,
         label="Sky limit built by charting",
         summary="How faint the stars charting draws for each system's sky go; 0 builds none.")
+    debug_restarted_units: bool = opt(
+        True, "Run a unit in debug mode when the heartbeat has stopped it as stuck and queued it again: its restarted attempt writes a debug file of its own in the log folder "
+        "(unit-debug-<job id>-attempt<N>.log, the job id naming the run, stage and unit), with the stack the first attempt was found stuck in at the top and then every phase, "
+        "counter change, wait (gate, sky lock, MySQL), SQL statement with its timing and memory reading of the attempt. The file is bounded (20 MB, three older copies kept) and "
+        "the newest 40 such files are kept; the run's log gets one line naming it. Off writes nothing extra.", group="speed",
+        label="Debug file for restarted units",
+        summary="Write a debug file for a unit that is queued again after being found stuck.")
     unit_ceiling_seconds: float = opt(
         300, "The longest a unit of a generation stage is expected to run. A stage is cut into units no "
         "longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming "

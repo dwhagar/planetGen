@@ -152,6 +152,7 @@ defaults to the running script's file name."""
 
 _debug_log_handler = None
 _relay_handler = None
+_file_debug_handler = None
 _console_debug = False
 _tracing = False
 _root_stderr_handler = None
@@ -1053,7 +1054,7 @@ def untraced():
 def _sync_tracing():
     """Starts tracing random draws while anything records debug detail, and stops when nothing does."""
     global _tracing
-    _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None
+    _tracing = _debug_log_handler is not None or _console_debug or _relay_handler is not None or _file_debug_handler is not None
     _trace_random(_tracing)
     _trace_branches(_tracing and area_enabled("branch"))
     if _tracing:
@@ -1413,14 +1414,54 @@ def relayed(conn, key, areas=""):
     DEBUG goes to the stream `key` in Redis (`conn`) for the run's starter to print (`read_relayed`), in the areas
     `areas` names (`parse_areas`; empty is every area). A worker that already writes the debug log keeps doing so.
     """
-    global _relay_handler, _areas, _areas_spec
+    global _relay_handler
     handler = _RelayHandler(conn, key)
     handler.setFormatter(_debug_formatter())
     handler.addFilter(_origin_filter)
     handler.addFilter(_area_filter)
-    before = (_areas, _areas_spec, _logger.level, _relay_handler)
-    set_areas(areas)
+    before = _relay_handler
     _relay_handler = handler
+    try:
+        with _debugging(handler, areas):
+            yield handler
+    finally:
+        handler.close()
+        _relay_handler = before
+        _sync_tracing()
+
+
+@contextmanager
+def debug_to_file(path, areas="", rotate=None, create_mode=None):
+    """
+    For a unit in a queue worker that is to be watched closely (OPS.146): while the block runs, everything it logs at DEBUG, in the areas `areas` names (`parse_areas`), is appended to the
+    file `path` in the debug log's form, rotated by the program at `rotate` (`(bytes, copies)`, see `file_handler`) so it stays bounded. It adds to what `relayed` or the debug log already
+    record and takes nothing from them. Where one of those is on already, the areas in force are kept (the file gets what they get); otherwise `areas` apply.
+
+    Raises:
+        OSError: The file cannot be opened (nothing is recorded and the block does not run).
+    """
+    handler = file_handler(path, "debug", level=logging.DEBUG, create_mode=create_mode, rotate=rotate)
+    handler.addFilter(_origin_filter)
+    handler.addFilter(_area_filter)
+    global _file_debug_handler
+    before = _file_debug_handler
+    _file_debug_handler = handler
+    try:
+        with _debugging(handler, None if _tracing else areas):
+            yield handler
+    finally:
+        handler.close()
+        _file_debug_handler = before
+        _sync_tracing()
+
+
+@contextmanager
+def _debugging(handler, areas):
+    """Debug output on, in `areas` (`None` keeps those in force), to `handler` as well as to where it goes already; restored on exit (the owner closes the handler)."""
+    global _areas, _areas_spec
+    saved = (_areas, _areas_spec, _logger.level)
+    if areas is not None:
+        set_areas(areas)
     _logger.addHandler(handler)
     _logger.setLevel(logging.DEBUG)
     _sync_tracing()
@@ -1428,10 +1469,8 @@ def relayed(conn, key, areas=""):
         yield handler
     finally:
         _logger.removeHandler(handler)
-        handler.close()
-        _relay_handler = before[3]
-        _areas, _areas_spec = before[0], before[1]
-        _logger.setLevel(before[2])
+        _areas, _areas_spec = saved[0], saved[1]
+        _logger.setLevel(saved[2])
         _sync_tracing()
 
 

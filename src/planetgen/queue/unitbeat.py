@@ -65,6 +65,12 @@ def register_dump(path):
     return True
 
 
+def _debug(message):
+    """A debug line of the unit (OPS.146: it reaches the debug file of a restarted unit, or a debug run's output; nowhere otherwise)."""
+    from planetgen.util import log
+    log.debug(message, area="queue", stacklevel=3)
+
+
 def server_time(conn):
     """Seconds on the Redis server clock."""
     seconds, microseconds = conn.time()
@@ -125,6 +131,8 @@ class UnitBeat:
         with self._lock:
             self._phases[text] = self._phases.get(text, 0) + 1
             self._phase = text
+            count = self._phases[text]
+        _debug(f"unit {self.unit}: phase {text!r} begins{f' (time {count})' if count > 1 else ''}")
 
     @contextmanager
     def waiting(self, tag):
@@ -132,12 +140,15 @@ class UnitBeat:
         with self._lock:
             before, self._waiting = self._waiting, tag
         began = self.clock()
+        _debug(f"unit {self.unit}: waits for {tag}")
         try:
             yield
         finally:
+            took = max(self.clock() - began, 0.0)
             with self._lock:
                 self._waiting = before
-                self._waited += max(self.clock() - began, 0.0)
+                self._waited += took
+            _debug(f"unit {self.unit}: waited {took:.2f} s for {tag}")
 
     # --- the record and its thread ---------------------------------------------------------------------------
 
@@ -163,8 +174,11 @@ class UnitBeat:
 
     def write(self):
         """One write of the record to the stage's progress hash."""
-        self.conn.hset(self.key, self.unit, json.dumps(self.record()))
+        made = self.record()
+        self.conn.hset(self.key, self.unit, json.dumps(made))
         self._last_write = self.clock()
+        _debug(f"unit {self.unit}: beat; counter {made['done']:g} of {made['estimate']:g}, phase {made['phase']!r}, waiting on {made['waiting_on'] or 'nothing'}, "
+               f"longest gap {made['longest_gap']} s" + (f", memory {made['resident_mb']:g} MB" if "resident_mb" in made else ""))     # OPS.146: the debug file of a restarted unit
 
     def _due(self):
         if self._last_write is None:
