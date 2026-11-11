@@ -176,24 +176,24 @@ def test_a_gas_of_an_element_no_species_holds_still_raises():
         ge.solve({"Og": 1.0, "N": 1e-15}, 610.0, 1.0)
 
 
-# --- An element the table has gases of, but none in range at the temperature --------------------------------------------------
+# --- Phosphorus above 6000 K (GEN.1512) ------------------------------------------------------------------------------------------
 
 
-def test_phosphorus_has_no_gas_in_the_table_above_6000_k_and_the_gas_is_the_rest():
+def test_phosphorus_has_a_gas_above_6000_k_in_atomic_form():
     abundances = {"H": 1.0, "C": 3e-4, "P": 3e-7}
-    assert any(name for name, row in st.SPECIES.items() if "P" in row.elements and not row.condensed and row.range_k[1] <= 6000.0)
     cool = ge.solve(abundances, 3000.0, 1.0)
     hot = ge.solve(abundances, 7500.0, 1.0)
     assert any("P" in st.SPECIES[name].elements for name in cool.moles)
-    assert not any("P" in st.SPECIES[name].elements for name in hot.moles)
+    assert hot.moles["P"] > 0.0
     assert sum(hot.mole_fractions.values()) == pytest.approx(1.0)
 
 
-def test_a_named_list_of_species_drops_the_element_it_has_no_gas_of_in_range_too():
-    hot = ge.solve({"H": 1.0, "P": 3e-7}, 7500.0, 1.0, species=("H2", "H", "P2", "PH3"))
-    assert set(hot.moles) <= {"H2", "H"}
+def test_phosphorus_alone_still_settles_at_the_top_of_the_table():
+    hot = ge.solve({"P": 1.0}, 20000.0, 1.0)
+    assert hot.mole_fractions["P"] == pytest.approx(1.0, rel=1e-3)
 
 
-def test_an_element_with_no_gas_in_range_is_still_an_error_when_nothing_else_is_left():
-    with pytest.raises(ge.EquilibriumError):
-        ge.solve({"P": 1.0}, 7500.0, 1.0)
+def test_phosphorus_monoxide_and_nitride_carry_the_phosphorus_of_a_hot_air_below_6000_k():
+    hot = ge.solve({"H": 1.0, "N": 1e-3, "O": 1e-3, "P": 1e-6}, 4500.0, 1.0)
+    carriers = {name for name in hot.moles if "P" in st.SPECIES[name].elements}
+    assert {"P", "PO"} <= carriers

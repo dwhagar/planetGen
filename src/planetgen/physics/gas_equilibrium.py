@@ -76,14 +76,6 @@ class EquilibriumError(RuntimeError):
     """The solver did not converge, or the elements cannot make a gas (an element no species holds)."""
 
 
-class NoSpeciesError(EquilibriumError):
-    """An element that has gases in the table but none in range at this temperature (`symbol`; phosphorus has none above 6000 K)."""
-
-    def __init__(self, symbol, temperature_k):
-        super().__init__(f"no species holds {symbol} at {temperature_k} K")
-        self.symbol = symbol
-
-
 @dataclass(frozen=True)
 class Equilibrium:
     """
@@ -108,28 +100,13 @@ class Equilibrium:
     skipped: tuple = field(default=())
 
 
-def _solve_placeable(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
-    """
-    `_solve` without the elements the table has no gas of at this temperature (phosphorus has none above 6000 K): the gas is the rest, as the solver does for an
-    element it cannot place (the gases allowed by `species` count, the table's own when it is `None`). A gas left with no element to make it is still the error.
-    """
-    given = dict(abundances)
-    while True:
-        try:
-            return _solve(given, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
-        except NoSpeciesError as unplaced:
-            if sum(1 for value in given.values() if value) < 2:
-                raise
-            given = {symbol: value for symbol, value in given.items() if symbol != unplaced.symbol}
-
-
 def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
     """
-    The equilibrium gas of `abundances`, without the elements the table has no gas of at `temperature_k` and tried again without the trace elements (`TRACE_ELEMENT_FRACTIONS`, the rarest first) when it does not settle
+    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTIONS`, the rarest first) when it does not settle
     with them in.  See `_solve` for the arguments.
     """
     try:
-        return _solve_placeable(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+        return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
     except EquilibriumError as first:
         given = {symbol: float(value) for symbol, value in abundances.items() if value and value > 0}
         if not given:
@@ -141,7 +118,7 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
                 continue
             tried = len(kept)
             try:
-                return _solve_placeable(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+                return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
             except EquilibriumError:
                 continue
         raise first
@@ -203,8 +180,6 @@ def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=Non
                 oxygen_atoms[column] = count
     for symbol, row in row_of.items():
         if not matrix[row].any():
-            if any(symbol in row.elements and not row.condensed for row in species_thermo.SPECIES.values()):
-                raise NoSpeciesError(symbol, temperature_k)
             raise EquilibriumError(f"no species holds {symbol} at {temperature_k} K")
 
     scale = sum(elements_given.values())
