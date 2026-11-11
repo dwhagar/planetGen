@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1529 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1541 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1503 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1515 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 182 | 20 | 11 | 1 | 0 | 214 |
-| T2 | 144 | 59 | 1 | 1 | 0 | 205 |
-| T3 | 110 | 47 | 9 | 10 | 0 | 176 |
-| T4 | 78 | 11 | 3 | 21 | 12 | 125 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 188 | 104 | 30 | 75 | 2 | 399 |
+| T1 | 183 | 20 | 11 | 1 | 0 | 215 |
+| T2 | 145 | 59 | 1 | 1 | 0 | 206 |
+| T3 | 111 | 47 | 9 | 10 | 0 | 177 |
+| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T5 | 77 | 24 | 6 | 1 | 1 | 109 |
+| T6 | 192 | 106 | 30 | 75 | 2 | 405 |
 | T7 | 51 | 19 | 9 | 31 | 0 | 110 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 870 | 300 | 74 | 235 | 50 | 1529 |
+| All | 880 | 302 | 74 | 235 | 50 | 1541 |
 
 ## How the labels were given
 
@@ -1960,13 +1960,17 @@ The tier says how good the source of a number is; the **evidence status** says w
 | ISO25 | T | T3 | L0 | isotope_record.MANTLE_DELTA_C13 +0.003: the mantle's 13C/12C is 3 per mil over the air's | 0 to +6 per mil | rocky bodies with carbon | a measured mantle-air carbon offset outside -3 to +10 per mil | a carbon cycle with its own fractionation | [R5214]: the mantle at -5 per mil, the air at -8 per mil (the Earth's air is moved by the biosphere, so the offset is its own) | predicted only | - | - |
 | ISO26 | T | T3 | L0 | isotope_record.MANTLE_XE_129_OVER_130 7.9: the 129Xe/130Xe of the Earth's upper-mantle gas | 7.5 to 8.2 | the Earth | a mantle gas outside 7 to 9 | the mantle's own iodine over xenon and closure time | [R5214]: 7.9 from MORB and well gases (read from a model summary of the chapter, not verbatim) | predicted only | - | - |
 | ISO27 | T | T4 | L0 | isotope_record.SOLAR_XE_129_OVER_130 6.286: the solar gas ratio the iodine-129 excess is counted from | 6.2 to 6.4 | any star's gas | a solar ratio outside 6.2 to 6.4 | the star's own gas by metallicity | recalled from the lunar-sample work, not opened | predicted only | - | - |
-| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand | predicted only | - | - |
+| ISO28 | T | T5 | L1 | isotope_record.mantle_sheet_rows: another body's mantle excess of 129Xe is the Earth's times its birth 129I/127I over the early Solar System's, with the Earth's iodine over xenon and closure time | the closure time 40 to 120 Myr | rocky bodies | a body whose mantle xenon excess differs from this scaling by a factor of 3 | a degassing-time model by mantle size, with the iodine over xenon drawn | [R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is ISO35 to ISO38 (GEN.1507) | predicted only | - | - |
 | ISO29 | T | T1 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 10Be 0.029 atoms/cm2/s (global mean, modern dipole, 650 MV) | 0.02 to 0.04 | the Earth's air, as ISO12 and ISO13 | a global 10Be production outside 0.02 to 0.04 at 650 MV | the same yield functions of the body's own air | [R5203: Table 1] (2.9e-2); the range 0.02 to 0.04 is quoted in the literature for earlier models | predicted only | - | - |
 | ISO30 | T | T2 | L0 | isotope_record.COSMOGENIC_RATE_EARTH 26Al 1280 atoms/cm2/a (4.06e-5 per second), from argon; EARTH_TARGETS_PER_G Ar 1.94e20 | 1600 to 4400 atoms/cm2/a in older estimates | the Earth's air | a global 26Al production under 1000 or over 4500 atoms/cm2/a | a yield function for argon | [R5215: Sec. 3, Table 3] gives 1280 (against 1600 and 4400 earlier); the argon share of the air is 1.288 percent by mass | predicted only | - | - |
 | ISO31 | T | T2 | L0 | isotope_record.ROCK_ATTENUATION_G_CM2 160: the attenuation length of the nucleon cascade in rock, and the depth of the surface layer the isotopes mix into | 150 to 170 g/cm2 | rock surfaces | a measured attenuation length outside 140 to 180 g/cm2 | a depth profile of the body's own surface | the figure of the exposure-dating texts (read on a course text, no registry entry) | predicted only | - | - |
 | ISO32 | T | T2 | L0 | isotope_record.LUNAR_BE10_ATOMS_PER_G 1.05e10: the saturated 10Be of a surface rock with no air and no field | 9.6 to 11.2 dpm/kg, 8 to 14 in a core | bodies with no air and no field | a lunar surface sample whose 10Be lies outside 8 to 14 dpm/kg | a production model by composition and solar activity | [R5216]: 10Be of 9.6 to 11.2 dpm/kg in basalt 74275 and 8 to 14 in the core; the half-life 1.386 Myr is [R5215: Sec. 2] | predicted only | - | - |
 | ISO33 | T | T3 | L0 | isotope_record.ROCK_AL26_OVER_BE10_PRODUCTION 6.75: 26Al atoms made per 10Be in a rock surface | 6 to 7.5 | rock surfaces | a production ratio outside 6 to 7.5 in a lunar or terrestrial sample | the composition-dependent yields of Si and O | the standard value of the exposure-dating literature, recalled and not opened; the Fink et al. paper [R5216] gives no 26Al activity in the pages read | predicted only | - | - |
 | ISO34 | T | T4 | L0 | isotope_record.REGOLITH_BERYLLIUM_G_G 1.5e-6 and DEFAULT_ROCK_AL2O3 0.15: the beryllium and (where the body stores none) the aluminium oxide of the surface rock | Be 1 to 3 ppm; Al2O3 10 to 20 percent | rocky bodies | a measured surface rock outside these ranges | the body's own rock composition, once Be is stored | the continental crust's values, taken for every rocky body; no source opened | predicted only | - | - |
+| ISO35 | T | T1 | L0 | isotope_record.SOLAR_XE_136_OVER_130 1.797: the solar gas ratio the fission excess of 136Xe is counted from | 1.7 to 1.9 | any star's gas | a solar ratio outside 1.7 to 1.9 | the star's own gas by metallicity | [R5219: Table 3]: solar wind 136Xe/132Xe 0.2985 over 130Xe/132Xe 0.1661 (the quotient is derived here) | predicted only | - | - |
+| ISO36 | T | T2 | L0 | isotope_record.MANTLE_XE_136_OVER_130 2.478: the 136Xe/130Xe of the Earth's upper-mantle gas | 2.40 to 2.55 | the Earth | a mantle gas outside 2.3 to 2.7 | the mantle's own uranium and plutonium over xenon and its closure time | [R5219: Table 2]: the two segments of the Southwest Indian Ridge, 2.554 and 2.402, from 136Xe/132Xe over 130Xe/132Xe of the sources corrected for air (the quotients are derived here) | predicted only | - | - |
+| ISO37 | T | T3 | L0 | isotope_record.PU_SHARE_OF_FISSION_XE136 0.28: the share of the mantle's fission 136Xe that 244Pu made | 0.17 to 0.39 | the Earth's ridge sources | a share outside 0.1 to 0.5 | the body's uranium, plutonium and closure history | [R5219: Sec. 4.2]: 0.28 (+0.11, -0.10) for ridge basalts, 0.31 and 0.36 by the end member chosen, plume sources 0.96 (read from a model summary of the paper, not verbatim) | predicted only | - | - |
+| ISO38 | P | T6 | L0 | isotope_record.mantle_sheet_rows: the 238U part of the fission 136Xe is the Earth's for every body, and the 244Pu part scales with the body's birth 244Pu/238U over the early Solar System's | none | rocky bodies | a body whose uranium over xenon or age moves its 238U fission xenon by more than a factor of 2 | the body's own uranium content and age | my simplest form: the 244Pu part carries the star's difference, the 238U part would follow the body's uranium and age and is left out | predicted only | - | - |
 
 ## 6.227 Stand-ins of the crust fields and the magmatic ore types
 
@@ -2685,6 +2689,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | EL1 | P | T4 | L0 | tuning.EFFECT_LEDGER_FLOOR 1e-3 (0.1 percent): the share of the largest source under which a light or UV ledger source is added to its (body, effect) summary row and not stored as its own row (the five gravity effects store only the largest source and the summary, and are recomputed on demand) | 1e-37 (every source stored) to 1 | every body and effect of a stored system | a census that shows sources under the floor adding to over 1 percent together in many bodies (then the floor hides what matters; lower it) | a floor chosen from the first census of the stored ledger | chosen by Boss from the storage census (point-mass gravity on demand plus a floor of 0.1 percent on light and UV is about 35 GB at the 200 pc default against 145 GB for the full ledger, `reports/gen1465-ledger-store-vs-compute-2026-11-09.md`); no source for the value | predicted only | - | - |
 
+## 6.256 Stand-ins of a companion star's secular forcing of a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FE1 | T | T6 | L0 | the first-order secular forcing: `e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c)` with exact Laplace coefficients and the factors `(1 - e'^2)^(-3/2)` and `(1 - e'^2)^(-5/2)` of an eccentric companion; about `(5/4) alpha e' / (1 - e'^2)` for a small `alpha` | none | `alpha` below `ALPHA_LIMIT`, `e_forced` below 0.3 | members of a measured belt in a close binary whose eccentricities lack the forced part by more than the free scatter | an N-body integration of test bodies in a binary | Murray and Dermott, Solar System Dynamics, sections 7.2 and 7.3 [R3220], recalled; census `reports/gen1492-belt-forcing-census-2026-11-09.md` | predicted only | - | - |
+| FE2 | P | T6 | L1 | the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit) | 0 to 2 pi | systems with a companion | a stored orientation of the star orbit, once one exists | the stored orientation | no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members | predicted only | - | - |
+| FE3 | T | T6 | L0 | the forced inclination is zero: the orbits of stars are coplanar in the generator | none | coplanar star orbits | a mutual inclination of the star orbits, once modelled (filed by TODO) | forced inclination and Kozai pumping from a mutual inclination | design; the generator has no mutual inclination of stars | predicted only | - | - |
+| FE4 | P | T6 | L1 | `belt_forcing.ALPHA_LIMIT` 0.3: the largest `a / a'` the first-order theory is used at | 0.2 to 0.4 | belts cut inside the companion's tide | a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses | a higher-order expansion in `alpha` | recalled: the series in `alpha` converges slowly beyond a third; no belt of the census (499) lies beyond it | predicted only | GEN.1492 | - |
+
 ## 6.259 Stand-ins of the bright sources in a body's sky
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
@@ -2692,3 +2705,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SKY1 | T | T5 | L0 | `sky_view.NIGHT_LIGHT_W_M2` = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2) | 2.6e-3 W/m2 | the eye at night, a body with an air that scatters like Earth's | a sky where a fainter source is called bright (a dark-adapted eye, a thin air) | a threshold from the sky's brightness in the air the body has | measured: the illuminance of the full Moon at Earth is about 0.25 lux; the Sun at Earth gives about 1.3e5 lux | predicted only | - | - |
 | SKY2 | P | T7 | L0 | a source's width is `2 asin(R / d)` with `d` the distance that the mean light gives (`light = L / (4 pi d^2)`, the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word | none | a companion whose orbit is not much wider than the body's | a companion on an eccentric orbit that is at its apoapsis at the epoch of the page | the width from the offset of the source at the epoch (GEN.1458 `offset_au`) | design: the light and the width of the source follow one distance, so the text agrees with the temperature | predicted only | - | - |
 | SKY3 | P | T7 | L0 | the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts | none | systems with no dark member | a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system | the light of a dark member drawn from its mass, age and companion (GEN.1501) | design: the follow-up is filed with the item | predicted only | - | - |
+
+## 6.261 Stand-ins of the fudge table
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FT1 | P | T4 | L0 | the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is its hand shoulder (CF, DM) times `1 + score / 12`, `score` the mean registry unreliability score of the area that makes it (`build_fudge_table.FALLBACK_SCORES`, 3.3 to 5.2) | factor 1.3 to 1.45 | quantities the frozen sample cannot move | a measured width for the same quantity that differs from the fallback by more than a factor of 2 | a sensitivity run that moves the mass law and the radius law with the population held (GEN.1318) | design: the ranking report of 11-06 section 2b gives the scores; the factor is a stated stand-in, not derived | predicted only | - | - |
+| FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
+| FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
+| FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |

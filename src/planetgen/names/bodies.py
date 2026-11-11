@@ -19,7 +19,7 @@ the system is named from it:
   `Voranthis II`. A single star's and a close pair's planets use the
   system name. A wide pair's primary's planets use the shared first word
   (`Voranthis I`) and its secondary's planets use the secondary's own word
-  (`Pikkita I`). Asteroid belts take no number. Planet names can repeat
+  (`Pikkita I`). Asteroid belts take no number here; their display number counts the belts of their star (`belt_number`). Planet names can repeat
   across systems, as town names do (Boss, 2026-10-02).
 - Moons add a lowercase letter to their planet's numeral: `Voranthis IIa`,
   `Voranthis IIb`.
@@ -128,6 +128,21 @@ def name_bodies(prefix, bodies):
         body.name = f"{prefix} {numeral}"
         for index, moon in enumerate(body.moons):
             moon.name = f"{prefix} {numeral}{moon_letters(index)}"
+
+
+def belt_label(number):
+    """The name a belt of this number is shown with (GEN.1508: belts have no stored name)."""
+    return f"Asteroid belt {number}"
+
+
+def belt_number(belt, belts):
+    """
+    The number of `belt` (a row with `id`, `star_id`, `orbital_index`) among `belts` (the rows of its system), counted among the belts of its own star by their place out from the star,
+    closest first, from 1 (GEN.1508). Only the belts that exist count, so there are no gaps, and a lone belt is 1. `orbital_index` is the belt's slot among all the star's bodies
+    (planets and belts), so it only puts the belts in order and is never the number.
+    """
+    return 1 + sum(1 for other in belts if other.get("star_id") == belt.get("star_id")
+                   and (other["orbital_index"], other["id"]) < (belt["orbital_index"], belt["id"]))
 
 
 def rename_prefix(name, old_prefix, new_prefix):

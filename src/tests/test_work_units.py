@@ -282,19 +282,18 @@ def test_a_stage_of_no_units_ends_at_once(monkeypatch, conn):
     assert results == {} and runrecord.read_run(conn, run_id)["state"] == "done"
 
 
-def test_a_units_time_limit_is_a_multiple_of_its_stages_expected_time_and_never_none(monkeypatch, conn):
-    assert units.unit_timeout(None) == units.unit_timeout(0) == redisqueue.MAX_TIMEOUT_SECONDS
-    assert units.unit_timeout(1000) == 10_000 and units.unit_timeout(1) == redisqueue.MIN_TIMEOUT_SECONDS
+def test_a_units_time_limit_is_the_backstop_whatever_its_stages_expected_time_and_never_none(monkeypatch, conn):
+    assert units.unit_timeout(None) == units.unit_timeout(0) == units.unit_timeout(1000) == units.unit_timeout(1) == redisqueue.MAX_TIMEOUT_SECONDS     # OPS.140
     assert units.unit_timeout(10 ** 9) == redisqueue.MAX_TIMEOUT_SECONDS
     _handlers(monkeypatch, test=_square)
     run_id = runrecord.start_run(conn, "T", [runrecord.Stage("a", "A", units=1), runrecord.Stage("b", "B", units=1)])
     units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)], expected_seconds=2000)
     units.enqueue_units(conn, run_id, 1, "test", [({"n": 2}, 1.0)])
     jobs = {job.id: job for job in redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs}
-    assert {job.timeout for job in jobs.values()} == {20_000, redisqueue.MAX_TIMEOUT_SECONDS}
+    assert {job.timeout for job in jobs.values()} == {redisqueue.MAX_TIMEOUT_SECONDS}, "OPS.140: the time limit is only a backstop"
 
 
-def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds_and_its_units_a_limit_from_it(monkeypatch, conn):
+def test_a_stage_with_a_recorded_time_gets_it_as_its_expected_seconds(monkeypatch, conn):
     _handlers(monkeypatch, test=_square)
     monkeypatch.setattr(wrapper, "expected_seconds", lambda step, row: 3000.0 if row else None)
     row = {"command": "plan", "n": 1, "total": 1, "label": "A test stage", "settings": {"workers": 1}}
@@ -360,6 +359,9 @@ def test_a_unit_survives_a_warm_that_outlasts_an_execution_record(monkeypatch, c
     when it cleaned up. Here the warm drops every execution record of the job, as the expiry would."""
     from planetgen.cli import worker
     _handlers(monkeypatch, test=_square)
+    # TEST.713: the worker starts itself over (`os.execv`) for a unit that needs no star tables when its process holds them (PERF.226, `units.sheds_tables_for`). A test process that
+    # an earlier test left holding the tables (a parallel run's) was replaced by a worker there, and its pytest-xdist node went down; this test is about the warm, so none is held.
+    monkeypatch.setattr(units, "tables_held", lambda: False)
     seen = []
 
     def long_warm(job):
@@ -772,6 +774,7 @@ def test_a_batch_fill_unit_runs_alone_from_its_json_arguments(mysql_config):
     params = json.loads(json.dumps({"database": wrapper.database_args(mysql_config)}))
     expansion = run_plan.expand_fill_map_luminosity(params)
     assert sum(cost for _args, cost in expansion.units) == expansion.plan["top"]
+    assert set(expansion.plan) == {"top"}      # no count of the rows still empty: nothing indexes it, so it was a read of the whole table
     result = commands.run_alone("fill-map-luminosity", json.loads(json.dumps(expansion.units[0][0])))
     assert result["ids"] == expansion.units[0][1] and result["filled"] == 0
 

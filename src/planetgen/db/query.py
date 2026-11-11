@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, nebula_blocks, point_columns, search_values
+from planetgen.db import belt_names, chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -3668,7 +3668,7 @@ def resolve_object(conn, kind, object_id):
                     parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
                                     "name": one("planets", planet, "name")["name"]})
             if host_kind is not None:
-                host_name = (f"Asteroid belt {one(host_table, host_id, 'orbital_index')['orbital_index'] + 1}"
+                host_name = (belt_names.label(belt_names.numbers_for_belts(conn, [host_id])[host_id])
                              if host_kind == "belt" else one(host_table, host_id, "name")["name"])
                 parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
         else:
@@ -3711,7 +3711,7 @@ def resolve_object(conn, kind, object_id):
                 positions["galaxy_pc"] = [rogue["center_x_pc"], rogue["center_y_pc"], rogue["center_z_pc"]]
         else:
             parents, positions = system_parents_and_positions(row["star_system_id"])
-        name = f"Asteroid belt {row['orbital_index'] + 1}" if kind == "belt" else row["name"]
+        name = belt_names.label(belt_names.numbers_for_belts(conn, [object_id])[object_id]) if kind == "belt" else row["name"]
         if kind == "star":
             positions["system_km"] = star_offset(object_id)
         elif kind in ("planet", "comet"):

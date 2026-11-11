@@ -44,6 +44,8 @@ ACTION_TEXT = {
                          "what they saved. The machine is free for the next run at once."),
     "clear": ("Clear", "It has stopped answering: its process is gone or it has not been heard from for too long. It is "
                        "ended as failed and the machine is freed so the next run can start."),
+    "resume": ("Resume run", "The run was ended from outside its work (killed, canceled or cleared). A new run carries it on: the stages it finished are kept, and the first stage it did not finish "
+                             "runs again from its start. It runs as a Generate page job you can follow there."),
     "retry": ("Retry", None),
     "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
     "fill-habitability": ("Regenerate habitability",
@@ -118,11 +120,22 @@ def _eta_text(eta, live):
     return f"{text} (not timed yet)" if eta.get("rough") else text
 
 
+def _can_resume(run):
+    """
+    Whether Resume run is offered on `run` (OPS.144): a generation run that was killed (the run record's `killed` flag, `runrecord.mark_killed`) and ended failed or canceled, which no run has carried on, on the galaxy and the
+    build it worked on (`generate_page.finish_status` reads all of that from the run record, as the Generate page's "Finish the last run" does).
+    """
+    if not run.get("killed") or run["live"] or run["state"] not in ("failed", "canceled") or run["kind"] != "generation":
+        return False
+    from . import generate_page            # the Generate page imports this site's pages
+    return generate_page.finish_status(db_name(), run["id"])["error"] is None
+
+
 def _actions(run):
     """The controls an admin can use on `run` now."""
     if run["live"]:
         return ["cancel", "clear"] if run["stale"] else ["cancel"]
-    actions = []
+    actions = ["resume"] if _can_resume(run) else []
     if run["state"] in ("failed", "canceled") and _retry_plan(run) is not None:
         actions.append("retry")
     actions.append("delete")
@@ -149,6 +162,8 @@ def run_view(run):
         "state": run["state"],
         "state_label": STATE_LABELS.get(run["state"], run["state"]),
         "error": run["error"],
+        "killed": run.get("killed", False),
+        "killed_reason": run.get("killed_reason"),
         "started_at": _iso(run["started"]),
         "finished_at": _iso(run["finished"]),
         "duration": _duration(run["seconds"]),
@@ -208,6 +223,8 @@ def _status_view(status):
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
         "paused_at": _iso(status.get("paused_at")),
+        "paused_reason": status.get("paused_reason"),
+        "solo_unit": status.get("solo_unit"),
         "holder": status.get("holder"),
         "holder_title": status.get("holder_title"),
         "heartbeat": _duration(status.get("heartbeat_age_s")),
@@ -302,6 +319,26 @@ def _held_view(held):
     return {"total": held["total"], "shown": len(rows), "rows": rows}
 
 
+def _beating_view(body):
+    """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
+    jobs = (body or {}).get("jobs") or []
+    if not jobs:
+        return None
+    names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
+    return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
+                      "phase": job["phase"], "running": _duration(job["running_seconds"]), "heard": _duration(job["beat_age_seconds"])} for job in jobs]}
+
+
+def _duration(seconds):
+    """Seconds as `5 s`, `4 min` or `2 h 10 min`."""
+    seconds = int(max(seconds or 0, 0))
+    if seconds < 90:
+        return f"{seconds} s"
+    if seconds < 5400:
+        return f"{seconds // 60} min"
+    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+
+
 def _iso(seconds):
     """A time given in seconds since the epoch as the ISO text `time_text` reads, or `None`."""
     if not seconds:
@@ -318,7 +355,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = None
+    workers = warm = held = beating = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -328,6 +365,10 @@ def admin_queue():
             held = _held_view(apiclient.admin_work_held(cookie_header))
         except apiclient.ApiError:
             held = None
+        try:
+            beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
+        except apiclient.ApiError:
+            beating = None
         try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
@@ -342,7 +383,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -417,11 +458,26 @@ def admin_queue_log(run_id):
 admin_queue_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+def _resume_text(run):
+    """What Resume run on `run` would do, in words for its confirmation page: why it was killed, the stages it keeps and where the new run starts."""
+    from . import generate_page
+    found = generate_page.finish_status(db_name(), run["id"])
+    if found["error"]:
+        return ""
+    reason = f" It was killed: {run['killed_reason']}." if run.get("killed_reason") else ""
+    kept = len(found["carried"])
+    return (f"{reason} The new run keeps {kept} finished {'stage' if kept == 1 else 'stages'} and starts again from “{found['again'][0]}”"
+            f" ({len(found['again'])} {'stage' if len(found['again']) == 1 else 'stages'} to run).")
+
+
 def _confirm_text(action, run):
     """`(heading, explanation)` for the confirmation page."""
     label, explanation = ACTION_TEXT[action]
     if _is_site_wide(action):
         return f"{label}?", explanation
+    if action == "resume":
+        found = _resume_text(run)
+        return f"Resume “{run['title']}”?", explanation + found
     if action == "retry":
         plan = _retry_plan(run)
         return (f"Retry “{run['title']}”?",
@@ -449,6 +505,9 @@ def admin_queue_confirm(action):
         if action == "retry" and _retry_plan(run) is None:
             return _flash(_see_other(url_for("web.admin_queue_run", run_id=run_id)),
                           error="That run can't be retried from here.")
+        if action == "resume" and not _can_resume(run):
+            return _flash(_see_other(url_for("web.admin_queue_run", run_id=run_id)),
+                          error="That run can't be resumed: it was not killed, or it was carried on already, or the galaxy or the build changed.")
     heading, explanation = _confirm_text(action, run)
     back = url_for("web.admin_queue_run", run_id=run_id) if run else url_for("web.admin_queue")
     return _render(
@@ -502,6 +561,24 @@ def _start_fill(admin, cookie_header, action):
     return message, error
 
 
+def _start_resume(admin, cookie_header, run):
+    """
+    Starts `planetgen finish-run --run <id>` (OPS.144, the command behind the Generate page's "Finish the last run", PERF.182) as a Generate page job on this site's database: a new run that keeps the stages `run` finished and runs
+    the rest. Refused while everything is stopped, or when the run cannot be carried on (the reason is the command's own). Returns `(message, error)`.
+    """
+    from . import generate_page
+    body = apiclient.admin_work(cookie_header, limit=1, offset=0)
+    if (body.get("stopped") or {}).get("stopped"):
+        return None, "Everything is stopped. Press Resume first; nothing starts until then."
+    found = generate_page.finish_status(db_name(), run["id"])
+    if found["error"]:
+        return None, found["error"] + " Nothing was changed."
+    label = f"Resume run: {found['title']}"
+    plan = {"kind": "finish_run", "title": label, "database": db_name(),
+            "steps": [{"label": label, "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, "finish-run", "--run", run["id"]]}]}
+    return _start_retry(admin, plan, run["id"])
+
+
 @bp.route("/admin/queue/action", methods=["POST"])
 def admin_queue_action():
     """Runs a confirmed control, then back to the run (or the list)."""
@@ -547,6 +624,14 @@ def admin_queue_action():
                 message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
         elif action in FILL_COMMANDS:
             message, error = _start_fill(admin, cookie_header, action)
+            if message:
+                target = url_for("web.generate", _anchor="current-job")
+        elif action == "resume":
+            _body, run = _load(cookie_header, run_id) if runrecord.RUN_ID_RE.match(run_id) else (None, None)
+            if run is None:
+                return _flash(_see_other(target), error="That run is no longer there.")
+            target = url_for("web.admin_queue_run", run_id=run_id)
+            message, error = _start_resume(admin, cookie_header, run)
             if message:
                 target = url_for("web.generate", _anchor="current-job")
         elif action in ("cancel", "clear", "retry", "delete"):

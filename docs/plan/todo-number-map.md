@@ -14,17 +14,17 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.297 |
-| MAP | MAP.412 |
+| MAP | MAP.423 |
 | NAV | NAV.78 |
-| GEN | GEN.1502 |
-| PERF | PERF.259 |
+| GEN | GEN.1522 |
+| PERF | PERF.260 |
 | DB | DB.122 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.714 |
+| TEST | TEST.715 |
 | USR | USR.33 |
-| OPS | OPS.134 |
+| OPS | OPS.148 |
 | DOC | DOC.120 |
 | VIEW | VIEW.49 |
 | POP | POP.52 |
@@ -2128,7 +2128,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1330 | Life gates read oxygen pressure: life_classes.json and age_needs.json judge oxygen by partial pressure, not share | GEN.1321 | dropped, covered by GEN.1321 |
 | GEN.1331 | Partial-pressure sweep: every value converted and every reader expects the new measure (oxygen and carbon dioxide) | GEN.1321, GEN.1330 | done, PR #5688 |
 | GEN.1332 | A nebula's stored shape cannot be reproduced from its stored row: the shape seed includes the dominant-species text, which store_composition rewrites afterwards (TEST.672) | none | done, PR #5572 |
-| GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 | open |
+| GEN.1333 | A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers | GEN.1323 | dropped, superseded by GEN.688 and GEN.1397 (the class-request draw path is deleted there) |
 | GEN.1334 | A planet with a hydrogen-helium envelope has no ground: no surface dose, land fraction or rocky air solve beneath it; its air, moons and rings follow the envelope (GEN.1323 part B) | GEN.1323 | done, PR #5688 |
 | GEN.1335 | Inner planets (inside 100 days) are 5 to 8 Earth masses against the 3.72 median of the Kepler survey, so the rocky peak of the radius valley sits at 1.5 to 1.75 Earth radii instead of 1.3 to 1.4: compare the generated inner mass function with the published masses | none | done, PR #5572 |
 | GEN.1336 | Hot Jupiters round red dwarfs are about twice as common as the researched band (0.5 percent against 0.27): test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf passes only on a lucky seed | none | done, PR #5572 |
@@ -2138,7 +2138,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1340 | A thin air that oxygen has risen in keeps its nitrogen: the steady-oxygen law puts 23 to 45 kPa airs at 75 to 95 percent oxygen, a near-pure oxygen air that fails the 50 kPa floor | none | done, PR #5620 |
 | GEN.1341 | Cold belts past the outermost planet keep their whole disc mass: add a dynamical loss for the belt beyond the last planet from the Safronov number | none | done, PR #5620 |
 | GEN.1342 | Class O takes any world with more than 80 percent surface water within the habitable range, 275 to 312 K (M's floor up to O's current ceiling), so a temperate global ocean with oxygen has a hard class (Boss, option 2: no new letter) | none | done, PR #5688 |
-| GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | open |
+| GEN.1343 | Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate | none | done, Train 16, follow-ups GEN.1347 and GEN.1470 |
 | GEN.1344 | An air that cannot settle in the 60 steps of the air fixed point (about 4 percent of airs: a haze or ocean switch makes the step jump down as it warms, so there is no exact fixed point) stores the last answer, up to 75 K off the switch point; store the knee value instead | none | done, PR #5620 |
 | GEN.1345 | Sealed-ocean crust: find a published range for the altered-crust thickness (waterworld_carbon.ALTERED_CRUST_KM, row AM54) and change it only if a source supports it | none | done, PR #5563 |
 | GEN.1346 | Steam-air energy-limited efficiency: set ENERGY_LIMITED_EFFICIENCY to 0.1 to 0.15 instead of 0.01, with the stand-in registered and the census re-measured | none | done, PR #5620 |
@@ -2923,6 +2923,20 @@ Parents marked "new parent" had no old number of their own.
 | OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) | none | done, PR #5584 |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) | none | open |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) | none | open |
+| OPS.134 | Heartbeat part 1: the sky unit reports real progress and gets its own expected time (the bug behind the 11-08 full-galaxy failure) | none | open |
+| OPS.135 | Heartbeat part 2: each command records the longest gap between counter changes, so the stuck rule can use history | OPS.134 | open |
+| OPS.136 | Heartbeat part 3: the beat record, written from the horse every 10 s with the server clock, the work counter, the phase and a waiting_on tag | OPS.134 | open |
+| OPS.137 | Heartbeat part 4: the judge, one pure function from the beat record, history and a clock to a state (working, slow, waiting, quiet, looping, dead) | none | open |
+| OPS.138 | Heartbeat part 5: the stage follower runs the judge each poll, logs each state change once, and exposes the state to the admin API | OPS.136, OPS.137 | open |
+| OPS.139 | Heartbeat part 6: the admin Queue page shows each live unit's last beat age, counter, phase, rate and state badge | OPS.138 | open |
+| OPS.140 | Heartbeat part 7: the stuck action: dump the stack, stop the unit, requeue once, then fail with the dump; the time limit becomes a backstop only | OPS.136, OPS.137, OPS.138 | open |
+| OPS.141 | Heartbeat part 8: the run-level stale rule is rebuilt on the unit states | OPS.137, OPS.138 | open |
+| OPS.142 | Heartbeat part 9: the same beat wrapper for the web job runner, the API jobs and the tile prefetch | OPS.136, OPS.137 | open |
+| OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | open |
+| OPS.144 | Admin Queue page: a Resume run button, and a stored killed flag on the run record so the page knows when to show it | none | open |
+| OPS.145 | Heartbeat part 11: after a unit is restarted, the other tasks pause and the restarted unit runs alone until it completes | OPS.140 | open |
+| OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | open |
+| OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -3672,6 +3686,26 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1499 | Planets forced by a companion star: the companion's stellar term in the planets' secular exchange | GEN.1492 | open |
 | GEN.1500 | Mutual inclination of the orbits of the stars in a binary or triple, so a companion can force inclination and Kozai pumping has an input | none | open |
 | GEN.1501 | Dark members of the orbit tree give light: neutron star cooling, black hole accretion disk, brown dwarf cooling, into the radiation field and the sky text | GEN.1443 | open |
+| GEN.1502 | Tidal locking and spin-down torques from every body of a system, not only the host (GEN.1446 part 2) | GEN.1446 | open |
+| GEN.1503 | Tidal heating from every body of a system (GEN.1446 part 3) | GEN.1446 | open |
+| GEN.1504 | (bug) The secular exchange changes a planet's inclination and node but leaves its spin tilt and axis; test_spin red on main | none | open |
+| GEN.1505 | (bug) After the secular exchange moves an eccentricity, air and temperature are refreshed only above a 1e-4 change and a giant only when its radius moves; test_sweep_atmosphere red | none | open |
+| GEN.1506 | The Auto level of the Rogues dial means Few, not Normal | PERF.136 | open |
+| GEN.1507 | The mantle's 136Xe/130Xe is a derived sheet line, like the 129Xe one (plutonium share scaled by birth 244Pu/238U) | none | open |
+| GEN.1508 | (bug) A system shows "Asteroid Belt 5" when it holds only one belt: belt numbers do not start at 1 | none | open |
+| GEN.1509 | Design: belt bodies at or above the smallest planet class floor get full planet status | GEN.1070 | open |
+| GEN.1510 | Build: belt bodies at or above the class floor run through the planet generator and are stored as planets | GEN.1509 | open |
+| GEN.1511 | Promoted belt bodies appear as planets in names, pages, lists and maps, and in the census | GEN.1510 | open |
+| GEN.1512 | Atomic phosphorus and the other phosphorus gases above 6000 K are missing from the gas table | none | open |
+| GEN.1513 | (bug) EquilibriumError 'no convergence' on a very hot, very high-pressure giant in cap_ices / equilibrium_at | none | open |
+| GEN.1514 | Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3) | GEN.1473 | open |
+| GEN.1515 | Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5) | GEN.1473 | open |
+| GEN.1516 | Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines) | GEN.1473 | open |
+| GEN.1517 | (bug) The water drift model starts the gas inside each ice line as pure evaporated ice, so an early-gathering giant gets no argon, krypton, xenon or CO2 carbon | GEN.1473 | open |
+| GEN.1518 | Giant gas-gathering age from a pebble accretion efficiency (stand-in DE9), so the drift model reaches Sun-like giants | GEN.1517 | open |
+| GEN.1519 | Provenance of the planetesimals a giant accretes (where they formed), so noble gases reach the envelope through solids that froze them | GEN.1514 | open |
+| GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | open |
+| GEN.1521 | Chain-aware spacing test for tight chains of small planets (N-body screen follow-up) | GEN.1468 | open |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | open |
 | GEN.1477 | Settle, the gravity grid and the orbit influence set read the neighbourhood once per chunk of sectors in cell-key order, not about 125 times per sector (audit C5) | none | open |
@@ -3720,6 +3754,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | PERF.255 | Three tests run past the 900 second timeout (gas_equilibrium, tidal_rheology, detmath): test_fuzz_system_generation moons_orbit_inside and moons_orbit_outside, and test_barred_world | none | done, PR #5787 |
 | PERF.257 | Warm-up keeps its app per worker and starts with a stamp check (audit C8) | none | done, PR #5824 |
 | PERF.258 | check-values runs 34 separate COUNT scans (13 on planets, 13 on moons, 5 on stars): one scan per table gives the same output | none | done, PR #5828 |
+| PERF.259 | The air is made again for the same body: skip or share whole-body re-runs that start from equal state (bit-identical) | none | done, closed as a finding (Lane 14, 2026-11-09: the air re-runs draw from the random stream, so skipping an equal one moves later draws; not buildable bit-identical) |
 | PERF.256 | A galaxy rerun skips scatters that are already current (the planner rule: a job whose outputs are stored is not planned) (audit C4) | OPS.123, GEN.1476 | open |
 | SEC.2.1 | SEC.3 |
 | SEC.2.2 | SEC.4 |
@@ -4459,7 +4494,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.710 | Tests that the wiki link can never harm the map: wiki down or slow, wrong galaxy key, GM-only pages never listed, and no wiki text in MySQL | UX.296 | open |
 | TEST.711 | A planet built with its climate deferred ends with 1 moon where the test expects 2 (planet class E): red on main (bug) | none | done, PR #5804 |
 | TEST.712 | The unstable wide binary re-roll test no longer finds the expected re-rolled line in the console report: red on main (bug) | none | done, PR #5804 |
-| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | open |
+| TEST.713 | (bug) test_a_unit_survives_a_warm_that_outlasts_an_execution_record kills an xdist worker on every parallel run | none | done, PR #5894 |
+| TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -4631,6 +4667,17 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in | none | open |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" | none | open |
 | MAP.411 | Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed | none | done, PR #5737 |
+| MAP.412 | (bug) bodylook.member_look: a look record for a belt member | none | open |
+| MAP.413 | (bug) The belt member page draws its body | MAP.412 | open |
+| MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | open |
+| MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | open |
+| MAP.416 | Census of cloud and haze data by class | none | open |
+| MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | none | dropped, folded into MAP.280 |
+| MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | open |
+| MAP.419 | Separate cloud sphere with a day and night terminator, near tier only | none | dropped, folded into MAP.280 |
+| MAP.420 | Coloured haze shell and limb, sized from tau_haze | MAP.418 | open |
+| MAP.421 | Giants get a haze and cloud-deck tint | MAP.418 | open |
+| MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | open |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

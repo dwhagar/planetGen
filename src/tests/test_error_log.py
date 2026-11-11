@@ -209,11 +209,18 @@ def test_a_worker_that_ended_well_or_was_asked_to_stop_is_not_an_error(folder, c
     assert _lines(folder) == []
 
 
+class _NoClaims:
+    """A Redis stand-in for a worker that held no claim on the memory gate (PERF.254 reads the claims table when a horse is killed)."""
+
+    def hget(self, key, field):
+        return None
+
+
 class _Job:
     id = "job-1"
     func_name = "planetgen.queue.units.something_else"
     args = ()
-    connection = None
+    connection = _NoClaims()
 
 
 def test_a_work_horse_that_was_killed_is_logged_with_the_signal(folder):
@@ -225,7 +232,7 @@ def test_a_work_horse_that_was_killed_is_logged_with_the_signal(folder):
 def test_a_unit_whose_horse_was_killed_is_logged_and_fails_its_run(folder, monkeypatch):
     from planetgen.queue import runrecord, wrapper
     failed = []
-    monkeypatch.setattr(runrecord, "finish_run", lambda conn, run, state, error=None: failed.append((run, state, error)))
+    monkeypatch.setattr(runrecord, "finish_run", lambda conn, run, state, error=None, killed=False: failed.append((run, state, error)))
     monkeypatch.setattr(wrapper, "stage_name", lambda conn, run, stage: "Scatter")
     job = _Job()
     job.func_name, job.args = units.UNIT_FUNCTION, ("run-9", 2, 7)

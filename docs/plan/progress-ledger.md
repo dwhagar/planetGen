@@ -3045,3 +3045,6 @@ Baseline: PR #1817.
 | GEN.1489 | 8.1 | Stand-in replacements |
 | DB.121 | 8.1 | Stand-in replacements |
 | GEN.1483 | 8.1 | Stand-in replacements |
+| TEST.713 | 8.1 | Stand-in replacements |
+| PERF.259 | 8.1 | Stand-in replacements |
+| GEN.1343 | 8.1 | Planet generation |

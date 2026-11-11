@@ -18,6 +18,7 @@ from planetgen.describe.render import share_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
+from tests.fuzz_support import first_seed_with
 
 _VARIANTS = [
     dict(BINARY_SYSTEM=False, MOONS=True, COMETS=True, ASTEROID_BELT=True, HABITABLE_WORLD=True),
@@ -26,13 +27,17 @@ _VARIANTS = [
 ]
 
 
+def _document(seed, overrides):
+    draw.set_run_seed(seed)
+    config = SystemConfig()
+    for key, value in overrides.items():
+        setattr(config, key, value)
+    return describe.describe(StarSystem(system_config=config))
+
+
 def _documents():
     for index, overrides in enumerate(_VARIANTS):
-        draw.set_run_seed(100 + index)
-        config = SystemConfig()
-        for key, value in overrides.items():
-            setattr(config, key, value)
-        yield describe.describe(StarSystem(system_config=config))
+        yield _document(100 + index, overrides)
 
 
 def _facts(document):
@@ -106,11 +111,14 @@ def test_quantities_read_like_the_unit_ladders():
 
 
 def test_headings_follow_the_tree_in_each_format():
-    document = next(iter(_documents()))
+    # Whether a seeded system has a moon is the draw's (`MOONS` forces a chance at moons, not a moon): the first seeded document had one until Train 21 changed what the seed draws, so the
+    # document is the first, over a bounded search of seeds (TEST.714), that has a moon.
+    _seed, document = first_seed_with(lambda seed: _document(100 + seed, _VARIANTS[0]), lambda d: any(s["kind"] == "moon" for s in model.sections(d)),
+                                      what="a moon in the described system")
     markdown = describe.render(document, "markdown")
     assert markdown.startswith(f"# {document['title']}\n")
     moons = [s for s in model.sections(document) if s["kind"] == "moon"]
-    assert moons and f"\n### {moons[0]['title']}\n" in markdown
+    assert f"\n### {moons[0]['title']}\n" in markdown
 
 
 def test_a_stored_system_renders_like_the_generated_one(mysql_config):

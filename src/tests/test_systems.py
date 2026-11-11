@@ -38,11 +38,11 @@ STAR_TYPES = [
     "K1III", "F0IB", "M2VII", "K5IV", "A0II", "M3IA+", "M50", "K8VI",
 ]
 
-HOT_STARS = ("O5V", "M3IA+", "M50")
+HOT_STARS = ("O5V", "M3IA+", "M50", "B2V")
 HOT_STAR_TRIALS = 2
 """A hot or hypergiant star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
 test that builds fifteen of them ran for twenty minutes and hit the 900 s timeout. The O5V case builds two (four took 600 s on the GEN.1282 branch, 150 s each); the belt and the overlap checks are
-kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason."""
+kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason. B2V joined on 11-09: its fifteen systems took 716 s on a lane machine beside four other jobs (about 48 s each), the red Lane 11 saw at the 900 s limit on main."""
 
 # A star whose ecosphere no planet can hold an air in (a white dwarf's lies at about 0.02 AU; a flaring red dwarf's, now and then) is
 # answered `unmet` for a habitable world (GEN.688) rather than by a world that is not what its conditions say.
