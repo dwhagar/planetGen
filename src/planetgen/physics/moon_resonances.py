@@ -7,7 +7,7 @@ Resonances between a planet's moons: capture on the way out, and the eccentricit
 `moon_orbits.evolve` moves every moon under its planet's tide and leaves the moons blind to each other. The tide drives an inner moon outward faster than an outer one
 (`da/dt` goes as `a^(-11/2)`), so two moons that start apart approach in period ratio, and a pair that reaches a first-order resonance of 2:1, 3:2 or 4:3 with little eccentricity
 is **captured**: the inner moon pushes the outer along as it drifts, the ratio stays where it was caught and the two keep a forced eccentricity (Io and Europa, Europa and Ganymede, the
-Saturnian Enceladus and Dione). Without it the model lets two moons close to a period ratio of 1.1, which no moon system shows.
+Saturnian Enceladus and Dione). Without it the model lets two moons close to a period ratio of 1.1 and carry on, which no known regular moon system shows.
 
 **Capture** (`capture`). A pair has *swept* a resonance `p:q` when the ratio of its birth periods lay above `p/q` (with the offset `CAPTURE_OFFSET`) and the ratio the integrator ends
 with lies below it; the first resonance met on the way in is the largest `p/q` below the birth ratio. A swept pair is captured and sits at `p/q (1 + CAPTURE_OFFSET)`. The pair

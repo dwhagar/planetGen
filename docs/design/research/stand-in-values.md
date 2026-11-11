@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1616 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1619 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1590 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1593 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 208 | 108 | 30 | 82 | 4 | 432 |
-| T7 | 58 | 20 | 9 | 34 | 0 | 121 |
+| T6 | 208 | 109 | 30 | 82 | 4 | 433 |
+| T7 | 59 | 21 | 9 | 34 | 0 | 123 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 18 | 5 | 92 | 35 | 194 |
-| All | 926 | 314 | 75 | 248 | 53 | 1616 |
+| All | 927 | 316 | 75 | 248 | 53 | 1619 |
 
 ## How the labels were given
 
@@ -2765,7 +2765,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TS6 | P | T7 | L0 | the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of `1 / d^6` for two coplanar circles, `((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5` (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (`abs(spin - rate)`); the line turns at the rate of the larger orbit radius | none | coplanar neighbours and companions | a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion | the mean over both orbits with their nodes, and the tide at the synodic frequency | derived: `<(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2))` with `A = a^2 + b^2`, `B = 2 a b` (tested against quadrature); census over 30 systems in the last paragraph of the note | predicted only | - | - |
 | TS7 | T | T6 | L0 | the dwarf planets and the largest bodies of a belt are in the mass of their belt (`belt.mass_kg` holds all of it) and are not sources of their own; a tide on a dwarf planet or large asteroid from the planets that pull it and the tide it raises on its own moons are not built | none | the planets and moons of the sample (the belts' census shares are under 1e-6 of the host's pull) | a belt member big enough to hold a moon that locks or heats (Pluto and Charon: a tide on a moon of a belt member) | the dwarf planets of `belt_member` as bodies with a tide pass of their own (GEN.1464 part C) | design: the member roster is drawn on demand and the planets' pass runs once at generation | predicted only | - | - |
 | TS8 | P | T7 | L1 | the sphere a planet's moons keep to is the star's Hill radius times `(1 + ratio)^(-1/3)` (`tide_sources.perturber_ratio`, GEN.1449), `ratio` the sum of `m g3` of every other star and planet (and the belts of the list) over the star's `M / a^3`: the other tides add to the star's in the Hill balance as the star's own does, each at its mean `1 / d^3` on the coplanar upper bound (TS1) | none | planets whose neighbours and companions are far against the planet's Hill sphere (a ratio under a few percent) | a planet next to a heavy neighbour or inside a close companion's reach, where the balance is the restricted three-body one and not a sum of tides | the moon limit of the restricted problem for the planet, the star and the perturber on their orbits ([R1138] runs) | derived: the Hill radius is `r^3 = m / (3 sum of the tide gradients)` and the gradients of far point masses add | predicted only | - | - |
-| TS9 | T | T6 | L0 | the resonances and the pulls of the moons on each other are not in the moon history (`moon_orbits` leaves them out) and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them | none | the moons of the sample | a moon system with a resonant chain (Io, Europa, Ganymede) whose forced eccentricities the history leaves out | moon-moon resonances through `resonant_chains` (GEN.1449 part 2) | design: the next part of the item | predicted only | - | - |
+| TS9 | T | T6 | L0 | the pulls of the moons on each other outside a resonance are not in the moon history (`moon_orbits` leaves them out), and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them | none | the moons of the sample | a moon system whose moons pull each other's orbits by more than a resonance does (Saturn's co-orbitals) | the pull of each moon on the others in the history (`moon_orbits`, GEN.1449 part 2 left it out) | design: the part of the item still open | predicted only | - | - |
+| TS10 | P | T7 | L1 | `moon_resonances.CAPTURE_OFFSET` 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at `p/q (1 + 0.002)`; no escape by eccentricity or inclination, no second-order resonance | 0.001 to 0.02 | the regular moons of a planet whose tide drives them out | a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order) | the capture probability of the adiabatic theory against the migration rate and the eccentricity (Borderies and Goldreich 1984) | derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance | predicted only | - | - |
+| TS11 | P | T6 | L1 | `moon_resonances.capture` shares the pair's orbital angular momentum `sum m sqrt(a)` (the integrator's finals) by the resonance condition `sqrt(a_k) = K_k sqrt(a_0)`; a pair that would hold the inner moon inside its birth orbit is not captured | none | pairs whose outer moon is lighter than the inner one by a factor of 10 or more | an integration of the pair's migration (`moon_orbits` with the pull of the moons) that ends at a different place | the migration of a captured pair integrated with the planet's tide, the planet's spin following | derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept | predicted only | - | - |
+| TS12 | P | T7 | L0 | `resonant_chains.pair_forced_eccentricities`: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: `settle_orbit` keeps it) | none | first-order pairs outside the resonance's width | a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094) | the libration amplitude inside the resonance's width and the planet's flattening in the detuning | derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003 | predicted only | - | - |
 
 ## 6.261 Stand-ins of the fudge table
 

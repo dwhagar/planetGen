@@ -61385,7 +61385,7 @@
           "fields": [
             [
               "What it is",
-              "the resonances and the pulls of the moons on each other are not in the moon history (moon_orbits leaves them out) and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
+              "the pulls of the moons on each other outside a resonance are not in the moon history (moon_orbits leaves them out), and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
             ],
             [
               "The range it moves in",
@@ -61397,15 +61397,15 @@
             ],
             [
               "What would show it wrong",
-              "a moon system with a resonant chain (Io, Europa, Ganymede) whose forced eccentricities the history leaves out"
+              "a moon system whose moons pull each other's orbits by more than a resonance does (Saturn's co-orbitals)"
             ],
             [
               "What replaces it",
-              "moon-moon resonances through resonant_chains (GEN.1449 part 2)"
+              "the pull of each moon on the others in the history (moon_orbits, GEN.1449 part 2 left it out)"
             ],
             [
               "Evidence",
-              "design: the next part of the item"
+              "design: the part of the item still open"
             ]
           ],
           "id": "TS9",
@@ -61416,7 +61416,121 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "the resonances and the pulls of the moons on each other are not in the moon history (moon_orbits leaves them out) and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
+          "what": "the pulls of the moons on each other outside a resonance are not in the moon history (moon_orbits leaves them out), and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_resonances.CAPTURE_OFFSET 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at p/q (1 + 0.002); no escape by eccentricity or inclination, no second-order resonance"
+            ],
+            [
+              "The range it moves in",
+              "0.001 to 0.02"
+            ],
+            [
+              "Where it holds",
+              "the regular moons of a planet whose tide drives them out"
+            ],
+            [
+              "What would show it wrong",
+              "a measured moon pair that converged through a first-order resonance and passed it (Uranus' Miranda and the inclination escape; the Mimas and Tethys 4:2 is second order)"
+            ],
+            [
+              "What replaces it",
+              "the capture probability of the adiabatic theory against the migration rate and the eccentricity (Borderies and Goldreich 1984)"
+            ],
+            [
+              "Evidence",
+              "derived: the Galilean pairs sit within 0.001 of 2:1, Enceladus and Dione within 0.003; the census of 314 moon pairs gave 9 percent that swept a resonance"
+            ]
+          ],
+          "id": "TS10",
+          "key": "6.260:TS10",
+          "kind": "P",
+          "slug": "6-260-ts10",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_resonances.CAPTURE_OFFSET 0.002 and capture with certainty: a pair of moons whose period ratio fell through 2:1, 3:2 or 4:3 on the way out (born above it, ended below it) is held at p/q (1 + 0.002); no escape by eccentricity or inclination, no second-order resonance"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "moon_resonances.capture shares the pair's orbital angular momentum sum m sqrt(a) (the integrator's finals) by the resonance condition sqrt(a_k) = K_k sqrt(a_0); a pair that would hold the inner moon inside its birth orbit is not captured"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "pairs whose outer moon is lighter than the inner one by a factor of 10 or more"
+            ],
+            [
+              "What would show it wrong",
+              "an integration of the pair's migration (moon_orbits with the pull of the moons) that ends at a different place"
+            ],
+            [
+              "What replaces it",
+              "the migration of a captured pair integrated with the planet's tide, the planet's spin following"
+            ],
+            [
+              "Evidence",
+              "derived: the planet's spin keeps the torque the integrator gave it because the moons' total angular momentum is kept"
+            ]
+          ],
+          "id": "TS11",
+          "key": "6.260:TS11",
+          "kind": "P",
+          "slug": "6-260-ts11",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "moon_resonances.capture shares the pair's orbital angular momentum sum m sqrt(a) (the integrator's finals) by the resonance condition sqrt(a_k) = K_k sqrt(a_0); a pair that would hold the inner moon inside its birth orbit is not captured"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "resonant_chains.pair_forced_eccentricities: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: settle_orbit keeps it)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "first-order pairs outside the resonance's width"
+            ],
+            [
+              "What would show it wrong",
+              "a near-resonant moon pair whose measured forced eccentricity differs by more than a factor of 3 (Io 0.0041, Europa 0.0094)"
+            ],
+            [
+              "What replaces it",
+              "the libration amplitude inside the resonance's width and the planet's flattening in the detuning"
+            ],
+            [
+              "Evidence",
+              "derived: Io 0.0051, Europa 0.0082, Ganymede 0.0007 from the Galilean masses and periods; the 33 percent of the census pairs that sit near a ratio mostly get under 0.003"
+            ]
+          ],
+          "id": "TS12",
+          "key": "6.260:TS12",
+          "kind": "P",
+          "slug": "6-260-ts12",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "resonant_chains.pair_forced_eccentricities: every moon pair within 5 percent of a first-order ratio is forced to the Lithwick, Xie and Wu eccentricity, two bodies being enough, and a moon keeps the larger of its own and the forced one (the resonance renews it against the tide: settle_orbit keeps it)"
         }
       ],
       "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",

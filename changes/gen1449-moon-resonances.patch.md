@@ -1,4 +1,4 @@
-**Headline:** two moons whose periods closed on a 2:1, 3:2 or 4:3 on the way out are now held in that resonance, and moons near such a ratio push each other's orbits out of round, so a Io-and-Europa pair is flexed by its neighbour instead of the moons passing through each other's resonances unnoticed.
+**Headline:** two moons whose periods closed on a 2:1, 3:2 or 4:3 on the way out are now held in that resonance, and moons near such a ratio push each other's orbits out of round, so Io is flexed by Europa instead of the moons passing through each other's resonances unnoticed.
 
 ### Changed
 
