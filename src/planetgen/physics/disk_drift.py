@@ -72,13 +72,10 @@ VISCOUS_GAS_EXPONENT = -1.5
 """float: The power of `(1 + t / t_nu)` in the gas flux (a viscosity linear in the radius). [Stand-in DE4, tier T6, tweak L0.]"""
 
 ALPHA = 1.0e-3
-"""float: The turbulence parameter of the disk, which sets the time the gas takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
+"""float: The turbulence parameter of the disk, which sets the viscosity and so the speed of the gas (`drift_speed_au_per_myr`), hence the time it takes between two places. [Stand-in DE5, tier T6, tweak L0.]"""
 
-LAG_MYR_PER_AU = 0.05
-"""float: The time the gas takes to cross one AU inward at `REFERENCE_ALPHA`, Myr: `tau = (r_L - r) / (3 nu_1)` with `nu = nu_1 x (r / 1 AU)` (a steady disk). [Stand-in DE5, tier T6, tweak L0.]"""
-
-REFERENCE_ALPHA = 1.0e-3
-"""float: The `ALPHA` at which `LAG_MYR_PER_AU` holds; the lag scales as `REFERENCE_ALPHA / ALPHA`. [Stand-in DE5, tier T6, tweak L0.]"""
+MEAN_MOLECULAR_WEIGHT = 2.3
+"""float: The mean mass of a gas particle of the disk (molecular hydrogen with helium), in hydrogen masses; it sets the sound speed of the viscosity. [Stand-in DE5, tier Confident Unverified, tweak L0.]"""
 
 COLD_FINGER_LEAK = 0.9
 """float: The share of the vapor at a line that goes back out and freezes again just outside it; the ice there is enriched by `1 / (1 - leak)` and the net flux inward does not change
@@ -198,11 +195,34 @@ def instant_ratio(age_myr, mass_solar=1.0, metal_ratio=1.0):
     return flux / (gas_flux_solar_per_yr(age_myr, mass_solar) * solids_over_gas(metal_ratio))
 
 
-def lag_myr(from_au, to_au):
-    """The time the gas takes to carry vapor from the line at `from_au` to a place at `to_au` inside it, Myr (DE5); zero for a place at or outside the line."""
+def viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar=1.0):
+    """
+    The viscosity of the disk's gas at 1 AU, AU^2 per Myr (GEN.1515): `nu = alpha c_s^2 / Omega` with the sound speed from the disk's temperature there (`LINES_K["H2O"]` at the snow line, falling as the
+    square root of the distance, the law `place_au` uses) and the orbital frequency of the star's mass. Hotter gas (a brighter star, a farther snow line) is more viscous; a heavier star makes `Omega` larger
+    and the gas slower. With the temperature falling as `r^-1/2`, `nu` rises in proportion to `r`. [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    """
+    if not snow_line_au > 0.0 or not mass_solar > 0.0:
+        raise ValueError("the snow line and the mass must be positive")
+    temperature = disk_condensation.LINES_K["H2O"] * math.sqrt(snow_line_au)                       # at 1 AU
+    sound_squared = physical_constants.BOLTZMANN * temperature / (MEAN_MOLECULAR_WEIGHT * physical_constants.HYDROGEN_ATOM_MASS_KG)
+    omega = math.sqrt(physical_constants.G * mass_solar * physical_constants.SOLAR_MASS_TO_KG / physical_constants.AU_M ** 3)
+    nu = ALPHA * sound_squared / omega                                                              # m^2 per s
+    return nu * physical_constants.SECONDS_PER_YEAR * MYR_YR / physical_constants.AU_M ** 2
+
+
+def drift_speed_au_per_myr(snow_line_au, mass_solar=1.0):
+    """
+    The speed at which a steady disk carries its gas inward, AU per Myr (GEN.1515): `v = 3 nu / (2 r)` (steady accretion), the same at every distance because `nu` rises in proportion to `r`, so
+    `1.5 x` the viscosity at 1 AU over 1 AU. About 10.5 AU per Myr for the Sun (snow line 2.3 AU) at `ALPHA = 1e-3`, 8.8 for a 0.5 solar mass star (snow line 0.8 AU), 13 for 1.4 solar masses: a lag of 0.095, 0.113 and 0.077 Myr per AU (the fixed 0.05 it replaces was half the steady-disk speed's lag). [Stand-in DE5, tier Confident Unverified, tweak L0.]
+    """
+    return 1.5 * viscosity_at_1_au_au2_per_myr(snow_line_au, mass_solar)
+
+
+def lag_myr(from_au, to_au, snow_line_au, mass_solar=1.0):
+    """The time the gas takes to carry vapor from the line at `from_au` to a place at `to_au` inside it, Myr (DE5; the distance over `drift_speed_au_per_myr`); zero for a place at or outside the line."""
     if not from_au >= 0.0 or not to_au >= 0.0:
         raise ValueError("the distances must be zero or more")
-    return LAG_MYR_PER_AU * (REFERENCE_ALPHA / ALPHA) * max(from_au - to_au, 0.0)
+    return max(from_au - to_au, 0.0) / drift_speed_au_per_myr(snow_line_au, mass_solar)
 
 
 def tapered_ratio(age_myr, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
@@ -253,7 +273,7 @@ def enrichment_ratio(species, age_myr, snow_line_au, mass_solar=1.0, metal_ratio
     line = line_au_of(species, snow_line_au)
     if line >= edge_au(snow_line_au):
         return 0.0
-    lag = 0.0 if to_au is None else lag_myr(line, to_au)
+    lag = 0.0 if to_au is None else lag_myr(line, to_au, snow_line_au, mass_solar)
     if age_myr < lag:
         return 1.0                                  # the gas at the place has not crossed the line yet: it is the disk's own gas of the start, vapor and all (GEN.1517)
     first = arrival_myr(line, mass_solar)

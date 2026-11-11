@@ -63,17 +63,17 @@ def test_a_line_outside_the_disk_edge_gets_no_pebbles():
 
 def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_the_disk():
     line = dd.line_au_of("CO2", SUN_SNOW_LINE_AU)
-    place = 5.0
-    lag = dd.lag_myr(line, place)
-    assert lag == pytest.approx(dd.LAG_MYR_PER_AU * (line - place))
-    assert dd.lag_myr(5.0, 35.0) == 0.0                                              # a place outside the line has no lag
+    place = line - 2.0                                                              # a lag of about 0.2 Myr
+    lag = dd.lag_myr(line, place, SUN_SNOW_LINE_AU)
+    assert lag == pytest.approx((line - place) / dd.drift_speed_au_per_myr(SUN_SNOW_LINE_AU))
+    assert dd.lag_myr(5.0, 35.0, SUN_SNOW_LINE_AU) == 0.0                                              # a place outside the line has no lag
     first, reached = dd.arrival_myr(line), dd.arrival_myr(dd.edge_au(SUN_SNOW_LINE_AU))
     # before the gas could have crossed the line (the age under the lag): the gas at the place is the disk's own gas of the start, with its vapor (GEN.1517)
     assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, to_au=place) == 1.0
     assert dd.enrichment_ratio("CO2", 0.999 * lag, SUN_SNOW_LINE_AU, to_au=place) == 1.0
     assert dd.enrichment_ratio("CO2", 1.001 * lag, SUN_SNOW_LINE_AU, to_au=place) != 1.0       # past it the gas crossed the line, and the lagged ratio takes over
     # after the front passes the edge, the window still holds the pebbles that were: the lagged value fades with the taper and is zero when the disk is gone
-    ages = [reached + 0.5 * lag, reached + 1.0 * lag, reached + 2.0 * lag]
+    ages = [reached + 1.0 * lag, reached + 2.0 * lag, reached + 4.0 * lag]
     values = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, to_au=place) for age in ages]
     assert values[0] > values[1] > values[2] > 0.0
     # the mean never exceeds the largest tapered ratio in the epoch
@@ -138,7 +138,7 @@ def test_the_carbon_and_oxygen_in_the_gas_and_the_solids_stay_the_budget_for_the
 
 
 def test_inside_the_water_line_the_pebble_epoch_gas_is_oxygen_rich_and_the_late_gas_is_the_supply():
-    early = dd.ice_weights(300.0, 0.1, SUN_SNOW_LINE_AU)
+    early = dd.ice_weights(300.0, 0.15, SUN_SNOW_LINE_AU)                                 # 0.14 Myr is the lag from the water line to 300 K
     assert early["H2O"] > 1.0
     assert dd.ice_weights(300.0, 0.05, SUN_SNOW_LINE_AU)["H2O"] == 1.0                    # younger than the lag from the water line: the gas never crossed it (GEN.1517)
     late = dd.ice_weights(300.0, 5.0, SUN_SNOW_LINE_AU)
@@ -201,11 +201,11 @@ def test_the_cold_finger_enrichment_is_one_over_one_minus_the_leak_cut_by_the_ic
 
 
 def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_without_keeps_the_static_disk():
-    subject = {"formation_temperature_k": 300.0, "disk_snow_line_au": 3.7, "host_mass_solar": 1.2, "metallicity_fe_h": 0.0}   # a giant of an F star gathers its gas after the lag from the water line
-    assert mixture_giant._disk_ice_weights(subject, 300.0)["H2O"] > 1.0
-    assert mixture_giant._disk_ice_weights({"formation_temperature_k": 300.0}, 300.0) is None
+    subject = {"formation_temperature_k": 250.0, "disk_snow_line_au": 3.7, "host_mass_solar": 1.2, "metallicity_fe_h": 0.0}   # a giant of an F star gathers its gas after the lag from the water line
+    assert mixture_giant._disk_ice_weights(subject, 250.0)["H2O"] > 1.0
+    assert mixture_giant._disk_ice_weights({"formation_temperature_k": 250.0}, 250.0) is None
     drift = mixture_giant._disk_c_over_o(subject, 0.3)
-    static = mixture_giant._disk_c_over_o({"formation_temperature_k": 300.0}, 0.3)
+    static = mixture_giant._disk_c_over_o({"formation_temperature_k": 250.0}, 0.3)
     assert drift < static
     assert math.isfinite(drift)
 
@@ -263,3 +263,16 @@ def test_a_core_farther_out_needs_more_pebbles_and_a_larger_core_needs_more():
     assert dd.pebble_mass_for_core(5.0, 15.0) > dd.CRITICAL_CORE_EARTH             # the efficiency is below 1: more pebbles pass than the core keeps
     with pytest.raises(ValueError):
         dd.pebble_mass_for_core(5.0, 1e-4)
+
+
+def test_the_drift_speed_follows_the_viscosity_of_the_disk():
+    sun = dd.drift_speed_au_per_myr(SUN_SNOW_LINE_AU)
+    assert sun == pytest.approx(1.5 * dd.viscosity_at_1_au_au2_per_myr(SUN_SNOW_LINE_AU))
+    assert 5.0 < sun < 20.0                                                          # AU per Myr, a Sun-like disk at alpha 1e-3
+    # a hotter disk (a farther snow line) is more viscous; a heavier star makes the gas slower at the same temperature
+    assert dd.drift_speed_au_per_myr(2 * SUN_SNOW_LINE_AU) == pytest.approx(math.sqrt(2.0) * sun)
+    assert dd.drift_speed_au_per_myr(SUN_SNOW_LINE_AU, 2.0) == pytest.approx(sun / math.sqrt(2.0))
+    # the lag is the distance over the speed and rises with the turbulence's inverse
+    assert dd.lag_myr(35.0, 5.0, SUN_SNOW_LINE_AU, 1.0) == pytest.approx(30.0 / sun)
+    with pytest.raises(ValueError):
+        dd.viscosity_at_1_au_au2_per_myr(0.0)
