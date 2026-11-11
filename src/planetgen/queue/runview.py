@@ -56,7 +56,7 @@ def summary(run, now):
     return {
         "id": run["id"], "title": run["title"], "kind": run["kind"], "who": run["who"] or None,
         "database": run["database"] or None, "job": run["job"], "argv": run["argv"], "state": run["state"],
-        "error": run["error"],
+        "error": run["error"], "killed": run.get("killed", False), "killed_reason": run.get("killed_reason"),
         "live": live, "stale": runrecord.is_stale(run, now), "created": run["created"], "started": started,
         "updated": run["updated"], "finished": run["finished"],
         "seconds": None if started is None else max((end or now) - started, 0.0),

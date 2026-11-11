@@ -2,6 +2,83 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3804] - 2026-11-10
+
+**Headline:** A companion star's secular forcing of a belt's members is built and measured, but nothing reads it yet, so nothing generated changes.
+
+### Changed
+- New `physics/belt_forcing.py` (GEN.1492 slice 0): the forced eccentricity of a belt member from each companion (exact Laplace coefficients, the eccentric-companion factors), diluted by the apsidal rate of the star's planets and relativity (`secular_chain.matrices` with the member as a body of no mass), the vector sum with the member's drawn eccentricity, and the companion's periapsis direction drawn per system from its own stream. Stand-in rows FE1 to FE4 (section 6.256), wiring-register lines for the module and rows FE2 and FE4.
+- A census of 499 belts of 300 generated pairs (`tests/audit/belt_forcing_census.py`): median forced eccentricity 2 percent of the drawn rms, 4 percent of belts forced harder than drawn, 31 percent diluted by half or more by the planets. These go to slice 1.
+- Nothing is wired, stored or drawn; output is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3803] - 2026-11-10
+
+**Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
+
+### Added
+- **Design note for GEN.1492** (`docs/design/systems/belt-secular-excitation-by-companions.md`): what the belt roster does today, the first-order secular theory (forced eccentricity, diluted by the planets' own precession), what it leaves out (inclination, Kozai, planets), and two slices (the calibration module, then the wiring as a lock item). Three questions for TODO.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3802] - 2026-11-10
+
+**Headline:** The run-job stage-numbering test plans a 60 pc galaxy, not a 300 pc one, so it takes under a minute instead of several.
+
+### Changed
+
+- `tests/test_run_job.py::test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_run` planned a 300 pc galaxy and scattered mass and luminosity on it: 280 s on a lane machine beside four other jobs, and Lane 05 saw it red alone on main after its 120 s limit while it passed on the branch in 179 s. What the test checks (the stages numbered from the step's offset, the progress file, one run in the history, the stored galaxy) does not depend on the size, so the plan edge is 60 pc: 46 s alone, the whole file 192 s. The generator is unchanged.
+
+generation-affects: none
+
+## [8.0.3801] - 2026-11-10
+
+**Headline:** A killed run can be carried on from the Queue page: a Resume run button, and a stored killed flag on the run record that says when to show it (OPS.144).
+
+### Changed
+- **The run record says when a run was killed.** `runrecord.mark_killed` sets `killed` and `killed_reason` on a run ended from outside its work: canceled (the admin's Cancel and Stop everything), cleared, its process gone, a unit's worker killed or lost, or a unit ended by RQ at its time limit (`JobTimeoutException`, `WorkerLostError`). A unit that fails with an error of its own is a failure, not a kill. `finish_run(..., killed=True)` takes the flag with the ending; the heartbeat judge's stop and fail paths (OPS.140) call `mark_killed` before they end the run. The API's run summary carries `killed` and `killed_reason`.
+- **Resume run.** The Queue page and a run's page show "Resume run" on a generation run that was killed and ended failed or canceled, that no run has carried on, on the galaxy and build it worked on. It confirms first (how many finished stages the new run keeps and where it starts), then starts `planetgen finish-run --run <id>` as a Generate page job: the same carry-on as the Generate page's "Finish the last run" (PERF.182, `generate_page.finish_status` now takes the run). A run's page also says it was killed and why.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3800] - 2026-11-10
+
+**Headline:** `planetgen fill-map-luminosity` no longer reads the whole scatter table once before its first unit starts.
+
+### Changed
+
+- The expansion of the fill counted `phenomenon_scatter` rows with a mass and no map luminosity yet to print how many there were. No index serves that condition, so on a full galaxy the count was a read of the whole table, single-threaded and outside the memory gate, before any unit ran. It is gone; the plan line names the highest id instead. The units read the same rows, a bounded id range each, in parallel and under the gate.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3799] - 2026-11-10
+
+**Headline:** Generating a system is about 9 percent faster, with every stored value identical.
+
+### Changed
+
+- `interior_heat.heat_flow` now keeps the result of each call it has answered (PERF.198): about two calls in three of a system ask the interior-heat box about the same body again (the settle-to-final-age step and the tide's decay-time loops), and the answer is the same object, so the stored numbers do not change. On 12 systems the run took 15.2 s before and 13.8 s after, with the same hash of every body's values.
+- The item as first written (a faster `detmath.matmul` and a cache of equal `gas_equilibrium.solve` calls) found little left to take: `matmul` is 1 to 3 percent of a system since PERF.201 and PERF.246, and equal gas solves repeat in under 1 percent of calls.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3798] - 2026-11-10
+
+**Headline:** A molten world whose buffered oxygen fills the gas pressure at 6000 K now generates, with the carbon gas solved at a slightly higher pressure, instead of failing the whole system.
+
+### Changed
+
+- GEN.1513: `mixture_lava.vapor_mixture` solved the carbon gas of a volatile-bearing melt at the surface pressure with the oxygen held at the buffer's fugacity. At 6000 K the buffer's fugacity can be 10^5.13 bar against 1.4e5 bar of gas (94 percent), the solve then has no room for the carbon and raised "no convergence at 6000 K and 143497 bar", which failed the generation of the zeta Ophiuchi example about one run in eight. New `carbon_gas` tries again at a gas pressure higher by `CARBON_GAS_PRESSURE_STEP` (1.25) up to `CARBON_GAS_PRESSURE_STEPS` (8) times, as the GEN.1296 share rule already raises it for the melt's own oxygen; it converges within three steps from 4500 to 6000 K and fugacities of 1e3 to 1e7 bar, and ends in a `MixtureError` otherwise. A gas that converged is left at its pressure, so nothing that generated before changes.
+- Check: 40 seeds of the zeta Ophiuchi example built with no error (seed 9 was the failing one before).
+
+generation-affects: none
+
 ## [8.0.3797] - 2026-11-10
 
 **Headline:** A belt is now numbered among the belts of its own star, closest first from 1, so a lone belt behind four planets is Asteroid belt 1, not Asteroid belt 5.

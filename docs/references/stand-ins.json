@@ -60285,6 +60285,166 @@
       "title": "Stand-ins of the late accretion the air reads from the system"
     },
     {
+      "key": "6.256",
+      "number": "6.256",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the first-order secular forcing: e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c) with exact Laplace coefficients and the factors (1 - e'^2)^(-3/2) and (1 - e'^2)^(-5/2) of an eccentric companion; about (5/4) alpha e' / (1 - e'^2) for a small alpha"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "alpha below ALPHA_LIMIT, e_forced below 0.3"
+            ],
+            [
+              "What would show it wrong",
+              "members of a measured belt in a close binary whose eccentricities lack the forced part by more than the free scatter"
+            ],
+            [
+              "What replaces it",
+              "an N-body integration of test bodies in a binary"
+            ],
+            [
+              "Evidence",
+              "Murray and Dermott, Solar System Dynamics, sections 7.2 and 7.3 [R3220], recalled; census reports/gen1492-belt-forcing-census-2026-11-09.md"
+            ]
+          ],
+          "id": "FE1",
+          "key": "6.256:FE1",
+          "kind": "T",
+          "slug": "6-256-fe1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the first-order secular forcing: e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c) with exact Laplace coefficients and the factors (1 - e'^2)^(-3/2) and (1 - e'^2)^(-5/2) of an eccentric companion; about (5/4) alpha e' / (1 - e'^2) for a small alpha"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit)"
+            ],
+            [
+              "The range it moves in",
+              "0 to 2 pi"
+            ],
+            [
+              "Where it holds",
+              "systems with a companion"
+            ],
+            [
+              "What would show it wrong",
+              "a stored orientation of the star orbit, once one exists"
+            ],
+            [
+              "What replaces it",
+              "the stored orientation"
+            ],
+            [
+              "Evidence",
+              "no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members"
+            ]
+          ],
+          "id": "FE2",
+          "key": "6.256:FE2",
+          "kind": "P",
+          "slug": "6-256-fe2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the forced inclination is zero: the orbits of stars are coplanar in the generator"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "coplanar star orbits"
+            ],
+            [
+              "What would show it wrong",
+              "a mutual inclination of the star orbits, once modelled (filed by TODO)"
+            ],
+            [
+              "What replaces it",
+              "forced inclination and Kozai pumping from a mutual inclination"
+            ],
+            [
+              "Evidence",
+              "design; the generator has no mutual inclination of stars"
+            ]
+          ],
+          "id": "FE3",
+          "key": "6.256:FE3",
+          "kind": "T",
+          "slug": "6-256-fe3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the forced inclination is zero: the orbits of stars are coplanar in the generator"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "belts cut inside the companion's tide"
+            ],
+            [
+              "What would show it wrong",
+              "a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses"
+            ],
+            [
+              "What replaces it",
+              "a higher-order expansion in alpha"
+            ],
+            [
+              "Evidence",
+              "recalled: the series in alpha converges slowly beyond a third; no belt of the census (499) lies beyond it"
+            ]
+          ],
+          "id": "FE4",
+          "key": "6.256:FE4",
+          "kind": "P",
+          "slug": "6-256-fe4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1492",
+          "what": "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
+        }
+      ],
+      "slug": "6-256-stand-ins-of-a-companion-star-s-secular-forcing-of-a-belt",
+      "title": "Stand-ins of a companion star's secular forcing of a belt"
+    },
+    {
       "key": "6.258",
       "number": "6.258",
       "rows": [

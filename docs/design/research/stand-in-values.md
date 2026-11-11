@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1543 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1547 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1517 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1521 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 79 | 11 | 4 | 22 | 12 | 128 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 194 | 104 | 30 | 79 | 4 | 411 |
+| T6 | 196 | 106 | 30 | 79 | 4 | 415 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 876 | 300 | 75 | 240 | 52 | 1543 |
+| All | 878 | 302 | 75 | 240 | 52 | 1547 |
 
 ## How the labels were given
 
@@ -2717,6 +2717,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | LA1 | P | T6 | L3 | `late_accretion.FLOOR_SHARE` 0.05: the least a rocky planet takes, as a share of the law's mean for its mass, for the planetesimals that never formed a belt (a planet no belt reaches) | 0.01 to 0.2 | rocky planets of 0.3 to 3 Earth masses | a measured veneer of a planet in a system with no belt that is below 0.01 or above 0.2 of the law's mean for its mass | a model of the leftover planetesimals of a system with no belt | recalled: the lowest published veneers (a few hundredths of a percent for the Moon against about half a percent for the Earth) are about 0.05 of the mean (census, `reports/gen1493-late-accretion-census-2026-11-09.md`: 43 percent of 246 planets take the floor) | predicted only | - | replace (GEN.1493) |
 | LA2 | T | T6 | L3 | a planet's late accretion has no scatter of its own: the log-normal draw of the law (GEN.739) is replaced by the supply of its system's belts, so planets differ because their systems do | none | rocky planets of single and multiple stars | a set of systems whose measured veneers scatter by more than the spread of their belts and neighbours explains | a draw of the belt's mass and reach from the nebula | design; census: the 10th and 90th percent of the law's mean are 0.05 and 4.36, and 22 percent of the planets are held at the old ceiling of 3 percent | predicted only | - | no data |
 | LA3 | P | T6 | L3 | `planets.LATE_ACCRETION_GATE` 0.5: the air is left as it is when the new late accretion moves the carbon and nitrogen it left by less than this share of what the volcanoes gave (a cost cut: the share is how far the inventory moves, not how far the air does) | 0.1 to 1 | rocky planets of 0.3 to 3 Earth masses with an air | a census in which the share of planets under the gate that differ from the full replay by more than 1 percent is well above the 5 percent of 246 found | the full replay for every planet, when the cost allows | fitted to the cost: 201 of 246 planets identical to the full replay and 13 differing by more than 1 percent (the worst 99 percent, a climate branch) and a 90th percentile of 2e-05 in pressure (census, `reports/gen1493-late-accretion-census-2026-11-09.md`); at 1.0 the worst of 60 planets was 29 percent | predicted only | - | replace (GEN.1493) |
+
+## 6.256 Stand-ins of a companion star's secular forcing of a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FE1 | T | T6 | L0 | the first-order secular forcing: `e_forced = abs(sum B_c exp(i varpi_c)) / (A_planets + A_relativity + sum A_c)` with exact Laplace coefficients and the factors `(1 - e'^2)^(-3/2)` and `(1 - e'^2)^(-5/2)` of an eccentric companion; about `(5/4) alpha e' / (1 - e'^2)` for a small `alpha` | none | `alpha` below `ALPHA_LIMIT`, `e_forced` below 0.3 | members of a measured belt in a close binary whose eccentricities lack the forced part by more than the free scatter | an N-body integration of test bodies in a binary | Murray and Dermott, Solar System Dynamics, sections 7.2 and 7.3 [R3220], recalled; census `reports/gen1492-belt-forcing-census-2026-11-09.md` | predicted only | - | - |
+| FE2 | P | T6 | L1 | the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit) | 0 to 2 pi | systems with a companion | a stored orientation of the star orbit, once one exists | the stored orientation | no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members | predicted only | - | - |
+| FE3 | T | T6 | L0 | the forced inclination is zero: the orbits of stars are coplanar in the generator | none | coplanar star orbits | a mutual inclination of the star orbits, once modelled (filed by TODO) | forced inclination and Kozai pumping from a mutual inclination | design; the generator has no mutual inclination of stars | predicted only | - | - |
+| FE4 | P | T6 | L1 | `belt_forcing.ALPHA_LIMIT` 0.3: the largest `a / a'` the first-order theory is used at | 0.2 to 0.4 | belts cut inside the companion's tide | a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses | a higher-order expansion in `alpha` | recalled: the series in `alpha` converges slowly beyond a third; no belt of the census (499) lies beyond it | predicted only | GEN.1492 | - |
 
 ## 6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple
 
