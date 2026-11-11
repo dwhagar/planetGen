@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.298 |
-| MAP | MAP.425 |
+| UX | UX.303 |
+| MAP | MAP.426 |
 | NAV | NAV.78 |
-| GEN | GEN.1555 |
+| GEN | GEN.1556 |
 | PERF | PERF.260 |
 | DB | DB.122 |
 | API | API.48 |
@@ -2918,7 +2918,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.112 | New galaxy jobs fail at stages 3 to 14 with numba "cannot cache function bright_ranges: no locator available" because the code tree is read-only to the service user since SEC.37 (bug) | none | done, PR #5477 |
 | OPS.113 | update.sh fails when started by systemd (the Update button and the monthly timer) while warm-up or other jobs run: a systemd-started update cancels everything except generation and refuses only while generation runs (bug) | none | done, PR #5485 |
 | OPS.114 | Warm-ups (update.sh, on-change, the nightly whole-map tiles build) exit cleanly with success and "galaxy is empty, nothing to warm up" when the database holds no galaxy, and update.sh says skipped, not failed (bug) | none | done, PR #5492 |
-| OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) | none | open |
+| OPS.115 | update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug) | none | done, PR #5562 and #5566 |
 | OPS.116 | One error.log in the log folder that records every error and crash from everything (every logger, subprocess, killed worker, update.sh and warm-up stage, web and API error, uncaught exception), while each error still goes to its own log too | none | done, PR #5579 |
 | OPS.117 | update.sh's warm-up part 2 failed with "run ... is running" because the epoch's warm-up had started the moment the update ended, and the phase lines gave the workers' seconds added up (5338 s for 9:39), a wrong chunk size and an out-of-memory guess for a SIGTERM (bug) | none | done, PR #5584 |
 | OPS.118 | Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug) | none | open |
@@ -3738,6 +3738,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1552 | Bodies appear only once the star's own disk is gone: the fixed 10 Myr planet cut becomes the star's own dispersal time, with belts as the debris that follows | GEN.1551, GEN.1546 | open |
 | GEN.1553 | Census (add to GEN.1549): share of stars with a disk, with bodies, with neither, by age bin 0 to 1, 1 to 3, 3 to 6, 6 to 10 and 10 to 30 Myr, against the survey curve | GEN.1549, GEN.1551, GEN.1552 | open |
 | GEN.1554 | K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone | none | open |
+| GEN.1555 | (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body) | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4676,6 +4677,11 @@ Each citation below resolves to one item by its date.
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting | none | open |
 | UX.296 | The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link | API.46 | open |
 | UX.297 | A groundless body (sub-Neptune or gas dwarf) shows its pressure as a reference level, not a surface pressure, on the sheet, the page and the docs | none | open |
+| UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | open |
+| UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | open |
+| UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | open |
+| UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | open |
+| UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |
 
 ### Code tags `TODO(<area> #N)`
 
@@ -4716,6 +4722,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | open |
 | MAP.423 | (bug) Hot-star nebulae (emission, reflection, planetary, remnants) near the Sun and in the outer disk are effectively not drawn on the map | GEN.1267 | open |
 | MAP.424 | (bug) The Galaxy Map's sector list query (GET /api/galaxy/sectors) hits the 10 s database statement timeout on Boss's server, so /galaxy returns 504 and the cache warm-up fails with QUERY_TIMEOUT | none | open |
+| MAP.425 | (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame) | none | open |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 

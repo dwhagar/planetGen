@@ -13189,6 +13189,41 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 15 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **UX.298 The single-system generator page cannot ask for a rogue planet or a starless result**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the control (reusing the generator's existing rogue-planet option; no new option) with wording, a result link and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.299 The single-system generator page has no weirdness dial or oddities control**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the weirdness dial and the oddities choice the CLI already has, with the same wording and limits, and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.300 The single-system generator page has no debug-areas choice for the debug log**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the debug-areas choice the CLI has, writing to the same debug log, and a test. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.301 Phone-width and accessibility check of the single-system generator page and its result document**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Check at phone width and with keyboard and screen-reader basics (labels, contrast, focus order, table scroll), fix the small gaps and file the rest. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **UX.302 The single-system generator page has no life-class, class-letter or fudge override on its form**
+  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Needs a generator option first (a request for a life class or class letter with the fudge shown), so it follows that option and is not lock-free. Do: file the generator option as its own item first, then the form control.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1555 (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body)**
+  Two lane reports, 6:15 PM EST on 2026-11-11 (as the lanes reported). Lane 14, found by GEN.1403 (PR 6062): a body at 2.44 au that sat on MOIST_LIMIT_K (375 K) before goes to frozen and airless (about 230 K colder) after a small change in weathering, and a second body (G2V seed 3085) goes from 313 K to 120 K; less weathering cannot cool a real world, so this is the solver choosing the other branch, not the feedback; seeds G2V 3032 and 3085 on the GEN.1403 branch show it. Lane 21, found by the Train 24 red in test_surface_air: bodies near water's boiling point at a pinned 10 kPa swing between a cool CO2 air (about 459 K, 140 Pa of water) and a steam air (about 600 K, 8.6 kPa of water) every step, so the fixed point never settles; the same cycle shows in the class T and class E cases; unsettled airs are 10 of 132 on main and 8 of 129 on Train 24 (about 6 to 8 percent). Do: find the cause in the fixed-point loop (the guard at MOIST_LIMIT_K and the water-vapor step), make the branch choice a deterministic, physical rule (damped or bracketed solve, or pick the stable branch by energy balance), report how many bodies change, and replace the loosened test cap (a fifth) with a real bound. Lock item (stored output changes), new epoch.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14 (air side), with Lane 21 for the surface-air test. Prerequisites: none. Related: GEN.1403, GEN.993, GEN.1548.
+  Filed by the TODO thread.
+
+- [ ] **MAP.425 (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame)**
+  Boss live observation (relayed by the coordinator, about 6:20 PM EST on 2026-11-11, with screenshots of Agnowee VIb, VIc and VIg), diagnosed by Lane 04 (as the lane reported 6:26 PM EST on 2026-11-11): the scene draws the ring from the moon's stored inclination and ascending node, which are measured in its planet's equator (GEN.1352), but the moon's position comes from its stored state vector, which is in the star's frame, so the ring lies in another plane; 70 of 118 sampled bodies show it, all moons. Do: systemscene._orbit takes inclination and node from the state, as it already does for eccentricity and periapsis; a test checks that every ring's plane contains its body's position and velocity. Display only, lock-free, no migration.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.1352.
+  Filed by the TODO thread. Boss-visible bug.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -14182,10 +14217,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.115 update.sh and set-permissions.sh warn about files that already exist on every update (config.json in both the checkout and the state folder): existing files are normal, so they are an info note, not a warning (bug)**
-  Boss live observation, relayed by a lane (as the lane reported 11:13 AM EST on 2026-11-07): the pull step of update.sh lists untracked files in its "uncommitted local changes will be overwritten" warning, and set-permissions.sh logs a WARNING when config.json exists in both places. Do: the pull warning ignores untracked files; the both-exist line is an INFO note; nothing is moved or deleted; the deploy-script test asserts no WARNING is printed. Built: PR 5562 (branch claude/project-thread-om7xej, touches update.sh, examples/apache/set-permissions.sh, src/tests/test_deploy_scripts.py), waiting for the changed-tests gate on a lane machine. Done: PR 5562 merged. Lock-free. Goal issue #5433. Version 8.1. Owner: none (the PR is built). Filed by the TODO thread.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
