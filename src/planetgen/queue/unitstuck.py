@@ -12,7 +12,9 @@ still for far longer than this command has ever stood still (`beatjudge`: dead a
 4. **run alone (OPS.145)**: the queue is held (`pause.hold_solo`, the one pause flag, naming the reason and the run) so that every other task waits, and the memory gate and the
    scheduler give the restarted unit the host (`memorygate.Claim.solo`); the hold lifts when the unit completes or the run ends, here or, if this follower is gone, when the unit's
    job has ended (`pause.state`), and an admin can lift it from the Queue page;
-5. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
+5. **run in debug mode (OPS.146)**: with `queue.debug_restarted_units` on, the restarted attempt writes a debug file of its own (`unitdebug`), which the follower makes here with the first
+   attempt's stack at the top; the unit's record names it (`debug_file`) and the run's log gets one line pointing at it;
+6. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
 
 A unit whose counter moves is never here, at any size over its estimate: `beatjudge` only calls dead and quiet actionable. Every stop or failure sets the run's killed flag
 (`runrecord.mark_killed`, OPS.144; `finish_run(killed=True)` for the failure) with the reason. What was done to each unit is kept in `runrecord.stuck_key` (one JSON field to a unit), so a follower that is restarted
@@ -27,7 +29,7 @@ import time
 import rq
 from rq import command
 
-from planetgen.queue import pause, redisqueue, runrecord, unitbeat
+from planetgen.queue import pause, redisqueue, runrecord, unitbeat, unitdebug
 
 DUMP_WAIT_SECONDS = 3.0
 """float: How long the follower waits for a horse to write its stack after the signal."""
@@ -50,6 +52,15 @@ def alive(pid, host):
     except PermissionError:
         return True
     return True
+
+
+def debug_file_of(conn, run_id, stage, unit):
+    """The debug file the follower made for the restarted attempt of this unit (`Stuck._begin_debug_file`), or `""` when it is not a restarted unit or none was made. Never raises: the unit runs the same."""
+    try:
+        raw = conn.hget(runrecord.stuck_key(run_id, stage), unit)
+        return str(json.loads(raw if isinstance(raw, str) else raw.decode()).get("debug_file") or "") if raw else ""
+    except Exception:  # noqa: BLE001 -- debug mode is a nicety
+        return ""
 
 
 def request_dump(raw, signal_process=os.kill, wait=DUMP_WAIT_SECONDS, sleep=time.sleep):
@@ -140,6 +151,17 @@ class Stuck:
                 runrecord.log(self.conn, self.run_id, f"unit {solo['unit']} is {'complete' if live else 'no longer running'}: the queue is released", "info", "unit-solo-over",
                               stage=self.stage, unit=solo["unit"])
 
+    def _begin_debug_file(self, unit, record, job):
+        """OPS.146: makes the debug file of the restarted attempt, with the stack of the first at its top, and has the unit's record name it before the unit is queued (the horse reads the name from there)."""
+        attempt = int(record.get("attempts", 1)) + 1
+        path = unitdebug.begin(job.id, attempt, f"unit {unit} of stage {self.stage} of run {self.run_id}", record.get("reason", ""), record.get("dump", ""))
+        if path is None:
+            return record
+        record = {**record, "debug_file": path}
+        self.conn.hset(self.key, unit, json.dumps(record))
+        runrecord.log(self.conn, self.run_id, f"unit {unit} is run in debug mode on its restart: see {path}", "info", "unit-debug-file", stage=self.stage, unit=unit)
+        return record
+
     def _hold_for_solo_run(self, unit, job):
         """Holds the queue for the restarted `unit` (unless it is turned off or the queue is paused already, by hand or for another unit) and says so in the run log."""
         if not self._solo:
@@ -190,6 +212,7 @@ class Stuck:
 
     def _requeue(self, unit, record, job):
         self.conn.hdel(runrecord.progress_key(self.run_id, self.stage), unit)       # the beat of the stopped attempt would read as dead beside the new one
+        record = self._begin_debug_file(unit, record, job)
         redisqueue.requeue_job(job, self.conn, at_front=True)           # at the front: it is the one job the held workers are to reach
         self.conn.hset(self.key, unit, json.dumps({**record, "phase": "requeued"}))
         self._hold_for_solo_run(unit, job)

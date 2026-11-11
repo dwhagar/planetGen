@@ -77,6 +77,7 @@
     "long_workers": 1,
     "long_job_seconds": 60.0,
     "sky_limit": 7.5,
+    "debug_restarted_units": true,
     "unit_ceiling_seconds": 300.0,
     "wait_minutes": 60.0,
     "max_waiting": 8

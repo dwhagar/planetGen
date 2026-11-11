@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat
+from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat, unitdebug, unitstuck
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -217,6 +217,11 @@ def resident_mb():
 
 
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
+    with unitdebug.session(unitstuck.debug_file_of(conn, run_id, stage, unit)):       # OPS.146: the restarted attempt of a unit that was found stuck is run in debug mode, to a file of its own
+        return _do_unit_work(conn, run_id, stage, unit, kind, args, cost)
+
+
+def _do_unit_work(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
