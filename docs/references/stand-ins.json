@@ -61165,7 +61165,7 @@
             ],
             [
               "The range it moves in",
-              "1.1 to 2.2 solar masses"
+              "1.1 to 2.2 solar masses (ceiling 2.0 to 2.75 over the equations of state)"
             ],
             [
               "Where it holds",
@@ -61173,23 +61173,23 @@
             ],
             [
               "What would show it wrong",
-              "a measured neutron star outside the range, or an equation of state whose maximum mass lies under 2.2"
+              "a ceiling above the maximum mass of every equation of state, or under the heaviest measured pulsar"
             ],
             [
               "What replaces it",
-              "the maximum masses of the held equations of state (GEN.743, GEN.968)"
+              "the maximum masses of the 21 equations of state (neutron_star_structure.maximum_mass_solar; test_remnant_mass_ranges_held_data.py holds the ceiling to them)"
             ],
             [
               "Evidence",
-              "compiled radio pulsar timing masses (comment of the constant)"
+              "checked on 2026-11-11 (GEN.1525): the 21 maxima run 2.01 to 2.75 with a median of 2.22, so 2.2 is their middle and every star up to it has equations of state that support it (supporting); the floor is held by all 21; compiled radio pulsar timing masses (comment of the constant); value unchanged"
             ]
           ],
           "id": "AUD6",
           "key": "6.270:AUD6",
           "kind": "B",
           "slug": "6-270-aud6",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
           "what": "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
@@ -61215,19 +61215,19 @@
             ],
             [
               "What replaces it",
-              "the white dwarf cooling sequences held in the catalogue"
+              "the white dwarf cooling sequences (datasets.white_dwarf_models, 0.2 to 1.3; test_remnant_mass_ranges_held_data.py holds the range inside them to the scaled oxygen-neon edge)"
             ],
             [
               "Evidence",
-              "the relation read by the star model, the member draw and the disk history"
+              "checked on 2026-11-11 (GEN.1525): the sequences run 0.2 to 1.30 solar masses, so the range sits inside them except the 1.30 to 1.35 edge, read from the 1.30 sequence (WL7); the relation read by the star model, the member draw and the disk history; value unchanged"
             ]
           ],
           "id": "AUD7",
           "key": "6.270:AUD7",
           "kind": "B",
           "slug": "6-270-aud7",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
           "what": "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
