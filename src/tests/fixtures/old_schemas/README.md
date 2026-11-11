@@ -123,3 +123,5 @@ Commit each file came from:
 - v241: after GEN.1478's migration 0241 (system summary figures), before GEN.1484 light_factor column (0242)
 - v242: after GEN.1484's migration 0242 (light_factor column), before GEN.1497 body history table (0243)
 - v243: after GEN.1497's migration 0243 (body history table), before GEN.1314 class fudge columns (0244)
+- v244: after GEN.1314's migration 0244 (class fudge columns), before GEN.1425 cloud_chemistry column (0245)
+- v245: after GEN.1425's migration 0245 (cloud_chemistry column), before GEN.1498 system_summary ledger_stamp column (0246)
