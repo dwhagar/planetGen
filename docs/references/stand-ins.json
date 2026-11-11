@@ -44665,7 +44665,7 @@
             ],
             [
               "Evidence",
-              "[R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is not built, no excess size in hand"
+              "[R2923]: the I-Pu-Xe closure age of the Earth is 40 to 50 Myr after correction (about 120 uncorrected); 136Xe from 244Pu is ISO35 to ISO38 (GEN.1507)"
             ]
           ],
           "id": "ISO28",
@@ -44905,6 +44905,158 @@
           "tweak": "L0",
           "unread": null,
           "what": "isotope_record.REGOLITH_BERYLLIUM_G_G 1.5e-6 and DEFAULT_ROCK_AL2O3 0.15: the beryllium and (where the body stores none) the aluminium oxide of the surface rock"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.SOLAR_XE_136_OVER_130 1.797: the solar gas ratio the fission excess of 136Xe is counted from"
+            ],
+            [
+              "The range it moves in",
+              "1.7 to 1.9"
+            ],
+            [
+              "Where it holds",
+              "any star's gas"
+            ],
+            [
+              "What would show it wrong",
+              "a solar ratio outside 1.7 to 1.9"
+            ],
+            [
+              "What replaces it",
+              "the star's own gas by metallicity"
+            ],
+            [
+              "Evidence",
+              "[R5219: Table 3]: solar wind 136Xe/132Xe 0.2985 over 130Xe/132Xe 0.1661 (the quotient is derived here)"
+            ]
+          ],
+          "id": "ISO35",
+          "key": "6.236:ISO35",
+          "kind": "T",
+          "slug": "6-236-iso35",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.SOLAR_XE_136_OVER_130 1.797: the solar gas ratio the fission excess of 136Xe is counted from"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.MANTLE_XE_136_OVER_130 2.478: the 136Xe/130Xe of the Earth's upper-mantle gas"
+            ],
+            [
+              "The range it moves in",
+              "2.40 to 2.55"
+            ],
+            [
+              "Where it holds",
+              "the Earth"
+            ],
+            [
+              "What would show it wrong",
+              "a mantle gas outside 2.3 to 2.7"
+            ],
+            [
+              "What replaces it",
+              "the mantle's own uranium and plutonium over xenon and its closure time"
+            ],
+            [
+              "Evidence",
+              "[R5219: Table 2]: the two segments of the Southwest Indian Ridge, 2.554 and 2.402, from 136Xe/132Xe over 130Xe/132Xe of the sources corrected for air (the quotients are derived here)"
+            ]
+          ],
+          "id": "ISO36",
+          "key": "6.236:ISO36",
+          "kind": "T",
+          "slug": "6-236-iso36",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.MANTLE_XE_136_OVER_130 2.478: the 136Xe/130Xe of the Earth's upper-mantle gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.PU_SHARE_OF_FISSION_XE136 0.28: the share of the mantle's fission 136Xe that 244Pu made"
+            ],
+            [
+              "The range it moves in",
+              "0.17 to 0.39"
+            ],
+            [
+              "Where it holds",
+              "the Earth's ridge sources"
+            ],
+            [
+              "What would show it wrong",
+              "a share outside 0.1 to 0.5"
+            ],
+            [
+              "What replaces it",
+              "the body's uranium, plutonium and closure history"
+            ],
+            [
+              "Evidence",
+              "[R5219: Sec. 4.2]: 0.28 (+0.11, -0.10) for ridge basalts, 0.31 and 0.36 by the end member chosen, plume sources 0.96 (read from a model summary of the paper, not verbatim)"
+            ]
+          ],
+          "id": "ISO37",
+          "key": "6.236:ISO37",
+          "kind": "T",
+          "slug": "6-236-iso37",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.PU_SHARE_OF_FISSION_XE136 0.28: the share of the mantle's fission 136Xe that 244Pu made"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "isotope_record.mantle_sheet_rows: the 238U part of the fission 136Xe is the Earth's for every body, and the 244Pu part scales with the body's birth 244Pu/238U over the early Solar System's"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a body whose uranium over xenon or age moves its 238U fission xenon by more than a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "the body's own uranium content and age"
+            ],
+            [
+              "Evidence",
+              "my simplest form: the 244Pu part carries the star's difference, the 238U part would follow the body's uranium and age and is left out"
+            ]
+          ],
+          "id": "ISO38",
+          "key": "6.236:ISO38",
+          "kind": "P",
+          "slug": "6-236-iso38",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "isotope_record.mantle_sheet_rows: the 238U part of the fission 136Xe is the Earth's for every body, and the 244Pu part scales with the body's birth 244Pu/238U over the early Solar System's"
         }
       ],
       "slug": "6-236-stand-ins-of-the-isotope-record-of-a-body",

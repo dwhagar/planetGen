@@ -2,6 +2,117 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3822] - 2026-11-11
+
+**Headline:** A rocky world's sheet now shows the xenon-136 over xenon-130 of its mantle gas, which carries the plutonium-244 that its star's gas held.
+
+### Changed
+
+- The property sheet of a rocky body has a fifth mantle line, the 136Xe/130Xe of its mantle's gas (GEN.1507): the solar wind's 1.797 plus the Earth's fission excess (the ridge sources' 2.478), of which 28 percent is the 244Pu part and scales with the body's own birth 244Pu/238U over the early Solar System's. A star poorer in plutonium gives its worlds a smaller 136Xe excess. The line is derived from the stored isotope rows, so nothing new is stored.
+- Stand-ins ISO35 to ISO38 are in section 6.236 of the registry; the numbers are from a paper on the fission xenon of ridge basalts (R5219).
+- Stored values, generation and the epoch are unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3821] - 2026-11-11
+
+**Headline:** The squeezed-heliopause system-sheet test names its nebula, so the text it checks matches what the sheet says for a named cloud.
+
+### Fixed
+- **`test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause` named an unnamed nebula.** `_placed_nebula` inserts a nebula with an empty name, and the sheet then says "the gas of the cloud around the system presses it in" while the test looked for "the gas of  around ..." with the empty name. The test now gives the nebula the name "Test Cloud" with the same update that sets its density and temperature, so the sentence it checks carries a name. A test-side fix only; no product code changed. Reused: the existing `_placed_nebula` helper and the sheet's own `or 'the cloud'` fallback.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3820] - 2026-11-11
+
+**Headline:** After the stuck action stops a unit and queues it again, every other task is held so the restarted unit runs alone, the Queue page says so and who holds it, and the hold lifts by itself when the unit completes or fails (OPS.145, heartbeat part 8).
+
+### Added
+- **A solo hold on the one pause flag.** `queue/pause.py` keeps its flag (`planetgen:queue:paused`) and gives it two fields, `reason` and `solo` (the unit whose job is let through). `pause.hold_solo` is called by `unitstuck.Stuck` when it queues the stopped unit again, at the front of its queue (`redisqueue.requeue_job(..., at_front=True)`); `pause.blocks` is what the workers ask. A worker that takes any other job while the hold is on puts it back at the end of its queue and waits (`cli/worker.py`), so nothing new starts beside the unit; units already running finish or stop at their next batch. A pause made by hand is never replaced by a hold, and the follower never lifts a pause it did not make.
+- **The hold lifts by itself.** The follower lifts it when the unit is complete, when the run fails (including the unit's second stuck verdict) or ends, and `pause.state` drops it when the unit's job has ended or is gone (a follower that died). An admin can lift it from the Queue page: it reads "The queue is held by run ...: solo run of unit N (stage S) after a restart", with a Lift the hold button (`queue-resume`). `GET /api/admin/work` status gains `paused_reason` and `solo_unit`.
+- **The memory gate gives the restarted unit the host.** `memorygate.Claim.solo`: the unit asks for the whole memory budget of the lanes that are not the site's (`memorygate.solo_mb`: the host's memory less its own reserve and the places kept for the interactive and long lanes), waits until no claim of the bulk or maintenance lanes is held, and no bulk or maintenance claim is admitted while it is held. The site's lanes are not held.
+- **The scheduler treats the solo run as a turn that does not rotate.** The solo ticket goes before every other (`scheduler.SOLO_WEIGHT`), holds the bulk lanes back while it waits, and its time is not charged to its kind (`memorygate.release`), so the kinds that waited are not behind it when the hold lifts and keep the waiting they did.
+
+### Changed
+- `pause.state()` returns `reason` and `solo` too (`None` for a pause by hand).
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3819] - 2026-11-11
+
+**Headline:** The page of a belt member now shows a picture of the body: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.413: `/object/belt:<ID>/member/<rank>` has a "Sensor view" panel above the table. `bodyview.member_view(designation, member)` makes the look record with `bodylook.member_look` (MAP.412) from the page's member block, its seed from the designation so the 3D view (MAP.414) draws the same body; the existing `static/bodyview.js` paints it (a body under the roundness limit through `lumpyview.js`, a round one as a sphere). One body per page; nothing is guessed, so there is no estimate line. The caption says the colour comes from the taxon and the shares of rock, metal, water and ice.
+- Reused: `bodyview.js`, `lumpyview.js` and `lumpymesh.js` unchanged, the item page's Sensor panel markup, `bodylook.member_look`. Checked in headless Chromium: a lumpy dark carbonaceous body and a round stony one paint with no console message.
+
+generation-affects: none
+
+## [8.0.3818] - 2026-11-11
+
+**Headline:** A belt member now has a look record, so the pages and the 3D view can draw it: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.412: `bodylook.member_look(member)` gives the look record of a `belt_members` row: `kind` `belt_member`, a seed from its id, its radius and density, its taxon, and a colour (`member_grain_color`) that mixes the colour of the taxon's rock family (the same `ASTEROID_GRAIN_COLORS` the asteroid fields use; the dark taxa C, B, P and D carbonaceous, V basaltic, M metallic, the rest stony) with the metallic grey by its metal share and the icy pale blue-grey by its water and ice shares. `lumpy` is true when its roundness ratio at the median strength (`body_strength.ratio_for`) is under 1, so `lumpymesh.js` draws a lump; a body of Ceres' size is a ball. The info panel's account (`colour_account`) names the taxon and the shares.
+- Reused: `seed_for`, `ASTEROID_GRAIN_COLORS`, `_srgb_byte`, `body_strength.ratio_for`. Not built here: the member page and the 3D view that call it (MAP.413, MAP.414), and members at or above the planet class floor, which draw through `planet_look` (GEN.1509 to GEN.1511). No query or stored value changes.
+
+generation-affects: none
+
+## [8.0.3817] - 2026-11-11
+
+**Headline:** Tests that need a rare case search a bounded number of seeds for it instead of pinning the seed that once had it.
+
+### Changed
+
+- TEST.714: new `tests/fuzz_support.first_seed_with(build, wanted, seeds=range(64), what=...)`: builds each seed under `deterministic_entropy`, stops at the first that `wanted` accepts, and fails naming how many seeds it tried when none has the case (with its own tests in `tests/test_first_seed_with.py`).
+- `test_describe_render.py::test_headings_follow_the_tree_in_each_format` searches the seeds for a described system with a moon (it took the first of three pinned seeds). `test_moon_history.py` finds the planet with its born moons (two tests) and the moon that moved by 5 percent (it skipped when none of 16 seeds had one) by the same search; the sample test runs its 16 seeds as before and goes on to 64 only while it has not seen a fallen moon and six moons.
+- The Train 22 pin reds the Train Manager listed (`test_planet_zones`, `test_circumbinary_light`, `test_db_column_round_trip`, `test_species_limits`/`test_population`, `test_swept_hand_on`) are on `claude/train-22`, fixed there by their owners; they are converted to the helper once they are on main.
+
+generation-affects: none
+
+## [8.0.3816] - 2026-11-11
+
+**Headline:** The settings test names `PLANETGEN_MEMORY_GATE` as a one-process switch, as it does the other environment variables that are not site options.
+
+### Changed
+
+- `tests/test_settings.py::test_the_code_reads_no_variable_the_model_does_not_name` was red on main: `queue/memorygate.py` reads `PLANETGEN_MEMORY_GATE` (PERF.254; `0` turns the gate off for the process so every claim is admitted at once), a variable that is neither a `config.json` option nor in `NON_OPTION_VARIABLES`. It is a switch for one process (a benchmark or debugging run), not a site setting, since the gate is the rule on every install, so it joins the list with that reason. The code is unchanged.
+
+generation-affects: none
+
+## [8.0.3815] - 2026-11-11
+
+**Headline:** The Generate page's jobs, the API's jobs and the map's tile prefetch now give a sign of life while they run, and the Queue page lists them, so a dead one shows as dead instead of as nothing (OPS.142, heartbeat part 9).
+
+### Added
+- **`queue/jobbeat.py`.** `jobbeat.beating(kind, job_id, label)` runs the same beat thread as a unit (`unitbeat.UnitBeat`, Redis server clock) for a job that is not a unit of a run: an API job (`api_jobs.execute`), a web job (`web/job_runner.run`, with the step it is on as the phase) and a tile prefetch chunk (`tileprefetch.build_nodes`). The records sit in one hash, `planetgen:jobbeats`, removed when the job ends; a job that is killed leaves its record, which reads `dead` for an hour and is then dropped. These jobs have no unit of work to count, so the judge says only `working` or `dead`; nothing is ended on its state (RQ's time limit still is). Where Redis does not answer, the job runs without a beat.
+- **`GET /api/admin/work/jobs`** (admin; additive, API version unchanged) and a **Jobs running now** panel on the Queue page: kind, label, state, what it is doing, how long it has run, and when it was last heard from.
+
+### Changed
+- `UnitBeat` can write to a hash and field of its own (`hash_key`, `extra`), which is how the job beat reuses it.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3814] - 2026-11-11
+
+**Headline:** A run is now called stale only when every unit that is running is dead or stuck, so one long unit whose count moves no longer shows a "Clear the stale run" offer after two minutes (OPS.141, heartbeat part 8).
+
+### Changed
+- **`runrecord.is_stale` reads the unit states.** `read_run` now carries, for each stage, the states the follower last published for its running units (`stage["unit_states"]`, from `unitwatch`, OPS.138). While any unit is judged, the run is stale exactly when every one of them is `dead` or `quiet`; a unit that works, is slow, loops, or waits on a lock keeps the run alive however long it goes without finishing a unit or logging an event. Before this, a run was stale after `max(120 s, 3 x its longest unit so far)` without a finished unit or an event, which one 30 minute sky cell always tripped.
+- With no unit judged (none has started, or an older process follows the run) the old rule stands, so a run with queued units and no worker is still called stale after the same time. A run whose follower is gone is still found by `holder_is_dead`, which the Clear offer reads too.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3813] - 2026-11-11
 
 **Headline:** main is green again: the wiring register lists the two fudge data files that GEN.1313 added.

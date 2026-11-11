@@ -35,6 +35,7 @@
   "/api/admin/work/<run_id>/units GET",
   "/api/admin/work/clear-finished POST",
   "/api/admin/work/held GET",
+  "/api/admin/work/jobs GET",
   "/api/admin/work/queue POST",
   "/api/admin/work/warm GET",
   "/api/admin/work/workers GET",
