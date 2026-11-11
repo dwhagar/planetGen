@@ -749,15 +749,43 @@ class StarSystem:
         except ValueError:
             orbits = []
         offsets = self._offsets_from_host(ledger, kind, number)
+        normals = {}
+        if offsets is not None:
+            for member_no, axis, _eccentricity in orbits:
+                if member_no < len(self.stars):
+                    normals[member_no] = self._orbit_normal_about_host(ledger, kind, number, star, member_no, axis, offsets[member_no])
         radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity,
-                                                                None if offsets is None else offsets.get(member_no))
+                                                                None if offsets is None else offsets.get(member_no), normals.get(member_no))
                                       for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
 
-    def _offsets_from_host(self, ledger, kind, number):
-        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);
+    ORBIT_NORMAL_FRACTION = 0.1
+    """float: The share of a companion's period between the two places its orbit normal is worked from (GEN.1535); 0.1 keeps the two apart by a tenth of an orbit, which an eccentric orbit still crosses in its plane."""
+
+    def _orbit_normal_about_host(self, ledger, kind, number, host, member_no, axis_au, first_offset):
+        """
+        The unit normal `(x, y, z)` of the plane that member `member_no` moves in about `host` (the star of the zone `(kind, number)`), in the system's frame, from its place now (`first_offset`) and a tenth of its period later
+        (`_offsets_from_host` again at that time): the cross product of the two places, taken in the direction of the motion. `None` when the tree gives no places, the period is not known or the two are in line.
+        """
+        total_solar = (self.stars[member_no].mass + host.mass) / constants.SOLAR_MASS_TO_KG
+        if not (axis_au > 0.0 and total_solar > 0.0):
+            return None
+        period_s = math.sqrt(axis_au ** 3 / total_solar) * constants.SECONDS_PER_YEAR
+        later = self._offsets_from_host(ledger, kind, number, epoch_shift_s=self.ORBIT_NORMAL_FRACTION * period_s)
+        if later is None or member_no not in later:
+            return None
+        a, b = first_offset, later[member_no]
+        cross = (a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0])
+        length = math.sqrt(sum(c * c for c in cross))
+        scale = math.sqrt(sum(c * c for c in a)) * math.sqrt(sum(c * c for c in b))
+        if not scale > 0.0 or length < 1.0e-6 * scale:
+            return None
+        return tuple(c / length for c in cross)
+
+    def _offsets_from_host(self, ledger, kind, number, epoch_shift_s=0.0):
+        """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch (shifted by `epoch_shift_s` seconds), AU, in the system's frame (GEN.1458);
         the host of a P-type zone is the center of mass of the pair of its node. `None` when the tree cannot give positions."""
         try:
-            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix + epoch_shift_s)
             if kind == planet_zones.P_TYPE:
                 pair = [member for member in ledger.members if member.parent_node_no == number]
                 total = sum(member.mass_solar for member in pair)

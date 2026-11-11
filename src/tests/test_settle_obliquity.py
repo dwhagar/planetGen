@@ -91,3 +91,57 @@ def test_the_inputs_of_the_analysis_are_the_planets_own_moons_orbits_and_spin(mo
     planets.settle_obliquity([bare, giant], SUN)
     assert steady > 2.5 * seen[0][0] and tilt == 23.0                                      # the Moon-sized moon raises the precession constant
     assert len(modes) >= 1 and all(isinstance(m, ov.Mode) for m in modes)
+
+
+def test_the_range_of_the_tilt_is_kept_for_a_planet_that_is_worked_and_not_for_a_locked_one(monkeypatch, quiet):
+    """GEN.1535: `obliquity_min_deg` and `obliquity_max_deg` are the analysed range, set whether or not the zone is chaotic; a locked planet is not worked."""
+    monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(18.0, 31.0, False, False, 0.0, (), alpha))
+    free, locked = _planet(1.0), _planet(5.0, rotation_hours=5.0 ** 1.5 * 8766.0)
+    free.obliquity_min_deg = free.obliquity_max_deg = locked.obliquity_min_deg = locked.obliquity_max_deg = None
+    assert planets.settle_obliquity([free, locked], SUN) == 0
+    assert (free.obliquity_min_deg, free.obliquity_max_deg) == (18.0, 31.0)
+    assert locked.obliquity_min_deg is None and locked.obliquity_max_deg is None
+
+
+def test_a_lone_planet_with_no_companion_is_given_the_range_of_its_own_tilt():
+    lone = _planet(1.0, tilt=23.0)
+    lone.obliquity_min_deg = lone.obliquity_max_deg = None
+    assert planets.settle_obliquity([lone], SUN) == 0
+    assert lone.obliquity_min_deg == lone.obliquity_max_deg == 23.0
+
+
+def _companion(normal, axis_au=50.0, mass=SUN * 0.5, eccentricity=0.3):
+    from planetgen.physics import radiation_field
+    return radiation_field.Companion(SimpleNamespace(mass=mass), 1, axis_au, eccentricity, (axis_au, 0.0, 0.0), normal)
+
+
+def test_a_companion_in_a_plane_of_its_own_drives_a_mode_in_the_orbit_of_a_planet():
+    """GEN.1535: the mode's amplitude is the mutual inclination and its rate is negative (a prograde companion regresses the node)."""
+    from planetgen.physics import radiation_field
+    planet = _planet(1.0, inclination=0.0, node=0.0)
+    tilt = math.radians(30.0)
+    radiation_field.attach(planet.star, [_companion((0.0, -math.sin(tilt), math.cos(tilt)))])
+    modes = planets.companion_modes(planet, SUN)
+    assert len(modes) == 1 and modes[0].frequency_rad_yr < 0.0 and math.degrees(modes[0].amplitude_rad) == pytest.approx(30.0, abs=0.01)
+
+
+def test_a_coplanar_or_unplaced_or_nearby_companion_drives_no_mode():
+    from planetgen.physics import radiation_field
+    planet = _planet(1.0, inclination=0.0, node=0.0)
+    radiation_field.attach(planet.star, [_companion((0.0, 0.0, 1.0)), _companion(None), _companion((0.0, -0.5, 0.866), axis_au=3.0)])
+    assert planets.companion_modes(planet, SUN) == ()
+    assert planets.companion_modes(_planet(1.0), SUN) == ()      # no companions attached
+
+
+def test_a_planet_in_a_chaotic_zone_is_named_by_the_wandering_tilt_oddity_and_a_regular_one_is_not(monkeypatch, quiet):
+    """GEN.1535: oddity W6 (W61 for a giant) names the planet `settle_obliquity` found chaotic; the rows draw nothing (rate 1), so the table names exactly those."""
+    _chaotic(monkeypatch)
+    inner, outer = _planet(1.0), _planet(5.0, body_type="g")
+    inner.oddities = outer.oddities = ()
+    planets.settle_obliquity([inner, outer], SUN)
+    assert "W6" in inner.oddities and "W61" in outer.oddities
+    monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(20.0, 26.0, False, False, 3.0, (), alpha))
+    regular = _planet(1.0)
+    regular.oddities = ()
+    planets.settle_obliquity([regular, _planet(5.0)], SUN)
+    assert regular.oddities == ()

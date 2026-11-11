@@ -251,7 +251,7 @@ class Planet(PlanetaryObject):
         *body_strength.FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "collision_count",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -286,6 +286,10 @@ class Planet(PlanetaryObject):
 
     light_factor = None
     """float or None: The share of its host's light a planet keeps after the eclipses of its sky (`physics/eclipses.py`, GEN.1484): below 1 for a circumbinary planet, `None` (all of it) for every other body."""
+    obliquity_min_deg = None
+    """float or None: The lowest tilt a free-spinning planet's axis reaches over the age of its star (`physics/obliquity_variation.py`, GEN.1535), degrees; `None` for a body that was not worked (`planets.settle_obliquity`)."""
+    obliquity_max_deg = None
+    """float or None: The highest tilt it reaches, degrees; `None` as `obliquity_min_deg`."""
     sky_suns = None
     """str or None: The other suns in a planet's sky as JSON text (`physics/sky_suns.py`, GEN.1458); `None` for a lone star, a moon, and a body not yet placed."""
     oddities = ()
@@ -393,6 +397,7 @@ class Planet(PlanetaryObject):
         self.born_beyond_snow_line = None
         self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
         self.light_factor = None     # the share of its light it keeps after the eclipses of its sky (`eclipses.light_factor_of`, set with its air, GEN.1484)
+        self.obliquity_min_deg = self.obliquity_max_deg = None     # the range the tilt wanders over (`planets.settle_obliquity`, GEN.1535)
         self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
         self.collision_count = collision_count
         self.atm_molar_density = None

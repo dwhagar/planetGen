@@ -62285,7 +62285,7 @@
             ],
             [
               "Evidence",
-              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says"
+              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says; wired in planets.companion_modes (GEN.1535) with the mutual inclination of the planet's orbit normal and the companion's (OB8)"
             ]
           ],
           "id": "OB5",
@@ -62303,7 +62303,7 @@
           "fields": [
             [
               "What it is",
-              "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked, resonant or lone planet keeps its tilt"
+              "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt"
             ],
             [
               "The range it moves in",
@@ -62311,7 +62311,7 @@
             ],
             [
               "Where it holds",
-              "free-spinning planets of a star with at least two planets and belts"
+              "free-spinning planets of a star with at least two planets, or with a companion star whose orbit is in another plane"
             ],
             [
               "What would show it wrong",
@@ -62323,7 +62323,7 @@
             ],
             [
               "Evidence",
-              "even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is not yet added (part 3)"
+              "even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is added with the siblings' (GEN.1535); the range of the tilt (obliquity_min_deg, obliquity_max_deg) is stored for every planet worked"
             ]
           ],
           "id": "OB6",
@@ -62334,7 +62334,83 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked, resonant or lone planet keeps its tilt"
+          "what": "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "oddity W6 gate: a planet whose tilt settle_obliquity found in a chaotic zone of the spin-orbit resonances (tilt_chaotic 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "rocky planets that settle_obliquity works"
+            ],
+            [
+              "What would show it wrong",
+              "a planet named whose tilt range is a few degrees (the label would then be wrong)"
+            ],
+            [
+              "What replaces it",
+              "a numerical integration of the spin of the generated planet over the age of the star"
+            ],
+            [
+              "Evidence",
+              "the row only names the chaotic planets the module found; the rate is the share of planets the theory puts in a chaotic zone, which the interaction census (GEN.1448) measures"
+            ]
+          ],
+          "id": "OB7",
+          "key": "6.271:OB7",
+          "kind": "P",
+          "slug": "6-271-ob7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "oddity W6 gate: a planet whose tilt settle_obliquity found in a chaotic zone of the spin-orbit resonances (tilt_chaotic 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.25"
+            ],
+            [
+              "Where it holds",
+              "a companion on a Keplerian orbit about its host; a hierarchical triple's relative vector is only nearly planar"
+            ],
+            [
+              "What would show it wrong",
+              "a companion whose normal differs from its pair node's plane by more than a degree"
+            ],
+            [
+              "What replaces it",
+              "the pair node's own inclination and node, once the tree gives the plane of every member"
+            ],
+            [
+              "Evidence",
+              "for a Keplerian orbit any two places not on a line through the host give the same plane; 0.1 keeps the two apart without a near-degenerate cross product"
+            ]
+          ],
+          "id": "OB8",
+          "key": "6.271:OB8",
+          "kind": "P",
+          "slug": "6-271-ob8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",

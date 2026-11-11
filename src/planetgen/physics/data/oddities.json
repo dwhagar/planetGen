@@ -38,6 +38,7 @@
     "forced_eccentricity": {"label": "eccentricity forced by resonant neighbours", "note": "from the planet's place in a resonant chain; left out for a planet in none"},
     "dayside_temperature_k": {"label": "dayside rock temperature", "unit": "K", "note": "the star's temperature times the square root of its radius over the orbit (no optical depth)"},
     "ring_from_fallen_moon": {"label": "ring from a fallen moon", "note": "1 when the planet's ring came from a moon the tide pulled inside the Roche limit, else 0"},
+    "tilt_chaotic": {"label": "tilt wanders chaotically", "note": "1 when the spin-orbit resonances of the planet's star's other bodies overlap across its tilt (obliquity_variation), else 0"},
     "distance_over_host_radius": {"label": "orbit in stellar radii", "note": "semi-major axis over the radius of the star the body goes round"}
   },
   "rows": [
@@ -129,6 +130,62 @@
       ],
       "source": "[R2571] (Mars's chaotic tilt); [R2710] (Earth without the Moon); Uranus at 98 degrees; the module is physics/seasonal_swing.py",
       "text": "Its axis lies far over, with no large moon to steady it, so the seasons are its main weather: each pole spends a season in daylight as bright as the equator's noon and a season in the dark."
+    },
+    {
+      "id": "W6",
+      "name": "Wandering tilt",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "tilt_chaotic", "equals": 1}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row OB7: the chaotic zone is the planet's own, found from the modes of its star's other planets and companions (obliquity_variation), and its tilt is already drawn from the zone (planets.settle_obliquity); the row names the planets the module put in a zone, so there is no extra draw",
+        "label": "RECALLED",
+        "tier": "T6",
+        "tweak": "L0",
+        "registry": "OB7"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "chaotic_tilt",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 0.0}
+      ],
+      "source": "[R2571, R5220] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
+    },
+    {
+      "id": "W61",
+      "name": "Wandering tilt",
+      "kind": "giant",
+      "requires": [
+        {"quantity": "body_type", "equals": "g"},
+        {"quantity": "tilt_chaotic", "equals": 1}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row OB7: the chaotic zone is the planet's own, found from the modes of its star's other planets and companions (obliquity_variation), and its tilt is already drawn from the zone (planets.settle_obliquity); the row names the planets the module put in a zone, so there is no extra draw",
+        "label": "RECALLED",
+        "tier": "T6",
+        "tweak": "L0",
+        "registry": "OB7"
+      },
+      "apply": {
+        "lever": "L1",
+        "input": "obliquity_deg",
+        "effect": "chaotic_tilt",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "obliquity_deg", "min": 0.0}
+      ],
+      "source": "[R2571, R5220] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
     },
     {
       "id": "W5",

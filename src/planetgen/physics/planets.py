@@ -1043,19 +1043,47 @@ def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
         orient_moons(planet)
 
 
+CHAOTIC_TILT_ODDITIES = ("W6", "W61")
+"""tuple: The oddity rows that name a planet (W6) or a giant (W61) whose tilt wanders chaotically (GEN.1535, registry OB7)."""
+
+
+def companion_modes(planet, host_mass_kg):
+    """
+    GEN.1535: the nodal modes the companion stars of a planet's star drive in its orbit (`obliquity_variation.companion_mode`), one for each companion that has an orbit plane
+    (`radiation_field.Companion.normal`) in the system's frame, set against the planet's own orbit normal for the mutual inclination. Empty for a lone star, for a companion nearer than five
+    times the planet's distance and for one coplanar with the planet's orbit.
+    """
+    from planetgen.physics import obliquity_variation, radiation_field
+
+    companions = radiation_field.companions_of(getattr(planet, "star", None))
+    if not companions:
+        return ()
+    normal = spin.orbit_normal(planet.orbital_inclination_deg or 0.0, planet.orbital_ascending_node_deg or 0.0)
+    out = []
+    for companion in companions:
+        mass = getattr(companion.star, "mass", None)
+        if companion.normal is None or not mass:
+            continue
+        cosine = max(-1.0, min(1.0, sum(a * b for a, b in zip(normal, companion.normal))))
+        mode = obliquity_variation.companion_mode(planet.distance, host_mass_kg, mass, companion.axis_au, companion.eccentricity, math.acos(cosine))
+        if mode is not None:
+            out.append(mode)
+    return tuple(out)
+
+
 def settle_obliquity(planets, host_mass_kg):
     """
     GEN.1454: a free-spinning planet whose tilt lies in a chaotic zone of the spin-orbit secular resonances (`obliquity_variation`: the torques of the star and the planet's moons on its
     bulge against the nodal modes of the other planets' pull on its orbit) is not at the tilt it was made with: over the age of the star its axis has wandered over the zone, so it is
     given a tilt drawn from the zone (even in the cosine) from a stream of the body's own, the axis kept at its angle round the orbit's normal. Called with the orbits final
     (`StarSystem._settle_to_final_age`) for one star's planets and belts in orbital order. A planet whose tilt is not chaotic keeps it (the regular wander of an Earth or a Mars
-    is a few degrees to a few tens, and the stored tilt is one place in it); a locked or resonant body takes the Cassini state instead; a lone planet has no modes. The sky of the other
+    is a few degrees to a few tens, and the stored tilt is one place in it); a locked or resonant body takes the Cassini state instead; a lone planet has the modes of the companion stars of its star (GEN.1535, `companion_modes`), none for a lone star. Every free-spinning planet it works keeps the range of its tilt (`obliquity_min_deg`, `obliquity_max_deg`, GEN.1535), a range of its own tilt when nothing drives it. The sky of the other
     suns follows the new tilt, the day and night shares it, and the moons are set in the new equator, as `carry_spin_with_orbit` does. Returns how many planets changed tilt.
     """
     from planetgen.physics import obliquity_variation, tidal_spin
 
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
-    if len(bodies) < 2 or not host_mass_kg > 0.0:
+    if not bodies or not host_mass_kg > 0.0:
         return 0
     a_au = [b.distance for b in bodies]
     masses = [b.mass for b in bodies]
@@ -1079,7 +1107,9 @@ def settle_obliquity(planets, host_mass_kg):
         alpha = obliquity_variation.precession_constant_rad_yr(ellipticity, omega, torquers)
         if all_modes is None:                    # the matrix is made once for the star's planets, and only if a planet is free to wander
             all_modes = obliquity_variation.all_sibling_modes(a_au, masses, host_mass_kg, inclinations, nodes)
-        variation = obliquity_variation.analyse(alpha, tilt, all_modes[index])
+        modes = all_modes[index] + companion_modes(body, host_mass_kg)       # GEN.1535: the pull of the star's companions on the orbit
+        variation = obliquity_variation.analyse(alpha, tilt, modes)
+        body.obliquity_min_deg, body.obliquity_max_deg = variation.minimum_deg, variation.maximum_deg       # GEN.1535: the range the tilt wanders over, kept for the seasonal swing
         if not variation.chaotic:
             continue
         stream = draw.Stream(f"chaotic-obliquity:{float(body.mass)!r}:{float(body.distance)!r}:{float(host_mass_kg)!r}:{float(body.radius)!r}")
@@ -1087,6 +1117,8 @@ def settle_obliquity(planets, host_mass_kg):
         normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
         body.spin_axis_x, body.spin_axis_y, body.spin_axis_z = spin.carry_axis(axis, normal, normal, new_tilt)
         body.axial_tilt_deg = new_tilt
+        body.oddity_quantities = {**(getattr(body, "oddity_quantities", None) or {}), "tilt_chaotic": 1}       # GEN.1535: oddities W6 and W61 name it
+        oddities.apply(body, levers=("L1",), rows=[row for row in oddities.ROWS if row.id in CHAOTIC_TILT_ODDITIES])
         daylight.generate(body)
         body.sky_suns = sky_suns.encode(sky_suns.suns_of(
             body.star, (body.spin_axis_x, body.spin_axis_y, body.spin_axis_z), normal,

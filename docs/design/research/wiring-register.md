@@ -262,4 +262,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.256:FE4 | GEN.1492 | the alpha limit is read with the belt forcing module when slice 1 wires it |
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
-| function | planetgen.physics.obliquity_variation.companion_mode | GEN.1454 | a companion star's nodal mode of a planet's orbit; part 3 of GEN.1454 adds it to the settle pass with the mutual inclination of the planets' plane and the binary's |
