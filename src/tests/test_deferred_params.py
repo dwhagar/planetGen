@@ -182,6 +182,7 @@ def test_the_galaxy_run_gives_every_stage_that_works_on_its_sectors_the_clock_of
     monkeypatch.setattr(run_galaxy, "_run_stages", lambda args, title, tail: seen.update(tail=tail))
     monkeypatch.setattr(run_galaxy.run_plan, "bright_star_followers", lambda args: ([], None))
     monkeypatch.setattr(run_galaxy.run_plan, "phenomena_followers", lambda args: ([], None))
+    monkeypatch.setattr(run_galaxy.run_plan, "stored_scatter_skips", lambda args: {})
     run_galaxy.run_galaxy(_args())
     marker = wrapper.opened_by("sectors")
     followers = seen["tail"](marker)

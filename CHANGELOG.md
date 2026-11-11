@@ -2,6 +2,94 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3812] - 2026-11-11
+
+**Headline:** The nebula composition range test of the object lists passes the unit the columns are stored in.
+
+### Changed
+
+- `tests/test_object_list_values.py::test_the_nebula_list_filters_and_sorts_by_the_stored_composition` gave the nebula composition ranges (`mass_fraction_h`) the unit `ratio`, but those columns are stored as `frac` (`db/column_units.py`) and `search_values.convert` refuses `ratio` to `frac` ("The two measure different things"). It has been red on main since the test came in with GEN.1276; the test now passes `frac`. No code changes.
+
+generation-affects: none
+
+## [8.0.3811] - 2026-11-11
+
+**Headline:** the fudge table exists as data: the width of every class quantity, built from how far the stand-ins that make it could move it.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py screen --frozen` (GEN.1313): makes the systems once and, for each override, makes the end stages (air, water, surface, class, spin) of the same rocky planets and moons again from each body's own stream, so only the constant moves and every row is paired; the bodies are settled to their fixed point first and a row that does not bring them back to the baseline is flagged. `combine` also keeps the per-body movements.
+- `scripts/build_fudge_table.py` builds `physics/data/fudge_table.json` from `physics/data/fudge_matrix.json` (31 rows, 3 seeds x 40 systems), the class table and the registry: width = 2 sigma of the tier-widened, half-gap-clipped movements, per class edge, never past the half-gap to the next edge, with the five biggest makers of each width; quantities no row moves take the hand shoulder times 1 + score / 12. `src/tests/test_fudge_table.py` fails when the committed table differs. Registry section 6.261 (FT1 to FT4).
+- Nothing reads the table yet: `class_fit` is unchanged (part 4 of the plan).
+
+generation-affects: none
+
+## [8.0.3810] - 2026-11-11
+
+**Headline:** Every command now remembers the longest time its counter has stood still between two changes, so the heartbeat's "quiet" rule is 5 times what that command has really done and not a guess (OPS.135, heartbeat part 2).
+
+### Added
+- **The gap, measured in the horse.** `UnitBeat.longest_gap()` is the longest seconds between two changes of the unit's counter, from the unit's start to its end, less the time spent waiting on the sky lock, MySQL or the gate (waiting is not standing still). It is also in the beat record as `longest_gap`.
+- **`queue/commandgaps.py`.** A finished unit notes its gap; the run keeps the largest per command (`runrecord.gaps_key`, a hash of command to seconds, expiring with the run). A run that ends `done` folds its gaps into the server's (`planetgen:command-gaps`, beside `stagetimes`): a longer gap replaces the stored one, a shorter one pulls it down by half, so one slow night does not loosen the rule for ever. A failed or stopped run adds nothing.
+- **For the judge.** `commandgaps.history_of(conn, run_id)` is the `history_of` of the `UnitWatch` that `wrapper.run` makes: the larger of the server's gap and this run's so far, which `beatjudge.quiet_limit_seconds` turns into `max(5 min, 5 x the longest gap)`.
+
+### Changed
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3809] - 2026-11-11
+
+**Headline:** A unit that is dead or stuck is now found by its heartbeat, its stack is dumped, it is stopped and queued again once, and a second time it fails the run with both stacks; a unit whose count moves is never stopped, however long it takes (OPS.140, heartbeat part 7).
+
+### Added
+- **`queue/unitstuck.py` `Stuck`.** For a unit that `UnitWatch.agreed()` lists (dead or quiet in two checks in a row): the follower sends its horse `SIGUSR1`, which has `faulthandler` write every thread's stack to the unit's stack file (`unitbeat.register_dump`, set up by `_do_unit`; the beat record carries `pid`, `host` and `stack_file`); stops the job with RQ's stop command; and, once the unit has left its horse, queues the same job again. RQ does not retry a job that was stopped on purpose, so this is done here: the job is taken out of the started or failed registry, the stale beat is cleared, and `redisqueue.requeue_job` queues it. A unit stuck again on its second attempt fails the run, with both stacks in the message. A stop that has not taken effect in `STOP_WAIT_SECONDS` (120 s) fails the run. What was done to each unit is kept in `runrecord.stuck_key`, so a restarted follower does not stop a unit twice.
+- **The killed flag** (OPS.144, Lane 13's `runrecord.mark_killed`): the stuck action sets it on every stop, with the reason, and ends a run it fails with `finish_run(killed=True)`, so the Queue page offers Resume run.
+
+### Changed
+- **The unit time limit is only a backstop.** `units.unit_timeout` is now always the 6 hour ceiling (`redisqueue.MAX_TIMEOUT_SECONDS`), not 10 times the stage's expected time, and `_unit_limit` (OPS.134) is gone with it. A moving unit is never ended for taking longer than estimated (Boss, 5:16 PM EST on 11-09).
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3808] - 2026-11-11
+
+**Headline:** The process that follows a run now judges every running unit's heartbeat at each poll, says once in the run log and `error.log` when a unit goes quiet, dead or loops, and shows each unit's state on a new API route (OPS.138, heartbeat part 3).
+
+### Added
+- **`queue/unitwatch.py` `UnitWatch`.** At every poll `follow_stage` has the watch read the beats of the stage's running units (`unitbeat.read`), judge each with `beatjudge.judge` on the Redis server clock (with the beat the unit had at the check before, so a count that goes backward inside a phase is seen), and log **each change of state once**: a run log line (`unit-state`, with the stage and unit) and, for dead, quiet and suspect-looping units, a line in `error.log` too. A unit that works from the start is not announced; one that works again after a flag gets a line saying so; a second attempt of a unit that finished is a new change. `UnitWatch.agreed()` lists the units dead or quiet in two checks in a row (`beatjudge.agreed`), which is what the stuck action (OPS.140) takes; a unit whose count moves is never in it.
+- **`GET /api/admin/work/<id>/units`** (admin): the state of each running unit as the follower last judged it (state, severity, reason, whether two checks agree, counter, rate, projected finish, seconds still, phase, what it waits on, done and estimate, restarts, resident MB, beat age, running seconds). The verdicts are kept in `runrecord.unitstate_key` (a hash to a stage, cleared when the stage ends and deleted with the run). The API version stays: a new route is additive.
+
+### Changed
+- `units.follow_stage` takes `watch`. Only the process that started the run (`wrapper.run`) makes one; `wrapper.follow`, which only watches, does not, so two processes never log the same change twice.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3807] - 2026-11-11
+
+**Headline:** The error-log tests for a killed work horse run again after the memory-gate and killed-flag changes.
+
+### Changed
+- `test_error_log.py`: the stub job of the three horse-killed tests carries a Redis stand-in with no memory-gate claim (PERF.254 reads the claims table when a horse is killed), and the stub for `runrecord.finish_run` takes the `killed` flag OPS.144 added. Tests only; no code under `src/planetgen` changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3806] - 2026-11-11
+
+**Headline:** A second identical `galaxy` run no longer redraws the scatters that are already stored and current, nor remakes the block light totals.
+
+### Changed
+- **A scatter that stands is not planned (PERF.256, audit C4).** `planetgen galaxy` emptied and redrew the star, phenomena and nebula scatters on every run. `run_plan.stored_scatter_skips` now reads the stored facts: a scatter stands when its record in `scatter_epochs` is there, the epoch it was drawn under is not one that changed the scatter stage (`epoch_record.needs`), and the luminosity floor, stellar mass limit, seeds and compact mass the request would draw it with are the stored ones. The stage list shows each such stage as skipped with its reason, the run builds no follower for it, and the estimate counts it as no time. The two star passes stand together; the nebula field is drawn again whenever the phenomena are, and its clearing stage (OPS.123 slice 3) stands and falls with the draw, since a clear without the draw would empty the field. The block light stage is skipped when every scatter stands, the run makes no sector and `block_lights.totals_current` finds the stored totals holding every unbuilt object. A first run, a run at other settings, and a galaxy drawn under an epoch that changed the scatters plan everything as before. Reused, not rebuilt: `scatter_epochs`, `epoch_record.needs` (`bring_to_epoch`'s staleness), `Stage.skip` and the announcements of skipped stages, `scatter_settings`-style stored settings, GEN.1476's unbuilt counts. `_refuse_stored_scatter` and `finished_by` answer other questions (refusing an explicit `scatter` over rows; carrying a stopped run on) and stay. No migration.
+- The emptying of the earlier bright stars (`mass-clear`, OPS.123) is skipped with the star passes, as the nebula clear is with the nebula draw.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3805] - 2026-11-11
 
 **Headline:** A running unit now tells the queue it is alive from a thread of its own, on the Redis server clock, so a long quiet stretch of work no longer looks like a dead unit (OPS.136, heartbeat part 2).

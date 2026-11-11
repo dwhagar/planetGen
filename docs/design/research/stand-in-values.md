@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1553 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1547 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1527 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1521 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 79 | 11 | 4 | 22 | 12 | 128 |
 | T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 197 | 106 | 30 | 79 | 4 | 416 |
-| T7 | 54 | 19 | 9 | 31 | 0 | 113 |
+| T6 | 196 | 106 | 30 | 79 | 4 | 415 |
+| T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 884 | 302 | 75 | 240 | 52 | 1553 |
+| All | 878 | 302 | 75 | 240 | 52 | 1547 |
 
 ## How the labels were given
 
@@ -2735,14 +2735,3 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AL2 | T | T4 | L2 | `star_orbit_alignment.ALIGNED_SCALE_DEG` 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde | 2 to 10 degrees | every multiple | planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees | the scale of the distribution of the tilts of aligned multiples | recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (`orbit_elements.draw_planet_inclination_deg`) | predicted only | - | - |
 | AL3 | T | T6 | L0 | the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before | none | random-orientation multiples (wide pairs formed by fragmentation) | a sample of wide multiples whose planes prefer a direction against the planets' plane | the measured distribution of the tilts of wide multiples | design: the draw `Tree.place` made before GEN.1500, kept for the share that is not aligned | predicted only | - | - |
 | AL4 | T | T6 | L0 | the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (`stability.mutual_inclination`); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn | none | triples and quadruples | a census of the accepted triples whose mutual inclination shows the peaks without the planet screen | the Kozai screen of GEN.1447 run on the planets | design; reuse of `stability.mutual_inclination` and `kozai_verdict` | predicted only | - | - |
-
-## 6.260 Stand-ins of the tide raised by every body of a system
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| TS1 | P | T7 | L0 | the orbits of a source and a receiver are taken coplanar when the mean of `1 / d^3` is worked out; a mutual inclination only lengthens the mean separation, so each source's part is an upper bound | none | the planets of one star (mutual inclinations of a few degrees) and the moons of one planet | a pair of orbits inclined by tens of degrees (a captured moon, a companion on a tilted orbit) | the mean over the two orbits with their stored nodes and inclinations | derived: the separation of two circles of radii a and b inclined by i is not under that of the coplanar pair at any phase; the coplanar mean is exact for i = 0 (`2 E(m) / (pi (a + b) (a - b)^2)`, tested against quadrature) | predicted only | - | - |
-| TS2 | P | T7 | L0 | a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place | none | sources far from the receiver compared with the moons' orbits (every planet's moon system is under a tenth of the planet's Hill sphere) | a planet whose neighbour is close enough that the neighbour's moon system is not small against the gap | each moon of a sibling as its own source on its own orbit | design: the moons' orbits are inside `moon_hill_fraction` of the planet's Hill radius, which is small against the planet-to-planet gap for planets spaced by the mutual-Hill checks | predicted only | - | - |
-| TS3 | P | T7 | L0 | the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (`radiation_field.separations_au`), and two circles closer than `tide_sources._MIN_SEPARATION_SHARE` = 0.01 of the larger are held that far apart | 0.01 | planets spaced by the mutual-Hill rule and eccentricities under 0.5 | an eccentric receiver whose orbit crosses a neighbour's | the receiver's own radius in the average (a double grid) | derived: the grid is the one the radiation field uses for the same orbits; the floor is never reached by neighbours several mutual Hill radii apart | predicted only | - | - |
-| TS4 | P | T7 | L0 | a source other than the host raises a tide that goes round at the synodic rate `abs(n_receiver - n_source)`, on a circle at the distance whose `1 / d^3` is the source's mean, and adds to the spring and neap range as one more raiser | none | any source that is not the receiver's host (the host's own tide moves at the receiver's orbital rate) | a receiver locked to a source it shares an orbit with (a Trojan pair) | the true tide of the moving source at each phase | derived: the tide a body feels at a phase goes as the mean of `1 / d^3` over the pair's phase difference | predicted only | - | - |
-| TS5 | T | T6 | L0 | no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources | none | the planets and moons of the sample | a system whose belt mass is a large share of a planet's | the belts as sources through the ledger of GEN.1464 | design: the item order; a belt's mass is a small share of its planet's in every sample census | predicted only | - | - |
-| TS6 | P | T7 | L0 | the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of `1 / d^6` for two coplanar circles, `((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5` (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (`abs(spin - rate)`); the line turns at the rate of the larger orbit radius | none | coplanar neighbours and companions | a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion | the mean over both orbits with their nodes, and the tide at the synodic frequency | derived: `<(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2))` with `A = a^2 + b^2`, `B = 2 a b` (tested against quadrature); census over 30 systems in the last paragraph of the note | predicted only | - | - |
