@@ -2113,7 +2113,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 | open |
 | GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 | open |
 | GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 | open |
-| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313, GEN.1320, GEN.1321 | open |
+| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313, GEN.1320, GEN.1321 | done (Train 23, 2026-11-11) |
 | GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) | none | done, PR #5572 |
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) | none | done, PR #5540 |
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent | none | done, PR #5540 |
