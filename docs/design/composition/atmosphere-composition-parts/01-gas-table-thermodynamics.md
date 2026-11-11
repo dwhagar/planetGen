@@ -319,7 +319,7 @@ The last three rows (Cl, F, F2; GEN.1337) are the halogen atoms and fluorine tha
 
 The four lithium rows (Li, LiH, LiOH, LiCl; GEN.1374) are the lithium gases of a brown dwarf's air: atomic Li down to 1520 K at 1 bar, then LiCl, with LiOH and LiH beside them ([R2731] section 1.5.5). Cp is the NASA Glenn fit, as above. The FeH and CrH rows above are no longer "NOT REACHED" for their free energy: `species_thermo` holds both since GEN.1374, made from atoms and the equilibrium constants of [R5162].
 
-The five phosphorus rows (P, PO, PN, PS, PH; GEN.1512) are the phosphorus gases a hot giant holds: before them P2 and PH3 were the only gases with phosphorus, both fitted only to 6000 K, so a giant hotter than that had no gas to put its phosphorus in. Atomic P is fitted to 20000 K in the NASA Glenn database ([R2968]), which is the one species that carries the element above 6000 K; PO, PN, PS and PH are fitted to 6000 K and hold the phosphorus between 1000 and 6000 K. Cp is the NASA Glenn fit, as above.
+The five phosphorus rows (P, PO, PN, PS, PH; GEN.1512) are the phosphorus gases a hot giant holds: before them P2 and PH3 were the only gases with phosphorus, both fitted only to 6000 K, so a giant hotter than that had no gas to put its phosphorus in. Atomic P is fitted to 20000 K in the NASA Glenn database [R2968], which is the one species that carries the element above 6000 K; PO, PN, PS and PH are fitted to 6000 K and hold the phosphorus between 1000 and 6000 K. Cp is the NASA Glenn fit, as above.
 
 
 ## 6. Saturation vapour pressure correlations

@@ -61375,7 +61375,7 @@
             ],
             [
               "Evidence",
-              "the rate the star turns the orbit is 1 / t_kl, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal (Tremaine, Touma and Namouni 2009; Innanen et al 1997)"
+              "the rate the star turns the orbit is 1 / t_kl, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal [R5223, R5224]"
             ]
           ],
           "id": "KZ4",
@@ -61413,7 +61413,7 @@
             ],
             [
               "Evidence",
-              "a circumplanetary disk is held in the local Laplace plane by the same two torques (Tremaine, Touma and Namouni 2009); the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352)"
+              "a circumplanetary disk is held in the local Laplace plane by the same two torques [R5224]; the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352)"
             ]
           ],
           "id": "KZ5",
@@ -61565,7 +61565,7 @@
             ],
             [
               "The range it moves in",
-              "24 to 106 AU (Kraus et al. 2016: 47 +59/-23)"
+              "24 to 106 AU ([R5220]: 47 +59/-23)"
             ],
             [
               "Where it holds",
@@ -61581,7 +61581,7 @@
             ],
             [
               "Evidence",
-              "Kraus et al. 2016, AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU"
+              "[R5220], AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU"
             ]
           ],
           "id": "CD1",
@@ -61619,7 +61619,7 @@
             ],
             [
               "Evidence",
-              "Kraus et al. 2012, ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; Kraus et al. 2016 above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md)"
+              "[R5225], ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; [R5220] above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md)"
             ]
           ],
           "id": "CD2",

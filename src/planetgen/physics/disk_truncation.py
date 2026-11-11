@@ -29,13 +29,13 @@ cut-off, read second-hand). [Stand-in DT1, tier Marginal unverified, tweak L0.]"
 
 
 CLOSE_COMPANION_AXIS_AU = 47.0
-"""float: A companion inside this separation hastens the dispersal of the gas of the disk (Kraus et al. 2016, AJ 152, 8: inside a_cut = 47 +59/-23 AU the planet occurrence of binaries is 0.34 of that of wider
-binaries and single stars; Kraus et al. 2012, ApJ 745, 19: for binaries closer than 40 AU, about two thirds lose their disk within 1 Myr). Both read second-hand (the abstracts). [Stand-in CD1, tier Confident
+"""float: A companion inside this separation hastens the dispersal of the gas of the disk ([R5220], AJ 152, 8: inside a_cut = 47 +59/-23 AU the planet occurrence of binaries is 0.34 of that of wider
+binaries and single stars; [R5225], ApJ 745, 19: for binaries closer than 40 AU, about two thirds lose their disk within 1 Myr). Both read second-hand (the abstracts). [Stand-in CD1, tier Confident
 unverified, tweak L0.]"""
 
 CLOSE_COMPANION_GAS_SHARE = 0.34
 """float: The share of the stars with a companion inside `CLOSE_COMPANION_AXIS_AU` whose disk keeps its gas long enough for a core to find it: one less the two thirds of close binaries whose disks go within 1 Myr
-(Kraus et al. 2012), which is also the planet occurrence ratio S_bin = 0.34 +0.14/-0.15 of Kraus et al. 2016. It multiplies the chance a core past the critical mass finds gas (`planet_mass.gas_outcome`), so a star's
+[R5225], which is also the planet occurrence ratio S_bin = 0.34 +0.14/-0.15 of [R5220]. It multiplies the chance a core past the critical mass finds gas (`planet_mass.gas_outcome`), so a star's
 rocky planets are unchanged and about two thirds of the giants of such a star are not made. [Stand-in CD2, tier Confident unverified, tweak L0.]"""
 
 

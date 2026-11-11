@@ -1,6 +1,6 @@
 # tests/test_close_companion_gas.py
 
-"""GEN.1475: a star with a companion inside 47 AU keeps its disk's gas in only 0.34 of the cases (Kraus et al. 2012, 2016): the chance a core finds gas is multiplied by that, and every other star draws as before."""
+"""GEN.1475: a star with a companion inside 47 AU keeps its disk's gas in only 0.34 of the cases [R5220, R5225]: the chance a core finds gas is multiplied by that, and every other star draws as before."""
 
 from types import SimpleNamespace
 
