@@ -308,6 +308,18 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert "The queue is paused" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
+def test_a_solo_hold_is_named_on_the_page_with_who_holds_it_and_can_be_lifted_there(web_app, admin_client, control_config, conn, monkeypatch):
+    """OPS.145: the pause that holds the queue for a restarted unit says why and by whom, and the button lifts it."""
+    from planetgen.queue import pause
+    monkeypatch.setattr(pause, "_solo_is_over", lambda connection, solo: False)
+    assert pause.hold_solo("20261109-120000-abcd", 3, 7, "job-7", conn)
+    page = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "The queue is held by run 20261109-120000-abcd" in page and "solo run of unit 7 (stage 3) after a restart" in page and "Lift the hold" in page
+    assert "The queue is paused" not in page
+    assert _post(web_app, admin_client, action="queue-resume").status_code == 303
+    assert not pause.is_paused(conn) and "The queue is held" not in admin_client.get("/admin/queue").get_data(as_text=True)
+
+
 def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, admin_client, control_config, conn):
     """UX.256: Cancel on a run's page goes back to the page it was opened from (same site only), else the run's page."""
     run_id = _run(conn)

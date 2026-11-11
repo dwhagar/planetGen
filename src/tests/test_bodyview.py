@@ -47,3 +47,20 @@ def test_only_a_kind_the_registry_draws_with_the_sphere_painter_has_a_view():
 def test_a_belt_and_a_comet_have_no_picture():
     assert bodyview.view("belt", {"id": "B"}, [STAR]) is None
     assert bodyview.view("comet", {"id": "C"}, [STAR]) is None
+
+
+def test_a_belt_members_view_is_its_look_with_the_designation_for_a_seed_and_no_estimate():
+    """MAP.413: `member_view` reads the page's member block (quantities in the units the page shows)."""
+    import json
+
+    from planetgen.web.maps import bodylook
+
+    quantity = lambda value: {"value": value}
+    member = {"mass": quantity(1.0e19), "diameter": quantity(300.0), "density": quantity(1400.0), "taxon": "C",
+              "composition": {"rock": quantity(0.9), "metal": quantity(0.05), "water": quantity(0.05), "ice": quantity(0.0)}}
+    view = bodyview.member_view("B1.0001", member)
+    look = json.loads(view["look"])
+    assert look == bodylook.member_look({"id": "B1.0001", "taxon": "C", "mass_kg": 1.0e19, "radius_km": 150.0, "density_g_cm3": 1.4, "rock_fraction": 0.9,
+                                         "metal_fraction": 0.05, "water_fraction": 0.05, "ice_fraction": 0.0})
+    assert look["seed"] == bodylook.seed_for("belt_member", "B1.0001") and view["estimate"] == []
+    assert view["note"].startswith("Color from its taxon and the shares")
