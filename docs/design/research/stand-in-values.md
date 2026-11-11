@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1538 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1539 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1512 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1513 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 183 | 20 | 11 | 1 | 0 | 215 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 111 | 47 | 9 | 10 | 0 | 177 |
-| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T4 | 81 | 11 | 3 | 21 | 12 | 128 |
 | T5 | 76 | 24 | 6 | 1 | 1 | 108 |
 | T6 | 192 | 106 | 30 | 75 | 2 | 405 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 877 | 302 | 74 | 235 | 50 | 1538 |
+| All | 878 | 302 | 74 | 235 | 50 | 1539 |
 
 ## How the labels were given
 
@@ -1841,6 +1841,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BD3 | P | T6 | L1 | mixture_giant.LITHIUM_BURNED_FRACTION 0.0: a brown dwarf above the lithium-burning mass (`stellar_abundances.lithium_burning_limit_sol`, 65 Jupiter masses in [R2731: section 1.1]) has no lithium, whatever its age | 0 to 0.01 | brown dwarfs above 65 Jupiter masses | a lithium detection in the air of a dwarf above the limit that is older than the burning time (a few hundred million years), or the age-dependent depletion of the models | the depletion against mass and age from the evolutionary models | the review says such objects burn their lithium and takes the burning as complete for the lithium test; observed depletions are factors of hundreds, not zero, and a dwarf younger than the burning time still has it (age is not modelled) | predicted only | - | - |
 | BD4 | P | T2 | L0 | species_thermo FeH and CrH, made from the atoms' NASA fits and the equilibrium constant of M + H = MH, 300 to 6000 K (`scripts/build_species_thermo.py`, `DERIVED`) | none | 300 to 6000 K, ideal gas, 1 bar standard state | a formation free energy of FeH or CrH from another compilation that differs by more than 3 in ln K at 1000 to 3000 K | the NASA Glenn or JANAF fit of the two gases, if one is published | the fits are the polynomial that FastChem ships for the data of [R5162]; checked against the same file's FeO (JANAF) within 0.02 in ln K, and the 298 K bond energies come out 1.5 eV (FeH) and 2.0 eV (CrH) against the laboratory 1.6 and about 2.0; the polynomial was not compared with the paper's own table, which is not reachable from here | predicted only | - | - |
 | BD5 | P | T5 | L0 | mixture_giant.NASA_CONDENSATE: lithium chloride (the NASA database's LiCl crystal and liquid against its gas) is the lithium condensate of a cool air, under about 680 K at 1 bar and solar composition | none | 300 to 883 K crystal, above it liquid; below 300 K read at 300 K | a lithium condensate that forms at another temperature at 1 bar: [R2731: section 1.5.5] names Li2S (low pressure) and LiF (high pressure) and gives no temperature | Li2S and LiF, if their free energies are held | the database holds no Li2S or LiF gas or crystal in the file; LiCl is the lithium and chlorine condensate it does hold, and without any lithium condensate the chlorine of the cold air re-forms HCl ice for ever (the caps did not settle) | predicted only | - | - |
+| BD6 | P | T4 | L0 | mixture_giant.CHEMISTRY_CEILING_K 20000 K (the top of the gas table, GEN.1522): a layer hotter than that is equilibrated at 20,000 K, its neutral and molecular gas | none | a layer above 20,000 K (a giant or brown dwarf lit by an O or early B star: the quoted layer of the zeta Ophiuchi example is 27,560 K) | a hot layer whose gas at 25,000 K differs from the 20,000 K gas in its main carriers (H2 against H, CO, H2O) by a factor of 2 | the gas table extended past 20,000 K with the ions (H+, He+, e-) the neutral table lacks | a build that stopped with no species at 27,560 K; the clamp is the least that lets it finish, with no source for the gas of a layer that hot | predicted only | - | - |
 
 ## 6.221 Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope
 
