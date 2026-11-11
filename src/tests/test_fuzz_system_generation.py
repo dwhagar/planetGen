@@ -332,9 +332,9 @@ def assert_round_trip(system):
     # Second hop must be a fixed point too (no drift that only shows up later).
     assert StarSystem.from_dict(after).to_dict() == after
     assert (rebuilt.planet_count, rebuilt.belt_count, rebuilt.moon_count, rebuilt.hab_count,
-            rebuilt.m_count, rebuilt.comet_count) == (
+            rebuilt.comet_count) == (
         system.planet_count, system.belt_count, system.moon_count, system.hab_count,
-        system.m_count, system.comet_count)
+        system.comet_count)
 
 
 def check_system(system, cfg=None, *, round_trip=True):

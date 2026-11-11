@@ -10211,7 +10211,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.runaway_speed_kms = row["runaway_speed_kms"]
     system.runaway_origin = _runaway_origin(conn, star_system_id) if row["runaway_class"] == "runaway" else None
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
-    system.hab_count, system.m_count = system.count_habitable()
+    system.hab_count = system.count_habitable()
     system.habitable_class_count = system.count_habitable_class_worlds()
     system.habitable_request = system.habitable_request_status()
     system.comet_count = system.count_comets()

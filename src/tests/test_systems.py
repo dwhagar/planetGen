@@ -340,10 +340,8 @@ def assert_counts_are_consistent(system):
     # system.secondary_planets is always [], so this is unchanged from
     # `len(system.planets)` alone in those cases.
     assert planet_count + belt_count == len(system.planets) + len(system.secondary_planets)
-    hab_count, m_count = system.count_habitable()
-    assert hab_count == system.hab_count
-    assert m_count == system.m_count
-    assert system.count_habitable_class_worlds() >= m_count >= 0
+    assert system.count_habitable() == system.hab_count
+    assert system.count_habitable_class_worlds() >= 0
     # comets is its own list, separate from planets/secondary_planets (see
     # StarSystem._generate_comets' docstring) -- count_comets() defaults
     # to both stars' combined lists the same way count_objects() does.
