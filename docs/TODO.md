@@ -13122,6 +13122,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 05 (Lane 14 for the air side if asked). Prerequisites: none. Related: GEN.1402, GEN.1463.
   Filed by the TODO thread.
 
+- [ ] **GEN.1539 Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size**
+  Lane 14 (as the lane reported 3:32 PM EST on 2026-11-11), found in the GEN.1520 after-sweep (PR 6035): outer-disk belts start at the fixed tuning.PLANET_OUTER_GROWTH_AU for every star, so every spectral type now shows a median belt at 11.4 au even though the disk edge now scales with the star's mass (100 au x (M/Msun)^0.5). Do: replace the fixed start with a limit that follows the star (the snow line, the disk edge of GEN.1520, or both), register the new constants in GEN.725 at the right tier and tweak level, check the belt census by spectral type before and after, and say in the change note what moved. Lock item (it changes belts).
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14. Prerequisites: GEN.1520. Related: GEN.1520, GEN.1509, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
