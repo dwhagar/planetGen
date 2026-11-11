@@ -420,3 +420,17 @@ def test_a_layer_hotter_than_the_gas_table_is_equilibrated_at_the_top_of_the_tab
     assert mg.CHEMISTRY_CEILING_K == 20000.0
     assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-6)
     assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.1
+
+
+def test_an_envelope_that_lost_hydrogen_first_has_the_helium_of_its_history_in_place_of_the_solar_one():
+    # GEN.1527: `envelope_helium_y` is the helium mass share of the hydrogen and helium (`helium_fractionation`); the budget's helium per hydrogen follows it
+    def helium(**changes):
+        subject = giant("envelope", **changes)
+        with draw.bound("he-envelope"):
+            recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
+            return mg.giant_mixture(subject, recipe, family="envelope", log_enrichment=0.5).mole_fractions.get("He", 0.0)
+
+    solar = helium()
+    rich = helium(envelope_helium_y=0.6)
+    assert rich > 2.0 * solar
+    assert helium(envelope_helium_y=0.2447) == pytest.approx(solar, rel=0.01)

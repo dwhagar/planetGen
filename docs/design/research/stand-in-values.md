@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1539 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1540 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1513 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1514 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 183 | 20 | 11 | 1 | 0 | 215 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
-| T3 | 111 | 47 | 9 | 10 | 0 | 177 |
+| T3 | 112 | 47 | 9 | 10 | 0 | 178 |
 | T4 | 81 | 11 | 3 | 21 | 12 | 128 |
 | T5 | 76 | 24 | 6 | 1 | 1 | 108 |
 | T6 | 192 | 106 | 30 | 75 | 2 | 405 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 878 | 302 | 74 | 235 | 50 | 1539 |
+| All | 879 | 302 | 74 | 235 | 50 | 1540 |
 
 ## How the labels were given
 
@@ -1228,9 +1228,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| HF1 | D | T2 | L0 | helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium | none (both papers quote an earlier measurement) | 3,000 to 10,000 K | a measured diffusion coefficient at the homopause | the table | Hu et al. 2015 eq. 9, [R2839] A3 (read) | predicted only | GEN.1527 | - |
-| HF2 | T | T3 | L1 | helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1 | T 3,000 to 10,000 K (the weaker fractionation is at the higher T); x 0 to 0.5 | planets of 4 to 20 Earth masses with a thin envelope | the ion-neutral frequency of [R3981] in the full b' | b' from the ionisation fraction at the homopause at each step ([R2839] A3) | Hu et al. 2015 Sec. 2.1; [R2839] A.1, A.4 (read); the form 1/(1 + x) is a fit to the one value of Hu | predicted only | GEN.1527 | - |
-| HF3 | B | T3 | L0 | helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets | start 0.24 to 0.27 | hydrogen-helium envelopes | a measured primordial envelope helium | the solar mix of the star's own composition | [R2839] Introduction and A (X 0.74, Y 0.24) (read) | predicted only | GEN.1527 | - |
+| HF1 | D | T2 | L0 | helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium | none (both papers quote an earlier measurement) | 3,000 to 10,000 K | a measured diffusion coefficient at the homopause | the table | Hu et al. 2015 eq. 9, [R2839] A3 (read) | predicted only | - | - |
+| HF2 | T | T3 | L1 | helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1 | T 3,000 to 10,000 K (the weaker fractionation is at the higher T); x 0 to 0.5 | planets of 4 to 20 Earth masses with a thin envelope | the ion-neutral frequency of [R3981] in the full b' | b' from the ionisation fraction at the homopause at each step ([R2839] A3) | Hu et al. 2015 Sec. 2.1; [R2839] A.1, A.4 (read); the form 1/(1 + x) is a fit to the one value of Hu | predicted only | - | - |
+| HF3 | B | T3 | L0 | helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets | start 0.24 to 0.27 | hydrogen-helium envelopes | a measured primordial envelope helium | the solar mix of the star's own composition | [R2839] Introduction and A (X 0.74, Y 0.24) (read) | predicted only | - | - |
+| HF4 | B | T3 | L0 | envelope_capture.HELIUM_LOSS_GATE 0.5: the share of its starting envelope a planet must have lost before the helium history is worked out | 0.4 to 0.6 | sub-Neptunes with an envelope | a planet that lost under half and is helium-enhanced (Y of 0.4 or more) in the runs of [R2839], or one that lost more than half and is not | the loss history itself, for every planet with an envelope (a cost, not a physics, limit) | [R2839], Introduction and B.1: a planet must lose at least half of its envelope to reach Y of 0.4 (GEN.1527) | predicted only | - | - |
 
 ## 6.78 Stand-ins of the giant-impact tilt of an ice giant
 

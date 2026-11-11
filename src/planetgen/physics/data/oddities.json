@@ -11,12 +11,13 @@
     "L5": {"label": "history", "inputs": ["collision_count", "migration", "mass_loss", "event_age_gyr"]},
     "L6": {"label": "moon and ring set", "inputs": ["moon_origin", "moon_retrograde", "ring_mass"]},
     "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]},
-    "L8": {"label": "a name on the finished body (no input moves)", "inputs": ["hycean_box"]}
+    "L8": {"label": "a name on the finished body (no input moves)", "inputs": ["hycean_box", "helium_envelope"]}
   },
   "quantities": {
     "body_type": {"label": "kind of body", "note": "'t' for a terrestrial body, 'g' for a giant"},
     "mass_earth": {"label": "mass", "unit": "Earth masses", "note": "the body's mass"},
     "radius_earth": {"label": "radius", "unit": "Earth radii", "note": "the body's radius"},
+    "envelope_helium_y": {"label": "helium share of the envelope gas", "unit": "mass fraction of the hydrogen and helium", "note": "set only when the loss left the envelope richer in helium than the star's gas (helium_fractionation)"},
     "density_g_cm3": {"label": "bulk density", "unit": "g/cm3", "note": "mass over volume"},
     "semi_major_axis_au": {"label": "distance from its star", "unit": "AU", "note": "semi-major axis of the orbit"},
     "eccentricity": {"label": "orbital eccentricity", "note": "of the orbit about its star (a moon's: about its planet)"},
@@ -507,6 +508,34 @@
       ],
       "source": "[R2804] (Madhusudhan and others, Hycean worlds); the module is physics/hycean_candidate.py",
       "text": "Its size, mass, density and temperature put it in the Hycean box: a rocky core under a deep water layer that can be liquid at the top, held down by a hydrogen envelope."
+    },
+    {
+      "id": "W16",
+      "name": "Helium-rich envelope",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "envelope_helium_y", "min": 0.4}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row HF3: the helium share is worked out from the loss of the envelope (helium_fractionation, Hu and others 2015) for every planet that lost half of it or more, so the row names the planets that ended at 0.4 or over and there is no extra draw",
+        "label": "2ND-HAND",
+        "tier": "T4",
+        "tweak": "L0",
+        "registry": "HF3"
+      },
+      "apply": {
+        "lever": "L8",
+        "input": "helium_envelope",
+        "effect": "helium_enriched",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "envelope_helium_y", "min": 0.4}
+      ],
+      "source": "[R2839, R2840] (Hu and others 2015, hydrogen escapes first from a small envelope); the line of 0.4 and the radius window are registry row WR13; the module is physics/helium_fractionation.py",
+      "text": "Hydrogen left its envelope first, and the helium stayed: what is left of the gas is helium-rich, and no longer the star's mix."
     }
   ]
 }

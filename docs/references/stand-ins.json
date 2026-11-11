@@ -28831,7 +28831,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1527",
+          "unread": null,
           "what": "helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium"
         },
         {
@@ -28869,7 +28869,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1527",
+          "unread": null,
           "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
@@ -28907,8 +28907,46 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1527",
+          "unread": null,
           "what": "helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "envelope_capture.HELIUM_LOSS_GATE 0.5: the share of its starting envelope a planet must have lost before the helium history is worked out"
+            ],
+            [
+              "The range it moves in",
+              "0.4 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "sub-Neptunes with an envelope"
+            ],
+            [
+              "What would show it wrong",
+              "a planet that lost under half and is helium-enhanced (Y of 0.4 or more) in the runs of [R2839], or one that lost more than half and is not"
+            ],
+            [
+              "What replaces it",
+              "the loss history itself, for every planet with an envelope (a cost, not a physics, limit)"
+            ],
+            [
+              "Evidence",
+              "[R2839], Introduction and B.1: a planet must lose at least half of its envelope to reach Y of 0.4 (GEN.1527)"
+            ]
+          ],
+          "id": "HF4",
+          "key": "6.77:HF4",
+          "kind": "B",
+          "slug": "6-77-hf4",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "envelope_capture.HELIUM_LOSS_GATE 0.5: the share of its starting envelope a planet must have lost before the helium history is worked out"
         }
       ],
       "slug": "6-77-stand-ins-of-the-helium-enrichment-of-a-thinning-envelope",

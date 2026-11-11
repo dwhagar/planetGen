@@ -80,10 +80,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.physics.helium_fractionation | GEN.1527 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
-| row | 6.77:HF1 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF2 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF3 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
@@ -254,3 +250,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.eclipses | by design | the eclipse shares and times of a body in front of a star are worked out for the tests and the census; no stored value reads them yet (stand-in EC4, section 6.249) (GEN.1462) |
 | module | planetgen.physics.belt_forcing | GEN.1492 | a companion star's forced eccentricity of a belt's members (calibration slice, read by the census and the tests); slice 1 wires it into the belt members |
 | row | 6.256:FE4 | GEN.1492 | the alpha limit is read with the belt forcing module when slice 1 wires it |
+| function | planetgen.physics.helium_fractionation.critical_mass_flux_kg_s | by design | the total mass loss at and under which only hydrogen leaves (Hu 2015 eq. 14), the threshold `partition` crosses; the tests read it to check the paper's numbers and `partition` works from the same flux |

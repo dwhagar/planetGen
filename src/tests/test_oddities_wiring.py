@@ -560,6 +560,30 @@ def test_the_dial_at_zero_names_no_hycean_candidate_and_a_moon_has_no_equilibriu
     assert "equilibrium_temperature_k" not in oddities.quantities_of(moon)
 
 
+# --- GEN.1527: W16 (the helium-rich envelope of `helium_fractionation`) ----------------------------------------------------------
+
+def test_a_planet_that_lost_most_of_its_envelope_ends_richer_in_helium_than_the_star_and_one_that_lost_little_does_not():
+    from planetgen.physics import bulk_draw
+
+    stripped = _planet_at("K2V", 0.1, "he2-K2V-6-0.1-0", mass_earth=6.0)         # lost more than half of the envelope it started with
+    host = bulk_draw.host_ratios(stripped.star)
+    assert stripped._envelope_helium_y > host.y_envelope and stripped.envelope_helium_fraction > host.y_envelope * (1.0 - host.z)
+    far = _planet_at("G2V", 0.04, "he-3-0.04-0", mass_earth=3.0)
+    assert getattr(far, "_envelope_helium_y", None) is None                     # no envelope at all
+
+
+def test_the_helium_row_names_the_planets_that_reached_the_enhanced_share_and_no_others():
+    from planetgen.physics import helium_fractionation as hf
+
+    row = oddities.BY_ID["W16"]
+    assert any(c["quantity"] == "envelope_helium_y" and c.get("min") == hf.MIN_HELIUM_FOR_ENHANCED for c in row.requires)
+    rich = _body(_envelope_helium_y=0.5)
+    assert oddities.apply(rich, levers=("L8",), dial=1.0) == ["W16"]
+    for y in (0.3, None):
+        poor = _body(_envelope_helium_y=y)
+        assert oddities.apply(poor, levers=("L8",), dial=1.0) == []
+
+
 # --- GEN.1047 isolation: the dial at 0 changes no other draw ---------------------------------------------------------------------
 
 def _bodies_of(system):
