@@ -141,23 +141,33 @@ def precession_constant_rad_yr(ellipticity, spin_rate_rad_s, torquers):
     return 1.5 * ellipticity / spin_rate_rad_s * total * constants.SECONDS_PER_YEAR
 
 
-def sibling_modes(index, a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
+def all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
     """
-    The nodal modes that drive planet `index` of a star's planets (semi-major axes in AU, masses in kg, inclinations and nodes of the orbits in radians, to a common plane): the
-    frequencies of the Laplace-Lagrange nodal matrix and the amplitude each carries in that planet's inclination. The invariable plane's own mode (frequency zero) is left out.
+    The nodal modes that drive each planet of a star's planets (semi-major axes in AU, masses in kg, inclinations and nodes of the orbits in radians, to a common plane), one tuple of
+    `Mode` for each planet: the frequencies of the Laplace-Lagrange nodal matrix and the amplitude each carries in that planet's inclination. The invariable plane's own mode (frequency
+    zero) is left out. The matrix is made once for all the planets.
     """
-    if len(a_au) < 2:
-        return ()
+    count = len(a_au)
+    if count < 2:
+        return tuple(() for _ in range(count))
     _a, B = secular_chain.matrices(a_au, masses_kg, host_mass_kg)
     frequencies, vectors, inverse = secular_chain._modes(B)
     start = np.sin(np.asarray(inclination_rad, float)) * np.exp(1j * np.asarray(node_rad, float))
     coefficients = inverse @ start
-    modes = []
-    for k, frequency in enumerate(frequencies):
-        amplitude = float(abs(vectors[index, k] * coefficients[k]))
-        if abs(frequency) > MODE_FLOOR_RAD_YR and amplitude > MODE_AMPLITUDE_FLOOR_RAD:
-            modes.append(Mode(float(frequency), math.asin(min(amplitude, 1.0))))
-    return tuple(modes)
+    out = []
+    for index in range(count):
+        modes = []
+        for k, frequency in enumerate(frequencies):
+            amplitude = float(abs(vectors[index, k] * coefficients[k]))
+            if abs(frequency) > MODE_FLOOR_RAD_YR and amplitude > MODE_AMPLITUDE_FLOOR_RAD:
+                modes.append(Mode(float(frequency), math.asin(min(amplitude, 1.0))))
+        out.append(tuple(modes))
+    return tuple(out)
+
+
+def sibling_modes(index, a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
+    """The nodal modes that drive planet `index` (`all_sibling_modes` for one planet)."""
+    return all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad)[index]
 
 
 def companion_mode(a_au, host_mass_kg, companion_mass_kg, companion_a_au, companion_eccentricity, mutual_inclination_rad):
