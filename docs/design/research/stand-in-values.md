@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1530 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1504 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 182 | 20 | 11 | 1 | 0 | 214 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
-| T4 | 78 | 11 | 3 | 21 | 12 | 125 |
-| T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 190 | 106 | 30 | 75 | 2 | 403 |
+| T4 | 80 | 11 | 3 | 21 | 12 | 127 |
+| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
+| T6 | 191 | 106 | 30 | 75 | 2 | 404 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 869 | 302 | 74 | 235 | 50 | 1530 |
+| All | 873 | 302 | 74 | 235 | 50 | 1534 |
 
 ## How the labels were given
 
@@ -2693,3 +2693,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FE2 | P | T6 | L1 | the direction of a companion's periapsis is drawn uniformly per system from a stream of its own (the generator stores none for a star's orbit) | 0 to 2 pi | systems with a companion | a stored orientation of the star orbit, once one exists | the stored orientation | no source: no orientation of a star's orbit is stored; the result of a lone companion does not depend on it, only the stored periapsis angles of the members | predicted only | - | - |
 | FE3 | T | T6 | L0 | the forced inclination is zero: the orbits of stars are coplanar in the generator | none | coplanar star orbits | a mutual inclination of the star orbits, once modelled (filed by TODO) | forced inclination and Kozai pumping from a mutual inclination | design; the generator has no mutual inclination of stars | predicted only | - | - |
 | FE4 | P | T6 | L1 | `belt_forcing.ALPHA_LIMIT` 0.3: the largest `a / a'` the first-order theory is used at | 0.2 to 0.4 | belts cut inside the companion's tide | a belt beyond 0.3 of the companion's axis whose members are measured with a forced part the theory misses | a higher-order expansion in `alpha` | recalled: the series in `alpha` converges slowly beyond a third; no belt of the census (499) lies beyond it | predicted only | GEN.1492 | - |
+
+## 6.261 Stand-ins of the fudge table
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FT1 | P | T4 | L0 | the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is its hand shoulder (CF, DM) times `1 + score / 12`, `score` the mean registry unreliability score of the area that makes it (`build_fudge_table.FALLBACK_SCORES`, 3.3 to 5.2) | factor 1.3 to 1.45 | quantities the frozen sample cannot move | a measured width for the same quantity that differs from the fallback by more than a factor of 2 | a sensitivity run that moves the mass law and the radius law with the population held (GEN.1318) | design: the ranking report of 11-06 section 2b gives the scores; the factor is a stated stand-in, not derived | predicted only | - | - |
+| FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
+| FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
+| FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |

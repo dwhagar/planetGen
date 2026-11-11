@@ -82,3 +82,15 @@ def test_combine_pools_the_passes_and_counts_a_resumed_row_once():
     assert matrix["A1"]["quantities"]["temperature_k"]["rms"] == pytest.approx(math.sqrt((9.0 + 16.0) / 2))
     assert matrix["A1"]["quantities"]["temperature_k"]["passes"] == 2 and matrix["A1"]["passes"] == 2
     assert matrix["B1"]["structure"] == 2
+
+
+def test_a_frozen_sample_reads_the_same_each_time():
+    harness.freeze_sample(1, 20261108)
+    try:
+        first = harness.read_frozen()
+        assert first[0], "a system with a rocky body"
+        totals, structure = harness.compare(first, harness.read_frozen())
+        assert structure == 0
+        assert all(entry["rms"] == 0.0 for entry in harness.summarize(totals).values())
+    finally:
+        harness._FROZEN.clear()
