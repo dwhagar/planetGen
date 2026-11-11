@@ -44,6 +44,7 @@ from planetgen.physics import (
     neutron_star_crust,
     outside_hours,
     planet_class_text,
+    planet_type,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -467,7 +468,7 @@ def _planet_facts(planet):
     else:
         rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", planet_type.pressure_label(planet_type.planet_type(planet)), _pascal(0.0 if airless else planet.atmospheric_pressure)))      # UX.297: a rocky planet under a deep envelope has no surface
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
             rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
