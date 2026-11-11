@@ -1599,7 +1599,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.801 | Wire the giant-planet interior outputs into the field, the heat and the description (G3) | none | done, PR #5385 |
 | GEN.802 | Wire the formation-distance water law into the atmosphere recipes b1 to b4 and reconcile it with the GEN.510 mass law (GEN.481b) | none | done, PR #3278 |
 | GEN.803 | Wire the magma-ocean redox findings: the a1 width and its extension above 1 Earth mass, link a2 to a1, split a3 by building-block type (GEN.482b) | none | done, PR #3240 |
-| GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) | none | open |
+| GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) | none | done, commit e8a437072 with WF1 to WF6 |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | none | open |
 | GEN.806 | Delete the duplicate XUV recomputation in physics/mixture_subject.py and read xuv_exposure_index (G2, step 3) | none | done, PR #5500 |
 | GEN.807 | Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4) | none | done, PR #5439 |
@@ -1842,7 +1842,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1044 | W19 module: the nightside collapse threshold of a thin-air locked planet [R2605, R4772], pure function | none | done, PR #4131 |
 | GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, [R2840])? Add the fractionation if not | none | done, PR #4146 |
 | GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | done, PR #4290 |
-| GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | open |
+| GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | done, release 3627 (commits c74a2aa7a, aea76738b) |
 | GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin) and W10 (iron-rich cores) into the bulk, spin and climate inputs | none | done, PR #5620 |
 | GEN.1049 | Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture | none | done, PR #5620 |
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | none | done, PR #5620 |
@@ -2188,7 +2188,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1401 | Importing planetgen.physics.hydrosphere or bulk_draw alone fails with a circular import unless planet_type is imported first, and GEN codes show in describe/sheet.py and stellar_abundances.py text (bug) | none | done, PR #5697 |
 | GEN.1402 | A rocky planet whose orbit eccentricity settled after its air was made keeps the air, temperature, dose and UV of the older light: remake its end stages when the eccentricity moved past a tolerance, even if the star's age did not (bug) | none | open |
 | GEN.1403 | Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever) | none | open |
-| GEN.1404 | Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives | none | open |
+| GEN.1404 | Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives | none | done as research, no retune (reports/gen1404-land-fraction-water-inventory-2026-11-11.md) |
 | GEN.1405 | Oxygen store delay: source the time an oxygen world takes to fill its stores before oxygen rises (EARTH_STORE_MOL, T9, L3, tuned to a 0.7 Gyr delay) from the geochemistry | none | done, PR #5783 |
 | GEN.1406 | Inner-planet Earth-size share against the Kepler occurrence rate: the generator gives 3.3 percent of stars an Earth-size inner planet (0.8 to 1.5 Earth radii) against the 16.5 percent the survey implies | none | done, PR #5869 |
 | GEN.1407 | K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light | none | open |
