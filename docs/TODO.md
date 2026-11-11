@@ -13339,6 +13339,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 12, closed by the GEN.1267 build. Prerequisites: GEN.1267. Related: MAP.365, GEN.1267.
   Filed by the TODO thread. Boss-visible bug.
 
+- [ ] **GEN.1527 Wire helium fractionation (W16): the envelope-loss history reaches the envelope mixture's helium budget at the capture step**
+  Lane 21 (as the lane reported 10:49 AM EST on 2026-11-11), split out of GEN.1523: physics.helium_fractionation (rows 6.77 HF1 to HF3, oddity W16) is built but read by nothing, because the hydrogen-first envelope loss history has to reach the envelope mixture's helium budget (mixture_giant.element_budget, mixture_subject) at the capture step in planets.py. Do: pass the loss history to the budget, so a sub-Neptune that lost hydrogen first ends helium-rich, wire the oddity row that names it, update the register lines (HF1 to HF3, GEN.725), a test with a stripped planet. Touches the mixture files, so a lock item (changes what seeds draw).
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 21. Prerequisites: none (GEN.1523 part 1 is PR 5990). Related: GEN.1523, GEN.1047.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
