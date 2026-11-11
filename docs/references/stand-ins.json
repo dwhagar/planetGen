@@ -61683,19 +61683,19 @@
             ],
             [
               "What replaces it",
-              "the four occurrence-fit harness JSONs"
+              "the occurrence fit (planet_occurrence.json, band cold_giants_cumming, [R0960]: dN/dlnM goes as M to the -0.31 +- 0.2; test_giant_mass_function_held_data.py holds the tuning to it)"
             ],
             [
               "Evidence",
-              "[R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants"
+              "checked on 2026-11-11 (GEN.1525): the held fit gives the same 0.31 the constant carries (the other occurrence bands state no slope); [R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants; value unchanged"
             ]
           ],
           "id": "AUD19",
           "key": "6.270:AUD19",
           "kind": "B",
           "slug": "6-270-aud19",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
           "what": "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
