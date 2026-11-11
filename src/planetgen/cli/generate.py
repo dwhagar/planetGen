@@ -19,6 +19,7 @@ or as the installed `planetgen` command):
     planetgen scatter --KIND        -- one scatter (mass, luminosity, phenomena, nebula-field, band)
     planetgen fill-map-luminosity   -- fill the map luminosity of the scattered phenomena
     planetgen rescore-habitability  -- re-derive the stored habitability numbers
+    planetgen refill-effect-ledger  -- write again the light and ultraviolet rows of the effect ledger
     planetgen fill-nebula-blocks    -- make the Galaxy Map's nebula block totals again
     planetgen fill-block-totals     -- make the Galaxy Map's block light totals again
     planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
@@ -1658,6 +1659,20 @@ def build_parser():
              "so a rerun after no change to the rules touches nothing and a run that stopped carries on where it stopped.")
     add_fill_arguments(rescore_habitability_parser)
 
+    refill_effect_ledger_parser = subparsers.add_parser(
+        'refill-effect-ledger',
+        description="Write again the light and ultraviolet rows of the effect ledger (the sources that reach a body above the ledger's floor) of every "
+                    "system from its stored stars, planets and moons, so a galaxy generated before the ledger existed, or before its floor or its "
+                    "formulas changed, holds the rows a new one would. Only those rows and the system's ledger stamp change; it can be stopped and run "
+                    "again, and it takes only the systems whose stamp is not the running code's (--all takes every one).",
+        help="Write again the light and ultraviolet rows of the effect ledger of the systems that this code has not filled.")
+    refill_effect_ledger_parser.add_argument(
+        '--all', action='store_true',
+        help="Refill every system, including the ones that already hold the rows of the running code. Without it a system is refilled only when "
+             "its stamp (`system_summary.ledger_stamp`, a hash of the physics source) is not the code's, so a rerun after no change touches "
+             "nothing and a run that stopped carries on where it stopped.")
+    add_fill_arguments(refill_effect_ledger_parser)
+
     fill_nebula_blocks_parser = subparsers.add_parser(
         'fill-nebula-blocks',
         description="Make the nebula totals of the Galaxy Map's blocks again: for every block of the ladder, the "
@@ -1882,6 +1897,7 @@ def build_parser():
         'clear-scatter': clear_scatter_parser,
         'fill-map-luminosity': fill_map_luminosity_parser,
         'rescore-habitability': rescore_habitability_parser,
+        'refill-effect-ledger': refill_effect_ledger_parser,
         'fill-nebula-blocks': fill_nebula_blocks_parser,
         'fill-block-totals': fill_block_totals_parser,
         'clean-nebula-field': clean_nebula_field_parser,
@@ -1953,7 +1969,7 @@ def validate_command(args, command_parser):
         validate_plan_args(args, command_parser)
     elif args.command == 'scatter':
         validate_scatter_args(args, command_parser)
-    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'fill-nebula-blocks', 'fill-block-totals',
+    elif args.command in ('fill-map-luminosity', 'rescore-habitability', 'refill-effect-ledger', 'fill-nebula-blocks', 'fill-block-totals',
                           'clean-nebula-field', 'finish-run',
                           'link', 'backfill', 'settle'):
         validate_fill_args(args, command_parser)
@@ -2092,6 +2108,7 @@ _COMMAND_HANDLERS = {
     'clear-scatter': run_plan.run_clear_scatter,
     'fill-map-luminosity': run_plan.run_fill_map_luminosity,
     'rescore-habitability': run_plan.run_rescore_habitability,
+    'refill-effect-ledger': run_plan.run_refill_effect_ledger,
     'fill-nebula-blocks': run_plan.run_fill_nebula_blocks,
     'fill-block-totals': run_plan.run_fill_block_totals,
     'clean-nebula-field': run_plan.run_clean_nebula_field,
@@ -2111,7 +2128,7 @@ _COMMAND_HANDLERS = {
 
 DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scatter": ("everything",),
                 "fill-map-luminosity": ("everything",), "finish-run": ("everything",),
-                "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
+                "rescore-habitability": ("everything",), "refill-effect-ledger": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
                 "population": ("population",), "territories": ("population",),
                 "bring-to-epoch": ("generated", "population"), "refresh-parity": (), "repair-db": ()}

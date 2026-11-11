@@ -83,7 +83,7 @@ def _is_site_wide(action):
     """Whether `action` acts on no particular run (so its confirmation page takes no `?run=`)."""
     return action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS or action in FILL_COMMANDS
 
-RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
+RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "refill-effect-ledger", "clean-nebula-field",
              "galaxy", "sectors", "link", "backfill", "settle", "sector", "population", "territories")
 """tuple[str]: The `planetgen` commands whose run Retry starts again (the command line the run recorded)."""
 
