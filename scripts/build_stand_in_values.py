@@ -503,6 +503,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.258", "6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.259", "6.259 Stand-ins of the bright sources in a body's sky",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.261", "6.261 Stand-ins of the fudge table",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.270", "6.270 Stand-ins of the constants the GEN.945 audit shortlisted",

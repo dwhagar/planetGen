@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1585 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1588 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1559 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1562 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 82 | 12 | 4 | 22 | 12 | 132 |
-| T5 | 78 | 24 | 6 | 1 | 1 | 110 |
+| T5 | 79 | 24 | 6 | 1 | 1 | 111 |
 | T6 | 200 | 107 | 30 | 82 | 4 | 423 |
-| T7 | 49 | 19 | 9 | 34 | 0 | 111 |
+| T7 | 51 | 19 | 9 | 34 | 0 | 113 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 899 | 310 | 75 | 248 | 53 | 1585 |
+| All | 902 | 310 | 75 | 248 | 53 | 1588 |
 
 ## How the labels were given
 
@@ -2740,6 +2740,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AL2 | T | T4 | L2 | `star_orbit_alignment.ALIGNED_SCALE_DEG` 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde | 2 to 10 degrees | every multiple | planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees | the scale of the distribution of the tilts of aligned multiples | recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (`orbit_elements.draw_planet_inclination_deg`) | predicted only | - | - |
 | AL3 | T | T6 | L0 | the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before | none | random-orientation multiples (wide pairs formed by fragmentation) | a sample of wide multiples whose planes prefer a direction against the planets' plane | the measured distribution of the tilts of wide multiples | design: the draw `Tree.place` made before GEN.1500, kept for the share that is not aligned | predicted only | - | - |
 | AL4 | T | T6 | L0 | the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (`stability.mutual_inclination`); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn | none | triples and quadruples | a census of the accepted triples whose mutual inclination shows the peaks without the planet screen | the Kozai screen of GEN.1447 run on the planets | design; reuse of `stability.mutual_inclination` and `kozai_verdict` | predicted only | - | - |
+
+## 6.259 Stand-ins of the bright sources in a body's sky
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKY1 | T | T5 | L0 | `sky_view.NIGHT_LIGHT_W_M2` = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2) | 2.6e-3 W/m2 | the eye at night, a body with an air that scatters like Earth's | a sky where a fainter source is called bright (a dark-adapted eye, a thin air) | a threshold from the sky's brightness in the air the body has | measured: the illuminance of the full Moon at Earth is about 0.25 lux; the Sun at Earth gives about 1.3e5 lux | predicted only | - | - |
+| SKY2 | P | T7 | L0 | a source's width is `2 asin(R / d)` with `d` the distance that the mean light gives (`light = L / (4 pi d^2)`, the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word | none | a companion whose orbit is not much wider than the body's | a companion on an eccentric orbit that is at its apoapsis at the epoch of the page | the width from the offset of the source at the epoch (GEN.1458 `offset_au`) | design: the light and the width of the source follow one distance, so the text agrees with the temperature | predicted only | - | - |
+| SKY3 | P | T7 | L0 | the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts | none | systems with no dark member | a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system | the light of a dark member drawn from its mass, age and companion (GEN.1501) | design: the follow-up is filed with the item | predicted only | - | - |
 
 ## 6.261 Stand-ins of the fudge table
 
