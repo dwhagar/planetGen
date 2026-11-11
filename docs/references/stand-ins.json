@@ -61901,11 +61901,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history (GEN.935 family)"
+              "the thin disk's population windows (tuning.STELLAR_POPULATION_AGE_RANGES_GY, THIN_DISK_OLD_WINDOW_GY; test_age_windows_held_to_populations.py holds the window to them)"
             ],
             [
               "Evidence",
-              "the thin disk's 0 to 10 Gy; population ages by position come on top"
+              "checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; galaxy.disk_history reads the top as its span; population ages by position come on top; value unchanged"
             ]
           ],
           "id": "AUD4",
@@ -61939,11 +61939,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history for the upper edge"
+              "the star-formation window's top (test_age_windows_held_to_populations.py)"
             ],
             [
               "Evidence",
-              "a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)"
+              "checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged"
             ]
           ],
           "id": "AUD5",
