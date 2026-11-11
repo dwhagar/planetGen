@@ -16882,9 +16882,9 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "the share 0.0092 now sits between two read statistics ([R4897]: 0.62 percent Kepler, 0.9 to 1.2 percent radial velocity), but the row also holds the metallicity exponent 2.2 and the period range, which no survey constrains separately; the row stays L3 until they are split"
+            "GEN.946 (2026-11-11): lowered to L2; the extra metallicity exponent 2.2 is 3.4 - 1.2 from the two read exponents [R2172, R3499], the period ceiling 10 d is the read hot-Jupiter edge, and the share is tuned to the read 0.62 and 0.27 percent [R1504, R4897]; no hand tuning remains"
           ],
           "fields": [
             [
@@ -16909,7 +16909,7 @@
             ],
             [
               "Evidence",
-              "[R4897] ([R4897], READ: 0.62 ± 0.09 percent in the Kepler sample, 0.9 to 1.2 percent in radial-velocity surveys; the share 0.0092 sits between them); [R1504] ([R1504], READ: 0.27 percent of early M dwarfs); [R3499] (exponent 3.4 against 1.2 for giants)"
+              "[R4897] ([R4897], READ: 0.62 ± 0.09 percent in the Kepler sample, 0.9 to 1.2 percent in radial-velocity surveys; the share 0.0092 sits between them); [R1504] ([R1504], READ: 0.27 percent of early M dwarfs); [R3499] (exponent 3.4 against 1.2 for giants); checked on 2026-11-11 (GEN.946): the extra exponent 2.2 is 3.4 - 1.2 from the two read exponents, the period ceiling 10 d is the hot-Jupiter edge of [R3196, R4897], and the share is tuned to the read 0.62 percent (Kepler) and 0.27 percent (M dwarfs), so the row is tuned to published statistics, not by hand; test_stand_in_tweaks_held_to_sources.py holds the first two"
             ]
           ],
           "id": "PA9",
@@ -16918,7 +16918,7 @@
           "slug": "6-36-pa9",
           "tier": "T6",
           "tier_code": "T6",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
           "what": "tuning.GIANT_MIGRATION_SHARE 0.0092 with GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT 2.2 and GIANT_MIGRATION_PERIOD_RANGE_DAYS (1, 10) (the share of giants that become hot Jupiters, how it rises with [Fe/H], where they end)"
         },
@@ -17874,14 +17874,14 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "the accretion spread was recalled and is now read: [R2677] give core formation under about 1 Myr in the first reservoir and 1.8 to 4 Myr in the second, consistent with the 3 Myr; the value remains the one Solar System spread tuned by the melting test, no other system dates its planetesimals; tier T3, tweak L3 stay"
+            "GEN.946 (2026-11-11): lowered to L2; the 3 Myr spread lies inside the read 1.8 to 4 Myr of the chondrite reservoir [R2677] and gives the melted share of 0.54 at the Solar System's ratio, the 0.55 it is tuned to; no hand tuning remains"
           ],
           "fields": [
             [
               "What it is",
-              "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages"
+              "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages; checked on 2026-11-11 (GEN.946): the 3 Myr lies inside the read 1.8 to 4 Myr of the chondrite reservoir and gives the melted share of 0.544 at the Solar System's aluminium-26 ratio against the 0.55 it is tuned to (1.8 gives 0.91 and 4 gives 0.41), so it is tuned to a published statistic inside a read range, not by hand; test_stand_in_tweaks_held_to_sources.py holds both"
             ],
             [
               "The range it moves in",
@@ -17910,9 +17910,9 @@
           "slug": "6-41-tk5",
           "tier": "T3",
           "tier_code": "T3",
-          "tweak": "L3",
+          "tweak": "L2",
           "unread": null,
-          "what": "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages"
+          "what": "taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr after the first solids and core formation was done by about 1 Myr, the chondrite reservoir began differentiating at 1.1 to 1.8 Myr and peaked at 1.8 to 4 Myr: [R2677], READ, which matches the meteorite ages; checked on 2026-11-11 (GEN.946): the 3 Myr lies inside the read 1.8 to 4 Myr of the chondrite reservoir and gives the melted share of 0.544 at the Solar System's aluminium-26 ratio against the 0.55 it is tuned to (1.8 gives 0.91 and 4 gives 0.41), so it is tuned to a published statistic inside a read range, not by hand; test_stand_in_tweaks_held_to_sources.py holds both"
         },
         {
           "burn_down": [
@@ -62307,7 +62307,7 @@
             ],
             [
               "The range it moves in",
-              "1.1 to 2.2 solar masses"
+              "1.1 to 2.2 solar masses (ceiling 2.0 to 2.75 over the equations of state)"
             ],
             [
               "Where it holds",
@@ -62315,23 +62315,23 @@
             ],
             [
               "What would show it wrong",
-              "a measured neutron star outside the range, or an equation of state whose maximum mass lies under 2.2"
+              "a ceiling above the maximum mass of every equation of state, or under the heaviest measured pulsar"
             ],
             [
               "What replaces it",
-              "the maximum masses of the held equations of state (GEN.743, GEN.968)"
+              "the maximum masses of the 21 equations of state (neutron_star_structure.maximum_mass_solar; test_remnant_mass_ranges_held_data.py holds the ceiling to them)"
             ],
             [
               "Evidence",
-              "compiled radio pulsar timing masses (comment of the constant)"
+              "checked on 2026-11-11 (GEN.1525): the 21 maxima run 2.01 to 2.75 with a median of 2.22, so 2.2 is their middle and every star up to it has equations of state that support it (supporting); the floor is held by all 21; compiled radio pulsar timing masses (comment of the constant); value unchanged"
             ]
           ],
           "id": "AUD6",
           "key": "6.270:AUD6",
           "kind": "B",
           "slug": "6-270-aud6",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
           "what": "tuning.NEUTRON_STAR_MASS_RANGE_SOLAR (1.1, 2.2): the neutron star mass draw"
@@ -62357,19 +62357,19 @@
             ],
             [
               "What replaces it",
-              "the white dwarf cooling sequences held in the catalogue"
+              "the white dwarf cooling sequences (datasets.white_dwarf_models, 0.2 to 1.3; test_remnant_mass_ranges_held_data.py holds the range inside them to the scaled oxygen-neon edge)"
             ],
             [
               "Evidence",
-              "the relation read by the star model, the member draw and the disk history"
+              "checked on 2026-11-11 (GEN.1525): the sequences run 0.2 to 1.30 solar masses, so the range sits inside them except the 1.30 to 1.35 edge, read from the 1.30 sequence (WL7); the relation read by the star model, the member draw and the disk history; value unchanged"
             ]
           ],
           "id": "AUD7",
           "key": "6.270:AUD7",
           "kind": "B",
           "slug": "6-270-aud7",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L0",
           "unread": null,
           "what": "tuning.WD_MASS_RANGE_SOL (0.5, 1.35): the white dwarf mass range of the initial-final relation"
@@ -62455,11 +62455,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
             ],
             [
               "The range it moves in",
-              "1e4 to 3e6 solar masses"
+              "peak 1.3e5 to 2.1e5 (M/L_V of 1.5 to 2.6); 1e4 to 3e6"
             ],
             [
               "Where it holds",
@@ -62467,26 +62467,26 @@
             ],
             [
               "What would show it wrong",
-              "a globular outside the range in the Harris catalogue"
+              "a cluster brighter than M_V of -6 outside the range, or a bright-cluster median outside the peak band, in the Harris catalog"
             ],
             [
               "What replaces it",
-              "the Harris catalogue (GEN.297, reader built)"
+              "the Harris fit (test_cluster_laws_harris.py holds the tuning to it); a floor under 1e4 if the dissolving tail is modelled"
             ],
             [
               "Evidence",
-              "compared with the catalogue when GEN.297 reads it"
+              "checked against [R1827] (2010 edition, 156 clusters with M_V) on 2026-11-11 (GEN.1525): the bright-cluster median is 1.3e5 (M/L 1.5) to 2.1e5 (M/L 2.6), the heaviest cluster 2.2e6, and 8 to 10 percent of the catalog is under the floor of 1e4 (evolved clusters a log-normal does not make); values unchanged"
             ]
           ],
           "id": "AUD10",
           "key": "6.270:AUD10",
           "kind": "B",
           "slug": "6-270-aud10",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L0",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
           "unread": null,
-          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
         },
         {
           "burn_down": null,
@@ -62497,32 +62497,32 @@
             ],
             [
               "The range it moves in",
-              "0.4 to 0.6 dex"
+              "0.37 to 0.67 dex"
             ],
             [
               "Where it holds",
-              "globular cluster ensembles"
+              "globular clusters"
             ],
             [
               "What would show it wrong",
-              "a measured mass function width outside 0.4 to 0.6 dex"
+              "a measured width outside the band of the bright clusters (0.37 dex) and the whole catalog (0.67 dex)"
             ],
             [
               "What replaces it",
-              "the Harris catalogue fit (GEN.297)"
+              "the Harris fit (test_cluster_laws_harris.py)"
             ],
             [
               "Evidence",
-              "recalled; next to CLUSTER_MASS_PEAK_SOL 2e5"
+              "checked against [R1827] on 2026-11-11 (GEN.1525): 0.37 dex for the clusters brighter than M_V of -6, 0.67 dex with the faint tail; the turnover width of 1.2 mag is 0.48 dex; value unchanged"
             ]
           ],
           "id": "AUD11",
           "key": "6.270:AUD11",
           "kind": "B",
           "slug": "6-270-aud11",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
           "unread": null,
           "what": "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
         },
@@ -62825,19 +62825,19 @@
             ],
             [
               "What replaces it",
-              "the four occurrence-fit harness JSONs"
+              "the occurrence fit (planet_occurrence.json, band cold_giants_cumming, [R0960]: dN/dlnM goes as M to the -0.31 +- 0.2; test_giant_mass_function_held_data.py holds the tuning to it)"
             ],
             [
               "Evidence",
-              "[R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants"
+              "checked on 2026-11-11 (GEN.1525): the held fit gives the same 0.31 the constant carries (the other occurrence bands state no slope); [R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants; value unchanged"
             ]
           ],
           "id": "AUD19",
           "key": "6.270:AUD19",
           "kind": "B",
           "slug": "6-270-aud19",
-          "tier": "T3",
-          "tier_code": "T3",
+          "tier": "T2",
+          "tier_code": "T2",
           "tweak": "L1",
           "unread": null,
           "what": "tuning.GIANT_MASS_FUNCTION_SLOPE 0.31: the slope of dN/dlogM of giant planets"
@@ -62968,7 +62968,7 @@
           "burn_down": [
             "no data",
             "-",
-            "the MIST and BHAC15 tracks are held but not read for this factor yet; any read replaces it"
+            "read on 2026-11-11 (GEN.1525): the factor 2.0 fits MIST's nuclear arrival within 0.32 dex while the BHAC15 radius-settled times prefer about 1.0; the track is stretched onto those times, so the factor only sets the nuclear-arrival stand-in below MIST's mass reach, and it stays tuned to MIST (PR 6008)"
           ],
           "fields": [
             [
