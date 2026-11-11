@@ -108,6 +108,7 @@ NOT_STORED = "not stored"
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
     "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "dose_rate": "dose rate",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
@@ -716,7 +717,7 @@ def specs_for(kind):
 
 _SYMBOLS = {
     "A*m2": " A·m²", "R_planet": " planet radii", "xuv-earth": "× Earth's", "1/yr": " a year", "1/Gy": " per billion years",
-    "mSv/yr": " mSv/yr", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
+    "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
 }
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
