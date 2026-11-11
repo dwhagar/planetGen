@@ -2260,7 +2260,11 @@ class StarSystem:
                 if planet.body_type == 'a' or not planet.moons:
                     continue
                 self.kozai_outcomes["screened"] += len(planet.moons)
+                before = {id(moon): moon.eccentricity for moon in planet.moons}
                 lost = kozai_bodies.pump_moons(planet, self.effect_ledger)
+                for moon in planet.moons:
+                    if moon not in lost and moon.eccentricity != before[id(moon)]:
+                        planetPhysics.update_orbital_position(moon)     # GEN.1540: the moon goes on the ellipse of the eccentricity it now has, in its place in its plane
                 self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
                 for moon in lost:
                     planet.moons.remove(moon)
