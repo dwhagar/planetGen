@@ -1,14 +1,14 @@
 # planetgen/web/belt_member_page.py
 
 """
-The page of one body an asteroid belt keeps, `/object/belt:<ID>/member/<rank>` (GEN.1070): its designation, status, mass, size, makeup, orbit and the history of its belt. The data is
+The page of one body an asteroid belt keeps, `/object/belt:<ID>/member/<rank>` (GEN.1070): its picture (MAP.413: the look of `bodylook.member_look` painted by `static/bodyview.js`), designation, status, mass, size, makeup, orbit and the history of its belt. The data is
 `GET /api/objects/<ref>/belt-members/<rank>` (`describe/belt_member_info.py`); this page lays it out.
 """
 
 from flask import abort
 
 from planetgen.galaxy import objectref, object_uid
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, bodyview
 
 from . import bp
 from .helpers import crumb, db_name, page_url, render_page
@@ -67,4 +67,5 @@ def belt_member_page(belt_ref, rank):
         previous=data["previous"],
         next=data["next"],
         quantity=_quantity,
+        example=bodyview.member_view(data["designation"], member),
     )
