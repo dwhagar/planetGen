@@ -12165,7 +12165,7 @@
           "fields": [
             [
               "What it is",
-              "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
+              "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
             ],
             [
               "The range it moves in",
@@ -12196,7 +12196,7 @@
           "tier_code": "T3",
           "tweak": "L1",
           "unread": null,
-          "what": "biogenic_oxygen.EARTH_STORE_MOL 5e21: the store of reductants that takes the first oxygen, the delay of the first oxygen after the first oxygenic photosynthesis (store over the surplus S less R, 0.714 Gyr at Earth's S and R)"
+          "what": "biogenic_oxygen.EARTH_STORE_MOL 4e21 (5e21 until GEN.1463): the store of reductants that takes the first oxygen, set so the delay of the first oxygen after the first oxygenic photosynthesis (the 2.7 Ga biomarkers, body age 1.8 Gyr) is 0.714 Gyr when the surplus is S less R(age), with R at 2.2 times its value now falling to 1.9 times (the model's own heat history of an Earth-mass body, biogenic_oxygen.reductant_history_factor)"
         },
         {
           "burn_down": [
@@ -12437,6 +12437,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "biogenic_oxygen.REDUCED_GASES: the oxygen each reduced gas takes and the oxides it leaves"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 Gyr step"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a stored thermal history"
+            ],
+            [
+              "What would show it wrong",
+              "a measured reductant flux of the early Earth far from 2 to 2.5 times today's, or an Archean heat flow of a different ratio"
+            ],
+            [
+              "What replaces it",
+              "an inventory of the sinks by age (ferrous iron, sulfides, volcanic gases)"
+            ],
+            [
+              "Evidence",
+              "design, from the proportionality of R to the heat that reductant_flux already uses; the early heat flow is the model's own thermal history ([R1716] box model), 2 to 3 times today's when the biomarkers appear, as the convection laws give for Earth"
+            ]
+          ],
+          "id": "BO10",
+          "key": "6.21:BO10",
+          "kind": "P",
+          "slug": "6-21-bo10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "biogenic_oxygen.reductant_history_factor: the reductant R of a body at an earlier age is its R now times the heat its interior gave off then over the heat now (interior_heat.heat_at), tide as stored, 1 past the star's age or with no thermal history; the surplus S less R(age) is summed in steps of RISE_STEP_GYR (0.25 Gyr)"
         }
       ],
       "slug": "6-21-stand-ins-of-the-life-timeline-and-the-biogenic-oxygen",
@@ -60627,7 +60665,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1492",
+          "unread": null,
           "what": "belt_forcing.ALPHA_LIMIT 0.3: the largest a / a' the first-order theory is used at"
         }
       ],
@@ -60921,6 +60959,242 @@
       "title": "Stand-ins of the bright sources in a body's sky"
     },
     {
+      "key": "6.260",
+      "number": "6.260",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the orbits of a source and a receiver are taken coplanar when the mean of 1 / d^3 is worked out; a mutual inclination only lengthens the mean separation, so each source's part is an upper bound"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the planets of one star (mutual inclinations of a few degrees) and the moons of one planet"
+            ],
+            [
+              "What would show it wrong",
+              "a pair of orbits inclined by tens of degrees (a captured moon, a companion on a tilted orbit)"
+            ],
+            [
+              "What replaces it",
+              "the mean over the two orbits with their stored nodes and inclinations"
+            ],
+            [
+              "Evidence",
+              "derived: the separation of two circles of radii a and b inclined by i is not under that of the coplanar pair at any phase; the coplanar mean is exact for i = 0 (2 E(m) / (pi (a + b) (a - b)^2), tested against quadrature)"
+            ]
+          ],
+          "id": "TS1",
+          "key": "6.260:TS1",
+          "kind": "P",
+          "slug": "6-260-ts1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the orbits of a source and a receiver are taken coplanar when the mean of 1 / d^3 is worked out; a mutual inclination only lengthens the mean separation, so each source's part is an upper bound"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "sources far from the receiver compared with the moons' orbits (every planet's moon system is under a tenth of the planet's Hill sphere)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose neighbour is close enough that the neighbour's moon system is not small against the gap"
+            ],
+            [
+              "What replaces it",
+              "each moon of a sibling as its own source on its own orbit"
+            ],
+            [
+              "Evidence",
+              "design: the moons' orbits are inside moon_hill_fraction of the planet's Hill radius, which is small against the planet-to-planet gap for planets spaced by the mutual-Hill checks"
+            ]
+          ],
+          "id": "TS2",
+          "key": "6.260:TS2",
+          "kind": "P",
+          "slug": "6-260-ts2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a sibling planet and its moons are one point at the planet's place with the sum of their masses; a moon's tide from a source outside its planet's system is taken at the planet's place"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (radiation_field.separations_au), and two circles closer than tide_sources._MIN_SEPARATION_SHARE = 0.01 of the larger are held that far apart"
+            ],
+            [
+              "The range it moves in",
+              "0.01"
+            ],
+            [
+              "Where it holds",
+              "planets spaced by the mutual-Hill rule and eccentricities under 0.5"
+            ],
+            [
+              "What would show it wrong",
+              "an eccentric receiver whose orbit crosses a neighbour's"
+            ],
+            [
+              "What replaces it",
+              "the receiver's own radius in the average (a double grid)"
+            ],
+            [
+              "Evidence",
+              "derived: the grid is the one the radiation field uses for the same orbits; the floor is never reached by neighbours several mutual Hill radii apart"
+            ]
+          ],
+          "id": "TS3",
+          "key": "6.260:TS3",
+          "kind": "P",
+          "slug": "6-260-ts3",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the receiver is taken on the circle of its semi-major axis, a source on an eccentric orbit is averaged over its radius on 96 points uniform in time (radiation_field.separations_au), and two circles closer than tide_sources._MIN_SEPARATION_SHARE = 0.01 of the larger are held that far apart"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a source other than the host raises a tide that goes round at the synodic rate abs(n_receiver - n_source), on a circle at the distance whose 1 / d^3 is the source's mean, and adds to the spring and neap range as one more raiser"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "any source that is not the receiver's host (the host's own tide moves at the receiver's orbital rate)"
+            ],
+            [
+              "What would show it wrong",
+              "a receiver locked to a source it shares an orbit with (a Trojan pair)"
+            ],
+            [
+              "What replaces it",
+              "the true tide of the moving source at each phase"
+            ],
+            [
+              "Evidence",
+              "derived: the tide a body feels at a phase goes as the mean of 1 / d^3 over the pair's phase difference"
+            ]
+          ],
+          "id": "TS4",
+          "key": "6.260:TS4",
+          "kind": "P",
+          "slug": "6-260-ts4",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a source other than the host raises a tide that goes round at the synodic rate abs(n_receiver - n_source), on a circle at the distance whose 1 / d^3 is the source's mean, and adds to the spring and neap range as one more raiser"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the planets and moons of the sample"
+            ],
+            [
+              "What would show it wrong",
+              "a system whose belt mass is a large share of a planet's"
+            ],
+            [
+              "What replaces it",
+              "the belts as sources through the ledger of GEN.1464"
+            ],
+            [
+              "Evidence",
+              "design: the item order; a belt's mass is a small share of its planet's in every sample census"
+            ]
+          ],
+          "id": "TS5",
+          "key": "6.260:TS5",
+          "kind": "T",
+          "slug": "6-260-ts5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "no belt, asteroid or comet raises a tide here; GEN.1464 adds them as tiny sources"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "coplanar neighbours and companions"
+            ],
+            [
+              "What would show it wrong",
+              "a pair inclined by tens of degrees, or two planets in a resonance whose line to each other does not wind at either mean motion"
+            ],
+            [
+              "What replaces it",
+              "the mean over both orbits with their nodes, and the tide at the synodic frequency"
+            ],
+            [
+              "Evidence",
+              "derived: <(A - B cos f)^-3> = (2 A^2 + B^2) / (2 (A^2 - B^2)^(5/2)) with A = a^2 + b^2, B = 2 a b (tested against quadrature); census over 30 systems in the last paragraph of the note"
+            ]
+          ],
+          "id": "TS6",
+          "key": "6.260:TS6",
+          "kind": "P",
+          "slug": "6-260-ts6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the spin torque and the tidal heat of a source other than the host or the own moons use the exact mean of 1 / d^6 for two coplanar circles, ((a^2 + b^2)^2 + 2 a^2 b^2) / abs(a^2 - b^2)^5 (an eccentric source averaged over its radius), with the dissipation of the body at the frequency of the tide the line to the source raises (abs(spin - rate)); the line turns at the rate of the larger orbit radius"
+        }
+      ],
+      "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",
+      "title": "Stand-ins of the tide raised by every body of a system"
+    },
+    {
       "key": "6.261",
       "number": "6.261",
       "rows": [
@@ -61079,6 +61353,410 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.262",
+      "number": "6.262",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+            ],
+            [
+              "The range it moves in",
+              "1e-4 to 1e-2"
+            ],
+            [
+              "Where it holds",
+              "bodies drawn with an eccentricity of nearly zero"
+            ],
+            [
+              "What would show it wrong",
+              "the cycle of a body with a drawn eccentricity under 1e-3 reaches a peak that depends on the floor"
+            ],
+            [
+              "What replaces it",
+              "the seed taken from the octupole term and the mutual perturbations"
+            ],
+            [
+              "Evidence",
+              "no source; the value only keeps the equations from sticking at a circular start"
+            ]
+          ],
+          "id": "KZ1",
+          "key": "6.262:KZ1",
+          "kind": "P",
+          "slug": "6-262-kz1",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.MINIMUM_BIRTH_ECCENTRICITY 1e-3: the least birth eccentricity a cycle starts from (the test-particle equations do not leave zero)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with a distant third body"
+            ],
+            [
+              "What would show it wrong",
+              "a triple under the ratio whose integrated eccentricity differs from the averaged peak by tens of percent"
+            ],
+            [
+              "What replaces it",
+              "an N-body check of the closest triples"
+            ],
+            [
+              "Evidence",
+              "the stability cut (stability.stable) is the physical limit and is the caller's; this only stops the averaged equations where they cannot hold"
+            ]
+          ],
+          "id": "KZ2",
+          "key": "6.262:KZ2",
+          "kind": "P",
+          "slug": "6-262-kz2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.HIERARCHY_RATIO 3.0: the outer axis over the inner under which the averaged equations are not applied"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+            ],
+            [
+              "The range it moves in",
+              "rocky 0.2 to 0.4, giant 0.1 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "planets with a rotation period"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose measured J2 is off by more than a third"
+            ],
+            [
+              "What replaces it",
+              "a J2 from the planet's interior (the structure solver's moment of inertia and Love number)"
+            ],
+            [
+              "Evidence",
+              "Earth 1.08e-3 over 3.45e-3, Jupiter 1.47e-2 over 8.9e-2, Saturn 1.63e-2 over 15.5e-2 (recalled, not opened)"
+            ]
+          ],
+          "id": "KZ3",
+          "key": "6.262:KZ3",
+          "kind": "P",
+          "slug": "6-262-kz3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.J2_PER_ROTATION_PARAMETER_ROCKY 0.31 and _GIANT 0.17: J2 = f q, q = w^2 R^3 / G M"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 2"
+            ],
+            [
+              "Where it holds",
+              "moons and planets with siblings or a bulge"
+            ],
+            [
+              "What would show it wrong",
+              "an integrated orbit with a precession rate within a factor of two of the Kozai rate that still reaches the averaged peak"
+            ],
+            [
+              "What replaces it",
+              "the full precession-resonance criterion of the secular problem"
+            ],
+            [
+              "Evidence",
+              "the rate the star turns the orbit is 1 / t_kl, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal [R5223, R5224]"
+            ]
+          ],
+          "id": "KZ4",
+          "key": "6.262:KZ4",
+          "kind": "P",
+          "slug": "6-262-kz4",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "moons of planets with a spin axis"
+            ],
+            [
+              "What would show it wrong",
+              "a regular moon far outside the Laplace radius whose plane is observed to sit at the equator and not the planet's orbit"
+            ],
+            [
+              "What replaces it",
+              "a model of the disk's warp with distance"
+            ],
+            [
+              "Evidence",
+              "a circumplanetary disk is held in the local Laplace plane by the same two torques [R5224]; the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352)"
+            ]
+          ],
+          "id": "KZ5",
+          "key": "6.262:KZ5",
+          "kind": "P",
+          "slug": "6-262-kz5",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "a moon that formed in place (moon_origin disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (kozai_bodies.laplace_tilt_rad)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "captured moons that cycle"
+            ],
+            [
+              "What would show it wrong",
+              "a cycling moon whose eccentricity after the tide is higher than the cycle's peak"
+            ],
+            [
+              "What replaces it",
+              "the tide and the cycle integrated together"
+            ],
+            [
+              "Evidence",
+              "the tide's wear (GEN.842) is computed from the birth eccentricity; keeping that number the pumped one lets it do what it already does"
+            ]
+          ],
+          "id": "KZ6",
+          "key": "6.262:KZ6",
+          "kind": "P",
+          "slug": "6-262-kz6",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (_orbit_birth); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide"
+        }
+      ],
+      "slug": "6-262-stand-ins-of-the-kozai-lidov-pumping-of-moons",
+      "title": "Stand-ins of the Kozai-Lidov pumping of moons"
+    },
+    {
+      "key": "6.263",
+      "number": "6.263",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 20000 K for P, 300 to 6000 K for the molecules"
+            ],
+            [
+              "What would show it wrong",
+              "a measured partition function or a JANAF value that differs from the fit by more than the fit's own error"
+            ],
+            [
+              "What replaces it",
+              "a fit that extends the molecules past 6000 K"
+            ],
+            [
+              "Evidence",
+              "the fits are the database's own numbers, built by the same script as the other 112 species"
+            ]
+          ],
+          "id": "PHG1",
+          "key": "6.263:PHG1",
+          "kind": "T",
+          "slug": "6-263-phg1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "gas above 6000 K at the pressures of a giant (1 bar to 1e4 bar)"
+            ],
+            [
+              "What would show it wrong",
+              "a computed or measured abundance of a phosphorus molecule at 6000 K and above that holds more than a few percent of the phosphorus"
+            ],
+            [
+              "What replaces it",
+              "an extrapolated or ab initio fit of PH, PO and PN above 6000 K"
+            ],
+            [
+              "Evidence",
+              "measured with the table: at 5990 K (a solar-ratio hydrogen air with 3e-7 phosphorus) atomic P holds 99.7 percent of the phosphorus at 1 bar and 81 percent at 100 bar, but at 1e4 bar PH holds 82 percent, so the step at 6000 K changes which species carries the phosphorus at the highest pressures but not that it is in the gas"
+            ]
+          ],
+          "id": "PHG2",
+          "key": "6.263:PHG2",
+          "kind": "T",
+          "slug": "6-263-phg2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+        }
+      ],
+      "slug": "6-263-stand-ins-of-the-phosphorus-gases-above-6000-k",
+      "title": "Stand-ins of the phosphorus gases above 6000 K"
+    },
+    {
+      "key": "6.264",
+      "number": "6.264",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+            ],
+            [
+              "The range it moves in",
+              "24 to 106 AU ([R5220]: 47 +59/-23)"
+            ],
+            [
+              "Where it holds",
+              "solar-type hosts with a companion of mass ratio above about 0.4"
+            ],
+            [
+              "What would show it wrong",
+              "a measured disk lifetime or planet occurrence that stays the same inside 47 AU, or changes at a clearly different separation"
+            ],
+            [
+              "What replaces it",
+              "a lifetime that falls smoothly with separation, once a source gives the curve"
+            ],
+            [
+              "Evidence",
+              "[R5220], AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU"
+            ]
+          ],
+          "id": "CD1",
+          "key": "6.264:CD1",
+          "kind": "P",
+          "slug": "6-264-cd1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+            ],
+            [
+              "The range it moves in",
+              "0.19 to 0.48 (S_bin = 0.34 +0.14/-0.15)"
+            ],
+            [
+              "Where it holds",
+              "close companions at any separation inside the edge (no dependence on separation is modelled)"
+            ],
+            [
+              "What would show it wrong",
+              "a disk lifetime or giant occurrence in close binaries more than 0.15 off 0.34"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent share, once a source gives it"
+            ],
+            [
+              "Evidence",
+              "[R5225], ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; [R5220] above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md)"
+            ]
+          ],
+          "id": "CD2",
+          "key": "6.264:CD2",
+          "kind": "P",
+          "slug": "6-264-cd2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+        }
+      ],
+      "slug": "6-264-stand-ins-of-the-gas-a-close-companion-leaves-a-disk",
+      "title": "Stand-ins of the gas a close companion leaves a disk"
     },
     {
       "key": "6.270",
