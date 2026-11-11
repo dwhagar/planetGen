@@ -3875,9 +3875,9 @@ What the end-of-making pass (`generation/late_accretion.py`) sets in place of th
 
 
 
-### 6.256 Stand-ins of a companion star's secular forcing of a belt (GEN.1492 slice 0)
+### 6.256 Stand-ins of a companion star's secular forcing of a belt (GEN.1492 slices 0 and 1)
 
-The forced eccentricity a companion star gives a belt's members (`physics/belt_forcing.py`; built, read by nothing yet). Tiers and tweaks are the lane's reading (Lane 22), for the owner to confirm.
+The forced eccentricity a companion star gives a belt's members (`physics/belt_forcing.py`; read by `AsteroidBelt._force_by_companions`, GEN.1492 slice 1). Tiers and tweaks are the lane's reading (Lane 22), for the owner to confirm.
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
