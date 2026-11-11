@@ -61847,11 +61847,11 @@
             ],
             [
               "What replaces it",
-              "the MIST and BHAC15 pre-main-sequence tracks"
+              "the MIST isochrones' nuclear arrival (isochrones.pre_main_sequence_arrival_yr; test_pms_energy_factor_held_data.py holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks"
             ],
             [
               "Evidence",
-              "derived from the tracks when pre_main_sequence reads them"
+              "checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (scale, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged"
             ]
           ],
           "id": "AUD23",
