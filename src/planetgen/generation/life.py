@@ -506,3 +506,19 @@ def decide_flavor_text(planet):
     system_config.system_flavor_count += 1
     planet.flavor_text_count += 1
     system_config.used_flavor_ids.append(option.id)
+
+
+def decide_flavor_text_alone(body):
+    """
+    GEN.1433: the flavor line of a body that belongs to no system, a rogue planet or one of its moons (`starless_host.build_rogue_body`). The same roll
+    (`tuning.FLAVOR_CHANCE_PLANET`) and the same tree walk as `decide_flavor_text`, on the body's own stream, with no system bookkeeping to share: there is no
+    system total to fill and no ids already shown, so what one rogue shows never changes what another does. Sets `flavor_key` and `flavor_text_count` in place.
+    """
+    with draw.bound(draw.Stream(flavor_tree.seed_of("roll", body))):
+        rolled = draw.random()
+    if rolled >= tuning.FLAVOR_CHANCE_PLANET:
+        return
+    option = flavor_tree.draw_line("planet", body)
+    if option is not None:
+        body.flavor_key = option.id
+        body.flavor_text_count += 1

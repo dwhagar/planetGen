@@ -1,0 +1,7 @@
+**Headline:** Rogue planets, their moons, and moons of a star now get flavor lines that fit them: a dark sky and no sunrise for a rogue, a host that hangs in one spot or rises and sets for a moon.
+
+### Changed
+- **Two more roots of the flavor tree (GEN.1433, first slice).** `physics/data/flavor_tree.json` gets a starless branch for rogue planets and their moons (a plain line for a dark world with no sun, two for a rogue gas giant that glows from its own heat, one for frozen ground warmed from below, one for a sealed ocean, one for a moon that travels with it) and a moon branch (a plain moon, a host that hangs in one spot when the moon is tidally locked, a host that rises and sets when it is not). 11 new lines (`life:53` to `life:63`). The ground and orbit lines, which have solar beacons, foil sheets and orbits round a sun, are no longer offered to a body with no star. `physics/flavor_tree.py` adds the quantities `starless`, `is_moon`, and `tidally_locked`. `generation/life.py` adds `decide_flavor_text_alone`, the same roll and walk on the body's own stream with no system bookkeeping, and `starless_host.build_rogue_body` calls it for a rogue and each moon, so a rogue planet now stores a `flavor_key` (the column has been there since GEN.1111). Belts, comets, stars, and phenomena need a place to store their line and follow as their own slices. This changes the generator output, so it takes a generator epoch (the Train Manager assigns it).
+
+generation-output: changed
+generation-affects: fill

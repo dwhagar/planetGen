@@ -26,8 +26,11 @@ import os
 from dataclasses import dataclass
 
 from planetgen.physics import elements, life_classes, oddities, planet_classes, planet_type, surface_liquid_world
+from planetgen.physics import unit_registry as units
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
+
+_yr_to_h = units.converter("yr", "h")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 """str: The data file."""
@@ -35,8 +38,8 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 SCOPES = ("system", "planet")
 """tuple: The scopes the file holds a tree for."""
 
-QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen")
-"""tuple: The quantities this module adds to the table of `oddities.quantities_of`. `has_ground`, `life_present`, `has_air` and `life_oxygen` are 1 or 0; `life_rung` is 0 to 6 (the
+QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen", "starless", "is_moon", "tidally_locked")
+"""tuple: The quantities this module adds to the table of `oddities.quantities_of`. `has_ground`, `life_present`, `has_air`, `life_oxygen`, `starless` (a rogue planet, whose host is the `StarlessHost` of the ejection), `is_moon` and `tidally_locked` (the spin period within 1 percent of the orbit period) are 1 or 0; `life_rung` is 0 to 6 (the
 rung of the stage ladder, 5 once the multicellular life has animals); `life_medium` and `life_energy` are the place, from 1, of the life's solvent medium in
 `life_classes.SOLVENT_MEDIA` and of its energy source in `life_classes.ENERGY_SOURCES` (water 1, hydrocarbon 2, carbon dioxide 3, sulfuric acid 4, ammonia and water 5; light 1, chemical 2).
 A world without life has none of the last four, so a gate on them fails there (GEN.1431: the life lines read the life, never a class letter)."""
@@ -131,6 +134,11 @@ def quantities_of(body):
     if life:
         found.update(_life_quantities(body))
     found["has_air"] = 1 if (getattr(body, "atmospheric_pressure", None) or 0.0) > 0.0 else 0
+    found["starless"] = 1 if getattr(getattr(body, "star", None), "starless", False) else 0
+    found["is_moon"] = 1 if getattr(body, "is_moon", False) else 0
+    spin_hours, period_years = getattr(body, "rotation_period_hours", None), getattr(body, "period", None)
+    if spin_hours and period_years:
+        found["tidally_locked"] = 1 if abs(abs(spin_hours) - period_years * _yr_to_h(1.0)) < 0.01 * period_years * _yr_to_h(1.0) else 0
     return found
 
 
