@@ -302,6 +302,10 @@ ALBEDO_WET_RANGE = (0.25, 0.40)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
 
 # --- Star System Generation Parameters ---
+BELT_PLANETS_PER_BELT = 10
+"""int: How many of a belt's round members become planets (GEN.1510, Boss 2026-11-10: the heaviest ten of each belt). The rest stay members, with the status `dwarf planet` or `minor body`. A planet
+costs about a tenth of a second to make, so the cap bounds the generation time of a system (about +30 percent at ten, `reports/belt-bodies-as-planets-2026-11-09.md` section 3)."""
+
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500

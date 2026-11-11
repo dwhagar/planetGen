@@ -603,6 +603,7 @@ def test_the_dial_at_zero_gives_the_same_system_as_the_dial_at_one_wherever_noth
             with draw.bound(f"isolation:{number}"):
                 config = SystemConfig()
                 config.STAR_TYPE, config.WEIRDNESS_DIAL = "G2V", dial
+                config.ASTEROID_BELT = False          # GEN.1510: a belt's promoted bodies are extra bodies that roll for an oddity too, so a system with belts seldom rolls none
                 made[dial] = StarSystem(system_config=config)
         assert not any(getattr(body, "oddities", ()) for body in _bodies_of(made[0.0])), "the dial at 0 rolls nothing"
         if not any(getattr(body, "oddities", ()) for body in _bodies_of(made[1.0])):

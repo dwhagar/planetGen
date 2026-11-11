@@ -36,7 +36,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, belt_planets, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
@@ -500,6 +500,8 @@ class StarSystem:
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
+
+        self._promote_belt_members()
 
         self._add_irregular_moons()
 
@@ -1520,6 +1522,17 @@ class StarSystem:
         if brightest is not None:
             belt = brightest[1]
             holder.disk_kind, holder.disk_inner_au, holder.disk_outer_au = debris_dust.DEBRIS_KIND, belt.lower_limit, belt.upper_limit
+
+    def _promote_belt_members(self):
+        """
+        The heaviest round members of each belt become planets of their star (GEN.1510, `generation/belt_planets.py`): made by the planet generator from the member, put in the star's planets by
+        distance, and taken out of the belt. It runs once the planets, belts and ages are final, before the irregular moons. A system whose bodies the author named (`SLOTS`, `NUM_ORBITS`) is left as written.
+        """
+        if self.system_config.SLOTS is not None or self.system_config.NUM_ORBITS is not None:
+            return
+        with log.timed_phase("belt planets"):
+            for star, bodies in validation.star_lists(self):
+                belt_planets.promote(self, star, bodies)
 
     def _add_irregular_moons(self):
         """

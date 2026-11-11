@@ -2988,8 +2988,9 @@ PLANET_ONLY_FIELDS = tuple(
     object_rows.attr("light_factor"),   # GEN.1484: the share of its light a circumbinary planet keeps
     object_rows.attr("obliquity_min_deg"),   # GEN.1535: the lowest tilt its axis reaches over the age of its star
     object_rows.attr("obliquity_max_deg"),   # GEN.1535: the highest
+    object_rows.attr("belt_order"), object_rows.attr("belt_rank"),     # GEN.1510: the belt a promoted body came from and its rank in it
 )
-"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons)."""
+"""tuple: The `planets` fields `moons` lacks (a moon hosts no moons; a moon is no belt body)."""
 
 PLANET_BODY_FIELDS = BODY_FIELDS + PLANET_ONLY_FIELDS
 
@@ -3924,7 +3925,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
 ROGUE_HOST_ONLY_COLUMNS = frozenset({
     "distance_km", "period_years", "zone", "hill_radius_km", "min_orbit_distance_km", "habitable_zone_inner_km", "habitable_zone_outer_km",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity", "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
-    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", *_VELOCITY_COLUMNS})
+    "min_update_interval_years", "born_beyond_snow_line", "reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "belt_order", "belt_rank", *_VELOCITY_COLUMNS})
 """frozenset: The `planets` columns that are the orbit round a host (GEN.1111): a rogue planet has no host, so its `velocity_*_kms` is the galaxy-frame movement (`_FREE_VECTOR_FIELD`)."""
 
 ROGUE_BODY_FIELDS = tuple(field for field in PLANET_BODY_FIELDS if not set(field.columns) <= ROGUE_HOST_ONLY_COLUMNS)
