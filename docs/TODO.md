@@ -13208,6 +13208,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 11. Prerequisites: GEN.1501. Related: GEN.1501, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1532 (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure**
+  Lane 14 (as the lane reported 11:16 AM EST on 2026-11-11), from the GEN.1407 K-dwarf probe (reports/gen1407-k-dwarf-zone-edges-2026-11-11.md): 555 of 632 class T planets in the K5V sample sit at 1.000 bar within 0.1 percent, which looks like a pinned placeholder pressure and not a result of the air solver. Do: find where class T bodies get that pressure (the class T path, GEN.822/830/837 were retired earlier), say whether it is a placeholder or a real floor/cap, replace it with the physics (or register it as a stand-in with tier and tweak in GEN.725), and report the pressure spread before and after on the K5V and G2V samples. Changes what seeds draw, so a lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 14. Prerequisites: none. Related: GEN.1407, GEN.822, GEN.830, GEN.837, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13303,13 +13308,6 @@ clears each one.
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
   Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
-  Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
-
-- [ ] **GEN.1407 K-dwarf zone edges against the greenhouse spectrum: the K5V ecosphere is cold in its inner third; split the probe by flux to see whether the edges or the greenhouse move with the star's light**
-  Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 8. GEN.909 left this open: at K5V the temperate share is 6 of 40 against 16 of 45 at G2V, and K and M dwarfs are most stars. Do: a probe that splits the ecosphere by incoming flux and by the star's spectrum (the shift of the zone edges with a redder spectrum is currently a guess) and reports where the cold comes from: the zone edges, the greenhouse optics, or the albedo. Report first, no code change; if a fault shows, file the fix as its own item (lock, moves K and M dwarf temperate counts only).
-  Mutual-effects scope (Boss, 2:58 PM EST on 2026-11-08, 'everything in a system effects everything else in the system'; docs/design/generation/system-interactions.md): the zone edges are read from the radiation field of GEN.1441 (all sources by 3D position), not the host star alone; do it after GEN.1441 or share its field function.
-  Boss, 3:25 PM EST on 2026-11-08: lever 8 waits (not built now).
-  Version 8.1. Prerequisites: none. Related: GEN.909, GEN.1309.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
 
 - [ ] **GEN.1408 Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)**
