@@ -855,6 +855,12 @@
       "first_release": "8.0.3765",
       "reason": "Train 21: lighter inner planets, secular exchange, second suns and their day and eclipses, companion disk cut, belt and comet light from every star, trojan swarm cut, scattering by the strongest planet, Jupiter-family comets by the giant, super-puff by density, envelope loss, cosmogenic nuclides",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 144,
+      "first_release": "8.0.3826",
+      "reason": "Train 22: comet activity by host luminosity, late supply and late accretion of the air (the air made again keeps its class, spin, dose and scores), water drift and evaporation of the disk ices, close companions line up with their plane, spin axis follows the secular exchange, circumbinary eclipse light, rogue planets with no day, flavor tree, body history",
+      "affects": ["scatter", "fill", "population"]
     }
   ]
 }
