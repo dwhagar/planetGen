@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Research notes and dependency notes - planetGen docs</title>
+<meta name="description" content="Kept from the first phase plan (2026-10-01) and the dependency report (2026-10-02).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/plan/notes.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="plan/notes.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="research-notes-and-dependency-notes">Research notes and dependency notes</h1><p class="meta">docs/plan/notes.md</p><details class="toc"><summary>On this page (23 headings)</summary><ul><li style="margin-left:0px"><a href="#phase-0-finished">Phase 0 (finished)</a></li><li style="margin-left:0px"><a href="#research-notes">Research notes</a></li><li style="margin-left:14px"><a href="#from-phase-1-foundations-and-fixes-first-plan">From "Phase 1: Foundations and fixes" (first plan)</a></li><li style="margin-left:14px"><a href="#from-phase-2-maps-and-navigation-first-plan">From "Phase 2: Maps and navigation" (first plan)</a></li><li style="margin-left:14px"><a href="#from-phase-3-interface-api-and-work-queue-first-plan">From "Phase 3: Interface, API and work queue" (first plan)</a></li><li style="margin-left:14px"><a href="#from-phase-4-accounts-the-view-from-a-planet-more-galaxies-first-plan">From "Phase 4: Accounts, the view from a planet, more galaxies" (first plan)</a></li><li style="margin-left:14px"><a href="#sector-stats-defaults-perf11-done-in-pr-425">Sector stats defaults (PERF.11, done in PR #425)</a></li><li style="margin-left:0px"><a href="#the-2026-10-07-rebuild-change-list">The 2026-10-07 rebuild: change list</a></li><li style="margin-left:14px"><a href="#new-items">New items</a></li><li style="margin-left:14px"><a href="#merged-into-one-item-duplicates">Merged into one item (duplicates)</a></li><li style="margin-left:14px"><a href="#folded-into-a-larger-stream-closes-with-it">Folded into a larger stream (closes with it)</a></li><li style="margin-left:14px"><a href="#dropped">Dropped</a></li><li style="margin-left:14px"><a href="#moved">Moved</a></li><li style="margin-left:14px"><a href="#changed-in-place">Changed in place</a></li><li style="margin-left:14px"><a href="#bosss-answers">Boss's answers</a></li><li style="margin-left:0px"><a href="#files-that-several-items-touch">Files that several items touch</a></li><li style="margin-left:0px"><a href="#near-cycles-and-how-they-are-broken">Near-cycles and how they are broken</a></li><li style="margin-left:0px"><a href="#standing-process-sweeping-github-issues-for-todo-items">Standing process: sweeping GitHub issues for TODO items</a></li><li style="margin-left:0px"><a href="#standing-process-headline-features">Standing process: headline features</a></li><li style="margin-left:0px"><a href="#judgment-calls">Judgment calls</a></li><li style="margin-left:0px"><a href="#design-notes-in-docsdesign">Design notes in docs/design</a></li><li style="margin-left:0px"><a href="#not-yet-checked-in-live-use">Not yet checked in live use</a></li><li style="margin-left:0px"><a href="#migration-rule-for-maps-boss-2026-10-15-0316z">Migration rule for Maps (Boss, 2026-10-15 03:16Z)</a></li></ul></details>
+<p>Kept from the first phase plan (2026-10-01) and the dependency report
+(2026-10-02). <a href="../TODO.html">docs/TODO.md</a> is the master file and wins
+where they disagree; the version files (<code>docs/plan/version-*.md</code>) list the items and their order. Boss (2026-10-16, 1:07 PM EDT) turned the tiers into a version map: the old Phase 0 is version 8.0 and the old Phase 1 is 8.1; the &quot;phase&quot; numbers in the notes below are the old tiers and are kept as written.</p>
+<h2 id="phase-0-finished">Phase 0 (finished)</h2>
+<p>Phase 0 held every bug and the groundwork the new architecture needed
+(package layout, third-party libraries, Alembic, per-unit seeds, the
+map engine, Redis queues). Its last items shipped on 2026-10-09 (DB.13,
+GEN.126; later GEN.125, GEN.56, GEN.100, GEN.98 moved in and finished),
+Boss asked on 2026-10-09 08:37Z for its plan file to be deleted, and the
+version moved to 8.0 (<code>changes/phase-0-complete.major.md</code>). The item
+list and each item's PR are in git history (<code>docs/plan/phase-0-roots.md</code>
+before this change) and in CHANGELOG.md. The &quot;1 → 0&quot; and &quot;→ 0&quot; rows in
+the change list below record moves into it.</p>
+<h2 id="research-notes">Research notes</h2>
+<h3 id="from-phase-1-foundations-and-fixes-first-plan">From &quot;Phase 1: Foundations and fixes&quot; (first plan)</h3>
+<p>Boss's research notes (kept in the project's shared files under <code>todo-tasks/research/</code>) proposed fixes and numbers. They were checked against the code on 2026-10-01; where they were wrong about the code, the correction is given. Their numbers are starting points to tune, not requirements.</p>
+<ul>
+<li>
+<p><strong>Backfill level (GEN.44).</strong> The notes give the semantics as a table:
+-1 never backfilled, 0 fully generated, a positive value the dimmest
+luminosity reached. A backfill at floor L skips a sector at 0 or at a
+level at or below L, and afterwards sets each processed sector to L
+(or 0 once it is fully generated). Correction: the notes put the
+column on <code>sectors</code>, but an unfilled sector has no <code>sectors</code> row, so
+the level needs its own table keyed by address (or a reworked
+<code>bright_star_blocks</code>, which already keeps the level per 3x3x3 block,
+schema v49). The notes' file list (<code>generationLimits.py</code>,
+<code>spaceSector.py</code>) is not where backfill lives; it is
+<code>backfill_bright_stars_around</code> and <code>_backfill_block</code> in <code>generate.py</code>
+and the block table in <code>_db.py</code>.</p>
+</li>
+<li>
+<p><strong>Rogue planet mix (GEN.45).</strong> The notes propose a power-law mass
+function, dN/dM proportional to M^-0.65 from 0.01 Earth masses to 13
+Jupiter masses, giving mostly terrestrial and few giant rogues, and
+suggest an 80/20 terrestrial/gas split. Today's arithmetic is about
+91/9. Correction: there is no <code>phenomena_config</code> table; the weights
+are <code>ROGUE_PLANET_MASS_BINS</code> and the gas giant threshold in
+<code>program_constants.py</code>.</p>
+</li>
+<li>
+<p><strong>Two-word names (GEN.46).</strong> The notes suggest resolving collisions
+inside two words, with catalog numbers joined by a hyphen
+(<code>Kepler-452</code>) rather than a third word, and binary suffixes folded
+into the two words. The words come from the uniqueness decorations
+(Greek prefix, &quot;Alpha ... IV&quot;, stacked diminutives), so that is where
+the fix goes.</p>
+</li>
+<li>
+<p><strong>Nebulae (GEN.47).</strong> The notes say nebula generation was cut out of
+the sector loop in <code>generate.py</code>. Correction: it isn't; nebulae are
+rolled per sector, but at rates that make them almost never appear in
+a 4 pc sector. The notes' proposal still fits the real fix: a
+multi-octave 3D noise density field with Poisson-seeded centers at
+galaxy scale, with these classes as a starting point:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Made of</th>
+<th>Field threshold</th>
+<th>Radius</th>
+<th>Near</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Emission (H II)</td>
+<td>ionized hydrogen</td>
+<td>&gt; 0.72</td>
+<td>15 to 45 pc</td>
+<td>O and B supergiants</td>
+</tr>
+<tr>
+<td>Reflection</td>
+<td>silicate and carbon dust</td>
+<td>&gt; 0.65</td>
+<td>10 to 30 pc</td>
+<td>B and A main sequence</td>
+</tr>
+<tr>
+<td>Dark</td>
+<td>cold molecular gas</td>
+<td>&gt; 0.80</td>
+<td>5 to 25 pc</td>
+<td>low-density voids</td>
+</tr>
+<tr>
+<td>Planetary</td>
+<td>ejected envelope</td>
+<td>event</td>
+<td>0.1 to 2 pc</td>
+<td>post-AGB stars, white dwarfs</td>
+</tr>
+<tr>
+<td>Supernova remnant</td>
+<td>blast shell</td>
+<td>event</td>
+<td>5 to 20 pc</td>
+<td>pulsars, neutron stars</td>
+</tr>
+</tbody>
+</table></div>
+<p>The existing classes and rates are in
+<a href="../design/systems/nebula-and-asteroid-field-classes.html">nebula-and-asteroid-field-classes.md</a>.</p>
+</li>
+</ul>
+<h3 id="from-phase-2-maps-and-navigation-first-plan">From &quot;Phase 2: Maps and navigation&quot; (first plan)</h3>
+<p>Boss's research notes (kept in the project's shared files under <code>todo-tasks/research/</code>) proposed fixes and numbers. They were checked against the code on 2026-10-01; where they were wrong about the code, the correction is given. Their numbers are starting points to tune, not requirements.</p>
+<ul>
+<li>
+<p><strong>The arc pick (MAP.85).</strong> The notes lay it out in four stages: (1)
+the whole galaxy as a particle field of its stars and spiral arms,
+with no grid, block or sector lines; (2) hovering projects an arc
+through the full height of the disk, highlighted, with faint
+boundaries of the neighboring arcs; (3) clicking flies the camera to
+the arc, where the user picks a height band (a slab); (4) the slab's
+sectors appear for the next pick. Note the word: &quot;arc&quot; was MAP.19's
+name for one cell of the old 3x3 region pick
+(<a href="../design/interface/galaxy-drilldown-navigation.html">galaxy-drilldown-navigation.md</a>);
+it now means this first pick; the design doc's section 15 (&quot;The arc
+pick&quot;) describes it as built. Shipped in PR #369 (MAP.60,
+MAP.55, MAP.85, MAP.52): arcs are 45 degrees wide (the width nearest
+40 degrees whose edges fall on wedge lines in every block ring) by a
+third of the disk radius, 24 arcs in all; the galaxy map is a tilted
+3D view with no grid lines, a one-line scale, and the buttons Back,
+Forward, Up, Reset, Bookmarks and Menu, as text labels with a hook
+for UX.28's icons.</p>
+</li>
+<li>
+<p><strong>Sector colors (MAP.86).</strong> The notes' starting values:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>State</th>
+<th>Opacity</th>
+<th>Saturation</th>
+<th>Hue from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unfilled</td>
+<td>0.03</td>
+<td>0</td>
+<td>neutral dark grey</td>
+</tr>
+<tr>
+<td>Filled, empty</td>
+<td>0.15</td>
+<td>0.10</td>
+<td>the site's accent</td>
+</tr>
+<tr>
+<td>Sparse (1 to 10 stars)</td>
+<td>0.20</td>
+<td>0.35</td>
+<td>mostly M dwarfs, red-amber</td>
+</tr>
+<tr>
+<td>Dense (50+ stars)</td>
+<td>0.45</td>
+<td>0.85</td>
+<td>G and A stars, yellow-white</td>
+</tr>
+<tr>
+<td>Densest</td>
+<td>0.70</td>
+<td>1.00</td>
+<td>O and B stars, blue</td>
+</tr>
+</tbody>
+</table></div>
+<p>Saturation scales with star density, hue is the luminosity-weighted
+average of the stars' colors by temperature, lightness scales with the
+log of total luminosity, and a block's color, saturation and opacity
+are the plain average of its sectors'. Boss asked for filled sectors
+to stay translucent, &quot;just a hair more solid&quot; than unfilled, so the
+top of that opacity range is a ceiling to try, not a target.</p>
+</li>
+<li>
+<p><strong>Rogue planets on the Sector Map (MAP.82 to MAP.84).</strong> The notes'
+values:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Unmarked (default)</th>
+<th>Marked</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Radius</td>
+<td>1.5 px</td>
+<td>5 px</td>
+</tr>
+<tr>
+<td>Opacity</td>
+<td>0.20</td>
+<td>1.0</td>
+</tr>
+<tr>
+<td>Color</td>
+<td>muted grey (#4A5568)</td>
+<td>bright with a glow ring (#00E5FF)</td>
+</tr>
+<tr>
+<td>Hit radius</td>
+<td>3 px</td>
+<td>12 px</td>
+</tr>
+<tr>
+<td>Button</td>
+<td>plain</td>
+<td>highlighted, <code>aria-pressed=&quot;true&quot;</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The button exists today (<code>lib/starmap.py</code>, <code>sectormap.js</code>) but starts
+pressed and has no pressed style.</p>
+</li>
+</ul>
+<h3 id="from-phase-3-interface-api-and-work-queue-first-plan">From &quot;Phase 3: Interface, API and work queue&quot; (first plan)</h3>
+<p>Boss's research notes (kept in the project's shared files under <code>todo-tasks/research/</code>) proposed fixes and numbers. They were checked against the code on 2026-10-01; where they were wrong about the code, the correction is given. Their numbers are starting points to tune, not requirements.</p>
+<ul>
+<li><strong>Structured planet details (UX.30).</strong> The notes sketch a planet card:
+a header with class, sector and habitability; columns for physical
+properties, an atmosphere profile with a bar per gas, and satellites;
+and an actions row. They suggest HTML custom elements (Web
+Components). The site renders on the server with Jinja today, so
+server-built HTML with the same layout fits better unless a part
+needs to update in the browser.</li>
+<li><strong>Action menus (UX.26, UX.31).</strong> One &quot;Actions&quot; button per row opening
+a floating menu that doesn't move the page, with entries such as Edit,
+Regenerate, Backfill sector and Delete; editing opens a focused dialog
+with Save and Cancel.</li>
+<li><strong>One-row header (UX.27).</strong> Details and actions on one row; when it
+is too narrow, the navigate buttons fold into one &quot;Navigation&quot; menu
+with &quot;From here&quot; and &quot;To here&quot;. The notes say below 768 px; the site's
+UX rules use container queries and the size classes in TODO.md's UX
+section, so use those.</li>
+<li><strong>Icons (UX.28).</strong> Starting list: edit (pencil), delete (trash), show
+on map (crosshair), filter (funnel), navigate (route or compass),
+actions menu (ellipsis or gear), each with <code>title</code> and <code>aria-label</code>.</li>
+<li><strong>Rows (UX.32).</strong> One &quot;Class&quot; chip (for example &quot;Class M&quot;) and a moon
+count badge that opens the moons, instead of the type chip and moon
+label.</li>
+<li><strong>Sector table (UX.24).</strong> Order: star systems, then non-stellar
+phenomena (nebulae, belts, comets, anomalies), then rogue planets; a
+detail row is <code>&lt;tr&gt;&lt;td colspan=...&gt;</code> across every column.</li>
+<li><strong>Rogue planet octants (UX.25).</strong> The notes number the octants 1 to 8
+by the signs of (dx, dy, dz) from the sector center: 1 (+,+,+),
+2 (-,+,+), 3 (-,-,+), 4 (+,-,+), 5 (+,+,-), 6 (-,+,-), 7 (-,-,-),
+8 (+,-,-). Check it against the octant the site already shows before
+changing anything.</li>
+<li><strong>Phenomena filters (UX.33).</strong> Filter by kind, then by class: rogue
+planets by class (and terrestrial or gas giant, mass range, octant),
+comets by orbit type (short period, long period, hyperbolic or
+interstellar, sungrazer), and the other kinds by class. Correction:
+the notes' single <code>phenomena</code> table with <code>category</code> and <code>class</code>
+columns doesn't exist; each kind has its own table
+(<code>rogue_planets.planet_class</code>, and so on), so the filter is per kind in
+<code>queryDb</code>.</li>
+<li><strong>Comet links (UX.29).</strong> Every comet resolves to a class and links to
+its reference page (period, eccentricity, perihelion). Parabolic
+comets have no period class today.</li>
+</ul>
+<h3 id="from-phase-4-accounts-the-view-from-a-planet-more-galaxies-first-plan">From &quot;Phase 4: Accounts, the view from a planet, more galaxies&quot; (first plan)</h3>
+<p>None of Boss's 2026-10-01 notes apply to this phase.</p>
+<h3 id="sector-stats-defaults-perf11-done-in-pr-425">Sector stats defaults (PERF.11, done in PR #425)</h3>
+<p>PERF.11's open questions shipped with these defaults, which Boss can
+still change: the <code>sector_stats</code> table (galaxy schema v53, shared with
+GEN.44's backfill level) stores both systems and stars as &quot;actual&quot;;
+the decaying average of expected against actual is one galaxy-wide
+figure over a window of 1000 fills; regenerating a sector adds a new
+sample; deleting a sector leaves the average as it is.</p>
+<h2 id="the-2026-10-07-rebuild-change-list">The 2026-10-07 rebuild: change list</h2>
+<h3 id="new-items">New items</h3>
+<p>From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, GEN.72, GEN.73, GEN.75, GEN.76, GEN.77, GEN.78, GEN.79, GEN.83, GEN.90, GEN.91, GEN.93, GEN.96, GEN.97, GEN.98, GEN.99, GEN.100, GEN.106, GEN.107, GEN.109, GEN.110, GEN.111, GEN.112, MAP.103, MAP.104, MAP.105, MAP.106, MAP.107, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.115, MAP.116, MAP.117, MAP.119, MAP.120, MAP.121, NAV.46, NAV.47, OPS.20, OPS.22, PERF.26, POP.7, POP.10, UX.42, VIEW.5, with their subitems.</p>
+<p>From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.</p>
+<p>From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93. From Boss's prevalence decision of 2026-10-08 00:12Z: ADM.37. From Bugfixes lane 1's full run (2026-10-08): TEST.94. From Bugfixes lane 1's full run for PR #522 (2026-10-08): TEST.95, TEST.96. From Bugfixes lane 1's full run for PR #525 (2026-10-08): TEST.97. From Boss's message of 2026-10-08 01:59Z (how sectors and blocks are colored): DB.14, MAP.128, MAP.129, MAP.130, MAP.131, MAP.132. From Bugfixes lane 1's full run for PR #531 (2026-10-08): TEST.98, TEST.99, TEST.100, TEST.101. From Boss's message of 2026-10-08 02:59Z (put the phoneme codec into the project): GEN.120. From the coordinator (2026-10-08, after UX.40 closed): UX.49. From Foundations lane 1 (2026-10-08, NAV.15's body endpoints need NAV.16): NAV.50. From Foundations lane 1's full runs for PR #588 (2026-10-08): TEST.102. From Boss's approval of the UX.37 audit (2026-10-08 17:43Z): UX.50 to UX.74 (R1 UX.50, R2 UX.51, R3 UX.52, R4 UX.53, R5 UX.54, R6 UX.55, R7 UX.56, M1 UX.57, M2 UX.58, M3 UX.59, M4 UX.60, M5 UX.61, M6 UX.62, P1 UX.63, P2 UX.64, P3 UX.65, P<sub>4</sub> UX.66, P5 UX.67, P6 UX.68, L1 UX.69, N1 UX.70, N<sub>2</sub> UX.71, A1 UX.72, A2 UX.73, A3 UX.74). From the coordinator's report of the Python 3.9 CI failures (2026-10-08): ADM.38. From Foundations lane 1's PR #612 report (2026-10-08): TEST.103, TEST.104 (the rate-limit flake is already TEST.83).</p>
+<p>From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.</p>
+<p>From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114; the MySQL 8.4 deadlock is TEST.81 (noted there).</p>
+<h3 id="merged-into-one-item-duplicates">Merged into one item (duplicates)</h3>
+<ul>
+<li>&quot;Star generation should always actually take place&quot; (10-07) went into GEN.76 and GEN.78 (10-03).</li>
+<li>&quot;bright star placement is exclusively on the central galactic plane between layers -121 and 121&quot; (10-07) went into GEN.79 with the 10-03 bulge bug, now marked major.</li>
+<li>&quot;Generating any space gives you the option to see that space in the galaxy viewer&quot; (10-07) and the 10-03 Generate page button are ADM.31.</li>
+<li>&quot;Button in Galaxy display to allow selecting a star&quot; and the &quot;Select Mode&quot; (10-07) are MAP.122.</li>
+<li>&quot;Plotted courses should appear on the galactic map and stay until cleared&quot; (10-07) is in NAV.49 (NAV.5 notes it).</li>
+<li>The two &quot;add a star system to a sector&quot; asks (10-07) are ADM.32.</li>
+<li>&quot;Have phenomena ... generated through the entire galaxy first&quot; (10-07) and the 10-03 scatter move are GEN.100.</li>
+<li>&quot;Research different ways to generate an object ID&quot; (10-07) is GEN.68, the first step of the names-from-IDs stream.</li>
+<li>MAP.89 (fitted System Map orbit spacing with a 12 px gap floor) was closed on Boss's word (2026-10-09 07:13Z: &quot;Retire MAP.89, we have that done already&quot;). No PR carries it: on main the 2D System Map still places orbits on the log scale (<code>_radial_px</code>, web/maps/systemmap.py) and the 3D view's compressed mode is also logarithmic (systemscale.js), so reopen it if Boss sees rings crowded together.</li>
+<li>GitHub issues of 2026-10-08/09: #736 (Generate screen tabs) went into ADM.28 and #677 (search near a picked point) into NAV.45; #709 and #708 are MAP.136; #758 and #715 are MAP.139; #718 and #716 are MAP.141; #614 and #535 are ADM.41; #638 and #614 are PERF.34; #661 and #750 are PERF.32 and PERF.33; #761 is PERF.31; #777 and #778 are GEN.129, GEN.130 and their design GEN.128; #515 and #743 are ADM.43, ADM.44 and their model ADM.42.</li>
+<li>&quot;We need a planet that is like earth sized but never had any life&quot; (10-03) is GEN.28's class Z (Lifeless temperate world), noted on GEN.28.</li>
+</ul>
+<h3 id="folded-into-a-larger-stream-closes-with-it">Folded into a larger stream (closes with it)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Folded into</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TEST.72</td>
+<td>SEC.29</td>
+<td>The TOTP code it tests moves to pyotp.</td>
+</tr>
+<tr>
+<td>TEST.83</td>
+<td>SEC.30</td>
+<td>The rate limits move to Flask-Limiter on Redis.</td>
+</tr>
+<tr>
+<td>PERF.19</td>
+<td>PERF.24</td>
+<td>Boss chose Redis and RQ; the audit is its first step.</td>
+</tr>
+<tr>
+<td>OPS.19</td>
+<td>PERF.24</td>
+<td>The job store moves with the queue.</td>
+</tr>
+<tr>
+<td>UX.2, ADM.14, UX.26, UX.31, UX.27, UX.49</td>
+<td>UX.40</td>
+<td>Menus and buttons became Shoelace components (UX.40 done, PR #544); UX.26's sector Admin panel and UX.49's form fields remain.</td>
+</tr>
+<tr>
+<td>ADM.24, ADM.25, ADM.26</td>
+<td>ADM.22</td>
+<td>Logs and progress moved to SSE and Xterm.js (ADM.22 done, PR #551); these three are now done (PR #560).</td>
+</tr>
+<tr>
+<td>MAP.108, MAP.107, MAP.112, NAV.46</td>
+<td>MAP.65, NAV.15</td>
+<td>The shared picking layer and pick mode.</td>
+</tr>
+<tr>
+<td>GEN.33, GEN.28, GEN.27, GEN.29</td>
+<td>GEN.90</td>
+<td>The class refactor around the habitability index.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="dropped">Dropped</h3>
+<ul>
+<li>GEN.63 (planet names unique within a sector): names come from unique IDs (GEN.67), so clashes can't happen.</li>
+</ul>
+<h3 id="moved">Moved</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Move</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>NAV.7</td>
+<td>1 → 0</td>
+<td>Moved into phase 0: the engine (MAP.67, NAV.13) needs it, and the engine fixes the map bugs.</td>
+</tr>
+<tr>
+<td>GEN.33</td>
+<td>1 → 2</td>
+<td>Moved to phase 2 under GEN.90, after the habitability score.</td>
+</tr>
+<tr>
+<td>GEN.28</td>
+<td>1 → 2</td>
+<td>Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03).</td>
+</tr>
+<tr>
+<td>GEN.27</td>
+<td>1 → 2</td>
+<td>Under GEN.90.</td>
+</tr>
+<tr>
+<td>GEN.52</td>
+<td>1 → 0</td>
+<td>Moved into phase 0 with GEN.48 (all bugs in phase 0).</td>
+</tr>
+<tr>
+<td>TEST.75</td>
+<td>1 → 0</td>
+<td>Moved into phase 0 with GEN.48.</td>
+</tr>
+<tr>
+<td>ADM.16</td>
+<td>1 → 0</td>
+<td>Moved into phase 0 with GEN.48.</td>
+</tr>
+<tr>
+<td>GEN.48</td>
+<td>1 → 0</td>
+<td>Moved into phase 0: Boss wants every bug in phase 0, and its controls come with it.</td>
+</tr>
+<tr>
+<td>MAP.95</td>
+<td>1 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.13</td>
+<td>1 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.14</td>
+<td>1 → 0</td>
+<td>Its breadcrumb fixes MAP.106.</td>
+</tr>
+<tr>
+<td>PERF.19</td>
+<td>1 → 0</td>
+<td>Moved into phase 0 as the first step of PERF.24 (Boss chose Redis on 2026-10-03).</td>
+</tr>
+<tr>
+<td>MAP.65</td>
+<td>2 → 0</td>
+<td>Moved into phase 0: fixes MAP.108, MAP.107, MAP.112 and NAV.46.</td>
+</tr>
+<tr>
+<td>MAP.79</td>
+<td>2 → 0</td>
+<td>Moved into phase 0 (bug); its nebula toggle closes MAP.113.</td>
+</tr>
+<tr>
+<td>NAV.15</td>
+<td>2 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.29</td>
+<td>2 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.33</td>
+<td>2 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.16</td>
+<td>2 → 1</td>
+<td>Moved from phase 2: NAV.3 closes in phase 1 now.</td>
+</tr>
+<tr>
+<td>UX.37</td>
+<td>2 → 0</td>
+<td>Moved into phase 0: UX.21 (a bug) needs it.</td>
+</tr>
+<tr>
+<td>MAP.66</td>
+<td>3 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>MAP.67</td>
+<td>3 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>MAP.68</td>
+<td>3 → 0</td>
+<td>With the map engine in phase 0: the 2026-10-03 map bugs fold into it.</td>
+</tr>
+<tr>
+<td>NAV.32</td>
+<td>3 → 0</td>
+<td>Moved into phase 0 with the engine (all bugs in phase 0).</td>
+</tr>
+<tr>
+<td>NAV.3</td>
+<td>3 → 1</td>
+<td>Moved from phase 3: its parts are in phases 0 and 1.</td>
+</tr>
+<tr>
+<td>UX.21</td>
+<td>3 → 0</td>
+<td>Moved into phase 0 (all bugs in phase 0), last.</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="changed-in-place">Changed in place</h3>
+<p>DB.8, DB.7, NAV.10 (Alembic), ADM.15 (RQ workers), UX.3 (progress from RQ), UX.23 (astropy.units), ADM.18 and OPS.13 (naming key instead of word lists and corpus hashes), GEN.57 (no name collisions), PERF.18 and PERF.20 (RQ and the new caches), API.12 and VIEW.4 (naming key), NAV.5, MAP.70. Each has a &quot;Plan (2026-10-07)&quot; line in TODO.md.</p>
+<h3 id="bosss-answers">Boss's answers</h3>
+<p>Boss (2026-10-07 17:11Z, answering the open decisions; 2026-10-09 07:48Z, confirming them all). His words are quoted. Each answer is written into its TODO item.</p>
+<ul>
+<li>
+<p><strong>Lane order</strong>: &quot;When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit.&quot; So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.</p>
+</li>
+<li>
+<p><strong>Redis on Windows (OPS.21)</strong>: &quot;Let's say Redis in WSL&quot;. OPS.27 dropped Memurai from the installer and docs (done, PR #475).</p>
+</li>
+<li>
+<p><strong>Habitability score structure (GEN.84)</strong>: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).</p>
+</li>
+<li>
+<p><strong>Wide-binary names under the codec (GEN.71)</strong>: &quot;No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc...&quot; In GEN.71. Confirmed on 2026-10-08 at 04:00Z: planets keep the &quot;<star> I&quot; pattern, so this rule stays in force.</p>
+</li>
+<li>
+<p><strong>GEN.29 outside phase 0</strong>: approved (stays in phase 2 with the class refactor).</p>
+</li>
+<li>
+<p><strong>Front-end build (UX.40, UX.41, MAP.102)</strong>: approved (vendored ES module builds served by Flask, no bundler).</p>
+</li>
+<li>
+<p><strong>Hilbert fill order (GEN.101)</strong>: approved (keep the Hilbert order, allow a logged jump where the ball cuts the curve).</p>
+</li>
+<li>
+<p><strong>Orbital sectors and frames (GEN.109, GEN.115)</strong>: &quot;Approved, but verify the algorithm will work with our sector geometry.&quot; The check is in GEN.109.</p>
+</li>
+<li>
+<p><strong>Scaling the galaxy's gravity (GEN.115)</strong>: approved.</p>
+</li>
+<li>
+<p><strong>Orbital epoch and step (GEN.105)</strong>: &quot;No 1 year per orbital update or turn, rather, once set up and configured we follow orbital paths in real time.  The update script should have an option to update for more time in 1 go if specified.  Default is 1 day = 1 day.&quot; In GEN.105 and GEN.106.</p>
+</li>
+<li>
+<p><strong>GEN.65</strong>: &quot;I do not have the error message, keep an eye out for it, but put it on the back burner for something to watch out for, design a test that will test for it in a variety of situations, I think this error occurred when I was attempting to generate  a neighborhood when the center was close to the edge of the galaxy.&quot; In GEN.65.</p>
+</li>
+<li>
+<p><strong>Wiki uploads on the queue (PERF.24)</strong>: Boss (2026-10-08 00:14Z) reversed the audit decision: wiki uploads go on the Redis queue too, because he may want batch uploads later.</p>
+</li>
+<li>
+<p><strong>Prevalence fields (ADM.37, then ADM.45)</strong>: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%), not &quot;0% change&quot; (done, PR #514). Boss (2026-10-09 07:48Z): the fields are not plus or minus percentages: the user types the override percent, the form forces the set to total 100% and makes clear what to do, and there is no density-dependent share. This is ADM.45.</p>
+</li>
+</ul>
+<p>No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word salad, planets, moons and belts keep the &quot;<star name> I&quot; pattern, and the codec names only the objects with no star-derived name; defaults stand for constellations and the naming key.)</p>
+<h2 id="files-that-several-items-touch">Files that several items touch</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Files</th>
+<th>Items</th>
+<th>Order</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Every module (the package move)</td>
+<td>none (OPS.24 done, PR #473)</td>
+<td>The move is finished; the library swaps build on the new layout.</td>
+</tr>
+<tr>
+<td>stellarObjects/workQueue.py, jobRunner.py, web/jobs.py</td>
+<td>PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20</td>
+<td>PERF.19's audit, then PERF.24 with OPS.19, then ADM.22.</td>
+</tr>
+<tr>
+<td>_db.py and migrateDb.py</td>
+<td>DB.11, DB.13, GEN.71, DB.16, DB.17, API.11 (DB.7 and NAV.10 merged, PRs #813 and #814)</td>
+<td>CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time.</td>
+</tr>
+<tr>
+<td>Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py)</td>
+<td>GEN.68 to GEN.73, VIEW.4, API.12</td>
+<td>One stream, in TODO order.</td>
+</tr>
+<tr>
+<td>generate.py: qualify, density and backfill</td>
+<td>GEN.98, GEN.100, GEN.101, GEN.42, PERF.18 (GEN.41 and GEN.43 retired in PR #812)</td>
+<td>Phase 0 bugs first, then phase 1 galaxy gen.</td>
+</tr>
+<tr>
+<td>Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js)</td>
+<td>MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124</td>
+<td>Bugfix lane items first; the engine group next; phase 1 map items after.</td>
+</tr>
+<tr>
+<td>Templates and components (base.html, style.css, edit_controls.html)</td>
+<td>UX.2, UX.26, UX.31, UX.27, UX.49, ADM.34, UX.37, UX.21, UX.42, UX.43</td>
+<td>Components first, then the sweep, then wording and the visual design.</td>
+</tr>
+<tr>
+<td>Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py)</td>
+<td>GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92</td>
+<td>Phase 0 bug, then the habitability inputs, then the refactor.</td>
+</tr>
+<tr>
+<td>Positions (updateOrbits.py, keplerMotion.py, the new position object)</td>
+<td>GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5</td>
+<td>GEN.74 first.</td>
+</tr>
+<tr>
+<td>Generate page (generate.html, generate_page.py)</td>
+<td>UX.49, ADM.28 and its subitems, GEN.96, GEN.24</td>
+<td>Components, then prevalence, then the rework.</td>
+</tr>
+<tr>
+<td>update.sh and update.ps1 (with install.* and deploy-common.*)</td>
+<td>OPS.8, OPS.13, OPS.15, OPS.17</td>
+<td>OPS.7 (done, PR #457) went first; then Redis and pins.</td>
+</tr>
+<tr>
+<td>Routing and settings files (scripts/bench_nav.py, db/corridor.py, galaxy/settings_file.py)</td>
+<td>NAV.10 and ADM.18 (merged), NAV.12, NAV.52, NAV.53, ADM.42</td>
+<td>The merged items set the shape; NAV.12 and NAV.52 build on corridor.py, ADM.42 on settings_file.py.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="near-cycles-and-how-they-are-broken">Near-cycles and how they are broken</h2>
+<ul>
+<li><strong>The library swaps and the package move</strong>: both touch every module. Broken by order: the layout plan (OPS.23, done in PR #435) and the move (OPS.24) land first, then each swap.</li>
+<li><strong>The class refactor and the habitability index</strong>: the classes need the scores and the scores read the classes' atmospheres. Broken by order: habitability inputs and score in phase 1 on today's classes, the refactor in phase 2.</li>
+<li><strong>MAP.61 and the map bugs</strong>: the engine items moved into phase 0 because the 2026-10-03 map bugs fold into them.</li>
+<li><strong>API.6 and USR.2</strong>, <strong>NAV.4 and USR.1</strong>: unchanged (keys and saved courses follow accounts).</li>
+</ul>
+<h2 id="standing-process-sweeping-github-issues-for-todo-items">Standing process: sweeping GitHub issues for TODO items</h2>
+<p>Boss, 2026-10-10 20:37Z: &quot;that's standard procedure, always make those changes when we sweep issues for todo items&quot;. Every sweep of the open issues on dwhagar/planetGen does all three:</p>
+<ol>
+<li>Close each issue whose linked TODO items are all retired (state completed, a comment naming the PR) and remove its &quot;in progress&quot; label.</li>
+<li>Comment on each issue that stays open, listing its linked TODO items (ID, short title, open or done with the PR), with the Claude Code footer.</li>
+<li>Give each issue that stays open the &quot;in progress&quot; label (setting it on an issue creates the label; keep the issue's other labels, since an update replaces the set).</li>
+</ol>
+<p>The mapping from issue to items is in this file (the list of GitHub issues under the 2026-10-07 rebuild) and in the Related and source lines of the items.</p>
+<h2 id="standing-process-headline-features">Standing process: headline features</h2>
+<p>Boss (2026-10-10 21:05Z): every release has one headline feature. Past
+releases got theirs from a read of the whole changelog (582 releases,
+each with a 1-5 score; the README lists the score-5 and a few score-4
+ones). Upcoming headlines are tagged in TODO.md with a <code>Headline: VERSION (name).</code> line (8.1 MAP.146 and GEN.301, 8.2 USR.1, 8.3 GEN.105,
+8.5 NAV.59, 8.6 ADM.57, 9.0 MAP.167) and shown with every open item they need on the version plan, the
+TODO reference, the TODO tree and the execution plan. When the stamp
+Action adds a release, the TODO thread adds its <strong>Headline:</strong> line under
+the heading in CHANGELOG.md in the next docs PR. When a headline's items
+are retired, rebuild the pages (<code>python scripts/build_todo_docs.py</code>) and
+refresh the execution plan's headline section.</p>
+<h2 id="judgment-calls">Judgment calls</h2>
+<ul>
+<li><strong>The engine in phase 0</strong>: MAP.65 to MAP.68, NAV.7, NAV.13 to NAV.15, NAV.29, NAV.33, NAV.32 and MAP.95 moved into phase 0 because the breadcrumb, empty-slab, filter and picker bugs are fixed by them, which is Boss's rule for architecture that takes care of a bug.</li>
+<li><strong>CI red first</strong>: the five failures from PR #431 lead the bugfix lane so every later PR can be judged on green CI.</li>
+<li><strong>The prevalence group in phase 0</strong>: GEN.48 is a bug, so its controls (GEN.52, ADM.16, TEST.75) came with it.</li>
+<li><strong>Kept in the bugfix lane, not folded</strong>: UX.24, UX.29, UX.25 (already built once), OPS.6 (one check, not worth waiting for Pydantic), MAP.114 (CI red, though MAP.68 deletes sectormap.js later).</li>
+<li><strong>DB.13 in phase 0</strong>: Boss called it &quot;a Phaser 0 priority&quot;.</li>
+<li>Top priority since 2026-10-10 22:19Z (Boss): every performance item and every correction to the generation process goes to the top of every lane queue, ahead of Orbital updates, Maps, Nearby search and Routing; no build already running is canceled (each lane finishes its current task and any PR already in flight). The scatter stays one job on the Redis queue. Only Foundations lane 1 adds migrations. Per-lane queues: <code>docs/generated/execution-plan.html</code> and <code>/mnt/project-files/reports/phase-1-open-items-2026-10-10.md</code>.</li>
+<li>Intergalactic space plan (Boss, 2026-10-15): <a href="intergalactic-space-plan.html">intergalactic-space-plan.md</a> is the plan for the whole sphere out to 262 kpc and the phenomena catalogue fill: stages A, B1 to B7, slot M for the multi-star research, slot C for the region query, the later group, the defaults awaiting Boss.</li>
+<li>Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): <code>docs/generated/execution-plan.html</code>, with lanes by wave and the Alembic and file conflicts between groups.</li>
+<li>Boss (2026-10-09 07:54Z): &quot;I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority.&quot; The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (<code>docs/generated/execution-plan.html</code>).</li>
+<li>GEN.100's galaxy-wide scatter would write about 1.17e9 rows (161 GB) at the default galaxy size before a mass cut (phenomenon_scatter table); the 1.6e8 first noted here (2026-10-09 08:15Z) was an unverified estimate. Boss decided (2026-10-09 19:54Z) on a lowest-mass cut with the sector fill drawing the rest; at the recommended 20 solar masses the table is about 2.7e5 rows (DB.19, GEN.166 to GEN.168; <a href="../design/systems/phenomenon-scatter-mass-cut.html">phenomenon-scatter-mass-cut.md</a>).</li>
+<li>One combined reseed (Boss, 2026-10-09 20:28Z): the one-time seed change from lazy names (PERF.43) and from the 20 solar mass cut (GEN.166 to GEN.168) lands with these two items together; the release notes of whichever lands second name both.</li>
+</ul>
+<h2 id="design-notes-in-docsdesign">Design notes in docs/design</h2>
+<p>Written by the build and research threads; each is the reference for its
+items. New notes are listed here when the PR that adds them merges.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Note</th>
+<th>Covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="../design/systems/interstellar-object-rates.html">interstellar-object-rates.md</a></td>
+<td>Real-world rates for interstellar objects (retuned in PR #804).</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/star-types-by-galactic-radius.html">star-types-by-galactic-radius.md</a></td>
+<td>GEN.133: every star type's rate against distance from the core, checked against the observed Milky Way; four proposals (young and intermediate populations weighted by the star-formation profile, a lower B share, a young tail in the bulge, a metallicity gradient only if planets need it), none built or filed yet (PR #807).</td>
+</tr>
+<tr>
+<td><a href="../design/systems/compact-remnant-regions.html">compact-remnant-regions.md</a></td>
+<td>Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132, PR #807); added in PR #804.</td>
+</tr>
+<tr>
+<td><a href="../design/habitability/habitability-index.html">habitability-index.md</a></td>
+<td>The habitability score structure, equipment profiles and tiers (GEN.84, PR #803).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/orbital-updates.html">orbital-updates.md</a></td>
+<td>The orbital update design (GEN.105 and its chain).</td>
+</tr>
+<tr>
+<td><a href="../design/architecture/library-migration.html">library-migration.md</a></td>
+<td>The move to third-party libraries.</td>
+</tr>
+<tr>
+<td><a href="../design/generation/reproducible-galaxies.html">reproducible-galaxies.md</a></td>
+<td>Seeds, version keys and the same-seed rule.</td>
+</tr>
+<tr>
+<td><a href="../design/generation/generation-determinism.html">generation-determinism.md</a></td>
+<td>Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57, GEN.58, TEST.77, OPS.14, OPS.15, DB.7; GEN.59, GEN.61 and OPS.12 were dropped 2026-10-09).</td>
+</tr>
+<tr>
+<td><a href="../design/operations/db-check-and-parity-repair.html">db-check-and-parity-repair.md</a></td>
+<td>Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15).</td>
+</tr>
+<tr>
+<td><a href="../design/operations/ops-scheduling-and-rotation.html">ops-scheduling-and-rotation.md</a></td>
+<td>The daily maintenance run and schedules on three systems (OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.21, OPS.27); the 18-slot backup rotation (OPS.18, ADM.19, ADM.20) was dropped 2026-10-09.</td>
+</tr>
+<tr>
+<td><a href="../design/generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a></td>
+<td>Backfill cost, sampling equivalence and resumable runs (GEN.40 to GEN.43, GEN.96 to GEN.99, GEN.102, PERF.18, PERF.29, PERF.30).</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a></td>
+<td>Hilbert and other fill orders, region enumeration and the galactic core (GEN.101, ADM.29, ADM.30, GEN.97, GEN.23, GEN.24).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/course-routing.html">course-routing.md</a></td>
+<td>Routes, the route graph, hop lengths and nearby search (NAV.9 to NAV.12, NAV.36, NAV.39 to NAV.48).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/course-avoidance.html">course-avoidance.md</a></td>
+<td>Keep-out zones for courses around hazards (NAV.22, NAV.24 to NAV.28, NAV.51).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/orbital-solvers-and-integrators.html">orbital-solvers-and-integrators.md</a></td>
+<td>Kepler solvers, N-body integrators, thresholds and scheduling (GEN.105 to GEN.109, GEN.111, GEN.115).</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/galactic-potential.html">galactic-potential.md</a></td>
+<td>The galactic gravity model and its gradient for object updates (GEN.108, GEN.115, GEN.106, GEN.125).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/collisions-and-mergers.html">collisions-and-mergers.md</a></td>
+<td>Detecting and resolving collisions and mergers during an orbital update (GEN.109 to GEN.112).</td>
+</tr>
+<tr>
+<td><a href="../design/habitability/atmospheres-retention-and-classes.html">atmospheres-retention-and-classes.md</a></td>
+<td>When a planet keeps an atmosphere, the new hot- and cold-zone classes and life stage (GEN.91, GEN.92).</td>
+</tr>
+<tr>
+<td><a href="../design/habitability/activity-magnetism-radiation-hydrosphere.html">activity-magnetism-radiation-hydrosphere.md</a></td>
+<td>Stellar activity, magnetic fields, surface dose, water and oceans (GEN.86 to GEN.89, GEN.104).</td>
+</tr>
+<tr>
+<td><a href="../design/systems/anomalies.html">anomalies.md</a></td>
+<td>Anomalies and asteroid fields: classes, rates and generation rules (GEN.113, GEN.114, GEN.103, GEN.128 to GEN.130).</td>
+</tr>
+<tr>
+<td><a href="../design/systems/multistar-and-compact-systems.html">multistar-and-compact-systems.md</a></td>
+<td>Multi-star systems, binaries and compact-remnant systems (GEN.62, GEN.71, GEN.128 to GEN.130, GEN.103).</td>
+</tr>
+<tr>
+<td><a href="../design/habitability/population-and-politics.html">population-and-politics.md</a></td>
+<td>Population, politics, technology levels and facilities (POP.7 to POP.10).</td>
+</tr>
+<tr>
+<td><a href="../design/operations/api-design-standards.html">api-design-standards.md</a></td>
+<td>API conventions: errors, paging, versioning, keys, logging and limits (API.3 to API.19, ADM.13).</td>
+</tr>
+<tr>
+<td><a href="../design/architecture/units-and-number-formatting.html">units-and-number-formatting.md</a></td>
+<td>Units, unit ladders and number formatting in code and in the browser (UX.36).</td>
+</tr>
+<tr>
+<td><a href="../design/interface/map-ui-and-frontend-libraries.html">map-ui-and-frontend-libraries.md</a></td>
+<td>Map interface patterns and front-end library choices (UX.3, UX.40 to UX.49).</td>
+</tr>
+<tr>
+<td><a href="../design/interface/settings-seo-and-accounts.html">settings-seo-and-accounts.md</a></td>
+<td>Settings pages, search-engine behaviour and account design (ADM.42 to ADM.44, USR.1 to USR.8, API.6).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/sky-view.html">sky-view.md</a></td>
+<td>The view from a planet's surface: stars, backfill levels and cost (VIEW.1 to VIEW.4).</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/multiple-galaxies.html">multiple-galaxies.md</a></td>
+<td>Neighbour galaxies in the sky and several galaxies in one install (GEN.9, VIEW.2, VIEW.3).</td>
+</tr>
+<tr>
+<td><a href="../design/orbits/navigation-frames.html">navigation-frames.md</a></td>
+<td>Coordinate frames used for navigation and courses.</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a></td>
+<td>The galaxy frame and the shell, band and wedge sector grid.</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/spherical-shell-sectors.html">spherical-shell-sectors.md</a></td>
+<td>Research (Boss, 2026-10-15 05:51Z): what spherical-shell sectors with a round 4 pc core would mean; recommends keeping the cylindrical grid (no TODO item unless Boss decides otherwise).</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a></td>
+<td>The disk density model behind sector fill.</td>
+</tr>
+<tr>
+<td><a href="../design/operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a></td>
+<td>Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15).</td>
+</tr>
+<tr>
+<td><a href="../design/systems/exotic-environments-planets-and-compact-binaries.html">exotic-environments-planets-and-compact-binaries.md</a></td>
+<td>Planets and compact-object orbits in extreme environments: Boss's research digested for GEN.94, GEN.95, GEN.130.</td>
+</tr>
+<tr>
+<td><a href="../design/galaxy/globular-clusters.html">globular-clusters.md</a></td>
+<td>Globular clusters: density-component storage, King sampling, metallicity, planet culls and pulsar planets; Boss's research digested with computed checks (GEN.9, GEN.130, GEN.134).</td>
+</tr>
+<tr>
+<td><a href="../design/generation/generation-performance-study.html">generation-performance-study.md</a></td>
+<td>Where the scatters and the sector fill spend their time, measured on a quarter-scale galaxy: worker start-up (8 times), phenomenon row volume, the database path, word salad; ranked fixes (PERF.31, PERF.18, PERF.39).</td>
+</tr>
+<tr>
+<td><a href="../design/systems/phenomenon-scatter-mass-cut.html">phenomenon-scatter-mass-cut.md</a></td>
+<td>A lowest-mass cut for the GEN.100 scatter (recommended 20 solar masses: 1.17e9 rows to 2.7e5), the error it causes, how the sector fill draws below the cut, reproducibility and DB.19; traces the notes' 1.6e8 figure (DB.19, GEN.100).</td>
+</tr>
+<tr>
+<td><a href="../design/interface/zoom-star-visibility.html">zoom-star-visibility.md</a></td>
+<td>Why stars appear in bursts at 11 camera radii on the Galaxy Map (tile levels, caps, the 160 pc detail tiles, a time fade), measured on tile data, eleven ways to smooth it, and a rank-based fade that cuts the worst step from +883% to +59%; includes a side-by-side demo (MAP.116, MAP.147)</td>
+</tr>
+<tr>
+<td><a href="../design/operations/slow-reads-and-timeouts.html">slow-reads-and-timeouts.md</a></td>
+<td>Why pages hit the 10 s database limit on a big galaxy, measured on 2,000,000 systems (Sectors list 17 s, Systems offset 1.5M 12 s, map tiles 33 s) and under a fill; queue-and-hold versus keyset paging, stored counts, indexes and partial answers, page by page; eleven build items (PERF.68, PERF.69, PERF.70, PERF.71)</td>
+</tr>
+<tr>
+<td><a href="../design/interface/nebula-map-visibility.html">nebula-map-visibility.md</a></td>
+<td>Why nebulae cannot be seen on the Galaxy Map (field clouds are derived not stored, sub-2 px at galaxy scale, near-black dark fill, 200-per-tile cap) and a three-scale design: nebula cover as a Color by choice, fixed-grid regions that split on zoom (16 px cells, 600 budget), individual clouds; colour, wire format, picking, cost; fourteen build items split Phase 1 foundations and Phase 2 visible feature</td>
+</tr>
+<tr>
+<td><a href="../design/systems/nebula-density-vs-reality.html">nebula-density-vs-reality.md</a></td>
+<td>The generated nebula field against the real Milky Way (clouds, H II regions, remnants, planetary nebulae, with sources): class M about 10 times too many, the volume filled 8 to 10 times too high, remnants and hosted H II regions far too many; options measured on a 4 kpc sample; recommended keep rates (M 0.095, N 0.5, P and Q whole), what to generate versus what to draw, the effect on rows, storage and tiles, and on existing galaxies; eleven build items split Phase 1 and Phase 2</td>
+</tr>
+<tr>
+<td><a href="../design/architecture/math-and-library-efficiency.html">math-and-library-efficiency.md</a></td>
+<td>Where the heavy math still runs as plain Python (sector-path integrator 1.0 ms a path, nearest-neighbour sort, one-point density calls), measured and prototyped on a real fill: numba 22 to 31 times on paths, <code>cKDTree</code> 190 to 590 times on neighbours; ranked fixes with the install cost of numba, orjson, mysqlclient and astropy.</td>
+</tr>
+</tbody>
+</table></div>
+<p>Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.</p>
+<h2 id="not-yet-checked-in-live-use">Not yet checked in live use</h2>
+<ul>
+<li><strong>PERF.34 (PR #811)</strong>: the fix (tile cache wiped every minute during a fill when more than 1,000 sectors or new bright stars forced a full rebuild; now a <code>busy</code> answer plus keeping the cache for up to 10 minutes) was found by reading the code path and has not been load-tested. Boss's next real fill is the check; reopen issue #638 if the site is still slow.</li>
+</ul>
+<h2 id="migration-rule-for-maps-boss-2026-10-15-0316z">Migration rule for Maps (Boss, 2026-10-15 03:16Z)</h2>
+<p>Database is the lane that adds migrations. Maps may build the database changes it needs (for example the MAP.151b block-stats refill) if it tells Database beforehand. Database then says whether it has that work in progress; if it does, Maps holds off and does something else. Generate and UX still add no migrations.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

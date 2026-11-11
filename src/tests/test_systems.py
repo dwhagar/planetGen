@@ -22,6 +22,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation import habitable_request
 from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
+from planetgen.physics import spin
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
 from tests import render_support
@@ -37,12 +38,11 @@ STAR_TYPES = [
     "K1III", "F0IB", "M2VII", "K5IV", "A0II", "M3IA+", "M50", "K8VI",
 ]
 
-HOT_STARS = ("O5V",)
+HOT_STARS = ("O5V", "M3IA+", "M50", "B2V")
 HOT_STAR_TRIALS = 2
-"""A hot star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
+"""A hot or hypergiant star's all-flags system holds some 90 planets and 190 moons, about 150 s to build (PERF.241, measured on the GEN.1282 branch), so a
 test that builds fifteen of them ran for twenty minutes and hit the 900 s timeout. The O5V case builds two (four took 600 s on the GEN.1282 branch, 150 s each); the belt and the overlap checks are
-kept for each, and the request is not asked to give a world in two builds (one ecosphere draw in thirty around an O5V meets it, so two systems
-may give none), which the cooler stars' fifteen still ask."""
+kept for each. M3IA+ and M50 are the same (PERF.249: a forced belt and habitable world took about 100 s a system in a run beside two others and both cases passed 900 s at fifteen), and are in the list for the same reason. B2V joined on 11-09: its fifteen systems took 716 s on a lane machine beside four other jobs (about 48 s each), the red Lane 11 saw at the 900 s limit on main."""
 
 # A star whose ecosphere no planet can hold an air in (a white dwarf's lies at about 0.02 AU; a flaring red dwarf's, now and then) is
 # answered `unmet` for a habitable world (GEN.688) rather than by a world that is not what its conditions say.
@@ -305,6 +305,9 @@ def assert_positions_and_speeds_are_consistent(system):
     """
     for body in _all_planets_and_moons(system):
         position = (body.position_x, body.position_y, body.position_z)
+        axis = getattr(body, "_frame_axis", None)
+        if axis is not None:      # GEN.1352: a moon is set in the system's frame, but its inclination and node are measured in the frame of its planet's equator
+            position = spin.turn_from_axis(position, axis)
         radius = math.sqrt(sum(c * c for c in position))
         low, high = body.distance * (1.0 - body.eccentricity), body.distance * (1.0 + body.eccentricity)
         assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9), (
@@ -465,24 +468,23 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
     retroactively overwritten whenever ASTEROID_BELT is required.
 
     The belt is still guaranteed; the habitable world no longer is (GEN.1130: the request raises the odds and never forces,
-    and a system the request did not reach is saved as it came), so what is asked of the request is that it answers, and that
-    over the trials it did raise the odds enough to give a world now and then (TEST.307: it was checked as "a world, or
-    `unmet_requirements` says so", and the request has not been a requirement since GEN.1130).
+    and a system the request did not reach is saved as it came), so what is asked of the request is that it answers (TEST.307:
+    it was checked as "a world, or `unmet_requirements` says so", and the request has not been a requirement since GEN.1130).
+
+    It was also asked that 15 trials gave a world at least once. Since GEN.1397 a world that meets the request is found by the
+    conditions and no class is drawn again until one fits, so a system the request aimed at has one in `hit` of cases
+    (`tuning.PREVALENCE_FORCED_HIT_RATES`, 0.069), and 15 trials have none about one time in three: the assertion was a coin
+    toss and is gone. The odds are the arithmetic of `tests/test_prevalence.py` and the count of `measure_habitable_count`.
     """
     failures_belt = 0
-    with_world = 0
     trials = HOT_STAR_TRIALS if star_type in HOT_STARS else 15
     for _ in range(trials):
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if habitable_request.count(system.all_planets) > 0:
-            with_world += 1
         assert system.habitable_request == ("aim" if habitable_request.count(system.all_planets) > 0 else "unmet")
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
-    if star_type not in HOT_STARS:
-        assert with_world >= 1, f"{star_type}: HABITABLE_WORLD=True gave no habitable world in any of {trials} trials"
 
 
 def test_wide_binary_asteroid_belts_forced_do_not_overlap_across_stars():
@@ -530,7 +532,7 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     Regression test for the Phase 0 bug (see TODO.md): both
     Planet._generate_life_and_flavor_paragraphs and StarSystem.__str__ used
     to roll flavor text and mutate system_config.system_flavor_count/
-    recent_flavor_texts at render time (inside the text writers)
+    used_flavor_ids at render time (inside the text writers)
     rather than at generation time, so calling either twice on the same
     object double-rolled and double-mutated shared counters. Flavor text is
     now decided once during StarSystem.__init__ (system-level in
@@ -546,14 +548,14 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     assert system.system_config.system_flavor_count > 0
 
     flavor_count_after_generation = system.system_config.system_flavor_count
-    recent_flavor_after_generation = list(system.system_config.recent_flavor_texts)
+    recent_flavor_after_generation = list(system.system_config.used_flavor_ids)
 
     first_render = render_support.text(system)
     second_render = render_support.text(system)
 
     assert first_render == second_render
     assert system.system_config.system_flavor_count == flavor_count_after_generation
-    assert system.system_config.recent_flavor_texts == recent_flavor_after_generation
+    assert system.system_config.used_flavor_ids == recent_flavor_after_generation
 
 
 def test_binary_system_star_properties_are_sane():

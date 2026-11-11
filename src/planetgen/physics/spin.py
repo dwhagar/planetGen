@@ -135,6 +135,39 @@ def orbit_normal(inclination_deg, ascending_node_deg):
     return (math.sin(node) * math.sin(i), -math.cos(node) * math.sin(i), math.cos(i))
 
 
+def turn_to_axis(vector, axis):
+    """`vector`, written against an equator whose pole is +z, as it stands in the frame where that pole is the unit `axis` (the turn of +z onto `axis` about
+    `z x axis`, so that an `axis` of +z leaves it as it is). GEN.1352: a moon's orbit is drawn against its planet's equator and set in the system's frame with this."""
+    return _turn(vector, axis, 1.0)
+
+
+def turn_from_axis(vector, axis):
+    """The turn back: `vector` in the frame where the pole is `axis`, written against the equator of that pole (`turn_to_axis` undone)."""
+    return _turn(vector, axis, -1.0)
+
+
+def _turn(vector, axis, sense):
+    a = _unit(axis)
+    k = (-a[1], a[0], 0.0)                   # z x axis
+    s = math.sqrt(k[0] * k[0] + k[1] * k[1])
+    c = a[2]
+    if s < 1.0e-12:
+        return tuple(vector) if c > 0.0 else (vector[0], -vector[1], -vector[2])    # a pole upside down: half a turn about x (either way)
+    k = (k[0] / s, k[1] / s, 0.0)
+    s *= sense
+    kxv = _cross(k, vector)
+    along = (1.0 - c) * (k[0] * vector[0] + k[1] * vector[1])
+    return tuple(vector[i] * c + kxv[i] * s + k[i] * along for i in range(3))
+
+
+def moon_orbit_normal(moon, planet):
+    """The unit normal of a moon's orbit in the system's frame: the one its stored elements give against its `planet`'s equator, turned onto the planet's
+    spin axis (GEN.1352); the elements as they are for a moon whose planet has no axis."""
+    normal = orbit_normal(getattr(moon, "orbital_inclination_deg", None) or 0.0, getattr(moon, "orbital_ascending_node_deg", None) or 0.0)
+    axis = tuple(getattr(planet, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z")) if planet is not None else (None,)
+    return normal if any(c is None for c in axis) else turn_to_axis(normal, axis)
+
+
 def orbit_normal_from_state(position, velocity):
     """The unit normal of the orbit a body on this position and velocity (about its primary) is on: `r x v`, in the same
     frame. Raises `ZeroDivisionError` for a body moving straight at or away from its primary."""
@@ -152,6 +185,39 @@ def tilted_axis(normal, obliquity_deg, precession_rad):
     c, s = math.cos(e), math.sin(e)
     cp, sp = math.cos(precession_rad), math.sin(precession_rad)
     return _unit(tuple(c * n[k] + s * (cp * u[k] + sp * v[k]) for k in range(3)))
+
+
+def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
+    """
+    GEN.1504: a spin axis after its orbit's plane has moved from `old_normal` to `new_normal`, carried with the plane: the axis is turned by the turn that takes the old normal onto the new
+    (about `old x new`), so its obliquity and its angle round the normal stay as they were. With `tilt_deg` the obliquity is set to that instead (the plane's angle round the normal kept).
+    """
+    a, o, n = _unit(axis), _unit(old_normal), _unit(new_normal)
+    k = _cross(o, n)
+    sin_t = math.sqrt(sum(c * c for c in k))
+    cos_t = sum(x * y for x, y in zip(o, n))
+    if sin_t < 1.0e-12:
+        if cos_t > 0.0:
+            turned = a                                                  # the plane has not moved
+        else:                                                           # turned over: half a turn about any line in the plane (the axis of the old normal's smallest component)
+            helper = (1.0, 0.0, 0.0) if abs(o[0]) < 0.9 else (0.0, 1.0, 0.0)
+            k = _unit(_cross(o, helper))
+            along = sum(x * y for x, y in zip(k, a))
+            turned = _unit(tuple(2.0 * along * k[i] - a[i] for i in range(3)))
+    else:
+        k = tuple(c / sin_t for c in k)
+        kxa = _cross(k, a)
+        along = sum(x * y for x, y in zip(k, a))
+        turned = _unit(tuple(a[i] * cos_t + kxa[i] * sin_t + k[i] * along * (1.0 - cos_t) for i in range(3)))
+    if tilt_deg is None:
+        return turned
+    cos_e = sum(x * y for x, y in zip(turned, n))
+    sideways = tuple(turned[i] - cos_e * n[i] for i in range(3))
+    length = math.sqrt(sum(c * c for c in sideways))
+    if length < 1.0e-12:
+        return turned
+    e = math.radians(tilt_deg)
+    return _unit(tuple(math.cos(e) * n[i] + math.sin(e) * sideways[i] / length for i in range(3)))
 
 
 def obliquity_between(axis, normal):

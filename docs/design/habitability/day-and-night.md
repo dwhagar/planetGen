@@ -26,6 +26,9 @@ The night share is one minus the day share.
   the normal of the orbit round the star (a moon's: its spin axis against its planet's orbit normal). A tilt past 90 degrees is a
   retrograde spin and gives the same seasons.
 * The surface mean is exact: a sphere is lit over `(1 + sin alpha) / 2` of its area at every instant, whatever the tilt.
+* **No star, no day (GEN.1496).** A body under a star-less host (a rogue planet, or the moon of one) has the empty set of suns, the same union of arcs (`lit_arcs_share`) with
+  nothing in it: `day_share_equator`, `day_share_mean` and `daylight_hours` are 0, the polar circle, the solar day, the night hours and the days a year are empty, the state word is `no sun`
+  (a giant says `no solid surface`), and the body has no latitude bands to follow a sun. Before this a star-less body took a point star's half of the sky.
 * The solar day is `1 / |1/P_rot -/+ 1/P_orb|`. A world with `P_rot = P_orb` has no day; its day side is lit all the time, the
   terminator half of it, the night side never.
 * The polar circle is `90 - e - alpha` degrees.

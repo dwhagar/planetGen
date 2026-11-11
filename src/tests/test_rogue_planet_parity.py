@@ -18,12 +18,14 @@ Since GEN.1111 a rogue planet IS a `Planet`, built by the planet code against a 
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import planet_type
+from planetgen.physics import daylight, outside_hours, planet_type, regional_temperature
 from planetgen.db import models, store
 from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena import starless_host
 
 # Planet columns a rogue row does not carry: the host and the orbit round it, and the keys that file a planet in a system.
+DIPOLE_FIELDS = frozenset({"dipole_tilt_deg", "dipole_offset_class"})      # GEN.1350: a dipole's direction exists only while the dynamo runs, and a rogue and a bound planet of one mass can differ in that (the core cools under another mantle)
+ODDITY_FIELDS = frozenset({"oddities"})      # GEN.1047: an oddity row is gated on the body's own quantities (light, air, spin), so a rogue and a bound planet of one mass can differ in whether one is rolled
 SYSTEM_KEYS = frozenset({"dynamical_state", "host_node_id", "orbital_index", "star_id", "star_system_id"})
 
 
@@ -103,10 +105,15 @@ def test_a_rocky_planet_with_no_light_is_warmed_by_its_own_heat_only_when_it_has
 STARLIGHT_FIELDS = frozenset({"magnetopause_rp", "uv_surface_index"})
 """The stored quantities that need a star: the stellar wind that holds off a planet's field, and the ultraviolet a star gives the surface."""
 
+NO_SUN_FIELDS = frozenset({*daylight.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS})
+"""The stored quantities of a day under a star (GEN.1496): the solar day, the night, the polar circle, the days a year, the latitude bands that follow a sun and the hours outside they set; a body under
+no star has none, and its day share and daylight hours are 0."""
+
 LIQUID_SURFACE_FIELDS = frozenset({
-    "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
-    "ocean_liquid"})
-"""The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star."""
+    "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "surface_liquid_ammonia_wt", "tide_range_spring_m", "tide_range_neap_m",
+    "ocean_liquid", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km"})
+"""The stored quantities of a liquid surface: they are filled where the surface holds liquid, which the body's own heat decides when it has no star (a rogue world
+of class T holds a sea of carbon monoxide at 76 K under its own air where the matched bound planet is an airless class C at 3 K)."""
 
 CLOUD_FIELDS = frozenset({"aerosol_draw", "atmosphere_colour", "cloud_cover", "tau_cloud", "tau_dust", "tau_haze"})
 """The stored quantities of a cloud and haze layer: whether the air holds one is decided by the temperature the body's own heat gives it."""
@@ -217,7 +224,7 @@ def test_a_rogue_and_a_bound_planet_fill_the_same_stored_fields_and_differ_only_
         if rogue_body.is_moon:
             continue
         one_sided = {name for name, a, b in zip(names, kept, lit) if (a is None) != (b is None)}
-        allowed = STARLIGHT_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS
+        allowed = STARLIGHT_FIELDS | NO_SUN_FIELDS | LIQUID_SURFACE_FIELDS | CLOUD_FIELDS | RUNNER_UP_FIELDS | ENVELOPE_GAS_FIELDS | ODDITY_FIELDS | DIPOLE_FIELDS
         if (bound.envelope_mass_fraction or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE:
             allowed |= ENVELOPE_SHELTER_FIELDS
         if rogue.planet_class != bound.planet_class:

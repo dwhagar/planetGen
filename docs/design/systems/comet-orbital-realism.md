@@ -31,6 +31,14 @@ comets are sector phenomena, drawn per star at the design rate in
 - Perihelion `q` is drawn from `COMET_PERIHELION_DISTANCE_RANGE_AU`
   (0.05 to 5 AU). The semi-major axis is `q / (1 - e)`, and the period comes
   from Kepler's third law with the host star's mass.
+- **A giant holds the Jupiter family (GEN.1457).** A star with a giant gives its Jupiter-family comets the orbits a giant can control: the
+  Tisserand parameter `T = a_g / a + 2 cos i sqrt((a / a_g)(1 - e^2))` about the star's most massive giant (`a_g` its distance) must lie in
+  2 to 3 (`physics/comet_control.py`, stand-in rows CT1 to CT4 of section 6.251). `StarSystem._generate_comets` passes the giant's distance
+  (`Comet(giant_au=...)`), the perihelion, eccentricity and inclination are drawn again (the redraw kind `comet.tisserand`) up to
+  `COMET_CEILING_ATTEMPTS` times, and a comet no orbit of which that giant holds is of another family, drawn among the others by their
+  weights. A star with no giant, and every other family, draw exactly as before. The ceiling cut of a wide pair (GEN.228, GEN.591) is
+  applied to every redraw. 67P (a = 3.46 AU, e = 0.64, i = 7.0 degrees, giant at 5.2 AU) gives T = 2.75, inside the range. Left out: a
+  lighter giant that also holds part of the family, the giant's own eccentricity and drift, and the galactic tide on the far cloud (GEN.1466).
 - The class's `period_range_years` is not used by generation. Because the
   period is computed from `q` and `e`, a comet tagged Jupiter-family can come
   out with a period outside 3.3 to 20 years. The tag is descriptive only.
@@ -57,6 +65,11 @@ Whether a comet shows a coma and tail (`is_active`) depends on perihelion
 distance, not on orbit type: `cometData._activity_chance` falls linearly from
 0.9 at `q = 0` to 0.05 at `q >= 3 AU` (`COMET_ACTIVITY_*`). Interstellar
 comets keep a flat roll (`INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5`).
+
+The distance is the Sun's, read for the host (GEN.1491): a comet's perihelion is first made the distance from a lone star that is lit as much (every star's light
+counts, GEN.1444), then divided by `sqrt(L / Lsun)` (`physics/comet_activity.py`), the distance round the Sun that gives the same flux on an airless body. So 3 AU round
+the Sun is 30 AU round a star of 100 solar luminosities and 0.3 AU round one of 0.01. A host of the Sun's luminosity, alone, gives the old chance. The disk's temperature
+law is not used: it is for a passively heated disk, not a bare nucleus. Rows CA1 to CA3 of section 6.253.
 
 ### Names
 

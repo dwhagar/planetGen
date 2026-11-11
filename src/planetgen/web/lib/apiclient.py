@@ -65,6 +65,11 @@ class NotFoundError(Exception):
     -- callers turn this into a 404 page (`web/errors.py`)."""
 
 
+class NoGalaxyError(NotFoundError):
+    """Raised for the 404 of a database that holds no galaxy yet (MAP.407: the API's `noGalaxy` flag). It is a `NotFoundError`, so code that
+    only handles something that is not there treats it as one; the page says there is no galaxy yet (`web/errors.py`)."""
+
+
 class MovedError(NotFoundError):
     """Raised for a 301 response (GEN.1139): the ID asked for is one an object gave up. `retired_id` is the ID asked for and `current_id` the
     object's ID now; the page routes turn it into a 301 to the same page under the current ID (`web/errors.py`). It is a `NotFoundError`, so
@@ -276,7 +281,7 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
         detail = _error_detail(response)
         _log_call(method, where, start, f"HTTP {response.status}: {detail}")
         if response.status == 404:
-            raise NotFoundError(detail)
+            raise (NoGalaxyError if _flag_of(response, "noGalaxy") else NotFoundError)(detail)
         if response.status == 410:
             raise GoneError(detail)
         raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
@@ -285,6 +290,15 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
                                     f"{len(response.set_cookie_headers)} Set-Cookie header(s), "
                                     f"{'a' if json_body is not None else 'no'} JSON request body")
     return response
+
+
+def _flag_of(response, key):
+    """Whether the JSON body of `response` has `key` set (an error body's extra flag)."""
+    try:
+        body = json.loads(response.body)
+    except (ValueError, TypeError):
+        return False
+    return isinstance(body, dict) and body.get(key) is True
 
 
 def _parse_json(raw_body):
@@ -504,6 +518,14 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
+def get_generated(db, kind, since, limit=None, offset=None):
+    """Returns `GET /api/generated`'s answer (`kind`, `since`, `total`, `items`, `limit`, `offset`): the sectors, systems, planets or
+    moons made at or after `since`, Unix seconds, newest first (ADM.150)."""
+    _require_db(db)
+    params = [("db", db), ("kind", kind), ("since", since), ("limit", limit), ("offset", offset)]
+    return _request("/generated", [(key, value) for key, value in params if value is not None])
+
+
 def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False, after=None, start=None):
     """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
     the scattered stars no system was built around yet, with the `total`
@@ -644,16 +666,6 @@ def get_superbubbles(db):
         return _request("/galaxy/superbubbles", {"db": db})["superbubbles"]
     except ApiError:
         return []
-
-
-def get_galaxy_made(db, since, until=None):
-    """Returns `GET /api/galaxy/made` (`total` and `items`): the sectors
-    created from `since` to `until`, Unix seconds (ADM.31)."""
-    _require_db(db)
-    params = {"db": db, "since": since}
-    if until is not None:
-        params["until"] = until
-    return _request("/galaxy/made", params)
 
 
 def get_galaxy_shape(db):
@@ -1315,6 +1327,23 @@ def admin_settings_save(cookie_header, changes, expect_hash=None):
     return body
 
 
+def admin_settings_update_plan(cookie_header, remove=(), apply=()):
+    """`POST /api/admin/settings/update/plan` -- what "Update config.json" would add (with its value), list as recommended
+    and not set, and flag as stale; nothing is written (ADM.140)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings/update/plan", cookie_header=cookie_header,
+                                              json_body={"remove": list(remove), "apply": list(apply)})
+    return body
+
+
+def admin_settings_update(cookie_header, remove=(), apply=(), expect_hash=None):
+    """`POST /api/admin/settings/update` -- writes the update after a backup; a file changed since `expect_hash` or one that
+    can't be written raises `ApiError` (409) (ADM.140)."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/settings/update", cookie_header=cookie_header,
+                                              json_body={"remove": list(remove), "apply": list(apply),
+                                                         "expect_hash": expect_hash})
+    return body
+
+
 def admin_images(cookie_header):
     """`GET /api/admin/images` -- each upload kind with the stored file in use (ADM.44)."""
     body, _set_cookie_headers = _auth_request("GET", "/admin/images", cookie_header=cookie_header)
@@ -1437,11 +1466,24 @@ def admin_work_held(cookie_header):
     return body
 
 
+def admin_work_jobs(cookie_header):
+    """`GET /api/admin/work/jobs` -- the API, web and prefetch jobs running now, from their beats (OPS.142): `{"jobs": [...], "available"}`."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/work/jobs", cookie_header=cookie_header)
+    return body
+
+
 def admin_work_run(cookie_header, run_id):
     """`GET /api/admin/work/<id>` -- one run with its stages and the last events of its log (PERF.99)."""
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}",
                                               cookie_header=cookie_header)
     return body
+
+
+def admin_work_units(cookie_header, run_id):
+    """`GET /api/admin/work/<id>/units` -- what each running unit of the run is doing (OPS.138), as a list (empty where none is running)."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/units",
+                                              cookie_header=cookie_header)
+    return body["units"]
 
 
 def admin_work_run_log(cookie_header, run_id):

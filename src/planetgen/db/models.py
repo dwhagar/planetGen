@@ -262,6 +262,27 @@ black_holes = sa.Table(
 )
 
 
+body_history = sa.Table(
+    'body_history',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('birth_eccentricity', mysql.DOUBLE(), nullable=True),
+    sa.Column('birth_spin_rate', mysql.DOUBLE(), nullable=True),
+    sa.Column('birth_obliquity_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('capture_draw_1', mysql.FLOAT(), nullable=True),
+    sa.Column('capture_draw_2', mysql.FLOAT(), nullable=True),
+    sa.Column('formula_version', mysql.TINYINT(unsigned=True), nullable=False),
+    sa.CheckConstraint('((`birth_eccentricity` is null) or (`birth_eccentricity` >= 0))', name='body_history_chk_1'),
+    sa.CheckConstraint('((`birth_obliquity_deg` is null) or (`birth_obliquity_deg` between 0 and 180))', name='body_history_chk_2'),
+    sa.CheckConstraint('((`capture_draw_1` is null) or (`capture_draw_1` between 0 and 1))', name='body_history_chk_3'),
+    sa.CheckConstraint('((`capture_draw_2` is null) or (`capture_draw_2` between 0 and 1))', name='body_history_chk_4'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_history_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 bright_stars = sa.Table(
     'bright_stars',
     metadata,
@@ -311,32 +332,6 @@ bright_stars = sa.Table(
     sa.CheckConstraint("(`population` in (_utf8mb4'young',_utf8mb4'intermediate',_utf8mb4'old',_utf8mb4'bulge',_utf8mb4'halo',_utf8mb4'cluster',_utf8mb4'satellite',_utf8mb4'nuclear_cluster',_utf8mb4'nuclear_disk',_utf8mb4'satellite_young',_utf8mb4'satellite_intermediate',_utf8mb4'open_cluster_00',_utf8mb4'open_cluster_01',_utf8mb4'open_cluster_02',_utf8mb4'open_cluster_03',_utf8mb4'open_cluster_04',_utf8mb4'open_cluster_05',_utf8mb4'open_cluster_06',_utf8mb4'open_cluster_07',_utf8mb4'open_cluster_08',_utf8mb4'open_cluster_09',_utf8mb4'open_cluster_10',_utf8mb4'open_cluster_11'))", name='chk_bright_stars_population'),
     sa.ForeignKeyConstraint(['cluster_id'], ['galaxy_components.id'], name='fk_bright_stars_cluster', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_bright_stars_system', ondelete='SET NULL'),
-    mysql_engine="InnoDB",
-)
-
-
-sky_tier_draws = sa.Table(
-    'sky_tier_draws',
-    metadata,
-    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('kind', sa.String(12), nullable=False),
-    sa.Column('band_low', mysql.DOUBLE(), nullable=False),
-    sa.Column('band_high', mysql.DOUBLE(), nullable=True),
-    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('radius_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('limit_mag', mysql.DOUBLE(), nullable=False),
-    sa.Column('stars', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('seconds', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
-    sa.Column('batches_done', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
-    sa.Column('complete', mysql.TINYINT(1), server_default=sa.text("'1'"), nullable=False),
-    sa.Column('drawn_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
-    sa.Index('idx_sky_tier_draws_kind', 'kind', 'band_low'),
-    sa.UniqueConstraint('kind', 'band_low', 'center_x_pc', 'center_y_pc', 'center_z_pc', 'radius_pc', name='uq_sky_tier_draws_cell'),
-    sa.CheckConstraint("(`kind` in (_utf8mb4'luminosity',_utf8mb4'mass'))", name='chk_sky_tier_draws_kind'),
-    sa.CheckConstraint('(`radius_pc` >= 0)', name='chk_sky_tier_draws_radius'),
     mysql_engine="InnoDB",
 )
 
@@ -555,6 +550,25 @@ edit_journal = sa.Table(
 )
 
 
+effect_ledger = sa.Table(
+    'effect_ledger',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('body_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('effect', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_type', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('source_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('share', mysql.FLOAT(), nullable=False),
+    sa.Column('n_below', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('largest_value', mysql.DOUBLE(), nullable=True),
+    sa.CheckConstraint('(`share` >= 0)', name='effect_ledger_chk_1'),
+    sa.CheckConstraint('((`largest_value` is null) or (`largest_value` > 0))', name='effect_ledger_chk_2'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_effect_ledger_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 facilities = sa.Table(
     'facilities',
     metadata,
@@ -691,6 +705,47 @@ facility_types = sa.Table(
     sa.Index('uq_facility_types_name', 'name', unique=True),
     sa.CheckConstraint('(`active` in (0,1))', name='chk_facility_types_active'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'colony',_utf8mb4'outpost',_utf8mb4'mining-colony',_utf8mb4'station',_utf8mb4'starbase'))", name='chk_facility_types_kind'),
+    mysql_engine="InnoDB",
+)
+
+
+field_members = sa.Table(
+    'field_members',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('field_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('member_rank', mysql.INTEGER(), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=False),
+    sa.Column('rock_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('metal_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('status', sa.String(16), nullable=False),
+    sa.Index('uq_field_members_field_rank', 'field_id', 'member_rank', unique=True),
+    sa.ForeignKeyConstraint(['field_id'], ['asteroid_fields.id'], name='fk_field_members_field', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+galaxy_block_light_parts = sa.Table(
+    'galaxy_block_light_parts',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('star_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('star_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lpz', mysql.DOUBLE(), nullable=False),
+    sa.Column('star_lt', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_count', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('point_luminosity_sol', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpx', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpy', mysql.DOUBLE(), nullable=False),
+    sa.Column('point_lpz', mysql.DOUBLE(), nullable=False),
     mysql_engine="InnoDB",
 )
 
@@ -899,6 +954,23 @@ galaxy_shell = sa.Table(
 )
 
 
+galaxy_totals = sa.Table(
+    'galaxy_totals',
+    metadata,
+    sa.Column('id', mysql.TINYINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('systems', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('stars', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('planets', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('moons', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('belts', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('habitable_worlds', mysql.BIGINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('mass_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('luminosity_sol', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 generation_run_arguments = sa.Table(
     'generation_run_arguments',
     metadata,
@@ -1028,25 +1100,6 @@ interstellar_comets = sa.Table(
 )
 
 
-field_members = sa.Table(
-    'field_members', metadata,
-    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
-    sa.Column('field_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('member_rank', mysql.INTEGER(), nullable=False),
-    sa.Column('mass_kg', mysql.DOUBLE(), nullable=False),
-    sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
-    sa.Column('density_g_cm3', mysql.DOUBLE(), nullable=False),
-    sa.Column('rock_fraction', mysql.DOUBLE(), nullable=False),
-    sa.Column('metal_fraction', mysql.DOUBLE(), nullable=False),
-    sa.Column('water_fraction', mysql.DOUBLE(), nullable=False),
-    sa.Column('ice_fraction', mysql.DOUBLE(), nullable=False),
-    sa.Column('status', mysql.VARCHAR(16), nullable=False),
-    sa.Index('uq_field_members_field_rank', 'field_id', 'member_rank', unique=True),
-    sa.ForeignKeyConstraint(['field_id'], ['asteroid_fields.id'], name='fk_field_members_field', ondelete='CASCADE'),
-    mysql_engine="InnoDB",
-)
-
-
 irregular_moons = sa.Table(
     'irregular_moons',
     metadata,
@@ -1093,6 +1146,25 @@ irregular_sets = sa.Table(
 )
 
 
+moon_deposit_types = sa.Table(
+    'moon_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Index('uq_moon_deposit_types', 'moon_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_deposit_types_moon', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_gases = sa.Table(
     'moon_gases',
     metadata,
@@ -1132,6 +1204,24 @@ moon_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_interior_layers_moon', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='moon_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='moon_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+moon_isotopes = sa.Table(
+    'moon_isotopes',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('element', sa.String(3), nullable=False),
+    sa.Column('isotope', sa.String(8), nullable=False),
+    sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
+    sa.Column('origin', sa.String(12), nullable=False),
+    sa.Index('uq_moon_isotopes', 'moon_id', 'isotope', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_isotopes_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='moon_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='moon_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
@@ -1258,6 +1348,8 @@ moons = sa.Table(
     sa.Column('mantle_delta_iw', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetic_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('dipole_class', sa.String(16), nullable=True),
+    sa.Column('dipole_tilt_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('dipole_offset_class', sa.String(8), nullable=True),
     sa.Column('induced_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetopause_rp', mysql.DOUBLE(), nullable=True),
     sa.Column('xuv_flux_earth', mysql.DOUBLE(), nullable=True),
@@ -1405,10 +1497,13 @@ moons = sa.Table(
     sa.Column('planet_type', sa.String(12), nullable=True),
     sa.Column('class_variant', mysql.TINYINT(), nullable=True),
     sa.Column('relative_humidity', mysql.DOUBLE(), nullable=True),
-    sa.Column('groundwater', sa.String(length=10), nullable=True),
+    sa.Column('groundwater', sa.String(10), nullable=True),
     sa.Column('class_match', mysql.DOUBLE(), nullable=True),
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
+    sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
@@ -1453,9 +1548,24 @@ moons = sa.Table(
     sa.Column('rock_mno_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_nio_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_p2o5_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_p2o5_wt', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_apatite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_ni_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_light_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_s_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_si_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_o_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_c_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_h_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('carbon_rock', mysql.TINYINT(), nullable=True),
     sa.Column('composition_origin', sa.String(8), nullable=True),
     sa.Column('ground_type', sa.String(16), nullable=True),
@@ -1671,10 +1781,14 @@ nebula_field = sa.Table(
     sa.Column('molecular_share', mysql.FLOAT(), nullable=True),
     sa.Column('dust_to_gas', mysql.FLOAT(), nullable=True),
     sa.Column('dust_to_metals', mysql.FLOAT(), nullable=True),
-    sa.Column('grain_silicate', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_amorphous_olivine', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_amorphous_pyroxene', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_crystalline_silicate', mysql.FLOAT(), nullable=True),
     sa.Column('grain_iron', mysql.FLOAT(), nullable=True),
-    sa.Column('grain_carbon', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_amorphous_carbon', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_graphite', mysql.FLOAT(), nullable=True),
     sa.Column('grain_pah', mysql.FLOAT(), nullable=True),
+    sa.Column('grain_sic', mysql.FLOAT(), nullable=True),
     sa.Column('grain_ice', mysql.FLOAT(), nullable=True),
     sa.Index('idx_nebula_field_cell', 'cell_key', 'center_x_pc', 'center_y_pc', 'center_z_pc'),
     sa.Index('idx_nebula_field_uid', 'uid'),
@@ -1769,10 +1883,14 @@ nebulae = sa.Table(
     sa.Column('molecular_share', mysql.DOUBLE(), nullable=True),
     sa.Column('dust_to_gas', mysql.DOUBLE(), nullable=True),
     sa.Column('dust_to_metals', mysql.DOUBLE(), nullable=True),
-    sa.Column('grain_silicate', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_olivine', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_pyroxene', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_crystalline_silicate', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_iron', mysql.DOUBLE(), nullable=True),
-    sa.Column('grain_carbon', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_carbon', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_graphite', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_pah', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_sic', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_ice', mysql.DOUBLE(), nullable=True),
     sa.Column('progenitor_mass_sol', mysql.DOUBLE(), nullable=True),
     sa.Index('fk_nebulae_inside_nebula', 'inside_nebula_id'),
@@ -1809,6 +1927,7 @@ neutron_stars = sa.Table(
     sa.Column('radius_km', mysql.DOUBLE(), nullable=False),
     sa.Column('spin_period_ms', mysql.DOUBLE(), nullable=False),
     sa.Column('magnetic_field_gauss', mysql.DOUBLE(), nullable=False),
+    sa.Column('magnetic_inclination_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('pulsar_type', sa.String(16), nullable=False),
     sa.Column('surface_temperature_k', mysql.DOUBLE(), nullable=False),
     sa.Column('luminosity_w', mysql.DOUBLE(), nullable=False),
@@ -2124,6 +2243,25 @@ phenomenon_scatter_classes = sa.Table(
 )
 
 
+planet_deposit_types = sa.Table(
+    'planet_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Index('uq_planet_deposit_types', 'planet_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_deposit_types_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 planet_gases = sa.Table(
     'planet_gases',
     metadata,
@@ -2163,6 +2301,24 @@ planet_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_interior_layers_planet', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='planet_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='planet_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+planet_isotopes = sa.Table(
+    'planet_isotopes',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('element', sa.String(3), nullable=False),
+    sa.Column('isotope', sa.String(8), nullable=False),
+    sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
+    sa.Column('origin', sa.String(12), nullable=False),
+    sa.Index('uq_planet_isotopes', 'planet_id', 'isotope', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_isotopes_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='planet_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='planet_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
@@ -2288,6 +2444,8 @@ planets = sa.Table(
     sa.Column('mantle_delta_iw', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetic_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('dipole_class', sa.String(16), nullable=True),
+    sa.Column('dipole_tilt_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('dipole_offset_class', sa.String(8), nullable=True),
     sa.Column('induced_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetopause_rp', mysql.DOUBLE(), nullable=True),
     sa.Column('xuv_flux_earth', mysql.DOUBLE(), nullable=True),
@@ -2435,10 +2593,13 @@ planets = sa.Table(
     sa.Column('planet_type', sa.String(12), nullable=True),
     sa.Column('class_variant', mysql.TINYINT(), nullable=True),
     sa.Column('relative_humidity', mysql.DOUBLE(), nullable=True),
-    sa.Column('groundwater', sa.String(length=10), nullable=True),
+    sa.Column('groundwater', sa.String(10), nullable=True),
     sa.Column('class_match', mysql.DOUBLE(), nullable=True),
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
+    sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('energy_flux_w_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('flux_variation', mysql.DOUBLE(), nullable=True),
     sa.Column('reflex_offset_x_km', mysql.DOUBLE(), nullable=True),
@@ -2486,9 +2647,24 @@ planets = sa.Table(
     sa.Column('rock_mno_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_nio_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_p2o5_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_p2o5_wt', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_apatite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_ni_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_light_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_s_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_si_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_o_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_c_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_h_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('carbon_rock', mysql.TINYINT(), nullable=True),
     sa.Column('composition_origin', sa.String(8), nullable=True),
     sa.Column('ground_type', sa.String(16), nullable=True),
@@ -2738,6 +2914,25 @@ request_notifications = sa.Table(
 )
 
 
+rogue_planet_deposit_types = sa.Table(
+    'rogue_planet_deposit_types',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('rogue_planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('deposit_type', sa.String(24), nullable=False),
+    sa.Column('status', sa.String(20), nullable=False),
+    sa.Column('endowment_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('grade', mysql.DOUBLE(), nullable=True),
+    sa.Column('key_element', sa.String(8), nullable=False),
+    sa.Column('age_window_gyr_start', mysql.DOUBLE(), nullable=True),
+    sa.Column('age_window_gyr_end', mysql.DOUBLE(), nullable=True),
+    sa.Column('capped_by_host', mysql.TINYINT(), server_default=sa.text("'0'"), nullable=False),
+    sa.Index('uq_rogue_planet_deposit_types', 'rogue_planet_id', 'deposit_type', unique=True),
+    sa.ForeignKeyConstraint(['rogue_planet_id'], ['rogue_planets.id'], name='fk_rogue_planet_deposit_types_rogue_planet', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 rogue_planet_gases = sa.Table(
     'rogue_planet_gases',
     metadata,
@@ -2777,6 +2972,24 @@ rogue_planet_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['rogue_planet_id'], ['rogue_planets.id'], name='fk_rogue_planet_interior_layers_rogue_planet', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='rogue_planet_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='rogue_planet_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+rogue_planet_isotopes = sa.Table(
+    'rogue_planet_isotopes',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('rogue_planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('element', sa.String(3), nullable=False),
+    sa.Column('isotope', sa.String(8), nullable=False),
+    sa.Column('fraction', mysql.DOUBLE(), nullable=False),
+    sa.Column('initial_ratio', mysql.DOUBLE(), nullable=True),
+    sa.Column('origin', sa.String(12), nullable=False),
+    sa.Index('uq_rogue_planet_isotopes', 'rogue_planet_id', 'isotope', unique=True),
+    sa.ForeignKeyConstraint(['rogue_planet_id'], ['rogue_planets.id'], name='fk_rogue_planet_isotopes_rogue_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('((`fraction` >= 0) and (`fraction` <= 1))', name='rogue_planet_isotopes_chk_1'),
+    sa.CheckConstraint('((`initial_ratio` is null) or (`initial_ratio` >= 0))', name='rogue_planet_isotopes_chk_2'),
     mysql_engine="InnoDB",
 )
 
@@ -2933,6 +3146,8 @@ rogue_planets = sa.Table(
     sa.Column('mantle_delta_iw', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetic_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('dipole_class', sa.String(16), nullable=True),
+    sa.Column('dipole_tilt_deg', mysql.DOUBLE(), nullable=True),
+    sa.Column('dipole_offset_class', sa.String(8), nullable=True),
     sa.Column('induced_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetopause_rp', mysql.DOUBLE(), nullable=True),
     sa.Column('xuv_flux_earth', mysql.DOUBLE(), nullable=True),
@@ -3073,9 +3288,24 @@ rogue_planets = sa.Table(
     sa.Column('rock_mno_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_nio_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('rock_p2o5_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_p2o5_wt', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_apatite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_merrillite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_schreibersite_share', mysql.DOUBLE(), nullable=True),
+    sa.Column('ocean_phosphate_umol_l', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_thickness_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('craton_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('crust_sulfur_index', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_helium_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('envelope_z_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('porosity', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_ni_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_light_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_s_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_si_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_o_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_c_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('core_h_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('carbon_rock', mysql.TINYINT(), nullable=True),
     sa.Column('composition_origin', sa.String(8), nullable=True),
     sa.Column('ground_type', sa.String(16), nullable=True),
@@ -3107,10 +3337,13 @@ rogue_planets = sa.Table(
     sa.Column('surface_liquid_2_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('class_variant', mysql.TINYINT(), nullable=True),
     sa.Column('relative_humidity', mysql.DOUBLE(), nullable=True),
-    sa.Column('groundwater', sa.String(length=10), nullable=True),
+    sa.Column('groundwater', sa.String(10), nullable=True),
     sa.Column('class_match', mysql.DOUBLE(), nullable=True),
     sa.Column('runner_up_class', mysql.CHAR(1), nullable=True),
     sa.Column('runner_up_match', mysql.DOUBLE(), nullable=True),
+    sa.Column('oddities', sa.String(40), nullable=True),
+    sa.Column('sky_suns', sa.String(400), nullable=True),
+    sa.Column('light_factor', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_origin', sa.String(8), nullable=True),
     sa.Column('moon_disk_lifetime_myr', mysql.DOUBLE(), nullable=True),
     sa.Column('moon_disk_alpha_over_f', mysql.DOUBLE(), nullable=True),
@@ -3269,6 +3502,20 @@ schema_migrations = sa.Table(
 )
 
 
+sector_facets = sa.Table(
+    'sector_facets',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('facet', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('value', sa.String(40), primary_key=True, nullable=False),
+    sa.Column('n', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Index('idx_sector_facets_facet', 'facet', 'value', 'n'),
+    mysql_engine="InnoDB",
+)
+
+
 sector_name_registry = sa.Table(
     'sector_name_registry',
     metadata,
@@ -3413,6 +3660,32 @@ sectors = sa.Table(
     sa.Index('uq_sectors_uid', 'uid', unique=True),
     sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_sectors_run'),
     sa.CheckConstraint('(((`center_x_pc` is null) = (`center_y_pc` is null)) and ((`center_y_pc` is null) = (`center_z_pc` is null)) and ((`center_z_pc` is null) = (`galactic_radius_pc` is null)))', name='sectors_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
+sky_tier_draws = sa.Table(
+    'sky_tier_draws',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('kind', sa.String(12), nullable=False),
+    sa.Column('band_low', mysql.DOUBLE(), nullable=False),
+    sa.Column('band_high', mysql.DOUBLE(), nullable=True),
+    sa.Column('center_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('center_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('limit_mag', mysql.DOUBLE(), nullable=False),
+    sa.Column('stars', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('seconds', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('batches_done', mysql.INTEGER(unsigned=True), server_default=sa.text("'0'"), nullable=False),
+    sa.Column('complete', mysql.TINYINT(), server_default=sa.text("'1'"), nullable=False),
+    sa.Column('drawn_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('idx_sky_tier_draws_kind', 'kind', 'band_low'),
+    sa.Index('uq_sky_tier_draws_cell', 'kind', 'band_low', 'center_x_pc', 'center_y_pc', 'center_z_pc', 'radius_pc', unique=True),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'luminosity',_utf8mb4'mass'))", name='chk_sky_tier_draws_kind'),
+    sa.CheckConstraint('(`radius_pc` >= 0)', name='chk_sky_tier_draws_radius'),
     mysql_engine="InnoDB",
 )
 
@@ -3605,6 +3878,7 @@ stars = sa.Table(
     sa.Column('xuv_saturated', mysql.TINYINT(), nullable=True),
     sa.Column('flare_n33_per_yr', mysql.DOUBLE(), nullable=True),
     sa.Column('flare_alpha', mysql.DOUBLE(), nullable=True),
+    sa.Column('surface_dipole_field_gauss', mysql.DOUBLE(), nullable=True),
     sa.Column('xuv_fluence_j', mysql.DOUBLE(), nullable=True),
     sa.Column('lethal_event_rate_per_gyr', mysql.DOUBLE(), nullable=True),
     sa.Column('uid', mysql.BINARY(12), nullable=True),
@@ -3709,10 +3983,14 @@ supernova_remnants = sa.Table(
     sa.Column('molecular_share', mysql.DOUBLE(), nullable=True),
     sa.Column('dust_to_gas', mysql.DOUBLE(), nullable=True),
     sa.Column('dust_to_metals', mysql.DOUBLE(), nullable=True),
-    sa.Column('grain_silicate', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_olivine', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_pyroxene', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_crystalline_silicate', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_iron', mysql.DOUBLE(), nullable=True),
-    sa.Column('grain_carbon', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_amorphous_carbon', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_graphite', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_pah', mysql.DOUBLE(), nullable=True),
+    sa.Column('grain_sic', mysql.DOUBLE(), nullable=True),
     sa.Column('grain_ice', mysql.DOUBLE(), nullable=True),
     sa.Column('progenitor_mass_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('ejecta_mass_sol', mysql.DOUBLE(), nullable=True),
@@ -3852,6 +4130,25 @@ system_owners = sa.Table(
     sa.Index('idx_system_owners_polity', 'polity_id'),
     sa.ForeignKeyConstraint(['polity_id'], ['polities.id'], name='fk_system_owners_polity', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_owners_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+system_summary = sa.Table(
+    'system_summary',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('habitability_stamp', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('stars_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('system_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('brightest_star_luminosity_w', mysql.DOUBLE(), nullable=True),
+    sa.Column('total_luminosity_w', mysql.DOUBLE(), nullable=True),
+    sa.Column('star_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('planet_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('moon_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('belt_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('comet_count', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_summary_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 

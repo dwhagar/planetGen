@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, mantle_oxides, materials, mixture, rock_types, saturation, surface_liquid_world
+from planetgen.physics import bulk_draw, comet_population, constants, evaporite_sequence, hydrosphere, ice_species, mantle_oxides, materials, mixture, planet_type, rock_types, saturation, surface_liquid_world, waterworld_carbon
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -55,6 +55,7 @@ SOURCES = {
                  "(part E table 2.8b, second-hand)",
     "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands [R0277] applied to a melt of the stored mantle",
     "millero": "mean ocean salinity 35 g/kg ([R3078], Deep-Sea Research I 55, 50)",
+    "evaporite": "physics/evaporite_sequence.py: the salts of a brine in the order of its chemical divides, the gypsum and anhydrite boundary of [R5164]",
 }
 
 RANGES = {
@@ -115,7 +116,7 @@ VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 GROUND_TYPES_DERIVED = "ground types derived from the bulk composition and the melting of the mantle"
 
 # The assemblages of Hu et al. 2012 Table 2, on rows of the materials table. Hu's Mg-smectite has no row (kaolinite, the clay row
-# with a measured albedo, stands in), its pyrite none (troilite and kamacite, the sulfide and the metal, stand in), its glass is
+# with a measured albedo, stands in), its pyrite is the `pyrite` row (GEN.1384, Hu's whole metal-rich crust), its glass is
 # the quenched melt (`basalt powder`) and its augite `diopside`; the others are the minerals Hu names.
 GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     "surface-ground-types", 1,
@@ -140,14 +141,14 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
         pt.Row("oxidized", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
-        pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
-               limit="Hu's pyrite has no row; troilite and kamacite stand in", fractions={"troilite": 0.5, "kamacite": 0.5},
-               notes="a mantle stripped to metal and sulfide"),
+        pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], fractions={"pyrite": 1.0},
+               notes="a mantle stripped to metal and sulfide; Hu's metal-rich crust is the pyrite sample alone (Table 2)"),
         pt.Row("carbon", (pt.ANY_CLASS,), 1.0, SOURCES["partE"], state=pt.PARTLY_VERIFIED,
                limit="the carbon-rich crust rule was not reached in part E; graphite and the organics are the rows with albedo",
                fractions={"carbon_graphite": 0.40, "kerogen": 0.30, "anthracite": 0.30}, notes="carbon-rock ground"),
-        pt.Row("evaporite", (pt.ANY_CLASS,), 1.0, SOURCES["partE"], fractions={"halite": 0.4, "gypsum": 0.3, "calcite": 0.3},
-               state=pt.PARTLY_VERIFIED, limit="proportions are equal-ish placeholders until a brine evaporation model",
+        pt.Row("evaporite", (pt.ANY_CLASS,), 1.0, SOURCES["evaporite"], fractions={"halite": 1.0}, state=pt.PARTLY_VERIFIED,
+               limit="the salts a drawn body's basins hold are the sequence of its own brine (`evaporite_sequence`); this recipe, halite alone, is only what a body "
+                     "with no silicate rock to weather has (volcanic sodium chloride)",
                notes="dried basins"),
         pt.Row("sulfur", (pt.ANY_CLASS,), 1.0, SOURCES["partE"], fractions={"sulfur": 1.0},
                notes="sulfur deposits of a tidally heated body"),
@@ -425,6 +426,38 @@ def draw_surface(inputs):
     return SurfaceComposition(ground_type=ground_type, mix=mix, components=components, grain=_grain(inputs))
 
 
+def weathered_oxides(inputs):
+    """
+    The oxides (weight percent) of the crust the brine weathers: the melt of the body's mantle at its heat flow (the volcanic crust of `volcanic_ground_type`), with the alkalis the stored
+    rock does not carry (`rock_types.rock_oxides` leaves them zero) put back: sodium at the leached-crust figure `waterworld_carbon.CRUST_SODIUM_WT` and potassium at the basalt reservoir's
+    `RESERVOIRS["basaltic"]` K ppm (registry row EV11). `None` for a body with no silicate rock.
+    """
+    if inputs.rock_oxides is None:
+        return None
+    melt = dict(rock_types.partial_melt(inputs.rock_oxides, melt_fraction(inputs.internal_heat_flux_w_m2))[0])
+    sodium_oxide = waterworld_carbon.CRUST_SODIUM_WT * 100.0 * evaporite_sequence.OXIDE_PER_ELEMENT["Na2O"]
+    potassium_oxide = RESERVOIRS["basaltic"]["k_ppm"] * 1.0e-4 * evaporite_sequence.OXIDE_PER_ELEMENT["K2O"]
+    melt["Na2O"] = max(melt.get("Na2O", 0.0), sodium_oxide)
+    melt["K2O"] = max(melt.get("K2O", 0.0), potassium_oxide)
+    return melt
+
+
+def dried_salts(inputs):
+    """The mass shares of the salts a body's basins dry to (`evaporite_sequence.salts_of`): its crust, its ocean's class, the surface temperature and the air's carbon dioxide, pressure and ozone shield."""
+    return evaporite_sequence.salts_of(weathered_oxides(inputs), inputs.ocean_class, inputs.surface_temperature_k, pco2_pa=inputs.partial_pressures_pa.get("CO2", 0.0),
+                                       pressure_pa=inputs.pressure_pa, o2_shield=inputs.o2_partial_pa >= RANGES["free_oxygen_pa"])
+
+
+def ocean_salts(inputs):
+    """
+    The mass shares of the salt the ocean holds: the salts of its own brine (`dried_salts`) less the calcite, which is the seafloor's and not the water's. A body with no silicate rock
+    has the volcanic sodium chloride, halite.
+    """
+    salts = {name: share for name, share in dried_salts(inputs).items() if name != "calcite"}
+    total = math.fsum(salts.values())
+    return {name: share / total for name, share in salts.items()} if total > 0.0 else {"halite": 1.0}
+
+
 def _components(mix, frozen, inputs):
     """The mass shares by materials row of the areal `mix`."""
     parts = {}
@@ -436,9 +469,13 @@ def _components(mix, frozen, inputs):
         if kind == OCEAN:
             salt = RANGES["ocean_salt"]
             add("water_liquid", areal * (1.0 - salt))
-            add("halite", areal * salt)
+            for name, share in ocean_salts(inputs).items():
+                add(name, areal * salt * share)
         elif kind == ICE:
             for name, share in frozen.items():
+                add(name, areal * share)
+        elif kind == "evaporite":
+            for name, share in (dried_salts(inputs) or GROUND_TYPES.row(kind).normalised_fractions()).items():
                 add(name, areal * share)
         else:
             for name, share in GROUND_TYPES.row(kind).normalised_fractions().items():
@@ -584,7 +621,7 @@ def generate_surface(body):
     has no ground (every field `None`)."""
     for field in COLUMN_FIELDS:
         setattr(body, field, None)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # GEN.1334: nor has a planet under a deep envelope
         return
     result = draw_surface(inputs_of(body))
     if result is not None:

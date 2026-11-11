@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Group 5: comets, small bodies, moons and surfaces (source check for tunable gaps) - planetGen docs</title>
+<meta name="description" content="Read-only research lane, 2026-10-17 (EDT clock times only).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/tunable-gaps-sources/group5-small-bodies-moons.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="group-5-comets-small-bodies-moons-and-surfaces-source-check-for-tunable-gaps">Group 5: comets, small bodies, moons and surfaces (source check for tunable gaps)</h1><p class="meta">docs/design/composition/tunable-gaps-sources/group5-small-bodies-moons.md</p><details class="toc"><summary>On this page (12 headings)</summary><ul><li style="margin-left:0px"><a href="#1-summary-and-verdict-table">1. Summary and verdict table</a></li><li style="margin-left:0px"><a href="#2-detail">2. Detail</a></li><li style="margin-left:14px"><a href="#21-comets-k1-to-k5-k7-t15-t16">2.1 Comets: k1 to k5, k7, T15, T16</a></li><li style="margin-left:14px"><a href="#22-asteroids-and-meteorites-t13-t14-e2-e3">2.2 Asteroids and meteorites: T13, T14, E2, E3</a></li><li style="margin-left:14px"><a href="#23-moons-t17-t18">2.3 Moons: T17, T18</a></li><li style="margin-left:14px"><a href="#24-kbos-and-dwarf-planets-t19">2.4 KBOs and dwarf planets: T19</a></li><li style="margin-left:14px"><a href="#25-grain-state-t21-question-6">2.5 Grain state: T21 (question 6)</a></li><li style="margin-left:14px"><a href="#26-group-for-a-builder-point-7">2.6 Group for a builder (point 7)</a></li><li style="margin-left:14px"><a href="#27-where-a-verified-source-overrides-a-partly-verified-one">2.7 Where a verified source overrides a partly verified one</a></li><li style="margin-left:0px"><a href="#3-sources-verified-id-n-access-licence">3. Sources verified (id, N, access, licence)</a></li><li style="margin-left:0px"><a href="#4-boss-must-supply">4. Boss must supply</a></li><li style="margin-left:0px"><a href="#5-recalled--to-verify">5. Recalled / to verify</a></li></ul></details>
+<p>Read-only research lane, 2026-10-17 (EDT clock times only). Labels as in _worker-rules.md: READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED. Nothing in the repo was touched.</p>
+<h2 id="1-summary-and-verdict-table">1. Summary and verdict table</h2>
+<p>The public record is rich for one thing only: Solar System coma abundances of about 20 to 30 comets (k4, k5, k7 partly, T16). For those, a seeded log-normal with published center, width and standard errors can be tuned and tested. Everything else is a handful of Solar System objects (17 KBO densities, the Solar System moons), one zone mix of one asteroid belt (T13), a modelling switch that is not a probability (T15, E2, E3), or has no ensemble (T14 portable weights, T17, T18, T21). Extrasolar data break the Solar System comet prior: two interstellar comets lie 2 to 4 sigma outside the Solar System CO/H2O and CO<sub>2</sub>/H2O distributions, so a per-system offset knob is needed, and two objects are all that constrain it. No exomoon is confirmed (Nature, 22 July 2026: &quot;no exomoon has ever been confidently detected&quot;). Every row has the Solar System as its only or main constraint and is flagged under the no-fixed-content rule.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Quantity</th>
+<th>Verdict</th>
+<th>Reason</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k1, k2, k3</td>
+<td>Coma class CO<sub>2</sub>-dominated / CO-dominated / comparable</td>
+<td>(b)</td>
+<td>N=25, counts 13/9/3, but class depends on r_h and on an upper-limit admission rule; better one continuous log(CO/CO2) with an r_h term</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>k4</td>
+<td>CO<sub>2</sub>/H2O log-normal</td>
+<td>(a) Solar System; (b) with extrasolar offset</td>
+<td>N=21: geo-mean 10.9 %, sigma 0.51 dex; 3I at 3.6 sigma</td>
+<td>DATA + COMPUTED</td>
+</tr>
+<tr>
+<td>k5</td>
+<td>CO/H2O log-normal</td>
+<td>(a) Solar System; (b) with offset</td>
+<td>N=16: 2.5 %, 0.65 dex; 2I and 3I at 1.8 to 2.8 sigma</td>
+<td>DATA + COMPUTED</td>
+</tr>
+<tr>
+<td>k7</td>
+<td>Single-comet species</td>
+<td>(a) CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO, H<sub>2</sub>S, OCS; (c) N<sub>2</sub>, O<sub>2</sub>, Ar, Kr, Xe, Ne, SO<sub>2</sub></td>
+<td>populations of 6 to 18 comets exist for the first group; the rest are 67P only</td>
+<td>DATA + READ</td>
+</tr>
+<tr>
+<td>T13</td>
+<td>Taxon shares in a/a_snow</td>
+<td>(b)</td>
+<td>one zone mix of one belt (34,503 asteroids); scatter is a model</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T14</td>
+<td>Within-taxon meteorite weights</td>
+<td>(b)</td>
+<td>fall shares and NEO spectral shares disagree (LL 10 % vs about half)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T15</td>
+<td>Refractory organics p = 0.5</td>
+<td>not a probability</td>
+<td>source runs two extreme models; real quantity is a continuous organic carbon fraction</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T16</td>
+<td>Comet volatile abundances</td>
+<td>(a), 10 species</td>
+<td>same ensemble as k4, k5; [R4704] adds 12 curated comets</td>
+<td>DATA + READ</td>
+</tr>
+<tr>
+<td>T17</td>
+<td>Moon origin weights</td>
+<td>(c)</td>
+<td>rules exist, no population gives weights; 0 confirmed exomoons</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T18</td>
+<td>Moon ice fraction ramp width</td>
+<td>(c)</td>
+<td>two READ population models disagree (Sasaki vs Cilibrasi)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T19</td>
+<td>Dwarf planet / KBO rock fraction</td>
+<td>(b)</td>
+<td>17 binary KBO densities; rock fraction degenerate with porosity</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>T21</td>
+<td>Grain state</td>
+<td>(c), derive by physics</td>
+<td>one extrasolar object (LHS 3844 b) rules out fresh powder</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>E2</td>
+<td>Belt density</td>
+<td>not a probability; derive from belt mass</td>
+<td>debris-disk distribution exists for cold belts only</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>E3</td>
+<td>Field family frequencies 30/20/20/10/8/5/4/3 %</td>
+<td>(c)</td>
+<td>no ensemble; design vocabulary</td>
+<td>none</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="2-detail">2. Detail</h2>
+<h3 id="21-comets-k1-to-k5-k7-t15-t16">2.1 Comets: k1 to k5, k7, T15, T16</h3>
+<p><strong>Ensemble (point 1).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Id</th>
+<th>N</th>
+<th>Measured and selection</th>
+<th>Access, licence</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Harrington [R3535]</td>
+<td>[R3535]</td>
+<td>25 comets with simultaneous CO and CO<sub>2</sub> (Table 4); Table 3 at r_h &lt;= 2.5 AU: 32 CO, 23 CO<sub>2</sub>, 18 CO+CO<sub>2</sub></td>
+<td>production rates 0.71 to 6.18 AU; CO upper limits kept only if Q(CO)/Q(CO<sub>2</sub>) &lt;= 2/3; Spitzer/NEOWISE photometry excluded; fluorescence efficiency ratio 11.6</td>
+<td>arXiv; licence not stated</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3782] database</td>
+<td>[R3782, R4972], df_comp_all.csv</td>
+<td>909 rows, 96 designations (earlier lane counted 69, unresolved); 37 comets have a parent-volatile X/H2O, 21 have five or more, 13 have eight or more; at r_h &lt;= 2.5 AU: 30, 18, 14</td>
+<td>X/H2O for CO, CO<sub>2</sub>, CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, CH<sub>3</sub>OH, HCN, NH<sub>3</sub>, H<sub>2</sub>CO, H<sub>2</sub>S, C<sub>2</sub>H<sub>2</sub>; only comets with a published nucleus radius; sources unhomogenised (Dello [R1063]: 97 rows)</td>
+<td>Edinburgh DataShare, CC BY 4.0 for the compilation; source papers may differ</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>[R4704]</td>
+<td>[R4704]</td>
+<td>12 comets with &gt;= 4 COH species, 12 with &gt;= 4 N species, 7 with &gt;= 4 S species; 9 of 12 are OCC</td>
+<td>curated tables, all within 2 AU</td>
+<td>arXiv</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3835] (67P)</td>
+<td>[R3835]</td>
+<td>1</td>
+<td>in situ bulk ratios incl. N<sub>2</sub>, O<sub>2</sub>, Ar, Kr, Xe</td>
+<td>arXiv</td>
+<td>READ (prior lane)</td>
+</tr>
+<tr>
+<td>Dello [R0049, R0435, R1063, R3206]</td>
+<td>[R0049, R0435, R1063, R3206]</td>
+<td>30 comets (title); more than 100 surveyed; review; 85 comets, optical only</td>
+<td>Crossref metadata and abstracts only; texts refused</td>
+<td>publisher</td>
+<td>NOT REACHED (metadata READ)</td>
+</tr>
+<tr>
+<td>[R0048]</td>
+<td>not found in Crossref</td>
+<td></td>
+<td></td>
+<td></td>
+<td>RECALLED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Answer to question 1 (count): a multi-species parent-volatile table exists for about 20 to 30 comets. Only 8 to 9 comets have CO and CO<sub>2</sub> together with five other species, so the joint distribution rests on about one dozen objects.</p>
+<p><strong>Class fractions (k1 to k3).</strong> HP22 Table 2 (READ): CO<sub>2</sub>-dominated 13 of 25 (52 %), CO-dominated 9 (36 %), comparable 3 (12 %); Clopper-Pearson 68 % intervals 0.40 to 0.64, 0.25 to 0.48, 0.055 to 0.22 (COMPUTED). The repo weights 0.5, 1/3, 0.1 are the rounded abstract words and sum to 0.93; the printed counts replace them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Cut (COMPUTED from HP22 Table 4 unless noted)</th>
+<th>N</th>
+<th>CO<sub>2</sub>-dom</th>
+<th>CO-dom</th>
+<th>comparable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>As published (READ)</td>
+<td>25</td>
+<td>13</td>
+<td>9</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Lowest-r_h row per comet, r_h &lt;= 2.5 AU</td>
+<td>18</td>
+<td>10 (0.56, 0.41 to 0.69)</td>
+<td>4 (0.22, 0.12 to 0.36)</td>
+<td>4 (0.22)</td>
+</tr>
+<tr>
+<td>r_h &lt;= 3.5 AU</td>
+<td>24</td>
+<td>12</td>
+<td>8</td>
+<td>4</td>
+</tr>
+<tr>
+<td>JFC only (READ)</td>
+<td>9</td>
+<td>8 (0.89, 0.68 to 0.98)</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>OCC only (READ)</td>
+<td>14</td>
+<td>5</td>
+<td>6</td>
+<td>3</td>
+</tr>
+</tbody>
+</table></div>
+<ol>
+<li>Distance: every coma beyond about 3.5 AU is CO-dominated (29P, C/1995 O1, C/2006 W3, C/2016 R2, 67P at 3.5 AU; READ). The CO-dominated share reflects where comets were observed as much as what they are made of.</li>
+<li>Selection: 9 of the 13 CO<sub>2</sub>-dominated entries rest on an upper limit on CO (22P, 46P, 81P, 88P, 144P, C/2006 OF<sub>2</sub>, Q1, C/2007 N3, Q3; COMPUTED). Limits with ratio above 2/3 were not admitted, so the CO<sub>2</sub> class is inflated by an amount that cannot be corrected without the excluded list.</li>
+<li>The only class effect surviving a permutation test is CO (28 % of variance, p = 0.035; G1 lane, COMPUTED).</li>
+</ol>
+<p>Recommendation: draw log10(CO/CO2) at the comet's own r_h and derive the three labels from HP22's thresholds (&lt;= 2/3, &gt;= 4/3).</p>
+<p><strong>Correlated log-normal versus independent (question 1b).</strong> Robinson database, r_h &lt;= 2.5 AU, per-comet median of detections (DATA, COMPUTED):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Species</th>
+<th>N</th>
+<th>Geo-mean % H<sub>2</sub>O</th>
+<th>sigma dex (SE)</th>
+<th>SE of mean</th>
+<th>Range %</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO</td>
+<td>16</td>
+<td>2.5</td>
+<td>0.65 (0.12)</td>
+<td>0.16</td>
+<td>0.30 to 26</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>21</td>
+<td>10.9</td>
+<td>0.51 (0.08)</td>
+<td>0.11</td>
+<td>0.14 to 37</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>12</td>
+<td>0.68</td>
+<td>0.33 (0.07)</td>
+<td>0.09</td>
+<td>0.15 to 2.2</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>18</td>
+<td>0.41</td>
+<td>0.33 (0.06)</td>
+<td>0.08</td>
+<td>0.09 to 1.9</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>21</td>
+<td>1.96</td>
+<td>0.33 (0.05)</td>
+<td>0.07</td>
+<td>0.21 to 4.5</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>22</td>
+<td>0.14</td>
+<td>0.28 (0.04)</td>
+<td>0.06</td>
+<td>0.03 to 0.54</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>15</td>
+<td>0.57</td>
+<td>0.23 (0.04)</td>
+<td>0.06</td>
+<td>0.13 to 0.9</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>15</td>
+<td>0.25</td>
+<td>0.35 (0.07)</td>
+<td>0.09</td>
+<td>0.09 to 1.1</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>9</td>
+<td>0.71</td>
+<td>0.39 (0.10)</td>
+<td>0.13</td>
+<td>0.09 to 1.5</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>12</td>
+<td>0.10</td>
+<td>0.32 (0.07)</td>
+<td>0.09</td>
+<td>0.03 to 0.34</td>
+</tr>
+</tbody>
+</table></div>
+<p>HP22 Table 3 medians, CO 3 +- 1 % (N=32) and CO<sub>2</sub> 12 +- 2 % (N=23), agree (READ). The CO<sub>2</sub> width depends on the cut: 0.27 dex at r_h &lt;= 2 AU (G1 lane, N=14), 0.51 dex at &lt;= 2.5 AU.</p>
+<p>Correlations (35 pairs with N between 6 and 22): mean r = 0.13 (23 positive, 12 negative); 9 pairs have p &lt; 0.05 where 1.8 are expected, 1 has p &lt; 0.01 (COMPUTED, Fisher z). CO versus CO<sub>2</sub> is -0.87 at r_h &lt;= 2 AU (N=8, p = 0.003) but -0.59 at &lt;= 2.5 AU (N=9, p = 0.10), so it is not robust to the cut. A full covariance cannot be fitted: the best complete set is 9 comets for 7 species. Bartlett sphericity tests on 4 to 7 species (N = 9 to 17) give p from 0.002 to 0.8, four of seven below 0.07. A plausible common cause is the shared divisor Q(H2O). Verdict: correlated is better than independent, but only as a one-factor model (a shared per-comet offset on all X/H2O with loading about 0.13 in correlation, plus independent per-species scatter); a free covariance is not identifiable. Keep the G1 lane's three-step draw ((CO+CO<sub>2</sub>)/H2O median 18 +- 4 %, then a CO fraction) for the CO versus CO<sub>2</sub> trade-off.</p>
+<p><strong>Physical bracket (point 2).</strong> Ice lines set the nucleus inventory; [R1234] ([R1234], G1 lane READ): 15 comets lie on a trail tracing the CO ice line from about 30 AU early to 12 AU later. Coma is not nucleus: [R0890] shows coma CO<sub>2</sub>/H2O falls with r_h.</p>
+<p><strong>Extrasolar constraint (question 2).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Object or system</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>2I/Borisov, ALMA</td>
+<td>CO/H2O 35 to 105 %; HCN/H2O 0.06 to 0.16 % (Solar System-like)</td>
+<td>[R0889]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>2I/Borisov, HST+Swift</td>
+<td>CO/H2O 130 to 155 %; at least 173 % from HST; Solar System inner comets 0.2 to 23 %, typical 4 %</td>
+<td>[R0439]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>3I/ATLAS, JWST NIRSpec, 3.32 AU</td>
+<td>CO<sub>2</sub>/H2O 7.6 +- 0.3; CO/H2O 1.66 (3.7e26 over 2.23e26, COMPUTED); 4.5 sigma above the Solar System r_h trend</td>
+<td>[R0890]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>3I/ATLAS other epochs, CO<sub>2</sub>/H2O</td>
+<td>&gt; 4.4 (3.3 to 3.1 AU); 0.21 +- 0.05 (2.0 to 2.2 AU); 3.16 and 7.28 (2.19, 2.54 AU); 0.31 to 2.39 (2.87 AU, [O I])</td>
+<td>Table 4 of [R4067] (cites [R2712], 2601.22034)</td>
+<td>READ (table)</td>
+</tr>
+<tr>
+<td>1I/'Oumuamua</td>
+<td>no coma</td>
+<td>prior lane</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Fomalhaut / HD 181327 / beta Pic belts</td>
+<td>CO+CO<sub>2</sub> ice mass fraction 4.6 to 76 % / 0.8 to 3.7 % / below 32 %, &quot;consistent with Solar System comets&quot;</td>
+<td>[R2945] (id and title correct)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>beta Pic gas</td>
+<td>HCN/(CO+CO<sub>2</sub>) below 2.5 %, low end of Solar System range</td>
+<td>[R2946]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>CO-bearing debris disks</td>
+<td>6 confirmed exocometary, 14 more gas detections of unconfirmed origin; 15 CO systems in 2018</td>
+<td>[R2944], 1801.03945</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>COMPUTED z-scores against the Solar System fits: 3I CO<sub>2</sub>/H2O 7.6 is 3.6 sigma high, 3.16 is 2.9 sigma, 0.21 is 0.6 sigma; 3I CO/H2O 1.66 is 2.8 sigma; 2I CO/H2O is 1.8 to 2.8 sigma. A Solar System-only prior gives a joint one-sided probability of order 1e-5 to 1e-4 for both ISO CO/H2O values. The comparison is confounded by distance (3I at 3.3 AU against a fit at &lt;= 2.5 AU) and the same object spans a factor 36 in CO<sub>2</sub>/H2O across epochs. Verdict: the Solar System population does not describe the two interstellar comets, but it is not cleanly refuted either. Exocomet belts do not break it: the Fomalhaut interval alone spans 1.2 dex, so belts test the prior only to about 1 dex.</p>
+<p>Offset knob (PARAMETRISATION): per system draw delta_sys ~ N(0, sigma_sys) in log10 units, common to CO, CO<sub>2</sub> and the other hypervolatile over H<sub>2</sub>O ratios (the shared H<sub>2</sub>O divisor makes them move together), then per-comet scatter. Observed offsets: +1.1 to +1.8 dex (2I CO/H2O), +1.8 (3I CO/H2O), +1.8 (3I CO<sub>2</sub>/H2O). With two objects, sigma_sys can only be bracketed: 0 is disfavoured at about 1e-4 if the two are typical, an upper edge near 1.5 dex; ISO detection is biased toward active, volatile-rich bodies.</p>
+<p><strong>Verdict (point 3).</strong> See table in section 1. Tolerances below come from the SE columns.</p>
+<p><strong>Knobs (point 4).</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Knob</th>
+<th>Statistic and target (uncertainty)</th>
+<th>Range</th>
+<th>Label</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mu, sigma CO<sub>2</sub></td>
+<td>10.9 % (0.11 dex), 0.51 dex (0.08); HP22 median 12 +- 2 %</td>
+<td>r_h &lt;= 2.5 AU, 21 comets</td>
+<td>DATA + READ</td>
+</tr>
+<tr>
+<td>mu, sigma CO</td>
+<td>2.5 % (0.16 dex), 0.65 dex (0.12); HP22 3 +- 1 %</td>
+<td>same, 16 comets</td>
+<td>DATA + READ</td>
+</tr>
+<tr>
+<td>class shares</td>
+<td>13/9/3 of 25, binomial intervals above</td>
+<td>per r_h bin</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>(CO+CO<sub>2</sub>)/H2O</td>
+<td>median 18 +- 4 % (N=18)</td>
+<td>r_h &lt;= 2.5 AU</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>other species sigma</td>
+<td>0.23 to 0.39 dex</td>
+<td>same</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>common factor</td>
+<td>mean pair correlation 0.13</td>
+<td>N=6 to 22 per pair</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>delta_sys, sigma_sys</td>
+<td>ISO offsets +1.1 to +1.8 dex</td>
+<td>N=2</td>
+<td>READ + COMPUTED</td>
+</tr>
+<tr>
+<td>carbon-chain-depleted flag</td>
+<td>0.37 JFC, 0.185 long-period, from about 250 optical comets [R0835]</td>
+<td>optical classes</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Consistency test (point 5).</strong> Simulate comets at the observed r_h distribution, apply the HP22 admission rule, and compare class counts with 13/9/3 within binomial intervals and each species' geo-mean and sigma within 2 SE (CO<sub>2</sub> +-0.22 dex on the mean, CO +-0.32). A selection model is needed (admission rule, r_h distribution, CO versus CO<sub>2</sub> detection limits). For the ISOs, simulate systems with the offset knob and require that 2 of 2 draws above CO/H2O 0.3 are not improbable.</p>
+<p><strong>Flags (point 6).</strong> For k1 to k5, k7, T16 the only constraint on within-system scatter is the Solar System (N = 9 to 32); extrasolar objects constrain the offset only.</p>
+<p><strong>k7.</strong> Replace 67P-centered values by populations where they exist: CH<sub>4</sub> 0.68 % (N=12), C<sub>2</sub>H<sub>6</sub> 0.41 % (N=18), H<sub>2</sub>CO 0.25 % (N=15), H<sub>2</sub>S 0.71 % (N=9). [R4704: Table 4] (READ): OCS 0.034 to 0.4 % in 6 comets; SO<sub>2</sub> detected in 2 comets only (0.127, 0.23). N<sub>2</sub> (0.089 %), O<sub>2</sub> (3.1 %), Ar, Kr, Xe, Ne are 67P only [R3835]; O<sub>2</sub> detection probability cannot be set from one comet.</p>
+<p><strong>T15.</strong> [R2865] ([R2865], READ) &quot;study two extremes cases&quot;: interstellar refractory organics survive (organic carbon 60 +- 15 % of total carbon in molecular clouds, C:O:N = 1:0.5:0.12, cited from [R3564], 2ND-HAND) or are destroyed. There is no probability. Observed dust is never organic-free (67P dust about half organics; [R2893], SNIPPET). Replace the Bernoulli by a continuous f_org ~ N(0.60, 0.15) clipped to [0,1].</p>
+<h3 id="22-asteroids-and-meteorites-t13-t14-e2-e3">2.2 Asteroids and meteorites: T13, T14, E2, E3</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Id</th>
+<th>N</th>
+<th>Measured, selection</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R1065]</td>
+<td>[R1065]</td>
+<td>34,503 SDSS asteroids (17,575 with albedo), down to 5 km</td>
+<td>bias-corrected taxon distribution by number, area, volume, mass; Table 6 zone mix; no uncertainties; cells with fewer than 20 objects flagged (A all zones; B Hildas; C Trojans; D, K, L, S Cybeles; V middle and outer; X Trojans)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1068]</td>
+<td>[R1068]</td>
+<td>abstract</td>
+<td>belt more diverse with size and distance than known; mixing</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R0666]</td>
+<td>[R0666]</td>
+<td>287 bodies</td>
+<td>densities by class</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>MITHNEOS [R0400]</td>
+<td>[R0400]</td>
+<td>NEOs</td>
+<td>ordinary chondrite NEOs about half LL (194 objects); falls: L 47, H 43, LL 10 % of ordinary chondrite falls by argon ages; ordinary chondrites about 81 % of falls</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Meteorite falls</td>
+<td>via [R4341]</td>
+<td>about 1,100 falls</td>
+<td>H 34.1, L 38.0, LL 7.9 % of all falls</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R3193, R3196]</td>
+<td>[R3193]</td>
+<td>model</td>
+<td>0.4 dex accretion-rate spread gives about 0.2 dex snow-line spread at fixed mass and age</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Candidate corrections: &quot;[R1070]&quot; does not match &quot;Connecting asteroids and meteorites with visible and near-infrared spectroscopy&quot;, which is DeMeo, Burt, Marsset, Polishook, Burbine, Carry, Icarus 380, 114971 (2022) (Crossref). [R3193, R3196] supports 0.2 dex only as a model consequence, not a measured scatter.</p>
+<p>Extrasolar ensemble (question 3): none for taxon mixes. Polluted white dwarfs belong to Group 3; cross-reference only: Putirka and Xu 2021 ([R3627], abstract READ) find precisely measured Mg, Si, Ca, Fe for a few polluted WDs, &quot;most are exotic in composition and mineralogy&quot;, beyond the spread of more than 4,000 nearby main-sequence stars. That is rock-type data, not Bus-DeMeo shares, so it cannot tune T13, but it says the mix should not be assumed Solar System-like. A white-dwarf study ([R4240], READ) confirms exoasteroids are inferred only from WD pollution and photometry.</p>
+<p><strong>Bracket.</strong> Taxon follows formation temperature (dry inside, hydrated C in the middle, anhydrous ice-rich P and D beyond; [R1065]); x = a/a_snow is a PARAMETRISATION, untested for other stars; [R1068] show position alone does not set taxon.</p>
+<p><strong>Verdict.</strong> T13 (b): one system, no uncertainties, which is exactly the realisation R1 wants to replace. T14 (b): within-taxon weights exist only as fall shares, which disagree with NEO spectral shares (&quot;an unsolved problem&quot;, MITHNEOS), so they depend on a delivery model.</p>
+<p><strong>Knobs and test.</strong> sigma_snow = 0.2 dex (Mulders, model); zone mix of Table 6 as target; H:L:LL 0.43:0.47:0.10 (falls, ordinary chondrites). Test: pooled simulated mix evaluated at the Solar System x equals Table 6 within simulated scatter; this is self-consistency, not an independent test. Flags: the only constraint is one belt.</p>
+<p><strong>E2 (belt density).</strong> Not a probability; derive from belt mass per area. Extrasolar ensembles bear on cold belts: [R4081] ([R4081], READ): 275 F to K stars, 47 disks, 17.1 +2.6/-2.3 %, fractional luminosity near 1e-5 at blackbody radii 7 to 40 AU. Warm dust: [R2319] ([R2319], READ): dustiest old systems 1 in 10,000, about 1 % for ages below 120 Myr. They give a distribution of belt dust amount, but no mapping to &quot;dense, sparse, typical&quot;. Verdict (c) as a probability; derive as thresholds on drawn belt mass.</p>
+<p><strong>E3 (families 30/20/20/10/8/5/4/3 %).</strong> No public ensemble; the families are a design vocabulary and no survey defines standalone asteroid fields. The only physical correspondence is taxon mass shares in the Solar System belt (C 52.5, P 11, S 8.4, V 9.6, M 3.3 %; Table 5, READ). Verdict (c): keep as a flagged stand-in or derive the family from the parent belt's T13 shares.</p>
+<h3 id="23-moons-t17-t18">2.3 Moons: T17, T18</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Id</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R0642]</td>
+<td>[R0642]</td>
+<td>3 systems</td>
+<td>satellite system mass about 1e-4 of the planet; &quot;could limit the largest moons of extrasolar Jupiter-mass planets to Moon-to-Mars size&quot;</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R0643]</td>
+<td>[R0643]</td>
+<td>scaling</td>
+<td>M_T/M_p about 2.5e-4 (alpha/f / 3e-5)^(1/3)</td>
+<td>READ (prior lane)</td>
+</tr>
+<tr>
+<td>[R2075]</td>
+<td>[R3922]</td>
+<td>67 Saturn-type runs; 39 Jupiter-type runs with four large moons</td>
+<td>inner two rocky, outer two icy (Jupiter); one dominant icy body (Saturn)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1899]</td>
+<td>[R1899]</td>
+<td>simulations</td>
+<td>icy moons larger than the smallest known exoplanet at about 15 to 30 R_J around super-Jovians</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R0804]</td>
+<td>[R0804]</td>
+<td>population synthesis, Jupiter</td>
+<td>85 % of the moon population icy; Galilean-like systems in 20 % of cases</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R3806]</td>
+<td>[R3806] (candidate &quot;Ronnet et al.&quot;)</td>
+<td>model</td>
+<td>planetesimal capture and ablation feed pebble accretion</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R3638]</td>
+<td>[R3638]</td>
+<td>280 N-body runs, 164 Earth-analogues</td>
+<td>median 3 giant impacts of Moon-forming energy; last one at median 43 Myr; 15 of 164 stripped an atmosphere</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2826]</td>
+<td>[R2826]</td>
+<td>28 SPH collisions</td>
+<td>10 of 28 made disks above 0.1 Earth masses, 2 above 0.2; 10 to 55 % of disk becomes moon</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R2799]</td>
+<td>[R2799]</td>
+<td>N-body disks</td>
+<td>disk above 0.03 planet masses gives one dominant satellite; large scatter</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>[R2365]</td>
+<td>[R2365]</td>
+<td>70 cool giant planets</td>
+<td>one candidate (Kepler-1708 b-i, 4.8 sigma, 1 % false-positive probability), occurrence rate unknown</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4322]</td>
+<td>[R4322]</td>
+<td>1 candidate</td>
+<td>Kepler-1625 b-i; contested ([R1900, R2485],)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2017]</td>
+<td>[R2017]</td>
+<td>1 candidate</td>
+<td>exosatellite of brown dwarf CD-35 2722 B, minimum mass about 0.9 Jupiter masses, period about 170 d; &quot;no exomoon has ever been confidently detected&quot;</td>
+<td>READ (abstract)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Question 4: no published ensemble defines origin-type weights. Giant planets have a mass scaling (3 systems) and Jupiter-only population syntheses. Terrestrial planets have giant-impact frequencies from N-body formation (Quintana), but whether an impact leaves a moon-forming disk depends on impactor mass, speed and angle (10 of 28 SPH cases), not on a frequency. Capture (Triton, [R0037]) and ring origin [R0920] are single Solar System cases (Crossref titles READ). Candidates Jacobson and Morbidelli, Citron and Chambers were not located. [R0286] is SNIPPET only.</p>
+<p>Verdict. T17 (c): the gate rules are physics but no weight is published. Derive instead: P(impact moon) from the impact-energy frequency (Quintana-type) times a disk-yield function (SPH), and disk moons from the 1e-4 scaling. T18 (c): Sasaki (ice line r_ice = 20 R_J (M_p/MJ)^(2/3) (tau/5 Myr)^(-1/3), COMPUTED, fitted around Jupiter) and Cilibrasi (85 % icy) are both READ and disagree; neither overrides, so the spread 0.5 to 0.85 icy is the honest bracket. Neither paper gives a ramp width.</p>
+<p>Knobs and test: M_T/M_p = 2.5e-4 (alpha/f / 3e-5)^(1/3), 0.8e-4 to 6.4e-4 over alpha/f 1e-6 to 5e-4 (COMPUTED from Eq. 4.15); simulated giant-planet systems must reproduce about 1e-4 within a factor 2, which uses only the Solar System (calibration point). P(disk &gt; 0.1 Earth masses | giant impact) = 10/28 = 0.36 (CP68 0.24 to 0.50, COMPUTED), from a parameter-space suite rather than a population. Flags: the only constraint is the Solar System and simulations.</p>
+<h3 id="24-kbos-and-dwarf-planets-t19">2.4 KBOs and dwarf planets: T19</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Id</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R0553]</td>
+<td>[R0553]</td>
+<td>17 objects in Fig. 3 (binaries only; masses from orbits)</td>
+<td>densities 0.5 to 2.6 g/cm3; &quot;smaller objects have low densities, larger increasingly higher&quot;; 2002 UX25 (650 km) 0.82 +- 0.11; small-KBO weighted mean about 0.6, porosity-free about 1.2 (one third rock)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0269]</td>
+<td>[R0269]</td>
+<td>7 bodies</td>
+<td>radius (km), density: Triton 1353 / 2.061; Eris 1163 / 2.52; Haumea 620 / 2.6; Orcus 430 to 450 / 1.605 to 1.747; Pluto 1187 / 1.86; Charon 606 / 1.702; Quaoar 555 / 1.99 +- 0.46; &quot;no clear correlation between size and density&quot; among them</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0390]</td>
+<td>[R0390]</td>
+<td>17 KBOs</td>
+<td>constant 70 % rock fits 14 of 17 within 2 sigma; porosity explains size trend; formation after 4 Myr; text behind a captcha</td>
+<td>SNIPPET; NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<p>COMPUTED from Barr and Schwamb (ice 917, rock 2700 or 3500 kg/m3): rock fraction of the seven dwarf planets, mean 0.82 (SD 0.12) or 0.74 (SD 0.10), range 0.61 to 0.98; log density versus log radius slope 0.14, r = 0.35. For small bodies (Salacia 1.29, porosity-free 1.2) the rock fraction is 0.32 to 0.44. 2002 UX25 is below pure ice density, so density alone cannot give rock fraction without a porosity law. Candidate corrections: &quot;[R0552]&quot; is [R0552] (not analysed); my search returned [R1705] ([R1705], six binaries, assumed densities).</p>
+<p>Bracket: x between 0 and 1 through 1/(x/rho_rock + (1-x)/rho_ice) before porosity; asteroid compaction near 350 km [R0553]. Verdict (b): both READ sources read the same 17 densities differently (rock fraction rising with size versus constant 70 % with porosity doing the work); the data cannot decide. Verified numbers win over &quot;about 70 %, spread 0.58 to 0.82&quot;: dwarf planets 0.74 to 0.82 mean, small KBOs 0.3 to 0.45. Knobs: dwarf-planet rock fraction 0.78 +- 0.12 (N=7); porosity law with a transition near 350 km. Test: simulated density-diameter relation within the scatter of the 17 objects, with a binary-detection selection model. Flag: Solar System only, no extrasolar KBO density.</p>
+<h3 id="25-grain-state-t21-question-6">2.5 Grain state: T21 (question 6)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Data set</th>
+<th>Id</th>
+<th>N</th>
+<th>Result</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3425]</td>
+<td>[R3425]</td>
+<td>11 samples, 3 textures</td>
+<td>texture changes albedo up to a factor 7 for one sample; similar compositions differ by up to 2; slab versus powder changes a LHS 3844 b analogue dayside temperature by about 70 K; data at Zenodo 17986129</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R4903]</td>
+<td>[R4903]</td>
+<td>LHS 3844 b, JWST 5 to 12 micron</td>
+<td>Bond albedo 0.14 +0.13/-0.14; slabs within about 2 sigma, crushed marginal, fresh powders excluded except hematite; old space-weathered powder also fits; no CO<sub>2</sub> above 100 mbar</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2485]</td>
+<td>[R2485]</td>
+<td>LHS 3844 b</td>
+<td>no atmosphere above 10 bar; Bond albedo below 0.2</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Hu, [R2024, R2856]</td>
+<td>[R2024]; 1907.13150</td>
+<td>library; method</td>
+<td>Hu is the room-temperature library Paragas extends; Mansfield uses high albedo as an atmosphere test and says nothing on grain statistics</td>
+<td>READ (titles)</td>
+</tr>
+<tr>
+<td>Regolith model</td>
+<td>[R1947]</td>
+<td>Apollo 15 site</td>
+<td>stochastic model; growth slower than crater equilibrium; thickness varies laterally</td>
+<td>READ (abstract)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Is there an extrasolar constraint? One object (LHS 3844 b) that picks between a young slab and an old powdered, space-weathered surface. Is it derivable? Largely: grain state follows from surface age, impactor flux, resurfacing, heat flux and (with an atmosphere) wind and weathering. Only a Solar System calibrated model exists (one lunar site, Solar System crater distribution). Verdict (c) as a weight; derive: P(powder) rises with age times flux, P(slab) with recent resurfacing, and the Paragas library maps texture to albedo. Test point: LHS 3844 b brightness-temperature ratio 0.96 +0.03/-0.04 (a calibration point, not a prior). Flag: the Moon and asteroids are the only other constraints.</p>
+<h3 id="26-group-for-a-builder-point-7">2.6 Group for a builder (point 7)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Rows</th>
+<th>Shared data and fit</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>G5-A Comet coma sampler</td>
+<td>k1 to k5, k7, T15, T16</td>
+<td>Robinson database, HP22 Table 4, [R4704]; log-normals, one-factor correlation, r_h-dependent CO/CO2, ISO offset</td>
+<td>class counts, geo-means with SE, ISO exceedance</td>
+</tr>
+<tr>
+<td>G5-B Belt composition</td>
+<td>T13, T14, E2, E3</td>
+<td>DeMeo and Carry Table 6, fall shares, Mulders, DEBRIS; stand-ins</td>
+<td>self-consistency</td>
+</tr>
+<tr>
+<td>G5-C Moons and KBOs</td>
+<td>T17, T18, T19</td>
+<td>Canup and Ward, Sasaki, Cilibrasi, Quintana, Brown, Barr and Schwamb</td>
+<td>scaling and density table</td>
+</tr>
+<tr>
+<td>G5-D Surface texture</td>
+<td>T21</td>
+<td>Paragas library, Zieba and Kreidberg points; age and flux</td>
+<td>LHS 3844 b analogue</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="27-where-a-verified-source-overrides-a-partly-verified-one">2.7 Where a verified source overrides a partly verified one</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Earlier value</th>
+<th>Winning verified value</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>k1 to k3</td>
+<td>0.5, 1/3, 0.1 (SNIPPET rounding)</td>
+<td>13/25, 9/25, 3/25 with intervals</td>
+<td>HP22 Table 2, READ</td>
+</tr>
+<tr>
+<td>k4 width</td>
+<td>&quot;by eye&quot; 0.5 dex</td>
+<td>0.51 dex (SE 0.08), N=21</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>k5</td>
+<td>median SNIPPET, 0.6 dex</td>
+<td>2.5 % (0.16 dex), 0.65 dex (0.12), N=16</td>
+<td>DATA + READ</td>
+</tr>
+<tr>
+<td>k7</td>
+<td>67P-centered</td>
+<td>population geo-means (CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, H<sub>2</sub>CO, H<sub>2</sub>S, OCS)</td>
+<td>DATA, READ</td>
+</tr>
+<tr>
+<td>snow-line scatter 0.2 dex</td>
+<td>RECALLED</td>
+<td>READ, but a model consequence</td>
+<td>[R3193]</td>
+</tr>
+<tr>
+<td>T19 spread 0.58 to 0.82</td>
+<td>abstract only</td>
+<td>0.74 to 0.82 (dwarf planets), 0.3 to 0.45 (small)</td>
+<td>COMPUTED from READ</td>
+</tr>
+<tr>
+<td>ISO range</td>
+<td>CO/H2O to 0.23</td>
+<td>CO/H2O to 1.66, CO<sub>2</sub>/H2O to 7.6</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Sasaki vs Cilibrasi (T18)</td>
+<td>both READ</td>
+<td>no override; spread reported</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-sources-verified-id-n-access-licence">3. Sources verified (id, N, access, licence)</h2>
+<p>All arXiv ids above were downloaded from export.arxiv.org and read (PDF text) unless marked abstract-only; none states a licence in the text read. DATA: Robinson database, [R4972] (datashare.ed.ac.uk API; CC BY 4.0 for the compilation; 909 rows, 96 designations). Nature pages for [R2017], Putirka and Xu 2021 and [R0642] were read through doi.org (abstracts, open metadata). Crossref metadata for Dello [R0037, R0049, R0435, R0920, R1063, R3206]. Downloaded but not analysed: [R2811], 2512.07318 (Table 4 values via 2603.25002), 1112.2764, 1204.1544. Refused or captcha: PMC (Bierson and Nimmo), publisher PDFs.</p>
+<h2 id="4-boss-must-supply">4. Boss must supply</h2>
+<ol>
+<li>Dello [R1063]: taxonomy tiers and per-comet table; [R0435, R3206] range tables.</li>
+<li>Tabulated 3I/ATLAS abundances at fixed r_h, and any further interstellar comet with a coma, to constrain the system offset.</li>
+<li>A population synthesis or survey of moon origin classes versus planet mass and orbit (none found).</li>
+<li>[R0390] full text and table of 17 KBO densities and radii.</li>
+<li>Meteoritical Bulletin fall counts for CI, CM, CO, CV, enstatite and achondrites, plus a delivery model.</li>
+<li>A published relation between surface age, impact flux and regolith texture for airless planets; Zenodo 17986129 licence.</li>
+</ol>
+<h2 id="5-recalled--to-verify">5. Recalled / to verify</h2>
+<p>[R0048] title and venue; [R1070] A-type paper (Icarus 322); [R2346] Nature id (Ca II exocomets, only SNIPPET; [R4906], is TESS photometry with no composition); Jacobson and Morbidelli, Citron, Chambers on impact-moon frequency; [R0286] id; Halley CHON organic fraction; 67P organic share ([R0259], via snippets); H, L, LL fall shares original; [R3304] KBO binary fraction (relevant to a binary moon share); [R0835, R1234, R3835] (G1 lane READ, not re-read).</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

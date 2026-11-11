@@ -39,8 +39,9 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, delivered_water, elements,
-                               hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition, volatile_depletion)
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, core_composition, delivered_water,
+                               disk_condensation, elements, hydrosphere, ice_species, mantle_oxides, moon_composition, nitrogen_ice, stellar_abundances, stellar_composition,
+                               volatile_depletion)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -182,6 +183,19 @@ def ice_forming_ratios(star):
     return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("C", "O"))
 
 
+def disk_volatile_ratios(star):
+    """
+    `(nitrogen, sulfur, noble)` of `star`: its N, S and Ar per atom of the rock-forming metal Mg, over the Sun's, the amounts `disk_condensation.envelope_enrichments` splits between gas
+    and ice for a giant (GEN.1372; argon stands for krypton and xenon, which the star's element set lacks); `None` for a compact remnant, which has no [Fe/H].
+    """
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    if fe_h is None:
+        return None
+    composition = _star_composition(fe_h, star.age, star_key(star))
+    ratio = stellar_abundances.number_ratio
+    return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("N", "S", "Ar"))
+
+
 def _solar_over_mg(symbol):
     logs = tuning.STELLAR_SOLAR_LOG_EPS
     return 10.0 ** (logs[symbol] - logs["Mg"])
@@ -285,6 +299,8 @@ class DryPartition:
     rock_feo: float
     rock_al2o3: float
     rock_mg_si: float
+    core_ni: float
+    core_light: float
     oxides: dict | None = None
 
 
@@ -361,8 +377,9 @@ def _partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock
     metal = iron / (1.0 - light_elements)
     total = metal + rock
     oxides = {name: grams / rock for name, grams in oxide_grams.items()} or None
+    ni_share = nickel_core / iron if iron > 0.0 else 0.0
     return DryPartition(metal=metal / total, rock=rock / total, rock_feo=rock_feo, rock_al2o3=al2o3 / rock,
-                        rock_mg_si=1.0 / ratios.si, oxides=oxides)
+                        rock_mg_si=1.0 / ratios.si, core_ni=ni_share * (1.0 - light_elements), core_light=light_elements, oxides=oxides)
 
 
 def origin_of(body):
@@ -401,16 +418,17 @@ def _rocky_water(body):
 def _icy_water_range(body):
     """
     The range of an icy body's water as a share of its mass: from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the share of the solids that
-    is water at the disk temperature of its formation distance (`condensate_shares.water_share_of_solids`; the temperature falls as the
-    square root of the distance, from the water condensation temperature at the star's own snow line).
+    is water at the disk temperature of its formation distance (`disk_condensation.water_share_of_solids`, GEN.1363 part B, with the carbon and oxygen of its star;
+    the temperature falls as the square root of the distance, from the water condensation temperature at the star's own snow line).
     """
     water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
-    temperature = min(_formation_temperature_k(body), math.nextafter(water_line, 0.0))
-    top = condensate_shares.water_share_of_solids(temperature)
+    temperature = min(formation_temperature_k(body), math.nextafter(water_line, 0.0))
+    carbon, oxygen = ice_forming_ratios(body.star) or (1.0, 1.0)
+    top = disk_condensation.water_share_of_solids(temperature, carbon, oxygen)
     return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
 
 
-def _formation_temperature_k(body):
+def formation_temperature_k(body):
     """The disk temperature at the body's formation distance: the water condensation temperature at the star's snow line, falling as the square root of the distance."""
     distance = getattr(body, "formation_distance_au", None)
     if distance is None:
@@ -422,14 +440,15 @@ def _water_and_ice(body):
     """
     Water as a share of the whole body, the other ices beside it and those ices' shares by species (`ice_species`): the Bern delivery law for a rocky
     body, the icy range for one beyond the snow line, whose other ices follow the comet volatiles it draws. `(water, ice, shares)`; the shares are
-    `None` for a body with no other ice.
+    `None` for a body with no other ice. A disk with no spare oxygen freezes no water (the share of the solids is 0), so an icy body there holds none and no other ice.
     """
     if origin_of(body) == ICY:
-        water = log_uniform(*_icy_water_range(body))
+        low, top = _icy_water_range(body)
+        water = log_uniform(low, top) if top > 0.0 else 0.0
     else:
         water = _rocky_water(body)
     ice, shares = 0.0, None
-    if origin_of(body) == ICY:
+    if origin_of(body) == ICY and water > 0.0:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])
         percent = _with_nitrogen_ice(body, volatiles.percent)
         ice = water * sum(percent.values()) / 100.0
@@ -444,7 +463,7 @@ def _with_nitrogen_ice(body, percent):
     The comet volatiles with nitrogen ice added where the ice formed colder than N2 condenses (`nitrogen_ice`, GEN.1218a): the solar ceiling times a trapping efficiency drawn
     log-uniform. A warmer zone draws nothing and its volatiles are returned as they are.
     """
-    if not nitrogen_ice.zone_is_cold(_formation_temperature_k(body)):
+    if not nitrogen_ice.zone_is_cold(formation_temperature_k(body)):
         return percent
     return {**percent, "N2": nitrogen_ice.percent_of_water(log_uniform(*nitrogen_ice.TRAPPING_EFFICIENCY_RANGE))}
 
@@ -527,7 +546,8 @@ def draw_terrestrial(body, radius_given, mass_given):
     metal, rock = _normalise(part.metal, part.rock, water, ice)
     bulk = bulk_composition.BulkFractions(
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
-        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn", ice_shares=ice_shares, **_minor_oxides(part))
+        rock_mg_si=part.rock_mg_si, porosity=porosity, core_ni=part.core_ni, core_light=part.core_light, carbon_rock=carbon_rock, origin="drawn",
+        ice_shares=ice_shares, **_minor_oxides(part))
     _settle(body, bulk, mass_given)
 
 
@@ -543,7 +563,8 @@ def _draw_moon(body, origin, part, mass_given):
     makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
     bulk = bulk_composition.BulkFractions(
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn", **_minor_oxides(part))
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, core_ni=part.core_ni, core_light=part.core_light,
+        carbon_rock=False, origin="drawn", **_minor_oxides(part))
     if mass_given:
         # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
         low, high = compaction.ROCK_FRACTION_RANGE
@@ -584,12 +605,38 @@ def _settle(body, bulk, mass_given):
     _store(body, bulk)
 
 
+def resettle(body, bulk):
+    """
+    Puts a new bulk composition on a body whose mass stays what it is (an oddity that changes what the body is made of, `physics/oddities.py`): the radius
+    follows from the mass and the composition, then the stored shares, the composition text and the density.
+    """
+    _settle(body, bulk, True)
+
+
 def _store(body, bulk):
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)
+    _store_core(body, bulk)
     body.composition = composition_text.text(body)  # GEN.430: the text states the stored fractions
     volume_m3 = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3
     body.density = body.mass / volume_m3 / 1000.0
+
+
+def _store_core(body, bulk):
+    """
+    Splits the metal's light elements by the redox of the rock and the pressure at the base of the mantle and stores the shares (`core_composition`, GEN.1364). A
+    body with no metal, or no drawn light elements, stores none (its Ni and light-element totals too). The split is a stream keyed on the body: a body stored again (`resettle`) is split the same.
+    """
+    if bulk.core_light is None or bulk.metal <= 0.0:
+        for field in (*core_composition.BODY_FIELDS, "core_ni_fraction", "core_light_fraction"):
+            setattr(body, field, None)
+        return
+    from planetgen.physics import interior_heat, oddities, radiogenic    # these import this module's neighbours (a cycle at the top of the file)
+    pressure = interior_heat.cmb_pressure_gpa(body.mass, body.radius, radiogenic.Rock(bulk.rock, bulk.metal, bulk.water + bulk.ice + bulk.envelope, 0.0))
+    redox = core_composition.delta_iw(bulk.rock_feo or 0.0, bulk.rock_al2o3, bulk.rock_mg_si)
+    parts = core_composition.split(bulk.core_light, redox, pressure, oddities.body_key(body))
+    for name, field in core_composition.FIELDS_OF.items():
+        setattr(body, field, parts[name])
 
 
 def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
@@ -604,6 +651,6 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
         cmf = MAX_CMF if radius_earth < bulk_structure.radius_fit_earth(mass_earth, MAX_CMF, x_fe, 1.0) else 0.0
     bulk = bulk_composition.BulkFractions(
         metal=cmf * (1.0 - wet), rock=(1.0 - cmf) * (1.0 - wet), water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse",
-        ice_shares=ice_shares, **_minor_oxides(part))
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, core_ni=part.core_ni, core_light=part.core_light,
+        carbon_rock=carbon_rock, origin="inverse", ice_shares=ice_shares, **_minor_oxides(part))
     _store(body, bulk)

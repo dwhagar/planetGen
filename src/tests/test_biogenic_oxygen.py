@@ -2,6 +2,8 @@
 
 """GEN.855: `physics.biogenic_oxygen`, the oxygen oxygenic life puts in the air, and its wiring in `generation.life`."""
 
+from types import SimpleNamespace
+
 import pytest
 
 from planetgen import tuning
@@ -72,7 +74,12 @@ def worlds():
 
 def test_earth_numbers_balance_at_the_oxygen_of_earths_air():
     assert bo.WEATHERING_PER_YR * bo.EARTH_O2_MOL == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
-    assert bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9 == pytest.approx(0.714, abs=0.01)
+    # GEN.1463: the store is the surplus summed over the 0.714 Gyr after the biomarkers (2.7 Ga) with the reductant at 2.2 times its present value falling to 1.9 times (the model's heat
+    # history of an Earth-mass body, whose heat now is 0.76 of the 44 TW Earth gives off), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
+    now_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 0.76 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    assert 0.3 < now_delay < 1.0
+    assert then_delay == pytest.approx(0.714, abs=0.12)
 
 
 def test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range():
@@ -134,6 +141,34 @@ def test_a_thin_air_may_hold_a_larger_share_than_35_percent():
             assert 0.35 < share < mixture_oxygen.ABIOTIC_O2_MAX
     assert _fire_limit_state(body, {"N2": 14.0e3 / (9.80665 * 0.028) * bo.area_m2(body)})[2] > _fire_limit_state(
         body, {"N2": 50.0e3 / (9.80665 * 0.028) * bo.area_m2(body)})[2]            # the thinner air holds the larger share
+
+
+def _air_after_apply(monkeypatch, partials, cap, target_mol):
+    """The air `apply` stores on a bare body holding `partials` (Pa) whose retention regime keeps at most `cap` Pa (`None` for no cap)."""
+    stored = {}
+    monkeypatch.setattr(bo, "store_air", lambda body, air: stored.update(air))
+    body = _Body()
+    setattr(body, atmosphere.GAS_FIELD, dict(partials))
+    body._retention_cap_pa = cap
+    return body, stored, bo.apply(body, target_mol)
+
+
+def test_the_oxygen_goes_in_under_the_pressure_the_retention_regime_keeps(monkeypatch):
+    # GEN.1340: a moderate-regime air (10 kPa cap) of nitrogen took 22 to 35 kPa of oxygen on top, 23 to 45 kPa of air that was 75 to 95 percent oxygen
+    target = 40.0e3 / (9.80665 * 0.032) * bo.area_m2(_Body())            # the mol of 40 kPa of oxygen, far more than the air has room for
+    _body, free, took_free = _air_after_apply(monkeypatch, {"N2": 10.0e3}, None, target)
+    assert took_free and sum(free.values()) > 20.0e3                        # no cap known: the old behaviour, the oxygen piles on
+    _body, held, took = _air_after_apply(monkeypatch, {"N2": 10.0e3}, 10.0e3, target)
+    assert took and sum(held.values()) == pytest.approx(10.0e3, rel=1e-9)   # the regime's cap, the oxygen and nitrogen shares kept
+    assert held["O2"] / held["N2"] == pytest.approx(free["O2"] / free["N2"], rel=1e-9)
+    assert held["O2"] < 10.0e3
+
+
+def test_an_air_under_its_cap_is_not_touched_by_it(monkeypatch):
+    target = 5.0e3 / (9.80665 * 0.032) * bo.area_m2(_Body())
+    _body, free, _ = _air_after_apply(monkeypatch, {"N2": 80.0e3}, None, target)
+    _body, held, _ = _air_after_apply(monkeypatch, {"N2": 80.0e3}, 1.0e6, target)
+    assert held == pytest.approx(free)
 
 
 def test_the_fire_limit_of_an_air_with_nothing_else_is_zero():
@@ -206,3 +241,76 @@ def test_an_oxygenic_world_past_its_rise_holds_oxygen_and_one_before_it_holds_no
             assert not took and o2 < 0.2, (world.name, o2, rise, world.star.age)
             before += 1
     assert past + before >= 1
+
+
+class _Sink:
+    """A carbon sink that holds more CO2 the colder the surface (the weathering rate falls with the temperature): 0.001 bar at 300 K, doubling every 10 K colder."""
+
+    supply_bar = 1.0
+    solved_bar = 0.001
+    solved_temperature_k = 300.0
+
+    @staticmethod
+    def kept_at(temperature_k):
+        return 0.001 * 2.0 ** ((300.0 - temperature_k) / 10.0)
+
+
+def _fake_air(monkeypatch, body, partials, greenhouse_k_per_kpa=None):
+    """Patches the air reads and the store of `bo` to a body that keeps its partials in `body.air` and has a temperature that falls by `greenhouse_k_per_kpa` per kPa of CO2 less than 1 kPa."""
+    monkeypatch.setattr(atmosphere, "gas_partials_pa", lambda b: dict(b.air))
+
+    def store(b, air):
+        b.air = dict(air)
+        if greenhouse_k_per_kpa is not None:
+            b.surface_temperature = 280.0 + greenhouse_k_per_kpa * air.get("CO2", 0.0) / 1000.0
+    monkeypatch.setattr(bo, "store_air", store)
+
+
+def test_a_world_with_no_carbon_sink_is_left_as_it_is(monkeypatch):
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=285.0, _co2_sink=None)
+    _fake_air(monkeypatch, body, body.air)
+    assert bo.rebalance_co2(body) is False and body.air["CO2"] == 100.0
+
+
+def test_the_co2_follows_the_sink_to_the_temperature_the_oxygen_rise_left(monkeypatch):
+    """The air was solved at 300 K with 100 Pa of CO2; the rise left it at 280 K, where the sink holds four times as much. With no greenhouse from the CO2 the
+    fixed point is the sink's answer at 280 K: 100 + (400 - 100) Pa."""
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air)
+    assert bo.rebalance_co2(body) is True
+    assert body.air["CO2"] == pytest.approx(400.0, rel=0.03)
+    assert body.air["N2"] == 80000.0 and body.air["O2"] == 20000.0
+
+
+def test_the_co2_and_the_temperature_settle_against_each_other(monkeypatch):
+    """With a greenhouse (20 K per kPa of CO2) the warmer air holds less: the pair settles where the CO2 is what the sink holds at the temperature that CO2 gives."""
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=280.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air, greenhouse_k_per_kpa=20.0)
+    bo.rebalance_co2(body)
+    held = _Sink.kept_at(body.surface_temperature) * 1.0e5 - _Sink.solved_bar * 1.0e5 + 100.0
+    assert body.air["CO2"] == pytest.approx(held, rel=0.1)
+    assert body.air["CO2"] > 100.0
+
+
+def test_a_warmer_air_drives_the_co2_down_to_nothing_not_below(monkeypatch):
+    body = SimpleNamespace(air={"N2": 80000.0, "O2": 20000.0, "CO2": 100.0}, surface_temperature=340.0, _co2_sink=_Sink())
+    _fake_air(monkeypatch, body, body.air)
+    bo.rebalance_co2(body)
+    assert 0.0 <= body.air.get("CO2", 0.0) < 100.0
+
+
+def test_the_sink_of_a_generated_world_gives_the_pressure_it_solved_at_the_temperature_it_solved_at(worlds):
+    sinks = [planet._co2_sink for planet in worlds if getattr(planet, "_co2_sink", None) is not None]
+    assert sinks, "no generated world kept a carbon sink"
+    for sink in sinks:
+        assert sink.kept_at(sink.solved_temperature_k) == pytest.approx(sink.solved_bar, rel=1e-9)
+
+
+def test_the_carbon_dioxide_takes_only_the_room_the_retention_cap_leaves(monkeypatch):
+    """A 10 kPa cap on an air of 6.5 kPa of oxygen and nitrogen: the sink asks for far more CO2, but the oxygen is not squeezed out; the CO2 stops at the cap."""
+    body = SimpleNamespace(air={"N2": 1000.0, "O2": 6500.0, "CO2": 100.0}, surface_temperature=250.0, _co2_sink=_Sink(), _retention_cap_pa=10000.0)
+    _fake_air(monkeypatch, body, body.air)
+    bo.rebalance_co2(body)
+    assert body.air["O2"] == 6500.0 and body.air["N2"] == 1000.0
+    assert sum(body.air.values()) <= 10000.0 + 1e-9
+    assert body.air["CO2"] > 100.0

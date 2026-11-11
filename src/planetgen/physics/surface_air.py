@@ -37,12 +37,12 @@ level radiates the absorbed starlight and the cooling-law heat of `giant_draw.ow
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from planetgen.physics import (
     aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, cloud_albedo, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw, orbits,
     mixture_escape, mixture_rocky,
-    mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
+    mixture_sinks, mixture_subject, planet_type, radiogenic, saturation, sulfur_balance, surface_pressure, unit_registry, waterworld_carbon,
 )
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
@@ -71,6 +71,15 @@ DAMPING = 0.6
 one's (the solution has been overshot) has its share halved, down to `MIN_DAMPING`."""
 
 MIN_DAMPING = 0.05
+
+SLIDING_WINDOW = 12
+"""int: The last steps of an unsettled fixed point read for a chatter (GEN.1344): twelve steps hold whole cycles of two, three, four and six."""
+
+SLIDING_MIN_SWING_K = 10.0 * 0.1
+"""float: The swing of the answers, K, over the window above which an unsettled fixed point is chattering (ten times `TOLERANCE_K`)."""
+
+SLIDING_ITERATE_SHARE = 0.5
+"""float: A chatter is an iterate that stays put (its range under this share of the answers' swing) while the answers swing across it."""
 
 MAX_OCEAN_FLIPS = 4
 """int: How many times the ocean may freeze and thaw during the fixed point before the body is taken to cycle between the two. A world
@@ -195,6 +204,8 @@ class Setting:
         albedo_law (IceAlbedoLaw or None): The Bond albedo as a function of the surface temperature of a body with surface water (GEN.972,
             `climate_branches`): each step of the fixed point takes its absorbed flux at the albedo of the last step's temperature. `None` holds the
             albedo in `absorbed_flux_w_m2`, as a dry body, a giant and a setting built by hand do.
+        late_accreted_percent (float or None): The mass accreted after the last giant impact, percent of the body's mass, when the system's own belts have set it (GEN.1493,
+            `generation/late_accretion.py`); `None` takes the law's draw (`impact_history.late_accreted_fraction`).
         orbital_speed_ms (float or None): The speed of the body round its star, m/s, which sets how hard the leftover planetesimals hit
             (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
         steam_possible (bool): Whether the body can hold its water as steam: its effective flux (the starlight and its own heat) is past the runaway
@@ -225,6 +236,7 @@ class Setting:
     orbital_speed_ms: object = None
     cloud_law: object = None
     steam_possible: bool = True
+    late_accreted_percent: object = None
 
     def albedo_at(self, temperature_k, ocean=True):
         """The Bond albedo of the step at `temperature_k`: the ice law's (GEN.972) plus the cloud's (`cloud_albedo`, GEN.974, nil with no liquid ocean at the step), held under
@@ -276,6 +288,13 @@ class Air:
         converged (bool): The pressure and the temperature settled to `TOLERANCE_LN_P` and `TOLERANCE_K`.
         ocean_present (bool): The last step's ocean flag.
         constants (dict): The design constants drawn (the efficiencies, the cycle's draws, the sulfur lifetimes, the skin of ice).
+        retention_cap_pa (float or None): The most pressure the retention regime of the recipe (`d6`) lets the air keep, Pa; `None` for no cap. The life stage keeps the
+            oxygen it adds inside it (`biogenic_oxygen.apply`, GEN.1340).
+        knee (bool): The air did not settle and `temperature_k` is the knee its answers chatter across (`sliding_temperature`, GEN.1344), not the last answer.
+        co2_sink (CarbonSink or None): The carbon sink of the last step (GEN.1309 A); `None` for a body whose air had no carbon to weather.
+        late (dict): The carbon and nitrogen the late accretion left, atoms per 100 g of mantle (`_late_accretion`); what `generation/late_accretion.py` compares a new late accretion to.
+        late_state: The state of the ambient stream where the late accretion's draws began (`late_accretion_moves` draws them again).
+        degassed (dict): The carbon and nitrogen the last step's volcanoes gave the surface, atoms per 100 g of mantle: the scale `late` is small or large against.
     """
 
     mixture: object
@@ -291,6 +310,12 @@ class Air:
     constants: dict = field(default_factory=dict)
     haze: object = aerosols.NO_HAZE
     albedo: object = None
+    retention_cap_pa: object = None
+    knee: bool = False
+    co2_sink: object = None
+    late: dict = field(default_factory=dict)
+    degassed: dict = field(default_factory=dict)
+    late_state: object = None
 
     @property
     def greenhouse_factor(self):
@@ -466,9 +491,46 @@ def _step(damping, residual, history):
     return plain * min(MAX_GAIN, 1.0 / (1.0 - q))
 
 
+def sliding_temperature(window, last_k):
+    """
+    The temperature of an unsettled fixed point (GEN.1344) and whether it is the knee its answers chatter across (else the last answer).
+
+    Where the step from a temperature `x` finds a temperature `f(x)` that jumps down as `x` rises (a haze or an ocean that switches on at a
+    temperature: the hotter air is the cooler answer), the map has no fixed point, and the damped iterate stays at the jump while its answers
+    swing to either side of it. The state such a system keeps is the time average of the two answers (the Filippov value of a switch), the
+    mean of the answers over the last cycles; a last answer would be off by the swing, up to 75 K in the airs traced.
+
+    Args:
+        window (list): `(temperature a step started from, temperature it found)` of the last `SLIDING_WINDOW` steps.
+        last_k (float): The last step's answer, which stands when the answers do not chatter (a slow creep, noise).
+    """
+    if len(window) < SLIDING_WINDOW:
+        return last_k, False
+    started, found = zip(*window)
+    swing = max(found) - min(found)
+    if swing <= SLIDING_MIN_SWING_K or max(started) - min(started) >= SLIDING_ITERATE_SHARE * swing:
+        return last_k, False
+    return math.fsum(found) / len(found), True
+
+
 def long_lived_geology(heat_flux_w_m2):
     """Whether a body's interior is still carrying `LONG_LIVED_FLUX_FRACTION` of the Earth twin's heat flow out."""
     return heat_flux_w_m2 >= LONG_LIVED_FLUX_FRACTION * surface_pressure.HEAT_FLUX_EARTH_W_M2
+
+
+@dataclass(frozen=True)
+class CarbonSink:
+    """
+    The carbon sink of the air's last step (GEN.1309 A): the CO2 the volcanoes delivered as a pressure (`supply_bar`), the pressure the sink held at the temperature the step
+    solved at (`solved_bar`, `solved_temperature_k`) and `kept_at(temperature_k)`, the pressure it holds at another surface temperature (the branch the body took:
+    continental weathering, seafloor weathering or the sealed ocean's chemistry). The life stage asks it again after the oxygen has burned the reduced gases and
+    the air has found another temperature (`biogenic_oxygen.rebalance_co2`).
+    """
+
+    supply_bar: float
+    solved_bar: float
+    solved_temperature_k: float
+    kept_at: object
 
 
 @dataclass(frozen=True)
@@ -497,7 +559,7 @@ def water_world_of(setting, design):
     return WaterWorld(sealed=sealed, draws=draws, law=law)
 
 
-def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late):
+def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late, record=None):
     """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`. `sulfur` is
     `(lifetimes, age_s, oxidized_share)` for the sulfate and sulfide balance (`sulfur_balance`); `late` is the carbon and nitrogen the late accretion
     left (`_late_accretion`), atoms per 100 g of mantle, that the share of an element adds to its degassed share (the gas is at the surface already)."""
@@ -523,6 +585,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
         if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
             shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
+        if record is not None:      # GEN.1493: what the volcanoes gave, to set a new late accretion against
+            record["degassed"] = {element: base * efficiencies[element] * inventory.get(element, 0.0) for element in late if element in efficiencies}
         for element, atoms in late.items():
             if inventory.get(element, 0.0) > 0.0:
                 shares_[element] = shares_.get(element, 0.0) + atoms / inventory[element]
@@ -530,17 +594,21 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         if weathers and carbon > 0.0:
             supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
             kind = waterworld_carbon.sink_kind(water_world.sealed, 1.0 - setting.ocean_cover)
-            if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
-                kept_bar = surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover,
-                                                               lambda p_bar: temperature_k, *cycle)
-            elif kind == waterworld_carbon.SEAFLOOR_WEATHERING:
-                kept_bar = waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: temperature_k,
-                                                               water_world.law, cycle[2])
-            else:
+            anion_charge = chloride_mol_m2 + 2.0 * sulfate_mol_m2
+
+            def kept_at(ts_k):
+                """The CO2 pressure, bar, the sink of this step's carbon holds at the surface temperature `ts_k` (GEN.1309 A: the life stage asks it again at the temperature the air ends at)."""
+                if kind == waterworld_carbon.CONTINENTAL_WEATHERING:
+                    return surface_pressure.carbonate_pco2_bar(supply_bar, setting.heat_flux_w_m2, 1.0 - setting.ocean_cover, lambda p_bar: ts_k, *cycle)
+                if kind == waterworld_carbon.SEAFLOOR_WEATHERING:
+                    return waterworld_carbon.seafloor_pco2_bar(supply_bar, setting.heat_flux_w_m2, lambda p_bar: ts_k, water_world.law, cycle[2])
                 sodium, calcium = waterworld_carbon.leached_cations_mol_m2(water_world.draws.altered_km)
-                kept_bar = waterworld_carbon.ocean_pco2(carbon / setting.area_m2, temperature_k, setting.water_kg / setting.area_m2,
-                                                        setting.gravity_m_s2, sodium_mol_m2=sodium, calcium_mol_m2=calcium,
-                                                        anion_charge_mol_m2=chloride_mol_m2 + 2.0 * sulfate_mol_m2).pco2_bar
+                return waterworld_carbon.ocean_pco2(carbon / setting.area_m2, ts_k, setting.water_kg / setting.area_m2, setting.gravity_m_s2,
+                                                    sodium_mol_m2=sodium, calcium_mol_m2=calcium, anion_charge_mol_m2=anion_charge).pco2_bar
+
+            kept_bar = kept_at(temperature_k)
+            if record is not None:
+                record["sink"] = CarbonSink(supply_bar=supply_bar, solved_bar=kept_bar, solved_temperature_k=temperature_k, kept_at=kept_at)
             shares_["C"] *= min(1.0, kept_bar / supply_bar)
         return shares_
 
@@ -563,7 +631,10 @@ def _late_accretion(setting, design):
     if setting.giant or setting.orbital_speed_ms is None or setting.mantle_kg <= 0.0:
         return {}
     mass_kg = setting.gravity_m_s2 * setting.radius_m ** 2 / constants.G
-    fraction = impact_history.late_accreted_fraction(_kg_to_mearth(mass_kg), design)
+    fraction = impact_history.late_accreted_fraction(_kg_to_mearth(mass_kg), design)      # the draw is made either way, so a replay keeps its place in the stream
+    if setting.late_accreted_percent is not None:       # GEN.1493: the system's own belts set it
+        design["late_accreted_percent"] = setting.late_accreted_percent
+        fraction = setting.late_accreted_percent / 100.0
     volatiles = impact_history.veneer_volatiles(design)
     temperature_k = setting.effective_temperature_k
     caps = {}
@@ -573,6 +644,24 @@ def _late_accretion(setting, design):
     balance = impact_history.veneer_balance(mass_kg, setting.radius_m, temperature_k, fraction, volatiles, setting.orbital_speed_ms, caps_pa=caps)
     held = surface_pressure.impact_inventory(balance, setting.mantle_kg)
     return {element: held[element] for element in ("C", "N")}
+
+
+def late_accretion_moves(setting, late_state, late, degassed, percent):
+    """
+    How far a late accretion of `percent` moves what the late accretion left (`_late_accretion`) from `late`, the answer of the air it was made with, as a share of what the volcanoes gave of each
+    element (`degassed`, the same units): the largest over the carbon and the nitrogen. The draws are the ones the air made (`late_state`, in a stream of its own), so only the percent differs.
+    `inf` when an element the volcanoes gave none of moves.
+    """
+    stream = draw.Stream(0)
+    stream.setstate(late_state)
+    with draw.bound(stream):
+        new = _late_accretion(replace(setting, late_accreted_percent=percent), {})
+    moved = 0.0
+    for element in set(new) | set(late):
+        change = abs(new.get(element, 0.0) - late.get(element, 0.0))
+        scale = degassed.get(element, 0.0)
+        moved = max(moved, change / scale if scale > 0.0 else (math.inf if change > 0.0 else 0.0))
+    return moved
 
 
 def _draw_stream(seed):
@@ -611,6 +700,7 @@ def solve(setting, start_temperature_k):
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
     geology = long_lived_geology(setting.heat_flux_w_m2)
+    late_state = draw.getstate()        # GEN.1493: where the late accretion's draws began, for `late_accretion_moves`
     late = _late_accretion(setting, design)
 
     temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, start_temperature_k)
@@ -624,6 +714,8 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    sink_record = {}        # the carbon sink of the latest step (`CarbonSink`), for the life stage's second balance (GEN.1309 A)
+    window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
     for step in range(1, MAX_STEPS + 1):
@@ -640,7 +732,7 @@ def solve(setting, start_temperature_k):
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
-                         water_world, late)
+                         water_world, late, sink_record)
         try:
             with _draw_stream(seed):
                 mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares, escape=escape_bar is not None,
@@ -712,6 +804,8 @@ def solve(setting, start_temperature_k):
             new_temperature = min(new_temperature, MOIST_LIMIT_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
+        window.append((temperature, new_temperature))
+        del window[:-SLIDING_WINDOW]
         last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step)
         if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
             if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
@@ -737,10 +831,14 @@ def solve(setting, start_temperature_k):
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
     mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step = last
-    state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
+    knee = False
+    if not converged:
+        temperature_k, knee = sliding_temperature(window, temperature_k)
+    state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
-               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step)
+               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state)
 
 
 def _retention_cap_pa(mixture, subject):
@@ -759,7 +857,7 @@ def mantle_redox_diw(body, star_distance_au, water_lost):
     The oxygen fugacity of the mantle of a body whose air is not drawn (airless by its class, or by loss), log10 units above
     iron-wuestite: the recipe's redox rows (`mixture_rocky.draw_redox`) at the body's own mass and age. `None` for a giant.
     """
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):
         return None
     subject = mixture_subject.subject_of_body(body, ts_k=body.surface_temperature, pressure_bar=AIRLESS_PRESSURE_BAR,
                                               ocean_present=False, long_lived_geology=False, water_lost=water_lost,
@@ -774,7 +872,7 @@ def ice_albedo_law(body, albedo, surface_w):
     star as the frozen range is (`albedo_color.shifted_range`, GEN.912), never under the ice-free value. `None` for a giant and for a body with no surface water:
     those keep the albedo they drew.
     """
-    if body.body_type == "g" or not surface_w or surface_w * body.mass <= 0.0:
+    if not planet_type.has_ground(body) or not surface_w or surface_w * body.mass <= 0.0:
         return None
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
     covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", star_temperature)[0]
@@ -837,7 +935,7 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
     interior has released (`interior_heat.Heat`, `None` for a body with no interior), the surface water (`hydrosphere.draw_surface_water`)
     and the starlight it absorbs.
     """
-    giant = body.body_type == "g"
+    giant = not planet_type.has_ground(body)      # GEN.1334: a planet under a deep envelope is solved at the 1 bar level as a giant is
     gravity = body.gravity * constants.EARTH_GRAVITY
     rock = radiogenic.rock_of(body)
     flux = 0.0 if heat is None else heat.flux_w_m2
@@ -869,4 +967,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         star_temperature_k=getattr(star, "temperature", None), orbital_speed_ms=orbital_speed,
         far_uv=aerosols.far_uv_of(star, star_distance_au),
         starlight_w_m2=starlight_w_m2, albedo_law=ice_law,
-        cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au))
+        cloud_law=None if ice_law is None else cloud_law_of(body, starlight_w_m2, star_distance_au),
+        late_accreted_percent=getattr(body, "_late_accreted_percent", None))

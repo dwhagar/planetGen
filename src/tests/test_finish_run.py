@@ -52,7 +52,8 @@ def _conclude(params, plan, results, seconds):
 
 @pytest.fixture(autouse=True)
 def _commands(monkeypatch):
-    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena"):
+    for kind in ("hooked", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "finish-phenomena",
+                 "empty-phenomenon-scatter", "drop-phenomenon-indexes", "clear-bright-stars", "empty-nebula-field", "draw-nebula-field"):
         monkeypatch.setitem(commands.REGISTRY, kind, commands.CommandSpec(
             kind, "A test", unit=(__name__, "_unit"), expand=(__name__, "_cut"), prepare=(__name__, "_prepare"),
             conclude=(__name__, "_conclude")))
@@ -151,27 +152,55 @@ def test_a_stage_whose_units_are_done_but_not_concluded_is_not_finished(conn):
     assert finish_run.first_unfinished(conn, run_id, queued) == 0
 
 
-def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_into(conn):
-    steps = [_step("start", "plain"), _step("phenomena", "scatter-phenomena"), _step("phenomena-index", "finish-phenomena"),
-             _step("blocks", "plain")]
+def test_the_special_phenomena_are_rewound_with_the_scatter_they_were_written_into_and_its_clearing(conn):
+    """OPS.123: the clearing and the taking off of the indexes were the scatter's `prepare`; as stages of their own they are rewound with it."""
+    steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
+             _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena"),
+             _step("phenomena-index", "finish-phenomena"), _step("blocks", "plain")]
     run_id = _stopped(conn, steps, "phenomena-index", 0)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (1, 2)
-    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None]
-    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
+    assert (found.first, found.stopped) == (1, 4)
+    assert [step.params.get(wrapper.FINISHED_BY) for step in found.steps] == [run_id, None, None, None, None, None]
+    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, None, None, True, None]
 
 
-def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together(conn):
-    run_id = _stopped(conn, [_step("mass", "scatter-mass", clear="all"), _step("luminosity", "scatter-luminosity")],
-                      "luminosity", 0)
+def test_a_phenomena_scatter_that_stopped_is_carried_on_from_its_clearing(conn):
+    steps = [_step("start", "plain"), _step("phenomena-clear", "empty-phenomenon-scatter"),
+             _step("phenomena-unindex", "drop-phenomenon-indexes"), _step("phenomena", "scatter-phenomena")]
+    found = _plan(conn, _stopped(conn, steps, "phenomena", 0))
+    assert (found.first, found.stopped) == (1, 3)
+
+
+def test_a_nebula_field_draw_that_stopped_is_carried_on_with_the_clearing_of_the_earlier_field(conn):
+    """OPS.123: the clearing was the draw's `prepare`, run again with the draw; as a stage of its own it is rewound with it."""
+    steps = [_step("start", "plain"), _step("nebula-clear", "empty-nebula-field"), _step("nebula-draw", "draw-nebula-field"),
+             _step("blocks", "plain")]
+    run_id = _stopped(conn, steps, "nebula-draw", 0)
     found = _plan(conn, run_id)
-    assert (found.first, found.stopped) == (0, 1)
+    assert (found.first, found.stopped) == (1, 2)
+    assert [step.params.get(finish_run.AGAIN) for step in found.steps] == [None, None, True, None]
+    assert "empty-nebula-field" in finish_run.FINISHABLE and finish_run.REWIND_WITH["draw-nebula-field"] == ("empty-nebula-field",)
 
 
-def test_the_bright_stars_of_a_run_that_clears_its_own_pass_are_not(conn):
-    steps = [_step("mass", "scatter-mass", clear="all"), _step("luminosity", "scatter-luminosity", clear="luminosity")]
+def test_the_bright_stars_of_a_run_that_draws_both_passes_are_rewound_together_with_their_clearing(conn):
+    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"), _step("luminosity", "scatter-luminosity")]
     run_id = _stopped(conn, steps, "luminosity", 0)
-    assert _plan(conn, run_id).first == 1
+    found = _plan(conn, run_id)
+    assert (found.first, found.stopped) == (0, 2)
+
+
+def test_a_massive_star_pass_that_stopped_is_carried_on_from_its_clearing(conn):
+    steps = [_step("start", "plain"), _step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass")]
+    found = _plan(conn, _stopped(conn, steps, "mass", 0))
+    assert (found.first, found.stopped) == (1, 2)
+
+
+def test_the_bright_stars_of_a_run_that_clears_its_own_pass_are_not_rewound_with_the_massive_pass(conn):
+    steps = [_step("mass-clear", "clear-bright-stars"), _step("mass", "scatter-mass"),
+             _step("luminosity-clear", "clear-bright-stars"), _step("luminosity", "scatter-luminosity")]
+    run_id = _stopped(conn, steps, "luminosity", 0)
+    found = _plan(conn, run_id)
+    assert (found.first, found.stopped) == (2, 3)
 
 
 def test_a_run_already_carried_on_is_not_carried_on_twice(conn):

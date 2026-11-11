@@ -70,17 +70,17 @@ def _settle(planet, survivors):
     """
     from planetgen.physics import planets
     low_km, high_km = planets.moon_orbit_bounds_km(planet)
-    kept, dragged, last = [], [], None
+    kept, dragged = [], []
     for moon in survivors:
         if moon.distance * constants.AU_TO_M / 1000.0 < low_km:
             dragged.append(moon.mass)
             continue
-        if last is not None and moon.distance < last.distance + last.min_orbit_distance:
-            planets.move_orbit(moon, last.distance + last.min_orbit_distance, planet.mass)
+        clearance = max((inner.distance + inner.min_orbit_distance for inner in kept), default=0.0)       # every moon kept inside it, not the last alone (GEN.1460)
+        if kept and moon.distance < clearance:
+            planets.move_orbit(moon, clearance, planet.mass)
         if moon.distance * (1.0 + (moon.eccentricity or 0.0)) * constants.AU_TO_M / 1000.0 > high_km * (1.0 + 1.0e-9):
             continue
         kept.append(moon)
-        last = moon
     return kept, dragged
 
 

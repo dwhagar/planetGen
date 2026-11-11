@@ -2327,6 +2327,9 @@ function initGalaxyMap3d(canvasEl, data) {
       if (!regionPoiGroups.length) return;
       regionPoiLayer = document.createElement("div");
       regionPoiLayer.className = "map-region-pois";
+      // MAP.411: a point sits over the map like the Key does, and the wheel over it zooms the map as it does over the Key (MAP.234); a region point at the
+      // middle of the view used to swallow the wheel, so the zoom stopped.
+      regionPoiLayer.addEventListener("wheel", function (event) { if (stageView.onWheel(event)) event.preventDefault(); }, { passive: false });
       viewport.appendChild(regionPoiLayer);
     }
     var seen = new Set();
@@ -3816,59 +3819,6 @@ function initGalaxyMap3d(canvasEl, data) {
     } : null;
   };
 
-  // --- Sectors a generate job made (ADM.31) ---------------------------------------
-  //
-  // With ?made=<since>,<until> (the job page's "Show on Galaxy Map") the page
-  // embeds the centers and addresses of the sectors that run made, up to a
-  // cap. They are ringed in one points object, over everything else and never
-  // picked, and the map opens on the smallest stage holding them (the same
-  // fit a NAV course gets), unless the URL names a stage itself.
-  var made = data.made && (data.made.points || []).length ? data.made : null;
-  var MADE_RING_PX = 16;
-  var MADE_FIT_LIMIT = 300;
-  if (made) {
-    var madeFlat = made.points.reduce(function (all, point) { all.push(point.x, point.y, point.z); return all; }, []);
-    // MAP.240: the rings in cubes of their own, each an object at its cube's middle.
-    groupByCell(madeFlat, RELATIVE_CELL_PC).forEach(function (chunk) {
-      var madeGeometry = new THREE.BufferGeometry();
-      madeGeometry.setAttribute("position", new THREE.BufferAttribute(chunk.positions, 3));
-      var madePoints = new THREE.Points(madeGeometry, new THREE.PointsMaterial({
-        map: highlightTexture, size: MADE_RING_PX, sizeAttenuation: false, transparent: true,
-        depthWrite: false, depthTest: false, alphaTest: 0.05,
-      }));
-      madePoints.position.set(chunk.origin[0], chunk.origin[1], chunk.origin[2]);
-      madePoints.userData.relativeLayer = "made rings";
-      madePoints.renderOrder = 4;
-      madePoints.frustumCulled = false;
-      scene.add(madePoints);
-    });
-    // A stage that holds the extremes and an even sample holds them all.
-    var madeFit = made.sectors;
-    if (madeFit.length > MADE_FIT_LIMIT) {
-      var picked = {};
-      [0, 1, 2].forEach(function (axis) {
-        var low = madeFit[0], high = madeFit[0];
-        madeFit.forEach(function (sector) {
-          if (sector[axis] < low[axis]) low = sector;
-          if (sector[axis] > high[axis]) high = sector;
-        });
-        picked[low.join(".")] = low;
-        picked[high.join(".")] = high;
-      });
-      var step = madeFit.length / (MADE_FIT_LIMIT - 6);
-      for (var at = 0; at < madeFit.length; at += step) {
-        var sample = madeFit[Math.floor(at)];
-        picked[sample.join(".")] = sample;
-      }
-      madeFit = Object.keys(picked).map(function (key) { return picked[key]; });
-    }
-    if (!courseSectors.length) {
-      courseSectors = madeFit.map(function (sector) {
-        return { shell: sector[0], band: sector[1], wedge: sector[2] };
-      });
-    }
-  }
-
   // NAV.69: the stop of the course that is selected: its ring is bigger and solid, and the course diagram beside the map (coursediagram.js) marks
   // the same stop, whichever of the two the visitor clicked. `fly` also centers the map on it, keeping the zoom.
   function selectCourseStop(index, fly) {
@@ -4917,6 +4867,7 @@ function initGalaxyMap3d(canvasEl, data) {
     quasar: ["point", "Bright points: quasars"],
     roguePlanet: ["point", "Faint points: rogue planets"],
     interstellarComet: ["point", "Small spheres: interstellar comets"],
+    globularCluster: ["globular", "Pale-gold balls: globular clusters, brightest where the stars crowd"],
     neighbor: ["outline", "Outlines: the neighboring sectors"],
   };
   (function registerKeyLines() {

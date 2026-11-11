@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Exoplanetary Habitability and Human Sustainability: An Ecological and Physiological Classification Architecture - planetGen docs</title>
+<meta name="description" content="The assessment of extrasolar planetary habitability requires a rigorous analytical division between microbial viability and human sustainability.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" onload="renderMathInElement(document.body,{delimiters:[{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false}],throwOnError:false})"></script>
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/imported/exoplanetary-habitability.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/research/imported/exoplanetary-habitability.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<blockquote>
+<p><strong>Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).</strong> It is Boss's document, not a statement of what planetGen does. The design notes that use it: <a href="../../habitability/habitability-index.html">habitability-index</a>.</p>
+</blockquote>
+<h1 id="exoplanetary-habitability-and-human-sustainability-an-ecological-and-physiological-classification-architecture">Exoplanetary Habitability and Human Sustainability: An Ecological and Physiological Classification Architecture</h1><p class="meta">docs/design/research/imported/exoplanetary-habitability.md</p><details class="toc"><summary>On this page (19 headings)</summary><ul><li style="margin-left:0px"><a href="#1-physiological-baselines-and-astrobiological-boundaries">1. Physiological Baselines and Astrobiological Boundaries</a></li><li style="margin-left:0px"><a href="#2-four-tier-classification-architecture">2. Four-Tier Classification Architecture</a></li><li style="margin-left:14px"><a href="#table-1-physical-and-astrophysical-parameter-matrix-across-tiers">Table 1: Physical and Astrophysical Parameter Matrix Across Tiers</a></li><li style="margin-left:14px"><a href="#red-tier-non-sustainable-and-completely-hostile-environments">Red Tier: Non-Sustainable and Completely Hostile Environments</a></li><li style="margin-left:14px"><a href="#yellow-tier-marginal-and-high-dependency-regimes">Yellow Tier: Marginal and High-Dependency Regimes</a></li><li style="margin-left:14px"><a href="#green-tier-viable-and-semi-autonomous-ecosystems">Green Tier: Viable and Semi-Autonomous Ecosystems</a></li><li style="margin-left:14px"><a href="#blue-tier-optimal-and-superhabitable-habitats">Blue Tier: Optimal and Superhabitable Habitats</a></li><li style="margin-left:0px"><a href="#3-environmental-resource-dimensions">3. Environmental Resource Dimensions</a></li><li style="margin-left:14px"><a href="#hydrological-distribution-and-extraction-energetics">Hydrological Distribution and Extraction Energetics</a></li><li style="margin-left:14px"><a href="#geomorphological-shelter-and-radiative-attenuation">Geomorphological Shelter and Radiative Attenuation</a></li><li style="margin-left:14px"><a href="#autotrophic-dynamics-xenobiology-and-caloric-viability">Autotrophic Dynamics, Xenobiology, and Caloric Viability</a></li><li style="margin-left:14px"><a href="#table-2-ecological-resource-availability-and-xenobiotic-profiles-across-tiers">Table 2: Ecological Resource Availability and Xenobiotic Profiles Across Tiers</a></li><li style="margin-left:0px"><a href="#4-human-survivability-and-population-scaling-dynamics">4. Human Survivability and Population Scaling Dynamics</a></li><li style="margin-left:14px"><a href="#individual-exposure-unassisted-decompression-versus-technical-augmentation">Individual Exposure: Unassisted Decompression Versus Technical Augmentation</a></li><li style="margin-left:14px"><a href="#expeditionary-group-logistics-months-to-multi-year-sourcing">Expeditionary Group Logistics: Months to Multi-Year Sourcing</a></li><li style="margin-left:14px"><a href="#multi-generational-colonial-settlement-closed-loop-blss-and-biome-integration">Multi-Generational Colonial Settlement: Closed-Loop BLSS and Biome Integration</a></li><li style="margin-left:14px"><a href="#table-3-population-survivability-timelines-and-primary-failure-modes">Table 3: Population Survivability Timelines and Primary Failure Modes</a></li><li style="margin-left:0px"><a href="#5-comparative-ecological-synthesis">5. Comparative Ecological Synthesis</a></li><li style="margin-left:14px"><a href="#references">References</a></li></ul></details>
+<p>The assessment of extrasolar planetary habitability requires a rigorous analytical division between microbial viability and human sustainability. While astrobiological metrics such as the Earth Similarity Index (ESI) and the Planetary Habitability Index (PHI) evaluate whether a planetary body can sustain liquid surface water or host carbon-based extremophiles, human physiological requirements impose far narrower physical, atmospheric, and biochemical boundaries [R0841, R3979].</p>
+<p>Human metabolic homeostasis requires a precise partial pressure envelope of oxygen and inert buffer gases, tight thermodynamic bounds, continuous hydration, protection from acute and chronic ionizing radiation, and biochemically compatible caloric input.</p>
+<p>To systematically evaluate exoplanetary environments, planetary bodies can be classified along a four-tier scale: Red (completely hostile/non-sustainable), Yellow (marginal/high-dependency survival), Green (semi-autonomous/partially sustainable), and Blue (optimal/superhabitable). Evaluating these environments along axes of water availability, natural shelter geomorphology, and ecological complexity reveals the theoretical survival limits of human populations across individual, expeditionary group, and permanent colonial scales.</p>
+<hr />
+<h2 id="1-physiological-baselines-and-astrobiological-boundaries">1. Physiological Baselines and Astrobiological Boundaries</h2>
+<p>Human physiological vulnerability defines the absolute boundary conditions for habitability classification. Atmospheric composition and barometric pressure govern alveolar gas exchange through Dalton’s and Henry’s laws. At total ambient pressures below <span class="math">\(6.3\text{ kPa}\)</span> (the Armstrong limit), water vapor reaches its boiling point at normal human core temperature (<span class="math">\(37^\circ\text{C}\)</span>), precipitating immediate bodily fluid ebullism, subcutaneous tissue expansion, pulmonary atelectasis, alveolar rupture, and acute circulatory collapse.</p>
+<p>Even when ambient pressure exceeds this mechanical threshold, arterial oxygen saturation depends entirely on the alveolar partial pressure of oxygen (<span class="math">\(pO_2\)</span>). An ambient <span class="math">\(pO_2\)</span> below <span class="math">\(6.0\text{ kPa}\)</span> prevents hemoglobin saturation and reverses diffusion across the alveolar-capillary membrane, venting oxygen from venous blood directly into the atmosphere and inducing hypoxic blackout within seconds. Conversely, sustained exposure to ambient <span class="math">\(pO_2\)</span> levels exceeding <span class="math">\(45\text{--}50\text{ kPa}\)</span> induces central nervous system toxicity, membrane lipid peroxidation, and fatal pulmonary edema.</p>
+<p>Inert buffer gases—predominantly diatomic nitrogen (<span class="math">\(N_2\)</span>)—must supply between <span class="math">\(10\text{ kPa}\)</span> and <span class="math">\(30\text{ kPa}\)</span> of partial pressure to maintain alveolar structural inflation and suppress hyperoxic flammability hazards. Simultaneously, the ambient carbon dioxide partial pressure (<span class="math">\(pCO_2\)</span>) must remain below <span class="math">\(0.5\text{--}1.0\text{ kPa}\)</span>; levels above <span class="math">\(1.0\text{ kPa}\)</span> cause progressive respiratory acidosis, cognitive decline, hypercapnic narcosis, and eventual unconsciousness.</p>
+<p>Thermal tolerance is dictated by the thermodynamic limits of metabolic heat rejection. The human body generates continuous metabolic heat that must be dissipated into the surrounding atmosphere via convection, radiation, and evaporative cooling through perspiration. This heat rejection mechanism ceases when environmental conditions exceed a critical wet-bulb temperature (<span class="math">\(T_w\)</span>) of <span class="math">\(31\text{--}35^\circ\text{C}\)</span>. Beyond this threshold, core body temperature increases uncontrollably, precipitating fatal heat stroke and cardiovascular collapse within hours, regardless of hydration or convective airflow.</p>
+<p>At the cold extreme, dry-bulb temperatures below <span class="math">\(0^\circ\text{C}\)</span> trigger peripheral vasoconstriction, rapid caloric depletion, tissue ischemia, and lethal systemic hypothermia unless continuous external thermal management and insulation are maintained.</p>
+<p>Ionizing radiation presents another fundamental barrier to long-term survival. Baseline terrestrial exposure averages under <span class="math">\(1\text{ mSv/year}\)</span>, with standard industrial occupational limits set between <span class="math">\(20\text{ mSv}\)</span> and <span class="math">\(50\text{ mSv/year}\)</span>. Acute surface exposures exceeding <span class="math">\(0.75\text{--}1.0\text{ Sv}\)</span> trigger acute radiation syndrome (ARS), resulting in bone marrow destruction, mucosal sloughing, and systemic immune collapse [R0952]. Doses exceeding <span class="math">\(4.5\text{--}5.0\text{ Sv}\)</span> represent an unassisted lethal dose for fifty percent of an exposed cohort (<span class="math">\(LD_{50/30}\)</span>).</p>
+<p>Multi-generational colonial settlement requires annual background exposure to remain below <span class="math">\(50\text{--}100\text{ mSv/year}\)</span> to prevent reproductive sterility, elevated teratogenesis, and embryonic lethality, necessitating substantial mass shielding against both galactic cosmic rays (GCR) and stellar energetic particles (SEP).</p>
+<hr />
+<h2 id="2-four-tier-classification-architecture">2. Four-Tier Classification Architecture</h2>
+<p>The transition between complete environmental non-viability and ecological optimization can be categorized into four distinct planetary tiers. The physical parameters defining these regimes reflect the complex interplay among stellar spectral irradiance, planetary mass, atmospheric loss mechanisms, and internal geodynamic longevity.</p>
+<h3 id="table-1-physical-and-astrophysical-parameter-matrix-across-tiers">Table 1: Physical and Astrophysical Parameter Matrix Across Tiers</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th style="text-align:left">Parameter</th>
+<th style="text-align:left">Red Tier (Hostile)</th>
+<th style="text-align:left">Yellow Tier (Marginal)</th>
+<th style="text-align:left">Green Tier (Viable)</th>
+<th style="text-align:left">Blue Tier (Optimal)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Earth Similarity Index (ESI)</strong><br>[R3979]</td>
+<td style="text-align:left">$&lt; 0.40$</td>
+<td style="text-align:left"><span class="math">\(0.40\text{--}0.74\)</span></td>
+<td style="text-align:left"><span class="math">\(0.75\text{--}0.89\)</span></td>
+<td style="text-align:left"><span class="math">\(\ge 0.90\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Total Surface Pressure</strong><br></td>
+<td style="text-align:left"><span class="math">\(&lt; 6.3\text{ kPa}\)</span> or <span class="math">\(&gt; 500\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(20\text{--}70\text{ kPa}\)</span> or <span class="math">\(150\text{--}300\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(70\text{--}150\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(90\text{--}120\text{ kPa}\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><span class="math">\(pO_2\)</span> Availability</strong><br>[R0841]</td>
+<td style="text-align:left"><span class="math">\(0.0\text{ kPa}\)</span> (Trace)</td>
+<td style="text-align:left"><span class="math">\(&lt; 6.0\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(12.0\text{--}18.0\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(19.0\text{--}24.0\text{ kPa}\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong><span class="math">\(pCO_2\)</span> Concentration</strong><br>[R0841]</td>
+<td style="text-align:left">Unbounded / <span class="math">\(&gt; 10\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(0.5\text{--}5.0\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(0.04\text{--}0.5\text{ kPa}\)</span></td>
+<td style="text-align:left"><span class="math">\(&lt; 0.05\text{ kPa}\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Mean Surface Temperature</strong><br>[R0841]</td>
+<td style="text-align:left"><span class="math">\(&lt;-80^\circ\text{C}\)</span> or <span class="math">\(&gt;+70^\circ\text{C}\)</span></td>
+<td style="text-align:left"><span class="math">\(-50^\circ\text{C}\text{ to }+45^\circ\text{C}\)</span></td>
+<td style="text-align:left"><span class="math">\(-10^\circ\text{C}\text{ to }+35^\circ\text{C}\)</span></td>
+<td style="text-align:left"><span class="math">\(+10^\circ\text{C}\text{ to }+25^\circ\text{C}\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Surface Radiation Flux</strong><br>[R0952, R3933]</td>
+<td style="text-align:left"><span class="math">\(&gt; 1.0\text{ Sv/yr}\)</span> (Unshielded)</td>
+<td style="text-align:left"><span class="math">\(0.1\text{--}1.0\text{ Sv/yr}\)</span></td>
+<td style="text-align:left"><span class="math">\(5\text{--}50\text{ mSv/yr}\)</span></td>
+<td style="text-align:left"><span class="math">\(&lt; 5\text{ mSv/yr}\)</span></td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Host Stellar Spectral Class</strong><br>[R2769, R4064, R4308]</td>
+<td style="text-align:left">Active Flare M-dwarf, O, B, A</td>
+<td style="text-align:left">Active M-dwarf, Early F</td>
+<td style="text-align:left">Late K-dwarf, Inactive M</td>
+<td style="text-align:left">Stable K-dwarf, G-dwarf</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Hydrosphere State</strong><br>[R0841, R2281]</td>
+<td style="text-align:left">Cryogenic ice, perchlorates, vapor</td>
+<td style="text-align:left">Permafrost, sub-ice ocean, brine</td>
+<td style="text-align:left">Open rivers, lakes, active rain</td>
+<td style="text-align:left">Pervasive oceans, shallow seas</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="red-tier-non-sustainable-and-completely-hostile-environments">Red Tier: Non-Sustainable and Completely Hostile Environments</h3>
+<p>Red-tier worlds represent environments completely devoid of biological survivability. These planets are characterized by atmospheric pressures falling below the Armstrong limit or exceeding hundreds of bars of superheated, corrosive greenhouse gases. Solar system analogues include Mercury, Venus, Mars, and Jupiter’s moon Io.</p>
+<p>Surface radiation fluxes on Red-tier bodies regularly exceed occupational limits by three to four orders of magnitude due to the lack of an intrinsic magnetic dipole or atmospheric mass column, or because the body orbits within the severe charged-particle trapping belts of a gas giant primary. Native surface biological activity is entirely absent, with the theoretical exception of endolithic, chemoautotrophic micro-organisms inhabiting deep hydrothermal fracture zones kilometers beneath the crust.</p>
+<h3 id="yellow-tier-marginal-and-high-dependency-regimes">Yellow Tier: Marginal and High-Dependency Regimes</h3>
+<p>Yellow-tier planets maintain sufficient mass and barometric density to prevent bodily fluid ebullism and support stable liquid phases of volatiles, but they lack a breathable atmospheric gas mixture. These environments parallel Archean Earth, contemporary Titan, or a geologically warm, wet Mars.</p>
+<p>The atmospheric column is dominated by molecular nitrogen, carbon dioxide, or methane, and frequently contains toxic trace gases such as hydrogen sulfide, carbon monoxide, or sulfur dioxide. While the dense atmosphere shields the planetary surface from solar ultraviolet-C radiation and micrometeoroid ablation, a weak magnetic dipole may permit substantial secondary neutron cascades at the surface. Native life on Yellow-tier worlds is restricted to single-celled anaerobic archaea, methanogens, and anoxygenic phototrophs that generate biosignatures without producing significant free atmospheric oxygen.</p>
+<h3 id="green-tier-viable-and-semi-autonomous-ecosystems">Green Tier: Viable and Semi-Autonomous Ecosystems</h3>
+<p>Green-tier planets exhibit an active hydrologic cycle, an endogenous core geodynamo, and a biogenically oxygenated atmosphere. These worlds reflect Earth during the late Proterozoic to early Paleozoic transitions.</p>
+<p>Photosynthetic primary producers actively maintain a global carbon-oxygen-nitrogen cycle, producing surface oxygen levels sufficient to sustain human metabolism (<span class="math">\(pO_2\)</span> between <span class="math">\(12\text{ kPa}\)</span> and <span class="math">\(18\text{ kPa}\)</span>). However, these atmospheres may also exhibit localized hypoxia or mild baseline hypercapnia.</p>
+<p>Indigenous autotrophic life includes complex multicellular algae, mats of bryophyte analogues, and primitive vascular flora. Heterotrophic fauna is predominantly invertebrate-grade, marine, or primitive detritivorous organisms. Human beings can traverse the surface of Green-tier worlds without heavy pressure suits, requiring only lightweight respiratory assist systems, particulate filters, or localized oxygen enrichment masks.</p>
+<h3 id="blue-tier-optimal-and-superhabitable-habitats">Blue Tier: Optimal and Superhabitable Habitats</h3>
+<p>Blue-tier worlds match or exceed Earth’s baseline ecological carrying capacity, often meeting the criteria for superhabitability established by [R1897]. These planets are typically super-Earths (<span class="math">\(1.2\text{--}2.0\text{ }M_\oplus\)</span>, <span class="math">\(1.1\text{--}1.3\text{ }R_\oplus\)</span>) orbiting long-lived, quiescent K-type dwarf stars.</p>
+<p>Their greater planetary mass sustains internal radiogenic heat engines longer than Earth, driving stable plate tectonics and preserving magnetic field protection over <span class="math">\(5\text{--}8\text{ billion years}\)</span>. Their surface topography is dominated by distributed continental archipelagos and warm, shallow epicontinental seas rather than deep ocean basins, promoting exceptional biological diversity and stable climate feedback loops.</p>
+<p>Surface pressures, atmospheric gas mixes, and mean global temperatures (<span class="math">\(15\text{--}20^\circ\text{C}\)</span>) align precisely with human homeostatic needs. Stratified ecosystems of complex autotrophs and high-order animal analogues populate every biome, allowing unassisted human survival, foraging, and multi-generational colonial growth.</p>
+<hr />
+<h2 id="3-environmental-resource-dimensions">3. Environmental Resource Dimensions</h2>
+<p>The sustainability of an exoplanet is governed by the operational availability of three interdependent physical resources: liquid water, natural shielding geomorphology, and biochemically compatible biomass. The interplay among these variables determines whether an environment requires energy-intensive mechanical synthesis or provides open, naturally buffered ecosystem services.</p>
+<h3 id="hydrological-distribution-and-extraction-energetics">Hydrological Distribution and Extraction Energetics</h3>
+<p>Water availability transitions from severe energetic deficit to an ambient, self-replenishing state across the four planetary tiers. On Red-tier worlds, liquid water cannot exist stably on the surface due to thermodynamic constraints; it is confined to cryogenic permafrost deposits, deep sub-surface aquifers, hydrated phyllosilicate clays, or high-salinity eutectic brines rich in toxic magnesium and sodium perchlorates. Extracting potable water requires mechanical mining, high-temperature thermal extraction, catalytic perchlorate destruction, and multistage membrane filtration.</p>
+<p>On Yellow-tier planets, water is abundant in the form of extensive glacial caps, surface ice sheets, and subglacial oceans. However, low ambient temperatures and the absence of an open hydrologic cycle require dedicated thermal melting systems and desalination processing to remove heavy metal complexes and volatile sulfides.</p>
+<p>Green-tier planets maintain active hydrological networks featuring liquid rivers, freshwater lakes, and regular precipitation. Water purification on these worlds requires only biological filtration to denature alien organic macromolecules or cellular fragments, eliminating the need for industrial distillation infrastructure.</p>
+<p>Blue-tier worlds possess an ideal hydrologic system, offering clean, naturally filtered freshwater that requires zero technological intervention for human consumption.</p>
+<h3 id="geomorphological-shelter-and-radiative-attenuation">Geomorphological Shelter and Radiative Attenuation</h3>
+<p>Planetary shelter availability is determined by the presence of natural landforms that mitigate extreme thermal swings and ambient radiation. In Red and early Yellow environments, the absence of thick atmospheres and strong magnetospheres leaves the surface vulnerable to primary galactic cosmic rays and dangerous solar particle events.</p>
+<p>Survival on these worlds depends on using geological formations as passive radiation shields. Subsurface basaltic lava tubes—formed during ancient effusive volcanic eruptions—provide cavernous void spaces beneath roof layers several meters to dozens of meters thick [R1840, R3933, R4332]. These subterranean caverns provide natural protection, reducing radiation levels to safe, earth-normal limits while providing stable ambient temperatures that isolate habitats from surface thermal extremes. In areas lacking volcanic tubes, surface habitats require mechanical burial under <span class="math">\(300\text{--}500\text{ g/cm}^2\)</span> of excavated regolith.</p>
+<p>On Green-tier worlds, an atmospheric mass column exceeding <span class="math">\(1000\text{ g/cm}^2\)</span> shields the surface from cosmic particles, while an active stratospheric ozone layer filters harmful ultraviolet radiation. Human shelters can be constructed directly on the surface using locally sourced stone, earth, and structural timber analogues.</p>
+<p>Blue-tier planets provide complete natural environmental protection, permitting unshielded above-ground habitation across most latitudes.</p>
+<h3 id="autotrophic-dynamics-xenobiology-and-caloric-viability">Autotrophic Dynamics, Xenobiology, and Caloric Viability</h3>
+<p>The presence of native flora and fauna introduces the critical challenge of biological compatibility. Terrestrial biology is defined by strict homochirality: functional enzymatic proteins rely on left-handed (L-enantiomer) amino acids, while metabolic sugars and nucleic acids use right-handed (D-enantiomer) conformations [R0220, R2207, R3024].</p>
+<p>On independently evolved Yellow and Green exoplanets, native life is equally likely to exhibit reversed chirality (D-amino acids and L-sugars). Ingesting mirrored organic matter provides zero nutritional value; human digestive enzymes cannot hydrolyze D-peptide bonds, and metabolic processing of foreign enantiomers can produce toxic byproducts. Even when chiral symmetry matches Earth biology, foreign flora may incorporate non-canonical amino acids outside the 22 utilized by terrestrial life, or synthesize defensive xenobiotic alkaloids and accumulate toxic metalloproteins.</p>
+<p>Photosynthetic processes on planets orbiting M-dwarf stars adapt to spectral energy distributions dominated by long-wavelength photons [R4064]. Autotrophs on these worlds use specialized pigments such as chlorophyll d and chlorophyll f, shifting their absorption spectra into the far-red and near-infrared bands (<span class="math">\(700\text{--}750\text{ nm}\)</span>) ([R0760, R2344], 2007b). This spectral adaptation alters the characteristic &quot;vegetation red edge&quot; seen in reflectance spectroscopy. While these autotrophs can produce substantial atmospheric oxygen, their thermodynamic efficiency and protein profiles make them poor nutritional substitutes for terrestrial crops without secondary refining.</p>
+<p>Only on Blue-tier worlds—where evolutionary history has converged on compatible organic structures or where planetary engineering has established terrestrial biomes—can human beings forage native flora and fauna safely without risking severe immunological rejection or fatal metabolic toxicity.</p>
+<h3 id="table-2-ecological-resource-availability-and-xenobiotic-profiles-across-tiers">Table 2: Ecological Resource Availability and Xenobiotic Profiles Across Tiers</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th style="text-align:left">Resource Dimension</th>
+<th style="text-align:left">Red Tier (Hostile)</th>
+<th style="text-align:left">Yellow Tier (Marginal)</th>
+<th style="text-align:left">Green Tier (Viable)</th>
+<th style="text-align:left">Blue Tier (Optimal)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Water Accessibility</strong><br>[R0841, R0952]</td>
+<td style="text-align:left">Deep hydration bounds; perchlorate brines; sublimation</td>
+<td style="text-align:left">Glacial ice sheets; subglacial liquid reservoirs</td>
+<td style="text-align:left">Flowing rivers; freshwater lakes; rain cycles</td>
+<td style="text-align:left">Global freshwater networks; optimal precipitation</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Shelter Geomorphology</strong><br>[R1840, R3933, R4332]</td>
+<td style="text-align:left">Deep basalt lava tubes; sintered regolith mounds</td>
+<td style="text-align:left">Volcanic tubes; deep tectonic rift valleys</td>
+<td style="text-align:left">Natural caves; rock overhangs; surface construction</td>
+<td style="text-align:left">Unrestricted surface terrain; structural timber</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Flora &amp; Autotrophs</strong><br>([R0760, R2344], 2007b)</td>
+<td style="text-align:left">Completely abiotic surface</td>
+<td style="text-align:left">Chemosynthetic mats; far-red/NIR cyanobacteria</td>
+<td style="text-align:left">Multicellular bryophytes; red-edge shifted canopies</td>
+<td style="text-align:left">Fully developed forest canopies; high biomass yield</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Biochemical Compatibility</strong><br>[R0220, R2207, R3024]</td>
+<td style="text-align:left">Sterile mineral substrate</td>
+<td style="text-align:left">Incompatible enantiomers; abiotic xenotoxins</td>
+<td style="text-align:left">Enantiomeric divergence; novel secondary metabolites</td>
+<td style="text-align:left">Homochiral convergence (L-amino acids, D-sugars)</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Fauna &amp; Heterotrophs</strong><br>[R0841, R4064, R4621]</td>
+<td style="text-align:left">None</td>
+<td style="text-align:left">Sub-surface anaerobic extremophiles</td>
+<td style="text-align:left">Invertebrate-grade detritivores; marine macrofauna</td>
+<td style="text-align:left">Complex ecological trophic webs; vertebrate analogues</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="4-human-survivability-and-population-scaling-dynamics">4. Human Survivability and Population Scaling Dynamics</h2>
+<p>The duration of human survival across different planetary environments depends on population size and life-support technology. Analyzing survival limits across the individual, the expeditionary team, and the permanent settlement reveals the primary failure modes of each operational scale.</p>
+<h3 id="individual-exposure-unassisted-decompression-versus-technical-augmentation">Individual Exposure: Unassisted Decompression Versus Technical Augmentation</h3>
+<p>An unprotected human exposed to the surface of a Red-tier world experiences immediate physiological failure. In a near-vacuum environment below the Armstrong limit, the Time of Useful Consciousness (TUC) is limited to <span class="math">\(9\text{--}15\text{ seconds}\)</span>. Because the partial pressure of ambient oxygen is zero, the concentration gradient across the pulmonary alveolar-capillary membrane reverses, stripping oxygen from venous blood and venting it directly into the environment. Deoxygenated blood circulates to the brain within seconds, inducing loss of consciousness.</p>
+<p>Simultaneously, ebullism causes rapid vapor bubble formation within the bloodstream and soft tissues, leading to circulatory collapse and irreversible cerebral anoxia within <span class="math">\(90\text{ to }180\text{ seconds}\)</span> [R3997]. When equipped with a high-pressure extravehicular activity (EVA) suit, survival is extended to <span class="math">\(6\text{--}8\text{ hours}\)</span>, governed by the chemical saturation of carbon dioxide scrubbers, battery reserves, and water sublimation cooling loops [R4685].</p>
+<p>On Yellow-tier planets where total atmospheric pressure exceeds the Armstrong limit but lacks oxygen (such as a cold <span class="math">\(CO_2\text{--}N_2\)</span> atmosphere), ebullism does not occur. However, inhaling gas with a high <span class="math">\(pCO_2\)</span> causes rapid hypercapnic narcosis and asphyxia, producing unconsciousness within <span class="math">\(30\text{--}60\text{ seconds}\)</span> and death from respiratory acidosis within minutes. Equipped with a basic closed-circuit rebreather or an oxygen concentrator and thermal protective garments, an individual can operate without heavy, pressurized suits. In this mode, individual survival extends to days or weeks, limited only by the availability of rations and clean water.</p>
+<p>On Green-tier worlds, an unassisted individual can breathe ambient air directly, but long-term survival is bounded by nutritional and chemical factors. The individual may suffer from chronic hypoxia or mild acidosis if the gas mixture deviates from Earth-normal levels. The primary limit to unassisted survival is the 2-to-4-week starvation window; native plants and animals cannot provide usable calories if they possess incompatible chirality or contain novel biochemical toxins.</p>
+<p>On Blue-tier worlds, unassisted survival extends to the full human lifespan (<span class="math">\(70\text{--}90\text{ years}\)</span>), with mortality driven entirely by standard terrestrial health factors and environmental hazards.</p>
+<h3 id="expeditionary-group-logistics-months-to-multi-year-sourcing">Expeditionary Group Logistics: Months to Multi-Year Sourcing</h3>
+<p>A small expeditionary group of four to twelve individuals requires complex environmental management and consumable replenishment. On Red-tier worlds, survival depends on deploying hermetically sealed, pressurized habitat modules equipped with physicochemical Environmental Control and Life Support Systems (ECLSS). The habitat must incorporate catalytic Sabatier reactors to recycle hydrogen and carbon dioxide into potable water, alongside solid polymer water electrolysis to recover oxygen.</p>
+<p>Because each crew member requires approximately <span class="math">\(2.5\text{--}3.0\text{ kg}\)</span> of water daily for hydration and metabolic support, missions without closed-loop recycling face a hard logistics limit of <span class="math">\(30\text{ to }90\text{ days}\)</span>. Extending mission duration beyond this threshold requires active In-Situ Resource Utilization (ISRU) to mine surface permafrost or hydrated minerals for habitat water and oxygen replenishment.</p>
+<p>On Yellow-tier worlds, expeditionary teams face lower structural and logistical mass requirements. Because the ambient atmospheric pressure prevents rapid explosive decompression, habitats can be constructed using deployable, lightweight membrane structures rather than high-mass pressure shells. Oxygen generation does not require recycling internal metabolic waste; compressors can harvest ambient carbon dioxide directly from the atmosphere and crack it into breathable oxygen using solid-oxide electrolysis systems. The primary barrier to multi-month missions shifts from atmospheric support to nutritional autonomy, as foreign soil chemistry and a lack of bio-available nitrogen necessitate importing fertilizers or maintaining closed hydroponic systems [R4685].</p>
+<p>On Green-tier planets, an expeditionary team can achieve continuous survival across months and years. Natural caves or basic surface structures built from native stone provide sufficient shelter without radiation-shielding berms. Water is directly sourced from surface rivers and lakes, requiring only microbial sterilization. Small-scale agriculture can be initiated by treating local soils to remove novel plant toxins and inoculating the substrate with terrestrial mycorrhizal fungi and nitrogen-fixing bacteria, providing sustainable caloric replenishment.</p>
+<p>On Blue-tier worlds, an expeditionary group operates with complete environmental autonomy from arrival, utilizing standard field equipment and foraging native biomes directly.</p>
+<h3 id="multi-generational-colonial-settlement-closed-loop-blss-and-biome-integration">Multi-Generational Colonial Settlement: Closed-Loop BLSS and Biome Integration</h3>
+<p>Long-term planetary colonization involving hundreds to thousands of individuals shifts the survival model from open supply chains to fully closed Bioregenerative Life Support Systems (BLSS) [R1166]. On Red and Yellow worlds, life support cannot rely indefinitely on mechanical consumables and replacement parts; it requires biological cycles to process waste and produce food.</p>
+<p>Higher plants consume carbon dioxide and human metabolic wastes, producing oxygen, purifying water through transpiration, and generating edible biomass [R4685]. Life-support models show that nutritional and atmospheric autonomy requires approximately <span class="math">\(40\text{--}50\text{ m}^2\)</span> of illuminated crop growing area per person, alongside <span class="math">\(15\text{--}20\text{ m}^2\)</span> for respiratory gas balancing [R1166]. A self-sustaining colony of 1,000 people on a Yellow-tier world requires at least <span class="math">\(50,000\text{ m}^2\)</span> (5 hectares) of high-yield hydroponic or aeroponic growing surfaces protected within subterranean lava tubes or heavily shielded surface domes. Aquaculture systems (such as tilapia, carp, or microalgae) are integrated into these loops to achieve higher feed conversion efficiency than traditional terrestrial livestock. The colony's long-term survival is limited by mechanical failure rates, degradation of synthetic polymers, trace heavy metal accumulation in recycled water loops, and the long-term genetic viability of closed agricultural crops.</p>
+<p>On Green-tier planets, a permanent colony avoids the severe mass penalties of hermetic pressure hulls and subterranean living. Colonists can build standard surface housing using local timber, stone, and bio-composites. Agriculture can be conducted outdoors, provided the native soil microbiome is pre-treated or outcompeted with terrestrial microbes. The primary threat to generational survival is biological: novel planetary allergens, cross-reactive toxins, and xenobiotic parasites that bypass terrestrial immune defenses [R2006].</p>
+<p>On Blue-tier worlds, colonies can expand openly across the landscape. Agriculture, ecological management, and urban development mirror terrestrial patterns without the structural mass, power consumption, or life-support overhead required on harsher planets.</p>
+<h3 id="table-3-population-survivability-timelines-and-primary-failure-modes">Table 3: Population Survivability Timelines and Primary Failure Modes</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th style="text-align:left">Population Scale</th>
+<th style="text-align:left">Red Tier (Hostile)</th>
+<th style="text-align:left">Yellow Tier (Marginal)</th>
+<th style="text-align:left">Green Tier (Viable)</th>
+<th style="text-align:left">Blue Tier (Optimal)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><strong>Individual (Unassisted)</strong><br>[R3997]</td>
+<td style="text-align:left">9–15 seconds (TUC); fatal ebullism/asphyxia in 3 min</td>
+<td style="text-align:left">1–10 minutes; hypercapnic narcosis; acute anoxia; thermal shock</td>
+<td style="text-align:left">2–4 weeks; chronic hypoxia/hypercapnia; chiral food starvation</td>
+<td style="text-align:left">Full Natural Lifespan (<span class="math">\(70\text{--}90\text{ years}\)</span>); ambient equilibrium</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Individual (Assisted)</strong><br>[R4685]</td>
+<td style="text-align:left">6–8 hours; EVA life-support limits (scrubber, <span class="math">\(O_2\)</span>, power)</td>
+<td style="text-align:left">Days to Weeks; limited by <span class="math">\(O_2\)</span> concentrates, battery storage, and rations</td>
+<td style="text-align:left">Months to Years; requires simple respiratory filters and micro-rations</td>
+<td style="text-align:left">Indefinite; technology serves as comfort enhancement rather than life support</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Expeditionary Group</strong><br>[R4685]</td>
+<td style="text-align:left">1–3 months; requires rigid ECLSS modules; rapid consumable depletion</td>
+<td style="text-align:left">6–12 months; deployable habitats; ISRU gas cracking; water ice melting</td>
+<td style="text-align:left">Indefinite (Years); field cabins; surface water sourcing; basic farming</td>
+<td style="text-align:left">Indefinite; immediate autonomous survival and field foraging</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Permanent Colony</strong><br>[R1166, R4685]</td>
+<td style="text-align:left">Fragile / Finite; dependent on <span class="math">\(100\%\)</span> closed-loop BLSS and structural hulls</td>
+<td style="text-align:left">Sustainable with Heavy ISRU; <span class="math">\(50\text{ m}^2\)</span> crop area/person; lava tube city</td>
+<td style="text-align:left">Highly Autonomous; open-air agriculture; simple soil bio-remediation</td>
+<td style="text-align:left">Fully Autonomous; open biome expansion; multi-generational growth</td>
+</tr>
+<tr>
+<td style="text-align:left"><strong>Primary Mode of Mortality</strong><br>[R0952, R2006, R3997]</td>
+<td style="text-align:left">Explosive decompression; ebullism; acute lethal radiation</td>
+<td style="text-align:left">Suffocation (<span class="math">\(CO_2/N_2\)</span>); hypothermia; mechanical ECLSS failure</td>
+<td style="text-align:left">Xenobiotic toxicity; allergic shock; novel pathobiology</td>
+<td style="text-align:left">Terrestrial senescence; ecological predation; standard pathology</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="5-comparative-ecological-synthesis">5. Comparative Ecological Synthesis</h2>
+<p>The boundary between planetary tiers reflects a transition from complete technological life support to self-sustaining biological systems.</p>
+<p>On Red-tier planets, survival is entirely technological: every liter of water, gram of oxygen, and calorie of nutrition must be mechanically processed and recycled using dedicated energy sources. The environment offers no supportive ecosystem services, meaning any system failure directly threatens human life.</p>
+<p>Yellow-tier worlds introduce a hybrid operational profile. Planetary mass and atmospheric density provide passive radiation shielding and thermal buffering, substantially reducing the energy footprint required for environmental maintenance. This stability allows colonies to implement large-scale bioregenerative life support systems. However, true ecological independence remains impossible on Yellow worlds. The absence of an indigenous, oxygenated nitrogen-carbon cycle forces agriculture to remain isolated in sealed, artificial environments.</p>
+<p>The transition to Green and Blue tiers marks an ecological threshold: the exoplanet's native biosphere actively maintains atmospheric, hydrological, and thermal equilibrium. Yet, this biological presence introduces a unique ecological challenge: the xenobiological barrier. While sterile worlds (Red and early Yellow) present only physical engineering and chemical hazards, biotically active worlds (Green and non-terrestrial Blue) introduce complex organic risks, including biochemical toxicity, chiral incompatibilities, and novel pathobiological reactions.</p>
+<p>Long-term survival on these planets depends on overcoming the immunological and metabolic mismatches between distinct evolutionary lineages. When this biological hurdle is overcome—or on Blue-tier worlds where the underlying biochemistry is natively compatible—human survival transitions from life-support maintenance to open ecological integration, enabling permanent, multi-generational habitation.</p>
+<hr />
+<h3 id="references">References</h3>
+<p>[R4408]</p>
+<p>[R0760]</p>
+<p>[R1159]</p>
+<p>[R4092]</p>
+<p>[R1840]</p>
+<p>[R1897]</p>
+<p>[R2006]</p>
+<p>[R2207]</p>
+<p>[R2281]</p>
+<p>[R2344]</p>
+<p>[R2345]</p>
+<p>[R2769]</p>
+<p>[R3024]</p>
+<p>[R3933]</p>
+<p>[R3979]</p>
+<p>[R3997]</p>
+<p>[R4064]</p>
+<p>[R4308]</p>
+<p>[R4332]</p>
+<p>[R4621]</p>
+<p>[R5003]</p>
+<p>[R4685]</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

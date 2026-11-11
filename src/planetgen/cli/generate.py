@@ -774,7 +774,7 @@ def add_sectors_arguments(parser):
                              f"{region_run.BLOCK_SECTORS}).")
     parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
                         help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
-                             "the galaxy's plan was given (plan --rogues), else normal.")
+                             "the galaxy's plan was given (plan --rogues), else few.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -1446,7 +1446,7 @@ def add_bring_to_epoch_arguments(parser):
                              "change nothing.")
     parser.add_argument('--no-wide-binaries', action='store_true',
                         help="Leave the wide binaries alone. By default the run also reads them and makes again, from "
-                             "their seeds, those that break the stability rule (GEN.229), saying each.")
+                             "their seeds, those that break the stability rule, saying each.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1648,8 +1648,14 @@ def build_parser():
         description="Re-derive the stored habitability numbers (the flux swing of a planet in a double-star "
                     "system, the PHI-6 index, the six domains, the equipment tier and the note) of every planet and "
                     "moon from its stored conditions, so a galaxy generated before a change to the rules agrees with "
-                    "a new one. Only those columns change; it can be stopped and run again.",
-        help="Re-score the stored habitability of every planet and moon.")
+                    "a new one. Only those columns change; it can be stopped and run again, and it takes only the "
+                    "systems whose stamp is not the running code's (--all takes every one).",
+        help="Re-score the stored habitability of the planets and moons that this code has not scored.")
+    rescore_habitability_parser.add_argument(
+        '--all', action='store_true',
+        help="Re-score every system, including the ones that already hold the numbers of the running code. Without it a system is "
+             "re-scored only when its stamp (`system_summary.habitability_stamp`, a hash of the physics source) is not the code's, "
+             "so a rerun after no change to the rules touches nothing and a run that stopped carries on where it stopped.")
     add_fill_arguments(rescore_habitability_parser)
 
     fill_nebula_blocks_parser = subparsers.add_parser(

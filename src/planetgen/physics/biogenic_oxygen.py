@@ -24,6 +24,8 @@ not, does not. The oxygen a world holds is the balance of a source and its sinks
 Gyr the schedule runs in, and the world holds `N*` (as the partial pressure `p = N M g / A`) when its photosynthesis is older than the
 delay and nothing before. A world with `S <= R` never holds any. The most the air can hold is the oxygen pressure `mixture_oxygen.BIOTIC_O2_PRESSURE_MAX_PA`, the
 fire limit (GEN.1320: a pressure, so a thin air can reach a larger share than a thick one; never more than `mixture_oxygen.ABIOTIC_O2_MAX` of the molecules).
+The whole air, oxygen and all, stays under the pressure the retention regime of the air solve lets the body keep (`surface_air.Air.retention_cap_pa`, the row `d6`; GEN.1340): a body that
+holds only 1 or 10 kPa against the escape of its air does not hold 40 kPa because its life made oxygen, and the shares of its gases are kept when the cap takes the excess.
 
 The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: [R0689, R1980], from memory), used as the test point and the scale and not as a preset: a world
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
@@ -48,10 +50,14 @@ EARTH_BURIAL_MOL_YR = 1.0e13
 EARTH_REDUCTANT_MOL_YR = 3.0e12
 """float: The oxygen Earth's volcanic and metamorphic reductants take a year, mol (`R`; [R1980] few 1e12). T3, L3."""
 
-EARTH_STORE_MOL = 5.0e21
+EARTH_STORE_MOL = 4.0e21
 """float: The oxygen the ocean's iron and the crust's sulfides and iron take before the air holds any, mol (`B`), chosen so that the first
-oxygen follows the first photosynthesis by 0.7 Gyr when `S` and `R` are Earth's (the Great Oxidation came some 0.3 to 1 Gyr after oxygenic
-photosynthesis began). T9, L3."""
+oxygen follows the first photosynthesis by 0.7 Gyr when `S` is Earth's and `R` is Earth's at that age, from the model's own heat history of an
+Earth-mass body (GEN.1463: 2.2 times today's heat when the biomarkers appear, 2.7 Ga, falling to 1.9 times at the rise; it was 5e21 while `R` was held
+at today's value), the Great Oxidation coming some 0.3 to 1 Gyr after oxygenic photosynthesis began. T3, L1."""
+
+RISE_STEP_GYR = 0.25
+"""float: The step, Gyr, of the integral of the surplus `S - R(age)` in `rise_age_gyr`; the heat flow it reads changes by under 10 percent over a step after the first Gyr."""
 
 EARTH_AREA_M2 = 4.0 * math.pi * (constants.EARTH_RADIUS_KM * 1000.0) ** 2
 EARTH_OCEAN_FRACTION = 0.71
@@ -92,6 +98,14 @@ MINIMUM_PA = 1.0
 
 EUKARYOTE_MINIMUM_PA = 200.0
 """float: The oxygen, Pa, the air must hold for the wait for complex cells to start (about 1 percent of Earth's: [R3084]; T3, L0)."""
+
+REBALANCE_PASSES = 8
+"""int: The most times `rebalance_co2` works the CO2 and the temperature against each other after the oxygen has risen (GEN.1309 A); each pass takes half of the way to the sink's answer
+(`REBALANCE_DAMPING`), and the fixed point is held to `REBALANCE_TOLERANCE`."""
+
+REBALANCE_DAMPING = 0.5
+REBALANCE_TOLERANCE = 0.01
+"""float: The relative change of the CO2 pressure under which `rebalance_co2` stops."""
 
 APPLY_RISE = 1.01
 """float: The air takes new oxygen only when the target is this much above what it holds, so that applying the model again changes nothing."""
@@ -172,6 +186,26 @@ def reductant_flux(body, area_m2):
     """`R`, mol/yr: Earth's, times the heat the body's interior and tide give off over Earth's, times `redox_factor`."""
     flux = (getattr(body, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(body, "tidal_flux_w_m2", None) or 0.0)
     return EARTH_REDUCTANT_MOL_YR * (flux * area_m2 / EARTH_HEAT_W) * redox_factor(getattr(body, "mantle_delta_iw", None))
+
+
+def reductant_history_factor(body, age_gyr):
+    """
+    `R(age) / R(now)` of a rocky body (GEN.1463): the heat its interior gave off at `age_gyr` over the heat it gives off at its star's age (`interior_heat.heat_at`, the body's own
+    thermal history, the tide stored with it counted as it is), so the reductant that the volcanoes and the crust gave the oxygen to was larger when the body was young, in the
+    proportion `reductant_flux` already takes from the heat. 1 for a body with no thermal history stored, none at all, or no heat now.
+    """
+    if body is None:
+        return 1.0
+    from planetgen.physics import interior_heat
+    now_age = getattr(getattr(body, "star", None), "age", None)
+    if not now_age:
+        return 1.0
+    then, now = interior_heat.heat_at(body, min(max(age_gyr, 0.0), now_age)), interior_heat.heat_at(body, now_age)       # no history beyond the star's age: R is what it is now
+    if then is None or now is None:
+        return 1.0
+    tide = getattr(body, "tidal_flux_w_m2", None) or 0.0
+    flux_now = now.own_flux_w_m2 + tide
+    return 1.0 if flux_now <= 0.0 else (then.own_flux_w_m2 + tide) / flux_now
 
 
 def productivity(body, area_m2):
@@ -269,9 +303,10 @@ def profile_of(body, share=1.0, extra_store_mol=0.0):
 def rise_age_gyr(body, starts, extra_store_mol=0.0):
     """
     The age, Gyr, at which the oxygen of several oxygenic classes first rises on `body` (GEN.1213), or `None` when it never does. `starts` is a list of
-    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R` of the producers there
-    are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun; the oxygen rises
-    when it is full. One class gives `age + profile_of(body).delay_gyr`, the single-class result.
+    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R(age)` of the producers
+    there are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun and `R` with the
+    heat the body gave off at that age (GEN.1463, `reductant_history_factor`); the oxygen rises when it is full. The surplus is summed in steps of `RISE_STEP_GYR` (the
+    last step cut where the store fills) from the first producers' age; past the star's age the reductant is held at its value now.
     """
     starts = sorted((age, share) for age, share in starts if age is not None and share > 0.0)
     if not starts:
@@ -279,19 +314,23 @@ def rise_age_gyr(body, starts, extra_store_mol=0.0):
     full = profile_of(body, 1.0, extra_store_mol)
     if full.source_mol_yr <= 0.0:
         return None
-    filled = 0.0
-    carried = 0.0
-    for index, (age, share) in enumerate(starts):
-        carried += share
-        surplus = full.source_mol_yr * carried - full.reductant_mol_yr
-        end = starts[index + 1][0] if index + 1 < len(starts) else None
-        if surplus <= 0.0:
-            continue
-        need = full.store_mol - filled
-        if end is None or surplus * (end - age) * 1e9 >= need:
-            return age + need / surplus / 1e9
-        filled += surplus * (end - age) * 1e9
-    return None
+    horizon = getattr(getattr(body, "star", None), "age", None) or 0.0       # the thermal history ends at the star's age; past it R is what it is now
+    filled, age, carried, index = 0.0, starts[0][0], 0.0, 0
+    while True:
+        while index < len(starts) and starts[index][0] <= age + 1e-12:
+            carried += starts[index][1]
+            index += 1
+        if age >= horizon and index >= len(starts):
+            surplus = full.source_mol_yr * carried - full.reductant_mol_yr
+            return None if surplus <= 0.0 else age + (full.store_mol - filled) / surplus / 1e9      # the surplus at the horizon runs on
+        end = min(age + RISE_STEP_GYR, starts[index][0]) if index < len(starts) else age + RISE_STEP_GYR
+        surplus = full.source_mol_yr * carried - full.reductant_mol_yr * reductant_history_factor(body, 0.5 * (age + end))
+        if surplus > 0.0:
+            need = full.store_mol - filled
+            if surplus * (end - age) * 1e9 >= need:
+                return age + need / surplus / 1e9
+            filled += surplus * (end - age) * 1e9
+        age = end
 
 
 def apply(body, target_mol):
@@ -313,10 +352,48 @@ def apply(body, target_mol):
         return False
     burnt["O2"] = wanted
     air = partials_pa(body, burnt)
+    cap = getattr(body, "_retention_cap_pa", None)
+    total = sum(air.values())
+    if cap is not None and total > cap:        # GEN.1340: the air is held to the pressure its retention regime keeps (as the pressure stage holds it), oxygen and all
+        air = {formula: pascal * cap / total for formula, pascal in air.items()}
     if "O2" not in air or air["O2"] < MINIMUM_PA:
         return False
     store_air(body, air)
     return True
+
+
+def rebalance_co2(body):
+    """
+    Solves the carbon sink of the air again at the temperature the oxygen rise left (GEN.1309 A). The air was solved with the methane and hydrogen that warmed it; `apply` burned
+    them (the methane's carbon is CO2 now, one for one) and the air found another surface temperature (7 to 67 K lower in the worlds this was measured on), but the sink that holds
+    the CO2 of a world (continental weathering, seafloor weathering, or the sealed ocean's chemistry: `surface_air.CarbonSink`) was not asked again. It is asked at the new
+    temperature: the pressure it holds there against the one it held where the air was solved shifts the CO2 by the same amount, the greenhouse of the new CO2 gives the temperature
+    again, and the two are worked against each other (`REBALANCE_PASSES`, damped by half) until the CO2 settles. A body with no sink (no carbon to weather, or an air the oddity
+    rows replaced) is left as it is.
+
+    Returns:
+        bool: Whether the air changed.
+    """
+    sink = getattr(body, "_co2_sink", None)
+    if sink is None or not sink.solved_bar > 0.0:
+        return False
+    air = dict(atmosphere.gas_partials_pa(body))
+    base = air.get("CO2", 0.0)
+    cap = getattr(body, "_retention_cap_pa", None)
+    moved = False
+    for _ in range(REBALANCE_PASSES):
+        current = air.get("CO2", 0.0)
+        target = max(base + (sink.kept_at(body.surface_temperature) - sink.solved_bar) * 1.0e5, 0.0)
+        step = current + REBALANCE_DAMPING * (target - current)
+        if abs(step - current) <= REBALANCE_TOLERANCE * max(current, MINIMUM_PA):
+            break
+        if cap is not None:     # the retention regime's cap holds the whole air: the carbon dioxide takes what room the other gases (the oxygen among them, set by their own balance) leave
+            step = min(step, max(cap - sum(pascal for formula, pascal in air.items() if formula != "CO2"), 0.0))
+        air = {formula: pascal for formula, pascal in {**air, "CO2": step}.items() if pascal > 0.0}
+        store_air(body, air)
+        air = dict(atmosphere.gas_partials_pa(body))
+        moved = True
+    return moved
 
 
 def store_air(body, air):

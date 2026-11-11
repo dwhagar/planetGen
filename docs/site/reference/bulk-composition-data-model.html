@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The bulk composition data model - planetGen docs</title>
+<meta name="description" content="What a planet or moon is made of in bulk, which stored values record it, and how its mass, radius, density and gravity follow from it.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/reference/bulk-composition-data-model.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../" data-here="reference/bulk-composition-data-model.html"><a href="../index.html">Site index</a></nav>
+<main>
+<h1 id="the-bulk-composition-data-model">The bulk composition data model</h1><p class="meta">docs/reference/bulk-composition-data-model.md</p><details class="toc"><summary>On this page (8 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-order-of-the-work">1. The order of the work</a></li><li style="margin-left:0px"><a href="#2-what-is-stored">2. What is stored</a></li><li style="margin-left:0px"><a href="#3-how-a-terrestrial-bodys-composition-is-drawn">3. How a terrestrial body's composition is drawn</a></li><li style="margin-left:0px"><a href="#4-how-the-radius-follows-the-structure-model">4. How the radius follows: the structure model</a></li><li style="margin-left:0px"><a href="#5-the-materials-table">5. The materials table</a></li><li style="margin-left:0px"><a href="#6-the-words">6. The words</a></li><li style="margin-left:0px"><a href="#7-the-migration-and-the-sweep">7. The migration and the sweep</a></li><li style="margin-left:0px"><a href="#8-limits">8. Limits</a></li></ul></details>
+<p>What a planet or moon is made of in bulk, which stored values record it, and how its mass, radius, density and gravity follow
+from it. The code is the authority; each module named here opens with a docstring that gives its sources and limits, and the
+designs are <a href="../design/composition/bulk-composition.html">bulk-composition.md</a> and
+<a href="../design/composition/composition-spine-contracts.html">composition-spine-contracts.md</a>. The air is in
+<a href="atmosphere-data-model.html">atmosphere-data-model.md</a>; column types and versions are in <a href="database-schema.html">database-schema.md</a>.</p>
+<p><strong>The answer to &quot;does the composition drive the mass, density and gravity?&quot;</strong> Yes, for every body the generator makes. Before the
+composition build (main at 8.0.1635) a rocky body's density was a uniform draw for its class, its composition one fixed text per
+class, and no rock, ice, metal or gas fractions existed. Now the composition is drawn first, from the host star's abundances and the
+body's origin, and the radius, density and gravity follow from it. No class letter is read by the draw.</p>
+<h2 id="1-the-order-of-the-work">1. The order of the work</h2>
+<p><code>physics/planets.generate_planet_properties</code>:</p>
+<ol>
+<li><strong>Kind and mass.</strong> A planet draws its kind (terrestrial or giant) and its mass from the formation law at its distance
+(<code>planet_kind.draw_formation</code>); a moon's mass comes from its parent's moon size law; a caller may give a mass, a radius or both
+(kept, and checked against <code>tuning.GIVEN_MASS_KG_BOUNDS</code> and <code>GIVEN_RADIUS_KM_BOUNDS</code>).</li>
+<li><strong>A terrestrial body</strong> (one the formation law does not make a giant, up to <code>bulk_draw.MAX_MASS_EARTH</code> = 20 Earth masses) draws its composition and takes its radius from it
+(<code>bulk_draw.draw_terrestrial</code>).</li>
+<li><strong>A giant</strong> draws its heavy elements, radius and interior layers (<code>giant_draw.draw_giant</code>).</li>
+<li>The volume, the surface gravity (<code>planets.calculate_surface_gravity</code>, <code>G M / R^2</code> in Earth gravities), the radiogenic content and
+the interior heat follow. The air, the water and the ground come after (see the atmosphere page and
+<code>physics/surface_composition.py</code>).</li>
+</ol>
+<p>Mass, radius and gravity are never drawn apart: the mass and the composition say the radius (or a given radius says the mass),
+the density is the mass over the volume of the radius, and the gravity is <code>G M / R^2</code>.</p>
+<h2 id="2-what-is-stored">2. What is stored</h2>
+<p>On <code>planets</code> and <code>moons</code> alike (schema v144, DB.69; every column is <code>NULL</code> on a row saved before it, which <code>bulk_fractions</code> reads
+back as <code>None</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Unit</th>
+<th>What it is</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metal_mass_fraction</code></td>
+<td>share of the body's mass</td>
+<td>The iron-rich core, light elements included</td>
+</tr>
+<tr>
+<td><code>rock_mass_fraction</code></td>
+<td>share</td>
+<td>The silicate mantle and crust, or silicon carbide and graphite when <code>carbon_rock</code></td>
+</tr>
+<tr>
+<td><code>water_mass_fraction</code></td>
+<td>share</td>
+<td>H<sub>2</sub>O in every phase</td>
+</tr>
+<tr>
+<td><code>ice_mass_fraction</code></td>
+<td>share</td>
+<td>Every other ice (CO<sub>2</sub>, NH<sub>3</sub>, CH<sub>4</sub>, CO, N<sub>2</sub>, H<sub>2</sub>S, CH<sub>3</sub>OH, organics) as one</td>
+</tr>
+<tr>
+<td><code>envelope_mass_fraction</code></td>
+<td>share</td>
+<td>Hydrogen and helium gas</td>
+</tr>
+<tr>
+<td><code>rock_feo_fraction</code>, <code>rock_al2o3_fraction</code></td>
+<td>share of the rock</td>
+<td>FeO and Al<sub>2</sub>O<sub>3</sub></td>
+</tr>
+<tr>
+<td><code>rock_mg_si_ratio</code></td>
+<td>molar ratio</td>
+<td>The rock's Mg/Si</td>
+</tr>
+<tr>
+<td><code>rock_na2o_fraction</code>, <code>rock_k2o_fraction</code>, <code>rock_tio2_fraction</code>, <code>rock_cr2o3_fraction</code>, <code>rock_mno_fraction</code>, <code>rock_nio_fraction</code>, <code>rock_p2o5_fraction</code></td>
+<td>share of the rock</td>
+<td>The seven minor oxides (GEN.1362, <a href="../design/composition/mantle-oxides.html">mantle-oxides.md</a>); NULL for a carbon rock</td>
+</tr>
+<tr>
+<td><code>envelope_helium_fraction</code>, <code>envelope_z_fraction</code></td>
+<td>share of the envelope</td>
+<td>Helium (Y) and heavy elements (Z)</td>
+</tr>
+<tr>
+<td><code>porosity</code></td>
+<td>share of volume</td>
+<td>The void share of a small body (<code>NULL</code> where the structure solver decides)</td>
+</tr>
+<tr>
+<td><code>carbon_rock</code></td>
+<td>flag</td>
+<td>The rock is silicon carbide and graphite</td>
+</tr>
+<tr>
+<td><code>composition_origin</code></td>
+<td><code>drawn</code> or <code>inverse</code></td>
+<td>Composition first, or worked back from a given mass and radius</td>
+</tr>
+<tr>
+<td><code>composition</code></td>
+<td>text</td>
+<td>The phrase written from the fractions (section 6)</td>
+</tr>
+<tr>
+<td><code>mass_kg</code>, <code>radius_km</code>, <code>density_g_cm3</code>, <code>gravity_g</code></td>
+<td>kg, km, g/cm3, Earth gravities</td>
+<td>The results; <code>density = mass / (4/3 pi radius^3)</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The five shares of the whole body (metal, rock, water, ice, envelope) are not negative and add up to 1. A giant's interior adds
+<code>interior_kind</code> (<code>gas_giant</code>, <code>ice_giant</code>, <code>brown_dwarf</code>), <code>core_mass_earth</code>, <code>dilute_core_mass_earth</code>, <code>metallization_pressure_gpa</code>,
+<code>helium_depletion</code> and <code>has_helium_shell</code> (v154, <code>physics/giant_interior.py</code>); the layer masses add up to the body's mass and the layers
+hold exactly the heavy-element mass and natal helium (tested to 1e-9). Where a body formed relative to its star's snow line is
+<code>born_beyond_snow_line</code> (v132), and the star's own snow line <code>stars.snow_line_km</code>. The ground (v159) is a separate set of
+<code>ground_*</code> columns, drawn from the bulk fractions and described in <code>physics/surface_composition.py</code>.</p>
+<h2 id="3-how-a-terrestrial-bodys-composition-is-drawn">3. How a terrestrial body's composition is drawn</h2>
+<p><code>physics/bulk_draw.py</code> (GEN.428), in this order (the order is part of the generator epoch):</p>
+<ol>
+<li><strong>The star sets the dry ratios.</strong> The host star's abundances (<code>stellar_composition</code>) give Fe/Mg, Si/Mg, Al/Mg, Ca/Mg, Ni/Mg and
+C/O. A rocky body takes all the star's Mg, Si, Ca and Al into its rock as oxides and the iron its mantle does not hold as FeO into
+its metal core (<code>dry_partition</code>). An Earth-like star gives a core mass fraction near 0.3 with no draw; an iron-rich or iron-poor
+star moves it, the observed trend [R1146, R3916].</li>
+<li><strong>What the star cannot say is drawn</strong>, from <code>RANGES</code> and the tables, each with its source in the module: the kind of rock
+(<code>ROCK_KIND_TABLE</code>: silicate, or silicon carbide and graphite for C/O of 0.8 or more, [R0455, R4469]); the
+water share, log-uniform over the range of the body's origin (<code>tuning.DRY_WATER_MASS_FRACTION</code> 1e-6 to 1e-3; a water world,
+<code>WATER_WORLD_SHARE</code> 0.03 of bodies, 0.01 to 0.1; an icy body beyond the snow line <code>ICY_WATER_MASS_FRACTION</code> 0.05 to 0.5); for an
+icy body the other ices from the comet volatiles; the rock's FeO (2 to 18 percent), the core's light elements (3 to 12 percent), a
+small icy body's porosity (0 to 0.3), a carbon body's graphite over rock (5 to 40 percent); then the iron branch of a rocky planet
+(<code>IRON_BRANCH_TABLE</code>: its iron follows the star's with a scatter, or is enriched to a core mass fraction of 0.5 to 0.8).</li>
+<li><strong>Radius from mass.</strong> <code>bulk_structure.structure</code> gives the radius the composition holds the mass at. A caller that gave a radius
+gets the mass the composition needs for it, by bisection; a body too dense to reach its radius below 20 Earth masses is set to
+the radius of 20 (<code>MAX_MASS_EARTH</code>). A body below <code>SMALL_BODY_MASS_KG</code> (1e21 kg) is a heap with a porosity and its mass is its
+volume times the mixing density.</li>
+<li><strong>A body given both a mass and a radius</strong> goes the other way (<code>composition_origin = inverse</code>): they say the core mass fraction
+(<code>bulk_structure.cmf_from_mass_radius</code>, at most <code>MAX_CMF</code> 0.9), as an observer's route does.</li>
+<li><strong>A moon that holds its origin</strong> (<code>moon_composition</code>, GEN.466) takes its shares from it: a disk moon of a giant (ice rising with the
+formation distance past the disk's ice line, [R3922]; the moon system of [R0643]), an impact moon (little
+metal, no ice, [R2724]), a captured body, a ring moon or the partner of a dwarf planet. Every weight of the origin table is
+open (no source), so the rows a moon supports share the probability equally. Below the taper's end of the compaction law
+(<code>compaction.TAPER_END_KG</code>, GEN.442) its mass follows from its radius by the tapered brittle law and its grain density; heavier, the
+structure solver decides.</li>
+</ol>
+<p>Small bodies (belts, comets, icy bodies, rings) draw their composition first from rows of the materials table and derive their
+density from it with <code>physics/compaction.py</code> (<code>small_body_composition.py</code>, GEN.442: the Bus and DeMeo taxa of the Solar System's one
+belt are flagged stand-ins).</p>
+<h2 id="4-how-the-radius-follows-the-structure-model">4. How the radius follows: the structure model</h2>
+<p><code>physics/bulk_structure.py</code> (GEN.429), pure functions with no draws. The radius is at the 1 bar level (Boss, 1:24 AM EDT
+2026-10-17). One reference solver and three fast forms:</p>
+<ul>
+<li><strong><code>layered_structure</code></strong>, the reference: a two-layer integrator extended with a water layer on top whose density is the 300 K
+isotherm of liquid water (IAPWS-95 through the NIST WebBook, to 950 MPa), the ice VI, VII and X reference points of the materials
+table, and the polytrope of [R3992] above 1 TPa. Hydrostatic balance in <code>s = m^(1/3)</code>, fourth-order Runge-Kutta,
+shooting on the central pressure to 1 bar at the surface. Checked against a scipy reference built from the full mantle tables
+(0.20 percent in radius, 0.28 in the moment of inertia, 0.93 in the core-mantle pressure over 90 cases) and, with water, within 1.5
+percent of [R4881] from 0.5 to 50 Earth masses. Validated 0.1 to 20 Earth masses.</li>
+<li><strong>Dry rock and iron</strong>, <code>radius_fit_earth</code>: 0.1 to 20 Earth masses, core mass fraction 0 to 0.8; at most 0.40 percent (rms 0.10)
+against the solver.</li>
+<li><strong>Water-bearing</strong>, <code>water_world_radius_earth</code>: 0.3 to 20 Earth masses, water fraction 0 to 1; rms 1.2 and at most 3.6 percent.</li>
+<li><strong>Small differentiated bodies</strong>, <code>small_body_radius_earth</code>: 1.5e-4 to 0.3 Earth masses; rms 0.57, at most 2.0 percent.</li>
+<li><strong>An envelope on a core</strong>, <code>envelope_radius_earth</code>: [R2741] Eqs. 1 and 3 at the 20 mbar level plus ln(50) scale
+heights for 1 bar; 1 to 20 Earth masses, envelope 0.01 to 20 percent; rms 6.3 percent against their tables at 1 Gyr. The valley of
+the radius distribution (<code>physics/radius_valley.py</code>, GEN.509) tunes the starting envelope against the Kepler population.</li>
+</ul>
+<p>A body whose envelope is more than <code>GIANT_ENVELOPE_FRACTION</code> (0.5) of its mass, or that has over 20 Earth masses of core, is a giant
+and outside this module.</p>
+<p><strong>A giant</strong> (<code>giant_radius.py</code>, <code>giant_draw.py</code>, GEN.460): the envelope's metallicity is a multiple of the star's, the heavy-element
+mass follows [R0710] (<code>M_Z = M_core + f_Z (M - M_core)</code> with its scatter, at most <code>MAX_HEAVY_FRACTION</code> 0.9 of the mass), and the
+radius is interpolated from the cool-start tables of [R1429] (17 to 3,594 Earth masses) plus the inflation of
+[R4029] above a threshold flux (an empirical median, a stand-in for the thermal evolution the project does
+not have). Where the tables do not hold the body (an ice giant, a giant under 17 Earth masses, a moon) the anchored mass-radius
+relation of <code>planets.sample_giant_radius_km</code> is used. The density of a giant is bounded by <code>tuning.GIANT_DENSITY_BOUNDS_G_CM3</code> (0.05 to
+60) and a terrestrial body's by <code>bulk_draw.DENSITY_BOUNDS_G_CM3</code> (0.6 to 25).</p>
+<h2 id="5-the-materials-table">5. The materials table</h2>
+<p><code>physics/materials.py</code> (GEN.427): the one table of every element, mineral, ice, organic and alloy a body can contain, 161 rows from
+<code>physics/data/materials.json</code>, which <code>scripts/build_materials_table.py</code> builds from the research parts' tables (E materials, B's
+phases and iron rows, C's ice phases) and <code>scripts/materials_data.py</code> ([R3992: Tables 1 to 3], the Handbook of Mineralogy,
+PubChem). A row has its formula, molar mass (kg/mol, from the element table), grain density (g/cm3 at ambient conditions), phase
+points, latent heats, band albedos and, where it has one, the equation-of-state constants of the model GEN.426 chose, each number with
+its source and a source state (<code>verified</code>, <code>partly verified</code> with its limit, or not reached). A value with no source is <code>None</code>; none is
+kept from memory. The <code>gate</code> says which classes can hold a row: <code>any</code> for every planet and moon class and small-body kind (135 rows),
+<code>planetary</code> for the planet and moon classes only (26 rows: the high-pressure silicate phases, high-pressure ices, core iron alloys and
+hydrogen-helium envelopes). The loader refuses a file without its sources, a row without a source and state, a formula it cannot
+read, an unknown gate, and a missing equation-of-state constant. The 84 asteroid components, the taxa and the class composition
+texts all resolve to rows of it, and a test fails when one does not. The licence of the data is in <code>DATA-LICENSE.md</code>.</p>
+<h2 id="6-the-words">6. The words</h2>
+<p><code>physics/composition_text.py</code> (GEN.430) writes the <code>composition</code> phrase of every planet and moon from the stored fractions, so the
+words and the numbers cannot disagree: each material the body holds at least 1 percent of is named with the level its share falls in
+(<code>mostly</code> from 0.5, <code>a large share of</code> from 0.2, <code>a moderate share of</code> from 0.05, <code>a small share of</code> from 0.01), largest first, for
+example &quot;mostly silicate rock, with a large share of iron-rich metal and a small share of water&quot;. A porosity of 0.1 or more adds
+&quot;loosely packed&quot;.</p>
+<h2 id="7-the-migration-and-the-sweep">7. The migration and the sweep</h2>
+<p>Migration 0144 adds the columns, all <code>NULL</code>: a row made before it has no composition to read back (it needs its star's abundances and
+the draws), so the regenerated galaxy of the generator epoch replaces it. A stopped run can be started again.</p>
+<p><code>tests/test_sweep_bulk.py</code> (TEST.210) runs the rules of <code>tests/audit/sweep_bulk.py</code> over bodies of every class: <code>fractions-sum</code>,
+<code>detail-ranges</code>, <code>porosity-range</code>, <code>density-from-mass-radius</code>, <code>gravity-from-mass-radius</code>, <code>radius-from-structure</code> (to 1e-6 for a
+planet and 4 percent for a moon, whose mass follows the tapered brittle law; a body with an envelope is left out because its flux and
+age are not stored), <code>denser-than-grains</code> and <code>text-materials</code>. Its last test breaks each rule and checks the sweep reports it.</p>
+<h2 id="8-limits">8. Limits</h2>
+<p>The Fortney tables do not inflate, so the inflation is the Sestovic median (a stand-in, marked in the gap plan); the water-world share
+and the origin weights of moons are open; the small-body taxa kernel is the Solar System's one belt and is flagged. These stand-ins are
+registered with their tier and tweak level in <a href="../design/research/stand-in-values.html">stand-in-values.md</a>.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

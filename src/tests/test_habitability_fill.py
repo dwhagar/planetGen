@@ -10,7 +10,7 @@ import math
 import pytest
 
 from planetgen.cli import generate as generate_cli
-from planetgen.db import store
+from planetgen.db import derived_stamp, store
 from planetgen.generation import run_plan
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -55,10 +55,17 @@ def _bodies(conn, system_id):
 
 
 def _wipe(conn, system_id):
+    """Scores gone, and the system no longer says the running code scored it (a galaxy scored before a change to the rules)."""
     with conn:
         for table in ("planets", "moons"):
             conn.execute(f"UPDATE {table} SET {', '.join(f'{name} = NULL' for name in COLUMNS)} "
                          "WHERE star_system_id = ? AND body_type <> 'g'", (system_id,))
+        conn.execute("DELETE FROM system_summary WHERE star_system_id = ?", (system_id,))
+
+
+def _stamp(conn, system_id):
+    row = conn.execute("SELECT habitability_stamp FROM system_summary WHERE star_system_id = ?", (system_id,)).fetchone()
+    return None if row is None else row["habitability_stamp"]
 
 
 def _same(a, b):
@@ -159,7 +166,9 @@ def test_the_command_re_scores_every_system_and_a_second_run_changes_nothing(mys
         first = run_plan.fill_habitability(args)
         assert first == sum(1 for rows in expected.values() for b in rows.values()
                             if b["scored"] is not None and b["body_type"] != "g")
-        assert run_plan.fill_habitability(args) == first
+        assert run_plan.fill_habitability(args) == 0       # GEN.1479: the systems hold the running code's stamp, so nothing is touched
+        args.all = True
+        assert run_plan.fill_habitability(args) == first   # --all takes every system, as the command used to
     finally:
         run_plan.HABITABILITY_BATCH_SYSTEMS = original
     conn = store.get_connection(mysql_config)
@@ -190,7 +199,7 @@ def test_a_generated_body_stores_the_score_of_its_final_conditions():
     """GEN.217: a lifeless moon used to keep the score it was first given, before its temperature settled, so the
     chip disagreed with the description (which is worked out from the final conditions)."""
     checked = 0
-    for seed in range(30):
+    for seed in range(40):    # GEN.1334: a planet under an envelope is scored for nothing, so the same seeds hold fewer scored bodies
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -204,3 +213,65 @@ def test_a_generated_body_stores_the_score_of_its_final_conditions():
                     assert _same(getattr(body, name), again[name]), (seed, body.is_moon, name)
                 checked += 1
     assert checked > 100
+
+
+def test_a_saved_system_holds_the_stamp_of_the_running_code(mysql_config):
+    saved = _save_systems(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        current = derived_stamp.current("habitability")
+        assert {_stamp(conn, system_id) for system_id in saved.values()} == {current}
+        _wipe(conn, saved[None])
+        assert _stamp(conn, saved[None]) is None
+        with conn:
+            store.refresh_habitability(conn, saved[None])
+        assert _stamp(conn, saved[None]) == current
+    finally:
+        conn.close()
+
+
+def test_a_rerun_takes_only_the_systems_that_are_not_current(mysql_config):
+    """GEN.1479: of three saved systems, the one scored by other code (or never) is re-scored and the others are not touched."""
+    saved = _save_systems(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        stale = saved["close"]
+        with conn:
+            conn.execute("UPDATE system_summary SET habitability_stamp = habitability_stamp + 1 WHERE star_system_id = ?", (stale,))
+            conn.execute("UPDATE planets SET phi4 = -1 WHERE star_system_id = ? AND phi4 IS NOT NULL", (saved["wide"],))
+        untouched = conn.execute("SELECT phi4 FROM planets WHERE star_system_id = ? ORDER BY id", (saved["wide"],)).fetchall()
+    finally:
+        conn.close()
+    original = run_plan.HABITABILITY_BATCH_SYSTEMS
+    run_plan.HABITABILITY_BATCH_SYSTEMS = 1
+    try:
+        done = run_plan.fill_habitability(_fill_args(mysql_config))
+    finally:
+        run_plan.HABITABILITY_BATCH_SYSTEMS = original
+    conn = store.get_connection(mysql_config)
+    try:
+        current = derived_stamp.current("habitability")
+        assert done == conn.execute("SELECT (SELECT COUNT(*) FROM planets WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g')"
+                                    " + (SELECT COUNT(*) FROM moons WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g') AS n",
+                                    (stale, stale)).fetchone()["n"]
+        assert _stamp(conn, stale) == current
+        assert conn.execute("SELECT phi4 FROM planets WHERE star_system_id = ? ORDER BY id", (saved["wide"],)).fetchall() == untouched
+    finally:
+        conn.close()
+
+
+def test_a_changed_formula_is_a_different_stamp():
+    assert derived_stamp.current("habitability") == derived_stamp.current("habitability")
+    sources = derived_stamp.sources("habitability")
+    assert "planetgen.physics.habitability_world" in sources and "planetgen.physics.life_classes" in sources   # a lazy import counts
+    assert not any(not name.startswith(("planetgen.physics.", "planetgen.tuning")) for name in sources)
+    before = derived_stamp.current("habitability")
+    original = dict(derived_stamp.RULE_VERSION)
+    try:
+        derived_stamp.current.cache_clear()
+        derived_stamp.RULE_VERSION["habitability"] += 1
+        assert derived_stamp.current("habitability") != before
+    finally:
+        derived_stamp.RULE_VERSION.update(original)
+        derived_stamp.current.cache_clear()
+    assert derived_stamp.current("habitability") == before

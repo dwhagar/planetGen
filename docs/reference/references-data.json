@@ -73672,6 +73672,29 @@
    "volume": "119",
    "year": 2014
   },
+  "10.1002/2014gc005566": {
+   "authors": [
+    [
+     "Parai",
+     "R."
+    ],
+    [
+     "Mukhopadhyay",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2014gc005566",
+   "editors": [],
+   "journal": "GGG",
+   "page": "719",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2015
+  },
   "10.1002/2014gl061138": {
    "authors": [
     [
@@ -74233,6 +74256,37 @@
    "publisher": "American Geophysical Union (AGU)",
    "src": "crossref",
    "title": "Turmoil at Turrialba Volcano (Costa Rica): Degassing and eruptive processes inferred from high‐frequency gas monitoring",
+   "type": "journal-article",
+   "volume": "121",
+   "year": 2016
+  },
+  "10.1002/2016jd025034": {
+   "authors": [
+    [
+     "Poluianov",
+     "S. V."
+    ],
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Mishev",
+     "A. L."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2016jd025034",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "8125",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions",
    "type": "journal-article",
    "volume": "121",
    "year": 2016
@@ -74986,6 +75040,54 @@
    "type": "journal-article",
    "volume": "122",
    "year": 2017
+  },
+  "10.1002/2017je005406": {
+   "arxiv": "1801.03820",
+   "authors": [
+    [
+     "Pérez‐Hoyos",
+     "S."
+    ],
+    [
+     "Sánchez‐Lavega",
+     "A."
+    ],
+    [
+     "García‐Muñoz",
+     "A."
+    ],
+    [
+     "Irwin",
+     "P. G. J."
+    ],
+    [
+     "Peralta",
+     "J."
+    ],
+    [
+     "Holsclaw",
+     "G."
+    ],
+    [
+     "McClintock",
+     "W. M."
+    ],
+    [
+     "Sanz‐Requena",
+     "J. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2017je005406",
+   "editors": [],
+   "journal": "JGRE",
+   "page": "145",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Venus Upper Clouds and the UV Absorber From MESSENGER/MASCS Observations",
+   "type": "journal-article",
+   "volume": "123",
+   "year": 2018
   },
   "10.1002/2018gl077106": {
    "authors": [
@@ -76437,6 +76539,29 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "124",
    "year": 1996
+  },
+  "10.1006/icar.1996.5637": {
+   "authors": [
+    [
+     "Levison",
+     "H. F."
+    ],
+    [
+     "Duncan",
+     "M. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1006/icar.1996.5637",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "13",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets",
+   "type": "journal-article",
+   "volume": "127",
+   "year": 1997
   },
   "10.1006/icar.1996.5653": {
    "authors": [
@@ -78125,6 +78250,38 @@
    "type": "book-chapter",
    "volume": "",
    "year": 2016
+  },
+  "10.1007/978-3-319-30648-3_145-2": {
+   "arxiv": "1803.06704",
+   "authors": [
+    [
+     "Petit",
+     "A. C."
+    ],
+    [
+     "Pichierri",
+     "G."
+    ],
+    [
+     "Goldberg",
+     "M."
+    ],
+    [
+     "Morbidelli",
+     "A."
+    ]
+   ],
+   "book": "Handbook of Exoplanets",
+   "doi": "10.1007/978-3-319-30648-3_145-2",
+   "editors": [],
+   "journal": "Handbook of Exoplanets",
+   "page": "1",
+   "publisher": "Springer Nature Switzerland",
+   "src": "crossref",
+   "title": "Dynamical Evolution of Planetary Systems",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2025
   },
   "10.1007/978-3-319-30648-3_58-1": {
    "authors": [
@@ -82329,6 +82486,25 @@
    "volume": "63",
    "year": 2020
   },
+  "10.1007/s11467-020-1043-8": {
+   "authors": [
+    [
+     "Li",
+     "B. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1007/s11467-020-1043-8",
+   "editors": [],
+   "journal": "Front. Phys.",
+   "page": "24302",
+   "publisher": "China Engineering Science Press Co. Ltd.",
+   "src": "crossref",
+   "title": "Tasting nuclear pasta made with classical molecular dynamics simulations",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2021
+  },
   "10.1007/s12036-017-9469-2": {
    "arxiv": "1709.09434",
    "authors": [
@@ -85002,6 +85178,25 @@
    "volume": "86",
    "year": 1994
   },
+  "10.1016/0032-0633(62)90129-0": {
+   "authors": [
+    [
+     "Lidov",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/0032-0633(62)90129-0",
+   "editors": [],
+   "journal": "P&SS",
+   "page": "719",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The evolution of orbits of artificial satellites of planets under the action of gravitational perturbations of external bodies",
+   "type": "journal-article",
+   "volume": "9",
+   "year": 1962
+  },
   "10.1016/0032-0633(81)90048-9": {
    "authors": [
     [
@@ -86202,6 +86397,29 @@
    "title": "Composition of the Oceanic Crust",
    "type": "book-chapter",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "",
+   "year": 2014
+  },
+  "10.1016/b978-0-08-095975-7.01301-2": {
+   "authors": [
+    [
+     "Dauphas",
+     "N."
+    ],
+    [
+     "Morbidelli",
+     "A."
+    ]
+   ],
+   "book": "Treatise on Geochemistry",
+   "doi": "10.1016/b978-0-08-095975-7.01301-2",
+   "editors": [],
+   "journal": "Treatise on Geochemistry",
+   "page": "1",
+   "publisher": "Elsevier",
+   "src": "crossref",
+   "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans",
+   "type": "book-chapter",
    "volume": "",
    "year": 2014
   },
@@ -88327,6 +88545,53 @@
    "volume": "286",
    "year": 2009
   },
+  "10.1016/j.epsl.2009.08.030": {
+   "authors": [
+    [
+     "Auer",
+     "M."
+    ],
+    [
+     "Wagenbach",
+     "D."
+    ],
+    [
+     "Wild",
+     "E. M."
+    ],
+    [
+     "Wallner",
+     "A."
+    ],
+    [
+     "Priller",
+     "A."
+    ],
+    [
+     "Miller",
+     "H."
+    ],
+    [
+     "Schlosser",
+     "C."
+    ],
+    [
+     "Kutschera",
+     "W."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2009.08.030",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "453",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Cosmogenic 26Al in the atmosphere and the prospect of a 26Al/10Be chronometer to date old ice",
+   "type": "journal-article",
+   "volume": "287",
+   "year": 2009
+  },
   "10.1016/j.epsl.2010.01.020": {
    "authors": [
     [
@@ -88665,6 +88930,33 @@
    "title": "Olivine rheology, shear stress, and grain growth in the lithospheric mantle: Geological constraints from the Kaapvaal craton",
    "type": "journal-article",
    "volume": "333-334",
+   "year": 2012
+  },
+  "10.1016/j.epsl.2012.05.036": {
+   "authors": [
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Mishev",
+     "A."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2012.05.036",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "114",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere",
+   "type": "journal-article",
+   "volume": "337-338",
    "year": 2012
   },
   "10.1016/j.epsl.2012.06.015": {
@@ -89066,6 +89358,45 @@
    "title": "Noble gases recycled into the mantle through cold subduction zones",
    "type": "journal-article",
    "volume": "471",
+   "year": 2017
+  },
+  "10.1016/j.epsl.2017.08.032": {
+   "authors": [
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Ji",
+     "M."
+    ],
+    [
+     "Wang",
+     "C. Z."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.epsl.2017.08.032",
+   "editors": [],
+   "journal": "E&PSL",
+   "page": "40",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles",
+   "type": "journal-article",
+   "volume": "478",
    "year": 2017
   },
   "10.1016/j.epsl.2018.05.033": {
@@ -90812,6 +91143,7 @@
    "year": 2004
   },
   "10.1016/j.icarus.2003.11.019": {
+   "arxiv": "astro-ph/0308159",
    "authors": [
     [
      "Raymond",
@@ -90951,6 +91283,41 @@
    "title": "Transport of ionizing radiation in terrestrial-like exoplanet atmospheres",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "171",
+   "year": 2004
+  },
+  "10.1016/j.icarus.2004.04.010": {
+   "authors": [
+    [
+     "Wong",
+     "M. H."
+    ],
+    [
+     "Mahaffy",
+     "P. R."
+    ],
+    [
+     "Atreya",
+     "S. K."
+    ],
+    [
+     "Niemann",
+     "H. B."
+    ],
+    [
+     "Owen",
+     "T. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.icarus.2004.04.010",
+   "editors": [],
+   "journal": "Icarus",
+   "page": "153",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "Updated Galileo probe mass spectrometer measurements of carbon, oxygen, nitrogen, and sulfur on Jupiter",
+   "type": "journal-article",
    "volume": "171",
    "year": 2004
   },
@@ -101771,6 +102138,45 @@
    "volume": "61",
    "year": 1997
   },
+  "10.1016/s0016-7037(98)00134-3": {
+   "authors": [
+    [
+     "Fink",
+     "D."
+    ],
+    [
+     "Klein",
+     "J."
+    ],
+    [
+     "Middleton",
+     "R."
+    ],
+    [
+     "Vogt",
+     "S."
+    ],
+    [
+     "Herzog",
+     "G."
+    ],
+    [
+     "Reedy",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/s0016-7037(98)00134-3",
+   "editors": [],
+   "journal": "GeCoA",
+   "page": "2389",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "41Ca, 26Al, and 10Be in lunar basalt 74275 and 10Be in the double drive tube 74002/74001",
+   "type": "journal-article",
+   "volume": "62",
+   "year": 1998
+  },
   "10.1016/s0016-7037(98)00293-2": {
    "authors": [
     [
@@ -102928,6 +103334,37 @@
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
    "volume": "",
    "year": 2017
+  },
+  "10.1017/9781316650684.003": {
+   "authors": [
+    [
+     "Nittler",
+     "L. R."
+    ],
+    [
+     "Chabot",
+     "N. L."
+    ],
+    [
+     "Grove",
+     "T. L."
+    ],
+    [
+     "Peplowski",
+     "P. N."
+    ]
+   ],
+   "book": "Mercury",
+   "doi": "10.1017/9781316650684.003",
+   "editors": [],
+   "journal": "Mercury",
+   "page": "30",
+   "publisher": "Cambridge University Press",
+   "src": "crossref",
+   "title": "The Chemical Composition of Mercury",
+   "type": "book-chapter",
+   "volume": "",
+   "year": 2018
   },
   "10.1017/9781316650684.019": {
    "arxiv": "1712.08234",
@@ -106403,6 +106840,46 @@
    "type": "journal-article",
    "volume": "10",
    "year": 2019
+  },
+  "10.1021/acsearthspacechem.2c00377": {
+   "arxiv": "2302.14847",
+   "authors": [
+    [
+     "Czaplinski",
+     "E. C."
+    ],
+    [
+     "Vu",
+     "T. H."
+    ],
+    [
+     "Cable",
+     "M. L."
+    ],
+    [
+     "Choukroun",
+     "M."
+    ],
+    [
+     "Malaska",
+     "M. J."
+    ],
+    [
+     "Hodyss",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1021/acsearthspacechem.2c00377",
+   "editors": [],
+   "journal": "ACS Earth Space Chem.",
+   "page": "597",
+   "publisher": "American Chemical Society (ACS)",
+   "src": "crossref",
+   "title": "Experimental Characterization of the Pyridine:Acetylene Co-crystal and Implications for Titan’s Surface",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2023
   },
   "10.1021/acsearthspacechem.3c00091": {
    "authors": [
@@ -110916,6 +111393,29 @@
    "volume": "114",
    "year": 2009
   },
+  "10.1029/2008jd010557": {
+   "authors": [
+    [
+     "Masarik",
+     "J."
+    ],
+    [
+     "Beer",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2008jd010557",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "2008JD010557",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere",
+   "type": "journal-article",
+   "volume": "114",
+   "year": 2009
+  },
   "10.1029/2008jd010702": {
    "authors": [
     [
@@ -112950,6 +113450,65 @@
    "volume": "47",
    "year": 2020
   },
+  "10.1029/2019gl084630": {
+   "authors": [
+    [
+     "Fu",
+     "S."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Karato",
+     "S."
+    ],
+    [
+     "Vasiliev",
+     "A."
+    ],
+    [
+     "Presniakov",
+     "M. Y."
+    ],
+    [
+     "Gavriliuk",
+     "A. G."
+    ],
+    [
+     "Ivanova",
+     "A. G."
+    ],
+    [
+     "Hauri",
+     "E. H."
+    ],
+    [
+     "Okuchi",
+     "T."
+    ],
+    [
+     "Purevjav",
+     "N."
+    ],
+    [
+     "Lin",
+     "J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2019gl084630",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "10346",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Water Concentration in Single‐Crystal (Al,Fe)‐Bearing Bridgmanite Grown From the Hydrous Melt: Implications for Dehydration Melting at the Topmost Lower Mantle",
+   "type": "journal-article",
+   "volume": "46",
+   "year": 2019
+  },
   "10.1029/2019gl085476": {
    "authors": [
     [
@@ -113397,6 +113956,25 @@
    "volume": "47",
    "year": 2020
   },
+  "10.1029/2020gl090973": {
+   "authors": [
+    [
+     "Fei",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2020gl090973",
+   "editors": [],
+   "journal": "GeoRL",
+   "page": "e2020GL090973",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle",
+   "type": "journal-article",
+   "volume": "48",
+   "year": 2021
+  },
   "10.1029/2020gl091733": {
    "authors": [
     [
@@ -113498,6 +114076,34 @@
    "publisher": "American Geophysical Union (AGU)",
    "src": "crossref",
    "title": "K/U of the MORB Source and Silicate Earth",
+   "type": "journal-article",
+   "volume": "125",
+   "year": 2020
+  },
+  "10.1029/2020jd033147": {
+   "arxiv": "2009.07700",
+   "authors": [
+    [
+     "Poluianov",
+     "S. V."
+    ],
+    [
+     "Kovaltsov",
+     "G. A."
+    ],
+    [
+     "Usoskin",
+     "I. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1029/2020jd033147",
+   "editors": [],
+   "journal": "JGRD",
+   "page": "e2020JD033147",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)",
    "type": "journal-article",
    "volume": "125",
    "year": 2020
@@ -118286,6 +118892,33 @@
    "volume": "361",
    "year": 1993
   },
+  "10.1038/361615a0": {
+   "authors": [
+    [
+     "Laskar",
+     "J."
+    ],
+    [
+     "Joutel",
+     "F."
+    ],
+    [
+     "Robutel",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/361615a0",
+   "editors": [],
+   "journal": "Nature",
+   "page": "615",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Stabilization of the Earth's obliquity by the Moon",
+   "type": "journal-article",
+   "volume": "361",
+   "year": 1993
+  },
   "10.1038/368365a0": {
    "authors": [
     [
@@ -121615,6 +122248,69 @@
    "volume": "506",
    "year": 2014
   },
+  "10.1038/nature13080": {
+   "authors": [
+    [
+     "Pearson",
+     "D. G."
+    ],
+    [
+     "Brenker",
+     "F. E."
+    ],
+    [
+     "Nestola",
+     "F."
+    ],
+    [
+     "McNeill",
+     "J."
+    ],
+    [
+     "Nasdala",
+     "L."
+    ],
+    [
+     "Hutchison",
+     "M. T."
+    ],
+    [
+     "Matveev",
+     "S."
+    ],
+    [
+     "Mather",
+     "K."
+    ],
+    [
+     "Silversmit",
+     "G."
+    ],
+    [
+     "Schmitz",
+     "S."
+    ],
+    [
+     "Vekemans",
+     "B."
+    ],
+    [
+     "Vincze",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nature13080",
+   "editors": [],
+   "journal": "Nature",
+   "page": "221",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Hydrous mantle transition zone indicated by ringwoodite included within diamond",
+   "type": "journal-article",
+   "volume": "507",
+   "year": 2014
+  },
   "10.1038/nature13172": {
    "authors": [
     [
@@ -122634,6 +123330,130 @@
    "via": "crossref search on author, year and the citing sentences",
    "volume": "556",
    "year": 2018
+  },
+  "10.1038/nchem.1497": {
+   "arxiv": "1211.6520",
+   "authors": [
+    [
+     "Zhu",
+     "Q."
+    ],
+    [
+     "Jung",
+     "D. Y."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Glass",
+     "C. W."
+    ],
+    [
+     "Gatti",
+     "C."
+    ],
+    [
+     "Lyakhov",
+     "A. O."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nchem.1497",
+   "editors": [],
+   "journal": "Nature Chem",
+   "page": "61",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Stability of xenon oxides at high pressures",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2012
+  },
+  "10.1038/nchem.2716": {
+   "arxiv": "1309.3827",
+   "authors": [
+    [
+     "Dong",
+     "X."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ],
+    [
+     "Stavrou",
+     "E."
+    ],
+    [
+     "Lobanov",
+     "S."
+    ],
+    [
+     "Saleh",
+     "G."
+    ],
+    [
+     "Qian",
+     "G. R."
+    ],
+    [
+     "Zhu",
+     "Q."
+    ],
+    [
+     "Gatti",
+     "C."
+    ],
+    [
+     "Deringer",
+     "V. L."
+    ],
+    [
+     "Dronskowski",
+     "R."
+    ],
+    [
+     "Zhou",
+     "X. F."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Konôpková",
+     "Z."
+    ],
+    [
+     "Popov",
+     "I. A."
+    ],
+    [
+     "Boldyrev",
+     "A. I."
+    ],
+    [
+     "Wang",
+     "H. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/nchem.2716",
+   "editors": [],
+   "journal": "Nature Chem",
+   "page": "440",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "A stable compound of helium and sodium at high pressure",
+   "type": "journal-article",
+   "volume": "9",
+   "year": 2017
   },
   "10.1038/ncomms11201": {
    "arxiv": "1604.05220",
@@ -123767,6 +124587,57 @@
    "publisher": "Springer Science and Business Media LLC",
    "src": "crossref",
    "title": "A bimodal distribution of haze in Pluto’s atmosphere",
+   "type": "journal-article",
+   "volume": "13",
+   "year": 2022
+  },
+  "10.1038/s41467-022-27991-9": {
+   "authors": [
+    [
+     "Edmund",
+     "E."
+    ],
+    [
+     "Morard",
+     "G."
+    ],
+    [
+     "Baron",
+     "M. A."
+    ],
+    [
+     "Rivoldini",
+     "A."
+    ],
+    [
+     "Yokoo",
+     "S."
+    ],
+    [
+     "Boccato",
+     "S."
+    ],
+    [
+     "Hirose",
+     "K."
+    ],
+    [
+     "Pakhomova",
+     "A."
+    ],
+    [
+     "Antonangeli",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41467-022-27991-9",
+   "editors": [],
+   "journal": "NatCo",
+   "page": "387",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "The Fe-FeSi phase diagram at Mercury’s core conditions",
    "type": "journal-article",
    "volume": "13",
    "year": 2022
@@ -130789,6 +131660,57 @@
    "volume": "10",
    "year": 2020
   },
+  "10.1038/s41598-021-91801-3": {
+   "authors": [
+    [
+     "Iizuka-Oku",
+     "R."
+    ],
+    [
+     "Gotou",
+     "H."
+    ],
+    [
+     "Shito",
+     "C."
+    ],
+    [
+     "Fukuyama",
+     "K."
+    ],
+    [
+     "Mori",
+     "Y."
+    ],
+    [
+     "Hattori",
+     "T."
+    ],
+    [
+     "Sano-Furukawa",
+     "A."
+    ],
+    [
+     "Funakoshi",
+     "K. I."
+    ],
+    [
+     "Kagi",
+     "H."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/s41598-021-91801-3",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "12632",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution",
+   "type": "journal-article",
+   "volume": "11",
+   "year": 2021
+  },
   "10.1038/s41598-024-67342-w": {
    "authors": [
     [
@@ -130907,6 +131829,50 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "2",
    "year": 2021
+  },
+  "10.1038/srep13582": {
+   "arxiv": "1502.07381",
+   "authors": [
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Zhu",
+     "Q."
+    ],
+    [
+     "Holtgrewe",
+     "N."
+    ],
+    [
+     "Prescher",
+     "C."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1038/srep13582",
+   "editors": [],
+   "journal": "Sci Rep",
+   "page": "13582",
+   "publisher": "Springer Science and Business Media LLC",
+   "src": "crossref",
+   "title": "Stable magnesium peroxide at high pressure",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2015
   },
   "10.1039/c1cp21980d": {
    "authors": [
@@ -131313,6 +132279,29 @@
    "title": "The formation of galactic discs",
    "type": "journal-article",
    "volume": "295",
+   "year": 1998
+  },
+  "10.1046/j.1365-8711.1998.01369.x": {
+   "authors": [
+    [
+     "Tauris",
+     "T. M."
+    ],
+    [
+     "Manchester",
+     "R. N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1046/j.1365-8711.1998.01369.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "625",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "On the Evolution of Pulsar Beams",
+   "type": "journal-article",
+   "volume": "298",
    "year": 1998
   },
   "10.1046/j.1365-8711.1998.01675.x": {
@@ -137086,6 +138075,29 @@
    "volume": "570",
    "year": 2014
   },
+  "10.1051/0004-6361/201424343": {
+   "authors": [
+    [
+     "Lambrechts",
+     "M."
+    ],
+    [
+     "Johansen",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201424343",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A107",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs",
+   "type": "journal-article",
+   "volume": "572",
+   "year": 2014
+  },
   "10.1051/0004-6361/201424412": {
    "arxiv": "1409.0466",
    "authors": [
@@ -138875,6 +139887,29 @@
    "title": "The population of X-ray supernova remnants in the Large Magellanic Cloud",
    "type": "journal-article",
    "volume": "585",
+   "year": 2016
+  },
+  "10.1051/0004-6361/201526961": {
+   "authors": [
+    [
+     "Barklem",
+     "P. S."
+    ],
+    [
+     "Collet",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/201526961",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A96",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "Partition functions and equilibrium constants for diatomic molecules and atoms of astrophysical interest",
+   "type": "journal-article",
+   "volume": "588",
    "year": 2016
   },
   "10.1051/0004-6361/201527130": {
@@ -142929,6 +143964,29 @@
    "title": "The best place and time to live in the Milky Way",
    "type": "journal-article",
    "volume": "647",
+   "year": 2021
+  },
+  "10.1051/0004-6361/202039640": {
+   "authors": [
+    [
+     "Schneider",
+     "A. D."
+    ],
+    [
+     "Bitsch",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1051/0004-6361/202039640",
+   "editors": [],
+   "journal": "A&A",
+   "page": "A71",
+   "publisher": "EDP Sciences",
+   "src": "crossref",
+   "title": "How drifting and evaporating pebbles shape giant planets",
+   "type": "journal-article",
+   "volume": "654",
    "year": 2021
   },
   "10.1051/0004-6361/202040058": {
@@ -150981,6 +152039,33 @@
    "volume": "111",
    "year": 2014
   },
+  "10.1073/pnas.1316708111": {
+   "authors": [
+    [
+     "Badro",
+     "J."
+    ],
+    [
+     "Côté",
+     "A. S."
+    ],
+    [
+     "Brodholt",
+     "J. P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1073/pnas.1316708111",
+   "editors": [],
+   "journal": "PNAS",
+   "page": "7542",
+   "publisher": "National Academy of Sciences",
+   "src": "crossref",
+   "title": "A seismologically consistent compositional model of Earth’s core",
+   "type": "journal-article",
+   "volume": "111",
+   "year": 2014
+  },
   "10.1073/pnas.1406545111": {
    "authors": [
     [
@@ -151897,6 +152982,25 @@
    "volume": "62",
    "year": 1957
   },
+  "10.1086/108790": {
+   "authors": [
+    [
+     "Kozai",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/108790",
+   "editors": [],
+   "journal": "AJ",
+   "page": "591",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Secular perturbations of asteroids with high inclination and eccentricity",
+   "type": "journal-article",
+   "volume": "67",
+   "year": 1962
+  },
   "10.1086/109857": {
    "authors": [
     [
@@ -152154,6 +153258,37 @@
    "title": "M-Subdwarfs: Spectroscopic Classification and the Metallicity Scale",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "113",
+   "year": 1997
+  },
+  "10.1086/118405": {
+   "authors": [
+    [
+     "Innanen",
+     "K. A."
+    ],
+    [
+     "Zheng",
+     "J. Q."
+    ],
+    [
+     "Mikkola",
+     "S."
+    ],
+    [
+     "Valtonen",
+     "M. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/118405",
+   "editors": [],
+   "journal": "AJ",
+   "page": "1915",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Kozai Mechanism and the Stability of Planetary Orbits in Binary Star Systems",
+   "type": "journal-article",
    "volume": "113",
    "year": 1997
   },
@@ -156375,6 +157510,33 @@
    "volume": "609",
    "year": 2004
   },
+  "10.1086/421339": {
+   "authors": [
+    [
+     "Kemper",
+     "F."
+    ],
+    [
+     "Vriend",
+     "W. J."
+    ],
+    [
+     "Tielens",
+     "A. G. G. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/421339",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "826",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium",
+   "type": "journal-article",
+   "volume": "609",
+   "year": 2004
+  },
   "10.1086/422087": {
    "authors": [
     [
@@ -156501,6 +157663,29 @@
    "title": "The Origin of the Mass‐Metallicity Relation: Insights from 53,000 Star‐forming Galaxies in the Sloan Digital Sky Survey",
    "type": "journal-article",
    "volume": "613",
+   "year": 2004
+  },
+  "10.1086/423611": {
+   "authors": [
+    [
+     "Cuzzi",
+     "J. N."
+    ],
+    [
+     "Zahnle",
+     "K. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/423611",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "490",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts",
+   "type": "journal-article",
+   "volume": "614",
    "year": 2004
   },
   "10.1086/423697": {
@@ -157543,6 +158728,41 @@
    "title": "The ACS Virgo Cluster Survey. X. Half‐Light Radii of Globular Clusters in Early‐Type Galaxies: Environmental Dependencies and a Standard Ruler for Distance Estimation",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "634",
+   "year": 2005
+  },
+  "10.1086/497123": {
+   "authors": [
+    [
+     "Milam",
+     "S. N."
+    ],
+    [
+     "Savage",
+     "C."
+    ],
+    [
+     "Brewster",
+     "M. A."
+    ],
+    [
+     "Ziurys",
+     "L. M."
+    ],
+    [
+     "Wyckoff",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/497123",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1126",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The 12 C/ 13 C Isotope Gradient Derived from Millimeter Transitions of CN: The Case for Galactic Chemical Evolution",
+   "type": "journal-article",
    "volume": "634",
    "year": 2005
   },
@@ -158678,6 +159898,29 @@
    "volume": "657",
    "year": 2007
   },
+  "10.1086/511055": {
+   "authors": [
+    [
+     "Draine",
+     "B. T."
+    ],
+    [
+     "Li",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/511055",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "810",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era",
+   "type": "journal-article",
+   "volume": "657",
+   "year": 2007
+  },
   "10.1086/511129": {
    "arxiv": "astro-ph/0610093",
    "authors": [
@@ -159362,6 +160605,29 @@
    "title": "A Decreased Probability of Habitable Planet Formation around Low‐Mass Stars",
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
+   "volume": "669",
+   "year": 2007
+  },
+  "10.1086/521702": {
+   "authors": [
+    [
+     "Fabrycky",
+     "D."
+    ],
+    [
+     "Tremaine",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/521702",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "1298",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction",
+   "type": "journal-article",
    "volume": "669",
    "year": 2007
   },
@@ -160608,6 +161874,30 @@
    "volume": "684",
    "year": 2008
   },
+  "10.1086/590047": {
+   "arxiv": "astro-ph/0703160",
+   "authors": [
+    [
+     "Jurić",
+     "M."
+    ],
+    [
+     "Tremaine",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1086/590047",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "603",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "Dynamical Origin of Extrasolar Planet Eccentricity Distribution",
+   "type": "journal-article",
+   "volume": "686",
+   "year": 2008
+  },
   "10.1086/590142": {
    "arxiv": "0805.2259",
    "authors": [
@@ -161589,6 +162879,33 @@
    "type": "journal-article",
    "volume": "136",
    "year": 2008
+  },
+  "10.1088/0004-6256/137/3/3706": {
+   "authors": [
+    [
+     "Tremaine",
+     "S."
+    ],
+    [
+     "Touma",
+     "J."
+    ],
+    [
+     "Namouni",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-6256/137/3/3706",
+   "editors": [],
+   "journal": "AJ",
+   "page": "3706",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "SATELLITE DYNAMICS ON THE LAPLACE SURFACE",
+   "type": "journal-article",
+   "volume": "137",
+   "year": 2009
   },
   "10.1088/0004-6256/137/5/4424": {
    "arxiv": "0903.0183",
@@ -164780,6 +166097,30 @@
    "volume": "739",
    "year": 2011
   },
+  "10.1088/0004-637x/739/1/36": {
+   "arxiv": "1103.3209",
+   "authors": [
+    [
+     "Shannon",
+     "A."
+    ],
+    [
+     "Wu",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/739/1/36",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "36",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "PLANETESIMALS IN DEBRIS DISKS OF SUN-LIKE STARS",
+   "type": "journal-article",
+   "volume": "739",
+   "year": 2011
+  },
   "10.1088/0004-637x/741/1/28": {
    "arxiv": "1108.0037",
    "authors": [
@@ -165534,6 +166875,60 @@
    "title": "NEW CONSTRAINTS ON THE EVOLUTION OF THE STELLAR-TO-DARK MATTER CONNECTION: A COMBINED ANALYSIS OF GALAXY-GALAXY LENSING, CLUSTERING, AND STELLAR MASS FUNCTIONS FROM z = 0.2 to z = 1",
    "type": "journal-article",
    "volume": "744",
+   "year": 2011
+  },
+  "10.1088/0004-637x/744/2/194": {
+   "authors": [
+    [
+     "Adande",
+     "G. R."
+    ],
+    [
+     "Ziurys",
+     "L. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/744/2/194",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "194",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY",
+   "type": "journal-article",
+   "volume": "744",
+   "year": 2011
+  },
+  "10.1088/0004-637x/745/1/19": {
+   "authors": [
+    [
+     "Kraus",
+     "A. L."
+    ],
+    [
+     "Ireland",
+     "M. J."
+    ],
+    [
+     "Hillenbrand",
+     "L. A."
+    ],
+    [
+     "Martinache",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/745/1/19",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "19",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE ROLE OF MULTIPLICITY IN DISK EVOLUTION AND PLANET FORMATION",
+   "type": "journal-article",
+   "volume": "745",
    "year": 2011
   },
   "10.1088/0004-637x/745/1/79": {
@@ -170882,6 +172277,37 @@
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
    "volume": "814",
+   "year": 2015
+  },
+  "10.1088/0004-637x/815/2/109": {
+   "authors": [
+    [
+     "Piso",
+     "A. M. A."
+    ],
+    [
+     "Öberg",
+     "K. I."
+    ],
+    [
+     "Birnstiel",
+     "T."
+    ],
+    [
+     "Murray-Clay",
+     "R. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/815/2/109",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "109",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION",
+   "type": "journal-article",
+   "volume": "815",
    "year": 2015
   },
   "10.1088/0004-637x/815/2/110": {
@@ -178587,6 +180013,34 @@
    "volume": "7",
    "year": 2007
   },
+  "10.1089/ast.2006.06-0126": {
+   "arxiv": "astro-ph/0510285",
+   "authors": [
+    [
+     "Raymond",
+     "S. N."
+    ],
+    [
+     "Quinn",
+     "T."
+    ],
+    [
+     "Lunine",
+     "J. I."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1089/ast.2006.06-0126",
+   "editors": [],
+   "journal": "AsBio",
+   "page": "66",
+   "publisher": "SAGE Publications",
+   "src": "crossref",
+   "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability",
+   "type": "journal-article",
+   "volume": "7",
+   "year": 2007
+  },
   "10.1089/ast.2006.6.377": {
    "authors": [
     [
@@ -184234,6 +185688,37 @@
    "volume": "",
    "year": 2021
   },
+  "10.1093/mnras/stab3175": {
+   "authors": [
+    [
+     "Chen",
+     "T."
+    ],
+    [
+     "Xiao",
+     "C. Y."
+    ],
+    [
+     "Li",
+     "A."
+    ],
+    [
+     "Zhou",
+     "C. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stab3175",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "5231",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Where have all the interstellar silicon carbides gone?",
+   "type": "journal-article",
+   "volume": "509",
+   "year": 2021
+  },
   "10.1093/mnras/stab323": {
    "arxiv": "2101.05282",
    "authors": [
@@ -187471,6 +188956,50 @@
    "title": "Mapping the three-dimensional density of the Galactic bulge with VVV red clump stars",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "435",
+   "year": 2013
+  },
+  "10.1093/mnras/stt1468": {
+   "arxiv": "1308.1272",
+   "authors": [
+    [
+     "Pavlov",
+     "A. K."
+    ],
+    [
+     "Blinov",
+     "A. V."
+    ],
+    [
+     "Konstantinov",
+     "A. N."
+    ],
+    [
+     "Ostryakov",
+     "V. M."
+    ],
+    [
+     "Vasilyev",
+     "G. I."
+    ],
+    [
+     "Vdovina",
+     "M. A."
+    ],
+    [
+     "Volkov",
+     "P. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stt1468",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2878",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst",
+   "type": "journal-article",
    "volume": "435",
    "year": 2013
   },
@@ -194909,6 +196438,29 @@
    "volume": "462",
    "year": 2016
   },
+  "10.1093/mnras/stw1880": {
+   "authors": [
+    [
+     "Passamonti",
+     "A."
+    ],
+    [
+     "Pons",
+     "J. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stw1880",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "1173",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases",
+   "type": "journal-article",
+   "volume": "463",
+   "year": 2016
+  },
   "10.1093/mnras/stw1929": {
    "arxiv": "1608.01435",
    "authors": [
@@ -196440,6 +197992,37 @@
    "volume": "469",
    "year": 2017
   },
+  "10.1093/mnras/stx1103": {
+   "authors": [
+    [
+     "Booth",
+     "R. A."
+    ],
+    [
+     "Clarke",
+     "C. J."
+    ],
+    [
+     "Madhusudhan",
+     "N."
+    ],
+    [
+     "Ilee",
+     "J. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/stx1103",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3994",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Chemical enrichment of giant planets and discs due to pebble drift",
+   "type": "journal-article",
+   "volume": "469",
+   "year": 2017
+  },
   "10.1093/mnras/stx1149": {
    "arxiv": "1705.04074",
    "authors": [
@@ -197962,6 +199545,50 @@
    "title": "xGASS: total cold gas scaling relations and molecular-to-atomic gas ratios of galaxies in the local Universe",
    "type": "journal-article",
    "volume": "476",
+   "year": 2018
+  },
+  "10.1093/mnras/sty1027": {
+   "arxiv": "1804.05717",
+   "authors": [
+    [
+     "Colzi",
+     "L."
+    ],
+    [
+     "Fontani",
+     "F."
+    ],
+    [
+     "Rivilla",
+     "V. M."
+    ],
+    [
+     "Sánchez-Monge",
+     "A."
+    ],
+    [
+     "Testi",
+     "L."
+    ],
+    [
+     "Beltrán",
+     "M. T."
+    ],
+    [
+     "Caselli",
+     "P."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1093/mnras/sty1027",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "3693",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Nitrogen fractionation in high-mass star-forming cores across the Galaxy",
+   "type": "journal-article",
+   "volume": "478",
    "year": 2018
   },
   "10.1093/mnras/sty1057": {
@@ -203359,6 +204986,50 @@
    "volume": "7",
    "year": 1997
   },
+  "10.1103/37nh-5ws8": {
+   "arxiv": "2410.23557",
+   "authors": [
+    [
+     "Wu",
+     "Z."
+    ],
+    [
+     "Gao",
+     "C."
+    ],
+    [
+     "Zhang",
+     "F."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Sun",
+     "Y."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/37nh-5ws8",
+   "editors": [],
+   "journal": "PhRvL",
+   "page": "016103",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Ab Initio Superionic-Liquid Phase Diagram of     Fe   1 − x      O   x      under Earth’s Inner Core Conditions",
+   "type": "journal-article",
+   "volume": "136",
+   "year": 2026
+  },
   "10.1103/physrev.148.526": {
    "authors": [
     [
@@ -204450,6 +206121,42 @@
    "volume": "84",
    "year": 2011
   },
+  "10.1103/physrevb.84.220105": {
+   "arxiv": "1108.4164",
+   "authors": [
+    [
+     "Ji",
+     "M."
+    ],
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wang",
+     "C. Z."
+    ],
+    [
+     "Ho",
+     "K. M."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/physrevb.84.220105",
+   "editors": [],
+   "journal": "PhRvB",
+   "page": "220105",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Ultrahigh-pressure phases of H2O ice predicted using an adaptive genetic algorithm",
+   "type": "journal-article",
+   "volume": "84",
+   "year": 2011
+  },
   "10.1103/physrevb.86.045114": {
    "authors": [
     [
@@ -204606,6 +206313,58 @@
    "title": "Construction of a thermodynamic potential for the water ices VII and X",
    "type": "journal-article",
    "via": "crossref search on author, year and the citing sentences",
+   "volume": "91",
+   "year": 2015
+  },
+  "10.1103/physrevb.91.020101": {
+   "arxiv": "1410.5030",
+   "authors": [
+    [
+     "Xu",
+     "C."
+    ],
+    [
+     "Xu",
+     "B."
+    ],
+    [
+     "Yang",
+     "Y."
+    ],
+    [
+     "Dong",
+     "H."
+    ],
+    [
+     "Oganov",
+     "A. R."
+    ],
+    [
+     "Wang",
+     "S."
+    ],
+    [
+     "Duan",
+     "W."
+    ],
+    [
+     "Gu",
+     "B."
+    ],
+    [
+     "Bellaiche",
+     "L."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/physrevb.91.020101",
+   "editors": [],
+   "journal": "PhRvB",
+   "page": "020101",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Prediction of a stable post-post-perovskite structure from first principles",
+   "type": "journal-article",
    "volume": "91",
    "year": 2015
   },
@@ -206368,6 +208127,54 @@
    "publisher": "American Physical Society (APS)",
    "src": "crossref",
    "title": "Self-Aligned Acoustofluidic Particle Focusing and Patterning in Microfluidic Channels from Channel-Based Acoustic Waveguides",
+   "type": "journal-article",
+   "volume": "120",
+   "year": 2018
+  },
+  "10.1103/physrevlett.120.096001": {
+   "arxiv": "1707.07541",
+   "authors": [
+    [
+     "Stavrou",
+     "E."
+    ],
+    [
+     "Yao",
+     "Y."
+    ],
+    [
+     "Goncharov",
+     "A. F."
+    ],
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Zaug",
+     "J. M."
+    ],
+    [
+     "Liu",
+     "H."
+    ],
+    [
+     "Greenberg",
+     "E."
+    ],
+    [
+     "Prakapenka",
+     "V. B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/physrevlett.120.096001",
+   "editors": [],
+   "journal": "PhRvL",
+   "page": "096001",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Synthesis of Xenon and Iron-Nickel Intermetallic Compounds at Earth’s Core Thermodynamic Conditions",
    "type": "journal-article",
    "volume": "120",
    "year": 2018
@@ -213867,6 +215674,30 @@
    "volume": "99",
    "year": 2007
   },
+  "10.1103/physrevmaterials.5.093604": {
+   "arxiv": "2012.08056",
+   "authors": [
+    [
+     "Umemoto",
+     "K."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1103/physrevmaterials.5.093604",
+   "editors": [],
+   "journal": "Phys. Rev. Materials",
+   "page": "093604",
+   "publisher": "American Physical Society (APS)",
+   "src": "crossref",
+   "title": "Ab initio prediction of an order-disorder transition in    Mg 2  Ge  O 4    : Implication for the nature of super-Earth's mantles",
+   "type": "journal-article",
+   "volume": "5",
+   "year": 2021
+  },
   "10.1103/physrevseriesi.34.1": {
    "authors": [
     [
@@ -218912,6 +220743,45 @@
    "publisher": "Oxford University Press (OUP)",
    "src": "crossref",
    "title": "Metallicity and far-infrared luminosity of high-redshift quasars",
+   "type": "journal-article",
+   "volume": "407",
+   "year": 2010
+  },
+  "10.1111/j.1365-2966.2010.17101.x": {
+   "authors": [
+    [
+     "Morin",
+     "J."
+    ],
+    [
+     "Donati",
+     "J. F."
+    ],
+    [
+     "Petit",
+     "P."
+    ],
+    [
+     "Delfosse",
+     "X."
+    ],
+    [
+     "Forveille",
+     "T."
+    ],
+    [
+     "Jardine",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/j.1365-2966.2010.17101.x",
+   "editors": [],
+   "journal": "MNRAS",
+   "page": "2269",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Large-scale magnetic topologies of late M dwarfs★",
    "type": "journal-article",
    "volume": "407",
    "year": 2010
@@ -224073,6 +225943,65 @@
    "volume": "49",
    "year": 2014
   },
+  "10.1111/maps.13252": {
+   "authors": [
+    [
+     "Udry",
+     "A."
+    ],
+    [
+     "Wilbur",
+     "Z. E."
+    ],
+    [
+     "Rahib",
+     "R. R."
+    ],
+    [
+     "McCubbin",
+     "F. M."
+    ],
+    [
+     "Vander Kaaden",
+     "K. E."
+    ],
+    [
+     "McCoy",
+     "T. J."
+    ],
+    [
+     "Ziegler",
+     "K."
+    ],
+    [
+     "Gross",
+     "J."
+    ],
+    [
+     "DeFelice",
+     "C."
+    ],
+    [
+     "Combs",
+     "L."
+    ],
+    [
+     "Turrin",
+     "B. D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1111/maps.13252",
+   "editors": [],
+   "journal": "M&PS",
+   "page": "785",
+   "publisher": "Wiley",
+   "src": "crossref",
+   "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury",
+   "type": "journal-article",
+   "volume": "54",
+   "year": 2019
+  },
   "10.1111/maps.13449": {
    "authors": [
     [
@@ -226136,6 +228065,73 @@
    "type": "journal-article",
    "volume": "314",
    "year": 2006
+  },
+  "10.1126/science.1145528": {
+   "authors": [
+    [
+     "Meshik",
+     "A."
+    ],
+    [
+     "Mabry",
+     "J."
+    ],
+    [
+     "Hohenberg",
+     "C."
+    ],
+    [
+     "Marrocchi",
+     "Y."
+    ],
+    [
+     "Pravdivtseva",
+     "O."
+    ],
+    [
+     "Burnett",
+     "D."
+    ],
+    [
+     "Olinger",
+     "C."
+    ],
+    [
+     "Wiens",
+     "R."
+    ],
+    [
+     "Reisenfeld",
+     "D."
+    ],
+    [
+     "Allton",
+     "J."
+    ],
+    [
+     "McNamara",
+     "K."
+    ],
+    [
+     "Stansbery",
+     "E."
+    ],
+    [
+     "Jurewicz",
+     "A. J. G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.1145528",
+   "editors": [],
+   "journal": "Science",
+   "page": "433",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Constraints on Neon and Argon Isotopic Fractionation in Solar Wind",
+   "type": "journal-article",
+   "volume": "318",
+   "year": 2007
   },
   "10.1126/science.1152110": {
    "authors": [
@@ -232569,6 +234565,45 @@
    "volume": "281",
    "year": 1998
   },
+  "10.1126/science.283.5398.44": {
+   "authors": [
+    [
+     "Cavazzoni",
+     "C."
+    ],
+    [
+     "Chiarotti",
+     "G. L."
+    ],
+    [
+     "Scandolo",
+     "S."
+    ],
+    [
+     "Tosatti",
+     "E."
+    ],
+    [
+     "Bernasconi",
+     "M."
+    ],
+    [
+     "Parrinello",
+     "M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1126/science.283.5398.44",
+   "editors": [],
+   "journal": "Science",
+   "page": "44",
+   "publisher": "American Association for the Advancement of Science (AAAS)",
+   "src": "crossref",
+   "title": "Superionic and Metallic States of Water and Ammonia at Giant Planet Conditions",
+   "type": "journal-article",
+   "volume": "283",
+   "year": 1999
+  },
   "10.1126/science.284.5417.1146": {
    "authors": [
     [
@@ -234930,6 +236965,26 @@
    "volume": "56",
    "year": 2018
   },
+  "10.1146/annurev-astro-081817-052028": {
+   "arxiv": "1807.06647",
+   "authors": [
+    [
+     "Nesvorný",
+     "D."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev-astro-081817-052028",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "137",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Dynamical Evolution of the Early Solar System",
+   "type": "journal-article",
+   "volume": "56",
+   "year": 2018
+  },
   "10.1146/annurev-astro-081915-023307": {
    "arxiv": "1603.01280",
    "authors": [
@@ -235286,6 +237341,34 @@
    "type": "journal-article",
    "volume": "55",
    "year": 2017
+  },
+  "10.1146/annurev-astro-091918-104409": {
+   "arxiv": "1908.04046",
+   "authors": [
+    [
+     "Altwegg",
+     "K."
+    ],
+    [
+     "Balsiger",
+     "H."
+    ],
+    [
+     "Fuselier",
+     "S. A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev-astro-091918-104409",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "113",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Cometary Chemistry and the Origin of Icy Solar System Bodies: The View After Rosetta",
+   "type": "journal-article",
+   "volume": "57",
+   "year": 2019
   },
   "10.1146/annurev-astro-091918-104453": {
    "arxiv": "1901.05465",
@@ -235786,6 +237869,25 @@
    "volume": "40",
    "year": 2002
   },
+  "10.1146/annurev.astro.41.011802.094840": {
+   "authors": [
+    [
+     "Draine",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.astro.41.011802.094840",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "241",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Interstellar Dust Grains",
+   "type": "journal-article",
+   "volume": "41",
+   "year": 2003
+  },
   "10.1146/annurev.astro.41.011802.094844": {
    "arxiv": "astro-ph/0301540",
    "authors": [
@@ -236194,6 +238296,25 @@
    "title": "THE YARKOVSKY AND YORP EFFECTS: Implications for Asteroid Dynamics",
    "type": "journal-article",
    "via": "chosen by hand from the citing sentences; author and year checked against the record",
+   "volume": "34",
+   "year": 2006
+  },
+  "10.1146/annurev.earth.34.031405.125211": {
+   "authors": [
+    [
+     "Hirschmann",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.earth.34.031405.125211",
+   "editors": [],
+   "journal": "AREPS",
+   "page": "629",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "WATER, MELTING, AND THE DEEP EARTH H2O CYCLE",
+   "type": "journal-article",
    "volume": "34",
    "year": 2006
   },
@@ -241170,6 +243291,57 @@
    "volume": "89",
    "year": 1966
   },
+  "10.3389/feart.2014.00038": {
+   "authors": [
+    [
+     "Thomas",
+     "S. M."
+    ],
+    [
+     "Jacobsen",
+     "S. D."
+    ],
+    [
+     "Bina",
+     "C. R."
+    ],
+    [
+     "Reichart",
+     "P."
+    ],
+    [
+     "Moser",
+     "M."
+    ],
+    [
+     "Hauri",
+     "E. H."
+    ],
+    [
+     "Koch-MÃ¼ller",
+     "M."
+    ],
+    [
+     "Smyth",
+     "J. R."
+    ],
+    [
+     "Dollinger",
+     "G."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3389/feart.2014.00038",
+   "editors": [],
+   "journal": "Front. Earth Sci.",
+   "page": "",
+   "publisher": "Frontiers Media SA",
+   "src": "crossref",
+   "title": "Quantification of water in hydrous ringwoodite",
+   "type": "journal-article",
+   "volume": "2",
+   "year": 2015
+  },
   "10.3389/feart.2023.1197363": {
    "authors": [
     [
@@ -242542,6 +244714,41 @@
    "type": "journal-article",
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "151",
+   "year": 2016
+  },
+  "10.3847/0004-6256/152/1/8": {
+   "authors": [
+    [
+     "Kraus",
+     "A. L."
+    ],
+    [
+     "Ireland",
+     "M. J."
+    ],
+    [
+     "Huber",
+     "D."
+    ],
+    [
+     "Mann",
+     "A. W."
+    ],
+    [
+     "Dupuy",
+     "T. J."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/0004-6256/152/1/8",
+   "editors": [],
+   "journal": "AJ",
+   "page": "8",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS",
+   "type": "journal-article",
+   "volume": "152",
    "year": 2016
   },
   "10.3847/0004-6256/152/2/41": {
@@ -249463,6 +251670,34 @@
    "volume": "854",
    "year": 2018
   },
+  "10.3847/1538-4357/aaab53": {
+   "arxiv": "1710.11129",
+   "authors": [
+    [
+     "Cooke",
+     "R. J."
+    ],
+    [
+     "Pettini",
+     "M."
+    ],
+    [
+     "Steidel",
+     "C. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/aaab53",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "102",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "One Percent Determination of the Primordial Deuterium Abundance*",
+   "type": "journal-article",
+   "volume": "855",
+   "year": 2018
+  },
   "10.3847/1538-4357/aab0a1": {
    "arxiv": "1802.06241",
    "authors": [
@@ -254905,6 +257140,29 @@
    "publisher": "American Astronomical Society",
    "src": "crossref",
    "title": "Volumetric Rates of Luminous Red Novae and Intermediate-luminosity Red Transients with the Zwicky Transient Facility",
+   "type": "journal-article",
+   "volume": "948",
+   "year": 2023
+  },
+  "10.3847/1538-4357/acc4c2": {
+   "authors": [
+    [
+     "Hensley",
+     "B. S."
+    ],
+    [
+     "Draine",
+     "B. T."
+    ]
+   ],
+   "book": "",
+   "doi": "10.3847/1538-4357/acc4c2",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "55",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium",
    "type": "journal-article",
    "volume": "948",
    "year": 2023
@@ -270358,6 +272616,101 @@
    "volume": "15",
    "year": 2015
   },
+  "10.5194/acp-17-8923-2017": {
+   "authors": [
+    [
+     "Tsagkogeorgas",
+     "G."
+    ],
+    [
+     "Roldin",
+     "P."
+    ],
+    [
+     "Duplissy",
+     "J."
+    ],
+    [
+     "Rondo",
+     "L."
+    ],
+    [
+     "Tröstl",
+     "J."
+    ],
+    [
+     "Slowik",
+     "J. G."
+    ],
+    [
+     "Ehrhart",
+     "S."
+    ],
+    [
+     "Franchin",
+     "A."
+    ],
+    [
+     "Kürten",
+     "A."
+    ],
+    [
+     "Amorim",
+     "A."
+    ],
+    [
+     "Bianchi",
+     "F."
+    ],
+    [
+     "Kirkby",
+     "J."
+    ],
+    [
+     "Petäjä",
+     "T."
+    ],
+    [
+     "Baltensperger",
+     "U."
+    ],
+    [
+     "Boy",
+     "M."
+    ],
+    [
+     "Curtius",
+     "J."
+    ],
+    [
+     "Flagan",
+     "R. C."
+    ],
+    [
+     "Kulmala",
+     "M."
+    ],
+    [
+     "Donahue",
+     "N. M."
+    ],
+    [
+     "Stratmann",
+     "F."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/acp-17-8923-2017",
+   "editors": [],
+   "journal": "Atmos. Chem. Phys.",
+   "page": "8923",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Evaporation of sulfate aerosols at low relative humidity",
+   "type": "journal-article",
+   "volume": "17",
+   "year": 2017
+  },
   "10.5194/acp-24-2415-2024": {
    "authors": [
     [
@@ -270702,6 +273055,29 @@
    "via": "crossref search on first author, year and the citing sentence",
    "volume": "",
    "year": 2022
+  },
+  "10.5194/ejm-33-39-2021": {
+   "authors": [
+    [
+     "Zhang",
+     "B. H."
+    ],
+    [
+     "Xia",
+     "Q. K."
+    ]
+   ],
+   "book": "",
+   "doi": "10.5194/ejm-33-39-2021",
+   "editors": [],
+   "journal": "Eur. J. Mineral.",
+   "page": "39",
+   "publisher": "Copernicus GmbH",
+   "src": "crossref",
+   "title": "Influence of water on the physical properties of olivine, wadsleyite, and ringwoodite",
+   "type": "journal-article",
+   "volume": "33",
+   "year": 2021
   },
   "10.5194/epsc2022-506": {
    "authors": [
@@ -272146,6 +274522,40 @@
    "volume": "",
    "year": 2014
   },
+  "arXiv:1410.2783": {
+   "arxiv": "1410.2783",
+   "authors": [
+    [
+     "Crichton",
+     "W. A."
+    ],
+    [
+     "Bernal",
+     "F. L. M."
+    ],
+    [
+     "Guignard",
+     "J."
+    ],
+    [
+     "Hanfland",
+     "M."
+    ],
+    [
+     "Margadonna",
+     "S."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Observation of the Sb2S3-type post-post-GdFeO3-perovskite: A model structure for high density ABX3 and A2X3 phases",
+   "type": "preprint",
+   "volume": "",
+   "year": 2014
+  },
   "arXiv:1410.5802": {
    "arxiv": "1410.5802",
    "authors": [
@@ -273204,6 +275614,28 @@
    "volume": "",
    "year": 2019
   },
+  "arXiv:1907.03198": {
+   "arxiv": "1907.03198",
+   "authors": [
+    [
+     "Silvera",
+     "I. F."
+    ],
+    [
+     "Dias",
+     "R."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Comment on: Observation of a first order phase transition to metal hydrogen near 425 GPa",
+   "type": "preprint",
+   "volume": "",
+   "year": 2019
+  },
   "arXiv:1907.04960": {
    "arxiv": "1907.04960",
    "authors": [
@@ -273470,6 +275902,36 @@
    "page": "",
    "src": "arxiv",
    "title": "Understanding dense hydrogen at planetary conditions",
+   "type": "preprint",
+   "volume": "",
+   "year": 2020
+  },
+  "arXiv:2007.07715": {
+   "arxiv": "2007.07715",
+   "authors": [
+    [
+     "Prakapenka",
+     "V. B."
+    ],
+    [
+     "Holtgrewe",
+     "N."
+    ],
+    [
+     "Lobanov",
+     "S. S."
+    ],
+    [
+     "Goncharov",
+     "A."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Polymorphism of superionic ice",
    "type": "preprint",
    "volume": "",
    "year": 2020
@@ -274096,6 +276558,60 @@
    "volume": "",
    "year": 2022
   },
+  "arXiv:2203.10863": {
+   "arxiv": "2203.10863",
+   "authors": [
+    [
+     "Nomura",
+     "H."
+    ],
+    [
+     "Furuya",
+     "K."
+    ],
+    [
+     "Cordiner",
+     "M. A."
+    ],
+    [
+     "Charnley",
+     "S. B."
+    ],
+    [
+     "Alexander",
+     "C. M. O."
+    ],
+    [
+     "Nixon",
+     "C. A."
+    ],
+    [
+     "Guzman",
+     "V. V."
+    ],
+    [
+     "Yurimoto",
+     "H."
+    ],
+    [
+     "Tsukagoshi",
+     "T."
+    ],
+    [
+     "Iino",
+     "T."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "The Isotopic Links from Planet Forming Regions to the Solar System",
+   "type": "preprint",
+   "volume": "",
+   "year": 2022
+  },
   "arXiv:2203.11223": {
    "arxiv": "2203.11223",
    "authors": [
@@ -274650,6 +277166,40 @@
    "volume": "",
    "year": 2023
   },
+  "arXiv:2306.07534": {
+   "arxiv": "2306.07534",
+   "authors": [
+    [
+     "Park",
+     "I."
+    ],
+    [
+     "He",
+     "Y."
+    ],
+    [
+     "Mao",
+     "H. K."
+    ],
+    [
+     "Shim",
+     "J. H."
+    ],
+    [
+     "Kim",
+     "D. Y."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "Advanced Science 11 (24), 2308177 (2024)",
+   "page": "",
+   "src": "arxiv",
+   "title": "Origin of superionic state in Earth's inner core",
+   "type": "preprint",
+   "volume": "",
+   "year": 2023
+  },
   "arXiv:2306.09400": {
    "arxiv": "2306.09400",
    "authors": [
@@ -274952,6 +277502,28 @@
    "page": "",
    "src": "arxiv",
    "title": "The DECam Ecliptic Exploration Project (DEEP): V. The Absolute Magnitude Distribution of the Cold Classical Kuiper Belt",
+   "type": "preprint",
+   "volume": "",
+   "year": 2023
+  },
+  "arXiv:2310.00480": {
+   "arxiv": "2310.00480",
+   "authors": [
+    [
+     "Thakur",
+     "A. C."
+    ],
+    [
+     "Remsing",
+     "R. C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Nuclear Quantum Effects in the Acetylene:Ammonia Plastic Co-crystal",
    "type": "preprint",
    "volume": "",
    "year": 2023
@@ -275524,6 +278096,60 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2403.05951": {
+   "arxiv": "2403.05951",
+   "authors": [
+    [
+     "Xu",
+     "Y."
+    ],
+    [
+     "Chen",
+     "G."
+    ],
+    [
+     "Du",
+     "F."
+    ],
+    [
+     "Li",
+     "M."
+    ],
+    [
+     "Wu",
+     "L."
+    ],
+    [
+     "Yao",
+     "D."
+    ],
+    [
+     "Ding",
+     "J."
+    ],
+    [
+     "Zeng",
+     "Z."
+    ],
+    [
+     "Lin",
+     "H."
+    ],
+    [
+     "Wang",
+     "X."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Free-standing cubic gauche nitrogen stable at 760 K under ambient pressure",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2403.08870": {
    "arxiv": "2403.08870",
    "authors": [
@@ -275808,6 +278434,74 @@
    "page": "",
    "src": "arxiv",
    "title": "From stars to diverse mantles, melts, crusts and atmospheres of rocky exoplanets",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2405.11810": {
+   "arxiv": "2405.11810",
+   "authors": [
+    [
+     "Takezawa",
+     "H."
+    ],
+    [
+     "Hsu",
+     "H."
+    ],
+    [
+     "Hirose",
+     "K."
+    ],
+    [
+     "Sakai",
+     "F."
+    ],
+    [
+     "Fu",
+     "S."
+    ],
+    [
+     "Gomi",
+     "H."
+    ],
+    [
+     "Miwa",
+     "S."
+    ],
+    [
+     "Sakamoto",
+     "N."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Formation of Iron-Helium Compounds under High Pressure",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2405.17751": {
+   "arxiv": "2405.17751",
+   "authors": [
+    [
+     "Thakur",
+     "A. C."
+    ],
+    [
+     "Remsing",
+     "R. C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Molecular Structure and Rotational Dynamics in the Acetonitrile:Acetylene (1:2) Plastic Co-Crystal at Titan Conditions",
    "type": "preprint",
    "volume": "",
    "year": 2024
@@ -276474,6 +279168,32 @@
    "volume": "",
    "year": 2024
   },
+  "arXiv:2410.17499": {
+   "arxiv": "2410.17499",
+   "authors": [
+    [
+     "de Villa",
+     "K."
+    ],
+    [
+     "Gonzalez-Cataldo",
+     "F."
+    ],
+    [
+     "Militzer",
+     "B."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Experimental Pathways for Detecting Double Superionicity in Planetary Ices",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
   "arXiv:2411.02484": {
    "arxiv": "2411.02484",
    "authors": [
@@ -276596,6 +279316,52 @@
    "page": "",
    "src": "arxiv",
    "title": "The Age-velocity Dispersion Relations of the Galactic Disk as Revealed by the LAMOST-Gaia Red Clump Stars",
+   "type": "preprint",
+   "volume": "",
+   "year": 2024
+  },
+  "arXiv:2412.20944": {
+   "arxiv": "2412.20944",
+   "authors": [
+    [
+     "Chen",
+     "R."
+    ],
+    [
+     "Zhang",
+     "J."
+    ],
+    [
+     "Wang",
+     "Z."
+    ],
+    [
+     "Lu",
+     "K."
+    ],
+    [
+     "Peng",
+     "Y."
+    ],
+    [
+     "Zhao",
+     "J."
+    ],
+    [
+     "Feng",
+     "S."
+    ],
+    [
+     "Jin",
+     "C."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "One Pot Synthesis of Cubic Gauche Polymeric Nitrogen",
    "type": "preprint",
    "volume": "",
    "year": 2024
@@ -276904,6 +279670,28 @@
    "page": "",
    "src": "arxiv",
    "title": "A stellar evolutionary grid for binary population synthesis: from the main sequence to helium ignition",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
+  "arXiv:2503.19116": {
+   "arxiv": "2503.19116",
+   "authors": [
+    [
+     "Emran",
+     "A."
+    ],
+    [
+     "Stack",
+     "K. M."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Understanding Compositional Evolution of Hollows at Dominici Crater, Mercury",
    "type": "preprint",
    "volume": "",
    "year": 2025
@@ -278200,6 +280988,48 @@
    "volume": "",
    "year": 2025
   },
+  "arXiv:2512.03295": {
+   "arxiv": "2512.03295",
+   "authors": [
+    [
+     "Huang",
+     "N."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Wu",
+     "Z."
+    ],
+    [
+     "Zheng",
+     "F."
+    ],
+    [
+     "Wu",
+     "B."
+    ],
+    [
+     "Sun",
+     "Y."
+    ],
+    [
+     "Wu",
+     "S."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Novel phases in the Fe-Si-O system at terapascal pressures",
+   "type": "preprint",
+   "volume": "",
+   "year": 2025
+  },
   "arXiv:2512.03892": {
    "arxiv": "2512.03892",
    "authors": [
@@ -278576,6 +281406,44 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2602.03509": {
+   "arxiv": "2602.03509",
+   "authors": [
+    [
+     "Wu",
+     "Z."
+    ],
+    [
+     "Wei",
+     "L."
+    ],
+    [
+     "Gao",
+     "C."
+    ],
+    [
+     "Wu",
+     "S."
+    ],
+    [
+     "Wentzcovitch",
+     "R. M."
+    ],
+    [
+     "Sun",
+     "Y."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Radial gradient of superionic hydrogen in Earth's inner core",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2602.11923": {
    "arxiv": "2602.11923",
    "authors": [
@@ -278816,6 +281684,32 @@
    "page": "",
    "src": "arxiv",
    "title": "A Multi-Survey Machine-Readable Corpus of Milky Way Globular Cluster Parameters for Retrieval-Augmented Generation Applications",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
+  "arXiv:2606.11330": {
+   "arxiv": "2606.11330",
+   "authors": [
+    [
+     "Marston",
+     "N. T."
+    ],
+    [
+     "Becker",
+     "J."
+    ],
+    [
+     "Howe",
+     "A. R."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Do Super-Puffs Defy Core Accretion? Population-Wide Interior Structure Constraints",
    "type": "preprint",
    "volume": "",
    "year": 2026
@@ -279190,6 +282084,36 @@
    "volume": "",
    "year": 2026
   },
+  "arXiv:2608.11696": {
+   "arxiv": "2608.11696",
+   "authors": [
+    [
+     "Mogul",
+     "R."
+    ],
+    [
+     "Zolotov",
+     "M. Y."
+    ],
+    [
+     "Way",
+     "M. J."
+    ],
+    [
+     "Limaye",
+     "S. S."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Altered Cosmic Organics as Venus' Ultraviolet Absorbers",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
   "arXiv:2609.21027": {
    "arxiv": "2609.21027",
    "authors": [
@@ -279260,6 +282184,132 @@
    "page": "",
    "src": "arxiv",
    "title": "Two-rung ladder: $H_0$ from Tip of the Red Giant Branch and geometric anchors alone",
+   "type": "preprint",
+   "volume": "",
+   "year": 2026
+  },
+  "arXiv:2611.06045": {
+   "arxiv": "2611.06045",
+   "authors": [
+    [
+     "Sun",
+     "L."
+    ],
+    [
+     "Chen",
+     "B."
+    ],
+    [
+     "He",
+     "Z."
+    ],
+    [
+     "Yang",
+     "P."
+    ],
+    [
+     "Guan",
+     "Z."
+    ],
+    [
+     "Jia",
+     "G."
+    ],
+    [
+     "Zhang",
+     "F."
+    ],
+    [
+     "Yang",
+     "Y."
+    ],
+    [
+     "Xu",
+     "B."
+    ],
+    [
+     "Guo",
+     "P."
+    ],
+    [
+     "Liu",
+     "Y."
+    ],
+    [
+     "Fan",
+     "W."
+    ],
+    [
+     "Xi",
+     "T."
+    ],
+    [
+     "Li",
+     "Y."
+    ],
+    [
+     "Meng",
+     "L."
+    ],
+    [
+     "Kang",
+     "W."
+    ],
+    [
+     "Xie",
+     "Z."
+    ],
+    [
+     "Tu",
+     "Y."
+    ],
+    [
+     "Ji",
+     "C."
+    ],
+    [
+     "Huang",
+     "X."
+    ],
+    [
+     "Chen",
+     "Z."
+    ],
+    [
+     "Yan",
+     "J."
+    ],
+    [
+     "Yang",
+     "J."
+    ],
+    [
+     "Yang",
+     "W."
+    ],
+    [
+     "Sekine",
+     "T."
+    ],
+    [
+     "Zhao",
+     "Z."
+    ],
+    [
+     "Dai",
+     "J."
+    ],
+    [
+     "Mao",
+     "H. K."
+    ]
+   ],
+   "doi": null,
+   "journal": "",
+   "journal_ref": null,
+   "page": "",
+   "src": "arxiv",
+   "title": "Single-crystal X-ray diffraction of BC8 carbon near terapascal pressures",
    "type": "preprint",
    "volume": "",
    "year": 2026
@@ -279959,13 +283009,14 @@
   }
  },
  "id_aliases": {},
- "id_next": 5139,
+ "id_next": 5228,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
   "10.1002/14356007.a24_507.pub2": "R2764",
   "10.1002/2013gl058955": "R3812",
   "10.1002/2013je004539": "R2419",
+  "10.1002/2014gc005566": "R5219",
   "10.1002/2014gl061138": "R2282",
   "10.1002/2014ja020215": "R2930",
   "10.1002/2014jd022659": "R3811",
@@ -279984,6 +283035,7 @@
   "10.1002/2016gl071766": "R4770",
   "10.1002/2016gl071930": "R1302",
   "10.1002/2016jb013150": "R1073",
+  "10.1002/2016jd025034": "R5203",
   "10.1002/2016je005206": "R1727",
   "10.1002/2016je005240": "R2008",
   "10.1002/2017gc006937": "R1931",
@@ -280000,6 +283052,7 @@
   "10.1002/2017je005341": "R4490",
   "10.1002/2017je005377": "R1947",
   "10.1002/2017je005387": "R1861",
+  "10.1002/2017je005406": "R5169",
   "10.1002/2018gl077106": "R2960",
   "10.1002/2018je005558": "R3775",
   "10.1002/9781118872086.ch9": "R3123",
@@ -280054,6 +283107,7 @@
   "10.1006/icar.1996.0113": "R3316",
   "10.1006/icar.1996.0117": "R1584",
   "10.1006/icar.1996.0190": "R3565",
+  "10.1006/icar.1996.5637": "R5218",
   "10.1006/icar.1996.5653": "R2730",
   "10.1006/icar.1997.5705": "R1978",
   "10.1006/icar.1997.5759": "R4708",
@@ -280127,6 +283181,7 @@
   "10.1007/978-3-319-13186-3_34": "R2790",
   "10.1007/978-3-319-19336-6_8": "R1352",
   "10.1007/978-3-319-30137-2_4": "R3623",
+  "10.1007/978-3-319-30648-3_145-2": "R5138",
   "10.1007/978-3-319-30648-3_58-1": "R2445",
   "10.1007/978-3-319-30648-3_69-1": "R5089",
   "10.1007/978-3-319-40030-3_41": "R3050",
@@ -280266,6 +283321,7 @@
   "10.1007/s11214-025-01243-w": "R4155",
   "10.1007/s11214-025-01264-5": "R1718",
   "10.1007/s11433-019-1541-6": "R4616",
+  "10.1007/s11467-020-1043-8": "R5165",
   "10.1007/s12036-017-9469-2": "R2849",
   "10.1007/s12036-019-9601-6": "R1675",
   "10.1007/s12036-020-09640-z": "R0380",
@@ -280374,6 +283430,7 @@
   "10.1016/0031-9201(82)90014-0": "R4318",
   "10.1016/0031-9201(93)90163-4": "R2983",
   "10.1016/0031-9201(94)05059-7": "R0632",
+  "10.1016/0032-0633(62)90129-0": "R5222",
   "10.1016/0032-0633(81)90048-9": "R3852",
   "10.1016/0032-0633(81)90078-7": "R4146",
   "10.1016/0032-0633(84)90102-8": "R0282",
@@ -280422,6 +283479,7 @@
   "10.1016/b978-0-08-095975-7.00201-1": "R3417",
   "10.1016/b978-0-08-095975-7.00301-6": "R3842",
   "10.1016/b978-0-08-095975-7.00315-6": "R4687",
+  "10.1016/b978-0-08-095975-7.01301-2": "R5214",
   "10.1016/b978-0-12-066266-1.50009-0": "R0179",
   "10.1016/b978-0-12-066266-1.50016-8": "R0178",
   "10.1016/b978-0-12-434750-2.50049-6": "R2540",
@@ -280494,6 +283552,7 @@
   "10.1016/j.epsl.2009.01.040": "R2382",
   "10.1016/j.epsl.2009.03.002": "R0086",
   "10.1016/j.epsl.2009.07.022": "R0628",
+  "10.1016/j.epsl.2009.08.030": "R5215",
   "10.1016/j.epsl.2010.01.020": "R2625",
   "10.1016/j.epsl.2010.11.030": "R3832",
   "10.1016/j.epsl.2011.01.015": "R3338",
@@ -280505,6 +283564,7 @@
   "10.1016/j.epsl.2011.11.022": "R3337",
   "10.1016/j.epsl.2012.03.028": "R1401",
   "10.1016/j.epsl.2012.04.019": "R0792",
+  "10.1016/j.epsl.2012.05.036": "R5207",
   "10.1016/j.epsl.2012.06.015": "R1953",
   "10.1016/j.epsl.2012.10.011": "R4307",
   "10.1016/j.epsl.2012.10.014": "R2500",
@@ -280518,6 +283578,7 @@
   "10.1016/j.epsl.2016.09.013": "R0518",
   "10.1016/j.epsl.2017.03.008": "R1182",
   "10.1016/j.epsl.2017.04.046": "R4135",
+  "10.1016/j.epsl.2017.08.032": "R5213",
   "10.1016/j.epsl.2018.05.033": "R2936",
   "10.1016/j.epsl.2018.06.029": "R4725",
   "10.1016/j.epsl.2018.07.006": "R3356",
@@ -280573,6 +283634,7 @@
   "10.1016/j.icarus.2003.11.023": "R3942",
   "10.1016/j.icarus.2004.01.001": "R2626",
   "10.1016/j.icarus.2004.04.009": "R4127",
+  "10.1016/j.icarus.2004.04.010": "R5163",
   "10.1016/j.icarus.2004.05.020": "R2060",
   "10.1016/j.icarus.2004.11.020": "R2460",
   "10.1016/j.icarus.2004.12.001": "R3317",
@@ -280881,6 +283943,7 @@
   "10.1016/s0016-7037(67)80014-0": "R2566",
   "10.1016/s0016-7037(96)00385-7": "R0512",
   "10.1016/s0016-7037(97)00304-9": "R0821",
+  "10.1016/s0016-7037(98)00134-3": "R5216",
   "10.1016/s0016-7037(98)00293-2": "R4210",
   "10.1016/s0019-1035(03)00002-2": "R2262",
   "10.1016/s0019-1035(03)00043-5": "R0895",
@@ -280923,6 +283986,7 @@
   "10.1016/s1464-1917(00)00041-6": "R4759",
   "10.1016/s1567-1356(03)00160-0": "R1619",
   "10.1017/9781139020558": "R0692",
+  "10.1017/9781316650684.003": "R5147",
   "10.1017/9781316650684.019": "R1207",
   "10.1017/cbo9780511581397": "R3974",
   "10.1017/cbo9780511780783": "R3519",
@@ -281047,6 +284111,7 @@
   "10.1021/acs.jpcb.8b11040": "R1997",
   "10.1021/acs.jpclett.1c02545": "R4256",
   "10.1021/acs.jpclett.9b02070": "R4820",
+  "10.1021/acsearthspacechem.2c00377": "R5191",
   "10.1021/acsearthspacechem.3c00091": "R0794",
   "10.1021/acsearthspacechem.9b00229": "R4304",
   "10.1021/ar000058i": "R4740",
@@ -281196,6 +284261,7 @@
   "10.1029/2008gl033669": "R0791",
   "10.1029/2008gl036373": "R4760",
   "10.1029/2008ja014014": "R4669",
+  "10.1029/2008jd010557": "R5206",
   "10.1029/2008jd010702": "R3789",
   "10.1029/2009gl037497": "R0770",
   "10.1029/2009gl040635": "R1840",
@@ -281251,6 +284317,7 @@
   "10.1029/2019gc008273": "R2666",
   "10.1029/2019gc008865": "R2987",
   "10.1029/2019gl084206": "R0595",
+  "10.1029/2019gl084630": "R5160",
   "10.1029/2019gl085476": "R3083",
   "10.1029/2019ja026610": "R4571",
   "10.1029/2019ja027114": "R0597",
@@ -281260,9 +284327,11 @@
   "10.1029/2019je006175": "R4416",
   "10.1029/2020gl087266": "R2152",
   "10.1029/2020gl087268": "R0596",
+  "10.1029/2020gl090973": "R5158",
   "10.1029/2020gl091733": "R1559",
   "10.1029/2020ja028927": "R1413",
   "10.1029/2020jb020245": "R1321",
+  "10.1029/2020jd033147": "R5204",
   "10.1029/2020je006639": "R0300",
   "10.1029/2020je006655": "R1514",
   "10.1029/2020je006711": "R2676",
@@ -281442,6 +284511,7 @@
   "10.1038/356157a0": "R1738",
   "10.1038/359226a0": "R0624",
   "10.1038/361608a0": "R2571",
+  "10.1038/361615a0": "R5227",
   "10.1038/368365a0": "R0584",
   "10.1038/370194a0": "R2071",
   "10.1038/370441a0": "R3861",
@@ -281517,6 +284587,7 @@
   "10.1038/nature12908": "R1068",
   "10.1038/nature12917": "R3664",
   "10.1038/nature13068": "R2780",
+  "10.1038/nature13080": "R5161",
   "10.1038/nature13172": "R2132",
   "10.1038/nature13246": "R1337",
   "10.1038/nature13408": "R2042",
@@ -281535,6 +284606,8 @@
   "10.1038/nature23276": "R3191",
   "10.1038/nature24625": "R0818",
   "10.1038/nature25029": "R1749",
+  "10.1038/nchem.1497": "R5198",
+  "10.1038/nchem.2716": "R5183",
   "10.1038/ncomms11201": "R2772",
   "10.1038/ncomms12808": "R5008",
   "10.1038/ncomms13262": "R3900",
@@ -281560,6 +284633,7 @@
   "10.1038/s41467-020-19896-2": "R2628",
   "10.1038/s41467-021-26403-8": "R3627",
   "10.1038/s41467-021-27811-6": "R1318",
+  "10.1038/s41467-022-27991-9": "R5149",
   "10.1038/s41467-022-31620-w": "R1912",
   "10.1038/s41467-024-46326-4": "R2938",
   "10.1038/s41550-017-0042": "R4309",
@@ -281637,10 +284711,12 @@
   "10.1038/s41592-019-0686-2": "R4560",
   "10.1038/s41598-017-04910-3": "R4580",
   "10.1038/s41598-020-67751-7": "R3378",
+  "10.1038/s41598-021-91801-3": "R5150",
   "10.1038/s41598-024-67342-w": "R3503",
   "10.1038/s41598-025-03858-z": "R2002",
   "10.1038/s41598-025-27066-x": "R3929",
   "10.1038/s43017-021-00203-6": "R1950",
+  "10.1038/srep13582": "R5182",
   "10.1039/c1cp21980d": "R2604",
   "10.1039/c4cp04564e": "R0242",
   "10.1039/c9cp04325j": "R1242",
@@ -281655,6 +284731,7 @@
   "10.1039/jr9630002853": "R1764",
   "10.1046/j.1365-246x.1998.00521.x": "R3154",
   "10.1046/j.1365-8711.1998.01227.x": "R3107",
+  "10.1046/j.1365-8711.1998.01369.x": "R5143",
   "10.1046/j.1365-8711.1998.01675.x": "R2187",
   "10.1046/j.1365-8711.1998.01947.x": "R2863",
   "10.1046/j.1365-8711.1999.02013.x": "R4193",
@@ -281766,12 +284843,13 @@
   "10.1051/0004-6361/201424171": "R5094",
   "10.1051/0004-6361/201424184": "R3294",
   "10.1051/0004-6361/201424299": "R0470",
+  "10.1051/0004-6361/201424343": "R5211",
   "10.1051/0004-6361/201424412": "R0864",
   "10.1051/0004-6361/201424692": "R1245",
   "10.1051/0004-6361/201424896": "R3134",
   "10.1051/0004-6361/201424915": "R1146",
   "10.1051/0004-6361/201425168": "R3912",
-  "10.1051/0004-6361/201425327": "R5138",
+  "10.1051/0004-6361/201425327": "R5145",
   "10.1051/0004-6361/201425451": "R1687",
   "10.1051/0004-6361/201425481": "R0254",
   "10.1051/0004-6361/201425525": "R2109",
@@ -281788,6 +284866,7 @@
   "10.1051/0004-6361/201526551": "R4538",
   "10.1051/0004-6361/201526850": "R3916",
   "10.1051/0004-6361/201526932": "R2810",
+  "10.1051/0004-6361/201526961": "R5162",
   "10.1051/0004-6361/201527130": "R0893",
   "10.1051/0004-6361/201527350": "R5110",
   "10.1051/0004-6361/201527385": "R0285",
@@ -281863,6 +284942,7 @@
   "10.1051/0004-6361/202039037": "R4108",
   "10.1051/0004-6361/202039141": "R4528",
   "10.1051/0004-6361/202039507": "R4177",
+  "10.1051/0004-6361/202039640": "R5210",
   "10.1051/0004-6361/202040058": "R2433",
   "10.1051/0004-6361/202040175": "R0860",
   "10.1051/0004-6361/202140390": "R0602",
@@ -282084,6 +285164,7 @@
   "10.1073/pnas.0913352107": "R4057",
   "10.1073/pnas.1002443107": "R0298",
   "10.1073/pnas.1304212111": "R2997",
+  "10.1073/pnas.1316708111": "R5148",
   "10.1073/pnas.1406545111": "R2688",
   "10.1073/pnas.1500954112": "R0357",
   "10.1073/pnas.1700527114": "R2007",
@@ -282112,6 +285193,7 @@
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
+  "10.1086/108790": "R5221",
   "10.1086/109857": "R2359",
   "10.1086/111875": "R1089",
   "10.1086/112778": "R4727",
@@ -282123,6 +285205,7 @@
   "10.1086/118029": "R3351",
   "10.1086/118116": "R1827",
   "10.1086/118302": "R1582",
+  "10.1086/118405": "R5223",
   "10.1086/118656": "R0906",
   "10.1086/133661": "R0356",
   "10.1086/133942": "R4745",
@@ -282264,9 +285347,11 @@
   "10.1086/383525": "R2788",
   "10.1086/420709": "R1621",
   "10.1086/421232": "R3951",
+  "10.1086/421339": "R5151",
   "10.1086/422087": "R0700",
   "10.1086/422919": "R0362",
   "10.1086/423264": "R4423",
+  "10.1086/423611": "R5209",
   "10.1086/423697": "R2323",
   "10.1086/423912": "R0662",
   "10.1086/424372": "R1346",
@@ -282295,6 +285380,7 @@
   "10.1086/496914": "R4997",
   "10.1086/497030": "R3061",
   "10.1086/497092": "R2193",
+  "10.1086/497123": "R5177",
   "10.1086/497422": "R0582",
   "10.1086/497582": "R3819",
   "10.1086/497684": "R1437",
@@ -282328,6 +285414,7 @@
   "10.1086/510380": "R0528",
   "10.1086/510999": "R4785",
   "10.1086/511025": "R3035",
+  "10.1086/511055": "R5153",
   "10.1086/511129": "R3959",
   "10.1086/511150": "R5129",
   "10.1086/511302": "R0331",
@@ -282345,6 +285432,7 @@
   "10.1086/519824": "R0363",
   "10.1086/521346": "R3992",
   "10.1086/521587": "R3683",
+  "10.1086/521702": "R5226",
   "10.1086/521976": "R4846",
   "10.1086/522035": "R1051",
   "10.1086/522077": "R0493",
@@ -282370,6 +285458,7 @@
   "10.1086/589653": "R3894",
   "10.1086/589833": "R5128",
   "10.1086/589960": "R4982",
+  "10.1086/590047": "R5141",
   "10.1086/590142": "R0214",
   "10.1086/590227": "R0747",
   "10.1086/590552": "R1497",
@@ -282398,6 +285487,7 @@
   "10.1088/0004-6256/136/6/2453": "R4049",
   "10.1088/0004-6256/136/6/2782": "R2651",
   "10.1088/0004-6256/136/6/2846": "R0392",
+  "10.1088/0004-6256/137/3/3706": "R5224",
   "10.1088/0004-6256/137/5/4424": "R4298",
   "10.1088/0004-6256/137/5/4478": "R4985",
   "10.1088/0004-6256/137/6/4744": "R2652",
@@ -282488,6 +285578,7 @@
   "10.1088/0004-637x/737/1/15": "R3177",
   "10.1088/0004-637x/738/2/144": "R1009",
   "10.1088/0004-637x/739/1/20": "R0909",
+  "10.1088/0004-637x/739/1/36": "R5140",
   "10.1088/0004-637x/741/1/28": "R0861",
   "10.1088/0004-637x/741/2/103": "R1328",
   "10.1088/0004-637x/741/2/68": "R2931",
@@ -282497,6 +285588,8 @@
   "10.1088/0004-637x/743/2/179": "R0519",
   "10.1088/0004-637x/744/2/137": "R1532",
   "10.1088/0004-637x/744/2/159": "R2599",
+  "10.1088/0004-637x/744/2/194": "R5179",
+  "10.1088/0004-637x/745/1/19": "R5225",
   "10.1088/0004-637x/745/1/79": "R2633",
   "10.1088/0004-637x/745/1/85": "R2585",
   "10.1088/0004-637x/746/1/95": "R2598",
@@ -282630,6 +285723,7 @@
   "10.1088/0004-637x/813/2/101": "R4484",
   "10.1088/0004-637x/813/2/82": "R3723",
   "10.1088/0004-637x/814/1/13": "R3002",
+  "10.1088/0004-637x/815/2/109": "R5212",
   "10.1088/0004-637x/815/2/110": "R3166",
   "10.1088/0026-1394/20/4/003": "R0310",
   "10.1088/0034-4885/56/2/001": "R4014",
@@ -282765,6 +285859,7 @@
   "10.1089/ast.2006.0127": "R2339",
   "10.1089/ast.2006.0128": "R5015",
   "10.1089/ast.2006.0129": "R1680",
+  "10.1089/ast.2006.06-0126": "R5142",
   "10.1089/ast.2006.6.377": "R3366",
   "10.1089/ast.2007.0128": "R3799",
   "10.1089/ast.2007.0205": "R1361",
@@ -282942,6 +286037,7 @@
   "10.1093/mnras/stab2897": "R3796",
   "10.1093/mnras/stab2969": "R2899",
   "10.1093/mnras/stab3009": "R4990",
+  "10.1093/mnras/stab3175": "R5154",
   "10.1093/mnras/stab323": "R1236",
   "10.1093/mnras/stab3624": "R0573",
   "10.1093/mnras/stab370": "R0458",
@@ -283021,6 +286117,7 @@
   "10.1093/mnras/stt1245": "R0877",
   "10.1093/mnras/stt1271": "R4678",
   "10.1093/mnras/stt1376": "R4649",
+  "10.1093/mnras/stt1468": "R5205",
   "10.1093/mnras/stt1544": "R1835",
   "10.1093/mnras/stt1600": "R4228",
   "10.1093/mnras/stt1765": "R0084",
@@ -283192,6 +286289,7 @@
   "10.1093/mnras/stw185": "R2268",
   "10.1093/mnras/stw1861": "R3113",
   "10.1093/mnras/stw1876": "R3688",
+  "10.1093/mnras/stw1880": "R5166",
   "10.1093/mnras/stw1929": "R2679",
   "10.1093/mnras/stw2021": "R3692",
   "10.1093/mnras/stw2036": "R3328",
@@ -283226,6 +286324,7 @@
   "10.1093/mnras/stx027": "R3740",
   "10.1093/mnras/stx076": "R0074",
   "10.1093/mnras/stx1026": "R2509",
+  "10.1093/mnras/stx1103": "R5208",
   "10.1093/mnras/stx1149": "R4778",
   "10.1093/mnras/stx1205": "R3496",
   "10.1093/mnras/stx1232": "R2110",
@@ -283261,6 +286360,7 @@
   "10.1093/mnras/stx897": "R0826",
   "10.1093/mnras/sty082": "R2225",
   "10.1093/mnras/sty089": "R0687",
+  "10.1093/mnras/sty1027": "R5174",
   "10.1093/mnras/sty1057": "R0290",
   "10.1093/mnras/sty1059": "R1553",
   "10.1093/mnras/sty1302": "R1013",
@@ -283413,6 +286513,7 @@
   "10.1098/rstb.2024.0101": "R5017",
   "10.1101/cshperspect.a012765": "R2487",
   "10.1101/gr.7.10.959": "R1807",
+  "10.1103/37nh-5ws8": "R5195",
   "10.1103/physrev.148.526": "R2044",
   "10.1103/physrev.156.989": "R2045",
   "10.1103/physreva.7.418": "R1415",
@@ -283455,12 +286556,14 @@
   "10.1103/physrevb.79.233406": "R4294",
   "10.1103/physrevb.81.184420": "R1103",
   "10.1103/physrevb.84.024419": "R2912",
+  "10.1103/physrevb.84.220105": "R5189",
   "10.1103/physrevb.86.045114": "R0950",
   "10.1103/physrevb.87.195306": "R1206",
   "10.1103/physrevb.87.241303": "R0425",
   "10.1103/physrevb.90.054113": "R3160",
   "10.1103/physrevb.90.161403": "R2935",
   "10.1103/physrevb.91.014308": "R1458",
+  "10.1103/physrevb.91.020101": "R5201",
   "10.1103/physrevb.92.045132": "R1455",
   "10.1103/physrevb.95.104420": "R3305",
   "10.1103/physrevb.95.134101": "R2129",
@@ -283522,6 +286625,7 @@
   "10.1103/physrevlett.120.025701": "R2966",
   "10.1103/physrevlett.120.050405": "R1713",
   "10.1103/physrevlett.120.074502": "R0850",
+  "10.1103/physrevlett.120.096001": "R5185",
   "10.1103/physrevlett.120.115703": "R3973",
   "10.1103/physrevlett.120.132503": "R0042",
   "10.1103/physrevlett.121.161101": "R0013",
@@ -283566,6 +286670,7 @@
   "10.1103/physrevlett.99.025701": "R3988",
   "10.1103/physrevlett.99.038003": "R3830",
   "10.1103/physrevlett.99.145901": "R0726",
+  "10.1103/physrevmaterials.5.093604": "R5202",
   "10.1103/physrevseriesi.34.1": "R0538",
   "10.1103/revmodphys.27.26": "R4631",
   "10.1103/revmodphys.27.40": "R4632",
@@ -283727,6 +286832,7 @@
   "10.1111/j.1365-2966.2010.16860.x": "R0780",
   "10.1111/j.1365-2966.2010.16969.x": "R1536",
   "10.1111/j.1365-2966.2010.17022.x": "R4099",
+  "10.1111/j.1365-2966.2010.17101.x": "R5144",
   "10.1111/j.1365-2966.2010.17155.x": "R3307",
   "10.1111/j.1365-2966.2010.17178.x": "R3815",
   "10.1111/j.1365-2966.2010.17291.x": "R2853",
@@ -283867,6 +286973,7 @@
   "10.1111/j.2153-3490.1969.tb00466.x": "R0580",
   "10.1111/maps.12095": "R2978",
   "10.1111/maps.12293": "R3895",
+  "10.1111/maps.13252": "R5146",
   "10.1111/maps.13449": "R3552",
   "10.1111/maps.13908": "R4292",
   "10.1111/maps.13994": "R4488",
@@ -283918,6 +287025,7 @@
   "10.1126/science.1105533": "R2254",
   "10.1126/science.1127173": "R4055",
   "10.1126/science.1127376": "R5009",
+  "10.1126/science.1145528": "R5178",
   "10.1126/science.1152110": "R0505",
   "10.1126/science.11538074": "R0798",
   "10.1126/science.11538492": "R2999",
@@ -283977,6 +287085,7 @@
   "10.1126/science.277.5324.358": "R2578",
   "10.1126/science.278.5341.1245": "R2276",
   "10.1126/science.281.5381.1342": "R1969",
+  "10.1126/science.283.5398.44": "R5172",
   "10.1126/science.284.5417.1146": "R5114",
   "10.1126/science.288.5466.658": "R0630",
   "10.1126/science.341.6150.1062-b": "R4875",
@@ -284054,6 +287163,7 @@
   "10.1146/annurev-astro-081811-125612": "R3628",
   "10.1146/annurev-astro-081811-125615": "R2798",
   "10.1146/annurev-astro-081817-052013": "R4602",
+  "10.1146/annurev-astro-081817-052028": "R5139",
   "10.1146/annurev-astro-081915-023307": "R2474",
   "10.1146/annurev-astro-081915-023322": "R3396",
   "10.1146/annurev-astro-081915-023441": "R0422",
@@ -284069,6 +287179,7 @@
   "10.1146/annurev-astro-082812-140944": "R0449",
   "10.1146/annurev-astro-083109-153241": "R4496",
   "10.1146/annurev-astro-091916-055240": "R4445",
+  "10.1146/annurev-astro-091918-104409": "R5175",
   "10.1146/annurev-astro-091918-104453": "R4096",
   "10.1146/annurev-astro-112420-020055": "R4897",
   "10.1146/annurev-astro-120920-010005": "R1585",
@@ -284092,6 +287203,7 @@
   "10.1146/annurev.astro.38.1.427": "R1226",
   "10.1146/annurev.astro.40.060401.093840": "R1451",
   "10.1146/annurev.astro.40.060401.093923": "R3910",
+  "10.1146/annurev.astro.41.011802.094840": "R5152",
   "10.1146/annurev.astro.41.011802.094844": "R2530",
   "10.1146/annurev.astro.41.071601.170049": "R2278",
   "10.1146/annurev.astro.41.090401.094542": "R2942",
@@ -284109,6 +287221,7 @@
   "10.1146/annurev.earth.32.101802.120435": "R2125",
   "10.1146/annurev.earth.34.031405.125058": "R0278",
   "10.1146/annurev.earth.34.031405.125154": "R0484",
+  "10.1146/annurev.earth.34.031405.125211": "R5159",
   "10.1146/annurev.earth.36.031207.124214": "R0165",
   "10.1146/annurev.earth.36.031207.124322": "R1465",
   "10.1146/annurev.ms.04.080174.001351": "R1394",
@@ -284283,6 +287396,7 @@
   "10.3357/asem.3485.2014": "R1808",
   "10.3367/ufne.2025.05.039904": "R4994",
   "10.3367/ufnr.0089.196607g.0483": "R1213",
+  "10.3389/feart.2014.00038": "R5157",
   "10.3389/feart.2023.1197363": "R2089",
   "10.3389/fmicb.2017.01212": "R4346",
   "10.3389/fmicb.2018.02152": "R1449",
@@ -284330,6 +287444,7 @@
   "10.3847/0004-6256/151/1/15": "R3114",
   "10.3847/0004-6256/151/4/96": "R2906",
   "10.3847/0004-6256/151/6/145": "R1924",
+  "10.3847/0004-6256/152/1/8": "R5220",
   "10.3847/0004-6256/152/2/41": "R3618",
   "10.3847/0004-6256/152/2/47": "R0029",
   "10.3847/0004-6256/152/6/157": "R2641",
@@ -284471,6 +287586,7 @@
   "10.3847/1538-4357/aaa42a": "R2946",
   "10.3847/1538-4357/aaa70f": "R0008",
   "10.3847/1538-4357/aaa765": "R0223",
+  "10.3847/1538-4357/aaab53": "R5173",
   "10.3847/1538-4357/aab0a1": "R1512",
   "10.3847/1538-4357/aab264": "R3633",
   "10.3847/1538-4357/aab784": "R3732",
@@ -284592,6 +287708,7 @@
   "10.3847/1538-4357/acbcc7": "R4732",
   "10.3847/1538-4357/acbd44": "R1153",
   "10.3847/1538-4357/acc2b9": "R2245",
+  "10.3847/1538-4357/acc4c2": "R5155",
   "10.3847/1538-4357/acc795": "R2723",
   "10.3847/1538-4357/acc9ae": "R1605",
   "10.3847/1538-4357/ace346": "R2088",
@@ -284742,6 +287859,7 @@
   "10.5194/acp-12-2491-2012": "R4583",
   "10.5194/acp-13-11735-2013": "R4165",
   "10.5194/acp-15-4399-2015": "R3909",
+  "10.5194/acp-17-8923-2017": "R5168",
   "10.5194/acp-24-2415-2024": "R4570",
   "10.5194/acp-4-1461-2004": "R0182",
   "10.5194/acp-7-2277-2007": "R2886",
@@ -284751,6 +287869,7 @@
   "10.5194/bg-4-545-2007": "R0996",
   "10.5194/cpd-10-2011-2014": "R0620",
   "10.5194/egusphere-egu22-11313": "R4153",
+  "10.5194/ejm-33-39-2021": "R5156",
   "10.5194/epsc2022-506": "R5075",
   "10.5194/epsc2024-501": "R3750",
   "10.5194/essd-5-365-2013": "R2303",
@@ -285000,6 +288119,7 @@
   "arxiv:1102.0550": "R0615",
   "arxiv:1102.2554": "R0230",
   "arxiv:1103.2791": "R0038",
+  "arxiv:1103.3209": "R5140",
   "arxiv:1103.3426": "R4555",
   "arxiv:1103.4651": "R0677",
   "arxiv:1103.5814": "R2403",
@@ -285020,6 +288140,7 @@
   "arxiv:1108.0037": "R0861",
   "arxiv:1108.2297": "R2367",
   "arxiv:1108.3662": "R1739",
+  "arxiv:1108.4164": "R5189",
   "arxiv:1108.4660": "R3945",
   "arxiv:1108.5631": "R0561",
   "arxiv:1108.6206": "R2843",
@@ -285102,6 +288223,7 @@
   "arxiv:1210.6885": "R2026",
   "arxiv:1211.2816": "R2975",
   "arxiv:1211.5401": "R0216",
+  "arxiv:1211.6520": "R5198",
   "arxiv:1212.2654": "R2271",
   "arxiv:1212.2980": "R2479",
   "arxiv:1301.0365": "R2032",
@@ -285150,11 +288272,13 @@
   "arxiv:1307.4368": "R0106",
   "arxiv:1307.7161": "R2143",
   "arxiv:1307.8130": "R2917",
+  "arxiv:1308.1272": "R5205",
   "arxiv:1308.4402": "R3457",
   "arxiv:1308.4456": "R1949",
   "arxiv:1308.6282": "R1088",
   "arxiv:1308.6325": "R2209",
   "arxiv:1309.2631": "R0349",
+  "arxiv:1309.3827": "R5183",
   "arxiv:1309.4167": "R3346",
   "arxiv:1309.6032": "R4326",
   "arxiv:1309.6324": "R0625",
@@ -285241,7 +288365,9 @@
   "arxiv:1409.5228": "R0894",
   "arxiv:1409.6306": "R1811",
   "arxiv:1410.0017": "R4084",
+  "arxiv:1410.2783": "R5200",
   "arxiv:1410.4199": "R4719",
+  "arxiv:1410.5030": "R5201",
   "arxiv:1410.5802": "R1899",
   "arxiv:1410.6815": "R2720",
   "arxiv:1410.7779": "R1851",
@@ -285273,6 +288399,7 @@
   "arxiv:1502.03605": "R1146",
   "arxiv:1502.04018": "R4693",
   "arxiv:1502.05449": "R3621",
+  "arxiv:1502.07381": "R5182",
   "arxiv:1502.07401": "R4330",
   "arxiv:1502.07412": "R0803",
   "arxiv:1503.02110": "R1856",
@@ -285479,6 +288606,7 @@
   "arxiv:1707.02609": "R2038",
   "arxiv:1707.06051": "R4413",
   "arxiv:1707.06701": "R3732",
+  "arxiv:1707.07541": "R5185",
   "arxiv:1707.07634": "R3191",
   "arxiv:1707.07986": "R3792",
   "arxiv:1708.00016": "R0932",
@@ -285503,6 +288631,7 @@
   "arxiv:1710.06721": "R3843",
   "arxiv:1710.07222": "R0198",
   "arxiv:1710.08479": "R0119",
+  "arxiv:1710.11129": "R5173",
   "arxiv:1711.00977": "R1861",
   "arxiv:1711.04867": "R1288",
   "arxiv:1711.08484": "R4365",
@@ -285521,6 +288650,7 @@
   "arxiv:1801.00748": "R2381",
   "arxiv:1801.02489": "R0134",
   "arxiv:1801.02821": "R1124",
+  "arxiv:1801.03820": "R5169",
   "arxiv:1801.03945": "R2946",
   "arxiv:1801.03949": "R2225",
   "arxiv:1801.04278": "R3731",
@@ -285543,6 +288673,7 @@
   "arxiv:1803.01511": "R2358",
   "arxiv:1803.01706": "R1865",
   "arxiv:1803.03303": "R4720",
+  "arxiv:1803.06704": "R5138",
   "arxiv:1803.07083": "R2300",
   "arxiv:1804.00013": "R4721",
   "arxiv:1804.00763": "R2488",
@@ -285550,6 +288681,7 @@
   "arxiv:1804.02434": "R0369",
   "arxiv:1804.03734": "R4577",
   "arxiv:1804.05343": "R4150",
+  "arxiv:1804.05717": "R5174",
   "arxiv:1804.05889": "R0157",
   "arxiv:1804.06417": "R1013",
   "arxiv:1804.07306": "R2163",
@@ -285577,6 +288709,7 @@
   "arxiv:1807.03894": "R0627",
   "arxiv:1807.03925": "R3834",
   "arxiv:1807.06209": "R3544",
+  "arxiv:1807.06647": "R5139",
   "arxiv:1807.08593": "R3612",
   "arxiv:1808.00233": "R2768",
   "arxiv:1808.01402": "R0411",
@@ -285659,6 +288792,7 @@
   "arxiv:1906.02210": "R3192",
   "arxiv:1906.04253": "R4880",
   "arxiv:1907.02638": "R1675",
+  "arxiv:1907.03198": "R5188",
   "arxiv:1907.03732": "R1735",
   "arxiv:1907.04368": "R4563",
   "arxiv:1907.04861": "R4436",
@@ -285675,6 +288809,7 @@
   "arxiv:1907.13145": "R2434",
   "arxiv:1907.13150": "R2856",
   "arxiv:1908.02763": "R1026",
+  "arxiv:1908.04046": "R5175",
   "arxiv:1908.05909": "R2414",
   "arxiv:1908.06834": "R2485",
   "arxiv:1908.08047": "R4276",
@@ -285756,6 +288891,7 @@
   "arxiv:2007.05561": "R1268",
   "arxiv:2007.05562": "R1269",
   "arxiv:2007.05563": "R3955",
+  "arxiv:2007.07715": "R5181",
   "arxiv:2007.09059": "R2965",
   "arxiv:2007.10783": "R1892",
   "arxiv:2007.11006": "R3797",
@@ -285777,6 +288913,7 @@
   "arxiv:2009.06593": "R1672",
   "arxiv:2009.07282": "R4494",
   "arxiv:2009.07695": "R2183",
+  "arxiv:2009.07700": "R5204",
   "arxiv:2009.07761": "R4729",
   "arxiv:2009.10098": "R1754",
   "arxiv:2009.12377": "R3190",
@@ -285808,6 +288945,7 @@
   "arxiv:2012.00819": "R2628",
   "arxiv:2012.02247": "R0891",
   "arxiv:2012.07337": "R0736",
+  "arxiv:2012.08056": "R5202",
   "arxiv:2012.11477": "R1081",
   "arxiv:2101.01225": "R1985",
   "arxiv:2101.03433": "R4989",
@@ -285889,6 +289027,7 @@
   "arxiv:2203.01656": "R2546",
   "arxiv:2203.05460": "R0061",
   "arxiv:2203.10066": "R3333",
+  "arxiv:2203.10863": "R5176",
   "arxiv:2203.11223": "R1909",
   "arxiv:2204.00342": "R3722",
   "arxiv:2204.04243": "R4468",
@@ -285957,6 +289096,7 @@
   "arxiv:2302.03871": "R5132",
   "arxiv:2302.04241": "R4345",
   "arxiv:2302.09082": "R2013",
+  "arxiv:2302.14847": "R5191",
   "arxiv:2303.00063": "R1153",
   "arxiv:2303.08280": "R4254",
   "arxiv:2303.12451": "R3969",
@@ -285970,6 +289110,7 @@
   "arxiv:2305.17228": "R1505",
   "arxiv:2305.18408": "R0701",
   "arxiv:2306.03743": "R4425",
+  "arxiv:2306.07534": "R5196",
   "arxiv:2306.08739": "R3475",
   "arxiv:2306.09400": "R2519",
   "arxiv:2306.10150": "R4904",
@@ -285990,6 +289131,7 @@
   "arxiv:2309.07483": "R3833",
   "arxiv:2309.09478": "R3241",
   "arxiv:2309.16054": "R2839",
+  "arxiv:2310.00480": "R5192",
   "arxiv:2310.01231": "R3467",
   "arxiv:2310.02828": "R0015",
   "arxiv:2310.03593": "R0713",
@@ -286013,6 +289155,7 @@
   "arxiv:2402.13682": "R0273",
   "arxiv:2403.03248": "R3332",
   "arxiv:2403.03325": "R0339",
+  "arxiv:2403.05951": "R5187",
   "arxiv:2403.08870": "R3306",
   "arxiv:2403.09917": "R0418",
   "arxiv:2403.11657": "R1895",
@@ -286031,6 +289174,8 @@
   "arxiv:2405.05476": "R3643",
   "arxiv:2405.11018": "R4662",
   "arxiv:2405.11027": "R4106",
+  "arxiv:2405.11810": "R5184",
+  "arxiv:2405.17751": "R5193",
   "arxiv:2406.02855": "R0511",
   "arxiv:2406.03815": "R3186",
   "arxiv:2406.04311": "R3430",
@@ -286060,6 +289205,8 @@
   "arxiv:2410.05761": "R3928",
   "arxiv:2410.06248": "R4240",
   "arxiv:2410.11138": "R2732",
+  "arxiv:2410.17499": "R5199",
+  "arxiv:2410.23557": "R5195",
   "arxiv:2411.02484": "R4512",
   "arxiv:2411.03454": "R0046",
   "arxiv:2411.07424": "R3400",
@@ -286071,6 +289218,7 @@
   "arxiv:2412.05220": "R0094",
   "arxiv:2412.07089": "R4991",
   "arxiv:2412.11627": "R1176",
+  "arxiv:2412.20944": "R5186",
   "arxiv:2501.06613": "R4493",
   "arxiv:2501.07869": "R1064",
   "arxiv:2501.15930": "R4016",
@@ -286087,6 +289235,7 @@
   "arxiv:2503.08347": "R2195",
   "arxiv:2503.11597": "R4992",
   "arxiv:2503.17772": "R3702",
+  "arxiv:2503.19116": "R5190",
   "arxiv:2503.21936": "R4551",
   "arxiv:2503.23856": "R2845",
   "arxiv:2504.01182": "R3445",
@@ -286137,6 +289286,7 @@
   "arxiv:2511.13716": "R0646",
   "arxiv:2511.17717": "R3546",
   "arxiv:2512.01350": "R2665",
+  "arxiv:2512.03295": "R5197",
   "arxiv:2512.03892": "R3222",
   "arxiv:2512.07318": "R2712",
   "arxiv:2512.09785": "R1718",
@@ -286145,6 +289295,7 @@
   "arxiv:2601.02724": "R5131",
   "arxiv:2601.16159": "R4981",
   "arxiv:2601.22034": "R0336",
+  "arxiv:2602.03509": "R5194",
   "arxiv:2602.11923": "R0715",
   "arxiv:2602.12017": "R2575",
   "arxiv:2602.12201": "R4479",
@@ -286162,6 +289313,7 @@
   "arxiv:2605.00100": "R4903",
   "arxiv:2605.03099": "R1396",
   "arxiv:2606.07511": "R0869",
+  "arxiv:2606.11330": "R5217",
   "arxiv:2606.12851": "R0382",
   "arxiv:2606.23483": "R0186",
   "arxiv:2606.30722": "R0901",
@@ -286171,9 +289323,11 @@
   "arxiv:2607.22814": "R4581",
   "arxiv:2607.25542": "R2100",
   "arxiv:2608.02945": "R2470",
+  "arxiv:2608.11696": "R5170",
   "arxiv:2609.21027": "R3937",
   "arxiv:2609.25488": "R0059",
   "arxiv:2609.29996": "R4230",
+  "arxiv:2611.06045": "R5180",
   "arxiv:astro-ph/0001295": "R2055",
   "arxiv:astro-ph/0002232": "R2573",
   "arxiv:astro-ph/0003053": "R3142",
@@ -286207,6 +289361,7 @@
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
   "arxiv:astro-ph/0303456": "R5079",
+  "arxiv:astro-ph/0308159": "R3682",
   "arxiv:astro-ph/0308388": "R1270",
   "arxiv:astro-ph/0308467": "R0362",
   "arxiv:astro-ph/0310667": "R4694",
@@ -286248,6 +289403,7 @@
   "arxiv:astro-ph/0508460": "R4824",
   "arxiv:astro-ph/0510224": "R3999",
   "arxiv:astro-ph/0510255": "R3185",
+  "arxiv:astro-ph/0510285": "R5142",
   "arxiv:astro-ph/0510784": "R4491",
   "arxiv:astro-ph/0511082": "R0921",
   "arxiv:astro-ph/0512334": "R1109",
@@ -286282,6 +289438,7 @@
   "arxiv:astro-ph/0702496": "R2194",
   "arxiv:astro-ph/0702622": "R1680",
   "arxiv:astro-ph/0703059": "R2158",
+  "arxiv:astro-ph/0703160": "R5141",
   "arxiv:astro-ph/0703346": "R1566",
   "arxiv:astro-ph/0703414": "R1447",
   "arxiv:astro-ph/9404028": "R2830",
@@ -286324,8 +289481,10 @@
   "setup:https://zenodo.org/": "R4962",
   "web:http://casual-effects.blogspot.com/2014/03/weighted-blended-order-independent.html": "R5055",
   "web:http://endavid.com/index.php?entry=76": "R5047",
+  "web:http://www.minsocam.org/ammin/am52/am52_171.pdf": "R5164",
   "web:https://albumentations.ai/blog/2025/02-the-art-and-science-of-dithering/": "R5036",
   "web:https://alextardif.com/taa.html": "R5061",
+  "web:https://arxiv.org/abs/1109.3511": "R5167",
   "web:https://bartwronski.com/page/3/": "R5063",
   "web:https://beltoforion.de/en/dithering/": "R5039",
   "web:https://castle-engine.io/occlusion_culling": "R5040",
@@ -286872,6 +290031,24 @@
    "provider": "Gaia Sky project, Heidelberg University",
    "url": "https://gaia.ari.uni-heidelberg.de/gaiasky/docs/3.5.3/LOD-catalogs.html",
    "year": ""
+  },
+  {
+   "checked": "2026-11-08",
+   "identifier": "",
+   "kind": "web page",
+   "name": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
+   "provider": "Mineralogical Society of America",
+   "url": "http://www.minsocam.org/ammin/AM52/AM52_171.pdf",
+   "year": "1967"
+  },
+  {
+   "checked": "2026-11-08",
+   "identifier": "arXiv:1109.3511",
+   "kind": "web page",
+   "name": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+   "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
+   "url": "https://arxiv.org/abs/1109.3511",
+   "year": "2012"
   }
  ]
 }

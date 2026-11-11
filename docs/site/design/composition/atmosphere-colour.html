@@ -1,0 +1,925 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atmosphere colour: one consistent atmosphere, then its colour - planetGen docs</title>
+<meta name="description" content="Version note (2026-11-05): &quot;8.4 phase 1 to 4&quot; in this document is the old plan.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-colour.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/atmosphere-colour.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="atmosphere-colour-one-consistent-atmosphere-then-its-colour">Atmosphere colour: one consistent atmosphere, then its colour</h1><p class="meta">docs/design/composition/atmosphere-colour.md</p><details class="toc"><summary>On this page (23 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-boss-decided">1. What Boss decided</a></li><li style="margin-left:0px"><a href="#2-the-chain">2. The chain</a></li><li style="margin-left:0px"><a href="#3-what-exists-today">3. What exists today</a></li><li style="margin-left:0px"><a href="#4-the-decisions">4. The decisions</a></li><li style="margin-left:0px"><a href="#5-stored-versus-derived">5. Stored versus derived</a></li><li style="margin-left:0px"><a href="#6-the-gas-and-compound-table-gen410-and-the-mixture">6. The gas and compound table (GEN.410) and the mixture</a></li><li style="margin-left:14px"><a href="#61-columns">6.1 Columns</a></li><li style="margin-left:14px"><a href="#62-rayleigh-data">6.2 Rayleigh data</a></li><li style="margin-left:14px"><a href="#63-forcing-laws-comets-and-mantle-redox-bosss-papers">6.3 Forcing laws, comets and mantle redox (Boss's papers)</a></li><li style="margin-left:0px"><a href="#7-mixture-pressure-and-molar-density-agree-tests-in-test209">7. Mixture, pressure and molar density agree (tests in TEST.209)</a></li><li style="margin-left:0px"><a href="#8-albedo-and-greenhouse-the-inverse-for-old-rows">8. Albedo and greenhouse: the inverse for old rows</a></li><li style="margin-left:0px"><a href="#9-ozone-gen413">9. Ozone (GEN.413)</a></li><li style="margin-left:0px"><a href="#10-haze-dust-and-cloud-gen414">10. Haze, dust and cloud (GEN.414)</a></li><li style="margin-left:0px"><a href="#11-gas-and-ice-giants-the-reference-level-gen419">11. Gas and ice giants: the reference level (GEN.419)</a></li><li style="margin-left:0px"><a href="#12-the-colour-model-and-the-thick-air-limit-gen416-to-gen418">12. The colour model and the thick-air limit (GEN.416 to GEN.418)</a></li><li style="margin-left:0px"><a href="#13-migrations-and-the-generator-epoch">13. Migrations and the generator epoch</a></li><li style="margin-left:0px"><a href="#14-worked-example-computed-2026-10-17-1219-pm-edt-dust-case-1245-pm-edt">14. Worked example (computed 2026-10-17, 12:19 PM EDT; dust case 12:45 PM EDT)</a></li><li style="margin-left:14px"><a href="#141-optics-and-colour">14.1 Optics and colour</a></li><li style="margin-left:14px"><a href="#142-the-inverse-planetspy-lines-649-to-714-reproduced">14.2 The inverse (planets.py lines 649 to 714 reproduced)</a></li><li style="margin-left:0px"><a href="#15-test-targets-physical-targets-and-test-rows-never-presets">15. Test targets (physical targets and test rows, never presets)</a></li><li style="margin-left:0px"><a href="#16-open-inputs-and-seeded-ranges">16. Open inputs and seeded ranges</a></li><li style="margin-left:0px"><a href="#17-source-conflicts-and-the-rule-that-decided-each">17. Source conflicts and the rule that decided each</a></li><li style="margin-left:0px"><a href="#18-approved-by-boss">18. Approved by Boss</a></li></ul></details>
+<blockquote>
+<p>Version note (2026-11-05): &quot;8.4 phase 1 to 4&quot; in this document is the old plan. Those phases moved into 8.1 on 2026-10-23 and are now 8.1 phases 6 to 9 (8.4 phase N is 8.1 phase N+5); see docs/plan/releases/version-8-1-zoom-and-scatters.md.</p>
+</blockquote>
+<p><strong>Status (2026-10-17, drafted 12:19 PM EDT, revised 12:50 PM EDT for Boss's papers and Boss's conflict rules of 12:39 PM EDT):</strong> the checked design (GEN.409), Boss approved section 18 as recommended (9:40 to 9:55 PM EDT). Nothing is built, and this note changes no code, stored value, schema or generator epoch; the build items GEN.410 to GEN.419 do (section 13). It replaces the plan note of 2026-10-16. Boss (11:24 PM EDT and 11:25 PM EDT) made the colour of the air of any world, worked out from the atmosphere it really has, the seminal feature of 9.0. Sources: the master <a href="atmosphere-composition.html">atmosphere-composition.md</a> and its parts (cited &quot;part 01&quot; to &quot;part 10&quot;), <a href="atmosphere-sources-check.html">atmosphere-sources-check.md</a> (GEN.408, &quot;sources check&quot;), <a href="sky-colour-analysis.html">sky-colour-analysis.md</a>, <a href="composition-model.html">composition-model.md</a> sections 4a and 4b, <a href="tunable-gaps.html">tunable-gaps.md</a> section 6, <a href="../research/boss-papers-2026-10-17.html">boss-papers-2026-10-17.md</a> (on origin/main; sections 2.1 to 2.4, 2.6, 2.7, 3, 4; a paper wins over a second-hand value in our files and both values are stated), and the code of section 3.</p>
+<p><strong>Verification states</strong> (Boss, 3:02 AM EDT: verified and partly verified are usable unless contradicted; the verified source wins): <strong>verified</strong> (read, data file, or computed; wins every contradiction); <strong>partly verified</strong> (second-hand, or true inside a stated limit; usable inside it); <strong>open</strong> (no usable source; the entry names the seeded physical range used meanwhile, never a fixed value); <strong>stand-in</strong> (a measured Solar System shape or an unvalidated engineering formula, a flagged temporary row with the item that replaces it). Recalled or snippet values are placeholders, never sources. <strong>Conflict rules (Boss, 12:39 PM EDT):</strong> when in doubt verified wins; when two verified sources are in doubt the newest wins; when two sources are both in question the most permissive wins. Third rule, Decided (Boss, 2026-10-17, 1:12 PM EDT): the widest value or range either source allows, never a value outside both. Each place that settles a disagreement carries 'Rule applied' and section 17 lists them.</p>
+<h2 id="1-what-boss-decided">1. What Boss decided</h2>
+<ul>
+<li>Store the albedo and the greenhouse values used in generation; the migration works the formula back from stored values, or draws from the planet class where that fails.</li>
+<li>Break the molar density into per-gas partial pressures and calculate it from them, so both match and the light meets a known mixture.</li>
+<li>Build ozone in from real research; if the research is missing, a generator from the oxygen and the star's UV; Boss researches on request.</li>
+<li>Sky colour and atmosphere colour are the same; the wording is &quot;atmosphere colour&quot; and it replaces the planet colour where that is what it meant.</li>
+<li>The colour is absolute, not adapted to the star (card, evening of 2026-10-16); gas giants are in the first version.</li>
+<li>Haze, dust and similar scatterers get reasonable draws or derivations.</li>
+<li>One table of every gas and compound, including every compound the descriptions mention.</li>
+<li>Nothing is fixed per class or copied from the Solar System; every input is a stored physical quantity or a seeded draw. Solar System bodies are test targets.</li>
+<li>Later rulings: value-changing chain stays in 8.4 (12:13 AM EDT, 2026-10-17); radius reference level 1 bar (1:24 AM EDT); gated possibility tables (1:40 to 1:51 AM EDT); the usability rule (3:02 AM EDT); Tunable gaps defaults D4 and D5 (3:36 AM EDT relay).</li>
+</ul>
+<h2 id="2-the-chain">2. The chain</h2>
+<ul>
+<li><strong>8.4 phase 1:</strong> GEN.408 sources check (done); GEN.412 albedo and greenhouse recorded, with the inverse.</li>
+<li><strong>8.1:</strong> GEN.409 this design; GEN.410 gas table; GEN.472 gated table loader; GEN.470, GEN.497 saturation curves; GEN.496 photolysis lifetimes.</li>
+<li><strong>8.4 phase 2:</strong> GEN.411 molar density from partials; GEN.452 condensation curves; GEN.422 no recalculation redraw; GEN.423 density, scale height, greenhouse follow the mixture; GEN.424 named balance gas; GEN.454 giant mixtures; GEN.455 exospheres; DB.67, DB.71.</li>
+<li><strong>8.4 phase 3:</strong> GEN.413 ozone; GEN.414 haze, dust, cloud; GEN.456 lava-world vapor; GEN.462 ground albedo by band.</li>
+<li><strong>GEN.462 wiring (ground under the air):</strong> <code>body_colour.ground_albedo</code> hands the area-weighted band reflectance of the stored surface mix (GEN.441, <code>surface_composition.band_albedo</code>) to the colour model in place of the 0.15 stand-in; the open ocean, the metal and a body with no stored mix keep the stand-in for their share. The Bond albedo for the temperature and the space weathering of an airless surface are GEN.684.</li>
+<li><strong>8.4 phase 4:</strong> DB.68; GEN.415 text from the mixture; TEST.209 sweep; DOC.63.</li>
+<li><strong>9.0:</strong> phase 1 GEN.416 star colour, GEN.417 Rayleigh depth, GEN.418 solid-world colour, GEN.419 giant colour; phase 3 GEN.420, MAP.244, DOC.64; phase 4 GEN.421 headline.</li>
+</ul>
+<p>The foundations sit in 8.4 because the classes are reworked there (GEN.90). VIEW.11 extends GEN.416 and is built in 8.2 as a foundation of the view from a planet (9.0 phase 2). The trace of 2026-10-17 found that only the pressure flows from the stored mixture; the drawn molar density, scale height and multiplier never see it, the recalculation redraws albedo and mix, the freeze-out lowers the pressure after the temperature is set, and habitability uses 28 g/mol for every balance gas (GEN.411, 422, 423, 424).</p>
+<h2 id="3-what-exists-today">3. What exists today</h2>
+<ul>
+<li><code>physics/atmosphere.py</code>: ten stored species (line 38; <code>p_&lt;gas&gt;_kpa</code> columns, <code>db/models.py</code> 765 and 1246); a mole-fraction template per class (<code>CLASS_MIXES</code>, 86 to 105; C, D, S have no air); helium, sodium, ammonia are unstored balance gases; the cold side caps each partial at a two-point curve (<code>CONDENSATION_K</code>, 77 to 84, the H<sub>2</sub>S row copies SO<sub>2</sub>) and lowers <code>atmospheric_pressure</code> after the temperature was set (241 to 245).</li>
+<li><code>physics/planets.py</code> <code>calculate_atmospheric_conditions</code> (630 to 716): albedo from the class <code>albedo_range</code> (E, F, G, H, K, L, M, N, O, P, V) or (0.12, 0.35) (A, B, C, D, I, J, Q, S, T; 657, 658); T_e the airless temperature (662); scale height R T_e / (M g) with <code>atm_molar_density</code> (671 to 677, stored as <code>scale_height_km</code>); pressure effective density times g times H (692 to 694); greenhouse factor min(500, <code>atm_molar_density</code> / 0.04345 times a class multiplier) (710 to 713); T_s = max(2.725 K, ((1 - A) S (1 + G) / (4 sigma))^(1/4)) (714, 715). Albedo and multiplier are discarded. <code>atm_molar_density</code> is a mean molar mass in kg/mol drawn independently of the mixture. A moon passes its parent's distance (<code>generation/validation.py</code> 287, 715).</li>
+<li><code>physics/radiation.py</code> 216, 223: <code>ozone_ratio</code> (square root of pO2, cap 1.2) and a <code>uv_index</code> that is not the CIE index. No aerosol quantity, no colour code.</li>
+<li>Giants (classes I, J, T) run the same code; <code>constants.py</code> 143 to 162 already defines their air density at a 1 bar level.</li>
+<li>Database: schema v106 (migration 0106), no albedo or greenhouse column; generator epoch 11 (<code>src/tests/golden/epochs.json</code>, first release 8.0.1708).</li>
+</ul>
+<h2 id="4-the-decisions">4. The decisions</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Decision</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Store albedo and greenhouse; inverse for old rows, class draw where it fails (section 8)</td>
+<td>Decided, Boss, 2026-10-16, 11:24 to 11:25 PM EDT (the plan note does not time each line)</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Partial pressures first; molar density calculated from them (sections 6, 7)</td>
+<td>Decided, same</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Ozone from research, else a generator from O<sub>2</sub> and star UV (section 9)</td>
+<td>Decided, same</td>
+</tr>
+<tr>
+<td>4</td>
+<td>&quot;Atmosphere colour&quot; replaces &quot;sky colour&quot; and the planet colour</td>
+<td>Decided, same</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Absolute colour, no adaptation; giants included</td>
+<td>Decided, card of the evening of 2026-10-16 (minute not recorded)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>One gas and compound table with every compound the descriptions mention</td>
+<td>Decided, 11:24 to 11:25 PM EDT</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Nothing fixed per class, no presets; Solar System rows live in tests only (TEST.215)</td>
+<td>Decided, standing rule; 1:43 AM EDT on stand-ins</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Value-changing chain stays in 8.4, outside the 8.1 stamp</td>
+<td>Decided, 12:13 AM EDT, 2026-10-17</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Radius reference level 1 bar</td>
+<td>Decided, 1:24 AM EDT</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Gated possibility tables, stand-in marker, one shared component table</td>
+<td>Decided, 1:40 to 1:51 AM EDT</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Verified wins; partly verified usable inside its limit</td>
+<td>Decided, 3:02 AM EDT</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Life-linked gases (N<sub>2</sub>O, PH<sub>3</sub>, NO<sub>2</sub>, CH<sub>3</sub>Cl) default off, never tuned; Kzz and haze yield are nuisance parameters</td>
+<td>Default taken, 3:36 AM EDT relay, stands unless Boss overrules</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Stored greenhouse quantity is G = (T_s / T_e)^4 - 1, column <code>greenhouse_factor</code> (the code's class draw <code>greenhouse_multiplier</code> stays internal)</td>
+<td>Default taken (master finding 5)</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Old rows: albedo and G from the stored scale height, never the pressure; failures take a seeded class draw; <code>albedo_basis</code> flag</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Stored versus derived as in section 5</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>16</td>
+<td><code>atm_molar_density</code> keeps name and unit (kg/mol); new rows hold the sum of x_i M_i; old rows are rewritten after the inverse has used the old value</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Gas table columns and add list (section 6)</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Rayleigh data per gas (section 6.2): refractivity values center N<sub>2</sub>, O<sub>2</sub>, Ar, CO<sub>2</sub> (Bates King factors, Bucholtz fit as check); measured 532 nm gaps of Sneep and Ubachs set the per-gas error (2.5 to 18 percent); generic 5 to 9 percent only for SO<sub>2</sub>, H<sub>2</sub>S, H<sub>2</sub>, He, NH<sub>3</sub>, H<sub>2</sub>O</td>
+<td>Partly verified; [R0443] not uploaded, so those six stay open. Rule applied: verified, then newest, then most permissive (17)</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Ozone: Kozakis polynomial by host times a seeded structure factor LU[0.85, 1.71]; abiotic branch below 0.01 percent O<sub>2</sub>; column stored</td>
+<td>Default taken; host T_eff map open. Rule applied: verified, widest model spread (17)</td>
+</tr>
+<tr>
+<td>20</td>
+<td>Cloud draw from the condensation level and vapor budget (10.1)</td>
+<td>Default taken; efficiency, cover open</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Haze: threshold, diffusion-limited supply times yield LU[0.01, 1] (10.2)</td>
+<td>Stand-in; absolute depth open</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Dust gated by the lofting threshold, depth LU[0.5, 1.5] meanwhile; albedo spectrum from [R4743] (digitized from Figures 12 to 14) (10.3)</td>
+<td>Stand-in; no Wolff table, Titan haze unread. Rule applied: verified (17)</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Giant reference level P_ref = min(1 bar, cloud top) (section 11)</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Giant colour derived from optical columns; Sudarsky classes and the Cahoy table are labels and test targets</td>
+<td>Default taken; band strengths open</td>
+</tr>
+<tr>
+<td>25</td>
+<td>Single scattering to tau(550 nm) 0.3, two-stream above (supersedes the plan note's 0.5)</td>
+<td>Default taken; verified basis. Rule applied: verified (17)</td>
+</tr>
+<tr>
+<td>26</td>
+<td>Planck spectrum from 4500 K; cooler stars use BT-Settl chromaticity with a seeded spread</td>
+<td>Default taken; licence open</td>
+</tr>
+<tr>
+<td>27</td>
+<td>Output: hue swatch (brightest channel 1), CIE xy, sky-to-star luminance ratio, a word; none stored</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Three migration revisions, numbers taken at build time</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>29</td>
+<td>This design bumps no epoch; the build items bump per phase</td>
+<td>Default taken</td>
+</tr>
+<tr>
+<td>30</td>
+<td>The open inputs of section 16 run on their seeded ranges</td>
+<td>Open</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-stored-versus-derived">5. Stored versus derived</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Kind</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Partial pressures (ten columns; added gases per DB.71)</td>
+<td>stored</td>
+<td>the mixture is the cause; the sum equals the stored pressure</td>
+</tr>
+<tr>
+<td><code>atmospheric_pressure_pa</code></td>
+<td>stored</td>
+<td>after the freeze-out</td>
+</tr>
+<tr>
+<td><code>atm_molar_density</code>, kg/mol</td>
+<td>stored, derived at generation</td>
+<td>sum of x_i M_i (decision 16); the scale height and old readers use it</td>
+</tr>
+<tr>
+<td><code>bond_albedo</code>, <code>greenhouse_factor</code></td>
+<td>stored</td>
+<td>draws; not recoverable from the new pressure; the temperature is exactly what they give</td>
+</tr>
+<tr>
+<td><code>albedo_basis</code> (0 generated, 1 exact inverse, 2 class draw)</td>
+<td>stored</td>
+<td>the migration writes 1 and 2</td>
+</tr>
+<tr>
+<td><code>surface_temperature</code>, <code>scale_height_km</code>, <code>atm_density</code></td>
+<td>stored (exist)</td>
+<td>follow from the above (GEN.423)</td>
+</tr>
+<tr>
+<td><code>ozone_column_du</code></td>
+<td>stored</td>
+<td>the seeded structure factor makes it not derivable</td>
+</tr>
+<tr>
+<td><code>tau_haze</code>, <code>tau_dust</code>, <code>tau_cloud</code> (550 nm), <code>cloud_cover</code>, <code>aerosol_draw</code></td>
+<td>stored</td>
+<td><code>aerosol_draw</code> is one seeded unit number that picks every within-bracket optical property</td>
+</tr>
+<tr>
+<td>T_e, Rayleigh depth, ozone absorption, air mass, aerosol material and constants, giant reference level, Sudarsky label</td>
+<td>derived</td>
+<td>from stored values and the tables</td>
+</tr>
+<tr>
+<td>Atmosphere colour (hex, xy, luminance ratio, word)</td>
+<td>derived</td>
+<td>a pure function; the star's colour from its stored temperature</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="6-the-gas-and-compound-table-gen410-and-the-mixture">6. The gas and compound table (GEN.410) and the mixture</h2>
+<h3 id="61-columns">6.1 Columns</h3>
+<p>One row per species; each column group carries its own verification state, source and licence (the GEN.472 loader refuses a row without them).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Columns</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Identity</td>
+<td>key (formula, never a class letter), name, formula, CAS, molar mass (<code>periodictable</code>), isotopologue flag, flags (infrared, volatility class, near-UV fragile, toxic, <code>column_only</code> for O<sub>3</sub>)</td>
+<td>part 01 T1</td>
+</tr>
+<tr>
+<td>Phase</td>
+<td>triple and critical points, boiling or sublimation point, saturation curve (id, coefficients, validity window, blend point), latent heats</td>
+<td>part 01 sections 3, 6, 7; part 06</td>
+</tr>
+<tr>
+<td>Thermal</td>
+<td>heat capacity at three temperatures, gamma, viscosity, Henry constant, critical constants for real-gas Z</td>
+<td>part 01 sections 4, 8 to 10</td>
+</tr>
+<tr>
+<td>Rayleigh</td>
+<td>refractivity formula and the temperature it is defined at (288.15 or 273.15 K), or polarizability and depolarization; sigma(550 nm) check; error spread</td>
+<td>sources check 2.1, 2.2; part 02 2.1</td>
+</tr>
+<tr>
+<td>Absorption</td>
+<td>UV and visible bins with temperature trend; O<sub>3</sub> Chappuis, Hartley, Huggins; alkali and oxide data for hot giants</td>
+<td>part 02 2.3 to 2.5</td>
+</tr>
+<tr>
+<td>Infrared</td>
+<td>band centers, strength class, forcing law ([R3229], 6.3), collision-induced pairs</td>
+<td>part 03 section 2; Myhre Table 3</td>
+</tr>
+<tr>
+<td>Photochemistry, escape</td>
+<td>photolysis threshold, lifetime by host star, reaction rows, escape data</td>
+<td>part 04; GEN.496</td>
+</tr>
+<tr>
+<td>High energy</td>
+<td>EUV and X-ray absorption, attenuation, proton stopping, W value</td>
+<td>part 07</td>
+</tr>
+<tr>
+<td>Distribution</td>
+<td>the gated possibility rows (GEN.472): median mole fraction and log range by gate; comet rows per 6.3</td>
+<td>parts 05, 09; [R3206]</td>
+</tr>
+</tbody>
+</table></div>
+<p>Condensates (water, ammonia, silicates, salts, tholins, dust minerals) are a second registry: density, saturation curve, n and k by wavelength, single scattering albedo, exponent (part 06 2.8). The saturation curves replace <code>CONDENSATION_K</code> (GEN.452): the Wagner liquid fit above the triple point, the Fray and Schmitt sublimation fit below, and the [R0418, R1708] laboratory fits only inside their windows (N<sub>2</sub> 23 to 31 K, CO 26 to 35 K, CH<sub>4</sub> 31 to 43 K, O<sub>2</sub> 29 to 37 K, NH<sub>3</sub> 88 to 105 K; part 01 7.1, 7.3). The code's H<sub>2</sub>S row is 20 to 50 K wrong.</p>
+<p><strong>Species.</strong> The ten stored species stay. The add list is He, Ne, Kr, Xe, NH<sub>3</sub>, NH<sub>4</sub>SH, HCN, C<sub>2</sub>H<sub>6</sub>, C<sub>2</sub>H<sub>2</sub>, OCS, HCl, HF, N<sub>2</sub>O, NO<sub>2</sub>, O<sub>3</sub>, Na, K, SiO, Mg, Fe, TiO, VO, PH<sub>3</sub> (master finding 10), plus the class-text words with no row today: &quot;mineral dust&quot; (an aerosol row, 10.3), &quot;trace elements&quot; (lava-world vapor rows), &quot;hydrocarbons&quot; (CH<sub>4</sub>, C<sub>2</sub>H<sub>6</sub>, C<sub>2</sub>H<sub>2</sub>, C<sub>2</sub>H<sub>4</sub>).</p>
+<h3 id="62-rayleigh-data">6.2 Rayleigh data</h3>
+<p>sigma = 24 pi^3 (n^2 - 1)^2 F_K / (lambda^4 N^2 (n^2 + 2)^2), N the density at which (n - 1) is defined; F_K = (6 + 3 rho) / (6 - 7 rho), so rho = 6 (F - 1) / (3 + 7 F) ([R2360, R2361] Eq. 78, 90; Sneep and Ubachs Eq. 7; read). Mixtures add by number fraction, equivalently F_mix - 1 = sum w_r (F_r - 1) with weights v_r (mu_r - 1)^2 (King Eq. 91, 94; read). The King factors of N<sub>2</sub> and O<sub>2</sub> are [R0282] (N<sub>2</sub> F = 1.034 + 3.17e-4 / lambda^2; O<sub>2</sub> F = 1.096 + 1.385e-3 / lambda^2 + 1.448e-4 / lambda^4, lambda in micron; read from the paper's page images). Bucholtz's depolarization column is back-computed from Bates's rounded factors, so Bates and Bucholtz are one source, not two (recomputed in Boss's papers 2.1).</p>
+<p><strong>Air shortcut and check.</strong> [R0575: Table 3] gives sigma = A lambda^-(B + C lambda + D / lambda), lambda in micron, cm^2: A 3.01577e-28 below 0.5 micron and 4.01061e-28 above; B 3.55212 and 3.99668; C 1.35579 and 1.10298e-3; D 0.11563 and 2.71393e-2; stated accuracy under 0.4 percent at 0.2 micron and under 0.1 percent above 0.5 micron (read). It is the regression check for Earth-like air at 15 C. At 550 nm the sigma of air is 4.509e-27 cm^2 (Bucholtz Table 2), 4.513e-27 (Bates Table 1, 0 C), 4.507e-27 (the fit, computed here) and 4.5135e-27 (this note's per-gas sum, computed here).</p>
+<p><strong>Per-gas cross sections at 550 nm,</strong> cm^2 (ratio to N<sub>2</sub>), from the refractivity form with the factors above: N<sub>2</sub> 4.635e-27; O<sub>2</sub> 4.072e-27 (0.879); Ar 3.991e-27 (0.861); CO<sub>2</sub> 1.164e-26 (2.51). Gases that carry a literature ratio: CH<sub>4</sub> 9.905e-27 (2.14, He 2021); N<sub>2</sub>O 1.587e-26 (3.42, He 2021); CO 5.63e-27 (1.21, the Sneep and Ubachs measured ratio; Allen and Cox form gave 1.24, partly verified, dropped); H<sub>2</sub> 9.38e-28 (0.202, Dalgarno and Williams, partly verified) to 1.008e-27 (0.217, Peck and Huang constants, data), so 0.20 to 0.22; He 6.0e-29 (0.013); NH<sub>3</sub> 7.2e-27 to 7.4e-27 (1.55 to 1.60, partly verified); Ne 2.19e-28, Kr 9.21e-27, Xe 2.40e-26 (data). H<sub>2</sub>S 1.98e-26 and SO<sub>2</sub> 2.41e-26 are the polarizability route. H<sub>2</sub>O vapor has no known reference temperature: generic 3.38e-27 with a spread to the n-based 2.8e-27 to 3.1e-27. None of the five Rayleigh papers holds a depolarization ratio for SO<sub>2</sub>, H<sub>2</sub>S, H<sub>2</sub>, He, NH<sub>3</sub> or water; [R0443] is not uploaded, so these six stay open at the generic 5 to 9 percent error (a 5 percent log-normal draw, 13 gases, ratios 0.907 to 1.060; part 02 3.1).</p>
+<p><strong>Measured error per gas.</strong> [R4138: Table 2] (read from page images, 532.2 nm, 15 C, 1013 hPa, 1e-27 cm^2); the gap is the refractivity value over the measured value:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>measured</th>
+<th>refractivity-based</th>
+<th>gap</th>
+<th>measured ratio to N<sub>2</sub></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ar</td>
+<td>4.45 (0.3)</td>
+<td>4.56</td>
+<td>2.5 percent</td>
+<td>0.87</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>5.10 (0.24)</td>
+<td>5.30</td>
+<td>3.9 percent</td>
+<td>1</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>12.4 (0.8)</td>
+<td>13.29</td>
+<td>7.2 percent</td>
+<td>2.43</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>6.19 (0.4)</td>
+<td>6.82</td>
+<td>10.2 percent</td>
+<td>1.21</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>15.90 (0.08)</td>
+<td>18.19</td>
+<td>14.4 percent</td>
+<td>3.12</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>12.47 (0.23)</td>
+<td>14.69</td>
+<td>17.8 percent</td>
+<td>2.45</td>
+</tr>
+<tr>
+<td>SF<sub>6</sub></td>
+<td>32.3 (0.5)</td>
+<td>34.1</td>
+<td>5.6 percent</td>
+<td>6.33</td>
+</tr>
+</tbody>
+</table></div>
+<p>This note's formulas give 5.30 (N<sub>2</sub>), 4.56 (Ar) and 13.32 (CO<sub>2</sub>) at 532.2 nm (computed here), the refractivity column. The paper's own statement is that the refractivity method holds &quot;at the few percent level&quot;, with larger gaps for CO, N<sub>2</sub>O and CH<sub>4</sub>. Rule applied: verified (Sneep Table 2 replaces the generic error). Decision 18 takes the refractivity value as the center for N<sub>2</sub>, O<sub>2</sub>, Ar and CO<sub>2</sub>, because it is the value behind the published Earth target (14.1, 15) and the measured gap is inside the stated few percent, and takes the full gap down to the measured value as the seeded range (one-sided log-uniform factor from measured / refractivity to 1; tests use the center). Rule applied: verified for the center, most permissive for the range (17). For CH<sub>4</sub>, N<sub>2</sub>O and CO<sub>2</sub> the ratios come from He 2021 (2.14, 3.42, 2.51) where both are measured and Sneep and Ubachs give 2.45, 3.12, 2.43: two verified measurements, newest (He 2021) centers, and the older one bounds the draw. Rule applied: newest, range most permissive (17). The coded Sneep and Ubachs CO form and the older CH<sub>4</sub> ratio 2.76 (the refractivity ratio, 2.77 in Table 2) are dropped.</p>
+<p>Phase function p = 3 / (4 (1 + 2g)) [(1 + 3g) + (1 - g) cos^2 theta], g = rho / (2 - rho) (Monte Carlo verified, part 02 2.8).</p>
+<h3 id="63-forcing-laws-comets-and-mantle-redox-bosss-papers">6.3 Forcing laws, comets and mantle redox (Boss's papers)</h3>
+<ul>
+<li><strong>Forcing ([R3229: Table 3], printed p. 2718, read).</strong> dF = 5.35 ln(C/C0) W m^-2 for CO<sub>2</sub> (C in ppmv; IPCC 1990 had 6.3); CH<sub>4</sub> 0.036 (sqrt M - sqrt M0) minus an overlap term; N<sub>2</sub>O 0.12 (IPCC 1990 0.14) likewise; overlap f(M,N) = 0.47 ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; CFC-11 0.25, CFC-12 0.33. Assumed uncertainties: 1 percent CO<sub>2</sub>, 10 percent CH<sub>4</sub>, 5 percent N<sub>2</sub>O. CO<sub>2</sub> doubling is 3.71 W m^-2 (5.35 ln 2 = 3.708). The &quot;IPCC 1990&quot; labels on 5.35 and 0.12 in the parts file are wrong: they are Myhre. The paper states no validity range, so the laws are Earth-range only; correlated-k grids stay a download job. Stored G (section 8) is not computed from them; they are a test target.</li>
+<li><strong>Comets ([R3206: Table 4], read).</strong> NH<sub>3</sub> is 1.5, 0.5, 0.7 and below 0.3 percent of water in the four comets that have it, so the repo bound of 3.6 percent is unsupported: about 1.5 percent is the upper end. SO<sub>2</sub> is 0.2 percent of water in Hale-Bopp, a second comet beside 67P (0.127 percent). N<sub>2</sub>, O<sub>2</sub>, Ar, Kr and Xe in comets have no source in the review and stay open.</li>
+<li><strong>Mantle redox ([R1491]; Pahlevan, Schaefer and Hirschmann).</strong> No mass law and no later-mantle law (gap rows AT.a1, a2): they stay stand-ins. The sulfur outgassing rule (10.4) and any H<sub>2</sub> against H<sub>2</sub>O outgassing branch inherit that flag. Gaillard's text says FMQ-2 +- 0.5 while its Figure 2 shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar; neither is used.</li>
+</ul>
+<h2 id="7-mixture-pressure-and-molar-density-agree-tests-in-test209">7. Mixture, pressure and molar density agree (tests in TEST.209)</h2>
+<p>(i) Partial pressures sum to the stored pressure to 1e-9 relative. (ii) The molar mass is the sum of x_i M_i. (iii) No partial exceeds the saturation curve at the surface temperature unless the body names a liquid or solid reservoir. (iv) The text names only table gases above the GEN.415 thresholds (<code>atmosphere.describe</code>: the four largest gases from 1 percent of the air, then the two largest traces from 0.01 percent, each under the gas table's name; a class carries no gas phrase, <code>tuning.PLANET_CLASSES[...][&quot;air&quot;]</code> says only whether it has air, and <code>atmosphere.PENDING</code> stands in until the air is solved; tested for every class and zone in <code>test_atmosphere_text_consistency.py</code>). (v) T_s is the formula of the stored A and G. (vi) The Rayleigh depth reads the column P / (m g) with the mixture's mean molar mass (master finding 5), never the drawn one.</p>
+<h2 id="8-albedo-and-greenhouse-the-inverse-for-old-rows">8. Albedo and greenhouse: the inverse for old rows</h2>
+<p>The old generator discards two draws but its stored scale height keeps T_e. With H = <code>scale_height_km</code> times 1000, M = <code>atm_molar_density</code>, g = <code>gravity</code> times 9.80665, S = L / (4 pi d^2) (stored luminosity and distance; a moon uses its parent's distance):</p>
+<pre><code>T_e = H M g / R        1 - A = 4 sigma T_e^4 / S        G = (T_s / T_e)^4 - 1        (airless: T_e = T_s)
+</code></pre>
+<p>This is exact (14.2). The pressure route is not: the freeze-out lowers the pressure after the temperature is set, so a body that lost 20 percent of its air gives T_e of 204 K and A of 0.71 where the truth is 0.29. Part 03 6.3 is right that one equation has two unknowns for a physical greenhouse model; the old generator has a third stored relation, so its rows are solvable.</p>
+<p><strong>It fails (take the class draw) when:</strong> the scale height, molar mass, gravity, luminosity or distance is missing or zero for a body with air; T_e or T_s sits on the 2.725 K floor (the equation becomes an inequality); A falls outside [0, 1) or G outside [0, 500]; or the stored pressure exceeds <code>atm_density</code> times g times H times the retention factor (gravity in g) by more than 1e-6, which marks a row not built by this code or edited after generation. The ratio of G to the molar-mass ratio against the class multiplier range is logged, not enforced, because class ranges changed between releases.</p>
+<p><strong>As built (GEN.412).</strong> <code>planetgen/physics/climate_draws.py</code> holds the formulas (<code>equilibrium_temperature_k</code>, <code>surface_temperature_k</code>, <code>greenhouse_from_temperature</code>), the exact inverse (<code>from_stored</code>, which returns the reason when it has no solution) and the seeded class draw (<code>class_draw</code>, keyed on <code>albedo-backfill:&lt;table&gt;:&lt;id&gt;</code>). A new body records <code>bond_albedo</code>, <code>greenhouse_factor</code> (the capped G, 0 with no air) and <code>albedo_basis</code> 0; migration 0142 (schema v142) adds the columns to <code>planets</code> and <code>moons</code> and fills older rows with basis 1 or 2 by the rules below (the moon's starlight is its planet's, a circumbinary planet's is the pair's effective luminosity). In 200 sample systems every body inverted exactly. The columns are recorded draws, so the generator makes the same draws as before and takes no epoch.</p>
+<p><strong>As built (GEN.423, DB.67).</strong> Both items were met by the pieces above: <code>atmosphere_state.air_state</code> gives the molar mass <code>sum x_i M_i</code>, the density <code>P M / (R T)</code> and the scale height <code>R T / (M g)</code> from the stored partial pressures, <code>atmosphere_state.greenhouse_warming</code> gives <code>G</code> from the same mixture at the absorbed starlight (<code>surface_air.solve</code> settles the two together), and a body stores the albedo, <code>G</code> and the molar density it was built with (migration 0142 for the first two, the older <code>atm_molar_density</code> column for the third). Nothing in generation or the schema was left to change, so there is no epoch and no migration for them; <code>test_surface_air.py::test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives</code> holds the stored values to the mixture on generated planets, giants and moons (agreement to 1e-6, found at 1e-15).</p>
+<p><strong>Class draw.</strong> A is uniform on the class <code>albedo_range</code> (0.12 to 0.35 where none), limited to A at least 1 - 4 sigma T_s^4 / S so that G is not negative, from the one random wrapper keyed on the body seed and the label <code>albedo-backfill</code>; G comes from the stored T_s, so the stored temperature never moves. Giants have no class range: the fallback is open, bracket 0.02 to 0.91 ([R4250] whole sample about 0.02 to 0.8; [R0622] Bond up to 0.914). New rows record the A and G they were built with (GEN.412); once aerosol and Rayleigh draws exist, A should follow from them and the ground by A = R + (1 - R)^2 A_s / (1 - R A_s) (part 03 7.2, about 20 percent accurate, partly verified), a question for Boss (section 18, item 3).</p>
+<h2 id="9-ozone-gen413">9. Ozone (GEN.413)</h2>
+<p><strong>Built (GEN.413, first slice):</strong> <code>physics/ozone.py</code> has the median, the host mix, the F-star scaling, the structure spread, the abiotic branch; <code>ozone_column_du</code> is stored on planets and moons (migration 0135) and <code>radiation.uv_index</code> and <code>ozone_loss_flag</code> read it (the <code>ozone_ratio</code> square-root proxy is gone). The oxygen comes from <code>p_o2_kpa</code> until lane I's mixture accessor (GEN.411) lands. The Chappuis band is a table of cell means in <code>physics/data/ozone_chappuis.json</code>, read by <code>physics/atmosphere_colour.py</code> (section 12, GEN.418). Not built yet: the ozone as a stored gas of the mixture, and the GEN.189 loss events reducing the column (the flag is kept). <strong>GEN.668 (removed by TEST.524):</strong> a helper that scaled the stored column by the share of the air a loss event keeps was built and nothing called it, since no generation step removes air after the ozone is drawn (escape and the water loss act on the air before it, and the final-age refresh, GEN.839, works the dose and the ozone again from the air that is left); it was deleted.</p>
+<p><strong>Model.</strong> Stored in Dobson units (1 DU = 2.687e16 cm^-2). With x = log10 of the O<sub>2</sub> mixing ratio at 1 bar and Earth gravity (the fit's variable), the median is the [R2466] polynomial N = a x^5 + b x^4 + c x^3 + d x^2 + e x + f (sources check 4.2, Table 3, read; valid 0.01 to 150 percent of the present O<sub>2</sub> level, clamped outside). Evaluated here, the Sun host gives 183, 192, 210, 199, 108 DU at 150, 100, 25, 10, 1 percent (the paper's 5.64e18 cm^-2 = 210 DU maximum at 25 percent is reproduced); G0V 263 and 169 DU at 100 and 1 percent; K2V 160 and 63; K5V 179 and 38; M5V 162 and 17. Hot hosts peak at lower O<sub>2</sub>, cooler hosts rise to the highest. For other pressures and gravities the O<sub>2</sub> column p_O2 / g replaces the mixing ratio in x (stand-in until the Chapman layer depth, part 04 3.3, replaces it).</p>
+<p><strong>Spread.</strong> The sources check's plus or minus 30 percent around the fit cannot reach the published columns: the Sun host gives 192 DU at 100 percent, the 3-D model 279 DU ([R0875], read), 1-D models 296 to 327 DU [R1680] and 313 DU [R3999]; at 10 percent the ratios to the fit run 0.85 (Cooke) to 1.34. Decision 19 multiplied the median by a structure factor log-uniform on [0.85, 1.71], which spans every sampled model and level; GEN.748 narrows it where the models agree: the range at an oxygen level is the lowest to the highest ratio the models give there (1.45 to 1.70 at 100 percent, 0.85 to 1.34 at 10 percent, 0.85 to 1.71 at 1 percent and below, linear in log PAL between; <code>ozone.STRUCTURE_KNOTS</code>, stand-in OZ3); row m1 of part 09 (LU[192, 279] DU) is too narrow. The Earth test range 279 to 300 DU lies inside the support (163 to 328 DU) and is a test, not a preset.</p>
+<p><strong>Host map (open).</strong> The fit has five hosts (G0V, Sun, K2V, K5V, M5V); their T_eff are in Kozakis Table 1, not in the notes. Once read, the column interpolates on the stored T_eff between the nearest two; F stars have no fit ([R3845, R3846]: 8.6e18 and 1.15e19 cm^-2 for F7V and F0V, read) and use that bracket; cooler than M5V keeps the M5V row.</p>
+<p><strong>Without O<sub>2</sub>.</strong> Below the fit's 0.01 percent limit (part 09 gates at 0.1 percent; the fit is verified to 0.01 percent, so the gate moves there; rule applied: verified, section 17) the abiotic branch gives 0.01 to 0.1 percent of the same host's 100 percent column for G, K, M hosts and 15 percent for an F host ([R1137: Table 3], read via Tunable gaps); &quot;about 10 percent of Earth&quot; is contradicted and dropped. Abiotic O<sub>2</sub> outcomes are scenario flags (part 04 3.6).</p>
+<p><strong>Optics.</strong> Chappuis absorption, 410 to 760 nm, from the [R0599] files (Mainz, CC BY 4.0 snapshot; peak 5.163e-21 cm^2 at 602 nm; 220 K to 298 K ratios 0.68 at 420 nm, 0.84 at 450, about 1.0 from 500 to 650), tabulated at build time. It is Beer-Lambert absorption along the sun path through a thin shell at the Chapman peak pressure (part 04 3.3: 63 hPa at 100 percent O<sub>2</sub>, 630 hPa at 10 percent); at 300 DU the vertical depth is 0.042 at 600 nm. It matters at twilight, not at noon (5 to 8 percent of luminance, xy shift 0.005 to 0.01). Hartley and Huggins serve the UV index (GEN.445) from part 02's coarse bins until the Bremen licence (none stated) is settled. The <code>radiation.py</code> proxies are replaced.</p>
+<h2 id="10-haze-dust-and-cloud-gen414">10. Haze, dust and cloud (GEN.414)</h2>
+<p>Depths are at 550 nm; the wavelength law and colour come from the material (part 06 2.8); the gated rows are n1 to n9 of part 09.</p>
+<p><strong>10.1 Cloud.</strong> A condensate forms where x_i P(z) reaches the checked saturation curve along the temperature profile (part 06 3.3). The in-cloud depth is tau_c = 3 Q_ext m_c / (4 rho_p r_eff), Q_ext about 2 above 1 micron (part 06 3.5, read), m_c limited by the vapor above the condensation level; the draw is log-uniform from 0.1 to that limit, r_eff open (1 to 20 micron; Earth model droplets 10 to 17.5 micron, [R1697]). Comparison depths: Earth bins 0, 5, 10, 20 (grey); Venus total 20 to 30 at 0.63 micron (second-hand); giant water clouds up to about 10,000 [R0622]. <code>cloud_cover</code> is 0 without a condensate, else a seeded draw on [0.1, 1] (open). Clouds are grey; the plane albedo is the Monte Carlo table of part 06 3.10 (g = 0.85, omega = 1: 0.419 at tau 1 and mu0 0.2, 0.602 at tau 10 and mu0 0.5); an absorbing cloud saturates (0.60 at omega 0.99).</p>
+<p><strong>10.2 Haze (stand-in).</strong> Onset at CH<sub>4</sub>/CO2 about 0.1, thick above 0.2, production cut about tenfold in H<sub>2</sub>-rich gas (master finding 28). Mass flux is the diffusion-limited CH<sub>4</sub> supply N K_zz f_CH4 / H_a times a yield LU[0.01, 1] (laboratory rates span 250 times); the steady depth is 3 Q_ext Mdot / (4 rho_p r_eff v_f) (engineering, not validated, part 06 3.7). K_zz is a nuisance parameter (decision 12). The exponent is 0.97 to 2.34 for aggregates (3 to 4 only for tiny spheres); colour from tholin or soot constants (Khare k falls from 0.057 to 0.012 between 450 and 650 nm). Absolute depth is open until [R4392, R4394] and [R1144] are read. The confirmed Titan laws (above 80 km 1.012e7 lambda^-2.339, 30 to 80 km 2.029e4 lambda^-1.409, below 30 km 6.27e2 lambda^-0.9706, lambda in nm; total 9.6 at 500 nm; team slides) are a test target, not a preset.</p>
+<p><strong>10.3 Dust (stand-in).</strong> Dust exists on a dry surface when the wind friction velocity exceeds the lofting threshold (Shao and Lu or Iversen and White; the two differ by 15 to 60 percent, draw inside the span; part 06 3.8). The wind has no source: u*/u*_t is log-uniform on [0.3, 3] (open). Depth meanwhile LU[0.5, 1.5] (sources check 8; Mars-based, hence stand-in), grey (exponent near 0; 7 to 11 percent less opacity at 440 than at 880 nm), r_eff 1.2 to 1.8 micron, asymmetry 0.673 +- 0.081. Single scattering albedo: [R4743] prints no table of albedo, n or k. It prints the solar-band w0 0.922 to 0.926 (+-0.003) for effective radius 1.2 to 1.8 micron (Table 3, p. 12, read; 0.940 for the 1.8 index, 1.4 scattering case; literature 0.89 to 0.94). The spectra at 30 channels from 440 to 2920 nm exist only in Figures 12 to 14 and are <strong>digitized from Figures 12 to 14</strong> (recovered from the vector geometry, accuracy about 0.0005 to 0.001 in w0; never called the paper's table; reader file A section 6.5). Digitized w0 for radius 1.2 and 1.8 micron: 0.765 and 0.772 at 440 nm; 0.780 and 0.788 at 460; 0.825 and 0.831 at 500 (k 0.0087 and 0.0055); 0.941 and 0.945 at 600; 0.968 and 0.971 at 700 nm; about 0.965 to 0.972 from 800 to 2480 nm. At 450 nm the digitized value is 0.772 to 0.780. This replaces the second-hand range 0.74 to 0.89 for the 450 nm value (the UV band 0.67 to 0.74 is below the digitized range and stays partly verified). Rule applied: verified (17). Stand-in until a table is read; [R3326, R4395] Table 8 are not uploaded. <code>aerosol_draw</code> picks the radius in [1.2, 1.8] micron, which interpolates between the two columns. Hematite-bearing dust absorbs blue in every dataset; the hematite share comes from the ground composition (GEN.441, GEN.462). The Fe3+ attribution has no source and is not used.</p>
+<p><strong>10.4 Sulfur aerosol.</strong> Row n9: S<sub>8</sub> or H<sub>2</sub>SO<sub>4</sub> when the outgassed sulfur flux is at least 100 times the Earth volcanic flux in N<sub>2</sub>-CO2 air, or at the Earth flux in H<sub>2</sub> air (Hu 2013, read); the acid share is partly open. [R4289] gives the water side only: Eq. 1, ln P0 = 18.452406985 - 3505.1578807/T - 330918.55082/T^2 + 12725068.262/T^3 (mbar, 185 to 260 K, supercooled water), and Table 1, P_H2O = exp(a + b/T + c/T^2) for 10 to 80 weight percent H<sub>2</sub>SO<sub>4</sub> (read; test at 200 K, 60 weight percent: P0 = 3.165e-3 mbar, a_w = 0.0735, recomputed). It gives no acid vapor pressure. [R4877] gives the Gibbs energy of the binary solution (200 to 350 K, 0.1 MPa, Table 6A) and activities in Tables 7 and 8, and no partial pressures (it holds no vapor phase). The two disagree on water activity by 10 to 22 percent at 60 to 70 weight percent and 200 to 220 K and by under 5 percent at 40 to 50 percent and at 250 K. Rule applied: newest and built for the stratospheric range, [R4289] for water, Zeleznik as the bracket (17). The acid vapor pressure needs the pure-acid curve of [R0210] (not uploaded) or the Kulmala-Laaksonen form in our files, times the acid activity (stand-in). Tabazadeh Table 2 branches are discontinuous at a_w 0.05 and 0.85, and Zeleznik Eq. 12 (ln x_j) and Eq. 11 (a minus sign) are misprinted.</p>
+<h2 id="11-gas-and-ice-giants-the-reference-level-gen419">11. Gas and ice giants: the reference level (GEN.419)</h2>
+<p>A giant has no ground, so the colour is read at a pressure level. The radius level is 1 bar (decision 9) and the code already defines giant air density there. Decision 23: P_ref = min(1 bar, cloud top). The cloud base is the first crossing of T(P) with the condensation curve going up (part 06 3.3), T(P) from the [R1715] semi-grey profile (part 03 5.1; opacity link open). Condensate decays upward as exp(-f_sed z / L) ([R0024], read) while air thins as exp(-z / H), so the pressure where the cloud depth from the top reaches 1 is P_top = P_base tau_c^(-1 / (1 + f_sed H / L)) (algebra derived here; H/L up to 10, f_sed 0.01 to 10, second-hand). A cloud-free hot giant keeps 1 bar. The sky is the Rayleigh column above P_ref (0.089 at 550 nm for 1 bar of 86/14 H<sub>2</sub>/He at 24.8 m/s^2, part 03 7.1), the absorbers, and the cloud or deeper gas as the lower boundary.</p>
+<p>Sudarsky classes (I below about 150 K, II about 250 K, III above about 350 K, IV 900 to 1500 K, V above about 1500 K; approximate; the 2003 paper uses T_eq 350 to 800 K for III) are a text label only. The colour comes from Rayleigh, condensate optics and cloud albedo (part 06), CH<sub>4</sub>, NH<sub>3</sub> and H<sub>2</sub>O bands, and Na and K wings (S = 2e-14 and 3.5e-14 cm^2 nm). Above the Ti condensation curve (about 1700 K at 1 mbar, [R1428]) TiO and VO make a giant dark red-brown, 1400 to 1700 K is mixed, below it alkali wings and water rule (part 02 3.7). Band positions are read (Cahoy Table 3: CH<sub>4</sub> 0.46 to 0.99 micron, Na 0.59, K 0.40 and 0.77, H<sub>2</sub>O 0.94); strengths are open ([R2258, R2263], 2010), so methane-bearing giants carry <code>colour_quality = partial</code>. Test targets: about 4 percent methane with a thin aerosol is the blue of an ice giant, none is pearly white ([R2101], read); the Cahoy albedos of section 15.</p>
+<p><strong>Built (GEN.419 first slice; <code>physics/giant_colour.py</code>):</strong> <code>giant_atmosphere_colour</code> cuts the stored mixture at <code>P_ref</code> and runs the section 12 colour model with the cloud deck's diffuse reflectance (<code>deck_albedo</code>, the two-stream reflectance of an <code>Aerosol</code> over a black base) as the ground, or the dark <code>DEEP_ALBEDO</code> of 0.03 (stand-in) for a clear giant. The cloud-top algebra above is not coded (no cloud deck is stored on a giant, so <code>reference_pressure_pa</code>, decision 23, is given none and holds 1 bar). The Rayleigh depth above 1 bar of 86/14 H<sub>2</sub>/He at 24.8 m/s^2 is 0.0927 at 550 nm against the 0.089 of part 03 7.1 (4 percent; the same code gives 0.097 for Earth air against 0.099 there). Methane, ammonia and water use the gas table's coarse bins until the Oxford k-tables (GEN.422) and Karkoschka strengths are read, so any of them above 1e-4 in mole fraction gives <code>colour_quality = &quot;partial&quot;</code>. <strong>Not built:</strong> the temperature profile and condensation curves that give the cloud base (Guillot, part 06 3.3), the alkali wings and TiO/VO of hot giants, and the Cahoy albedo comparison (a geometric albedo seen from space, a different quantity from the colour at the level).</p>
+<h2 id="12-the-colour-model-and-the-thick-air-limit-gen416-to-gen418">12. The colour model and the thick-air limit (GEN.416 to GEN.418)</h2>
+<p><strong>Built (GEN.418, solid worlds; <code>physics/atmosphere_colour.py</code>):</strong> a pure function of the air column, the star's temperature and the stored inputs (ozone column, haze, dust, cloud and its cover, the ground's albedo, per wavelength if the caller has it), returning the sky hex, xy and word, the sky's luminance as a share of the star's, the sun disk's colour and luminance, the regime (<code>thin</code>, <code>blend</code>, <code>thick</code>) and, when the aerosols move the colour by 0.03 in xy or more against the same air without them, the label &quot;(aerosol-dominated)&quot;. The pieces below are used as follows.</p>
+<ul>
+<li><strong>One spectrum from two models.</strong> Items 5 and 6 are joined, not switched: the hue is the two-stream (delta-Eddington) diffuse flux at the ground times <code>(R / R_550)^(1 - w)</code>, where <code>R</code> is the ratio of the single-scatter zenith radiance of item 5 to the two-stream diffuse flux of the same air with no ozone and a black ground, and <code>w</code> is a smoothstep of the total depth at 550 nm from 0.2 (w = 0, the single-scatter hue) to 0.4 (w = 1, two-stream only). The ozone and the ground's bounce enter as the two-stream run with them over the run without, so they act the same way in both regimes and the colour has no step (the test scans 400 depths from 0.03 to 3.9 at 550 nm and no channel moves by more than 3 per step of 1.2 percent in pressure). The aerosols are in the single-scatter radiance as extra extinction with their own phase function (Henyey-Greenstein, mixed by scattering depth).</li>
+<li><strong>Reproduces section 14.1.</strong> Case A #99bfff (xy 0.2452, 0.2522), case C #8bb1ff, case D #ffbb79 (xy 0.4259, 0.3973); case B is #fffbf0 because the 3300 K star takes the BT-Settl offset (the worked example used a blackbody, #fffbec). Case C2 (dust 0.9) is #ffdec2 with the digitized albedos: the direction (blue to warm) is the result, as the note says, the hex is not.</li>
+<li><strong>The sky's luminance</strong> is the two-stream diffuse flux over the star's flux on a horizontal surface at the top, in both regimes (0.052 for the Earth-like air at 30 degrees from the zenith with a black ground; 0.0015 for the thin CO<sub>2</sub> case; 0.3 for 1 MPa of nitrogen). The old item &quot;1 MPa nitrogen is white-cyan with an orange sun&quot; holds (#e7ffff, sun #ffb84a). The old &quot;9 MPa CO<sub>2</sub> world is white&quot; of the GEN.418 text is replaced by this section's result (orange, case D), which is the newer.</li>
+<li><strong>Ozone</strong> takes its Chappuis cross section from <code>physics/data/ozone_chappuis.json</code>, the 295 K Brion-team table of the Mainz atlas as 5 nm cell means (peak 5.11e-21 cm^2 at 605 nm; built by <code>scripts/build_ozone_chappuis.py</code> from the <code>ozone_uv</code> download, so a page that shows a colour needs no download). Its temperature dependence is the ratio of the Burkholder and Talukdar tables at 220, 230, 250, 273 and 298 K to the 298 K table (0.68 at 420 nm for 220 K), interpolated to the temperature of the body's ozone layer (GEN.748: the skin temperature of the body, 2 to the power of -1/4 of its equilibrium temperature, 213.6 K for Earth). The layer sits at the Chapman peak pressure, as in the radiation model. At 300 DU the Earth-like sky loses 2.9 percent of its luminance with the sun 30 degrees from the zenith (xy moves 0.003 and 0.004) and 11 percent with it 78 degrees away (xy moves 0.011 and 0.014), the twilight effect of the section 9 estimate.</li>
+<li><strong>The cool star</strong> is a blackbody bent by <code>exp(a t + b t^2)</code> until its xy is the blackbody's plus the <code>photometry.cool_offset</code> plus the seeded spread, so the spectrum stays smooth and the colour does not step at 4500 K.</li>
+<li><strong>Not in it:</strong> the wavelength-dependent ground (GEN.441 and GEN.462 supply the array), the aerosol optics (GEN.414 supplies <code>Aerosol</code> depths, albedos and asymmetry), the giants' reference level and band absorbers (GEN.419), the twilight sun path and Kasten and Young air mass (plane-parallel, sun within 78 degrees of the zenith), and the Monte Carlo correction table of item 5 (the blend keeps the two-stream brightness, so the single-scatter shortfall of 10 to 21 percent does not enter the luminance ratio).</li>
+</ul>
+<ol>
+<li><strong>Light.</strong> Planck spectrum of the stored T_eff from 4500 K (xy error at most 0.001 against the CIE tables of part 02 2.9). Cooler: BT-Settl chromaticity (offset from a blackbody 0.002 at 3300 K, 0.02 at 3000 K, 0.05 at 2500 K) with a seeded spread of 0.02 in x and 0.01 in y (STScI file licence not stated).</li>
+<li><strong>Rayleigh depth</strong> tau(lambda) = [sum x_i sigma_i(lambda)] P / (m g) (section 6.2; the Bucholtz fit is the regression check for Earth-like air).</li>
+<li><strong>Absorbers and aerosols</strong> add extinction and absorption along the path: ozone (9), haze, dust, cloud (10), giant bands (11).</li>
+<li><strong>Air mass</strong> by the Chapman integral with X = R / H, never sec(z) beyond 75 degrees; Kasten and Young is an Earth regression target only (10 percent high at the horizon; part 02 2.8).</li>
+<li><strong>Thin air, tau(550) up to 0.3</strong> (3.1 bar of Earth-like air): single scatter L = F0 p mu0 [exp(-tau/mu0) - exp(-tau/mu)] / (4 pi (mu0 - mu)). It falls short of the Monte Carlo flux by 10 percent (tau 0.05, mu0 1) to 21 percent (tau 0.1, mu0 0.2); a correction table from a Monte Carlo run is a GEN.418 task (open), and until then the swatch is the single-scatter hue.</li>
+<li><strong>Thick air, tau above 0.3: two-stream.</strong> Eddington T = [(2/3 + mu0) + (2/3 - mu0) exp(-tau/mu0)] / (4/3 + tau), R = 1 - T, spherical albedo s = integral of 2 mu (1 - T) dmu (numerical below tau 2), ground albedo A_g: R_tot = R + T A_g (1 - s) / (1 - A_g s), ground flux T / (1 - A_g s); within 1.3 percent of Monte Carlo at mu0 of 0.5 and 1, up to 3.5 percent low at 0.2 (verified, part 02 2.8). <strong>The limit:</strong> T goes as 1/tau and tau as lambda^-4, so the ground light reddens without bound, the direct beam dies as exp(-tau/mu0), and the sky is the star's colour pushed red (14.1, case D). Single scatter saturates to #ff0000 there and must not be used. Absorbing aerosols over a Rayleigh layer use layer adding with part 06 3.10 (open: no delta-Eddington form in the notes); two-stream overestimates reflection for CO<sub>2</sub> ice clouds [R2385].</li>
+<li><strong>Ground bounce:</strong> divide the downward flux by (1 - A_g s); the ground colour by band is GEN.462.</li>
+<li><strong>Sun disk and twilight:</strong> exp(-m tau_total(lambda)), Chapman m, Chappuis included.</li>
+<li><strong>Colour:</strong> X, Y, Z with the [R4788] fit of the CIE 1931 curves (<code>sky-view.md</code> section 4), linear sRGB (D65 matrix), negatives clipped, brightest channel 1, sRGB transfer. Absolute (decision 5). The JSON also carries xy and the sky-to-star luminance ratio, since the swatch hides brightness.</li>
+</ol>
+<h2 id="13-migrations-and-the-generator-epoch">13. Migrations and the generator epoch</h2>
+<p>Revisions take the next free numbers at build time (0106 is the highest present; the plan note's &quot;0102 to 0105 stack&quot; is stale), on the planets and moons tables:</p>
+<ul>
+<li><strong>DB.67 (8.4 phase 2):</strong> adds <code>bond_albedo</code>, <code>greenhouse_factor</code>, <code>albedo_basis</code>; backfill by section 8 for every row with air (airless rows from T_s alone). It runs before the revision that rewrites <code>atm_molar_density</code>.</li>
+<li><strong>DB.71 (8.4 phase 2):</strong> storage for the added gases (layout is DB.71's; any table gas must be storable). Rows saved before GEN.85 with no partials get one seeded draw from the gated mixture tables, flagged. Then <code>atm_molar_density</code> is rewritten from the partials and <code>scale_height_km</code> from R T_e / (M g) with T_e from the stored albedo.</li>
+<li><strong>DB.68 (8.4 phase 4):</strong> adds <code>ozone_column_du</code>, <code>tau_haze</code>, <code>tau_dust</code>, <code>tau_cloud</code>, <code>cloud_cover</code>, <code>aerosol_draw</code>, backfilled by the GEN.413 and GEN.414 functions on their own labelled streams, so a rerun repeats and no other draw shifts.</li>
+</ul>
+<p><strong>Epoch statement.</strong> This design changes nothing: epoch 11 stays. The build items do, and each bump is decided there with <code>scripts/bump_version.py --check-pr</code>. GEN.410 is a table with no behaviour. GEN.412 only records draws the code already makes (no bump if the check agrees). GEN.411, 422, 423, 424, 452, 454, 455 change values and share one bump in 8.4 phase 2; GEN.413, 414, 456 add stored values and share one in phase 3 (decision 29). GEN.416 to GEN.419 are pure functions of stored values in 9.0 phase 1: no column, no migration, no bump. Galaxies made under an older epoch keep their generated values and receive the new columns by backfill.</p>
+<h2 id="14-worked-example-computed-2026-10-17-1219-pm-edt-dust-case-1245-pm-edt">14. Worked example (computed 2026-10-17, 12:19 PM EDT; dust case 12:45 PM EDT)</h2>
+<h3 id="141-optics-and-colour">14.1 Optics and colour</h3>
+<p>Inputs: test air x = N<sub>2</sub> 0.78084, O<sub>2</sub> 0.209476, Ar 0.00934, CO<sub>2</sub> 0.0004 (normalised), P = 101325 Pa, g = 9.80665 m/s^2; sun 30 degrees from the zenith, view at the zenith (scattering angle 30 degrees), Rayleigh phase 3/4 (1 + cos^2); stars as Planck spectra. <code>sig(gas, nm)</code> is the formulas of sources check 2.2 with the reference densities of 2.1 (N<sub>2</sub>, Ar, CO<sub>2</sub> at 2.546899e19, O<sub>2</sub> at 2.68678e19 cm^-3) and the listed King factors. Other constants: molar masses (part 01 T1: N<sub>2</sub> 28.014, O<sub>2</sub> 31.998, Ar 39.95, CO<sub>2</sub> 44.009 g/mol), Avogadro 6.02214076e23 (the script; part 04 line 494 quotes 6.022e23, which changes tau by under 0.01 percent), Planck c2 1.438777e-2 m K, the Wyman fit and D65 matrix of <code>sky-view.md</code> section 4.</p>
+<pre><code>m = sum(f * M)                                    # g/mol
+tau(nm) = P * NA / (m * 1e-3 * g) * 1e-4 * sum(f * sig(gas, nm))
+sky = planck(T) * p * mu0 * (exp(-t/mu0) - exp(-t/mu)) / (4*pi*(mu0 - mu))     # t = tau(lambda), mu = 1
+edd = planck(T) * ((2/3 + mu0) + (2/3 - mu0)*exp(-t/mu0)) / (4/3 + t)         # thick air, ground albedo 0
+swatch = sRGB(D65 @ XYZ(spectrum)), brightest channel 1                        # absolute, no adaptation
+</code></pre>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Inputs</th>
+<th>tau 450 / 550 / 650 nm</th>
+<th>Colour (hue-only swatch, CIE xy)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>A Earth-like air</td>
+<td>5772 K</td>
+<td>0.2207 / 0.0970 / 0.0492</td>
+<td><strong>#99bfff</strong>, xy 0.2452, 0.2521: a blue sky (the star alone is #fff1ea, xy 0.3265, 0.3360)</td>
+</tr>
+<tr>
+<td>B Red dwarf world</td>
+<td>same air, 3300 K</td>
+<td>same</td>
+<td><strong>#fffbec</strong>, xy 0.3243, 0.3441: near-white cream (the star alone is #ffc280)</td>
+</tr>
+<tr>
+<td>C Thin CO<sub>2</sub></td>
+<td>600 Pa, g 3.7, 5772 K</td>
+<td>0.00591 / 0.00258 / 0.00130</td>
+<td>clear: <strong>#8bb1ff</strong>, a blue hue at 0.030 of case A's brightness</td>
+</tr>
+<tr>
+<td>C2 with dust</td>
+<td>grey dust tau 0.9, g 0.673, omega from Wolff digitized (0.78 at 450 nm, 0.963 at 650 nm for radius 1.8 micron)</td>
+<td></td>
+<td>radius 1.8 micron <strong>#ffe7d3</strong>, xy 0.3429, 0.3490; radius 1.2 micron <strong>#ffe6d2</strong> (direction only)</td>
+</tr>
+<tr>
+<td>D Dense CO<sub>2</sub></td>
+<td>9.2e6 Pa, g 8.87, 5772 K</td>
+<td>37.8 / 16.5 / 8.35</td>
+<td>transmitted light <strong>#ffbb79</strong>, xy 0.4259, 0.3972</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>A:</strong> tau(550) = 0.0970 against the published 0.09721 ([R0575: Table 4], 1962 US Standard atmosphere; 0.2 percent below) and the computed check 0.0969 (0.1 percent above); the Bucholtz fit on the same column gives 0.0968, the difference being the real profile and 330 ppm CO<sub>2</sub> behind the published value; the 450 to 650 nm exponent is 4.08, the sky analysis value; tau(450) / tau(650) = 4.5 makes the sky blue. <strong>B:</strong> the same air under a 3300 K star is cream in absolute terms, not blue; the sky analysis found blue (#8cb6ff) only after adapting the eye to the star, which decision 5 does not do. A 3300 K blackbody differs from BT-Settl by 0.002 to 0.003 in xy (part 02 2.9). <strong>C:</strong> the physics of a clear thin CO<sub>2</sub> sky is a blue hue at 3 percent of Earth's brightness (tau ratio 0.027); with dust of depth 0.9 the hue turns peach because dust is grey in extinction and brighter in the red (the digitized albedo of [R4743] replaces the earlier assumed 0.74 and 0.89 at 450 nm, which gave #ffe4d0 and #ffece1; the change is within the direction). Case C2 lies beyond single-scatter validity (tau above 0.3), so only the direction (blue to warm) is a result, not the hex. <strong>D:</strong> single scatter returns #ff0000 (the plan base's clipping artefact); the two-stream light at the ground is orange, tau(550) 16.5 against 16.4 in part 03 7.1, and the direct beam is about 0.7 percent of the star's at its brightest wavelength.</p>
+<h3 id="142-the-inverse-planetspy-lines-649-to-714-reproduced">14.2 The inverse (<code>planets.py</code> lines 649 to 714 reproduced)</h3>
+<p>Inputs (a test body, not a preset): L = 3.828e26 W, d = 1 AU = 149597870.7 km, A = 0.29, M = 0.0290 kg/mol, gravity 1 g, atm_density 1.0 kg/m^3, multiplier 1.7, R = 8.31446261815324, sigma = 5.6703744191844314e-8, CO<sub>2</sub> base 0.04345, floor 2.725 K, cap 500.</p>
+<pre><code>S = L / (4 pi d^2) / 1e6 = 1361.17 W/m2     T_e = ((1 - A) S / (4 sigma))^(1/4) = 255.490 K     H = R T_e / (M g) = 7.469 km
+G = min(500, M / 0.04345 * 1.7) = 1.134638  T_s = ((1 - A) S (1 + G) / (4 sigma))^(1/4) = 308.820 K  P = 73250 Pa
+inverse: T_e = H M g / R = 255.490 K, A = 1 - 4 sigma T_e^4 / S = 0.290000000000, G = (T_s / T_e)^4 - 1 = 1.134637514384
+pressure route after a 20 percent freeze-out: T_e = 204.39 K, A = 0.709 (wrong)
+</code></pre>
+<p>G for the three test sets of part 03 5.4 (READ inputs): Earth 0.625, Venus 99.60, Titan 0.694.</p>
+<h2 id="15-test-targets-physical-targets-and-test-rows-never-presets">15. Test targets (physical targets and test rows, never presets)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Value</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>tau_R(550 nm), 1 bar Earth-like air</td>
+<td><strong>0.09721</strong> ([R0575: Table 4], 1962 US Standard; subarctic summer 0.09688, tropical 0.0976), tolerance 2 percent. Checks: computed 0.0969 (earlier; 0.0980 with Penndorf's F), this note 0.0970, Bucholtz fit on the same column 0.0968</td>
+<td>verified (read); the computed value stays the check. Rule applied: verified (17)</td>
+</tr>
+<tr>
+<td>tau_R at 350, 443, 550, 670, 865 nm</td>
+<td>0.62, 0.23, 0.10, 0.043, 0.015 ([R1697: Table 1]); this note 0.629, 0.235, 0.097, 0.0435, 0.0155</td>
+<td>verified (read)</td>
+</tr>
+<tr>
+<td>sigma_N2(550) 4.635e-27 cm^2; ratios CO<sub>2</sub> 2.51, H<sub>2</sub> 0.20 to 0.22, He 0.013, CH<sub>4</sub> 2.14 (Sneep and Ubachs measured 2.45); exponent about -4.08; doubling P doubles tau</td>
+<td>as listed</td>
+<td>verified / partly verified</td>
+</tr>
+<tr>
+<td>Sneep and Ubachs 532.2 nm cross sections (Ar 4.45, N<sub>2</sub> 5.10, CO 6.19, CO<sub>2</sub> 12.4, CH<sub>4</sub> 12.47, N<sub>2</sub>O 15.90, SF<sub>6</sub> 32.3 e-27 cm^2); this note's refractivity values 4.56, 5.30, 13.32 for Ar, N<sub>2</sub>, CO<sub>2</sub></td>
+<td>tolerance: the Table 2 gap per gas (section 6.2)</td>
+<td>verified (read)</td>
+</tr>
+<tr>
+<td>Myhre CO<sub>2</sub> forcing</td>
+<td>5.35 ln(C/C0); doubling 3.71 W m^-2</td>
+<td>verified (read, recomputed)</td>
+</tr>
+<tr>
+<td>Mars dust w0 [R4743]</td>
+<td>solar band 0.922 to 0.926 (Table 3); digitized 440 nm 0.765 to 0.772, 500 nm 0.825 to 0.831, 700 nm 0.968 to 0.971</td>
+<td>solar band verified (read); spectrum digitized from Figures 12 to 14</td>
+</tr>
+<tr>
+<td>Tabazadeh water pressure at 200 K, 60 weight percent</td>
+<td>P0 3.165e-3 mbar, a_w 0.0735</td>
+<td>verified (read, recomputed)</td>
+</tr>
+<tr>
+<td>Blue sky under 5772 K; cream under 3300 K</td>
+<td>#99bfff; #fffbec</td>
+<td>verified (computed)</td>
+</tr>
+<tr>
+<td>Thin CO<sub>2</sub> (600 Pa, g 3.7) tau(550)</td>
+<td>0.0026 (part 03 7.1: 0.0027 at 640 Pa, g 3.71)</td>
+<td>verified (computed)</td>
+</tr>
+<tr>
+<td>Star xy at 5772, 6504, 3000 K</td>
+<td>0.3266, 0.3358; 0.3135, 0.3236; 0.4369, 0.4041 (tolerance 0.001)</td>
+<td>verified (CIE tables)</td>
+</tr>
+<tr>
+<td>Kozakis Sun polynomial</td>
+<td>191.8, 199.4, 108.0 DU at 100, 10, 1 percent O<sub>2</sub></td>
+<td>verified (computed)</td>
+</tr>
+<tr>
+<td>Ozone support at the Sun host, 100 percent O<sub>2</sub></td>
+<td>contains 279 to 300 DU</td>
+<td>partly verified</td>
+</tr>
+<tr>
+<td>Chappuis depth at 300 DU</td>
+<td>0.042 vertical at 600 nm, 0.8 at air mass 20</td>
+<td>verified (computed)</td>
+</tr>
+<tr>
+<td>G and the inverse</td>
+<td>Earth 0.625, Venus 99.6, Titan 0.694; round trip to 1e-12</td>
+<td>verified (computed)</td>
+</tr>
+<tr>
+<td>Venus cloud 20 to 30; Earth cloud about 10; Titan haze laws and 9.6; Mars dust exponent near 0 and omega bands</td>
+<td>as in section 10</td>
+<td>partly verified</td>
+</tr>
+<tr>
+<td>Giant albedos (Cahoy; geometric B, V, R, I and Bond)</td>
+<td>0.8 AU 0.556, 0.322, 0.156, 0.047, 0.408; 2 AU 0.733, 0.742, 0.727, 0.673, 0.914; 5 AU 0.609, 0.567, 0.531, 0.453, 0.675; 10 AU 0.450, 0.386, 0.358, 0.313, 0.489</td>
+<td>verified (read)</td>
+</tr>
+<tr>
+<td>Thick-air limit</td>
+<td>tau(550) 16.5 gives orange (xy 0.4259, 0.3972), never #ff0000</td>
+<td>verified (computed)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Solar System rows (Earth, Venus, Titan, Mars, Jupiter) live in test files only; a test fails when a generator table reads one (TEST.215).</p>
+<h2 id="16-open-inputs-and-seeded-ranges">16. Open inputs and seeded ranges</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Open input</th>
+<th>Range meanwhile</th>
+<th>Boss's research</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mars dust albedo table (w0, n, k)</td>
+<td>[R4743] digitized from Figures 12 to 14; 450 nm w0 0.772 to 0.780</td>
+<td>a printed table; [R3326, R4395] Table 8</td>
+</tr>
+<tr>
+<td>Titan haze absolute depth</td>
+<td>yield LU[0.01, 1] times the supply</td>
+<td>[R1144, R4392]</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub>, NH<sub>3</sub>, H<sub>2</sub>O visible strengths for giants</td>
+<td>methane: free data, partly verified (2026-10-17, about 1:55 PM EDT); ammonia and water: labelled stand-ins; <code>colour_quality = partial</code></td>
+<td>[R2258], 2009, 2010 (no longer a request to Boss, 2026-10-18, 3:07 PM EDT)</td>
+</tr>
+<tr>
+<td>Rayleigh of SO<sub>2</sub>, H<sub>2</sub>S, H<sub>2</sub>, He, NH<sub>3</sub>, H<sub>2</sub>O</td>
+<td>generic 5 to 9 percent (SO<sub>2</sub> and H<sub>2</sub>S polarizability route, plus or minus 8 percent)</td>
+<td>[R0443] (not uploaded)</td>
+</tr>
+<tr>
+<td>Acid vapor pressure of H<sub>2</sub>SO<sub>4</sub>-H2O</td>
+<td>Kulmala-Laaksonen form times Zeleznik activity (stand-in)</td>
+<td>[R0210]</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>, O<sub>2</sub>, Ar, Kr, Xe in comets</td>
+<td>seeded log range from the gated rows</td>
+<td>none in Mumma and Charnley</td>
+</tr>
+<tr>
+<td>Mantle redox rows (AT.a1, a2)</td>
+<td>stand-ins</td>
+<td>[R1489, R1953]/2022</td>
+</tr>
+<tr>
+<td>Bremen ozone cross sections; Huggins fit</td>
+<td>coarse bins</td>
+<td>fetched at build time (no licence gate, Boss 2:35 PM EDT)</td>
+</tr>
+<tr>
+<td>Kozakis host T_eff; F-star ozone</td>
+<td>bracket of section 9</td>
+<td>Kozakis Table 1</td>
+</tr>
+<tr>
+<td>Infrared depth from line absorbers</td>
+<td>grey tau0 of part 03 5.4</td>
+<td>correlated-k grids</td>
+</tr>
+<tr>
+<td>Wind, cloud efficiency, cover, r_eff</td>
+<td>u*/u*_t LU[0.3, 3]; cover [0.1, 1]; r_eff 1 to 20 micron</td>
+<td>none in the notes</td>
+</tr>
+<tr>
+<td>Giant albedo fallback</td>
+<td>0.02 to 0.91</td>
+<td>Sudarsky, Cahoy</td>
+</tr>
+<tr>
+<td>Item numbers</td>
+<td>the master chain's GEN numbers are used here; the gap plan and Boss's papers report give the same gaps other numbers (GEN.422 is AD4 Rayleigh there, GEN.471 and 491 acid)</td>
+<td>the TODO thread reconciles them</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="17-source-conflicts-and-the-rule-that-decided-each">17. Source conflicts and the rule that decided each</h2>
+<p>Rules (Boss, 12:39 PM EDT): verified wins; two verified sources in doubt, the newest wins; two sources both in question, the most permissive wins. The third rule means the widest value or range either source allows, never a value outside both: Boss confirmed at 1:12 PM EDT that it means the widest range (Decided), as composition-model.md section 4a item 12 records it. Where a paper contradicts a second-hand value in our files, the paper wins and both values are stated.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Conflict</th>
+<th>Decision</th>
+<th>Rule applied</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Two-stream switch: plan note tau 0.5, part 02 Monte Carlo 0.3</td>
+<td>0.3</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Earth tau_R(550): computed 0.0969, Bucholtz Table 4 0.09721</td>
+<td>0.09721 is the test target, 0.0969 the check</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Rayleigh error: generic 5 to 9 percent, Sneep and Ubachs gaps 2.5 to 17.8 percent</td>
+<td>per-gas gaps; generic only for the six open gases</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>4</td>
+<td>N<sub>2</sub>, O<sub>2</sub>, Ar, CO<sub>2</sub>: refractivity value (Bates, Bucholtz) against Sneep measured, 2.5 to 7.2 percent lower</td>
+<td>refractivity center, range down to the measured value</td>
+<td>verified (center), most permissive (range)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>CH<sub>4</sub>, N<sub>2</sub>O, CO<sub>2</sub> ratios: He 2021 2.14, 3.42, 2.51; Sneep measured 2.45, 3.12, 2.43; older coded CH<sub>4</sub> 2.76</td>
+<td>He 2021 center, Sneep bounds the draw, 2.76 dropped</td>
+<td>newest, most permissive (range), verified (2.76)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CO ratio: Allen and Cox 1.24 (partly verified), Sneep 1.21</td>
+<td>1.21</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>7</td>
+<td>H<sub>2</sub> ratio: Dalgarno and Williams 0.202, Peck and Huang 0.217</td>
+<td>0.20 to 0.22</td>
+<td>most permissive</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Dust albedo at 450 nm: second-hand 0.74 to 0.89, Wolff digitized 0.772 to 0.780</td>
+<td>digitized</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Dust lofting threshold: Shao and Lu against Iversen and White, 15 to 60 percent</td>
+<td>draw inside the span</td>
+<td>most permissive</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Ozone spread: plan note plus or minus 30 percent, published models 279 to 327 DU against the 192 DU fit</td>
+<td>structure factor LU[0.85, 1.71]</td>
+<td>verified (support), most permissive (width)</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Abiotic ozone gate: part 09 at 0.1 percent O<sub>2</sub>, Kozakis fit valid to 0.01 percent</td>
+<td>fit used to 0.01 percent, abiotic branch below</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Abiotic O<sub>3</sub> &quot;about 10 percent of Earth&quot; (row m2) against [R1137] (0.01 to 0.1 percent)</td>
+<td>the latter</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Water activity of H<sub>2</sub>SO<sub>4</sub>-H2O: Tabazadeh against Zeleznik, 10 to 22 percent at 60 to 70 weight percent</td>
+<td>Tabazadeh center, Zeleznik as bracket</td>
+<td>newest</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Forcing labels: parts file &quot;IPCC 1990&quot; on 5.35 and 0.12, Myhre Table 3 (IPCC 1990 6.3, 0.14)</td>
+<td>[R3229]</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Comet NH<sub>3</sub> bound 3.6 percent, Mumma and Charnley about 1.5 percent</td>
+<td>about 1.5 percent</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Mantle redox: Gaillard text FMQ-2 +- 0.5, Figure 2 about FMQ-2.75 +- 0.7</td>
+<td>not used; stand-in. If used, the union, FMQ-3.45 to FMQ-1.5 (derived here)</td>
+<td>both in question, most permissive</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Chain phase of GEN.420, MAP.244, DOC.64: plan note 9.0 phase 2, composition-model phase 3 (GEN.421 phase 4)</td>
+<td>composition-model</td>
+<td>newest</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Giant reference level: composition-model &quot;cloud tops&quot;, plan note open</td>
+<td>P_ref = min(1 bar, cloud top), which allows both</td>
+<td>newest, most permissive</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Class albedo default for giants 0.12 to 0.35, Cahoy Bond albedos 0.49 to 0.91</td>
+<td>fallback 0.02 to 0.91</td>
+<td>verified, widest</td>
+</tr>
+<tr>
+<td>20</td>
+<td><code>greenhouse_multiplier</code> (code class draw) against <code>greenhouse_factor</code> (Boss and part 03)</td>
+<td>store <code>greenhouse_factor</code></td>
+<td>verified</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Migration stack 0102 to 0105 (plan note), 0106 in the repository</td>
+<td>0106 is the highest</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Venus cloud depth &quot;30 to 40&quot; (unverified) against 20 to 30 (second-hand, Venus total at 0.63 micron)</td>
+<td>20 to 30</td>
+<td>verified</td>
+</tr>
+<tr>
+<td>23</td>
+<td>Sky analysis recommended an adapted colour; Boss's card chose absolute colour</td>
+<td>absolute</td>
+<td>Boss's ruling, not a source conflict</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="18-approved-by-boss">18. Approved by Boss</h2>
+<p><strong>Decided (Boss, 2026-10-17, 9:40 to 9:55 PM EDT, cards answered in the project chat, the rest closed by his typed &quot;I approve all your defaults&quot; at 9:54 PM EDT, relayed by the coordinator): every ruling below is approved as recommended.</strong> By tap: row 1 yes, row 3 derive, row 4 yes, row 5 yes, row 6 yes, row 7 derive, row 8 the switch at tau(550) 0.3, rows 9 to 11 yes, row 12 the research order, row 13 yes, row 15 yes; row 2 (old rows inverted from the stored scale height, class draw on failure, flagged) closed by the typed approval; row 14 needed none. Rulings and the recommendation each card carried:</p>
+<ol>
+<li><strong>Greenhouse quantity (13).</strong> Store G = (T_s / T_e)^4 - 1 as <code>greenhouse_factor</code>. Recommend yes: it reproduces Earth, Venus and Titan and makes the inverse exact.</li>
+<li><strong>Old rows (14).</strong> Invert from the stored scale height, class draw on failure, flagged. Recommend yes; the stored pressure is wrong for any body that froze out gas.</li>
+<li><strong>Albedo of new rows.</strong> Derive A from the Rayleigh, aerosol and ground draws, or keep the class-range draw. Recommend derive, so that a cloudy world is not dark; the class range stays the fallback for old rows.</li>
+<li><strong>Molar density (16).</strong> Rewrite old rows from their stored partials after the inverse. Recommend yes, in the DB.71 revision.</li>
+<li><strong>Ozone spread (19).</strong> Structure factor LU[0.85, 1.71] instead of plus or minus 30 percent, and widen row m1; move the abiotic gate to 0.01 percent. Recommend yes.</li>
+<li><strong>Giant reference level (23).</strong> P_ref = min(1 bar, cloud top). Recommend yes.</li>
+<li><strong>Giant colour (24).</strong> Derive from optical columns and test against the Cahoy table. Recommend derive; interpolating the published grid is the fallback if band strengths stay unavailable.</li>
+<li><strong>Thick-air switch at tau(550) 0.3 (25).</strong> Recommend yes (verified basis).</li>
+<li><strong>Dust and haze stand-ins (21, 22).</strong> Accept the flagged ranges, and accept the Wolff spectrum digitized from Figures 12 to 14 as a labelled stand-in until a table is read. Recommend yes.</li>
+<li><strong>Cool stars (26).</strong> BT-Settl chromaticity below 4500 K; no licence gate (Boss, 2:35 PM EDT), the licence column keeps <code>open</code>. Recommend yes.</li>
+<li><strong>Epoch grouping (29).</strong> One bump for 8.4 phase 2, one for phase 3. Recommend yes.</li>
+<li><strong>Research order (30).</strong> Recommend: [R0443] (six open Rayleigh gases), giant band strengths, [R4392, R4394] and [R1144] printed Mars dust table, then the Bremen ozone data (fetched at build time, no licence gate).</li>
+<li><strong>Rayleigh center and range (18).</strong> Refractivity center for N<sub>2</sub>, O<sub>2</sub>, Ar, CO<sub>2</sub> with a one-sided draw down to the Sneep and Ubachs value; He 2021 center for CH<sub>4</sub>, N<sub>2</sub>O. Recommend yes; the alternative, centering on the measured values, lowers Earth-like tau by about 4 percent and fails the 2 percent test against the published 0.09721.</li>
+<li><strong>Third conflict rule.</strong> The reading in section 17 (the widest value or range either source allows, never outside both) is the one recorded in composition-model.md section 4a item 12, and Boss confirmed it at 1:12 PM EDT (Decided); nothing to approve.</li>
+<li><strong>Item numbers.</strong> Ask the TODO thread to reconcile the GEN numbers of the master chain with those of the gap plan before the build items are written. Recommend yes.</li>
+</ol>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

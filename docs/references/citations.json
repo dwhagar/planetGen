@@ -3803,7 +3803,7 @@
     },
     "R0761": {
       "kind": "paper",
-      "label": "Chen et al. 2024",
+      "label": "Chen et al. 2024a",
       "title": "Impact of nuclear mass models on r-process nucleosynthesis and heavy element abundances in r-process-enhanced metal-poor stars"
     },
     "R0762": {
@@ -12388,7 +12388,7 @@
     },
     "R2478": {
       "kind": "paper",
-      "label": "Kraus et al. 2011",
+      "label": "Kraus et al. 2011b",
       "title": "Impacts onto H2O ice: Scaling laws for melting, vaporization, excavation, and final crater size"
     },
     "R2479": {
@@ -18413,7 +18413,7 @@
     },
     "R3683": {
       "kind": "paper",
-      "label": "Raymond et al. 2007",
+      "label": "Raymond et al. 2007b",
       "title": "A Decreased Probability of Habitable Planet Formation around Low‐Mass Stars"
     },
     "R3684": {
@@ -23988,7 +23988,7 @@
     },
     "R4798": {
       "kind": "paper",
-      "label": "Xu et al. 2024",
+      "label": "Xu et al. 2024a",
       "title": "The chemistry of extra-solar materials from white dwarf planetary systems"
     },
     "R4799": {
@@ -25678,8 +25678,448 @@
     },
     "R5138": {
       "kind": "paper",
+      "label": "Petit et al. 2025",
+      "title": "Dynamical Evolution of Planetary Systems"
+    },
+    "R5139": {
+      "kind": "paper",
+      "label": "Nesvorný 2018",
+      "title": "Dynamical Evolution of the Early Solar System"
+    },
+    "R5140": {
+      "kind": "paper",
+      "label": "Shannon and Wu 2011",
+      "title": "PLANETESIMALS IN DEBRIS DISKS OF SUN-LIKE STARS"
+    },
+    "R5141": {
+      "kind": "paper",
+      "label": "Jurić and Tremaine 2008",
+      "title": "Dynamical Origin of Extrasolar Planet Eccentricity Distribution"
+    },
+    "R5142": {
+      "kind": "paper",
+      "label": "Raymond et al. 2007a",
+      "title": "High-Resolution Simulations of The Final Assembly of Earth-Like Planets. 2. Water Delivery And Planetary Habitability"
+    },
+    "R5143": {
+      "kind": "paper",
+      "label": "Tauris and Manchester 1998",
+      "title": "On the Evolution of Pulsar Beams"
+    },
+    "R5144": {
+      "kind": "paper",
+      "label": "Morin et al. 2010",
+      "title": "Large-scale magnetic topologies of late M dwarfs★"
+    },
+    "R5145": {
+      "kind": "paper",
       "label": "Battistini and Bensby 2015",
       "title": "The origin and evolution of the odd-Z iron-peak elements Sc, V, Mn, and Co in the Milky Way stellar disk"
+    },
+    "R5146": {
+      "kind": "paper",
+      "label": "Udry et al. 2019",
+      "title": "Reclassification of four aubrites as enstatite chondrite impact melts: Potential geochemical analogs for Mercury"
+    },
+    "R5147": {
+      "kind": "paper",
+      "label": "Nittler et al. 2018",
+      "title": "The Chemical Composition of Mercury"
+    },
+    "R5148": {
+      "kind": "paper",
+      "label": "Badro et al. 2014",
+      "title": "A seismologically consistent compositional model of Earth’s core"
+    },
+    "R5149": {
+      "kind": "paper",
+      "label": "Edmund et al. 2022",
+      "title": "The Fe-FeSi phase diagram at Mercury’s core conditions"
+    },
+    "R5150": {
+      "kind": "paper",
+      "label": "Iizuka-Oku et al. 2021",
+      "title": "Behavior of light elements in iron-silicate-water-sulfur system during early Earth’s evolution"
+    },
+    "R5151": {
+      "kind": "paper",
+      "label": "Kemper et al. 2004",
+      "title": "The Absence of Crystalline Silicates in the Diffuse Interstellar Medium"
+    },
+    "R5152": {
+      "kind": "paper",
+      "label": "Draine 2003",
+      "title": "Interstellar Dust Grains"
+    },
+    "R5153": {
+      "kind": "paper",
+      "label": "Draine and Li 2007",
+      "title": "Infrared Emission from Interstellar Dust. IV. The Silicate‐Graphite‐PAH Model in the Post‐ Spitzer Era"
+    },
+    "R5154": {
+      "kind": "paper",
+      "label": "Chen et al. 2021",
+      "title": "Where have all the interstellar silicon carbides gone?"
+    },
+    "R5155": {
+      "kind": "paper",
+      "label": "Hensley and Draine 2023",
+      "title": "The Astrodust+PAH Model: A Unified Description of the Extinction, Emission, and Polarization from Dust in the Diffuse Interstellar Medium"
+    },
+    "R5156": {
+      "kind": "paper",
+      "label": "Zhang and Xia 2021",
+      "title": "Influence of water on the physical properties of olivine, wadsleyite, and ringwoodite"
+    },
+    "R5157": {
+      "kind": "paper",
+      "label": "Thomas et al. 2015",
+      "title": "Quantification of water in hydrous ringwoodite"
+    },
+    "R5158": {
+      "kind": "paper",
+      "label": "Fei 2021",
+      "title": "Water Content of the Dehydration Melting Layer in the Topmost Lower Mantle"
+    },
+    "R5159": {
+      "kind": "paper",
+      "label": "Hirschmann 2006",
+      "title": "WATER, MELTING, AND THE DEEP EARTH H2O CYCLE"
+    },
+    "R5160": {
+      "kind": "paper",
+      "label": "Fu et al. 2019",
+      "title": "Water Concentration in Single‐Crystal (Al,Fe)‐Bearing Bridgmanite Grown From the Hydrous Melt: Implications for Dehydration Melting at the Topmost Lower Mantle"
+    },
+    "R5161": {
+      "kind": "paper",
+      "label": "Pearson et al. 2014",
+      "title": "Hydrous mantle transition zone indicated by ringwoodite included within diamond"
+    },
+    "R5162": {
+      "kind": "paper",
+      "label": "Barklem and Collet 2016",
+      "title": "Partition functions and equilibrium constants for diatomic molecules and atoms of astrophysical interest"
+    },
+    "R5163": {
+      "kind": "paper",
+      "label": "Wong et al. 2004",
+      "title": "Updated Galileo probe mass spectrometer measurements of carbon, oxygen, nitrogen, and sulfur on Jupiter"
+    },
+    "R5164": {
+      "kind": "web",
+      "label": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)",
+      "title": "The gypsum-anhydrite equilibrium at one atmosphere pressure (Hardie 1967, American Mineralogist 52, 171-200)"
+    },
+    "R5165": {
+      "kind": "paper",
+      "label": "Li 2021",
+      "title": "Tasting nuclear pasta made with classical molecular dynamics simulations"
+    },
+    "R5166": {
+      "kind": "paper",
+      "label": "Passamonti and Pons 2016",
+      "title": "Quasi-periodic oscillations in superfluid, relativistic magnetars with nuclear pasta phases"
+    },
+    "R5167": {
+      "kind": "web",
+      "label": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)",
+      "title": "Nuclear pasta in supernovae and neutron stars (Chapter 1 of Neutron Star Crust)"
+    },
+    "R5168": {
+      "kind": "paper",
+      "label": "Tsagkogeorgas et al. 2017",
+      "title": "Evaporation of sulfate aerosols at low relative humidity"
+    },
+    "R5169": {
+      "kind": "paper",
+      "label": "Pérez‐Hoyos et al. 2018",
+      "title": "Venus Upper Clouds and the UV Absorber From MESSENGER/MASCS Observations"
+    },
+    "R5170": {
+      "kind": "paper",
+      "label": "Mogul et al. 2026",
+      "title": "Altered Cosmic Organics as Venus' Ultraviolet Absorbers"
+    },
+    "R5172": {
+      "kind": "paper",
+      "label": "Cavazzoni et al. 1999",
+      "title": "Superionic and Metallic States of Water and Ammonia at Giant Planet Conditions"
+    },
+    "R5173": {
+      "kind": "paper",
+      "label": "Cooke et al. 2018",
+      "title": "One Percent Determination of the Primordial Deuterium Abundance*"
+    },
+    "R5174": {
+      "kind": "paper",
+      "label": "Colzi et al. 2018",
+      "title": "Nitrogen fractionation in high-mass star-forming cores across the Galaxy"
+    },
+    "R5175": {
+      "kind": "paper",
+      "label": "Altwegg et al. 2019",
+      "title": "Cometary Chemistry and the Origin of Icy Solar System Bodies: The View After Rosetta"
+    },
+    "R5176": {
+      "kind": "paper",
+      "label": "Nomura et al. 2022",
+      "title": "The Isotopic Links from Planet Forming Regions to the Solar System"
+    },
+    "R5177": {
+      "kind": "paper",
+      "label": "Milam et al. 2005",
+      "title": "The 12 C/ 13 C Isotope Gradient Derived from Millimeter Transitions of CN: The Case for Galactic Chemical Evolution"
+    },
+    "R5178": {
+      "kind": "paper",
+      "label": "Meshik et al. 2007",
+      "title": "Constraints on Neon and Argon Isotopic Fractionation in Solar Wind"
+    },
+    "R5179": {
+      "kind": "paper",
+      "label": "Adande and Ziurys 2011",
+      "title": "MILLIMETER-WAVE OBSERVATIONS OF CN AND HNC AND THEIR 15 N ISOTOPOLOGUES: A NEW EVALUATION OF THE 14 N/ 15 N RATIO ACROSS THE GALAXY"
+    },
+    "R5180": {
+      "kind": "paper",
+      "label": "Sun et al. 2026",
+      "title": "Single-crystal X-ray diffraction of BC8 carbon near terapascal pressures"
+    },
+    "R5181": {
+      "kind": "paper",
+      "label": "Prakapenka et al. 2020",
+      "title": "Polymorphism of superionic ice"
+    },
+    "R5182": {
+      "kind": "paper",
+      "label": "Lobanov et al. 2015",
+      "title": "Stable magnesium peroxide at high pressure"
+    },
+    "R5183": {
+      "kind": "paper",
+      "label": "Dong et al. 2017",
+      "title": "A stable compound of helium and sodium at high pressure"
+    },
+    "R5184": {
+      "kind": "paper",
+      "label": "Takezawa et al. 2024",
+      "title": "Formation of Iron-Helium Compounds under High Pressure"
+    },
+    "R5185": {
+      "kind": "paper",
+      "label": "Stavrou et al. 2018",
+      "title": "Synthesis of Xenon and Iron-Nickel Intermetallic Compounds at Earth’s Core Thermodynamic Conditions"
+    },
+    "R5186": {
+      "kind": "paper",
+      "label": "Chen et al. 2024b",
+      "title": "One Pot Synthesis of Cubic Gauche Polymeric Nitrogen"
+    },
+    "R5187": {
+      "kind": "paper",
+      "label": "Xu et al. 2024b",
+      "title": "Free-standing cubic gauche nitrogen stable at 760 K under ambient pressure"
+    },
+    "R5188": {
+      "kind": "paper",
+      "label": "Silvera and Dias 2019",
+      "title": "Comment on: Observation of a first order phase transition to metal hydrogen near 425 GPa"
+    },
+    "R5189": {
+      "kind": "paper",
+      "label": "Ji et al. 2011",
+      "title": "Ultrahigh-pressure phases of H2O ice predicted using an adaptive genetic algorithm"
+    },
+    "R5190": {
+      "kind": "paper",
+      "label": "Emran and Stack 2025",
+      "title": "Understanding Compositional Evolution of Hollows at Dominici Crater, Mercury"
+    },
+    "R5191": {
+      "kind": "paper",
+      "label": "Czaplinski et al. 2023",
+      "title": "Experimental Characterization of the Pyridine:Acetylene Co-crystal and Implications for Titan’s Surface"
+    },
+    "R5192": {
+      "kind": "paper",
+      "label": "Thakur and Remsing 2023",
+      "title": "Nuclear Quantum Effects in the Acetylene:Ammonia Plastic Co-crystal"
+    },
+    "R5193": {
+      "kind": "paper",
+      "label": "Thakur and Remsing 2024",
+      "title": "Molecular Structure and Rotational Dynamics in the Acetonitrile:Acetylene (1:2) Plastic Co-Crystal at Titan Conditions"
+    },
+    "R5194": {
+      "kind": "paper",
+      "label": "Wu et al. 2026b",
+      "title": "Radial gradient of superionic hydrogen in Earth's inner core"
+    },
+    "R5195": {
+      "kind": "paper",
+      "label": "Wu et al. 2026a",
+      "title": "Ab Initio Superionic-Liquid Phase Diagram of     Fe   1 − x      O   x      under Earth’s Inner Core Conditions"
+    },
+    "R5196": {
+      "kind": "paper",
+      "label": "Park et al. 2023",
+      "title": "Origin of superionic state in Earth's inner core"
+    },
+    "R5197": {
+      "kind": "paper",
+      "label": "Huang et al. 2025",
+      "title": "Novel phases in the Fe-Si-O system at terapascal pressures"
+    },
+    "R5198": {
+      "kind": "paper",
+      "label": "Zhu et al. 2012",
+      "title": "Stability of xenon oxides at high pressures"
+    },
+    "R5199": {
+      "kind": "paper",
+      "label": "de Villa et al. 2024",
+      "title": "Experimental Pathways for Detecting Double Superionicity in Planetary Ices"
+    },
+    "R5200": {
+      "kind": "paper",
+      "label": "Crichton et al. 2014",
+      "title": "Observation of the Sb2S3-type post-post-GdFeO3-perovskite: A model structure for high density ABX3 and A2X3 phases"
+    },
+    "R5201": {
+      "kind": "paper",
+      "label": "Xu et al. 2015",
+      "title": "Prediction of a stable post-post-perovskite structure from first principles"
+    },
+    "R5202": {
+      "kind": "paper",
+      "label": "Umemoto and Wentzcovitch 2021",
+      "title": "Ab initio prediction of an order-disorder transition in    Mg 2  Ge  O 4    : Implication for the nature of super-Earth's mantles"
+    },
+    "R5203": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2016",
+      "title": "Production of cosmogenic isotopes 7 Be, 10 Be, 14 C, 22 Na, and 36 Cl in the atmosphere: Altitudinal profiles of yield functions"
+    },
+    "R5204": {
+      "kind": "paper",
+      "label": "Poluianov et al. 2020",
+      "title": "A New Full 3‐D Model of Cosmogenic Tritium 3H Production in the Atmosphere (CRAC:3H)"
+    },
+    "R5205": {
+      "kind": "paper",
+      "label": "Pavlov et al. 2013",
+      "title": "AD 775 pulse of cosmogenic radionuclides production as imprint of a Galactic gamma-ray burst"
+    },
+    "R5206": {
+      "kind": "paper",
+      "label": "Masarik and Beer 2009",
+      "title": "An updated simulation of particle fluxes and cosmogenic nuclide production in the Earth's atmosphere"
+    },
+    "R5207": {
+      "kind": "paper",
+      "label": "Kovaltsov et al. 2012",
+      "title": "A new model of cosmogenic production of radiocarbon 14C in the atmosphere"
+    },
+    "R5208": {
+      "kind": "paper",
+      "label": "Booth et al. 2017",
+      "title": "Chemical enrichment of giant planets and discs due to pebble drift"
+    },
+    "R5209": {
+      "kind": "paper",
+      "label": "Cuzzi and Zahnle 2004",
+      "title": "Material Enhancement in Protoplanetary Nebulae by Particle Drift through Evaporation Fronts"
+    },
+    "R5210": {
+      "kind": "paper",
+      "label": "Schneider and Bitsch 2021",
+      "title": "How drifting and evaporating pebbles shape giant planets"
+    },
+    "R5211": {
+      "kind": "paper",
+      "label": "Lambrechts and Johansen 2014",
+      "title": "Forming the cores of giant planets from the radial pebble flux in protoplanetary discs"
+    },
+    "R5212": {
+      "kind": "paper",
+      "label": "Piso et al. 2015",
+      "title": "C/O AND SNOWLINE LOCATIONS IN PROTOPLANETARY DISKS: THE EFFECT OF RADIAL DRIFT AND VISCOUS GAS ACCRETION"
+    },
+    "R5213": {
+      "kind": "paper",
+      "label": "Umemoto et al. 2017",
+      "title": "Phase transitions in MgSiO3 post-perovskite in super-Earth mantles"
+    },
+    "R5214": {
+      "kind": "paper",
+      "label": "Dauphas and Morbidelli 2014",
+      "title": "Geochemical and Planetary Dynamical Views on the Origin of Earth's Atmosphere and Oceans"
+    },
+    "R5215": {
+      "kind": "paper",
+      "label": "Auer et al. 2009",
+      "title": "Cosmogenic 26Al in the atmosphere and the prospect of a 26Al/10Be chronometer to date old ice"
+    },
+    "R5216": {
+      "kind": "paper",
+      "label": "Fink et al. 1998",
+      "title": "41Ca, 26Al, and 10Be in lunar basalt 74275 and 10Be in the double drive tube 74002/74001"
+    },
+    "R5217": {
+      "kind": "paper",
+      "label": "Marston et al. 2026",
+      "title": "Do Super-Puffs Defy Core Accretion? Population-Wide Interior Structure Constraints"
+    },
+    "R5218": {
+      "kind": "paper",
+      "label": "Levison and Duncan 1997",
+      "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets"
+    },
+    "R5219": {
+      "kind": "paper",
+      "label": "Parai and Mukhopadhyay 2015",
+      "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts"
+    },
+    "R5220": {
+      "kind": "paper",
+      "label": "Kraus et al. 2016",
+      "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS"
+    },
+    "R5221": {
+      "kind": "paper",
+      "label": "Kozai 1962",
+      "title": "Secular perturbations of asteroids with high inclination and eccentricity"
+    },
+    "R5222": {
+      "kind": "paper",
+      "label": "Lidov 1962",
+      "title": "The evolution of orbits of artificial satellites of planets under the action of gravitational perturbations of external bodies"
+    },
+    "R5223": {
+      "kind": "paper",
+      "label": "Innanen et al. 1997",
+      "title": "The Kozai Mechanism and the Stability of Planetary Orbits in Binary Star Systems"
+    },
+    "R5224": {
+      "kind": "paper",
+      "label": "Tremaine et al. 2009",
+      "title": "SATELLITE DYNAMICS ON THE LAPLACE SURFACE"
+    },
+    "R5225": {
+      "kind": "paper",
+      "label": "Kraus et al. 2011a",
+      "title": "THE ROLE OF MULTIPLICITY IN DISK EVOLUTION AND PLANET FORMATION"
+    },
+    "R5226": {
+      "kind": "paper",
+      "label": "Fabrycky and Tremaine 2007",
+      "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction"
+    },
+    "R5227": {
+      "kind": "paper",
+      "label": "Laskar et al. 1993",
+      "title": "Stabilization of the Earth's obliquity by the Moon"
     }
   }
 }

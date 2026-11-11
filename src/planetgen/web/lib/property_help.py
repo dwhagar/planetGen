@@ -15,7 +15,7 @@ from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import unit_registry
 from planetgen.web.lib import reference_urls
 
-KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"))
+KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"), ("neutron_star", "Neutron stars"))
 """tuple: The kinds with source lines, in the order the page lists them, and what the page calls them."""
 
 WORDS = "words"
@@ -66,16 +66,16 @@ GROUP_AREA = {
     "Identity": "bodies", "Orbit": "orbits", "Physical": "bodies", "Rotation": "orbits", "Composition": "bodies", "Atmosphere": "atmospheres",
     "Climate": "climate", "Water": "climate", "Magnetic field": "rings-magnetism", "Radiation": "radiation", "Habitability": "life", "Life": "life",
     "Zones and limits": "climate", "Stellar activity": "stars", "Galactic orbit": "galaxy", "Disk": "orbits", "Radiogenic heat": "radiation",
-    "Gas and light": "appearance", "Compact object": "stars", "Activity": "stars", "Ratings": "life",
+    "Gas and light": "appearance", "Compact object": "stars", "Activity": "stars", "Ratings": "life", "Dust": "atmospheres",
 }
 """dict: The area of the method pages (`reference_urls.AREAS`) that holds the rows of each heading of the property sheet (DOC.91)."""
 
 
 def by_area():
-    """`{area: [rows]}` for every area of the method pages: the rows of `rows()` whose sheet heading `GROUP_AREA` puts there (a value only stars have is in `stars`), in the sheet's order."""
+    """`{area: [rows]}` for every area of the method pages: the rows of `rows()` whose sheet heading `GROUP_AREA` puts there (a value only stars or neutron stars have is in `stars`), in the sheet's order."""
     found = {area: [] for area in reference_urls.AREAS}
     for row in rows():
-        found["stars" if row["applies"] == "Stars" else GROUP_AREA[row["group"]]].append(row)
+        found["stars" if row["applies"] in ("Stars", "Neutron stars") else GROUP_AREA[row["group"]]].append(row)
     return found
 
 

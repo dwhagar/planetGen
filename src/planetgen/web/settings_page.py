@@ -18,6 +18,10 @@ only, or the Owner's) is listed read-only with the reason. A secret is never sho
 The review page carries the new values in hidden fields (secrets included, so the confirmed save is the one
 reviewed); it is sent `no-store` and protected by the CSRF token like every form.
 
+"Update config.json" (`/admin/settings/update`, ADM.140) is a second page: it shows the settings the file lacks (written with
+their defaults), the ones a site should set, and the keys the model no longer knows, and one form writes them, after a
+backup, keeping every value the file has.
+
 The options themselves, their help and their limits come from the settings model through the API, so a new
 `settings.opt(...)` appears here with no change to this module.
 """
@@ -376,3 +380,58 @@ def _save(cookie_header, view):
     if not result["saved"]:
         return _form_page(view, message="Nothing to change: every value is as it was.")
     return _flash(_see_other(url_for("web.admin_settings")), message=_saved_message(result, view))
+
+
+def _update_page(plan, status=200, error=None):
+    """The update preview: what is added, what the site should set, what is stale; one form confirms it (ADM.140)."""
+    response = _render(
+        "admin_settings_update.html", flashed=True, title="Update config.json", section="admin_settings",
+        breadcrumbs=[crumb("Admin", "admin"), crumb("Settings", "admin_settings"), crumb("Update config.json")],
+        description="Add the settings this version needs to config.json, keeping every value the site has.",
+        plan=plan, error=error,
+    )
+    response.status_code = status
+    return response
+
+
+def _update_preview(cookie_header):
+    """The plan the page opens with: the recommended values are ticked (the admin unticks what the site does not want), the
+    stale keys are not."""
+    plan = apiclient.admin_settings_update_plan(cookie_header)
+    ticked = [item["path"] for item in plan["recommended"] if item["has_value"]]
+    return apiclient.admin_settings_update_plan(cookie_header, apply=ticked) if ticked else plan
+
+
+@bp.route("/admin/settings/update", methods=["GET", "POST"])
+def admin_settings_update():
+    """The "Update config.json" preview and, when its form is confirmed, the write (ADM.140)."""
+    admin, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    cookie_header = _cookie_header()
+    try:
+        if request.method == "GET" or request.form.get("action") != "save":
+            return _update_page(_update_preview(cookie_header))
+        result = apiclient.admin_settings_update(cookie_header, remove=request.form.getlist("remove"),
+                                                 apply=request.form.getlist("apply"),
+                                                 expect_hash=request.form.get("expect_hash") or None)
+    except apiclient.ApiError as exc:
+        try:
+            plan = _update_preview(cookie_header)
+        except apiclient.ApiError:
+            plan = None
+        return _update_page(plan, status=409 if getattr(exc, "status_code", 0) == 409 else 400, error=_api_message(exc))
+    if result["errors"]:
+        return _update_page(result, status=422, error="Nothing was written: " + "; ".join(
+            f"{path}: {text}" if path else text for path, text in result["errors"].items()))
+    if not result["saved"]:
+        return _flash(_see_other(url_for("web.admin_settings")),
+                      message="config.json already has every setting this version needs.")
+    count = len(result["added"])
+    text = f"Added {count} {'setting' if count == 1 else 'settings'} to config.json"
+    if result["removed"]:
+        text += f" and took out {len(result['removed'])} stale {'key' if len(result['removed']) == 1 else 'keys'}"
+    text += "; every other value is as it was."
+    if result["backup"]:
+        text += f" The old file is kept in the backup {result['backup']}."
+    return _flash(_see_other(url_for("web.admin_settings")), message=text)

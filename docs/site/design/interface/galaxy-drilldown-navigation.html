@@ -1,0 +1,1331 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy Map drill-down navigation - planetGen docs</title>
+<meta name="description" content="Boss&#x27;s design for getting around the Galaxy Map, recorded 2026-10-01.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/interface/galaxy-drilldown-navigation.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/interface/galaxy-drilldown-navigation.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-map-drill-down-navigation">Galaxy Map drill-down navigation</h1><p class="meta">docs/design/interface/galaxy-drilldown-navigation.md</p><details class="toc"><summary>On this page (40 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-boss-asked-for">1. What Boss asked for</a></li><li style="margin-left:0px"><a href="#2-background-the-research-paper">2. Background: the research paper</a></li><li style="margin-left:0px"><a href="#3-the-block-ladder">3. The block ladder</a></li><li style="margin-left:14px"><a href="#31-notation">3.1 Notation</a></li><li style="margin-left:14px"><a href="#32-the-ladder-243-27-3-1">3.2 The ladder: 243, 27, 3, 1</a></li><li style="margin-left:14px"><a href="#33-rings-and-layers-nest-exactly">3.3 Rings and layers nest exactly</a></li><li style="margin-left:14px"><a href="#34-wedges-must-be-made-to-nest">3.4 Wedges must be made to nest</a></li><li style="margin-left:14px"><a href="#35-sectors-inside-a-level-3-block">3.5 Sectors inside a level-3 block</a></li><li style="margin-left:14px"><a href="#36-what-exists-and-what-counts">3.6 What exists and what counts</a></li><li style="margin-left:14px"><a href="#37-code">3.7 Code</a></li><li style="margin-left:0px"><a href="#4-the-stages">4. The stages</a></li><li style="margin-left:0px"><a href="#5-how-the-stages-behave">5. How the stages behave</a></li><li style="margin-left:14px"><a href="#51-the-view">5.1 The view</a></li><li style="margin-left:14px"><a href="#52-picking">5.2 Picking</a></li><li style="margin-left:14px"><a href="#53-the-flight-into-a-block">5.3 The flight into a block</a></li><li style="margin-left:14px"><a href="#54-breadcrumb-back-and-forward">5.4 Breadcrumb, Back and Forward</a></li><li style="margin-left:14px"><a href="#55-the-sector-at-the-end">5.5 The sector at the end</a></li><li style="margin-left:0px"><a href="#6-generating-from-the-map-admin">6. Generating from the map (admin)</a></li><li style="margin-left:0px"><a href="#7-data-the-stage-contents-api">7. Data: the stage contents API</a></li><li style="margin-left:0px"><a href="#8-urls-history-and-bookmarks">8. URLs, history and bookmarks</a></li><li style="margin-left:14px"><a href="#81-stage-urls">8.1 Stage URLs</a></li><li style="margin-left:14px"><a href="#82-bookmarks">8.2 Bookmarks</a></li><li style="margin-left:0px"><a href="#9-nav-integration">9. NAV integration</a></li><li style="margin-left:14px"><a href="#91-sector-map-pick-mode">9.1 Sector Map pick mode</a></li><li style="margin-left:14px"><a href="#92-nav-links-from-everywhere">9.2 Nav links from everywhere</a></li><li style="margin-left:14px"><a href="#93-address-bar">9.3 Address bar</a></li><li style="margin-left:14px"><a href="#94-the-course-on-the-map">9.4 The course on the map</a></li><li style="margin-left:0px"><a href="#10-what-changes-on-todays-map">10. What changes on today's map</a></li><li style="margin-left:0px"><a href="#11-decisions-for-boss">11. Decisions for Boss</a></li><li style="margin-left:0px"><a href="#12-build-order-and-owners">12. Build order and owners</a></li><li style="margin-left:0px"><a href="#15-the-arc-pick-map85">15. The arc pick (MAP.85)</a></li><li style="margin-left:14px"><a href="#151-the-whole-galaxy">15.1 The whole galaxy</a></li><li style="margin-left:14px"><a href="#152-the-arc">15.2 The arc</a></li><li style="margin-left:14px"><a href="#153-below-the-arc">15.3 Below the arc</a></li><li style="margin-left:14px"><a href="#154-colour-instead-of-lines">15.4 Colour instead of lines</a></li><li style="margin-left:14px"><a href="#155-order">15.5 Order</a></li><li style="margin-left:0px"><a href="#13-sources">13. Sources</a></li><li style="margin-left:0px"><a href="#14-why-it-works-this-way">14. Why it works this way</a></li><li style="margin-left:14px"><a href="#ideas-from-the-paper-that-were-rejected">Ideas from the paper that were rejected</a></li><li style="margin-left:0px"><a href="#16-planned-changes-2026-10-03-and-2026-10-07">16. Planned changes (2026-10-03 and 2026-10-07)</a></li></ul></details>
+<p>Boss's design for getting around the Galaxy Map, recorded 2026-10-01.</p>
+<p><strong>Built (MAP.150 and MAP.151d, 2026-10-14):</strong> the arc, slab and segment picks, the slab buttons with their lines, and the container stages of the fixed ladder are gone. The galaxy is a plain disk of level-243 blocks; a click on a block opens a <em>window</em> (a window of <code>g</code> cells across, 3 to 11, default 9; its address was <code>?win=m.ring.wedge.slab[&amp;g=n]</code> until MAP.228 put the camera there instead) centered on it one size down (243, 27, 3, then sectors), Up recenters on the parent block, and the galaxy is the top of the chain. The window is a round region over the block lattice (<code>planetgen/galaxy/region.py</code>, <code>planetgen/galaxy/window.py</code>, <code>windowCells</code> in <code>static/galaxystages.js</code>); the server crops the parent stage files and needs no migration. Older <code>at=</code>, <code>p=</code> and <code>slab=</code> links open the galaxy. Sections 4, 5 and 15 below describe the pick stages that this replaced and stay as the record of how the map got here. Built since from MAP.146: the 3-ary ladder (see spherical-block-ladder.md, 2026-10-15) and the scale hand-offs (MAP.152, client part built 2026-10-15, merged 2026-10-16). Designs in <a href="fly-through-view-distance.html">fly-through-view-distance.md</a> and <a href="drilldown-region-sizes.html">drilldown-region-sizes.md</a>.</p>
+<p><strong>Status (2026-10-15):</strong> built, and replaced in part. The arc pick (MAP.85) replaced the galaxy's first pick (section 4); the slab and segment steps of section 15 were built (MAP.56, #408; MAP.76 to MAP.78, #410; MAP.66 to MAP.68; MAP.58 was superseded by MAP.125) and then removed with the picks by MAP.150 and MAP.151d, as the paragraph above says. MAP.59 is open. Section 16's &quot;Planned changes&quot; are mostly done (MAP.111, #531, for one); the fly-through (MAP.146, open) is the planned replacement for the rest. The block ladder under all of it is built for the spherical sectors (MAP.205, MAP.206, 2026-10-15; see spherical-block-ladder.md).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Piece</th>
+<th>Section</th>
+<th>TODO</th>
+<th>Built in</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Block ladder (<code>planetgen/galaxy/drill.py</code>, <code>drill*</code> in <code>static/galaxyprisms.js</code>)</td>
+<td>3</td>
+<td>MAP.28</td>
+<td>7.41.2, PR #160</td>
+</tr>
+<tr>
+<td>Stage contents API (<code>GET /api/galaxy/stage</code>, the site's cached <code>/galaxy/stage</code>)</td>
+<td>7</td>
+<td>MAP.29</td>
+<td>7.41.3, PR #160</td>
+</tr>
+<tr>
+<td>The stages (<code>static/galaxystages.js</code>, <code>static/galaxystageview.js</code>), stage URLs, breadcrumb, keys, touch, &quot;Charted only&quot;</td>
+<td>4, 5, 8.1</td>
+<td>MAP.16</td>
+<td>7.44.0, PR #171</td>
+</tr>
+<tr>
+<td>Top-down only, quarter, layer and arc picks, dimmed hover, wedge lines kept to the view, opening at a sector's layer, the map's Back and Forward</td>
+<td>4, 5, 8.1, 10, 11</td>
+<td>MAP.17, MAP.18, MAP.19, MAP.44, MAP.26</td>
+<td>7.73.177</td>
+</tr>
+<tr>
+<td>Address bar (<code>/galaxy/locate</code>)</td>
+<td>9.3</td>
+<td>MAP.24</td>
+<td>7.50.0, PR #172</td>
+</tr>
+<tr>
+<td>Course on the map (<code>/galaxy?course=&lt;from&gt;,&lt;to&gt;</code>)</td>
+<td>9.4</td>
+<td>MAP.27</td>
+<td>7.52.0, PR #176</td>
+</tr>
+<tr>
+<td>Map Generate buttons and the light-year radius dialog</td>
+<td>6</td>
+<td>MAP.20 (map side)</td>
+<td>7.53.0, PR #177</td>
+</tr>
+<tr>
+<td>Sector Map pick mode and Nav from/to links</td>
+<td>9.1, 9.2</td>
+<td>MAP.21</td>
+<td>7.58.0, PR #178</td>
+</tr>
+<tr>
+<td>Generate this layer or slab (<code>planetgen galaxy --block</code>, the Generate page's block form)</td>
+<td>6</td>
+<td>MAP.20</td>
+<td>7.60.174</td>
+</tr>
+<tr>
+<td>NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select</td>
+<td>9</td>
+<td>MAP.22</td>
+<td>7.94.253 (the picks earlier)</td>
+</tr>
+<tr>
+<td>Bookmarks (<code>static/bookmarks.js</code>): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81)</td>
+<td>8.2</td>
+<td>MAP.23</td>
+<td>7.94.253</td>
+</tr>
+<tr>
+<td>&quot;Show on Galaxy Map&quot; links with <code>?sector=</code> from sector, system and search pages</td>
+<td>8.1</td>
+<td>MAP.25</td>
+<td>7.64.174</td>
+</tr>
+<tr>
+<td>The whole galaxy in 3D with no grid lines, the arc pick in place of the quarter, outlines along real wedge lines, one scale line, the controls' Menu</td>
+<td>4, 5, 8.1, 10, 15</td>
+<td>MAP.85, MAP.52, MAP.60, MAP.55</td>
+<td>PR #369</td>
+</tr>
+</tbody>
+</table></div>
+<p>Later requests changed this design, and the sections below describe the
+map as it now is: MAP.17 (no free camera and no rotation at all; start
+top-down and pick a quarter, then a slice), MAP.19 (every pick is a big
+arc, not a single block), MAP.18 (everything but the hovered pick is
+dimmed), MAP.44 (wedge lines kept to the part in view) and MAP.26 (&quot;Show
+on Galaxy Map&quot; opens at the sector's own layer, and the map has its own
+Back and Forward). Boss settled what a slice and a region are on
+2026-10-01 (&quot;Layer + arc&quot;, section 11, decision 8). The open work items
+are in <code>docs/TODO.md</code>, and each one points back to a section here.</p>
+<p>MAP.85 (Boss, 2026-10-01 23:53Z; arc size decided 2026-10-02 01:53Z)
+then made the whole galaxy a 3D disk the visitor can turn, with no
+sector, block or wedge lines drawn on it, and replaced the quarter with
+an arc (section 4); MAP.55 put every control but Back, Forward, Up,
+Reset and Bookmarks into a Menu and dropped the Wedges button and the
+wedge lines; MAP.60 cut the scale readout to one line.</p>
+<h2 id="1-what-boss-asked-for">1. What Boss asked for</h2>
+<p>Boss's words, from the project thread on 2026-10-01:</p>
+<blockquote>
+<p>What if we select in sections? As in we click on a mega-block and it
+zooms in to just that megablock's contents to have smaller megablocks
+fill that space. From there, the mouse can select a layer in megablocks
+that then is pulled out into a slice that the user can select another
+megablock inside and it'll zoom it in to that contents, and repeat
+until we have sectors and clicking on one goes to that sector. In fact,
+do the slice of the 3D to zoom in and select a block be the first
+stage. Mouse will highlight the slice it's going to make and from the
+slice highlight the block it's going to zoom into. Then we can add
+bookmarks and integrate this with the navigation system, so we can
+from the nav menu select start and destination using either the text
+dropdowns as we have now or the galactic map interface to select. If
+it's within sector then it'll just use the sector interface.</p>
+</blockquote>
+<blockquote>
+<p>Also let's add UI so that once we're down to a sector level we can tell
+a slice to generate all the sectors in that slice or click on a sector
+and generate it from the UI if you're admin</p>
+</blockquote>
+<blockquote>
+<p>we'll use the bigger targets, also add a 'generate neighborhood' when
+at a sector selection level that will ask the radius in ly.</p>
+</blockquote>
+<p>&quot;Bigger targets&quot; picks the 243 → 27 → 3 → 1 ladder (section 3) over
+81 → 9 → 1.</p>
+<h2 id="2-background-the-research-paper">2. Background: the research paper</h2>
+<p>Boss supplied a paper, &quot;Mapping Volumetric Galactic Topologies to Planar
+Interfaces&quot; (an HCI report on cylindrical galaxies). Its main claims, and
+how they apply here:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paper idea</th>
+<th>Used here?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Discrete scale tiers instead of continuous scroll zoom</td>
+<td>Yes: the drill-down stages are the tiers, picked by clicking instead of by the wheel</td>
+</tr>
+<tr>
+<td>Breadcrumb with clickable levels; an address bar for direct entry</td>
+<td>Yes (sections 5.4, 9.3)</td>
+</tr>
+<tr>
+<td>Animated scale-space flight</td>
+<td>Yes, for every move into a block (section 5.3)</td>
+</tr>
+<tr>
+<td>Top-down polar plan view; elevation (r, z) slice</td>
+<td>Yes: every slab is shown top-down, and the slab strip picks the height (section 5.2)</td>
+</tr>
+<tr>
+<td>Bookmarks and history</td>
+<td>Yes (sections 5.4, 8)</td>
+</tr>
+<tr>
+<td>A 2D canvas replacing 3D</td>
+<td>No. The 3D solid of blocks stays for the slab-picking stages.</td>
+</tr>
+<tr>
+<td>Unwrapping each cylindrical shell into a strip</td>
+<td>No. A ring is one sector wide, so its strip is a thin ribbon with a seam, and it cuts off the radial neighbors.</td>
+</tr>
+<tr>
+<td>Morton (Z-order) hashing</td>
+<td>No. Every address here is already found by closed-form math, and the designation hex is already a reversible packed key.</td>
+</tr>
+<tr>
+<td>Fisheye lenses</td>
+<td>No. They would bend the distances and bearings that NAV reports.</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="3-the-block-ladder">3. The block ladder</h2>
+<h3 id="31-notation">3.1 Notation</h3>
+<ul>
+<li><code>e</code>: the sector edge, <code>edge_pc</code> (4 pc by default).</li>
+<li>A sector is <code>(i, j, k)</code>: ring <code>i</code>, layer <code>j</code>, slot <code>k</code>. Ring <code>i</code> has
+<code>N_i = ring_sector_count(i)</code> slots, and slot <code>k</code> spans
+<code>theta in [2*pi*k/N_i, 2*pi*(k+1)/N_i)</code>.</li>
+<li>A block is <code>(m, I, s, S)</code>: <code>m</code> sectors a side (a power of 3), block
+ring <code>I</code>, wedge <code>s</code>, slab <code>S</code>. Block ring <code>I</code> has <code>W_m(I)</code> wedges.</li>
+<li>Bounds of block <code>(m, I, s, S)</code>:
+<ul>
+<li><code>r in [I*m*e, (I+1)*m*e)</code></li>
+<li><code>theta in [2*pi*s/W_m(I), 2*pi*(s+1)/W_m(I))</code></li>
+<li><code>z in [(S - 1/2)*m*e, (S + 1/2)*m*e)</code></li>
+</ul>
+</li>
+<li>Member rings: <code>I*m</code> to <code>I*m + m - 1</code>. Member layers: <code>S*m - (m-1)/2</code>
+to <code>S*m + (m-1)/2</code>, so slab 0 is centered on the plane, the same way
+layer 0 is. These are <code>blockSectorRanges</code> in <code>static/galaxyprisms.js</code>.</li>
+</ul>
+<h3 id="32-the-ladder-243-27-3-1">3.2 The ladder: 243, 27, 3, 1</h3>
+<p>Each step into a block divides its size by 9, except the last, which
+divides by 3. Numbers below are for the default galaxy (edge ring 3,855,
+635 layers from -317 to 317, about 12.3 billion sector cells). They were
+computed from the code on 2026-10-01.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Block size</th>
+<th>Block rings</th>
+<th>Slabs</th>
+<th>Wedges per ring</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>243</td>
+<td>972 pc (3,170 ly)</td>
+<td>16</td>
+<td>3 (-1 to 1)</td>
+<td>3 at the core, 96 at the edge</td>
+</tr>
+<tr>
+<td>27</td>
+<td>108 pc (352 ly)</td>
+<td>143</td>
+<td>25 (-12 to 12)</td>
+<td>3 at the core, 1,024 at the edge</td>
+</tr>
+<tr>
+<td>3</td>
+<td>12 pc (39 ly)</td>
+<td>1,286</td>
+<td>213 (-106 to 106)</td>
+<td>3 at the core, 7,680 at the edge</td>
+</tr>
+<tr>
+<td>1 (sectors)</td>
+<td>4 pc (13 ly)</td>
+<td>3,856</td>
+<td>635 layers</td>
+<td><code>N_i</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>Slab 0 at level 243 holds layers -121 to 121 (within 486 pc of the
+plane), which is nearly every star. Slabs 1 and -1 hold the thick disk
+and bulge out to layer 317.</p>
+<h3 id="33-rings-and-layers-nest-exactly">3.3 Rings and layers nest exactly</h3>
+<p>With <code>f = m / m'</code> (9 or 3) the child size <code>m'</code>:</p>
+<ul>
+<li>Rings: block ring <code>I</code> at size <code>m</code> covers sector rings <code>I*m</code> to
+<code>I*m + m - 1</code>. These are exactly child block rings <code>I*f</code> to
+<code>I*f + f - 1</code>, so the parent ring of child ring <code>I'</code> is <code>floor(I'/f)</code>.</li>
+<li>Layers: the children of slab <code>S</code> are child slabs <code>S*f - (f-1)/2</code> to
+<code>S*f + (f-1)/2</code> (9 or 3 of them), and the parent slab of child slab
+<code>S'</code> is <code>round(S'/f)</code>. Proof: the lowest child slab's lowest layer is
+<code>(S*f - (f-1)/2)*m' - (m'-1)/2 = S*m - (m-1)/2</code>, the parent's lowest
+layer. The top layer follows by symmetry. <code>f</code> and <code>m'</code> are odd, so the
+halves are whole numbers.</li>
+</ul>
+<h3 id="34-wedges-must-be-made-to-nest">3.4 Wedges must be made to nest</h3>
+<p>Today's <code>blockWedgeCount(ring, m)</code> picks each level's wedge count on its
+own (aligned to the master lines where it can, within 1.2x of
+<code>round(2*pi*(I + 1/2))</code>). Child wedges then only sometimes sit inside one
+parent wedge. Counted on the default galaxy, a child ring's wedges divide
+evenly into its parent's in 109 of 143 rings at 243 → 27, 1,162 of 1,286
+at 27 → 3, and 1,468 of 3,856 at 3 → 1. A drill-down needs each child to
+sit wholly inside one parent, so the ladder uses a <strong>nested wedge rule</strong>:</p>
+<pre><code>T(i)    = max(3, round(2*pi*(i + 1/2)))            ring i's target count
+W_243(I) = blockWedgeCount(I, 243)                   unchanged
+W_27(i)  = W_243(p) * max(1, round(T(i) / W_243(p))),  p = floor(i / 9)
+W_3(i)   = W_27(p)  * max(1, round(T(i) / W_27(p))),   p = floor(i / 9)
+</code></pre>
+<p>Every child count is a whole multiple of its parent's, so every parent
+wedge line is also a child wedge line. With <code>q = W_child(i) / W_parent(p)</code>:</p>
+<ul>
+<li>Children of wedge <code>s</code> in child ring <code>i</code>: wedges <code>s*q</code> to <code>s*q + q - 1</code>.</li>
+<li>Parent of child wedge <code>s'</code>: <code>floor(s' / q)</code>.</li>
+</ul>
+<p>The cost is a little arc error: a wedge's centerline arc stays within
+0.93-1.07 of a block edge at level 27, and within 0.95-1.06 at level 3.
+Level 243 keeps today's rule (0.85-1.18). Each parent holds 69-96
+children per child slab at 243 → 27 and 74-90 at 27 → 3, times 9 child
+slabs.</p>
+<p>The new rule is used by the drill-down stages. If the free camera stays
+(decision 2), its pixel-sized blocks should switch to the same rule, so
+that both views draw the same block borders.</p>
+<h3 id="35-sectors-inside-a-level-3-block">3.5 Sectors inside a level-3 block</h3>
+<p>Sector slots don't line up with level-3 wedges (only 1 of 1,286 rings
+does), so sectors join the level-3 block that holds their center, the
+rule <code>blockSlotRange</code> already uses. In ring <code>i</code> of block
+<code>(3, J, s, S)</code> with <code>W = W_3(J)</code> and <code>N = N_i</code>:</p>
+<pre><code>first slot = ceil((2*s*N - W) / (2*W))
+last slot  = ceil((2*(s+1)*N - W) / (2*W)) - 1
+</code></pre>
+<p>The members are rings <code>3J</code> to <code>3J + 2</code> and layers <code>3S - 1</code> to <code>3S + 1</code>.
+That is 1 to 5 slots per ring (5 only near the core) and about 9
+sectors per layer (8.2 to 10 on average).</p>
+<p>The parent of sector <code>(i, j, k)</code>, using integer math only:</p>
+<pre><code>J = floor(i / 3)
+S = round(j / 3)
+s = floor((2*k + 1) * W_3(J) / (2 * N_i))
+</code></pre>
+<p>The rest of the chain follows from section 3.4. Each sector then has
+exactly one block at every level, and a block's sectors are exactly the
+sectors of its children.</p>
+<h3 id="36-what-exists-and-what-counts">3.6 What exists and what counts</h3>
+<ul>
+<li>A block is drawn when any member sector is allowed by the stored
+outline (<code>galaxy_layer</code> and <code>galaxy_column</code>). In the browser,
+<code>blockExists</code>/<code>sectorAllowed</code> already compute this from the analytic
+bound.</li>
+<li>A slab is drawn when any of its blocks is.</li>
+<li>A block's total is its allowed sector count (<code>blockSectorCount</code>,
+adapted to the nested rule). Its generated count comes from the
+server (section 7). The look stays as today: glass when nothing is
+generated, more solid as the generated share grows, fully solid at
+100%.</li>
+</ul>
+<h3 id="37-code">3.7 Code</h3>
+<ul>
+<li><code>static/galaxyprisms.js</code>: <code>drillWedgeCount(level, ring)</code>,
+<code>drillParent(block)</code>, <code>drillChildren(block)</code> (grouped by child slab),
+<code>drillSlabs(block)</code>, <code>drillBlockSectors(block, layer)</code> and
+<code>drillChainOf(ring, layer, slot)</code>. Pure, and runs under node like the
+rest of the file.</li>
+<li><code>planetgen/galaxy/drill.py</code>: the same functions in Python, for
+the API (section 7) and generation (section 6), plus
+<code>format_drill_key</code>/<code>parse_drill_key</code> for the <code>m.ring.wedge.slab</code> keys
+(<code>formatDrillKey</code>/<code>parseDrillKey</code> on the page). Built 2026-10-01
+(PR #160). Generation (section 6) does not use it yet.</li>
+<li><code>tests/test_galaxydrill.py</code> runs both on every block ring and on
+sampled sectors and checks that they agree, and that a parent's
+sectors are exactly the sectors of its children.</li>
+</ul>
+<h2 id="4-the-stages">4. The stages</h2>
+<p>The whole galaxy is a 3D disk, opened straight down so the spiral arms
+show (MAP.97), that the visitor can turn any way, and zoom in to about
+twice as close but no further out than its fit (MAP.85, MAP.58's range);
+it has no sector, block or wedge lines, so the stars and the spiral show
+through. Below it each zoom step flies to a preset for what it shows
+(MAP.97, Boss 2026-10-02): a block of several slabs (an arc, an entered
+block, the cube of sectors) at an isometric slant (Boss, 2026-10-01,
+&quot;turn the angle to be isometric so that the user can select layers
+easier&quot;), so layers can be clicked on the map as well as picked with the
+slab buttons, and a slab straight down. Every view can be turned any way
+by any amount, through edge-on and under the plane (MAP.96), moved and
+zoomed within a
+short range, to make layers, blocks and sectors easier to pick (Boss,
+2026-10-01, section 5.1); each step still opens on its own view. A stage is a container (the galaxy or
+one block of the ladder, section 3) and the picks made inside it so far.
+The picks go:</p>
+<ul>
+<li><strong>Arc</strong> (MAP.85), at the galaxy only: a piece of the disk about 40°
+of bearing by a third of its radius (inner, middle or outer), running
+the whole height of the disk. An arc holds the level-243 blocks of
+its third of the block rings whose middle bearing falls in one of
+eight 45° bins: 45° is the width nearest 40° whose lines are wedge
+lines of every block ring past the core (their wedge counts are all
+multiples of 8), so an arc's sides run straight from its inner edge
+to its outer one; the core's three 120° blocks join the arc their
+middle falls in. That makes 24 arcs. Hovering one outlines it, top and
+bottom with its corners joined, and its neighbors faintly; nothing
+else is outlined. Older links' quarters (<code>q&lt;n&gt;</code>) still open.</li>
+<li><strong>Layer</strong> (MAP.17's &quot;slice&quot;): a layer of the disk. While the view
+holds more than three slabs of the container's children, the choice
+is between the lowest, middle and highest third of them; with three
+or fewer, a single slab. Layers are picked from the strip beside the
+map, since from above one layer hides the others.</li>
+<li><strong>Region</strong> (MAP.19's &quot;arc&quot;): one cell of a 3 by 3 grid over the view,
+three ring bands by three arcs of the view's bearing span (fewer where
+the view has fewer rings or blocks across), so each arc is about a
+third of the wedge in view. A block belongs to the cell its middle
+falls in. The map zooms into the region picked.</li>
+<li>An arc, quarter or region reaches as far as its blocks do, not just its
+even share of the bearings (Boss, 2026-10-01): near the core a block
+sits between meridians that run all the way in and can be wider than
+the share (quarter 0°–90° holds the 0°–120° core wedge), so the
+highlight, the label and the zoom all follow the real wedge.</li>
+</ul>
+<p>They alternate: after the arc, a layer, then a region, then a layer
+and so on (galaxystages.nextPickKind). A layer comes next whenever the
+last pick wasn't a layer and the view still spans more than one slab;
+otherwise a region while the view is more than one column of blocks
+wide; otherwise a layer. A choice with only one option is taken without
+asking, and when the view is down to a single block it is entered: its
+children become the view and the picks start again inside it
+(galaxystages.settleStage). In the end the view is the sectors of one
+layer of a level-3 block, about nine of them, and the last pick is a
+sector.</p>
+<p>A sector deep in the disk takes about a dozen picks, each a big target.
+For example (a real chain under the default galaxy): Galaxy, Quarter
+90°–180°, Slab 0, Arc, Arc, then inside block 7·14 Slabs -1 to 1, Arc,
+Slab -1, then inside block 63·115 Slabs -7 to -5, Arc, Slab -7, then
+inside block 568·1036 Layer -20, and the sector.</p>
+<p>Two shortcuts (Boss, 2026-10-01):</p>
+<ul>
+<li><strong>A block one sector tall shows its sectors.</strong> A level-27 block whose
+sectors all lie in one layer (at the disk's top and bottom faces) skips
+its level-3 blocks: entering it shows its sectors at once, narrowed by
+arcs (galaxystages.thinSectors). Their generated counts come from each
+level-3 child that holds any.</li>
+<li><strong>The last cube is picked in 3D.</strong> Once the view is the sectors of a
+level-3 block across several layers (27 at most), it is shown from a
+fixed 55° slant with its layers touching (no space between blocks or
+layers anywhere on the map, Boss 2026-10-01). The next pick is still a
+layer, so hovering any sector lights and outlines its whole layer
+(the others fade) and a click picks that layer, the same one the strip
+marks (MAP.91); the layer then shows its sectors one by one. The cube
+can be turned like any view below the quarters.</li>
+</ul>
+<p>The admin Generate tools (section 6) appear once the view is one layer
+of a level-3 block.</p>
+<h2 id="5-how-the-stages-behave">5. How the stages behave</h2>
+<h3 id="51-the-view">5.1 The view</h3>
+<ul>
+<li>Only the blocks in view are drawn: the container's children, narrowed
+by the picks so far. That is at most a few hundred blocks.</li>
+<li><strong>Camera:</strong> straight down (-z). The view fits the footprint of the
+blocks in view: camera height <code>h = 1.1 * R_fit / tan(FOV/2)</code>, where
+<code>R_fit</code> is the largest distance from the footprint's center to its
+corners, with the narrower canvas side used for the FOV. The whole
+galaxy has galactic north up and bearing 000 to the right; every other
+view is turned so the middle of its bearing span points up (the core
+toward the bottom, decision 6).</li>
+<li><strong>Turning and moving</strong> (below the galaxy and its quarters): drag turns
+the view (tilt up to 80° from straight down), right-drag or
+Shift-drag moves it (anywhere: MAP.263 took the pan clamp away), and the wheel or a pinch zooms from an eighth of the stage's fit
+to 2.5 times it; a wheel tick past either end carries on into the next stage or the parent with no stop and no
+flight, the camera's middle, turn and distance kept (MAP.263). A drag never picks. Where the view can be turned, a
+layer can also be clicked on the map (the block under the pointer
+picks its layer). Reset view flies back to the stage's own view, and
+every step to another stage (into a pick, Up, Back, a crumb) opens on
+that stage's own view. At the galaxy and its quarters the wheel
+scrolls the page.</li>
+<li><strong>Only the wedge in view shows</strong> (MAP.44; Boss, 2026-10-01: &quot;only show
+the wedge&quot;): the wedge lines, stars and clouds are kept to the part of
+the galaxy in view (its rings, bearings and layers) and stop there
+sharply. Over the
+whole galaxy they run to its edge (MAP.43) and carry their bearing
+labels. Ring boundaries are the faces of the blocks in view, so they
+never reach past it.</li>
+</ul>
+<h3 id="52-picking">5.2 Picking</h3>
+<ul>
+<li><strong>Hover</strong> (MAP.18): the choice under the pointer (a quarter or an
+arc, with all its blocks) stays as it is, every other choice drops to
+25% opacity, and an accent outline goes round its area. A tooltip
+names it, for example &quot;Arc 30°–60°, 5832–10692 pc from the core, 0 of
+338,081,040 sectors generated&quot;. The dimming clears when the pointer
+leaves the map. It switches at once, with no fade, so there is nothing
+for <code>prefers-reduced-motion</code> to turn off.</li>
+<li><strong>Click:</strong> takes the choice, and the map flies into it (section 5.3).
+Inside a block, a click on a black hole, neutron star, quasar or small
+cloud shows it instead. Stars never take the click (MAP.101): a click
+on one picks what's under it, since in a dense sector they would cover
+it, and a star's details are on its sector's page.</li>
+<li><strong>The slab buttons (MAP.30, now MAP.54 and MAP.76):</strong> while a layer
+is to be picked, one button per slab to the right of the map (in one
+column below it on a phone), each with its slab's name and generated
+count, and a leader line from the button to its slab on the map,
+redrawn whenever the view turns, zooms, pans or resizes. The buttons
+are always in slab-number order (MAP.110), running the same way as the
+slabs on screen (the highest first, or the lowest first once the view
+turns under the plane), and each line ends no higher than the one
+above it so the lines don't cross (on a phone the lines run up lanes
+along the map's right edge, nested, so that column runs from the slab
+lowest on screen down); a slab off the map
+gets a line ending in an arrow at the map's edge. Hovering or focusing
+a button lights its slab and line, clicking it takes the slab, and
+hovering a slab on the map lights its button and line. The lines are
+faint until lit. At other stages the box says which layers the view
+holds. Hovering any cube
+of a slab on the map lights the whole slab and outlines it round its
+full height, at every level including the 3 by 3 by 3 view (MAP.91,
+Boss 2026-10-02). This is the paper's
+elevation panel, and it gives keyboard and screen-reader users the
+same choice. The map beside it is 4:3 and no taller than the window
+(1:1 on a phone).</li>
+<li>Choices are big: four quarters, one slab at a time, at most nine
+arcs, so each is at least about a ninth of the map, finger-sized on
+a phone.</li>
+<li><strong>Touch:</strong> the first tap highlights a choice and a second tap on it
+takes it.</li>
+<li><strong>Keys:</strong> ← → move through the choices, ↑ ↓ to the next one along the
+same arc (or the next layer up or down), Enter takes the highlighted
+one, Esc or Backspace goes one step back out, and Home returns to the
+galaxy.</li>
+<li><strong>MAP.265 (cells are a tool, not a stage):</strong> the block meshes are picking geometry only and are drawn when the
+Menu's <strong>Cell grid</strong>, a <strong>Color by</strong> fill or <strong>Charted only</strong> is on; a click on a block also selects the
+sector under it (closed form), outlined and described once the window arrives.</li>
+<li>A <strong>&quot;Charted only&quot;</strong> toggle (MAP.111) dims blocks with nothing
+generated (they stay pickable, MAP.112), dims the stars outside charted sectors
+to a fifth of their opacity, and outlines each charted block, so
+existing content is easy to follow.</li>
+</ul>
+<h3 id="53-the-flight-into-a-block">5.3 The flight into a block</h3>
+<p>The camera flies with van Wijk and Nuij's optimal zoom-and-pan path, in
+the plane of the slab. Here <code>w</code> is the visible width,
+<code>w = 2 * h * tan(FOV/2)</code>, and <code>u</code> is the distance from the start center
+<code>c0</code> to the end center <code>c1</code>, with <code>rho = 1.4</code>.</p>
+<pre><code>b0 = (w1^2 - w0^2 + rho^4 * u^2) / (2 * w0 * rho^2 * u)
+b1 = (w1^2 - w0^2 - rho^4 * u^2) / (2 * w1 * rho^2 * u)
+r0 = ln(-b0 + sqrt(b0^2 + 1))
+r1 = ln(-b1 + sqrt(b1^2 + 1))
+S  = (r1 - r0) / rho                           path length
+
+w(s) = w0 * cosh(r0) / cosh(rho*s + r0)
+d(s) = (w0 / rho^2) * (cosh(r0) * tanh(rho*s + r0) - sinh(r0))
+center(s) = c0 + (c1 - c0) * d(s) / u
+</code></pre>
+<p>When <code>u</code> is close to 0, <code>S = |ln(w1/w0)| / rho</code> and
+<code>w(s) = w0 * exp(±rho*s)</code>. The flight takes <code>T = clamp(S / 1.1, 0.5, 1.6)</code>
+seconds, with <code>s</code> advanced in proportion to time. During a flight, the
+view also turns to the new view's bearing; it stays looking straight
+down. With <code>prefers-reduced-motion</code> the camera cuts straight to
+the end. The same path is used for the address bar's jumps
+(section 9.3) and for Back.</p>
+<h3 id="54-breadcrumb-back-and-forward">5.4 Breadcrumb, Back and Forward</h3>
+<ul>
+<li>A breadcrumb above the map shows the chain, one crumb per step:
+<code>Galaxy › Quarter 90°–180° › Slab 0 › Arc 120°–150° › … › Block 568·1036 › Layer -20 › Sector 1,705·-20·3,225</code>. Blocks read
+<code>ring·wedge</code>, and the last crumb is the address <code>ring·layer·slot</code>.
+Clicking a crumb returns to that step. The breadcrumb is always one
+line (MAP.93): when the steps don't fit, it shows the first, a &quot;…&quot;
+button whose menu lists the steps it hides, and as many of the last
+steps as fit, then the current one, measured again whenever the
+line's width changes; the ☆ stays on the line. At phone width
+(under 600 px) the line gives way to a round Steps button between
+Back and Forward whose menu lists every step, the current one marked
+(MAP.94); Reset stays beside the arrows.</li>
+<li><strong>Back</strong> and <strong>Forward</strong> buttons beside the map (MAP.26) step through
+the stages visited on this map. They use the browser's own history:
+every stage change does <code>history.pushState</code>, with the map's own index
+in the entry, so the buttons and the browser's Back agree, a reload
+keeps the stage, and a visit to a sector's page and back returns to it.
+Back is off at the first stage of the visit and Forward once nothing
+is ahead.</li>
+<li><strong>Up</strong> goes one step back out (the same as Esc), and <strong>Reset</strong> starts
+over at the whole galaxy (Home). Back, Forward, Up, Reset and
+Bookmarks are the only buttons in view; Reset view, Charted only
+and Territories are in the Menu beside them (MAP.55).</li>
+</ul>
+<h3 id="55-the-sector-at-the-end">5.5 The sector at the end</h3>
+<p>Once the view is one layer of sectors:</p>
+<ul>
+<li>A generated sector opens in place (MAP.66): its stars, phenomena and
+bodies are drawn where the sector sits, the camera flies to fit it, and
+hover, tooltip, ring, info panel, ☆ and NAV links work as on the sector
+page. This is the last stage; it has its own URL,
+<code>/galaxy?sector=&lt;designation&gt;&amp;open=1</code>, and Up closes it (back to
+<code>?sector=&lt;designation&gt;</code>, the sector still selected). A click on a
+neighboring sector steps sideways. The sector's own page, <code>/sector/&lt;id&gt;</code>
+(tables, text, edit tools), embeds the same engine locked to that sector
+(MAP.68): the Sector Map there is this map, with no steps or history of
+its own, and a click on a neighboring sector opens that sector's page.</li>
+<li>A star of an open sector can be opened in place too (MAP.125): its info
+panel's &quot;Open system here&quot; loads the system's scene
+(<code>/api/systems/&lt;id&gt;/scene</code>, <code>galaxysystem.js</code>), draws its stars, planets,
+moons, belts and comets at the star's place in the sector (compressed
+scale, or true scale from the info panel), and flies the camera to fit
+it. Its bodies are picked like any other object and &quot;Go to&quot; takes the
+camera down to one and follows it. URL <code>&amp;system=&lt;id&gt;</code> after <code>open=1</code>
+(and <code>&amp;object=&lt;ref&gt;</code> for the body picked); Up closes the system (back to
+the sector), Back and Forward step through. The wheel carries the zoom
+across: zoomed right in on a sector, it opens the star picked (else the
+one nearest the middle of the view); zoomed right out of a system, it
+returns to the sector.</li>
+<li>A sector that isn't generated shows today's cell panel (address,
+designation, coordinates, 8 corners). Admins also get the Generate
+tools (section 6).</li>
+</ul>
+<h2 id="6-generating-from-the-map-admin">6. Generating from the map (admin)</h2>
+<p>Only an admin with current credentials sees these, as with PR #151 (the
+server puts the <code>generate</code> target in the scene data). They appear
+inside a level-3 block.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Button</th>
+<th>What runs</th>
+<th>Size</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generate this sector</td>
+<td><code>planetgen galaxy --ring i --layer j --slot k</code> (today's <code>slot</code> mode)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Generate this layer (once one layer of sectors is shown)</td>
+<td>New <code>--block 3.J.s.S --block-layer j</code>: the block's ungenerated allowed sectors on that layer (section 3.5)</td>
+<td>Up to about 15</td>
+</tr>
+<tr>
+<td>Generate neighborhood…</td>
+<td><code>slot</code> mode with <code>--radius-pc</code>, after the radius dialog below</td>
+<td>Grows with the radius cubed</td>
+</tr>
+</tbody>
+</table></div>
+<p>The <code>--block m.I.s.S</code> mode (with optional <code>--block-layer</code>) also accepts
+larger blocks, so a &quot;Generate this block&quot; button for stage 5 or 3 is a
+later option (decision 3). It obeys <code>generationLimits.py</code> like every
+other mode.</p>
+<p><strong>Neighborhood dialog:</strong> it opens when the button is pressed and is
+centered on the selected sector, generated or not.</p>
+<ul>
+<li>One number field, &quot;Radius (light-years)&quot;. The default is 100 ly
+(today's 30.7 pc). The minimum is 13 ly (one sector edge). The maximum
+is <code>MAX_GENERATE_RADIUS_PC</code> converted to ly: 200 pc, about 652 ly.</li>
+<li>Conversion: <code>radius_pc = radius_ly / 3.26156</code>, rounded to 0.1 pc and
+sent as <code>slot_radius_pc</code> (the same <code>ly_to_pc</code> as
+<code>planetgen.physics.units</code>).</li>
+<li>A live estimate under the field: &quot;about N sectors&quot;, with
+<code>N ≈ (4/3) * pi * (radius_pc / e)^3</code>, rounded to two significant
+figures. Sectors the outline doesn't allow are skipped by generation,
+so the line says &quot;up to&quot;. About 1,900 at 100 ly, and about 15,000 at
+200 ly.</li>
+<li>Above 5,000 sectors, the Start button asks for a confirmation that it
+may run for a long time.</li>
+</ul>
+<p><strong>As built (7.53.0):</strong> the buttons and the radius dialog work as above
+(default 100 ly, 13 to 652 ly, the estimate, and the confirmation past
+5,000 sectors); the radius goes as <code>slot_radius_pc</code>. Since GEN.23 the dialog's default
+is 39 ly (about 12 pc, <code>DEFAULT_GENERATE_RADIUS_PC</code>). Since 7.60.174 a
+level-3 block also offers &quot;Generate this layer&quot; and &quot;Generate this
+block&quot; (<code>blockGenerateButtons</code> in <code>static/generatebuttons.js</code>), posting
+the Generate page's block mode (<code>--block</code>, <code>--block-layer</code>). The
+progress line below is not built; the form still posts and follows the
+redirect to the job page.</p>
+<p><strong>Block buttons since the shell ladder (UX.127):</strong> the layer and slab forms went with the old addresses. A block of the
+ladder (3, 9, 27, 81 or 243 sectors a side) offers one &quot;Generate this block&quot; in its info card
+(<code>blockGenerateButtons</code>), posting the Generate page's Block mode (<code>mode=block</code>, <code>block_key=m.shell.band.wedge</code>,
+<code>whole_block=1</code>, which becomes <code>--yes</code>) and landing on the job's progress. It asks first when the block is large or its
+size is unknown, and it is disabled with the running job's title and a link to it while another job holds the Generate
+page (<code>generate_target</code>'s <code>busy</code> and <code>jobUrl</code>).</p>
+<p><strong>After starting (planned):</strong> the form posts to the admin Generate page as today.
+Instead of following the redirect, the map sends it with <code>fetch</code> and
+reads the job URL. The panel then shows a progress line (polling the
+same status endpoint <code>generatejobs.js</code> uses) with a link to the job
+page. When the job ends, the stage's contents are fetched again: the
+stamp changes, and only the touched chain is invalidated. The fallback,
+without the <code>fetch</code> path, is today's redirect to the job page.</p>
+<h2 id="7-data-the-stage-contents-api">7. Data: the stage contents API</h2>
+<p><code>GET /api/galaxy/stage?at=m.I.s.S</code> returns one container's children with
+generated counts. With no <code>at</code>, it returns the galaxy's level-243
+blocks.</p>
+<pre><code class="language-json">{&quot;at&quot;: &quot;27.63.115.-1&quot;, &quot;child_m&quot;: 3,
+ &quot;children&quot;: [{&quot;ring&quot;: 568, &quot;wedge&quot;: 1036, &quot;slab&quot;: -7, &quot;generated&quot;: 12}, ...],
+ &quot;sectors&quot;: null}
+</code></pre>
+<p>At <code>m = 3</code> the children are sectors, and <code>sectors</code> lists each generated
+one: <code>{ring, layer, slot, id, name, system_count}</code>.</p>
+<ul>
+<li><strong>Query (as built, <code>queryDb.galaxy_stage</code>):</strong> for a block, one
+<code>SELECT ... FROM sectors WHERE layer_index BETWEEN ? AND ? AND (...)</code>,
+where the bracket holds one <code>(ring_index = ? AND ring_slot_index BETWEEN ? AND ?)</code> clause per member ring, with each ring's slot range worked out
+first by section 3.5's integer formula (<code>_block_slot_range</code>). The rows
+are then grouped by child block in Python. At <code>m = 3</code> it also counts each
+sector's systems. Without <code>at</code>, it groups every generated sector by
+<code>(ring_index, FLOOR((layer_index + 121) / 243), ring_slot_index)</code> and maps
+each group to its level-243 block in Python (<code>drill_chain_of</code>). That
+returns no more rows than there are generated sectors. Children with no
+generated sectors are left out of <code>children</code>.</li>
+<li><strong>Caching:</strong> the site's <code>/galaxy/stage</code> reads through
+<code>lib/tilecache.fetch_stage</code>, a disk cache under the galaxy stamp, the
+same way as tiles. A changed sector deletes only its ancestor chain's
+stages, which <code>/api/galaxy/changes</code> lists as <code>stages</code>.</li>
+<li><strong>Scale note:</strong> if generated sectors ever reach the millions, the
+no-<code>at</code> summary should come from a per-level count table kept up to
+date on generation (a Database thread item at that point). No schema
+change is needed now.</li>
+<li>Totals (allowed sectors per block) are computed in the browser from
+the analytic bound, as today, so the API returns only generated
+counts.</li>
+</ul>
+<h2 id="8-urls-history-and-bookmarks">8. URLs, history and bookmarks</h2>
+<h3 id="81-stage-urls">8.1 Stage URLs</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>URL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The galaxy</td>
+<td><code>/galaxy</code></td>
+</tr>
+<tr>
+<td>A view of the galaxy</td>
+<td><code>/galaxy?cam=x,y,z,d,qx,qy,qz,qw</code> (the view's middle and distance in parsecs and its turn; the window of blocks that holds it is worked out, MAP.228). The <code>?win=</code> tokens of MAP.150 stopped working then</td>
+</tr>
+<tr>
+<td>Older links (<code>at=</code>, <code>p=</code>, <code>slab=</code>)</td>
+<td>open the galaxy, with no notice</td>
+</tr>
+<tr>
+<td>A sector, selected</td>
+<td><code>/galaxy?sector=&lt;designation&gt;</code></td>
+</tr>
+<tr>
+<td>A sector, opened in place</td>
+<td><code>/galaxy?sector=&lt;designation&gt;&amp;open=1</code> (MAP.66)</td>
+</tr>
+<tr>
+<td>A sector's page</td>
+<td><code>/sector/&lt;id&gt;</code>: the same engine locked to the sector, no query of its own (MAP.68)</td>
+</tr>
+<tr>
+<td>A system, opened in place</td>
+<td><code>/galaxy?sector=&lt;designation&gt;&amp;open=1&amp;system=&lt;id&gt;</code> (MAP.125)</td>
+</tr>
+<tr>
+<td>A body of the open system</td>
+<td><code>/galaxy?sector=&lt;designation&gt;&amp;open=1&amp;system=&lt;id&gt;&amp;object=&lt;ref&gt;</code> (MAP.125; ref like <code>planet:12</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>A pick reads <code>a&lt;band&gt;.&lt;bearing&gt;</code> (the arc of band 0, 1 or 2, inner
+first, starting at that bearing in degrees), <code>q&lt;n&gt;</code> (quarter n, from
+older links),
+<code>r&lt;n&gt;</code> (region n of the 3 by 3 grid, band by arc, inner band first),
+<code>L&lt;s&gt;</code> (slab s of the container's children) or <code>L&lt;lo&gt;~&lt;hi&gt;</code> (slabs lo
+to hi).</li>
+<li>Every stage change does <code>history.pushState</code> (section 5.4). A reload or
+a shared link opens that stage directly, with the breadcrumb rebuilt
+by walking from the galaxy.</li>
+<li>The page checks <code>at</code> and every pick against the galaxy
+(<code>galaxystages.resolveStage</code>). Anything invalid opens the galaxy, with
+a notice saying why. An older link's <code>?slab=s</code> reads as a pick of that
+one slab. The server does not check them; it only serves
+<code>/galaxy/stage</code> for a valid <code>at</code>.</li>
+<li><code>?sector=&lt;designation&gt;</code> (MAP.26) opens the sector level of the slice
+holding the sector: its level-3 block with the sector's own layer
+picked, the sector among its neighbours, highlighted and shown in the
+info panel. The sector, system and search pages link this way
+(MAP.25), and the NAV course still fits both ends (section 9.4).</li>
+<li><code>hide=&lt;kind&gt;,&lt;kind&gt;</code> (MAP.79) lists the kinds of object left off an
+opened sector's map (<code>star</code>, <code>nebula</code>, <code>supernovaRemnant</code>,
+<code>asteroidField</code>, <code>blackHole</code>, <code>neutronStar</code>, <code>quasar</code>, <code>roguePlanet</code>,
+<code>interstellarComet</code>, <code>neighbor</code>). It rides on every stage URL and on a
+sector page's, and the Menu's &quot;Show on the map&quot; buttons change it in
+place (no history entry). Unknown names are ignored.</li>
+<li><code>mark=&lt;kind&gt;,&lt;kind&gt;</code> (MAP.123) lists the phenomenon kinds drawn larger
+and brighter (the same names as <code>hide</code>, but never <code>star</code>); the Menu's
+&quot;Highlight&quot; buttons change it in place. A bookmark of a stage view keeps
+<code>hide</code>, <code>mark</code>, <code>stars</code>, <code>lum</code> and <code>color</code>.</li>
+<li>One scheme (MAP.67): a map's position is always a query of <code>/galaxy</code>
+(<code>at</code>, <code>p</code>, <code>sector</code>, <code>open</code>) and every move is a history entry, so
+Back, Forward, a reload and a bookmark behave the same at every level
+down to the open sector. The sector page is the one place the map has no
+query of its own, because the page's URL already names the sector and the
+map is locked to it; a pick kept for NAV (<code>pick</code>, <code>from</code>, <code>to</code>) rides on
+every URL either way.</li>
+</ul>
+<h3 id="82-bookmarks">8.2 Bookmarks</h3>
+<p>Built (MAP.23), with decision 4's default: per browser, no migration.</p>
+<ul>
+<li>A ☆ button on the map's breadcrumb (<code>galaxystageview.js</code>) saves the
+selected sector, or else the current stage; a ☆ Bookmark button on the
+system, phenomenon and sector pages (<code>templates/partials/bookmark.html</code>,
+its entry from <code>web.helpers.bookmark</code>) saves that page. An entry is
+<code>{name, kind: &quot;stage&quot;|&quot;sector&quot;|&quot;system&quot;|&lt;phenomenon type&gt;, value, created}</code>,
+where <code>value</code> is a stage URL (path and query), a sector designation (a
+sector with no galaxy address uses its page URL) or a NAV endpoint
+(<code>system:12</code>, <code>nebula:3</code>, from <code>nav_page.endpoint</code>), plus <code>url</code>, the
+page it opens, and <code>sectorId</code> for a generated sector. Kind and value
+identify it, so the map's ☆ and the sector page's button find the same
+sector. A saved place shows ★ (&quot;Bookmarked&quot;); pressing it again asks
+to remove it.</li>
+<li>Stored per browser in <code>localStorage[&quot;planetgen.bookmarks.&lt;db name&gt;&quot;]</code>,
+up to 100 entries, with every read and write wrapped so that a browser
+with storage blocked just shows no bookmarks (and saving says so). The
+database name reaches the script as <code>data-bookmark-db</code> on the button,
+the menu or the NAV form. Shared bookmarks in the database remain the
+option decision 4 leaves for later.</li>
+<li>A Bookmarks menu (a <code>&lt;details&gt;</code>) sits in the map's controls row and
+opens in the row's flow, a full row wide, so it fits a phone. Each
+entry is a link with Rename (in place: Enter saves, Escape cancels) and
+Delete; Escape closes the menu. The keys 1 to 9 open the first nine
+while the map (its canvas or a control in its panel) has the focus,
+but not from a text box or select (MAP.81: they were Ctrl+1 to Ctrl+9,
+which Chrome and Firefox on Windows and Linux keep for switching tabs).</li>
+<li>The NAV page's Bookmarks select lists system and phenomenon bookmarks
+(section 9). A sector bookmark opens the system picker for that sector,
+and a saved map view opens the Galaxy Map there to pick on. Once both
+ends are set, the course page offers the same select for a new start
+or a new destination.</li>
+<li>Bookmarks keep a course pick (NAV.40): while a start or destination is
+being chosen, the Galaxy Map's menu and its 1 to 9 keys, and a
+Bookmarks menu under the sector page's pick banner, carry the pick
+(<code>data-pick</code>, <code>data-keep-name</code>, <code>data-keep-value</code>, <code>data-nav-url</code>). A
+system or phenomenon bookmark sets that end on the NAV page, and a
+sector page, a sector on the map or a saved map view opens in pick
+mode, all keeping the other end. The Galaxy Map keeps the pick on its
+own stage URLs too.</li>
+<li>One module, <code>static/bookmarks.js</code>, serves the map, the system,
+phenomenon and sector pages and the NAV page; importing it wires
+whatever each page has, with no inline script. The Sector Map's own
+info panel has no ☆ yet; its page's button covers the sector.</li>
+</ul>
+<h2 id="9-nav-integration">9. NAV integration</h2>
+<p>The NAV page keeps its sector-then-system dropdowns. Each endpoint gains
+the following (all built: MAP.22, with sections 9.1 to 9.4):</p>
+<ol>
+<li><strong>Pick on Galaxy Map</strong>, which links to <code>/galaxy?pick=from&amp;to=system:40</code>
+(or <code>pick=to&amp;from=...</code>), carrying the other endpoint along.
+<ul>
+<li>The map shows a banner, &quot;Choosing a destination · Cancel&quot; (Cancel
+returns to <code>/nav</code> with the endpoint already chosen).</li>
+<li>Every control works as outside pick mode, &quot;Charted only&quot; included
+(NAV.32). NAV endpoints are systems and phenomena, which exist only
+in generated sectors, so hover still lights every arc and choice as
+outside pick mode (NAV.31); one holding nothing generated says so
+and can't be taken.</li>
+<li>At the sector level, clicking a sector goes to
+<code>/sector/&lt;id&gt;?pick=to&amp;from=system:12</code>.</li>
+</ul>
+</li>
+<li><strong>Pick in this sector</strong> appears once the other endpoint is known. It
+opens that endpoint's own sector straight in pick mode, so a pick
+inside one sector uses only the sector interface.</li>
+<li><strong>Bookmarks:</strong> a select listing the system and phenomenon bookmarks
+(<code>nav_page._bookmark_pick</code>, filled by <code>static/bookmarks.js</code>), beside
+the map picks at each step, hidden while there are none it can use.
+&quot;Start Here&quot; (or &quot;End Here&quot;) goes to <code>/nav</code> with that endpoint set
+and the other one kept; a sector bookmark goes to its system picker
+(<code>from_sector</code> / <code>to_sector</code>).</li>
+</ol>
+<h3 id="91-sector-map-pick-mode">9.1 Sector Map pick mode</h3>
+<p>Built in 7.58.0 (<code>web/sector_page.py</code>, <code>_pick_mode</code>).
+<code>/sector/&lt;id&gt;?pick=to&amp;from=...</code> shows the same banner. Clicking a
+system or phenomenon adds an <strong>End Here</strong> (or <strong>Start Here</strong>) button to
+its info panel. With the other end already chosen the button links to
+<code>/nav?from=system:12&amp;to=system:40</code>, which lands on the plotted course.
+With none chosen (a pick begun by the NAV page with one end empty, or by
+<strong>Start Here</strong> / <strong>End Here</strong> on a map with no pick on) the button keeps
+the user on the map at the same view and zoom: <code>static/navpick.js</code> holds
+the pick, the URL becomes <code>?pick=to&amp;from=system:12</code> in place, the banner
+names the end already chosen, and the user zooms out, in and across to
+find the other end with the same picker (NAV.29, NAV.33). Cancel on such
+a pick clears it in place. The endpoint strings are
+<code>nav_page.endpoint(kind, id)</code>.</p>
+<h3 id="92-nav-links-from-everywhere">9.2 Nav links from everywhere</h3>
+<p>System and phenomenon pages, and the Sector Map's info panel, get <strong>Nav
+from here</strong> and <strong>Nav to here</strong> (the pages), and the maps' panels
+<strong>Start Here</strong> and <strong>End Here</strong> (NAV.29, 9.1). The NAV page already
+accepts <code>to</code> without <code>from</code>.</p>
+<h3 id="93-address-bar">9.3 Address bar</h3>
+<p>A field over the breadcrumb takes a designation, <code>312/-3/1042</code> or
+<code>ring 312 layer -3 slot 1042</code>, <code>x, y, z</code> in pc, or a sector or system
+name. It flies to the sector level of the slice holding that sector
+(section 8.1).</p>
+<p>As built (7.50.0): the page parses addresses itself
+(<code>galaxystages.parseAddress</code>). A name goes to the site's <code>/galaxy/locate</code>,
+which calls <code>GET /api/galaxy/locate</code> (<code>queryDb.galaxy_locate</code>: sectors and
+systems named like the text, each with its sector address), not
+<code>/api/search</code> as first planned. A name with several matches lists them to
+pick from, and anything that can't be a sector says why. Pick mode on the
+Galaxy Map is not built, so it does not work there yet.</p>
+<h3 id="94-the-course-on-the-map">9.4 The course on the map</h3>
+<p>The NAV result offers <strong>Show on Galaxy Map</strong>. That opens the smallest
+stage holding both endpoints, with a line between them and the endpoints
+marked.</p>
+<p>As built (7.52.0): the link is <code>/galaxy?course=&lt;from&gt;,&lt;to&gt;</code>;
+<code>web/galaxy_views.py</code> asks <code>nav_page.galaxy_course</code> for the waypoints in
+galaxy-frame parsecs, and the map draws the course through its stops,
+each ringed and the two ends named. A course that stays inside one sector
+opens that sector instead. MAP.26 asks for every &quot;Show on Galaxy Map&quot;
+link, this one included, to open at the sector level.</p>
+<h2 id="10-what-changes-on-todays-map">10. What changes on today's map</h2>
+<ul>
+<li>Click-to-center, double-click zoom, the +/− buttons, Slice and Free
+look are gone (MAP.17); the stages are the only way between places.
+Drag-rotate, panning and wheel zoom are back everywhere (section 5.1;
+the whole galaxy since MAP.85). The buttons beside the map are Back,
+Forward, Up, Reset and Bookmarks, with Reset view, Charted only and
+(with polities) Territories in the Menu (MAP.55).</li>
+<li>Density shading, the filled-share look and the info panel stay. The
+wedge lines and the Wedges button are gone (MAP.85), and the scale
+readout is one line, a bar and its length in sectors, pc and ly
+(MAP.60).</li>
+<li>Each stage draws at most a few hundred blocks.</li>
+<li>The Territories overlay (7.54.0, population-and-politics.md) and the
+NAV course line (section 9.4) draw over the map.</li>
+</ul>
+<h2 id="11-decisions-for-boss">11. Decisions for Boss</h2>
+<p>Each has a default, and work can start on it.</p>
+<ol>
+<li><strong>Ladder:</strong> 243 → 27 → 3 → 1. <em>(Decided by Boss, 2026-10-01: &quot;the
+bigger targets&quot;.)</em></li>
+<li><strong>Free camera.</strong> <em>(Decided by Boss, 2026-10-01. MAP.17 first took
+away all rotation; later that day Boss allowed it again below the top:
+&quot;Once zoomed into an arc or a block, the user can again freely rotate
+and move around the render ... The only time the user cannot freely
+rotate is when at the full galaxy or quarter galaxy zoom levels.&quot;
+Built that way: the galaxy and its quarters are locked top-down, every
+step below can be turned, moved and zoomed, and each step opens on its
+own view.)</em></li>
+<li><strong>Bigger generate buttons.</strong> Default: sector, layer or slab, and
+neighborhood at stages 7-8 only. Option: &quot;Generate this block&quot; at
+stage 5 (up to about 19,000 sectors) behind a confirmation.</li>
+<li><strong>Bookmarks.</strong> Default: per browser. Alternative: shared in the
+database (needs a migration).</li>
+<li><strong>NAV picking.</strong> Default: a round trip through the map and Sector Map
+pages back to NAV. Alternative: the map embedded in the NAV page.</li>
+<li><strong>Orientation of block slabs.</strong> Default: outward up (core at the
+bottom), with a compass arrow. Alternative: bearing 000 to the right
+everywhere, as over the whole galaxy. <em>(Built as the default, without
+the compass arrow.)</em></li>
+<li><strong>Neighborhood radius default.</strong> Default: 100 ly, the same as today's
+button. <em>(Built with this default in 7.53.0. Lowered to 39 ly, about
+12 pc, by GEN.23: the 100 ly around every generated sector now gets
+only its bright stars.)</em></li>
+<li><strong>What a slice and a region are</strong> (MAP.17, MAP.19). <em>(Decided by
+Boss, 2026-10-01: &quot;Layer + arc&quot;. A slice is a layer of the disk,
+picked from a side strip or list since nothing rotates; a region is
+an arc of the ring band in view, about a third of the current wedge,
+and the map zooms into it. The ladder is quarter, layer, region,
+layer, region, ..., sector, and the slice is the layer. Built as
+section 4 says. Defaults taken: a layer pick is a third of the slabs
+while there are more than three, the region grid is 3 rings by 3
+arcs, hover dims the rest to 25% at once, wedge lines go 15% past the
+view and stop sharply, and the NAV result still fits both ends of
+the course.)</em></li>
+</ol>
+<h2 id="12-build-order-and-owners">12. Build order and owners</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TODO</th>
+<th>Piece</th>
+<th>Owner</th>
+<th>Depends on</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.28</td>
+<td>Nested ladder geometry, JS and Python, with a parity test (section 3). <strong>Built, 7.41.2, PR #160</strong></td>
+<td>Galaxy Map</td>
+<td>none</td>
+</tr>
+<tr>
+<td>MAP.29</td>
+<td>Stage contents API and caching (section 7). <strong>Built, 7.41.3, PR #160</strong></td>
+<td>Galaxy Map</td>
+<td>MAP.28</td>
+</tr>
+<tr>
+<td>MAP.16</td>
+<td>The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). <strong>Built, 7.44.0, PR #171</strong></td>
+<td>Galaxy Map</td>
+<td>MAP.28, MAP.29, MAP.3</td>
+</tr>
+<tr>
+<td>MAP.20</td>
+<td>Admin generation at the sector level: <code>--block</code> mode, Generate page form, map buttons, radius dialog, progress (section 6). <strong>Map buttons and radius dialog built, 7.53.0, PR #177; <code>--block</code> and the form built, 7.60.174</strong></td>
+<td>Web (<code>planetgen</code>, Generate page) and Galaxy Map (buttons)</td>
+<td>MAP.28 (Python), MAP.16</td>
+</tr>
+<tr>
+<td>MAP.21</td>
+<td>Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). <strong>Built, 7.58.0, PR #178</strong></td>
+<td>Web</td>
+<td>the URL formats only</td>
+</tr>
+<tr>
+<td>MAP.22</td>
+<td>NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9). <strong>Built</strong></td>
+<td>Web</td>
+<td>MAP.16, MAP.21</td>
+</tr>
+<tr>
+<td>MAP.23</td>
+<td>Bookmarks (section 8.2). <strong>Built</strong></td>
+<td>Galaxy Map (module, map menu) and Web (NAV, Sector Map)</td>
+<td>MAP.16</td>
+</tr>
+<tr>
+<td>MAP.24</td>
+<td>Address bar (section 9.3). <strong>Built, 7.50.0, PR #172</strong></td>
+<td>Galaxy Map</td>
+<td>MAP.16</td>
+</tr>
+<tr>
+<td>MAP.25</td>
+<td>&quot;Show on Galaxy Map&quot; links with <code>?sector=</code> (section 8.1). <strong>Built, 7.64.174</strong></td>
+<td>Web</td>
+<td>MAP.16's URL format</td>
+</tr>
+<tr>
+<td>MAP.27</td>
+<td>Course on the Galaxy Map (section 9.4). <strong>Built, 7.52.0, PR #176</strong></td>
+<td>Galaxy Map and Web</td>
+<td>MAP.16, MAP.22</td>
+</tr>
+<tr>
+<td>MAP.17</td>
+<td>No free camera; drill down top-down by wedge, slice and block (bug against MAP.16; decision 2). <strong>Built, 7.73.177</strong></td>
+<td>Galaxy Map</td>
+<td>MAP.16</td>
+</tr>
+<tr>
+<td>MAP.26</td>
+<td>&quot;Show on Galaxy Map&quot; opens at the sector level; the map's own Back and Forward (bug; folds in MAP.25). <strong>Built, 7.73.177</strong></td>
+<td>Galaxy Map and Web</td>
+<td>MAP.17, MAP.25</td>
+</tr>
+</tbody>
+</table></div>
+<p>MAP.3 (the bigger map) shipped in 7.55.0. MAP.27 shipped before MAP.22, using
+the NAV result's link rather than the NAV pickers. Everything in this
+table is built: MAP.20's <code>--block</code> mode in 7.60.174, MAP.25 in 7.64.174,
+MAP.17 and MAP.26 in 7.73.177, and MAP.22 and MAP.23 in 7.94.253
+(bookmarks per browser, decision 4's default). The arc pick shipped in
+PR #369 (section 15); the open work is what follows it, section 15.3
+onward.</p>
+<h2 id="15-the-arc-pick-map85">15. The arc pick (MAP.85)</h2>
+<p>Boss asked for it on 2026-10-01 (23:53Z) and moved it into phase 0 on
+2026-10-02 (01:46Z); the arc size below is his decision of 01:53Z.
+15.1 and 15.2 are built (PR #369, with MAP.52, MAP.55 and MAP.60) and
+describe the map as it is. 15.3 is built too (MAP.56, MAP.54 with
+MAP.76, MAP.77), and so are the turn about the middle of each view
+(MAP.53) and framing every level whole, fitted to the map's size
+(MAP.78). Still planned: the zoom lock below the arc (MAP.58), the ghost
+of the other slabs (MAP.59) and the colours of 15.4.</p>
+<blockquote>
+<p>Redo the galactic selection, so that the galaxy map is 3D, we can
+manipulate it. The user doesn't select an entire wedge, just a large
+arc, then zoom in to select slab, and go from there. ... Don't show any
+sector lines at so that the star map really comes through and the
+spiral pattern. When the user mouses over an arc they can select (each
+arc goes from top to bottom so slab of that we'll do in the next part)
+then they can see it's boundaries and the boundaries of the other
+segments.</p>
+</blockquote>
+<p>&quot;Arc&quot; means this first pick; a &quot;region&quot; is one cell of the 3 by 3 pick
+below it (MAP.19, section 4) until MAP.56 replaces that.</p>
+<h3 id="151-the-whole-galaxy">15.1 The whole galaxy</h3>
+<ul>
+<li>The whole galaxy opens as a 3D disk seen straight down, galactic north
+up the screen (MAP.97; it opened tilted 35 degrees before), that the
+user can turn any way (MAP.96). It is drawn as its
+stars, spiral structure and block shading only: no sector, block or
+wedge lines, and no Wedges button.</li>
+<li>Zoom on the whole galaxy is a short manual range: in to about twice
+the fitted view, out until the whole galaxy fits. Locking user zoom
+below the arc, with each pick's staged zoom fitting the view, is
+planned (MAP.58).</li>
+<li>The scale readout is one line: the bar and its length (MAP.60).</li>
+<li>Back, Forward, Up, Reset and Bookmarks stay beside the map; Reset
+view, Charted only and Territories are in a Menu (MAP.55). The
+buttons are text labels and carry a <code>data-icon</code> hook, so UX.28's icons
+can replace the words later.</li>
+</ul>
+<h3 id="152-the-arc">15.2 The arc</h3>
+<ul>
+<li>An arc is a piece of the disk bounded by bearing and by distance from
+the center, running the full height of the disk.</li>
+<li>Size: 45 degrees of bearing by a third of the disk's radius (inner,
+middle or outer), so the disk has 24 arcs (<code>ARCS_PER_TURN</code> = 8 and
+<code>ARC_BANDS</code> = 3 in <code>static/galaxystages.js</code>). Boss asked for about 40
+degrees (MAP.52's width); 45 is the nearest width whose sides are
+wedge lines of every block ring past the core (their wedge counts are
+all multiples of 8), so an arc's sides run straight from its inner
+edge to its outer one. A block joins the arc its middle bearing falls
+in; the core's three 120-degree blocks do the same.</li>
+<li>Hovering outlines the arc under the cursor along its blocks' own
+sides, top and bottom with its corners joined, and the neighboring
+arcs' outlines faintly. Nothing else is outlined.</li>
+<li>Clicking flies to the arc from the isometric slant, its middle
+bearing up the screen, fitted round its blocks. Its URL token is
+<code>a&lt;band&gt;.&lt;bearing&gt;</code> (for example <code>a1.90</code>); older links' quarters
+(<code>q&lt;n&gt;</code>) still open. Every level is framed whole, fitted to the map's
+actual width and height and centered on its picture, refitted when the
+map is resized and while the view turns (MAP.78); the view turns about
+the middle of what it shows, by drag, a one-finger touch drag, or
+Shift and the arrow keys (MAP.53).</li>
+</ul>
+<h3 id="153-below-the-arc">15.3 Below the arc</h3>
+<p>The ladder is arc, slab, segment, then slab and segment again inside
+each smaller block, down to a sector (MAP.56, built; the 3 by 3 region
+pick is gone, and an older link holding one opens at the stage before
+it). A segment's URL token is <code>s&lt;ring&gt;.&lt;wedge&gt;</code>.</p>
+<ul>
+<li><strong>Slab:</strong> a height band of the arc, picked with one button per slab and
+a leader line from each button to its slab (MAP.54, layout MAP.76),
+replacing the slab slider. The arc view draws only the boundaries
+between slabs (MAP.77). Hovering the map lights and outlines the
+whole slab under the pointer, never a single cube (MAP.91).</li>
+<li><strong>Segment:</strong> one drill block of the next level inside the slab (a
+sector inside a level-3 block), picked on the zoomed slab with the same
+hover highlight; picking it enters that block. The rest of
+the arc stays as a faint ghost so a slab doesn't read as a wedge
+(MAP.59).</li>
+<li>On navigation screens the hover highlight is the same arc highlight
+(NAV.31), and pick mode runs on the shared picker (NAV.15).</li>
+</ul>
+<h3 id="154-colour-instead-of-lines">15.4 Colour instead of lines</h3>
+<p>With the lines gone, colour shows the structure (Boss, 2026-10-08):
+a filled sector is a translucent fill. Its <strong>opacity</strong> follows the star
+density (denser is more solid, never fully opaque), its <strong>hue</strong> the mean
+stellar age (blue young, slate at the 4.5 Gy disk average, amber old) and
+its <strong>brightness</strong> the summed luminosity of its stars on a log scale. A
+block takes the same three from its sectors: ages averaged weighted by
+star count, luminosities summed, densities as systems per generated
+sector. The stage API serves those raw sums (<code>stats</code>, DB.14) and the page
+works the colour out (MAP.128, MAP.129), ranking each block against the
+others in view. Nothing is baked into the database, and the earlier rule
+(the average colour of a sector's stars, which came out red nearly
+everywhere) is retired (MAP.130). At sector zoom the map shows almost
+every star of the sector (MAP.80, phase 1).</p>
+<h3 id="155-order">15.5 Order</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Piece</th>
+<th>Phase</th>
+<th>Needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAP.63, MAP.64</td>
+<td>Shared map helpers (<code>static/mapcore.js</code>), one camera and input controller (<code>static/mapcontrol.js</code>)</td>
+<td>0</td>
+<td><strong>Built, PR #351</strong>, with TEST.70, MAP.87, MAP.82 to MAP.84, NAV.30 and MAP.81</td>
+</tr>
+<tr>
+<td>MAP.60</td>
+<td>One scale line</td>
+<td>0</td>
+<td><strong>Built, PR #369</strong></td>
+</tr>
+<tr>
+<td>MAP.55</td>
+<td>Buttons into a menu; back, forward, up, reset and bookmark showing</td>
+<td>0</td>
+<td><strong>Built, PR #369</strong>, text labels with a <code>data-icon</code> hook for UX.28</td>
+</tr>
+<tr>
+<td>MAP.85 + MAP.52</td>
+<td>The arc pick, one PR</td>
+<td>0</td>
+<td><strong>Built, PR #369</strong></td>
+</tr>
+<tr>
+<td>MAP.86, MAP.80</td>
+<td>Sector colours; most stars at sector zoom</td>
+<td>1</td>
+<td>MAP.85, PERF.11 (MAP.86); MAP.90, MAP.87 (MAP.80)</td>
+</tr>
+<tr>
+<td>MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77</td>
+<td>Slab and segment ladder, rotate and fit, zoom limits, leader lines, mini map, ghost</td>
+<td>2</td>
+<td>MAP.85, in that order, one thread</td>
+</tr>
+<tr>
+<td>MAP.65, NAV.15, NAV.31</td>
+<td>One picking layer, pick mode on it, the arc highlight while picking</td>
+<td>2</td>
+<td>MAP.56 (MAP.65); NAV.13, NAV.14, MAP.65 (NAV.15); NAV.15 (NAV.31)</td>
+</tr>
+<tr>
+<td>MAP.66 to MAP.68</td>
+<td>The sector as the last stage, one engine for all three maps</td>
+<td>3</td>
+<td>MAP.65</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="13-sources">13. Sources</h2>
+<ul>
+<li>&quot;Mapping Volumetric Galactic Topologies to Planar Interfaces&quot;, the
+report Boss shared in the project on 2026-10-01 (not in the repo).</li>
+<li>J. J. van Wijk and W. A. A. Nuij, &quot;Smooth and efficient zooming and
+panning&quot;, IEEE Transactions on Visualization and Computer Graphics
+9(4), 2003, pp. 424-431. The source of the formulas in section 5.3.</li>
+<li>This repo: <code>static/galaxyprisms.js</code> (<code>blockWedgeCount</code>,
+<code>blockSlotRange</code>, <code>blockSectorCount</code>), <code>planetgen/galaxy/geometry.py</code>
+(<code>ring_master_count</code>, <code>ring_sector_count</code>), <code>planetgen/generation/limits.py</code>,
+<code>web/generate_page.py</code>, <code>web/nav_page.py</code>.</li>
+</ul>
+<h2 id="14-why-it-works-this-way">14. Why it works this way</h2>
+<ul>
+<li><strong>Discrete stages instead of free zoom.</strong> Boss asked to select in
+sections: click a block, zoom into just its contents, and repeat down to a
+sector (section 1). The research paper Boss shared supports discrete scale
+tiers, a breadcrumb and animated flights (section 2).</li>
+<li><strong>243, 27, 3, 1.</strong> Boss chose &quot;the bigger targets&quot; over 81, 9, 1
+(decision 1). One result, noted in section 5.1, is that each stage draws
+at most about 900 blocks, so the free camera's 60,000-block budget never
+matters.</li>
+<li><strong>A nested wedge rule.</strong> With each level's wedge count picked on its own,
+child wedges sat inside one parent only in some rings (109 of 143 rings
+at 243 to 27, 1,468 of 3,856 at 3 to 1). A drill-down needs every child
+inside exactly one parent, so each child count is a whole multiple of its
+parent's. The cost is a slightly wider arc error (section 3.4).</li>
+<li><strong>Sectors join the level-3 block holding their center.</strong> Sector slots do
+not line up with level-3 wedges (only 1 of 1,286 rings does), so exact
+nesting is impossible at the last step; the center rule is the one
+<code>blockSlotRange</code> already used.</li>
+<li><strong>Generated counts from the server, totals in the browser.</strong> The
+allowed-sector totals follow from the stored outline and are cheap to
+compute on the page; only generated counts need the database. The
+stage query reads at most one row per generated sector.</li>
+<li><strong>A Free look button, for now.</strong> Decision 2 was still open when the
+stages shipped, so the old camera stayed behind a button rather than
+being removed (7.44.0). MAP.17 was Boss's answer, and it is gone.</li>
+<li><strong>Addresses parsed on the page, names on the server.</strong> A designation,
+ring/layer/slot or coordinates map to a sector with pure math the page
+already has, so only a name needs the database (<code>/galaxy/locate</code>).</li>
+<li><strong>Same math in Python and JavaScript, with a parity test.</strong> The page and
+the server must agree on every block key; <code>test_galaxydrill.py</code> runs both.</li>
+<li><strong>three.js stays.</strong> The map keeps the vendored three.js build; the reasons
+are in <code>docs/reference/html-interface.md</code> (&quot;Why the maps use three.js&quot;) and in
+<code>design-decisions.md</code>.</li>
+</ul>
+<h3 id="ideas-from-the-paper-that-were-rejected">Ideas from the paper that were rejected</h3>
+<p>Section 2's table records them: a 2D canvas replacing 3D (the 3D solid stays
+for picking slabs), unwrapping each cylindrical shell into a strip (a ring
+is one sector wide, so the strip is a thin ribbon that hides radial
+neighbors), Morton hashing (every address is already closed form and the
+designation is already a reversible key) and fisheye lenses (they would
+bend the distances and bearings NAV reports).</p>
+<h2 id="16-planned-changes-2026-10-03-and-2026-10-07">16. Planned changes (2026-10-03 and 2026-10-07)</h2>
+<ul>
+<li><strong>Charted only</strong> (MAP.111, done): the &quot;Generated only&quot; toggle was renamed;
+it dims stars outside charted sectors as well as blocks, outlines the
+charted sectors in each wedge, and never blocks picking.</li>
+<li><strong>Free navigation</strong>: every slab, wedge and block can be picked whether
+or not anything is in it, the slab buttons never cover the pick area,
+and the breadcrumb is drawn from the map's own state on every change.</li>
+<li><strong>Select mode</strong>: Galaxy (blocks and sectors, the default) or Star, where
+stars and other objects pick, hover and offer Bookmark and Waypoint.</li>
+<li><strong>Filters</strong>: show, hide or highlight star classes and phenomenon kinds,
+and a luminosity floor, on the Galaxy and Sector Maps.</li>
+<li><strong>Less on the Galaxy Map</strong>: no comets, rogue planets or asteroid fields
+above the sector level, and a screen-density budget per tile that gives
+sparse sectors more room than dense ones.</li>
+<li><strong>Streaming</strong>: tiles with level of detail, picking through a BVH, and
+camera-relative rendering (library-migration.md).</li>
+<li><strong>Opening view</strong>: with nothing in the URL, the map fits all charted
+space.</li>
+<li><strong>Neighbours on the Sector Map</strong>: the surrounding sectors drawn dimmed,
+fading those between the camera and the sector.</li>
+<li><strong>Infinite zoom</strong> (the end state): one 3D interface from the galaxy down
+to a moon.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

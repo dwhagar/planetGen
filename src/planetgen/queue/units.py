@@ -24,8 +24,10 @@ cuts a stage into its units and starts a run; this file queues, runs and follows
   the done set did its work: a failure after that is RQ's own bookkeeping, and neither ends the run nor runs the
   unit again.
 
-The unit that completes the last stage finishes the run; the unit that completes an earlier one has the wrapper queue
-the next (`wrapper.advance`).
+The unit that completes the last stage finishes the run; the unit that completes an earlier one queues the opening of the next
+(`open_stage`, PERF.254): the cut of a stage is a job of its own, with its own claim on the memory gate (`claims.CUT_MB`,
+`planetgen.queue.memorygate`), so it runs when the host can give it the bulk lane to itself, in a horse that is named when it fails or is
+killed, and not inside the horse of the last unit of the stage before.
 """
 
 import json
@@ -39,11 +41,13 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, redisqueue, requires, runrecord
+from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat, unitrates
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
 FAILURE_FUNCTION = "planetgen.queue.units.unit_failed"
+OPEN_FUNCTION = "planetgen.queue.units.open_stage"
+OPEN_FAILURE_FUNCTION = "planetgen.queue.units.open_failed"
 
 MAX_UNITS = 4000
 """int: The most units one stage queues; Redis memory and queuing cost follow the unit count (about 7 MB at this
@@ -63,14 +67,15 @@ POLL_SECONDS = 0.25
 ENSURE_SECONDS = 5.0
 """float: How often `follow_stage` has the workers topped up, so a dead one is replaced."""
 
-REPORT_SECONDS = 0.25
-"""float: How often a unit writes its progress."""
-
 ENQUEUE_BATCH = 500
 """int: How many units go to Redis in one pipeline."""
 
 class RunStopped(RuntimeError):
     """The run ended (failed, was canceled or went stale) before its stage was done."""
+
+
+KILLED_EXCEPTIONS = ("JobTimeoutException", "WorkerLostError", "AbandonedJobError")
+"""tuple[str]: The names of the exceptions with which RQ ends a unit from outside (its time limit, its worker lost): a run a unit ended with one of them was killed (OPS.144), not failed by its own code."""
 
 
 def job_id(run_id, stage, unit):
@@ -80,11 +85,11 @@ def job_id(run_id, stage, unit):
 
 def unit_timeout(expected_seconds=None):
     """
-    How long a unit of a stage may run before RQ ends it (PERF.106): `redisqueue.job_timeout` of the stage's
-    expected seconds (`runrecord.Stage.expected_seconds`); the ceiling (6 hours) when the stage has no recorded
-    time. Never -1 (no limit).
+    The time limit RQ puts on a unit: the ceiling (`redisqueue.MAX_TIMEOUT_SECONDS`, 6 hours), whatever the stage's expected time (OPS.140). It is a backstop only: a unit
+    that is dead or stuck is found by its beat (`unitwatch`, `unitstuck`) in a minute or a few, and a unit whose counter moves is never ended for taking longer than
+    estimated (Boss, 11-09). `expected_seconds` is kept in the signature for the callers that name it. Never -1 (no limit).
     """
-    return redisqueue.job_timeout(expected_seconds)
+    return redisqueue.MAX_TIMEOUT_SECONDS
 
 
 def coarsen(count, size):
@@ -126,13 +131,18 @@ def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     return chunks
 
 
+EXPECTED_SECONDS_ARG = "expected_seconds"
+"""str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for the heartbeat judge (its expected rate, OPS.135); the time limit does not read it (`unit_timeout`)."""
+
+
 def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
     """
     Queues the units of stage `stage` of the run.
 
     Args:
         units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
-            and the unit's predicted cost for the stage's bar and ETA.
+            and the unit's predicted cost for the stage's bar and ETA. The dict may name `expected_seconds`, the unit's own
+            predicted time (`EXPECTED_SECONDS_ARG`).
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
 
@@ -152,21 +162,6 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
                 timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
-
-
-class _Reporter:
-    """What a unit calls with its work so far: at most every `REPORT_SECONDS` it writes `done,estimate` to the
-    stage's progress hash for the follower."""
-
-    def __init__(self, conn, run_id, stage, unit):
-        self.conn, self.key, self.unit = conn, runrecord.progress_key(run_id, stage), unit
-        self.last = 0.0
-
-    def __call__(self, done, estimate):
-        now = time.monotonic()
-        if now - self.last >= REPORT_SECONDS:
-            self.last = now
-            self.conn.hset(self.key, self.unit, f"{float(done)},{float(estimate)}")
 
 
 def run_unit(run_id, stage, unit, kind, args, cost=None):
@@ -213,14 +208,24 @@ def peak_resident_mb():
     horse measured 1,487 MB resident in the horse and 2,180 MB together.
     """
     resident = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
-    return max(resident, _proportional_mb(os.getpid()) + _proportional_mb(os.getppid()))
+    return max(resident, resident_mb())
+
+
+def resident_mb():
+    """What this process and its parent (the worker beside a work horse) hold now, MB, shared pages counted once (`_proportional_mb`); 0.0 where the system does not say."""
+    return _proportional_mb(os.getpid()) + _proportional_mb(os.getppid())
 
 
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
-    result = commands.unit_function(kind)(args, _Reporter(conn, run_id, stage, unit))
+    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit)) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
+        result = commands.unit_function(kind)(args, report)
+        gap = report.longest_gap()
+        finished, worked = report.totals()
+    commandgaps.note(conn, run_id, kind, gap)       # OPS.135
+    unitrates.note(conn, run_id, kind, finished, worked)        # PERF.147: how fast this command's units work, for the ETA of a unit's bar
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
@@ -239,9 +244,9 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
 def _end_stage(conn, run_id, stage, wrapper):
     """
     What the unit that completes `stage` does for the run (PERF.172): the command's conclusion, the stage's
-    statistics, and the opening of the next stage. A failure in the conclusion or in opening the next stage (its
-    `prepare`, or reading the galaxy to cut it) is the run's failure, said at once with the stage named; left to
-    RQ it would read as a unit that failed after it was done, and the run would wait for a stage nobody queues.
+    statistics, and the queuing of the next stage's opening (`enqueue_open`). A failure in the conclusion is the run's failure, said at
+    once with the stage named; left to RQ it would read as a unit that failed after it was done, and the run would wait for a stage
+    nobody queues.
     """
     try:
         took = wrapper.conclude_stage(conn, run_id, stage)
@@ -250,12 +255,68 @@ def _end_stage(conn, run_id, stage, wrapper):
                                                            f"failed: {type(exc).__name__}: {exc}")
         raise
     wrapper.finish_stage(conn, run_id, stage, took)
+    queue_name = wrapper.queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind")))
+    enqueue_open(conn, run_id, stage + 1, queue_name)
+
+
+def open_job_id(run_id, index):
+    """The RQ job id of the opening of stage `index` (cancel, PERF.99)."""
+    return f"{run_id}-open{index}"
+
+
+def enqueue_open(conn, run_id, index, queue_name):
+    """
+    Queues the opening of stage `index` of the run (PERF.254): the cut of the stage into its units, and of each stage after it that has no
+    units, or the end of the run, as a job of its own (`open_stage`). The job claims the lane to itself on the memory gate (`claims.CUT_MB`,
+    learned per command), has the time limit of a job with no estimate, and is retried once if its horse is killed for memory, with a larger
+    claim (`horse_killed`).
+    """
+    queue = redisqueue.queue(queue_name, conn)
+    queue.enqueue(OPEN_FUNCTION, args=(run_id, index), job_id=open_job_id(run_id, index), job_timeout=redisqueue.job_timeout(None), result_ttl=0,
+                  failure_ttl=FAILED_KEEP_SECONDS, retry=rq.Retry(max=1), on_failure=Callback(OPEN_FAILURE_FUNCTION),
+                  description=f"open stage {index}")
+
+
+def open_stage(run_id, index):
+    """
+    The RQ job of an opening (PERF.254): `wrapper.advance` for stage `index`, which cuts it and queues its units, or ends the run when no stage is
+    left. A failure is the run's failure, said at once with the stage named. A run that is no longer live is left alone.
+
+    Returns:
+        dict: `opened`, or `skipped`.
+    """
+    conn = rq.get_current_job().connection
+    state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
+    if runrecord._s(state) != "running":
+        return {"skipped": True}
+    fetch.set_disregard_missing_data(bool(runrecord._s(disregard)))
+    wanted = runrecord._s(debug)
+    if not wanted:
+        return _open_stage(conn, run_id, index)
+    with log.relayed(conn, runrecord.debug_key(run_id), "" if wanted == "all" else wanted):
+        return _open_stage(conn, run_id, index)
+
+
+def _open_stage(conn, run_id, index):
+    from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
     try:
-        wrapper.advance(conn, run_id, stage + 1)
+        wrapper.advance(conn, run_id, index)
     except Exception as exc:
-        runrecord.finish_run(conn, run_id, "failed", error=f"stage {wrapper.stage_label(conn, run_id, stage + 1)} could not "
+        runrecord.finish_run(conn, run_id, "failed", error=f"stage {wrapper.stage_label(conn, run_id, index)} could not "
                                                            f"start: {type(exc).__name__}: {exc}")
         raise
+    log.flush_relayed()
+    return {"opened": True}
+
+
+def open_failed(job, connection, exc_type, exc_value, _traceback):
+    """RQ's `on_failure` for an opening: a failure that was not the cut's own (the job could not start, say) fails the run with the stage named,
+    unless the run has ended already."""
+    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+    run_id, index = job.args[:2]
+    runrecord.finish_run(connection, run_id, "failed",
+                         error=f"stage {wrapper.stage_name(connection, run_id, index)} could not start: {exc_type.__name__}: {exc_value}")
+    requires.job_failed(job, connection, exc_type, exc_value)
 
 
 def _short(value, limit=300):
@@ -343,26 +404,60 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
                          error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
-                               f"{exc_type.__name__}: {exc_value}")
+                               f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
 
 def horse_killed(job, retpid, ret_val, _rusage):
     """
-    RQ's `work_horse_killed_handler` (PERF.106): the process that was running a unit was killed (out of memory, or
-    `kill -9`). The run fails now, with the unit named, instead of when the worker's heartbeat runs out; the retry RQ
-    makes finds the run no longer live and does nothing. A job that is not a unit of a run is left to RQ.
+    RQ's `work_horse_killed_handler` (PERF.106): the process that was running a job was killed (out of memory, or `kill -9`).
+
+    A job killed with SIGKILL (what the out-of-memory killer sends) that has a retry left is not the end of the run (PERF.254): the memory gate
+    notes what the worker claimed and the most it held, learns a larger size for the kind and gives the retry a claim `memorygate.GROW_FACTOR`
+    times the old one (`memorygate.grow`), so the retry waits for room that fits; RQ queues it again. A kill with no retry left fails the run
+    now, with the unit (or the opening) named and what it claimed, instead of when the worker's heartbeat runs out; the retry RQ makes of a job
+    of a run that has ended finds the run no longer live and does nothing. A job that is not part of a run is only learned from and left to RQ.
     """
+    from planetgen.queue import memorygate
+    conn = job.connection
     status = log.decode_wait_status(ret_val) if isinstance(ret_val, int) else -1
-    if job.func_name != UNIT_FUNCTION:
-        log.process_ended("queue", f"The process running job {getattr(job, "id", None) or "?"} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
-        return
-    run_id, stage, unit = job.args[:3]
-    log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
-    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
-    runrecord.finish_run(job.connection, run_id, "failed",
-                         error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
-                               f"its worker process {retpid} ended with {_ended_with(ret_val)}")
+    name = getattr(job, "id", None) or "?"
+    note = memorygate.kill_note(conn, getattr(job, "worker_name", None) or "")
+    memory_kill = _killed_by_sigkill(ret_val)
+    detail = ""
+    if note is not None and memory_kill:
+        detail = f"; it claimed {note['claimed_mb']:,.0f} MB on the memory gate and the most seen was {note['peak_mb']:,.0f} MB"
+        bigger = memorygate.grow(conn, note["kind"], job.id, note["claimed_mb"], note["peak_mb"])
+        retry = (getattr(job, "retries_left", None) or 0) > 0
+        log.warning(f"Job {name} ({job.func_name}) was killed with SIGKILL while it claimed {note['claimed_mb']:,.0f} MB (most seen {note['peak_mb']:,.0f} MB); "
+                    + (f"it is queued again with a claim of {bigger:,.0f} MB." if retry else "it has no retry left."))
+        if retry:
+            return
+    if job.func_name == UNIT_FUNCTION:
+        run_id, stage, unit = job.args[:3]
+        log.process_ended("queue", f"The process running unit {unit} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
+        from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+        runrecord.finish_run(conn, run_id, "failed",
+                             error=f"unit {unit} of stage {wrapper.stage_name(conn, run_id, stage)} was killed: "
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
+    elif job.func_name == OPEN_FUNCTION:
+        run_id, index = job.args[:2]
+        log.process_ended("queue", f"The process opening stage {index} of run {run_id}, pid {retpid},", status, deliberate=(), pid=retpid)
+        from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+        runrecord.finish_run(conn, run_id, "failed",
+                             error=f"the opening of stage {wrapper.stage_name(conn, run_id, index)} was killed: "
+                                   f"its worker process {retpid} ended with {_ended_with(ret_val)}{detail}", killed=True)
+    else:
+        log.process_ended("queue", f"The process running job {name} ({job.func_name}), pid {retpid},", status, deliberate=(), pid=retpid)
+
+
+def _killed_by_sigkill(status):
+    """Whether a work horse's wait status says SIGKILL, what the kernel's out-of-memory killer sends."""
+    try:
+        number = int(status)
+    except (TypeError, ValueError):
+        return False
+    return (-number if number < 0 else number & 0x7f) == signal.SIGKILL
 
 
 def _ended_with(status):
@@ -391,19 +486,23 @@ def _ended_with(status):
 
 
 def _progress(conn, run_id, stage):
-    """`{unit: (done, estimate)}` of the units reporting now."""
+    """`{unit: (done, estimate)}` of the units reporting now (OPS.136: read from the beat record of each)."""
     found = {}
     for unit, raw in conn.hgetall(runrecord.progress_key(run_id, stage)).items():
+        record = unitbeat.parse(raw)
+        if record is None:
+            continue
         try:
-            done, estimate = (float(part) for part in runrecord._s(raw).split(","))
-            found[int(unit)] = (done, estimate)
-        except ValueError:
+            done, estimate = float(record["done"]), float(record["estimate"])
+            if estimate > 0.0:        # a unit that has not said how much work it has is on the beat record but has no bar
+                found[int(unit)] = (done, estimate)
+        except (KeyError, ValueError, TypeError):
             continue
     return found
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None, touch=True):
+                 sleep=time.sleep, on_debug=None, touch=True, watch=None):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
@@ -415,9 +514,22 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             started the run does; one that only watches it (`wrapper.follow`, PERF.235) does not, so a run whose own
             process is gone is not taken for a live one on its account.
 
+        watch (unitwatch.UnitWatch, optional): Judges the beat of each running unit at every poll (OPS.138); only the process that started the run has one.
+
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
+    try:
+        _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch)
+    finally:
+        if watch is not None:
+            try:
+                watch.clear()
+            except Exception:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
+                pass
+
+
+def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):
     seen = set()
     last_ensure = float("-inf")
 
@@ -450,6 +562,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             for unit, (done, estimate) in _progress(conn, run_id, stage).items():
                 if unit not in seen:
                     on_progress(unit, done, estimate)
+        if watch is not None:
+            watch.check()
         if ensure is not None and clock() - last_ensure >= ENSURE_SECONDS:
             last_ensure = clock()
             ensure()

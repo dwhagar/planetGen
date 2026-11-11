@@ -62,6 +62,10 @@ CHILD_TABLES = (
     ("moon_reflection_spectrum", "moon_id", "moons"),
     ("planet_interior_layers", "planet_id", "planets"),
     ("moon_interior_layers", "moon_id", "moons"),
+    ("planet_deposit_types", "planet_id", "planets"),
+    ("planet_isotopes", "planet_id", "planets"),
+    ("moon_deposit_types", "moon_id", "moons"),
+    ("moon_isotopes", "moon_id", "moons"),
     ("planet_gases", "planet_id", "planets"),
     ("moon_gases", "moon_id", "moons"),
     ("planet_life_class_scores", "planet_id", "planets"),
@@ -70,6 +74,8 @@ CHILD_TABLES = (
     ("moon_life", "moon_id", "moons"),
     ("rogue_planet_reflection_spectrum", "rogue_planet_id", "rogue_planets"),
     ("rogue_planet_interior_layers", "rogue_planet_id", "rogue_planets"),
+    ("rogue_planet_deposit_types", "rogue_planet_id", "rogue_planets"),
+    ("rogue_planet_isotopes", "rogue_planet_id", "rogue_planets"),
     ("rogue_planet_gases", "rogue_planet_id", "rogue_planets"),
     ("rogue_planet_life_class_scores", "rogue_planet_id", "rogue_planets"),
     ("asteroid_belt_composition", "belt_id", "asteroid_belts"),
@@ -102,9 +108,9 @@ SECTIONS = {
     "sector": ("sectors",),
     "system": ("star_systems", "orbit_nodes", "dark_members"),
     "star": ("stars", "black_holes", "neutron_stars"),
-    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_gases", "planet_life_class_scores", "planet_life", "irregular_sets", "irregular_moons",
-               "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_gases", "rogue_planet_life_class_scores"),
-    "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_gases", "moon_life_class_scores", "moon_life"),
+    "planet": ("planets", "planet_reflection_spectrum", "planet_interior_layers", "planet_deposit_types", "planet_isotopes", "planet_gases", "planet_life_class_scores", "planet_life", "irregular_sets", "irregular_moons",
+               "rogue_planets", "rogue_planet_reflection_spectrum", "rogue_planet_interior_layers", "rogue_planet_deposit_types", "rogue_planet_isotopes", "rogue_planet_gases", "rogue_planet_life_class_scores"),
+    "moon": ("moons", "moon_reflection_spectrum", "moon_interior_layers", "moon_deposit_types", "moon_isotopes", "moon_gases", "moon_life_class_scores", "moon_life"),
     "belt": ("asteroid_belts", "asteroid_belt_composition", "belt_members", "asteroid_fields", "asteroid_field_composition", "field_members"),
     "comet": ("comets", "comet_composition", "interstellar_comets", "interstellar_comet_composition"),
     "phenomenon": ("nebulae", "nebula_shape_balls", "supernova_remnants", "quasars", "bright_stars",
@@ -117,11 +123,15 @@ SECTIONS = {
 _SECTION_OF = {table: name for name, tables in SECTIONS.items() for table in tables}
 
 LEFT_OUT_TABLES = frozenset({
-    "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
+    "galaxy_block_light_parts",    # the sums the scatter writers kept for the block light stage (GEN.1476): derived from the scatter, which the fingerprint reads
+    "body_history",    # the numbers a body's history left, kept for the stored galaxy (GEN.1497); the fingerprint reads the results they produced
+    "effect_ledger",    # the effect ledger records what the effect code computed and changes no result (GEN.1465), so a fingerprint reads the results and not the record
+    "system_summary", "chart_ledger", "designations",    # the ledger says which run charted a cell and when; the designation history is what edits retired, not what a run made
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs", "scatter_epochs",
     "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "object_timing_stats", "object_timing_samples", "species", "facility_types", "facility_type_fields", "facility_field_values", "polities", "system_owners", "population_state",
     "system_configs", "system_config_slots", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "designations", "chart_ledger", "sky_tier_draws", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state", "orbital_events", "orbital_event_bodies",
+    "galaxy_totals", "sector_facets",    # DB.121: counts derived from sector_stats, not what a run made
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
 docstring; a system configuration counts through the systems that use

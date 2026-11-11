@@ -66,13 +66,14 @@ GIANT_MAX_STAR_MASS_RATIO = 0.01
 # mutual Hill radii wide, in a disk scattered by `DISK_SOLIDS_SCATTER_DEX`. Each value is a planetGen stand-in (registry section 6.36),
 # tuned against the observed occurrence (`physics/data/planet_occurrence.json`).
 # A core that reaches this many Earth masses before the gas disk is gone can run away into a gas giant (core accretion:
-# [R3565, R3645] give 5 to 20 Earth masses, recalled).
-GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
+# [R3565, R3645] give 5 to 20 Earth masses, recalled). Nudged from 10 to 9 inside that range with the lower jump of the solids at the
+# snow line (GEN.1396, 1.967 for 2.17), which a higher `GIANT_GAS_SURVIVAL_SHARE` alone could not make up (stand-in PM5).
+GIANT_CORE_CRITICAL_MASS_EARTH = 9.0
 # The share of runaway-capable cores that still find gas left in the disk around a star of the disk's metallicity (scaled for [Fe/H] by
 # `metallicity.giant_occurrence_factor` and `GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT`); the rest stay ice giants. Tuned (tier T6, tweak L3)
 # to the giants at 2 to 8 AU round a Sun-like star ([R1479], read: 0.14), their fall with the star's mass
 # ([R2172], read) and the fall of the hot Jupiters round M dwarfs ([R1504], read).
-GIANT_GAS_SURVIVAL_SHARE = 0.766
+GIANT_GAS_SURVIVAL_SHARE = 0.79
 # Beyond this distance the share falls as the square of the ratio: the cores of the outer disk grow slowly, so few reach
 # the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
 GIANT_GAS_SURVIVAL_CUT_AU = 9.022
@@ -89,8 +90,9 @@ PLANET_CORE_SATURATION_SHARPNESS = 4.0
 GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
 # How many times the minimum-mass nebula's solids the mass law assumes: below one, because the oligarchs are spaced wide and the
 # isolation mass goes as the spacing to the 3/2 (`OLIGARCH_SEPARATION_MEDIAN`); the Kepler systems need several times the nebula
-# in all ([R0771], recalled). A planetGen stand-in (tier T6, tweak L3), tuned to the observed occurrence.
-PLANET_DISK_SOLIDS_ENHANCEMENT = 0.4647
+# in all ([R0771], recalled). A planetGen stand-in (tier T6, tweak L2), tuned to the published share of Sun-like stars with a giant at 2 to 8 AU [R1479]: 0.4647 gave 0.105 after
+# the inner systems lost mass (GEN.1406), 0.58 gives 0.127 against 0.141 +-0.019 (registry row PA1).
+PLANET_DISK_SOLIDS_ENHANCEMENT = 0.58
 # How the solids the planets are built from scale with the star's mass, as a power of the mass in suns. Shallower than the
 # dust mass of the disk (`DISK_MASS_STELLAR_MASS_EXPONENT`, which sets how many objects a disk can hold): the planets of M dwarfs
 # are about as many as those of Sun-like stars ([R1156, R2021], recalled), as pebble drift
@@ -163,8 +165,10 @@ INNER_COUNT_SIGMA_LN = 0.8
 # radii, 1 to 10 Earth masses ([R4897], read). The scale goes as the star's mass to the exponent (a planet-to-star
 # mass ratio about constant: [R3193, R3196]), as the disk's scatter to the exponent (a heavy disk builds heavy planets and giants:
 # Zhu and Wu 2018) and as 10 to the exponent times [Fe/H] (the occurrence of sub-Neptunes doubles over 0.8 dex, [R3499],
-# [R3499], read). Planetgen stand-ins (tier T6, tweak L3).
-INNER_PLANET_MASS_EARTH = 3.631
+# [R3499], read). Planetgen stand-ins (tier T6, tweak L3). GEN.1406: the median scale 3.631 put the rocky peak of the radius histogram at 1.5 to 1.75 Earth radii where the
+# California-Kepler Survey finds it, 1.3 and 2.4 Earth radii [R1478: Abstract], and left only 5.5 percent of Sun-like stars an Earth-size planet; 2.5 Earth masses puts a
+# rocky 1.35 Earth-radius core at its median and gives 15 percent of FGK stars one against 16.5 +-3.6 [R1459: Abstract] (registry row PA4).
+INNER_PLANET_MASS_EARTH = 2.5
 INNER_PLANET_MASS_STELLAR_EXPONENT = 0.6357
 INNER_PLANET_MASS_DISK_EXPONENT = 0.01653
 INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
@@ -250,10 +254,6 @@ REQUEST_ODDS = 10.0
 (`util.request_odds`). A host star too young to hold life or a white dwarf, a planet in the ecosphere without a surface ocean, a system with no such
 planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
 in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
-
-# How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
-# from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
-BARRED_CLASS_MAX_ATTEMPTS = 30
 
 # The lightest planet the formation law may give (GEN.646): the heaviest a heap of ice and rock can be before its own gravity rounds it
 # (`bulk_structure.SMALL_BODY_MASS_KG`, about 540 km radius); the old lowest class radius was 500 km. Lighter bodies are the small bodies
@@ -501,6 +501,14 @@ ASTEROID_COMPONENTS = [
 list: A comprehensive list of various components that can be found in asteroids.
 This is a vocabulary of names the materials table resolves (a belt's or field's composition is drawn from asteroid taxa, GEN.442 and GEN.477).
 """
+
+# --- The effect ledger (GEN.1465) ---
+# The share of the largest source, under which a source is not written as its own ledger row but added to its (body, effect)
+# summary row (every source is computed whatever this is; it limits storage only). A value under 1e-37 stores every source
+# (a FLOAT cannot hold less); Boss can change it here, and the stored galaxy keeps the floor it was made with in the summary.
+# Boss chose 0.1 percent (8:37 PM EST 11-08): the sources of light and UV that give a thousandth or more of the largest are stored. The five gravity
+# effects (`effect_ledger.ON_DEMAND_EFFECTS`) ignore it: they store only the largest source and a summary and compute the rest on demand.
+EFFECT_LEDGER_FLOOR = 1e-3
 
 # --- Space Sector Generation Parameters ---
 
@@ -1049,11 +1057,12 @@ Sun's own habitable zone dry-proof (the young Sun was past the runaway limit at 
 RUNAWAY_HISTORY_STEPS = 64
 """int: Log-spaced steps of the water-loss history integral from `RUNAWAY_HISTORY_START_YR` to the star's age."""
 
-ENERGY_LIMITED_EFFICIENCY = 0.01
+ENERGY_LIMITED_EFFICIENCY = 0.15
 """float: The share of the absorbed XUV that drives hydrogen away in the energy-limited escape,
 Mdot = eps pi R^3 F_xuv / (G M) ([R2769, R4637] take 0.1, other estimates run from about 0.01 to
-0.3). 0.01, a tenth of the usual value, so that only the worst red dwarf zones lose their oceans (Boss, 7:09 PM EDT
-2026-10-23; DESIGN stand-in, GEN.639)."""
+0.3). 0.15, the value the atmosphere escape model uses (`thermosphere.ENERGY_LIMITED_EFFICIENCY`, the grid of [R2512]: 0.10 to
+0.20), so the water-loss history and the atmosphere's escape agree (Boss, 2026-11-07, replacing his 7:09 PM EDT 2026-10-23
+choice of 0.01; GEN.639)."""
 
 RUNAWAY_FLUX_REFERENCE_W_M2 = 1361.0
 """float: The Sun's flux at the Earth, W/m2: the unit `orbits.runaway_greenhouse_flux` is in (the planet's starlight over this is its effective flux)."""
@@ -2136,7 +2145,7 @@ PLANET_SURVIVAL_HOST_MASS_SOLAR = 0.5
 # --- Planet Classification Data ---
 
 # The composition text of each class, and its kind ('t' for terrestrial, 'g' for gas giant). The words that describe a class are
-# in `physics/data/planet_class_text.json` (GEN.1212). A class is derived from a finished body's
+# in `physics/data/planet_classes.json` (the phrase of each row) (GEN.1212). A class is derived from a finished body's
 # conditions (`physics/planet_classes.py`, `physics/data/planet_classes.json`); nothing here says what a body of the class
 # looks like for generation: no radius, zone, density, albedo or probability.
 PLANET_CLASSES = {
@@ -2285,11 +2294,6 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V', 'W']
-"""
-list: A list of planet class codes that are considered habitable.
-"""
-
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
@@ -2410,101 +2414,7 @@ the R4 chance T4); set from the first census, not fixed.
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
 FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
-MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
-
-SYSTEM_FLAVOR = [ # System-only flavor text. Stored as the line itself (GEN.1212: plain words, 23 lines, order fixed so the draw does not move).
-    "a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason.",
-    "an automated buoy with a mass driver. It catches data pods and flings them toward the inner system.",
-    "a huge, thin sheet of reflective foil adrift in the system. It was once set up to shade a world.",
-    "thousands of small, passive reflectors scattered across the system. They bounce radio waves back and forth.",
-    "an ancient navigation beacon at the edge of the system. It runs on nuclear power and is kept up by a local artificial intelligence.",
-    "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm.",
-    "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center.",
-    "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it.",
-    "a round dead zone in deep space. Every scan, signal, and burst of radiation that enters it drops to nothing.",
-    "a jagged, glowing crack in space-time. It keeps venting energy into the void around it.",
-    "a network of automated defense satellites spread across the system.",
-    "an array of laser transceivers. They hold a steady, high-speed optical link with one another.",
-    "a swarm of automated solar collectors skimming the star's corona. They feed steady power to huge, fully charged battery arrays.",
-    "a half-built ring of solar collectors around the star. The gaps suggest the work was abandoned.",
-    "a cluster of dormant, self-replicating probes holding formation. Their fabrication cycles stopped partway through.",
-    "a derelict generation ship on a slow, decaying orbit. Its hull is dark, and its drive is cold after generations adrift.",
-    "a mirror array angled to turn the star's light pressure into a gentle push. It has come loose and is drifting.",
-    "a pair of gravitational lensing relays aimed at a target far beyond the system. They are still listening.",
-    "a broken ring segment holding a stable orbit by itself. It seems to wait for the rest of the structure to return.",
-    "a scattering of paired relay buoys. They still send signals to partners that fell silent long ago.",
-    "an automated probe holding station at the edge of the system. Its greeting message loops with no one to hear it.",
-    "a magnetic siphon rig drawing material from the star's outer layers. It is still running long after its operators left.",
-    "a shell of solar-collecting satellites in a wide, half-finished orbit. Their construction drones are nowhere to be found."
-]
-
-PLANET_FLAVOR = [ # Flavor text for any planet.
-    "a massive hollow metallic cylinder embedded in the crust.",
-    "the crashed hull of a derelict pre-warp ship.",
-    "the crashed hull of a derelict primitive warp ship.",
-    "a solar-powered beacon looping a brief audio distress call.",
-    "an array of automated radio dishes tracking empty coordinates in deep space.",
-    "a vast, precise grid of ancient cargo containers showing faint energy readings.",
-    "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
-    "a vast, perfectly smooth glass crater with refined materials fused into its center.",
-    "an automated surface rover actively sorting stones by size and composition into a grid.",
-    "the collapsed base of a space elevator, its severed cable coiled across the surrounding terrain for kilometers.",
-    "a sealed cryogenic vault built into the bedrock, its status lights still cycling after some uncounted span of time.",
-    "a field of dormant terraforming seeders, half-buried and inert, that should have blanketed the world in engineered soil long ago.",
-    "a buried genetic seed vault with a collapsed access shaft, its contents unknown.",
-    "a standing obelisk of unidentified alloy on an otherwise featureless plain, untouched by weathering.",
-    "an abandoned colony's foundation grid, its structural bones outlining streets and buildings that were never raised.",
-    "the fallen anchor of an orbital elevator, its counterweight long gone, embedded deep in the crust.",
-    "an automated excavation still cutting the same exhausted mineral seam decades after it ran dry.",
-    "a scorched landing zone cleared by a controlled burn that was, by every visible sign, never used.",
-    "a shallow crater ringed with fused glass, the unmistakable signature of an old kinetic impact test."
-]
-
-ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
-    "several dead delivery drones and cargo pods in stable orbits.",
-    "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits.",
-    "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels it flags as requiring extensive repairs.",
-    "a primitive interstellar probe caught in orbit.",
-    "a derelict light cruiser venting plasma slowly into the surrounding void.",
-    "a derelict transport ship whose severed bow trails forty kilometers behind its own stern.",
-    "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies.",
-    "a monolithic stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
-    "a constellation of large solar mirrors suspended in a rough orbital grid.",
-    "a ring of cryostasis pods tumbling freely, their occupants' status unreadable at this range.",
-    "the wreckage of a one-sided battle, hulls scattered with no intact vessel among them.",
-    "a stationary listening post bristling with dish arrays, all aimed at a patch of empty sky.",
-    "a dormant ring-shaped gate of unfamiliar design, its inner surface dark and its function unconfirmed.",
-    "a cluster of sealed seed pods tumbling in a slow, decaying orbit, clearly not of local origin.",
-    "an automated checkpoint platform still broadcasting docking instructions in a language no database recognizes.",
-    "a field of armed kinetic interceptors, live and waiting, with no record of who deployed them.",
-    "a solitary dark-hulled relay emitting a tight beam toward the star and nothing else.",
-    "the fused, burned-out frame of an old drive test rig, its containment ring melted solid.",
-    "a loose formation of repair drones still patrolling a ship that no longer exists."
-]
-
-HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
-    "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence.",
-    "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand.",
-    "high-altitude predators with hyper-thin membranous wings that ride the solar wind.",
-    "jagged, forest-like continental structures built from the hard mineral shells of colonial insects.",
-    "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton.",
-    "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids.",
-    "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods.",
-    "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases.",
-    "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers.",
-    "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources.",
-    "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust.",
-    "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins.",
-    "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides.",
-    "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls.",
-    "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on.",
-    "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them.",
-    "lichen-like organisms that ride migrating herds, trading camouflage for transport.",
-    "herd animals that bury themselves and estivate for years to survive multi-year droughts.",
-    "predators whose skin patterns mimic local flora so precisely they vanish at rest.",
-    "colonial organisms that briefly link into a single distributed nervous system during seasonal migration.",
-    "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
-]
+# The flavor lines themselves are the gated tree `physics/data/flavor_tree.json` (`physics/flavor_tree.py`, GEN.1430).
 
 # --- Exotic Stellar Phenomena (phenomenonGen.py, generation/phenomena/compact_remnant.py,
 # nebulaData.py, supernovaRemnantData.py, roguePlanetData.py) ---
@@ -3334,13 +3244,13 @@ SYSTEM_COMET_CHANCE = 0.3
 # by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
 # it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809; and all four remeasured 2026-11-05 over 4,000 systems, four seeds of
 # 1,000, after train 10 (TEST.579): asteroid_belt 0.653 where 0.039 stood, because belts are no longer cut by mass (GEN.1068, GEN.1156), habitable_world 0.584,
-# large_star 0.056, planets 0.822). A sector or galaxy run's
+# large_star 0.056, planets 0.822); habitable_world alone remeasured 2026-11-08 over 240 systems, seeds 900 to 1139, after GEN.1397 took away the list of life classes it counted: 0.025). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.584,   # a planet or moon of a class that can carry life (see above)
+    "habitable_world": 0.025,   # a planet or moon that meets the habitable request or is rated habitable, Blue or Green (GEN.1397: no list of class letters; see above)
     "asteroid_belt": 0.653,     # an asteroid belt
     "large_star": 0.056,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
     "planets": 0.822,           # at least one planet or belt
@@ -3348,10 +3258,10 @@ PREVALENCE_BASE_SHARES = {
 
 # The share of systems that have the feature among those `prevalence.resolve` forces it on (GEN.1322). A belt, a large star and planets are made as asked
 # (1.0). A habitable world is only asked for (GEN.1130: the odds of the conditions are multiplied by REQUEST_ODDS and the request never forces), and the
-# test counts a planet or moon of a class that can carry life, so a forced system has one in 0.747 of cases and a run cannot reach a higher share
-# than that. Measured over 300 systems with `HABITABLE_WORLD` True (224 had one; run seeds 801 to 803, 2026-11-07), the way the base shares are; remeasure with them (tests/test_prevalence.py).
+# test counts a planet or moon that meets the request or is rated habitable (GEN.1397), so a forced system has one in 0.069 of cases and a run cannot reach a higher share
+# than that. Measured over 160 systems with `HABITABLE_WORLD` True (11 had one; run seeds 800 to 959, 2026-11-08), the way the base shares are; remeasure with them (tests/test_prevalence.py).
 PREVALENCE_FORCED_HIT_RATES = {
-    "habitable_world": 0.747,
+    "habitable_world": 0.069,
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3690,10 +3600,10 @@ PHENOMENON_DENSITY_PC3 = {
     # 0.05 per star). The real population of comets and planetesimals,
     # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
     "comet": 0.007,
-    # Free asteroid fields disperse in 1e6-1e7 years (Raymond et al.
-    # 2020, ApJL 894:L22), so none are generated; the type stays for
-    # hand-made fields and facilities.
-    "asteroid-field": 0.0,
+    # Free asteroid fields spread past a light year in some tens of thousands of years (`field_dispersal`), so the only ones that stand are those a physical source puts
+    # there (GEN.1103; Boss, 4:54 PM EDT 2026-10-30: no game rate). This is the fields two colliding rogue planets leave, `collision_field.standing_density_pc3()`
+    # (tests/test_collision_field.py holds the literal to it); the fields of supernova remnants are hosted by their remnants (`field_host`), not rolled.
+    "asteroid-field": 6.6e-21,
 }
 """dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
 the research value for each kind (see the design doc's table)."""
@@ -3956,13 +3866,15 @@ not-yet-generated sector this close to their center. Boss (GEN.23,
 its bright stars (`BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`).
 """
 
-PROGRESS_BAR_SECONDS = 15.0
+PROGRESS_BAR_SECONDS = 5.0
 """
 float: A step of a generation or maintenance run draws its own progress bar
 when it is predicted to take longer than this (Boss, 2026-10-09: "a progress
 bar on all substeps that automatically activates on the start of that
-sub-item if it's predicted to take longer than 15 seconds"), and the moment
-it runs past it if it was not (`planetgen.generation.steps`).
+sub-item if it's predicted to take longer than 15 seconds"; Boss, 12:13 AM EST
+2026-11-08, UX.289: anything that takes more than 5 seconds gets a bar at the 5
+second mark), and the moment it runs past it if it was not
+(`planetgen.generation.steps`).
 """
 
 PROGRESS_LOG_SECONDS = 30.0

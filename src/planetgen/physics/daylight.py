@@ -38,7 +38,7 @@ taken at the parent's distance for a moon (the moon's own distance from its plan
 
 import math
 
-from planetgen.physics import constants, day_night, spin
+from planetgen.physics import constants, day_night, orbit_elements, planet_type, radiation_field, sky_suns, spin
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -53,6 +53,16 @@ solar days in one orbit (GEN.1097); the last two are `None` where the solar day 
 
 YEAR_SAMPLES = 720
 """int: The points of the circular year the declination and the shadow are averaged over."""
+
+DAY_SUN_W_M2 = 0.036
+"""float: The light, W/m2, that makes a star a sun of the day (GEN.1461): civil twilight, 3.4 lux of the 1.3e5 lux of the Sun at Earth (2.6e-5 of its 1361 W/m2); a star that gives a body less than
+this does not make a day of its own (a stand-in, section 6.248 of the gap plan)."""
+
+SKY_YEAR_SAMPLES = 36
+"""int: The points of the circular year the suns' places are worked at when more than one sun counts (GEN.1461)."""
+
+SKY_LATITUDE_STEPS = 48
+"""int: The strips of equal area the mean over the surface is worked in when more than one sun counts (GEN.1461)."""
 
 LOCK_TOLERANCE = 1e-3
 """float: How close the rotation period is to the orbital period to count as turning once an orbit (the generator sets them equal)."""
@@ -102,6 +112,74 @@ def equator_day_share(tilt_deg, alpha):
 def mean_day_share(alpha):
     """The share of the time the star is up, averaged over the whole surface: the lit part of a sphere, `(1 + sin alpha) / 2`."""
     return 0.5 * (1.0 + math.sin(alpha))
+
+
+def lit_arcs_share(arcs):
+    """
+    The share of one turn that is lit by at least one sun (GEN.1461): `arcs` is `[(center, half_width)]` in radians, the hour angle a sun is up around (its right ascension) and half the
+    time it is up, as an angle (`pi` for a sun that does not set). A circle of arcs merged where they overlap: two suns that stand together light the arc of one, two that stand
+    opposite light both.
+    """
+    spans = []
+    for center, half in arcs:
+        if half >= math.pi:
+            return 1.0
+        if half <= 0.0:
+            continue
+        low = (center - half) % (2.0 * math.pi)
+        high = low + 2.0 * half
+        if high > 2.0 * math.pi:
+            spans.append((low, 2.0 * math.pi))
+            spans.append((0.0, high - 2.0 * math.pi))
+        else:
+            spans.append((low, high))
+    if not spans:
+        return 0.0
+    spans.sort()
+    covered, end = 0.0, spans[0][0]
+    for low, high in spans:
+        if high <= end:
+            continue
+        covered += high - max(low, end)
+        end = high
+    return min(1.0, covered / (2.0 * math.pi))
+
+
+def _sky_sources(tilt_rad, distance_au, counted, longitude):
+    """`[(sin_declination, right_ascension, angular_radius)]` of the counted suns of a planet at a point of its year: the host stands at the longitude `longitude`, the others at the place
+    their offset from the host and the planet's own place (`distance_au` on the other side of the host) give; `counted` is `[(star, offset_au or None)]`, the host's offset `None`."""
+    sin_e, cos_e = math.sin(tilt_rad), math.cos(tilt_rad)
+    host = (math.cos(longitude), math.sin(longitude), 0.0)
+    out = []
+    for source, offset in counted:
+        if offset is None:
+            vector, separation = host, distance_au
+        else:
+            vector = tuple(offset[axis] + distance_au * host[axis] for axis in range(3))
+            separation = math.sqrt(sum(c * c for c in vector))
+            vector = tuple(c / separation for c in vector)
+        out.append((sin_e * vector[1] + cos_e * vector[2], math.atan2(cos_e * vector[1] - sin_e * vector[2], vector[0]),
+                    angular_radius(getattr(source, "radius", None), separation)))
+    return out
+
+
+def sky_day_shares(tilt_rad, distance_au, counted):
+    """
+    `(equator_share, mean_share)` of the time some counted sun is up, for a planet that circles the first star of `counted` at `distance_au` (GEN.1461): the union of the arcs the suns
+    light, `lit_arcs_share`, at the equator and averaged over the surface, over a circular year. The hour angle of a sun is its right ascension against the turning ground; the
+    surface mean is taken in strips of equal area. A lone counted sun gives `equator_day_share` and `mean_day_share`.
+    """
+    equator = mean = 0.0
+    for k in range(SKY_YEAR_SAMPLES):
+        longitude = 2.0 * math.pi * (k + 0.5) / SKY_YEAR_SAMPLES
+        suns = _sky_sources(tilt_rad, distance_au, counted, longitude)
+        equator += lit_arcs_share([(ra, math.pi * day_share_at(0.0, math.degrees(math.asin(sin_dec)), alpha)) for sin_dec, ra, alpha in suns])
+        strips = 0.0
+        for j in range(SKY_LATITUDE_STEPS):
+            latitude = math.degrees(math.asin(-1.0 + 2.0 * (j + 0.5) / SKY_LATITUDE_STEPS))
+            strips += lit_arcs_share([(ra, math.pi * day_share_at(latitude, math.degrees(math.asin(sin_dec)), alpha)) for sin_dec, ra, alpha in suns])
+        mean += strips / SKY_LATITUDE_STEPS
+    return equator / SKY_YEAR_SAMPLES, mean / SKY_YEAR_SAMPLES
 
 
 def polar_circle_deg(tilt_deg, alpha):
@@ -167,9 +245,44 @@ def _spin_axis(body):
     return None if any(value is None for value in axis) else axis
 
 
-def _orbit_normal(body):
+def _orbit_normal(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return spin.moon_orbit_normal(body, planet)
     return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0,
                              getattr(body, "orbital_ascending_node_deg", None) or 0.0)
+
+
+def _counted_sky(body, parent, star, host):
+    """
+    `(tilt_rad, flux_distance_au, counted)` when more than the host's own light makes the day of this body (GEN.1461), else `None` (the host alone, or a lone star, is the day as it was):
+    `counted` is `[(star, offset_au or None)]` of the host (offset `None`) and each companion that puts at least `DAY_SUN_W_M2` on the body, the offset in the equinox frame.
+    """
+    if not radiation_field.companions_of(star):
+        return None
+    axis = _spin_axis(body)
+    distance_au = getattr(host, "distance", None)
+    if axis is None or not distance_au:
+        return None
+    flux_au = orbit_elements.flux_distance_au(distance_au, getattr(host, "eccentricity", None) or 0.0)
+    tilt, total, found = sky_suns.placed(star, axis, _orbit_normal(parent) if parent is not None else _orbit_normal(body), flux_au)
+    if not found:
+        return None
+    counted = [(star, None)] if total - sum(source.light_w_m2 for source in found) >= DAY_SUN_W_M2 else []
+    counted += [(source.star, source.offset_au) for source in found if source.light_w_m2 >= DAY_SUN_W_M2]
+    if not counted or (len(counted) == 1 and counted[0][1] is None):
+        return None
+    return tilt, flux_au, counted
+
+
+def _dark(out, solid):
+    """`out` for a body that no star lights (a rogue planet's host holds no light, and nor does a moon's, GEN.1496): the set of suns is empty, so the union of the arcs they light
+    (`lit_arcs_share`) is nothing at every latitude all year. The time a star is up is 0 at the equator and over the surface, there is no daylight and no polar circle, and with no star
+    to return to the same place there is no solar day, no night to count in it and no days in a year; the state is `no sun` (a giant still has no surface to stand on)."""
+    out["day_share_equator"] = out["day_share_mean"] = lit_arcs_share([])
+    out["daylight_hours"] = 0.0
+    out["day_night_state"] = day_night.state(1.0, 1.0, None, solid, no_sun=True)
+    return out
 
 
 def compute(body, parent=None):
@@ -181,11 +294,13 @@ def compute(body, parent=None):
     rotation = getattr(body, "rotation_period_hours", None)
     star = getattr(body, "star", None)
     host = parent if parent is not None else body
-    solid = getattr(body, "body_type", "t") != "g"
+    solid = planet_type.has_ground(body)      # GEN.1334: a planet under a deep envelope has no surface for a day to fall on
     if not solid:
         out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:
         return out
+    if getattr(star, "starless", False):
+        return _dark(out, solid)       # GEN.1496: no star to count, so no sun of the day
     distance_au = getattr(host, "distance", None)
     orbital_hours = _yr_to_h(getattr(host, "period", None) or 0.0)
     alpha = angular_radius(getattr(star, "radius", None), distance_au)
@@ -199,12 +314,15 @@ def compute(body, parent=None):
     prograde = tilt <= 90.0
     out["day_share_mean"] = mean_day_share(alpha)
     out["polar_circle_deg"] = polar_circle_deg(tilt, alpha)
+    sky = _counted_sky(body, parent, star, host)       # GEN.1461: the day is the union of the arcs every counted sun lights
     day = solar_day_hours(rotation, orbital_hours, prograde)
+    if sky is not None:
+        equator_share, out["day_share_mean"] = sky_day_shares(*sky)
     if day is not None:
-        out["day_share_equator"] = equator_day_share(tilt, alpha)
+        out["day_share_equator"] = equator_day_share(tilt, alpha) if sky is None else equator_share
         out["solar_day_hours"] = day
     if parent is not None:
-        mutual = spin.obliquity_between(_orbit_normal(body), _orbit_normal(parent))
+        mutual = spin.obliquity_between(_orbit_normal(body, parent), _orbit_normal(parent))
         shadow = parent_shadow_share(body.distance * constants.AU_TO_KM, getattr(parent, "radius", None), mutual)
         out["parent_shadow_share"] = shadow
         out["day_share_mean"] *= 1.0 - shadow

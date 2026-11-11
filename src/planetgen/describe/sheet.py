@@ -23,11 +23,11 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import model
+from planetgen.describe import influx_row, model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, latitude_bands, life_classes, nebula_columns, outside_hours, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -45,7 +45,7 @@ GROUPS = {
     "composition": "Composition", "atmosphere": "Atmosphere", "climate": "Climate", "water": "Water",
     "magnetism": "Magnetic field", "radiation": "Radiation", "habitability": "Habitability", "life": "Life",
     "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Disk",
-    "radiogenic": "Radiogenic heat", "gas": "Gas and light", "compact": "Compact object", "activity": "Activity",
+    "radiogenic": "Radiogenic heat", "gas": "Gas and light", "dust": "Dust", "compact": "Compact object", "activity": "Activity",
     "ratings": "Ratings",
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
@@ -170,7 +170,8 @@ _STAR = (
            ("xuv_saturated", "X-ray output saturated", FLAG), ("xuv_fluence_j", "X-ray and ultraviolet energy emitted"),
            ("uv_c_share", "UV-C power against its blackbody's"),
            ("flare_n33_per_yr", "Large flares a year"), ("flare_alpha", "Flare size distribution slope"),
-           ("lethal_event_rate_per_gyr", "Lethal events per billion years")),
+           ("lethal_event_rate_per_gyr", "Lethal events per billion years"),
+           ("surface_dipole_field_gauss", "Polar field of the dipole")),
     *_rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
            ("galactic_orbital_phase_deg", "Galactic orbital phase")),
     *_rows("disk", ("disk_kind", "Kind", TEXT), ("disk_mass_solar", "Mass"), ("disk_inner_au", "Inner edge"),
@@ -183,7 +184,7 @@ _BODY_GROUPS = (
     *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class, 9 a world limited by its gravity or air amount)"),
            ("class_match", "Class match (how well the class fits the body; 0 when no class fits it and this is the nearest)"),
            ("runner_up_class", "Runner-up class", TEXT), ("runner_up_match", "Runner-up class match"),
-           ("planet_type", "Body type (terrestrial, transitional or gas, by the share of its mass that is a hydrogen-helium envelope)", TEXT), ("zone", "Zone", TEXT)),
+           ("planet_type", "Body type (terrestrial, transitional, super-puff or gas, by the share of its mass that is a hydrogen-helium envelope; a super-puff is a transitional planet under 0.1 g/cc in the period range of the Kepler super-puffs)", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
            ("orbital_ascending_node_deg", "Longitude of the ascending node"), ("hill_radius_km", "Hill radius"),
@@ -210,7 +211,10 @@ _BODY_GROUPS = (
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
            ("polar_circle_deg", "Latitude of the polar circle")),
     *_rows("composition", ("mantle_redox", "Mantle oxidation", TEXT), ("mantle_delta_iw", "Mantle oxidation, log below iron-wüstite"),
-           ("phosphorus", "Phosphorus supply", TEXT), ("born_beyond_snow_line", "Formed beyond the snow line", FLAG),
+           ("phosphorus", "Phosphorus supply", TEXT), ("ocean_phosphate_umol_l", "Ocean phosphate"),
+           ("crust_p2o5_wt", "Crust P2O5"), ("crust_apatite_share", "Crust phosphorus in apatite"), ("crust_merrillite_share", "Crust phosphorus in merrillite"),
+           ("crust_schreibersite_share", "Crust phosphorus in schreibersite"), ("crust_thickness_km", "Crust thickness"), ("craton_fraction", "Share of the crust that is old craton"),
+           ("crust_sulfur_index", "Sulfur the crust offers a rising magma"), ("born_beyond_snow_line", "Formed beyond the snow line", FLAG),
            ("metal_mass_fraction", "Metal (iron) mass fraction"), ("rock_mass_fraction", "Rock mass fraction"),
            ("ice_mass_fraction", "Ice mass fraction"), ("ice_co2_mass_fraction", "Carbon dioxide ice mass fraction"),
            ("ice_ch4_mass_fraction", "Methane ice mass fraction"), ("ice_nh3_mass_fraction", "Ammonia ice mass fraction"),
@@ -224,6 +228,9 @@ _BODY_GROUPS = (
            ("rock_tio2_fraction", "Titanium dioxide share of the rock"), ("rock_cr2o3_fraction", "Chromium oxide share of the rock"),
            ("rock_mno_fraction", "Manganese oxide share of the rock"), ("rock_nio_fraction", "Nickel oxide share of the rock"),
            ("rock_p2o5_fraction", "Phosphorus oxide share of the rock"), ("porosity", "Porosity"),
+           ("core_ni_fraction", "Core: nickel share"), ("core_s_fraction", "Core: sulfur share"), ("core_si_fraction", "Core: silicon share"),
+           ("core_o_fraction", "Core: oxygen share"), ("core_c_fraction", "Core: carbon share"), ("core_h_fraction", "Core: hydrogen share"),
+           ("core_light_fraction", "Core: light elements together"),
            ("carbon_rock", "Carbon-rich rock", FLAG),
            ("ground_type", "Ground type with the largest share", TEXT), ("ground_grain", "Ground grain", TEXT),
            ("ground_ocean_fraction", "Ground share: ocean"), ("ground_ice_fraction", "Ground share: ice"),
@@ -266,6 +273,7 @@ _BODY_GROUPS = (
            ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
            ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
+           ("dipole_tilt_deg", "Dipole tilt from the spin axis"), ("dipole_offset_class", "Dipole centering", TEXT),
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
@@ -336,6 +344,46 @@ _GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orb
                         ("galactic_orbital_phase_deg", "Galactic orbital phase"))
 _DISTANCE = _rows("galactic", ("galactic_radius_pc", "Distance from the galactic center"))
 
+_COMPOSITION_ROWS = (
+    *_rows("composition", ("mass_fraction_h", "Hydrogen share of its mass (gas and dust)"), ("mass_fraction_he", "Helium share of its mass (gas and dust)"),
+           ("mass_fraction_z", "Heavy-element share of its mass (gas and dust)"),
+           ("mass_fraction_c", "Carbon share of its mass (gas and dust)"),
+           ("mass_fraction_n", "Nitrogen share of its mass (gas and dust)"),
+           ("mass_fraction_o", "Oxygen share of its mass (gas and dust)"),
+           ("mass_fraction_ne", "Neon share of its mass (gas and dust)"),
+           ("mass_fraction_s", "Sulfur share of its mass (gas and dust)"),
+           ("mass_fraction_ar", "Argon share of its mass (gas and dust)"),
+           ("mass_fraction_fe", "Iron share of its mass (gas and dust)")),
+    *_rows("gas", ("gas_oh_dex", "Oxygen of its gas, relative to the Sun (log)"), ("ionized_share", "Hydrogen that is ionized"), ("atomic_share", "Hydrogen that is atomic"),
+           ("molecular_share", "Hydrogen that is molecular"),
+           ("abundance_c", "Carbon in the gas, 12 + log(n/nH)"),
+           ("abundance_n", "Nitrogen in the gas, 12 + log(n/nH)"),
+           ("abundance_o", "Oxygen in the gas, 12 + log(n/nH)"),
+           ("abundance_ne", "Neon in the gas, 12 + log(n/nH)"),
+           ("abundance_s", "Sulfur in the gas, 12 + log(n/nH)"),
+           ("abundance_ar", "Argon in the gas, 12 + log(n/nH)"),
+           ("abundance_fe", "Iron in the gas, 12 + log(n/nH)")),
+    *_rows("dust", ("dust_to_gas", "Dust mass over gas mass"), ("dust_to_metals", "Dust mass over metal mass"),
+           ("grain_amorphous_olivine", "Share of the dust that is amorphous olivine"),
+           ("grain_amorphous_pyroxene", "Share of the dust that is amorphous pyroxene"),
+           ("grain_crystalline_silicate", "Share of the dust that is crystalline silicate"),
+           ("grain_iron", "Share of the dust that is iron"),
+           ("grain_amorphous_carbon", "Share of the dust that is amorphous carbon"),
+           ("grain_graphite", "Share of the dust that is graphite"),
+           ("grain_pah", "Share of the dust that is PAH molecules"),
+           ("grain_sic", "Share of the dust that is silicon carbide"),
+           ("grain_ice", "Share of the dust that is ice mantles")),
+)
+"""tuple: The rows of the stored composition (GEN.1268, GEN.1272), the same for a nebula and a remnant; a remnant adds `_REMNANT_PARTS`."""
+
+_REMNANT_PARTS = (
+    *_rows("dust", ("progenitor_mass_sol", "Mass of the star that exploded"), ("ejecta_mass_sol", "Mass thrown out by the explosion"),
+           ("swept_mass_sol", "Interstellar mass inside the blast wave"),
+           ("ejecta_mass_fraction_h", "Hydrogen share of the ejecta"), ("ejecta_mass_fraction_he", "Helium share of the ejecta"),
+           ("ejecta_mass_fraction_z", "Heavy-element share of the ejecta"), ("swept_mass_fraction_h", "Hydrogen share of the swept-up gas"),
+           ("swept_mass_fraction_he", "Helium share of the swept-up gas"), ("swept_mass_fraction_z", "Heavy-element share of the swept-up gas")),
+)
+
 _NEBULA = (
     *_rows("identity", ("nebula_class", "Class", TEXT), ("nebula_type", "Type", TEXT),
            ("formation_cause", "Formation", TEXT)),
@@ -343,6 +391,8 @@ _NEBULA = (
     *_rows("composition", ("composition", "Composition", TEXT), ("dominant_species", "Dominant gas", TEXT),
            ("hosts", "Stars it hosts", TEXT), ("age_myr", "Age of the stars"), ("q_total", "Ionizing photons")),
     *_rows("gas", ("density_cm3", "Density"), ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_rows("dust", ("progenitor_mass_sol", "Mass of the star that made it")),
+    *_COMPOSITION_ROWS,
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -370,6 +420,7 @@ _BLACK_HOLE = (
 _NEUTRON_STAR = (
     *_rows("identity", ("pulsar_type", "Pulsar type", TEXT)),
     *_rows("compact", ("mass_solar", "Mass"), ("radius_km", "Radius"), ("magnetic_field_gauss", "Magnetic field"),
+           ("magnetic_inclination_deg", "Magnetic axis tilt from the spin axis"),
            ("surface_temperature_k", "Surface temperature"), ("luminosity_w", "Luminosity"), ("age_gy", "Age"),
            ("density_g_cm3", "Mean density"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("spin_period_ms", "Spin period"), ("axial_tilt_deg", "Axial tilt")),
@@ -382,6 +433,7 @@ _SUPERNOVA_REMNANT = (
     *_rows("physical", ("age_years", "Age"), ("radius_ly", "Radius"), ("mass_kg", "Mass")),
     *_rows("gas", ("dominant_species", "Dominant gas", TEXT), ("density_cm3", "Density"),
            ("temperature_k", "Gas temperature"), ("extinction_av", "Extinction")),
+    *_COMPOSITION_ROWS, *_REMNANT_PARTS,
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -536,6 +588,8 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
+    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
+    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses (GEN.1484); the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -545,6 +599,7 @@ _BODY_NOT_SHOWN = {
     "flavor_text_count": "how many flavor lines exist; bookkeeping",
     "flavor_key": "which flavor line the text uses; bookkeeping",
     "aerosol_draw": "the random draw behind the haze and dust depths; bookkeeping",
+    "oddities": "the ids of the oddity rows the body has; the object page prints them as its Odd line",
     "atmosphere_colour": "shown as the Atmosphere color swatch by the description builder, a color rather than a number",
     "albedo_basis": "how the albedo and greenhouse draws were obtained (recorded, inverted or class draw); bookkeeping",
     **_excuse(regional_temperature.BAND_COLUMNS,
@@ -575,10 +630,6 @@ def _container_not_shown():
         **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block shows it" for axis in "xyz"},
     }
 
-
-_COMPOSITION_STORED = {table: _excuse(columns, "the stored composition of the cloud; its sheet rows come with the item that wires the composition text")
-                       for table, columns in nebula_columns.COLUMNS.items()}
-"""dict: Table -> the composition columns of a nebula or remnant, each excused until the sheet shows the composition."""
 
 NOT_SHOWN = {
     "star": {
@@ -612,7 +663,7 @@ NOT_SHOWN = {
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
     "nebula": _phenomenon_not_shown(
-        "nebula", **_COMPOSITION_STORED["nebulae"], **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
+        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
                                                "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
                                                "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
                                                "shape_iso", "shape_scale")}),
@@ -622,7 +673,7 @@ NOT_SHOWN = {
     "black_hole": _phenomenon_not_shown("black_hole"),
     "neutron_star": _phenomenon_not_shown("neutron_star"),
     "supernova_remnant": _phenomenon_not_shown(
-        "supernova_remnant", **_COMPOSITION_STORED["supernova_remnants"], compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
+        "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
     "rogue_planet": {
         **{name: reason for name, reason in _BODY_NOT_SHOWN.items()
@@ -829,6 +880,8 @@ none for a heavier one."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
+CORE_FRACTIONS = ("core_ni_fraction", "core_s_fraction", "core_si_fraction", "core_o_fraction", "core_c_fraction", "core_h_fraction", "core_light_fraction")
+"""tuple: The core's make-up columns (GEN.1364): stored for a rocky body with metal."""
 _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
 _MEAN_SWING = ("temp_mean_swing_k",)
@@ -838,7 +891,7 @@ _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
-    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", "rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "rock_cr2o3_fraction", "rock_mno_fraction", "rock_nio_fraction", "rock_p2o5_fraction",
+    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", *CORE_FRACTIONS, "rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "rock_cr2o3_fraction", "rock_mno_fraction", "rock_nio_fraction", "rock_p2o5_fraction",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
@@ -849,9 +902,9 @@ _SURFACE = (
     "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity", "life_traits",
     "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
-    "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
+    "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", *phosphorus_budget.COLUMN_FIELDS, "magnetopause_rp",
 )
-_OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
+_OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "ocean_phosphate_umol_l", "water_base_pressure_pa")
 _TIDE_COLUMNS = ("ocean_liquid", "tide_range_spring_m", "tide_range_neap_m")
 OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
@@ -895,8 +948,8 @@ _BODY_RULES = [
      "its moons, which are scored in its light, store the flux they receive and the swing"),
     (("roundness_ratio", "yield_strength_pa"), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
-    (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
-     "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("lid_regime", "crust_thickness_km", "craton_fraction", "crust_sulfur_index"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no lid and no solid crust: only a rocky or icy body has a crust over a mantle"),
     (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
      "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
     (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
@@ -936,6 +989,8 @@ _BODY_RULES = [
                                                          and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
      "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 632 MPa: a dry body, an open ocean, a vapor world and a "
      "body whose ice or ocean is too shallow for that pressure have none"),
+    (CORE_FRACTIONS, lambda klass, row: row is None or (row.get("metal_mass_fraction") or 0.0) > 0.0 or row.get("core_light_fraction") is not None,
+     "a body with no metal has no core to make up"),
     (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
@@ -956,6 +1011,8 @@ _BODY_RULES = [
      "complex cells need free oxygen, which a world has only if its air holds it or its photosynthesis builds it; a world that never does has no age for the stages from complex cells on, and its stage stops before them"),
     (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
      "a world with no magnetic field has no magnetopause"),
+    (("dipole_tilt_deg", "dipole_offset_class"), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
+     "a world with no magnetic field has no dipole to point or to center"),
     (_DISK_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _DISK_COLUMNS),
      "only a giant planet whose moons formed in a disk keeps that disk; a rocky body, a moon and a giant with no disk-born moons store none"),
 ]
@@ -968,6 +1025,10 @@ _PLANET_RULES = [
 ]
 
 _STAR_RULES = [
+    (("surface_dipole_field_gauss",), lambda klass, row: row is None or row.get("surface_dipole_field_gauss") is not None or (
+        magnetic_geometry.covered_cool_dwarf(row.get("yerkes_class"), None if row.get("mass_kg") is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+                                              row.get("temperature_k"), row.get("rotation_period_hours"))),
+     "only a cool dwarf with a convective envelope, whose field follows its Rossby number, and an Ap or Bp dwarf have a dipole field stored; a hot star, a giant and a remnant have none"),
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
      "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
      "so its lifespan has no end"),
@@ -1025,6 +1086,12 @@ def applies(kind, klass, key, row=None):
 
 GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
 """dict: The child table and owner column that keep the air of a planet or a moon, one row per gas (DB.71)."""
+
+
+ISOTOPE_TABLES = {"planet": ("planet_isotopes", "planet_id"), "moon": ("moon_isotopes", "moon_id")}
+"""dict: The child table and owner column that keep the isotope record of a planet or a moon (GEN.1377, GEN.1420)."""
+ISOTOPE_KEYS = tuple(f"isotope_{short}" for short, *_ in isotope_record.SHEET_RATIOS) + ("isotope_count",) + isotope_record.MANTLE_SHEET_KEYS
+"""tuple: The keys of the rows worked out from the isotope record; derived rows, not specs."""
 
 
 def _gas_rows(conn, kind, object_id):
@@ -1104,24 +1171,29 @@ def _star_distance_ly(conn, system_id):
     return scales.default_galactocentric_ly() if found is None or found["galactic_radius_pc"] is None else units.pc_to_ly(found["galactic_radius_pc"])
 
 
-def _chemistry_rows(conn, row):
+def _star_makeup(conn, row):
     """
-    The chemistry rows of a star (UX.254): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
-    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H], and age, with the draws keyed as the
-    generator keys its planets' host ratios (mass and the sector's distance from the center, not the age), so nothing is stored. A star with no [Fe/H],
-    one the composition does not cover or one whose downloaded data are missing has none.
+    The composition of a star (`stellar_composition.star_makeup`) from its stored class, mass, [Fe/H], and age, with the draws keyed as the generator keys its planets' host ratios (mass and the sector's distance from
+    the center, not the age), so nothing is stored. `None` for a star with no [Fe/H], one the composition does not cover or one whose downloaded data are missing.
     """
     if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
-        return []
+        return None
     mass_sol = _kg_to_msun(row["mass_kg"])
     key = stellar_composition.abundance_key(mass=row["mass_kg"], distance_ly=_star_distance_ly(conn, row["star_system_id"]))
     try:
         kind = stellar_composition.kind_of(row["yerkes_class"], mass_sol, row["state"], None)
         if kind not in stellar_composition.WITH_BIRTH_COMPOSITION:
-            return []
-        makeup = stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key,
-                                                 wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
+            return None
+        return stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key, wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
     except (stellar_composition.StarMakeupError, fetch.DataMissing):
+        return None
+
+
+def _chemistry_rows(makeup):
+    """
+    The chemistry rows of a star (UX.254, from `_star_makeup`): its disk population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the first dredge-up added.
+    """
+    if makeup is None:
         return []
     alpha = stellar_abundances.alpha_enhancement(makeup.birth)
     items = [("chemistry_branch", [_BRANCH_WORDS[makeup.branch]], None),
@@ -1132,6 +1204,40 @@ def _chemistry_rows(conn, row):
         items.append(("chemistry_dredge_up_helium", [model.qty("fraction", rise)], rise))
     return [{"key": key, "label": CHEMISTRY_ROWS[key][0], "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False,
              "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
+
+
+def _star_isotope_rows(makeup, row):
+    """The isotope lines of a star's surface (GEN.1488, `isotope_record.star_surface_record`) from its surface composition (`_star_makeup`) and its [Fe/H] and age; none for a star with no composition."""
+    if makeup is None or makeup.surface is None:
+        return []
+    record = isotope_record.star_surface_record(makeup.surface.elements, row["metallicity_fe_h"], row["age_gy"],
+                                                deuterium_burned=makeup.kind != stellar_composition.PROTOSTAR, dredged_up=makeup.kind == stellar_composition.RED_GIANT)
+    return isotope_record.sheet_rows(record)
+
+
+SMALL_BODY_SHEET_KINDS = ("belt", "comet", "interstellar_comet", "asteroid_field")
+"""tuple: The kinds whose isotope record the sheet works out from their stored values (GEN.1487: `isotope_record.small_body_record`), since no table holds one."""
+
+
+def _small_body_rows(conn, kind, object_id, row):
+    """
+    The isotope lines of a belt, a comet, an interstellar comet or an interstellar field (`isotope_record.small_body_record`, the planet's laws) from the values the row stores: its ice fraction, its
+    host star's [Fe/H] and age and the distance the ice formed at; an interstellar body (no host) takes the gas [Fe/H] of its galactic radius. None for a body with no ice or, where it has a host, no star.
+    """
+    if not row["ice_mass_fraction"] or row["ice_mass_fraction"] <= 0.0:
+        return []
+    if kind in ("interstellar_comet", "asteroid_field"):
+        if row["galactic_radius_pc"] is None:
+            return []
+        return isotope_record.sheet_rows(isotope_record.small_body_record(kind, isotope_record.galactic_gas_metallicity(row["galactic_radius_pc"]), None, row["ice_mass_fraction"], seed=object_id))
+    star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE id = ?", (row["star_id"],)).fetchone() if row["star_id"] else None
+    if star is None:
+        star = conn.execute("SELECT metallicity_fe_h, age_gy FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1", (row["star_system_id"],)).fetchone()
+    if star is None or star["metallicity_fe_h"] is None or star["age_gy"] is None:
+        return []
+    distance = row["distance_km"] if kind == "belt" else row["perihelion_distance_km"]
+    snow_line = row["formation_snow_line_au"] if kind == "belt" else None
+    return isotope_record.sheet_rows(isotope_record.small_body_record(kind, star["metallicity_fe_h"], star["age_gy"], row["ice_mass_fraction"], distance, snow_line, f"{row['star_system_id']}:{distance!r}"))
 
 
 ECLIPSE_KEY = "longest_eclipse_hours"
@@ -1199,6 +1305,10 @@ def bands_table(row):
     return {"locked": locked, "bands": bands, "rows": rows}
 
 
+PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
+"""tuple: The rows whose label follows the body's ground (`planet_type.pressure_label`, UX.297)."""
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -1222,6 +1332,12 @@ def sheet(conn, kind, object_id):
     if table in ("planets", "moons"):
         wanted.update(regional_temperature.BAND_COLUMNS)    # GEN.1108: the table of the bands
         wanted.add("temp_mean_swing_k")                      # the range on the mean temperature row
+    if table in ("asteroid_belts", "comets"):
+        wanted.update(("star_system_id", "star_id", "ice_mass_fraction", "distance_km" if table == "asteroid_belts" else "perihelion_distance_km"))      # GEN.1420, GEN.1487: the isotope lines of the ices
+        if table == "asteroid_belts":
+            wanted.add("formation_snow_line_au")
+    if table in ("interstellar_comets", "asteroid_fields"):
+        wanted.update(("ice_mass_fraction", "galactic_radius_pc"))      # GEN.1487: no host star, so the gas of the galaxy at its radius
     if table == "stars":
         wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"))    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
     columns = ", ".join(sorted(wanted))
@@ -1229,13 +1345,15 @@ def sheet(conn, kind, object_id):
     if row is None:
         raise ValueError(f"no {table} row with id {object_id}")
     by_group = {key: [] for key in GROUPS}
+    pressure_label = planet_type.pressure_label(row["planet_type"]) if "planet_type" in row.keys() else None      # UX.297: a body with no ground shows its reference-level pressure under that name
     for spec in specs:
         stored = row[spec.stored_column()]
         value = _range_value(spec, table, stored, row)
         absent = stored is None or stored == 0 or stored == ""
         if spec.key == "zone" and kind in ("planet", "moon") and stored:
             value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
-        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
+        label = pressure_label if pressure_label and spec.key in PRESSURE_KEYS else spec.label
+        by_group[spec.group].append({"key": spec.key, "label": label, "value": value,
                                      "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
                                      "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
@@ -1243,11 +1361,23 @@ def sheet(conn, kind, object_id):
         value = _value(spec, GAS_TABLES[kind][0], pascals)
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "raw": pascals, "stored": True,
                                      "absent": not pascals, "source": None, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    if kind in ISOTOPE_TABLES:
+        recorded = conn.execute(f"SELECT isotope, fraction, initial_ratio FROM {ISOTOPE_TABLES[kind][0]} WHERE {ISOTOPE_TABLES[kind][1]} = ? ORDER BY id", (object_id,)).fetchall()
+        for key, label, text, ratio in isotope_record.sheet_rows(recorded) + isotope_record.mantle_sheet_rows(recorded):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
+    if kind in SMALL_BODY_SHEET_KINDS:
+        for key, label, text, ratio in _small_body_rows(conn, kind, object_id, row):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     eclipse = _longest_eclipse(conn, kind, object_id) if kind == "moon" else None
     if eclipse:
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
+    if arriving:
+        value = [model.qty("mass", arriving, "kg")]
+        by_group["dust"].append({"key": influx_row.INFLUX_KEY, "label": "Belt dust and comets reaching it, a year", "value": value, "text": inline_text(value),
+                                 "raw": arriving, "stored": True, "absent": False, "source": None, "show_absent": False})
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
                                    None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
     if variable:
@@ -1269,7 +1399,10 @@ def sheet(conn, kind, object_id):
             by_group["physical"].append({"key": PECULIAR_FIELD_KEY, "label": "Polar magnetic field", "value": field, "text": inline_text(field),
                                          "raw": peculiar.field_gauss, "stored": True, "absent": False, "source": None, "show_absent": False})
     if kind == "star":
-        by_group["composition"].extend(_chemistry_rows(conn, row))
+        makeup = _star_makeup(conn, row)
+        by_group["composition"].extend(_chemistry_rows(makeup))
+        for key, label, text, ratio in _star_isotope_rows(makeup, row):
+            by_group["composition"].append({"key": key, "label": label, "value": [text], "text": text, "raw": ratio, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

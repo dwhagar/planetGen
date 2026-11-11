@@ -26,7 +26,8 @@ import math
 from planetgen import tuning
 from planetgen.generation import habitable_request, irregular_moons, prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import isotope_record, ore_deposits
+from planetgen.physics import aerosols, atmosphere, body_colour, body_strength, bulk_composition, class_code, climate_draws, constants, core_composition, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, life_classes, magnetism, moon_composition, ocean_tides, phosphorus_budget, planet_type, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -129,7 +130,12 @@ class Planet(PlanetaryObject):
         period (float): The planet's orbital period in years.
         orbital_inclination_deg (float): The tilt of this body's orbital
                                          plane, in degrees, relative to its
-                                         primary's reference plane.
+                                         primary's reference plane: a
+                                         planet's, the star's; a moon's, the
+                                         equator of its planet (GEN.1352,
+                                         `planets.orient_moons` sets its
+                                         position and velocity in the
+                                         system's frame by it).
         orbital_ascending_node_deg (float): The longitude of the ascending
                                             node, in degrees -- together
                                             with `orbital_inclination_deg`,
@@ -194,8 +200,8 @@ class Planet(PlanetaryObject):
         life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
                                   world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
                                   `life.apply_life_data` with the pace, `None` without one).
-        flavor_key (str or None): The flavor line `life.decide_flavor_text` drew, as `category:index` into the
-                                  `tuning` flavor lists (`flavor_text` reads it).
+        flavor_key (str or None): The id of the flavor line `life.decide_flavor_text` drew from the tree
+                                  `physics/flavor_tree.py` (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
     """
 
@@ -221,6 +227,7 @@ class Planet(PlanetaryObject):
         *climate_draws.CLIMATE_FIELDS,
         *magnetism.BODY_FIELDS,
         *hydrosphere.HYDROSPHERE_FIELDS,
+        *phosphorus_budget.COLUMN_FIELDS,
         *radiogenic.BODY_FIELDS,
         *interior_heat.BODY_FIELDS,
         *interior_heat.OUTPUT_FIELDS,
@@ -228,8 +235,12 @@ class Planet(PlanetaryObject):
         *daylight.FIELDS,
         *ocean_tides.FIELDS,
         *bulk_composition.NEW_FIELDS,
+        *core_composition.BODY_FIELDS,
         *giant_interior.BODY_FIELDS,
         giant_interior.LAYERS_ATTRIBUTE,
+        *ore_deposits.COLUMN_FIELDS,
+        ore_deposits.ATTRIBUTE,
+        isotope_record.ATTRIBUTE,
         *surface_composition.COLUMN_FIELDS,
         *moon_composition.BODY_FIELDS,
         *rings.BODY_FIELDS,
@@ -240,7 +251,7 @@ class Planet(PlanetaryObject):
         *body_strength.FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line", "host_eccentricity",
+        "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "collision_count",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
@@ -270,6 +281,16 @@ class Planet(PlanetaryObject):
     orbit it is on now is whatever its state vector says (`orbit_from_vector`). A moon's `host_eccentricity` is its parent's, which the light
     it gets goes by. A circle by default: a body made without them is on one."""
 
+    collision_count = 0
+    """int: The mergers the planet architecture recorded for this planet (see `__init__`); 0 for a body made without them."""
+
+    light_factor = None
+    """float or None: The share of its host's light a planet keeps after the eclipses of its sky (`physics/eclipses.py`, GEN.1484): below 1 for a circumbinary planet, `None` (all of it) for every other body."""
+    sky_suns = None
+    """str or None: The other suns in a planet's sky as JSON text (`physics/sky_suns.py`, GEN.1458); `None` for a lone star, a moon, and a body not yet placed."""
+    oddities = ()
+    """tuple[str]: The ids of the oddities the body has (`physics/oddities.py`, GEN.1047), in table order; empty for none. Stored as comma separated text."""
+
     moon_origin = None
     moon_disk_system = None
     """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`, stored: DB.70) and its parent's circumplanetary disk while
@@ -288,7 +309,7 @@ class Planet(PlanetaryObject):
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, mass=None, zone_override=None, distance_override=None,
                  is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
-                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False):
+                 planned_objects=None, host_eccentricity=0.0, formation_distance_au=None, defer_climate=False, late_core=False, collision_count=0):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -331,6 +352,9 @@ class Planet(PlanetaryObject):
             formation_distance_au (float, optional): Where the planet formed, AU, when that is not where it orbits (a pulsar's disk planet
                                          formed in the volatile-poor debris of a disrupted star, so inside any snow line); it sets
                                          whether the planet is ice-rich or dry (`bulk_draw.origin_of`). Defaults to the distance.
+            collision_count (int, optional): How many mergers the planet architecture recorded in making this planet (the oligarchs
+                                         that collided into it, `planet_architecture.Seed.merged` less its own); the gate of the
+                                         impact oddities (`physics/oddities.py`, W10). Defaults to none.
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
@@ -367,6 +391,10 @@ class Planet(PlanetaryObject):
         # GEN.458: whether it formed beyond its star's snow line; `StarSystem` sets it once the orbits are final
         # (a moon takes its planet's), and it stays None for a planet whose host has no snow line to compare.
         self.born_beyond_snow_line = None
+        self.oddities = ()      # the oddities the body is given (`oddities.apply`, GEN.1047)
+        self.light_factor = None     # the share of its light it keeps after the eclipses of its sky (`eclipses.light_factor_of`, set with its air, GEN.1484)
+        self.sky_suns = None    # the other suns of its sky (`sky_suns.suns_of`, set with the spin, GEN.1458)
+        self.collision_count = collision_count
         self.atm_molar_density = None
         self.gravity = None
         self.atm_density = None
@@ -418,7 +446,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -432,8 +460,8 @@ class Planet(PlanetaryObject):
         # sphere (set inside generate_planet_properties) uses it (GEN.138).
         primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
         self.primary_mass_kg = primary_mass_kg
-        # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds from its ecosphere
-        # (`HABITABLE_WORLD` False) draws the body again where the finished body would have the conditions a habitable request asks for (GEN.916).
+        # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
+        # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
         given_mass, given_radius = self.mass, self.radius
         self._deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
@@ -441,14 +469,10 @@ class Planet(PlanetaryObject):
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             self._deferred_climate = (moon_count, distance_override)
             return
-        for _attempt in range(tuning.BARRED_CLASS_MAX_ATTEMPTS):
-            self.mass, self.radius = given_mass, given_radius
-            self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
-            planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-            planetPhysics.apply_class(self)
-            if not (system_config.HABITABLE_WORLD is False and (habitable_request.meets(self) or planetPhysics.is_life_class(self))):
-                break
-            draw.redrawn("planet.barred_world")
+        self.mass, self.radius = given_mass, given_radius
+        self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
+        planetPhysics.calculate_atmospheric_conditions(self, distance_override)
+        planetPhysics.apply_class(self)
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
 
     def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):
@@ -565,6 +589,7 @@ class Planet(PlanetaryObject):
         # a rogue planet (GEN.1111) has no host and so no habitable zone of one's own
         self.habitable_zone = tuple(data["habitable_zone"]) if data.get("habitable_zone") is not None else None
         self.irregulars = irregular_moons.IrregularSet.from_dict(data.get("irregulars"))
+        self.oddities = tuple(data.get("oddities") or ())
 
     @property
     def life_class_id(self):

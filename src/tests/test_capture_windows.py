@@ -4,6 +4,8 @@
 GEN.1082: the capture windows the planet architecture records for a system (`physics/capture_windows.py`): its giant-giant instabilities and their close encounters.
 """
 
+import types
+
 import pytest
 
 from planetgen.physics import capture_windows as cw
@@ -68,7 +70,7 @@ def test_an_instability_excites_a_share_of_the_cold_outer_disk():
     from planetgen.generation import belt_birth
     giant = SimpleNamespace(body_type='g', distance=30.0, mass=300.0 * constants.EARTH_MASS_TO_KG, radius=70000.0, formation_distance_au=30.0)
     origin = SimpleNamespace(origin="outer-disk", inner_au=40.0)
-    calm, _, _ = belt_birth._fates(constants.SOLAR_MASS_TO_KG, [giant], origin, 150.0, 0.0)
-    stirred, _, _ = belt_birth._fates(constants.SOLAR_MASS_TO_KG, [giant], origin, 150.0, 1.0)
+    calm, *_ = belt_birth._fates(types.SimpleNamespace(), constants.SOLAR_MASS_TO_KG, [giant], origin, 150.0, 0.0)
+    stirred, *_ = belt_birth._fates(types.SimpleNamespace(), constants.SOLAR_MASS_TO_KG, [giant], origin, 150.0, 1.0)
     assert calm["hot_classical"] == 0.0 < stirred["hot_classical"]
     assert stirred["cold_classical"] < calm["cold_classical"]

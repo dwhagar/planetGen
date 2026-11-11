@@ -14,7 +14,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, giant_draw, giant_radius, interior_heat, orbit_elements, planets, tidal_heating
+from planetgen.physics import constants, eclipses, giant_draw, giant_radius, interior_heat, orbit_elements, planets, radiation_field, tidal_heating
 from planetgen.util import draw
 from tests import class_support
 
@@ -46,7 +46,7 @@ def _table_radius_km(planet):
     mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
     core = giant_radius.table_core_mass_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
     distance_km = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity) * constants.AU_TO_KM
-    light = planet.star.luminosity / (4.0 * math.pi * distance_km ** 2) / 1e6
+    light = radiation_field.starlight_w_m2(planet.star, distance_km / constants.AU_TO_KM) * (eclipses.light_factor_of(planet) or 1.0)       # GEN.1441: every star of the system lights the giant; GEN.1484: after eclipses
     return giant_radius.radius_km(mass_earth, core, light / giant_radius.flux_w_m2(1.0), planet.star.age)
 
 
@@ -153,7 +153,10 @@ def test_a_close_in_planet_is_circularised_for_the_final_age(host_star):
     host_star.age = 13.8
     assert planets.settle_orbit(planet) is True
     time_yr = orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance)
-    assert planet.eccentricity == pytest.approx(orbit_elements.circularised(planet._orbit_birth, 13.8e9, time_yr), rel=1e-9)
+    cold = orbit_elements.circularised(planet._orbit_birth, 13.8e9, time_yr)
+    # GEN.1351: the orbit decays at the faster of the cold rheology's time and the one the tide the body really feels gives
+    assert planet.eccentricity == pytest.approx(orbit_elements.settled_eccentricity(planet, planet._orbit_birth, 13.8e9, planet.primary_mass_kg, planet.distance), rel=1e-9)
+    assert planet.eccentricity <= cold * (1.0 + 1e-9)
     assert planet.eccentricity < drawn
     assert planet.orbit_from_vector()["eccentricity"] == pytest.approx(planet.eccentricity, abs=1e-7)
     assert planet.orbit_from_vector()["semi_major_axis"] == pytest.approx(planet.distance, rel=1e-9)

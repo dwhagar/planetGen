@@ -9,6 +9,8 @@ port). It now has a frontend: the interim `../src/html/` browser
 rather than a direct database consumer — see that doc's own note on the
 switch, and "Deploying" below for how both are served by one app.
 
+**Every route the code registers, in one list built from the route decorators: [../generated/api-routes.md](../generated/api-routes.md).** Use it to find a route this page does not describe.
+
 Every read endpoint is fully implemented and unauthenticated (read-only,
 no account needed), except the admin stats endpoints. Every write endpoint
 (create/modify/delete a sector, system or facility, rename a body,
@@ -244,6 +246,7 @@ connectivity to that specific schema rather than the default one.
   `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
   with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
   `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers), `microquasar` and `x_ray_luminosity_w`: GEN.952, the watts an accreting pair radiates, worked out on read from the stored masses, radii and orbit, `null` for a spider pair and for a tree stored before v184). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+- `GET /api/generated?kind=sectors|systems|planets|moons&since=<Unix seconds>[&limit=<n>&offset=<n>]` — what was made at or after a time, newest first (ADM.150, the admin Generated so far page): `{"kind", "since", "total", "items", "limit", "offset"}`, each item `{kind, id, name}` and the kind's own fields (a system's `sector_id`, `sector_name`, a planet's or moon's `planet_class`, `radius_km`, `star_system_id`, `system_name`; a moon's `planet_name`). Read by the key, so quick on any galaxy; never cached. A planet or moon is as new as its system. `400` for a bad `kind` or `since`.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -385,7 +388,7 @@ connectivity to that specific schema rather than the default one.
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
   or a missing row is a `404`. The answer carries `former_designations` (GEN.1140): the names and IDs the object used to have, newest first, each
   `{designation, kind, reason, retired_epoch, retired_on}` (`kind` is `name` or `uid`; `retired_on` is the date of the change), `[]` for an object that
-  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24, NAV.54) is the object's keep-out
+  never changed; so do the details of a sector, a system and a phenomenon. The answer also carries `oddities` (GEN.1047): `[{id, name, text}]`, the rare outcomes a planet, moon or rogue planet was given (the row of the oddity table, its name, and the sentence that says why), `[]` for a body with none and for any other kind of object. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24, NAV.54) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon; a moon's is against its planet's mass), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -547,12 +550,6 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.uncharted_sector_contents`) and `hosted_nebulae`, the nebulae its waiting stars light (`star_id`, the
   star's `x`, `y`, `z` in parsecs and the fields of `hosted_nebula` above, GEN.530). `400` for a missing or
   non-integer address, a negative shell, or a cell outside the grid.
-- `GET /api/galaxy/made?since=<unix>[&until=<unix>]` — the galaxy-placed
-  sectors created in a time window, for the Galaxy Map's "Show on Galaxy Map"
-  after a generate job (ADM.31): `{"total", "items"}` (`queryDb.sectors_made`),
-  `items` the first `MADE_SECTOR_LIMIT` by id, each `{id, name, x, y, z,
-  shell_index, band_index, wedge_index}`. `400` unless `since` (and `until`
-  when given) are numbers.
 - `GET /api/galaxy/nodes?keys=<key>,<key>,...` — the single-space Galaxy Map's data, one sector block ("node") at a
   time (MAP.260, `db.nodes.galaxy_nodes`). A key is `m.shell.band.wedge` of the block ladder (`m` one of 177147, 59049,
   19683, 6561, 2187, 729, 243, 81, 27, 9, 3, or 1 for a sector), at most 128 keys. Returns `{"nodes": {"<key>":
@@ -1029,8 +1026,8 @@ forced credential change. They back the admin stats page
   Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "holder", "holder_title", "heartbeat_age_s",
-  "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
+  "paused_by", "paused_at", "paused_reason", "solo_unit", "holder", "holder_title",
+  "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
   first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
   Generate page job that started it), "argv", "state" ("running",
@@ -1070,6 +1067,18 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).
+  `GET /api/admin/work/jobs` (OPS.142) answers `{"jobs": [...], "available"}`, the
+  jobs that are not units of a run and are running, from their beats: `"kind"`
+  ("api", "web" or "tile-prefetch"), `"job"`, `"label"`, `"state"` ("working" or
+  "dead"), `"reason"`, `"phase"`, `"running_seconds"`, `"beat_age_seconds"`.
+  `GET /api/admin/work/<id>/units` (OPS.138) answers `{"units": [...]}`, one
+  per running unit of the followed stage: `"stage"`, `"unit"`, `"state"`
+  ("working", "slow", "waiting", "quiet", "looping" or "dead"), `"severity"`,
+  `"reason"`, `"actionable"`, `"agreed"` (two checks in a row), `"counter"`,
+  `"rate"`, `"projected_finish_seconds"`, `"still_seconds"`, `"over_limit"`,
+  `"phase"`, `"waiting_on"`, `"done"`, `"estimate"`, `"restarts"`,
+  `"resident_mb"`, `"beat_age_seconds"`, `"running_seconds"`, as the process
+  that follows the run last judged them; empty once the run is over.
 - `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
   cancel stops a live run now: its waiting units are taken off the queue,
   its started units are sent RQ's stop command, and the machine is free
@@ -1083,7 +1092,9 @@ forced credential change. They back the admin stats page
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it; `503` when Redis does not answer. Each answers
+  or resumes it (OPS.145: the same flag is a solo hold, `paused_reason` naming it and `solo_unit` the unit,
+  which the follower sets after it restarts a stuck unit so that unit runs alone; it lifts when the unit
+  completes or fails, and `resume` lifts it by hand); `503` when Redis does not answer. Each answers
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):
@@ -1113,10 +1124,10 @@ forced credential change. They back the admin stats page
   since `expect_hash` or one that can't be written is a 409. One
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
-- `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
+- `GET /api/admin/backups` — the backup archives (ADM.85; a part with `empty` true held nothing when the archive was taken, `note` says why, and it is not offered for restore): `{"problem",
   "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size_bytes",
   "complete", "readable", "parts": [{"name", "label", "size_bytes", "files",
-  "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
+  "known", "empty", "note"}]}], "kept", "parts": [{"name", "label"}], "can_download",
   "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
   part (`backup.take` audit row; 409 when the folder can't be written).
   `GET /api/admin/backups/<name>` is one archive with `verified`,
@@ -1882,12 +1893,10 @@ request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
-  "error_status", "made_url", "waiting"}`; `error_status` is the HTTP status of a
+  "error_status", "waiting"}`; `error_status` is the HTTP status of a
   refusal; `waiting` is, for a running job that waits in line for the generation run in front of it
   (PERF.153, PERF.154: the one waiting list holds up to `queue.max_waiting` entries, 8 by default, and refuses one more with the list named; `queue.wait_minutes`, 60 by default, then it fails naming that run), `{"run", "position", "text"}`
-  (`text` reads "Waiting at position 1 for run ..."), else `null`; `made_url` is, for a finished job that generated sectors
-  (a neighborhood or a regenerate), the Galaxy Map fitted to them and
-  highlighting them, else `null`.
+  (`text` reads "Waiting at position 1 for run ..."), else `null`.
   `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
   what the work returned once it succeeded; `error` is the last line of
   its error text once it failed. `404` for an unknown or expired id

@@ -356,8 +356,12 @@ def run_system(args):
         if args.output == "-":
             sys.stdout.write(text if text.endswith("\n") else text + "\n")
         else:
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(text)
+            try:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    f.write(text)
+            except OSError as exc:
+                log.error(f"error: the system page could not be written to {args.output}: {exc.strerror or exc}")
+                raise SystemExit(1)
             log.normal(f"Wrote system '{result['name']}' to {args.output} (not saved to the database).")
         return
     run_common.RUN_COUNTS["systems"] += 1

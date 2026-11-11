@@ -49,7 +49,7 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Core 5 found it. |
+| TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it |  | Waits on a scikit-image release. Lane 15 found it. |
 
 ## Phase 3: Speed-ups that change generated values
 
@@ -64,3 +64,13 @@ Boss, 12:27 PM EDT 2026-10-23 (cards): not in 8.1; each needs a generator epoch 
 | NAV.71 | Schematic route map part 7: many routes as lines through hubs (trade routes), with the octilinear look (layout L3) | POP.33, POP.34, DB.105 |  |
 | USR.23 | Email notices: a request was submitted, decided or sent back | USR.17, USR.3 |  |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | USR.7, USR.26 | Research suggestion; not requested. |
+
+## Phase 4: After the wiki link
+
+Features that wait for 9.1 (the wiki link, held until spakr has its public API).
+
+### Account sync
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| USR.32 | Optional account sync between PlanetGen and the wiki site (spakr): one sign-in for both, as a later feature | SEC.47, USR.28 | Boss, 7:08 PM EST on 2026-11-08: separate accounts in 9.1, the sync later. Design note first. |

@@ -111,7 +111,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.212 | Split from MAP.192. Core 1 owns migrations. |
+| DB.57 | The update records what it moved: a replace-each-run table of previous and new positions | GEN.212 | Split from MAP.192. Lane 11 owns migrations. |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | DB.57 | Split from MAP.192. |
 
 ## Phase 4: World population

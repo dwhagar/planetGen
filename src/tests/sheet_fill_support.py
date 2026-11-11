@@ -15,7 +15,7 @@ import re
 
 from planetgen.db import store
 from planetgen.db.store import MySQLConfig
-from planetgen.describe import sheet
+from planetgen.describe import influx_row, sheet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -92,7 +92,7 @@ def tally(config):
                 entry["bodies"] += 1
                 for group in sheet.sheet(conn, kind, row["id"])["groups"]:
                     for item in group["rows"]:
-                        if item["key"].startswith("p_") or item["key"] in (sheet.ECLIPSE_KEY, sheet.VARIABILITY_KEY, sheet.CARBON_KEY, sheet.PECULIAR_KEY, sheet.PECULIAR_FIELD_KEY, *sheet.CHEMISTRY_KEYS):    # one row per gas the air holds; a moon's derived eclipse row, a star's derived variability, carbon star and chemistry rows
+                        if item["key"].startswith("p_") or item["key"] in (sheet.ECLIPSE_KEY, influx_row.INFLUX_KEY, sheet.VARIABILITY_KEY, sheet.CARBON_KEY, sheet.PECULIAR_KEY, sheet.PECULIAR_FIELD_KEY, *sheet.CHEMISTRY_KEYS, *sheet.ISOTOPE_KEYS):    # one row per gas the air holds; a moon's derived eclipse row, a planet's derived influx row, a star's derived variability, carbon star and chemistry rows
                             continue
                         counts = entry["columns"].setdefault(item["key"], [0, 0, 0])
                         if item["stored"]:

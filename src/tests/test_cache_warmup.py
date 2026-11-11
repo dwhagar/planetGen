@@ -1328,3 +1328,94 @@ def test_the_warm_up_counts_the_profile_answers_of_addressed_sectors_as_cached_o
     second = _warm(galaxy, "sectors")
     assert first["warmed"] == 5
     assert second["built"] == 0, second["line"]
+
+
+def test_the_warm_up_a_change_started_does_not_run_during_generation(script, redis_server, monkeypatch, capsys):
+    """Boss 11-08: warm-up requests failed while a generation run changed the data. A change's warm-up waits for the generation run to end."""
+    conn = redisqueue.connect(redis_server)
+    run_id = runrecord.start_run(conn, "Generate", [runrecord.Stage("lists", "Lists", units=1)], kind=runrecord.GENERATION)
+    monkeypatch.setattr(warm_cli, "OTHER_WARM_POLL_SECONDS", 0.05)
+    threading.Timer(0.4, runrecord.finish_run, args=(conn, run_id, "done")).start()
+    warm_cli._warm_once(_args("lists"), reason="positions")
+    out = capsys.readouterr().out
+    assert "no warm-up runs during generation" in out
+    assert runrecord.read_run(conn, run_id)["state"] == "done"
+    assert [family for family, _cap, _db in script.ran] == ["lists"], "it ran only after the generation run had ended"
+
+
+# --- PERF.257: the warm-up keeps its app per worker and opens a node stage with a stamp check ---------------------------
+
+
+@pytest.fixture
+def kept_apps(monkeypatch):
+    """`warmup._KEPT` as it is in a process that kept no app, restored after."""
+    monkeypatch.setattr(warmup, "_KEPT", {})
+    return warmup._KEPT
+
+
+def test_a_worker_builds_the_app_once_and_every_unit_after_it_uses_that_app(kept_apps, monkeypatch):
+    built = []
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: built.append(config) or object())
+    other = warmup.app_for()
+    assert built == [None], "a process that kept no app builds one for the caller, as before"
+    warmup.keep_app({"database": "x"})
+    kept = warmup.app_for()
+    assert built == [None, None] and warmup.app_for() is kept and warmup.app_for() is kept and kept is not other
+    assert warmup.app_for(object()) is not kept and len(built) == 3, "an app for another database is its own"
+
+
+@pytest.mark.parametrize("name", ["warm-galaxy-nodes", "warm-galaxy-deep-nodes", "warm-sectors", "warm-systems", "warm-phenomena"])
+def test_every_warm_command_whose_units_visit_pages_keeps_the_app_in_the_worker(name):
+    assert commands.spec(name).warm == ("planetgen.web.warmup", "keep_app")
+    assert commands.warm_function(name) is warmup.keep_app
+
+
+def test_an_unchanged_node_stage_opens_on_one_empty_unit_that_says_what_was_stored(galaxy, node_levels, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    first, results = _run_deep_units(galaxy)
+    total = first.plan["nodes"]
+    assert total > 0 and first.plan["stored"] == 0 and sum(result["built"] for result in results) == total
+    again = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    assert again.plan["nodes"] == total and again.plan["stored"] == total
+    assert len(again.units) == 1 and again.units[0][0]["keys"] == [] and again.units[0][0]["stored"] == total
+    monkeypatch.setattr(warmup, "fetch_nodes", lambda *args, **kwargs: pytest.fail("a node was asked for"))
+    monkeypatch.setattr(warmup, "build_app", lambda config=None: pytest.fail("the app was built for an unchanged stage"))
+    result = commands.run_alone("warm-galaxy-deep-nodes", again.units[0][0])
+    assert (result["warmed"], result["cached"], result["built"], result["left_out"]) == (total, total, 0, 0)
+    assert f"{total} already stored" in result["line"]
+
+
+def test_a_changed_node_is_cut_again_and_the_nodes_that_stand_are_counted_on_the_first_unit(galaxy, node_levels, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    monkeypatch.setattr(warmup, "NODE_CHUNK", 4)
+    first, _results = _run_deep_units(galaxy)
+    total = first.plan["nodes"]
+    placed = _place_addressed(galaxy.config, "Placed", (5.0, 1.0, 2.0))
+    time.sleep(0.01)
+    _rename_sector(galaxy, placed)
+    again = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    cut = [key for args, _cost in again.units for key in args["keys"]]
+    stored = again.plan["stored"]
+    assert cut and stored + len(cut) == total and 0 < stored, "only what the change touched is cut"
+    assert again.units[0][0]["stored"] == stored and all("stored" not in args for args, _cost in again.units[1:])
+    results = [commands.run_alone("warm-galaxy-deep-nodes", args) for args, _cost in again.units]
+    assert sum(result["warmed"] for result in results) == total and sum(result["built"] for result in results) == len(cut)
+
+
+def test_a_stamp_check_that_fails_cuts_every_node_as_before(galaxy, node_levels, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    _run_deep_units(galaxy)
+    monkeypatch.setattr(tilecache, "stored_nodes", lambda db, keys: (_ for _ in ()).throw(OSError("no disk")))
+    again = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    assert again.plan["stored"] == 0 and sum(len(args["keys"]) for args, _cost in again.units) == again.plan["nodes"]
+
+
+def test_stored_nodes_names_the_nodes_the_current_generation_holds_and_nothing_with_the_cache_off(galaxy, node_levels, monkeypatch):
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    keys = warmup.deep_nodes_to_warm(None, 81)[:6]
+    with warmup.build_app().test_request_context("/"):
+        assert tilecache.stored_nodes(galaxy.config.database, keys) == set()
+        tilecache.fetch_nodes(galaxy.config.database, keys[:4])
+        assert tilecache.stored_nodes(galaxy.config.database, keys) == set(keys[:4])
+    monkeypatch.setattr(tilecache, "cache_dir", lambda: None)
+    assert tilecache.stored_nodes(galaxy.config.database, keys) == set()

@@ -24,5 +24,17 @@ Eccentricity and inclination limits (TJ5) and the leading share (TJ4) are stand-
 
 ## Pure parts built ahead of the wiring (GEN.1151, MAP.354)
 
-- `physics/trojan_bodies.py` (rows 6.125 TB1 to TB4): `case`, `room_earth`, `classes_allowed`, `fits`, `can_form`. A Sun and a Jupiter admit Class J and Class M; a 0.1 solar-mass dwarf admits a Class J trojan only if its giant is under about 4 Jupiter masses; two stars admit nothing; a Jupiter-mass planet holds about 11.7 Earth masses of trojan beside a 1 Earth-mass moon. The formation gate names its inputs for the oligarch chain of `planet_architecture.py`: `solids_in_zone_earth` (the solids it leaves in the secondary's co-orbital zone) and `disc_lifetime_myr`.
+- `physics/trojan_bodies.py` (rows 6.125 TB3 and TB4): `case`, `room_earth`, `fits`, `can_form`. The mass is tested alone, no class letter is read (class is decided last). A Sun and a Jupiter admit a giant-mass and a rocky-mass trojan; a 0.1 solar-mass dwarf admits a 35 Earth-mass trojan only if its giant is under about 4 Jupiter masses; two stars admit nothing; a Jupiter-mass planet holds about 11.7 Earth masses of trojan beside a 1 Earth-mass moon. The formation gate names its inputs for the oligarch chain of `planet_architecture.py`: `solids_in_zone_earth` (the solids it leaves in the secondary's co-orbital zone) and `disc_lifetime_myr`.
 - `physics/lagrange_geometry.py` (no stand-ins): `points` gives L1 to L5 for a pair in the system frame (L1 to L3 by bisection of the force balance, L4 and L5 equilateral, L4 ahead along the motion), `occupied` keeps those with objects and labels them `Jupiter-L4`. Shared with the gravity layer MAP.169.
+
+## Neighbours take the swarm (GEN.1455; system-interactions.md rule 5)
+
+A giant's swarm of the swept disk used to be a flat 0.2 percent of the scatter whatever else was in the system. It now keeps only the part that every other giant and every companion star leaves stable (`trojans.surviving_share`, rows 6.121 TJ6 to TJ8):
+
+- **Another giant:** the separation of the two over `HILL_SEPARATION_K` (3.46, the Hill stability of a pair) mutual Hill radii is `x`. The share is 0 at `x <= 1` and `1 - exp(-STABLE_RAMP (x - 1))` past it. The swarm keeps the product of the share against every other giant, so a second giant at twice the distance cuts a swarm that a lone giant keeps whole.
+- **A companion star:** `Star.a_crit_au`, the stability limit the clearance ledger already holds, over `STAR_LIMIT_MARGIN` times the giant's distance is `x`, and the same ramp applies. A star with no companion has no limit and keeps the swarm whole.
+- **What is lost** is not made again: `scatter_shares(trojan_survival=...)` adds the lost part to the ejected share, so the shares still add to one. A survival of 1.0 gives the shares of before to the last digit.
+
+The census (`tests/audit/trojan_census.py`) generates each seed with and without the rule and counts the swarms that change; a system with one giant and no companion never does.
+
+In 960 seeds the generator drew 22 outer-disk swarms; neighbours cut 17 of them (none of the 5 of a lone giant at a lone star), but all 22 had a swept share of 0.0 already, since the belt lay beyond the giant's zone. The swarm law is therefore ready for the swarm draw of GEN.1150 rather than moving stored numbers today.

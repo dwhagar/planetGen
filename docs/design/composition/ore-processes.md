@@ -26,7 +26,7 @@ What the generator stores (checked in the code on 2026-11-07), what it will stor
 | Bulk and mantle oxides | `rock_mass_fraction`, `metal_mass_fraction`, FeO and Al2O3; Cr2O3, TiO2, P2O5, Na2O, K2O, MnO, NiO (N5) | partly; N5 completes it | magmatic, pegmatite, carbonatite, phosphorite |
 | Star element set | Ti, V, Cr, Mn, Co, Cu, Zn, P, Li (N1); REE, PGE, Au, Pb and the siderophile split (N2) | planned | every grade ceiling |
 | Mantle carbon and water | carbonates, diamond or graphite by redox, hydrous phases (N7) | planned | carbonatite, kimberlite |
-| Salt sequence | evaporite sequence from the brine (N9) | planned | evaporite |
+| Salt sequence | evaporite sequence from the brine (N9) | built (GEN.1366, `physics/evaporite_sequence.py`) | evaporite |
 | **Crust thickness** | `crust_thickness_km` | **new, derived** (section 4.1) | porphyry, orogenic, pegmatite, craton |
 | **Craton** | `craton_fraction` (share of the crust that is thick, old and cold) | **new, derived** (section 4.2) | kimberlite, unconformity U, orogenic |
 | **Sulfur supply** | `crust_sulfur_index` (0 to 1) | **new, derived** (section 4.3) | magmatic sulfide, VMS, SEDEX |
@@ -147,3 +147,50 @@ The first slice creates the table and the three body columns; later slices add r
 2. **The oxygen fugacity scale.** The file states fO2 against FMQ; the generator stores ΔIW. The offset between the two buffers (about 3.5 log units at magmatic temperatures) is RECALLED and depends on temperature: GEN.1380 opens a source (the buffer paper is on the list of papers Boss cannot access, so use a second-hand citation) before gating porphyry or chromitite on it.
 3. **Tonnage scatter versus total.** The file gives per-deposit ranges; the endowment sums a count of deposits. The count per unit opportunity is the least anchored number; the Earth totals are the only check, so GEN.1380 should state its tier plainly (L2 at best) in the registry row.
 4. **Moons.** A moon's crust follows the same gates with its own state; a tidally heated moon (Io) gets magmatic rows from its heat flow, an icy-shell moon none. The slices test one rocky moon of each kind.
+
+## 11. Build notes: GEN.1380 (magmatic slice, `physics/ore_deposits.py`)
+
+Built: rows 6, 7 and 8, the three derived fields and the table of section 7, as `planet_deposit_types`, `moon_deposit_types` and `rogue_planet_deposit_types` (one child table for each owner, the pattern of `planet_gases`, so the cascade and the fingerprint need nothing new) and the columns `crust_thickness_km`, `craton_fraction` and `crust_sulfur_index` on `planets`, `moons` and `rogue_planets` (v228). The stand-ins are ORE1 to ORE7 in section 6.227 of `gap-filling-plan.md`. How the points of section 10 and the design stand:
+
+- **Opportunity.** The magma volume is the mantle the body has processed through melting, the measure the degassing of the air already uses (`surface_pressure.degassed_share`), over an Earth-like body's. A body under 0.05 of it has no magmatic ore; an icy body (a water mass fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) has none, which also takes the deep-ocean worlds out of the sulfide type.
+- **Redox (point 2).** The stored mantle redox class (`reduced`, `intermediate`, `oxidized`) gates the sulfide and the chromite to the first two; the numeric offset between the FMQ and iron-wuestite buffers is not needed at this slice and stays open for GEN.1381 (porphyry).
+- **Count (point 3).** The number of deposits is Poisson with mean `deposits * opportunity * window`, a type whose gate holds and whose draw is zero is `absent_by_chance`, and the endowment is the sum of lognormal deposits. The count is the least anchored number (ORE5, L3).
+- **Grade.** A cap under the bottom of the grade range is `absent_by_state`, not chance: the body has the element dispersed and no ore. A generated Earth-mass body at 4.5 Gyr makes Fe-Ti-V oxide ore in about two thirds of draws, chromitite in a tenth (the generator's bulk-silicate chromium is below the Earth's), and the sulfide only on wet bodies with a sulfur-rich enough crust that are not icy.
+- **Left for later.** The platinum-group grade of the sulfide type (GEN.1371 gives the star's PGE), vanadium, the impact-melt route (the collision record is not stored), and moons' tidal magma beyond what `interior_heat` already counts in the released heat. `craton_fraction` is stored and unread until GEN.1383 (register line GEN.799).
+
+
+## 12. Build notes: GEN.1378 (sedimentary and biogenic slice, `physics/sedimentary_deposits.py`)
+
+Built: rows 9, 16 and 17 (banded iron formation, phosphorite, evaporite) and four biogenic rocks the item names, added to the same table as rows 20 to 23: limestone, chert, coal and kerogen. They are assessed after the life pass (`generation.life.apply_life_data`), not with the magmatic types, because five of them read the life timeline; a body whose life never reached the stage a type needs has the type `absent_by_state`. The module replaces its own seven rows each time the life pass runs (an edit, a body made again) and leaves the magmatic ones.
+
+| # | Type | Gate on the generator state | Window | Slice |
+|---|---|---|---|---|
+| 9 | Banded iron formation | neutral ocean (liquid, lit), `life_age_photosynthesis_gyr` set, the rock's FeO high enough to cap the Fe grade over 25 percent | from the first photosynthesis for 1.2 Gyr, cut at the body's age | GEN.1378 |
+| 16 | Phosphorite | open surface ocean, life from the first photosynthesis plus 0.5 Gyr, ocean phosphate of 1 umol/L or more (GEN.1367), the crust's P2O5 times 200 over 18 percent | from the lag to the body's age | GEN.1378 |
+| 17 | Evaporite | open surface ocean, land, mean temperature at or above 270 K, a non-empty salt sequence (GEN.1366) | 0.2 to 1.0 of the body's age | GEN.1378 |
+| 20 | Limestone | neutral wet ocean, 1 Pa or more of carbon dioxide; doubled once complex cells exist | 0.1 of the age to the age | GEN.1378 |
+| 21 | Chert | wet ocean, `life_age_complex_cells_gyr` set | from complex cells | GEN.1378 |
+| 22 | Coal | open ocean with land, `life_age_multicellularity_gyr` set, `life_flora` of 3 or more | from multicellular life | GEN.1378 |
+| 23 | Kerogen | wet ocean, life from the first photosynthesis plus 0.3 Gyr | from the lag | GEN.1378 |
+
+- **Open point 1 (decided).** The abiotic oxygen route is not a gate for the iron formation: ultraviolet oxidation of Fe(II) and hydrogen-escape oxygen make too little oxidised iron to lay a formation, and the oxygen of escape goes to the air, not the deep ocean. The oxygen source is the first photosynthesis of the body's own timeline.
+- **Evaporite key.** `key_element` is `salt` and `grade` is the dominant salt's share of the dried salts (the column is 8 characters; the salt itself is `surface_composition.dried_salts` of the body). A page that names the salt reads that function.
+- **Left for later.** The abiotic Precambrian chert (it rides with the iron formation), biogenic oxygen's feedback on the iron supply, the sulfidic-ocean exclusion beyond the ocean class (an acid sulfate ocean has none), and economic enrichment of the iron formation to 55 to 65 percent (the stored grade is the protore's).
+
+## 13. Build notes: GEN.1381 (hydrothermal and sedimentary-hosted slice, `physics/hydrothermal_deposits.py`)
+
+Built: rows 1 to 5 and 15 (porphyry, VMS, SEDEX and MVT, orogenic gold, epithermal, roll-front uranium) as rows of the same three child tables, so the slice stores no column and needs no migration. They are assessed after the life pass, next to the sedimentary slice, with its record, count law and status flag (`sedimentary_deposits.assess`). The stand-ins are HT1 to HT7 in section 6.224 of `gap-filling-plan.md`. How the points of section 10 and the design stand:
+
+- **Gates.** A mobile lid and liquid water for the four arc types; an oxidised mantle and a crust of 20 km for porphyry; a liquid ocean and heat flow of 0.3 of the Earth's for VMS; land, an ocean, a crust sulfur index of 0.3 and 0.5 Gyr of sediment for SEDEX and MVT; a granitoid share and 25 km of crust for orogenic gold; processed mantle of 0.2 of the reference for epithermal; oxygen over 1000 Pa, land, granite and a reductant (sulfur or life) for roll-front uranium. The oxygen-fugacity offset between the FMQ and iron-wuestite buffers (point 2) is still not used: the stored `mantle_redox` class is the gate.
+- **Grade.** Held to the concentration factor times the crustal mean. Copper and zinc scale with the star's Cu/Fe and Zn/Fe over the reference mix's (`ore_deposits.over_iron`); gold and lead are not in the star set and follow the iron until GEN.1371 lands. Uranium comes from the body's own `c_u0_ppm` times the crust's 80-fold enrichment. VMS and SEDEX are graded on zinc, the key metal of their ranges.
+- **Left for later.** Lead, silver, molybdenum and the by-product metals of each type (one key element each, as the magmatic slice has); the abiotic route to the oxidising groundwater of the uranium type; the platinum-group co-products. Stagnant-lid bodies get no arc types, as the design says; the SEDEX type does not need the lid.
+
+
+## 14. Build notes: GEN.1423 (carbide slice, `physics/carbide_deposits.py`)
+
+Built: two mineral rows for a carbon-rich body, as rows of the same three child tables (no column, no migration): `moissanite_crust` (the SiC of the carbon rock) and `cohenite_metal` (Fe3C in the carbon-saturated metal). They are assessed after the ore pass and before the life pass's deposits, on streams of their own, and only when the body's rock is carbon rock (a star at C/O 0.8 or more, [R0455]); a silicate body has both `absent_by_state`.
+
+- **Moissanite grade.** The SiC share of the SiC-and-graphite rock, `1 / (1 + g)` for the graphite-over-rock `g` the bulk draw takes (0.05 to 0.40): 0.71 to 0.95. The count scales with the surface area and the stored crust thickness over 35 km.
+- **Cohenite grade.** From 0.30 up to the Fe3C share of iron saturated with carbon at the iron-carbon eutectic (4.3 percent carbon over the 6.69 percent of Fe3C, 0.64). The count scales with the metal mass fraction over the Earth's core share.
+- **Stand-ins** CH1 to CH3 in section 6.235 of `gap-filling-plan.md`.
+- **Left for later.** TiC (khamrabaevite), CaS and MgS of the carbide-planet suite (report row 15), diamond as a deposit, and the carbon mantle's equation of state (GEN.428's open item).

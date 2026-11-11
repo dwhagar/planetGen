@@ -40,6 +40,8 @@ Field metadata sits in `json_schema_extra` under `x-` keys, written with
 - `x-advanced`: shown only under "Advanced" in its group (search always reaches it)
 - `x-choice-labels`: `{value: words}` for a choice option whose values are not words an admin reads
 - `x-slider`: `(low, high)`, the range a `slider` control's logarithmic stops span (0 is added when the option allows it)
+- `x-should-set` (only when given): why a site should have this option in its config.json whatever its default is; with
+  `x-recommended`, the value the admin's "Update config.json" button writes when asked (ADM.140)
 
 The log options (`debug`, `log_file`, `log_dir`, `log_rotation`) are read
 by `planetgen.util.logpaths`, which needs only the standard library (the
@@ -71,10 +73,19 @@ ENV_PREFIX = "PLANETGEN_"
 _FALSE_STRINGS = ("", "0", "false", "no", "off")
 
 
+NO_RECOMMENDATION = object()
+"""The `recommended` of an option that names no value to write (ADM.140)."""
+
+
 def opt(default, description, env=None, restart=False, secret=False, editable=True, role="admin",
         unit=None, env_empty=False, multiline=False, *, label, summary, group, control=None, advanced=False,
-        choice_labels=None, slider=None, **constraints):
-    """A model field with its `x-` metadata (see the module docstring)."""
+        choice_labels=None, slider=None, should_set=None, recommended=NO_RECOMMENDATION, **constraints):
+    """A model field with its `x-` metadata (see the module docstring).
+
+    `should_set` (ADM.140) is the reason a site should put this option in its config.json whatever its default is, in a
+    sentence ("Emailed links are built from it"): the "Update config.json" button lists such an option under "recommended,
+    not set" when the file has no key for it. `recommended` is the value the button writes when the admin ticks it; leave
+    it out for an option only the site can fill (its address), which is then listed with the reason and no value."""
     extra = {"x-restart": restart, "x-secret": secret, "x-editable": editable, "x-min_role": role,
              "x-label": label, "x-summary": summary, "x-group": group, "x-control": control,
              "x-advanced": advanced, "x-multiline": multiline, "x-choice-labels": choice_labels, "x-slider": slider}
@@ -84,6 +95,12 @@ def opt(default, description, env=None, restart=False, secret=False, editable=Tr
         extra["x-env-empty"] = True
     if unit:
         extra["x-unit"] = unit
+    if should_set:
+        extra["x-should-set"] = should_set
+        if recommended is not NO_RECOMMENDATION:
+            extra["x-recommended"] = recommended
+    elif recommended is not NO_RECOMMENDATION:
+        raise ValueError("a recommended value needs the reason (should_set) a site should set the option")
     return Field(default, description=description, json_schema_extra=extra, **constraints)
 
 
@@ -387,6 +404,13 @@ class Generation(_Section):
                           ge=500, le=50000, label="Systems a cell may hold",
                           summary="How many systems a crowded cell may hold before it is only partly filled; applies to galaxies planned "
                                   "afterwards.")
+    weirdness_dial: float = opt(1.0, "How often the worlds the generator makes get the rare, physically plausible oddities of the "
+                                "oddity table (a planet tipped onto its side, a slow backwards day, an iron-rich core, a ring from a "
+                                "fallen moon). 1 is the rate the sources give, 0 turns every oddity off, 2 doubles every chance. It "
+                                "applies to the worlds generated afterwards; a world already made keeps what it has. A run that "
+                                "names its own dial (the generator page, an administrator's force) uses that instead.",
+                                unit="times the sourced rate", group="generation", ge=0.0, le=10.0, label="Oddity rate",
+                                summary="How often generated worlds get rare oddities; 1 is the natural rate and 0 turns them off.")
 
 
 class Parity(_Section):
@@ -559,6 +583,11 @@ class Web(_Section):
                           "folder.", env="PLANETGEN_ASSETS_DIR", editable=False, group="paths",
                           label="Uploaded images folder",
                           summary="Where uploaded icons and pictures are stored.")
+    belt_bodies_drawn: int = opt(200, "How many of each asteroid belt's heaviest stored bodies the 3D system view draws one by one, as lumps "
+                                 "or balls among the belt's dust (0 draws only the dust). More bodies look fuller and cost the browser more memory.",
+                                 unit="bodies", group="look", ge=0, le=2000,
+                                 label="Belt bodies drawn in 3D",
+                                 summary="How many of each belt's heaviest bodies the 3D system view draws one by one.")
 
     @field_validator("title_template")
     @classmethod
@@ -785,6 +814,8 @@ class Settings(_Section):
     base_url: str = opt("http://localhost/", "The address this site is reached at, as an absolute http or https "
                         "address with a trailing slash. Canonical links, link previews, the sitemap and emailed links "
                         "are built from it, never from the request's Host header.", role="owner", group="site",
+                        should_set="Emailed links, canonical links, link previews and the sitemap are built from it, and "
+                                   "the default is only right for a site reached on its own machine.",
                         label="Site address",
                         summary="The public address of the site, used for canonical links, previews, "
                                 "and the sitemap.")
@@ -902,8 +933,8 @@ class Settings(_Section):
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
-    parity: Parity = Parity()
     generation: Generation = Generation()
+    parity: Parity = Parity()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 

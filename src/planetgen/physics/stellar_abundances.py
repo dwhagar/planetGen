@@ -109,15 +109,15 @@ RELATIONS = (
              "the two oxygen sets differ by up to 0.1 dex on the plateau; neon's physics is open"),
     Relation("[X/Fe] residual scatter and correlation", "[R0535] (844 dwarfs)", VERIFIED),
     Relation("[X/Fe] means and scatter of Ti, V, Cr and Mn by branch", "straight lines to the 1,615 dwarfs of [R0535] weighted by each "
-             "branch's probability (GEN.1360, scripts/fit_stellar_xfe_iron_peak.py)", PARTLY_VERIFIED,
+             "branch's probability (scripts/fit_stellar_xfe_iron_peak.py)", PARTLY_VERIFIED,
              "the high-alpha lines rest on about 40 stars' weight; the scatter is the table's robust one, measurement error included"),
     Relation("[P/Fe] and [Zn/Fe] trends", "[R2785: Table 4] bins (P) and [R0349] text (Zn), read by the research lane "
              "(real-material-data-1 section 1.2); one trend for both branches", PARTLY_VERIFIED,
              "P only over [Fe/H] -0.5 to +0.3 and Zn over -1 to 0; Zn's thick-disk offset is visible in the paper but not tabulated; the scatters are stand-ins"),
-    Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5138] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
+    Relation("[Co/Fe], [Cu/Fe] and [Li/Fe]", "solar-scaled: [R5145] print no Co value (a flat trend above [Fe/H] -0.4 and a rise below, "
              "thin and thick indistinguishable), [R1062] prints no Cu value (thick disk higher by a few hundredths between -0.5 and -0.2), "
              "and Li's trend is recalled", STAND_IN,
-             "the rises are not modelled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),
+             "the rises are not modeled; the scatters (0.07, 0.10, 0.20 dex) are stand-ins; Li's observed scatter is over 0.3 dex"),
     Relation("log eps of Li, P, Ti, V, Cr, Mn, Co, Cu and Zn", "[R0168: Table 2], the photosphere; Li the CI chondrites", VERIFIED),
     Relation("carbon-enhanced metal-poor share", "[R1448]: 20 to 30 percent below [Fe/H] -2", VERIFIED),
     Relation("neon follows oxygen (or magnesium)", "the solids-law filing prefers oxygen; part A 3.2 step 4 prefers magnesium", OPEN,

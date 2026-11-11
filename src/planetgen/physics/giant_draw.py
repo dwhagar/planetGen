@@ -34,6 +34,7 @@ from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, compo
                                orbit_elements, rogue_surface)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import eclipses, radiation_field
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -93,7 +94,7 @@ def starlight_w_m2(planet):
     """The starlight at a planet (not a moon), W/m2; `None` for a moon, which does not carry its parent's distance."""
     if planet.is_moon:
         return None
-    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM)
+    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM) * (eclipses.light_factor_of(planet) or 1.0)       # GEN.1484
 
 
 def own_flux_w_m2(planet):
@@ -249,8 +250,10 @@ def settle(planet):
     core_earth = _table_core_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
     if core_earth is None:
         return False
-    flux_w_m2 = climate_draws.starlight_w_m2(
-        planet.star.luminosity, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity) * constants.AU_TO_KM)
+    light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
+    flux_w_m2 = climate_draws.starlight_w_m2(planet.star.luminosity, light_au * constants.AU_TO_KM) \
+        + radiation_field.companion_light_w_m2(planet.star, light_au)       # GEN.1441: the other stars' light too
+    flux_w_m2 *= eclipses.light_factor_of(planet) or 1.0       # GEN.1484: a circumbinary giant keeps the share its two stars' eclipses leave
     radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
     if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
         return False

@@ -86,7 +86,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 ### The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28)
 
-Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Core 2 for the map items, Core 5 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.
+Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) is built in 8.1 and closes MAP.257; the rebuild below follows it. Owner: Lane 12 for the map items, Lane 15 for the preferences screen. Design: /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
@@ -160,3 +160,34 @@ The design, storage and draw streams for nation-states, cities and ports on a pl
 |---|---|---|---|
 | GEN.798 | Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers) |  | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | GEN.798 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+
+### Fictional materials (Boss, 2026-11-08)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.1408 | Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name) |  | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1409 | Fictional materials part 2: name rules (a custom name per material, allowed characters, length, uniqueness, and the fallback to the default name) | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1410 | Fictional materials part 3: the settings object and its config default (per-material include flag and custom name) | GEN.1409 | Boss, 10:28 AM EST on 2026-11-08. |
+| DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
+| ADM.143 | Fictional materials part 5: the Generate page fields, the CLI flags and the docs table for the per-material setting and custom names | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
+| API.42 | Fictional materials part 6: read routes for a galaxy's fiction settings and the galaxy page line | DB.116 | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1411 | Fictional materials part 7: the biomass index (the gate for the three life-gated crystals) |  | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1412 | Fictional materials part 8: the material label resolver (shows the custom name, or the default, or nothing when the material is off) | GEN.1410 | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1413 | Fictional materials part 9: the crystal occurrence stage (draws where Kyber, Solar and Aurora crystal occur; takes the epoch) | GEN.1411, GEN.1412 | Boss, 10:28 AM EST on 2026-11-08. |
+| DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1414 | Fictional materials part 11: the crystal rows and their GEN.725 registry rows | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
+| GEN.1415 | Fictional materials part 12: Tritanium rows and the reduced-body ore law | GEN.1408 | Boss, 10:28 AM EST on 2026-11-08. |
+| UX.293 | Fictional materials part 15: pages, body JSON and the search filter show the included materials with their chosen names | GEN.1412, DB.117 | Boss, 10:28 AM EST on 2026-11-08. |
+| ADM.144 | Fictional materials part 17: edit custom names after generation | DB.116, GEN.1412, ADM.145 | Boss, 10:28 AM EST on 2026-11-08. |
+| ADM.145 | Fictional materials admin page A: list the four materials with default state and name from config.json and the galaxy's stored state | GEN.1410, DB.116, API.42 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.146 | Fictional materials admin page B: set the config.json defaults (on or off and default name per material) through the settings writer, with backup and audit | ADM.145, GEN.1410 | Boss, 10:41 AM EST on 2026-11-08. |
+| ADM.147 | Fictional materials admin page C: show how many bodies hold each material | ADM.145, DB.117 | Boss, 10:41 AM EST on 2026-11-08. |
+| TEST.699 | Fictional materials part 19: the toggle invariance and off-equals-absent suite (a galaxy with a material off is identical to one made without it) | GEN.1413 | Boss, 10:28 AM EST on 2026-11-08. |
+| DOC.110 | Fictional materials part 20: reference docs and help for the setting | ADM.143 | Boss, 10:28 AM EST on 2026-11-08. |
+
+### Flavor text settings and signals (Boss, 2026-11-08)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.1435 | Ancient works setting: tag the derelict, wreck, megastructure and signal lines (57 of 82) and a per-galaxy on/off choice at galaxy planning, on the same screen and storage as the fictional materials setting | GEN.1430 | Boss, 2026-11-08. |
+| GEN.1436 | Natural signal resolution: sensor readings for unknown-origin signals that resolve to a cause (pulsars, giants with volcanic moons, masers) | GEN.1430 | Boss, 2026-11-08. |

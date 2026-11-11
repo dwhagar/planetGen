@@ -1,0 +1,2562 @@
+# Release headlines, 2026-10
+
+2492 releases. Each headline is the single best feature that release brought (CHANGELOG.md, newest first). Releases without a headline predate the rule (2026-10-10).
+
+
+## 2026-10-31
+
+- **8.0.3029**: The Help menu now has an index page that lists every help page, the class types, and the life topics and classes, all read from the program's own tables.
+- **8.0.3028**: Every paper, book, dataset, and archive in the reference list has one fixed citation ID, shown on the References pages.
+- **8.0.3027**: Gas and ice giants are painted with belts, zones, wavy edges and storms, colored by their cloud chemistry.
+- **8.0.3026**: A planet's surface is now seen through its air: the ground takes on the sky's color, hazy worlds look softer, and cloud cover shows.
+- **8.0.3025**: The galaxy's cluster field is now built ahead by the warm-up, in small saved parts, and the web only reads it.
+- **8.0.3024**: While the caches are rebuilt, requests that would build one are answered 503 instead of killing the API daemon.
+- **8.0.3023**: Every stage with units now has the workers its memory allows, sector generation is capped at what a sector worker really takes, and a run's report names the largest worker of each stage.
+- **8.0.3022**: The "On this page" bar now sits under a page's tab bar.
+- **8.0.3021**: Every map is drawn on black in either theme: the Galaxy Map, the sector and System Maps (diagram and 3D), the Phenomena and navigation maps, the rendered picture of a world, and the nebula and phenomenon views.
+- **8.0.3020**: The installer and updater no longer print advice about systemd memory settings or the MySQL redo log; the memory problem is solved in the program, not in the operating system.
+- **8.0.3019**: Help now ends with a References page, the one place that says where the numbers come from and how sure each part is, built from the registries and marked as out of the story.
+- **8.0.3018**: The stand-in row for the ice rheology now states the 40 to 90 kJ/mol activation range the [R1190] data support.
+- **8.0.3017**: The test of the black-widow and redback spiders now expects the post-common-envelope history the generator gives them, which is the physics.
+- **8.0.3016**: The eight tide and surface-liquid functions that only tests called are wired, registered with the item that will call them, or deleted.
+- **8.0.3015**: The stand-ins for how much of each element a planet's volcanoes bring up point at a test that exists again.
+- **8.0.3014**: The pages that will explain where the numbers come from have one address scheme, one link helper, and a word check that keeps the doubt words out of the rest of the site.
+- **8.0.3013**: The temperate-ocean table by class now counts a surface ocean and an ice-covered ocean in separate columns.
+- **8.0.3012**: The old stars of a galaxy now include thick-disk stars up to 13 billion years old.
+- **8.0.3011**: An Earth-mass world in the habitable zone of an old Sun-like star keeps its air: the escape filter, which now sees the star, compares its loss to the pressure the air settled at.
+- **8.0.3010**: The supernova remnants of a satellite galaxy now follow its star formation, so the Large Cloud holds dozens of them instead of a handful.
+- **8.0.3009**: A satellite galaxy's gas is now a disk longer than its stars, so the Small Cloud holds about 2e8 solar masses of gas instead of 6e7.
+- **8.0.3008**: A satellite galaxy close to its host now loses its gas, and most far from it keep theirs, as the Local Group's dwarfs do.
+- **8.0.3007**: A cell inside a Magellanic Cloud now expects supernova remnants at the rate the Cloud's own star formation gives, not at the disk's gas-based rate capped at one.
+- **8.0.3006**: A moon that orbits inside the radiation belts of its parent planet's magnetic field now takes their dose at its surface, and the habitability radiation score and the survival gear read it.
+- **8.0.3005**: The time a star of about 0.1 solar masses takes to reach the main sequence no longer jumps from 718 to 1358 million years between 0.105 and 0.11 solar masses.
+- **8.0.3004**: The old stars of the disk are as metal-poor as their longer age range says: the thick disk's 8 to 13 billion year old stars pull the old population's mean [Fe/H] down by about 0.125 dex.
+- **8.0.3003**: The ocean tide of a world follows its final water.
+- **8.0.3002**: A moon's iron core and a rocky planet's core and ocean now answer the changing field around them with an induced magnetic moment, so a planet with no dynamo of its own still carries a small one from its star's field.
+- **8.0.3001**: The ice giants' one-bar temperatures now land near the measured ones, because methane condenses in their air and cold hydrogen holds more heat.
+- **8.0.3000**: A world's ice shell and the volcanism of its ground now follow the heat it has at its star's final age, not the younger provisional age they were first made at.
+- **8.0.2999**: A rocky planet's magnetic field now comes from its core cooling on its own curve, not from a lifetime drawn at random.
+- **8.0.2998**: A giant that has rained helium into its depths now radiates more heat than one that has not, and the planet stores it.
+- **8.0.2997**: A giant planet's layers now sit at the pressures its real hydrogen-helium fluid gives, not a one-size-fits-all polytrope.
+- **8.0.2996**: A small cold body no longer keeps a hydrogen air: the escape filter now sees its star, so a moon of Titan's size at 5 AU loses its hydrogen instead of being called a gas dwarf.
+- **8.0.2995**: A galaxy's disk now holds its clusters to the most massive its gas can form at each radius, instead of one flat 1e6 solar masses everywhere.
+- **8.0.2994**: The galactic center's ring now forms clusters up to the mass its gas allows and loses them to passing clouds, so it holds a few young clusters instead of dozens.
+- **8.0.2993**: A planet or moon now keeps its climate in seven bands of latitude, and its page shows the seven side by side.
+- **8.0.2992**: The oxygen fugacity, dry carbon and comet species rows of the atmosphere recipes now come from models, not from Solar System bodies.
+- **8.0.2991**: A world's magnetic field now comes from the dynamo physics of its own core or, for a giant, its metallic layer and the heat it radiates, not from a table of mass, core share and fixed values.
+- **8.0.2990**: About 4 in 10 of the A-type dwarfs are now chemically peculiar: Ap stars spin slowly and carry a strong magnetic field, Am stars spin slowly, and the star's page says which it is.
+- **8.0.2989**: Stars of the thick disk and the halo, which are richer in alpha elements, now age and shine on the evolution track their composition stands for.
+- **8.0.2988**: The object page now draws a small body that its own weight has not pulled round as the same bumpy lump the System Map shows, and turns it with the body.
+- **8.0.2987**: A test of the stored-tree fill now expects a brown dwarf or remnant in a tree to be a dark member, not a star row.
+- **8.0.2986**: A body's weight now has a temperature to shape it at: the roundness strength can fall with the heat the body made, instead of always being the cold strength.
+- **8.0.2985**: An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+- **8.0.2984**: An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+- **8.0.2983**: The near-search test builds its scattered-star and black-hole rows by column name, so a new column no longer breaks it.
+- **8.0.2982**: A test that checks the deploy scripts name only files that exist no longer fails on a comment in the wiring guard.
+- **8.0.2981**: A failed or killed unit's message now names the stage as the page shows it, not an internal number.
+- **8.0.2980**: The test that holds the disk's present star formation against the Milky Way's was red since the lighter halo of GEN.1154; its bound now says why, and nothing the generator makes changes.
+- **8.0.2979**: The lists of stars, planets and moons now show the physics values of each object: temperature, luminosity and age for a star, orbit size, eccentricity and surface temperature for a planet or moon.
+- **8.0.2978**: A moon or an asteroid that its own weight has not pulled round is now drawn as an elongated, bumpy lump instead of a perfect sphere.
+- **8.0.2977**: The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.
+- **8.0.2976**: The stars filter now also works in Nearby, the Systems list and its API, and the command line, and a system can be sorted by how many stars it holds.
+- **8.0.2975**: The installer and updater now tell you how big MySQL's redo log should be, from the writes the server has actually seen.
+- **8.0.2974**: The bright-star backfill path a run really takes now has a test that runs it directly.
+- **8.0.2973**: The star scatter stages now leave half the machine's memory free, so a big run slows down instead of taking the database down with it.
+- **8.0.2972**: The queued sector-settle job that no page or route reached any more is gone.
+- **8.0.2971**: The bright-star and massive-star scatter stages no longer start more workers than the machine's memory holds, so a big run is not killed for running out of memory.
+- **8.0.2970**: The photolysis table can now say how much of a gas the light breaks in a thick air, and a star's far-ultraviolet light at a body can be asked for; nothing reads them yet.
+- **8.0.2969**: The admin job strip test no longer depends on whether the machine it runs on has Redis, a writable jobs folder or jobs of its own.
+- **8.0.2968**: The Search page now has range boxes for gravity, temperature, pressure, radiation dose and the other physical values, each with its unit beside it, and shows the ranges as chips.
+- **8.0.2967**: The wiring register says why the simulated survey samplers are only run by the tuning tests.
+- **8.0.2966**: Core 1's twenty-seven functions that only tests called now each have an owner: six moved out of the library into the tests (one deleted), seven named to an open item, thirteen marked as test readers.
+- **8.0.2965**: The land on a planet or moon picture now takes its colour from the rock it is made of, not from its temperature.
+- **8.0.2964**: A star's page and sheet now show its chemistry: thin or thick disk, alpha enhancement, the metal mass fraction it formed with, and the helium a red giant's first dredge-up added.
+- **8.0.2963**: Thirty-one functions that nothing in the generator called, with their tests, are removed, and the seven that stay each name the item that will use them.
+- **8.0.2962**: Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
+- **8.0.2961**: Eight functions nothing used are deleted, and the other 18 that only tests called are now named in the wiring register with the item that will use them or the test that reads them.
+- **8.0.2960**: Stars now have a proper integrator for their path through the galaxy, ready for the orbital update to use.
+- **8.0.2959**: Nothing built is left unused in Core 3's share of the wiring guard: six dead helpers are gone and every other function that only tests call names the item that will read it, or why it stays.
+- **8.0.2958**: The pull on an object from the masses around it and from the galaxy is now one function, with the velocity kick that uses it.
+- **8.0.2957**: The scrolling key on the galaxy map can now be reached and scrolled with the keyboard.
+- **8.0.2956**: The admin Stats page now shows how long one object of each kind took to generate, which the generator has been recording without showing.
+- **8.0.2955**: The galaxy now has one pure module for its pull and its rotation curve, built from the galaxy's own masses.
+- **8.0.2954**: The search can now keep and order planets, moons and stars by their stored physical values, with the bounds given in the unit you choose.
+- **8.0.2953**: A System Map test that compared a planet's glow under two stars now compares the right thing, so main is green again.
+- **8.0.2952**: The orbital event writer exists: a collision found between two bodies can now be turned into a stored event, with the object-ID rules.
+- **8.0.2951**: Star 2's eighteen functions that only tests called now each have an owner: three deleted, two named to the photometry library, one to a star page item, twelve marked as test readers.
+- **8.0.2950**: A world's atmosphere now shows in its picture: no air has no glow and a hard day and night line, thin air almost none, thick air a wide glow and a soft dusk.
+- **8.0.2949**: The wiring guard now also finds a stored column nothing reads and a public function only tests call, and today's findings are named in the register.
+- **8.0.2948**: The info panel's Colour line now says which stored values gave a body's colour and whether it is a partial estimate or the full account.
+- **8.0.2947**: The photometry library now has a published bolometric correction ([R1392] with [R4407]'s coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
+- **8.0.2946**: New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
+- **8.0.2945**: The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
+- **8.0.2944**: A star's page, a system's overview and the star class pages are written in plain words: the star orbit sentences read one pair at a time, the heliosphere and edge lines drop "approximately", and the table labels are in sentence case.
+- **8.0.2943**: A read-only report now sorts every generated planet and moon into terrestrial, transitional or gas by the share of its mass in an envelope.
+- **8.0.2942**: A planet or moon page now has a short Life paragraph in At a glance, and the Life section gives three words for each kind of life: how much, which way it is going and how secure it is.
+- **8.0.2941**: The Search page's Name box, Stars selector and Search button now sit together on one row.
+- **8.0.2940**: The references list and DATA-LICENSE.md now cover the strength, roundness, Trojan and stellar-to-halo sources.
+- **8.0.2939**: The Life section of a planet page now opens with one paragraph: what lives there, how common each kind of life is, then which life classes the conditions suit.
+- **8.0.2938**: A read-only report now compares today's class letters with the best-fit percent match for every generated world.
+- **8.0.2937**: Every planet class now has its own full list of conditions, ready for a percent-match classifier.
+- **8.0.2936**: A planet's rendered example is lit from the left and a little from the front, so its day and night line is a clear curve with most of the disk lit, and a tidally locked world's arrow to the star no longer sits on the planet.
+- **8.0.2935**: A planet's page shows one habitability chip, the most specific of Inhabited, Habitable and Habitable class, not several.
+- **8.0.2934**: A Preferences page lists the Galaxy Map's settings, with what each does and its default, and a Reset to defaults button.
+- **8.0.2933**: Two tests that were red on main are green again, with no change to what the generator makes.
+- **8.0.2932**: The Galaxy Map zooms in to 30 km from an opened system (it stopped at 3,000 km), drawing the system from the camera's own frame so it holds steady.
+- **8.0.2931**: The prevalence census ranges that train 6 moved are tagged with the train, so the census checks stay quiet until the last 8.1 re-baseline.
+- **8.0.2930**: A pure module now gives how bright a ring is for its age and dust, and how much sunlight a ring shades from a latitude; nothing uses it yet.
+- **8.0.2929**: The Galaxy Map's history entries keep only the camera's address; Back, Forward and a reload work the stage out from where the camera is.
+- **8.0.2928**: Two migration tests that were red on main now say what they check: the aerosols test lists the scores worked from the radiation score, and the albedo test knows the air solve caps a surface at 2000 K.
+- **8.0.2927**: The code that makes some A stars magnetic Ap stars and some metallic-line Am stars is written; it does not take effect until it is wired into the star build.
+- **8.0.2926**: Every way of going somewhere on the Galaxy Map (Go to, Up, Home, steps, locate, Back and Forward) is now a camera flight, and the camera's distance alone sets the zoom.
+- **8.0.2925**: Five texts that pages and the Methods list show no longer carry internal item codes.
+- **8.0.2924**: The property sheet of an asteroid belt and an asteroid field now lists the nearest meteorite group.
+- **8.0.2923**: The code that gives the old stars of a galaxy a share of ages from 10 to 13 billion years is written; it does not take effect until it is wired into the galaxy.
+- **8.0.2922**: The rogue planet parity test is green again: the gap to a bound planet grew by twelve columns the planet gained, and the ceiling now says which.
+- **8.0.2921**: The last hand-written mass conversions that went in since the mass-conversion test was written now use the unit registry's converters, and the output is unchanged.
+- **8.0.2920**: The star sheet now says when a star on the asymptotic giant branch has become a carbon star or an S star.
+- **8.0.2919**: The star sheet now says when a star is a Cepheid, a Mira-type variable, a T Tauri star or a Herbig Ae/Be star.
+- **8.0.2918**: A white dwarf or planetary-nebula central star now has the luminosity that its radius and temperature give.
+- **8.0.2917**: A planet's wobble from its moons is made from where the moons end up, not where they were first placed.
+- **8.0.2916**: Stars across the Kraft break now spin as measured: slowly below about 6450 K and faster step by step above, instead of every star hotter than about 6300 K turning at 180 km/s.
+- **8.0.2915**: A planet whose tides take its orbit rounder after it is drawn now keeps the star's X-ray and flare light for the final orbit, not the first.
+- **8.0.2914**: A planet or giant made again at its star's final age now wears down the spin it was born with, instead of drawing a new one.
+- **8.0.2913**: A world coming down through a spin-orbit resonance is now caught only some of the time, so fewer captured moons and planets turn in 3:2 and 2:1 states.
+- **8.0.2912**: The Milky Way-like reference galaxy keeps its 1e8 black holes now that the halo is lighter: its failed-supernova draw moves from the middle of the range to 0.55.
+- **8.0.2911**: A pair of stars that once went through a common envelope is now labelled so whatever its stars are, and a white dwarf's planets are cleared out to the distance a published model gives.
+- **8.0.2910**: A world with a sea now stores the height of its ocean tide, from its star and its moons, and the property sheet shows it.
+- **8.0.2909**: The spin of A and early B stars now rises with mass as measured, instead of one speed for all of them.
+- **8.0.2908**: A giant planet can now lie on its side after a giant impact, and a locked planet or moon keeps a small tilt instead of exactly none.
+- **8.0.2907**: The Bond albedo of an ice-covered or ocean world now follows the colour of its star, so planets of K and M dwarfs are a little warmer at the same flux.
+- **8.0.2906**: A forced pair around a star too light to have a star companion now says why, and a metal-poor star's lightest companion is a star, not a brown dwarf.
+- **8.0.2905**: A metal-poor star again gets more companions inside 10 AU than a metal-rich one; the [Fe/H] trend had stopped reaching the tree draw.
+- **8.0.2904**: A comet's ice now follows the zone of its star's disk it formed in, so a comet can hold far more carbon monoxide or carbon dioxide than the Solar System's comets do.
+- **8.0.2903**: The hottest a young brown dwarf can be now follows the hydrogen-burning limit at its age (up to 2,950 K) instead of a flat 2,800 K.
+- **8.0.2902**: How long a star stays at its brightest in X-rays now follows its mass and how fast it started spinning, so a young star's XUV, and the water its planets lose to it, vary star to star as they do in the clusters.
+- **8.0.2901**: An asteroid belt now has a real mass, worked out from its star's disk and its age, and its dense, typical or sparse label follows from that mass instead of a coin toss.
+- **8.0.2900**: A star's aluminium-26 at birth, which heats young rocky worlds, now comes from its galaxy's gas and the lumpiness of supernova additions instead of a range copied from the Solar System.
+- **8.0.2899**: Every asteroid belt and field now says which meteorite group its rock is nearest to (CI, CM, H, L and so on, or none for an icy mix).
+- **8.0.2898**: The volcanic crust of a rocky world now comes from what its mantle is made of and how much of it melts, so some worlds get andesite or magnesian lava plains instead of basalt everywhere.
+- **8.0.2897**: The kinds of asteroid in a belt now follow the star's own disk temperature and the radioactive heat it was born with, not the Solar System's belt scaled to its snow line.
+- **8.0.2896**: A galaxy of more than 30 billion solar masses of stars now gets a lighter, more realistic dark matter halo, drawn from the halo mass function instead of from the inverse of the median relation.
+- **8.0.2895**: Class Q is gone, class V starts at 2 g, and the class lines are redrawn from conditions (a new deep-frozen class E), so temperate worlds can finally be class M.
+- **8.0.2894**: A rogue planet is a giant from 10 Earth masses, as a bound planet is, and its rock is as compressed as a bound planet's.
+- **8.0.2893**: Every planet and moon now says what its day and night are like (an ordinary cycle, tidally locked, a spin-orbit resonance, hardly rotating, polar, or no solid surface), how many hours of night it has and how many solar days make a year.
+- **8.0.2892**: A brown dwarf, neutron star or black hole in a multiple system now stays in its orbit tree, so the orbits, the stability and the gravity are the whole tree's, not a tree with the dark member cut out.
+- **8.0.2891**: A planet has a ring only when something happened to make one, and the ring says how old it is.
+- **8.0.2890**: Superbubbles are off until the Menu's button shows them, the Key is a small corner box, every charted region is a point on the galaxy view with a link that zooms to it, the sector card's buttons stay in view, the sector page and 3D system view fill the window like the Galaxy Map, and an opened sector stands alone, close and full of systems.
+- **8.0.2889**: The planet architecture now keeps a record of every body it loses and says which ones end thrown out of the system, which collide and which stay bound.
+- **8.0.2888**: The reference table of the Milky Way's satellites now holds all 12 satellites above 100,000 solar masses, with Canes Venatici I added from [R2972].
+- **8.0.2887**: The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of [R1190], not one guessed number for each.
+- **8.0.2886**: The cloud feedback on a world's albedo now has a design: a thinning term sized to the published Earth feedback and a thick substellar deck for locked ocean worlds.
+- **8.0.2885**: The climate sensitivity test now measures the real Earth, not a random hot planet.
+- **8.0.2884**: The ice-albedo law now gives the Earth's measured surface albedo feedback instead of none.
+- **8.0.2883**: The test table of the Milky Way's satellites no longer gives Leo I a rising star-formation history and so gas it does not have.
+- **8.0.2882**: A test now shows that the water vapor feedback is already in the surface-air fixed point.
+- **8.0.2881**: The birth-gas dispersion of 6.5 km/s now has its sources, and the young disk's height is pinned to the Milky Way's young stars.
+- **8.0.2880**: The stand-in registry rows for the roundness engine now cite all the papers read, and the porosity range is widened to 4 to 9.
+- **8.0.2879**: The roundness engine now knows that rock that took its shape hot is much weaker than cold rock, using the olivine creep laws, and the hot rubble-pile strength has a physical basis.
+- **8.0.2878**: The Milky Way satellite table the plausibility tests use is now checked against [R2972].
+- **8.0.2877**: The test that checks every generated planet is in a state the tide allows now samples systems with planets switched on, so it meets planets that are still turning freely.
+- **8.0.2876**: The orbits of the stars in a system are now drawn once from the room each pair has, instead of drawn and thrown away until one fits.
+- **8.0.2875**: A rocky world's tide now follows the temperature of its mantle: cold bodies barely flex, warm ones dissipate strongly, Io-like bodies melt and hold a heat pipe, and locking and circularisation times follow.
+- **8.0.2874**: A world's life class is always listed among the classes the world supports.
+- **8.0.2873**: Every rocky or icy world now says what liquid lies on its surface and how much of the surface it covers: water oceans, methane seas like Titan's, condensed seas, or the lava of a molten surface.
+- **8.0.2872**: A planet's spin now follows the tide of its star and the thermal tide of its air, with the rock's own response at each frequency, so it can lock, be caught in a resonance, or be held away from synchronism.
+- **8.0.2871**: Moons now drift, fall into rings or are lost under the tide of their planet over the age of the system, and the tides they raise heat the planet.
+- **8.0.2870**: The companion stars of a system are now the same stars its orbits were drawn for, so a star can no longer end up wider than its own orbit after the build.
+- **8.0.2869**: Every star now shows how often galactic events would strip a nearby world's ozone.
+- **8.0.2868**: Every pair of stars in a system, at any depth of its tree, now keeps out of its partner by one rule, and each level of a tree keeps a margin of stability.
+- **8.0.2867**: An icy world's tide now heats its ice shell by the shell's own rheology, so the shell thickness, the ocean under it and the heat that body makes agree, with nothing fitted to Europa.
+- **8.0.2866**: The life paces a star supports now come from its own lifespan, not from a table by spectral letter.
+- **8.0.2865**: A world's page now says how many hours of a day a person can be outside, and what limits them.
+- **8.0.2864**: A giant planet of a heavy, metal-rich star can no longer come out heavier than the brown dwarf edge of 13 Jupiter masses.
+- **8.0.2863**: A rocky planet's birth spin now follows the mass ratio of the last impacts that built it: Mars-sized worlds can turn in a day, large ones in hours.
+- **8.0.2862**: A disk star's age now goes with its metal content: poorer stars of the old disk are older.
+- **8.0.2861**: The roundness engine now has strengths for the other ices of an icy body (high-pressure water ices, methane hydrate, dry ice, ammonia dihydrate) and a way to name a body's ice type from its composition.
+- **8.0.2860**: The roundness engine can now take a per-body strength drawn from its range, so the line between a round body and a potato is a band instead of a single size.
+- **8.0.2859**: The roundness engine now knows that a pile of rubble does not turn round just by being big: it rounds only if it took its shape hot, or for an icy pile at the strength of its ice at that temperature.
+- **8.0.2858**: The 2+2 quadruple-star stability margin is now fitted on our own N-body runs (1.5, was 1.3 carried over from the 3+1 case).
+- **8.0.2857**: The strengths used to decide whether a body is round now follow the newest strength research: ice depends on temperature, ice and rock mix by a measured law, and metal has read data behind it.
+- **8.0.2856**: The engine that works out whether a body is round, how strong it is and how tightly gravity binds it is built, ready to be wired into the planets, moons and asteroids.
+- **8.0.2855**: The burn-down register no longer carries the leftover merge-conflict markers of a merge race.
+- **8.0.2854**: The `--around` help text of `planetgen generate`, `sectors` and `galaxy` no longer shows an internal item code.
+- **8.0.2853**: The property sheet now says why a giant planet shows no starlight row, and the fill audit places its sample systems in the galaxy so a star's lethal-event rate is checked.
+- **8.0.2852**: A sweep of the star function and the galaxy's halo relation against published figures, with four checks that fail if a later change leaves their sources' range.
+- **8.0.2851**: The property sheet now says why a heavy body shows no porosity and why a shallow ice shell shows no high-pressure ice.
+- **8.0.2850**: The property sheet now says why a giant planet or a body on a circular orbit shows no tidal heat flow.
+- **8.0.2849**: Two more hand-tuned constants now name the measurements they should be held to.
+- **8.0.2848**: The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
+- **8.0.2847**: The star property sheet now says which stars have a widest stable orbit (the stars of a wide pair and the further members of a system, not a single star or a close pair), and the comet rule is confirmed.
+- **8.0.2846**: The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the [R0776] paper has been read.
+- **8.0.2845**: `update.sh` says what it is doing and what it waits for, shows progress bars on the long steps, and pauses 5 seconds before the reload and 10 seconds after it.
+- **8.0.2844**: `update.sh` starts building the site's caches early and reloads the site only once the opening views are built.
+- **8.0.2843**: The stability test for a Mardling and Aarseth triple now stays inside its range, and the code to judge four-star systems level by level is in place.
+- **8.0.2842**: `update.sh` builds the site's caches before it reloads the site and checks `/api/health`.
+- **8.0.2841**: Two more pure pieces of the Lagrange trojan work exist: which whole worlds a host and secondary can hold at L4 and L5, and where all five points are for the map.
+- **8.0.2840**: Twelve tests that were red on main are green again, and seven library modules no longer use maths whose last bit depends on the Python or BLAS version.
+- **8.0.2839**: The ice-albedo feedback now has a tested module that finds the snowball, warm and unstable climates of one flux.
+- **8.0.2838**: The update works out every cluster's mean system mass once, so no web request ever has to, and the Galaxy Map's first load after a restart is not slow.
+- **8.0.2837**: A body's climate can now be worked out in seven bands of latitude (the equator, three bands on each side, the poles in the outermost): hours of day and night, the longest polar day and night, the day and night temperatures and the state of each; nothing stores or shows it yet.
+- **8.0.2836**: Every page is fast again on a galaxy with many clusters: the page freshness check no longer builds the whole galaxy shape.
+- **8.0.2835**: The test that checks a young red dwarf's escape strips surface water from its planets now looks at the surface water itself, so it passes again on worlds that hold many oceans.
+- **8.0.2834**: Mass conversions between kilograms, solar masses, Earth masses and Jupiter masses now go through the unit registry in 71 modules instead of being written by hand, with no change to any generated number.
+- **8.0.2833**: A sector page's map now stays inside its sector.
+
+## 2026-10-30
+
+- **8.0.2832**: The "On this page" menu goes across the top when everything fits without scrolling
+- **8.0.2831**: The rules for bodies at the Lagrange points L4 and L5 exist as a pure module, so trojan swarms and whole bodies can be wired later.
+- **8.0.2830**: The rules of designation history are written and tested as pure code: a retired ID is never reused, an old ID resolves to the current object, and a system's ID change moves every body.
+- **8.0.2829**: `planetgen sectors --around X Y Z --radius-pc R` generates a sphere of space around any point, nearest sectors first, and a rerun after a stop builds only what is missing.
+- **8.0.2828**: A planet of a close pair inside a triple now orbits the pair's center, and a multiple system says what it is made of
+- **8.0.2827**: A tidally locked moon in the System Map now keeps its face toward its planet, and the object page's picture of a locked world says so on the picture itself.
+- **8.0.2826**: The "On this page" menu is a grouped list of sections and subsections again
+- **8.0.2825**: The Search page's star spectral and luminosity tags now list every star type the generator can produce.
+- **8.0.2824**: The web app starts even when a downloaded data set is not there yet, so an update no longer turns every page into a 500 while it downloads.
+- **8.0.2823**: The data behind an asteroid belt information page now exists: the belt's individually tracked bodies by designation, what the rest of its mass is made of by size, and how thick the belt is in objects per square astronomical unit.
+- **8.0.2822**: update.sh no longer leaves a migrated site closed because its /api/health probe got no good answer, and says why a probe got no HTTP answer.
+- **8.0.2821**: Slow bodies now visibly turn, a tidally locked world keeps its day side toward its star, and the object page shows every planet at the day and night line.
+- **8.0.2820**: The prevalence census and the usual shares the Generate page shows match what train 4 generates.
+- **8.0.2819**: A captured moon or small body now gets its makeup from where it came from, so a body pulled in from the cold outer disk is icy and one from near the planet is not, and a family of fragments does not all look alike.
+- **8.0.2818**: The class count script now also prints how much of the surface is ocean on temperate worlds with air, so the lines between desert, temperate and ocean worlds can be placed against real bodies; it stores nothing.
+- **8.0.2817**: The irregular moons of the four giants are checked for saturation: they end within a factor 2.5 of each other, and the repo's belt law is shown not to fit a moon zone.
+- **8.0.2816**: A new script prints how many planets and moons fall in each class, how many of those are temperate with a liquid ocean, and how many bodies reach classes E, H and L; it stores nothing.
+- **8.0.2815**: A full reference list of every paper, dataset and catalog the project builds on.
+- **8.0.2814**: The generator can now say how many small captured bodies a planet holds, from the capture windows its history gave it, instead of every giant getting a few by chance.
+- **8.0.2813**: The plan of a region run is written: a sphere around a start point becomes whole sectors, cut into units along the galaxy's own shell and band arcs, nearest first, with resume and the stage barrier.
+- **8.0.2812**: The design for objects that change name and ID while keeping their past designations is written.
+- **8.0.2811**: A test now holds a rogue planet to being a bound planet without a star, and says how far from that it is today.
+- **8.0.2810**: A rare failure of the example narrative test, on a subdwarf that rightly carries the main-sequence lifespan note, no longer happens.
+- **8.0.2809**: The property sheet now lists a moon's origin and the disk it formed in, and eight test files that failed on a clean main pass again (all but one were stale tests).
+- **8.0.2808**: The search can now find systems by how many stars they hold: a Stars menu on the search page, `stars:3` in the search box, and `stars=` in the API.
+- **8.0.2807**: What happens to a belt over a system's life can now be worked out event by event, with a history line for the page and the rock that falls on a white dwarf (not used by the generator yet).
+- **8.0.2806**: A belt's gaps can now be worked out from its giants: where the resonances and chaotic zones are, how small the bodies must be to have drifted out, and how stirred it is (not used by the generator yet).
+- **8.0.2805**: The generator can now say what each stored asteroid in a belt is made of, changing with its distance from the star instead of one mix for the whole belt.
+- **8.0.2804**: The speed a rogue planet leaves its star with is now taken from published scattering simulations instead of a guess, and a calculation for how often its moons stay bound exists; no world uses either yet.
+- **8.0.2803**: The Systems tables show how many stars and objects a system holds and whether it has a Yellow-or-better world.
+- **8.0.2802**: The generator can now give a thrown-out planet the long-lived radioactive heat of the star it left, the same way it does for a bound planet of that star.
+- **8.0.2801**: The sentences of classes N, K and Q now say what their rules select.
+- **8.0.2800**: The mass the Rogues level cannot hold in a sector can now become thin clouds of small rubble, planned as a tested calculation that places exactly the mass that is left; no sector uses it yet.
+- **8.0.2799**: What an asteroid field from a rogue-planet collision is made of now follows the two parents (the outer layers leave first: ice, then silicate mantle, with the iron staying in the remnant) as a tested calculation; no world uses it yet.
+- **8.0.2798**: The generator can now say what a system throws out and what a thrown-out planet takes with it, from physics instead of rates: masses, air, water, moons, and the planets a birth cluster strips.
+- **8.0.2797**: The mass a sector still has to draw once it has counted what it already holds now exists as a tested calculation; no world uses it yet.
+- **8.0.2796**: How often an interstellar asteroid field is born now exists as a tested calculation from the physical sources only (a belt unbound by a supernova, a young cluster stripping belts, a collision of two rogues); no field is drawn at a made-up rate and no world uses it yet.
+- **8.0.2795**: The plan for topping a sector up with rogue planets now exists as a tested calculation: how many to add, their masses, places, speeds and an "apparent" origin; no world uses it yet.
+- **8.0.2794**: How an interstellar asteroid field spreads and ends now exists as a tested calculation: its radius from its age, the age at which it is retired past one light year, and where its bodies are; no world uses it yet.
+- **8.0.2793**: A test now counts how often the generator throws a drawn star tree, planet, moon or belt away to make it fit, and fails when a rate doubles.
+- **8.0.2792**: The collision of two rogue planets now exists as a tested calculation, with the speed at which a pair breaks up, what is left and how fast the pieces fly; no world uses it yet.
+- **8.0.2791**: A body now has a status worked out from its mass, composition, orbit and neighbours (planet, dwarf planet, minor body or moon), kept with the numbers behind it; nothing in the generator uses it yet.
+- **8.0.2790**: A belt's biggest bodies can now be said to be dwarf planets, planets or minor bodies, and the icy ones Class D, from the belt's mass and size law (not used by the generator yet).
+- **8.0.2789**: The gas-drag capture of moons now has a gate (gas giants only) and a size window (a few km to a few hundred km) from papers, but its strength is still a guess.
+- **8.0.2788**: The numbers behind future asteroid fields left by colliding rogue planets are now read from the papers and written down; no world changes.
+- **8.0.2787**: The star density that rogue planets are drawn from can now be smoothed along the galactic orbit, so a rogue is no longer tied to the spiral arm or cluster of the star it left (not used by the generator yet).
+- **8.0.2786**: Every document now says the same thing about what a Class D body is.
+- **8.0.2785**: A moon's chance of having been captured now falls with its mass as a tested calculation, so a big moon is rarely a captured one; the moon generator does not use it yet.
+- **8.0.2784**: The generator can now say how fast a planet leaves its system when it is thrown out, and how fast the rogue then moves through the Galaxy.
+- **8.0.2783**: A new audit script counts the Class D bodies, small moons, dwarf-size bodies and belts the generator makes per system, for each census star type.
+- **8.0.2782**: More of the planned weird-world rates are now checked against papers, and the carbon-planet rate drops 30 times.
+- **8.0.2781**: The generator can now say how old a rogue planet is and how long ago it was thrown out of its system.
+- **8.0.2780**: A belt's biggest bodies can now be drawn one by one from the belt's mass and size law, and the mass left over is kept, so nothing is lost or counted twice (not used by the generator yet).
+- **8.0.2779**: The generator can now work out where a planet thrown out of its system has drifted to in the Galaxy.
+- **8.0.2778**: The numbers behind the planned captured asteroid moons are now read from papers and the satellite tables, and six of the design's recalled numbers change.
+- **8.0.2777**: The generator can now estimate the average wind in each latitude band, by day and by night, for any world with air.
+- **8.0.2776**: Every belt can now say where it came from: the rule that names a belt's cause, and the sentence for its page, are built and tested.
+- **8.0.2775**: The generator can now say how crowded a belt is: how many objects above 1, 10 and 100 km a square astronomical unit holds, and how much mass.
+- **8.0.2774**: The planet tests draw their host star from a fixed seed, so a run no longer fails on a star whose thin air or life scores happen to sit at an edge.
+- **8.0.2773**: The orbits of captured asteroid moons (size, shape, tilt and the fragments of a broken moon) now exist as a tested calculation that reproduces the observed 4.5 to 1 retrograde excess at a Jupiter-like planet.
+- **8.0.2772**: A body that a planet captures keeps its belt designation and gains a link to the planet, and a body from outside the belts prints the planet's ID and a rank.
+- **8.0.2771**: The numbers behind the new belt model (drift, resonance gaps, depletion, planet tests, white dwarf pollution) are now read from their papers and listed with sources.
+- **8.0.2770**: A member of an asteroid belt now has a designation, the belt's ID, a point and the member's rank in hex, that is a pure function with a round trip.
+- **8.0.2769**: The code now has the rule that says what a giant does to an outer disk: how much it sweeps, captures in resonance, scatters and throws out.
+- **8.0.2768**: The rule for where a captured asteroid can stay in orbit round a planet now exists as a tested calculation, with the Hill radii and the inner edges of the four giants as checks.
+- **8.0.2767**: The code can now say which small planets fall in the Hycean box, the sub-Neptunes that could hold a liquid ocean under a hydrogen envelope.
+- **8.0.2766**: How many near-resonant planet pairs actually librate, and so can keep a forced eccentricity, is now sourced.
+- **8.0.2765**: The iron-rich planet of the weird-worlds design now has its physics: a head-on giant impact that strips the mantle and leaves a Mercury-type core.
+- **8.0.2764**: Building a system is about a fifth to a third faster, with every planet, seed and number exactly as before.
+- **8.0.2763**: The code now knows how a giant impact can lay an ice giant on its side, as Uranus lies, and that its rings and moons then follow the new equator.
+- **8.0.2762**: A harness forces each weird-world oddity on 200 bodies and checks that every outcome stays physical, including rings; it runs today on stub rows and fails on deliberately broken ones.
+- **8.0.2761**: The code now knows how a small planet that has lost most of its hydrogen to its star is left with an air that is mostly helium.
+- **8.0.2760**: The rates behind the planned weird worlds are now checked against papers, and three of the recalled ones were wrong.
+- **8.0.2759**: The generator now has the physics of resonant chains, the rows of planets whose orbits lock in step and tug each other's orbits oval.
+- **8.0.2758**: The code now knows how a young low-mass planet can be as big as Neptune or Saturn with a density under 0.1, and how it shrinks as it ages.
+- **8.0.2757**: The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
+- **8.0.2756**: The generator now has the physics of the seasons: how far a place swings between summer and winter from the planet's tilt, orbit, sea and air.
+- **8.0.2755**: The help text of `planetgen run-job` and the replacement shown for the five ground-type rows no longer carry item codes.
+- **8.0.2754**: A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.
+- **8.0.2753**: The Galaxy Map's wheel no longer hops from one block window to the next; the camera's zoom carries it, and the picture does not change.
+- **8.0.2752**: A test of the least pressure a planet's air has no longer fails on a thin air stored a part in a billion under 1 Pa.
+- **8.0.2751**: A new test checks that an M dwarf world that lost its water can keep an oxygen air with no life, and that oxygen alone never makes a life class live there.
+- **8.0.2750**: A 2+2 quadruple star system can now be tested for stability with a published classifier, as the 3+1 one already can.
+- **8.0.2749**: The generator now has the physics of a Venus-type world, a thick-air planet whose slow or backward spin comes from the star's tide on its air.
+- **8.0.2748**: The air of a tidally locked planet can now be tested for freezing onto its night side (not yet used by the generator).
+- **8.0.2747**: The question of when a world can hold an atmosphere now has one place in the code that answers it, tested on the thirteen Solar System bodies it was written from.
+- **8.0.2746**: The code now knows how a small, very hot rocky planet boils away, and how long it lasts, using the numbers of the planet Kepler-1520 b.
+- **8.0.2745**: The weird-worlds oddity table and its loader exist, empty for now, with a weirdness dial and a stream of its own for every oddity roll.
+- **8.0.2744**: The rings that small icy worlds like Quaoar and Haumea hold far outside the usual ring zone now exist as a tested calculation, ready to give some small bodies a narrow ring.
+- **8.0.2743**: The rule that makes a planet's ring come from its own history, a moon that fell inside the Roche limit or a comet that passed inside it, now exists as a tested calculation.
+- **8.0.2742**: The generator now has a table of the 51 liquids a surface can hold, from liquid helium and methane seas to brines, sulfur, molten salts, metals and lavas, with their windows, densities and viscosities.
+- **8.0.2741**: The size of the open-ocean tide a world's moons and star would raise now exists as a tested calculation, ready to give each ocean world its tide range.
+- **8.0.2740**: Four tests that failed on a clean main are fixed on the test side: radiation gear for an ultraviolet Red, worlds whose life has not begun, a giant's own heat, and a hot airless world.
+- **8.0.2739**: A system page now lists the orbits of its stars, so a triple or larger system shows what each orbit joins.
+- **8.0.2738**: A star's own spin sets how active it is, flares reach a world's dose by their size and the field's shield, and a world the flares scour loses its ozone, so UV, sky and life follow.
+- **8.0.2737**: Every star now has an evolutionary state, and a white dwarf the age since it stopped burning.
+- **8.0.2736**: A star's ultraviolet and colour now come from model-atmosphere spectra and measured chromospheres instead of a seeded share and a blackbody.
+- **8.0.2735**: Planets now come from a model of how real planetary systems are built, with hot Jupiters, cold giants and compact inner systems in the shares the surveys find.
+- **8.0.2734**: The faintest red dwarfs and the brown dwarfs next to them now follow the published Baraffe models, and what burns hydrogen depends on how metal-rich its place is.
+- **8.0.2733**: The surface temperature of every world with an air now comes from a radiative-convective model of its gases and haze, not from a grey closure.
+- **8.0.2732**: Rocky planets and moons are made again at their star's final age, so their air, class, spin and radiation agree with the age the star ends up with.
+- **8.0.2731**: The snow line, the ice boost of the solids and the most water an icy body can hold now come from Lodders's condensation table: the Sun's snow line moves from 2.68 to 2.34 AU.
+- **8.0.2730**: The gas equilibrium solver no longer gives up on near-stoichiometric water with a trace of argon.
+- **8.0.2729**: The spiral arms now crowd young stars and barely touch old ones, with each population's contrast taken from the observations instead of hand values.
+- **8.0.2728**: "Finish the last run" now carries on a stopped Generate job as the one run it is, including the stages that never started.
+- **8.0.2727**: A system now has a clearance ledger that says where a planet, moon or belt may sit, ready for the generator to draw from.
+- **8.0.2726**: A 3+1 quadruple star system can now be tested for stability with a published classifier that is right about nine times in ten.
+- **8.0.2725**: Three tests that failed on a clean main are fixed on the test side: a moved seed, a mixed composition and a stale plan key list.
+- **8.0.2724**: A Generate job's generating steps now run as one run in the work queue, with one stage list and one estimate.
+- **8.0.2723**: Internal: a star's evolved state is now one frozen record that the system tree and the build will both read (GEN.1009, first piece).
+- **8.0.2722**: The rule that tells whether two stars went through a common envelope in the past now exists as a tested module, ready to replace the white-dwarf-only test.
+- **8.0.2721**: `planetgen run-job` runs a whole list of generation commands as one run, the first step towards a Generate job that is one run with one estimate.
+- **8.0.2720**: A test run builds each bright-star sampling table once for all its workers and the next run, instead of in every process.
+- **8.0.2719**: A system of many stars shows each further star as its own marker on the System Map, however the stars lie.
+- **8.0.2718**: An independent check now proves that the stars, planets and moons of a generated system do not overlap.
+- **8.0.2717**: The ammonia active-Sun factor is computed from measured solar spectra instead of taken from an unchecked value.
+- **8.0.2716**: The 3D system view draws a triple or a deeper tree of stars node by node, each star on the real orbit the tree gives it.
+- **8.0.2715**: The infrared model's carbon dioxide far wing is now the sourced Perrin and Hartmann one, and the column takes an acid cloud; no stored world changes.
+- **8.0.2714**: The sulfuric acid cloud has an infrared opacity (Mie droplets from the HITRAN acid indices) and the minor gases have a far wing in carbon dioxide air, built and tested; no world changes yet.
+- **8.0.2713**: The carbon a dry rocky body keeps in its mantle now has a model of its own (building-block carbon, the share already differentiated, the core's share), ready for row b1.
+- **8.0.2712**: The oxygen fugacity of a magma ocean now has a model of its own (the pressure at its base, the ferric share of its iron), ready for the rows that draw it.
+- **8.0.2711**: The bright-star rows of the API tests are built by column name, so a new column cannot leave them short again.
+- **8.0.2710**: A sourced carbon dioxide far wing and a sulfuric acid cloud are built and tested, ready for the infrared model and the cloud draw; no world changes yet.
+- **8.0.2709**: The Generate page's line under the dials is worked out once for the same dials, and the test server's warning about requests left running names each route.
+- **8.0.2708**: The benchmark suite stops only its own queue workers, so it no longer kills the workers other tests started on the same machine.
+- **8.0.2707**: The bright-star scatter tests build their sectors in a small galaxy, so the file runs in minutes instead of an hour.
+- **8.0.2706**: An air with carbonyl sulphide, acetylene, hydrogen chloride and other gases the greenhouse model could not handle no longer stops the model.
+- **8.0.2705**: The nearby page tests build their little galaxy in minutes instead of hours on a slow machine.
+- **8.0.2704**: A sourced potassium depletion by body class is built and tested, ready for the generator; no world changes yet.
+- **8.0.2703**: Nine registered rows that rest on a Solar System body are now flagged as stand-ins with the item that replaces each.
+- **8.0.2702**: A system of three or more stars no longer puts one star inside another.
+- **8.0.2701**: The bright-star and phenomenon scatters now work out their seed, mass limit and clearing when their stage opens, so a run can plan the galaxy and scatter it in one go.
+- **8.0.2700**: The census tests know which of their shifts came with the star and giant changes of epoch 125.
+- **8.0.2699**: A test run works out the generator battery digest once for all its workers, and not again while the code and data are unchanged.
+- **8.0.2698**: The block light totals that a scatter or `fill-block-totals` rebuilds at the end are written about a fifth faster in the part that fills the table, and the rows are the same.
+- **8.0.2697**: The nine registered rows that rest on a Solar System body now have rows in the stand-in list, with their source tier, tweak level and the item that will replace them.
+- **8.0.2696**: The browser test site builds again, so the map browser tests run.
+- **8.0.2695**: Listing what is near a place reads each system's name only for the page shown, so a wide search in a dense area is about three times faster.
+- **8.0.2694**: The stored-tree pair tests build the placed star the way a scatter row does, so they pass again.
+- **8.0.2693**: The system map places a wide pair's second star on its real eccentric orbit and not on a circle.
+- **8.0.2692**: A generation run can now plan its sectors when the sectors stage opens, so a whole job can be one run.
+- **8.0.2691**: Every sort of the Phenomena table and the Species table now answers a page in milliseconds, however many rows there are.
+- **8.0.2690**: Every line of a Galaxy Map card that names a place now has its own Go to button.
+- **8.0.2689**: Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.
+- **8.0.2688**: A neutron star's radius now comes from 21 modelled equations of state, weighted by the NICER measurements, not from a normal band.
+- **8.0.2687**: Thin-disk oxygen now levels off at the metal-rich end as the [R0535] stars do, instead of falling on without end.
+- **8.0.2686**: The star-to-star scatter of carbon, oxygen and silicon in a star's composition is raised to the [R0535] level.
+- **8.0.2685**: Thin-disk stars of solar metallicity now carry the magnesium and silicon [R0535] measure, 0.06 and 0.03 dex under the Sun's.
+- **8.0.2684**: Calcium, sulfur and argon now vary from star to star, as the other element abundances do.
+- **8.0.2683**: Giants are sized at their star's final age and the light of their real orbit, so their radius, density, gravity, interior and air agree.
+- **8.0.2682**: The Compact binaries panel of an unbuilt system now gives the X-ray luminosity of each accreting pair.
+- **8.0.2681**: Young stars take as long to settle onto the main sequence as the MIST models say: stars of 1.5 solar masses and up, and of 0.2, stay young about twice as long.
+- **8.0.2680**: A star's spectral type now follows the real dwarf sequence: the Sun is G2, the K/M boundary is at 3,900 K, and metal-poor halo stars are labelled subdwarfs (VI).
+- **8.0.2679**: A star type you ask for (G2V, K2III, B0V) is now a star the model makes, with the mass, brightness and age such a star really has.
+- **8.0.2678**: A star now has the mass it has lost: a horizontal-branch star of an old cluster is 0.6 solar masses, not the 0.9 it was born with.
+- **8.0.2677**: A Wolf-Rayet star's light now follows its mass: a 25 solar mass one is 5e5 Lsun and a 40 solar mass one 1e6, not a draw over 1e5 to 1e6 whatever the star.
+- **8.0.2676**: Giants and supergiants now have the luminosity, temperature and size of the MIST stellar tracks, so a 3 solar mass giant is 113 to 144 times the Sun's light instead of 970.
+- **8.0.2675**: Every star in the galaxy now has a rotation period, including the ones nothing has built yet.
+- **8.0.2674**: A rocky rogue planet now turns at the rate its building impacts left it, and the mixture draw's default light is the orbit's mean light.
+- **8.0.2673**: About one main-sequence star in six or seven now holds a cold debris belt, like the Kuiper belt but bigger, and the star page says where it lies.
+- **8.0.2672**: A world whose star is younger than the first step of its life schedule is no longer given a life class, so the map and the object pages no longer show life that has not started.
+- **8.0.2671**: The test for `planetgen query near` with no distance now checks the exit code and the usage message the way the command-line parser reports them.
+- **8.0.2670**: The "what is near here" search works out each candidate's distance once instead of twice with the subtraction repeated, so a 50 pc count is about 2.4 times faster.
+- **8.0.2669**: Hovering a star, system, region or nebula on the Galaxy Map now shows a small preview of it.
+- **8.0.2668**: The link, backfill, settle and block totals stages of a generation run now work on the sectors saved since the sectors stage opened, not since the run was built.
+- **8.0.2667**: The region query is timed on a table of three million real star system rows, and the design note records the figures.
+- **8.0.2666**: The Galaxy Map now has a Key that names everything it draws, on the map and in the help.
+- **8.0.2665**: A request for a habitable world now gets a temperate world with air and a sea in nearly every system (a temperate sea world was present in 5 of 30 G2V systems before and 30 of 30 now), and the class of a world with life always matches the air it ends up with.
+- **8.0.2664**: Acid-world, ammonia-water and silicon-in-acid life can now arise on worlds whose conditions fit, and sulfur, acid and cold-hydrogen life now change the air.
+- **8.0.2663**: A rocky planet's own water now follows the same delivery law as its air: more water the farther from the star and the heavier it is.
+- **8.0.2662**: Every temperature on a world's page now shows the day and night range of its own place.
+- **8.0.2661**: A body's frozen gases are now stored one by one, so a page can say how much of its ice is carbon dioxide, methane, nitrogen or ammonia.
+- **8.0.2660**: A cold moon that holds its water as ice is covered by the ice it holds, not by a toy ocean cover.
+- **8.0.2659**: Rocky planets are born spinning more slowly, so a free planet's day is now typically 7 hours instead of 3 and a Mars-sized planet can turn in a day.
+- **8.0.2658**: Two of the slowest tests finish in minutes (the pulsar fill test from 93 minutes to 73 seconds, the single-sector backfill test from 15 minutes to 2).
+- **8.0.2657**: INSTALL.md now says to raise MySQL's redo log capacity on a machine that runs the full test gate.
+- **8.0.2656**: The README now lists every external data file the program needs, with its URL and how to install it, and a test keeps the list complete.
+- **8.0.2655**: The limit on the nightly update's local offset is written down and pinned by a test.
+- **8.0.2654**: New tests show the stored block totals do not depend on the order the sectors are added in.
+- **8.0.2653**: The command line and the run log now say what every number they print counts or measures.
+- **8.0.2652**: New tests hold each kind's system chance to its table, and keep planets and moons out of a scatter row before its sector fills.
+- **8.0.2651**: A measured Solar System target can no longer be a row of a generator table, and a test lists every row that rests on a Solar System body.
+- **8.0.2650**: A giant's page opens its interior section with one sentence that says what the interior is.
+- **8.0.2649**: A planet's or moon's Life section now has a Life and air chart: how its oxygen, carbon dioxide and methane changed as the life took hold.
+- **8.0.2648**: The Sectors list opens any page as fast as the first when sorted by systems, density or galaxy position, and `planetgen planets` and `moons` page without a filter too.
+- **8.0.2647**: A giant's dynamo region and field can now be worked out from its interior layers (built, not wired in yet; nothing generated changes).
+- **8.0.2646**: Pressing Back twice quickly across a sector change now lands on the right system.
+- **8.0.2645**: A browser test now holds that at sector zoom every kind of thing a sector holds is drawn, named under the pointer and picked by a click.
+- **8.0.2644**: The component pass test that took over 900 s on a four-core machine now takes about 35 s, and the register names the open item for two more unread things.
+- **8.0.2643**: The map's info popup is now a short card that shows what a thing is at a glance, with an Expand button for the rest.
+- **8.0.2642**: Dead settings and unused helper functions are gone, and a test now fails if a tuning constant has no reader.
+- **8.0.2641**: The hours a person can be outside in a day can now be worked out from a body's stored columns; nothing is stored or shown yet.
+- **8.0.2640**: `planetgen planets` and `planetgen moons` show a page at a time instead of reading every planet or moon in the galaxy.
+- **8.0.2639**: `planetgen query near` rejects a missing distance before it opens the database, a document written to standard output starts at its first line, and ten tests that were red on main are green.
+- **8.0.2638**: Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.
+- **8.0.2637**: The All systems list opens any page as fast as the first when sorted by sector, octant or binary, as it already did by name.
+- **8.0.2636**: A world that suits a life class but where no life has started yet is no longer shown as having that life.
+- **8.0.2635**: The runs of the generation commands are now built apart from starting them, the first step toward one run for a whole Generate job.
+- **8.0.2634**: The test suite now holds standing checks on the life classes: no star letter table, no stage without a class, no Flora under ice, and no class on a solvent it does not allow.
+- **8.0.2633**: "Near this system" now measures from where the system really is, and four more tests that were red on main are green.
+- **8.0.2632**: K dwarfs are 11% of stars instead of 19%, and an M dwarf has a companion star as often as the star-count table says.
+- **8.0.2631**: The phenomena census now measures a galaxy that is Milky Way-like, so the supernova remnant, magnetar and Wolf-Rayet counts it reported as too low were the test galaxy's, not the generator's.
+- **8.0.2630**: The ground a planet is drawn with and its cloud, haze and dust draws no longer depend on its class letter.
+- **8.0.2629**: A world whose only liquid is a puddle of concentrated chloride brine now reads "Brine seep" instead of "Surface ocean", and it no longer counts as a sunlit sea for life.
+- **8.0.2628**: A giant's temperature at its 1 bar level now includes its own heat, so a Jupiter-like giant at 5 AU is near 155 K instead of 135 K and Neptune-like ones near 75 K.
+- **8.0.2627**: Radiation doses on thin-air worlds and the ozone layer now follow measured physics.
+- **8.0.2626**: The stars of a globular cluster, a young cluster or a satellite galaxy now draw their composition from their own component instead of a halo value.
+- **8.0.2625**: The colour of a world's sky now takes the colour of its own ground, ice and bare rock, and a moon keeps how it formed.
+- **8.0.2624**: Massive stars born in the youngest star-forming regions can now come with a small group of siblings a fraction of a light year away.
+- **8.0.2623**: The Phenomena list opens any page, sorted by name, as fast as the first, and every page of it is quicker to open.
+- **8.0.2622**: The docs now have a page on the bulk composition data model: what a planet or moon is made of and how its mass, radius, density and gravity follow.
+- **8.0.2621**: Bringing a galaxy to the running generator epoch now draws a scatter that is behind again, instead of stopping and telling you to do it by hand.
+- **8.0.2620**: The Species list opens any page as fast as the first one, whatever the number of species, when sorted by name, era, tech level or spacefaring.
+- **8.0.2619**: The docs now have a page on the atmosphere data model: what a planet or moon stores about its air and where each value comes from.
+- **8.0.2618**: The Galaxy Map now fills the browser window, with only 20 pixels of buffer above and below it.
+- **8.0.2617**: The sizes in the backup list now say they are in bytes, and a test checks that every number the API returns names its unit or says what it counts.
+- **8.0.2616**: The "On this page" list on an object's page is now a row of links under the tab bar instead of a column at the left, and it marks the section you are in.
+- **8.0.2615**: The Galaxy Map can mark the star systems where each of the 15 life classes lives: the Menu has a Life classes group with a marker for each class.
+- **8.0.2614**: A sweep test now checks that an Earth-like world's air settles from a cooling to a warming change of sunlight and measures its response against the published climate sensitivity.
+- **8.0.2613**: A design note describes how a Generate job will become one run instead of one run per command.
+- **8.0.2612**: Worlds around stars younger than 0.1 billion years no longer hold life.
+- **8.0.2611**: A planet's or moon's page says which life classes it supports, which one lives there and what that life eats, drinks, breathes and gives off.
+- **8.0.2610**: The inner-system share anchors of the planet architecture are two ordered tuples, so the constants test passes again.
+- **8.0.2609**: Zooming into a sector at the galaxy's core no longer gets stuck when the wheel points at a neighbouring empty cell.
+- **8.0.2608**: The API names the life class of a planet or moon and the score of every class it supports.
+- **8.0.2607**: The mass boundary table no longer shows a TODO item code in the text it prints.
+- **8.0.2606**: The one-line sources under the values of a body's page no longer name internal item numbers.
+- **8.0.2605**: What ices a comet holds (carbon dioxide, carbon monoxide) can now be worked out from where in its star's disk it formed (not yet used by the generator).
+- **8.0.2604**: The generator can now tell where a world holds liquid sulfuric acid, the medium of acid-world life.
+- **8.0.2603**: A rock's kind (basalt, granite, anorthosite and so on) can now be worked out from the oxides of the rock and how much of it melted, instead of copied from the Earth's crust (not yet used by the generator).
+- **8.0.2602**: The meteorite groups (CI, CM, ordinary, enstatite and the rest) can now be told apart from a body's own composition instead of being fixed inputs (not yet used by the generator).
+- **8.0.2601**: The sector and system commands now run as stages of the shared run, so no generating command starts a run of its own.
+- **8.0.2600**: A search with a stray life class value no longer fails, and the search tests match the new filters.
+- **8.0.2599**: How much is left in an asteroid belt is now worked out from the disk and the collisions that grind it down (not yet used by the generator).
+- **8.0.2598**: The atmosphere rows for brown dwarf types and the host-star rotation track now say what they rest on, and the brackets no source reaches are registered.
+- **8.0.2597**: The kinds of asteroid in a belt now follow the star's ice lines and its aluminium-26 instead of the Solar System's zone table (not yet used by the generator).
+- **8.0.2596**: The last design brackets of the atmosphere recipes are now rows of the stand-in registry.
+- **8.0.2595**: The stand-in rows for the planet iron scatter, the rogue-planet volatile loss and the core light elements now state what the latest data says.
+- **8.0.2594**: The Sectors table reads any page of a large galaxy in a few milliseconds when sorted by distance from the core (the default) or by name.
+- **8.0.2593**: The ammonia photolysis activity factor now has a second-hand cross-check in the stand-in registry text.
+- **8.0.2592**: How long a star stays X-ray saturated is now tabulated by mass and initial rotation from [R2183] (not yet used by the generator).
+- **8.0.2591**: The atmosphere recipe rows whose research was already built are now labelled as derived, not as a design.
+- **8.0.2590**: The aluminium-26 and iron-60 a star is born with are now derived from gamma-ray masses and the region's star formation (not yet used by the generator).
+- **8.0.2589**: The hottest a brown dwarf can be at each age is now read from the [R0254] table (not yet used by the generator).
+- **8.0.2588**: The map-luminosity fill and the habitability re-score now run as stages of the shared run, with their finishing steps inside it.
+- **8.0.2587**: The search page can now find planets and moons that could support a given kind of life, with a minimum score.
+- **8.0.2586**: The planet architecture is built as a tested model, with the observed planet occurrence the generator will be held to.
+- **8.0.2585**: A white dwarf's page no longer lists flare, X-ray and lifespan rows that it can never have.
+- **8.0.2584**: The water share of a disk's solids by temperature is now computed from [R2726] (not yet used by the generator).
+- **8.0.2583**: The generator can now name a star's evolutionary state and the age since a white dwarf stopped burning.
+- **8.0.2582**: A test now holds the generated star abundances to the [R0535] table of 1,615 dwarfs, and shows where they differ.
+- **8.0.2581**: The burn-down register names what each hand-tuned birth-spin stand-in needs before it can go.
+- **8.0.2580**: The generator can now read an alpha-enhanced star off a solar-scaled track and tie a disk star's metallicity to its age.
+- **8.0.2579**: The light of a star can now be looked up from model-atmosphere spectra by temperature and gravity, with the corona's far ultraviolet added from the MUSCLES stars.
+- **8.0.2578**: A neutron star's radius and layers can now be computed from the 21 equation-of-state tables by integrating the general-relativity structure equations.
+- **8.0.2577**: A birth-spin module gives a rocky planet's spin from the mass ratio of its last impacts, so a Mars-sized planet can turn in a day while an Earth turns in hours.
+- **8.0.2576**: A test now fails when something the app builds or downloads is never read, and setup downloads the Harris cluster catalog, the NOAA solar proton events and the [R0254] isochrones.
+- **8.0.2575**: A moon orbit module follows a planet's moons drifting out, spiralling in or falling into a ring under the planet's tide, ready for the tide chain to use.
+- **8.0.2574**: A new test keeps the generator from making a giant whose radius is read at the wrong light.
+- **8.0.2573**: A dynamo module gives a planet's magnetic moment from the power that drives its core and its spin, tested on Earth, Jupiter, Saturn, Ganymede, Mercury and a dead Mars; nothing uses it yet.
+- **8.0.2572**: A spin torque module sums a planet's star, moon and thermal-tide torques and runs its spin to the state they leave it in, ready for the tide chain to use.
+- **8.0.2571**: A tidal rheology module gives a body's Love number and quality factor from its mantle's temperature, melt and the tide's frequency, ready for the tide chain to use.
+- **8.0.2570**: The property sheet audit no longer excuses the moons' induced magnetic moment as an open gap; the column has been filled since the ocean-moon induction was built.
+- **8.0.2569**: The young-star planet test checks that no life is drawn, not which class letter a planet gets.
+- **8.0.2568**: Stepping from an open system on the Galaxy Map now crosses the sector's edge to the nearest system that way.
+- **8.0.2567**: The skeleton, clear-scatter and clean-nebula-field commands now run as stages of the shared run, so they can share one run with other commands.
+- **8.0.2566**: The browser test that clicks a black hole, a neutron star and a quasar on the Galaxy Map finds each by its tooltip, so a wheel step that moves them a few pixels no longer sends its click elsewhere.
+
+## 2026-10-29
+
+- **8.0.2565**: A new Properties page in the Help menu explains where every value on a planet, moon or star page comes from.
+- **8.0.2564**: Worlds with life now hold the gases their kind of life makes at their stage: methane and hydrogen drawdown for the hydrogen, donor and anoxygenic classes, a methane haze that follows it, and no methane once the oxygen has risen.
+- **8.0.2563**: The physics rows on a star, planet or moon page now say where their value comes from.
+- **8.0.2562**: One "Go to" for every move on the Galaxy Map, a find-a-place box that takes names, coordinates, sector designations, object IDs, regions and recent places, and a log ruler with named, clickable scales.
+- **8.0.2561**: The masses where one kind of object gives way to another are one table, each with its source and how sure it is.
+- **8.0.2560**: A scattered star or phenomenon with a neutron star or black hole in a close pair now says what kind of pair it is.
+- **8.0.2559**: The cache warm-up of sector, system and phenomenon pages is cut into short units, and emptying a scatter no longer runs one statement over millions of rows.
+- **8.0.2558**: Reset view now works after the minus button has been pressed past the end of the sector's range, where it used to do nothing.
+- **8.0.2557**: The line after a reset now says how many tables were wiped and how many rows they held, counted, instead of "about 1 row".
+- **8.0.2556**: The plan estimate for a neighbourhood run is pinned by a test against the run that showed it wrong.
+- **8.0.2555**: The progress bars in a job log are guarded by a test that they are never cut off at the log's width.
+- **8.0.2554**: The star mass function now has a test that measures the generator's stars bin by bin in mass against the published curves.
+- **8.0.2553**: The waiting-list setting's help text no longer shows an internal item code.
+- **8.0.2552**: The stellar mass function now lives in one module, so the next change to it is made in one place.
+- **8.0.2551**: Scrolling the wheel toward a dense crowd of stars now brings the camera into the crowd and stops there instead of flying through it to a star behind.
+- **8.0.2550**: Planet and moon pages now say how much of the time the star is up, and a moon shows the extra night in its planet's shadow.
+- **8.0.2549**: In a dense area no map name overlaps or crowds another, and where names must be cut the brighter or heavier thing keeps its name.
+- **8.0.2548**: The wheel now zooms in far enough on a dense cluster to single out one star from its neighbours.
+- **8.0.2547**: The class-blind life test and the prevalence tests are settled after the class cut-over (epoch 121): fixed faults lose their tags and the open ones are named.
+- **8.0.2546**: A supernova remnant on the Sector Map is now drawn from its age: young ones a thin bright rim, old ones a thick faint shell.
+- **8.0.2545**: The warm-up no longer reports an answer built on every run for a sector page whose Profile the API refuses.
+- **8.0.2544**: Superbubbles on the Galaxy Map now have a crisp rim and a fainter fill instead of three crossing rings.
+- **8.0.2543**: A planet's or moon's class is no longer drawn: every body is made from its mass, where it formed and its star, and the class letter is worked out from what it comes out as.
+- **8.0.2542**: The clear-scatter test no longer fails when an earlier test left the logger silent.
+- **8.0.2541**: A galaxy with more than 4,000 nebula field slabs no longer fails the nebula field stage; its units cover several slabs each.
+- **8.0.2540**: Anything that has to wait for the machine now waits in one list, up to eight entries (a setting), and the job strip shows the order.
+- **8.0.2539**: The class-blind life test now also runs the generator's life step and checks it gives life exactly where the life model says it can live, whatever the class letter is.
+- **8.0.2538**: The prevalence tests are settled after the life class switch (epoch 120): old tags that no longer apply are gone and the shifts it caused are named.
+- **8.0.2537**: The phenomena stage says how many phenomena it expects to place, in total and per unit, not a bare weight.
+- **8.0.2536**: The Generate page's neutron star and black hole mass choices say "1 solar mass", "2 solar masses", not a bare 1, 2, 4, 6.
+- **8.0.2535**: A visit to an uncharted sector generates nothing and queues nothing, and the old generate-on-visit entry point is gone.
+- **8.0.2534**: A world's life now belongs to one of fifteen classes, from oxygen-making plants to hydrogen eaters under the ice, and how far it gets is set by the energy and oxygen its class has to work with.
+- **8.0.2533**: A new test proves the life model gives the same answer for the same conditions whatever the planet class letter is.
+- **8.0.2532**: A generation run that stopped partway can be finished instead of wiped: `planetgen finish-run`, or "Finish the last run" on the Generate page.
+- **8.0.2531**: The Galaxy Map's near-sector request no longer fails with a server error for a point very far away, and the galaxy generation tests run in half an hour less.
+- **8.0.2530**: The Galaxy Map is closed while a galaxy generation runs.
+- **8.0.2529**: `planetgen benchmark` times the real runs instead of a sequence of its own.
+- **8.0.2528**: The hot-zone Yellow share that fell to 0 since the solved air is explained, and the class census now expects it.
+- **8.0.2527**: `planetgen galaxy` is one run in the queue, so one estimate covers the whole galaxy.
+- **8.0.2526**: Epoch and migration numbers are renumbered by one script when a branch has to follow main, instead of by hand.
+- **8.0.2525**: The migration tests no longer carry their own hand-written undo of every later migration; one helper takes a database back to any released version.
+- **8.0.2524**: `scripts/test.py` ends the queue workers an earlier run left behind before it starts, not only after it.
+- **8.0.2523**: A planet's page links to its moon system map again, and the map browser tests that the new Menu contents and the Z0 landing had turned red are repaired.
+- **8.0.2522**: The test runner's self-tests accept the child-process hook the runner gained, and the column round-trip audit knows the life ages and young-star disks are chance in a small galaxy.
+- **8.0.2521**: The Sector Map's arrow-key test waits for the view to settle before it checks that another key does nothing.
+- **8.0.2520**: What's nearby no longer chokes on the dense core: a sphere that holds more than 100,000 systems is refused with a message that says to shrink the distance, and "the nearest few" is found by trying 2, 4, 8, 16 and 32 pc in turn.
+- **8.0.2519**: The life census now measures the animal and sentient shares on worlds that have oxygenic life, as Boss chose for GEN.907, and the animal share sits inside its band.
+- **8.0.2518**: The API job-run tests finish in two minutes, the property-sheet audit knows a world without oxygen has no later life ages, and one more item code leaves the text people read.
+- **8.0.2517**: The engine behind "edit everything" can now work out, check and track a change plan, though nothing in the app uses it yet.
+- **8.0.2516**: The Galaxy Map's performance test measures a climb step after its fetch has begun and counts the icon files the map now reads.
+- **8.0.2515**: The habitable colour browser test reads what the Galaxy Map drew for each sector instead of a few faint screenshot pixels.
+- **8.0.2514**: The life census names the open item for the low animal share of life worlds.
+- **8.0.2513**: The life census report now counts the life worlds that have oxygenic life, and the notes on two known test faults name what is still open after the biogenic oxygen change.
+- **8.0.2512**: Text the program shows no longer carries internal item codes, and the red or too-slow tests of the last two days are repaired.
+- **8.0.2511**: The search-engine page matrix lists the two newest galaxy JSON endpoints on purpose.
+- **8.0.2510**: A planet or moon whose surface is hotter than its mantle's melting point no longer crashes or hangs the generator.
+- **8.0.2509**: The reset, the math check and the data check now run as recorded runs on the work queue, like every other command.
+- **8.0.2508**: Worlds with oxygenic life now grow the oxygen that life makes, and every world's life reaches each stage on a timeline drawn from its own temperature and air, so animals and civilizations appear again where the air allows them.
+- **8.0.2507**: The notes and code comments that describe the work queue now describe the queue as it was built.
+- **8.0.2506**: The Galaxy Map can mark civilizations by technology band: the Menu has a Civilization technology group with a marker for each band, from Primal to Transcendent.
+- **8.0.2505**: The old MySQL job tree is gone: its code and its four tables are deleted now that every run lives on Redis.
+- **8.0.2504**: Generation runs and web jobs no longer write the old MySQL job tree; the Redis work queue carries them, and a job keeps how long each step took in its jobs folder.
+- **8.0.2503**: Opening a sector on the Galaxy Map now dims the markers outside it, as it already dims the stars.
+- **8.0.2502**: Three browser map tests follow the layout changes of the zoom redesign and the contents menu.
+- **8.0.2501**: A sector's and a system's scene now come up because the camera is near them, in any view, not only in a window of single sectors.
+- **8.0.2500**: The update and every migration now refuse to start while jobs are active, unless you say yes.
+- **8.0.2499**: The browser test of the point-of-interest key and the habitable world marker matches the markers as they now begin on and merge.
+- **8.0.2498**: Four browser map tests that had gone red test what they meant to, the Galaxy Map keeps the whole page width again, and a hook says when an opened sector can be clicked.
+- **8.0.2497**: Crowded black holes on the Galaxy Map now merge into one mark with a count, and split as you zoom in.
+- **8.0.2496**: The Galaxy Map shows the black holes near what you are looking at, not a pile of far ones.
+- **8.0.2495**: Generating a sector is about a third faster on a slow machine, and every stored value is exactly the same.
+- **8.0.2494**: The toxic gas limits behind the survival equipment line are now read from the NIOSH Pocket Guide instead of recalled, and a test holds the gas filter grade to the physics.
+- **8.0.2493**: The property sheet now states, for every column, the physical rule that makes it not apply to a body, and a test fails when an applicable column is empty without a filed item.
+- **8.0.2492**: The composition of every kind of star, brown dwarf and remnant is now checked together against one set of rules.
+- **8.0.2491**: The Galaxy Map now shows nebulae as soft glowing groups, in the colour of their kind.
+- **8.0.2490**: The prevalence suite now checks how far the life of generated worlds gets (microbes, plants, animals, sentient) against Boss's targets.
+- **8.0.2489**: The prevalence suite now also checks the rogue planet, brown dwarf, runaway star and interstellar debris rates and the number of open clusters against the surveys.
+- **8.0.2488**: A sweep now checks that every planet and moon class can be derived from the body's conditions, and that a request for a habitable world is answered.
+- **8.0.2487**: Sector, system and object pages now say which charted region they lie in, such as "in Vang Zarh Region".
+- **8.0.2486**: A sweep now walks every possibility table of the generator and checks that its odds add up, its gates are reachable, its draws follow its weights and its open rows are listed.
+- **8.0.2485**: Every planet and moon class now passes one sweep that checks its air, temperature, ozone and clouds, and another that checks its composition against its mass, radius and description.
+- **8.0.2484**: The star system page now shows the map's symbols beside its worlds, with the collapsed "Map symbols" key under them.
+- **8.0.2483**: The Galaxy Map's data now lists the groups of nebulae inside each block, ready for the nebula layer.
+- **8.0.2482**: The prevalence suite now checks how many black holes, neutron stars, magnetars, planetary nebulae, supernova remnants and Wolf-Rayet stars the Galaxy holds against the surveys.
+- **8.0.2481**: The Galaxy Map's block prisms, outlines, sector frame, territory dots, superbubbles, made-sector rings and course line no longer jitter far from the galaxy's center.
+- **8.0.2480**: A generation job's log now ends each stage with a finish line, says why a failed run failed, and the data, orbit and reset steps write their lines into the job's records file.
+- **8.0.2479**: The complex organics density row says why it is 1.5 g/cm3 and how it relates to the 2 g/cm3 reported for Rosetta's comet.
+- **8.0.2478**: The planet mass law is tuned to the observed occurrence of giants and of super-Earths, and its stand-ins are registered.
+- **8.0.2477**: Every kind of life now has plain words for what it drinks, eats, breathes and gives off, and for each stage of its history.
+- **8.0.2476**: A test and admin switch forces a planet class into a generated system, so a sample can hold enough planets of every class.
+- **8.0.2475**: Every number in the life class rules now has a row in the list of stand-in values, with its source tier and tweak level.
+- **8.0.2474**: The generator can now score every rocky world for each of the fifteen kinds of life in the life class design, in shadow, without changing anything a player sees.
+- **8.0.2473**: The prevalence suite now checks the stars the generator makes against the local star census and the multiplicity surveys.
+- **8.0.2472**: The prevalence suite now also draws whole systems per star type and checks planet occurrence against the rates surveys measured.
+- **8.0.2471**: The design for adaptation traits says how life on a hard world gets tougher against that world's own radiation, sulfide, acid, brine, heat, carbon dioxide and low oxygen.
+- **8.0.2470**: Every number the life draw and the habitability index run on now has a stand-in registry row with its source tier and tweak level.
+- **8.0.2469**: A planet draw no longer hangs or crashes on a world whose surface is hotter than its interior would be.
+- **8.0.2468**: Inside an open system the planets and moons now carry the life, sentient life, civilization and planet class symbols when those Menu layers are on.
+- **8.0.2467**: The planet and moon page is laid out as About, Habitability, Atmosphere and Composition, with a contents menu down the left side.
+- **8.0.2466**: The Sector Map arrow-key test waits for the opening flight to land before it reads the scale, so it passes again.
+- **8.0.2465**: The wheel, buttons and pinch zoom over one range in every view, so no stage ends the zoom.
+- **8.0.2464**: A standing class census draws planets and moons per star type and zone and flags a class share, a habitability colour or a life ceiling that leaves its stored range.
+- **8.0.2463**: An admin can generate a whole block from the Galaxy Map: the block's info card has "Generate this block", which starts the same job as `planetgen sectors --block` on the Generate page.
+- **8.0.2462**: The Galaxy Map can mark the star systems that hold a world with life, with sentient life or with a civilization, each an optional marker beside the habitable worlds.
+- **8.0.2461**: The climate draws test measures the starlight the way the generator does, so it passes again.
+- **8.0.2460**: Flying to a place now lands where it was asked, the zoom slider is one scale from the galaxy to a moon, and the wheel no longer stops at the end of a window.
+- **8.0.2459**: A star picked on the Galaxy Map has a ☆ that bookmarks its system, the pointer reaches 10 px (22 px for a finger), and a crowded click lists the stars within reach.
+- **8.0.2458**: A world with water vapor in its air is no longer too hot: the vapor thins with height, as it does on the Earth, and the greenhouse sums over that profile.
+- **8.0.2457**: The Galaxy Map can mark the star systems that hold a world of a chosen planet class, one optional marker for each class, off until you turn it on.
+- **8.0.2456**: The docs now say which API version each release speaks, what each version changed, and which clients work with it.
+- **8.0.2455**: The Generate page's log, the queue's run log and update.sh now read like the downloaded log: the same timestamps, severities and stage markers.
+
+## 2026-10-28
+
+- **8.0.2454**: Whether a close-in sub-Neptune keeps or loses its hydrogen envelope now comes from the published mass-loss rate of hot planets and its star's XUV history, and the radius valley still lands where Kepler found it.
+- **8.0.2453**: The design notes now say what the generator does for the halo, the reach, the sector profile, the rate factors by place and the Wolf-Rayet stars.
+- **8.0.2452**: The Galaxy Map's legend now says what the purple wireframe cube outlines.
+- **8.0.2451**: The Galaxy Map's info card no longer cuts off its region line and buttons in a short window.
+- **8.0.2450**: The planet prevalence checks draw their sample once and share it, and the draw itself is faster.
+- **8.0.2449**: The update's final health check no longer calls a good site broken when Apache answers the bare address 127.0.0.1 with another virtual host's 403.
+- **8.0.2448**: A free-floating planet's shielding depth and radiation score now declare their true units, and a Wolf-Rayet star can carry bodies whose air is drawn.
+- **8.0.2447**: Moons and rogue planets can have rings too.
+- **8.0.2446**: The impact history, the thermosphere and the planet-survey modules take G, the Sun's mass and Earth's mass and radius from the shared constants.
+- **8.0.2445**: A planet's link in a search result row now opens the planet.
+- **8.0.2444**: The search page and API filter and sort planets and moons by habitability colour, domains, life and food.
+- **8.0.2443**: Every planet and moon now knows how much of its time the star is up, how long its day is and how many hours of daylight it has, and a moon loses the time it spends in its planet's shadow.
+- **8.0.2442**: A rocky body's stored heat flow and Urey ratio are now those at its star's final age, not the provisional younger age they were first made at.
+- **8.0.2441**: The thorium to uranium ratio of a rocky body now follows the r-process history of its host's galaxy instead of a fixed scatter, so a younger star's planets are thorium-richer.
+- **8.0.2440**: A rocky world's mantle is no hotter than the melting curve of its own rock allows, and a body measures its interior heat against its own surface temperature.
+- **8.0.2439**: A rocky world now has one tectonic regime, plate tectonics or a single rigid plate, and its interior heat, its magnetic field and its ground radiation all follow it.
+- **8.0.2438**: A page that already has its own contents list no longer shows a second "On this page" bar.
+- **8.0.2437**: When the Galaxy Map cannot name every sector, it names the heaviest ones first.
+- **8.0.2436**: A greenhouse model on real line data is built (not yet used by the generator): doubling carbon dioxide warms Earth by about a kelvin with its vapor held, and Titan's haze brings it to its measured surface.
+- **8.0.2435**: Ocean worlds hold their carbon dioxide in the ocean or the seafloor, and a dry planet is no longer given an ocean's worth of water vapor, so far fewer planets come out as steam worlds.
+- **8.0.2434**: The Galaxy Map's Menu has a Points of interest group where each kind can be shown, pulled forward or hidden.
+- **8.0.2433**: The property sheet test knows the stored ground-type mix is not a row on the page yet, so it passes again.
+- **8.0.2432**: A search that takes a while to prepare, such as all M class planets, now finishes and shows its results instead of preparing over and over.
+- **8.0.2431**: White dwarfs now cool along real model sequences, so a white dwarf's temperature, brightness and size depend on its age and hydrogen layer.
+- **8.0.2430**: The temperature edges between a hot gas giant's atmosphere regimes now agree with the equilibrium solver the rest of the atmosphere chain uses.
+- **8.0.2429**: The Galaxy Map now shows inhabited, habitable and gas giant worlds without asking.
+- **8.0.2428**: On the Galaxy Map, symbols of interest that lie too close to tell apart are drawn as one with a count.
+- **8.0.2427**: A normal fill now charts one whole named region: a random start begins at the middle of a region nothing is generated in yet, and "this region" fills the region around any place.
+- **8.0.2426**: The day and night swing now reads as a clear range with plus or minus, and the equator's temperature shows its coldest and hottest hour with the stored value exactly in the middle.
+- **8.0.2425**: Changing a planet's class in the admin editor works again for a planet whose spacing is checked against an asteroid belt.
+- **8.0.2424**: Population is a ranking slot on the server: worlds with people rank by head count, the rest by habitability score, and the charted-regions list can carry a region's population once head counts are stored.
+- **8.0.2423**: On the Galaxy Map a world with an inhabited symbol is named before a habitable one when names must be chosen.
+- **8.0.2422**: From far out, a charted region with an inhabited world carries the inhabited symbol at its middle.
+- **8.0.2421**: A Wolf-Rayet star now has a composition record, its subtype choosing which surface mix it takes.
+- **8.0.2420**: Every number on a planet's page now says what it is: a thin ice shell reads "1.09 m", the water share "400 ppm", life scores "3 of 9", and a day and night swing of 9.07 K is no longer shown as -264 °C.
+- **8.0.2419**: The Galaxy Map's block totals now follow edits: changing a star, a world or a system in a generated sector, or deleting a system, updates that sector's figures and the blocks above it at once.
+- **8.0.2418**: A test now holds every body's stored density, scale height, greenhouse and albedo to its stored air.
+- **8.0.2417**: Every gas the planet descriptions name now comes from the gas table, and the atmosphere text is written only from the stored mixture.
+- **8.0.2416**: Inside an open system the Galaxy Map's world symbols move from the star onto the planets, moons and belts themselves.
+- **8.0.2415**: Seventeen tests that failed on main (TEST.416, TEST.421, GEN.847) now fit the ground dose and the habitable-world scores as they are; the generator itself was right.
+- **8.0.2414**: The map now keeps the total mass of every generated sector, block and named region, so a region can be told apart by how much matter it holds.
+- **8.0.2413**: The Galaxy Map can mark systems with inhabited worlds, in the colour of their habitability, ahead of every other kind of world.
+- **8.0.2412**: A table whose clustered index has a page the server cannot read can now be rebuilt in two steps with `planetgen repair-db --salvage` and `--reload`, and the rows the page took come back from the parity file.
+- **8.0.2411**: The Galaxy Map can mark systems with barren worlds and asteroid belts too, each star showing the symbol of its best world.
+- **8.0.2410**: `planetgen repair-db` rebuilds damaged sectors from the parity file, so a flipped value or a lost row in a sector can be mended instead of regenerating the sector.
+- **8.0.2409**: The star glow now fades out much sooner, so blurred stars no longer leave huge faint halos over most of the screen.
+- **8.0.2408**: The Galaxy Map can mark the systems that hold a gas giant or a Yellow-or-better world, each with a reason you can read in its infobox.
+- **8.0.2407**: An optional parity file beside the database can now rebuild a damaged sector: it is kept current as sectors are saved, edited and deleted, and `planetgen refresh-parity` builds it for a galaxy made before.
+- **8.0.2406**: Building the nebula blocks of the Galaxy Map needs about a seventh of the memory.
+- **8.0.2405**: `planetgen benchmark --suite --keep` now leaves the scratch databases after a run that succeeded.
+- **8.0.2404**: A work unit no longer runs the whole database schema again when it connects.
+- **8.0.2403**: The stars, planets and moons of a system you open in the Galaxy Map's sector now turn slowly on their axes, and a Spin switch in the Menu holds them still.
+- **8.0.2402**: The Galaxy Map marks every charted region as a soft sphere colored by how much of it is charted, names it, frames the region you are in, and lists them all in the Menu.
+- **8.0.2401**: A world whose air lets no visible light down no longer stops generation; it gets a defined colour.
+- **8.0.2400**: The Generate page has a task that brings a stored galaxy to the running generator epoch, showing what it would redo before anything runs.
+- **8.0.2399**: The compact-object orbit tests draw a companion again.
+- **8.0.2398**: The Galaxy Map now names the charted regions as you zoom: the family far out, each region closer in.
+- **8.0.2397**: With a system opened on the Galaxy Map, the step buttons and keys take you to the nearest system that lies the way you point.
+- **8.0.2396**: The test that opens a sector by zooming in no longer fails when the camera comes up to a neighbouring sector.
+- **8.0.2395**: With a sector opened on the Galaxy Map, the step buttons and keys take you to the sector beside it.
+- **8.0.2394**: A galaxy now records which epoch each scatter, each sector's contents and each species was made under, so a later run can tell which parts are behind the code.
+- **8.0.2393**: `planetgen bring-to-epoch` brings a stored galaxy to the running generator epoch without a full regeneration: it generates again only the sectors an epoch change altered and leaves edited sectors alone.
+- **8.0.2392**: The admin statistics and queue tiles now say what they count, and every numeric setting names its unit.
+- **8.0.2391**: Opening a sector on the Galaxy Map dims the space around it, frames it with a fixed wireframe, and puts a labelled icon on each wall that leads to the next sector.
+- **8.0.2390**: The Galaxy Map's node path has a benchmark that fails when a dive, a flight or a climb stalls.
+- **8.0.2389**: Every number an API request takes now states its unit in its name or its description, and a test keeps it that way.
+- **8.0.2388**: The map now has its own symbols for points of interest: habitable, uninhabitable and inhabited worlds, gas giants, asteroid fields, sectors and regions, each its own shape, with a key.
+- **8.0.2387**: Every sector can now carry a checksum of what it stores, and every change to a sector says so, so damage to stored data can be told from a normal update.
+- **8.0.2386**: Stars on the Galaxy Map and the Sector Map now glow brighter instead of growing bigger.
+- **8.0.2385**: A magnetised world now has radiation belts, with a dose for any orbit inside them.
+- **8.0.2384**: The rendered example on every star, planet and moon page now turns slowly on its axis.
+- **8.0.2383**: Flying to a named region on the Galaxy Map frames the whole charted region in the window.
+- **8.0.2382**: The search for a planet's exobase can no longer run for ever on a bad input, the escape calculation is a little faster with the same results, and the class P versus class M temperature test no longer times out.
+- **8.0.2381**: The Galaxy Map's info card says which named region a pick lies in, and its names fly you there.
+- **8.0.2380**: The tide of a body's real orbit heats it and wears down its spin: Io-like moons melt and radiate, Mercury-like worlds are caught in a resonance, hot Jupiters lock, and the Moon-like ones stay cold.
+- **8.0.2379**: Planets and moons now travel on real ellipses, with seasons from the changing distance to their star.
+- **8.0.2378**: The named regions now have their own design page and a check that neighbouring regions never share a name.
+- **8.0.2377**: The Galaxy Map's data now carries the name of every charted region, ready for the map to label.
+- **8.0.2376**: The Galaxy Map's names are shared out between kinds of thing, so a crowded view names some of everything and a sparse view names everything it draws.
+- **8.0.2375**: Every planet and moon with air now stores the colour of that air, ready for the maps to paint with.
+- **8.0.2374**: The Galaxy Map can step to the region beside the one you are viewing, at the same level, without zooming out and back in.
+- **8.0.2373**: The admin pages and the system page's edit dialogs now use the same form fields as the rest of the site.
+- **8.0.2372**: The map browser tests that failed on main (TEST.394, TEST.383) now fit the map as it is: a window that holds the header and the canvas, names kept off the spot a test points at, and the open Menu closed before a click on the map.
+- **8.0.2371**: The numbers behind young star groups now each say where they came from and how far they were bent.
+- **8.0.2370**: The map now keeps a record of each named region: how much of it is generated and the sphere that frames it.
+- **8.0.2369**: Two atmosphere tests that were red on main now check what the water-delivery law and the escape model deliberately do.
+- **8.0.2368**: What a planet or moon is made of is now written from the composition it was actually drawn with, and a giant's page lists its layers.
+- **8.0.2367**: Galaxy regions now have names and a sphere to frame them, built from the map's block grid.
+- **8.0.2366**: The sulfur a world keeps in its air is what the sulfate and sulfide sinks of its crust leave, instead of a drawn share.
+- **8.0.2365**: The pinned-galaxy test builds the galaxy once at one worker, so `golden_update` and the golden test of every generation merge take about half as long; the one-worker-against-four-worker comparison runs in the end-of-version run.
+- **8.0.2364**: Generation now knows which cloud a new system sits in: a system placed inside one of the galaxy's molecular clouds gets that cloud, its far-ultraviolet radiation tier and its aluminium-26 enrichment while it is made.
+- **8.0.2363**: The update's reload check no longer fails just because the site is closed for the update.
+
+## 2026-10-25
+
+- **8.0.2362**: The Galaxy Map's unresolved star glow no longer floods the view: it fades out as the stars resolve and never builds up to white.
+- **8.0.2361**: `python -m tests.golden_update` now raises the epoch before it writes the golden files, so one run leaves a tree that `test_golden_seed` accepts; a generation merge no longer needs a second run.
+- **8.0.2360**: The tuning surveys read the Sun's radius from the one shared constant instead of four typed copies.
+- **8.0.2359**: Planets have rings: a giant always has a ring system, with its edges, mass, optical depth and ice drawn from the Roche limit, its moons and the snow line.
+- **8.0.2358**: A comet's eccentricity and the 3D system view's time speed now say what the number is.
+- **8.0.2357**: Scrolling in on the Galaxy Map now carries all the way from the whole galaxy into a star's system.
+- **8.0.2356**: The radius valley is now checked against how it shifts with the star's mass and brightness, and its open choices are recorded.
+- **8.0.2355**: Every rocky planet and moon now has a stored ground: the minerals, ices and ocean that cover its surface.
+- **8.0.2354**: Planets, moons and stars in the system views now turn slowly on their own axes, each at a rate that follows its real day.
+- **8.0.2353**: The Galaxy Map's info card is set at a reading size with its details under a More fold, and the layer legend no longer covers the scale.
+- **8.0.2352**: The route fuzz test no longer expects a redirect from the queue run's log download, which has answered 403 to a signed-out visitor since SEC.36.
+- **8.0.2351**: A planet with moons has its own moon system map: ellipses, the planet at the scale of the orbits, and a True scale switch.
+- **8.0.2350**: The version code stored with a galaxy seed now carries the API version, the database schema and the generator epoch.
+- **8.0.2349**: The tests that assumed a class sets the air now expect the air that GEN.411 solves, including none.
+- **8.0.2348**: A brown dwarf's L, T or Y type is now drawn with the scatter of the 20 pc census instead of read from one mean temperature.
+- **8.0.2347**: The Galaxy Map names the stars and other objects it draws, and a click on a name selects that item and flies to it.
+- **8.0.2346**: Flying to a star system, a planet with moons or a nebula frames it to fill the view.
+- **8.0.2345**: A planet's or moon's air, pressure and surface temperature now come from its interior, its sinks and its greenhouse together, not from a range set by its class.
+- **8.0.2344**: A test run now ends the queue workers it started and did not stop, and says how many it found.
+- **8.0.2343**: When a world loses part of its air, its ozone and its ultraviolet index can now follow it.
+- **8.0.2342**: A main-sequence star now takes its brightness, colour and size from the MIST isochrones at its mass, age and composition, and it brightens as it ages.
+- **8.0.2341**: The Galaxy Map's cards fit the map's window and a system's card lists its nearest systems.
+- **8.0.2340**: The hours a person can be outside in a day are now worked out from daylight, dose, heat, cold, air and ultraviolet, with the binding limit named; nothing is stored or shown yet.
+- **8.0.2339**: What a small or hot planet loses from its air now comes from a model of its thermosphere and its star's XUV history, instead of a fixed ratio of temperatures and a rule of thumb.
+- **8.0.2338**: One page test no longer fails on a machine whose MySQL has no `planetgen` login.
+- **8.0.2337**: A queue worker that dies soon after it started is replaced at once instead of after about 90 seconds, and two tests that were red on main are fixed.
+- **8.0.2336**: A planet with an ocean and no land now has a carbon sink in the model, so its carbon dioxide no longer has to stay in the air.
+- **8.0.2335**: The Galaxy Map has no sector boxes any more: a click selects the star or object under it and shows its details, and a double click flies to it.
+- **8.0.2334**: A moon's makeup now follows from how it formed, so icy captured moons and rocky impact moons differ in density, ice and metal.
+- **8.0.2333**: The "/9" beside a life score is now easy enough to read on white, and the accessibility test waits for the Generate system menu to finish building.
+- **8.0.2332**: The water a rocky planet is drawn to start with now follows the Bern population synthesis against how far from its star it formed and its mass, as one law, instead of a mass-only law plus snow-line guesses.
+- **8.0.2331**: Suggested facility ratings now read the host's Suitability, food rung, radiation domain and Flora and Fauna, so a facility on a hard-to-live-on world no longer rates Health and Housing from the overall score alone.
+- **8.0.2330**: The browser tests no longer fail with "50 per 1 hour" rate-limit errors, and each app now follows its own API request limit.
+- **8.0.2329**: The words "rough guess" are gone from every time estimate; a time that has not been timed yet is shown as a range and says so.
+- **8.0.2328**: An admin edit now works the light a planet sums over the stars out again before the scores are rewritten, so a body in a binary system no longer keeps a habitability score from before the edit.
+- **8.0.2327**: A rogue planet now has a habitability score, so an ocean under its ice or under a hydrogen envelope is rated like any other world.
+- **8.0.2326**: A lava world's vapor now lists aluminium (Al, AlO, Al2O, AlO2, Al2O2) in the proportion its melt gives, instead of none.
+- **8.0.2325**: The two 20 percent water rows of the ocean-world table in the design notes are recomputed from the built code, and a test now holds every row of that table to it.
+- **8.0.2324**: Small bodies now have moons at the rates observed for asteroids and trans-Neptunian objects.
+- **8.0.2323**: The command line, the run log file and the job download now write the same log records.
+- **8.0.2322**: The carbon and nitrogen a rocky planet's mantle holds now match what the Earth, Venus and Mars are known to hold, so worlds at the Earth's distance no longer start with hundreds of bar of nitrogen.
+- **8.0.2321**: The sulfate and sulfide balance that decides how much of the sulfur a volcano gives stays in the air is built as a module; nothing calls it yet.
+- **8.0.2320**: A rocky planet's iron no longer copies its star exactly: it scatters about the star's, and a rare planet is iron-rich.
+- **8.0.2319**: The progress bars, the Generate page's progress line and the Queue page's stage table now say what their counts count.
+- **8.0.2318**: The planet generator now has a model of the volatiles that late impacts deliver to a rocky planet and the air they blow away.
+- **8.0.2317**: The redox of a rocky world's magma ocean now follows the published ranges: its spread grows with mass, it keeps rising above one Earth mass, and the later mantle is never more reduced than the ocean it came from.
+- **8.0.2316**: The gas table now holds K2, KO, K2O, Na2O and Al, so the vapor over a lava world lists the alkali oxides it makes instead of dropping them.
+- **8.0.2315**: A dry, frozen or hot world can now hold liquid water underground, which lifts its Water rating and lets microbes live there.
+- **8.0.2314**: Two research notes check the water-delivery and magma-ocean redox rows against first-hand sources; rows a1 and a2 are now listed as partly verified instead of stand-ins.
+- **8.0.2313**: Two tests that were red on main (the sector save report that took over 15 minutes, and the Generate anyway log) now test what they meant to.
+- **8.0.2312**: A few very young massive stars now start in a small group that is about to break up.
+- **8.0.2311**: The life scores show their scale and the search tag counts say what they count.
+- **8.0.2310**: The four open weight tables of the bulk and moon recipes now carry a researched stand-in, a source tier, a tweak level and a replacing item.
+- **8.0.2309**: A report now shows which property-sheet columns are never filled for which kind of world.
+- **8.0.2308**: A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
+- **8.0.2307**: The population pass and the territories pass are now two commands, `planetgen population` and `planetgen territories`.
+- **8.0.2306**: Pages get an "On this page" contents list, and every page is checked for a clean heading outline.
+- **8.0.2305**: `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
+- **8.0.2304**: `scripts/test.py` checks MySQL, Redis and the test setup before a run, restarts a server that dies during it and carries on without redoing the tests that passed; `full` is no longer called the merge gate.
+- **8.0.2303**: The update reloads the web server more safely: it tests Apache's configuration first, covers gunicorn hosts, and checks the site answers.
+- **8.0.2302**: The run log download answers a plain 403 to someone who is not signed in as an admin, like the other file downloads, instead of a login redirect.
+- **8.0.2301**: An account can have a picture, and it may be a GIF, an animated GIF too, checked under frame and pixel caps and stored as a clean copy.
+- **8.0.2300**: Rows that were never stored are no longer listed on object pages.
+- **8.0.2299**: A sector that drawing cannot make to a habitable-worlds minimum is now met by a forced fill, and an impossible request is refused up front.
+- **8.0.2298**: The breadcrumb trail calls the system link "System" and the star link by the star's name.
+- **8.0.2297**: The sections of an object page start collapsed, and a link to one opens it.
+- **8.0.2296**: A world with no life, no air or no water says so in a sentence instead of a table of zeros.
+- **8.0.2295**: The life and timeline paragraphs of a world are written from its stored row alone, and an edit keeps the life a world already has.
+- **8.0.2294**: The Generate pages' boxes are now the same form fields as the rest of the site, and they still line up.
+- **8.0.2293**: The Queue page can start the habitability re-score and the map-luminosity fill with a button.
+- **8.0.2292**: A server with no timing history now shows a rough time left, labelled as a guess, instead of "estimating".
+- **8.0.2291**: The Location block is tidier, there is one Nav button, and the composition-origin row is gone.
+- **8.0.2290**: The map browser tests have a dense fixture galaxy to fly into, ready for the zoom, label, pick and icon work.
+- **8.0.2289**: The Galaxy Map's sector blocks draw again: the sectors' colour (such as Color by Habitable worlds) was missing since the one-star-buffer change, and the sector page map failed at phone width.
+- **8.0.2288**: Every stand-in value now has a source tier and a tweak level, and one generated page lists them all.
+- **8.0.2287**: A star or system told to have no binaries (or exactly one star) no longer gets a white dwarf or other compact companion anyway.
+- **8.0.2286**: The Suitability line no longer says water is available when the Water row says it is undrinkable.
+- **8.0.2285**: The plan's "about N stars expected" for the massive-star and bright-star passes now matches what the passes place, and each unit line says the stars it expects.
+- **8.0.2284**: `planetgen sectors --block` fills one block of the Galaxy Map's ladder, and an admin API route starts the same fill as a job.
+- **8.0.2283**: Every generator epoch now says which stages of generation it changed, the first step to bringing an existing galaxy up to date without regenerating all of it.
+- **8.0.2282**: Five tests that went red on main when the air moved into the gas tables, the queue ETA became a dict and the Radiation describer came back now match the code.
+
+## 2026-10-24
+
+- **8.0.2281**: 56 unused imports, 12 duplicate imports and 13 unused variables are gone from the code, and a loop variable no longer hides the `html` module in the TODO page builder.
+- **8.0.2280**: A pinned test now checks that a fixed seed still makes exactly the same sectors, at one worker and at four, so a change to what the generator makes can no longer slip in unnoticed.
+- **8.0.2279**: The habitability icons now open the habitability section of the planet's own page.
+- **8.0.2278**: The class page tests' fake property sheet names its kind, so the six phenomenon page tests pass again.
+- **8.0.2277**: The picture upload now reads only PNG, JPEG and ICO files, and Pillow moves to 13.0.0, which fixes 37 reported flaws in its image decoders.
+- **8.0.2276**: Every call to the API now leaves one line in the activity log with who made it, how it came in, the route and the HTTP response code.
+- **8.0.2275**: Black hole, neutron star, nebula and other phenomenon pages now open with an "At a glance" table that starts with the keep-out radius.
+- **8.0.2274**: Sector pages now open with an "At a glance" table of what is in the sector and what to avoid.
+- **8.0.2273**: The Galaxy Map's window now takes the whole width of the page and the height the browser window leaves, so its shape follows the window's.
+- **8.0.2272**: The habitability help page now says that a heavier planet's habitable zone starts nearer its star, and that cool stars' planets may have lost water early.
+- **8.0.2271**: The 3D system view draws every star, planet and moon from its look record, the same one the System Map paints from, instead of colouring it by class letter.
+- **8.0.2270**: Two small parts that let the generator call the atmosphere mixture draw are in: the description of a body it reads, and what an ocean takes out of the drawn air.
+- **8.0.2269**: Cold icy worlds now trap gas in ice cages, and cold dry worlds can keep liquid brine below the freezing point of water.
+- **8.0.2268**: The habitability help page now says what sets each of the four life scores and where the food rating comes from.
+- **8.0.2267**: The phenomena scatter no longer holds gigabytes in one process, and the block light totals at its end show their progress instead of going quiet.
+- **8.0.2266**: A giant's interior summary now shows on its property sheet.
+- **8.0.2265**: Star and system pages now open with an "At a glance" table of what a captain needs first.
+- **8.0.2264**: Planet and moon pages now open with an "At a glance" table of what a captain needs first, and leave out properties that hold nothing.
+- **8.0.2263**: The cache warm-up no longer fails on a galaxy with more chunks than one stage can queue as units.
+- **8.0.2262**: The object page walk test reads the bodies it opens from the database, not from a loop of API calls that could run out of the API's rate limit.
+- **8.0.2261**: Planet and moon pages now open with an "At a glance" table of what a captain needs first, and leave out properties that hold nothing.
+- **8.0.2260**: The Galaxy Map keeps its stars in one buffer that each node adds to as it arrives, and positions are exact however far from the galaxy's center the camera is.
+- **8.0.2259**: The surface pressure of a rocky world now has a physical law behind it: how much gas its interior has delivered by its age and what the ocean and the carbonate-silicate cycle take back, calibrated on the Earth and checked on Venus.
+- **8.0.2258**: A world's air is now stored gas by gas in its own tables, so any gas of the gas table can be in an atmosphere and the balance gas of a giant (helium) or a hot world (sodium) is a stored gas like the rest.
+- **8.0.2257**: The test gate runs the tests that start real queue workers one at a time and cuts its worker count to the memory and idle cores the machine has.
+- **8.0.2256**: Scrolling in on the Galaxy Map no longer stalls or drifts away from the stars: it carries on down to a sector.
+- **8.0.2255**: A planet past its star's runaway greenhouse limit while the star was young now loses water, and the limit itself depends on the planet's mass.
+- **8.0.2254**: Two tests that went red when the star disk columns and the primordial heat model landed now match them, and a release note that failed the version check is fixed.
+- **8.0.2253**: Three tests that still described pages as they were before UX.173 and the Radiation table now match the pages, and the object page walk makes far fewer API calls.
+- **8.0.2252**: The example cloud setup script now leaves a fresh machine with Firefox and the static datasets, so the browser and generation tests run.
+- **8.0.2251**: The old queue executor is removed; nothing in a run used it any more.
+- **8.0.2250**: A Generate run no longer dies with "Execution not found in Redis" after its sectors are saved.
+- **8.0.2249**: A giant's layered interior is now saved with the world and read back with it.
+- **8.0.2248**: The Galaxy Map shows the light of the stars too far away to tell apart as a soft glow that turns into stars as you zoom in, and the Menu can switch it off.
+- **8.0.2247**: The gas giant density test no longer fails on about one run in six, and the slow scatter-pass tests get a timeout that fits a loaded machine.
+- **8.0.2246**: The population model, the tuning table and the body-look pressure convert milliparsecs, megayears and pascals through the one unit registry, with the same numbers.
+- **8.0.2245**: Moons now have an origin, and a moon caught from elsewhere can orbit backwards or steeply tilted.
+- **8.0.2244**: The mail server, the site's address and the From address now open only for the Owner, after typing the password again.
+- **8.0.2243**: How old a star must be to host a planet now depends on the planet's air, temperature and gravity, not on its class letter.
+- **8.0.2242**: A real Stop everything: one button, one command and one update option end every run, queue and worker process on the server and keep it quiet until you resume.
+- **8.0.2241**: Every Generate job log now says how much memory each step used, and a nightly small New galaxy run fails when a step uses far more than its budget.
+- **8.0.2240**: The every-button browser test waits for the 3D system view to finish loading before it clicks.
+- **8.0.2239**: The facility and population system page tests follow what UX.173 and UX.176 moved to the body's own page.
+- **8.0.2238**: The atmosphere recipe draw no longer gives a far comet a rocky planet's gas, and an ocean world with plate tectonics no longer draws a carbon dioxide and sulfur air.
+- **8.0.2237**: The habitable-systems table is on the lists the schema tests keep, so three tests that failed since MAP.220 pass.
+- **8.0.2236**: The Galaxy Map now draws the sector-block nodes by their size on screen and the cube tiles are gone, so a zoom no longer swaps one set of tiles for another.
+- **8.0.2235**: The browser tests' shared sample fixture no longer errors at setup on a fresh galaxy.
+- **8.0.2234**: Every globular cluster and superbubble now has a page of its own.
+- **8.0.2233**: The atmosphere chemistry now has one equilibrium solver and one thermodynamic data table instead of two.
+- **8.0.2232**: Every facility now has a page of its own, reached from the lists that name it.
+- **8.0.2231**: A planet's or moon's page now shows the heat flowing out of its interior and the two draws behind it.
+- **8.0.2230**: Neutron stars and black holes now have the accreting companions astronomers see: high-mass and low-mass X-ray binaries, microquasars, spider millisecond pulsars and compact triples, each with an X-ray luminosity under its Eddington limit.
+- **8.0.2229**: The 2D System Map now shows the stars beyond the pair of a triple or larger system, each with its own planets.
+- **8.0.2228**: A planet's details now show where its radiation comes from, term by term, with the air, magnetic field, ozone and rock that set each one.
+- **8.0.2227**: The admin edit tests post to the body's own page, and the phenomenon class-link tests stub the property sheet the page now reads.
+- **8.0.2226**: The program has one log record and one way to write it, ready for every log to move onto.
+- **8.0.2225**: The API version is 7 and records the shell, band and wedge address change, and every outgoing request now sends the standard User-Agent (the page scripts send the API version header).
+- **8.0.2224**: A planet's inner heat is now the heat its rock makes plus the heat it was born with, so a young world is much hotter than an old one and no longer a fixed share radiogenic.
+- **8.0.2223**: Every phenomenon page now says what the object is in words, and links to the phenomenon before and after it.
+- **8.0.2222**: A sector holds the same stars and systems whichever order a galaxy's sectors are generated in.
+- **8.0.2221**: Where an atmosphere freezes out is now worked out from the checked saturation curves, so hydrogen sulphide, carbon dioxide and sulphur dioxide land at the right temperatures.
+- **8.0.2220**: The server now refuses to run more worker processes than its memory and cores can hold, whatever starts them.
+- **8.0.2219**: Every planet and moon list, system tree, object page and API answer now shows the four life scores (Microbial, Flora, Fauna, Sentient, 0 to 9) beside the PHI-6 symbols.
+- **8.0.2218**: Every guessed number in the atmosphere mixture draw is now listed with what it rests on and what will replace it.
+- **8.0.2217**: A hot star's nebula is lit by the star the place drew, not by whichever star of its system is heaviest.
+- **8.0.2216**: A burst of map requests can no longer start over a hundred queue workers and run the server out of memory.
+- **8.0.2215**: The Queue page lists the runs in Redis with their stages and time left, cancel stops a run at once, and a stuck run can be cleared.
+- **8.0.2214**: The chance that a planet is a water world now rises with its mass as in the Bern population synthesis.
+- **8.0.2213**: The envelope rows of the atmosphere recipes are tuned to the observed radius valley.
+- **8.0.2212**: The database layer and the edit pages convert AU, km, years and parsecs through the one unit registry, with the same numbers.
+- **8.0.2211**: The tide that heats an icy moon now feeds the ocean's life under its ice, so Europa- and Enceladus-like moons score on their real heat.
+- **8.0.2210**: The two stars of a pair now sit where the system's orbit tree puts them.
+- **8.0.2209**: Each update now says whether it changed the generated output.
+- **8.0.2208**: Every phenomenon page lists all of its stored properties, the same way a planet's page does.
+- **8.0.2207**: The system page and the sector page list their contents as trees of links to each object's own page.
+- **8.0.2206**: The galaxy tile test expects the habitable-system `worlds` section, and the accessibility fixture names the response when a system read fails.
+- **8.0.2205**: The summary tree on the object pages is drawn properly again.
+- **8.0.2204**: Planets, moons, stars, belts and comets each have a full page of their own.
+- **8.0.2203**: `GET /api/objects/&lt;ref>/children` now pages through what belongs to a sector, system, star or planet, with the counts a tree row needs.
+- **8.0.2202**: Every star, planet, moon, asteroid belt and comet now has one property table served at `GET /api/objects/&lt;ref>/sheet`, with a test that fails when a stored column is missing from it.
+- **8.0.2201**: The System Map and the sector pages name things through the same label engine as the Galaxy Map.
+- **8.0.2200**: A planet's or moon's ocean and ice are now as deep as compressed water really is: a world with a tenth of its mass in water has a 746 km layer, not the 1,047 km of a fixed density.
+- **8.0.2199**: A data table whose rows are slow to build shows a progress bar instead of stalling.
+- **8.0.2198**: The star scatter's units for globular clusters and satellite galaxies now say how many stars they will place, so the log and the progress bar no longer promise ten to twenty times too many.
+- **8.0.2197**: A comet's organic material now has one density, the shared table's, so a comet nucleus is a little lighter than before.
+- **8.0.2196**: The greenhouse optical depth of an atmosphere is now worked out from its gases as a spectrum, and a bug that made very thick atmospheres far too hot in the greenhouse closure is fixed; nothing a visitor sees changes yet.
+- **8.0.2195**: The libraries the site ships itself are now locked: a test fails when a vendored file is edited by accident.
+- **8.0.2194**: The interrupt tests of the work queue wait long enough for a loaded machine to save its first sector.
+- **8.0.2193**: Two tests of scattered stars no longer assume the row's star is the system's primary or its first star.
+- **8.0.2192**: Every scored planet and moon carries four life scores, Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), in place of the old habitability numbers.
+- **8.0.2191**: The rule for changing the `sectors` table is written down: batch the changes, say the rebuild cost, keep the name index.
+- **8.0.2190**: The extra stars of a triple or larger system now have planets of their own.
+- **8.0.2189**: The Galaxy Map now names sectors, stars, planets and nebulae, and what you pick stays picked as you zoom.
+- **8.0.2188**: The size and time estimate for a generation run is no longer inflated by the scatter's tables, the progress bars keep their elapsed and remaining times in a job log, and the wipe line no longer quotes a stale row count (PERF.178, PERF.179, UX.164).
+- **8.0.2187**: The planet, magnetism, hydrosphere and star-radius code now converts lengths, times, pressures and densities through the one unit registry, with the same numbers.
+- **8.0.2186**: The page cache no longer grows past its entry limit for pages kept without a database.
+- **8.0.2185**: A world's drawn dust haze now decides whether a visitor should wear a dust filter.
+- **8.0.2184**: The habitability help page now explains the Galaxy Map's habitable-world colouring and markers, the regional temperatures and the equipment chips.
+- **8.0.2183**: The habitability system is now checked end to end in a browser, on a real database, so the symbols, the sector colours, the habitable-world markers and the help links cannot drift from the scores the generator stores.
+- **8.0.2182**: The phenomena scatter's first log line now says which compact objects the mass cut scatters and which it leaves to the sectors, so a run at the default cut no longer reads as black holes without neutron stars.
+- **8.0.2181**: The air's density, scale height and greenhouse warming can now be worked out from its gases.
+- **8.0.2180**: A giant planet's radius, heavy elements and layered interior are now drawn together, from the star's own light and age.
+- **8.0.2179**: The wiki upload is gone: planetGen no longer talks to Wiki.js or MediaWiki, and a system's write-up is exported as Markdown (or plain text).
+- **8.0.2178**: A sector the Galaxy Map generates when you visit it now counts in the block totals at once.
+- **8.0.2177**: Asteroid belts, comets and interstellar comets are now made of real materials, and their densities and masses follow from what they are made of.
+- **8.0.2176**: A world's Radiation rating now includes its ground ultraviolet, so an oxygen world with no ozone layer or a very bright star no longer rates Blue.
+- **8.0.2175**: Every star now draws its birth [Fe/H] first, and its lifetime, subgiant and giant branch and horizontal-branch colour follow that composition.
+- **8.0.2174**: The admin status page and the API health check now show the generator version, the one number that says which rules made a galaxy.
+- **8.0.2173**: The planet mass law without a class letter is built: a planet's mass comes from the disk's solids at its formation distance, giant impacts and core accretion.
+- **8.0.2172**: The species tech filter test no longer fails when the population pass makes a species above tech 6.
+- **8.0.2171**: The hosted nebula row tests no longer fail when the built star draws a heavier companion.
+- **8.0.2170**: Every test that drives headless Chromium now runs in the browser phase of the test runner, not beside the all-core tests.
+- **8.0.2169**: The Galaxy Map can mark the star systems that hold a habitable world: turn on "Habitable worlds" in the Menu and each gets a glyph you can hover (how many) and click (its card and page).
+- **8.0.2168**: The Galaxy Map no longer draws translucent blocks; cells show only when you ask, and a click selects the sector under it.
+- **8.0.2167**: The Galaxy Map's data can now be read as sector-block nodes, with the light of every block stored, the first step to one continuous map that has no zoom stages.
+- **8.0.2166**: The frozen nitrogen air of a rogue planet and the boiling point of water now come from the one vapor-pressure function.
+- **8.0.2165**: The bright-star backfill draws the stars of a sparse block of cells with one count for the block instead of a draw in every cell.
+- **8.0.2164**: A world's stored UV index now comes from the light that reaches its ground, so ozone, air, haze and the star's own ultraviolet move it.
+- **8.0.2163**: The migration history now starts at schema v130, so a database older than that has to be dropped and regenerated.
+- **8.0.2162**: White dwarfs now have the binary kinds astronomers see: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM Canum Venaticorum binaries, and barium and symbiotic giants.
+- **8.0.2161**: Debug mode now writes every decision of a run, the queue workers' included, to stdout and to the debug log.
+- **8.0.2160**: Twenty-three more files in generation, galaxy and population convert lengths and times through the one unit registry, with the same numbers.
+- **8.0.2159**: The research behind the moons of ejected and isolated planets is written down with its sources and its gaps.
+- **8.0.2158**: A generation stage whose longest unit ran over five minutes is now reported in the run's log.
+- **8.0.2157**: Survival equipment now sits under the habitability rows that ask for it, not under a Blue one.
+- **8.0.2156**: A system asked to have both an asteroid belt and a habitable world no longer loses the belt on a small red dwarf now and then.
+- **8.0.2155**: A world is now called habitable when its overall PHI-6 colour is Blue or Green, in one place, instead of by its class letter.
+- **8.0.2154**: The stars of a system are drawn as a tree, so systems of three or more stars now come out of the fill.
+- **8.0.2153**: The Galaxy Map's block ladder now runs up from 243 sectors to a root of three blocks, the nodes the single-space map will be drawn from.
+- **8.0.2152**: Every star now carries its own ultraviolet-C share, and a planet or moon's ground light and UV index can be read from what it stores.
+- **8.0.2151**: A body's radius, density and gravity can be worked out from its mass and bulk composition: a reference solver and the fast fits for dry rock, water worlds and sub-Neptunes.
+- **8.0.2150**: Every planet and moon now has a bulk composition (iron, rock, water, other ices, envelope) drawn from its star's own abundances, and its mass, density and gravity follow from it.
+- **8.0.2149**: The rows of a planet's habitability table now name the gear their category needs, from the same list as the Required and Recommended line above them.
+- **8.0.2148**: A database that has its tables but no recorded schema version is now refused with a clear message instead of being guessed at.
+- **8.0.2147**: Zooming into a window of the Galaxy Map no longer hides the stars and clouds outside it.
+- **8.0.2146**: A planet page now states one pace, one chemistry and one set of milestones and ages for its life, so its paragraphs can no longer contradict each other.
+- **8.0.2145**: Several threads asking for a database connection at once no longer leave extra connections open on the server.
+- **8.0.2144**: The text description of a body now keeps each quantity in the unit it is stored in, and converts it only when it is shown.
+- **8.0.2143**: Twelve physics files now convert astronomical units, years, light-years and parsecs through the one unit registry, with the same numbers.
+- **8.0.2142**: The habitability symbols are solid colour-shaded shapes you can read in both themes, and the radiation symbol is a trefoil.
+- **8.0.2141**: One wheel scroll now runs from the whole galaxy down to a sector without stopping, and the map no longer swoops to a preset view or throws away your turn.
+- **8.0.2140**: The Galaxy Map has a marker layer: a glyph drawn over each black hole in view, with a Menu toggle, a legend line, and a click or hover that names it.
+- **8.0.2139**: The search icon in the top bar goes straight to the Search page instead of dropping a box down.
+- **8.0.2138**: After a galaxy reset the Home page's counts drop to zero at once instead of showing the old galaxy's figures.
+- **8.0.2137**: Cosmic-ray worlds like Mars and the Moon now require a hardened suit, and every planet and moon page shows a Required line, a Recommended line (each left off when empty) and the per-item specs.
+- **8.0.2136**: A moon of a free (rogue) planet can now be found by name, looked up by its ID and opened on its own page.
+- **8.0.2135**: Close binaries now come in their observed kinds: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, and the rare R Coronae Borealis, FK Comae and Thorne-Zytkow stars.
+- **8.0.2134**: The plan no longer prints its table of where the time went unless asked.
+- **8.0.2133**: A galaxy plan takes about half as long, because the digest it stores with the galaxy is worked out alongside the plan.
+- **8.0.2132**: Every map shows what you pick in one popup over the map, and the panel beside the map is gone, so the map gets the room.
+- **8.0.2131**: A planet or moon keeps the Bond albedo and the greenhouse quantity its surface temperature is made of, so the temperature can be read back from them exactly.
+- **8.0.2130**: The retired `/&lt;name>.py` page addresses and the old NAV parameter style now answer 404 instead of redirecting.
+- **8.0.2129**: A rocky body's interior heat and its ground radiation now come from one set of potassium, thorium and uranium drawn from its star.
+- **8.0.2128**: Every habitability symbol, life score and chip, and every class letter or name, now links straight to its own entry on the page that explains it, and the Help menu beside the search button holds Classes and Habitability.
+- **8.0.2127**: `planetgen galaxy` does every stage with no way to leave one out, and the Generate page builds its jobs from the single-stage commands.
+- **8.0.2126**: A random start is picked by the start stage's cut from the run's seed, not by the starter's own draws.
+- **8.0.2125**: Every body now records what it orbits in one way, so a planet can leave its star and keep its identity.
+- **8.0.2124**: A small warm world no longer keeps hydrogen, helium or other light gases in its drawn air.
+- **8.0.2123**: The Galaxy Map can colour sectors and blocks by how many habitable worlds they hold (Color by, Habitable worlds), in five steps of one green with a legend; a cell with none is drawn as unfilled space.
+- **8.0.2122**: Every planet and moon with air now has a cloud, haze and dust depth drawn from its own air and temperature, stored for the radiation model.
+- **8.0.2121**: The potassium-to-uranium row keeps its labelled stand-in, as decided.
+- **8.0.2120**: Picking something on the Galaxy Map shows its information once, over the map, not also in a panel beside it.
+- **8.0.2119**: The habitability levels page now says where the rating symbols appear and what the habitable zone is.
+- **8.0.2118**: The neighbour link of a large run is cut into units of 500 sectors, so no single unit runs for long.
+- **8.0.2117**: The planet lists and the system page now show each piece of survival equipment as its own chip, solid when required and outlined when only recommended.
+- **8.0.2116**: A planet's page now says how much colder its poles and how much hotter its equator run than its mean temperature, and how far day and night differ.
+- **8.0.2115**: The greenhouse closure that checks a planet's stored warming against a physical opacity is in place (GEN.443, greenhouse kernel).
+- **8.0.2114**: The Generate log stays in a fixed-width font when the web server adds its own Content-Security-Policy.
+- **8.0.2113**: Stars on the Galaxy Map glow at every distance, the glow's size and strength from the star's luminosity and its colour from the star's temperature.
+- **8.0.2112**: The solid-world and star painters load their shared helper with the release stamp, so a new release cannot serve a stale copy.
+- **8.0.2111**: The page cache can no longer fill Redis and stop a galaxy run; the Redis memory limit is now 4 GB.
+- **8.0.2110**: A full Redis now stops a run with one plain message instead of a 70-line double traceback, and the "too big" estimate warning no longer says "Refused" and "Going ahead" in the same breath.
+- **8.0.2109**: Life no longer depends on a planet's class letter: a world carries life when its stored conditions and its star allow it.
+- **8.0.2108**: The stellar-particle shielding and radiation-weight kernels for the derived surface radiation are in place (GEN.444, slice 1).
+- **8.0.2107**: The ammonia activity factor is recorded as a labelled stand-in with its bracket and evidence limits.
+- **8.0.2106**: The ammonia activity factor's label now records that the evidence behind it was checked and is not verified.
+- **8.0.2105**: The ammonia photolysis activity factor now carries the value Boss supplied, labelled as not yet checked against the published table.
+- **8.0.2104**: The thorium-to-uranium ratio of a planet's rock now follows the history of its galaxy's disk.
+- **8.0.2103**: The atmosphere mixture draw covers every class: Venus-like and Mars-like air, abiotic oxygen, Titan-like and Pluto-like air, comet comae, and the vapor over a lava world.
+- **8.0.2102**: The tuning targets now state which wrong values they can refuse, and the thorium rows share one scale.
+- **8.0.2101**: A world's survival equipment is a list of what a visitor needs, item by item, from the physics, instead of one tier from 0 to 4.
+- **8.0.2100**: One table now shows the order of every random draw from a star to its planets' habitability rating.
+- **8.0.2099**: The real-data checks of the downloaded data sets now wait for every data set, so a machine that updated before the ozone file was added no longer shows a failing test.
+- **8.0.2098**: The documentation now explains how a planet's atmosphere colour is worked out and where it appears.
+- **8.0.2097**: The glow around a planet on the System Map now has the colour of its own air, under its own star.
+- **8.0.2096**: The radius, inflation and heavy-element mass of a giant planet now have their checked kernels, ready to replace the old anchored relation.
+- **8.0.2095**: The browser holds measured values in a Quantity and reads every unit factor from the registry.
+- **8.0.2094**: A sector's count of interstellar comets and planetesimals is now about a thousand times larger, matching the measured density.
+- **8.0.2093**: Ten more places that wrote a physical law by hand now call the one declared law, with the same numbers.
+- **8.0.2092**: The last six columns without a declared unit now have one, read from the code that uses them.
+- **8.0.2091**: Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
+- **8.0.2090**: Rogue planets, comets, black holes, neutron stars and asteroid fields are now drawn from their own stored data instead of one fixed look each.
+- **8.0.2089**: `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.
+- **8.0.2088**: Stars on the System Map are painted from their class: their true blackbody colour, a surface that matches the kind of star, and a glow that grows with luminosity.
+- **8.0.2087**: Saving the sector paths of a large run is spread over the workers.
+- **8.0.2086**: Planet and moon descriptions now show the colour of their air.
+- **8.0.2085**: Planets and moons on the System Map now show their ocean, land and ice, drawn from the stored water fractions and temperature.
+- **8.0.2084**: Planets, moons and rogue planets now share one `PlanetaryObject` family class, the third family under the mass object core.
+- **8.0.2083**: The ground of a planet or moon now has a composition: the minerals, ices and ocean that cover it, drawn from the body's own bulk fractions, temperature and air.
+- **8.0.2082**: The planets and moons lists and every planet and moon page now show the habitability symbols.
+- **8.0.2081**: A planet or moon's class can now be worked out from its finished conditions (air, temperature, water, size and gravity), and the class pages show the rule.
+- **8.0.2080**: Delete regression tests that guard nothing and the unused galaxy shape visualizer.
+- **8.0.2079**: The disk's recent star formation now falls faster in its thin outer gas, as the observations of molecular and atomic gas say, instead of at one fixed index.
+- **8.0.2078**: A gas or ice giant's atmosphere colour can now be worked out at its reference level, with a cloud deck or the dark deep gas below.
+- **8.0.2077**: The atmosphere chain has one table of gas and condensate free energies and one equilibrium solver, which reproduce the research's outgassing speciation.
+- **8.0.2076**: A planet's atmosphere colour can now be worked out from its air, ozone, haze, dust, cloud and ground, from thin sky to the dense-air limit.
+- **8.0.2075**: Chemical formulas on the pages, in Markdown, wikitext and the terminal are written with subscripts and superscripts (H₂O, Fe²⁺, ³He), through one shared formatter.
+- **8.0.2074**: The host star's rotation track is a uniform percentile through the published tracks, not three invented weights.
+- **8.0.2073**: The hot-Jupiter chemistry regimes follow computed equilibrium lines at the pressure of the layer, not fixed temperatures.
+- **8.0.2072**: A world's four life scores, Microbial, Flora, Fauna and Sentient, now have their own symbols with a number from 0 to 9.
+- **8.0.2071**: A world's ozone layer now follows its oxygen and its star, and the UV index reads it.
+- **8.0.2070**: The comet composition rows of the atmosphere recipes follow the comet database and the printed coma class counts.
+- **8.0.2069**: The light that reaches a planet's ground can now be worked out band by band from its stored gases, ozone and star, including a UV index that matches the research table.
+- **8.0.2068**: The life-linked trace gases of the atmosphere recipes are labelled design flags, off unless the life stage allows them.
+- **8.0.2067**: The titanium oxide presence on hot Jupiters is a step in temperature between the last non-detection and the detection.
+- **8.0.2066**: The brown dwarf type windows take their edges and softness from the measured temperature of each spectral type.
+- **8.0.2065**: The heavy-element enrichment and the C/O of giant planets are retuned to the 147-giant fit and the 69 retrieved planets.
+- **8.0.2064**: The thorium scale, the thorium-to-uranium ratio and the aluminium-26 share of rocky bodies are retuned to the stars and the cluster models that were measured.
+- **8.0.2063**: The redox of rocky debris (rows a3 and a4) is now tuned through the white-dwarf detection model: the width is 0.22 and not the 0.45 that counted the measurement error twice.
+- **8.0.2062**: The retention rows of the atmosphere recipes now allow a bare planet and a molten dayside that keeps volatiles at the published interval.
+- **8.0.2061**: A tuned white-dwarf redox width is now compared with what the polluted white dwarfs would show, not with the bodies, and the model says the shipped width is too wide.
+- **8.0.2060**: A drawn comet is now tested against the chance it would have a published coma composition and the heliocentric distance it would be measured at.
+- **8.0.2059**: A tuned atmosphere share is now compared with the planets JWST has observed, with a model of which planets those are.
+- **8.0.2058**: A drawn planet is now tested against the chance it would have been measured to mass 25 percent and radius 8 percent, the cut of the published density samples.
+- **8.0.2057**: A drawn planet is now tested against the chance the Kepler pipeline would have found it: the orbit's geometry, its signal against the host's noise, and a recovery curve fitted to the DR25 injections.
+- **8.0.2056**: Every atmosphere recipe row that waited on research now says whether it is partly verified or a labelled stand-in, and which builder replaces it.
+- **8.0.2055**: A tunable composition draw is now tested against the published statistic it is tuned to, and a tunable row with no target is refused.
+- **8.0.2054**: The mass and luminosity scatters start their workers sooner on a large galaxy.
+- **8.0.2053**: The comet volatile draw now scatters its carbon oxides as single comets do, so a comet like 67P is a normal draw.
+- **8.0.2052**: The pulsar share no longer divides by zero at a galactic radius beyond about 580 kpc.
+- **8.0.2051**: Planet and moon lists now show the habitability symbols instead of the long notes.
+
+## 2026-10-23
+
+- **8.0.2050**: The composition spine's interfaces are published: a body's bulk composition and an atmosphere's mixture are each read through one accessor, so the radiation, colour and habitability work can build against them before the draws land.
+- **8.0.2049**: The six PHI-6 habitability domains and the overall rating now have their own symbols, drawn in the rating's colour.
+- **8.0.2048**: The cache warm-up now finishes on a large galaxy, in about 40 percent less time.
+- **8.0.2047**: The Generate Start screen has a "Plan a new galaxy and stop" card: wipe, plan, no sectors and no scatter.
+- **8.0.2046**: A world's cosmic-ray dose now follows the measured and simulated curves, with a field factor that depends on the air above the ground.
+- **8.0.2045**: The scattering depth of any atmosphere follows from its stored gases, pressure and gravity (Earth air 0.097 at 550 nm), the first step of the radiation chain.
+- **8.0.2044**: The installers and the cloud setup script are checked on Ubuntu 24.04 and 26.04 LTS.
+- **8.0.2043**: The search, nearby and chart forms and the table filters use one field look, with the server's error shown on the field it is about.
+- **8.0.2042**: A system's star count can be forced (`--stars N`), the cap on it set (`--max-stars N`, 12 unless raised), and the chance of five or more stars changed (`--prevalence multi_star=PERCENT`); the host that reads them is the next step.
+- **8.0.2041**: `SectorCell.contains` now counts a point on a far cap's colatitude face and on the last wedge's end face as inside.
+- **8.0.2040**: The wheel-anchor browser test puts the pointer next to the star in the same call that asks for the anchor.
+- **8.0.2039**: Generation no longer spends 2.5 seconds on the math check before every run; the check runs at every update and from the Admin page.
+- **8.0.2038**: No planet or belt is left past the survival limit of its star's final age.
+- **8.0.2037**: The Galaxy Map's stage and window data now say how much of each cell lies inside a nebula, generated or not.
+- **8.0.2036**: The work queue failure tests wait 180 s before calling a run hung and name any bookkeeping the queue could not write; the sector-open test clicks again where the map holds still.
+- **8.0.2035**: A star system can now hold more than two stars, stored and loaded with each star's place in its tree of orbits.
+- **8.0.2034**: The population tests' civilized-system helper keeps only systems the population pass gives a species.
+- **8.0.2033**: A star's habitable zone now follows its temperature, from the Kopparapu fits, so a cool star's zone sits where the physics puts it.
+- **8.0.2032**: A run whose workers keep dying at start now fails with the exit code instead of starting workers for ever.
+- **8.0.2031**: A cool white dwarf now carries a pollution flag at the observed share, drawn from the star's own stream so nothing is stored.
+- **8.0.2030**: The phenomenon scatter of a large galaxy finishes in 73 minutes instead of running past 90, because two more indexes wait until its rows are in.
+- **8.0.2029**: The Generate form shows how big the run will be while you fill it in.
+- **8.0.2028**: The protostar shortfall in giant molecular clouds is recorded as accepted for the first release.
+- **8.0.2027**: The vapor pressures of the coldest ices now follow the laboratory measurements, and solid carbon dioxide follows Span and Wagner.
+- **8.0.2026**: The test that clicks a star in a far sector waits for the star to hold still and for the panel to name it.
+- **8.0.2025**: Admin passwords are now hashed with Argon2id, a password can be at most 1,024 characters, and the session cookie carries the `__Host-` prefix when it is Secure.
+- **8.0.2024**: `planetgen sectors` generates sectors in every mode of `galaxy` without the stages after them.
+- **8.0.2023**: Three four-worker draw tests start their workers fresh instead of forking a threaded test process.
+- **8.0.2022**: `scripts/test.py full --check` now refuses to run when no file differs from its base, and says which base to pass.
+- **8.0.2021**: `?db=` naming a schema that shares the prefix but holds no galaxy now answers 404 instead of 500.
+- **8.0.2020**: Every star now has its own snow line, drawn once around the 170 K blackbody position and stored, and each planet and moon records whether it formed beyond it.
+- **8.0.2019**: A galaxy now remembers the generator epoch, the fingerprint format and the generator battery it was planned under, and the update history records a row only when something changed.
+- **8.0.2018**: The test that ties a system's orbit ceiling to the validator's now says what the two rules are: the validator applies the stable orbit, and generation also stops at the place's survival limit.
+- **8.0.2017**: A species is only placed where it could live, and a report lists any that are not.
+- **8.0.2016**: A galaxy plan works out the density integral behind its outline report once instead of twice.
+- **8.0.2015**: A Generate form can be saved as a named recipe and opened again from the Start screen.
+- **8.0.2014**: The water share beyond the snow line is now sourced: the 0.5 convention and the Marboeuf-derived 0.14 to 0.39 count different denominators, and the design names which one the switch uses.
+- **8.0.2013**: The generator's close-binary shares are now checked against the published ranges by primary mass and [Fe/H], and a bin outside its range fails the test run.
+- **8.0.2012**: The nucleus of a galaxy now keeps planets by the same survival rule as the rest, and the encounter limits no longer read the disk's, bulge's and halo's three-axis dispersion as a one-axis one.
+- **8.0.2011**: A galaxy's satellites are now drawn from its own halo, so a small galaxy no longer carries the Milky Way's eleven satellites.
+- **8.0.2010**: The plan's outline takes clusters and dwarf galaxies in by the radius where their density reaches one system per sector, and prints how many sectors really expect a system.
+- **8.0.2009**: The number of globular clusters a galaxy holds now follows its halo mass instead of always being the Milky Way's 157.
+- **8.0.2008**: A galaxy plan no longer reads every stored cluster back just to build the containers of its globular ones.
+- **8.0.2007**: Every runaway star now has an origin, the supernova or the dynamical channel, at the observed rates for O and B stars.
+- **8.0.2006**: The benchmark suite's `--resume` looks for its scratch database in a way the SQL portability test accepts.
+- **8.0.2005**: The quick-edit test waits for its job instead of the clock, and two flaky browser and run tests now say what they saw.
+- **8.0.2004**: A test now proves a sector comes out the same whatever order sectors were generated in and at any worker count.
+- **8.0.2003**: The generator now has a battery digest: seven tiny canned cases that say whether it still makes what it made, and which case differs when it does not.
+- **8.0.2002**: A default galaxy no longer raises the plan's coverage warning, and the average default galaxy is about half the size of a Milky Way disk.
+- **8.0.2001**: A paused work queue node now lets go of the lease before it says it is paused.
+- **8.0.2000**: A planet or belt now keeps only the orbits its place's passing systems have not stripped, so a nuclear disk holds planets to a few AU, a dense core to a fraction of one, and the Sun's neighbourhood to a few hundred.
+- **8.0.1999**: The generation performance report now covers the medium and large galaxy, and the benchmark suite can carry on after a stopped run.
+- **8.0.1998**: A galaxy's nuclear stellar disk now follows a published law of its stellar mass instead of a fixed 61 times its nuclear cluster.
+- **8.0.1997**: The star selection browser tests wait for the camera to stop and also cover a sector 8 kpc from the core.
+- **8.0.1996**: Every sector saved in a galaxy now stores a digest of itself, and the band, shell and galaxy digests above them can be printed with `planetgen fingerprint --stored`.
+- **8.0.1995**: Every persisted field of the stellar, small-body and free-planet classes now declares the unit it is held in, and `star.quantity("mass")` answers in any other.
+- **8.0.1994**: Three tests of a galaxy's central black hole no longer fail by chance on a small draw.
+- **8.0.1993**: The top bar is shorter: Lists is under the gear, search is one icon button, and Nearby is under Nav.
+- **8.0.1992**: The new-galaxy Generate form is tighter: the neutron star options and the skip box sit beside the limit sliders, and Edge is one typed value with its unit.
+- **8.0.1991**: A star the galaxy scatter placed with one companion star now builds as that pair, on the orbit the scatter stored.
+- **8.0.1990**: The uncharted black hole page test now says what the page answered when it fails.
+- **8.0.1989**: A benchmark suite test that needs the downloaded data now skips, saying so, on a machine without it.
+- **8.0.1988**: The shape-report route's fuzz case, which ran past 900 s, now ends in under a minute.
+- **8.0.1987**: The test that a dead worker never hangs a run no longer fails when the machine is merely slow.
+- **8.0.1986**: The plan's crest and planned-share figures now come from the galaxy's own density and follow the Census dial.
+- **8.0.1985**: A comet's coma is now drawn from the measured population of comets, with the carbon monoxide and carbon dioxide trading off and the carbon-chain-depleted flag set by the comet's family.
+- **8.0.1984**: The collision number of an object ID now follows the sectors' addresses, so two sectors that share an ID get the same names whichever one saved first.
+- **8.0.1983**: The saturation-pressure function now covers liquids as well as ices, up to the critical point.
+- **8.0.1982**: The atmosphere recipes are now 104 gated rows in 16 tables, each with its source and its source state, ready for the generator to draw from.
+- **8.0.1981**: The pressure at which any common gas turns to frost can be looked up from one place, with a note on how far to trust it.
+- **8.0.1980**: The cache warm-up, the tile prefetch and the database check no longer wait behind a whole generation stage, because they have a queue and workers of their own.
+- **8.0.1979**: The photolysis lifetime of a molecule can be worked out for its star and its distance, species by species.
+- **8.0.1978**: The generator now has one oxygen-fugacity scale, so a delta-IW means the same thing everywhere.
+- **8.0.1977**: Globular clusters and superbubbles are stored as containers, so a star can say which one it is inside.
+- **8.0.1976**: One shared table now holds every material a body can be made of, with its density, phase points and equation-of-state constants and the source of each number.
+- **8.0.1975**: One canonical encoder, nine significant digits, now writes every galaxy fingerprint, so a last-place difference in a float no longer shows as a different galaxy.
+- **8.0.1974**: The plan prints where its time went, and the plan of a default-size galaxy takes about a fifth of what it did.
+- **8.0.1973**: A star-selection browser test no longer times out on a loaded machine, and the test databases' reset notices a foreign key given another rule.
+- **8.0.1972**: The test workers no longer meet on the machine's one Redis database, which failed five tests of a full run.
+- **8.0.1971**: The browser reads its unit factors from one generated copy of the unit registry.
+- **8.0.1970**: `planetgen link`, `backfill` and `settle` run the last stages of a galaxy run on their own.
+- **8.0.1969**: `planetgen sector` and `planetgen system` run through the work queue like every other generation command, so they show on the Queue page and take their turn.
+- **8.0.1968**: The API's generate-neighborhood, regenerate-sector and settle jobs run through the work queue's run record, so they show on the Queue page and wait their turn.
+- **8.0.1967**: Drawing a system's content again keeps the ID of every star, planet, moon, belt and comet that keeps its place.
+- **8.0.1966**: A star's colour can be worked out from its temperature, the first part of the photometry library.
+- **8.0.1965**: A short edit or estimate no longer waits behind a long neighbourhood job, because short and long jobs now have workers of their own.
+- **8.0.1964**: A run can be told to go ahead without a missing data file, and a refusal now names every file to download.
+- **8.0.1963**: `planetgen benchmark --suite` times every generation step on a galaxy of a chosen size, and the first round of fixes it found makes the massive-star scatter at the default size take minutes, not hours.
+- **8.0.1962**: A saved course now has a record that keeps both its forms and can say what changed when it is opened again.
+
+## 2026-10-22
+
+- **8.0.1961**: The precision table's stability-ceiling test imports the Hill sphere from where it lives.
+- **8.0.1960**: The ships and stations table is in the registry of kind tables, so an object ID can find a ship.
+- **8.0.1959**: Bookmarks now sit on a shared saved-list store, ready for saved courses and for lists kept in an account.
+- **8.0.1958**: The physical laws the generator writes by hand about fifty times are now declared once in `physics/relations.py`, each with a fast SI kernel and a Quantity form, and a dimension test in the math check.
+- **8.0.1957**: The unit registry now has unit systems, and a physical constant's number in AU, year and solar mass is worked out from its dimension.
+- **8.0.1956**: Comets, interstellar comets and asteroid fields now share one `SmallBody` family class.
+- **8.0.1955**: Stars, binary proxies and compact remnants now share one `StellarObject` family class, and the `_skip_property_init` workaround is gone.
+- **8.0.1954**: The precision table lists the ships and stations table, so its floor body is checked like the other galaxy-frame tables.
+- **8.0.1953**: A phenomenon page opens even when the contents list cannot be loaded.
+- **8.0.1952**: The describer and the page measurements now hold each value in the unit it is stored in, with no hand-written unit factors.
+- **8.0.1951**: The control database gets the bookkeeping tables for uploads from a remote run, ready for the sector upload API.
+- **8.0.1950**: The control database gets the account columns, the single-Owner rule and the token tables that user accounts will use.
+- **8.0.1949**: Every length column now declares its role, its frame and how far it must hold, and the table says what size of body each table can place.
+- **8.0.1948**: The star, planet, moon, belt and comet loaders read their rows back with the same field lists that write them, and a loaded star keeps its stored metallicity.
+- **8.0.1947**: Ten hand-written row inserts became one insert driven by a list of fields per kind.
+- **8.0.1946**: The tables that hold one kind of object are listed once, in a registry, instead of at a dozen places in the code.
+- **8.0.1945**: The galaxy's density is now the sum of named components, with each component's mass in solar masses, and the stored family and component numbers are read back.
+- **8.0.1944**: The database gets the table that will hold ships and stations, user-owned or generated.
+- **8.0.1943**: The database gets the table that will keep each system's constellations, ready for the view from a planet.
+- **8.0.1942**: A cluster can now be unnamed, and a star can point to the cluster that is its parent, ready for the deep-sky work.
+- **8.0.1941**: The database gets the tables for comments and notices on edit requests, ready for the 10.0 roles.
+- **8.0.1940**: Each sector can now record the density multiplier it was filled under and the override it came from, for the density edits of the Galaxy Map.
+- **8.0.1939**: The database gets the table for an admin's density multipliers over a region, for the density edits of the Galaxy Map.
+- **8.0.1938**: The database gets the lock marks table the 8.6 edit-everything plans will use to keep an object or one aspect of it.
+- **8.0.1937**: The database gets the tables the 8.6 edit-everything plans will use: plans, their operations and the edit journal.
+- **8.0.1936**: Each sector now records the generator epoch and the run that saved it, in place of four version text columns.
+- **8.0.1935**: The database gets a stored fingerprint for each sector and the table of digests above them, ready for the fingerprint tree.
+- **8.0.1934**: A species can keep environment limits of its own in the database, and the habitable-species lists use them.
+- **8.0.1933**: The System Map's View button is now checked in a real browser for a star and a moon.
+- **8.0.1932**: The columns of the orbital event tables now declare their units.
+- **8.0.1931**: The gas table now holds each gas's infrared bands and its ultraviolet and visible absorption.
+- **8.0.1930**: The database now has a place to record every collision, merger, split, ejection, capture, unbind and warning of the orbital update.
+- **8.0.1929**: The 8.1 closing audits run in the suite: every region of the galaxy is filled with seeded sectors and every kind is counted against its expectation.
+- **8.0.1928**: The generate tests no longer depend on the free space of the machine that runs them, and dead copies in two modules are gone.
+- **8.0.1927**: The Generate pages' prevalence and star mix block is held to one definition by a test, and the file list in the architecture notes is current.
+- **8.0.1926**: A browser test now holds the Ctrl+K palette and the keyboard help on the admin pages.
+- **8.0.1925**: Every admin page now sits in one shell with a rail, a search box that finds any page, task or setting (Ctrl+K), and a thin strip showing the running job.
+- **8.0.1924**: Generate is now a Start screen with a card per task, a page for each task and a Review step that shows what will run before anything does.
+- **8.0.1923**: The test of a body far from its epoch reads the stored orbit tree again.
+- **8.0.1922**: The unit ladders take every factor from the unit registry, and a `Quantity` can be shown on the site's ladders directly.
+- **8.0.1921**: A point in space now takes its length unit by registry key and states no unit factor of its own.
+- **8.0.1920**: A number with a unit is now one `Quantity` object that keeps what it was given and answers in every other unit of its kind.
+- **8.0.1919**: A Reed-Solomon codec in the standard library lets the sector parity file rebuild lost data exactly.
+- **8.0.1918**: Every numeric column of the database now declares the unit it is stored in, in one list.
+- **8.0.1917**: Every item's page now says where it is, and a nebula lists what is inside it.
+- **8.0.1916**: `planetgen plan` is only the plan; each scatter, fill and clean-up is a command of its own.
+- **8.0.1915**: A built star system now keeps its tree of orbits in the database, and the system scene places its stars from that tree.
+- **8.0.1914**: The systems of a cluster or a satellite galaxy follow from a mean system mass worked out from its own age, not a recalled 0.4 solar masses.
+- **8.0.1913**: Every unit the project uses is now one row in a single registry, with its kind, exact factor, symbol and allowed range.
+- **8.0.1912**: What a collision does is one tested function: the outcome table for rocky bodies, giants, brown dwarfs and stars.
+- **8.0.1911**: The orbital update can find every mass within the galaxy's largest Hill radius of an object, the first step of changing a path by gravity.
+- **8.0.1910**: The orbital update has the pair closest-approach library its collision and encounter tests will use.
+- **8.0.1909**: The orbit stepper and the browser's orbit positions keep their digits over long times, and Python and JavaScript agree (GEN.140, GEN.374, GEN.144).
+- **8.0.1908**: Planning a galaxy now says how dense it is and how much of it is planned, on the Generate page under the shape dials and in the plan output, and refuses a galaxy with nothing to plan.
+- **8.0.1907**: Selecting something on a map now shows one info box over the map, with a View button to its own page.
+- **8.0.1906**: The test that interrupts a parallel galaxy run no longer fails as "Busy" when another test worker has a run going.
+- **8.0.1905**: The galaxy density model can now be read as a list of components, each with an amplitude and a mass.
+- **8.0.1904**: The updater and the data downloader now print the URL of every file they load.
+- **8.0.1903**: Five scatter tests that held a million rows or more in lists now stream them, so none holds more than a gigabyte.
+- **8.0.1902**: Every galaxy's Hill spheres use the mass the galaxy holds inside the object's own distance from the center, not the whole halo's mass.
+- **8.0.1901**: The Settings page is now a clean, searchable page of plain-language settings, with the ones you cannot change hidden until you ask for them.
+- **8.0.1900**: A test now holds the rule that nothing inside a system stores an absolute position.
+- **8.0.1899**: The speed at which an ejected neutron star streams out of a galaxy now follows its natal kick and the galaxy's escape speed.
+- **8.0.1898**: The generator now has one table of the gases and compounds that can be in an atmosphere, with the source of every number.
+- **8.0.1897**: The Census dial sets how many systems each solar mass of stars makes, from 1 to 3, with the generator's own derived value as Auto.
+- **8.0.1896**: Dropping a test database no longer ends another worker's query that is counting its rows, which was the "Lost connection to MySQL server during query" failure under load.
+- **8.0.1895**: The galaxy shape row can now hold a galaxy's family and the numbers of its bar, thick disk and spheroid.
+- **8.0.1894**: The database check holds the rule that a foreign key's default delete rule is not drift on any supported server.
+- **8.0.1893**: A galaxy's number of systems follows from a mean system mass worked out from the generator's own star mix, not a recalled 0.4 solar masses.
+- **8.0.1892**: Every star, planet, moon, belt and comet now has a page of its own.
+- **8.0.1891**: Every block of the Galaxy Map's ladder now knows how much of it is nebula, before any sector in it is generated.
+- **8.0.1890**: The double-click flight tests wait for the camera to hold still, and the slow-first-click test says what happened when it fails.
+- **8.0.1889**: A star near the hydrogen-burning limit no longer draws a companion lighter than any brown dwarf can be.
+- **8.0.1888**: The three fuzz tests that guard against a hang no longer fail on a loaded machine, and the page tests know the list pages' kind.
+- **8.0.1887**: A sector now has room for the checksum and the parity flag that its storage protection will use.
+- **8.0.1886**: A galaxy with nothing pinned is now a small spiral, about half the size of a large one, instead of anything from small to giant.
+- **8.0.1885**: The check-constraint test and the fresh-after-CLI test no longer depend on what the seeded or unseeded draws happen to place.
+- **8.0.1884**: The Admin menu on the sector, system and phenomenon pages now opens under its button instead of far above it, off the screen.
+- **8.0.1883**: A run's log names each stage once: the stage list and the repeated "Stage 4 of 13" line under the job's banner are gone.
+- **8.0.1882**: A zoom on the Galaxy Map no longer stalls the page walking every star for every tile that has not arrived.
+- **8.0.1881**: The cache warm-up also builds the Lists page and the first page of every kind's list.
+- **8.0.1880**: Every setting now has a plain-language name, a one-line description and a purpose-based group, ready for the redesigned Settings page.
+- **8.0.1879**: The list pages for stars, planets, moons, belts, comets and phenomena jump to a name.
+- **8.0.1878**: The code, the tests and the docs now agree that planetGen runs on MySQL 8.0.19 or later and not on MariaDB.
+- **8.0.1877**: Every kind of object has its own list page: stars, planets, moons, asteroid belts, comets and each phenomenon type.
+- **8.0.1876**: The Structure dial sets how flat the disk is and how big and heavy the bulge is, as ratios that keep their meaning when the galaxy's size changes.
+- **8.0.1875**: The Scale, Halo and Edge dials set a galaxy's mass and size, its halos and how far out it is planned, the plan remembers what was pinned, and a small galaxy is one disk plus a bulge.
+- **8.0.1874**: Every kind of object has a list that reads the object index, a page at a time without skipping rows.
+- **8.0.1873**: A star's fate as a neutron star or a black hole now depends on its initial mass in windows, and the neutron stars a galaxy ejects now follow from its escape speed, instead of two overlapping ranges and a drawn 20% to 40%.
+- **8.0.1872**: A Generate run no longer sits for hours on one unit drawing a Magellanic Cloud: a large satellite or cluster is drawn in slices that the workers share, and every unit of components reports its progress.
+- **8.0.1871**: The galaxy shape options are one table: the command line, the Generate page and the docs are all built from it, and every value is range gated with its source named.
+- **8.0.1870**: The object index writes its rows without the deprecated `VALUES()` function.
+- **8.0.1869**: A pre-placed star's nebula shows before its sector is built: the star's page names it and the uncharted sector's map draws it.
+- **8.0.1868**: When the Galaxy Map has more stars on screen than it can show, it dims the satellite-galaxy stars first, then the halo's, then the farthest and faintest.
+- **8.0.1867**: The object index fills itself: the warm-up builds it, keeps it current and counts it against the cache budget.
+
+## 2026-10-21
+
+- **8.0.1866**: Every job queued to RQ now has a time limit taken from how long the system expects it to take, so a job whose worker was killed expires instead of staying on the queue for ever.
+- **8.0.1865**: The database gets the object index table, where every list and the name search will read from.
+- **8.0.1864**: The admin queue page shows the cache warm-up phase by phase: which are waiting, running, built, unchanged or stopped, with each one's result.
+- **8.0.1863**: A run or job whose process was killed no longer blocks every new run or holds up an update, and `update.sh --reset-jobs` resets every job and the queue when something else is stuck.
+- **8.0.1862**: The site's caches are rebuilt by themselves after a generation run, an orbital update or an edit, without waiting for the next update.
+- **8.0.1861**: The tests of the worker count no longer disturb each other through the one Redis key that holds the admin's wanted number of workers.
+- **8.0.1860**: If the core-ball batch-fill test ever counts a fourth system again, its failure now names the systems and the galaxy seed.
+- **8.0.1859**: A nebula's shape mesh never reaches past the nebula's radius, as the shape's documentation promises.
+- **8.0.1858**: The check that an open map menu overlaps nothing now measures once the panel has stopped moving, and audits each menu of a page instead of the first one marked.
+- **8.0.1857**: A test now holds that a dense-core cell filled without the star scatter makes the systems its resolution gives.
+- **8.0.1856**: The cache warm-up now runs in five named phases and says after each one what it built, what was already stored and what the cache budget left out.
+- **8.0.1855**: The galaxy's disks are exponential in height, the form their scale heights are measured with, so a galaxy's midplane stars are twice as dense for the same mass.
+- **8.0.1854**: A galaxy's neutron stars are now what its massive stars leave when they do not become black holes, instead of a fixed number per star.
+- **8.0.1853**: One setting, `cache.max_mb` (1 GB by default), sizes the stored caches, and when it is full the warm-up stops and only tiles nobody asked for lately are dropped.
+- **8.0.1852**: Every body with a mass can now report its whole kinematic record: where it is, how it moves, how it spins, its mass and when it is next due.
+- **8.0.1851**: A tile of the Galaxy Map is built again only when something it holds has changed, and a release alone no longer throws the stored tiles away.
+- **8.0.1850**: A neutron star's or stellar black hole's age now follows its population: the time since the star that made it collapsed.
+- **8.0.1849**: A white dwarf's planets are the ones that outlived its giant phase, moved outward by the mass the star lost.
+- **8.0.1848**: A comet on a closed orbit never leaves its star: its eccentricity is cut so the aphelion stays inside the star's Hill sphere.
+- **8.0.1847**: The bright-star backfill of `planetgen galaxy` runs on the work queue as a command.
+- **8.0.1846**: The sector stages of `planetgen galaxy` run on the work queue as commands.
+- **8.0.1845**: The Galaxy Map's server now builds the tiles of the next few zoom steps, and the ones around a view, in the background while a visitor looks.
+- **8.0.1844**: One function now moves every body with a mass, whether it is a planet, a moon, a comet, a star or a wanderer.
+
+## 2026-10-18
+
+- **8.0.1843**: A free-floating brown dwarf is as old as the stars of the place it is in, not any age from 0.1 to 10 billion years.
+- **8.0.1842**: The shells beyond the galaxy's outline generate in seconds instead of hours, because the polar reach groups no longer take the dense core's nuclear density as their ceiling.
+- **8.0.1841**: A double click on the map is told by the time of its two clicks, so a first click the page is slow to answer no longer makes the second one a click again.
+- **8.0.1840**: Every browser test module that builds its pages from the shared site app now has the slow-page rule pinned off, so a loaded run no longer fails a module's setup with a 202 for /search.
+- **8.0.1839**: Every body with a mass now shares one core class for its galactic motion and its save and load, the first step of the one object class for stars, planets, comets and wanderers.
+- **8.0.1838**: A star's main-sequence track, a white dwarf's radius and layers and a neutron star's crust now come from the downloaded data, and generation will not start without it
+- **8.0.1837**: The map luminosity fill, the habitability re-score and the nebula field run on the work queue as commands.
+- **8.0.1836**: `planetgen warm` now builds the Galaxy Map's tiles ahead of the first visitor, the first levels in full and the zoom run in to the center.
+- **8.0.1835**: The test that an orbital facility's phase advances no longer fails when the random giant it orbits is small enough that a quarter turn is not yet due.
+- **8.0.1834**: A new test pins that a patch a test makes over the inline test queue is undone before the queue's own, so the real-worker tests that follow find the real functions.
+- **8.0.1833**: The query-count test for the sector and system pages no longer fails when the two random systems differ in how many stars have planets.
+- **8.0.1832**: The dense-core case of the neighbourhood test runs in about three minutes instead of up to ten, so it no longer times out in a loaded gate.
+- **8.0.1831**: A galaxy's star count comes from its stellar mass and every radius once quoted at the Sun is now in the galaxy's own units, so no Sun or home position is read anywhere.
+- **8.0.1830**: A disk star's age is drawn from the galaxy's star formation rate inside its age window, so old and middle-aged stars cluster where the galaxy formed most, not evenly across the window.
+- **8.0.1829**: The tests' in-process work queue is undone in the right order, so a patch a test makes to `ensure_workers` no longer outlives it.
+- **8.0.1828**: A millisecond pulsar's planets are the carbon-rich worlds of a disrupted white dwarf's disk, in the pulsar's own wind.
+- **8.0.1827**: Zooming the Galaxy Map asks the server for about half as many tiles, so it lags far less.
+- **8.0.1826**: The Stop waiting button on a page that is being built now works from the moment it appears.
+- **8.0.1825**: A stage on the work queue now records its own time, a killed worker fails its run at once, and a hung unit ends on a time limit that fits its stage.
+- **8.0.1824**: The galaxy skeleton is built by a command on the work queue, like the scatters.
+- **8.0.1823**: The luminosity pass and the dimmer band of bright stars run as commands on the work queue, like the massive-star pass.
+- **8.0.1822**: The phenomenon scatter's shells run as commands on the work queue, like the star scatters.
+- **8.0.1821**: The number of black holes in a place now follows the metals of its stars, with a share that differs from one galaxy to the next.
+- **8.0.1820**: A barred galaxy now has a gas ring at its center that forms young stars and clusters, derived from the gas its bar carries in.
+- **8.0.1819**: A generated galaxy now has young open clusters, drawn from its own star formation, with stars of their own age.
+- **8.0.1818**: The phenomenon scatter tests no longer fail now and then on a galaxy seed that places no hypervelocity star.
+- **8.0.1817**: The neighbourhood test's dense-core case no longer fails by chance: it uses a fixed galaxy and checks a capped cell against the ceiling, not against a count the run does not produce.
+- **8.0.1816**: The Galaxy Map's drill-down and forward-to-current tests no longer read the breadcrumb while the camera is still flying.
+- **8.0.1815**: "Charted only" now dims uncharted objects in the order they would be cut: satellite-galaxy stars first, then the halo, then the small and dim up to the large and bright, and the farther from the focus the more.
+- **8.0.1814**: When a Galaxy Map tile cannot list every star or point, it now thins the band it cuts evenly across space instead of keeping the brightest few wherever they cluster.
+- **8.0.1813**: Brown dwarfs near the hydrogen-burning limit stay hot, so L dwarfs hotter than 1,500 K are as common as the 20 pc census counts them.
+- **8.0.1812**: A parsec is exactly 3.2615637772 light-years and a light-year exactly 63241.0770843 AU wherever the generator used rounded values.
+- **8.0.1811**: The map's side panel, the query command's lines and the class pages' ranges write their distances, gravity and temperatures the same way as the rest of the program.
+- **8.0.1810**: The equipment tier a world stores now matches what its description asks for: an environment suit where it is too hot, too cold or too rich in oxygen, not a mask or nothing.
+- **8.0.1809**: The reference docs describe the description layer as built: the PHI-6 name, the `rating` data, the command line options and the removed text builders.
+- **8.0.1808**: The design page now says what a usable circumbinary window is and which numbers are measured
+- **8.0.1807**: The generator's stellar isochrone grid, white-dwarf models and neutron-star matter tables are downloaded once at setup and checked
+- **8.0.1806**: The old per-class description text, the Markdown renderer and the `markdown` dependency are gone; every page and download now comes from the one description Document.
+- **8.0.1805**: With the cursor over empty space the wheel now zooms toward where the stars thicken along the cursor's ray, not toward a flat plane through the middle of the view.
+- **8.0.1804**: The neighbourhood test no longer fails when the random start lands in the dense core, where cells hold fewer systems than the plan's raw prediction by design.
+- **8.0.1803**: The admin commands each do one job: listing lockouts, lifting one, forgetting devices and resetting two-factor are four commands, and two obsolete one-off tools are gone.
+- **8.0.1802**: "Charted only" on the Galaxy Map now dims the black holes, neutron stars and quasars of sectors that are not filled yet.
+- **8.0.1801**: Every galaxy's central black hole and nuclear star cluster come from its own mass, bulge and seed, not from fixed Milky Way figures.
+- **8.0.1800**: The mass of a white dwarf, neutron star or stellar black hole comes from one place in the code instead of six; no seed's output changes.
+- **8.0.1799**: Pressing "Stop waiting" on a slow page's loading state now stays stopped, even when a progress answer was already on its way.
+- **8.0.1798**: The second system-disk browser test no longer fails when the disk's last share lands just under a whole one.
+- **8.0.1797**: The host tables' source and note strings name the design note instead of a TODO code, so no code shows where a user can see it.
+- **8.0.1796**: What can accompany or orbit an object is now a set of host classes with gated tables of possibilities, replacing the registry's five fixed system models; nothing the generator draws changes.
+- **8.0.1795**: The database check is one command per check, and `planetgen check-db` hands the list of them to the wrapper.
+- **8.0.1794**: Any star's composition can now be worked out from what the generator already stores for it.
+- **8.0.1793**: The generator now has the relations that say what a star is made of, ready for the composition of every star to be derived from them.
+- **8.0.1792**: The system page and the one-off system page now show every body's detail from the system's description, not from Markdown.
+- **8.0.1791**: A system's description can now be written as HTML tables, ready for the system page to use in the next change.
+- **8.0.1790**: A stored black hole or neutron star system is described as what it is, and every phenomenon now has a description in the same Document.
+- **8.0.1789**: A property test now keeps the habitability words and the habitability index saying the same thing, and the cooling-garment sentence reads "are needed" and the airless pressure reads like every other figure.
+- **8.0.1788**: The text the program writes about stars, worlds, gas giants, comets and life is shorter and plainer, and no longer claims life or "Earth-like" for a world the habitability index rates differently.
+- **8.0.1787**: A system's overview now counts potentially habitable worlds by their habitability rating, and the "Habitable" chips say they mean the planet's class.
+- **8.0.1786**: The habitability levels page now takes every number from the limits the score uses, so it cannot say one thing while the rating does another.
+- **8.0.1785**: The habitability wording now comes from one module: the second explainer, which nothing used, is gone, and the numbers in the sentences use the unit ladders' own formatter.
+- **8.0.1784**: The stored evolutionary paragraphs, flavor text and habitability note are gone from the database, replaced by the structured columns added earlier.
+- **8.0.1783**: Generation now keeps a world's life stage, pace, ages and flavor line as data instead of prose, and nothing reads the old prose back.
+- **8.0.1782**: A planet's or moon's life stage, pace, ages and flavor line get columns of their own, ready for generation to stop storing them as prose.
+- **8.0.1781**: `scripts/test.py --resume` now continues a canceled gate after main was merged in, rerunning only the tests whose files changed.
+- **8.0.1780**: Four load-sensitive tests no longer fail for reasons that are not in the code they check.
+- **8.0.1779**: Stopping a run now stops its workers, the Home page shows a phenomena count that follows scatters, and the species and polity lists open before the population pass.
+- **8.0.1778**: Only the TODO thread regenerates the global documents, and a stale one no longer fails a lane's tests.
+- **8.0.1777**: Stars and objects beyond the galaxy's outline (the halo, the satellite galaxies) can now be picked on the whole-galaxy view and zoomed into with the wheel, down to a window of their own.
+- **8.0.1776**: Every galaxy draws its own thick disk, bar and stellar halo from its seed, and one heating law sets the heights and motions of all its stars.
+- **8.0.1775**: The generator now has one table of the elements and their isotopes, with their sources.
+- **8.0.1774**: Very massive stars now end their lives as Wolf-Rayet stars, and 40% of those blow a ring nebula around themselves.
+- **8.0.1773**: The cache warm-up is one command per cache family, and `update.sh` hands the list of them to the wrapper.
+- **8.0.1772**: The black holes' share of the wide-pair perturber mass is checked against four papers: the generator's black hole count and masses lie inside the published ranges, so the remnants stay in.
+- **8.0.1771**: A brown dwarf now has the spectral type, temperature and radius its mass and age give (late M, L, T or Y), where a free-floating one had only a random size and a multi-star member had no state.
+- **8.0.1770**: The Uncharted stars and Phenomena tables have a "Starting at" box too, so a deep list is reached by a value instead of by paging.
+- **8.0.1769**: A generate run now lists the commands it will run, and the massive-star scatter is the first one the queue runs as separate commands.
+- **8.0.1768**: The execution plan page is built by the repository's own script from files in the repository, so a test can tell when it is stale.
+- **8.0.1767**: When the Galaxy Map has room for only some of the stars, the stars of the halo and of the satellite galaxies are always the ones left out first.
+- **8.0.1766**: The Systems table has a "Starting at" box that begins the list at a typed letter, name or sector without paging down to it.
+- **8.0.1765**: The Uncharted systems table no longer counts every row of the galaxy to show its total.
+- **8.0.1764**: The architecture has a code map you can open in a browser and drill down from the project's areas to a function's source, with what calls what, generated from the code.
+- **8.0.1763**: The docs have one index page that lists every HTML page with what it contains and links back from each.
+- **8.0.1762**: The Galaxy Map's tile grid now covers the whole 262 kpc reach, so a tile exists for every address the grid can hold, in the halo and beyond the disk.
+- **8.0.1761**: The accessibility tests no longer fail on a loaded machine when the first build of a page takes longer than the slow-page limit.
+- **8.0.1760**: The wheel-anchor, system-disk and breadcrumb browser tests wait for the camera and the address to stop changing before reading them, so they no longer fail when a loaded machine is slow.
+- **8.0.1759**: The big H II regions (classes D and E) now hold the real O and B stars that light them, placed in a cluster around the seed star.
+- **8.0.1758**: A disk's young, middle-aged and old stars now follow its own gas history, so light galaxies hold more young stars and heavy ones fewer, where every disk used to form stars at one rate for ten billion years.
+- **8.0.1757**: Hypervelocity stars, kicked neutron stars and ejected black holes now stream through the whole galaxy and out to the grid's reach, on straight lines, instead of stopping at the disk's outline.
+
+## 2026-10-17
+
+- **8.0.1756**: The O-star nebula test no longer fails on the hotter cluster stars that now live as long as real ones do.
+- **8.0.1755**: One function now works out where a planet can stay in a hierarchy of stars and how much light it gets there.
+- **8.0.1754**: The track of a young star now takes its numbers from published tables, and red dwarfs stay young stars for as long as the tables say.
+- **8.0.1753**: A light star's red giant branch now follows the published core-mass-luminosity law, so its length, its top and how many giants are bright come from the star, and the horizontal branch lasts the same 100 Myr in every star.
+- **8.0.1752**: How long a star lives on the main sequence now comes from a published fit to stellar models, not a law anchored on the Sun.
+- **8.0.1751**: A neutron star's radius now follows from its mass and the measured radius band, no longer a flat draw from 10 to 13 km.
+- **8.0.1750**: A galaxy now holds hundreds of intermediate-mass black holes, not a hundred thousand.
+- **8.0.1749**: A planet or moon is now its state vector, moved by Kepler's universal step, with no stored orbital phase.
+- **8.0.1748**: The wheel zoom toward a star in an opened sector now ends at the star instead of sliding past it, never passes through a star on the way, and a double click on empty space flies half way toward the point under the pointer.
+- **8.0.1747**: Mid and early B stars now have companions at the frequencies Moe and Di Stefano measured: 76% and 84%, with more triples and quadruples.
+- **8.0.1746**: Stars now have companions at every separation from 0.05 AU outward, from one distribution over orbital period, instead of a close pair or one 50 AU and wider with nothing between.
+- **8.0.1745**: The widest orbit a wide pair keeps now uses the relative velocity of the passing stars and the mass-weighted mass of everything that passes, remnants included.
+- **8.0.1744**: The Phenomena list and the Search page show a progress bar while a slow answer is being built, then swap the finished page in without a reload.
+- **8.0.1743**: Every page now warns visitors while a background run is changing the galaxy, with the time left to the next whole hour.
+- **8.0.1742**: The Uncharted stars and Phenomena tables page by key, so a page far down the list costs what the first page does.
+- **8.0.1741**: The command line drops a workaround for a Python 3.9 argument-parsing bug that no supported Python has.
+- **8.0.1740**: A cell inside a Magellanic Cloud can now hold molecular clouds, nebulae, supernova remnants and magnetars, and the pre-placed planetary nebulae follow the old stars.
+- **8.0.1739**: The two stars of a wide pair now carry the same velocity when a sector is generated and when it is loaded back from the database.
+- **8.0.1738**: The atmosphere colour note no longer waits on a licence check, following Boss's removal of GEN.500.
+- **8.0.1737**: The scatter layers draw their random numbers in bulk, with the same numbers and the same stream state as before.
+- **8.0.1736**: A fill of tens of thousands of sectors or more is estimated from a sample and generated from a stream, and a web request is refused a ball of more than 2 million sectors.
+- **8.0.1735**: The bright-star backfill gains an exact block-first sampler, tested alone and not yet wired into the backfill.
+- **8.0.1734**: Two test fixes: the runaway-velocity test no longer fails now and then, and the plan tests draw a naming key instead of logging that they cannot.
+- **8.0.1733**: A page request that is slow to build now queues one job that stores the answer in the page cache, with a status route and a progress estimate, instead of holding a web thread.
+- **8.0.1732**: A whole-sphere galaxy scatter now runs to the last shell instead of stopping at 97 percent.
+- **8.0.1731**: The composition design is written down as four checked notes plus the master joint, ready for Boss's approval.
+- **8.0.1730**: Every composition table now loads through one gated possibility-table format, and a draw takes the rows that pass the body's class and conditions and picks one by normalised weight.
+- **8.0.1729**: A new galaxy now draws its size, thickness, bulge, bar and spiral arms from its seed instead of every galaxy being built to the Milky Way's measurements.
+- **8.0.1728**: The Generate page answers a repeated size-and-time estimate from a cache, and costly cached answers are refreshed just before they expire.
+- **8.0.1727**: The benchmark records the buffer pool, table sizes and worker start-up cost, and the test suite is quieter and uses the shell, band and wedge words.
+- **8.0.1726**: The Magellanic Clouds now hold young and massive stars, from a star formation history worked out for each satellite instead of a typed share.
+- **8.0.1725**: The test suite has one census harness that fills seeded sectors per region class and checks the counts of each kind against their expectation.
+- **8.0.1724**: The illustrated architecture page is rebuilt from the current architecture document.
+- **8.0.1723**: The Galaxy Map's address holds the camera, so a copied link, a bookmark and a reload open the view exactly where it was.
+- **8.0.1722**: The Galaxy Map's breadcrumb and a new "In Sector …" line follow the cell the camera is in, not the stage the map was opened at.
+- **8.0.1721**: The wheel on the Galaxy and Sector Map zooms toward what is under the pointer, which stays under it.
+- **8.0.1720**: The cell key at the edge of its box is recorded as built (DB.65), with the migration head at 0106.
+- **8.0.1719**: The cell key no longer wraps for a position within 3e-11 parsecs of the 262 kpc box edge: it takes the last cube instead of the opposite edge's.
+- **8.0.1718**: The first Gemini research batch for the galaxy laws is recorded as unverified input on GEN.531.
+- **8.0.1717**: The fifteen galaxy research requests (GEN.531) record that a Gemini search and a gap-filling plan are under way.
+- **8.0.1716**: The galaxy laws research (GEN.406) is filed as a design note with the sourced ranges for the stellar halo, ages, dispersions, thick disk, dwarfs and clusters.
+- **8.0.1715**: Boss started the lane Blocker 1 for the composition loader (GEN.472) and the census harness (TEST.186).
+- **8.0.1714**: Every open 8.1 item now names the lane that builds it, from Boss's Core 1 to Core 5 lanes.
+- **8.0.1713**: The galaxy laws research of GEN.406 has its own research thread, chosen by Boss.
+- **8.0.1712**: Core 4's findings from building the massive-star binaries are recorded on the items that check them.
+- **8.0.1711**: The part of GEN.320 that Core 3 did not wire, a pre-placed star's nebula on the maps and pages, is filed ahead of the 8.1 headline.
+- **8.0.1710**: The nebula stars of GEN.320 are recorded as built, and Boss's drop of the massive-multiples prevalence cap (GEN.373) is recorded.
+- **8.0.1709**: Boss chose to split Core 3's 8.1 chain across two generation lanes; the decision is recorded on the headline item.
+- **8.0.1708**: Bok globules and star-forming cores now hold their protostars, and a planetary nebula's central star has its close companion.
+- **8.0.1707**: The 8.1 completion study's findings are recorded on the items they concern.
+- **8.0.1706**: The galaxy's mass chain is merged and retired: every galaxy draws its stellar mass, halo mass, virial radius and concentration from its seed.
+- **8.0.1705**: Every galaxy now draws its own stellar mass, halo mass, virial radius and concentration from its seed, and the Hill spheres read that mass in place of the fixed Milky Way mass.
+- **8.0.1704**: The pre-main-sequence state is merged and retired, and its inferred constants are filed for a sourced table.
+- **8.0.1703**: Stars under 10 Myr are protostars and pre-main-sequence stars with a disk, instead of main-sequence stars that happen to be young.
+- **8.0.1702**: The satellites' young and intermediate shares are decided: derived from each satellite's age history and gas, not a typed 1% and 9%.
+- **8.0.1701**: The map layer registry is merged and retired, which frees the layer items that waited on it.
+- **8.0.1700**: The three maps share one layer registry, so a map's layers have one menu, one set of URL keys and one legend.
+- **8.0.1699**: A page cache that never trims its no-database entries is filed, with the reproducer checked on main.
+- **8.0.1698**: The Type Ia and old-star shares as profile fields are merged and retired, and the two parts of the item that are not met are filed.
+- **8.0.1697**: A place's supernova remnants are Type Ia or core-collapse by who lives there, so a halo never shows a remnant with a pulsar in it.
+- **8.0.1696**: The "what is within N pc" pages are merged and retired.
+- **8.0.1695**: Selecting a sector, system, planet, moon or phenomenon on a map now offers "What's within 10 pc", which opens the What's nearby page with that place filled in.
+- **8.0.1694**: The massive-star scatter on the new work queue is merged and retired.
+- **8.0.1693**: The massive-star scatter runs on the new work queue: its units are queued on Redis, followed from the run's record, and give the same stars at any worker count.
+- **8.0.1692**: The browser-test teardown hang is retired, and two leftovers from its fix are filed.
+- **8.0.1691**: A browser test's database can no longer hang the test run for fifteen minutes when it is torn down.
+- **8.0.1690**: The whole-sphere scatter umbrella is merged and retired, and the Clouds' missing massive stars are filed as a new item.
+- **8.0.1689**: The whole-sphere scatter passes are merged and retired (band groups, the phenomena pass and the component pass), generator epochs 5 to 7.
+- **8.0.1688**: The whole-sphere design note's yield table now holds the numbers the three built passes give at the defaults.
+- **8.0.1687**: The globular clusters and the satellite galaxies now place their own bright and massive stars and their black holes, neutron stars and planetary nebulae.
+- **8.0.1686**: The black holes, neutron stars, planetary nebulae and supernova remnants now reach the whole grid, out to 262 kpc, so the halo has them beyond the galaxy's outline.
+- **8.0.1685**: The bright-star and mass passes now reach the whole grid, out to 262 kpc, so the halo has its bright stars beyond the galaxy's outline.
+- **8.0.1684**: UX.114 is retired after its merge, and the round-trip column failure TEST.217 is closed by the same pull request.
+- **8.0.1683**: A star or phenomenon the scatter drew with company now shows its members and its total mass before its sector is generated.
+- **8.0.1682**: The Tunable gaps investigation is merged and its findings filed: a shared tuning harness, five selection models and seventeen builder groups for the unsourced composition weights.
+- **8.0.1681**: The atmosphere lane's NH3 lifetime check and corrections are merged, and Boss's usability rule is in the atmosphere note.
+- **8.0.1680**: GEN.407 is retired after its merge, what it left out is filed as GEN.502, and the two gate test failures carry their investigation records.
+- **8.0.1679**: The giant-branch slope, horizontal-branch levels and colour table now match what the papers say, after a check of the stellar evolution tables.
+- **8.0.1678**: Boss's rule that verified and partly verified research is usable, and the verified source wins in a contradiction, is recorded for the composition tables.
+- **8.0.1677**: The NH3 photolysis lifetime figures of the two research lanes are reconciled, and the activity factor becomes a research item.
+- **8.0.1676**: The atmosphere research lane's check of Boss's second research note is merged into the design notes, and the affected items carry what changed.
+- **8.0.1675**: The Body composition lane's check of Boss's second research note is merged and six small items are filed.
+- **8.0.1674**: Two test failures from the UX.114 gate are filed as bugs.
+- **8.0.1673**: NAV.60 retired: what is nearby reads by the cell key.
+- **8.0.1672**: Boss's second research note (2:11 AM EDT) is recorded as awaiting verification.
+- **8.0.1671**: The reserved migration revision numbers are recorded as an order of merge, not reservations.
+- **8.0.1670**: What is nearby is read by the cell key, so it finds every object (also those with no sector) and its cost follows the rows near the place, not the size of the galaxy.
+- **8.0.1669**: The atmosphere research update, the weighted atmosphere tables and the checks of Boss's research note are merged and filed.
+- **8.0.1668**: The meaning of a table weight is decided: the odds of picking a possibility.
+- **8.0.1667**: Every composition category becomes a gated table of weighted possibilities, filed in the plan.
+- **8.0.1666**: Boss's research note is checked and its work is placed: a saturation-pressure function, the redox state of rocky planets, and clathrates and brines.
+- **8.0.1665**: The body composition research is merged into the design documents, with its findings, the five decisions and the work clusters filed as items.
+- **8.0.1664**: The young stars of the disk now follow the galaxy's own star formation by radius: fewer in the outer disk and in the bar's gap, a ring at the bar's end.
+- **8.0.1663**: The atmosphere composition research is merged into the design documents, with the findings filed as items.
+- **8.0.1662**: The TEST.193 investigation record and a new loaded-browser flake are filed.
+- **8.0.1661**: GEN.323's expected black-hole count is corrected to the measured 9.1 million, accepted by Boss.
+- **8.0.1660**: Seven test items that Bug Hunt agreed are the same fix as another are merged, and GEN.276 is done.
+- **8.0.1659**: A sphere in the galaxy can now be turned into at most 256 runs of cell keys, the first half of searching it by key.
+- **8.0.1658**: Migration revision 0110 is reserved for GEN.324, and GEN.323's black-hole count is flagged.
+- **8.0.1657**: The galaxy-type and planet-class items no longer redo work the galaxy laws and the composition chain already build.
+- **8.0.1656**: Eleven items that did the same work as another are merged into it, and the mantle redox finding is filed.
+- **8.0.1655**: The galactic precision audit and the galaxy laws table are done.
+- **8.0.1654**: The consolidation sweep's contradictions and prerequisite cycles are fixed in the plan.
+- **8.0.1653**: The plan for replacing every Milky Way copy with a calculated law is written down and checked against the papers.
+- **8.0.1652**: The numeric precision audit says 64-bit floats are enough for the whole galaxy, and lists eight places to fix.
+- **8.0.1651**: Four follow-ups from Core 4's citation re-check of the binary-star work are filed.
+- **8.0.1650**: The bulk composition sources check is done and its constants, method order and corrections are folded into the bulk composition items.
+- **8.0.1649**: Composition of every body, star and atmosphere joins the atmosphere colour as the 9.0 headline, with its building blocks planned in 8.1.
+- **8.0.1648**: The point columns (DB.55, GEN.336, GEN.337) are retired from the TODO and the first slice of DB.53 is recorded.
+- **8.0.1647**: A star's chance of a close companion now follows its own metallicity, and a wide pair's widest axis follows the density and motion of the place it is in, in place of fixed numbers.
+- **8.0.1646**: Belts, the quasar, comets, facilities and the members of scattered star systems are stored with their point, mass and epoch.
+- **8.0.1645**: The database gets the columns every object needs to be one point with a position, a mass and a movement vector.
+- **8.0.1644**: A built star system can store its tree of orbits, its stars' places and velocities, and its disks.
+- **8.0.1643**: Stars, black holes, neutron stars, rogue planets, comets, asteroid fields, nebulae and remnants keep a movement vector and a mass.
+- **8.0.1642**: The atmosphere sources check is done and its corrections are folded into the gas table, ozone, aerosol and giant-planet items.
+- **8.0.1641**: The bulk composition that drives a body's density, mass and gravity is planned in 8.4, ahead of the atmosphere chain.
+- **8.0.1640**: Every test or investigation on a TODO item now leaves a dated comment on its goal issue, and bugs that could not be reproduced are flagged.
+- **8.0.1639**: Core 4 is the proposed owner of the atmosphere generator items, and the view from a planet is the headline of 9.1.
+- **8.0.1638**: The plan records which release takes generator epochs 4 and 5.
+- **8.0.1637**: The atmosphere colour becomes the 9.0 feature: the foundations are planned in 8.4 and the old 9.0 work moves to 8.9 and 9.1.
+- **8.0.1636**: GEN.306 is retired from the plan: the population streams are keyed on the object's unique ID.
+- **8.0.1635**: A galaxy's species, civilization ages, technology levels, governments and colors no longer depend on how many workers filled it.
+- **8.0.1634**: TEST.208 is filed: `scripts/test.py --resume` should reuse a test's earlier pass across builds when none of its own dependencies changed.
+- **8.0.1633**: The Bug Hunt lane is recorded as the proposed owner of the open Phase 1 bugs.
+- **8.0.1632**: TEST.207 is withdrawn from the plan: the accessibility fixture errors it described were already fixed.
+- **8.0.1631**: The plan files the corrections the stellar tables check found for the horizontal-branch and red giant values.
+- **8.0.1630**: The plan files the accessibility fixture failure that has been red on main since the backups screen and records the owners of the Sun radius removal.
+- **8.0.1629**: The plan has the build chain for GEN.368's approved laws that replace the Milky Way's fixed values.
+- **8.0.1628**: The plan has an 8.2 item to research the halo mass function and compare it with the halo mass approximation.
+- **8.0.1627**: The plan files the rescatter measurements: a wrong progress line, a star-count mismatch and stale generation cost notes.
+- **8.0.1626**: The stellar evolution fixes for horizontal-branch and giant stars are done, and the old Yerkes class III range is filed.
+- **8.0.1625**: Old stars now have a horizontal branch and an asymptotic giant branch, and their red giant branch spends its time at each luminosity as a real one does, so the bright-giant counts match real ones.
+- **8.0.1624**: The goal issues are consolidated into fewer chains and the old single-item issues are closed into them.
+- **8.0.1623**: The GEN.368 note now says the arxiv.org access for the verifying thread is in place.
+- **8.0.1622**: The plan records Boss's mass range, scatter and source decisions for the random-galaxy laws and the extra fixed content the survey found.
+- **8.0.1621**: The plan records that the galaxy keeps no home position, and retires the deterministic-math item.
+- **8.0.1620**: Distances, radii and rotations no longer depend on the Python release or the BLAS library, so a seed gives the same galaxy everywhere.
+- **8.0.1619**: Boss's three choices for the superbubble density plan are recorded: young stars only, the drawn layer kept as an optional overlay, and the chain stays in 8.1.
+- **8.0.1618**: The plan now has a chain that lets the superbubbles shape where stars form, instead of only drawing them.
+- **8.0.1617**: ADM.43 and ADM.44 (the configuration page and the web, link preview and SEO settings) leave the TODO list.
+- **8.0.1616**: The Admin Settings page now controls how the site presents itself to search engines, browsers and link previews: indexing, robots.txt, sitemaps, icons, the preview picture and the site's tagline.
+- **8.0.1615**: Boss's halo bug (nothing in the halo can be selected or entered on the Galaxy Map) is filed with its causes and a slot.
+- **8.0.1614**: API.27 and UX.113 (the read-only Sector Profile lookup and the profile panel on the sector page) leave the TODO list.
+- **8.0.1613**: Any address in the galaxy now has a page showing what the galaxy's shape says it holds.
+- **8.0.1612**: The API can show the profile of any sector in the galaxy, charted or not.
+- **8.0.1611**: A failing portability test on main (the DB.18 helpers use LOCK) is on the TODO list for Core 2.
+- **8.0.1610**: GEN.368 and GEN.276 with NAV.60 go next in their lanes' queues (Boss, "Both next").
+- **8.0.1609**: Each galaxy type in 9.4 gets a simple vector outline so the user sees roughly what the model looks like.
+- **8.0.1608**: A new 9.4 plan for galaxy types: spiral, lenticular, elliptical, irregular and dwarf families drawn from the seed, as a chain of 18 required items.
+- **8.0.1607**: The forward-to-current browser test flake has a third sighting on the TODO list.
+- **8.0.1606**: UX.116 (limit sliders on the Generate page) leaves the TODO list.
+- **8.0.1605**: ADM.85 (the backups screen, restore, and settings export and import) leaves the TODO list.
+- **8.0.1604**: Every scatter and fill limit on the Generate page is a slider with a number box at its end, in segments for the core, the halo and the crowded cells.
+- **8.0.1603**: The Admin Settings page now has a backups screen: see every backup, make one, compare it with today's settings and restore all or part of it, and export or import the settings that an admin may change.
+- **8.0.1602**: The galactic potential items (GEN.338, GEN.115, GEN.144) are rewritten so the potential is derived from the generated galaxy, with the Milky Way's numbers only as reference values.
+- **8.0.1601**: Boss decided that the galactic potential module and the nuclear mass components stay in 8.3.
+- **8.0.1600**: GEN.134 (star populations by galactic radius) is recorded as built derived, with the Milky Way figures only as test targets.
+- **8.0.1599**: GEN.285 (nuclear mass in the galactic potential) moves to 8.3 behind GEN.338, which builds the potential module it needs.
+- **8.0.1598**: GEN.333 and GEN.283 (scatter limits by place for stars) leave the TODO list, and the same limits for the neutron star and black hole scatter become GEN.377.
+- **8.0.1597**: The star scatter draws its line by place: the galactic core, the halo and everywhere else each have their own luminosity floor and mass limit.
+- **8.0.1596**: The browser-test hangs (TEST.193 and TEST.195) have an owner: Core 1, ahead of its bug phase.
+- **8.0.1595**: DB.18 (migration helpers for slow DDL) leaves the TODO list, and the browser-test hangs that hit every full gate this evening are recorded as a repeating failure.
+- **8.0.1594**: Migrations have helpers for slow changes on big tables, so the server refuses instead of silently copying.
+
+## 2026-10-16
+
+- **8.0.1593**: Boss's star-glow note is on the list: stars should glow brighter instead of growing bigger, with colour following the star's properties.
+- **8.0.1592**: The precision audit's follow-up work is on the list: eight items for the tile root, camera-relative buffers, orbit phases, the cell key, two kernels and two tests.
+- **8.0.1591**: A far-tail precision failure in the galaxy density fuzz test is on the list as TEST.199 and attached to the precision audit.
+- **8.0.1590**: ADM.50 (remove the galaxy settings files) leaves the TODO list, and the central black hole is recorded as staying exactly on the origin.
+- **8.0.1589**: The galaxy settings files are gone; the galaxy keeps one internal record of how it was made.
+- **8.0.1588**: Boss's three Galaxy Map notes of 2026-10-16 are on the list: clearer superbubble bounds, the invisible Charted only view, and colour-and-opacity highlighting for charted regions.
+- **8.0.1587**: The TODO list now has a Galaxy Map key item (the green superbubble shapes have no legend), and GEN.103 records the odds form as decided.
+- **8.0.1586**: The massive-multiples rule of GEN.103 is now its own item, GEN.373, and the TODO list records Core 4's odds form for the metallicity effect.
+- **8.0.1585**: The TODO list records that the GEN.103 placement note is on main and that its massive-multiples rule stays open.
+- **8.0.1584**: The void-fill question (GEN.102) is answered again for the spherical grid, with a census of the sparse cells and the space beyond the outline.
+- **8.0.1583**: The placement of each star type and phenomenon by population (GEN.103) is written down: what is built, and the three rules for the type draws that are not.
+- **8.0.1582**: The numeric precision audit (GEN.372) has an owner: Core 1, with Core 2 reading the camera and render rows.
+- **8.0.1581**: The plan now has one item that collects every numeric precision question at galactic scale.
+- **8.0.1580**: The TODO list retires the three scatter-limit settings columns, which Core 3 built.
+- **8.0.1579**: The scatter limits by place are three settings of the galaxy: a core luminosity floor and mass limit and a halo luminosity floor.
+- **8.0.1578**: The multi-star design note now says the metallicity effect on close binaries applies to every star mass.
+- **8.0.1577**: The plan records Boss's decisions for the multi-star type draw and adds a check that the close-binary numbers act as expected.
+- **8.0.1576**: The TODO list retires the single definition of the stored point columns and the galaxy-grid fuzz bug.
+- **8.0.1575**: The columns that hold an object's position, mass and movement are defined in one place.
+- **8.0.1574**: The TODO list retires the cell-key test across a cube boundary, which Core 4 built.
+- **8.0.1573**: The cell key is now tested across a cube boundary on every table that holds a position.
+- **8.0.1572**: The TODO list retires DB.59, whose nebula and remnant age columns turned out to exist already.
+- **8.0.1571**: The plan records Boss's research for the multi-star type draw and retires the void-fill question.
+- **8.0.1570**: The TODO list retires the generator epoch counter and its PR rule, which Core 2 built.
+- **8.0.1569**: The generator now has an epoch counter, and a pull request that changes what a seed generates must bump it.
+- **8.0.1568**: The TODO list retires the Admin settings page, which the Settings lane built.
+- **8.0.1567**: Admins can now see and change every program option from a new Settings page, with help for each option, a review of the changes before anything is saved, a backup of the old file and an audit row for every change.
+- **8.0.1566**: The TODO list retires the numba sector-path integrator, which saves sector paths 21 times faster.
+- **8.0.1565**: Saving the sector paths is about twenty times faster: the integrator now runs as one compiled numba call.
+- **8.0.1564**: The plan now has a study of how a course accounts for the gravity of stars a cell leaves out.
+- **8.0.1563**: The TODO list records a second sighting of the galaxy-grid fuzz failure and a suggested fix.
+- **8.0.1562**: The TODO list retires the adaptive per-cell system cap, which Core 3 built.
+- **8.0.1561**: The TODO list records a failing galaxy-grid fuzz test as a bug to fix.
+- **8.0.1560**: A cell makes at most 5,000 systems, so the galactic core and bulge fill in about a minute and a half instead of up to 17 minutes.
+- **8.0.1559**: The TODO list now shows which multi-star and cluster items moved from Core 3 to Core 4.
+- **8.0.1558**: The Core 4 item list is corrected: 17 items are unassigned, not 33; the other 16 stay with Core 3.
+- **8.0.1557**: The new Core 4 lane has its queue: owner lines set on the 33 unassigned scatter-chain items.
+- **8.0.1556**: The plan now states the rule of no fixed content: everything is seeded, derived or calculated.
+- **8.0.1555**: There is no Milky Way option: the Harris file and the real satellite list only guide and check the generators.
+- **8.0.1554**: The double-click flight on the Galaxy Map (MAP.226) is retired after the merge, and the satellite derivation chain is recorded.
+- **8.0.1553**: The drawn satellites must be calculated or derived from real science, not copied.
+- **8.0.1552**: Boss's request to draw satellites from the seed and plan every appearance rate is filed as items.
+- **8.0.1551**: On the Galaxy Map a double click on a star, cloud or body flies the camera to it.
+- **8.0.1550**: The settings writer, the backup archive and the one configuration file (ADM.83, ADM.87, ADM.96) are retired after the merge.
+- **8.0.1549**: All program configuration lives in the one `config.json`, which can now be saved from the command line with checks, backups and an audit row, on a new backup archive that the settings page, the control database and the DB repair data will share.
+- **8.0.1548**: The galactic core density terms (GEN.280) are retired after the merge.
+- **8.0.1547**: The galactic center holds the observed nuclear star cluster and nuclear stellar disk, in place of ADM.49's Gaussian core.
+- **8.0.1546**: The next two migration revisions are recorded: 0102 for DB.59 and 0103 for DB.54.
+- **8.0.1545**: Satellite and cluster components (GEN.237) are retired after the merge.
+- **8.0.1544**: The late lane findings and Boss's adaptive cell cap are filed as items.
+- **8.0.1543**: The Magellanic Clouds, Sagittarius and eight dwarf galaxies are in the galaxy, at their real places.
+- **8.0.1542**: The asteroid render items and the closed core-disk issue are tracked in the issue table.
+- **8.0.1541**: The new lane orders are in the plan, ten items are closed on Boss's approval, and the asteroid render plan is filed as four items.
+- **8.0.1540**: The top blockers on the tree page now count a chain once, GEN.99 is dropped, and the migration numbers and lane owners are corrected.
+- **8.0.1539**: Every open TODO item is now in a GitHub goal issue, and five new goal issues cover edit everything (8.6), roles (10.0), backups, the single configuration file and map labels.
+- **8.0.1538**: MAP.152, the scale hand-offs, is retired as built.
+- **8.0.1537**: The fly-through camera pieces that MAP.146 still lacked, map labels and the single configuration file are now planned.
+- **8.0.1536**: Every open item was reviewed for smaller chunks and shared foundations, so the version plan now builds shared work once and in the right phase.
+- **8.0.1535**: On the Galaxy Map a star's system fades in as the camera comes up to it, and opens from that scene with one more wheel tick.
+- **8.0.1534**: A nightly full backup from the daily maintenance run is planned for 9.0, with its own schedule and retention settings.
+- **8.0.1533**: The backup archive (settings now, control database and parity data for 9.0) and the restore and repair chain are planned, with the settings page staying in 8.1.
+- **8.0.1532**: Version 10.0 is planned as roles and permissions (user, moderator, admin edit requests), and the configuration page moves up into 8.1.
+- **8.0.1531**: Edit everything (8.6) is planned as 35 items in 5 phases with a design note, and the TODO tree lists the top 5 blockers overall and for each phase.
+- **8.0.1530**: The tiers are now a version map: one version per release from 8.1 to 9.3, each with phases and threads, a progress bar per version, and the new headlines Boss named (8.1 the new generate scatters, 8.6 edit everything).
+- **8.0.1529**: On the Galaxy Map a sector's own stars and phenomena fade in as the camera comes up to it, with no click and no change of view.
+- **8.0.1528**: The plan set has a release roadmap from v8.0 to v10.0, proposed for Boss: a headline, the open items, what each release needs and a list of ideas not yet filed.
+- **8.0.1527**: The to-do list puts Core 2's queue in Boss's order: MAP.152, then MAP.146, then the slow-page job and progress bar (PERF.105 and UX.118).
+- **8.0.1526**: The to-do list files the slow-page job and progress bar (PERF.105 and UX.118, Phase 1, Core 2), so a page that needs a long query queues it into Redis and shows how far it has got.
+- **8.0.1525**: The to-do list retires the site cache warm-up (PERF.104) and closes its goal issue.
+- **8.0.1524**: After an update the site's caches are built ahead of the first visit, and a change rebuilds only the pages that read it.
+- **8.0.1523**: The to-do list retires the kind factors in the sector profile and the planet cull by metallicity (GEN.236).
+- **8.0.1522**: A metal-poor star's disk makes far fewer planets, and the sector profile scales each rare kind by the place it is in.
+- **8.0.1521**: The to-do list files a Quantity class (GEN.299, Phase 3), so every version of a measured value is always available with all conversions and the shared ladders, and a sweep item (GEN.300) to move the call sites onto it.
+- **8.0.1520**: The to-do list assigns the fly-through map's first two items, MAP.152 and MAP.146, to Core 2 on Boss's order, right after PERF.104.
+- **8.0.1519**: The to-do list retires the galactic core cell star ceiling and fill luminosity cap (GEN.281), and records that migration 0098 shipped with it alone.
+- **8.0.1518**: A cell that expects more systems than the cell star ceiling is filled only with the stars at or above the fill luminosity cap, and the sector page and API report what is left unresolved.
+- **8.0.1517**: The tier plan shows a progress bar for every tier: items finished out of items in the tier, with the percentage, rebuilt on every retire.
+- **8.0.1516**: The to-do list retires the cluster density term in the sector gate (GEN.160), with the globular clusters now drawn and stored by the plan step.
+- **8.0.1515**: A sector inside a globular cluster now expects the cluster's stars, so the sector gate and the profile see its dense core.
+- **8.0.1514**: The to-do list retires the superbubble field (GEN.254) and the fill stages with the pulsar system pass (GEN.251), and files the remnant-in-bubble follow-up.
+- **8.0.1513**: A sector fill runs as stages that each draw from their own random stream, and a scattered pulsar gets its planets only when its sector is filled.
+- **8.0.1512**: The galaxy has superbubbles, hot thin cavities with no molecular clouds in them, drawn on the Galaxy Map.
+- **8.0.1511**: The to-do list retires the globular cluster table (GEN.159) and files the Milky Way catalogue import (GEN.297).
+- **8.0.1510**: The to-do list files a new flaky-test bug for the sector page accessibility test (TEST.174).
+- **8.0.1509**: A galaxy can now hold globular clusters as stored King-model components, with a generator that draws the Milky Way's 157.
+- **8.0.1508**: The to-do list retires the Hilbert fill order (GEN.101) and files a new flaky-test bug.
+- **8.0.1507**: A neighbourhood fill now generates the center sector first and fills outward in a fixed, space-filling order.
+- **8.0.1506**: The to-do list retires the magnetar scatter class (GEN.278).
+- **8.0.1505**: Magnetars are placed across the galaxy before any sector is filled, on the young stars.
+- **8.0.1504**: The to-do list records the corrected migration order: 0097 globular-cluster component table, 0098 galactic core, 0099 onward Core 1.
+- **8.0.1503**: The to-do list retires the failing navigation test fix (TEST.163), the Einstein radius (GEN.154) and the GRB and AGN ozone loss (GEN.189), and files a new flaky-test bug.
+- **8.0.1502**: The nav bar test no longer hangs on a sample galaxy whose loose systems had no place.
+- **8.0.1501**: Gamma-ray bursts and the galactic nucleus now count toward a planet's ozone-loss flag.
+- **8.0.1500**: Black hole, neutron star and rogue planet pages now show their Einstein radius against the galactic center.
+- **8.0.1499**: The to-do list retires the magnetar and pulsar-age work (GEN.153) and the supernova remnant sizes (GEN.151).
+- **8.0.1498**: The scatter's share of recycled neutron-star pulsars follows the new age-based pulsar rule, which fixes a broken import left when two merges crossed.
+- **8.0.1497**: The to-do list records Core 3 as the owner of the failing navigation test (TEST.163).
+- **8.0.1496**: Supernova remnants are sized by the real Sedov-Taylor blast-wave law, so a remnant in thin gas grows larger than one in dense gas.
+- **8.0.1495**: The to-do list retires the scatter companions (GEN.262), which unblocks the compact-pair promotion (GEN.263).
+- **8.0.1494**: Stars, black holes, neutron stars and planetary nebulae in the scatter now come with their companions.
+- **8.0.1493**: Neutron stars can now be magnetars, and only young ones pulse, as in the real Galaxy.
+- **8.0.1492**: The to-do list records the new migration revision order: 0096 magnetar CHECK, 0097 galactic core, 0098 globular-cluster component table.
+- **8.0.1491**: The to-do list retires the stored star metallicity (GEN.158) and files the uncharted-star panel gap.
+- **8.0.1490**: Every star now has a stored metallicity, and the sector map shows it.
+- **8.0.1489**: The to-do list retires MAP.211, the information page for hypervelocity and scattered objects.
+- **8.0.1488**: Every uncharted phenomenon, hypervelocity stars included, now has a page you can open, and a generated one takes you to what was made.
+- **8.0.1487**: The to-do list retires the sector profile (GEN.235) and files a new flaky-test bug.
+- **8.0.1486**: Any sector in the grid's reach can be asked for and is generated from a profile of its place, in the disk or out in the halo.
+- **8.0.1485**: The to-do list retires the five items Core 3 finished: the filter button fix, the Environment suit rename and the update guard.
+- **8.0.1484**: The orbital update does nothing while an update is running, and a cancel never leaves positions half moved.
+- **8.0.1483**: Before an update changes anything it lists the running and queued work and stops unless you agree to cancel it, and nothing new can start while it runs.
+- **8.0.1482**: The site is closed for visitors (maintenance mode) while an update runs, and opened again when it has finished.
+- **8.0.1481**: The PHI-6 equipment tier once called "Sealed suit" is now called "Environment suit" everywhere.
+- **8.0.1480**: The Apply filters button no longer disappears from filtered tables, and it works whether or not the table has loaded.
+- **8.0.1479**: The to-do list records that the sector-open bugs MAP.209 and MAP.210 did not reproduce and what is needed from Boss.
+- **8.0.1478**: Browser tests now guard the move from the Galaxy Map into a sector and picking its stars.
+- **8.0.1477**: The to-do list retires MAP.208, built by the points-of-light map change.
+- **8.0.1476**: Stars and black holes, neutron stars and quasars are points of light on the maps until you fly near a sector.
+- **8.0.1475**: The execution plan moves the sector profile and member-tree items from Core 2 to Core 1.
+- **8.0.1474**: The to-do list retires GEN.266, built by the compact-binary orbit rules tests.
+- **8.0.1473**: The orbit laws of a black hole or neutron star with a star, and of tight compact pairs, are pinned by tests.
+- **8.0.1472**: The to-do list retires PERF.103, built by the orbital update row ceiling.
+- **8.0.1471**: The orbital update has a ceiling on a night's work and warns with the backlog it leaves.
+- **8.0.1470**: The to-do list files the design question of nebulae as point groups whose shape follows the orbital update.
+- **8.0.1469**: The to-do list retires GEN.265, built by the system member tree change.
+- **8.0.1468**: A scattered multi-star system moves as one point and its members are placed from their stored orbits.
+- **8.0.1467**: The to-do list retires GEN.234, built by the measured stellar halo change.
+- **8.0.1466**: The to-do list adds the update guard: maintenance mode during an update, a running-work check, and an orbital update that refuses to run mid-update.
+- **8.0.1465**: The galaxy has a measured stellar halo instead of a flat density floor.
+- **8.0.1464**: The to-do list retires GEN.149, built by the planetary-nebula central star change.
+- **8.0.1463**: The to-do list places the capture and ejection items in the Phase 2 and Phase 3 plan.
+- **8.0.1462**: Planetary-nebula central stars are now the 0.5 to 0.7 solar-mass, 100 to 10,000 solar-luminosity, up to 200,000 K cores astronomers observe.
+- **8.0.1461**: The to-do list retires the items finished by migration 0093 and files a load-flake bug.
+- **8.0.1460**: Every object now has a 96-bit ID, every scatter point moves with the galaxy, and the grid reaches 262 kpc.
+- **8.0.1459**: The to-do list files five gaps in the orbital update found when asking what a passing black hole or neutron star would do.
+- **8.0.1458**: The to-do list files the rename of the PHI-6 "Sealed suit" tier to "Environment suit".
+- **8.0.1457**: The to-do list records that the giant-branch spread fix is built together with the horizontal-branch phases.
+- **8.0.1456**: The to-do list lowers the halo luminosity floor's lowest value to 50 and adds a horizontal-branch acceptance test.
+- **8.0.1455**: The cache warm-up item now makes every kind of warm-up a visible task in the admin queue.
+- **8.0.1454**: The to-do list files two phenomena bugs and a site cache warm-up goal from Boss's report.
+- **8.0.1453**: The to-do list files two Galaxy Map bugs: the sector hand-off reloads into a different view, and nothing on the map can be selected.
+- **8.0.1452**: The to-do list records that the generator side of GEN.269 (interaction states in the star model) has merged.
+- **8.0.1451**: Every pair in a multi-star system now carries an interaction state worked out from Roche-lobe geometry.
+- **8.0.1450**: The star-size to-do item now covers every phenomenon, and phenomena draw as bright as a star of similar mass.
+- **8.0.1449**: Every star now has a metallicity, and a metal-poor star's disk holds fewer solids.
+- **8.0.1448**: The to-do list adds a Galaxy Map item for drawing stars as points of light until the view is near sector level.
+- **8.0.1447**: OPS.51 is retired (the maintenance switch now lives where the web user can write it), and a Liquid delimiter in a TODO note is removed.
+- **8.0.1446**: The admin page and the map rebuild can switch maintenance mode off again on a real server.
+- **8.0.1445**: GEN.158's model slice is recorded, DB.33 has an owner, and the tuning header rule is filed as DOC.53.
+- **8.0.1444**: Every star now has a metallicity, and a metal-poor star's disk holds fewer solids.
+- **8.0.1443**: GEN.287 is filed: giant-branch stars spread evenly in log luminosity probably overstate the bright giants (bug, Core 3).
+- **8.0.1442**: GEN.286 now covers the horizontal-branch and AGB phases and no longer waits on GEN.158.
+- **8.0.1441**: GEN.286 is filed: a horizontal-branch phase in the stellar evolution model (Core 3).
+- **8.0.1440**: The galactic core plan covers horizontal-branch and asymptotic-giant stars and what they do to the halo scatter.
+- **8.0.1439**: GEN.281, GEN.283 and UX.116 are reworded to the galactic core note's settings: a cell star ceiling, a fill luminosity cap, core levers and a halo floor, with sliders.
+- **8.0.1438**: The galactic core plan gains the scatter sliders, the halo floor and the dense-cell ceiling Boss asked for.
+- **8.0.1437**: The halo luminosity floor has a lowest value of 100 solar luminosities.
+- **8.0.1436**: The scatter and fill levers get a halo floor, a cell star ceiling, a fill luminosity cap and core levers, with sliders (UX.116).
+- **8.0.1435**: DB.33 records a second confirmation that its six tests fail on clean main.
+- **8.0.1434**: The galactic core plan is merged; its build steps are filed as GEN.280 to GEN.285 and the queued stages move to the three Core lanes.
+- **8.0.1433**: A design note plans a realistic galactic core: the nuclear star cluster and disk, a resolution cap, and tiered scatter limits.
+- **8.0.1432**: The interface update and the admin chain are queued after the sphere and generation work, with five new items.
+- **8.0.1431**: The tiered mass and luminosity idea now applies to the scatter minimums only, and the density plan follows real observations.
+- **8.0.1430**: GEN.279 carries Boss's tiered mass and luminosity caps, and the sector-profile items leave room for them.
+- **8.0.1429**: GEN.279 is filed: a realistic galactic core built from the density and generation model, with a plan note first (Core 3).
+- **8.0.1428**: GEN.277 and GEN.113 are retired, GEN.278 (magnetar scatter class) is filed, and the scatter note's item changes are recorded.
+- **8.0.1427**: A design note says which of the later phenomena are scattered, backfilled, fill-only or derived.
+- **8.0.1426**: GEN.277 is filed: a design note on which later phenomena are scattered, backfilled or stay sector-fill-only.
+- **8.0.1425**: GEN.155 (the nuclear-cluster object) is closed as not built.
+- **8.0.1424**: The state folder stays group-writable (770) however the permissions script is run, matching create-cache-dir.sh.
+- **8.0.1423**: OPS.31 is retired and Quality's remaining queue is marked unassigned while Quality is idle.
+- **8.0.1422**: The galactic-center design note now records that no nuclear-cluster object is built.
+- **8.0.1421**: Every example plist, XML and systemd unit file in the repository is checked by a test, so a malformed one cannot ship unnoticed.
+- **8.0.1420**: OPS.52 (web-user ownership and the Apache directory restrictions) is retired.
+- **8.0.1419**: An update.sh that was already running when it pulled the web-user ownership change says to run it again instead of only refusing.
+- **8.0.1418**: TEST.163 now fails every time on main, not only under load, and its item says so.
+- **8.0.1417**: The whole planetGen install belongs to the web user (www-data:www-data), set the same way by install.sh and update.sh, and the example Apache2 site refuses to serve anything but the app and static files.
+- **8.0.1416**: A third Core lane takes goal issue #1677, the later catalogue additions.
+- **8.0.1415**: OPS.52 is filed (web-user ownership and Apache directory restrictions) and Quality's and Interface's findings are on their items.
+- **8.0.1414**: The cylinder grid's last module and tests are gone; the tests save sectors at shell, band and wedge addresses.
+- **8.0.1413**: The execution plan lists OPS.51 under the Interface lane.
+- **8.0.1412**: GEN.261 (the member-tree generator) is retired, OPS.51 is filed, and Core 2's findings are on GEN.242 and GEN.269.
+
+## 2026-10-15
+
+- **8.0.1411**: A star, black hole or neutron star can now be given a stable tree of companions: stars, brown dwarfs, white dwarfs, neutron stars and black holes in hierarchies of up to twelve members.
+- **8.0.1410**: One scroll of the wheel now carries the Galaxy Map from the whole galaxy down through its windows to a sector and a system, and back out.
+- **8.0.1409**: GEN.268 (the system-type registry) is retired; GEN.261 is next.
+- **8.0.1408**: Every multi-star and star-like-object system type in the catalogue now has an entry in one rate table, ready for the member-tree generator to read.
+- **8.0.1407**: GEN.250 (the phenomena registry) is retired; GEN.268 and GEN.261 are unblocked.
+- **8.0.1406**: Every kind of object the generator makes is now one row in a single registry, and the lists that used to repeat the kinds read it.
+- **8.0.1405**: TEST.158 and DOC.21 are retired, and the findings Quality reported are on their items.
+- **8.0.1404**: The code's own docs name the modules and the shell, band and wedge grid as they are now.
+- **8.0.1403**: The math check now tests the shell, band and wedge grid the program uses.
+- **8.0.1402**: The tests that are not about the Galaxy Map now check the spherical sector grid
+- **8.0.1401**: The math check now tests the shell, band and wedge grid the program uses.
+- **8.0.1400**: The tests that are not about the Galaxy Map now check the spherical sector grid
+- **8.0.1399**: The design index lists the multi-star note again (a test was failing on main), and the findings other lanes reported are on their TODO items and issues.
+- **8.0.1398**: TODO pages and GitHub issues now match: every open item belongs to a goal issue, and every TODO page links its issues.
+- **8.0.1397**: The Galaxy Map is checked from under the galactic plane, so blocks below it are picked and outlined as easily as those above.
+- **8.0.1396**: Working out the path of a body held by a heavy black hole no longer takes minutes in a core sector.
+- **8.0.1395**: The plan and the lane briefs show two Core lanes and each lane's list.
+- **8.0.1394**: The orbital update plan gains halo and intergalactic movement scales, a sector-crossing guard, full counting and a per-night cost ceiling.
+- **8.0.1393**: Quality's confirmations that two failures fail on a clean main are recorded on their TODO items.
+- **8.0.1392**: The multi-star catalogue of system types and the spherical-region query are on the TODO list and in the plan.
+- **8.0.1391**: A new design note shows how to ask the database for everything inside a sphere with a single cell key and a covering index, measured on real MySQL 8 against the box, the spatial index and walking the sectors.
+- **8.0.1390**: The multi-star design note now catalogues every observed and theoretical multi-star and star-like-object system type, with its rate, where it occurs and how it is generated.
+- **8.0.1389**: The test failures from Quality's 4:56 PM EDT run are on the TODO list as bug items.
+- **8.0.1388**: The multi-star items are on the TODO list, and the lane queues for the intergalactic space plan are computed.
+- **8.0.1387**: A new design note says how many multi-star and compact-object systems exist, their limits and odds, and how a scatter row stores its companions as a tree.
+- **8.0.1386**: The intergalactic space plan is written down as one plan document.
+- **8.0.1385**: Stellar companions of stars and remnants are made at scatter time; planets and moons stay at sector fill.
+- **8.0.1384**: The phenomena catalogue is on the TODO list: a registry, fill stages with a system pass, and the later kinds.
+- **8.0.1383**: A new design note lists every phenomenon kind with its observed rate, system odds, required contents, profile gate and fill rule, and proposes a registry, a system pass and a representation audit.
+- **8.0.1382**: Scatters carry no systems; planets and moons come only when a sector is filled.
+- **8.0.1381**: The Wolf-Rayet and protostar system rules and the later phenomenon types are on the TODO list.
+- **8.0.1380**: The whole-sphere design note now states that the nebula, Wolf-Rayet and protostar steps are filed (GEN.241 to GEN.243) and marks the other phenomenon types as a plan-later list.
+- **8.0.1379**: The whole-sphere design note now says what systems Wolf-Rayet stars and protostars get, compared with black holes and neutron stars, and lists the phenomenon types still missing.
+- **8.0.1378**: The spherical-region database query now waits for its research and never blocks the grid or the whole-sphere work.
+- **8.0.1377**: The plan now finishes the spherical grid first, then the whole sphere with real stars for every nebula and Wolf-Rayet stars.
+- **8.0.1376**: The whole-sphere design note now says every nebula gets its required stars as real systems, and adds Wolf-Rayet stars and ring nebulae.
+- **8.0.1375**: The plan now follows the 13-step whole-sphere build train, with one item per step and the globular clusters inside it.
+- **8.0.1374**: The whole-sphere design note now carries the one-rule-set sector profile, the scatter yields over the sphere and the build plan, with globular clusters.
+- **8.0.1373**: The plan now shows the migration time-left bars as done.
+- **8.0.1372**: The migration's progress bars now show a time remaining.
+- **8.0.1371**: The plan now carries the work to fill the whole sphere out to 262 kpc with a stellar halo, satellites and wanderers.
+- **8.0.1370**: A design note on filling the whole spherical grid: the stellar halo, satellites and intergalactic space.
+- **8.0.1369**: The reference docs describe the Galaxy Map as it now is, on shells, bands and wedges.
+- **8.0.1368**: The plan now shows the Galaxy Map on shells as done and the Interface lane taking over the map, page and wording items.
+- **8.0.1367**: The Galaxy Map is drawn on the new shell, band and wedge grid, with the same drill-down from the galaxy to a sector.
+- **8.0.1366**: The plan files the bug that sector designations cannot name bands beyond 2047.
+- **8.0.1365**: The plan retires six more documentation items and files the rebuild of the architecture snapshot page.
+- **8.0.1364**: The plan retires PERF.101, the missing progress and time remaining while the phenomena indexes are built.
+- **8.0.1363**: The architecture document describes the code as it is now, module by module.
+- **8.0.1362**: The sector grid is documented as the shells, bands and wedges it now is.
+- **8.0.1361**: The web interface guide now lists every page and route the site has.
+- **8.0.1360**: The database format guide now matches the v91 schema and the Alembic migrations.
+- **8.0.1359**: A new cloud session can now have MySQL 8, Apache, Redis and every test dependency ready from one pasted setup script.
+- **8.0.1358**: Building the phenomena indexes now shows a progress bar with a time remaining.
+- **8.0.1357**: The plan retires DOC.34, the docs/api.md update.
+- **8.0.1356**: The API reference now matches the routes the spherical switch left.
+- **8.0.1355**: The plan now has the nightly orbital update move every object in the galaxy, each stored as a point in space in its own columns.
+- **8.0.1354**: The plan files the migration progress bug: neither bar shows an estimated time remaining.
+- **8.0.1353**: The plan files two follow-ups from the spherical switch: a math check for the shell grid and an API version bump.
+- **8.0.1352**: The plan no longer lists the cli.md sync (DOC.36), now done.
+- **8.0.1351**: The command-line reference now matches `planetgen --help` for all 11 subcommands, on the new shell, band and wedge grid.
+- **8.0.1350**: The plan now records what the spherical switch left for the Galaxy Map (the 500 on /galaxy and the parked browser tests).
+- **8.0.1349**: The object-timing test no longer fails when the machine is busy.
+- **8.0.1348**: Every release note now has to open with a Headline line, so no release goes out without one.
+- **8.0.1347**: (no headline)
+- **8.0.1346**: (no headline)
+- **8.0.1345**: (no headline)
+- **8.0.1344**: (no headline)
+- **8.0.1343**: (no headline)
+- **8.0.1342**: (no headline)
+- **8.0.1341**: (no headline)
+- **8.0.1340**: (no headline)
+- **8.0.1339**: (no headline)
+- **8.0.1338**: (no headline)
+- **8.0.1337**: (no headline)
+- **8.0.1336**: (no headline)
+- **8.0.1335**: (no headline)
+- **8.0.1334**: (no headline)
+- **8.0.1333**: (no headline)
+- **8.0.1332**: (no headline)
+- **8.0.1331**: (no headline)
+- **8.0.1330**: (no headline)
+- **8.0.1329**: (no headline)
+- **8.0.1328**: (no headline)
+- **8.0.1327**: (no headline)
+- **8.0.1326**: (no headline)
+- **8.0.1325**: (no headline)
+- **8.0.1324**: (no headline)
+- **8.0.1323**: (no headline)
+- **8.0.1322**: (no headline)
+- **8.0.1321**: (no headline)
+- **8.0.1320**: Release notes can open with a Headline line, and the stamp keeps it under the release heading.
+- **8.0.1319**: (no headline)
+- **8.0.1318**: (no headline)
+- **8.0.1317**: (no headline)
+- **8.0.1316**: (no headline)
+- **8.0.1315**: (no headline)
+- **8.0.1314**: (no headline)
+- **8.0.1313**: (no headline)
+- **8.0.1312**: (no headline)
+- **8.0.1311**: (no headline)
+- **8.0.1310**: (no headline)
+- **8.0.1309**: (no headline)
+- **8.0.1308**: (no headline)
+- **8.0.1307**: (no headline)
+- **8.0.1306**: (no headline)
+- **8.0.1305**: (no headline)
+- **8.0.1304**: (no headline)
+- **8.0.1303**: (no headline)
+- **8.0.1302**: (no headline)
+- **8.0.1301**: (no headline)
+- **8.0.1300**: (no headline)
+- **8.0.1299**: (no headline)
+- **8.0.1298**: (no headline)
+- **8.0.1297**: (no headline)
+- **8.0.1296**: (no headline)
+- **8.0.1295**: (no headline)
+- **8.0.1294**: (no headline)
+- **8.0.1293**: (no headline)
+- **8.0.1292**: (no headline)
+- **8.0.1291**: (no headline)
+- **8.0.1290**: (no headline)
+- **8.0.1289**: (no headline)
+- **8.0.1288**: (no headline)
+- **8.0.1287**: (no headline)
+- **8.0.1286**: (no headline)
+- **8.0.1285**: (no headline)
+- **8.0.1284**: (no headline)
+- **8.0.1283**: (no headline)
+- **8.0.1282**: (no headline)
+- **8.0.1281**: (no headline)
+- **8.0.1280**: (no headline)
+- **8.0.1279**: (no headline)
+- **8.0.1278**: (no headline)
+- **8.0.1277**: (no headline)
+- **8.0.1276**: (no headline)
+- **8.0.1275**: (no headline)
+- **8.0.1274**: (no headline)
+- **8.0.1273**: (no headline)
+- **8.0.1272**: (no headline)
+- **8.0.1271**: (no headline)
+- **8.0.1270**: (no headline)
+- **8.0.1269**: (no headline)
+- **8.0.1268**: (no headline)
+- **8.0.1267**: (no headline)
+- **8.0.1266**: (no headline)
+- **8.0.1265**: (no headline)
+- **8.0.1264**: (no headline)
+- **8.0.1263**: (no headline)
+- **8.0.1262**: (no headline)
+- **8.0.1261**: (no headline)
+- **8.0.1260**: (no headline)
+- **8.0.1259**: (no headline)
+- **8.0.1258**: (no headline)
+- **8.0.1257**: (no headline)
+- **8.0.1256**: (no headline)
+- **8.0.1255**: (no headline)
+- **8.0.1254**: (no headline)
+- **8.0.1253**: (no headline)
+- **8.0.1252**: (no headline)
+- **8.0.1251**: (no headline)
+- **8.0.1250**: (no headline)
+- **8.0.1249**: (no headline)
+- **8.0.1248**: (no headline)
+- **8.0.1247**: (no headline)
+- **8.0.1246**: (no headline)
+- **8.0.1245**: (no headline)
+- **8.0.1244**: (no headline)
+- **8.0.1243**: (no headline)
+- **8.0.1242**: (no headline)
+- **8.0.1241**: (no headline)
+- **8.0.1240**: (no headline)
+- **8.0.1239**: (no headline)
+- **8.0.1238**: (no headline)
+- **8.0.1237**: (no headline)
+- **8.0.1236**: (no headline)
+- **8.0.1235**: (no headline)
+- **8.0.1234**: (no headline)
+- **8.0.1233**: (no headline)
+- **8.0.1232**: (no headline)
+- **8.0.1231**: (no headline)
+- **8.0.1230**: (no headline)
+- **8.0.1229**: (no headline)
+- **8.0.1228**: (no headline)
+- **8.0.1227**: (no headline)
+- **8.0.1226**: (no headline)
+- **8.0.1225**: (no headline)
+- **8.0.1224**: (no headline)
+- **8.0.1223**: (no headline)
+- **8.0.1222**: (no headline)
+- **8.0.1221**: (no headline)
+- **8.0.1220**: (no headline)
+- **8.0.1219**: (no headline)
+- **8.0.1218**: (no headline)
+- **8.0.1217**: (no headline)
+- **8.0.1216**: (no headline)
+- **8.0.1215**: (no headline)
+- **8.0.1214**: (no headline)
+- **8.0.1213**: (no headline)
+- **8.0.1212**: (no headline)
+- **8.0.1211**: (no headline)
+- **8.0.1210**: (no headline)
+- **8.0.1209**: (no headline)
+- **8.0.1208**: (no headline)
+- **8.0.1207**: (no headline)
+- **8.0.1206**: (no headline)
+- **8.0.1205**: (no headline)
+- **8.0.1204**: (no headline)
+- **8.0.1203**: (no headline)
+- **8.0.1202**: (no headline)
+- **8.0.1201**: (no headline)
+- **8.0.1200**: (no headline)
+- **8.0.1199**: (no headline)
+- **8.0.1198**: (no headline)
+- **8.0.1197**: (no headline)
+- **8.0.1196**: (no headline)
+- **8.0.1195**: (no headline)
+- **8.0.1194**: (no headline)
+- **8.0.1193**: (no headline)
+- **8.0.1192**: (no headline)
+- **8.0.1191**: (no headline)
+- **8.0.1190**: (no headline)
+- **8.0.1189**: (no headline)
+- **8.0.1188**: (no headline)
+- **8.0.1187**: (no headline)
+- **8.0.1186**: (no headline)
+- **8.0.1185**: (no headline)
+- **8.0.1184**: (no headline)
+- **8.0.1183**: (no headline)
+- **8.0.1182**: (no headline)
+- **8.0.1181**: (no headline)
+- **8.0.1180**: (no headline)
+- **8.0.1179**: (no headline)
+- **8.0.1178**: (no headline)
+- **8.0.1177**: (no headline)
+- **8.0.1176**: (no headline)
+- **8.0.1175**: (no headline)
+- **8.0.1174**: (no headline)
+- **8.0.1173**: (no headline)
+- **8.0.1172**: (no headline)
+- **8.0.1171**: (no headline)
+- **8.0.1170**: (no headline)
+- **8.0.1169**: (no headline)
+- **8.0.1168**: (no headline)
+- **8.0.1167**: (no headline)
+- **8.0.1166**: (no headline)
+- **8.0.1165**: (no headline)
+- **8.0.1164**: (no headline)
+- **8.0.1163**: (no headline)
+- **8.0.1162**: (no headline)
+- **8.0.1161**: (no headline)
+- **8.0.1160**: (no headline)
+- **8.0.1159**: (no headline)
+- **8.0.1158**: (no headline)
+- **8.0.1157**: (no headline)
+- **8.0.1156**: (no headline)
+- **8.0.1155**: (no headline)
+- **8.0.1154**: (no headline)
+- **8.0.1153**: (no headline)
+- **8.0.1152**: (no headline)
+- **8.0.1151**: (no headline)
+- **8.0.1150**: (no headline)
+- **8.0.1149**: (no headline)
+- **8.0.1148**: (no headline)
+- **8.0.1147**: (no headline)
+- **8.0.1146**: (no headline)
+- **8.0.1145**: (no headline)
+- **8.0.1144**: (no headline)
+- **8.0.1143**: (no headline)
+- **8.0.1142**: (no headline)
+- **8.0.1141**: (no headline)
+- **8.0.1140**: (no headline)
+- **8.0.1139**: (no headline)
+- **8.0.1138**: (no headline)
+- **8.0.1137**: (no headline)
+- **8.0.1136**: (no headline)
+- **8.0.1135**: (no headline)
+- **8.0.1134**: (no headline)
+- **8.0.1133**: (no headline)
+- **8.0.1132**: (no headline)
+- **8.0.1131**: (no headline)
+- **8.0.1130**: (no headline)
+- **8.0.1129**: (no headline)
+- **8.0.1128**: (no headline)
+- **8.0.1127**: (no headline)
+- **8.0.1126**: (no headline)
+- **8.0.1125**: (no headline)
+- **8.0.1124**: (no headline)
+- **8.0.1123**: (no headline)
+- **8.0.1122**: (no headline)
+
+## 2026-10-14
+
+- **8.0.999**: (no headline)
+- **8.0.998**: (no headline)
+- **8.0.997**: (no headline)
+- **8.0.996**: (no headline)
+- **8.0.995**: (no headline)
+- **8.0.994**: (no headline)
+- **8.0.993**: (no headline)
+- **8.0.992**: (no headline)
+- **8.0.991**: (no headline)
+- **8.0.990**: (no headline)
+- **8.0.989**: (no headline)
+- **8.0.988**: (no headline)
+- **8.0.987**: (no headline)
+- **8.0.1121**: (no headline)
+- **8.0.1120**: (no headline)
+- **8.0.1119**: (no headline)
+- **8.0.1118**: (no headline)
+- **8.0.1117**: (no headline)
+- **8.0.1116**: (no headline)
+- **8.0.1115**: (no headline)
+- **8.0.1114**: (no headline)
+- **8.0.1113**: (no headline)
+- **8.0.1112**: (no headline)
+- **8.0.1111**: (no headline)
+- **8.0.1110**: (no headline)
+- **8.0.1109**: (no headline)
+- **8.0.1108**: (no headline)
+- **8.0.1107**: (no headline)
+- **8.0.1106**: (no headline)
+- **8.0.1105**: (no headline)
+- **8.0.1104**: (no headline)
+- **8.0.1103**: (no headline)
+- **8.0.1102**: (no headline)
+- **8.0.1101**: (no headline)
+- **8.0.1100**: (no headline)
+- **8.0.1099**: (no headline)
+- **8.0.1098**: (no headline)
+- **8.0.1097**: (no headline)
+- **8.0.1096**: (no headline)
+- **8.0.1095**: (no headline)
+- **8.0.1094**: (no headline)
+- **8.0.1093**: (no headline)
+- **8.0.1092**: (no headline)
+- **8.0.1091**: (no headline)
+- **8.0.1090**: (no headline)
+- **8.0.1089**: (no headline)
+- **8.0.1088**: (no headline)
+- **8.0.1087**: (no headline)
+- **8.0.1086**: (no headline)
+- **8.0.1085**: (no headline)
+- **8.0.1084**: (no headline)
+- **8.0.1083**: (no headline)
+- **8.0.1082**: (no headline)
+- **8.0.1081**: (no headline)
+- **8.0.1080**: (no headline)
+- **8.0.1079**: (no headline)
+- **8.0.1078**: (no headline)
+- **8.0.1077**: (no headline)
+- **8.0.1076**: (no headline)
+- **8.0.1075**: (no headline)
+- **8.0.1074**: (no headline)
+- **8.0.1073**: (no headline)
+- **8.0.1072**: (no headline)
+- **8.0.1071**: (no headline)
+- **8.0.1070**: (no headline)
+- **8.0.1069**: (no headline)
+- **8.0.1068**: (no headline)
+- **8.0.1067**: (no headline)
+- **8.0.1066**: (no headline)
+- **8.0.1065**: (no headline)
+- **8.0.1064**: (no headline)
+- **8.0.1063**: (no headline)
+- **8.0.1062**: (no headline)
+- **8.0.1061**: (no headline)
+- **8.0.1060**: (no headline)
+- **8.0.1059**: (no headline)
+- **8.0.1058**: (no headline)
+- **8.0.1057**: (no headline)
+- **8.0.1056**: (no headline)
+- **8.0.1055**: (no headline)
+- **8.0.1054**: (no headline)
+- **8.0.1053**: (no headline)
+- **8.0.1052**: (no headline)
+- **8.0.1051**: (no headline)
+- **8.0.1050**: (no headline)
+- **8.0.1049**: (no headline)
+- **8.0.1048**: (no headline)
+- **8.0.1047**: (no headline)
+- **8.0.1046**: (no headline)
+- **8.0.1045**: (no headline)
+- **8.0.1044**: (no headline)
+- **8.0.1043**: (no headline)
+- **8.0.1042**: (no headline)
+- **8.0.1041**: (no headline)
+- **8.0.1040**: (no headline)
+- **8.0.1039**: (no headline)
+- **8.0.1038**: (no headline)
+- **8.0.1037**: (no headline)
+- **8.0.1036**: (no headline)
+- **8.0.1035**: (no headline)
+- **8.0.1034**: (no headline)
+- **8.0.1033**: (no headline)
+- **8.0.1032**: (no headline)
+- **8.0.1031**: (no headline)
+- **8.0.1030**: (no headline)
+- **8.0.1029**: (no headline)
+- **8.0.1028**: (no headline)
+- **8.0.1027**: (no headline)
+- **8.0.1026**: (no headline)
+- **8.0.1025**: (no headline)
+- **8.0.1024**: (no headline)
+- **8.0.1023**: (no headline)
+- **8.0.1022**: (no headline)
+- **8.0.1021**: (no headline)
+- **8.0.1020**: (no headline)
+- **8.0.1019**: (no headline)
+- **8.0.1018**: (no headline)
+- **8.0.1017**: (no headline)
+- **8.0.1016**: (no headline)
+- **8.0.1015**: (no headline)
+- **8.0.1014**: (no headline)
+- **8.0.1013**: (no headline)
+- **8.0.1012**: (no headline)
+- **8.0.1011**: (no headline)
+- **8.0.1010**: (no headline)
+- **8.0.1009**: (no headline)
+- **8.0.1008**: (no headline)
+- **8.0.1007**: (no headline)
+- **8.0.1006**: (no headline)
+- **8.0.1005**: (no headline)
+- **8.0.1004**: (no headline)
+- **8.0.1003**: (no headline)
+- **8.0.1002**: (no headline)
+- **8.0.1001**: (no headline)
+- **8.0.1000**: (no headline)
+
+## 2026-10-11
+
+- **8.0.986**: (no headline)
+- **8.0.985**: (no headline)
+- **8.0.984**: (no headline)
+- **8.0.983**: (no headline)
+- **8.0.982**: (no headline)
+- **8.0.981**: (no headline)
+- **8.0.980**: (no headline)
+- **8.0.979**: (no headline)
+- **8.0.978**: (no headline)
+- **8.0.977**: (no headline)
+- **8.0.976**: (no headline)
+- **8.0.975**: (no headline)
+- **8.0.974**: (no headline)
+- **8.0.973**: (no headline)
+- **8.0.972**: (no headline)
+- **8.0.971**: (no headline)
+- **8.0.970**: (no headline)
+- **8.0.969**: (no headline)
+- **8.0.968**: (no headline)
+- **8.0.967**: (no headline)
+- **8.0.966**: (no headline)
+- **8.0.965**: (no headline)
+- **8.0.964**: (no headline)
+- **8.0.963**: (no headline)
+- **8.0.962**: (no headline)
+- **8.0.961**: (no headline)
+- **8.0.960**: (no headline)
+- **8.0.959**: (no headline)
+- **8.0.958**: (no headline)
+- **8.0.957**: (no headline)
+- **8.0.956**: (no headline)
+- **8.0.955**: (no headline)
+- **8.0.954**: (no headline)
+- **8.0.953**: (no headline)
+- **8.0.952**: (no headline)
+- **8.0.951**: (no headline)
+- **8.0.950**: (no headline)
+- **8.0.949**: (no headline)
+- **8.0.948**: (no headline)
+- **8.0.947**: (no headline)
+- **8.0.946**: (no headline)
+- **8.0.945**: (no headline)
+- **8.0.944**: (no headline)
+- **8.0.943**: (no headline)
+- **8.0.942**: (no headline)
+- **8.0.941**: (no headline)
+- **8.0.940**: (no headline)
+- **8.0.939**: (no headline)
+- **8.0.938**: (no headline)
+- **8.0.937**: (no headline)
+- **8.0.936**: (no headline)
+- **8.0.935**: (no headline)
+- **8.0.934**: (no headline)
+- **8.0.933**: (no headline)
+- **8.0.932**: (no headline)
+- **8.0.931**: (no headline)
+- **8.0.930**: (no headline)
+- **8.0.929**: (no headline)
+- **8.0.928**: (no headline)
+- **8.0.927**: (no headline)
+- **8.0.926**: (no headline)
+- **8.0.925**: (no headline)
+- **8.0.924**: (no headline)
+- **8.0.923**: (no headline)
+- **8.0.922**: (no headline)
+- **8.0.921**: (no headline)
+- **8.0.920**: (no headline)
+- **8.0.919**: (no headline)
+- **8.0.918**: (no headline)
+- **8.0.917**: (no headline)
+- **8.0.916**: (no headline)
+- **8.0.915**: (no headline)
+- **8.0.914**: (no headline)
+- **8.0.913**: (no headline)
+
+## 2026-10-10
+
+- **8.0.912**: Every planet and moon gets a habitability score and equipment-needed rating.
+- **8.0.866**: Star scatter runs in mass and luminosity passes with preset limits.
+
+## 2026-10-09
+
+- **8.0.783**: Every star, planet and moon now stores a spin axis and axial tilt.
+- **8.0.711**: Phase 0 complete: saved sector paths, nearby-object search and re-centerable 3D maps.
+- **7.379.678**: Galaxy Map star class and brightness filters now thin stars at galaxy scale.
+- **7.378.678**: Alembic now carries all database migrations from schema 61.
+- **7.377.678**: Pydantic checks every API request and lists all bad fields at once.
+- **7.376.678**: Paths of bodies crossing a sector are computed as splines bent by heavy masses.
+- **7.375.678**: Every database table is described as SQLAlchemy models.
+- **7.374.678**: Alembic takes over database schema migrations.
+- **7.373.678**: Planets, moons and comets can derive their current orbit from position and velocity.
+- **7.372.678**: Rogue planets, nebulae and other objects get pronounceable names instead of hex IDs.
+- **7.371.678**: Planned velocity storage for stand-alone facilities.
+- **7.370.678**: Star systems store a galactic velocity that moves with their position.
+- **7.369.678**: Database connection pool switched to SQLAlchemy QueuePool.
+- **7.368.678**: Fix blank Galaxy and Sector Maps caused by stale cached scripts.
+- **7.367.678**: The galaxy gets an admin-changeable naming key.
+- **7.366.678**: Planets, moons, comets and stars now carry stored velocities.
+- **7.365.678**: Galaxy Map sectors never hide what is inside them and opacity follows contents.
+- **7.364.678**: Start Here and End Here buttons on system page bodies for planning courses.
+- **7.363.678**: Planned courses that go around asteroid fields.
+- **7.362.678**: Galaxy Map now shows bright stars in the bulge and far off the plane.
+- **7.361.678**: Highlight kinds of phenomena on a sector and keep map settings in bookmarks.
+- **7.360.678**: Light-travel positions show where an observer sees an object.
+- **7.359.678**: One keep-out radius for every kind of object, for course planning.
+- **7.358.678**: Galaxy Map course view shows route, straight line, warp times and stops.
+- **7.357.678**: Web interface sweep confirms no overlapping or dead buttons at any width.
+- **7.356.678**: Map menu hides stars by spectral class and sets a dimmest-star limit.
+- **7.355.678**: Planned sector address for every object.
+- **7.354.678**: Positions carry velocity and sector address; conversion between state vectors and orbital elements.
+
+## 2026-10-08
+
+- **7.353.675**: Fix edit menu browser tests.
+- **7.352.675**: Navigation courses can start or end at any star, planet, moon, belt or comet.
+- **7.351.675**: Galaxy Map opens zoomed to fit all charted sectors.
+- **7.350.675**: Logged bug of missing bright stars in the Galaxy Map bulge.
+- **7.349.675**: Planned velocity, orbital elements and sector path for every object.
+- **7.348.675**: Galaxy Map Color by choice shows density, age, luminosity or star count.
+- **7.347.675**: Fix flaky planet-offset and nebula click tests.
+- **7.346.675**: One reference form for every object, resolved by an objects API.
+- **7.345.675**: Picking a body in the 3D system view highlights its orbit.
+- **7.344.675**: Wheel zoom on Galaxy Map flows from sector into a star's system.
+- **7.343.675**: System page opens in 3D by default.
+- **7.342.675**: Admin menu moved into the action bar on sector and phenomenon pages.
+- **7.341.675**: Open a star's system in place on the Galaxy Map, down to moons.
+- **7.340.675**: Logged a failing Sector Map nebula click test.
+- **7.339.675**: 3D system view with orbits, belts, free camera and time control.
+- **7.338.675**: Logged a flaky point-in-space test.
+- **7.337.675**: Home page becomes a front door and Search shows only matching groups.
+- **7.336.675**: Body positions at any time, with a clock for the 3D system view.
+- **7.335.675**: System scene API for the 3D system view.
+- **7.334.675**: Documented how stored positions map to spatial position objects.
+- **7.333.675**: Map and list cards no longer repeat the page title as a heading.
+- **7.332.675**: Stars, planets, moons and comets hold 3D positions anchored under their system.
+- **7.331.675**: Backfilled bright stars get normal generated names.
+- **7.330.675**: Sector Contents table shows the three nearest neighbours.
+- **7.329.675**: Tables show scroll shadows and stack readably on phones.
+- **7.328.675**: Fix layout test opening map menus.
+- **7.327.675**: Logged Sector Map button overlap bug.
+- **7.326.675**: Course result page reorganised with a Plan a course landing card.
+- **7.325.675**: View source menu for system Wikitext and Markdown.
+- **7.324.675**: Planned moving sector and phenomenon Admin menus into the action bar.
+- **7.323.675**: System page Admin menu moved into the action bar with per-row actions.
+- **7.322.675**: Every system and phenomenon in a sector holds a 3D position in light-years.
+- **7.321.675**: Logged Admin hub contrast bug.
+- **7.320.675**: Rate limits and login lockouts shared across workers through Redis.
+- **7.319.675**: Spatial position class unifies galactic, sector and system coordinates.
+- **7.318.675**: Map help buttons replace caption text and breadcrumb simplified.
+- **7.317.675**: Galaxy and Sector Map how-to text moved into a Map help menu.
+- **7.316.665**: Sector header chips hold facts only.
+- **7.315.665**: Fix flaky System Map browser test.
+- **7.314.665**: Admin page becomes a hub with tab rows and a simpler gear menu.
+- **7.313.665**: Fix map controls locked while choosing a course end.
+- **7.312.665**: Sector Map no longer tints the space around the sector.
+- **7.311.665**: Fix worker traceback on Python 3.9 and 3.10.
+- **7.310.665**: Galaxy Map menu panel no longer overflows narrow screens.
+- **7.309.665**: Logged worker exception bug on Python 3.9.
+- **7.308.665**: Every sector, system, star, planet, moon and phenomenon gets a unique ID.
+- **7.307.665**: Outlined navigation buttons and a one-icon bookmark toggle.
+- **7.306.665**: System, phenomenon and sector pages share one action bar.
+- **7.305.665**: Sector chip says Edge and Generate page hides idle job card.
+- **7.304.664**: Choosing a course end now stays on the Galaxy and Sector Maps.
+- **7.303.664**: Logged two test issues in the TODO.
+- **7.302.664**: Two-step sign-in uses pyotp and segno libraries.
+- **7.301.664**: Fix flaky population test.
+- **7.300.664**: 25 interface audit findings added to the TODO.
+- **7.299.637**: Sortable filterable scrolling tables for API keys, jobs and search results.
+- **7.298.637**: Sector Contents and Quadrant tables sort, filter and scroll.
+- **7.297.637**: Galaxy Map view has a stated star fetch cap.
+- **7.296.637**: Galaxy Map shows fewer stars per tile farther out for readable zooms.
+- **7.295.637**: Galaxy Map shows bright stars off the plane at widest zooms.
+- **7.294.637**: Species and Polities lists become sortable filterable data tables.
+- **7.293.637**: Galaxy Map tiles include old giants above and below the plane.
+- **7.292.637**: Sectors and Systems lists become sortable filterable scrolling tables.
+- **7.291.637**: Phenomena list becomes the first sortable virtual-scrolling data table.
+- **7.290.637**: Systems inside a nebula get a nebula color wash on their map.
+- **7.289.637**: Nebulae drawn over ungenerated space on all maps.
+- **7.288.637**: Nebula page shows the irregular nebula in 3D.
+- **7.287.637**: Logged intermittent species test failure.
+- **7.286.637**: Sector Map draws nebulae from their irregular shape meshes.
+- **7.285.637**: Browser test keeps Galaxy Map breadcrumb in sync with URL.
+- **7.284.637**: Escape clears selection on a sector map.
+- **7.283.637**: Galaxy Map draws nebulae from their shape so you can fly into them.
+- **7.282.637**: Fix sector page text changing between loads.
+- **7.281.637**: Nebulae contain objects only inside their irregular shape.
+- **7.280.637**: Nebulae store a seeded irregular shape served as a triangle mesh.
+- **7.279.637**: Sector Map buttons show or hide each kind of object.
+- **7.278.637**: Nebula shapes from seeded metaballs with marching-cubes meshes.
+- **7.277.637**: Sector Map becomes the Galaxy Map's own engine locked to a sector.
+- **7.276.637**: Galaxy Map keeps exact star positions when zoomed in.
+- **7.275.637**: One-line breadcrumb that folds middle steps on every page.
+- **7.274.636**: Clicking a sector on the Galaxy Map opens it in place.
+- **7.273.636**: Browser test for picking a course end down to a sector.
+- **7.272.636**: Choose a course start or destination on system and phenomenon pages.
+- **7.271.636**: Planned picking planets, moons and belts as course endpoints.
+- **7.270.636**: One shared selection drives Galaxy Map navigation and breadcrumb.
+- **7.269.635**: Galaxy Map Current button jumps to the newest history view.
+- **7.268.635**: Every page with admin actions gets one Admin menu.
+- **7.267.635**: Failed Generate jobs keep their error on screen until dismissed.
+- **7.266.635**: Full tracebacks in job logs with a Copy log button.
+- **7.265.635**: Bright-star backfill shows a progress bar on the Generate page.
+- **7.264.635**: Sector Admin panel becomes one menu with dialogs.
+- **7.263.635**: Galaxy Map colors sectors by star age, density and luminosity.
+- **7.262.635**: Fix parallel-galaxy interrupt test.
+- **7.261.635**: ID-to-words name codec moved into the package with tests.
+- **7.260.635**: Generate page job log streams live in a terminal.
+- **7.259.635**: Order-independent lunar-spacing and class-change tests.
+- **7.258.635**: Job tests wait for the job lock to release.
+- **7.257.635**: Parallel-galaxy interrupt test no longer races on loaded machines.
+- **7.256.635**: Galaxy Map browser tests wait for the drawn stage, not a clock.
+- **7.255.635**: Planned form fields as Shoelace components.
+- **7.254.635**: Progress bars on database reset and orbital update.
+- **7.253.635**: Generate page text boxes line up in equal columns.
+- **7.252.634**: Hover and pick empty blocks on the Galaxy Map with Charted only on.
+- **7.251.634**: System page buttons fit one row, folding into a Navigate menu.
+- **7.250.634**: Galaxy Map picks apply to the stage that is actually drawn.
+- **7.249.634**: Planned move of the phoneme codec into the naming package.
+- **7.248.634**: Admin edit actions gathered into one Edit menu with confirm dialogs.
+- **7.247.634**: Logged four load-only test flakes for later fixing.
+- **7.246.629**: Galaxy Map Charted only mode highlights charted space in every wedge.
+- **7.245.629**: Sector Map and Galaxy Map share hover, picking and bookmarking.
+- **7.244.629**: Shoelace components for the header menu and settings dropdowns.
+- **7.243.629**: Planned work on how sectors and blocks are colored.
+- **7.242.629**: Logged a load-only test flake.
+- **7.241.629**: Generate page jobs folder defaults to one consistent location.
+- **7.240.629**: Galaxy Map slab buttons always follow slab-number order.
+- **7.239.622**: Logged two load-only test flakes.
+- **7.238.622**: Databases API counts sectors without exhausting MariaDB connections.
+- **7.237.622**: Wiki uploads run on the Redis queue and wait briefly.
+- **7.236.620**: Logged a job-lock test flake.
+- **7.235.620**: Generate page prevalence fields start at each feature's real default share.
+- **7.234.620**: Generate page estimates and one-off system generator run on the Redis queue.
+- **7.233.620**: Planned real default shares in the prevalence fields.
+- **7.232.618**: System, planet and phenomenon edits run on the Redis queue.
+- **7.231.618**: Log lines no longer wrap or break while a progress bar is up.
+
+## 2026-10-07
+
+- **7.230.618**: Prevalence section on the Generate forms for New galaxy and Generate sectors.
+- **7.229.618**: Logged timing test failures under full-suite load.
+- **7.228.618**: Sector regenerate queues on Redis and answers with a job id.
+- **7.227.618**: Prevalence option makes any feature more or less common across sectors and galaxies.
+- **7.226.618**: Neighborhood generation queues on Redis, with a job status API.
+- **7.225.618**: Milky Way galaxy model with thin disk, thick disk and boxy bar bulge.
+- **7.224.618**: Admin Generate page jobs run on Redis with RQ workers.
+- **7.223.617**: Logged a first-failure job test flake.
+- **7.222.617**: Parallel generation runs on Redis with RQ workers.
+- **7.221.616**: Work-queue audit of every generating or writing path.
+- **7.220.616**: System Map and drill-down browser tests stop failing intermittently.
+- **7.219.616**: Windows installer works when planetGen is not yet installed.
+- **7.218.616**: Rogue planets get a map icon, and the site gets one icon sprite.
+- **7.217.616**: Logged a System Map browser test flake.
+- **7.216.615**: Sector Contents table lists systems, phenomena, then rogue planets by distance.
+- **7.215.615**: Single-apparition comets get class pages linked from system pages.
+- **7.214.615**: Logged the too-light galaxy bulge and missing thick disk.
+- **7.213.615**: Slow-starting Generate jobs are no longer shown as interrupted.
+- **7.212.613**: Logged the bright-star thin-band bug.
+- **7.211.612**: Page API cache rebuilt on cachetools.
+- **7.210.612**: Logged a neighbourhood edge error and a job pruning flake.
+- **7.209.610**: Generate anyway option when the database disk lacks room.
+- **7.208.610**: Windows guide points to Redis in WSL2.
+- **7.207.610**: planetGen installs as an editable package and the package move finishes.
+- **7.206.610**: Generator split into per-command modules with the planetgen command.
+- **7.205.610**: Closer size estimate before bulk generation runs.
+- **7.204.610**: Utility module split into the planetgen packages.
+- **7.203.610**: Console warns instead of refusing, with --strict for scripts.
+- **7.202.610**: Recorded Boss's decisions on open design questions.
+- **7.201.610**: HTML pages and app factory move into planetgen.web.
+- **7.200.610**: Logged the Ubuntu 24.04 NumPy install failure.
+- **7.199.608**: Updates no longer offer to run the population pass.
+- **7.198.608**: Signing in twice no longer ends on a form expired error.
+- **7.197.608**: Search phenomenon class tags narrow only their own phenomenon type.
+- **7.196.608**: Galaxy Map no longer offers sectors outside the galaxy outline.
+- **7.195.608**: System Map shows surface pressure, and NAV course map fits phones.
+- **7.194.608**: Every sector in the galaxy can hold stars, bright stars follow density.
+- **7.193.608**: Planned a shared map engine for seeing neighboring regions.
+- **7.192.608**: Filed three Galaxy Map problems from Boss.
+- **7.191.608**: Searchable TODO reference page explaining every TODO ID.
+- **7.190.607**: JSON API moves into the planetgen.api package.
+- **7.189.607**: Bright-star backfill gets its own progress bar with ETA.
+- **7.188.607**: Browsable architecture and tier-plan development pages.
+- **7.187.607**: Web shared modules and map renderers move into planetgen.web.
+- **7.186.607**: Work queue and job runner move into the planetgen package.
+- **7.185.607**: Population modules move into planetgen.population.
+- **7.184.607**: Database modules and command-line scripts move into planetgen packages.
+- **7.183.607**: Admin modules move into planetgen.admin.
+- **7.182.607**: PowerShell install and update scripts survive a missing Redis.
+- **7.181.607**: Changing a planet's or moon's class regenerates it as that class.
+- **7.180.607**: Generation modules move into planetgen.generation.
+- **7.179.607**: Name modules move into planetgen.names.
+- **7.178.607**: Galaxy modules move into planetgen.galaxy.
+- **7.177.607**: Physics modules move into planetgen.physics.
+- **7.176.607**: Every sector inside the galaxy now generates, however sparse.
+- **7.175.606**: pip install works after the first package move.
+- **7.174.606**: Code starts moving into the planetgen package.
+- **7.173.606**: Migration libraries pinned, with Redis provided by install, update and CI.
+- **7.172.606**: Package layout plan for the code reorganization.
+- **7.171.606**: TODO list and phase plans rebuilt from Boss's lists.
+
+## 2026-10-03
+
+- **7.170.474**: Stars on the Galaxy Map no longer swallow clicks.
+
+## 2026-10-02
+
+- **7.169.474**: Galaxy Map sectors and blocks colored by their stars and fullness.
+- **7.168.474**: Galaxy Map zoomed sectors show every star, black hole, neutron star and quasar.
+- **7.167.474**: Courses between separately generated areas now find a route.
+- **7.166.474**: One stats row per sector, with sector-by-sector bright-star backfill.
+- **7.165.474**: Galaxy Map slab buttons with nearest-edge lines and compact labels.
+- **7.164.473**: Molecular clouds appear across generated regions of the galaxy.
+- **7.163.473**: Rogue gas giants get a radius that follows their mass.
+- **7.162.473**: New planet class S, the barren rocky super-Earth.
+- **7.161.473**: Galaxy Map turns freely in any direction, with a camera preset per zoom step.
+- **7.160.473**: Interstellar objects named by compact 76-bit position IDs.
+- **7.159.473**: Every Galaxy Map stage is framed whole and fitted to the window.
+- **7.158.473**: Galaxy Map draws only the lines between slabs while picking.
+- **7.157.473**: Slab buttons with leader lines replace the slab slider.
+- **7.156.473**: Galaxy Map drill-down restored to arc, slab, segment.
+- **7.155.469**: System Map side panel shows planet and moon radius and mass.
+- **7.154.469**: Whole star system fits on the System Map.
+- **7.153.469**: System Map never draws a broken number.
+- **7.152.469**: Sector saves no longer fail on a name-count error.
+- **7.151.469**: Hover lights Galaxy Map arcs while picking a course.
+- **7.150.469**: Galaxy Map breadcrumb stays on one line with a hidden-steps menu.
+- **7.149.469**: Bookmarks work while picking a course start or destination.
+- **7.148.469**: Forcing options limited to single systems, with clear errors elsewhere.
+- **7.147.469**: Picking a slab lights the whole slab on the Galaxy Map.
+- **7.146.467**: Binary stars and their planets get consistent two-word names.
+- **7.145.467**: Seed, version and command line printed at the top of every run.
+- **7.144.463**: Galaxy records its version key and every generation run.
+- **7.143.452**: One 128-bit seed per galaxy gives reproducible generation at any worker count.
+- **7.142.452**: Single-system generation no longer saves systems missing a forced body.
+- **7.141.445**: Galaxy Map shows the whole galaxy as a 3D disk with arc picking.
+- **7.140.445**: Parallel generation no longer stalls, hangs or loses cancellation.
+- **7.139.445**: New star system names are at most two words.
+- **7.138.440**: Binary star companions share an age and have realistic masses.
+- **7.137.440**: Galaxy Map tile helper no longer crashes on tiny view radii.
+- **7.136.440**: Reproducible-galaxies note names the merge now button.
+- **7.135.440**: Design docs for reproducible galaxies and course routing.
+- **7.134.440**: Lists every sector a straight segment passes through, for course planning.
+- **7.133.440**: Shared camera and input controller for the Galaxy Map and Sector Map.
+- **7.132.433**: Sector lookup puts boundary points in the correct cell.
+- **7.131.433**: More realistic planet orbit spacing, giant densities and rogue planet masses.
+- **7.130.426**: Resetting the database no longer risks duplicate id errors.
+- **7.129.426**: Asteroid field and comet pages show their saved composition.
+- **7.128.426**: Several programs can open a new empty database safely at once.
+
+## 2026-10-01
+
+- **7.99.253**: Slowest tests run in seconds.
+- **7.98.253**: Temperatures and pressures shown in customary units beside metric.
+- **7.97.253**: Stars drawn as points of light on the Sector Map.
+- **7.96.253**: Speeds and time periods always shown in a meaningful unit.
+- **7.95.253**: Galaxy Map slabs picked with a vertical slider.
+- **7.94.253**: Bookmarks for map views, sectors, systems and phenomena.
+- **7.93.253**: Test suite runs in parallel, three times faster.
+- **7.92.253**: Galaxy Map zooms into the exact wedge you pick.
+- **7.91.253**: One module validates and re-spaces planets, lunar systems and star systems.
+- **7.90.177**: Roadmap lists only open work again.
+- **7.89.177**: Bright stars drawn in parallel, with time left shown on the Generate page.
+- **7.88.177**: Sectors are generated in parallel on several worker processes.
+- **7.87.177**: Galaxy Map layers of a small block touch with no gaps.
+- **7.86.177**: Whole-word full-text name search and a time limit on database queries.
+- **7.85.177**: Sectors save about 2.5 times faster with far fewer database statements.
+- **7.84.177**: Optional two-factor sign-in and hardened admin passwords.
+- **7.83.177**: Per-address login lockout shared across workers, with lift controls.
+- **7.82.177**: Always-on activity log recording sign-ins, changes and generation runs.
+- **7.81.177**: Galaxy Map view can be turned, moved and zoomed inside blocks.
+- **7.80.177**: Stars in generated sectors show in the Galaxy Map drill-down.
+- **7.79.177**: Large numbers shown in scientific notation across every page.
+- **7.78.177**: Galaxy Map small block shown at a slant with layers pulled apart.
+- **7.77.177**: Filled sectors show their stars on the Galaxy Map as glowing points.
+- **7.76.177**: Cleaner asteroid belt rows in the system object list.
+- **7.75.177**: Facility placement form with orbit slider and belt facilities.
+- **7.74.177**: Fainter Galaxy Map grid guide lines.
+- **7.73.177**: Galaxy Map rebuilt as a top-down drill-down from quarters to sectors.
+- **7.72.174**: Route fuzz test expects Show on Galaxy Map redirects.
+- **7.71.174**: Names stay on screen on the System Map.
+- **7.70.174**: Asteroid belts on the System Map no longer cover planet orbits.
+- **7.69.174**: Rogue planets easier to find on the Sector Map.
+- **7.68.174**: Bright stars on the Galaxy Map show at every zoom level.
+- **7.67.174**: Consistent button spacing and data beside the 3D render when wide.
+- **7.66.174**: Version numbers become MAJOR.REVISION.BUILD tied to the TODO counters.
+- **7.65.174**: README and INSTALL split, with permanent TODO category IDs and checked docs.
+- **7.64.174**: Show on Galaxy Map links, and picking NAV endpoints from the NAV page.
+- **7.63.174**: Galaxy Map pick mode for choosing NAV endpoints.
+- **7.62.174**: Species and polity pages.
+- **7.61.174**: Galaxy Map Generate this block and Generate this layer buttons.
+- **7.60.174**: Generate a Galaxy Map block from the command line or Generate page.
+- **7.59.174**: More detail on bright stars across Stats, Generate and Sector Map.
+- **7.58.2**: Population pass is optional and off by default.
+- **7.58.1**: Galaxy Map hides Territories until polities exist.
+- **7.58.0**: Pick NAV start and destination on the Sector Map.
+- **7.57.0**: Phenomenon pages show a fitting 3D view for each object type.
+- **7.56.0**: Web pages cache API answers so repeat visits skip the database.
+- **7.55.0**: Galaxy Map fills the full page width and most of the window height.
+- **7.54.0**: Territories button on the Galaxy Map shows each polity's reach and systems.
+- **7.53.0**: Generate neighborhood asks how far to reach, with a sector count preview.
+- **7.52.0**: Plotted NAV courses can be shown on the Galaxy Map.
+- **7.51.0**: Bright-star queries and status in the stats and galaxy shape APIs.
+- **7.50.0**: Galaxy Map address field flies to a sector by designation, coordinates or name.
+- **7.49.0**: Dominant species, civilizations and polities that claim territories in 3D.
+- **7.48.0**: Phenomena rows and pages show their octant and three nearest star systems.
+- **7.47.0**: Admins can place starbases, colonies and other facilities from the system page.
+- **7.46.0**: Class reference pages for every kind of star, planet and phenomenon class.
+- **7.45.0**: Bright-star scatter step on the Generate page, with stars glowing by brightness.
+- **7.44.0**: Galaxy Map drill-down from whole galaxy to single sectors with linkable stages.
+- **7.43.0**: API can add systems to sectors and regenerate a system in place.
+- **7.42.1**: Lighter Galaxy Map meshes where sectors are generated, mainly for phones.
+- **7.42.0**: Galaxy Map shows pre-placed bright stars so spiral arms appear before generation.
+- **7.41.3**: Stage API for the Galaxy Map drill-down block contents.
+- **7.41.2**: Block ladder geometry for the coming Galaxy Map drill-down.
+- **7.41.1**: Sector Map draws nebulae and supernova remnants as see-through volumes.
+- **7.41.0**: Inside badges show which nebula or remnant a system sits in.
+- **7.40.1**: Bright-star pre-placement threshold can go down to 100 solar luminosities.
+- **7.40.0**: Bright stars pre-placed down to 100 solar luminosities by default.
+- **7.39.0**: A nebula squeezes the heliosphere of every system inside it.
+- **7.38.0**: Every bright star is placed before its sector is filled.
+- **7.37.0**: Correlative update moves every system, phenomenon and facility along galactic orbits.
+- **7.36.0**: Nebulae and supernova remnants drawn as translucent clouds on the Galaxy Map.
+- **7.35.0**: Starbases, colonies and outposts can stand on or orbit bodies, with an API.
+- **7.34.0**: Generate buttons on the Galaxy Map for ungenerated sectors.
+- **7.33.0**: Octants and the three nearest systems stored for every system and phenomenon.
+- **7.32.0**: Galaxy Map zooms smoothly using a Web Worker and cached views.
+- **7.31.0**: Nebulae, remnants, black holes and comets named by one consistent standard.
+- **7.30.0**: Nebulae and supernova remnants generated with the stars they need.
+- **7.29.2**: Sector Map star dots sized on a log scale.
+- **7.29.1**: Sector Map draws the sector cell as a faint wireframe again.
+- **7.29.0**: Search phenomena by type and class.
+- **7.28.0**: Nebula, remnant and asteroid field class details on their pages.
+- **7.27.0**: Generate a column or shell, and generate from the Sector Map.
+- **7.26.0**: Black hole, rogue planet and runaway star details on the web pages.
+- **7.25.0**: Galaxy Map shows generated sectors through solid, warming blocks at every scale.
+- **7.24.0**: Systems and objects record the nebula or remnant they sit inside.
+- **7.23.0**: Stars drawn from real physics: mass function, age and stellar evolution.
+- **7.22.1**: Search tag groups fold away.
+- **7.22.0**: System Map distance measuring routes around planets, moons and stars.
+- **7.21.1**: System Map names no longer overlap.
+- **7.21.0**: Times show in the viewer's own time zone.
+- **7.20.0**: Systems page lists every system with its sector and octant.
+- **7.127.352**: Tests for parallel generation, population passes, names and navigation.
+- **7.126.352**: Old databases migrate again, with a broad database test suite.
+- **7.125.352**: Generation tests plus a Kepler solver that always converges.
+- **7.124.339**: Install and update set up and check both logs on every OS.
+- **7.123.339**: Tests confirm HEAD on the Generate page behaves like a normal load.
+- **7.122.329**: Page script tests under node and browser tests for every map button.
+- **7.121.284**: Canceling a parallel generation run ends cleanly as canceled.
+- **7.120.278**: Generating the neighborhood from the Sector Map runs as a background job.
+- **7.119.271**: Bright stars are scattered after the first sectors, with backfill options.
+- **7.118.271**: Generate page sections fold, and a neighborhood can be centered on any sector.
+- **7.117.271**: Bright-star backfill tiered by distance, with an adjustable minimum luminosity.
+- **7.116.271**: Admin queue page to view, pause, cancel and retry generation jobs.
+- **7.115.271**: API keys restricted from credential changes, plus request size limits and security tests.
+- **7.114.271**: Bulk generation checks the math first and refuses to start if it fails.
+- **7.113.271**: Every generation job is a timed tree with totals and ETA.
+- **7.112.265**: Built-in math check verifies the generator against known astronomy values.
+- **7.111.254**: Slow tests now fail with a stack trace after ten minutes.
+- **7.110.254**: Bright stars generated around every newly generated sector.
+- **7.109.254**: Rogue planets get surface conditions from their own internal heat.
+- **7.108.254**: Admins can change a planet's or moon's class, or a system's star.
+- **7.107.254**: Bright-star scatter progress and time left count expected stars.
+- **7.106.254**: Admin Delete and Regenerate buttons on sectors, systems, planets and phenomena.
+- **7.105.254**: Every bulk generation shows its size and time before writing anything.
+- **7.104.254**: Bright stars can be scattered in stages, adding dimmer layers later.
+- **7.103.254**: Rogue planets have a planet class.
+- **7.102.253**: Test suite markers and CI on more database engines.
+- **7.101.253**: Removed ten tests that no longer checked anything.
+- **7.100.253**: Species and Polities pages work on MySQL 8.

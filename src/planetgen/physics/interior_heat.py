@@ -51,6 +51,7 @@ against the mantle and is not followed, so its radiogenic heat counts with the m
 hydrosphere is made before it, and reads the heat of a stagnant lid) and a row from before GEN.721 are stagnant.
 """
 
+import functools
 import math
 from dataclasses import dataclass
 
@@ -295,6 +296,16 @@ def mantle_of(mass_kg, radius_km, rock):
     return Mantle(dry_kg, dry_m, thickness_m, gravity, mantle_ceiling_k(gravity, thickness_m), pressure_gpa)
 
 
+def cmb_pressure_gpa(mass_kg, radius_km, rock):
+    """The pressure at the base of the mantle, GPa, of a body of `mass_kg` and `radius_km` made of `rock` (`core_heat.cmb_pressure_gpa`); 0 for a body with no
+    core or no silicate."""
+    if mass_kg * rock.metal <= 0.0 or mantle_of(mass_kg, radius_km, rock) is None:
+        return 0.0
+    dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
+    metal_kg, silicate_kg = mass_kg * rock.metal, mass_kg * rock.silicate
+    return core_heat.cmb_pressure_gpa(metal_kg, silicate_kg, dry_m * (metal_kg / (metal_kg + silicate_kg)) ** 0.5, dry_m)
+
+
 def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """`qu`, W/m2, at the mantle temperature. A stagnant lid loses heat across the boundary layer's viscous temperature scale `dT = a_rh R
     Tm^2 / Ea` (the lid is cold and rigid, the convection under it only has that drop to work with); a mobile lid's plates carry the
@@ -430,7 +441,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
         t, step, released_j, held = 0.0, FIRST_STEP_GY, 0.0, False
         if top_k < cap_k and start_k > top_k:
             released_j += capacity * (start_k - top_k)
-        core = core_heat.Stepper(interior, metal_kg, silicate_kg, core_m, dry_m) if metal_kg > 0.0 else None
+        core = core_heat.Stepper(interior, metal_kg, silicate_kg, core_m, dry_m, rock.core) if metal_kg > 0.0 else None
         if core:
             core.start(temperature)
         core_steps = 0
@@ -506,8 +517,15 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=ST
     return result(warm, warm_released_j, tide_w(warm), core=warm_core)
 
 
+@functools.lru_cache(maxsize=4096)
 def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
-    """`heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium."""
+    """
+    `heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium.
+
+    Equal calls give the one stored result (PERF.198): every argument is an immutable value and `Heat` is frozen, `heat` draws nothing, and the settle-to-final-age
+    and the tide's decay-time loops ask for the same body again with the same forcing (about two calls in three of a system are repeats), so the answer is the
+    same object the first call returned, bit for bit.
+    """
     return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k)
 
 
@@ -622,12 +640,41 @@ def heat_of(body):
     heats its ice shell (`icy_tide`, GEN.960) and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row
     from before GEN.699). No draws.
     """
+    return heat_at(body, getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
+
+
+def heat_at(body, age_gy):
+    """
+    The `Heat` of a rocky body at `age_gy` (`heat_of` at its star's age): the same stored content, interior, lid and surface, the tide of the orbit stored with it, run to that age
+    (GEN.1463: the heat the body gave off when its life began). `None` for a body with no stored content or interior. No draws.
+    """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return None
-    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)
     return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body))
+
+
+def eccentricity_tide_w(body, eccentricity, host_mass_kg, distance_au):
+    """
+    The power, W, the eccentricity tide of an orbit of `eccentricity` dissipates in `body` (GEN.1351): the Peale power through the box for a rocky body (the mantle warmed by it, which
+    may melt, as in `heat`), the ice shell's equilibrium tide (`icy_tide.flux_from_tide`) for an icy one. The tides of its moons are left out, they draw on the moons' orbits and the
+    planet's spin, not on this orbit. 0 for a body with no stored content or interior or no tide. No draws, nothing set on the body.
+    """
+    content, interior = radiogenic.content_of(body), interior_of(body)
+    if content is None or interior is None or not eccentricity > 0.0 or not host_mass_kg or not distance_au:
+        return 0.0
+    age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    semi_major_axis_m = distance_au * constants.AU_TO_M
+    if tidal_heating.is_icy(body):
+        found = heat_of(body)
+        if found is None:
+            return 0.0
+        _, power = icy_tide.flux_from_tide(body.mass, body.radius * 1000.0, host_mass_kg, semi_major_axis_m, eccentricity, found.own_flux_w_m2,
+                                           icy_shell_top_k(body))
+        return power
+    forcing = tidal_heating.Forcing(host_mass_kg, semi_major_axis_m, eccentricity)
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), forcing, lid_of(body), surface_of(body)).tidal_w
 
 
 def core_of(body):

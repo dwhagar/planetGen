@@ -33,7 +33,7 @@ Small choices I made and will keep unless you object: oxygen from 50 to 160 kPa 
 
 ## 3. What exists today, and what it cannot say
 
-The built line (`habitability.equipment`, stored as `equipment_tier`, section 8 and 9 of `docs/design/habitability-index.md`) is one of five names: ideal, breathing mask, mask with scrubber, environment suit, full life support with radiation hardening. It is the heaviest need of Pressure, Temperature, Air and Radiation.
+The built line (`habitability.equipment`, stored as `equipment_tier`, section 8 and 9 of `docs/design/habitability/habitability-index.md`) is one of five names: ideal, breathing mask, mask with scrubber, environment suit, full life support with radiation hardening. It is the heaviest need of Pressure, Temperature, Air and Radiation.
 
 What a single tier cannot do, with the cases that show it:
 

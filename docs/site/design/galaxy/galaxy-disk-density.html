@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Galaxy density model - planetGen docs</title>
+<meta name="description" content="Status: built (src/planetgen/galaxy/density.py).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/galaxy-disk-density.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/galaxy-disk-density.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="galaxy-density-model">Galaxy density model</h1><p class="meta">docs/design/galaxy/galaxy-disk-density.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-the-model">1. The model</a></li><li style="margin-left:0px"><a href="#2-the-shape-planetgen-plan">2. The shape (planetgen plan)</a></li><li style="margin-left:0px"><a href="#3-which-sectors-exist">3. Which sectors exist</a></li><li style="margin-left:0px"><a href="#4-stellar-populations-7380">4. Stellar populations (7.38.0)</a></li><li style="margin-left:0px"><a href="#5-why-it-works-this-way">5. Why it works this way</a></li><li style="margin-left:14px"><a href="#alternatives-considered-and-rejected">Alternatives considered and rejected</a></li><li style="margin-left:0px"><a href="#corrections-made-to-the-previous-version">Corrections made to the previous version</a></li><li style="margin-left:0px"><a href="#adm49-user-set-arm-inter-arm-core-and-bulge-densities">ADM.49: user-set arm, inter-arm, core and bulge densities</a></li><li style="margin-left:0px"><a href="#gen625-the-all-auto-window-of-the-size-and-the-flatness">GEN.625: the all-Auto window of the size and the flatness</a></li></ul></details>
+<p><strong>Status:</strong> built (<code>src/planetgen/galaxy/density.py</code>). The model dates
+from the &quot;revision 2&quot; design pass of 2026-09 (Track C). That revision's main
+proposal, a stored plan of every qualifying sector, was never built; it is
+kept in <code>archive/galaxy-disk-density-rev2.md</code>. This file describes the model
+as the code uses it, on the cylindrical grid until 2026-10-15 (the grid is shell, band and wedge since then,
+<code>galaxy-coordinate-system.md</code>).</p>
+<h2 id="1-the-model">1. The model</h2>
+<p>A thin disk carrying the spiral arms, a thick disk and a boxy bar bulge,
+each fitted to the Milky Way's published structure (GEN.118, GEN.119):</p>
+<pre><code>R     = sqrt(x^2 + y^2)
+theta = atan2(y, x)
+v(z, h) = exp(-|z| / h)              # the form surveys fit (GEN.544); column 2 h
+
+thin(R, z)  = exp(-R / L) * v(z, h)                       # L, h: the shape's
+                                                          # disk scale length/height
+thick(R, z) = a_T * exp(-R / L_T) * v(z, h_T)             # L_T, h_T: the drawn length and height
+                                                          # ratios times L and h (GEN.532; height
+                                                          # ratio 2.5 to 4.2); 0.77 and 3 are the
+                                                          # Milky Way reference check
+bulge(x, y, z) = bulge_amplitude * exp(-r_s^2 / 2)        # in the bar's frame:
+r_s^4 = ((x'/x0)^2 + (y'/y0)^2)^2 + (z/z0)^4              # x0 = bulge_scale_radius_pc,
+                                                          # y0/x0, z0/x0 drawn per galaxy (GEN.533);
+                                                          # 0.39 and 0.27 are the Dwek reference
+theta_arm(R)      = spiral_reference_angle_rad + ln(R / spiral_reference_radius_pc) / tan(pitch_angle_rad)
+arm_factor(R, th) = 1 + arm_amplitude * cos(arm_count * (th - theta_arm))
+
+relative_density = k_norm * (bulge + thin * arm_factor + thick)
+</code></pre>
+<ul>
+<li><strong>Thin disk.</strong> <code>disk_scale_height_pc</code> is the exponential scale height
+surveys quote, and the profile is that exponential, <code>exp(-|z|/h)</code> (GEN.544): its midplane density is the one the
+fits give, and its column is <code>2 h</code> times it. It replaced the isothermal sheet <code>sech^2(z/2h)</code>, whose tail is the same
+but whose column is <code>4 h</code> times its midplane, so for one mass its midplane was half the fits'. Only the thin disk
+carries the arms. The nuclear stellar disk keeps the isothermal sheet (<code>_sech_vertical</code>).</li>
+<li><strong>Thick disk</strong> (<code>shape.structure</code>, <code>galaxy/structure_draw.py</code>, GEN.532). Its mass, scale length and scale height are
+ratios to the thin disk's drawn from the galaxy seed: the mass (0.14 to 0.99 at the circular speeds of 3e9 to 2e11
+solar masses of stars) between the fits of [R0865, R4824], the length by Comeron
+2018 and the height from 2.5 to 4.2. The amplitude is derived from the mass ratio:
+<code>a_T = ratio * arm_level / (length_ratio^2 * height_ratio)</code>. The Milky Way's published values (900 pc, 2.0 kpc, 4% of
+the thin disk's density at the Sun, 18% of its mass; BHG16) are <code>structure.REFERENCE_STRUCTURE</code>, a check target.</li>
+<li><strong>Bulge</strong> (<code>tuning.BULGE_*</code>). The bar's boxy/peanut core as COBE/DIRBE
+sees it edge on: [R1202]'s G2 model. <code>bulge_amplitude</code> is its
+central density over the thin disk's. Its long axis angle is drawn per
+galaxy, uniform on [0, 180) degrees, with the axis ratios (GEN.533,
+<code>galaxy/structure_draw.py</code> <code>draw_bar</code>); the Milky Way's 27 degrees leading
+the Sun, and its 0.39 and 0.27, are the Dwek reference, a check only.</li>
+<li><strong>The Sun</strong> is not placed: no Sun position is read and no point of the
+galaxy is the calibration point (GEN.404; Boss, 2026-10-16, 9:43 PM EDT:
+the galaxy stores no home or Sun position). <code>R0 = 3.15 L</code> (8.2 / 2.6 kpc)
+is a test reference only. <code>model_terms(shape)</code> returns the derived values; the
+Galaxy Map's prisms read them with the shape.</li>
+</ul>
+<p>The nuclear disk's <code>sech^2</code> is computed as <code>4e / (1 + e)^2</code> with <code>e = exp(-2|x|)</code>
+(<code>_sech_squared</code>), because <code>1 / cosh(x)^2</code> overflows once <code>|x|</code> passes about
+710. The disks' <code>exp(-|z|/h)</code> is clamped at 700 scale heights.</p>
+<p><strong>Normalization (GEN.404).</strong> <code>build_galaxy_shape</code> computes <code>k_norm</code> so the density, in units of the real local
+stellar density (<code>LOCAL_STELLAR_DENSITY_LY3</code>), integrates to the systems the galaxy's stellar mass makes
+(<code>structure.stellar_mass_solar</code> over <code>density.mean_system_mass_solar</code>, GEN.545): <code>density.total_mass</code> is the integral of the
+unnormalized model (the thin and thick disks, the bulge, the nuclear cluster and disk and the stellar halo, each in
+closed form). No point of the galaxy is the calibration point and no Sun position is read. A galaxy of the reference
+structure (5e10 solar masses) held 1.25e11 systems at the recalled 0.4 solar masses a system (1.03e11 at the derived mean, below), and the density at the reference radius was 0.38 of the local
+density the earlier calibration pinned there (2.6 times sparser): the model's disk was a <code>sech^2</code> sheet whose midplane
+density is half the exponential fits quote for the same column. <strong>GEN.544</strong> made the vertical profile the exponential
+the scale heights are fitted with, with the column (the mass) unchanged: the density at the reference radius is now 0.75
+of the old pinned value (twice the GEN.404 value, 0.376 to 0.750), the thin disk's column is the same, and the
+reference galaxy's bulge amplitude is 3.11/2 because BHG16's 3.11 was measured against the <code>sech^2</code> disk and the bulge
+keeps its 31% of the mass (<code>mathcheck.REFERENCE_BULGE_AMPLITUDE</code>). The model's fixed parts are ratios to the shape's own lengths,
+so the same formulas work for a galaxy of any size.</p>
+<p><strong>The mean system mass (GEN.545).</strong> The galaxy's number of systems is its stellar mass over the mean mass of a system, and
+that mean is no longer a recalled constant (<code>tuning.MEAN_SYSTEM_MASS_SOLAR</code> was 0.4, &quot;within a factor of 1.5&quot;); it is worked
+out from the generator's own draws (<code>generation/system_mass.py</code>) for stars formed at one age:</p>
+<ul>
+<li>the <strong>placed star</strong>: an initial mass from the initial mass function (Kroupa, 0.08 to 150 solar masses), at its birth mass
+until its last giant phase ends (<code>stellar_evolution.youngest_progenitor_sol</code>), then its remnant: a white dwarf by the
+initial-final relation, a neutron star or a black hole at the mean of the kind's mass range. The remnants are systems too;</li>
+<li>the <strong>other stars</strong> of its system: the <code>star-count</code> table's mean number by the placed star's class with the 8 to 12 tail
+(<code>multistar.expected_star_count</code>: 1.31 stars for a 0.1 solar mass primary, 1.62 for 1, 2.37 for 5, 3.08 for 50), each
+with a birth mass of the primary's times a uniform 0.1 to 1, taken to its own state at the same age.</li>
+</ul>
+<p>The mean over a population's ages weights each by the star formation there (the disk's three populations by their history,
+<code>galaxy.age_law</code>; the others uniformly over their windows), and the mean over a galaxy or a cell weights each population by
+its systems (<code>density.population_units</code>: the thin disk shared among its populations, the thick disk in <code>old</code>, the bulge, the
+nuclear cluster and disk, the halo). By systems and not by mass because the density counts systems. For the reference
+galaxy: young 0.72, intermediate 0.57, old 0.51, bulge 0.50, halo 0.49, so <strong>0.508 solar masses</strong> a system overall, a
+primary drawn from the primary mass function (GEN.928: the Chabrier function less the companions of heavier primaries; the
+Kroupa function gave 0.483 with these words: a placed star of 0.35 times 1.42 stars a system) times 1.43 stars a system. The
+reference galaxy holds 0.98e11 systems (1.03e11 on the Kroupa function, 1.25e11 at 0.4) and its density at the reference
+radius is 0.59 of the pinned local density (0.62 on the Kroupa function, 0.750 at 0.4): the gap
+that remains is real if the pinned density (Mamajek's 0.0984 stars per pc^3) counts the stars of a system singly, as it
+probably does, since a system here holds 1.42 of them. The compact companions of massive stars' trees add under 0.2% (not
+counted), and so do the companions of the remnants the scatter places (a few percent of those systems). A test draws the
+systems with the generator's own samplers and compares (<code>test_gen_system_mass.py</code>). A cluster's or satellite's mean (once the recalled
+<code>CLUSTER_MEAN_SYSTEM_MASS_SOL</code>, also 0.4) is derived the same way from the component's own age (GEN.598,
+<code>Component.mean_system_mass_solar</code>): 0.47 for an 11 Gy globular cluster, 0.49 for the Large Cloud, 0.9 for a cluster a few
+thousand years old.</p>
+<p><strong>Stellar halo</strong> (GEN.234). A spheroid with a broken power law, <code>A * (max(m, core) / break) ** -n</code>, where
+<code>m = sqrt(R^2 + (z / q)^2)</code>: inner slope 2.5, outer slope 4.5, break at 25 kpc (9.6 disk scale lengths), axis ratio
+<code>q = 0.7</code>, flat inside 500 pc (<code>tuning.HALO_*</code>; sources and the numbers it gives are in
+<a href="intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> sections 2.1 and 4). The radii are ratios to the
+disk scale length, and the amplitude is solved like <code>k_norm</code>: the halo holds the galaxy's own share (<code>structure.stellar_halo_system_fraction</code>, GEN.532: its drawn
+halo mass over its stellar mass, scaled to the model's counts; 1.17% for the Milky Way's 1.4e9 solar masses of 5e10 at 0.4 solar
+masses a system against 3.0e11 systems) of the visible components'
+stars (<code>density.halo_terms</code>). It replaces the flat floor GEN.78 put under the density (0.1% of the local density
+everywhere, which was half the real halo at the Sun and 200 to 340,000 times too much at 50 to 262 kpc). The halo is
+0.19% of the local density at the Sun and 3e-9 at 262 kpc, and no cell beyond 8.7 kpc from the center expects more than
+about 0.01 systems from it. The alternative normalisation to the local density ([R2211], 0.5%, about 2.7 times
+higher) is <code>tuning.HALO_LOCAL_DENSITY_FRACTION</code>; <code>density.halo_local_density_scale</code> gives the factor. The outline
+(<code>galaxy/skeleton.py</code>) reads the disk, the bulge and the components (the clusters and satellites of <code>galaxy_components</code>,
+added to the bound by <code>ComponentField.bound</code>, GEN.160 and GEN.237) but not the halo, so the halo adds no cell to it. The
+halo still fills every cell of the reach: a cell outside the outline is generated from its own density, halo term
+included, and its sector profile says <code>halo</code> (<code>galaxy/profile.py</code>, GEN.235; see
+<a href="intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.3). The halo is the <code>halo</code> entry of the
+profile's <code>mix</code>, with the age window of the halo population (<code>tuning.STELLAR_POPULATION_AGE_RANGES_GY[&quot;halo&quot;]</code>) and its [Fe/H]
+(<code>metallicity.halo_mean_fe_h</code>, <code>tuning.METALLICITY_HALO</code>).</p>
+<h2 id="2-the-shape-planetgen-plan">2. The shape (<code>planetgen plan</code>)</h2>
+<p>GEN.401: no shape parameter has a default value any more. <code>planetgen plan</code> draws each from the galaxy seed
+(<code>galaxy/shape_draw.py</code>, the laws in <code>intergalactic-and-halo-contents.md</code> 5.13, rows 4 to 6) unless the option is
+given; an option given replaces its draw, and the bulge's amplitude is solved for the disk actually used.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--disk-scale-length-pc</code></td>
+<td>Size-mass relation of late-type galaxies [R4048], <code>R_d = R_50 / 1.678</code>, log-normal scatter</td>
+</tr>
+<tr>
+<td><code>--disk-scale-height-pc</code></td>
+<td>Length over <code>q = 7.3</code> with a 0.13 dex scatter [R2484]</td>
+</tr>
+<tr>
+<td><code>--bulge-scale-radius-pc</code></td>
+<td>A third of the bar's length, which is drawn in disk scale lengths by stage [R1289]</td>
+</tr>
+<tr>
+<td><code>--bulge-amplitude</code></td>
+<td>Solved so the bulge's mass is the drawn bulge-to-total of the bulge and disks ([R1656], by stage)</td>
+</tr>
+<tr>
+<td><code>--arm-count</code></td>
+<td>Shares of [R1836] (two arms in 64.5 percent)</td>
+</tr>
+<tr>
+<td><code>--pitch-angle-deg</code></td>
+<td>Falls with stellar mass between Yu and Ho 2019's two binned means (earlier notes say 2018; Crossref gives ApJ 871, 194, 2019 for the pitch-angle paper), 5.5 degrees of scatter</td>
+</tr>
+<tr>
+<td><code>--arm-density</code>, <code>--interarm-density</code></td>
+<td>1.4 and 0.6, the arm contrast (not drawn; no source)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The Milky Way's measured shape (BHG16: 2,600 pc, 300 pc, 1,580 pc, 3.11, two arms at 15 degrees) is kept only as the
+reference the math check measures the model's machinery against (<code>physics/mathcheck.py</code>).</p>
+<p>The shape is stored in <code>galaxy_shape</code> with <code>k_norm</code>.</p>
+<p>Sources: [R0422]:529 (&quot;BHG16&quot;); Dwek et
+al. 1995, ApJ 445:716; [R4649]:1874.
+<code>tests/test_galaxy_milky_way.py</code> and the math check
+(<code>galaxy_bulge_to_total</code>, <code>galaxy_thick_to_thin_disk</code>) compare the
+model with them on the reference shape.</p>
+<h2 id="3-which-sectors-exist">3. Which sectors exist</h2>
+<pre><code>E = expected_system_count_at_density_1   # 6.31 systems for a 4 pc sector
+predicted_star_count(center) = E * relative_density(center)
+a sector qualifies  &lt;=&gt;  predicted_star_count &gt;= 1
+</code></pre>
+<p>The threshold is deterministic: a cell's fate is a fact of its position, not
+a coin flip. At a given ring and layer the bulge is largest along the bar
+and <code>arm_factor</code> is at most <code>1 + arm_amplitude</code>, so each term at its own
+maximum bounds the density over angle (exactly, away from the bar), and
+that bound falls as <code>R</code> and <code>|z|</code> grow. So <code>galaxySkeleton.build_layer_extents</code> finds
+each layer's outer ring in one pass, and that outline is the galaxy's edge
+(<code>galaxy-coordinate-system.md</code>, section 4). A sector inside the outline is
+checked exactly when it is visited.</p>
+<p>When a qualifying sector is generated, its own <code>relative_density</code> is the
+<code>--density</code> multiplier, so its system count follows the local richness.</p>
+<h2 id="4-stellar-populations-7380">4. Stellar populations (7.38.0)</h2>
+<p><code>population_densities</code> splits the density at a point into young,
+intermediate, old disk, bulge, halo and cluster populations. The bulge term is the bulge
+population, the halo term the halo population (10 to 13 Gyr, [Fe/H] about -1.6 inside 25 kpc and -2.2 outside) and the
+thick disk is old. The cluster population (10 to 13 Gyr) is 0 until the cluster components (GEN.237) add their
+density. The thin disk is shared by each population's share of star
+formation, its own scale height (<code>structure.population_height_ratios</code>, GEN.532: the squared vertical
+dispersion of the population over the old disk's, thinner for younger stars) and its own arm contrast
+(<code>STELLAR_POPULATION_ARM_AMPLITUDE</code>, strongest for young stars: 0.75, 0.42 and 0.10 for the young, intermediate and old,
+GEN.931; the old disk is the observed contrast of about 10% [R1158, R1231], the young one the
+gas ratio of 4 to the Kennicutt-Schmidt index 1.4, and the intermediate one falls with the log of the age between them;
+registry 6.65). The parts
+always sum to <code>relative_density</code>. Each system in a galaxy sector draws its
+star's population from this mix, so O and B stars and supergiants gather in
+the arms near the plane (CHANGELOG 7.38.0).</p>
+<p>The bright-star scatter and backfill draw from these populations. How to
+draw them without visiting every cell (an exact block-first draw from the
+ring-and-layer density bound), why dropping sectors and boosting the rest is
+rejected, and what the backfill and a fill of the sparse outer rim cost, are in
+<a href="../generation/sampling-backfill-and-resume.html">sampling-backfill-and-resume.md</a>.</p>
+<h2 id="5-why-it-works-this-way">5. Why it works this way</h2>
+<ul>
+<li><strong>Exponential disk, bulge and log spiral.</strong> The brief was &quot;assume a
+spiral galaxy similar to the Milky Way&quot;, and each parameter has a real
+Milky Way basis (section 2). Why this form was picked over other profiles
+is not recorded.</li>
+<li><strong>Calibrated between the arms.</strong> The Sun sits between two arms (the
+Local Arm or Orion Spur), and calibrating there means typical
+solar-neighborhood space reads as 1.0. Calibrating on an arm would make
+everything off-arm look thinner than the real neighborhood.</li>
+<li><strong><code>k_norm</code> computed, never typed in.</strong> It must change whenever any shape
+parameter changes.</li>
+<li><strong>A Milky Way bulge and thick disk (GEN.118, GEN.119).</strong> Revision 2
+shrank the bulge to an amplitude of 1 and a 200 pc sphere so the old
+shell build stayed tractable. That left it 0.6% of the stars against
+the Milky Way's ~31%, and edge on the galaxy was a flat disk. The
+bulge is now the COBE bar and the disk heights are the published ones,
+so a side view looks like the real galaxy and the model can be tested
+against published numbers. The cost: at the default shape the outline
+reaches layer 1,020 (4.1 kpc) instead of 317, and a full galaxy holds
+about 3.4 times as many systems (see the changelog for the numbers),
+close to the Milky Way's real 100-400 billion stars.</li>
+<li><strong>A hard threshold instead of a random occupancy roll.</strong> Revision 1 used a
+hash-based Bernoulli roll; revision 2 replaced it with &quot;a sector exists
+where it expects at least one star&quot;, which needs no randomness and
+defines the edge from the model.</li>
+<li><strong>Nothing stored per sector.</strong> Revision 2 measured a full plan table at
+about 10.5 billion rows and about 1 TB. Since position and density are
+pure functions, only the outline is stored: one <code>galaxy_layer</code> row per
+layer (635) and one <code>galaxy_column</code> row per ring (about 3,900).</li>
+<li><strong>Populations by position.</strong> Before 7.38.0 every sector drew stars from
+the same mix; tying ages to place puts young massive stars in the arms,
+as in a real disk. The reason in the release note is that &quot;star ages
+follow where a sector sits&quot;.</li>
+</ul>
+<h3 id="alternatives-considered-and-rejected">Alternatives considered and rejected</h3>
+<ul>
+<li>The <code>galaxy_sector_plan</code> table and <code>galaxyPlan.py</code> resumable build
+(revision 2, sections 4-8 of the archive copy).</li>
+<li>A probabilistic occupancy roll per sector (revision 1, described only in
+revision 2; revision 1 itself is not in the repository).</li>
+<li>Metallicity gradients: listed as an open question in revision 2 and
+never built. (Its other open question, thin and thick disks as separate
+components, is built: GEN.119.)</li>
+<li>A spherical or oblate bulge ([R3009]'s axisymmetric model was
+the other candidate for GEN.118): the observed bulge is a bar, boxy
+edge on, so the COBE fit was used. Not modelled: the long thin bar
+beyond the bulge and the stellar halo's inner structure. The nuclear star
+cluster and nuclear stellar disk are modelled (GEN.280, schema v99,
+<a href="realistic-galactic-core.html">realistic-galactic-core.md</a> section 3); see
+<a href="fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>, section 4.</li>
+</ul>
+<h2 id="corrections-made-to-the-previous-version">Corrections made to the previous version</h2>
+<ul>
+<li>It described the shell grid (<code>shell_index</code>, <code>shell_slot_index</code>,
+Fibonacci slots), which 6.0.0 replaced with rings, layers and slots.</li>
+<li>It used <code>E = 4.32</code> for an 11.5 ly sector; the 4 pc sector gives 6.31.</li>
+<li>It calibrated at <code>R_sun</code> from the Sun's distance; the code calibrated at a fixed ratio of the scale length (3.15
+since GEN.118) until GEN.404 normalized the whole galaxy to its stellar mass.</li>
+<li>It pointed to <code>galaxyGen.py</code>, <code>galaxyPlan.py</code>, <code>sectorGen.py</code> and SQLite,
+none of which are used now.</li>
+</ul>
+<h2 id="adm49-user-set-arm-inter-arm-core-and-bulge-densities">ADM.49: user-set arm, inter-arm, core and bulge densities</h2>
+<p>The thin disk's arm factor is <code>arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))</code>. The user sets the density on an arm crest <code>a</code> and between arms <code>i</code> (the disk's own units, usual 1.4 and 0.6), and <code>density.arm_terms(a, i)</code> gives <code>arm_amplitude = (a - i) / (a + i)</code> and <code>arm_level = (a + i) / 2</code>. The Gaussian core this item added was replaced by the nuclear star cluster and nuclear stellar disk (GEN.280, schema v99, <a href="realistic-galactic-core.html">realistic-galactic-core.md</a> section 3); <code>core_amplitude</code> became <code>nuclear_amplitude</code>. The bulge density is <code>bulge_amplitude</code>. Superseded (GEN.404; Boss, 2026-10-16, 9:43 PM EDT): no point is the calibration point and no Sun position is read; the total is set by the galaxy's stellar mass, so a denser arm or core raises those places against the rest of the galaxy (8.2 kpc is a test reference only). The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.</p>
+<h2 id="gen625-the-all-auto-window-of-the-size-and-the-flatness">GEN.625: the all-Auto window of the size and the flatness</h2>
+<p>A galaxy with the mass, size (or compactness), flatness, bulge share and bulge size all on Auto draws its disk size and flatness through <code>shape_draw._auto_size</code>: the seed's draws of the size-mass relation ([R4048], median half-light radius over 1.678 for the scale length, scatter 0.47 falling to 0.34 in ln) and of the flatness ([R2484], median 7.3, 0.13 dex), and then again from the same two streams, one more draw each, until the shape raises none of <code>dials.shape_warnings</code> (the thin disk's crest at least 20 times the one-star density, a scale height of at least 8 pc, a bulge of at least 4 pc) and the flatness is inside the Structure dial's 3 to 20. The crest tested is the plan's own (<code>plan_figures.crest</code>, GEN.626) of the shape built at every dial's Auto value and the default sector edge, which costs one density normalization a draw (the disk history is cached, so the accepted draw's build is free). At most 32 draws are made; the shape with the best crest is kept if none passes (it does not happen at the Auto masses). The first draw is the unchanged one, so a seed that did not warn keeps its galaxy; one seed in five drew a shape that warned and gets a later draw. Pin any of the five and the draws are the seed's own first ones, as before, and the grid's warnings fire for what the pin makes.</p>
+<p>Why a window and not a shifted law: the crest goes as the mass over the scale length cubed times the flatness, and the size-mass scatter is a log-normal with no upper bound, so a bounded sourced law cannot keep every draw clear of the warning; the Auto mass is already a window (3e9 to 6e9, Boss, 10-21) and this is the same kind of statement, the galaxies the 4 pc plan represents well. The sourced medians and scatters are untouched; the window removes the large, thick tail the plan cannot hold.</p>
+<p>Measured over 1,000 seeds before and after, against the plan's own crest (with the nuclear disk of GEN.628): the share of Auto draws that warn 17.5 percent to 0, the mean disk scale length 1,470 pc to 1,224 pc (47 percent of the 2.6 kpc a Milky Way disk has, [R0422], used only as a test yardstick), the mean stellar mass 4.3e9 solar masses (8 percent of a Milky Way's 5.4e10), the mean flatness 7.6 to 7.8, the 5th percentile of the crest 6.1 to 23.6.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

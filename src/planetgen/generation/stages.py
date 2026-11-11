@@ -77,29 +77,46 @@ def sectors_stages(args):
     return [Stage("sectors", "Generate the sectors")]
 
 
-PHENOMENA_STAGES = (Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
-                    Stage("nebula-draw", "Draw the nebula field"))
+NEBULA_CLEAR_STAGE = Stage("nebula-clear", "Clear the earlier nebula field")
+"""Stage: The emptying of the nebula field table before it is drawn again (OPS.123: the `empty-nebula-field` command, once a hook of the draw)."""
+
+PHENOMENA_STAGES = (Stage("phenomena-clear", "Clear the earlier phenomena"), Stage("phenomena-unindex", "Take off the phenomenon indexes"),
+                    Stage("phenomena", "Scatter the phenomena"), Stage("phenomena-index", "Index the phenomena"),
+                    NEBULA_CLEAR_STAGE, Stage("nebula-draw", "Draw the nebula field"))
 """tuple[Stage]: The stages of the phenomena scatter (PERF.172): the shells, the special phenomena and the indexes, and the
 nebula field."""
 
+BRIGHT_CLEAR_STAGE = {"mass": Stage("mass-clear", "Clear the earlier bright stars"),
+                      "luminosity": Stage("luminosity-clear", "Clear the earlier bright stars of the luminosity pass")}
+"""dict: The emptying of the bright stars before a scatter draws them again, by the scatter's first pass (OPS.123: the `clear-bright-stars`
+command, once the `prepare` of the shell scatter commands): the whole scatter before a mass pass, the luminosity pass alone before that."""
+
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
-"""Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172)."""
+"""Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
+run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
 
 
 def galaxy_stages(args):
-    """The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172)."""
-    return sectors_stages(args) + [
+    """
+    The stages of one `planetgen galaxy` run, in order: all of them are stages of the one run (PERF.172). A stage whose result is stored and current is
+    listed as skipped with its reason and is not run (PERF.256): `args.stage_skips`, `{stage key: reason}`, which `run_galaxy` works out from the database
+    (`run_plan.stored_scatter_skips`) before it plans the sectors; the estimate counts such a stage as no time.
+    """
+    skips = getattr(args, "stage_skips", None) or {}
+    listed = sectors_stages(args) + [
         Stage("link", "Link the neighbors"),
+        BRIGHT_CLEAR_STAGE["mass"],
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
         *PHENOMENA_STAGES,
-        BLOCK_LIGHTS_STAGE,
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
         Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
         Stage("run-blocks", "Update the map's block totals"),
+        BLOCK_LIGHTS_STAGE,
     ]
+    return [Stage(stage.key, stage.label, skips[stage.key]) if stage.key in skips else stage for stage in listed]
 
 
 def plan_stages(args):
@@ -135,7 +152,9 @@ def scatter_stages(args):
     if kind == "phenomena":
         return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
     if kind in ("mass", "luminosity"):
-        return [SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+        return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+    if kind == "nebula-field":
+        return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
     return [SCATTER_STAGE[kind]]
 
 
@@ -249,6 +268,46 @@ def recording_enabled():
     """Whether stage rows and speed stats are stored at all (`PLANETGEN_GENERATION_STATS`, off in the test suite)."""
     from planetgen.generation import stats as generation_stats
     return os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false")
+
+
+def speed_stats(mysql_config):
+    """The stored speeds, read fresh (a worker lives across runs, so a copy kept from an earlier one would write older buckets back), or
+    nothing to record to when statistics are off."""
+    from planetgen.db import store
+    from planetgen.generation import stats as generation_stats
+    if not recording_enabled():
+        return generation_stats.GenerationStats()
+    return generation_stats.GenerationStats(store.control_mysql_config(mysql_config))
+
+
+def record_unit_samples(mysql_config, workers, results):
+    """
+    Records the speed samples the units of a stage reported (OPS.123: the executor's bookkeeping, no longer a hook of each command): a
+    unit's result may carry `samples`, a list of `{"kind", "density", "seconds", "systems", "stars"}` (a unit that drew nothing reports
+    none, PERF.53), each recorded in the generation stats under its kind and `workers`, in unit order, then flushed once.
+    """
+    samples = [(sample, result) for result in results for sample in result.get("samples", ())]
+    if not samples:
+        return
+    stats = speed_stats(mysql_config)
+    for sample, _result in samples:
+        stats.record(sample["kind"], sample["density"], sample["seconds"], systems=sample["systems"], stars=sample["stars"],
+                     workers=workers)
+    stats.flush()
+
+
+def stage_row_metrics(detail, results):
+    """
+    The metrics the stage's row is stored with, from what the stage and its units report (OPS.123): the plan's `row_totals` (counts only the
+    cut knows, `shells`), and from the units' `row` the `objects` they wrote (summed) and the `shells_modified` they touched (the number of
+    distinct `touched` ids). A stage whose plan and units report none has no metrics.
+    """
+    metrics = dict((detail or {}).get("row_totals") or {})
+    rows = [result["row"] for result in results if result.get("row") is not None]
+    if rows:
+        metrics["shells_modified"] = len({touched for row in rows for touched in row.get("touched", ())})
+        metrics["objects"] = sum(row.get("objects", 0) for row in rows)
+    return metrics
 
 
 def _recording_on():

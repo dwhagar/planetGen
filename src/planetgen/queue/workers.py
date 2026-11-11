@@ -60,9 +60,9 @@ WORKER_MEMORY_MB = 300
 HOST_MEMORY_SHARE = 0.6
 """float: The share of the host's memory the workers may take at most; the rest is for MySQL, Redis and the web server."""
 
-BULK_WORKER_MEMORY_MB = 1700
+BULK_WORKER_MEMORY_MB = 2100
 """int: What one worker takes at most in a stage that draws stars from the sampling tables but is not a sector stage (PERF.226): the
-scatters. Such a worker holds the tables of every star population (about 1.4 GB with the datasets they read), and a worker and its
+scatters. Raised from 1,700 to 2,100 MB (PERF.252): the bright stars of the full-galaxy run of 2026-11-08 held 1,879 MB, and 10 percent more is the margin. Such a worker holds the tables of every star population (about 1.4 GB with the datasets they read), and a worker and its
 horse measured 1,456 to 1,564 MB together (`units.peak_resident_mb`, shared pages counted once) before the tables moved out of the
 workers of the other stages. The kernel killed the run of 2026-10-31 (36 workers, 16,285 MB on a 15,992 MB host, MySQL first at
 3:22 AM EDT) with the scatters sized by a guess of 300 MB."""
@@ -76,7 +76,7 @@ while every worker held the tables), 700 MB with the margin."""
 SCATTER_WORKER_MEMORY_MB = BULK_WORKER_MEMORY_MB
 """int: What one worker takes at most while it scatters stars (PERF.220, PERF.226): a table worker's (`BULK_WORKER_MEMORY_MB`)."""
 
-SECTOR_WORKER_MEMORY_MB = 2600
+SECTOR_WORKER_MEMORY_MB = 3050
 """int: What one worker takes at most while it generates sectors (PERF.226). Measured on a populated database (a galaxy of one
 shell, 4 workers), the worker's and its horse's memory together: 2,083 MB for the starting sector and 2,370 MB for a neighbourhood
 sector, 10 percent more with the margin. The horse alone showed 1,487 MB (resident, which counts the worker's tables but not the
@@ -85,7 +85,7 @@ worker beside it), and a count by that figure let 10 workers in where 5 fit a 16
 STAGE_MEMORY_SHARE = 0.5
 """float: The share of the host's memory a stage's workers may take (less than `HOST_MEMORY_SHARE`): MySQL's buffer pool, Redis,
 the web server and the kernel keep the rest, so a stage that grows past its figure is slowed, not killed. 50 percent of a 16 GB
-host in 700 MB workers is 11, in 1,700 MB ones 4, in 2,600 MB ones 3."""
+host in 700 MB workers is 11, in 2,100 MB ones 3, in 3,050 MB ones 2."""
 
 STAGE_WORKER_MEMORY_MB = {
     "scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
@@ -93,14 +93,18 @@ STAGE_WORKER_MEMORY_MB = {
     "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
-    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB,
+    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
+    "empty-phenomenon-scatter": LEAN_WORKER_MEMORY_MB, "drop-phenomenon-indexes": LEAN_WORKER_MEMORY_MB,
     "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
     "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
+    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling) but cut into one unit per run of shells: 90 units on the full galaxy
     "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
 }
 """dict: The command kinds of the stages with units, and what one worker takes at most in MB (`stage_worker_cap`). Every other
-command is one unit by nature (`CommandSpec.whole`) or inline, so one worker and nothing to limit."""
+command is one unit by nature (`CommandSpec.whole`) or inline, so one worker and nothing to limit. `whole` only exempts a command
+from the unit-length ceiling: a whole command that is cut into several units has a figure too (the block lights: the run of
+2026-11-08 held 15 workers at 15,128 MB of 15,992 MB with no figure and no cap)."""
 
 REFUSED_KEY = "planetgen:workers:refused"
 REFUSED_NOTE_KEY = "planetgen:workers:refused-note"

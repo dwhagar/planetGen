@@ -54,7 +54,7 @@ import math
 import os
 
 from planetgen import tuning
-from planetgen.physics import belt_mass, clearance_ledger, elements, formation, planet_architecture, planet_mass, unit_registry as units
+from planetgen.physics import belt_mass, clearance_ledger, elements, formation, planet_architecture, planet_mass, scatter as scatter_rule, unit_registry as units
 from planetgen.physics.elements import DataError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -93,6 +93,9 @@ INSTABILITY_SURVIVAL_RANGE = (0.002, 0.01)
 """tuple: The share of a belt a giant that migrated through it leaves, the least and the most: a Grand Tack type event leaves a few thousandths to a
 hundredth of the mass ([R4603], registry row BR4); a Nice type instability alone leaves 0.1 to 0.5 (BR5), which waits for the
 architecture to record instabilities (GEN.1082) (BG9)."""
+
+JUPITER_RADIUS_KM = 71492.0
+"""float: The radius of a giant that has none stored, km (Jupiter's; a giant's radius changes little with its mass, row BG21)."""
 
 DESTROYED_RETAINED_SHARE = 0.5
 """float: The share of a destroyed planet's mass that stays in orbit as a belt (BG10)."""
@@ -136,9 +139,9 @@ COLLISIONAL_DEBRIS_PER_GYR = 0.003
 COLLISIONAL_DEBRIS_MASS_EARTH = 1.0e-4
 """float: The chance per Gyr of a standing belt of rubble from a collision of large bodies, and its mass (BG12 and BG13)."""
 
-Body = collections.namedtuple("Body", ("distance_au", "mass_kg", "eccentricity", "giant", "migrated", "formation_au"), defaults=(0.0, False, False, None))
+Body = collections.namedtuple("Body", ("distance_au", "mass_kg", "eccentricity", "giant", "migrated", "formation_au", "radius_km"), defaults=(0.0, False, False, None, None))
 """One body of the planet chain: where it ends, its mass, its eccentricity, whether it is a giant, whether it moved in (the architecture's hot
-Jupiter) and where it formed."""
+Jupiter), where it formed and its radius (km; `JUPITER_RADIUS_KM` for a giant that has none)."""
 
 Debris = collections.namedtuple("Debris", ("cause", "mass_earth", "distance_au", "eccentricity"), defaults=(0.0,))
 """The event behind a belt of rubble: `cause` is 'destroyed-planet' or 'collisional-debris', `mass_earth` the mass of the belt, `distance_au` the
@@ -329,6 +332,33 @@ def _debris_candidate(debris):
 
 # --- the shaping causes -----------------------------------------------------------------------------------------------------------------
 
+def scattering_reach_au(body, star_mass_kg):
+    """How far out the giants of a system that scattered each other sweep, from the outermost one `body`: its apoapsis and the `STIR_ZONE_WIDTHS` chaotic half-widths beyond that it stirs (BG8, GEN.1341)."""
+    return body.distance_au * (1.0 + body.eccentricity) + STIR_ZONE_WIDTHS * chaotic_half_width_au(body, star_mass_kg)
+
+
+def scattering_loss_share(chain, star_mass_kg, lower_au, instability):
+    """
+    The share of the disk swept by the giants' scattering of each other that is thrown out (GEN.1341), for a stretch that starts at `lower_au`, as `(share, reach_au, giant)`, or
+    `None` where nothing is: no instability, fewer than two giants, or a stretch that starts inside the outermost giant (the giants' own clearing takes it) or beyond the reach.
+
+    The giants that scatter each other (`instability`, 0 to 1, `capture_windows.instability_level`) throw out the planetesimals they meet where the Safronov number of the outermost giant
+    `Theta = q a / R` is large ([R5138]: above 1 the encounters end in ejection, below 1 in collision): the thrown share is `1 - exp(-Theta / THETA_EJECT)` of what lies
+    between the giant and `scattering_reach_au`, scaled by the instability. The same rule the scatter step uses for the disk the giants sweep (`scatter.py`, rule 4), and with their own radii the
+    survival is 0.35 for Jupiter, 0.51 for Saturn, 0.61 for Uranus and 0.39 for Neptune, about the 0.1 to 0.5 that instability runs leave (row BR5, [R5139]), with no number fitted to it. Row BG20.
+    """
+    giants = [body for body in chain if body.giant]
+    if instability <= 0.0 or len(giants) < 2:
+        return None
+    outer = max(giants, key=lambda body: body.distance_au)
+    reach = scattering_reach_au(outer, star_mass_kg)
+    if lower_au < outer.distance_au or lower_au >= reach:
+        return None
+    radius_km = outer.radius_km or JUPITER_RADIUS_KM
+    theta = scatter_rule.safronov_number(_kg_to_mearth(outer.mass_kg), radius_km / 6371.0, outer.distance_au, units.convert(star_mass_kg, "kg", "Msun"))
+    return min(instability, 1.0) * (1.0 - math.exp(-theta / scatter_rule.THETA_EJECT)), reach, outer
+
+
 def cleared_spans(body, star_mass_kg, lower_au, upper_au):
     """The stretches of `[lower_au, upper_au]` a giant clears: its chaotic zone and, for the part inside its orbit, the resonance gaps."""
     half = chaotic_half_width_au(body, star_mass_kg)
@@ -365,7 +395,7 @@ def _text(cause, **fields):
     return CAUSES[cause]["text"].format(**{name: fields[name] for name in CAUSES[cause]["fields"]})
 
 
-def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u):
+def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability=0.0):
     lower, upper = candidate["inner_au"], candidate["outer_au"]
 
     cold_share = planetesimal_share(metal_ratio)
@@ -410,6 +440,14 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
         history.append(Event("instability-depletion", scattered, movers[0].distance_au,
                              _text("instability-depletion", giant_from_au=movers[0].formation_au, giant_au=movers[0].distance_au,
                                    removed_percent=100.0 * scattered / primordial)))
+    thrown = scattering_loss_share(chain, star_mass_kg, lower, instability)
+    if thrown is not None and thrown[0] > 0.0:
+        share, reach, giant = thrown
+        swept = sum(mass(a, b) for a, b in _clip(remaining, lower, min(upper, reach))) * scale
+        lost = min(swept * share, primordial - cleared - scattered)
+        scattered += lost
+        history.append(Event("planet-scattering", lost, giant.distance_au,
+                             _text("planet-scattering", giant_au=giant.distance_au, reach_au=reach, removed_percent=100.0 * lost / primordial)))
     left = primordial - cleared - scattered
     fields = {key: value for key, value in candidate.items() if key not in ("cause", "co", "mass_earth")}
     fields.setdefault("snow_line_au", formation_snow_line_au)
@@ -424,7 +462,7 @@ def _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au,
 
 
 def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limit_au, disk_edge_au, u=0.5, debris=(), metal_ratio=1.0,
-          scatter=1.0):
+          scatter=1.0, instability=0.0, disk_limit_au=math.inf):
     """
     Every belt of a system with the cause that made it: the gaps, the unfinished tail, the snow-line bump (or its co-cause), the outer disk and
     the `debris` events the caller names, each traced through the giants' clearing and the instability, in order of distance. Belts under
@@ -439,6 +477,8 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
         disk_edge_au (float): The outer edge of the disk.
         u (float): A uniform draw in (0, 1) for the survival share of a belt a giant swept through.
         debris (iterable): `Debris` events, from `destroyed_planet` and `collisional_debris`.
+        instability (float): 0 to 1, how much the giants scattered each other (`capture_windows.instability_level`): it throws out a share of the disk past the outermost giant (`scattering_loss_share`, GEN.1341).
+        disk_limit_au (float): Where a companion star cuts the disk (`disk_truncation.star_truncation_au`, GEN.1451): every stretch ends there before its mass is worked out, and one that no longer fits is no belt. Infinite for a lone star.
 
     Returns:
         list: `BeltOrigin`, nearest the star first.
@@ -447,9 +487,13 @@ def build(chain, star_mass_kg, snow_line_au, formation_snow_line_au, growth_limi
     candidates = gaps(chain, star_mass_kg) + tail(chain, star_mass_kg, growth_limit_au) + outer_disk(chain, star_mass_kg, growth_limit_au, disk_edge_au)
     candidates += snow_line_bump(chain, star_mass_kg, formation_snow_line_au, candidates)
     candidates += [_debris_candidate(event) for event in debris]
+    if disk_limit_au < math.inf:
+        for candidate in candidates:
+            candidate["outer_au"] = min(candidate["outer_au"], disk_limit_au)
+        candidates = [candidate for candidate in candidates if _fits(candidate["inner_au"], candidate["outer_au"])]
     belts = []
     for candidate in sorted(candidates, key=lambda c: c["inner_au"]):
-        belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u)
+        belt = _trace(candidate, chain, star_mass_kg, snow_line_au, formation_snow_line_au, metal_ratio, scatter, u, instability)
         if belt.primordial_mass_earth >= MIN_BELT_MASS_EARTH:
             belts.append(belt)
     return belts

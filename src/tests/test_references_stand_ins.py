@@ -50,7 +50,7 @@ def test_two_tables_with_one_section_number_are_each_read_once_under_their_own_t
     assert len(tables) == len(registry.SECTIONS) == len({key for key, *_rest in registry.sections()})
     giant, ocean = (tables[key][1] for key in ("6.134 Stand-ins of the structure of a giant",
                                                "6.134 Stand-ins of the ocean cover law and the mantle's water store"))
-    assert {"GS2", "GS8"} <= {row[0] for row in giant} and {"HY1", "HY2"} <= {row[0] for row in ocean}
+    assert {"GS2", "GS8"} <= {row[0] for row in giant} and "HY2" in {row[0] for row in ocean} and "HY1" not in {row[0] for row in ocean}
     assert not {row[0] for row in giant} & {row[0] for row in ocean}
     high_gravity = tables["6.127 Stand-ins of the high-gravity class line"][1]
     assert "GV1" in {row[0] for row in high_gravity}
@@ -92,7 +92,7 @@ def test_the_counts_by_tier_and_tweak_match_the_overview(data, overview):
 
 def test_the_unread_and_burn_down_lines_come_from_their_registers(data):
     by_key = {row["key"]: row for _part, row in references_site.rows_of(data)}
-    assert by_key["6.7:AM64"]["burn_down"][:2] == ["replace", "GEN.804"]
+    assert by_key["6.59:CK1"]["burn_down"][:2] == ["replace", "GEN.1021"]
     assert by_key["5.3:AT.b5"]["burn_down"][0] == "no data"
     assert any(row["unread"] for row in by_key.values())
 
@@ -165,10 +165,10 @@ def test_the_filters_narrow_the_rows_and_name_how_many_are_left(client, data):
 
 
 def test_a_page_for_a_row_says_what_it_is_how_sure_it_is_and_what_replaces_it(client):
-    html = _html(client, "/references/stand-ins/6-7-am64")
-    assert BANNER_ID in html and "<title>Stand-in AM64" in html
+    html = _html(client, "/references/stand-ins/6-59-ck1")
+    assert BANNER_ID in html and "<title>Stand-in CK1" in html
     assert "Its source tier is" in html and "Its tweak level is" in html
-    assert "The item GEN.804 replaces it with data." in html
+    assert "The item GEN.1021 replaces it with data." in html
     assert "How it was made and decided" in html and "<dt>What it is</dt>" in html
 
 

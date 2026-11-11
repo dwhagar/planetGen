@@ -254,12 +254,9 @@ def test_a_world_with_a_technological_civilization_or_a_colony_is_inhabited(mysq
         conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (system_id,))
         store.recount_habitable_worlds(conn, [system_id])
         assert interests.INHABITED not in _rows(conn, system_id)
-        # a civilization counts only on a class that can carry life
+        # a civilization counts on any world that has one, whatever its class letter (GEN.1387)
         conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'A', body_type = 't', phi4 = 0.82 WHERE id = ?",
                      (first,))
-        store.recount_habitable_worlds(conn, [system_id])
-        assert interests.INHABITED not in _rows(conn, system_id)
-        conn.execute("UPDATE planets SET planet_class = 'M' WHERE id = ?", (first,))
         store.recount_habitable_worlds(conn, [system_id])
         row = _rows(conn, system_id)[interests.INHABITED]
         assert row["n"] == 1 and row["best_score"] == pytest.approx(0.82)
@@ -570,11 +567,8 @@ def test_life_sentient_life_and_a_civilization_are_reasons_read_from_the_stored_
         store.recount_habitable_worlds(conn, [system_id])
         rows = _rows(conn, system_id)
         assert rows[interests.SENTIENT]["n"] == 1 and rows[interests.LIFE]["n"] == 2 and interests.CIVILIZATION not in rows
-        # a civilization is the timeline's stage on a class that can carry life
+        # a civilization is the timeline's stage on a world with life, whatever its class letter (GEN.1387)
         conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'A' WHERE id = ?", (second,))
-        store.recount_habitable_worlds(conn, [system_id])
-        assert interests.CIVILIZATION not in _rows(conn, system_id)
-        conn.execute("UPDATE planets SET planet_class = 'M' WHERE id = ?", (second,))
         store.recount_habitable_worlds(conn, [system_id])
         assert _rows(conn, system_id)[interests.CIVILIZATION]["n"] == 1
         lo, hi = _box(POSITION_PC)
@@ -762,6 +756,7 @@ def test_the_life_filter_and_its_column_leave_out_a_class_with_no_life_stage_yet
         tags["life"] = {"1a"}
 
         def seen():
+            store.refresh_edited_sectors(conn, [sector_id])    # DB.121: the sector's stored counts follow an edit through this call, as the edit routes make it
             counted = {option["value"]: option["count"] for option in query._life_class_facet(conn, "planets")}
             rows = query.search(conn, {}, tags, limit=300)["results"]["planets"]["rows"]
             return counted.get("1a", 0), {row["id"] for row in rows if row["star_system_id"] == system_id}, rows

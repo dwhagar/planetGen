@@ -39,12 +39,17 @@ from planetgen.physics import (
     giant_interior,
     habitability,
     habitability_explain,
+    mantle_reservoirs,
     meteorite_groups,
+    neutron_star_crust,
     outside_hours,
     planet_class_text,
+    planet_type,
     pre_main_sequence,
     protection,
+    orbit_elements,
     regional_temperature,
+    sky_view,
     unit_registry,
 )
 from planetgen.physics.quantity import Quantity
@@ -267,7 +272,40 @@ def _neutron_star_blocks(star):
                                 "every ", spin, "."))
     else:
         sentences.append(inline("Its beam no longer sweeps across this vantage point."))
-    return [facts("Neutron star", rows), prose("summary", *sentences)]
+    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block()]
+
+
+def _density(g_cm3):
+    return qty("density", g_cm3, "g_cm3")
+
+
+def _crust_block():
+    """The crust of a neutron star by density (GEN.1358): the nuclei of the outer crust, where neutrons start to drip and the clusters of the inner
+    crust, the same for every star (`physics.neutron_star_crust`)."""
+    outer = []
+    for nucleus in neutron_star_crust.OUTER_CRUST:
+        outer += [nucleus.name, " to ", _density(nucleus.max_density_g_cm3), "; "]
+    inner = []
+    for name, first, last in neutron_star_crust.inner_runs():
+        inner += [name, " at ", _density(first)] if first == last else [name, " from ", _density(first), " to ", _density(last)]
+        inner.append("; ")
+    return facts("Crust", [
+        fact("crust_outer", "Outer crust", "single nuclei in a lattice, each down to the density shown: ", *outer[:-1]),
+        fact("crust_drip", "Neutron drip", "neutrons run free from ", _density(neutron_star_crust.NEUTRON_DRIP_G_CM3)),
+        fact("crust_inner", "Inner crust", "clusters in a gas of free neutrons: ", *inner[:-1]),
+        fact("crust_pasta", "Nuclear pasta", *_pasta_text()),
+    ])
+
+
+def _pasta_text():
+    """The nuclear pasta layer at the bottom of the crust (GEN.1427): predicted by calculation, not observed; the shapes the nuclei take with rising density."""
+    pasta = neutron_star_crust.PASTA
+    shapes = []
+    for item in pasta.shapes:
+        shapes += [f"{item.name} ({item.shape})", ", "]
+    return ["predicted, not observed: from ", _density(pasta.lower_g_cm3), " to ", _density(pasta.upper_g_cm3), " at the core, a layer about ",
+            qty("length", pasta.thickness_m, "m"), " thick that may hold up to ", qty("fraction", pasta.crust_mass_share_at_most, "frac"),
+            " of the crust's mass; with rising density the nuclei are predicted to take these shapes in turn: ", *shapes[:-1]]
 
 
 def _star_section(star, children=()):
@@ -432,7 +470,7 @@ def _planet_facts(planet):
     else:
         rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", planet_type.pressure_label(planet_type.planet_type(planet)), _pascal(0.0 if airless else planet.atmospheric_pressure)))      # UX.297: a rocky planet under a deep envelope has no surface
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
             rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
@@ -526,7 +564,62 @@ def _equipment_block(planet):
     return facts("Survival equipment", rows) if rows else None
 
 
-def _planet_section(planet):
+def _mantle_block(planet):
+    """GEN.1365: the water the mantle of a rocky or icy body can store, and the form its carbon takes; `None` for a giant or a body with no rock."""
+    rock = getattr(planet, "rock_mass_fraction", None)
+    if planet.body_type == "g" or not rock or not planet.radius:
+        return None
+    capacity = mantle_reservoirs.water_capacity_fraction(planet.mass, planet.radius * 1000.0, min(rock, 1.0)) * planet.mass
+    rows = [fact("mantle_water_capacity", "Water the mantle can store", _mass(capacity))]
+    redox = getattr(planet, "mantle_delta_iw", None)
+    if redox is not None:
+        rows.append(fact("mantle_carbon", "Carbon in the mantle",
+                         "carbonate" if mantle_reservoirs.carbon_form(redox) == "carbonate" else "diamond, graphite and iron carbide"))
+    return facts("Mantle", rows)
+
+
+_ORDINALS = ("second", "third", "fourth", "fifth", "sixth", "seventh", "eighth")
+"""tuple: The words for the other suns of a sky, brightest first."""
+
+
+def _degrees(angle):
+    return f"{three_figures_or_tiny(angle)} degrees"
+
+
+def _percent(share):
+    return "under 0.1 percent" if share < 0.001 else f"{three_figures_or_tiny(100.0 * share)} percent"
+
+
+def _sky_sentences(sky):
+    """GEN.1443: what the sky of a body holds besides a main-sequence star alone: a white dwarf for a sun, and every other source bright enough to show, each with its kind, colour, width and
+    share of the light. Nothing for a lone star of the main sequence (the sky it has always had)."""
+    host, others = sky[0], sky[1:]
+    sentences = []
+    if getattr(host.star, "state", None) in sky_view.COMPACT_STATES:
+        sentences.append(f"Its sun is a {host.kind}, {host.colour or 'faint'} and {_degrees(host.angular_deg)} wide.")
+    for number, body in enumerate(others):
+        colour = f"{body.colour} " if body.colour else ""
+        if body.role == "sun":
+            sentences.append(f"A {_ORDINALS[min(number, len(_ORDINALS) - 1)]} sun, a {colour}{body.kind} {_degrees(body.angular_deg)} wide, gives it {_percent(body.share)} of its light "
+                             "and makes a day of its own.")
+        else:
+            moons = body.light_w_m2 / sky_view.NIGHT_LIGHT_W_M2
+            sentences.append(f"A {colour}{body.kind}, {_degrees(body.angular_deg)} wide, lights its nights with {three_figures_or_tiny(moons)} times the light of a full Moon.")
+    return sentences
+
+
+def _sky_block(planet, parent):
+    """The sky text of a planet or moon (GEN.1443): `parent` the planet a moon circles, whose distance from the star the moon's light follows. `None` when the sky is the lone star's."""
+    host = parent if parent is not None else planet
+    star = getattr(planet, "star", None)
+    distance = getattr(host, "distance", None)
+    if star is None or not distance:
+        return None
+    sky = sky_view.bodies(star, orbit_elements.flux_distance_au(distance, getattr(host, "eccentricity", None) or 0.0))
+    return prose("sky", *_sky_sentences(sky)) if sky else None
+
+
+def _planet_section(planet, parent=None):
     blocks = [_planet_facts(planet)]
     summary = [f"It is {planet_class_text.description(planet.planet_class, planet.is_moon).lower()}."]
     blocks.append(prose("description", *summary))
@@ -538,9 +631,11 @@ def _planet_section(planet):
     else:
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
+    blocks.append(_mantle_block(planet))
     blocks.append(_ratings_block(planet))
     blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))
+    blocks.append(_sky_block(planet, parent))
     life = life_facts.resolve(planet)
     blocks.append(prose("life-class", *_life_class_sentences(life)))
     blocks.append(prose("life", *_life_sentences(life)))
@@ -550,7 +645,7 @@ def _planet_section(planet):
     if planet.flavor_text:
         blocks.append(prose("flavor", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)
-    children = [_planet_section(moon) for moon in planet.moons]
+    children = [_planet_section(moon, planet) for moon in planet.moons]
     return section(kind, _ref(kind, planet), planet.name, [b for b in blocks if b and (b["type"] != "prose" or b["text"])],
                    children)
 

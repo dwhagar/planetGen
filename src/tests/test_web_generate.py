@@ -27,7 +27,7 @@ from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
-from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient, estimatejob  # noqa: E402
 from planetgen.queue import progress_file, redisqueue  # noqa: E402
 from planetgen.web import csrf, generate_flow, generate_page, jobs, limit_sliders  # noqa: E402
 
@@ -117,6 +117,14 @@ def _uncached_estimates(monkeypatch):
         raise OSError("estimate versions are not read in these tests")
 
     monkeypatch.setattr(generate_page, "_estimate_versions", unreadable)
+
+
+@pytest.fixture(autouse=True)
+def _estimates_run_in_the_request(monkeypatch):
+    """The Generate page's size estimate runs in the work queue (ADM.141): a request queues it and answers "working". The tests that
+    patch `generate_page.run_estimate` expect it to be called, so here nothing can queue it and it runs in the request, as it did before
+    the queue; `test_estimate_background.py` tests the queued path with its own `start`."""
+    monkeypatch.setattr(estimatejob, "start", lambda *args, **kwargs: False)
 
 
 def _token(client):
@@ -1581,18 +1589,15 @@ def test_the_generate_form_reports_every_bad_field_at_once():
     assert "Minimum start density must be at least 0.001." in message
 
 
-def test_made_url_only_for_a_finished_sector_run(client):
-    """ADM.31: a finished galaxy run offers its sectors on the Galaxy Map."""
+def test_systems_url_only_for_a_galaxy_run_that_has_started(client):
+    """ADM.151: a started galaxy run links to the systems made since it started."""
     now = time.time()
     with client.application.test_request_context("/"):
         base = {"created_at": now - 61, "steps": []}
-        done = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": True, "started_at": now - 60,
-                                        "finished_at": now, **base})
-        assert done["made_url"].startswith("/galaxy?made=")
-        for job in ({"kind": "galaxy", "finished": False, "started_at": now},
-                    {"kind": "plan", "finished": True, "started_at": now},
-                    {"kind": "galaxy", "finished": True, "started_at": None}):
-            assert generate_page._job_view({"id": "j2", **base, **job})["made_url"] is None
+        started = generate_page._job_view({"id": "j1", "kind": "galaxy", "finished": False, "started_at": now - 60, **base})
+        assert started["systems_url"] == f"/admin/generated?kind=systems&since={int(now - 60)}"
+        for job in ({"kind": "plan", "started_at": now}, {"kind": "galaxy", "started_at": None}):
+            assert generate_page._job_view({"id": "j2", "finished": False, **base, **job})["systems_url"] is None
 
 
 def test_random_start_argv_carries_the_neighborhood_count():
@@ -1798,7 +1803,11 @@ def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(si
         ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
         ["scatter", "--phenomena", "--compact-min-mass", "2"]]
     for step in steps:
-        assert step["stages"][0]["label"] == step["label"], "the step's own stage comes first, any it ends with after it"
+        # The step's own stage is in its list; what comes before it is only what it empties first (OPS.123: the earlier bright stars, phenomena, indexes and nebula field are stages
+        # of the scatter that draws them again), and what it ends with comes after.
+        labels = [entry["label"] for entry in step["stages"]]
+        assert step["label"] in labels, (step["label"], labels)
+        assert all(label.startswith(("Clear the earlier", "Take off the")) for label in labels[:labels.index(step["label"])]), labels
         assert [entry["skipped"] for entry in step["stages"]] == [None] * len(step["stages"])
 
 

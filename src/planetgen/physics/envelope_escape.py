@@ -55,7 +55,7 @@ def equilibrium_temperature_k(insolation):
     return TEQ_OVER_INSOLATION_FOURTH * insolation ** 0.25
 
 
-def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None):
+def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=(), radius_ratio=None):
     """
     The envelope the planet still has at `age_gy`, Earth masses (0 when it has fallen under `BARE_BELOW` of the planet's mass).
 
@@ -67,6 +67,14 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
         age_gy (float): The age.
         teq_k (float, optional): The equilibrium temperature; from the insolation when not given. It is held to the 300 to 2,000 K of the
             fit of Kubyshkina et al. (a colder planet loses little in any case).
+        distance_au (float, optional): The planet's distance from its host (the circle of the same mean flux). The host's XUV falls off with it; without it
+            the distance is the one the host's own light `insolation` gives, which only holds for a lone star (GEN.1442).
+        emitters (tuple, optional): The other stars' XUV sources at the planet (`radiation_field.xuv_emitters`); each follows its own XUV decay through time and
+            adds to the flux the planet is under. None for a lone star.
+        radius_ratio (callable, optional): `(mass_earth, envelope_fraction, radius_earth) -> ratio`, the factor a tide puts on the radius of the
+            law at that step (GEN.1480: the rate goes as about R^4 to R^6 on the XUV branch and R^10 on the boil-off one, so a planet the
+            obliquity tide has inflated loses its envelope faster, and the loss has to see the radius the planet really has). None, the
+            default, leaves the radius as the law gives it, as every caller without a tide wants.
     """
     f_env0 = min(f_env0, MAX_ENVELOPE)
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
@@ -77,7 +85,7 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
     teq = min(max(teq_k if teq_k else equilibrium_temperature_k(insolation), thermosphere.HYDRO_BASED_TEQ_RANGE_K[0]),
               thermosphere.HYDRO_BASED_TEQ_RANGE_K[1])
     luminosity_w = luminosity_solar * constants.SOLAR_LUMINOSITY
-    distance_au = math.sqrt(luminosity_solar / insolation)
+    distance_au = math.sqrt(luminosity_solar / insolation) if distance_au is None else distance_au
     area = 4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2
     envelope = start
     t = ONSET_GY * _GY_S
@@ -86,8 +94,12 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
     for _ in range(MAX_STEPS):
         age = t / _GY_S
         flux_erg_cm2_s = activity.coronal_xuv_at(host_mass_solar, age, luminosity_w) / area * 1e3
+        for other_mass, other_luminosity_w, _, factor, _ in emitters:       # GEN.1442: the other stars' XUV at their own age-decay
+            flux_erg_cm2_s += activity.coronal_xuv_at(other_mass, age, other_luminosity_w) * factor / (4.0 * math.pi * constants.AU_TO_M ** 2) * 1e3
         mass = core_mass_earth + envelope
         radius = bulk_structure.envelope_radius_earth(mass, envelope / mass, insolation, age)
+        if radius_ratio is not None:
+            radius *= radius_ratio(mass, envelope / mass, radius)
         rate = thermosphere.hydro_based_mass_loss_g_s(mass, radius, teq, distance_au, flux_erg_cm2_s) * 1e-3 / earth_kg
         step = min(AGE_STEP * t, end - t)
         if rate > 0.0:
@@ -101,10 +113,10 @@ def envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, lu
     return 0.0
 
 
-def lost_fraction(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None):
+def lost_fraction(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k=None, distance_au=None, emitters=()):
     """The share of its starting envelope that the planet has lost by `age_gy`, 0 to 1 (arguments as `envelope_left_earth`); 1 for a bare core."""
     f_env0 = min(f_env0, MAX_ENVELOPE)
     start = f_env0 * core_mass_earth / (1.0 - f_env0)
     if start <= 0.0:
         return 0.0
-    return 1.0 - envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k) / start
+    return 1.0 - envelope_left_earth(core_mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k, distance_au, emitters) / start

@@ -30,6 +30,12 @@ _OPEN_UNIT_RANGE = re.compile(r"^`?(\w+)`?\s*>\s*0\)?\s+and\s+\(?`?\1`?\s*<=\s*1
 _ABOVE_ZERO = re.compile(r"^`?(\w+)`?\s*>\s*0$")
 _ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re.IGNORECASE)
 """`(a = 1) or (b = 0)`: the seed row must have b non-zero, so moving a off 1 breaks both arms."""
+_NULL_OR_AT_LEAST = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s*>=\s*(-?\d+(?:\.\d+)?)$", re.IGNORECASE)
+"""`(a is null) or (a >= n)`: a nullable column that may not fall below n (GEN.1377's initial ratio)."""
+_NULL_OR_ABOVE_ZERO = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s*>\s*0$", re.IGNORECASE)
+"""`(a is null) or (a > 0)`: a nullable column that may not be zero or below (the effect ledger's largest value, GEN.1465)."""
+_NULL_OR_BETWEEN = re.compile(r"^`?(\w+)`?\s+is\s+null\)?\s+or\s+\(`?\1`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGNORECASE)
+"""`(a is null) or (a between m and n)`: a nullable column held inside a range (the birth tilt and capture draws of `body_history`, GEN.1497)."""
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
@@ -168,6 +174,15 @@ def _breaking_value(conn, table, clause, row):
     match = _ABOVE_ZERO.match(clause)
     if match:
         return match[1], -1
+    match = _NULL_OR_AT_LEAST.match(clause)
+    if match:
+        return match[1], float(match[2]) - 1
+    match = _NULL_OR_BETWEEN.match(clause)
+    if match:
+        return match[1], int(match[3]) + 1
+    match = _NULL_OR_ABOVE_ZERO.match(clause)
+    if match:
+        return match[1], -1.0
     match = _NULL_TOGETHER.search(clause)
     if match:
         column = match[1]

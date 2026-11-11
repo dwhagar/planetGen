@@ -30,7 +30,7 @@ from hypothesis import strategies as st
 from planetgen.galaxy import galactic_orbit
 from planetgen.generation import stellar_object as star_module
 from planetgen.generation import wide_binary
-from planetgen.physics import condensate_shares, formation
+from planetgen.physics import disk_condensation, formation
 from planetgen.physics import orbits
 from planetgen.physics import planets as planet_physics
 from planetgen.physics import units
@@ -241,7 +241,7 @@ def test_wide_binary_samplers_stay_in_range():
 def test_mmsn_density_jumps_by_the_ice_factor_at_the_snow_line(d, snow, scale):
     density = formation.mmsn_surface_density_gcm2(d, snow, scale)
     bare = physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 * scale * d ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
-    expected = bare * (condensate_shares.WATER_ICE_SOLID_BOOST if d >= snow else 1)
+    expected = bare * (disk_condensation.SNOW_LINE_SOLID_JUMP if d >= snow else 1)
     assert _close(density, expected)
     assert density >= 0
 
@@ -463,7 +463,7 @@ def test_system_config_round_trip_with_arbitrary_values(values, extra):
     for key in extra:
         if key not in out and key.isidentifier():
             assert not hasattr(config, key) or hasattr(defaults, key)
-    assert config.system_flavor_count == 0 and config.recent_flavor_texts == []
+    assert config.system_flavor_count == 0 and config.used_flavor_ids == []
     assert SystemConfig.from_dict(json.loads(json.dumps(out))).to_dict() == json.loads(json.dumps(out))
 
 
@@ -694,6 +694,8 @@ def _walk(value, path):
 
 _PAIRS_THAT_ARE_NOT_RANGES = {
     "REFERENCE_BLACK_HOLE_DRAWS": "two independent uniform draws (solar share, then metal-free), not a low-high range; the solar one is 0.55 (GEN.1154, row BR1)",
+    "WD_ONE_HELIUM_MASS_BY_WD_MASS_SOL": "knots of a table, each (white dwarf mass, its helium envelope mass) in solar masses, interpolated in log; the two numbers are not low and high",
+    "WD_HELIUM_CORE_HYDROGEN_FRACTIONS": "knots of a table, each (white dwarf mass in solar masses, hydrogen envelope as a fraction of its mass), interpolated in log; the two numbers are not low and high",
 }
 """dict: The two-number constants that are not (low, high) ranges, so the ordered-pair check leaves them alone, each with why."""
 

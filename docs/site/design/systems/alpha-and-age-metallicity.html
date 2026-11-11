@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Alpha-enhanced stars and the age-metallicity relation (GEN.744, lock-free step) - planetGen docs</title>
+<meta name="description" content="Status: built and wired.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/alpha-and-age-metallicity.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/alpha-and-age-metallicity.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="alpha-enhanced-stars-and-the-age-metallicity-relation-gen744-lock-free-step">Alpha-enhanced stars and the age-metallicity relation (GEN.744, lock-free step)</h1><p class="meta">docs/design/systems/alpha-and-age-metallicity.md</p>
+<p>Status: built and wired. Age follows the star's [Fe/H] inside the disk's populations; every track lookup reads the alpha-enhanced equivalent [Fe/H] of the star's branch (GEN.1024); the thick disk spans 8 to 13 Gyr (GEN.1025). Code: <code>physics/alpha_tracks.py</code>, <code>physics/age_metallicity.py</code>. Tests: <code>tests/test_alpha_and_age_metallicity.py</code>. Registry 6.34 (AL1, AR1 to AR4).</p>
+<h2 id="alpha-enhanced-tracks">Alpha-enhanced tracks</h2>
+<p>The MIST grid is solar-scaled. A star of the high-alpha branch (<code>stellar_abundances.BRANCH_HIGH_ALPHA</code>) behaves like a solar-scaled star of higher [Fe/H] [R3878]: <code>[M/H] = [Fe/H] + log10(0.638 f + 0.362)</code>, <code>f = 10 ** [alpha/Fe]</code>. <code>alpha_tracks.equivalent_fe_h(fe_h, branch)</code> gives the [Fe/H] the isochrone lookup takes: +0.27 dex for a high-alpha star at [Fe/H] -0.8, about 0.02 for a thin-disk star at solar. The star's [alpha/Fe] is the mean of its branch's [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] (the hinge fits <code>composition</code> already uses), so the track and the composition of one star agree.</p>
+<p>Wiring (as built, GEN.1024): the branch is a star's own uniform number (<code>stellar_abundances.branch_of</code>, from its [Fe/H] and age), so the track (<code>alpha_tracks.track_fe_h</code>), the composition and the radiogenic offsets agree. <code>evolve_star</code>, <code>post_main_sequence.timeline</code>, <code>ms_lifetime</code> and the scatter's windows (<code>alpha_tracks.track_segments</code>, <code>possible_segments</code>) read the equivalent [Fe/H]. Halo, bulge and cluster stars are older than the thick-disk gate, so their branch is the logistic in [Fe/H]: a metal-poor halo star reads the high-alpha track.</p>
+<h2 id="age-metallicity-relation">Age-metallicity relation</h2>
+<p>[R1863]: the thick disk has a tight relation rising 0.15 dex per Gyr over its 4 to 5 Gyr of formation; the thin disk gains 0.025 dex per Gyr. <code>age_metallicity.mean_fe_h(age, branch)</code> is a line at each slope through the anchors AR1 (thin, +0.05 at birth) and AR2 (thick, -0.10 at 8 Gyr, held to 13 Gyr). <code>sample_fe_h(age, branch, normal)</code> draws about it with scatters 0.15 (thin) and 0.10 (thick).</p>
+<p>It agrees with today's populations (young and intermediate disk 0, old disk -0.2) and [R0349]'s thin-disk floor near -0.7 sits at the thin disk's 3 sigma.</p>
+<p>Wiring (as built): the order of the draws is kept, [Fe/H] first and the age after it. The scatter's tables, the places' own [Fe/H] distributions and the bins of GEN.651 all stand on [Fe/H] being drawn from the place before the star is, so reversing the order would rebuild them. Instead the age is chosen to suit the [Fe/H]: <code>age_metallicity.tilted_age</code> draws eight ages the way the caller draws one (the population's window and age law, or the track's bright window) and keeps one in proportion to the density of the relation at the star's [Fe/H] (<code>log_density</code>: the thin disk's normal, with the thick disk's beside it past 8 Gyr, <code>thick_share</code> = AR4). The callers are <code>sample_living_star</code> (both of its age draws), <code>star_population</code>'s bright-star and mass-band draws and the pinned-mass path of <code>Star</code>. A metal-poor star of the old disk comes out older than a metal-rich one (a test fixes the sign and size); the population's [Fe/H] and its age window are unchanged. The young population's window is 0.1 Gyr wide, so the relation is flat across it and nothing moves. Halo, bulge, cluster and satellite stars have histories of their own and are not tilted; nor is a star of no population (the whole disk, 0 to 13 Gyr, drawn with the intermediate disk's [Fe/H]), whose metals are not the relation's mix over those ages and which a tilt would crowd toward the young. Over each of the three disk populations the tilt moves the mean age by less than 0.05 Gyr (a test fixes it).</p>
+<p>It changes the age of every disk star, so it needs <code>--affects population</code> and <code>fill</code> and a census re-baseline (ages shift inside each window, the counts by mass do not).</p>
+<p>The 10 to 13 Gyr thick-disk window (GEN.944 part 1) was built as GEN.1025: the thin disk's own history ends at 10 Gyr (<code>tuning.THIN_DISK_OLD_WINDOW_GY</code>) and the old population reaches 13 (<code>galaxy.thick_ages</code>).</p>
+<h2 id="not-here">Not here</h2>
+<ul>
+<li>Variable-star flags (Cepheids, Mira, carbon and S stars) of GEN.944: they need Star 1's post-main-sequence phases (GEN.935).</li>
+<li>The alpha shift in the tracks was built as GEN.1024 (see Wiring above).</li>
+<li>Alpha-enhanced tracks themselves (Dartmouth, BaSTI-alpha) as a download: the Salaris shift is the accepted secondary-source stand-in until the equivalence is shown to fail.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

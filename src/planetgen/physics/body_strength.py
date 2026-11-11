@@ -29,7 +29,7 @@ Use:
 
 import math
 
-from planetgen.physics import binding_energy, planet_classes, roundness
+from planetgen.physics import binding_energy, planet_classes, planet_type, roundness
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -67,9 +67,14 @@ def _core(body, mass_kg, radius_m):
 
 
 def _is_giant(body):
-    """Whether the body is a giant: its body type says so, or its class is one of the giant classes (an ice giant of rock and water is a terrestrial body type with a giant class)."""
-    letter = getattr(body, "planet_class", None)
-    return getattr(body, "body_type", None) == planet_classes.GIANT or (letter in planet_classes.BY_LETTER and planet_classes.BY_LETTER[letter].kind == planet_classes.GIANT)
+    """
+    Whether the body is a giant: its body type says so, or it is a rocky body under a hydrogen-helium envelope of at least
+    `planet_type.TERRESTRIAL_MAX_ENVELOPE` of its mass (an ice giant of rock and water), the test `planet_classes.quantities` makes.
+    The class letter is not read (GEN.1398: class is decided last).
+    """
+    if getattr(body, "body_type", None) == planet_classes.GIANT:
+        return True
+    return (getattr(body, "envelope_mass_fraction", None) or 0.0) >= planet_type.TERRESTRIAL_MAX_ENVELOPE
 
 
 def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0):

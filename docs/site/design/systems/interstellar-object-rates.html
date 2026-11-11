@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interstellar object rates - planetGen docs</title>
+<meta name="description" content="Status (2026-10-15): built in 7.18.0 (schema v37, PR #136; GEN.1 and GEN.2).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/systems/interstellar-object-rates.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/systems/interstellar-object-rates.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="interstellar-object-rates">Interstellar object rates</h1><p class="meta">docs/design/systems/interstellar-object-rates.md</p><details class="toc"><summary>On this page (13 headings)</summary><ul><li style="margin-left:0px"><a href="#how-the-code-uses-these-numbers">How the code uses these numbers</a></li><li style="margin-left:0px"><a href="#the-model">The model</a></li><li style="margin-left:0px"><a href="#densities-solar-neighborhood-n_0--014-pc³">Densities (solar neighborhood, n_*0 = 0.14 pc⁻³)</a></li><li style="margin-left:0px"><a href="#rogue-planet-mass-bins-gen2-gen45">Rogue planet mass bins (GEN.2, GEN.45)</a></li><li style="margin-left:0px"><a href="#checks">Checks</a></li><li style="margin-left:0px"><a href="#generation-cost">Generation cost</a></li><li style="margin-left:0px"><a href="#references-short-form">References (short form)</a></li><li style="margin-left:0px"><a href="#why-it-works-this-way">Why it works this way</a></li><li style="margin-left:14px"><a href="#alternatives-not-taken">Alternatives not taken</a></li><li style="margin-left:0px"><a href="#rates-by-place-the-populations-and-the-kind-factors-gen236">Rates by place: the populations and the kind factors (GEN.236)</a></li><li style="margin-left:0px"><a href="#the-stars-a-nebula-needs-gen320-gen321-gen241">The stars a nebula needs (GEN.320, GEN.321, GEN.241)</a></li><li style="margin-left:0px"><a href="#wolf-rayet-stars-and-the-ring-nebula-gen243">Wolf-Rayet stars and the ring nebula (GEN.243)</a></li><li style="margin-left:0px"><a href="#retune-of-2026-10-09-boss-central-observed-values">Retune of 2026-10-09 (Boss: central observed values)</a></li></ul></details>
+<p><strong>Status (2026-10-15):</strong> built in 7.18.0 (schema v37, PR #136; GEN.1 and GEN.2). The GEN.100 retune (#793) changed the rates afterwards; see <a href="compact-remnant-regions.html">compact-remnant-regions.md</a>.</p>
+<p>Reference numbers for GEN.1 (rates) and GEN.2 (rogue planet masses),
+from the research Boss supplied on 2026-09-30. Built in version 7.18.0
+(schema v37, PR #136): <code>program_constants.PHENOMENON_DENSITY_PC3</code>,
+<code>PHENOMENON_RATE_SCALE</code>, <code>phenomenon_rate_per_star</code>,
+<code>ROGUE_PLANET_MASS_BINS</code>, <code>generate.generate_sector_phenomena</code> and
+<code>flag_fast_stars</code>. Boss chose the full rates, with the table's
+hypervelocity figure replaced by 1e-10 (see &quot;Checks&quot;). The figures are
+Boss's chosen reference. The ones that don't add up are flagged under
+&quot;Checks&quot;. On the pages, rogue planet mass classes have reference pages
+from 7.46.0 (<code>/classes/rogue-planet</code>), and rogue planets, interstellar
+comets, black holes and neutron stars get rendered views from 7.57.0.</p>
+<p>Nebulae (GEN.10) followed in 7.30.0: molecular clouds were drawn per star at
+the <code>molecular-cloud</code> rate below and generated as dark-family classes M-Q
+(correction, GEN.47: in a galaxy they now come from the seeded
+<code>nebula_field</code> instead, see the design note);
+H II regions and reflection nebulae grow around O, B and A stars
+(<code>NEBULA_HOST_RULES</code>; the stars a nebula needs are made with it, GEN.320 and GEN.321, see &quot;The stars a nebula needs&quot; below); every planetary nebula gets its own hot white dwarf
+system. Diffuse gas (classes A-B) is the background and is not generated.
+See <code>nebula-and-asteroid-field-classes.md</code>; its &quot;Corrected facts&quot; section
+lists what the 2026-10-09 research found wrong in the host rules and the
+H II sizes. Anomalies beyond these kinds (magnetars and the rest) are in
+<code>anomalies.md</code>. Wolf-Rayet stars have no rate in this table: they are a state
+of the very massive stars the bright and mass passes already place
+(<code>physics/wolf_rayet.py</code>, GEN.243), so their number follows from the star
+formation history and the metallicity, not from a density of their own; see
+&quot;Wolf-Rayet stars and the ring nebula&quot; below.</p>
+<h2 id="how-the-code-uses-these-numbers">How the code uses these numbers</h2>
+<ul>
+<li>Every kind in <code>PHENOMENON_DENSITY_PC3</code> becomes a rate per star:
+<code>density / 0.14 * PHENOMENON_RATE_SCALE[kind]</code>
+(<code>phenomenon_rate_per_star</code>). All scales are 1.0.</li>
+<li><code>generate_sector_phenomena</code> counts the sector's stars (a binary counts
+two, <code>sector_star_count</code>) and draws each kind's count from a Poisson
+distribution with mean <code>rate * stars</code>. This is the &quot;per star&quot; form the
+model below asks for.</li>
+<li>A kind's rate per star is scaled by the place it is rolled in: the sector
+profile's <code>kind_factors</code> (&quot;Rates by place&quot; below, GEN.236). The mean number of
+a kind in a sector is <code>rate * stars * factor</code>; a kind with no entry in
+<code>kind_factors</code> is scaled by star count only. (The research's gas-density
+scaling for supernova remnants, <code>n_* * rho_gas</code>, is the <code>supernova-remnant</code>
+factor.) Correction (GEN.47,
+checked against the code 2026-10-09): molecular clouds in a galaxy are
+now scaled by gas density, <code>GMC_GAS_DENSITY_EXPONENT</code> is read by
+<code>galaxy/nebula_field.py</code>; <code>GMC_ARM_FILLING_FACTOR</code> is still defined and
+read by nothing.</li>
+<li>Correction (GEN.100): in a galaxy, black holes, neutron stars, planetary
+nebulae, supernova remnants and hypervelocity stars are not rolled per
+sector. They are drawn galaxy-wide at the same per-star rates and placed
+by <code>generation/phenomenon_scatter.py</code> right after the plan; a sector's
+fill only builds what was placed there.</li>
+<li>Runaway and hypervelocity stars are flags on ordinary systems
+(<code>star_systems.runaway_class</code>), not phenomenon rows. The hypervelocity
+chance scales as <code>(8000 pc / r_GC)^2</code>.</li>
+<li>Interstellar comets kept as rows use a design rate, <code>&quot;comet&quot;: 0.007</code>
+per pc³ (0.05 per star), not the research density. The real population
+(1e15 per pc³, <code>INTERSTELLAR_DEBRIS_DENSITY_PC3</code>) is shown only as a
+computed count on the sector page (<code>queryDb.interstellar_debris_count</code>).</li>
+<li>Asteroid fields have rate 0; the type stays for hand-made fields and
+facilities.</li>
+</ul>
+<h2 id="the-model">The model</h2>
+<p>Treat each object type as a Poisson process in space. Its local number
+density <code>n_i</code> (objects per pc³) scales with the local stellar density
+<code>n_*</code>, normalized to the solar neighborhood value <code>n_*0 ≈ 0.14 pc⁻³</code>
+(0.10-0.14 in the literature):</p>
+<pre><code>n_i(r) = n_i0 * (n_*(r) / 0.14)
+</code></pre>
+<p>The chance of at least one object of type i in a volume V is
+<code>1 - exp(-n_i V)</code>, and the count is Poisson with mean <code>n_i V</code>.</p>
+<p>Because a sector's system count already follows <code>n_* V</code>, a density that
+scales with <code>n_*</code> is the same as a fixed rate <strong>per star</strong>:
+<code>n_i0 / 0.14</code>. So the existing per-sector Poisson draw in
+<code>generate.generate_sector_phenomena</code> keeps working; only the rates change
+(and &quot;per star system&quot; should become &quot;per star&quot;, or be divided by the
+mean stars per system, about 1.3 with binaries).</p>
+<p>Three types don't scale with <code>n_*</code> alone:</p>
+<ul>
+<li>Giant molecular clouds scale with gas density, <code>∝ ρ_gas^1.4</code>
+(Schmidt-Kennicutt), and are extended: a filling factor of about
+0.01-0.02 inside spiral arms.</li>
+<li>Supernova remnants scale with <code>n_* · ρ_gas</code>.</li>
+<li>Hypervelocity stars scale with <code>r_GC⁻²</code> (distance from the galactic
+center), since Sagittarius A* ejects them.</li>
+</ul>
+<h2 id="densities-solar-neighborhood-n_0--014-pc³">Densities (solar neighborhood, n_*0 = 0.14 pc⁻³)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Type</th>
+<th>n at R0 (pc⁻³)</th>
+<th>Per star</th>
+<th>Scales with</th>
+<th>Per 4 pc sector*</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Interstellar comets and debris (about 100 m and up)</td>
+<td>7e14 to 1.8e15 (1e15 central; 0.1 to 0.2 per au³)</td>
+<td>~7e15</td>
+<td>n_*</td>
+<td>~6e16</td>
+</tr>
+<tr>
+<td>Terrestrial rogue planets (0.1-2 M⊕)</td>
+<td>0.5-1.4 (0.7 central)</td>
+<td>2-10 (5)</td>
+<td>n_*</td>
+<td>~45</td>
+</tr>
+<tr>
+<td>Jupiter-mass rogue planets (&gt; 1 Mjup)</td>
+<td>0.035</td>
+<td>≤ 0.25</td>
+<td>n_*</td>
+<td>~2.2</td>
+</tr>
+<tr>
+<td>Rogue brown dwarfs (13-80 Mjup)</td>
+<td>0.025-0.035 (0.03)</td>
+<td>~0.21</td>
+<td>n_*</td>
+<td>~1.9</td>
+</tr>
+<tr>
+<td>Runaway stars (&gt; 30 km/s)</td>
+<td>2.1e-3</td>
+<td>0.015 (1-2%)</td>
+<td>n_*</td>
+<td>~0.13</td>
+</tr>
+<tr>
+<td>Isolated neutron stars</td>
+<td>5.6e-4 (1e9 over ~2.5e11 stars)</td>
+<td>4e-3</td>
+<td>n_*</td>
+<td>~0.036</td>
+</tr>
+<tr>
+<td>Isolated stellar black holes</td>
+<td>7e-5 (1e8 over ~2.5e11 stars)</td>
+<td>5e-4</td>
+<td>n_*</td>
+<td>~4.5e-3</td>
+</tr>
+<tr>
+<td>Giant molecular clouds</td>
+<td>1e-6 to 1e-5 (5e-6)</td>
+<td>n/a</td>
+<td>ρ_gas^1.4</td>
+<td>~3e-4 (see the cloud-density check below)</td>
+</tr>
+<tr>
+<td>Planetary nebulae</td>
+<td>1.4e-8</td>
+<td>~1e-7</td>
+<td>n_*</td>
+<td>~9e-7</td>
+</tr>
+<tr>
+<td>Supernova remnants</td>
+<td>1e-8 to 1e-7</td>
+<td>n/a</td>
+<td>n_* · ρ_gas</td>
+<td>~6e-7</td>
+</tr>
+<tr>
+<td>Hypervelocity stars (&gt; 500 km/s)</td>
+<td>5e-9 at 8 kpc (see Checks)</td>
+<td>n/a</td>
+<td>r_GC⁻²</td>
+<td>~3e-7</td>
+</tr>
+<tr>
+<td>Isolated asteroid fields</td>
+<td>~0 (disperse in 1e6-1e7 yr)</td>
+<td>0</td>
+<td>n/a</td>
+<td>0</td>
+</tr>
+</tbody>
+</table></div>
+<p>* A 4 pc sector is 64 pc³, about 9 stars at local density. The density
+model expects 6.3 systems in a local-density sector (<code>galaxy_shape. expected_system_count_at_density_1</code>); with binaries that is about 8 stars.</p>
+<p>Galaxy totals behind these (for scale): 25-100 billion brown dwarfs,
+1e7-1e8 runaway stars, 1e3-1e4 hypervelocity stars, ~1e9 isolated neutron
+stars, ~1e8 isolated black holes, ~20,000 planetary nebulae, ~1,000
+detectable supernova remnants. Intracluster (&quot;hostless&quot;) supernovae are
+5-20% of supernovae in rich galaxy clusters; they happen between
+galaxies, so they have no place in one galaxy's generator.</p>
+<h2 id="rogue-planet-mass-bins-gen2-gen45">Rogue planet mass bins (GEN.2, GEN.45)</h2>
+<p>Low-mass rogues dominate: disk scattering ejects small bodies while
+giants stay bound. Draw a bin by its per-star rate, then a mass inside it.</p>
+<p>Since GEN.45 both the rates and the draw inside a bin follow one mass
+function, <code>dN/dlogM ∝ M^-0.65</code> from 0.1 M⊕ to 13 Mjup (Boss's research of
+2026-10-01), normalized to the same 6.5 rogues per star
+(<code>ROGUE_PLANET_MASS_FUNCTION_SLOPE</code>, <code>ROGUE_PLANET_RATE_PER_STAR</code>). The
+research writes it <code>dN/dM ∝ M^-0.65</code>; read per unit mass, that would make
+about 87% of rogues gas giants, against its own aim of keeping them rare,
+so it is read per logarithm of mass.</p>
+<p>(Pre-retune figures; the GEN.100 retune of 2026-10-09 sets terrestrial rogue planets to 5.8 per star.)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Bin</th>
+<th>Mass</th>
+<th>Per star</th>
+<th>Check against</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terrestrial</td>
+<td>0.1-2 M⊕</td>
+<td>5.6</td>
+<td>2-10: [R2178, R3190] (OGLE-2016-BLG-1928, 0.3-2 M⊕)</td>
+</tr>
+<tr>
+<td>Sub-Neptune / ice giant</td>
+<td>2-20 M⊕</td>
+<td>0.72</td>
+<td>[R4254, R4255] find Neptune-mass candidates; no rate given</td>
+</tr>
+<tr>
+<td>Saturn-class</td>
+<td>20 M⊕-1 Mjup</td>
+<td>0.17</td>
+<td>no rate in the research</td>
+</tr>
+<tr>
+<td>Jupiter-mass</td>
+<td>1-13 Mjup</td>
+<td>0.028</td>
+<td>un[R3191]'s upper limit of 0.25</td>
+</tr>
+</tbody>
+</table></div>
+<p>That is about 95% terrestrial and 5% giants (past
+<code>ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER</code>, 10 M⊕, the core mass that holds an envelope; GEN.1133 moved it from 16). The
+hand-set rates before it (5, 1, 0.25 and 0.25 per star, a log-uniform
+mass in each bin) gave 91% and 9%. Above 13 Mjup is a brown dwarf, its
+own row in the density table.</p>
+<p>A steeper law doesn't fit both ends: <code>dN/dlogM ∝ M^-0.96</code> (the [R4254, R4255]
+slope) normalized to 0.25 per star above 1 Mjup gives about 575 per star
+above 0.1 M⊕, a hundred times the terrestrial estimate.</p>
+<h2 id="checks">Checks</h2>
+<ul>
+<li><strong>Comet separation column (GEN.659).</strong> The old research table gave 1e11-1e14 pc⁻³ (1e-4 to 1e-2 AU⁻³, a spacing of
+45 to 4.5 AU). The papers say more: Do, [R1124] find about 0.2 AU⁻³ for objects like '[R2159] about 0.1 AU⁻³ (1 pc³ = 8.8e15 AU³), so 7e14 to 1.8e15 pc⁻³, a spacing <code>n^(-1/3)</code> of about
+2.2 to 1.7 AU. The constant takes 1e15, the middle of that range, for objects of about 100 m and up.</li>
+<li><strong>Hypervelocity stars.</strong> With <code>n ∝ r_GC⁻²</code>, the count inside radius R
+is <code>4π n0 r0² R</code>. Using 5e-9 pc⁻³ at 8 kpc gives about 30,000 inside
+8 kpc and about 400,000 out to 100 kpc, against the stated 1e3-1e4
+total. A total of 1e4 out to 100 kpc implies about 1e-10 pc⁻³ at 8 kpc.
+Use 1e-10 unless Boss prefers the table's figure.</li>
+<li><strong>Supernova remnants.</strong> ~1,000 detectable remnants over a disk of about
+7e11 pc³ is about 1.5e-9 pc⁻³; the table's 1e-8 implies about 7,000.
+The generator before 7.18.0 used 2,000 galaxy-wide. The code now uses
+1e-8, which counts faint, undetectable remnants too.</li>
+<li><strong>Molecular cloud density (recommendation, 2026-10-09).</strong> 5e-6 pc⁻³ is
+the top of the table's range and, with the GEN.47 field, puts 3% to 46%
+of the volume inside a cloud (13% of arm sectors at the solar circle)
+against about 0.5% to 1% observed; the catalogues (about 8,100 to 9,700
+clouds, 1,064 massive ones) give 1.2e-8 to 1.4e-8 pc⁻³. About 1e-7 pc⁻³
+for class M, with the small dark classes as their own rows, would match.
+Boss chose the 5e-6 research value, so this is a recommendation only
+(derivation in <code>nebula-and-asteroid-field-classes.md</code>, &quot;The molecular
+cloud field&quot;).</li>
+<li><strong>Neutron star pulsar fraction (recommendation, 2026-10-09; pre-retune: the GEN.100 retune of 2026-10-09 sets 2% of neutron stars pulsing, and <code>NEUTRON_STAR_PULSAR_CHANCE</code> no longer exists in <code>src/</code>).</strong> The
+catalogue above gives about 5e8 isolated neutron stars.
+<code>NEUTRON_STAR_PULSAR_CHANCE = 0.7</code> makes 3.5e8 of them pulsars, against roughly 1e5
+beamed radio pulsars (an active fraction of about 1e-4 to 1e-3), because
+radio emission ends after about 1e7 years and an isolated star has no
+companion to recycle it. The constant is a gameplay choice in the code
+today; the physical value and an age rule are in <code>anomalies.md</code>.</li>
+<li>(Pre-retune values; the GEN.100 retune of 2026-10-09 sets terrestrial rogue planets to 5.8 per star, neutron stars to 0.4% and black holes to 0.05%, see &quot;Retune of 2026-10-09&quot; below.) Terrestrial (0.78 pc⁻³ = 5.6 per star), Jupiter-mass (0.004 = 0.028
+per star, under the 0.035 limit), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
+stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
+galaxy totals) are self-consistent. The generator used 0.5% and 0.1%
+before the retune of 2026-10-09 instead, the shares the mass-and-age star model leaves behind (star-fix
+study, 2026-09-30), so isolated remnants and the star census agree.</li>
+</ul>
+<h2 id="generation-cost">Generation cost</h2>
+<p>Measured on main at 2026-09-30 (default args, 10 sectors): a sector
+builds about 10 systems in about 0.1 s, roughly 650 body rows (stars,
+planets, moons). Building one rogue planet object takes about 0.13 ms.</p>
+<p>At the research rates a local-density sector adds about 50 rogue rows
+(45 terrestrial, 2 giant, 2 brown dwarfs, plus ~1 sub-Neptune class per
+star under the default bins, so nearer 60). That is about 8-10% more rows
+and well under 1% more generation time. Storage and speed are not the
+problem. What changes is what a sector looks like: rogues would
+outnumber systems about five to one in the Contents table and on the
+Sector Map.</p>
+<p>Comets can't be rows: ~6e16 per sector. Neutron stars and everything
+rarer are fine as rows; most sectors simply get none.</p>
+<h2 id="references-short-form">References (short form)</h2>
+<p>Rogue planets: [R3191]
+(Nature 548:183); [R2178] (AJ 160:123); [R3190]
+(ApJL 903:L11); [R4254, R4255] (AJ
+166:109); [R2717, R2720] (ApJL 777:L20); [R3095] (Nat.
+Astron. 6:89); [R3467].</p>
+<p>Other objects: [R2374] (ApJS 253:7) and Mužić et al.
+2017 (MNRAS 471:3699), brown dwarfs; [R4310] (MNRAS 448:L6), runaways
+and kicks; [R0556] (ARA&amp;A 53:15) and [R2444] (MNRAS
+491:2465), hypervelocity stars; [R0040] (MNRAS 334:553),
+[R3348] (A&amp;A 638:A94), [R2538] (ApJL 933:L23) and Sahu
+et al. 2022 (ApJ 933:83), isolated compact remnants; Engelhardt et al.
+2017 (AJ 153:133), [R4005] (ApJL 896:L8) and Raymond et
+al. 2020 (ApJL 894:L22), interstellar comets and the absence of free
+asteroid fields; [R2320] (ARA&amp;A 50:531),
+nebulae and remnants; [R3907] and McGee &amp;, intracluster supernovae.</p>
+<h2 id="why-it-works-this-way">Why it works this way</h2>
+<ul>
+<li><strong>Per star, not per system or per volume.</strong> A sector's system count
+already follows local stellar density, so a fixed rate per star gives the
+density scaling for free and keeps the old per-sector Poisson draw. A
+binary counts as two stars, which is why the rate is per star, not per
+system (section &quot;The model&quot;).</li>
+<li><strong>Full rates.</strong> Boss chose the research rates at full strength on
+2026-09-30. <code>PHENOMENON_RATE_SCALE</code> exists so a kind can be dialed down
+(for example 0.1 for rogue planets) without changing its research value.</li>
+<li><strong>Mass bins for rogue planets.</strong> One power law cannot match both the
+terrestrial and the Jupiter-mass measurements (it overshoots the
+terrestrial count a hundredfold), so the rates are binned
+(&quot;Rogue planet mass bins&quot;).</li>
+<li><strong>Hypervelocity 1e-10.</strong> The table's 5e-9 implies 30 to 40 times more
+hypervelocity stars than its own galaxy total (&quot;Checks&quot;).</li>
+<li><strong>Neutron stars 0.5% and black holes 0.1% of stars (pre-retune; 0.4% and 0.05% after the GEN.100 retune of 2026-10-09, and the black hole density has been metallicity-dependent since GEN.563, black-hole-density.md).</strong> These were the shares
+the mass-and-age star model (7.23.0) leaves behind, so isolated remnants
+and the star census agree.</li>
+<li><strong>No free asteroid fields.</strong> They disperse in 1e6 to 1e7 years.</li>
+<li><strong>Comets as a figure, not rows.</strong> About 6e16 per sector cannot be stored.</li>
+</ul>
+<h3 id="alternatives-not-taken">Alternatives not taken</h3>
+<ul>
+<li>Scaling clouds and remnants by gas density. The constants are in place
+for it, but the reason it was not wired up is not recorded. (Clouds were
+wired up later by GEN.47; remnants still are not.)</li>
+<li>Supernova remnants at the detectable-only density (1.5e-9). The code
+chose 1e-8; the comment says it &quot;counts faint remnants too&quot;. No further
+reason is recorded.</li>
+</ul>
+<h2 id="rates-by-place-the-populations-and-the-kind-factors-gen236">Rates by place: the populations and the kind factors (GEN.236)</h2>
+<p>The per-star rates above are the solar neighbourhood's. Every sector carries a profile (<code>galaxy/profile.py</code>, GEN.235; see
+<a href="../galaxy/intergalactic-and-halo-contents.html">intergalactic-and-halo-contents.md</a> section 5.3) that says which stellar
+populations it holds, and <code>kind_factors_at</code> turns those populations and the gas into one factor per kind, each in 0 to 1,
+that multiplies the kind's rate per star. A halo cell, a cluster or an old satellite therefore makes no H II region and no
+core-collapse remnant, and the disk's young, gas-rich places make the most.</p>
+<p>The populations (<code>profile.POPULATIONS</code>): <code>young</code>, <code>intermediate</code> and <code>old</code> (the thin disk by age, with the young open
+clusters of <code>tuning.OPEN_CLUSTER_POPULATIONS</code> counted with the disk), <code>bulge</code>, <code>halo</code>, <code>cluster</code>, <code>satellite</code> (with
+<code>satellite_young</code> and <code>satellite_intermediate</code>), <code>nuclear_cluster</code> and <code>nuclear_disk</code>. Each has an age window, [Fe/H]
+peaks, a velocity dispersion and a rotation rule.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Kind</th>
+<th>Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brown-dwarf</code></td>
+<td>1 everywhere (every population makes them)</td>
+</tr>
+<tr>
+<td><code>black-hole</code> (stellar mass)</td>
+<td>the share of the place's massive stars that failed to explode and made their remnant, from the populations' shares, ages and [Fe/H] peaks (<code>remnant_density.place_factor_from_peaks</code>, GEN.563): a metal-poor place makes more</td>
+</tr>
+<tr>
+<td><code>neutron-star</code></td>
+<td>what the black holes leave of the massive stars that made their remnant, less the galaxy's unbound share (GEN.554): a metal-rich place makes more</td>
+</tr>
+<tr>
+<td><code>supernova-remnant</code></td>
+<td>the gas fraction (<code>nebula_field.gas_factor</code>, capped at 1), times the share of stars that are not in a cluster; 0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off. The Type Ia share of the remnants is a profile field, <code>type_ia_share</code> (GEN.319): 1 where no young population is</td>
+</tr>
+<tr>
+<td><code>planetary-nebula</code></td>
+<td>the share of the place's stars that are not young against the solar circle's, capped at 1 (GEN.319): 1 in the disk (within 3%) and in every older place</td>
+</tr>
+<tr>
+<td><code>molecular-cloud</code></td>
+<td>the cold gas fraction times the young share against the solar circle's</td>
+</tr>
+<tr>
+<td><code>nebula</code> (emission and reflection)</td>
+<td>the cold gas fraction; the host star's own age is the young share here</td>
+</tr>
+<tr>
+<td><code>rogue-planet</code>, <code>comet</code></td>
+<td>the planet occurrence at the place's [Fe/H] against the disk's (<code>metallicity.planet_occurrence_factor</code>), averaged over the populations</td>
+</tr>
+</tbody>
+</table></div>
+<p>A kind not in the table is not scaled by place. The neutron stars and black holes the galaxy lost to a kick
+(<code>ejecta_field</code>, GEN.238) are not part of the stars' rate: the fill adds them to the cell's own draw at a density that falls
+as 1 / r^2. The galaxy-wide scatters (<code>generation/phenomenon_scatter.py</code>) draw the black holes, neutron stars, planetary
+nebulae and supernova remnants with the same factors, band by band.</p>
+<h2 id="the-stars-a-nebula-needs-gen320-gen321-gen241">The stars a nebula needs (GEN.320, GEN.321, GEN.241)</h2>
+<p>A nebula of a class that has stars gets them as real systems, inside its bounds, from seeds that depend on the nebula or the
+star alone, never on the order sectors are filled in (<code>generation/nebula_contents.py</code>). Whether a hot star has a nebula, and
+of which class, is rolled on a stream of the star's own (<code>hosted_seed</code>), so a star the scatter pre-placed and the same star
+made in a fill agree. A planetary nebula's white dwarf is made with it, and <code>PLANETARY_NEBULA_COMPANION_CHANCE</code> of them gain a
+close companion. A Bok globule (P) or a star-forming core (Q) gets its protostars from the cloud's own seed, built by whichever
+sector holds each point. The cluster behind an H II region of class D or E is its ionizing members, the stars of 5.5 solar
+masses and up still alive, placed in a Plummer sphere of half-mass radius 1 pc (D) or 2 pc (E) clipped to the nebula's
+radius; only these are real, and the rest of the cluster stays the sector's background density. A supernova remnant keeps its
+neutron star or black hole through the remnant object itself.</p>
+<h2 id="wolf-rayet-stars-and-the-ring-nebula-gen243">Wolf-Rayet stars and the ring nebula (GEN.243)</h2>
+<p>A star of at least <code>tuning.WR_MIN_INITIAL_MASS_SOL</code> (25 solar masses at the Sun's metallicity, rising as Z^-0.5, so 35 at half
+and 56 at a fifth of it) spends the last <code>WR_PHASE_MYR</code> (0.3 Myr, at most half its supergiant window) of its life as a
+Wolf-Rayet star, in place of the end of the supergiant window of <code>stellar_evolution.evolve_star</code>: yerkes class <code>W</code>, a present
+mass of 0.4 to 0.6 of the initial mass, a luminosity log-uniform over 1e5 to 1e6 solar, and a subtype by the share of the
+phase gone (WN 60%, WC 30%, WO 10%, the last only from 40 solar masses; <code>WR_TEMPERATURE_RANGE_K</code> and <code>WR_SUBCLASS_RANGE</code>
+give the temperature and the subclass, so the text reads <code>WN6 Blue Wolf-Rayet Star</code>). No Wolf-Rayet star is rolled from a rate:
+the bright and mass passes place the massive stars and draw their state, which gives about 1,180 in a Milky Way-like disk
+against the 1,200 expected, and none in a population older than the phase allows. Their companions follow the subtype
+(<code>WR_COMPANION_CHANCE</code>: 0.52 for WN, 0.90 for WC and WO, read by the system builder; the <code>wolf-rayet-binary</code> row of the phenomena catalogue). A
+Wolf-Rayet star can light a <strong>class X ring nebula</strong> (family <code>emission</code>, radius 6.5 to 114 ly, a thin swept-up shell around a
+hollow interior, <code>host_only</code>: only a Wolf-Rayet star makes one, so a nebula drawn with no host is never X); the host
+rule in <code>NEBULA_HOST_RULES</code> rolls it from the star, and <code>NEBULA_CLASS_MAX_AGE_MYR[&quot;X&quot;]</code> caps the host's age at 10 Myr. The
+rest of the design and the numbers are in the intergalactic design note, section 5.11.</p>
+<h2 id="retune-of-2026-10-09-boss-central-observed-values">Retune of 2026-10-09 (Boss: central observed values)</h2>
+<p>See also <a href="../galaxy/star-types-by-galactic-radius.html">star-types-by-galactic-radius.md</a>
+(GEN.133) for how star-type shares change with radius.</p>
+<p>Neutron stars 0.4% and black holes 0.05% of stars; planetary nebulae 1e-7 per star; terrestrial rogue planets 5.8 per star (0.7 per pc³ central); intermediate-mass black holes 0.1% of black holes; accretion disks on 0.1% of black holes; 2% of neutron stars pulsing, 10% of those millisecond pulsars. Regional differences (scale height, radius, type) are in <a href="compact-remnant-regions.html"><code>compact-remnant-regions.md</code></a> and are not modeled yet.</p>
+<p>See also <a href="multistar-and-compact-systems.html">multistar-and-compact-systems.md</a> for binaries and systems around compact remnants, and <a href="anomalies.html">anomalies.md</a> for the anomaly classes and rates.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

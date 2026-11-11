@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Size laws and satellite shares of small bodies (GEN.566, GEN.580) - planetGen docs</title>
+<meta name="description" content="Research note, no behaviour change.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/small-body-size-laws.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/small-body-size-laws.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="size-laws-and-satellite-shares-of-small-bodies-gen566-gen580">Size laws and satellite shares of small bodies (GEN.566, GEN.580)</h1><p class="meta">docs/design/composition/small-body-size-laws.md</p><details class="toc"><summary>On this page (9 headings)</summary><ul><li style="margin-left:0px"><a href="#1-size-frequency-laws">1. Size-frequency laws</a></li><li style="margin-left:14px"><a href="#11-computed-from-the-table-checked-not-read">1.1 Computed from the table (checked, not read)</a></li><li style="margin-left:14px"><a href="#12-correction-found-while-reading">1.2 Correction found while reading</a></li><li style="margin-left:14px"><a href="#14-correction-ivezics-indices-are-differential-gen1061">1.4 Correction: Ivezic's indices are differential (GEN.1061)</a></li><li style="margin-left:14px"><a href="#13-what-is-missing">1.3 What is missing</a></li><li style="margin-left:0px"><a href="#2-binary-and-satellite-fraction-by-size-gen580">2. Binary and satellite fraction by size (GEN.580)</a></li><li style="margin-left:14px"><a href="#21-sub-satellites-of-moons-the-tidal-gate-row">2.1 Sub-satellites of moons (the tidal gate row)</a></li><li style="margin-left:14px"><a href="#22-recommended-rows-for-the-hosting-gate-gen579">2.2 Recommended rows for the hosting gate (GEN.579)</a></li><li style="margin-left:0px"><a href="#3-sources">3. Sources</a></li></ul></details>
+<p>Research note, no behaviour change. It lists each source with the numbers read in it and what is still missing, for the
+belt member draw (GEN.566), the comet size cut of GEN.559 (GEN.560's interstellar size law), the hosting gate
+<code>can_host(body)</code> (GEN.579) and the sub-satellite gate row (GEN.580). Raw papers stay out of the repo.</p>
+<p>Source states: READ is a number found in the paper itself this session; 2ND-HAND is a number quoted by a paper that was read
+(the original was not); RECALLED is from memory and not usable; STAND-IN is a placeholder named in the gap plan registry.
+Rules (standing): verified wins; two verified in doubt, the newest wins; two in question, the widest range.</p>
+<h2 id="1-size-frequency-laws">1. Size-frequency laws</h2>
+<p>Cumulative law used here: <code>N(&gt;D) proportional to D^-q</code>. A magnitude law <code>dN/dH proportional to 10^(alpha H)</code> is the same law
+with <code>q = 5 alpha</code> ([R1439, R4107] both state the relation; a crater differential slope is
+<code>q_diff = -(5 alpha + 1)</code>). Diameter from absolute magnitude: <code>D[km] = 1329 / sqrt(p) * 10^(-H/5)</code> (p the geometric
+albedo).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>Law</th>
+<th>Range</th>
+<th>Source</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Main belt, small</td>
+<td>q = 1.3 (differential index 2.3)</td>
+<td>0.4 to 5 km</td>
+<td>[R2108] (astro-ph/0105511), SDSS, 98 percent complete sample of about 10,000; corrected in GEN.1061, see 1.4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Main belt, medium</td>
+<td>q = 3.0 (differential index 4.00 +- 0.05)</td>
+<td>5 to 40 km</td>
+<td>[R2108]; corrected in GEN.1061, see 1.4</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Main belt, exponents (GEN.1093)</td>
+<td>checked verbatim in GEN.1061 (section 6.6 and Fig. 25 of the PDF): the 2.3 and 4 are indices of <code>dN/dD</code>, so the cumulative <code>q</code> is 1.3 and 3.0; the cumulative reading leaves 3 asteroids above 40 km against some hundreds in the belt</td>
+<td></td>
+<td>[R2108]</td>
+<td>READ, section 6.6</td>
+</tr>
+<tr>
+<td>Main belt, count</td>
+<td>about 530,000 objects with D &gt; 1 km</td>
+<td>belt</td>
+<td>[R2108] (four times fewer than earlier estimates)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Main belt, small</td>
+<td>q = 2.5, kink between 15 and 25 km</td>
+<td>small side of the kink</td>
+<td>[R2931]; raw, not debiased (the paper says debiasing is needed)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Jupiter-family comet nuclei</td>
+<td>q = 1.92 +- 0.20</td>
+<td>r_N &gt;= 1.25 km</td>
+<td>[R4139]; earlier values 1.45 to 2.7 depend on the size range chosen ([R3020]: 1.45 over 1 to 10 km, 1.91 over 2 to 5 km: 2.7 for r &gt;= 1.5 km)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cold classical KBOs</td>
+<td>alpha1 = 1.5 (+0.4 -0.2), faint alpha2 about 0.2, break H_B = 6.9 (+0.1 -0.2) (r' band)</td>
+<td>bright and faint sides</td>
+<td>[R1439]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Hot KBOs</td>
+<td>alpha1 = 0.87 (+0.07 -0.2), faint alpha2 about 0.2, H_B = 7.7 (+1.0 -0.5)</td>
+<td></td>
+<td>[R1439]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Cold classical KBOs, newer</td>
+<td>exponentially tapered or rolling power law fit equally well, single power law ruled out; M_CC(H_r &lt; 12) = 0.0017 (+0.0010 -0.0004) Earth masses (p = 0.15, 1 g/cm3)</td>
+<td></td>
+<td>DEEP survey paper V [R3241]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>KBOs below about 2 km</td>
+<td>crater differential slope q = -3 above 15 km craters, about -1.7 below; impactor magnitude slope alpha about 0.4 (+-0.04) above the elbow and about 0.15 (+-0.04) below, i.e. cumulative exponent about 2.0 above and about 0.75 below an elbow at D of 1 to 2 km</td>
+<td></td>
+<td>[R4107], New Horizons craters on Pluto and Charon</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interstellar objects, 100 m scale</td>
+<td>n = 0.1 per au3 (range 0.08 to 0.2)</td>
+<td>about 100 m radius</td>
+<td>[R2159] quoting [R2157] (0.1) and Do et al. 2018 (0.2)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interstellar objects, 100 m scale</td>
+<td>n = 0.2 per au3, mass density about 4 Earth masses per pc3</td>
+<td></td>
+<td>Do, [R1124]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interstellar dust to metres</td>
+<td>flux compatible with r^-3 radius distribution</td>
+<td>0.1 micrometre up to metres</td>
+<td>[R2159] fig. 19</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Interstellar objects, bodies</td>
+<td>slope q constrained by detections only: q &gt; 4 for asteroid-like, q &gt; 4.5 for cometary at 0.1 per au3; TESS about 1 object for q &lt; 2.5; LSST 0.2 to 100 per year over q 1 to 3</td>
+<td></td>
+<td>[R0059] ([R0059], 21 Sep 2026)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Free-floating planets, mass</td>
+<td>differential index p = 0.92 +- 0.06, size index 3.8 +- 0.2</td>
+<td></td>
+<td>[R2159]</td>
+<td>2ND-HAND</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="11-computed-from-the-table-checked-not-read">1.1 Computed from the table (checked, not read)</h3>
+<p>Fraser's breaks as diameters, <code>D = 1329 / sqrt(p) * 10^(-H/5)</code>:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Population</th>
+<th>H_B</th>
+<th>p = 0.04</th>
+<th>p = 0.10</th>
+<th>p = 0.15</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>cold</td>
+<td>6.9</td>
+<td>277 km</td>
+<td>175 km</td>
+<td>143 km</td>
+</tr>
+<tr>
+<td>hot</td>
+<td>7.7</td>
+<td>192 km</td>
+<td>121 km</td>
+<td>99 km</td>
+</tr>
+</tbody>
+</table></div>
+<p>The cumulative exponents are <code>q = 5 alpha</code>: cold 7.5 bright side, hot 4.35, faint sides about 1.0; Singer's crater result
+gives 2.0 above and 0.75 below the elbow. The interstellar density of 0.1 au^-3 is <code>0.1 / 1.1393e-16 pc^3 = 8.8e14 per pc3</code> (range 0.08 to 0.2 au^-3 is 7.0e14 to 1.8e15 per pc3). Number above a 10 m size in the illustration of GEN.566 (a belt
+of 1e6 bodies above 1 km): 1e10 at q = 2, 2.5e11 at q = 2.7, 1e12 at q = 3, so &quot;1e10 to 1e12&quot; in the item is right for
+q 2 to 3 and about 2.5e11 at its stated 2.7.</p>
+<h3 id="12-correction-found-while-reading">1.2 Correction found while reading</h3>
+<p><code>docs/design/architecture/unified-star-like-objects.md</code> line 140 states &quot;the real density is about 1e12 per pc^3 (range 1e11 to 1e14)&quot;
+for interstellar objects, marked [S]. The measured 100 m scale density, 0.1 au^-3 [R2159] to 0.2 au^-3
+(Do et al. 2018), is <strong>7e14 to 1.8e15 per pc3</strong>, three orders of magnitude higher. The conclusion of that paragraph (the
+objects cannot be rows and the count below a lowest size is computed) holds with the higher number. TODO files this.</p>
+<h3 id="14-correction-ivezics-indices-are-differential-gen1061">1.4 Correction: Ivezic's indices are differential (GEN.1061)</h3>
+<p>The first version of this table gave Ivezic et al.'s 2.3 and 4 as cumulative exponents <code>q</code>. The paper (section 6.6 and its Fig. 25) states them as the index <code>alpha</code> of <code>dN/dD proportional to D^-alpha</code>, which is a
+cumulative <code>q = alpha - 1</code>: <strong>1.3 below 5 km and 3.0 from 5 to 40 km</strong>. (Taken as cumulative, 530,000 bodies above 1 km would leave only 3 above 40 km; as the paper has them it is about 130.) Found by
+the Aux 7 lane in the tide work. The belt ledger (<code>physics/belt_ledger.py</code>) uses the corrected exponents; <code>q = 3</code> holds the same mass in every doubling of size, so the law has to steepen above 40 km, which the
+measurement does not reach (stand-in BR20).</p>
+<h3 id="13-what-is-missing">1.3 What is missing</h3>
+<ul>
+<li><strong>Comets, long period and Oort cloud.</strong> No size law was read for long-period comets ([R1437] and Fernandez and Sosa
+2012 are recalled and not read; the network did not return them from arXiv). GEN.559 needs this and waits on it.</li>
+<li><strong>Main belt below 400 m</strong> and the near-Earth population as a whole ([R0484, R1822] are
+recalled, not read; neither is on arXiv).</li>
+<li><strong>Kuiper belt between the breaks.</strong> [R1439] gives alpha on each side; the diameter of the transition depends on the
+albedo, which is not one number (hot objects have a bimodal albedo, the paper says), and DEEP's tapered law is not given
+here as parameters. Read DEEP V's fit table before the draw uses it.</li>
+<li><strong>Dwarf and giant end.</strong> The largest member of each population (Pluto-size) follows from the same laws: the hot law
+predicts a largest body about Pluto's mass ([R0362], astro-ph/0308467, abstract READ).</li>
+<li><strong>Interstellar object size law</strong> has no measurement, only detection constraints; the table above says what the surveys
+rule out. A draw cannot take one number as a result; it should take q from a range, widest first, 2.5 to 4.5, until a
+detection pins it. (This is a recommendation under the widest-range rule, not a read value.)</li>
+</ul>
+<h2 id="2-binary-and-satellite-fraction-by-size-gen580">2. Binary and satellite fraction by size (GEN.580)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Binary fraction of NEAs above 300 m</td>
+<td>15 +- 4 percent</td>
+<td>[R3604] via [R2874] (Asteroids IV, [R2874])</td>
+<td>2ND-HAND (the review is READ)</td>
+</tr>
+<tr>
+<td>NEAs above 200 m that are multiple systems</td>
+<td>about one in six, from radar [R2873, R4315]</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Smallest radar primaries</td>
+<td>120 to 180 m (2003 SS84, 2004 FG11, 1994 CJ1)</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Smallest photometric binary primary</td>
+<td>0.26 +- 0.03 km (2000 UG11); smaller ones exist but are hard to see</td>
+<td>[R2871, R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Largest photometric binary primary</td>
+<td>about 13 km, (939) Isberga 13.4 +- 1.3 km</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Main-belt binary fraction, small</td>
+<td>not derived; discovery rate like the NEAs', so suspected similar; modelled steady-state 16 +- 6 percent</td>
+<td>[R2131, R2874]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Large main-belt asteroids with satellites</td>
+<td>16 known of over 300 surveyed; fraction &quot;substantially smaller than the 16 percent&quot; of NEAs; no satellite at any of 7 asteroids visited by spacecraft (Vesta, Lutetia, Steins, Toutatis, Annefrank, Itokawa, APL)</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Jupiter Trojans with satellites</td>
+<td>2 confirmed (Patroclus, Hektor)</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Satellite mass ratios, large main belt</td>
+<td>1e-6 to 1e-2 (Antiope excepted)</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Cold classical KBOs with detectable binaries</td>
+<td>22 +10 -5 percent (inclination under 5 degrees, separations over 60 mas)</td>
+<td>[R3304] chapter (astro-ph/0703134) quoting [R4207]</td>
+<td>READ (primary 2ND-HAND)</td>
+</tr>
+<tr>
+<td>Other dynamical classes combined</td>
+<td>5.5 +4 -2 percent (same limits)</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Known TNO binaries</td>
+<td>14 by adaptive optics, 64 by HST (2014)</td>
+<td>[R2874]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Origin of small binaries</td>
+<td>near-critical angular momentum, rubble-pile primaries, rotational fission by YORP spin-up; separation lower limit a/D_p about 1.5</td>
+<td>[R2131, R2874]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Fission mass ratio</td>
+<td>high mass ratio (over 0.2) components four to eight times as frequent as low</td>
+<td>[R2131]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="21-sub-satellites-of-moons-the-tidal-gate-row">2.1 Sub-satellites of moons (the tidal gate row)</h3>
+<p>[R2437] (MNRAS, [R2437], READ):</p>
+<ul>
+<li>A submoon's orbit is stable out to a fraction f of its moon's Hill sphere; f = 0.4895 for prograde low-eccentricity orbits
+([R1138], 2ND-HAND), about 0.4 when the planet's perturbation is included ([R3457], 2ND-HAND).</li>
+<li>Tidal survival over T = 4.6 Gyr (their equation 1, adapted, read from the typeset page):
+<code>R_moon &gt;= [ 39 M_sub k2 T sqrt(G) / (2 (4 pi rho_moon)^(8/3) Q) * (3 M_p / (f a_moon)^3)^(13/6) ]^(1/3)</code>, with the
+moon's Love number k2 (0.25), tidal quality factor Q (100), density rho_moon (2500 kg/m3), orbital radius a_moon, the
+planet mass M_p, the submoon mass M_sub (10 km radius, 2000 kg/m3 by default) and f the Hill fraction above. The
+dimensions work out (metres). Computed here with these defaults (not read): Moon 125 km, Callisto 331 km, Titan 354 km,
+Iapetus 35 km (all pass), Ganymede 1126 km (passes; the paper's text lists only the other four, so its figure uses
+something this note does not capture), Europa 3096 km, Io 8470 km, Rhea 2187 km and Triton 1489 km (all fail).</li>
+<li>Their result: 10 km submoons survive only around large (1000 km scale) moons on wide orbits. Among the Solar System's
+moons only Titan, Iapetus, Callisto and the Moon pass; none has a submoon, so formation or other effects (mass
+concentrations) also remove them. A mass ratio of about 1e-5 is a rough guide to long-lived submoons.</li>
+</ul>
+<p>Missing: the tidal-stripping timescale by the planet for ordinary moons is only what that paper's equation gives; no
+measured submoon exists to calibrate against.</p>
+<h3 id="22-recommended-rows-for-the-hosting-gate-gen579">2.2 Recommended rows for the hosting gate (GEN.579)</h3>
+<p>Under the widest-range rule, with the stand-in cut of Boss's card S5 (1 km) kept as the default:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Satellite share</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Near-Earth-like rubble pile, D 0.2 to 13 km</td>
+<td>0.15 (range 0.11 to 0.19)</td>
+<td>STAND-IN supported by a 2ND-HAND measure</td>
+</tr>
+<tr>
+<td>Small main belt, D 0.3 to 13 km</td>
+<td>0.16 (range 0.10 to 0.22)</td>
+<td>STAND-IN (modelled, not measured)</td>
+</tr>
+<tr>
+<td>Large main belt, D over 100 km</td>
+<td>0.05 (range 0.02 to 0.16)</td>
+<td>STAND-IN (16 of over 300, detectability-limited)</td>
+</tr>
+<tr>
+<td>Cold classical KBO</td>
+<td>0.22 (range 0.17 to 0.32)</td>
+<td>22 +10 -5 percent, READ</td>
+</tr>
+<tr>
+<td>Other trans-Neptunian classes</td>
+<td>0.055 (range 0.035 to 0.095)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Below 0.2 km</td>
+<td>0.0 (not measured)</td>
+<td>STAND-IN; evidence says satellites exist to about 120 m</td>
+</tr>
+<tr>
+<td>Moon with submoon</td>
+<td>0.0 unless the tidal gate passes, then a stand-in of 1e-5 mass ratio</td>
+<td>STAND-IN (Kollmeier and Raymond)</td>
+</tr>
+</tbody>
+</table></div>
+<p>The 1 km cut of card S5 is above every measured primary down to about 120 m, so it loses real satellites of small near-Earth
+rubble piles; this is for the owner of GEN.579 to weigh (a row series by size class, as above, replaces the cut without
+changing the gate's three parts).</p>
+<h2 id="3-sources">3. Sources</h2>
+<p>READ this session (arXiv): astro-ph/0105511 [R2108], 1109.4096 [R2931], 1101.4228 [R4139],
+1401.2157 [R1439], 2309.09478 (DEEP V), 1902.10795 [R4107], astro-ph/0308467 ([R0362], abstract),
+2209.08182 [R2159], 1801.02821 (Do et al. 2018), 2609.25488 [R0059],
+1504.00034 [R2871, R2874], 1605.06157 [R2131], astro-ph/0703134 (Noll et al. chapter),
+1810.03304 [R2437].</p>
+<p>Not read (recalled, not usable): [R0484, R1354, R1437, R1822, R2873, R3604] (cited only through the Asteroids IV review), [R4207] (through the
+chapter), [R1138, R3457] (through Kollmeier and Raymond).
+Masiero). None of these needs Boss; the first four are not on arXiv and were not fetched.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

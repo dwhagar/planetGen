@@ -43,16 +43,22 @@ def _unfinished_units(conn, run):
     return found
 
 
+def _job_ids(conn, run):
+    """The ids of the jobs of `run` that may still be queued or running: its unfinished units, and the openings (`units.enqueue_open`, PERF.254) of
+    the stages that have not ended (the first stage is opened by the process that starts the run, not by a job)."""
+    ids = [units.job_id(run["id"], stage, unit) for stage, unit in _unfinished_units(conn, run)]
+    return ids + [units.open_job_id(run["id"], index) for index, stage in enumerate(run["stages"]) if index and stage["ended"] is None]
+
+
 def started_units(conn, run):
     """The ids of the units of `run` (`runrecord.read_run`'s dict) that a worker has started and not ended: what a cancel is still waiting for."""
     queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
-    ids = {units.job_id(run["id"], stage, unit) for stage, unit in _unfinished_units(conn, run)}
-    return ids & set(queue.started_job_registry.get_job_ids(cleanup=False))
+    return set(_job_ids(conn, run)) & set(queue.started_job_registry.get_job_ids(cleanup=False))
 
 
 def stop_units(conn, run):
     """
-    Takes the units of `run` (`runrecord.read_run`'s dict) that are still waiting off the queue and sends the stop
+    Takes the units (and the openings of the stages still to come) of `run` (`runrecord.read_run`'s dict) that are still waiting off the queue and sends the stop
     command to the started ones. Safe whatever a unit is doing: a unit's save is one transaction, and a stopped unit is
     not retried. The work is a few pipelines whatever the number of units: the ids are worked out from the run, the
     started ones are the run's ids in the queue's started registry, and each other id is removed from the queue's list
@@ -63,7 +69,7 @@ def stop_units(conn, run):
     """
     queue = redisqueue.queue(wrapper.queue_of(run["kind"]), conn)
     serializer = redisqueue.serializer_for(queue.name)
-    ids = [units.job_id(run["id"], stage, unit) for stage, unit in _unfinished_units(conn, run)]
+    ids = _job_ids(conn, run)
     started = set(queue.started_job_registry.get_job_ids(cleanup=False)) & set(ids)
     pipe = conn.pipeline()
     waiting = [job_id for job_id in ids if job_id not in started]
@@ -118,7 +124,7 @@ def clear_run(conn, run_id, who=None, now=None):
         return None
     stopped = stop_units(conn, run)
     runrecord.finish_run(conn, run_id, "failed", error=f"cleared by {who}: it showed no sign of life" if who
-                         else "cleared: it showed no sign of life", now=now)
+                         else "cleared: it showed no sign of life", now=now, killed=True)
     write_log(conn, run_id)
     return stopped
 

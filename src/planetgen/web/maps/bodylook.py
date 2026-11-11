@@ -11,7 +11,7 @@ from "none"; the painters fall back to the plain tinted disk for anything missin
 Fields (all optional but `v`, `kind`, `body`, `seed`):
 
     v           record version (1)
-    kind        "star", "planet" or "moon"
+    kind        "star", "planet" or "moon" (also "rogue_planet" and "belt_member")
     body        "star", "solid" or "gas"
     seed        32 bits from the body's id and kind (`seed_for`); display noise only, never generation
     cls         planet class letter
@@ -19,6 +19,10 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     quality     "composition" when a solid world's `color` is the lab colour of its stored ground types (MAP.274),
                 "estimate" while it comes from temperature alone (no stored ground, no land, or too little of the land
                 with a measured colour), absent for a star
+    taxon       a belt member's taxon letter (MAP.412, `member_look`)
+    density     a belt member's bulk density, g/cm3
+    lumpy       true when a belt member is too small for its weight to beat its strength, so the body is drawn as a lump (`roundness` under 1,
+                `static/lumpymesh.js`)
     landKnown   with quality "composition": the share of the land whose ground types have a measured colour, 0.5 to 1
     glow        atmosphere limb colour (`#rrggbb`): the atmosphere colour of the body's air under its star (MAP.244,
                 `physics/atmosphere_colour.py`), present only when the body has air and the row carries its star's
@@ -224,7 +228,7 @@ def air_colour(planet):
         return None
     body = SimpleNamespace(
         body_type=planet.get("body_type"), gravity=planet.get("gravity_g"), atmospheric_pressure=planet.get("atmospheric_pressure_pa"),
-        planet_class=planet.get("planet_class"), ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
+        ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
         **{atmosphere.GAS_FIELD: atmosphere.gas_partials_pa(planet)})
     if planet.get("body_type") == "g":
         return giant_colour.body_giant_colour(body)
@@ -342,7 +346,6 @@ def planet_look(planet, kind="planet"):
             look["color"], known_land = found
             look["quality"] = "composition"
             look["landKnown"] = round(known_land, 3)
-    _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     if gas:
         _put(look, "gas", giant_gas_fractions(planet))
         _put(look, "gravG", _rounded(planet.get("gravity_g"), 3))      # MAP.275: the Rossby deformation radius of its storms
@@ -431,6 +434,8 @@ def colour_account(look):
     if body not in ("solid", "gas"):
         return None
     kind = look.get("kind")
+    if kind == "belt_member":      # MAP.412: a small body has no sky and no sea; its colour is its taxon's, mixed by the shares of rock, metal, water and ice
+        return "Color from its taxon and the shares of rock, metal, water and ice" + ("; drawn as a lump: too small for its weight to beat its strength" if look.get("lumpy") else "")
     layer = "Cloud-top" if body == "gas" else "Ground"
     if temperature is not None:
         parts = [f"{layer} color from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K)"]
@@ -527,6 +532,63 @@ def thermal_glow(temperature_k):
     strength = min(1.0, (temperature_k - THERMAL_ONSET_K) / (THERMAL_FULL_K - THERMAL_ONSET_K))
     colour = blackbody_hex(temperature_k)
     return None if colour is None else {"hex": colour, "strength": round(strength, 3)}
+
+
+MEMBER_GRAIN_FAMILY = {"C": "carbonaceous", "B": "carbonaceous", "P": "carbonaceous", "D": "carbonaceous", "V": "basaltic", "M": "metallic"}
+"""dict: The composition family (a key of `ASTEROID_GRAIN_COLORS`) a belt member's rock is coloured by, from its taxon letter (`physics/belt_member.py`, `small_body_composition.TAXON_DATA`):
+the dark carbon-rich taxa, the basaltic V and the metallic M have their own, every other taxon (E, S, A, L, K and the like) is stony."""
+
+
+def member_grain_color(member):
+    """
+    The colour of a belt member from its taxon and the shares of its mass (MAP.412): the colour of the taxon's rock family (`ASTEROID_GRAIN_COLORS`, the one the asteroid fields use),
+    mixed with the metallic grey by the metal share and the icy pale blue-grey by the water and ice shares (a mass-weighted mix of the colours in linear light, so a body of half rock
+    and half ice is half-way). The shares are renormalised, so a row whose shares do not add to one still gives a colour; with none stored the rock's colour stands alone.
+    """
+    rock_name = MEMBER_GRAIN_FAMILY.get((member.get("taxon") or "")[:1].upper(), "stony")
+    parts = [(max(member.get("rock_fraction") or 0.0, 0.0), ASTEROID_GRAIN_COLORS[rock_name]),
+             (max(member.get("metal_fraction") or 0.0, 0.0), ASTEROID_GRAIN_COLORS["metallic"]),
+             (max((member.get("water_fraction") or 0.0) + (member.get("ice_fraction") or 0.0), 0.0), ASTEROID_GRAIN_COLORS["icy"])]
+    total = math.fsum(weight for weight, _colour in parts)
+    if not total > 0.0:
+        return ASTEROID_GRAIN_COLORS[rock_name]
+
+    def linear(byte):
+        value = byte / 255.0
+        return value / 12.92 if value <= 0.04045 else ((value + 0.055) / 1.055) ** 2.4
+
+    mixed = [math.fsum(weight * linear(int(colour[1 + 2 * channel:3 + 2 * channel], 16)) for weight, colour in parts) / total for channel in range(3)]
+    return "#{:02x}{:02x}{:02x}".format(*(_srgb_byte(value) for value in mixed))
+
+
+def member_look(member):
+    """
+    The look record of a belt member row (`belt_members`, MAP.412): a small body drawn on its own, its colour from its taxon and composition (`member_grain_color`), its radius and
+    density, a seed from its id, and `lumpy` when it is under the roundness limit (`physics/body_strength.ratio_for` at the median strength: its weight does not beat its strength, so
+    `static/lumpymesh.js` draws a lump). Members at or above the planet class floor (GEN.1509) are planets and draw through `planet_look`, not this.
+
+    Args:
+        member (dict): The row's columns: `id` (or `belt_id` and `member_rank`), `taxon`, `radius_km`, `mass_kg`, `density_g_cm3`, `rock_fraction`, `metal_fraction`, `water_fraction`,
+            `ice_fraction`. A field the row lacks is left out of the record, as everywhere here.
+    """
+    from planetgen.physics import body_strength
+
+    ident = member.get("id")
+    if ident is None:
+        ident = f"{member.get('belt_id')}.{member.get('member_rank')}"
+    look = {"v": LOOK_VERSION, "kind": "belt_member", "body": "solid", "seed": seed_for("belt_member", ident),
+            "color": member_grain_color(member), "quality": "composition"}
+    _put(look, "taxon", member.get("taxon"))
+    _put(look, "radiusKm", _rounded(member.get("radius_km"), 3))
+    _put(look, "density", _rounded(member.get("density_g_cm3"), 3))
+    mass_kg = member.get("mass_kg")
+    if mass_kg and mass_kg > 0.0:
+        ice = min(1.0, max(0.0, (member.get("water_fraction") or 0.0) + (member.get("ice_fraction") or 0.0)))
+        metal = min(1.0 - ice, max(0.0, member.get("metal_fraction") or 0.0))
+        ratio = body_strength.ratio_for(mass_kg, ice, metal)
+        look["roundness"] = _rounded(ratio, 4)
+        look["lumpy"] = ratio < 1.0
+    return look
 
 
 def rogue_planet_look(rogue):

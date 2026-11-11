@@ -284,5 +284,59 @@ def test_the_field_can_follow_another_stage_in_the_same_run(mysql_config):
     from planetgen.generation import followed
     _seed_galaxy(mysql_config)
     args = _scatter_args(mysql_config)
-    followed.run_followed(args, [run_plan.HabitabilityFollower(args), run_plan.NebulaFieldFollower(args)], "Two verbs")
+    followed.run_followed(args, [run_plan.HabitabilityFollower(args), run_plan.EmptyNebulaFieldFollower(args),
+                                 run_plan.NebulaFieldFollower(args)], "Two verbs")
     assert _table(mysql_config)
+
+
+# --- OPS.123: the clearing of the earlier field is a step of its own ----------------------------------------------------
+
+def test_the_empty_nebula_field_step_empties_the_table_and_says_so(mysql_config):
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    assert _table(mysql_config)
+    params = {"database": wrapper.database_args(mysql_config)}
+    assert run_plan.expand_empty_nebula_field(params).units == [(params, 1.0)]
+    assert commands.run_alone("empty-nebula-field", params) == {"emptied": True}
+    assert not _table(mysql_config)
+
+
+def test_the_empty_nebula_field_step_keeps_the_table_of_a_galaxy_with_no_outline_and_refuses_one_with_no_skeleton(mysql_config):
+    from planetgen.queue import commands, wrapper
+    params = {"database": wrapper.database_args(mysql_config)}
+    with pytest.raises(RuntimeError, match="skeleton has never been built"):
+        commands.run_alone("empty-nebula-field", params)
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    kept = _table(mysql_config)
+    assert kept
+    store.replace_galaxy_shells([], config=mysql_config)
+    assert commands.run_alone("empty-nebula-field", params) == {"emptied": False}
+    assert _table(mysql_config) == kept
+
+
+# --- OPS.123: the clearing of the earlier phenomena and the taking off of their indexes are steps of their own ---------
+
+def test_the_phenomenon_clearing_steps_empty_the_table_and_take_the_indexes_off(mysql_config):
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    params = {"database": wrapper.database_args(mysql_config)}
+    for expand in (run_plan.expand_empty_phenomenon_scatter, run_plan.expand_drop_phenomenon_indexes):
+        assert expand(params).units == [(params, 1.0)]
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] > 0
+        indexes_before = conn.execute("SHOW INDEX FROM phenomenon_scatter").fetchall()
+    finally:
+        conn.close()
+    assert len(indexes_before) > 1
+    assert commands.run_alone("drop-phenomenon-indexes", params) == {"dropped": True}
+    assert commands.run_alone("empty-phenomenon-scatter", params) == {"emptied": True}
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter").fetchone()["n"] == 0
+        assert len(conn.execute("SHOW INDEX FROM phenomenon_scatter").fetchall()) < len(indexes_before)
+    finally:
+        conn.close()

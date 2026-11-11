@@ -15,9 +15,9 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store
+from planetgen.db import fingerprint_tree, kind_tables, object_rows, storage_checksum, store, system_summary
 from planetgen.galaxy import object_uid as objectUid
-from planetgen.physics import insolation, unit_registry as units
+from planetgen.physics import effect_ledger, insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
 
@@ -69,10 +69,27 @@ def _update_body(conn, table, body, assignments, key_values):
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
     conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
+    conn.execute(f"DELETE FROM {prefix}_deposit_types WHERE {id_column} = ?", (body.db_id,))
+    conn.execute(f"DELETE FROM {prefix}_isotopes WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
+
+
+def forget_ledger_rows(conn, table, where="1 = 1", params=()):
+    """
+    Deletes the effect ledger rows (GEN.1465) of the rows of `table` that `where` picks, as receiver and as source. A table the ledger does not
+    name (`effect_ledger.BODY_CODES`) has none. The system's own rows go with the system (`ON DELETE CASCADE`); this is for a standalone
+    phenomenon that goes alone, or whose table is emptied by a statement that does not delete its system. A system's edit clears the system's rows whole
+    (`save_system_edits`), which covers a planet, moon or belt it deletes.
+    """
+    code = effect_ledger.BODY_CODES.get(table)
+    if code is None:
+        return
+    picked = f"SELECT id FROM {table} WHERE {where}"
+    conn.execute(f"DELETE FROM effect_ledger WHERE (body_type = ? AND body_id IN ({picked})) OR (source_type = ? AND source_id IN ({picked}))",
+                 (code, *params, code, *params))
 
 
 def _save_moons(conn, system_id, star_id, planet):
@@ -176,6 +193,7 @@ def save_system_edits(conn, system_id, system, stars=()):
         stars (iterable): Loaded `Star`s (with `db_id`) to update.
     """
     insolation.refresh_system(system)   # ADM.132: the light each body sums over the stars, from the orbits the edit left
+    conn.execute("DELETE FROM effect_ledger WHERE star_system_id = ?", (system_id,))   # GEN.1465: an edited body's shares are no longer the ones generation noted; the ledger stays empty until the system's `refill-effect-ledger`
     store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
     for star_id, planets in _star_ids(conn, system_id, system):
@@ -199,11 +217,15 @@ def save_system_edits(conn, system_id, system, stars=()):
             kept_planets.append(body.db_id)
     _delete_missing(conn, "planets", "star_system_id", system_id, kept_planets)
     _delete_missing(conn, "asteroid_belts", "star_system_id", system_id, kept_belts)
+    conn.execute(      # GEN.1497: the birth draws of an edited body stay what they were; those of a planet or moon the edit deleted go
+        "DELETE h FROM body_history h LEFT JOIN planets p ON h.body_type = 2 AND p.id = h.body_id LEFT JOIN moons m ON h.body_type = 3 AND m.id = h.body_id"
+        " WHERE h.star_system_id = ? AND p.id IS NULL AND m.id IS NULL", (system_id,))
     for star in stars:
         save_star(conn, star)
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
+    system_summary.refresh(conn, [system_id])    # GEN.1478: the masses, luminosities and counts the edit changed
     store.refresh_system_dose(conn, system_id)   # ADM.132: also works every scored body's habitability, Suitability and life scores out again from the rows just written
     store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)
@@ -316,6 +338,7 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
         raise EditError("this is the star of a star system; delete the system instead")
     table = PHENOMENON_TABLES[phenomenon_type]
     conn.execute("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", (table, phenomenon_id))
+    forget_ledger_rows(conn, table, "id = ?", (phenomenon_id,))
     conn.execute(f"DELETE FROM {table} WHERE id = ?", (phenomenon_id,))
     store.touch_sector(conn, row.get("sector_id"))
     return True
@@ -406,6 +429,7 @@ def delete_sector_birth_contents(conn, sector_id):
         if table == "star_systems":
             continue
         where = born + (f" AND {_BIRTH_ONLY[table]}" if table in _BIRTH_ONLY else "")
+        forget_ledger_rows(conn, table, where, params)
         phenomena += conn.execute(f"DELETE FROM {table} WHERE {where}", params).rowcount
     facilities = conn.execute(f"DELETE FROM facilities WHERE {born} AND host_type = 'space'", params).rowcount
     for filed_in in rogue_sectors:      # the leaf of each sector that held a rogue born here no longer holds it (TEST.602)

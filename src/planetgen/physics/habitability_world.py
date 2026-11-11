@@ -23,9 +23,11 @@ section 8):
   1.4e21 kg of ocean); carbon and nitrogen are at least that (volatiles
   arrive with water), or the air's own carbon (CO2, CO, CH4) against
   7.5e19 kg or its nitrogen against 4.0e18 kg, when larger.
-* **Phosphate.** The ocean's `phosphorus` class: 1000 umol/L "high" (soda
-  lakes), 2.3 "limited" (Earth), 0.01 "starved" (ice-sealed); a methane sea
-  takes the "limited" value (the term has no non-aqueous model).
+* **Phosphate.** The ocean's phosphate, umol/L, from the phosphorus budget
+  (`ocean_phosphate_umol_l`, GEN.1367: the crust's P2O5 weathered into the
+  ocean, 2.3 for the Earth, 1000 at most in a soda lake, 0.01 under a sealed
+  ice); a methane sea takes the Earth's value (the term has no non-aqueous
+  model), and so does the water of an aquifer.
 * **Energy.** A surface liquid gets 6% of the starlight (Earth's 1361 W/m2
   gives its 80 W/m2 of usable light) or the chemical power of the body's
   heat flow, 1% of it (Earth's 0.09 W/m2 gives 9e-4), whichever is more; an
@@ -55,7 +57,8 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -114,10 +117,9 @@ LIGHT_SHARE = 0.06
 CHEMICAL_SHARE = 0.01
 """float: The share of starlight, and of the body's heat flow, that life can use."""
 
-PHOSPHATE_UMOL_L = {"high": 1000.0, "limited": 2.3, "starved": 0.01, None: 0.0}
-"""dict: An ocean's `phosphorus` class as phosphate, umol/L. The water of an aquifer, which has no ocean class, is `limited`
-(rock weathering supplies it; DESIGN stand-in, GEN.654)."""
-NON_AQUEOUS_PHOSPHATE_UMOL_L = 2.3
+AQUIFER_PHOSPHATE_UMOL_L = phosphorus_budget.EARTH_OCEAN_UMOL_L
+"""float: The phosphate of the water of an aquifer, umol/L: it has no ocean to budget, and rock weathering supplies it (DESIGN stand-in, GEN.654; the Earth's ocean value)."""
+NON_AQUEOUS_PHOSPHATE_UMOL_L = phosphorus_budget.EARTH_OCEAN_UMOL_L
 
 CHLORIDE_BRINE_CHAOTROPICITY = 200.0
 """float: kJ/kg per unit of water activity below 1 in a chloride brine."""
@@ -148,8 +150,8 @@ _GAS_NAMES = {"o2": "O2", "co2": "CO2", "co": "CO", "h2s": "H2S", "so2": "SO2"}
 def values_from_body(body):
     """A planet or moon (in memory) as the column-named dict `compute` reads."""
     values = {
-        "planet_class": getattr(body, "planet_class", None),
         "body_type": getattr(body, "body_type", None),
+        "envelope_mass_fraction": getattr(body, "envelope_mass_fraction", None),
         "atmospheric_pressure_pa": getattr(body, "atmospheric_pressure", None),
         "surface_temperature_k": getattr(body, "surface_temperature", None),
         "gravity_g": getattr(body, "gravity", None),
@@ -159,7 +161,7 @@ def values_from_body(body):
         "ocean_class": getattr(body, "ocean_class", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
         "water_activity": getattr(body, "water_activity", None),
-        "phosphorus": getattr(body, "phosphorus", None),
+        "ocean_phosphate_umol_l": getattr(body, "ocean_phosphate_umol_l", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
         "rock_mg_si_ratio": getattr(body, "rock_mg_si_ratio", None),
@@ -181,6 +183,9 @@ def values_from_body(body):
         "solar_day_hours": getattr(body, "solar_day_hours", None),
         "days_per_year": getattr(body, "days_per_year", None),                  # GEN.1265: with the solar day they give the year of the star a moon is lit through
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
+        "starless": bool(getattr(getattr(body, "star", None), "starless", False)),     # GEN.1496: a rogue planet (or its moon) has no star for the bands to follow, whichever pass reads it first
+        "light_factor": getattr(body, "light_factor", None),                      # GEN.1484: the share of its light a circumbinary planet keeps; None for every other body
+        "sky_suns": getattr(body, "sky_suns", None),                              # GEN.1458: the other suns of the sky; the temperature of every place and the bands read them
         "period_years": getattr(body, "period", None),
         "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
         "ring_outer_km": getattr(body, "ring_outer_km", None),
@@ -323,14 +328,14 @@ def giant_energy_flux_w_m2(body):
     return constants.STEFAN_BOLTZMANN_CONSTANT * giant_draw.effective_temperature_k(starlight, giant_draw.own_flux_w_m2(body)) ** 4
 
 
-def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
+def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2, companion_w_m2=0.0):
     """The light or chemical power available to life, W/m2 (see the module
     docstring). `luminosity_w` and `distance_au` describe the star (either
-    `None`: no light)."""
+    `None`: no light); `companion_w_m2` is the light the system's other stars add at the body (`radiation_field.companion_light_w_m2`, GEN.1441)."""
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2)
+    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (values.get("light_factor") or 1.0)       # GEN.1484
     return max(light, chemical)
 
 
@@ -371,7 +376,8 @@ def world_from(values, lethal_host=None):
         chaotropicity_kj_kg=CHLORIDE_BRINE_CHAOTROPICITY * (1.0 - activity) if aqueous and brine else 0.0,
         ph=values.get("ocean_ph") if aqueous else None,
         inventories=inventories(values),
-        phosphate_umol_l=(PHOSPHATE_UMOL_L.get(values.get("phosphorus") or ("limited" if underground != "none" else None), 0.0)
+        phosphate_umol_l=((values.get("ocean_phosphate_umol_l") if values.get("ocean_phosphate_umol_l") is not None
+                           else AQUIFER_PHOSPHATE_UMOL_L if underground != "none" else 0.0)
                           if aqueous else NON_AQUEOUS_PHOSPHATE_UMOL_L if medium else 0.0),
         energy_flux_w_m2=values.get("energy_flux_w_m2") or 0.0,
         surface_dose_sv_yr=surface_dose,
@@ -420,7 +426,7 @@ def compute(values, compact_host=None):
     without a temperature, or a gas giant, scores nothing (every field
     `None`).
     """
-    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+    if not planet_type.has_ground(values) or values.get("surface_temperature_k") is None:
         return {name: None for name in (*SCORE_FIELDS, *LIKELIHOOD_FIELDS)}
     world = world_from(values, lethal_host=compact_host)
     # The life scores come first: the Suitability food rung is made from them (Flora and Fauna, GEN.649)
@@ -486,7 +492,7 @@ def class_life_scores(values, world, stage):
 def living_kinds(values):
     """`{class id: (microbial, flora, fauna, sentient)}` for each class of `life_living` on the body of `values`, each at its own stage (the body's own
     four scores are the highest of each of these)."""
-    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+    if not planet_type.has_ground(values) or values.get("surface_temperature_k") is None:
         return {}
     rated = _class_rater(values, world_from(values))
     return {entry["life_class"]: rated(entry["life_class"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
@@ -522,7 +528,7 @@ def rescore(body):
     """Recomputes a scored body's `SCORE_FIELDS` once its life is known (`native_life`
     is part of the score's inputs and life is drawn after it). A gas giant, or a body
     that was not scored, is left alone."""
-    if body.body_type == "g" or getattr(body, "surface_temperature", None) is None:
+    if not planet_type.has_ground(body) or getattr(body, "surface_temperature", None) is None:
         return
     if getattr(body, "phi4", None) is None:
         return
@@ -545,7 +551,7 @@ def generate(body, internal_flux_w_m2):
     keeps the swing the insolation gave it, and is scored with it."""
     swing = getattr(body, "flux_variation", None)
     _clear(body)
-    if body.body_type == "g":
+    if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334): no ground to score
         body.flux_variation = swing
         body.energy_flux_w_m2 = giant_energy_flux_w_m2(body)
         return
@@ -556,7 +562,8 @@ def generate(body, internal_flux_w_m2):
     star = getattr(body, "star", None)
     body.energy_flux_w_m2 = energy_flux_w_m2(
         values, getattr(star, "luminosity", None), getattr(body, "_star_distance_au", None),
-        internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0))
+        internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0),
+        radiation_field.companion_light_w_m2(star, getattr(body, "_star_distance_au", None)) if star is not None and getattr(body, "_star_distance_au", None) else 0.0)
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
     body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
     body.groundwater = groundwater(values)

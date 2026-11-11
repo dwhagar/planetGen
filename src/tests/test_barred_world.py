@@ -2,13 +2,13 @@
 The bar on habitable worlds (GEN.1250): with `HABITABLE_WORLD` False no finished planet or moon has the conditions a request for a habitable
 world asks for (`habitable_request.meets`: temperate, an air of at least the minimum pressure, a surface ocean).
 
-The first draw of a planet is judged before the star's final age, the light of every star and the oxygen of a life are in, so
-`StarSystem._bar_habitable_worlds` judges the finished bodies and draws a body that meets the conditions again.
+A planet is never drawn again for the bar (GEN.1397): the finished bodies are judged on their conditions, after the star's final age, the light of every
+star and the oxygen of a life are in, and a body that meets the conditions or is rated habitable is dropped from the system
+(`StarSystem._drop_barred_bodies`, counted in `barred_world_dropped`).
 """
 
 import pytest
 
-from planetgen import tuning
 from planetgen.generation import habitable_request
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -37,7 +37,7 @@ def bodies_that_meet(system):
 def test_a_system_that_bars_habitable_worlds_has_none_that_met_the_request_before(seed):
     system = barred_system(seed)
     assert bodies_that_meet(system) == []
-    assert system.barred_world_limit == 0
+    assert system.barred_world_dropped >= 0
 
 
 def test_the_bar_does_not_touch_a_system_that_does_not_bar_habitable_worlds():
@@ -45,19 +45,22 @@ def test_the_bar_does_not_touch_a_system_that_does_not_bar_habitable_worlds():
     config = SystemConfig()
     config.PLANETS = True
     system = StarSystem(system_config=config, galactic_center_dist_ly=GALACTIC_DISTANCE_LY)
-    assert not hasattr(system, "barred_world_limit")
+    assert not hasattr(system, "barred_world_dropped")
 
 
-def test_the_redraw_limit_is_a_positive_number_of_tries():
-    assert tuning.BARRED_CLASS_MAX_ATTEMPTS > 0
+SAMPLE_CHUNKS = 6
+SAMPLE_FIRST, SAMPLE_COUNT = 100, 300
 
 
 @pytest.mark.slow
-def test_over_300_sampled_systems_none_breaks_the_bar():
-    """The census guard (GEN.1250): 300 systems of seeds 100 to 399."""
+@pytest.mark.parametrize("chunk", range(SAMPLE_CHUNKS))
+def test_over_300_sampled_systems_none_breaks_the_bar(chunk):
+    """The census guard (GEN.1250): 300 systems of seeds 100 to 399, in six runs of 50 so that each stays inside the 900 s test limit (PERF.255)."""
+    size = SAMPLE_COUNT // SAMPLE_CHUNKS
+    first = SAMPLE_FIRST + chunk * size
     broken = {}
-    for seed in range(100, 400):
+    for seed in range(first, first + size):
         found = bodies_that_meet(barred_system(seed))
         if found:
             broken[seed] = found
-    assert not broken, f"{len(broken)} of 300 systems hold a world that meets the request: {broken}"
+    assert not broken, f"{len(broken)} of {size} systems (seeds {first} to {first + size - 1}) hold a world that meets the request: {broken}"

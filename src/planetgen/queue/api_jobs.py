@@ -19,7 +19,6 @@ imports) per job (PERF.39) and a long job never holds a worker kept for short
 ones. The result is kept for `RESULT_TTL_SECONDS`.
 """
 
-import calendar
 import importlib
 import math
 import os
@@ -30,7 +29,7 @@ import time
 
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, workers
+from planetgen.queue import jobbeat, redisqueue, workers
 from planetgen.util import log
 
 QUEUE_PREFIX = "planetgen-api-"
@@ -108,6 +107,13 @@ def decode_argument(value):
     return value
 
 
+def _current_job_id():
+    """The id of the job this worker is running without the prefix, or `?` outside a worker."""
+    import rq
+    job = rq.get_current_job()
+    return (job.id if job is not None else "?").removeprefix(QUEUE_PREFIX)
+
+
 def execute(reference, args):
     """
     What a worker runs for a queued job: the function named by `reference`
@@ -123,7 +129,8 @@ def execute(reference, args):
     module, _, name = allowlist.check_reference(reference).partition(":")      # SEC.45: only the API's own functions
     function = getattr(importlib.import_module(module), name)
     try:
-        return {"result": function(*[decode_argument(arg) for arg in args])}
+        with jobbeat.beating("api", _current_job_id(), label=name):        # OPS.142: the Queue page sees this job is alive
+            return {"result": function(*[decode_argument(arg) for arg in args])}
     except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
         common = sys.modules.get("planetgen.api.common")
         if common is not None and isinstance(exc, common.ApiError):
@@ -267,10 +274,7 @@ def status(job_id):
             `failed`), `result` (what the function returned, once it
             succeeded), `error` (the refusal, or the last line of the
             error text, once it failed), `error_status` (the HTTP
-            status of a refusal, else `None`) and `made` (ADM.31: for a
-            finished job that makes sectors, `{"since", "until"}`, the
-            Unix seconds window the Galaxy Map's `made` view takes, else
-            `None`), and `waiting` (PERF.153: for a running job that waits in line for the generation run in front of
+            status of a refusal, else `None`) and `waiting` (PERF.153: for a running job that waits in line for the generation run in front of
             it, `{"run", "position", "text"}`, else `None`). `None` for an unknown or expired id, or a bad one.
 
     Raises:
@@ -292,7 +296,7 @@ def status(job_id):
             workers.ensure_workers(job.origin, connection, count=_cap_of(job.origin))
         except Exception:  # noqa: BLE001 -- a status read does not fail for want of a worker
             pass
-    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None, "made": None,
+    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None,
             "waiting": job.meta.get("waiting") if state == "running" else None}
     if state == "succeeded":
         outcome = job.return_value()
@@ -300,25 +304,11 @@ def status(job_id):
             body.update(state="failed", error=outcome["refused"], error_status=outcome["status"])
         else:
             body["result"] = outcome["result"]
-            body["made"] = _made_window(job)
     elif state == "failed":
         latest = job.latest_result()
         text = (latest.exc_string if latest is not None else None) or "the job ended without finishing"
         body["error"] = text.strip().splitlines()[-1]
     return body
-
-
-MAKES_SECTORS = ("generate_neighborhood", "generate_block", "regenerate_sector")
-"""tuple[str]: The queued functions that generate sectors (ADM.31)."""
-
-
-def _made_window(job):
-    """The `made` window of a finished job that generates sectors: from
-    when it started to a second past when it ended; else `None`."""
-    function = job.args[0] if job.args else None
-    if getattr(function, "__name__", None) not in MAKES_SECTORS or job.started_at is None or job.ended_at is None:
-        return None
-    return {"since": calendar.timegm(job.started_at.timetuple()), "until": calendar.timegm(job.ended_at.timetuple()) + 1}
 
 
 def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=False):

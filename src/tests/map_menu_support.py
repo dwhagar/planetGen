@@ -23,8 +23,9 @@ LIST_JS = """(container) => {
   return out;
 }"""
 
-HEADING = "galaxy-kinds-heading"
-"""str: The class of the one kind of text the menu may show that is not a control."""
+HEADINGS = ("galaxy-kinds-heading", "view-menu-group-name", "gravity-hint", "view-menu-count", "gravity-slab")
+"""tuple: The classes of the text the menu may show that is not a control: a group heading (the older `galaxy-kinds-heading` and the View menu's
+`view-menu-group-name`, UX.277) and the one-line note the Gravity settings carry (TEST.696)."""
 
 CONTROLS = ("button", "input", "select", "summary", "label", "a")
 
@@ -38,8 +39,8 @@ def check_menu_controls(page, container, press=True):
     layer_at = {}
     for item in items:
         where = f"{item['tag']}[{item['layer'] or item['forward'] or item['bulk'] or item['text'] or item['name']}]"
-        if item["text"] and not item["inControl"] and HEADING not in str(item["cls"]):
-            problems.append(f"{where}: text that is not a heading or a control: {item['text']!r}")
+        if item["text"] and not item["inControl"] and not any(heading in str(item["cls"]) for heading in HEADINGS):
+            problems.append(f"{where}: text that is not a heading or a control: {item['text']!r} (class {item['cls']!r}, parent {item['parentTag']} {item['parentCls']!r})")
         if item["tag"] in CONTROLS and item["tag"] != "label":
             if item["disabled"]:
                 problems.append(f"{where}: disabled")

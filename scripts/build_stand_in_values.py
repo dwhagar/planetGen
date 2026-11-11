@@ -22,6 +22,7 @@ PLAN = os.path.join(HERE, "..", "docs", "design", "research", "gap-filling-plan.
 OUT = os.path.join(HERE, "..", "docs", "design", "research", "stand-in-values.md")
 WIRING = os.path.join(HERE, "..", "docs", "design", "research", "wiring-register.md")
 BURN_DOWN = os.path.join(HERE, "..", "docs", "design", "research", "burn-down-register.md")
+EVIDENCE = os.path.join(HERE, "..", "docs", "design", "research", "evidence-register.md")
 
 TIERS = (
     ("T1", "Verified", "read in the source and the value is the source's"),
@@ -41,6 +42,17 @@ TWEAKS = (
     ("L3", "Hand-tuned against a sweep", "chosen by running the generator over many draws and looking at the outcome"),
     ("L4", "Fitted to the outcome with no independent source", "the number is whatever makes the output right"),
 )
+
+STATUSES = (
+    ("observed in a planet", "the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts)"),
+    ("observed in a lab", "made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body"),
+    ("predicted only", "theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has"),
+    ("disputed", "a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists"),
+)
+"""tuple: The evidence status of a row (GEN.1428; Boss, 2026-11-08): whether the thing the row stands for has been seen, which is a different question from how good its source is (the tier)."""
+
+DEFAULT_STATUS = "predicted only"
+"""str: The status of a row `evidence-register.md` does not name: observed in a planet or lab only where the source says so."""
 
 TIER_CODE = re.compile(r"T[1-9]\b")
 TWEAK_CODE = re.compile(r"L[0-4]\b")
@@ -319,15 +331,43 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.207", "6.207 Stand-in of the bodies an asteroid field stores",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.213", "6.213 Stand-ins of the accessory minerals of the asteroid taxon mixes",
+    ("6.220", "6.220 Stand-ins of the clouds, lithium and hydrides of a cool giant's or brown dwarf's air",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.214", "6.214 Stand-in of the hosts of the asteroid vocabulary names",
+    ("6.221", "6.221 Stand-ins of the nitrogen, sulfur and noble gases of a giant's envelope",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.210", "6.210 Stand-ins of the minor oxides of a rocky body's rock",
+    ("6.228", "6.228 Stand-ins of the vapor pressure over aqueous sulfuric acid and its condensation window",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.209", "6.209 Stand-ins of the nine added star elements",
+    ("6.229", "6.229 Stand-ins of the sulfur-cloud chemistry set and its gates",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.208", "6.208 Stand-ins of the volatility depletion of a rocky body",
+    ("6.235", "6.235 Stand-ins of the carbide deposits of a carbon-rich body",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.224", "6.224 Stand-ins of the hydrothermal and uranium deposits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.223", "6.223 Stand-ins of the sedimentary and biogenic deposits",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.222", "6.222 Stand-ins of the phosphorus budget",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.236", "6.236 Stand-ins of the isotope record of a body",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.227", "6.227 Stand-ins of the crust fields and the magmatic ore types",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.225", "6.225 Stand-ins of the accessory minerals of the asteroid taxon mixes",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.226", "6.226 Stand-ins of the evaporite sequence",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.210", "6.210 Stand-ins of where the mass an outer disk lost goes",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.211", "6.211 Stand-ins of the asteroid field two colliding rogue planets leave",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.214", "6.214 Stand-ins of the volatility depletion of a rocky body",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.215", "6.215 Stand-ins of the nine added star elements",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.216", "6.216 Stand-ins of the minor oxides of a rocky body's rock",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.217", "6.217 Stand-ins of the host-scaled cloud temperatures and the hot-atmosphere trace gases",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.213", "6.213 Stand-ins of the species the disk condenses",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.197", "6.197 Stand-ins of the layers of helium-core and oxygen-neon white dwarfs",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -415,12 +455,81 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.127", "6.127 Stand-ins of the architecture's losses",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.219", "6.219 Stand-ins of the water and carbon a mantle stores",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.234", "6.234 Stand-ins of the superionic boundaries of water and ammonia",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.257", "6.257 Stand-ins of the flavor tree's line weights and chances",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.237", "6.237 Stand-ins of the materials seen since the textbooks",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.238", "6.238 Known gaps kept as watch lines",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.239", "6.239 Stand-ins of the radiation field of a system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.240", "6.240 Stand-ins of the stellar wind of a system and a moon in its parent's field",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.241", "6.241 Stand-ins of the dose from the radiation field",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.242", "6.242 Stand-ins of the drift and evaporation of the ices in the disk",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.243", "6.243 Stand-ins of the spacing of orbits against every neighbour",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.244", "6.244 Stand-ins of the secular exchange of a star's planets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.245", "6.245 Stand-ins of the dissociation of MgSiO3 in the mantles of massive rocky planets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.246", "6.246 Stand-ins of the other suns in a planet's sky",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.250", "6.250 Stand-ins of a companion star's cut of a disk and its belts",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.247", "6.247 Stand-ins of the belt dust and comet influx of a planet",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.248", "6.248 Stand-ins of the day with every sun",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.249", "6.249 Stand-ins of the eclipses of a star by a body of the system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.251", "6.251 Stand-ins of the giant that controls a star's Jupiter-family comets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.252", "6.252 Stand-ins of the effect ledger",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.253", "6.253 Stand-ins of the distance at which a comet turns active",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.254", "6.254 Stand-ins of the late supply a planet takes from the reservoirs of its system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.255", "6.255 Stand-ins of the late accretion the air reads from the system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.256", "6.256 Stand-ins of a companion star's secular forcing of a belt",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.258", "6.258 Stand-ins of the mutual inclination of the orbits of the stars of a multiple",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.259", "6.259 Stand-ins of the bright sources in a body's sky",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.260", "6.260 Stand-ins of the tide raised by every body of a system",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.261", "6.261 Stand-ins of the fudge table",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.262", "6.262 Stand-ins of the Kozai-Lidov pumping of moons",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.263", "6.263 Stand-ins of the phosphorus gases above 6000 K",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.264", "6.264 Stand-ins of the gas a close companion leaves a disk",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.270", "6.270 Stand-ins of the constants the GEN.945 audit shortlisted",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.271", "6.271 Stand-ins of the spin axis and obliquity under every body",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.272", "6.272 Stand-in of the hosts of the asteroid vocabulary names",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 
 UNREAD_COLUMN = "Not read yet (item)"
 """str: A column of every table in the list: the item that will wire a row whose constants nothing in the app reads yet
 (`wiring-register.md`, GEN.754), or a dash."""
+
+EVIDENCE_COLUMN = "Evidence status (GEN.1428)"
+"""str: The column after the tweak-level columns of every table in the list: whether the thing was seen (`STATUSES`)."""
 
 BURN_DOWN_COLUMN = "Burn-down (GEN.946)"
 """str: The last column of every table in the list: what a row at tweak level L3 or L4 needs before it can go (`burn-down-register.md`:
@@ -461,6 +570,39 @@ def burn_down_rows(text):
         if line.startswith("|") and len(cells) == 4 and cells[1] in ("no data", "replace", "replaced"):
             found[cells[0]] = (cells[1], cells[2], cells[3])
     return found
+
+
+def evidence_rows(text):
+    """
+    The evidence register's lines (GEN.1428).
+
+    Returns:
+        dict: `"{section}:{fill_id}"` to `(status, note)`. A key `"{section}:*"` sets the status of every row of that section whose tier is T1 or T2.
+    """
+    found = {}
+    for line in text.splitlines():
+        cells = [_unwrap(cell) for cell in line.strip().strip("|").split("|")]
+        if line.startswith("|") and len(cells) == 3 and cells[1] in {name for name, _ in STATUSES}:
+            found[cells[0]] = (cells[1], cells[2])
+    return found
+
+
+def status_of(number, row, tier, register):
+    """The evidence status of a registry row: its own line in the register, else its section's line for a row at tier T1 or T2, else `DEFAULT_STATUS`."""
+    own = register.get(f"{number}:{row[0]}")
+    if own:
+        return own[0]
+    section = register.get(f"{number}:*")
+    if section and re.match(r"T[12]\b", tier):
+        return section[0]
+    return DEFAULT_STATUS
+
+
+def evidence_problems(tables, register):
+    """The lines of the evidence register that name no registry row or section, one sentence each."""
+    ids = {f"{number}:{row[0]}" for key, number, _, _ in sections() if key in tables for row in tables[key][1]}
+    sections_ = {f"{number}:*" for _, number, _, _ in sections()}
+    return [f"the evidence register names {key}, which is not a registry row or section" for key in register if key not in ids | sections_]
 
 
 def _cells(line):
@@ -561,16 +703,23 @@ def _counts(tables):
     return total, tier_count, tweak_count, cross
 
 
-def render(plan_text, wiring_text="", burn_down_text=""):
+def render(plan_text, wiring_text="", burn_down_text="", evidence_text=""):
     """The text of the list; `wiring_text` is the wiring register, which fills the column of rows nothing reads yet, and
-    `burn_down_text` the burn-down register, which fills the last column."""
+    `burn_down_text` the burn-down register, which fills the last column, and `evidence_text` the evidence register, which sets the status column."""
     tables = registry_tables(plan_text)
+    register = evidence_rows(evidence_text)
     unread = unread_rows(wiring_text)
     burn_down = burn_down_rows(burn_down_text)
-    bad = problems(tables)
+    bad = problems(tables) + evidence_problems(tables, register)
     if bad:
         raise SystemExit("the registry is not complete:\n  " + "\n  ".join(bad))
     total, tier_count, tweak_count, cross = _counts(tables)
+    status_count = {name: 0 for name, _ in STATUSES}
+    for key, number, _, _ in sections():
+        header, rows = tables[key]
+        tier_at = [name.lower() for name in header].index("tier")
+        for row in rows:
+            status_count[status_of(number, row, row[tier_at], register)] += 1
     out = [
         "# Every stand-in value, with its source tier and its tweak level (GEN.725)",
         "",
@@ -595,6 +744,12 @@ def render(plan_text, wiring_text="", burn_down_text=""):
     out += ["", "Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3:40 PM EDT on 2026-10-24).",
             "", "## The tweak levels", "", "| Level | Name | Meaning |", "|---|---|---|"]
     out += [f"| {code} | {name} | {meaning} |" for code, name, meaning in TWEAKS]
+    out += ["", "## The evidence status (GEN.1428)", "",
+            "The tier says how good the source of a number is; the **evidence status** says whether the thing the row stands for has been seen"
+            " (Boss, 10:55 AM EST on 2026-11-08). A row is `predicted only` until [evidence-register.md](evidence-register.md) records, from its source, that"
+            " the thing was observed in a planet or in a lab, or that its detection is disputed.",
+            "", "| Status | Meaning | Rows |", "|---|---|---|"]
+    out += [f"| {name} | {meaning} | {status_count[name]} |" for name, meaning in STATUSES]
     out += ["", "## How many rows are at each tier and tweak level", "",
             "| Tier | " + " | ".join(code for code, _, _ in TWEAKS) + " | All |",
             "|---|" + "---|" * (len(TWEAKS) + 1)]
@@ -620,10 +775,11 @@ def render(plan_text, wiring_text="", burn_down_text=""):
     ]
     for key, number, title, columns in sections():
         header, rows = tables[key]
-        out += [f"## {title}", "", "| " + " | ".join(columns + (UNREAD_COLUMN, BURN_DOWN_COLUMN)) + " |", "|" + "---|" * (len(columns) + 2)]
+        out += [f"## {title}", "", "| " + " | ".join(columns + (EVIDENCE_COLUMN, UNREAD_COLUMN, BURN_DOWN_COLUMN)) + " |", "|" + "---|" * (len(columns) + 3)]
         for row in rows:
             cells = dict(zip(header, row))
             shown = [(_first_option(cells[name]) if name == "Fill (ranked)" else cells[name]) for name in columns]
+            shown.append(status_of(number, row, cells["tier"] if "tier" in cells else cells["Tier"], register))
             shown.append(unread.get(f"{number}:{row[0]}", "-"))
             disposition = burn_down.get(f"{number}:{row[0]}")
             shown.append("-" if disposition is None else disposition[0] + (f" ({disposition[1]})" if disposition[1] != "-" else ""))
@@ -637,8 +793,8 @@ def main(argv=None):
     parser.add_argument("--check", action="store_true", help="fail if the committed list differs from the registry")
     args = parser.parse_args(argv)
     with open(PLAN, encoding="utf-8") as handle, open(WIRING, encoding="utf-8") as wiring, \
-            open(BURN_DOWN, encoding="utf-8") as burn_down:
-        text = render(handle.read(), wiring.read(), burn_down.read())
+            open(BURN_DOWN, encoding="utf-8") as burn_down, open(EVIDENCE, encoding="utf-8") as evidence:
+        text = render(handle.read(), wiring.read(), burn_down.read(), evidence.read())
     if args.check:
         current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
         if current != text:

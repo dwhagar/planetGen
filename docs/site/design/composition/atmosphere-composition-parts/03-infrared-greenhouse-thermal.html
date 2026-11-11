@@ -1,0 +1,1903 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Part 03: Infrared absorption, greenhouse efficiency and thermal structure from composition - planetGen docs</title>
+<meta name="description" content="Research lane for the atmosphere-composition work (v9.0).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.html"><a href="../../../index.html">Site index</a></nav>
+<main>
+<h1 id="part-03-infrared-absorption-greenhouse-efficiency-and-thermal-structure-from-composition">Part 03: Infrared absorption, greenhouse efficiency and thermal structure from composition</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/03-infrared-greenhouse-thermal.md</p><details class="toc"><summary>On this page (31 headings)</summary><ul><li style="margin-left:0px"><a href="#1-scope-and-how-the-numbers-feed-the-generator">1. Scope and how the numbers feed the generator</a></li><li style="margin-left:0px"><a href="#2-greenhouse-gases-band-centers-strength-class-forcing">2. Greenhouse gases: band centers, strength class, forcing</a></li><li style="margin-left:14px"><a href="#21-band-centers-and-strength-per-gas">2.1 Band centers and strength (per gas)</a></li><li style="margin-left:14px"><a href="#22-forcing-parametrisations-coefficients-validity">2.2 Forcing parametrisations (coefficients, validity)</a></li><li style="margin-left:14px"><a href="#23-regime-specific-results-to-calibrate-against-all-from-a-full-radiative-convective-or-lbl-calculation">2.3 Regime-specific results to calibrate against (all from a full radiative-convective or LBL calculation)</a></li><li style="margin-left:0px"><a href="#3-continuum-and-collision-induced-absorption">3. Continuum and collision-induced absorption</a></li><li style="margin-left:14px"><a href="#31-cia-pairs-hitran-cia-files-data">3.1 CIA pairs (HITRAN CIA files, DATA)</a></li><li style="margin-left:14px"><a href="#32-water-vapor-continuum-mt_ckd-43">3.2 Water vapor continuum (MT_CKD 4.3)</a></li><li style="margin-left:0px"><a href="#4-specific-heat-lapse-rates-latent-heat">4. Specific heat, lapse rates, latent heat</a></li><li style="margin-left:0px"><a href="#5-thermal-structure-from-an-analytic-atmosphere">5. Thermal structure from an analytic atmosphere</a></li><li style="margin-left:14px"><a href="#51-r1715-semi-grey-irradiated-read-and-data">5.1 [R1715] (semi-grey, irradiated), READ and DATA</a></li><li style="margin-left:14px"><a href="#52-r3439-two-thermal-and-two-visible-opacities-partly-read">5.2 [R3439] (two thermal and two visible opacities), partly READ</a></li><li style="margin-left:14px"><a href="#53-r3783-and-2014-radiative-convective-analytic-read">5.3 [R3783] and 2014 (radiative-convective, analytic), READ</a></li><li style="margin-left:14px"><a href="#54-surface-temperature-from-tau0-solver-table-test-points-computed">5.4 Surface temperature from tau0: solver, table, test points (COMPUTED)</a></li><li style="margin-left:14px"><a href="#55-downwelling-infrared-and-effective-sky-temperature-computed-from-the-same-model">5.5 Downwelling infrared and effective sky temperature (COMPUTED from the same model)</a></li><li style="margin-left:0px"><a href="#6-rosseland-and-planck-means-and-the-inverse-problem">6. Rosseland and Planck means, and the inverse problem</a></li><li style="margin-left:14px"><a href="#61-r1450-rosseland-fit-h2he-dominated-solar-to-50x-metallicity">6.1 [R1450] Rosseland fit (H2/He-dominated, solar to 50x metallicity)</a></li><li style="margin-left:14px"><a href="#62-what-a-single-grey-tau0-means-and-how-to-build-it-from-composition">6.2 What a single grey tau0 means, and how to build it from composition</a></li><li style="margin-left:14px"><a href="#63-inverse-problem-recipe-given-stored-t_s-p_s-s-g-mix">6.3 Inverse problem recipe (given stored T_s, P_s, S, g, mix)</a></li><li style="margin-left:0px"><a href="#7-albedo-rayleigh-surface-clouds-haze">7. Albedo: Rayleigh, surface, clouds, haze</a></li><li style="margin-left:14px"><a href="#71-rayleigh-cross-sections-data-plus-recalled-depolarisation">7.1 Rayleigh cross-sections (DATA plus RECALLED depolarisation)</a></li><li style="margin-left:14px"><a href="#72-bond-albedo-of-a-conservative-rayleigh-layer-over-a-surface">7.2 Bond albedo of a conservative Rayleigh layer over a surface</a></li><li style="margin-left:14px"><a href="#73-clouds-haze-anti-greenhouse">7.3 Clouds, haze, anti-greenhouse</a></li><li style="margin-left:0px"><a href="#8-day-night-contrast-and-heat-redistribution">8. Day-night contrast and heat redistribution</a></li><li style="margin-left:0px"><a href="#9-runaway-greenhouse-moist-greenhouse-habitable-zone-limits">9. Runaway greenhouse, moist greenhouse, habitable-zone limits</a></li><li style="margin-left:14px"><a href="#91-radiation-limits-read-mostly-arxiv">9.1 Radiation limits (READ, mostly arXiv)</a></li><li style="margin-left:14px"><a href="#92-habitable-zone-flux-coefficients-code-ready">9.2 Habitable-zone flux coefficients (code-ready)</a></li><li style="margin-left:0px"><a href="#10-which-results-can-be-code-which-need-full-radiative-transfer">10. Which results can be code, which need full radiative transfer</a></li><li style="margin-left:0px"><a href="#11-boss-must-research-not-reachable-or-only-partly-reached">11. "Boss must research" (not reachable or only partly reached)</a></li><li style="margin-left:0px"><a href="#12-recalled-or-to-verify">12. Recalled or to verify</a></li><li style="margin-left:0px"><a href="#13-cross-links-to-neighbouring-parts">13. Cross-links to neighbouring parts</a></li></ul></details>
+<p>Research lane for the atmosphere-composition work (v9.0). Read-only research; nothing in the repo was edited. All Solar System bodies appear only as TEST points and are labelled so. Status labels follow <code>_worker-rules.md</code> (READ, 2ND-HAND, DATA, COMPUTED, SNIPPET, RECALLED, NOT REACHED).</p>
+<p>Reachability record for this lane (what actually worked): export.arxiv.org and arxiv.org PDFs (abs and pdf, but arxiv.org/search is a bot page and the export API answers 429); hitran.org (CIA files, MT_CKD page); raw.githubusercontent.com (MT_CKD_H2O netCDF, refractiveindex.info database); pypi.org and files.pythonhosted.org (fair, exo_k, petitRADTRANS sdist); webbook.nist.gov (Shomate cp, Shimanouchi vibrational frequencies); ntrs.nasa.gov API (abstracts); nature.com (abstract only); ipcc.ch (AR6 Ch.7 PDF); api.crossref.org; dspace.library.uvic.ca (author copies of [R0620, R1607]); courses.seas.harvard.edu ([R1302] PDF); faculty.washington.edu/dcatling [R3783]; users.physics.ox.ac.uk [R4773]. Refused or failing: dash.harvard.edu (429), agupubs, science.org, doi.org. No opacity data tables ship inside the exo_k wheel or the petitRADTRANS sdist (they download them), and the PyPI package named &quot;clima&quot; is an unrelated command-line library, not a climate model.</p>
+<hr />
+<h2 id="1-scope-and-how-the-numbers-feed-the-generator">1. Scope and how the numbers feed the generator</h2>
+<p>Today (<code>physics/planets.py</code> 696-716, and the trace in <code>reports/composition-density-link-2026-10-17.md</code> item 4) the surface temperature is <code>T_s = [(1-A) S (1+G) / (4 sigma)]^(1/4)</code> with <code>G = min(cap, base_ratio * class_multiplier)</code>, where <code>base_ratio</code> is the drawn molar density over the CO<sub>2</sub> value. The mix, the pressure and the gravity never enter G. This part supplies what is needed to replace G by a function of composition, pressure, gravity and absorbed flux:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Input (all available after composition is drawn)</th>
+<th>Output</th>
+<th>Where in this file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mole fractions of the radiatively active gases, total pressure P_s, gravity g, mean molar mass</td>
+<td>equivalent grey infrared optical depth <code>tau0</code> at the surface</td>
+<td>sections 2, 3 (needs line data or a precomputed grid; CIA part is coded here)</td>
+</tr>
+<tr>
+<td>absorbed flux F = (1-A) S f / 4-type budget, <code>tau0</code>, adiabatic index gamma, lapse scaling alpha, exponent n</td>
+<td>surface temperature T_s, radiative-convective boundary, tropopause pressure, downwelling IR</td>
+<td>section 5 (closed enough to code)</td>
+</tr>
+<tr>
+<td>composition, P_s, g, stellar spectrum</td>
+<td>Bond albedo from Rayleigh scattering plus surface plus cloud</td>
+<td>section 7</td>
+</tr>
+<tr>
+<td>stored T_s, P_s, S</td>
+<td>consistent (A, tau0) pairs, and the implied &quot;greenhouse factor&quot; G = (T_s/T_e)^4 - 1 for the existing field</td>
+<td>section 6</td>
+</tr>
+<tr>
+<td>T_eq, P_s, tau0</td>
+<td>day-to-night heat redistribution factor</td>
+<td>section 8</td>
+</tr>
+</tbody>
+</table></div>
+<p>The existing multiplier is exactly <code>G + 1 = (T_s/T_e)^4</code>, so every result below can be reported in the repo's own variable. COMPUTED from the test inputs in section 6: Earth G = 0.625, Venus G = 99.6 (the trace report quotes about 101 for Venus's ratio), Titan G = 0.69.</p>
+<hr />
+<h2 id="2-greenhouse-gases-band-centers-strength-class-forcing">2. Greenhouse gases: band centers, strength class, forcing</h2>
+<h3 id="21-band-centers-and-strength-per-gas">2.1 Band centers and strength (per gas)</h3>
+<p>Band positions are the [R4066] gas-phase fundamentals as tabulated at NIST (DATA, accessed at webbook.nist.gov, mask 800, public domain US government data). Where NIST returned no polyatomic table (CO<sub>2</sub>, O<sub>3</sub>, N<sub>2</sub>O, SO<sub>2</sub>, OCS, NO<sub>2</sub>, HCl, HF, CO) the textbook values are RECALLED and repeated in the to-verify list. Strength class column: <code>T</code> = in the [R0620] HITRAN-2012 saturated blackbody absorption ranking (READ: &quot;H2O ranks 11th strongest, CO<sub>2</sub> and CH<sub>4</sub> rank 16th and 27th&quot; of the ~40 HITRAN gases tested, so per molecule many minor gases beat CO<sub>2</sub> and CH<sub>4</sub>; their abundance, not strength, is what limits them). <code>F</code> = forcing statements from the same paper (READ): &quot;radiative forcings of up to a few to 10 W m-2 from concentrations of 0.1-1 ppmv for many gases&quot;.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>Fundamentals, cm-1 (um)</th>
+<th>Strength class and notes</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>nu2 bend 1594.59 (6.27); nu1 3656.65 (2.73); nu3 3755.79 (2.66); pure rotation band below about 600 cm-1 (beyond 17 um); window 800-1250 cm-1 held by the continuum (section 3.2)</td>
+<td>very strong; rank 11; dominant on warm worlds; condensable, so its column is set by T and RH</td>
+<td>NIST/[R4066]; rank from [R0620]</td>
+<td>DATA; rank READ; rotation edge RECALLED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>nu2 667 (15.0); nu3 2349 (4.26); 2nu2/nu1 Fermi dyad about 1388 and 1285 (7.2, 7.8); hot bands about 960 and 1063 (10.4, 9.4)</td>
+<td>strong in band center, saturated; rank 16; far wings plus CIA matter at tens of bar</td>
+<td>recalled</td>
+<td>RECALLED; rank READ</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>nu4 1306.2 (7.66); nu2 1533.6 (6.52); nu1 2917 (3.43); nu3 3018.9 (3.31)</td>
+<td>rank 27 in the saturated metric; strong near-IR absorption also absorbs sunlight, so forcing saturates: peak 10.3, 9, 8.3 W m-2 for 0.5, 1, 2 bar N<sub>2</sub> (READ in B&amp;G 2014b)</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>nu2 umbrella 932.5/968.3 (10.3, 10.7); nu4 1626 (6.15); nu1 3336; nu3 3444</td>
+<td>strong; window-filling at 10 um; broadening-sensitive: 55-60 percent of the forcing difference between 0.5 and 2 bar N<sub>2</sub> at 5 ppm is pressure broadening (READ)</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>nu2 1182.7 (8.45); nu1 2614.6 (3.82); nu3 2626 (3.81)</td>
+<td>strong band but narrow; listed among the weaker per-molecule gases in the B&amp;G ordering</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>nu2 bend 711.98 (14.04); nu3 CN 2096.85 (4.77); nu1 CH 3311.47 (3.02)</td>
+<td>strong, overlaps the 15 um CO<sub>2</sub> band; in the &quot;forcings of order 10 W m-2 at under 1 ppmv&quot; group</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>6</sub></td>
+<td>CH<sub>3</sub> rock nu12 821.6 (12.2); CH<sub>3</sub> deform 1379-1469 (6.8-7.3); CH stretch 2896-2985 (3.4); torsion 289</td>
+<td>moderate; fills the 12 um window; important for Titan-like and methane-photochemistry worlds</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>2</sub></td>
+<td>nu5 CH bend 730.3 (13.7); nu2 CC 1973.8 (5.07); nu3 3289 (3.04)</td>
+<td>strong (rank 6 by the saturated metric); photochemical product</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>CO</td>
+<td>nu2 CO 1746.1 (5.73); nu3 CH<sub>2</sub> scis 1500.1; nu5 1249.1; nu6 1167.3; nu1/nu4 2782.5/2843.1</td>
+<td>HITRAN lacks the 1000-1550 cm-1 band; B&amp;G note it would be optically thick above 5e-6 (READ)</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>Cl</td>
+<td>nu3 CCl 732.1 (13.7); nu6 rock 1017.3 (9.8); nu2 1354.9 (7.4); nu5 1452.1</td>
+<td>in the strong group of the saturated ranking</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>C<sub>2</sub>H<sub>4</sub></td>
+<td>nu7 wag 949.3 (10.5); nu10 rock 826.0 (12.1); nu12 1443.5; nu11 2988.66</td>
+<td>strong at 10.5 um window; HITRAN underestimates (B&amp;G apply a factor 0.1 on abundance)</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>PH<sub>3</sub></td>
+<td>nu2 992.1 (10.1); nu4 1118.3 (8.9); nu1 2322.9; nu3 2327.7</td>
+<td>window absorber; broadening-sensitive</td>
+<td>NIST</td>
+<td>DATA</td>
+</tr>
+<tr>
+<td>CH<sub>3</sub>OH</td>
+<td>nu8 CO str 1033 (9.68); nu6 OH bend 1345; CH<sub>3</sub> modes 1455-1477, 2844-3000; OH str 3681</td>
+<td>rank 1 in the saturated metric (strongest per molecule)</td>
+<td>NIST; B&amp;G 2014b</td>
+<td>DATA; READ</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>nu3 1042 (9.6); nu1 1110; nu2 705 (14.2)</td>
+<td>strong, but it is also a strong UV/visible absorber, so it heats the stratosphere (affects tropopause, section 5)</td>
+<td>recalled</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>nu2 589 (17); nu1 1285 (7.8); nu3 2224 (4.5)</td>
+<td>moderate; overlaps CO<sub>2</sub></td>
+<td>recalled</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>nu2 518 (19.3); nu1 1151 (8.7); nu3 1362 (7.3)</td>
+<td>strong (rank 8); also a strong UV absorber</td>
+<td>recalled; rank B&amp;G 2014b</td>
+<td>RECALLED; rank READ</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>fundamental about 2143 (4.67)</td>
+<td>poor absorber, still optically thin at 1 bar for a pure-CO atmosphere (READ in [R2434, R2435], his Fig. 4 text)</td>
+<td>[R2435]</td>
+<td>READ; band RECALLED</td>
+</tr>
+<tr>
+<td>OCS, NO<sub>2</sub>, HCl, HF, HNO<sub>3</sub></td>
+<td>OCS about 520, 859, 2062; NO<sub>2</sub> about 750, 1318, 1618; HCl about 2886; HF about 3962</td>
+<td>all listed by B&amp;G among HITRAN gases that reach 10 W m-2 below 1e-5 for the strongest of them</td>
+<td>recalled</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>, O<sub>2</sub>, H<sub>2</sub>, He, Ar, Ne, Kr, Xe</td>
+<td>no permanent dipole: no fundamental absorption; only collision-induced bands (section 3.1) and, for O<sub>2</sub>, weak magnetic-dipole bands</td>
+<td>transparent in lines; important only as CIA partners and as broadening gas</td>
+<td>physics</td>
+<td>READ in [R4773] text for H<sub>2</sub> and N<sub>2</sub></td>
+</tr>
+<tr>
+<td>SiO</td>
+<td>fundamental about 1242 (8.05)</td>
+<td>hot-body species (lava worlds); no reachable line-strength data in this lane</td>
+<td>recalled</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>TiO, VO, Na, K, Fe, Mg</td>
+<td>electronic bands and resonance lines in the visible and near-IR; they act as shortwave absorbers (large gamma in the Guillot sense)</td>
+<td>thermal inversions in hot Jupiters when present ([R1715]: strong TiO/VO absorption gives gamma large and a temperature inversion)</td>
+<td>[R1715]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Species in the project text that have no standard band entry here: perchlorates, carbonates, sulfuric acid and mineral dust (they act as aerosols; see section 7 and the aerosol lane), and noble gases Ne, Kr, Xe (transparent; no fundamentals).</p>
+<p>Mid-IR forcing regime (READ in [R2435] text, citing [R3519]): weak-line limit tau proportional to p; strong-line (Lorentz wing) limit proportional to sqrt(p); band saturation gives logarithmic dependence on pressure and on abundance; CIA gives p squared. This is the physical reason for the linear, square-root and logarithmic forms below.</p>
+<h3 id="22-forcing-parametrisations-coefficients-validity">2.2 Forcing parametrisations (coefficients, validity)</h3>
+<p>C is CO<sub>2</sub> in ppm, M is CH<sub>4</sub> in ppb, N is N<sub>2</sub>O in ppb unless stated. F in W m-2, relative to the baseline subscript 0.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Expression</th>
+<th>Validity</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>[R3229] / IPCC 1990 CO<sub>2</sub></td>
+<td>F = 5.35 ln(C/C0)</td>
+<td>180-1000 ppm; B&amp;G 2014 find it underestimates above 1000 ppm</td>
+<td>[R0620: Table 1], citing IPCC 1990 and [R3229]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>F = 4.841 ln(C/C0) + 0.0906 (sqrt C - sqrt C0)</td>
+<td>to about 1e4 ppm within 10 percent</td>
+<td>same Table 1</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>WMO 1999 CO<sub>2</sub></td>
+<td>F = 3.35 [g(C) - g(C0)], g(C) = ln(1 + 1.2 C + 0.005 C^2 + 1.4e-6 C^3)</td>
+<td>very close to line-by-line to 50000 ppm</td>
+<td>same Table 1</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>IPCC 1990 CH<sub>4</sub></td>
+<td>F = 0.036 (sqrt M - sqrt M0) - [f(M,N0) - f(M0,N0)]</td>
+<td>fails above 20 ppm</td>
+<td>same Table 1</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>IPCC 1990 N<sub>2</sub>O</td>
+<td>F = 0.12 (sqrt N - sqrt N0) - [f(M0,N) - f(M0,N0)]</td>
+<td>fails above 10 ppm</td>
+<td>same Table 1</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>overlap f(M,N)</td>
+<td>f = 0.47 ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]</td>
+<td>all above</td>
+<td>same Table 1</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>[R0620] CO<sub>2</sub></td>
+<td>F = 5.32 ln(C/C0) + 0.39, concentrations as mole fractions, C0 = 278e-6</td>
+<td>200-10000 ppm</td>
+<td>their Table 2 (authoritative version with the erratum brackets)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>B&amp;G 2014a CH<sub>4</sub></td>
+<td>F = 1173 (sqrt M - sqrt M0) - 71636 (sqrt M - sqrt M0)^2 for 0.1-2.5 ppm; F = 0.824 + 5 ln(M/M1)/4 + 5 [ln(M/M1)]^2/1 .. see note</td>
+<td>0.1-100 ppm; M0 = 715e-9, M1 = 2.5e-6</td>
+<td>their Table 2 (the extracted text of the high-range line is garbled: it reads &quot;0.824 + (5/4) ln(M/M1) + (1/5)... [ln(M/M1)]^2&quot;; verify before coding)</td>
+<td>READ for 0.1-2.5 ppm line; high-range line to verify</td>
+</tr>
+<tr>
+<td>B&amp;G 2014a N<sub>2</sub>O</td>
+<td>F = 3899 (sqrt N - sqrt N0) + 38256 (sqrt N - sqrt N0)^2 for 0.1-2.5 ppm; F = 4.182 + 3 ln(N/N1) + 0.5469 [ln(N/N1)]^2 for 2.5-100 ppm</td>
+<td>N0 = 270e-9, N1 = 2.5e-6</td>
+<td>their Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>B&amp;G 2014a overlaps</td>
+<td>N<sub>2</sub>O-CO2: dF = -16.16 exp(-0.036 (ln(C-C0) - 0.0024)^2 - 0.05 (ln(N-N0) + 6.5)^2); N<sub>2</sub>O-CH4: dF = -24 exp(-0.02 (ln(M-M0) - 0.01)^2 - 0.044 (ln(N-N0) + 7.73)^2)</td>
+<td>overlaps below 0.1 W m-2 up to RCP8.5-2250 levels</td>
+<td>their Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R1302] CO<sub>2</sub></td>
+<td>F = [a1 (C-C0)^2 + b1 abs(C-C0) + c1 Nbar + 5.36] ln(C/C0); a1 = -2.4e-7, b1 = 7.2e-4, c1 = -2.1e-4 (units W m-2 ppm-2, ppm-1, ppb-1)</td>
+<td>180-2000 ppm; fit error 3.6 percent (0.15 W m-2)</td>
+<td>[R1302: Table 1]; coefficients also found in <code>fair</code> 2.2.5 <code>forcing/ghg.py</code> (Apache-2.0)</td>
+<td>READ; DATA</td>
+</tr>
+<tr>
+<td>[R1302] N<sub>2</sub>O</td>
+<td>F = [a2 Cbar + b2 Nbar + c2 Mbar + 0.117] (sqrt N - sqrt N0); a2 = -8.0e-6, b2 = 4.2e-6, c2 = -4.9e-6</td>
+<td>200-525 ppb</td>
+<td>same</td>
+<td>READ; DATA</td>
+</tr>
+<tr>
+<td>[R1302] CH<sub>4</sub></td>
+<td>F = [a3 Mbar + b3 Nbar + 0.043] (sqrt M - sqrt M0); a3 = -1.3e-6, b3 = -8.2e-6</td>
+<td>340-3500 ppb</td>
+<td>same</td>
+<td>READ; DATA</td>
+</tr>
+<tr>
+<td>AR6 statement</td>
+<td>the Etminan fit is the AR6 standard; Etminan CH<sub>4</sub> includes shortwave forcing and a water-continuum update that raised CH<sub>4</sub> forcing by 25 percent over [R3229]</td>
+<td>n/a</td>
+<td>IPCC AR6 WGI Ch.7 text (ipcc.ch PDF)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R0620]: CO<sub>2</sub></td>
+<td>at 1e-2 mole fraction CO<sub>2</sub> on 2, 1, 0.5 bar N<sub>2</sub>: 35, 26, 15 W m-2; shortwave forcing -2, -4, -18 W m-2 at 0.01, 0.1, 1 (Rayleigh scattering of the larger atmosphere plus near-IR absorption)</td>
+<td>LBL SMART, HITRAN 2012, Earth-like T-p, N<sub>2</sub>-H2O background</td>
+<td>[R0620]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>generic gas, many</td>
+<td>F up to about 10 W m-2 at 0.1-1 ppmv; the ranking of concentration needed for 10 W m-2 is: CH<sub>3</sub>OH, HCOOH, HNO<sub>3</sub>, CH<sub>3</sub>Cl, COF2, HCN, H<sub>2</sub>O<sub>2</sub>, PH<sub>3</sub>, CH<sub>3</sub>Br, C<sub>2</sub>H<sub>4</sub>, SO<sub>2</sub>, OCS, NH<sub>3</sub>, HOCl, O<sub>3</sub>, N<sub>2</sub>O ... (panel order of their Fig. 11, extracted from a two-column layout, so the order beyond the first few is uncertain)</td>
+<td>1e-8 to 1e-5, 0.5-2 bar N<sub>2</sub></td>
+<td>[R0620]</td>
+<td>READ (order partly uncertain)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Use: the forms are only valid as perturbations around a reference state (Earth-like profile, H<sub>2</sub>O vapor present, N<sub>2</sub> background). They cannot be applied to a CO<sub>2</sub>-dominated, H<sub>2</sub>-dominated or steam atmosphere; for those, section 3 and section 5 apply.</p>
+<h3 id="23-regime-specific-results-to-calibrate-against-all-from-a-full-radiative-convective-or-lbl-calculation">2.3 Regime-specific results to calibrate against (all from a full radiative-convective or LBL calculation)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Result</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H<sub>2</sub>-N2 warming of an Archean-like Earth: 2-3 times present N<sub>2</sub>, H<sub>2</sub> mixing ratio 0.1</td>
+<td>surface above 0 C at 75 percent of present flux with CO<sub>2</sub> only 2-25 times present; H<sub>2</sub>-N2 forcing above 24 W m-2 at 280 K or less in the high scenario; at 1 PAL N<sub>2</sub> only a few W m-2, 2-3 K</td>
+<td>[R4773]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>-N2 CIA in the window</td>
+<td>N<sub>2</sub>-H2 peaks in the 750-1200 cm-1 window; H<sub>2</sub>-H2 broad but weak because it scales with the square of H<sub>2</sub>; N<sub>2</sub>-N2 far from the blackbody peak at terrestrial T</td>
+<td>same</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Early Mars</td>
+<td>1.3-4 bar CO<sub>2</sub> plus water with 5-20 percent H<sub>2</sub> raises mean T above freezing</td>
+<td>no source</td>
+<td>READ (abstract only)</td>
+</tr>
+<tr>
+<td>Volcanic hydrogen habitable zone</td>
+<td>outer edge at 50 percent H<sub>2</sub>: 2.4 AU for the Sun, Seff 0.1723; at 10 percent: 2.02 AU; inner edge moves only 0.1-4 percent</td>
+<td>[R3651: Tables 1 and 2]</td>
+<td>READ; COMPUTED distances</td>
+</tr>
+<tr>
+<td>Hot desert world inner edge</td>
+<td>as close as 0.38 AU for a solar-like star with about 1 percent relative humidity and raised albedo; 1-10 bar needed to limit water loss</td>
+<td>[R4915]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Water loss with CO<sub>2</sub>-rich air</td>
+<td>efficient loss around G stars only for CO<sub>2</sub> 0.1-1 bar near the runaway limit; around M stars less than about 270 W m-2 absorbed gives under one ocean lost</td>
+<td>[R4773]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="3-continuum-and-collision-induced-absorption">3. Continuum and collision-induced absorption</h2>
+<h3 id="31-cia-pairs-hitran-cia-files-data">3.1 CIA pairs (HITRAN CIA files, DATA)</h3>
+<p>Source: hitran.org/cia, files under <code>/data/CIA/main/</code>, listed with their year tag. Coefficients are binary absorption coefficients k(nu, T) in cm^5 molecule^-2 (HITRAN convention; sanity check: the H<sub>2</sub>-N2 grey optical depth computed below for the [R4773] scenario comes out at order unity, consistent with their tens of W m-2 forcing). The absorption coefficient in cm-1 is <code>k * n1 * n2</code> with n in cm-3. The files carry licence terms of HITRAN (see hitran.org/citepolicy; cite [R2267] for the CIA compilation, RECALLED reference). Every row COMPUTED means: I parsed the file, took the block nearest the stated temperature for each separate band block (blocks for the same pair come at different temperatures per band), and formed the Planck-weighted mean <code>kP(T) = integral k B_nu dnu / integral B_nu dnu</code> over the full Planck function (zero outside the file's range).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Pair (file)</th>
+<th>T grid in file (K)</th>
+<th>Spectral coverage (cm-1)</th>
+<th>kP at selected T, cm^5 molecule^-2</th>
+<th>Notes</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub>-N2 (N<sub>2</sub>-N2_2021)</td>
+<td>70-400 (rotational, 0-450/550/650 cm-1), 200-362 (fundamental 1850-3000 cm-1), 200-330 (overtone 4300-5000)</td>
+<td>0-5000</td>
+<td>1.7e-45 (100 K), 6.8e-46 (150 K), 3.9e-46 (200 K), 2.6e-46 (250 K), 1.9e-46 (300 K), 1.5e-46 (400 K)</td>
+<td>strong at Titan temperature, small at 288 K; the far-IR rotational part dominates</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>-H2 (N<sub>2</sub>-H2_2024)</td>
+<td>40-400 (0-1886 cm-1), 296 (3900-5100)</td>
+<td>0.02-5100</td>
+<td>7.6e-45 (100 K), 9.7e-45 (150 and 200 K), 8.8e-45 (250 K), 7.6e-45 (300 K), 5.9e-45 (400 K)</td>
+<td>about 40 times stronger per pair than N<sub>2</sub>-N2 near 300 K; peaks in the window</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>-H2 (H<sub>2</sub>-H2_2011)</td>
+<td>200-3000</td>
+<td>20-10000</td>
+<td>3.0e-45 (200 K), 3.1e-45 (250 K), 3.0e-45 (300 K), 2.7e-45 (400 K), 2.4e-45 (600 K), 2.3e-45 (800 K), 2.8e-45 (1000 K), 3.5e-45 (1500 K), 3.9e-45 (2000 K), 2.6e-45 (3000 K)</td>
+<td>file does not go below 200 K, so Uranus/Neptune/Saturn upper levels are outside it; alternates at hitran.org/data/CIA/alternate (H<sub>2</sub>-H2_eq_2018, _norm_2018, ortho-para fractions _fp0.3 to _fp1) exist but were not parsed</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>-He (H<sub>2</sub>-He_2011)</td>
+<td>200-9900</td>
+<td>20-20000</td>
+<td>1.1e-45 (200 K), 1.1e-45 (250 K), 1.2e-45 (300 K), 1.2e-45 (400 K), 1.1e-45 (600 K), 1.3e-45 (800 K), 1.9e-45 (1000 K), 3.0e-45 (1500 K), 3.6e-45 (2000 K), 3.2e-45 (3000 K)</td>
+<td>alternate H<sub>2</sub>-He_exp_2024 exists; 147 MB file</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-CO2 (CO<sub>2</sub>-CO2_2024)</td>
+<td>192-800 (several band blocks)</td>
+<td>1-4500</td>
+<td>4.1e-45 (200 K), 3.0e-45 (250 K), 3.0e-45 (300 K), 3.5e-45 (400 K), 3.4e-45 (600 K), 8e-47 (800 K, only the 1-750 cm-1 block exists there)</td>
+<td>covers CIA only; far-wing &quot;continuum&quot; of the 15 um band is not in this file</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-H2 (CO<sub>2</sub>-H2_2024)</td>
+<td>100-600</td>
+<td>5-1500</td>
+<td>6.7e-44 (100 K), 3.8e-44 (200 K), 2.7e-44 (300 K), 2.0e-44 (400 K), 1.2e-44 (600 K)</td>
+<td>about 10 times CO<sub>2</sub>-CO2 per pair; the basis of the early-Mars warming</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-CH4 (CO<sub>2</sub>-CH4_2024)</td>
+<td>100-600</td>
+<td>0-720</td>
+<td>1.2e-43 (100 K), 1.8e-44 (200 K), 7.2e-45 (300 K), 3.5e-45 (400 K), 1.5e-45 (600 K)</td>
+<td>steep fall with T</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>-CH4 (N<sub>2</sub>-CH4_2024)</td>
+<td>70-400</td>
+<td>0-800</td>
+<td>1.4e-44 (100 K), 6.8e-45 (150 K), 4.2e-45 (200 K), 3.0e-45 (250 K), 2.3e-45 (300 K), 1.6e-45 (400 K)</td>
+<td>Titan-relevant</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>-CH4 (H<sub>2</sub>-CH4_eq_2011, _norm_2011)</td>
+<td>40-400</td>
+<td>0.02-1946</td>
+<td>1.5e-44 (111 K), 1.9e-44 (144 K), 1.9e-44 (186 K), 1.7e-44 (240 K), 1.5e-44 (310 K), 1.1e-44 (400 K)</td>
+<td>giant-planet and Titan</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub>-O2, O<sub>2</sub>-N2 (2024 files)</td>
+<td>193-356</td>
+<td>1150-33670</td>
+<td>O<sub>2</sub>-O2: 8e-47 (250 K), 1.7e-46 (300 K), 4e-46 (350 K); O<sub>2</sub>-N2: 8e-47 (250 K), 1.7e-46 (300 K), 3.8e-46 (360 K)</td>
+<td>mostly near-IR and visible (about 1.27 and 1.06 um); heats air, irrelevant for the greenhouse</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-H2O (CO<sub>2</sub>-H2O_2024), N<sub>2</sub>-H2O (N<sub>2</sub>-H2O_2018)</td>
+<td>296; 250-350</td>
+<td>5700-6300; 1930-2830</td>
+<td>negligible in the thermal window (about 1e-55 and 1e-47 weighted)</td>
+<td>near-IR pairs only; the CO<sub>2</sub>-H2O and N<sub>2</sub>-H2O far-IR continuum is not given here</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub>-He, CO<sub>2</sub>-He, N<sub>2</sub>-He, CO<sub>2</sub>-Ar, N<sub>2</sub>-Ar, N<sub>2</sub>-air, O<sub>2</sub>-air, H<sub>2</sub>-H, He-H</td>
+<td>see files</td>
+<td>see files</td>
+<td>not parsed except CH<sub>4</sub>-He: 1.2e-45 (100 K), 1.0e-45 (150 K), 1.1e-45 (200 K), 8.6e-46 (300 K)</td>
+<td>present in HITRAN; Ar, He, H partners are weak</td>
+<td>DATA (listing); CH<sub>4</sub>-He COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>-N2, CO<sub>2</sub>-O2 far-IR, H<sub>2</sub>O-H2O, NH<sub>3</sub>, HCN, C<sub>2</sub>H<sub>6</sub> pairs</td>
+<td>none in the HITRAN CIA list</td>
+<td>n/a</td>
+<td>n/a</td>
+<td>the H<sub>2</sub>O-H2O continuum is separate (3.2); CO<sub>2</sub>-N2 CIA is missing</td>
+<td>NOT REACHED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Grey conversion for coding (COMPUTED derivation, assumes an isothermal hydrostatic layer, ideal gas, mole fractions x1 and x2 of the pair):</p>
+<pre><code>tau_CIA,thin = kP(T) * x1 * x2 * n0^2 * H / 2
+n0 = P_s / (k_B T)  [cm-3],   H = k_B T / (m_bar g)  [cm]
+</code></pre>
+<p>For optically thick bands the Planck-thin value overestimates. [R2435] (his Eq. 13, READ) defines an equivalent grey thickness <code>tau_LW = -ln[ integral exp(-tau_nu) B_nu dnu / integral B_nu dnu ]</code>; I applied it to CIA alone, using the file blocks at the stated T:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Case (isothermal column)</th>
+<th>tau_eq (Koll definition), CIA only</th>
+<th>Planck-thin</th>
+<th>Role</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3.3 bar, 90 percent N<sub>2</sub> + 10 percent H<sub>2</sub>, 273 K, g = 9.81 ([R4773] scenario, TEST)</td>
+<td>1.26</td>
+<td>2.6</td>
+<td>explains their large forcing</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1.1 bar, same mix</td>
+<td>0.25</td>
+<td>0.29</td>
+<td>few W m-2 forcing at 1 PAL N<sub>2</sub></td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1 bar N<sub>2</sub> alone, 288 K</td>
+<td>0.040</td>
+<td>0.057</td>
+<td>negligible</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Titan-like 1.47 bar N<sub>2</sub>, 94 K, g = 1.35 (TEST), N<sub>2</sub>-N2 only</td>
+<td>1.24</td>
+<td>26</td>
+<td>Titan's N<sub>2</sub> CIA is optically thick in its rotational band</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Titan-like N<sub>2</sub>-CH4 pair, 5 percent CH<sub>4</sub> (TEST)</td>
+<td>2.5</td>
+<td>11</td>
+<td>comparable to N<sub>2</sub>-N2</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>3 bar CO<sub>2</sub>, 250 K, g = 3.71 (early-Mars-like, TEST)</td>
+<td>0.28</td>
+<td>14.6</td>
+<td>CIA alone is a modest window closer</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>3 bar, 90 percent CO<sub>2</sub> + 10 percent H<sub>2</sub>, 250 K, g = 3.71 (scenario)</td>
+<td>2.4</td>
+<td>16.8</td>
+<td>an H<sub>2</sub> admixture multiplies the CIA effect by about 9</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mars-like 6.4 mbar CO<sub>2</sub>, 220 K (TEST)</td>
+<td>8.5e-5</td>
+<td>8.5e-5</td>
+<td>CIA irrelevant when thin</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Venus-like 92 bar CO<sub>2</sub>, 735 K (TEST, CIA file stops at 800 K and below 750 cm-1)</td>
+<td>0.056</td>
+<td>65</td>
+<td>in the file's range the CIA is far from the Planck peak; lines and window continuum dominate</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>10 bar, 85 percent H<sub>2</sub> (rest He), 300 K, g = 12 (hycean-like)</td>
+<td>6.5 (H<sub>2</sub>-H2) plus 3.6 (H<sub>2</sub>-He part)</td>
+<td>569 and 39</td>
+<td>a dense H<sub>2</sub> envelope is optically thick in CIA alone</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>1 bar H<sub>2</sub>/He, 165 K, g = 24.8 (giant-like; nearest file block used, outside the 25 percent temperature tolerance in spirit)</td>
+<td>1.9</td>
+<td>4.6</td>
+<td></td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>The tau_eq values are lower bounds on the real grey thickness because they omit lines, the water continuum and the non-isothermal profile, and they add (not exactly) to the line part.</p>
+<h3 id="32-water-vapor-continuum-mt_ckd-43">3.2 Water vapor continuum (MT_CKD 4.3)</h3>
+<p>Data: <code>data/absco-ref_wv-mt-ckd.nc</code> from github.com/AER-RC/MT_CKD_H2O (read via raw.githubusercontent.com; netCDF classic, 2003 points, 10 cm-1 steps from -20 to 20000; reference 1013 mbar and 296 K; licence file in the repo, AER; general reference [R3104]; version note says changes to the foreign continuum above 4000 cm-1 in 2023). The file stores the self and foreign continuum coefficients C(nu) in cm^2 molecule^-1 cm-1; the scaling I used is <code>sigma(nu) = nu tanh(h c nu / 2 k T) * [C_self (n_h2o/n_ref) (296/T)^texp + C_for (n_for/n_ref)]</code> in cm^2 per H<sub>2</sub>O molecule, which follows the text of the repo README (density scaling, self temperature exponent file <code>self_texp</code>) but whose exact radiation-term convention I did not verify in the user guide (to verify).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>nu (cm-1)</th>
+<th>wavelength (um)</th>
+<th>C_self (296 K)</th>
+<th>C_foreign</th>
+<th>self T exponent</th>
+<th>sigma_self at n_h2o = n_ref (cm2)</th>
+<th>sigma_foreign at n_for = n_ref (cm2)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>200</td>
+<td>50</td>
+<td>3.03e-22</td>
+<td>2.20e-23</td>
+<td>2.76</td>
+<td>2.7e-20</td>
+<td>2.0e-21</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>400</td>
+<td>25</td>
+<td>2.22e-23</td>
+<td>2.34e-25</td>
+<td>1.63</td>
+<td>6.7e-21</td>
+<td>7.0e-23</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>600</td>
+<td>16.7</td>
+<td>2.64e-24</td>
+<td>1.27e-26</td>
+<td>3.06</td>
+<td>1.4e-21</td>
+<td>6.8e-24</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>800</td>
+<td>12.5</td>
+<td>4.62e-25</td>
+<td>1.33e-27</td>
+<td>5.06</td>
+<td>3.5e-22</td>
+<td>1.0e-24</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>1000</td>
+<td>10</td>
+<td>1.33e-25</td>
+<td>2.45e-28</td>
+<td>5.64</td>
+<td>1.3e-22</td>
+<td>2.4e-25</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>1200</td>
+<td>8.3</td>
+<td>7.0e-26</td>
+<td>4.2e-28</td>
+<td>6.11</td>
+<td>8.4e-23</td>
+<td>5.0e-25</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>2500</td>
+<td>4.0</td>
+<td>3.4e-27</td>
+<td>7.3e-31</td>
+<td>6.21</td>
+<td>8.5e-24</td>
+<td>1.8e-27</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>3600</td>
+<td>2.8</td>
+<td>3.9e-25</td>
+<td>3.2e-26</td>
+<td>2.42</td>
+<td>1.4e-21</td>
+<td>1.2e-22</td>
+<td>DATA; COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Reading: the self continuum dominates over the foreign continuum by factors of 100-1000 in the window, and its temperature exponent rises to about 5-6 in the window, so the window closes steeply with warming: this is the physical origin of the water runaway ([R1607]: at about 280-310 K the surface starts to radiate through the window only weakly; above 310 K the emitting level stays between 250 and 300 K, READ in the arXiv-less author copy, Nature Geosci. 6, 661). [R2446] (READ) found that omitting the continuum moves the runaway limit from 0.97 AU to 0.76 AU.</p>
+<hr />
+<h2 id="4-specific-heat-lapse-rates-latent-heat">4. Specific heat, lapse rates, latent heat</h2>
+<p>Heat capacities from the NIST Shomate fits (DATA; NIST-JANAF; valid ranges differ per species and the CO<sub>2</sub>, H<sub>2</sub>, CH<sub>4</sub>, NH<sub>3</sub>, SO<sub>2</sub>, H<sub>2</sub>S, CO, N<sub>2</sub>O, HCN fits start at 298 K, N<sub>2</sub> and O<sub>2</sub> at 100 K, H<sub>2</sub>O at 500 K). Computed from the Shomate polynomial; cp/R and gamma at 300 K are COMPUTED from them. Molar masses from IUPAC (RECALLED values to 4 digits, trivial).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>M (g/mol)</th>
+<th>cp (J/mol/K) at 300 K</th>
+<th>at 500 K</th>
+<th>at 1000 K</th>
+<th>cp/R at 300 K</th>
+<th>gamma (cp/cv) at 300 K</th>
+<th>cp (J/kg/K) at 300 K</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub></td>
+<td>28.013</td>
+<td>29.12</td>
+<td>29.58</td>
+<td>32.69</td>
+<td>3.50</td>
+<td>1.400</td>
+<td>1040</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>2</sub></td>
+<td>31.998</td>
+<td>29.39</td>
+<td>31.08</td>
+<td>34.86</td>
+<td>3.54</td>
+<td>1.394</td>
+<td>919</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>44.010</td>
+<td>37.22</td>
+<td>44.61</td>
+<td>54.30</td>
+<td>4.48</td>
+<td>1.288</td>
+<td>846</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub> (equilibrium-type fit, 298 K and up)</td>
+<td>2.016</td>
+<td>28.85</td>
+<td>29.26</td>
+<td>30.20</td>
+<td>3.47</td>
+<td>1.405</td>
+<td>14311</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>O</td>
+<td>18.015</td>
+<td>not in range</td>
+<td>35.22</td>
+<td>41.27</td>
+<td>n/a</td>
+<td>about 1.33 steam at 500 K</td>
+<td>n/a</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CH<sub>4</sub></td>
+<td>16.043</td>
+<td>35.71</td>
+<td>46.35</td>
+<td>71.79</td>
+<td>4.30</td>
+<td>1.303</td>
+<td>2226</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>NH<sub>3</sub></td>
+<td>17.031</td>
+<td>35.70</td>
+<td>42.03</td>
+<td>56.50</td>
+<td>4.29</td>
+<td>1.304</td>
+<td>2096</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>SO<sub>2</sub></td>
+<td>64.064</td>
+<td>39.94</td>
+<td>46.56</td>
+<td>54.47</td>
+<td>4.80</td>
+<td>1.263</td>
+<td>623</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>S</td>
+<td>34.081</td>
+<td>34.22</td>
+<td>37.20</td>
+<td>45.75</td>
+<td>4.12</td>
+<td>1.321</td>
+<td>1004</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>CO</td>
+<td>28.010</td>
+<td>29.15</td>
+<td>29.82</td>
+<td>33.18</td>
+<td>3.51</td>
+<td>1.399</td>
+<td>1041</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub>O</td>
+<td>44.013</td>
+<td>38.70</td>
+<td>45.82</td>
+<td>54.87</td>
+<td>4.65</td>
+<td>1.274</td>
+<td>879</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>HCN</td>
+<td>27.025</td>
+<td>35.93</td>
+<td>41.72</td>
+<td>50.23</td>
+<td>4.32</td>
+<td>1.301</td>
+<td>1329</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>O<sub>3</sub></td>
+<td>47.998</td>
+<td>39.33</td>
+<td>47.22</td>
+<td>55.00</td>
+<td>4.73</td>
+<td>1.268</td>
+<td>819</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>He, Ne, Ar, Kr, Xe</td>
+<td>monatomic</td>
+<td>5R/2 = 20.786</td>
+<td>same</td>
+<td>same</td>
+<td>2.5</td>
+<td>1.667</td>
+<td>He: 5193</td>
+<td>COMPUTED (kinetic theory)</td>
+</tr>
+</tbody>
+</table></div>
+<p>H<sub>2</sub> caveat: below about 200 K the ortho-para ratio and rotational freeze-out change cp; Shomate here is not valid there; cold-giant lapse rates need ortho/para-resolved cp (NOT REACHED in this lane). Real-gas effects (cp rising with pressure) are significant at tens of bar for CO<sub>2</sub> and are not in these ideal-gas values.</p>
+<p>Dry adiabatic lapse rate <code>Gamma_d = g / cp_mass</code>, and the exponent kappa = R/cp. COMPUTED test points (the gravity and composition are the TEST bodies' own):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TEST case</th>
+<th>cp_mass (J/kg/K)</th>
+<th>Gamma_d (K/km)</th>
+<th>R/cp</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth-like air, 300 K, g 9.81</td>
+<td>1011</td>
+<td>9.70</td>
+<td>0.285</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> at 300 K, g 3.71 (Mars-like)</td>
+<td>846</td>
+<td>4.39</td>
+<td>0.223</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>96.5 percent CO<sub>2</sub> + N<sub>2</sub> at 735 K, g 8.87 (Venus-like)</td>
+<td>1141</td>
+<td>7.77</td>
+<td>0.168</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Moist adiabat (standard textbook form, [R3519] Chapter 2, NOT REACHED in that source, so derived and checked): <code>Gamma_m = g (1 + L r / (R_d T)) / (cp + L^2 r epsilon / (R_d T^2))</code>, r = epsilon e_s/(p - e_s), epsilon = M_v/M_d. COMPUTED test: T = 288 K, p = 1 atm, L = 2.5e6 J/kg, e_s = 1.70 kPa gives 4.7 K/km (observed tropical-troposphere mean about 5 K/km, RECALLED). [R3783] replace this by <code>alpha * Gamma_d</code> with alpha 0.6-0.9 (READ): Earth 0.6, Venus 0.8, Titan 0.77, Jupiter 0.85, Saturn 0.94, Uranus 0.83, Neptune 0.87 ([R3784: Table 1], READ). Their text warns this fails for very moist and one-component condensing atmospheres, where T follows Clausius-Clapeyron, T proportional to 1/ln(p/p0).</p>
+<p>Latent heats and saturation curves for H<sub>2</sub>O, CO<sub>2</sub>, NH<sub>3</sub>, CH<sub>4</sub> are in the condensates lane; the generator already has vapor pressures.</p>
+<hr />
+<h2 id="5-thermal-structure-from-an-analytic-atmosphere">5. Thermal structure from an analytic atmosphere</h2>
+<h3 id="51-r1715-semi-grey-irradiated-read-and-data">5.1 [R1715] (semi-grey, irradiated), READ and DATA</h3>
+<p>[R1715] (NOT 1006.4780; the id given in the brief is a mathematics paper). Variables: <code>tau = kappa_th * m</code>, <code>m = P/g</code> (column mass), <code>gamma = kappa_v / kappa_th</code>, <code>T_irr = (R_star/D)^(1/2) T_star</code>, redistribution factor f = 1 (substellar), 1/2 (dayside), 1/4 (global).</p>
+<p>Eq. 29 (isotropic irradiation, mu* = 1/sqrt 3, f_K = 1/3, f_H = 1/2):</p>
+<pre><code>T^4 = (3 T_int^4 / 4) (2/3 + tau)
+    + (3 T_irr^4 / 4) f [ 2/3 + 1/(gamma sqrt 3) + (gamma/sqrt 3 - 1/(gamma sqrt 3)) exp(-gamma tau sqrt 3) ]
+</code></pre>
+<p>Also READ: collimated version Eq. 27 with mu*; skin temperature <code>T(tau=0)^4 = T_int^4/2 + T_irr^4 mu* (1 + gamma/(2 mu*))/2</code> (Eq. 28); <code>P = tau g / kappa_th</code> for constant g; global-average solution Eq. 49 (needs the exponential integral E2). The same Eq. 29 is implemented in petitRADTRANS 3.4.0 <code>physics.py</code> function <code>temperature_profile_function_guillot</code> (DATA; MIT-licensed code, read as text only; note it sets <code>T_irr = T_eq * sqrt 2</code>, so f = 1/4 reproduces T_eq).</p>
+<p>COMPUTED check with the opacities of Guillot's HD 209458 b example (kappa_th = 1e-2 cm2/g, kappa_v = 4e-3, T_int = 100 K, T_eq = 1469 K, g = 1000 cm/s2, f = 1/4): T = 1473 K at 66.7 mbar (tau = 2/3; Guillot's text puts tau = 2/3 at 65 mbar), 1647 K at 1 bar, 1648 K at 10 bar, so the deep isotherm is about 1650 K. Guillot quotes for other irradiation levels <code>kappa_v = 6e-3 sqrt(T_irr/2000 K)</code> cm2/g with kappa_th = 1e-2 (READ).</p>
+<p>Limits (READ): for gamma = 1, T^4 = 3 T_int^4 (tau + 2/3)/4 + 0.93 f T_irr^4; high gamma (strong visible absorbers like TiO and VO) can give a negative gradient (inversion); low gamma means deep heating and an isothermal radiative zone.</p>
+<p>Validity: radiative-equilibrium only; Guillot's own comparison shows that at pressures above about 10 bar real CIA and electron opacity make kappa proportional to P, so constant kappa underestimates the deep T (READ).</p>
+<h3 id="52-r3439-two-thermal-and-two-visible-opacities-partly-read">5.2 [R3439] (two thermal and two visible opacities), partly READ</h3>
+<p>[R3439] (Paper I; Paper II, the analytic-versus-numerical comparison, is [R3440] and was not downloaded). The general solution (Eq. 98) is <code>T^4 = (3 T_int^4/4)[tau + A + B exp(-tau/tau_lim)] + sum_i (3 beta_i T_irr^4 mu*/4)[C_i + D_i exp(-tau/tau_lim) + E_i exp(-gamma_i tau/mu*)]</code> with coefficients defined in their Eqs. 79-81 (READ only that the form exists; the coefficient expressions were not transcribed: NOT REACHED in this lane). Exact non-irradiated skin temperature for a grey atmosphere: <code>T_skin^4 = (sqrt 3 / 4) T_int^4</code> (READ, Eq. 17). The non-grey parameter beta controls the &quot;blanketing&quot; effect: for beta above 0.5 the temperature structure is affected down to tau about 1 and deeper (abstract, READ).</p>
+<h3 id="53-r3783-and-2014-radiative-convective-analytic-read">5.3 [R3783] and 2014 (radiative-convective, analytic), READ</h3>
+<p>[R3783] (ApJ 757, 104) and [R3784] (Nature Geosci. 7, 12). Model: grey thermal, two-stream with diffusivity D = 1.66; <code>tau(p) = tau0 (p/p0)^n</code>; convective profile <code>T = T0 (p/p0)^(alpha (gamma-1)/gamma)</code>; radiative region above. Using the simplest version (no shortwave attenuation, no internal flux), Eq. 24-25: in the radiative region <code>sigma T^4 = F_net (1 + D tau)/2</code> and <code>F_up = F_net (2 + D tau)/2</code>; the surface temperature for a purely radiative atmosphere with a blackbody ground is therefore</p>
+<pre><code>T_s^4 = T_e^4 (1 + D tau0 / 2)           [ D = 1.66 ]
+</code></pre>
+<p>(the Eddington-style <code>1 + 3 tau/4</code> with D = 3/2; Guillot's gamma to 0 limit with the D = sqrt 3 convention gives the same form). For a convective troposphere the radiative-convective boundary tau_rc is fixed by continuity of temperature and upwelling flux (their Eqs. 27 and 30; I re-derived the continuity condition from their Eqs. 12, 24, 25 and 27 and solved it numerically, see section 5.4). The 2014 paper adds: <code>p_tp</code> (tropopause, temperature minimum) obeys <code>p_tp proportional to tau0^(-1/n)</code>, about 0.1 bar for worlds with strong-enough pressure-dependent opacity and an absorbing stratosphere. READ Table 1 of the 2014 paper (alpha, absorbed fluxes F_strato and F_tropo, k_strato = tau_sw,s/tau_IR, k_tropo, tau_rc, tau0, tau_tp, model and observed p_tp), TEST points only:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TEST world</th>
+<th>p0 (bar)</th>
+<th>T0 (K)</th>
+<th>alpha</th>
+<th>F_strato + F_tropo (W m-2)</th>
+<th>k_strato</th>
+<th>k_tropo</th>
+<th>tau_rc</th>
+<th>tau0</th>
+<th>p_tp model / observed (bar)</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth</td>
+<td>1</td>
+<td>288</td>
+<td>0.6</td>
+<td>7 + 233</td>
+<td>90</td>
+<td>0.16</td>
+<td>0.15</td>
+<td>1.9</td>
+<td>0.16 / 0.16</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Jupiter</td>
+<td>1</td>
+<td>166</td>
+<td>0.85</td>
+<td>1.3 + 7.0 (+ F_i 5.4)</td>
+<td>90</td>
+<td>0.06</td>
+<td>0.34</td>
+<td>6.3</td>
+<td>0.10 / 0.14</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Saturn</td>
+<td>1</td>
+<td>135</td>
+<td>0.94</td>
+<td>0.41 + 2.04 (+ 2.01)</td>
+<td>180</td>
+<td>0.03</td>
+<td>0.44</td>
+<td>9.2</td>
+<td>0.066 / 0.08</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Titan</td>
+<td>1.5</td>
+<td>94</td>
+<td>0.77</td>
+<td>1.49 + 1.12</td>
+<td>120</td>
+<td>0.20</td>
+<td>4.4</td>
+<td>5.6 (2.5 at 1 bar)</td>
+<td>0.18 / 0.2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Uranus</td>
+<td>1</td>
+<td>76</td>
+<td>0.83</td>
+<td>0.24 + 0.41</td>
+<td>220</td>
+<td>0.08</td>
+<td>0.62</td>
+<td>8.7</td>
+<td>0.070 / 0.11</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Neptune</td>
+<td>1</td>
+<td>72</td>
+<td>0.87</td>
+<td>0.09 + 0.18 (+ 0.43)</td>
+<td>580</td>
+<td>0.20</td>
+<td>0.41</td>
+<td>3.0</td>
+<td>0.075 / 0.1</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>The same paper (2012, Table 1, READ) gives the Venus run: p0 = 92 bar, T0 = 730 K, gamma = 1.3, alpha = 0.8, absorbed 160 W m-2 (Bond albedo 0.76) no stratospheric inversion; solved tau0 = 400 and tau_rc = 1 for n = 1 (p_rc about 0.2 bar), tau0 = 2e5 and tau_rc = 0.1 for n = 2 (p_rc 0.07 bar), vs observed 0.1-0.3 bar. Agreement with SMART line-by-line fluxes is about 10 percent (READ). Titan with tau0 = 3, k1 = 160, n = 4/3 (2ND-HAND).</p>
+<p>Physical content for the generator: the dependence <code>tau proportional to p^n</code> with n between 1 (Doppler-broadened, abundance independent) and 2 (pressure-broadened, CIA), larger n if the absorber mixing ratio itself rises with depth (water on Earth).</p>
+<h3 id="54-surface-temperature-from-tau0-solver-table-test-points-computed">5.4 Surface temperature from tau0: solver, table, test points (COMPUTED)</h3>
+<p>Implementation (about 25 lines): unknowns tau_rc and T0 for given tau0, F, gamma, alpha, n, with m = 4 beta / n, beta = alpha (gamma-1)/gamma, D = 1.66:</p>
+<ol>
+<li>Continuity of upwelling flux: <code>[ exp(-D(tau0 - tau_rc)) + D * integral_{tau_rc}^{tau0} (t/tau0)^m exp(-D(t - tau_rc)) dt ] / (tau_rc/tau0)^m = (2 + D tau_rc)/(1 + D tau_rc)</code>; root-find tau_rc.</li>
+<li>Continuity of temperature: <code>sigma T0^4 (tau_rc/tau0)^m = F (1 + D tau_rc)/2</code>.</li>
+<li>If no root exists (tau0 small) the atmosphere is purely radiative and <code>T0^4 = (F/sigma)(1 + D tau0/2)</code>.</li>
+<li>For tau0 above about 1e4 the root becomes independent of tau0; scale <code>T0 proportional to tau0^(beta/n)</code>.</li>
+</ol>
+<p>COMPUTED table of the ratio T_s / T_e (T_e is the airless grey temperature, so the existing generator multiplier is <code>(T_s/T_e)^4 - 1</code>), with D tau_rc in the last rows:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>tau0</th>
+<th>0.01</th>
+<th>0.1</th>
+<th>0.3</th>
+<th>1</th>
+<th>2</th>
+<th>5</th>
+<th>10</th>
+<th>30</th>
+<th>100</th>
+<th>300</th>
+<th>1000</th>
+<th>3000</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>air-like gamma 1.4, alpha 0.6, n 2</td>
+<td>1.00</td>
+<td>1.01</td>
+<td>1.03</td>
+<td>1.08</td>
+<td>1.14</td>
+<td>1.23</td>
+<td>1.30</td>
+<td>1.43</td>
+<td>1.59</td>
+<td>1.75</td>
+<td>1.94</td>
+<td>2.13</td>
+</tr>
+<tr>
+<td>diatomic gamma 1.4, alpha 0.8, n 2</td>
+<td>1.00</td>
+<td>1.01</td>
+<td>1.03</td>
+<td>1.10</td>
+<td>1.17</td>
+<td>1.30</td>
+<td>1.41</td>
+<td>1.59</td>
+<td>1.83</td>
+<td>2.07</td>
+<td>2.38</td>
+<td>2.70</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> gamma 1.3, alpha 0.8, n 1</td>
+<td>1.00</td>
+<td>1.01</td>
+<td>1.04</td>
+<td>1.13</td>
+<td>1.23</td>
+<td>1.44</td>
+<td>1.63</td>
+<td>2.00</td>
+<td>2.50</td>
+<td>3.06</td>
+<td>3.83</td>
+<td>4.69</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub> gamma 1.3, alpha 0.8, n 2</td>
+<td>1.00</td>
+<td>1.01</td>
+<td>1.03</td>
+<td>1.09</td>
+<td>1.15</td>
+<td>1.25</td>
+<td>1.33</td>
+<td>1.47</td>
+<td>1.64</td>
+<td>1.82</td>
+<td>2.03</td>
+<td>2.25</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>/He gamma 1.4, alpha 0.85, n 2</td>
+<td>1.00</td>
+<td>1.01</td>
+<td>1.03</td>
+<td>1.10</td>
+<td>1.18</td>
+<td>1.32</td>
+<td>1.43</td>
+<td>1.64</td>
+<td>1.89</td>
+<td>2.16</td>
+<td>2.50</td>
+<td>2.86</td>
+</tr>
+</tbody>
+</table></div>
+<p>Asymptotic D tau_rc (tau0 above 5): 0.15 (air, alpha 0.6, n 2), 0.36 (diatomic alpha 0.8, n 2), 2.08 (CO<sub>2</sub> n 1), 0.19 (CO<sub>2</sub> n 2), 0.44 (H<sub>2</sub>/He). Hence for tau0 above about 5, <code>T_s/T_e = ((1 + D tau_rc_inf)/2)^(1/4) (tau0/tau_rc_inf)^(beta/n)</code>. Rough shortcut <code>D tau_rc = 1</code> (a statement in [R3783]) is not accurate for these parameter sets and gives Earth's T_s/T_e low by about 3 percent: use the table or the solver.</p>
+<p>TEST points (inputs labelled READ from the 2012/2014 papers; outputs COMPUTED here; single-channel model, n = 2 unless stated):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TEST body</th>
+<th>absorbed F (W m-2), T0 (K)</th>
+<th>tau0 solved</th>
+<th>paper value</th>
+<th>tau_rc solved</th>
+<th>G = (T_s/T_e)^4 - 1</th>
+<th>Comment</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth</td>
+<td>240, 288 (T_e 255.1)</td>
+<td>1.82 at 1 bar</td>
+<td>1.9 (READ)</td>
+<td>0.086</td>
+<td>0.625</td>
+<td>4 percent from the paper value even though the paper uses two shortwave channels</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Venus, n = 1</td>
+<td>160, 730 (T_e 230.5)</td>
+<td>360</td>
+<td>400 (READ)</td>
+<td>1.25</td>
+<td>99.6</td>
+<td>tau_rc 1.25 vs 1 in paper; matches the repo's ratio about 101</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Venus, n = 2</td>
+<td>160, 730</td>
+<td>extrapolated 2e5 gives 763 K</td>
+<td>2e5 (READ)</td>
+<td>0.11</td>
+<td>same</td>
+<td>4 percent high at the paper's tau0</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Titan</td>
+<td>2.61, 94 (T_e 82.4)</td>
+<td>1.58 at 1.5 bar</td>
+<td>5.6 (READ)</td>
+<td>0.175</td>
+<td>0.69</td>
+<td>factor 3.5 below the paper: a haze world with a hot stratosphere needs the two-channel model and n varying with p (McKay: n 4/3)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mars-like (inputs RECALLED: S = 586 W m-2, Bond albedo 0.25, T_s 210-220 K)</td>
+<td>110, 215 (T_e 209.8)</td>
+<td>0.12 (radiative regime) for 215 K, 0.25 for 220 K</td>
+<td>n/a</td>
+<td>none</td>
+<td>0.10 to 0.21</td>
+<td>mean annual T_s is within a few K of T_e, so tau0 is tiny and the greenhouse is small</td>
+<td>COMPUTED with RECALLED inputs</td>
+</tr>
+</tbody>
+</table></div>
+<p>Inverse use: given T_s, P_s, S, g and an albedo budget (section 7), solve <code>tau0</code> by bisection (monotone). The same <code>tau0</code> then fixes the sky radiance (5.5) and the tropopause (<code>p_tp ~ tau0^(-1/n)</code>).</p>
+<p><strong>Built (GEN.812, <code>physics/infrared_opacity.py</code>; the module and its cloud depth <code>CLOUD_LONGWAVE_TAU0</code> were removed in GEN.850, which put the radiative-convective model's fitted table in their place, <code>composition/greenhouse-table.md</code>, with the cloud as IR12).</strong> The module holds the surface's vapor pressure and thins it with height (Manabe and Wetherald's humidity, the troposphere's <code>T_s (p/p_s)^beta</code>), so an Earth twin whose vapor stands at 0.77 of saturation at its own temperature holds the Earth's 25 kg/m2 of water and not three times that. With the surface vapor pressure of 1.3 kPa the module gives <code>tau0</code> 1.70 and <code>G</code> 0.625 for the Earth (targets 1.8 and 0.625). It is a clear-sky greenhouse (outgoing 266 W/m2 at 288 K, the measured clear-sky value), so the all-sky albedo needs the cloud longwave effect (section 7.3, +26 to +30 W/m2): one grey cloud depth, <code>CLOUD_LONGWAVE_TAU0</code> 0.35, scaled with the surface humidity (GEN.725 rows GH1 to GH4), puts the Earth twin at its own fixed point at 288 K. The runaway starts between 255 and 285 W/m2 absorbed ([R1607]: 282 for a saturated air; [R2446]: 262 at 1.1 times the present flux). Pressure broadening, checked against [R0620] (1 percent CO<sub>2</sub> on 0.5, 1 and 2 bar of N<sub>2</sub>: 15, 26 and 35 W/m2): 16, 20 and 27 W/m2, a little weak, not strong.</p>
+<h3 id="55-downwelling-infrared-and-effective-sky-temperature-computed-from-the-same-model">5.5 Downwelling infrared and effective sky temperature (COMPUTED from the same model)</h3>
+<p>Downwelling flux at the ground: in a purely radiative atmosphere <code>F_dn(tau0) = F D tau0/2</code> (Eq. 26 of R&amp;C 2012, READ); with a convective layer <code>F_dn(tau0) = F_dn(tau_rc) exp(-D(tau0 - tau_rc)) + D sigma T0^4 integral_{tau_rc}^{tau0} (t/tau0)^m exp(-D(tau0 - t)) dt</code> (their Eq. 14 with the boundary at tau_rc). Effective sky temperature <code>T_sky = (F_dn/sigma)^(1/4)</code>, emissivity <code>eps = F_dn/(sigma T_s^4)</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>TEST body</th>
+<th>F_dn (W m-2)</th>
+<th>eps_sky</th>
+<th>T_sky (K)</th>
+<th>observed comparison</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Earth, tau0 = 1.82</td>
+<td>326</td>
+<td>0.83</td>
+<td>275</td>
+<td>about 340 W m-2 global mean back radiation (RECALLED, AR6 energy budget figure; not located in the PDF text)</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Earth, tau0 = 1.9</td>
+<td>334</td>
+<td>0.84</td>
+<td>277</td>
+<td>same</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Venus, n = 1</td>
+<td>16087</td>
+<td>0.999</td>
+<td>729.8</td>
+<td>black-body-like at the surface</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Titan</td>
+<td>3.4</td>
+<td>0.77</td>
+<td>88</td>
+<td>no check</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Mars-like (215 K, 220 K)</td>
+<td>11, 23</td>
+<td>0.09, 0.17</td>
+<td>100, 120</td>
+<td>no check</td>
+<td>COMPUTED with RECALLED inputs</td>
+</tr>
+</tbody>
+</table></div>
+<p>Empirical clear-sky formulae for Earth air only (not for other compositions): <code>F_dn = 5.31e-13 T_air^6</code> W m-2, and <code>eps = 1 - (1 + w) exp(-sqrt(1.2 + 3 w))</code>, <code>w = 46.5 e/T</code> with e in hPa (both RECALLED, to verify). Outside Earth air use 5.5.</p>
+<hr />
+<h2 id="6-rosseland-and-planck-means-and-the-inverse-problem">6. Rosseland and Planck means, and the inverse problem</h2>
+<h3 id="61-r1450-rosseland-fit-h2he-dominated-solar-to-50x-metallicity">6.1 [R1450] Rosseland fit (H<sub>2</sub>/He-dominated, solar to 50x metallicity)</h3>
+<p>[R1450] (ApJS 214, 25). <code>kappa_gas = kappa_lowP + kappa_highP</code>, cm2/g, T in K, P in dyne/cm2, <code>met</code> = [M/H]. Equations as extracted from the PDF (the layout of Eq. 4 is garbled in extraction; I reconstructed it with the form that the paper says it modifies, so mark: reconstructed):</p>
+<pre><code>log10 kappa_lowP  = c1 atan(log10 T - c2) - c3/(log10 P + c4) * exp[(log10 T - c5)^2] + c6 met + c7
+log10 kappa_highP = c8 + c9 log10 T + c10 (log10 T)^2 + log10 P (c11 + c12 log10 T)
+                    + c13 met [1/2 + (1/pi) atan((log10 T - 2.5)/0.2)]
+</code></pre>
+<p>Table 2 coefficients (READ): c1 10.602, c2 2.882, c3 6.09e-15, c4 2.954, c5 -2.526, c6 0.843, c7 -5.490 (all T); for T below 800 K: c8 -14.051, c9 3.055, c10 0.024, c11 1.877, c12 -0.445, c13 0.8321; for T above 800 K: c8 82.241, c9 -55.456, c10 8.754, c11 0.7048, c12 -0.0414, c13 0.8321. The paper states the fit reproduces the tables within a factor 2 for 90 percent of points at solar metallicity (80 percent at [M/H] = +1.7), typical error about 50 percent. COMPUTED sanity values (solar, cm2/g): 1 bar: 1.2e-2 (100 K), 1.7e-2 (200 K), 2.1e-2 (300 K), 2.7e-2 (500 K), 1.4e-2 (1000 K), 1.0e-2 (1500 K), 3.1e-2 (2000 K); 100 bar: 1.1 (100 K), 0.73 (300 K), 0.20 (1000 K), 0.16 (2000 K); the value rises linearly with P at 100 K between 1 and 100 bar, as expected for H<sub>2</sub> CIA. Status: READ coefficients, COMPUTED values, equation form reconstructed.</p>
+<p>Validity: giant planets and brown dwarfs, 75-4000 K (their abstract and search summary), 1 ubar to 300 bar, chemical-equilibrium cloud-free gas; the paper cautions Rosseland versus Planck choice and weighting temperature (their section 4). Not applicable to CO<sub>2</sub>-, N<sub>2</sub>- or H<sub>2</sub>O-dominated air: NOT REACHED for those; see to-research list. Tables are at CDS (J/ApJS/214/25).</p>
+<h3 id="62-what-a-single-grey-tau0-means-and-how-to-build-it-from-composition">6.2 What a single grey tau0 means, and how to build it from composition</h3>
+<p>Three routes, in order of defensibility:</p>
+<ol>
+<li>Equivalent grey thickness of the real spectrum ([R2435: Eq. 13]): <code>tau_LW = -ln[ integral e^(-tau_nu) B_nu(T_s) dnu / integral B_nu dnu ]</code>. READ definition; needs per-gas spectra; correct for thin atmospheres (surface-dominated emission). Koll's Fig. 4 (READ text) shows for pure gases at an LHS 3844 b-like T_s: H<sub>2</sub>O optically thick above about 1e-2 bar; CO<sub>2</sub> and O<sub>3</sub> above about 1 bar (tau_LW of order unity at 1 bar for CO<sub>2</sub>); CO optically thin even at 1 bar; at high pressure CIA (p squared) takes over; band-edge closure gives log dependence on p.</li>
+<li>Sum of CIA (computed here, section 3.1) plus line contributions from published k-tables, calibrated by a precomputed radiative-convective grid (offline, using exo_k or petitRADTRANS with ExoMol/HITRAN tables: see to-research list).</li>
+<li>Calibrate <code>tau0(P)</code> against TEST bodies. This is allowed only as a test, not as a preset: Earth about 1.9 at 1 bar, Venus about 400 at 92 bar (n 1), Titan about 2.5 at 1 bar, Jupiter 6.3, Saturn 9.2 (all at 1 bar for the giants).</li>
+</ol>
+<h3 id="63-inverse-problem-recipe-given-stored-t_s-p_s-s-g-mix">6.3 Inverse problem recipe (given stored T_s, P_s, S, g, mix)</h3>
+<ol>
+<li>Compute T_e for a trial albedo A from section 7: <code>T_e = [(1-A) S f/(4 sigma)]^(1/4)</code> with f from section 8 if the planet is tidally locked.</li>
+<li>Choose gamma and alpha from the dominant gas (section 4 table; alpha from R&amp;C 0.6-0.9), and n from the regime (1 thin/Doppler, 2 pressure-broadened or CIA).</li>
+<li>Solve section 5.4 for <code>tau0</code> so that T0 = T_s at p0 = P_s. Report <code>G = (T_s/T_e)^4 - 1</code> for the existing field.</li>
+<li>Non-uniqueness: one equation, two unknowns (A, tau0). The pair family is <code>T_s = F(A, tau0)</code>; fix A from composition (Rayleigh plus surface plus cloud) and solve tau0, or fix tau0 from composition (6.2) and solve A. The residual between the two routes is the diagnostic that the draw is inconsistent.</li>
+<li>A stored T_s above the runaway limit (section 9) with liquid water must be rejected or turned into a steam atmosphere.</li>
+</ol>
+<hr />
+<h2 id="7-albedo-rayleigh-surface-clouds-haze">7. Albedo: Rayleigh, surface, clouds, haze</h2>
+<h3 id="71-rayleigh-cross-sections-data-plus-recalled-depolarisation">7.1 Rayleigh cross-sections (DATA plus RECALLED depolarisation)</h3>
+<p>Computed from the refractive-index dispersion fits of the refractiveindex.info database (public domain, CC0; files <code>main/N2/nk/Peck-0C.yml</code>, <code>main/CO2/nk/Bideau-Mehu.yml</code>, <code>main/H2/nk/Peck.yml</code>, <code>main/He/nk/Borzsonyi.yml</code>, <code>main/Ar/nk/Bideau-Mehu.yml</code>, all at 273.15 K and 1 atm) with <code>sigma = 24 pi^3 (n^2-1)^2 / (lambda^4 N0^2 (n^2+2)^2) * F_K</code>, N0 = 2.6868e19 cm-3. The King depolarisation factors F_K are RECALLED: N<sub>2</sub> 1.034, CO<sub>2</sub> 1.1364, H<sub>2</sub> 1.0, He 1.0, Ar 1.0.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Gas</th>
+<th>(n-1) at 0.55 um, STP</th>
+<th>sigma (cm2) at 0.4 / 0.55 / 0.7 / 1.0 um</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub></td>
+<td>2.99e-4</td>
+<td>1.7e-26 / 4.6e-27 / 1.7e-27 / 4.1e-28</td>
+<td>DATA; COMPUTED; F_K RECALLED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>4.50e-4</td>
+<td>4.3e-26 / 1.2e-26 / 4.3e-27 / 1.0e-27</td>
+<td>DATA; COMPUTED; F_K RECALLED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub></td>
+<td>1.39e-4</td>
+<td>3.6e-27 / 9.7e-28 / 3.6e-28 / 8.6e-29</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>He</td>
+<td>3.44e-5</td>
+<td>2.2e-28 / 5.9e-29 / 2.3e-29 / 5.4e-30</td>
+<td>DATA; COMPUTED</td>
+</tr>
+<tr>
+<td>Ar</td>
+<td>2.82e-4</td>
+<td>1.5e-26 / 4.0e-27 / 1.5e-27 / 3.6e-28</td>
+<td>DATA; COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Column Rayleigh optical depth <code>tau_R = sigma P N_A / (m_bar g)</code>. COMPUTED at 0.55 um: Earth-like 1.013 bar air 0.099 (matches the standard value of about 0.1, so the chain is sound); 92 bar CO<sub>2</sub> with g 8.87: 16.4; 6.4 mbar CO<sub>2</sub> with g 3.71: 0.0027; 1.47 bar N<sub>2</sub> with g 1.35: 1.08; 1 bar H<sub>2</sub>/He (86/14) with g 24.8: 0.089. Water vapor Rayleigh constants: [R2446] adopt <code>sigma_R,H2O(lambda) = 4.577e-... * (6 + 3D)/(6 - 7D) ...</code> (garbled in extraction; READ that it exists; the [R1607] supplementary table 1 with new constants was not reached). Neighbouring lane: sky colour.</p>
+<h3 id="72-bond-albedo-of-a-conservative-rayleigh-layer-over-a-surface">7.2 Bond albedo of a conservative Rayleigh layer over a surface</h3>
+<p>Closure (COMPUTED, simple): layer reflectance <code>R = (3/4) tau/(1 + (3/4) tau)</code> (Eddington, g = 0), transmittance <code>1 - R</code> (no absorption), surface albedo <code>A_s</code>, <code>A = R + (1-R)^2 A_s / (1 - R A_s)</code>, solar-weighted over 0.3-2.5 um with a blackbody. Accuracy about 20 percent against exact multiple-scattering is expected, not verified here. Absorption by CO<sub>2</sub>, H<sub>2</sub>O, CH<sub>4</sub> near-IR bands and UV absorbers is ignored (it lowers the albedo, mostly for cool stars).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Atmosphere</th>
+<th>P (bar)</th>
+<th>Sun-like (5772 K), A_s = 0</th>
+<th>A_s = 0.3</th>
+<th>3000 K blackbody, A_s = 0</th>
+<th>A_s = 0.3</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>N<sub>2</sub>, g 9.81</td>
+<td>0.1</td>
+<td>0.009</td>
+<td>0.304</td>
+<td>0.001</td>
+<td>0.301</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>1</td>
+<td>0.070</td>
+<td>0.337</td>
+<td>0.011</td>
+<td>0.306</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>10</td>
+<td>0.297</td>
+<td>0.475</td>
+<td>0.079</td>
+<td>0.342</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>N<sub>2</sub></td>
+<td>92</td>
+<td>0.621</td>
+<td>0.699</td>
+<td>0.303</td>
+<td>0.478</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub>, g 8.87</td>
+<td>1</td>
+<td>0.108</td>
+<td>0.358</td>
+<td>0.019</td>
+<td>0.309</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>10</td>
+<td>0.377</td>
+<td>0.528</td>
+<td>0.116</td>
+<td>0.364</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>30</td>
+<td>0.540</td>
+<td>0.641</td>
+<td>0.227</td>
+<td>0.430</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>CO<sub>2</sub></td>
+<td>92</td>
+<td>0.695</td>
+<td>0.754</td>
+<td>0.385</td>
+<td>0.531</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>/He 86/14, g 24.8</td>
+<td>1</td>
+<td>0.064</td>
+<td>0.333</td>
+<td>0.010</td>
+<td>0.305</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>H<sub>2</sub>/He</td>
+<td>10</td>
+<td>0.279</td>
+<td>0.464</td>
+<td>0.071</td>
+<td>0.338</td>
+<td>COMPUTED</td>
+</tr>
+</tbody>
+</table></div>
+<p>Consistency checks: the Earth-like clear-sky Rayleigh albedo over a dark surface of 0.07 agrees with the usual value of about 0.06-0.07 (RECALLED); [R2446] (READ) states that Rayleigh scattering by condensing and dense CO<sub>2</sub> raises albedo at the outer habitable zone so that Seff goes through a minimum, and that for a 2600 K star Rayleigh never matters (as in the 3000 K column here). [R0620] (READ) quote a shortwave forcing of -18 W m-2 for a 1-bar-CO2 (1.0 mole fraction) addition, which is the same effect.</p>
+<h3 id="73-clouds-haze-anti-greenhouse">7.3 Clouds, haze, anti-greenhouse</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Titan haze anti-greenhouse</td>
+<td>haze absorbs sunlight but is transparent in the thermal infrared; removing it would raise the surface temperature by over 20 K; N<sub>2</sub>, CH<sub>4</sub> and H<sub>2</sub> pressure-induced opacity provide the greenhouse</td>
+<td>[R2999] (abstract at ntrs.nasa.gov, id 19910067426)</td>
+<td>READ (abstract)</td>
+</tr>
+<tr>
+<td>Titan split 9 K cooling and 21 K warming</td>
+<td>as reported in a search summary of the same paper</td>
+<td>secondary summary</td>
+<td>SNIPPET (do not rely)</td>
+</tr>
+<tr>
+<td>Titan in the analytic model</td>
+<td>F_strato 1.49 W m-2 absorbed high up, F_tropo 1.12 below, k_strato 120, k_tropo 0.20, tau_rc 4.4 (radiative zone reaches to 0.18 bar tropopause and deeper, because of the weak shortwave penetration)</td>
+<td>[R3784: Table 1]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>One-channel estimate of haze effect</td>
+<td>feeding only F_tropo = 1.12 into the one-channel model with the same tau0 gives T_s = 76 K, with half of the stratospheric heat returned as downward IR 86 K, with the full 2.61 W m-2 94 K: a one-channel model overstates the cooling; use the two-channel formulas (their Eqs. 18-21)</td>
+<td>COMPUTED here</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>Earth cloud radiative effect</td>
+<td>short-wave about -45 to -50 and long-wave about +26 to +30 W m-2, net about -20 W m-2</td>
+<td>recalled from CERES/AR6 energy-budget figures; not located in the AR6 PDF text</td>
+<td>RECALLED</td>
+</tr>
+<tr>
+<td>Venus</td>
+<td>Bond albedo 0.76; absorbed about 160 W m-2</td>
+<td>[R3783] text</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Cloud albedo of a conservative cloud, optical depth tau_c, asymmetry g</td>
+<td>use the same two-stream R with <code>(1-g) tau_c</code> in place of tau; typical water cloud g about 0.85 (RECALLED)</td>
+<td>derivation</td>
+<td>COMPUTED form; g RECALLED</td>
+</tr>
+<tr>
+<td>Water cloud and clear-sky coverage in 1D HZ models</td>
+<td>cloud-free 1D limits: the Earth-like case falls right on the runaway limit in the [R2447] model, &quot;reflecting 1D models' inability to account for relative humidity and clouds, which move the inner HZ to higher stellar fluxes&quot;</td>
+<td>[R2447] text</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Aerosol optical constants (tholins, soot, sulfate, silicate, iron, KCl, ZnS, NH<sub>4</sub>SH and so on) belong to the aerosol lane; here only their role (shortwave absorber means high gamma and an inversion, [R1715]) is used.</p>
+<hr />
+<h2 id="8-day-night-contrast-and-heat-redistribution">8. Day-night contrast and heat redistribution</h2>
+<p>[R2435] ([R2434], READ). Let <code>X = tau_LW^(1/3) (p_s/1 bar)^(2/3) (T_eq/600 K)^(-4/3)</code>. The redistribution factor (the f of the energy budget, with <code>T_day,eff^4 = f (1-A) S/sigma</code>, f = 2/3 no redistribution, 1/4 uniform):</p>
+<pre><code>f = 2/3 - (5/12) * X / (k + X)                      (his Eq. 10)
+</code></pre>
+<p>Limits READ: f goes to 2/3 as tau_LW and p_s go to zero and to 1/4 as they go to infinity. <code>k</code> collects the planet properties (his definition with the drag coefficient, the dissipation efficiency and the heat-transport parameters); fitted to idealised GCM runs: k = 1.2 for TRAPPIST-1b, 1.9 for GJ 1132 b, 2.3 for LHS 3844 b (READ). Nightside flux <code>F_n</code> (his Eq. 8) and observed dayside flux Eq. 9 (the 8/3 and 5/3 factors) are in the paper; the scaling is for the surface-pressure range about 0.01 to 10 bar, with <code>tau_LW</code> from Koll's Eq. 13. Conclusions READ: redistribution becomes efficient above about 1 bar for high mean-molecular-weight air; much less efficient for H<sub>2</sub>, and strongly gas dependent (steam and CO atmospheres behave differently); typical k varies only by a factor 2 across planets.</p>
+<p>[R4767] ([R4767], READ): in an idealised grey GCM the boundary layer, not the large-scale circulation, controls the day-night temperature difference; theoretical expressions for the temperature difference and surface wind reproduce the GCM; empirical collapse formula <code>log10(p_crit/1 Pa) = c1 F_s^3 + c2 F_s^2 + c3 F_s + c4</code> with F_s the stellar flux in W m-2 (as understood from his section 3; units to verify): for 1 M_E c = (-0.84e-10, 0.73e-6, -0.0022, 6.01), for 10 M_E c = (-0.81e-10, 0.63e-6, -0.0017, 6.34); critical CO<sub>2</sub> collapse pressure at Earth's stellar flux about 0.14 bar, about five times previous grey-gas estimates; results are an upper limit because clouds, trace gases, ocean transport and tidal heating make atmospheres more stable. COMPUTED evaluation of the 1 M_E formula at F_s = 1000 W m-2: log10 p = -0.84e-10<em>1e9 + 0.73e-6</em>1e6 - 2.2 + 6.01 = -0.084 + 0.73 - 2.2 + 6.01 = 4.456, i.e. 2.9e4 Pa = 0.29 bar (at 1000 W m-2; the 0.14 bar quoted in the abstract refers to Earth's flux, 1360 W m-2; the formula should return about that near 1360 W m-2, which I did not evaluate: to verify units).</p>
+<p>Column radiative time scale (COMPUTED from the definition, simple): <code>t_rad = cp p_s / (g 4 sigma T_e^3)</code>, the e-folding time of the whole column heat capacity <code>cp p/g</code> against linearised emission. Earth-like (cp 1005, p 1.013e5 Pa, g 9.81, T_e 255 K): 2.8e6 s, about 32 days. Mars-like (cp 846, p 636 Pa, g 3.71, T_e 210 K, inputs RECALLED): 7e4 s, about 0.8 sol, so a thin atmosphere cannot buffer the diurnal cycle: the ground sets the day-night contrast through its thermal inertia <code>I = sqrt(k rho c)</code>. A table of regolith, rock, ice and ocean-mixed-layer thermal inertia is NOT REACHED in this lane (Mars TES maps by Putzig and Mellon, lunar regolith, and so on); the formula, the column heat capacity and Koll's f are the part that can be coded now.</p>
+<p>[R3520] (Annu. Rev. Fluid Mech. 51, 275; the weak-temperature-gradient and the substellar-to-nightside scalings) was not reachable (no arXiv copy found; the related [R1777, R1778] of Hammond and Pierrehumbert exist but were not read). Tidal heating link (brief): the surface heat flux from tides enters as an internal flux F_i in the Robinson and Catling formulas (their Eq. 17, READ) and as a floor under T_s; the formula <code>E_dot = (21/2)(k2/Q) G M_star^2 R^5 n e^2/a^6</code> [R3464] is RECALLED and belongs to the interior lane.</p>
+<hr />
+<h2 id="9-runaway-greenhouse-moist-greenhouse-habitable-zone-limits">9. Runaway greenhouse, moist greenhouse, habitable-zone limits</h2>
+<h3 id="91-radiation-limits-read-mostly-arxiv">9.1 Radiation limits (READ, mostly arXiv)</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Source</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Nakajima/Simpson limit (moist troposphere, outgoing thermal flux limit, pure steam, g about 10 m s-2)</td>
+<td>282 W m-2 (spectrally resolved LBL), vs 310 W m-2 [R2275] and 290 W m-2 ([R3236] grey)</td>
+<td>[R1607] (author copy at dspace.library.uvic.ca; [R1608] for the older values, [R1608])</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2446] steam-atmosphere limit</td>
+<td>291 W m-2, matching Fig. 4.37 of [R3519] for a pure-water-vapor planet at 10 m s-2</td>
+<td>[R2446] footnote</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Absorbed solar flux of a runaway pure-steam, cloud-free atmosphere at present solar constant</td>
+<td>294 W m-2 (vs 222 W m-2 earlier) so a cloudless steam atmosphere could be stable at Earth's flux: bistability</td>
+<td>[R1607]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Komabayashi-Ingersoll limit (moist stratosphere)</td>
+<td>about 385 W m-2 in the example; occurs only if tropopause T rises to 255 K or more; effectively impossible to reach on Earth</td>
+<td>[R1608], section 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Moist greenhouse onset</td>
+<td>stratospheric H<sub>2</sub>O mixing ratio about 3e-3 reached at surface temperature 340 K in the [R2446] model; water-loss time scale then approaches the age of the Earth</td>
+<td>[R2446]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Runaway limit without H<sub>2</sub>O continuum absorption</td>
+<td>moves from 0.97 AU (with continuum) to 0.76 AU</td>
+<td>[R2446]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>[R2281] reference limits for the Sun</td>
+<td>water loss 0.95 AU, runaway 0.84 AU, maximum greenhouse 1.67 AU, recent Venus 0.75 AU, early Mars 1.77 AU</td>
+<td>as quoted in [R2446]</td>
+<td>2ND-HAND</td>
+</tr>
+<tr>
+<td>Hot desert world minimum distance</td>
+<td>0.38 AU for a solar-like star (1 percent relative humidity, higher albedo); with 1-10 bar</td>
+<td>[R4915]</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Grey/analytic summary of the physics</td>
+<td>the OLR of a saturated atmosphere approaches <code>sigma T_(tau=1)^4</code> with T_(tau=1) set by the Clausius-Clapeyron curve; with background non-condensing gas the limit is overshot (lapse rate increases as the water fraction falls)</td>
+<td>[R1608]</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="92-habitable-zone-flux-coefficients-code-ready">9.2 Habitable-zone flux coefficients (code-ready)</h3>
+<p><code>Seff = Seff_sun + a T* + b T*^2 + c T*^3 + d T*^4</code>, <code>T* = Teff - 5780 K</code>, valid 2600 K to 7200 K, cloud-free N<sub>2</sub>-CO2-H2O 1D model; distance <code>d = sqrt(L/Lsun / Seff)</code> AU.</p>
+<p>[R2446] ([R2446: Table 3], READ), 1 Earth mass, 1 bar N<sub>2</sub> background:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Limit</th>
+<th>Seff_sun</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recent Venus</td>
+<td>1.7753</td>
+<td>1.4316e-4</td>
+<td>2.9875e-9</td>
+<td>-7.5702e-12</td>
+<td>-1.1635e-15</td>
+</tr>
+<tr>
+<td>Runaway greenhouse</td>
+<td>1.0512</td>
+<td>1.3242e-4</td>
+<td>1.5418e-8</td>
+<td>-7.9895e-12</td>
+<td>-1.8328e-15</td>
+</tr>
+<tr>
+<td>Moist greenhouse</td>
+<td>1.0140</td>
+<td>8.1774e-5</td>
+<td>1.7063e-9</td>
+<td>-4.3241e-12</td>
+<td>-6.6462e-16</td>
+</tr>
+<tr>
+<td>Maximum greenhouse</td>
+<td>0.3438</td>
+<td>5.8942e-5</td>
+<td>1.6558e-9</td>
+<td>-3.0045e-12</td>
+<td>-5.2983e-16</td>
+</tr>
+<tr>
+<td>Early Mars</td>
+<td>0.3179</td>
+<td>5.4513e-5</td>
+<td>1.5313e-9</td>
+<td>-2.7786e-12</td>
+<td>-4.8997e-16</td>
+</tr>
+</tbody>
+</table></div>
+<p>COMPUTED check for the Sun: 0.751, 0.975, 0.993, 1.706, 1.774 AU (the paper's Table: 0.75, 0.97, 0.99, 1.70, 1.77, READ). Values at Teff 4000 K: Seff 1.561, 0.891, 0.892, 0.256, 0.237; at 3000 K: 1.494, 0.864, 0.853, 0.226, 0.209 (COMPUTED).</p>
+<p>[R2447] ([R2447] v2, Table 1, READ; the abstract of a published erratum exists, check it, RECALLED): the runaway limit depends on planetary mass because the N<sub>2</sub> background pressure is scaled with radius and so the H<sub>2</sub>O column changes.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mass</th>
+<th>Seff_sun (runaway)</th>
+<th>a</th>
+<th>b</th>
+<th>c</th>
+<th>d</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.1 M_E</td>
+<td>0.99</td>
+<td>1.209e-4</td>
+<td>1.404e-8</td>
+<td>-7.418e-12</td>
+<td>-1.713e-15</td>
+</tr>
+<tr>
+<td>1 M_E</td>
+<td>1.107</td>
+<td>1.332e-4</td>
+<td>1.58e-8</td>
+<td>-8.308e-12</td>
+<td>-1.931e-15</td>
+</tr>
+<tr>
+<td>5 M_E</td>
+<td>1.188</td>
+<td>1.433e-4</td>
+<td>1.707e-8</td>
+<td>-8.968e-12</td>
+<td>-2.084e-15</td>
+</tr>
+</tbody>
+</table></div>
+<p>Maximum greenhouse (all masses) 0.356, 6.171e-5, 1.698e-9, -3.198e-12, -5.575e-16; recent Venus 1.776, 2.136e-4, 2.533e-8, -1.332e-11, -3.097e-15; early Mars 0.32, 5.547e-5, 1.526e-9, -2.874e-12, -5.011e-16. The paper reports the Earth then sits right on the 1D runaway limit; the inner HZ flux changes by about 10 percent (0.1 M_E) and about 7 percent (5 M_E) relative to Earth.</p>
+<p>[R3651] ([R3651: Tables 1 and 2], READ): H<sub>2</sub>-enriched (1 to 50 percent) limits: outer-edge Seff_sun 0.3129, 0.2671, 0.2452, 0.2271, 0.2009, 0.1723 and inner-edge 0.9975, 0.9946, 0.9884, 0.9775, 0.9655, 0.9377 for 1, 5, 10, 20, 30, 50 percent H<sub>2</sub>, with the same polynomial in T*; coefficient columns are in the paper (50 percent H<sub>2</sub> outer: 1.4029e-5, -3.2318e-10, -2.8689e-13, 4.2926e-17; inner: 1.0123e-4, 7.9833e-9, -2.2204e-12, 1.2098e-16). COMPUTED distances for the Sun: outer edge 2.41 AU (50 percent H<sub>2</sub>), 2.02 AU (10 percent); inner 1.03 AU (50 percent).</p>
+<p>Use in the generator: these give flux thresholds for runaway, moist-greenhouse and maximum-greenhouse limits as functions of stellar Teff, so a stored habitable-zone class and T_s can be cross-checked; they do not give surface temperatures.</p>
+<hr />
+<h2 id="10-which-results-can-be-code-which-need-full-radiative-transfer">10. Which results can be code, which need full radiative transfer</h2>
+<p>Can be turned into code now (all inputs available after the composition draw, no radiative transfer needed):</p>
+<ol>
+<li>T_e and f redistribution (Koll Eq. 10; Guillot f).</li>
+<li>Radiative-convective T_s from tau0 (section 5.4, solver or table), inverse by bisection (6.3), and the repo's G as a derived readout.</li>
+<li>Sky radiance and tropopause pressure from tau0 (5.5, <code>p_tp ~ tau0^(-1/n)</code>).</li>
+<li>CIA part of tau0 (section 3.1 formula with a small table of kP(T) per pair; for fidelity keep the HITRAN blocks in a data file and compute tau_eq by the Koll definition).</li>
+<li>CO<sub>2</sub>, CH<sub>4</sub>, N<sub>2</sub>O forcing as perturbations (Etminan, Byrne and Goldblatt forms) for Earth-like profiles only, and the ordering of strong minor gases (section 2).</li>
+<li>Rayleigh albedo with the two-stream closure (7.2) and layer adding for clouds and surface.</li>
+<li>Habitable-zone flux thresholds (9.2) and the runaway and moist limits as numbers.</li>
+<li>Gas cp, gamma, dry and moist lapse rates, column heat capacity and radiative time (section 4 and 8).</li>
+<li>[R1715] profile for hot, irradiated atmospheres (5.1) with T_int, kappa_th and gamma as inputs.</li>
+</ol>
+<p>Need full radiative transfer (or precomputed grids from it):</p>
+<ol>
+<li>The line contribution to tau0 for CO<sub>2</sub>, H<sub>2</sub>O, CH<sub>4</sub>, NH<sub>3</sub>, SO<sub>2</sub>, O<sub>3</sub> and mixtures, including overlap, pressure broadening and the water window; the generator should read a lookup grid tau0(P_s, T_s, x_CO2, x_H2O, x_CH4, x_H2, ...) built offline from correlated-k tables.</li>
+<li>Real shortwave heating (stratospheric inversions from O<sub>3</sub>, SO<sub>2</sub>, haze, TiO/VO): the two-channel analytic form gives the trend only.</li>
+<li>The runaway and bistability thresholds as functions of composition (the 282 W m-2 Simpson-Nakajima limit holds for pure steam at 10 m s-2; mixtures and other gravities need runs).</li>
+<li>Non-grey effects (beta above 0.5), super-Lorentzian wings of CO<sub>2</sub>, the H<sub>2</sub>O continuum at tens to hundreds of bar, supercritical steam.</li>
+<li>Clouds as an interactive component and their longwave effect, and 3D effects (relative humidity, wind-driven dry zones).</li>
+</ol>
+<hr />
+<h2 id="11-boss-must-research-not-reachable-or-only-partly-reached">11. &quot;Boss must research&quot; (not reachable or only partly reached)</h2>
+<ol start="2">
+<li>Original papers behind 2ND-HAND rows: [R3229] (GRL 25, 2715; agupubs blocked), [R2281, R3236] (J. Atmos. Sci. 49, 2256), [R4768] (CO<sub>2</sub> CIA, Icarus), [R3458] (BPS water continuum), [R1607] supplement (water-vapor Rayleigh constants, Table 1 of the supplement), [R3520] review.</li>
+<li>[R3439] coefficient formulas (their Eqs. 79-81) and [R3440] Paper II with the fitted two-band opacity tables for T_irr; needed to give hot Jupiter and lava-world temperature profiles with realistic non-grey behaviour.</li>
+<li>Rosseland and Planck means for CO<sub>2</sub>-dominated, N<sub>2</sub>-O2-H2O (Earth-like), and steam atmospheres, as functions of T and P ([R1450] covers H<sub>2</sub>/He with metals only). Build offline from HITRAN/HITEMP/ExoMol line lists and CIA; compare against Venus and Earth profiles.</li>
+<li>The line and continuum spectra needed to compute tau0 for CO<sub>2</sub> and H<sub>2</sub>O: HITRAN line parameters (hitran.org line-by-line is reachable but requires a login), or ExoMol/HITEMP cross-section tables for hot cases; MT_CKD user guide (github.com AER-RC/MT_CKD_H2O docs) to verify the radiation-term convention used in 3.2.</li>
+<li>CIA gaps: CO<sub>2</sub>-N2, CO<sub>2</sub>-O2 and N<sub>2</sub>-N2 above 400 K, H<sub>2</sub>-H2 below 200 K (needed for ice giants; alternates at hitran.org/data/CIA/alternate not parsed), H<sub>2</sub>-He alternates, NH<sub>3</sub> and H<sub>2</sub>O self-CIA beyond MT_CKD, hot H<sub>2</sub>-H, H-He; CIA of C<sub>2</sub>H<sub>6</sub> and C<sub>2</sub>H<sub>2</sub> with N<sub>2</sub> for Titan-like worlds.</li>
+<li>Surface thermal inertia and heat capacity table for regolith, rock, ice and ocean mixed layers, with sources (Mars TES, Moon Diviner, laboratory).</li>
+<li>Observational cloud radiative effect for Earth (CERES EBAF) with numbers, and cloud albedo versus optical depth and asymmetry parameter for H<sub>2</sub>O, NH<sub>3</sub>, H<sub>2</sub>SO<sub>4</sub>, CO<sub>2</sub>, KCl, ZnS, silicate and iron clouds (aerosol lane).</li>
+<li>Two-channel analytic model with a hot stratosphere for non-Titan haze worlds: Titan is the only calibrated case; exoplanet haze worlds have no calibration. Also the 2012 Robinson and Catling Titan row (the table text was garbled in extraction, only the 2014 version was read in full).</li>
+<li>Ortho-para-resolved H<sub>2</sub> cp at 50-200 K and real-gas cp for dense CO<sub>2</sub>, N<sub>2</sub>, H<sub>2</sub>O (steam) above 10 bar.</li>
+<li>Water-world and steam-atmosphere radiative structure above 400 K at tens to hundreds of bar with supercritical water; the [R1607] curves only go to 2000 K surface temperature and are figures, not tables.</li>
+<li>Rocky exoplanet tropopause: [R3784] has only Solar System calibration; no data for CO<sub>2</sub>-dominated or O<sub>3</sub>-free rocky exoplanets.</li>
+</ol>
+<hr />
+<h2 id="12-recalled-or-to-verify">12. Recalled or to verify</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Value as recalled</th>
+<th>Why it matters</th>
+<th>Check against</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CO<sub>2</sub>, O<sub>3</sub>, N<sub>2</sub>O, SO<sub>2</sub>, OCS, NO<sub>2</sub>, HCl, HF, CO band centers</td>
+<td>CO<sub>2</sub> 667, 2349, 1388/1285, hot bands 960 and 1063; O<sub>3</sub> 1042, 1110, 705; N<sub>2</sub>O 589, 1285, 2224; SO<sub>2</sub> 518, 1151, 1362; OCS 520, 859, 2062; NO<sub>2</sub> 750, 1318, 1618; HCl 2886; HF 3962; CO 2143; SiO 1242</td>
+<td>band list table</td>
+<td>NIST webbook other masks, HITRAN molecule pages</td>
+</tr>
+<tr>
+<td>Pure rotation band of H<sub>2</sub>O below about 600 cm-1</td>
+<td>stated qualitatively</td>
+<td>window definition</td>
+<td>HITRAN or MT_CKD plot</td>
+</tr>
+<tr>
+<td>King depolarisation factors</td>
+<td>N<sub>2</sub> 1.034, CO<sub>2</sub> 1.1364, H<sub>2</sub> 1.0, He 1.0, Ar 1.0</td>
+<td>Rayleigh cross-sections</td>
+<td>[R4138] (J. Quant. Spectrosc. Radiat. Transfer 92, 293)</td>
+</tr>
+<tr>
+<td>Mars-like test inputs</td>
+<td>S = 586 W m-2, Bond albedo 0.25, mean T_s 210-220 K, P 636 Pa, g 3.71</td>
+<td>Mars test row, radiative time</td>
+<td>any Mars fact sheet (PDS is now reachable)</td>
+</tr>
+<tr>
+<td>Earth moist lapse rate observed about 5 K/km; Earth back radiation about 340 W m-2</td>
+<td>test targets</td>
+<td>section 4 and 5.5 checks</td>
+<td>AR6 Ch.7 energy budget figure</td>
+</tr>
+<tr>
+<td>Swinbank and Prata clear-sky emissivity formulas</td>
+<td>as quoted</td>
+<td>sky radiance for Earth air</td>
+<td>original papers</td>
+</tr>
+<tr>
+<td>Earth cloud radiative effect about -45/+28 W m-2</td>
+<td>test only</td>
+<td>section 7.3</td>
+<td>CERES EBAF documentation</td>
+</tr>
+<tr>
+<td>Water cloud asymmetry parameter 0.85</td>
+<td>cloud albedo example</td>
+<td>section 7.3</td>
+<td>Mie calculation</td>
+</tr>
+<tr>
+<td>Peale tidal heating formula</td>
+<td>as quoted</td>
+<td>tidal link</td>
+<td>[R3464]</td>
+</tr>
+<tr>
+<td>HITRAN CIA unit cm^5 molecule^-2</td>
+<td>convention</td>
+<td>section 3.1</td>
+<td>hitran.org documentation page for CIA [R2267]</td>
+</tr>
+<tr>
+<td>MT_CKD radiation-term convention <code>nu tanh(h c nu/2kT)</code> and density scaling by n/n_ref</td>
+<td>used in 3.2</td>
+<td>sigma values</td>
+<td>MT_CKD user guide PDF</td>
+</tr>
+<tr>
+<td>Existence and content of the [R2447] erratum</td>
+<td>not checked</td>
+<td>whether Table 1 numbers changed</td>
+<td>ApJL 787 L29 and its erratum</td>
+</tr>
+<tr>
+<td>[R4767] collapse-formula units (F_s) and the 0.14 bar quote</td>
+<td>formula evaluated at 1000 W m-2 only</td>
+<td>section 8</td>
+<td>his Fig. 11 and Table 2</td>
+</tr>
+<tr>
+<td>B&amp;G 2014a CH<sub>4</sub> high-range equation</td>
+<td>garbled in extraction</td>
+<td>forcing form above 2.5 ppm</td>
+<td>paper, Table 2</td>
+</tr>
+<tr>
+<td>Freedman Eq. 4 layout</td>
+<td>reconstructed (Valencia form)</td>
+<td>opacity values</td>
+<td>paper Eq. 4</td>
+</tr>
+</tbody>
+</table></div>
+<hr />
+<h2 id="13-cross-links-to-neighbouring-parts">13. Cross-links to neighbouring parts</h2>
+<ul>
+<li>Composition and mixing ratios (gas lists, mean molar mass): the bulk-composition and atmosphere-mix parts; mean molar mass <code>m_bar</code> here replaces <code>atm_molar_density</code> in <code>scale_height_m</code> and in <code>tau0</code> (<code>tau = kappa P/g</code>, <code>H = k T/(m_bar g)</code>), see the trace report items 1 to 4.</li>
+<li>Condensates, saturation vapor pressures and latent heats: the condensate/ice part (moist adiabat, cloud base, water loss inventory).</li>
+<li>Aerosols, hazes, tholins, silicate and iron clouds and their optical constants (single-scattering albedo, asymmetry, mass absorption coefficients): the aerosol part; this file only supplies the albedo layering and the anti-greenhouse sense.</li>
+<li>Atmospheric colour and Rayleigh scattering of the sky: the sky-colour part (shares the Rayleigh cross-section table, section 7.1).</li>
+<li>Escape, water loss and XUV: the escape part (moist greenhouse boundary, section 9, hands over to energy-limited and diffusion-limited escape).</li>
+<li>Radiation environment at the surface (UV, ozone, atmospheric and surface radiation): the radiation part; O<sub>3</sub> and SO<sub>2</sub> shortwave absorption affect the stratospheric temperature here.</li>
+<li>Interior heat flux and tidal heating: the interior part (the internal flux F_i in section 5.3).</li>
+<li>Tidal locking and rotation: the orbit and rotation part (f in section 8, collapse pressure).</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -245,11 +245,12 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key not in sheet.CHEMISTRY_KEYS]   # UX.205, UX.254: derived, not a spec
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
-                                                              if any(s.group == key for s in sheet.SPECS[kind]) or (kind, key) == ("star", "composition")]    # UX.254: the star's derived chemistry
+                                                              if any(s.group == key for s in sheet.SPECS[kind]) or (kind, key) == ("star", "composition")
+                                                              or (key == "dust" and sheet.influx_row.INFLUX_KEY in rows)]    # UX.254: the star's derived chemistry
         mass = rows["mass_kg"]
         assert mass["stored"] and mass["value"][0]["qty"]["kind"] == "mass" and mass["value"][0]["qty"]["value"] > 0
         assert mass["text"] and mass["text"] != sheet.NOT_STORED
@@ -355,6 +356,37 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         assert any(row["stored"] for row in rows.values()), kind
 
 
+def test_a_belt_with_ice_lists_the_isotopes_of_its_ices_and_one_without_does_not(client, mysql_config):
+    """GEN.1420: the D/H and 15N/14N of a belt's ices are worked out from its stored ice share, distance and the star's [Fe/H] and age."""
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        ids = []
+        for ice in (0.3, 0.0):
+            conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density, composition_summary, ice_mass_fraction,"
+                         " formation_snow_line_au) VALUES (?, 90, 6e8, 5e8, 7e8, 'typical', 'ice', ?, 2.7)", (system_id, ice))
+            ids.append(conn.execute("SELECT MAX(id) AS id FROM asteroid_belts").fetchone()["id"])
+        store.assign_uids(conn, system_ids=[system_id])
+        conn.commit()
+    finally:
+        conn.close()
+    wet = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[0])}/sheet").get_json())
+    dry = _rows(client.get(f"/api/objects/belt:{pid('belt', ids[1])}/sheet").get_json())
+    assert 5e-5 < wet["isotope_D/H"]["raw"] < 1e-3 and wet["isotope_count"]["raw"] > 0
+    assert wet["isotope_D/H"]["text"].startswith("D/H ")
+    assert not set(sheet.ISOTOPE_KEYS) & set(dry)
+
+
+def test_an_interstellar_comet_and_field_list_isotopes_from_their_ice_and_galactic_radius_and_a_body_with_no_ice_does_not():
+    """GEN.1487: a body with no host star takes the gas [Fe/H] of its galactic radius; the lines are the same record as a planet's."""
+    for kind in ("interstellar_comet", "asteroid_field"):
+        wet = sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": 8000.0})
+        assert {key for key, *_ in wet} >= {"isotope_D/H", "isotope_count"}
+        assert wet == sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": 8000.0})
+        assert sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.0, "galactic_radius_pc": 8000.0}) == []
+        assert sheet._small_body_rows(None, kind, 5, {"ice_mass_fraction": 0.3, "galactic_radius_pc": None}) == []
+
+
 def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():
     for kind, keys in sheet.GLANCE.items():
         have = {spec.key for spec in sheet.SPECS[kind]}
@@ -455,6 +487,26 @@ def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_source
     assert rows["chemistry_dredge_up_helium"]["source"]
 
 
+def test_a_star_lists_the_isotopes_of_its_surface_and_a_red_giant_shows_the_dredged_carbon(client, mysql_config):
+    """GEN.1488: the surface isotope lines come from the same makeup as the chemistry rows; a main-sequence star has burned its deuterium, a red giant shows the dredged carbon ratio."""
+    from planetgen.physics import constants, isotope_record
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    _set_star(mysql_config, star["id"], state="main-sequence", yerkes_class="V", mass_kg=constants.SOLAR_MASS_TO_KG, metallicity_fe_h=0.0, age_gy=4.6)
+    main = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert main["isotope_D/H"]["raw"] == pytest.approx(isotope_record.SURFACE_D_H, rel=1e-6) and main["isotope_count"]["raw"] > 20
+    assert 0.005 < main["isotope_13C/12C"]["raw"] < 0.02
+    assert _rows(client.get(f"/api/objects/{ref}/sheet").get_json())["isotope_13C/12C"]["raw"] == main["isotope_13C/12C"]["raw"]
+    _set_star(mysql_config, star["id"], state="red-giant", yerkes_class="III", mass_kg=1.5 * constants.SOLAR_MASS_TO_KG, metallicity_fe_h=0.0, age_gy=2.5)
+    giant = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert 1.0 / giant["isotope_13C/12C"]["raw"] == pytest.approx(isotope_record.DREDGED_C12_OVER_C13)
+
+
 def test_a_star_with_no_metallicity_shows_no_chemistry(client, mysql_config):
     system_id = _save_wide_binary_with_moons(mysql_config)
     conn = store.get_connection(mysql_config)
@@ -515,3 +567,25 @@ def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_c
     ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, 0.4)
     rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
     assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
+
+
+def test_a_nebula_and_a_remnant_sheet_show_their_composition_and_dust_by_species(client, mysql_config):
+    """GEN.1272: the stored composition is on the sheet with its units: the element shares, the gas phases, the dust ratios, the grain species (adding to one), and a remnant's ejecta and swept-up gas."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+
+    config = SystemConfig()
+    for kind, cls, stored_as in (("nebula", Nebula, "nebula"), ("supernova_remnant", SupernovaRemnant, "supernova-remnant")):
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        body = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet").get_json()
+        rows = _rows(body)
+        assert rows["mass_fraction_h"]["stored"] and rows["dust_to_gas"]["stored"] and rows["abundance_o"]["stored"], kind
+        group_of = {row["key"]: group["key"] for group in body["groups"] for row in group["rows"]}
+        assert group_of["mass_fraction_h"] == "composition" and group_of["dust_to_gas"] == "dust", kind
+        grains = [row for key, row in rows.items() if key.startswith("grain_")]
+        assert len(grains) == 9 and all(row["stored"] for row in grains), kind
+        assert sum(row["raw"] for row in grains) == pytest.approx(1.0, abs=1e-6), kind
+        assert all(row["text"] and "None" not in row["text"] for row in rows.values()), kind
+        assert ("ejecta_mass_sol" in rows) == (kind == "supernova_remnant"), kind
+        assert ("swept_mass_fraction_he" in rows) == (kind == "supernova_remnant"), kind

@@ -32,7 +32,7 @@ import math
 import time
 
 import pymysql
-from flask import Blueprint, current_app, g, jsonify, request, url_for
+from flask import Blueprint, current_app, g, jsonify, request
 
 from planetgen.db import search_values
 from planetgen.db import children as children_db
@@ -80,7 +80,6 @@ from planetgen.db.query import (
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
     galaxy_tile_stamp,
-    sectors_made,
     galaxy_locate,
     galaxy_stage,
     galaxy_edge_pc,
@@ -91,6 +90,8 @@ from planetgen.db.query import (
     systems_facets,
     list_sectors,
     list_systems,
+    GENERATED_KINDS,
+    generated_since,
     nav_chart_plan,
     nav_course,
     open_readonly,
@@ -120,7 +121,8 @@ from planetgen.galaxy import objectref as object_ref, object_uid, scatter_limits
 from planetgen.galaxy.profile import sector_profile
 from planetgen.galaxy.profile_report import profile_report
 from planetgen.galaxy.resolution import cell_resolution
-from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
+from planetgen.db.store import (NoGalaxyError, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases,
+                                resolve_database)
 from planetgen.util.checks import finite_float
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
@@ -130,7 +132,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
-from planetgen.physics import cluster_unbinding
+from planetgen.physics import cluster_unbinding, oddities
 from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
@@ -198,6 +200,8 @@ def _resolve_database_param(base_config):
         return base_config
     try:
         return resolve_database(base_config, requested)
+    except NoGalaxyError as exc:
+        raise ApiError(str(exc), status_code=404, extra={"noGalaxy": True})        # MAP.407: the pages say so in words
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
     except pymysql.MySQLError as exc:
@@ -663,6 +667,28 @@ def systems():
     }
     if request.args.get("facets") == "1":
         body["facets"] = systems_facets(db, sector_id=sector_id, **filters)
+    return jsonify(body)
+
+
+@bp.route("/generated")
+def generated():
+    """
+    `GET /api/generated?kind=sectors|systems|planets|moons&since=<Unix seconds>` -- what was made at or after a time, newest first (ADM.150:
+    the admin page that follows a generation run). `limit` and `offset` page it. Returns `{"kind", "since", "total", "items", "limit",
+    "offset"}`; every item has `kind` (`sector`, `system`, `planet` or `moon`), `id` and `name`, and the kind's own fields (`db.query.generated_since`).
+    It reads only the rows made since, by the key, so it is quick whatever the galaxy's size. A planet or moon is as new as its system.
+    A missing or bad `kind` or `since` is a 400.
+    """
+    kind = request.args.get("kind", "")
+    if kind not in GENERATED_KINDS:
+        raise ApiError(f"kind must be one of {', '.join(GENERATED_KINDS)}, got {kind!r}")
+    try:
+        since = finite_float(request.args.get("since", ""))
+    except ValueError:
+        raise ApiError("since must be a number (Unix seconds)")
+    limit, offset = _paginate(request.args)
+    body = generated_since(get_db(), kind, since, limit, offset)
+    body.update(since=since, limit=limit, offset=offset)
     return jsonify(body)
 
 
@@ -1175,22 +1201,6 @@ def galaxy_sectors():
     return jsonify({"items": galaxy_placed_sectors(get_db())})
 
 
-@bp.route("/galaxy/made")
-def galaxy_made():
-    """
-    The galaxy-placed sectors created in a time window, for the Galaxy
-    Map's "Show on Galaxy Map" after a generate job (ADM.31): `?since=`
-    and optional `&until=` as Unix seconds. Returns `{"total", "items"}`
-    (`db.query.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
-    """
-    try:
-        since = finite_float(request.args.get("since", ""))
-        until = finite_float(request.args["until"]) if request.args.get("until") else None
-    except ValueError:
-        return jsonify({"error": "since and until must be numbers (Unix seconds)."}), 400
-    return jsonify(sectors_made(get_db(), since, until))
-
-
 @bp.route("/galaxy/phenomena")
 def galaxy_phenomena():
     """
@@ -1243,6 +1253,24 @@ def galaxy_superbubbles():
     return jsonify({"superbubbles": [
         {"x": round(b.center_pc[0], 1), "y": round(b.center_pc[1], 1), "z": round(b.center_pc[2], 1),
          "radius_pc": round(b.radius_pc, 1)} for b in bubbles]})
+
+
+ODDITY_TABLES = {"planet": "planets", "moon": "moons", "rogue_planet": "rogue_planets"}
+"""dict: The table that keeps the oddities of an object kind (GEN.1047)."""
+
+
+def oddities_of(conn, kind, object_id):
+    """
+    The oddities an object has (GEN.1047), `[{"id", "name", "text"}]` in table order: the row's `oddities` ids read against the table
+    (`physics/oddities.py`), the sentence being the cause the page shows ("A giant impact knocked ..."). Empty for an object of another kind
+    and for an id the table no longer holds.
+    """
+    table = ODDITY_TABLES.get(kind)
+    if table is None:
+        return []
+    row = conn.execute(f"SELECT oddities FROM {table} WHERE id = ?", (object_id,)).fetchone()
+    ids_found = oddities.from_column(row["oddities"] if row else None)
+    return [{"id": row_id, "name": oddities.BY_ID[row_id].name, "text": oddities.BY_ID[row_id].text} for row_id in ids_found if row_id in oddities.BY_ID]
 
 
 def region_of(conn, position_pc):
@@ -1972,6 +2000,7 @@ def object_ref_route(ref):
         kind, object_id = object_ref.parse(resolved)
         found = resolve_object(get_db(), kind, object_id)
         found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
+        found["oddities"] = oddities_of(get_db(), kind, object_id)
         found["former_designations"] = ids.former_designations(get_db(), kind, object_id)
         return jsonify(found)
     except ValueError as exc:  # includes ids.IdError
@@ -2557,17 +2586,13 @@ def job_status_route(job_id):
     """`GET /api/jobs/<id>` -- where a queued API job stands: `state`
     (`queued`, `running`, `succeeded` or `failed`), its `result` once it
     succeeded, its `error` once it failed (PERF.24). 404 for an
-    unknown or expired id; results are kept for a day. A finished job that
-    generated sectors also gives `made_url`, the Galaxy Map fitted to them
-    (ADM.31), else `null`."""
+    unknown or expired id; results are kept for a day."""
     try:
         job = api_jobs.status(job_id)
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     if job is None:
         raise ApiError(f"no such job: {job_id}", status_code=404)
-    made = job.pop("made")
-    job["made_url"] = url_for("web.galaxy", made=f"{made['since']},{made['until']}") if made else None
     return jsonify(job)
 
 

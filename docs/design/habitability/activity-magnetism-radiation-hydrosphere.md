@@ -289,7 +289,12 @@ mass fraction c (Earth 0.325) and lid regime:
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
-   field and the wind, then divided by the body's own radius, GEN.843).
+   field and the wind, then divided by the body's own radius, GEN.843). The wind is the sum of the winds of every star of the system (GEN.1452,
+   `magnetism.wind_pressure_at`: the host's plus each companion's wind at 1 AU times the mean `1/d^2` between it and the body, the geometry that adds the
+   companions' light, `physics/radiation_field.py`); a lone star gives the number of before. A moon that orbits inside its parent's magnetopause
+   is not in the wind: its own standoff is set against the pressure of the parent's field at its orbit, `B^2 / (2 mu0)` with `B = mu0 M / (4 pi r^3)`
+   (`magnetism.apply_parent_magnetosphere`; Ganymede's standoff in Jupiter's field comes out at 2.4 radii). The belts of the parent already read the parent's
+   field and now the summed wind (`radiation_belts.belts_of_body`).
 
 **Lid regime, as built (GEN.177, GEN.721, GEN.838).** The regime is drawn once per planet from `mobile_lid_chance`: a liquid surface ocean
 (`hydrosphere == "surface ocean"`) is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth masses and 0.3 above (the
@@ -322,6 +327,19 @@ half of it perpendicular to the spin, turning at the planet's synodic rotation; 
 core answer, and the moment is stored as `induced_moment_a_m2`, 5e17 A m2 for a dry Earth-mass planet at 1 AU against the dynamo's 8e22. A giant has none.
 The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.
 
+
+### 3.6 Where the dipole points (GEN.1350)
+
+The size of a field was stored; its direction was not. `physics/magnetic_geometry.py` draws, from a stream of the body's own (nothing of the run's stream moves), the angle between the dipole's axis and the spin axis (`dipole_tilt_deg`, folded into 0 to 90 degrees) and whether the dipole is off centre (`dipole_offset_class`, `centred` or `offset`, over 0.15 radii) for a planet, moon or rogue planet with a field:
+
+| Dynamo | Tilt | Offset | Cases |
+|---|---|---|---|
+| dipole-dominated rocky core, gas giant | Rayleigh, scale 6 degrees | centred | Earth 11, Jupiter 9.6, Ganymede 4, Saturn under 0.1 |
+| the iron-rich small body of the Mercury stand-in | Rayleigh, scale 6 degrees | offset | Mercury under 3 degrees, 0.19 radii |
+| multipolar core (the dipole under half the field) | isotropic | offset | |
+| ice giant (thin conducting shell over a stable core) [R4196] | isotropic | offset | Uranus 59 degrees and 0.3 radii, Neptune 47 and 0.55 |
+
+A neutron star stores `magnetic_inclination_deg`: isotropic at birth, then `tan(alpha)` falls as `exp(-t / 7 Myr)` [R5143]; a recycled millisecond pulsar is isotropic again. A star stores `surface_dipole_field_gauss`, the polar field of its large-scale dipole: a cool dwarf with a convective envelope (below the Kraft break, mass 0.08 to 1.3) has `B = 1.5 G (Ro / 1.76)^-1.40` with a 0.35 dex scatter, capped at 5 kG ([R4544, R5144]; `Ro = P_rot / tau_conv`, [R4780]); an Ap or Bp dwarf has the polar field `chemically_peculiar` draws for its kind; any other star has none. The stand-ins are DP1 to DP7 (registry 6.212). The Sensor view reads these columns (UX.286).
 
 ## 4. Surface radiation dose (GEN.87)
 
@@ -492,7 +510,7 @@ unknown [S]. Since GEN.1147 the cover is a two-level hypsometry (Cowan and Abbot
 the surface is ocean crust (60 percent of it, at -4.5 km with a spread of 1.0 km) and continental crust (40 percent, at +0.45 km
 with 0.9 km), relief scaled as `g_E / g`; the global water layer `D = w M / (rho_w A)` fills the lowest ground to a level and
 `f_ocean` is the share of the surface under it. The four numbers are stand-ins (row HY2) tuned only so that Earth's 2.74 km layer
-covers 0.71. The mantle never holds more than it can store: 2 Earth oceans at 0.5 Earth masses to 8 at 5 ([R1717], row HY1).
+covers 0.71. The mantle never holds more than its minerals can store (GEN.1365: the upper mantle, the transition zone of wadsleyite and ringwoodite and the lower mantle, rows MR1 to MR3; 4.8 Earth oceans for the Earth).
 The old law `min(1, sqrt(2 D / L))` went from no land to all ocean over a factor of 16 in the water; the new one covers 0.27 at
 0.2 km, 0.50 at 0.64 km, 0.59 at 1.3 km, 0.71 at 2.7 km and everything at 5 km. The table below is the old law.
 

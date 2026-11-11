@@ -105,6 +105,7 @@ REQUIREMENTS=(
     "flask-limiter>=3.7.0"
     "redis>=5.0.0"
     "rq>=1.16.0"
+    "psutil>=7.2.2"
     "pyotp>=2.9.0"
     "segno>=1.6.0"
     "cachetools>=5.3.0"

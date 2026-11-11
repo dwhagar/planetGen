@@ -39,14 +39,14 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, scatter_epochs, body_class_scores, body_living, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import chart_ledger, compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
+from planetgen.db import belt_names, chart_ledger, compact_pairs, countcache, galaxy_counts, hostednebula, interests, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world, life_classes, life_scores, score_filters
+from planetgen.physics import class_code, equipment, habitability, habitability_world, life_classes, life_scores, score_filters
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types, tech
 from planetgen.generation import cloud as cloudContext
@@ -54,7 +54,6 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.phenomena import asteroid_field
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
-from planetgen.util import generator_epoch
 from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
@@ -87,7 +86,7 @@ from planetgen.galaxy.navigation import (
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.tuning import (
-    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
+    DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
     NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_GRAPH_CANDIDATES, NAV_GRAPH_NEIGHBOURS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
     NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
@@ -170,6 +169,16 @@ _UNCHARTED_SECTOR_SQL = (
     "(sec.shell_index IS NOT NULL AND NOT EXISTS (SELECT 1 FROM chart_ledger cl WHERE cl.shell_index = sec.shell_index "
     "AND cl.band_index = sec.band_index AND cl.wedge_index = sec.wedge_index))")
 """str: SQL for an uncharted placeholder (`sector_is_uncharted`): a placed sector row whose cell the chart ledger does not hold."""
+
+def charted_sectors_sql(where="1 = 1", charted=True):
+    """
+    A derived table of the sectors matching `where` (SQL on `sectors`' own columns) that are not uncharted placeholders (MAP.402): the sectors that
+    were charted, or that predate the chart ledger. The totals that count generated sectors read their rows through it, so the placeholder rows
+    the scatters leave (`db.uncharted_index`) add nothing to a block, a region or a count of sectors. `charted=False` reads every row: for the
+    migration that runs `db.block_stats.rebuild` on a schema older than the chart ledger (0168), where no placeholder can exist.
+    """
+    return f"(SELECT sec.* FROM sectors sec WHERE ({where})" + (f" AND NOT {_UNCHARTED_SECTOR_SQL})" if charted else ")")
+
 
 _EMPTY_SECTOR_SQL = (
     "(NOT EXISTS (SELECT 1 FROM rogue_planets rp WHERE rp.sector_id = sec.id) "
@@ -1103,6 +1112,8 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
     counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
 
     def exact(c):
+        if not join_sql and not where_sql:
+            return galaxy_counts.totals(c)["systems"]    # DB.121: no filter, so the running total and what no sector's rows hold
         return c.execute(f"SELECT {counted} AS n FROM star_systems ss{join_sql}{where_sql}", params).fetchone()["n"]
 
     def estimate(c):
@@ -1113,6 +1124,21 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector,
                            _start_key(sort, descending, start), None if stars is None else list(stars), _values_key(values)], exact, estimate)
+
+
+def _stored_systems_facets(conn):
+    """`systems_facets` with no filter from the stored sector counts and what no sector's rows hold (`db.galaxy_counts`). A system is in a
+    sector unless its `sector_id` is NULL, so the standalone ones are the one count made here."""
+    total = galaxy_counts.totals(conn)
+    binaries = galaxy_counts.facet(conn, "binary")
+    octants = galaxy_counts.facet(conn, "octant")
+    standalone = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id IS NULL").fetchone()["n"]
+    placement = {"sector": total["systems"] - standalone, "standalone": standalone}
+    return {
+        "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
+        "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
+        "octant": [{"value": v, "count": octants[v]} for v in sorted(octants) if octants[v]],
+    }
 
 
 def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None, values=None):
@@ -1127,6 +1153,9 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
             options with no systems left out.
     """
     def exact(c):
+        if sector_id is None and binary is None and not octants and in_sector is None and stars is None and not values:
+            return _stored_systems_facets(c)    # DB.121: no filter at all, so the stored sector counts and what no sector's rows hold
+
         def counts(select, **filters):
             base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, "values": values, **filters}
             _join, where, params = _systems_filter_clause(None, sector_id, **base)
@@ -1145,6 +1174,87 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
 
     return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars), _values_key(values)], exact,
                     lambda c: {"placement": [], "binary": [], "octant": []})
+
+
+def _class_clause(alias, codes, clauses, params):
+    """
+    Appends the filter on `alias.planet_class` for the written class `codes` (a set of tags such as `{"M", "F2"}`). A letter alone matches all its digits
+    ("Searching or filtering by a letter matches all its digits", `physics/class_code.py`); a letter and a digit (`class_code.parse_code`, GEN.1208) matches that
+    position of the family only, a stored digit of NULL being digit 0. A tag that is not a class code matches nothing, as it did.
+    """
+    letters, coded = [], []
+    for code in sorted(codes):
+        if code[-1:].isdigit():
+            try:
+                coded.append(class_code.parse_code(code))
+                continue
+            except class_code.ClassCodeError:
+                pass
+        letters.append(code)
+    parts = []
+    if letters:
+        parts.append(f"{alias}.planet_class IN ({','.join('?' * len(letters))})")
+        params.extend(letters)
+    for letter, digit in coded:
+        parts.append(f"({alias}.planet_class = ? AND COALESCE({alias}.class_variant, 0) = ?)")
+        params.extend((letter, digit))
+    if len(parts) == 1:
+        clauses.append(parts[0])
+    elif parts:
+        clauses.append("(" + " OR ".join(parts) + ")")
+
+
+GENERATED_KINDS = ("sectors", "systems", "planets", "moons")
+"""tuple[str]: What `generated_since` lists (ADM.150)."""
+
+
+_MYSQL_LAST_UNIX_SECOND = 32536799999  # FROM_UNIXTIME's upper limit (year 3001)
+
+
+def generated_since(conn, kind, since, limit=50, offset=0):
+    """
+    The sectors, systems, planets or moons made at or after `since` (Unix seconds), newest first (ADM.150: what a generation run has
+    made so far, for the admin page that follows a run).
+
+    Ids rise with creation, so the start is found once: the newest system (or sector) made *before* `since`, walking the
+    primary key down from the top, which reads only the rows made since. Everything after that id is the answer, a range of the key, so the
+    read costs the rows made, not the size of the galaxy. A planet or a moon is as new as its system; one with no system (a free planet's
+    moon, a rogue) is not listed.
+
+    Returns:
+        dict: `kind`, `total` and `items` (`limit` of them from `offset`). Every item has `kind`, `id` and `name`; a sector or system has
+            `created` (Unix seconds), a system `sector_id` and `sector_name`, a planet or moon `planet_class`, `radius_km`,
+            `star_system_id` and `system_name`, a moon also `planet_name`.
+    """
+    if kind not in GENERATED_KINDS:
+        raise ValueError(f"unknown kind {kind!r}")
+    if since > _MYSQL_LAST_UNIX_SECOND:
+        # FROM_UNIXTIME gives NULL for times past its range (year 3001 at the widest, 2038 on older builds), which would make `created_at < NULL` match nothing and list everything.
+        return {"kind": kind, "total": 0, "items": []}
+    table = "sectors" if kind == "sectors" else "star_systems"
+    previous = conn.execute(f"SELECT id FROM {table} WHERE created_at < FROM_UNIXTIME(?) ORDER BY id DESC LIMIT 1", (since,)).fetchone()
+    start = previous["id"] if previous is not None else 0
+    page = [start, int(limit), int(offset)]
+    if kind == "sectors":
+        total = conn.execute("SELECT COUNT(*) AS n FROM sectors WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT id, name, UNIX_TIMESTAMP(created_at) AS created FROM sectors WHERE id > ? "
+                            "ORDER BY id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "systems":
+        total = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT ss.id, ss.name, ss.sector_id, sec.name AS sector_name, UNIX_TIMESTAMP(ss.created_at) AS created "
+                            "FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id WHERE ss.id > ? "
+                            "ORDER BY ss.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    elif kind == "planets":
+        total = conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT p.id, p.name, p.planet_class, p.radius_km, p.star_system_id, ss.name AS system_name "
+                            "FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE p.star_system_id > ? "
+                            "ORDER BY p.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    else:
+        total = conn.execute("SELECT COUNT(*) AS n FROM moons WHERE star_system_id > ?", (start,)).fetchone()["n"]
+        rows = conn.execute("SELECT m.id, m.name, m.planet_class, m.radius_km, m.star_system_id, ss.name AS system_name, p.name AS planet_name "
+                            "FROM moons m JOIN star_systems ss ON ss.id = m.star_system_id LEFT JOIN planets p ON p.id = m.planet_id "
+                            "WHERE m.star_system_id > ? ORDER BY m.id DESC LIMIT ? OFFSET ?", page).fetchall()
+    return {"kind": kind, "total": total, "items": [{"kind": kind[:-1], **dict(row)} for row in rows]}
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
@@ -1173,8 +1283,7 @@ def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km,
     clauses = []
     params = []
     if planet_class is not None:
-        clauses.append(f"{table_alias}.planet_class = ?")
-        params.append(planet_class)
+        _class_clause(table_alias, {planet_class}, clauses, params)
     size_range = None
     if min_radius_km is not None or max_radius_km is not None:
         size_range = (min_radius_km, max_radius_km)
@@ -3559,7 +3668,7 @@ def resolve_object(conn, kind, object_id):
                     parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
                                     "name": one("planets", planet, "name")["name"]})
             if host_kind is not None:
-                host_name = (f"Asteroid belt {one(host_table, host_id, 'orbital_index')['orbital_index'] + 1}"
+                host_name = (belt_names.label(belt_names.numbers_for_belts(conn, [host_id])[host_id])
                              if host_kind == "belt" else one(host_table, host_id, "name")["name"])
                 parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
         else:
@@ -3602,7 +3711,7 @@ def resolve_object(conn, kind, object_id):
                 positions["galaxy_pc"] = [rogue["center_x_pc"], rogue["center_y_pc"], rogue["center_z_pc"]]
         else:
             parents, positions = system_parents_and_positions(row["star_system_id"])
-        name = f"Asteroid belt {row['orbital_index'] + 1}" if kind == "belt" else row["name"]
+        name = belt_names.label(belt_names.numbers_for_belts(conn, [object_id])[object_id]) if kind == "belt" else row["name"]
         if kind == "star":
             positions["system_km"] = star_offset(object_id)
         elif kind in ("planet", "comet"):
@@ -4329,9 +4438,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
-    `StarSystem.count_habitable` uses), `habitable_class` (its class is one of `tuning.HABITABLE_PLANET_CLASSES`),
-    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column, kept
-    for a habitable class only) and
+    `StarSystem.count_habitable` uses), `habitable_class` (its conditions support a life class, or one lives on it, GEN.1387: no list of class letters),
+    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column) and
     `inhabited` (reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
@@ -4344,9 +4452,8 @@ def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None, 
     body["life_class_id"] = life_classes.living_class_id(body.get("life_class"), body.get("life_class_variant"), body.get("life_stage"))
     body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["life_classes"] = _life_classes_of(body, living)
-    body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["habitable_class"] = body["life_class_id"] is not None or bool(body["life_class_scores"])      # GEN.1387: the conditions support a life class, or one lives here
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
-    body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
     body["compact_host"] = compact_host
     body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
@@ -4409,13 +4516,13 @@ def galaxy_placed_sectors(conn):
             `galactic_radius_pc`, `shell_index`, `system_count`.
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.shell_index, COALESCE(counts.n, 0) AS system_count
         FROM sectors sec
         LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
                    WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
-        WHERE sec.center_x_pc IS NOT NULL
+        WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
         ORDER BY sec.galactic_radius_pc
         """,
     ).fetchall()
@@ -4428,45 +4535,6 @@ def galaxy_placed_sectors(conn):
         }
         for r in rows
     ]
-
-
-MADE_SECTOR_LIMIT = 2000
-"""int: Most sectors `sectors_made` returns by address: a bigger run is shown
-by its first sectors (the response still says the real total)."""
-
-
-
-
-
-def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
-    """
-    The galaxy-placed sectors created from `since` to `until` (Unix
-    seconds; `until=None` means now) -- what a generate job made, for the
-    Galaxy Map's "Show on Galaxy Map" (ADM.31).
-
-    Returns:
-        dict: `total` (how many), `items` (up to `limit`, lowest id first:
-            `id`, `name`, `x`/`y`/`z` pc, `shell_index`, `band_index`,
-            `wedge_index`).
-    """
-    where = "center_x_pc IS NOT NULL AND UNIX_TIMESTAMP(created_at) >= ?"
-    params = [since]
-    if until is not None:
-        where += " AND UNIX_TIMESTAMP(created_at) <= ?"
-        params.append(until)
-    total = conn.execute(f"SELECT COUNT(*) AS n FROM sectors WHERE {where}", params).fetchone()["n"]
-    rows = conn.execute(
-        "SELECT id, name, center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index "
-        f"FROM sectors WHERE {where} ORDER BY id LIMIT ?", [*params, int(limit)],
-    ).fetchall()
-    return {
-        "total": total,
-        "items": [
-            {"id": r["id"], "name": r["name"], "x": r["center_x_pc"], "y": r["center_y_pc"], "z": r["center_z_pc"],
-             "shell_index": r["shell_index"], "band_index": r["band_index"], "wedge_index": r["wedge_index"]}
-            for r in rows
-        ],
-    }
 
 
 def galaxy_density_shape(conn):
@@ -4567,13 +4635,13 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
             given center).
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.shell_index, sec.band_index, sec.wedge_index,
                sec.edge_mpc,
                (SELECT COUNT(*) FROM star_systems ss WHERE ss.sector_id = sec.id) AS system_count
         FROM sectors sec
-        WHERE sec.center_x_pc IS NOT NULL
+        WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
           AND sec.center_x_pc BETWEEN ? AND ?
           AND sec.center_y_pc BETWEEN ? AND ?
           AND sec.center_z_pc BETWEEN ? AND ?
@@ -4656,7 +4724,7 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
             minus `distance_pc`.
     """
     rows = conn.execute(
-        """
+        f"""
         SELECT id, name, center_x_pc, center_y_pc, center_z_pc,
                galactic_radius_pc, shell_index, band_index, wedge_index, edge_mpc
         FROM (
@@ -4669,6 +4737,7 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
             WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
               AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
               AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
+              AND NOT {_UNCHARTED_SECTOR_SQL}
         ) ranked
         WHERE MOD(row_num - 1, CEILING(row_total / ?)) = 0
         ORDER BY id
@@ -4724,8 +4793,8 @@ def galaxy_sector_count_in_box(conn, lo, hi):
         int: The count.
     """
     return int(conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? "
-        "AND center_y_pc < ? AND center_z_pc >= ? AND center_z_pc < ? AND shell_index IS NOT NULL",
+        "SELECT COUNT(*) AS n FROM sectors sec WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ? AND sec.center_y_pc >= ? "
+        f"AND sec.center_y_pc < ? AND sec.center_z_pc >= ? AND sec.center_z_pc < ? AND sec.shell_index IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}",
         (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]),
     ).fetchone()["n"])
 
@@ -6338,7 +6407,7 @@ def _stage_sectors_with_stats(where, extra=""):
     return (
         f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
         " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds, st.total_mass_kg"
-        f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
+        f" FROM {charted_sectors_sql(where)} s LEFT JOIN sector_stats st"
         " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index"
     )
@@ -6623,9 +6692,14 @@ def galaxy_content_state(conn):
       depend on the shape, every node's `stars` on the scatter, so a new
       `base` means every page and count cached by the stamp is stale.
     - `tile_base`: the same without the release: the shape, the scatter's
-      seed, the naming key, `TILE_FORMAT` and the generator epoch. The
-      stored nodes follow this one, so a release that changes neither the
-      node format nor what the generator makes keeps every stored node
+      seed, the naming key, `TILE_FORMAT` and the epoch each scatter was
+      drawn under (OPS.133). The running generator epoch is not in it: a
+      node is read from stored rows (the plan row, whose own epoch is in
+      the shape, the scatter, each sector's figures), so a new epoch
+      changes no node until something is regenerated, and a regenerated
+      sector bumps its own `modified_at` and so its own nodes. The stored
+      nodes follow this one, so a release or an epoch that changes
+      neither the node format nor a stored row keeps every stored node
       (PERF.133).
     - `deletions`/`sector_max_id`: the deletion epoch (`store.
       note_sector_deleted`, PERF.38: it goes up with every sector deleted,
@@ -6665,7 +6739,7 @@ def galaxy_content_state(conn):
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "scatter_epochs": scatter_epochs(conn),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
@@ -6726,7 +6800,7 @@ def galaxy_changes(conn, since=None):
 
     Deletions leave no row behind, so a deleted sector can't be located;
     the deletion epoch moves, and the answer is `full` instead. So is a new
-    shape, node format or generator epoch (`tile_base`), an unreadable `since`, or more than
+    shape, node format or scatter epoch (`tile_base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors. A new release alone (`base`) makes `full` true for what is cached by
     `stamp` (pages, counts) but not `tile_full`, which is what the stored nodes follow (PERF.133).
 
@@ -6768,7 +6842,7 @@ def galaxy_changes(conn, since=None):
     if previous is None or previous["tile_base"] != state["tile_base"]:
         return everything()
     if previous["base"] != state["base"]:
-        # A release that changes neither the node format nor the generator epoch: whatever else is cached by
+        # A release that changes neither the node format nor a stored row: whatever else is cached by
         # `stamp` (pages, counts) is stale, the stored nodes are not (PERF.133). The nodes that changed are
         # still listed below.
         result["full"] = True
@@ -7047,10 +7121,8 @@ def _append_size_clause(clauses, params, column, size_range):
 # the database (never a fixed/static enumeration). ---
 
 def _search_facet_type(conn):
-    star_c = conn.execute("SELECT COUNT(*) AS c FROM stars").fetchone()["c"]
-    planet_c = conn.execute("SELECT COUNT(*) AS c FROM planets").fetchone()["c"]
-    moon_c = conn.execute("SELECT COUNT(*) AS c FROM moons").fetchone()["c"]
-    belt_c = conn.execute("SELECT COUNT(*) AS c FROM asteroid_belts").fetchone()["c"]
+    stored = galaxy_counts.totals(conn)    # DB.121: the running totals and what no sector's rows hold
+    star_c, planet_c, moon_c, belt_c = stored["stars"], stored["planets"], stored["moons"], stored["belts"]
     opts = []
     for value, label, count in (
         ("star", "Stars", star_c),
@@ -7066,8 +7138,7 @@ def _search_facet_type(conn):
 def _search_facet_spectral(conn):
     """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
     then any other letter the stars hold."""
-    counts = {row["v"]: row["c"] for row in conn.execute(
-        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
+    counts = galaxy_counts.facet(conn, "spectral")
     letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
     for letter in letters:
@@ -7080,8 +7151,7 @@ def _search_facet_spectral(conn):
 def _search_facet_luminosity(conn):
     """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
     stars hold."""
-    counts = {row["v"]: row["c"] for row in conn.execute(
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
+    counts = galaxy_counts.facet(conn, "yerkes")
     classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
         {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
@@ -7090,10 +7160,13 @@ def _search_facet_luminosity(conn):
     ]
 
 
+def _body_facet_rows(facet, conn):
+    """`[{"v", "c"}]` in the order of the values: the stored sector counts of `facet` and what no sector's rows hold (`db.galaxy_counts`, DB.121)."""
+    return [{"v": value, "c": n} for value, n in sorted(galaxy_counts.facet(conn, facet).items())]
+
+
 def _search_facet_class(conn):
-    rows = conn.execute(
-        "SELECT planet_class AS v, COUNT(*) AS c FROM planets WHERE planet_class IS NOT NULL GROUP BY v ORDER BY v"
-    ).fetchall()
+    rows = _body_facet_rows("class", conn)
     opts = []
     for row in rows:
         info = PLANET_CLASSES.get(row["v"], {})
@@ -7103,7 +7176,7 @@ def _search_facet_class(conn):
 
 
 def _search_facet_body(conn):
-    rows = conn.execute("SELECT body_type AS v, COUNT(*) AS c FROM planets GROUP BY v ORDER BY v").fetchall()
+    rows = _body_facet_rows("body", conn)
     return [
         {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
         for row in rows
@@ -7115,16 +7188,28 @@ def _life_class_label(class_id):
     return f"Class {class_id}: {life_classes.describe(class_id).name}" if class_id in life_classes.BY_ID else str(class_id)
 
 
-def _life_class_facet(conn, table):
-    """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each lives on: any class of a body counts, not only the dominant
-    one (GEN.1209). A body stored before the `planet_life` / `moon_life` rows existed counts its one class from its own columns."""
+def life_class_counts(conn, table, scope="", params=()):
+    """
+    The life classes living on the bodies of `table` (`planets` or `moons`) as `[{"v": class id, "c": bodies}]`, in the order of the
+    ids: any class of a body counts, not only the dominant one (GEN.1209). A body stored before the `planet_life` / `moon_life`
+    rows existed counts its one class from its own columns. `scope` is a condition on the body (alias `b`) with its `params`,
+    for the bodies of one sector (`db.galaxy_counts`); with none every body counts.
+    """
     child, key = ("moon_life", "moon_id") if table == "moons" else ("planet_life", "planet_id")
-    rows = conn.execute(
+    tail = f" AND {scope}" if scope else ""
+    joined = f" JOIN {table} b ON b.id = x.{key}" if scope else ""
+    return conn.execute(
         f"SELECT v, COUNT(*) AS c FROM ("
         f"SELECT CONCAT(b.life_class, COALESCE(b.life_class_variant, '')) AS v FROM {table} b WHERE b.life_class IS NOT NULL AND b.life_stage IS NOT NULL "
-        f"AND NOT EXISTS (SELECT 1 FROM {child} x WHERE x.{key} = b.id) "
-        f"UNION ALL SELECT x.life_class AS v FROM {child} x WHERE x.life_stage IS NOT NULL) t GROUP BY v ORDER BY v"
-    ).fetchall()
+        f"AND NOT EXISTS (SELECT 1 FROM {child} x WHERE x.{key} = b.id){tail} "
+        f"UNION ALL SELECT x.life_class AS v FROM {child} x{joined} WHERE x.life_stage IS NOT NULL{tail}) t GROUP BY v ORDER BY v",
+        tuple(params) * 2 if scope else ()).fetchall()
+
+
+def _life_class_facet(conn, table):
+    """The life classes living on the bodies of `table` (`planets` or `moons`), with how many bodies each lives on
+    (`life_class_counts`), from the stored sector counts and what no sector's rows hold (`db.galaxy_counts`, DB.121)."""
+    rows = _body_facet_rows("moon_life" if table == "moons" else "life", conn)
     return [{"value": row["v"], "label": _life_class_label(row["v"]), "count": row["c"], "tooltip": None} for row in rows]
 
 
@@ -7221,9 +7306,7 @@ def _equipment_clause(alias, tags, clauses, params):
 
 
 def _search_facet_moon_class(conn):
-    rows = conn.execute(
-        "SELECT planet_class AS v, COUNT(*) AS c FROM moons WHERE planet_class IS NOT NULL GROUP BY v ORDER BY v"
-    ).fetchall()
+    rows = _body_facet_rows("moon_class", conn)
     opts = []
     for row in rows:
         info = PLANET_CLASSES.get(row["v"], {})
@@ -7233,7 +7316,7 @@ def _search_facet_moon_class(conn):
 
 
 def _search_facet_moon_body(conn):
-    rows = conn.execute("SELECT body_type AS v, COUNT(*) AS c FROM moons GROUP BY v ORDER BY v").fetchall()
+    rows = _body_facet_rows("moon_body", conn)
     return [
         {"value": row["v"], "label": _SEARCH_BODY_LABELS.get(row["v"], row["v"]), "count": row["c"], "tooltip": None}
         for row in rows
@@ -7562,8 +7645,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _equipment_clause("p", equipment_tags, clauses, params)
     _score_clauses("p", tags or {}, "", clauses)
     if class_tags:
-        clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("p", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"p.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))
@@ -7595,8 +7677,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _equipment_clause("m", equipment_tags, clauses, params)
     _score_clauses("m", tags or {}, "moon_", clauses)
     if class_tags:
-        clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
-        params.extend(sorted(class_tags))
+        _class_clause("m", class_tags, clauses, params)
     if body_tags:
         clauses.append(f"m.body_type IN ({','.join('?' * len(body_tags))})")
         params.extend(sorted(body_tags))

@@ -195,6 +195,24 @@ a:visited {
   text-decoration: underline;
 }
 
+/* TEST.680: the same holds for a link set in any sentence of a page, a description (`dd`), a lead line, a citation or a paper's entry: the link
+   colour is 2.49:1 (light) and 1.91:1 (dark) against the words around it, below the 3:1 that axe's link-in-text-block asks for, so
+   it is underlined (WCAG 1.4.1). Navigation, breadcrumbs, buttons and tables keep their own look. */
+.app-main p a:not(.btn),
+.app-main dd a:not(.btn),
+.app-main dt a:not(.btn),
+.app-main .lead a,
+.app-main a.citation,
+.app-main [id^="paper-"] > a {
+  text-decoration: underline;
+}
+
+/* TEST.680: a line or heading that names a source file path has no space to break at, so on a phone it ran past the edge. */
+.references-mode li,
+.references-mode h3 {
+  overflow-wrap: anywhere;
+}
+
 a:focus-visible,
 button:focus-visible,
 textarea:focus-visible {
@@ -3149,6 +3167,10 @@ code {
   border-radius: 50%;
   background: radial-gradient(circle, var(--text-muted) 0%, transparent 70%);
 }
+.map-layer-legend-swatch.map-key-globular {
+  border-radius: 50%;
+  background: radial-gradient(circle, #f2d492 0%, rgba(242, 212, 146, 0.45) 45%, transparent 75%);
+}
 .map-layer-legend-swatch.map-key-sphere {
   border-radius: 50%;
   background: none;
@@ -3678,11 +3700,23 @@ code {
   flex: none;
 }
 
-/* MAP.347: what is behind Expand scrolls inside the card, so the name and the buttons stay in view. */
+/* MAP.347: what is behind Expand scrolls inside the card, so the name and the buttons stay in view. UX.292: an expanded card keeps a
+   region of at least 3.5 rem for it, and the three values of the first view give up the room (they scroll inside their own box, expanded or not) when a
+   small window and long values leave none, so the card itself never scrolls. */
 .starmap-info[data-overlay] > .map-info-rest {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+}
+
+.starmap-info[data-overlay][data-expanded] > .map-info-rest {
+  min-height: 3.5rem;
+}
+
+.starmap-info[data-overlay] > dl {
+  flex: 0 1 auto;
+  min-height: 2.5rem;
+  overflow-y: auto;
 }
 
 .starmap-info[data-overlay] dl {
@@ -3723,6 +3757,17 @@ code {
 @media (max-width: 40rem) {
   .starmap-info[data-overlay] {
     --info-share: 100%;
+  }
+
+  /* UX.291: the card is narrow on a phone (the controls take the rest), so a label beside its value wrapped to several lines of a few
+     letters each ("Habitable worlds" in a column of its own); the label stands over its value instead, one line each. */
+  .starmap-info[data-overlay] > dl {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .starmap-info[data-overlay] > dl > dd {
+    margin-bottom: 0.2rem;
   }
 }
 
@@ -4014,9 +4059,8 @@ body.app {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* ADM.92: the admin shell -- the rail of destinations, the search box and the density switch above every admin
-   page. The rail wraps on a phone; compact density (the default; `data-density="roomy"` on the body turns it off)
-   tightens the panels and forms under it. */
+/* ADM.92: the admin shell -- the rail of destinations, the search box above every admin page. The rail wraps on
+   a phone; the panels and forms under it are tightened. */
 .app .admin-shell {
   display: flex;
   flex-wrap: wrap;
@@ -4032,7 +4076,7 @@ body.app {
 }
 
 /* UX.142: on a window with room for it, the shell stays under the held site header while a long admin page scrolls, so
-   the rail, the search and the density switch are always in view. A phone or a short window keeps it in the flow
+   the rail and the search are always in view. A phone or a short window keeps it in the flow
    (it would take too much of the window). adminshell.js sets --site-header-h. */
 @media (min-width: 700px) and (min-height: 600px) {
   .app .admin-shell {
@@ -4085,12 +4129,6 @@ body.app {
   min-width: 0;
 }
 
-.app .admin-density {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
 .app .admin-results {
   list-style: none;
   margin: 1rem 0 0;
@@ -4106,17 +4144,17 @@ body.app {
   display: block;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) .panel {
+.app main:has(.admin-shell) .panel {
   padding: 0.75rem 1rem;
   margin-bottom: 0.75rem;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) h2 {
+.app main:has(.admin-shell) h2 {
   margin: 0 0 0.5rem;
 }
 
-.app:not([data-density="roomy"]) main:has(.admin-shell) td,
-.app:not([data-density="roomy"]) main:has(.admin-shell) th {
+.app main:has(.admin-shell) td,
+.app main:has(.admin-shell) th {
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
 }
@@ -4792,6 +4830,20 @@ body.app {
 
 .job-log .log-debug {
   color: var(--log-debug);
+}
+
+/* The state of a running unit on the Queue run page (OPS.139): quiet, dead and a suspect loop are errors, slow and a flagged loop are cautions. */
+.badge.unit-quiet,
+.badge.unit-dead,
+.badge.unit-looping.unit-suspect {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.badge.unit-slow,
+.badge.unit-looping {
+  color: var(--log-warning);
+  border-color: var(--log-warning);
 }
 
 .badge.job-failed,

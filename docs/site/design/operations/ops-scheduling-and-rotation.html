@@ -1,0 +1,863 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Update-script operations: Apache reload, daily maintenance, locks and backup rotation - planetGen docs</title>
+<meta name="description" content="How update.sh reloads the web server, how the daily maintenance run is scheduled on Linux and macOS, which lock keeps runs from overlapping, and how the settings JSON backups are rotated into 18 slots.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/operations/ops-scheduling-and-rotation.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/operations/ops-scheduling-and-rotation.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="update-script-operations-apache-reload-daily-maintenance-locks-and-backup-rotation">Update-script operations: Apache reload, daily maintenance, locks and backup rotation</h1><p class="meta">docs/design/operations/ops-scheduling-and-rotation.md</p><details class="toc"><summary>On this page (31 headings)</summary><ul><li style="margin-left:0px"><a href="#decisions-already-taken">Decisions already taken</a></li><li style="margin-left:0px"><a href="#summary">Summary</a></li><li style="margin-left:0px"><a href="#1-reloading-the-web-server-from-the-update-script-ops8">1. Reloading the web server from the update script (OPS.8)</a></li><li style="margin-left:14px"><a href="#what-the-repo-does-today">What the repo does today</a></li><li style="margin-left:14px"><a href="#commands-per-platform">Commands per platform</a></li><li style="margin-left:14px"><a href="#graceful-restart-and-mod_wsgi-daemon-mode">Graceful, restart and mod_wsgi daemon mode</a></li><li style="margin-left:14px"><a href="#tested-bash-function">Tested bash function</a></li><li style="margin-left:0px"><a href="#2-scheduling-the-daily-maintenance-run-ops16-ops17">2. Scheduling the daily maintenance run (OPS.16, OPS.17)</a></li><li style="margin-left:14px"><a href="#what-already-exists">What already exists</a></li><li style="margin-left:14px"><a href="#defaults-per-os">Defaults per OS</a></li><li style="margin-left:14px"><a href="#linux-systemd-timer">Linux: systemd timer</a></li><li style="margin-left:14px"><a href="#linux-without-systemd-cron">Linux without systemd: cron</a></li><li style="margin-left:14px"><a href="#macos-launchd">macOS: launchd</a></li><li style="margin-left:14px"><a href="#--if-due-and-exit-codes">--if-due and exit codes</a></li><li style="margin-left:0px"><a href="#3-lock-files-ops16-adm20">3. Lock files (OPS.16, ADM.20)</a></li><li style="margin-left:14px"><a href="#what-exists">What exists</a></li><li style="margin-left:14px"><a href="#options">Options</a></li><li style="margin-left:14px"><a href="#measured-with-filelock-3191-on-linux-c">Measured with filelock 3.19.1 on Linux [C]</a></li><li style="margin-left:14px"><a href="#what-to-lock">What to lock</a></li><li style="margin-left:0px"><a href="#4-backup-rotation-18-slots-7-daily-4-weekly-6-monthly-1-yearly-ops18">4. Backup rotation: 18 slots, 7 daily, 4 weekly, 6 monthly, 1 yearly (OPS.18)</a></li><li style="margin-left:14px"><a href="#what-gets-rotated">What gets rotated</a></li><li style="margin-left:14px"><a href="#existing-implementations">Existing implementations</a></li><li style="margin-left:14px"><a href="#comparison-by-simulation-c">Comparison by simulation [C]</a></li><li style="margin-left:14px"><a href="#algorithm">Algorithm</a></li><li style="margin-left:14px"><a href="#the-pure-function">The pure function</a></li><li style="margin-left:14px"><a href="#tests-15-all-passing-on-311-and-313-c">Tests (15, all passing on 3.11 and 3.13) [C]</a></li><li style="margin-left:0px"><a href="#5-ops13-history-table-and-atomic-writes">5. OPS.13 history table and atomic writes</a></li><li style="margin-left:14px"><a href="#history-table-gotchas-keep-last-10">History table gotchas (keep last 10)</a></li><li style="margin-left:14px"><a href="#atomic-file-replacement">Atomic file replacement</a></li><li style="margin-left:0px"><a href="#evidence-notes">Evidence notes</a></li><li style="margin-left:0px"><a href="#sources">Sources</a></li></ul></details>
+<p>How <code>update.sh</code> reloads the web server, how the daily
+maintenance run is scheduled on Linux and macOS, which lock keeps
+runs from overlapping, and how the settings JSON backups are rotated into 18
+slots. The
+reproducible-galaxy design these items belong to is
+<a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a> (sections 6 to 8);
+this note holds the measured behaviour, the commands and the tested code
+the implementer needs.</p>
+<p>Informs: OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.18, ADM.19, ADM.20</p>
+<p>Status: partly built (2026-10-15). Built: OPS.8 (#808), <code>update.sh</code> reloads Apache itself when it runs as root (<code>reload_web_if_running</code> in <code>scripts/deploy-common.sh</code>, which OPS.29 widened to the gunicorn units and added the configtest and health check), so the text below that says it ends by printing <code>sudo systemctl reload apache2</code> is history. Dropped: the 18-slot settings rotation (OPS.18, ADM.19, ADM.20; Boss, 2026-10-09 20:42Z) and the PowerShell script (Windows was removed, OPS.39, #981). Still a plan: the daily maintenance run (OPS.16, OPS.17); <code>examples/maintenance/</code> still runs the positional update monthly, as the note says. Not covered here: planetGen's own virtual environment (OPS.45, #1333). Decisions marked &quot;Boss&quot; are his; everything else is a recommendation.</p>
+<p><strong>Python floor (2026-10-15).</strong> The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the <code>test</code> extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The stale-lock table's &quot;Python 3.9&quot; column (<code>filelock</code>) describes the old floor.</p>
+<p>Evidence tags: [S] seen in a search result or a fetched primary file (URL
+in Sources), [C] computed or measured in the research sandbox, [R]
+recalled and unconfirmed. The research environment could only read
+search-result text and raw files, not whole papers or vendor manuals, and
+had no macOS; every [R] below is on the
+Evidence notes list for checking when access is allowed.</p>
+<h2 id="decisions-already-taken">Decisions already taken</h2>
+<ul>
+<li>OPS.8 (Boss, 2026-10-01): &quot;it should just automatically reload apache2
+if it's running as root.&quot; macOS (gunicorn) stays as it is
+unless Boss asks.</li>
+<li>OPS.16/OPS.18 (Boss, 2026-10-02 02:28Z): &quot;a JSON file is only changed
+with the deltas at the end of the day. We're going to have to build a
+maintenance script for powershell and bash that will run the positional
+update script, then kick off this delta script that will update the JSON
+so it's only updated once every 24 hours, old JSON files are kept in the
+following order, 1 year ago, 6 months ago, 4 weeks ago, 7 days ago. A
+total of 18 backup slots.&quot;</li>
+<li>ADM.20 (Boss, 2026-10-02 02:31Z): merge now is Phase 3, low priority.</li>
+</ul>
+<p>The uploaded source documents in this folder contain nothing on
+scheduling, locking or rotation. The one overlap is <code>Library Migration Workflow.md</code> and <code>Web UX Development Notes.md</code> (section 5), which list
+APScheduler beside RQ; the daily run must survive a restart of the web
+process, so the operating system's scheduler is used and RQ stays the
+Generate queue.</p>
+<h2 id="summary">Summary</h2>
+<ol>
+<li>OPS.8 is simpler than written: the update script already requires
+root, so the &quot;print the command&quot; branch never runs. The
+closing message becomes a tested <code>reload_apache</code> step (section 1).</li>
+<li>A graceful reload kills an in-flight mod_wsgi daemon request after about
+4 s; touching the WSGI file does not.</li>
+<li>OPS.18 uses borg prune semantics on UTC names: exactly 18 distinct files,
+reaching 6 to 18 months back (restic's union semantics reach 4 months).</li>
+<li>Locks are OS-level lock files (<code>filelock</code>), created and used by the web
+user, never PID files.</li>
+<li>OPS.17 extends the monthly installers that already exist.</li>
+</ol>
+<h2 id="1-reloading-the-web-server-from-the-update-script-ops8">1. Reloading the web server from the update script (OPS.8)</h2>
+<h3 id="what-the-repo-does-today">What the repo does today</h3>
+<p><code>update.sh</code> ends by printing <code>sudo systemctl reload apache2</code> (<code>restart</code>
+when <code>APACHE_NEEDS_RESTART</code> was set by <code>ensure_apache_modules</code> in
+<code>scripts/deploy-common.sh</code>), or on macOS
+<code>launchctl kill SIGHUP system/org.planetgen.gunicorn</code>. Behind nginx or Caddy on Linux the app
+server is <code>planetgen-gunicorn</code>, which OPS.8 does not mention;
+<code>examples/systemd/planetgen-update.service.d/reload-web.conf</code> already
+reloads it from the timer. One function should cover both.</p>
+<h3 id="commands-per-platform">Commands per platform</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Platform</th>
+<th>Unit</th>
+<th>Test config</th>
+<th>Graceful</th>
+<th>Hard restart</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debian/Ubuntu</td>
+<td><code>apache2</code></td>
+<td><code>apache2ctl configtest</code></td>
+<td><code>systemctl reload apache2</code> (<code>ExecReload=apachectl graceful</code>)</td>
+<td><code>systemctl restart apache2</code></td>
+</tr>
+<tr>
+<td>RHEL/Fedora/Rocky</td>
+<td><code>httpd</code></td>
+<td><code>httpd -t</code></td>
+<td><code>systemctl reload httpd</code> (<code>ExecReload=httpd $OPTIONS -k graceful</code>)</td>
+<td><code>systemctl restart httpd</code></td>
+</tr>
+<tr>
+<td>macOS Homebrew</td>
+<td>brew service</td>
+<td><code>httpd -t</code></td>
+<td><code>apachectl graceful</code> (unverified)</td>
+<td><code>brew services restart httpd</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>The Debian unit text was read from the installed Ubuntu 24.04 package [C];
+the RHEL form is from third-party <code>httpd.service</code> mirrors [S]. The macOS
+row was not run and matters little: macOS is nginx plus gunicorn.</p>
+<h3 id="graceful-restart-and-mod_wsgi-daemon-mode">Graceful, restart and mod_wsgi daemon mode</h3>
+<p>Measured on Ubuntu 24.04, Apache 2.4.58, mod_wsgi 5.0.0, daemon mode
+(<code>processes=1 threads=2</code>), with a 6 s request in flight [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Action</th>
+<th>New daemon?</th>
+<th>Config re-read?</th>
+<th>In-flight request</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>edit a module file, no reload</td>
+<td>no</td>
+<td>no</td>
+<td>n/a</td>
+</tr>
+<tr>
+<td><code>apache2ctl graceful</code></td>
+<td>yes</td>
+<td>yes (a newly enabled <code>headers</code> module took effect)</td>
+<td>500 after about 4 s</td>
+</tr>
+<tr>
+<td>same with <code>graceful-timeout=15</code> and <code>shutdown-timeout=15</code></td>
+<td>yes</td>
+<td>yes</td>
+<td>still 500 after about 4 s</td>
+</tr>
+<tr>
+<td><code>touch wsgi.py</code> (<code>WSGIScriptReloading On</code>, daemon mode)</td>
+<td>yes, at next request</td>
+<td>no</td>
+<td>200 after 6.0 s</td>
+</tr>
+<tr>
+<td><code>kill -USR1 &lt;daemon pid&gt;</code> with <code>graceful-timeout=15</code></td>
+<td>yes</td>
+<td>no</td>
+<td>200 after 6.0 s</td>
+</tr>
+</tbody>
+</table></div>
+<p>Touching the script is the lightest reload and drains in-flight requests;
+<code>graceful</code> re-reads Apache's config but does not drain mod_wsgi daemon
+requests. This matches mod_wsgi's documentation: touching the script works in daemon
+mode only, and <code>graceful-timeout</code> belongs to the daemon's own restart
+signals, not to Apache's graceful restart [S]. planetGen's requests are
+short (<code>request-timeout=60</code>), so reload is acceptable, but the docs should
+say it can abort a request that is mid-flight and that <code>touch src/html/wsgi.py</code> does not. A newly enabled module is loaded by a graceful
+reload, so the &quot;restart after <code>a2enmod</code>&quot; rule in <code>update.sh</code> is stricter
+than needed [C].</p>
+<p>Generate jobs: <code>src/planetgen/web/job_runner.py</code> starts steps with
+<code>start_new_session=True</code>, which leaves the daemon's session but not the
+systemd cgroup. <code>apache2.service</code> has <code>KillMode=mixed</code>, so
+<code>systemctl restart apache2</code> can kill a running Generate job and
+<code>reload</code> does not [R; needs a systemd host to test].
+<a href="../../deployment/macos.html">deployment/macos.md</a> and
+<code>planetgen-gunicorn.service</code> already say &quot;HUP leaves a running Generate
+job alone&quot;. That is the strongest reason to prefer reload.</p>
+<p>Recommended rule: reload always. Restart only if the script itself just
+installed <code>libapache2-mod-wsgi-py3</code> and <code>jobs.active_job()</code> shows no
+running Generate job; otherwise reload and print a note. The package's
+postinst already tries <code>invoke-rc.d apache2 restart</code> [C], so a reload
+afterwards is usually enough.</p>
+<h3 id="tested-bash-function">Tested bash function</h3>
+<p>Run in four situations [C]: Apache stopped (rc 3, not started), running
+with a good config (rc 0, daemon PID changed), running with a broken config
+(rc 4, daemon PID unchanged, old server untouched), and the systemd path
+with a stub <code>systemctl</code> (reload and restart verbs, rc 0). It is Bash 3.2
+safe. Under <code>set -e</code> call it as <code>reload_apache || rc=$?</code>.</p>
+<pre><code class="language-bash"># Return codes: 0 reloaded; 3 not installed/not running (nothing done); 4 configtest failed
+# (nothing done); 5 reload/restart failed or Apache is down afterwards.
+_apache_unit() {                       # systemd unit running Apache, if any
+    [[ -d /run/systemd/system ]] &amp;&amp; command -v systemctl &gt;/dev/null 2&gt;&amp;1 || return 1
+    local u; for u in apache2 httpd; do
+        systemctl cat &quot;$u.service&quot; &gt;/dev/null 2&gt;&amp;1 &amp;&amp; { echo &quot;$u&quot;; return 0; }
+    done; return 1
+}
+_apache_ctl() { local c; for c in apache2ctl apachectl httpd; do command -v &quot;$c&quot; &amp;&amp; return 0; done; return 1; }
+_apache_running() {
+    if [[ -n &quot;$1&quot; ]]; then systemctl is-active --quiet &quot;$1.service&quot;
+    else pgrep -x apache2 &gt;/dev/null 2&gt;&amp;1 || pgrep -x httpd &gt;/dev/null 2&gt;&amp;1; fi
+}
+reload_apache() {
+    local mode=&quot;${1:-reload}&quot; unit ctl
+    unit=&quot;$(_apache_unit)&quot; || unit=&quot;&quot;; ctl=&quot;$(_apache_ctl)&quot; || ctl=&quot;&quot;
+    [[ -n &quot;$unit$ctl&quot; ]] || { echo &quot;Apache: not installed.&quot;; return 3; }
+    _apache_running &quot;$unit&quot; || { echo &quot;Apache: not running; not starting it.&quot;; return 3; }
+    if [[ -n &quot;$ctl&quot; ]] &amp;&amp; ! &quot;$ctl&quot; configtest &gt;/dev/null 2&gt;/tmp/apache-configtest.$$; then
+        echo &quot;error: Apache's configuration test failed; not reloading:&quot; &gt;&amp;2
+        sed 's/^/  /' /tmp/apache-configtest.$$ &gt;&amp;2; rm -f /tmp/apache-configtest.$$; return 4
+    fi
+    rm -f /tmp/apache-configtest.$$
+    if [[ -n &quot;$unit&quot; ]]; then systemctl &quot;$mode&quot; &quot;$unit.service&quot; || return 5
+    elif [[ &quot;$mode&quot; == restart ]]; then &quot;$ctl&quot; restart || return 5
+    else &quot;$ctl&quot; graceful || return 5; fi
+    sleep 1; _apache_running &quot;$unit&quot; || { echo &quot;error: Apache is down after the $mode.&quot; &gt;&amp;2; return 5; }
+    echo &quot;Apache: ${mode}ed (${unit:-$ctl}).&quot;
+}
+</code></pre>
+<p>Notes. <code>apache2ctl graceful</code> on a stopped Apache starts it [C], hence the
+running check first. The explicit configtest gives one clear message on
+Debian and RHEL alike. A config that passes <code>-t</code> can still fail at run time
+(port in use), hence the check that Apache is up afterwards. A real run
+should also probe <code>curl -fsS --max-time 10 http://127.0.0.1/api/health</code>
+through the vhost (the route <a href="../../deployment/server-checklist.html">server-checklist.md</a>
+uses); this was not scripted because it needs the site config. The pull and
+migration have already happened when the reload runs, so a failure cannot
+roll back: print the manual command, set <code>RELOAD_FAILED=1</code> and end non-zero
+so a scheduled unit shows as failed.</p>
+<h2 id="2-scheduling-the-daily-maintenance-run-ops16-ops17">2. Scheduling the daily maintenance run (OPS.16, OPS.17)</h2>
+<h3 id="what-already-exists">What already exists</h3>
+<p><code>examples/maintenance/</code> has <code>install-maintenance-timer.sh</code> (systemd and
+launchd),
+<code>planetgen-update.{service,timer}</code>, <code>planetgen-orbits@.{service,timer}</code>
+(one per database) and <code>examples/macos/org.planetgen.{orbits,update}.plist</code>.
+All run monthly on the 1st (update 03:00, orbits 03:30) as root
+with catch-up. The installer header says <code>install.sh</code> and <code>update.sh</code>
+deliberately do not call it. So OPS.17 means: call the existing installers
+from install and update, switch to daily, and retire the monthly orbit
+timers (the daily run includes <code>planetgen.cli.orbits</code>; leaving both would
+run orbits twice on the 1st). The header of <code>planetgen.cli.orbits</code> and
+<a href="../architecture/architecture.html">architecture.md</a> call it &quot;meant for a monthly timer&quot;;
+both change to daily. The per-database instances mean OPS.16 and OPS.13
+must iterate every galaxy database. A monthly <code>planetgen-update.timer</code> that
+stays takes the same maintenance lock and waits up to 30 minutes for it.</p>
+<h3 id="defaults-per-os">Defaults per OS</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Default</th>
+<th>Catch-up after downtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Linux with systemd</td>
+<td>systemd timer plus <code>Type=oneshot</code> service</td>
+<td><code>Persistent=true</code> runs once at next start if a trigger was missed</td>
+</tr>
+<tr>
+<td>Linux without systemd (containers, Alpine)</td>
+<td><code>/etc/cron.d/planetgen-maintenance</code></td>
+<td>none; add <code>@reboot</code> and <code>--if-due</code></td>
+</tr>
+<tr>
+<td>macOS</td>
+<td>launchd daemon, <code>StartCalendarInterval</code></td>
+<td>asleep: runs at wake; powered off: skipped; add <code>RunAtLoad</code> and <code>--if-due</code></td>
+</tr>
+</tbody>
+</table></div>
+<p>anacron is not the default (whole days only, root only, usually absent on
+servers [S]). In <code>/etc/cron.d</code> the file must be root-owned, not group or
+other writable, carry a user field, and have no dot in its name or Debian
+cron skips it silently [S]. Detect systemd with <code>[ -d /run/systemd/system ]</code>
+and <code>systemctl</code> on the path.</p>
+<p>Run as the web user on Linux and macOS, not root: the web app writes the
+settings JSON and Generate job state, root-run maintenance would leave
+root-owned files the web user cannot rotate, and a root-created lock file
+locks the web user out (section 3). The checkout belongs to the web user
+(<code>set-permissions.sh</code>, 2026-10-16: the web app writes its state under it), and the
+virtual environment, which root runs, stays root-owned. <code>config.json</code> is
+<code>&lt;apache user&gt;:&lt;apache group&gt;</code> mode 640, and <code>detect_apache_group</code> in <code>examples/apache/apache-identity.sh</code>
+finds the account. The monthly orbit timer runs as root with
+<code>/etc/planetgen/maintenance.env</code>; that is what is retired.</p>
+<p>Implement the work once in Python as <code>planetgen.cli.maintenance</code> (steps,
+lock, <code>--if-due</code>, <code>--dry-run</code>, <code>--only STEP</code>, rotating log, exit codes
+below) and keep <code>scripts/maintenance.sh</code> as a thin launcher that
+finds the right Python and runs it.</p>
+<h3 id="linux-systemd-timer">Linux: systemd timer</h3>
+<p><code>systemd-analyze verify</code> on systemd 255 accepted both units without
+warnings and flagged a deliberately misspelled key [C]. <code>systemd-analyze calendar '*-*-* 03:30:00 UTC'</code> printed the expected elapses [C].</p>
+<pre><code class="language-ini"># /etc/systemd/system/planetgen-maintenance.service
+[Unit]
+Description=planetGen daily maintenance (orbits, settings merge, backup rotation)
+After=network-online.target mysql.service mariadb.service redis-server.service
+Wants=network-online.target
+StartLimitIntervalSec=6h
+StartLimitBurst=3
+
+[Service]
+Type=oneshot
+User=www-data
+Group=www-data
+WorkingDirectory=/var/lib/planetGen
+ExecStart=/var/lib/planetGen/scripts/maintenance.sh --if-due
+SuccessExitStatus=75          # EX_TEMPFAIL: lock held or Generate job running; not a failure
+Restart=on-failure
+RestartSec=15min
+TimeoutStartSec=6h
+Nice=10
+IOSchedulingClass=idle
+NoNewPrivileges=true
+
+# /etc/systemd/system/planetgen-maintenance.timer
+[Unit]
+Description=Run planetGen daily maintenance
+[Timer]
+OnCalendar=*-*-* 03:30:00 UTC
+Persistent=true
+AccuracySec=1min
+[Install]
+WantedBy=timers.target
+</code></pre>
+<ul>
+<li><code>Persistent=true</code> stores the last trigger time and fires at once if one
+was missed while the timer was inactive; it works only with <code>OnCalendar=</code>
+[S]. <code>systemctl clean --what=state planetgen-maintenance.timer</code> removes
+the stamp on uninstall [S]; the stamp path
+<code>/var/lib/systemd/timers/stamp-&lt;unit&gt;.timer</code> is [R].</li>
+<li>No <code>RandomizedDelaySec</code>: the existing timers use fixed times so ordering
+is guaranteed.</li>
+<li>UTC in <code>OnCalendar</code> keeps the run's UTC date stable (backup names are
+UTC); a local schedule can put two runs in one UTC date or none across a
+DST change, which rotation tolerates. launchd offers
+local time only.</li>
+<li>Test: <code>sudo systemctl start planetgen-maintenance.service</code>,
+<code>systemctl list-timers 'planetgen-*'</code>, <code>journalctl -u planetgen-maintenance</code>.
+Output goes to journald.</li>
+</ul>
+<p>Idempotent create, leave, refresh, remove:</p>
+<ul>
+<li>Create: install the two units with <code>install -m 644</code> only if the <code>.timer</code>
+file does not exist; <code>systemctl daemon-reload</code>; <code>systemctl enable --now planetgen-maintenance.timer</code> (a no-op when already enabled).</li>
+<li>Leave: if the timer file exists, do nothing, including after an admin ran
+<code>systemctl disable</code> (that is how they turn it off). The schedule changes
+by drop-in (<code>systemctl edit</code>, with an empty <code>OnCalendar=</code> line first to
+clear the default); update never touches drop-ins.</li>
+<li>Refresh: ship a <code># planetgen-unit-version: N</code> line and rewrite only the
+<code>.service</code> when N differs; the <code>.timer</code> (the schedule) is left alone.</li>
+<li>Remove: <code>systemctl disable --now planetgen-maintenance.timer</code>, delete both
+files, <code>daemon-reload</code>.</li>
+<li>A deleted file cannot be told from a never-installed one, so give an
+off switch that survives updates: <code>maintenance.schedule</code> in <code>config.json</code>
+(<code>&quot;auto&quot;</code> default, <code>&quot;off&quot;</code>), read by install and update through
+<code>planetgen.util.appconfig</code>. It works on Linux and macOS.</li>
+</ul>
+<h3 id="linux-without-systemd-cron">Linux without systemd: cron</h3>
+<pre><code># /etc/cron.d/planetgen-maintenance   (root:root 0644; no dot in the name)
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+30 3 * * * www-data /var/lib/planetGen/scripts/maintenance.sh --if-due &gt;&gt; /var/log/planetgen/maintenance.log 2&gt;&amp;1
+@reboot    www-data sleep 300 &amp;&amp; /var/lib/planetGen/scripts/maintenance.sh --if-due &gt;&gt; /var/log/planetgen/maintenance.log 2&gt;&amp;1
+</code></pre>
+<p>Cron uses local time and has no catch-up; <code>--if-due</code> makes the <code>@reboot</code>
+line safe.</p>
+<h3 id="macos-launchd">macOS: launchd</h3>
+<p>Apple's scheduling guide says a <code>StartCalendarInterval</code> job whose time
+passes while the Mac is asleep runs at wake; if the Mac is off it waits for
+the next scheduled time [S]. Coalescing of several missed intervals is
+documented for <code>StartInterval</code>; for <code>StartCalendarInterval</code> no statement
+was found. <a href="../../deployment/macos.html">deployment/macos.md</a> says only &quot;a run
+missed while the Mac was switched off is skipped&quot;; it should add that an
+asleep Mac runs at wake. <code>RunAtLoad</code> plus <code>--if-due</code> covers the powered-off
+case; <code>pmset repeat wakeorpoweron</code> can schedule a wake [R].</p>
+<pre><code class="language-xml">&lt;!-- /Library/LaunchDaemons/org.planetgen.maintenance.plist (parses with plistlib; xmllint-clean) --&gt;
+&lt;plist version=&quot;1.0&quot;&gt;&lt;dict&gt;
+  &lt;key&gt;Label&lt;/key&gt;&lt;string&gt;org.planetgen.maintenance&lt;/string&gt;
+  &lt;key&gt;ProgramArguments&lt;/key&gt;&lt;array&gt;
+    &lt;string&gt;/bin/bash&lt;/string&gt;&lt;string&gt;/var/lib/planetGen/scripts/maintenance.sh&lt;/string&gt;&lt;string&gt;--if-due&lt;/string&gt;&lt;/array&gt;
+  &lt;key&gt;UserName&lt;/key&gt;&lt;string&gt;_www&lt;/string&gt;
+  &lt;key&gt;WorkingDirectory&lt;/key&gt;&lt;string&gt;/var/lib/planetGen&lt;/string&gt;
+  &lt;key&gt;StartCalendarInterval&lt;/key&gt;&lt;dict&gt;&lt;key&gt;Hour&lt;/key&gt;&lt;integer&gt;3&lt;/integer&gt;&lt;key&gt;Minute&lt;/key&gt;&lt;integer&gt;30&lt;/integer&gt;&lt;/dict&gt;
+  &lt;key&gt;RunAtLoad&lt;/key&gt;&lt;true/&gt;
+  &lt;key&gt;LowPriorityIO&lt;/key&gt;&lt;true/&gt;&lt;key&gt;Nice&lt;/key&gt;&lt;integer&gt;10&lt;/integer&gt;
+  &lt;key&gt;StandardOutPath&lt;/key&gt;&lt;string&gt;/usr/local/planetgen/log/maintenance.log&lt;/string&gt;
+  &lt;key&gt;StandardErrorPath&lt;/key&gt;&lt;string&gt;/usr/local/planetgen/log/maintenance.log&lt;/string&gt;
+&lt;/dict&gt;&lt;/plist&gt;
+</code></pre>
+<p><code>install_launchd_plist</code> in <code>scripts/deploy-common.sh</code> already leaves an
+existing plist alone and otherwise copies, chowns root:wheel, sets 644 and
+runs <code>launchctl bootstrap system ... || launchctl load -w</code>; reuse it
+(<code>bootstrap</code> fails if the label is loaded, so the &quot;present, leave it&quot;
+check must come first, as the helper does). Remove with <code>sudo launchctl bootout system/org.planetgen.maintenance</code> and delete the plist. Test with
+<code>sudo launchctl kickstart -k system/org.planetgen.maintenance</code>, <code>plutil -lint</code>, <code>launchctl print</code>. Add a <code>newsyslog</code> rule for <code>maintenance.log</code>
+beside the existing debug-log rule. launchd could not be run here; the
+plist parses [C] but is untested on a Mac.</p>
+<h3 id="--if-due-and-exit-codes"><code>--if-due</code> and exit codes</h3>
+<p>Schedulers differ (Persistent catch-up, <code>RunAtLoad</code>, manual starts, merge
+now), so the script decides whether a run is due: it records the last
+successful completion (UTC) in the control database or a state file beside
+the lock, and with <code>--if-due</code> exits 0 quickly if that was under about 20
+hours ago. This enforces Boss's &quot;only once every 24 hours&quot; however often
+the scheduler fires. Without <code>--if-due</code> it always runs (manual runs and
+tests).</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>done, or nothing due</td>
+</tr>
+<tr>
+<td>1</td>
+<td>a step failed</td>
+</tr>
+<tr>
+<td>2</td>
+<td>usage error</td>
+</tr>
+<tr>
+<td>75</td>
+<td>skipped: another maintenance or update run holds the lock, or a Generate job is running (EX_TEMPFAIL)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Systemd gets <code>SuccessExitStatus=75</code>; for launchd the
+code is informational. Alert when the run was skipped N days in a row, so a
+multi-day Generate run cannot starve maintenance silently.</p>
+<h2 id="3-lock-files-ops16-adm20">3. Lock files (OPS.16, ADM.20)</h2>
+<h3 id="what-exists">What exists</h3>
+<p><code>src/planetgen/web/jobs.py</code> holds the one-running-Generate-job lock by
+hand: an <code>active</code> file created atomically (temp file plus <code>os.link</code>,
+fallback <code>O_EXCL</code>), stale handling that looks up the named job and checks
+the runner's PID (<code>/proc/&lt;pid&gt;/cmdline</code> on Linux to catch PID reuse), and a <code>.clearing</code> guard
+so two admins cannot both clear a stale lock. That shape suits a lock that
+must carry an owner id for the UI. The repo has no <code>filelock</code>,
+<code>portalocker</code> or <code>fcntl</code> use outside a test helper
+(<code>src/tests/worker_patches.py</code>). <code>redis</code> and <code>croniter</code> are already
+dependencies.</p>
+<h3 id="options">Options</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Stale locks</th>
+<th>Python 3.9</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>fcntl.flock</code> by hand</td>
+<td>none</td>
+<td>n/a</td>
+<td>a few lines, but the corner cases are yours</td>
+</tr>
+<tr>
+<td><code>filelock</code> 4.0.12 (MIT)</td>
+<td>none for the hard locks</td>
+<td>needs 3.10+; last 3.9 release 3.19.1</td>
+<td><strong>recommended</strong>, pin by marker</td>
+</tr>
+<tr>
+<td><code>portalocker</code> 4.4.0, <code>fasteners</code> 0.20</td>
+<td>none</td>
+<td>3.2.0 / any</td>
+<td>alternatives</td>
+</tr>
+<tr>
+<td>PID file only</td>
+<td>needs a PID check, races with PID reuse</td>
+<td>n/a</td>
+<td>avoid</td>
+</tr>
+<tr>
+<td>Redis key with TTL</td>
+<td>TTL</td>
+<td>n/a</td>
+<td>avoid: Redis may be down exactly when maintenance must run</td>
+</tr>
+</tbody>
+</table></div>
+<p>Versions read from the PyPI JSON API [C]. <code>requirements.lock</code> already uses
+per-Python markers, so <code>filelock==3.19.1 ; python_full_version &lt; '3.10'</code>
+and the current release for 3.10+ fit <code>scripts/lock-requirements.sh</code>.</p>
+<h3 id="measured-with-filelock-3191-on-linux-c">Measured with <code>filelock</code> 3.19.1 on Linux [C]</h3>
+<ol>
+<li>A second acquirer with <code>timeout=0</code> raises <code>Timeout</code> at once (0.000 s).</li>
+<li><code>kill -9</code> of the holder frees the lock immediately; the file stays on
+disk, harmlessly.</li>
+<li>A lock file created by root with mode 0644 fails for user <code>nobody</code> with
+<code>PermissionError: [Errno 13]</code>, not <code>Timeout</code>. <code>mode=0o666</code> (or 0o660 and
+a shared group) works. Create and use the lock as one user and have the
+web code catch <code>PermissionError</code>.</li>
+<li><code>/proc/sys/fs/protected_regular</code> was 0 here; at 1 or 2, opening a file
+you do not own with <code>O_CREAT</code> in a sticky world-writable directory such
+as <code>/tmp</code> fails even for root [R]. Keep locks in a <code>locks/</code> directory
+under the data directory (path from <code>config.json</code>).</li>
+</ol>
+<p>Never store the holder's PID inside the lock file;
+put diagnostics in a sidecar written atomically (<code>maintenance.lock.json</code>:
+pid, started UTC, host, command). Two lock objects in one process
+conflict (<code>flock</code> belongs to the open file description), which is good for a
+second merge-now click. Locking over NFS or SMB is unreliable [R]; keep the
+data directory on a local disk.</p>
+<h3 id="what-to-lock">What to lock</h3>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Lock</th>
+<th>Held by</th>
+<th>Purpose</th>
+<th>If it cannot be taken</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>locks/maintenance.lock</code></td>
+<td><code>planetgen.cli.maintenance</code>, <code>update.sh</code>, merge now (ADM.20)</td>
+<td>no two of: daily run, update, merge now</td>
+<td>maintenance: exit 75 and log &quot;skipped&quot;; update: wait up to 30 min, then stop with a message; merge now: show &quot;the daily run holds the lock&quot; and do nothing</td>
+</tr>
+<tr>
+<td>the job lock, <code>planetgen:job:active</code> in Redis (was <code>jobs/active</code>)</td>
+<td>Generate page and API</td>
+<td>one Generate job</td>
+<td>maintenance checks <code>jobs.active_job()</code> and exits 75; <code>start_job</code> refuses while the maintenance lock is held (try-lock, release)</td>
+</tr>
+</tbody>
+</table></div>
+<p>No concrete corruption case was found for maintenance beside a Generate
+job (orbit update rewrites positions in lockstep; the merge clears pending
+deltas), but &quot;skip and run tomorrow&quot; is free: the orbit update catches up
+to the current time and the merge carries more deltas. The delta merge
+(GEN.61) should clear pending rows with <code>id &lt;= highest id read</code>, never
+&quot;everything&quot;, because admin edits do not take the lock.</p>
+<p>Order in the update script: take the lock first, before the <code>git reset --hard</code> that changes code a running maintenance process imports. <code>update.sh</code>
+runs on the system Python before step 2 checks libraries, so on the first
+update that adds <code>filelock</code> the import fails: either warn and carry on
+without the lock for that one run, or run a stdlib-only helper
+(<code>&quot;$PYTHON&quot; scripts/runlocked.py ...</code>). macOS has no <code>flock(1)</code> [R].</p>
+<h2 id="4-backup-rotation-18-slots-7-daily-4-weekly-6-monthly-1-yearly-ops18">4. Backup rotation: 18 slots, 7 daily, 4 weekly, 6 monthly, 1 yearly (OPS.18)</h2>
+<h3 id="what-gets-rotated">What gets rotated</h3>
+<p>Files named <code>&lt;32 hex seed&gt;-&lt;22 hex key&gt;-&lt;YYYYMMDD&gt;-&lt;HHMMSS&gt;Z.json</code> in the
+data directory (ADM.18, <a href="../generation/reproducible-galaxies.html">reproducible-galaxies.md</a>
+section 7). A new file is written only when deltas are pending or the epoch
+changed, so quiet days leave gaps, and merge now (ADM.20) can add several
+files in one day. Rotation must not assume one file per day.</p>
+<h3 id="existing-implementations">Existing implementations</h3>
+<p>borg prune [S] walks each tier (day, ISO week, month, year) newest to
+oldest, keeps the newest file of each new period, and does not count a file
+a finer tier already kept. restic forget [S] ORs its rules, so the newest
+snapshot satisfies all four tiers. rotate-backups [S] keeps the oldest of
+each slot by default. Borg 1.2+ also keeps the oldest archive if a rule fell
+short; that would add a 19th file, so leave it out.</p>
+<h3 id="comparison-by-simulation-c">Comparison by simulation [C]</h3>
+<p>Three years of simulated merges, rotation after every day, counts 7/4/6/1:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Rule</th>
+<th>Files kept</th>
+<th>Oldest file</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>a file every day</td>
+<td>borg-style</td>
+<td>18, never more</td>
+<td>369 days</td>
+</tr>
+<tr>
+<td>a file on 30% of days</td>
+<td>borg-style</td>
+<td>18</td>
+<td>368 days</td>
+</tr>
+<tr>
+<td>1 to 3 files per day</td>
+<td>borg-style</td>
+<td>18</td>
+<td>368 days</td>
+</tr>
+<tr>
+<td>a file every day</td>
+<td>restic-style (union)</td>
+<td>13 (max 15 during the run)</td>
+<td>126 days</td>
+</tr>
+<tr>
+<td>a file on 30% of days</td>
+<td>restic-style</td>
+<td>12</td>
+<td>127 days</td>
+</tr>
+<tr>
+<td>1 to 3 files per day</td>
+<td>restic-style</td>
+<td>13</td>
+<td>125 days</td>
+</tr>
+</tbody>
+</table></div>
+<p>Restic-style fails Boss's goal (&quot;1 year ago, 6 months ago, 4 weeks ago, 7
+days ago&quot;): its yearly slot is the newest file of the current year, the same
+file as the daily slot, so history reaches only about four months.
+Borg-style makes the tiers hold distinct files and walks each into older
+periods. Over 730 consecutive daily files it kept exactly 18 on every day;
+the newest weekly file was 7 to 13 days old, the oldest weekly 28 to 34, the
+oldest monthly 157 to 218, and the yearly file 188 to 553 days old (always
+the last file of a past calendar year). That last range is the honest &quot;1
+year ago&quot;: a rolling &quot;age 365&quot; target would need every file kept until its
+year is up, because a file deleted at age 15 days is gone by age 365.
+Calendar periods are stable under repeated rotation; rolling targets are
+not.</p>
+<p>Result for 2026-10-09 with a file every day since 2024-01-01 and rotation
+after each:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Kept (age in days)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>daily (7)</td>
+<td>2026-10-09 (0), 10-08, 10-07, 10-06, 10-05, 10-04, 10-03 (6)</td>
+</tr>
+<tr>
+<td>weekly (4)</td>
+<td>09-27 (12), 09-20 (19), 09-13 (26), 09-06 (33)</td>
+</tr>
+<tr>
+<td>monthly (6)</td>
+<td>09-30 (9), 08-31 (39), 07-31 (70), 06-30 (101), 05-31 (131), 04-30 (162)</td>
+</tr>
+<tr>
+<td>yearly (1)</td>
+<td>2025-12-31 (282)</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="algorithm">Algorithm</h3>
+<ol>
+<li>Parse names matching <code>^&lt;32 hex&gt;-&lt;22 hex&gt;-&lt;YYYYMMDD&gt;-&lt;HHMMSS&gt;Z\.json$</code>;
+ignore everything else (downloads, <code>.tmp</code> files, other galaxies). Group
+by seed: one rotation per galaxy.</li>
+<li>The time is the UTC time in the name. Never mtime (copies, restores and
+antivirus change it) and never local time.</li>
+<li>For each tier in (daily, weekly, monthly, yearly) with <code>n</code> = 7, 4, 6, 1:
+walk files newest to oldest; when a file's period (UTC date; ISO year
+and week, Monday start; UTC year-month; UTC year) differs from the
+previous file's, mark it seen and, if the file is not already kept, keep
+it and count it; stop at <code>n</code> counted.</li>
+<li>The newest file is the first daily keeper, so the current file is always
+kept.</li>
+<li>Several files in one day or week: the newest of the period wins. A merge
+now file is superseded by the night run, as ADM.20 expects.</li>
+<li>Missed days cost nothing: only periods that contain a file count.</li>
+<li>A file wanted by two tiers is kept once, labelled with the finest tier,
+and the coarser tier moves on to the next period. That is why the total
+is exactly 18 once history exists.</li>
+<li>Fewer than 18 files: keep everything the rules select.</li>
+</ol>
+<p>DST is irrelevant because periods use UTC names. Leap days and the ISO
+week-year boundary (2025-12-29 is in 2026-W01; 2027-01-01 is in 2026-W53)
+are covered by tests. Clock skew has two guards: the merge names its file
+<code>max(now, newest_existing + 1 s)</code> so a stepped-back clock cannot produce a
+name older than the current file, and rotation deletes nothing, and warns,
+if any name is more than a day in the future (one future-dated file would
+become &quot;newest&quot; and push the real backups into the weekly and monthly
+slots).</p>
+<p>Delete only after the new file is written, fsynced and read back, under the
+maintenance lock, with a <code>--dry-run</code> that prints &quot;keep (slot) / delete&quot;.</p>
+<h3 id="the-pure-function">The pure function</h3>
+<p>The function never reads the clock, so tests inject dates. It uses no
+syntax newer than Python 3.8; tests ran on 3.11 and 3.13 only (no 3.9
+interpreter was available).</p>
+<pre><code class="language-python">from collections import OrderedDict
+from datetime import timedelta
+
+TIERS = (&quot;daily&quot;, &quot;weekly&quot;, &quot;monthly&quot;, &quot;yearly&quot;)
+DEFAULT_COUNTS = OrderedDict([(&quot;daily&quot;, 7), (&quot;weekly&quot;, 4), (&quot;monthly&quot;, 6), (&quot;yearly&quot;, 1)])
+
+def _period(tier, when):                      # `when` is an aware UTC datetime
+    if tier == &quot;daily&quot;:   return (when.year, when.month, when.day)
+    if tier == &quot;weekly&quot;:  iso = when.isocalendar(); return (iso[0], iso[1])   # ISO year, week
+    if tier == &quot;monthly&quot;: return (when.year, when.month)
+    return (when.year,)
+
+def select_keep(stamps, counts=DEFAULT_COUNTS):
+    &quot;&quot;&quot;{timestamp: tier} for the files to keep, newest first (borg prune semantics).&quot;&quot;&quot;
+    ordered = sorted(set(stamps), reverse=True)
+    kept = OrderedDict()
+    for tier in TIERS:
+        n, last, taken = counts[tier], None, 0
+        if n &lt;= 0:
+            continue
+        for ts in ordered:
+            p = _period(tier, ts)
+            if p == last:
+                continue
+            last = p                         # period seen, even if its newest file was kept by a finer tier
+            if ts in kept:
+                continue
+            kept[ts] = tier
+            taken += 1
+            if taken == n:
+                break
+    return OrderedDict(sorted(kept.items(), reverse=True))
+
+def next_stamp(existing, now):               # name for a new file: never at or before the newest
+    now = now.replace(microsecond=0)
+    return max(existing) + timedelta(seconds=1) if existing and now &lt;= max(existing) else now
+
+def suspicious_future(stamps, now, slack=timedelta(days=1)):
+    return sorted(ts for ts in stamps if ts &gt; now + slack)
+</code></pre>
+<p>The prototype also had <code>parse_name</code>, a <code>mode=&quot;union&quot;</code> switch reproducing
+restic for the comparison, and <code>to_delete</code>.</p>
+<h3 id="tests-15-all-passing-on-311-and-313-c">Tests (15, all passing on 3.11 and 3.13) [C]</h3>
+<p>Name parsing (the ADM.18 example parses; <code>config.json</code> and an impossible
+date do not); fewer files than slots deletes nothing; three years of one
+file per day with daily rotation stays at most 18, ends exactly 18 split
+7/4/6/1, keeps the newest, and the oldest kept is the last file of the
+previous calendar year; rotating only every 9th day stays valid; rotating
+a rotated set changes nothing; 300 random sets (30 days to 7 years) keep
+the newest, at most 18, idempotent; several files in one day keep only the
+last once history is long enough; a 40-day gap leaves the 7 daily slots on
+the 7 newest days with a file; the ISO week-year boundary (2025-12-29 and
+2026-01-04 share a week; 2027-01-01 is 2026-W53); leap day 2028-02-29; UTC
+day, not local day (23:30Z and 00:30Z the next day differ); no missing or
+doubled day across a DST change; <code>next_stamp</code> (same second goes +1 s, a
+stepped-back clock goes after the newest); the future-file guard flags a
+2030 file against a 2026 clock but not one within a day of skew, and a
+future-dated file without the guard takes a daily slot.</p>
+<p>Put them in <code>src/tests/test_backup_rotation.py</code> (no filesystem), plus one
+temp-directory test that creates files, rotates, and checks that
+unparseable names and other seeds survive.</p>
+<h2 id="5-ops13-history-table-and-atomic-writes">5. OPS.13 history table and atomic writes</h2>
+<h3 id="history-table-gotchas-keep-last-10">History table gotchas (keep last 10)</h3>
+<p>Run on MariaDB 10.11.14 only; MariaDB 11.4 and MySQL 8.4 were not tested [C]:</p>
+<ul>
+<li><code>DELETE ... WHERE id NOT IN (SELECT id ... ORDER BY id DESC LIMIT 10)</code>
+fails (&quot;doesn't yet support LIMIT &amp; IN/ALL/ANY/SOME subquery&quot;; MySQL has
+the same restriction [R]). Wrap it in a derived table: <code>NOT IN (SELECT id FROM (SELECT id FROM version_history WHERE galaxy_id=1 ORDER BY id DESC LIMIT 10) k)</code>. A cutoff form also works: <code>id &lt; (SELECT id FROM (SELECT id ... ORDER BY id DESC LIMIT 1 OFFSET 9) k)</code>.</li>
+<li>Order and trim by the auto-increment <code>id</code>, not by date, so a wrong clock
+cannot evict newer rows. Store the date as an explicit UTC <code>DATETIME(6)</code>,
+not a <code>TIMESTAMP</code>.</li>
+<li>Insert and trim in one transaction, after the update succeeded, under the
+maintenance lock.</li>
+<li>A repeated update with no change would fill the 10 slots with identical
+rows and push out the older distinct versions (&quot;Already up to date&quot; is
+common). Record a row only when the key or any stored hash differs from
+the newest row; otherwise touch a <code>last_seen</code> column. The
+TODO's test (11 runs, oldest row goes) must use 11 distinct tuples, with a
+second test that 11 identical runs keep one row.</li>
+<li>&quot;Per galaxy&quot; means every galaxy database (<code>PLANETGEN_MYSQL_DATABASE_PREFIX</code>
+installs exist); the step iterates the galaxies in the control database.</li>
+<li>Line endings change hashes. <code>.gitattributes</code> forces LF only for <code>*.sh</code> and
+<code>src/html/**/*.py</code>. <code>requirements.lock</code>, <code>requirements-server.lock</code> and
+<code>src/planetgen/names/offensive_words.txt</code> are tracked text; a
+checkout with <code>core.autocrlf=true</code> gets CRLF and a different SHA-256 for
+identical content, so OPS.14 would warn &quot;changed&quot; between two servers
+for no real reason [C]. Fix with <code>*.lock text eol=lf</code> and
+<code>src/planetgen/names/*.txt text eol=lf</code>, or hash normalised text (read as
+text, normalise <code>\r\n</code>, encode UTF-8) in sorted file order.</li>
+</ul>
+<h3 id="atomic-file-replacement">Atomic file replacement</h3>
+<ul>
+<li>POSIX: temp file in the same directory, flush, <code>fsync</code>, <code>os.replace</code>,
+then <code>fsync</code> the directory. A hot reader thread saw 201,721 reads and 0
+partial reads over 2,000 replaces [C].</li>
+<li>macOS: <code>os.fsync</code> does not flush the drive cache; <code>fcntl.F_FULLFSYNC</code>
+does [R].</li>
+<li>The settings JSONs are never replaced: each merge writes a new name, so
+the primitive is &quot;create atomically, never clobber&quot;. <code>os.link(tmp, final)</code>
+then <code>os.unlink(tmp)</code> raises <code>FileExistsError</code> if the name exists (as
+<code>jobs._write_lock</code> does); filesystems without hard links need an
+<code>O_EXCL</code> fallback. A second write to the same name was refused and left
+the content unchanged [C], and <code>next_stamp</code> gives same-second merges
+distinct names.</li>
+<li>Read the file back and compare before clearing pending rows. Clean
+leftover <code>.settings-*.tmp</code> files older than a day at the start of a run.</li>
+</ul>
+<h2 id="evidence-notes">Evidence notes</h2>
+<p>Measured [C] on Ubuntu 24.04, Apache 2.4.58, mod_wsgi 5.0.0, systemd 255
+(not PID 1), MariaDB 10.11.14, Python 3.11 and 3.13: graceful versus touch
+versus SIGUSR1; configtest; module load by graceful; the <code>reload_apache</code>
+paths (systemd path with a stub <code>systemctl</code>); rotation simulations and
+tests; <code>filelock</code> behaviour; the DELETE forms; the plist XML error; the
+<code>os.replace</code> reader test; unit-file verification.</p>
+<p>Still [R], to verify when paper and platform access is allowed: RHEL
+<code>apachectl</code> and Red Hat's own <code>httpd.service</code>; macOS Apache graceful
+forms; the systemd cgroup kill of
+Generate jobs on <code>restart</code>; the systemd stamp path and
+<code>StandardOutput=append:</code>; launchd coalescing and <code>pmset repeat</code>; <code>F_FULLFSYNC</code>; <code>protected_regular</code>; NFS and SMB <code>flock</code>; no <code>flock(1)</code> on
+macOS; MySQL 8.4 matching MariaDB for the DELETE forms.</p>
+<h2 id="sources">Sources</h2>
+<ul>
+<li>mod_wsgi: https://modwsgi.readthedocs.io/en/master/user-guides/reloading-source-code.html ; https://modwsgi.readthedocs.io/en/latest/release-notes/version-4.1.0.html</li>
+<li>Debian bug on <code>apache2ctl graceful</code>: https://bugs.edge.launchpad.net/bugs/1832182 ; <code>httpd.service</code> mirror: https://gitcode.com/src-openeuler/httpd/blob/master/httpd.service</li>
+<li>systemd.timer: https://manpages.debian.org/buster/systemd/systemd.timer.5 ; Debian cron(8): https://manpages.debian.org/jessie/cron/cron.8.en.html ; anacrontab(5): https://unix.com/man-page/linux/5/anacrontab/</li>
+<li>Apple, Scheduling Timed Jobs: https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html</li>
+<li>borg: https://borgbackup.readthedocs.io/en/1.4.1/usage/prune.html and <code>src/borg/archiver.py</code> on the 1.4-maint branch ; restic: https://restic.readthedocs.io/en/v0.12.0/060_forget.html ; rotate-backups: https://rotate-backups.readthedocs.io/en/latest/readme.html</li>
+<li>PyPI JSON API for filelock, portalocker, fasteners</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

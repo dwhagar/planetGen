@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GEN.533 bar and bulge sources (research) - planetGen docs</title>
+<meta name="description" content="Status: research read-out, 2026-10-17, written by a read-only research worker for the GEN.533 build (Core 1).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/gen533-bar-sources.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/gen533-bar-sources.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="gen533-bar-and-bulge-sources-research">GEN.533 bar and bulge sources (research)</h1><p class="meta">docs/design/galaxy/gen533-bar-sources.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#0-corrections-to-the-lead-list-check-before-citing">0. Corrections to the lead list (check before citing)</a></li><li style="margin-left:0px"><a href="#a-bar-fraction-any-bar-unless-strong-is-said">A. Bar fraction (any bar unless 'strong' is said)</a></li><li style="margin-left:0px"><a href="#b-bar-shape-bar-size-vertical-thickness">B. Bar shape, bar size, vertical thickness</a></li><li style="margin-left:0px"><a href="#c-bulge-axis-ratios-without-a-bar-ba-in-plane-ca-vertical-a-longest">C. Bulge axis ratios without a bar (B/A in plane, C/A vertical; A longest)</a></li><li style="margin-left:0px"><a href="#d-bar-angle">D. Bar angle</a></li><li style="margin-left:0px"><a href="#proposed-draws-m--log10-stellar-mass-in-msun-range-948-to-1130">Proposed draws (m = log10 stellar mass in Msun, range 9.48 to 11.30)</a></li></ul></details>
+<p>Status: research read-out, 2026-10-17, written by a read-only research worker for the GEN.533 build (Core 1). Its proposed draws are implemented in <code>galaxy/structure_draw.py</code> (<code>draw_bar</code>). The rule applied to every conflict is Boss's: verified beats second-hand, the newest of two verified wins, the widest range wins where both are in question.
+Status words: READ = number is in the paper text or a table printed in the PDF. FIG-LABEL = number printed inside a
+figure panel, extracted as text. FIG-ONLY = visible only as a plot (not used for numbers). ABSTRACT = abstract only.
+COMPUTED = I computed it from a table in the paper or its VizieR copy (method named).
+Galaxy 'stage' in this file: early = Sa-Sb, late = Sc and later (papers use other cuts; each row says which).</p>
+<h2 id="0-corrections-to-the-lead-list-check-before-citing">0. Corrections to the lead list (check before citing)</h2>
+<ul>
+<li>[R1098] is NOT Erwin &amp; Debattista; it is an unrelated maths paper. The B/P paper is [R1290].</li>
+<li>[R1485] is a bulge/bar/disk structure paper, not a bar-fraction paper. Its only bar fraction: 42% of disk galaxies (mass &gt; 1e10, face-on SDSS), conclusions section, READ.</li>
+<li>[R2934] is [R2934] (MNRAS 411, 2026; arXiv v2 Oct 2010). [R4058] is [R4058]. [R3234] are 1004.0684 (bar fraction) and 1001.2401 (catalogue). [R0045] is 0901.2346. [R1102] is 1509.06743. [R1288] is 1711.04867. [R1486] is 1003.1719. [R1289] is astro-ph/0508590 (title: How Large Are the Bars in Barred Galaxies).</li>
+<li>[R2579] = [R2579] (Barlenses and X-shape features compared). Not found as a separate 2017 item.</li>
+<li>[R1202, R2909] aside, all PDFs below were fetched; [R1202] is not on arXiv and was not read (G2 values are as given in the task).</li>
+</ul>
+<h2 id="a-bar-fraction-any-bar-unless-strong-is-said">A. Bar fraction (any bar unless 'strong' is said)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value (scatter / counts)</th>
+<th>Paper</th>
+<th>Place</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Any bar, S4G spirals, all masses</td>
+<td>f=0.563+-0.019 (Sample 1, D&lt;25 Mpc); 0.618+-0.020 (logM&gt;=8.5); 0.623+-0.019 (Sample 2m, logM&gt;=9)</td>
+<td>[R1288], 1711.04867</td>
+<td>Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Strong (SB) / weak (SAB) split, same samples</td>
+<td>f_SB 0.234 to 0.290; f_SAB 0.329 to 0.351</td>
+<td>[R1288]</td>
+<td>Table 2</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Bar fraction vs stellar mass (S4G spirals)</td>
+<td>quadratic logistic f=1/(1+exp(-(a+b1<em>m+b2</em>m^2))), m=log10(M/Msun), a=-82.2+-22.1, b1=17.1+-4.62, b2=-0.88+-0.24; peak ~0.70 at m~9.7; binned max 0.76 at m~9.8; declines both sides</td>
+<td>[R1288]</td>
+<td>Sect. 3 text, Eq. 6, Fig. 5</td>
+<td>READ (coefficients), fit range m=8 to 12</td>
+</tr>
+<tr>
+<td>Same fit evaluated by me</td>
+<td>m=9.48 (3e9): 0.69; 10.0: 0.69; 10.5: 0.58; 10.8: 0.46; 11.0: 0.36; 11.3 (2e11): 0.21</td>
+<td>[R1288: Eq. 6]</td>
+<td>COMPUTED</td>
+<td>high-mass end is the thin end of S4G data; coverage not stated in text</td>
+</tr>
+<tr>
+<td>Bar fraction vs g-r colour and gas fraction</td>
+<td>roughly constant, g-r 0.1 to 0.8; logMHI/M* -2.5 to 1</td>
+<td>[R1288]</td>
+<td>abstract, Sect. 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Bar fraction vs Hubble stage, visual (S4G, i&lt;65deg)</td>
+<td>T [0,3) (Sa,Sab): 69.8+-3.2% (N=212); T [3,5) (Sb,Sbc): 55.8+-3.6% (190); T [5,7] (Sc,Scd): 75.1+-2.4% (329); T&gt;7: 60.6+-2.2% (498); S0 (T&lt;0): 49.1+-4.6% (116)</td>
+<td>[R1102], 1509.06743</td>
+<td>Table 1 (visual column), Sect. 5.1</td>
+<td>READ; errors binomial</td>
+</tr>
+<tr>
+<td>Same, pooled by me to the Galaxy stages</td>
+<td>early (T 0 to &lt;5, Sa to Sbc): 254/402 = 0.632+-0.024; late (T&gt;=5): 549/827 = 0.664+-0.016; difference 0.032+-0.029 (1.1 sigma)</td>
+<td>[R1102: Table 1]</td>
+<td>COMPUTED</td>
+<td>Sbc (T=4) sits in the early bin; table cannot split T=3 from 4</td>
+</tr>
+<tr>
+<td>Ellipse-fit / Fourier columns of same table</td>
+<td>T[0,3) 61.8%; T[3,5) 48.9%/46.8%; T[5,7] 60.2%/50.8%; T&gt;7 37.1%/25.5%</td>
+<td>[R1102]</td>
+<td>Table 1</td>
+<td>READ; lower for late types by method</td>
+</tr>
+<tr>
+<td>Abstract headline</td>
+<td>~75% for Sab, local minimum ~40% at T=4, drops below M*~1e9.5-1e10</td>
+<td>[R1102]</td>
+<td>abstract, Fig. 10, Fig. 19</td>
+<td>ABSTRACT/FIG (does not match Table 1 bins; Table 1 preferred)</td>
+</tr>
+<tr>
+<td>Bar fraction vs mass (visual)</td>
+<td>no obvious trend above ~1e9; drop for faintest; ellipse/Fourier methods rise to ~50% (60% peak at 10^10.5)</td>
+<td>[R1102]</td>
+<td>Sect. 6.1, Fig. 19</td>
+<td>READ text; curves FIG-ONLY</td>
+</tr>
+<tr>
+<td>SDSS strong bars, counts by type (no inclination cut)</td>
+<td>Sa 287/1322 (22%); Sab 243/893 (27%); Sb 649/1890 (34%); Sbc 368/1207 (30%); Sc 379/1562 (24%); Scd 188/541 (35%); Sd 72/173 (42%); Sdm 13/52; Sm 18/68; all 2612/14034 (26%)</td>
+<td>[R3234], 1001.2401</td>
+<td>Table 3</td>
+<td>READ; lower limits (text: +5% if unsure ones added)</td>
+</tr>
+<tr>
+<td>Same pooled by me</td>
+<td>Sa-Sb 1179/4105 = 0.287+-0.007; Sc-Sm 670/2396 = 0.280+-0.009; (Sa-Sbc 0.291; Sbc-Sm 0.288)</td>
+<td>[R3234: Table 3]</td>
+<td>COMPUTED</td>
+<td>strong bars only; no stage difference</td>
+</tr>
+<tr>
+<td>SDSS strong bars vs stellar mass</td>
+<td>~40% at logM~9, falls to ~24% at 10.2, rises and plateaus ~30% to logM~11.4; N barred: S0+Sa 804, Sb 908, Sc+Sd 600 of 2312</td>
+<td>[R3234], 1004.0684</td>
+<td>Sect. 2 text, Fig. 1 legend</td>
+<td>READ (text values); per-type curves FIG-ONLY</td>
+</tr>
+<tr>
+<td>SDSS GZ2 strong bars, overall</td>
+<td>29.4+-0.5% (4020/13665), 0.01&lt;z&lt;0.06, logM~9 to 11</td>
+<td>[R2934], 1003.0449</td>
+<td>Sect. 3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>GZ2 vs colour</td>
+<td>blue cloud (g-r&lt;0.6) constant ~20%; red sequence rises, &gt;half of reddest; max ~70% at low L and g-r 0.7 to 0.8; 26+-1% for Mr&gt;-20 to 37+-2% for Mr&lt;-22</td>
+<td>[R2934]</td>
+<td>Sect. 3.1, 3.1.1, 4.1</td>
+<td>READ text; curves FIG-ONLY</td>
+</tr>
+<tr>
+<td>GZ2 vs bulge share (fracdeV)</td>
+<td>rises monotonically; half of bulge-dominated disks barred; late-type (low fracdeV) low except reddest</td>
+<td>[R2934]</td>
+<td>Sect. 3.2, Figs 6-7</td>
+<td>abstract + text; no numbers per bin (FIG-ONLY)</td>
+</tr>
+<tr>
+<td>GZ2 vs Hubble type (literature quoted)</td>
+<td>RC3 strong bars ~60% (S0/a) falling to 30% (Sc), rising again later; Virgo 45-50% early vs 22-36% late spirals</td>
+<td>[R2934]</td>
+<td>Sect. 4.1</td>
+<td>second-hand</td>
+</tr>
+<tr>
+<td>Local any-bar (SB+SAB) and strong</td>
+<td>f_bar ~0.65, f_SB ~0.3 (consensus); SDSS local sample fSB 0.27+-0.05 (ElPa) / 0.35+-0.05 (visual); fbar independent of SED type at low z</td>
+<td>[R4058], 0710.4552</td>
+<td>Sect. 1, 4.1, 4.3</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Ellipse-fit SDSS, by morphology</td>
+<td>all 45%; S0 29%, early spirals (S0/a-Sb) 55%, late (Sbc-Sm) 54%; Fourier 26%/29%/33%/17%; visual re-check 38% (22/52/48%)</td>
+<td>[R0045], 0901.2346</td>
+<td>abstract, Sect. 5</td>
+<td>READ; bars in less concentrated, bluer galaxies</td>
+</tr>
+<tr>
+<td>NIR 2MASS spirals</td>
+<td>59% (67% with candidates), N=151; 36% for bars &gt;4 kpc</td>
+<td>[R3035], astro-ph/0611540</td>
+<td>abstract, Sect. 3.1</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Massive SDSS face-on</td>
+<td>bars in 42% of disk galaxies, M&gt;1e10</td>
+<td>[R1485], 0810.1953</td>
+<td>conclusions</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conflicts (A):</p>
+<ol>
+<li>Mass trend. [R1288] (S4G, f falls above 10^10) vs [R2934, R3234] (SDSS, f flat or rising above 10^10.2; Masters rising with colour). [R1288] attributes the gap to SDSS resolution (bars under twice the PSF are missed). Rule: both verified, newest wins: [R1288] (2018) over [R2934] and N&amp;A 2010. Widest mass range also Erwin (logM 8 to 12).</li>
+<li>Stage trend. [R1102] (early 63% vs late 66%, no real difference), [R0045] (55% vs 54%), N&amp;A 2010a strong bars (28.7% vs 28.0%) agree on no stage difference. [R2934] / RC3 say early spirals more barred, with a dip at Sc to Sbc. Rule picks [R1102] (newest verified with explicit stage bins).</li>
+<li>Colour. [R1288] flat vs [R2934] steep rise. Rule picks [R1288].</li>
+<li>Overall level: 0.29 (Masters, strong), 0.45 (Aguerri), 0.56 to 0.62 (Erwin), 0.65 (Sheth consensus), 0.59 to 0.67 (Menendez-Delmestre). These count different bar strengths; [R1288: Table 2] is the one with SB/SAB split and the widest mass range.</li>
+</ol>
+<h2 id="b-bar-shape-bar-size-vertical-thickness">B. Bar shape, bar size, vertical thickness</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value (scatter)</th>
+<th>Paper</th>
+<th>Place</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bar max isophotal ellipticity e (deprojected), S4G barred</td>
+<td>mean 0.52+-0.01 (N=654); by T: S0 0.40+-0.02 (47); T[0,3) 0.51+-0.01 (131); [3,5) 0.52+-0.02 (93); [5,7] 0.53+-0.01 (198); &gt;7 0.54+-0.01 (185); +- is error of the mean. By bar family (four classes, symbols lost in text extraction) 0.59, 0.55, 0.46, 0.36</td>
+<td>[R1102]</td>
+<td>Table 3 (third column), Fig. 15; abstract 'spirals e~0.5, independent of T'</td>
+<td>READ; abstract says S0 e~0.2 but Table 3 gives 0.40 (internal mismatch, spirals unaffected)</td>
+</tr>
+<tr>
+<td>Same, full distribution</td>
+<td>N=504 with e: mean 0.534, SD 0.148, median 0.546, 5th 0.26, 16th 0.38, 84th 0.69, 95th 0.74, min 0.10, max 0.92; b/a=1-e: mean 0.466, SD 0.148; mass 3e9-2e11 subset (407): mean 0.533, SD 0.149</td>
+<td>[R1102] VizieR J/A+A/587/A160 table a3 (Ell) joined to table a1 (M*)</td>
+<td>COMPUTED by me (python3 -I)</td>
+<td>includes S0 bars; no T column in the tables</td>
+</tr>
+<tr>
+<td>e independent of host mass</td>
+<td>stated</td>
+<td>[R1102]</td>
+<td>Sect. 6 text, Fig. 20</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Bar e from 2D bulge/bar/disk fits (SDSS, M&gt;1e10, face-on, N=291)</td>
+<td>median 0.63, SD 0.10 (error 0.02); boxiness c median 2.7, SD 0.3; text: distribution peaks at ~0.6, about 20% higher than ellipse-fit peaks</td>
+<td>[R1486], 1003.1719</td>
+<td>Fig. 1 panel labels; Sect. 3.1 text</td>
+<td>FIG-LABEL (median, SD) + READ (peak 0.6)</td>
+</tr>
+<tr>
+<td>Deprojected bar e, early (S0-Sb) / late (Sc-Sd)</td>
+<td>early SB 0.49+-0.13, SAB 0.36+-0.15; late SB 0.64+-0.18, SAB 0.40+-0.20</td>
+<td>[R1289], astro-ph/0508590</td>
+<td>Sect. 4.3 (Bar Size and Bar Strength)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Projected bar axis ratio, 2MASS</td>
+<td>typical b/a ~0.5 (e~0.5), skewed to high e, sharp drop near e~0.75; e not correlated with Hubble type</td>
+<td>[R3035]</td>
+<td>abstract, Sect. 3.2.2</td>
+<td>READ (no SD)</td>
+</tr>
+<tr>
+<td>Detection floor</td>
+<td>smallest bar e 0.16 (Aguerri); e&gt;~0.2 required (M-D07)</td>
+<td>[R0045] bar-strength subsection; M-D07 Sect. 3.2.2</td>
+<td>READ</td>
+<td></td>
+</tr>
+<tr>
+<td>Strong-bar ideal</td>
+<td>'A strong bar has an axial ratio of ~1/5'; ovals ~0.85</td>
+<td>[R2457], astro-ph/0407343</td>
+<td>Sect. 3.2</td>
+<td>READ (rule of thumb, no sample)</td>
+</tr>
+<tr>
+<td>Bar e in simulations</td>
+<td>maximum e tracked, values only in Fig. 5</td>
+<td>[R2909], astro-ph/0507219</td>
+<td>Fig. 5</td>
+<td>FIG-ONLY</td>
+</tr>
+<tr>
+<td>B/P in barred galaxies, by mass</td>
+<td>fraction = 1/(1+exp(-(a+b*m))), a=-42.79, b=4.13 (50% at m=10.37); 79% of bars at m&gt;=10.4 vs 12% lower; overall B/P 0.524+-0.054 of GoodPA (84) barred galaxies; bar fraction in parent 63.4% (+3.5-3.6)</td>
+<td>[R1290], 1703.01602</td>
+<td>abstract, Sect. 4.1 Table 2, Sect. 2</td>
+<td>READ; my evaluation: m=9.48 0.03, 10.0 0.18, 10.7 0.80, 11.0 0.93, 11.3 0.98 (COMPUTED)</td>
+</tr>
+<tr>
+<td>B/P in barred galaxies, by stage</td>
+<td>77% of S0-Sbc bars, 15% of Sc-Sd bars (trend is a mass side effect); ~80% flat for S0-Sbc</td>
+<td>[R1290]</td>
+<td>abstract, Sect. 4 (Fig. 7 text)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>B/P size (in plane) vs bar</td>
+<td>Rbox/Lbar = 0.42+-0.09 (range 0.25 to 0.76, median 0.43); Rbox/a = 0.53+-0.12; earlier 0.43+-0.10 (24 galaxies, EB13 1301.0638); inverted 0.38+-0.06</td>
+<td>[R1290]</td>
+<td>text and Fig. 12 (section number not checked)</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>X-shape size vs bar</td>
+<td>a/rbar 0.2 to 0.5, mean ~0.35; barlens axis ratio b/a 0.5 to 1.0 (sky peak ~0.75, disk plane ~0.85)</td>
+<td>[R2579], 1609.01936</td>
+<td>Sect. 4, Fig. 9, conclusions</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Thin bar: length / thickness (edge-on, NIR)</td>
+<td>14+-4 (so thickness/length 0.071, range 0.056 to 0.10); literature range 4 to 15 [R4014]</td>
+<td>astro-ph/0008478</td>
+<td>abstract, Sect. 6.4</td>
+<td>READ (the 4 to 15 is second-hand)</td>
+</tr>
+<tr>
+<td>Peanut/X height vs its length (edge-on)</td>
+<td>zmax/R ~0.5 to 0.6 for X/P with R&lt;~2.5 kpc (11 galaxies); height 0.1h to 0.5h of disk</td>
+<td>[R0799], 1603.00019</td>
+<td>Sect. 4.3, Fig. 11</td>
+<td>READ (no SD)</td>
+</tr>
+<tr>
+<td>Derived peanut height / bar length</td>
+<td>0.42 x 0.55 = 0.23 (range 0.14 to 0.30 from 0.25-0.76 x 0.5-0.6 )</td>
+<td>[R1290] x [R0799]</td>
+<td>COMPUTED, two samples multiplied</td>
+<td>STAND-IN basis, not a measured ratio</td>
+</tr>
+<tr>
+<td>Simulated bar flatness c/a</td>
+<td>~0.1 at formation, grows to ~0.2 over a Hubble time</td>
+<td>Martinez-Valpuesta, Shlosman</td>
+<td>Sect. 3 and Sect. 4 text</td>
+<td>READ (simulation, not data)</td>
+</tr>
+<tr>
+<td>Edge-on B/P frequency</td>
+<td>45% of ~1350 RC3 edge-on disks; &gt;40% for all types S0 to Sd</td>
+<td>astro-ph/0006359</td>
+<td>abstract</td>
+<td>READ; E&amp;D17 says this is high (Sect. 5)</td>
+</tr>
+<tr>
+<td>[R0590] (astro-ph/0403226)</td>
+<td>N-body kinematic diagnostics; no axis-ratio table found</td>
+<td></td>
+<td>grep of full text</td>
+<td>not found</td>
+</tr>
+<tr>
+<td>MILKY WAY check only: [R4649], 1308.0593</td>
+<td>exponential scale lengths 0.70:0.44:0.18 kpc = axis ratios 10:6.3:2.6 (y/x 0.63, z/x 0.26); projected 1:2.1; bar angle 27+-2 deg; test model x0=0.68, y0=0.28, z0=0.26 kpc (y0/x0 0.41, z0/x0 0.38) at 26.5 deg</td>
+<td></td>
+<td>abstract; Sect. 7; model-test section (Eq. 16 context)</td>
+<td>READ</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conflicts (B):</p>
+<ol>
+<li>Bar e. [R1102] mean 0.53 (ellipse-fit isophote, 2016) vs [R1486] median 0.63 (2D fit, 2011) vs [R1289] early SB 0.49, late SB 0.64 vs M-D07 ~0.5. Rule: newest verified = [R1102] (also widest range: e 0.10 to 0.92, N=504). Caution recorded: Gadotti says ellipse-fit e is ~20% lower than the bar itself; the model's y0/x0 is a bar-body ratio, so the true center may sit nearer 0.6 (b/a 0.4). Milky Way (e=0.61) lies 0.5 sigma above the Diaz-Garcia center and 0.3 sigma below Gadotti.</li>
+<li>Milky Way in-plane ratio: Dwek G2 0.392 (task) vs Wegg &amp; Gerhard 0.63 (2013, exponential law) vs 0.41 (their Cao-model test). Definitions differ; no law taken from MW.</li>
+<li>Vertical ratio, thin bar: 0.071 vs Martinez-Valpuesta 0.1 to 0.2 (sim). Rule: data over simulation, so 0.071. B/P part: derived 0.23 vs MW 0.26 (W&amp;G) vs 0.38 (Cao model) vs 0.272 (Dwek). No direct external-galaxy B/P axis ratio was found: need edge-on 3D fits (z/x of the B/P body vs bar length) for a sample.</li>
+</ol>
+<h2 id="c-bulge-axis-ratios-without-a-bar-ba-in-plane-ca-vertical-a-longest">C. Bulge axis ratios without a bar (B/A in plane, C/A vertical; A longest)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value (scatter)</th>
+<th>Paper</th>
+<th>Place</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CALIFA unbarred bulges, most probable B/A, C/A</td>
+<td>N=41 (clean) from Table C.1: B/A mean 0.83, SD 0.21, median 0.91; C/A mean 0.54, SD 0.19, median 0.54, 16th-84th 0.31-0.74 (43 rows incl. 2 with C/A&gt;1: C/A mean 0.57)</td>
+<td>[R0902], 1710.05222</td>
+<td>Table C.1</td>
+<td>COMPUTED from printed table (python3 -I)</td>
+</tr>
+<tr>
+<td>Same, mass 3e9-2e11 (logM 9.48-11.3)</td>
+<td>N=36: B/A 0.85+-0.20; C/A 0.55+-0.20</td>
+<td>[R0902] Table C.1</td>
+<td>COMPUTED</td>
+<td></td>
+</tr>
+<tr>
+<td>Barred-galaxy bulges, same survey (for contrast)</td>
+<td>N=40: B/A 0.85+-0.13, C/A 0.58+-0.22</td>
+<td>[R0902] Table C.2</td>
+<td>COMPUTED</td>
+<td></td>
+</tr>
+<tr>
+<td>Distribution peaks</td>
+<td>&lt;B/A&gt;=0.85, &lt;C/A&gt;=0.55; per-bulge errors sigma_B/A=0.15, sigma_C/A=0.25; 66% oblate, 19% prolate, 15% triaxial (79 bulges: 41 unbarred, 38 barred); 75% of triaxial in barred; low-n and late-type bulges are heterogeneous, high-n and early oblate</td>
+<td>[R0902]</td>
+<td>Sect. 5 (text next to Fig. 7), abstract</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Unbarred S0-Sb bulges, equatorial</td>
+<td><E>=0.16, &lt;B/A&gt;=0.85; ~80% triaxial; PDF falls for B/A&gt;0.93; no bulge with B/A&lt;0.5; no difference by S0 vs spiral, n, luminosity</td>
+<td>[R3033], 0710.5466</td>
+<td>abstract, Sect. 5.6, Fig. 11-12</td>
+<td>READ</td>
+</tr>
+<tr>
+<td>Flattening F=C^2/R^2 (R^2=(A^2+B^2)/2), unbarred S0-Sb, 115 clean bulges</td>
+<td>mean of <F>=0.88 and of F1/2 =0.71; 33/55/43% have B/A&lt;0.9 (max/mean/median); triaxiality bimodal (65% oblate-ish); C/R = sqrt(F) = 0.84 to 0.94 so C/A ~0.78 to 0.87 if B/A=0.85</td>
+<td>[R3034], 1006.5449</td>
+<td>Sect. 4 (flattening), Eq. 41, Sect. 5</td>
+<td>READ (C/A conversion is mine)</td>
+</tr>
+<tr>
+<td>Older statistics</td>
+<td>&lt;B/A&gt;=0.86, &lt;C/A&gt;=0.65 (32 S0-Sb); Fathi &amp; Peletier 03 &lt;B/A&gt;=0.79 early, 0.71 late; Noordermeer 07 &lt;C/A&gt;=0.55 (oblate assumed); Mosenkov 10 median C/A 0.63 (edge-on)</td>
+<td>quoted in [R3034] (Intro) and [R0902] (Intro)</td>
+<td></td>
+<td>second-hand</td>
+</tr>
+<tr>
+<td>[R1332] (astro-ph/0305326)</td>
+<td>late-type bulges more elongated, KS 98.4%; ellipticity histograms in 0.1 bins only</td>
+<td></td>
+<td>Sect. 3, Figs 2-4</td>
+<td>text gives no mean; FIG-ONLY</td>
+</tr>
+<tr>
+<td>Pseudobulge flatness</td>
+<td>e_bulge/e_disk&gt;0.9 in 36% of S0-Sb and 51% of Sbc-Sm (35 each); Moellenhoff &amp; Heidt: 10%</td>
+<td>[R2457] quoting Fathi &amp; Peletier</td>
+<td>Sect. 4.3</td>
+<td>READ (qualitative: many pseudobulges as flat as disks)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Conflicts (C):</p>
+<ol>
+<li>C/A. [R0902] 0.54 (SD 0.19) vs [R3034] ~0.78 to 0.87 (via F) vs Bertola 0.65, Mosenkov 0.63, Noordermeer 0.55 (second-hand). Rule: verified beats second-hand; of the two verified, newest is [R0902] (also lower bound 0.19 to 1.0 range is wider). Older value kept: MA10.</li>
+<li>B/A. Costantin 0.83 to 0.85, MA08 0.85, Bertola 0.86 agree; FP03 0.79/0.71 (second-hand) differ by stage. No stage split in Costantin's tables (no T column), so no stage dependence is drawn.</li>
+</ol>
+<h2 id="d-bar-angle">D. Bar angle</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Statement</th>
+<th>Paper</th>
+<th>Place</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Orientation of bar in its disk</td>
+<td>'bars are expected to be randomly oriented with respect to the underlying disk', dPA in 0 to 90 deg; ~10% within 10 deg of disk PA on geometry alone</td>
+<td>[R3035]</td>
+<td>Sect. 3.1</td>
+<td>READ (expectation, not a measurement)</td>
+</tr>
+<tr>
+<td>Mock-observation setup</td>
+<td>bar angle drawn uniformly in (0, 90 deg) from the line of nodes; mock PAs uniform 0 to 180 deg</td>
+<td>[R1288] Sect. 5 (simulations); [R0045] Sect. 4</td>
+<td>READ (assumption)</td>
+<td></td>
+</tr>
+<tr>
+<td>Empirical check</td>
+<td>84 of 118 barred galaxies have dPA&lt;=60 deg (0.71); uniform expects 0.667 (60/90); +1.0 sigma</td>
+<td>[R1290] Sect. 2</td>
+<td>COMPUTED</td>
+<td>consistent, weak test; selection favours small dPA</td>
+</tr>
+<tr>
+<td>No paper in this set states a measured uniform distribution; every statement is an assumption or expectation. By rotational symmetry the bar angle against any fixed reference direction is uniform on [0,180) unless the host has an external alignment (not found). Need for a measured test: bar PA relative to a fixed sky axis for a face-on, large-sample catalogue (e.g. Diaz-Garcia/Herrera-Endoqui PA columns, not tested here). The Milky Way 27 deg is one draw.</td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="proposed-draws-m--log10-stellar-mass-in-msun-range-948-to-1130">Proposed draws (m = log10 stellar mass in Msun, range 9.48 to 11.30)</h2>
+<ol>
+<li>Bar present: p = 1/(1+exp(-(-82.2+17.1<em>m-0.88</em>m^2))) for BOTH early and late (0.69, 0.69, 0.58, 0.46, 0.36, 0.21 at m = 9.48, 10.0, 10.5, 10.8, 11.0, 11.3). Basis [R1288: Eq. 6] (VERIFIED, read, any bar incl. weak). No stage factor because [R1102] gives early 0.632+-0.024 vs late 0.664+-0.016 (1.1 sigma). Flags: (a) the quadratic is least safe above m~11 (coverage not stated); an alternative from the same S4G data, [R1102] visual, is flat ~0.6 to 0.65 above 1e9, so p=0.36 to 0.21 at the top end is the rule-picked but widest-uncertainty value; (b) 'strong bar only' would be 0.23 to 0.29 (VERIFIED, Erwin Table 2) with no stage split (N&amp;A Table 3: 0.287 vs 0.280).</li>
+<li>Bar in-plane axis ratio y0/x0: draw e from a normal, center 0.53, SD 0.15, clamp e to 0.15 to 0.90, then y0/x0 = 1-e (so mean 0.47, clamp 0.10 to 0.85). Numbers VERIFIED ([R1102: Table 3] center 0.52 to 0.54; SD COMPUTED from the VizieR table, N=504; clamp from table range 0.10 to 0.92 and Aguerri e_min 0.16). Mapping isophote e to the model's y0/x0 is a STAND-IN; [R1486] (center 0.63, SD 0.10) suggests the bar body is ~0.1 more elongated, so a build that wants the body ratio would shift to 0.63/0.10. Same draw for early and late (Diaz-Garcia Table 3 differences 0.51 vs 0.53; M-D07 finds no T trend).</li>
+<li>Bar vertical axis ratio z0/x0, two branches:
+<ul>
+<li>Boxy/peanut branch with probability P_BP = 1/(1+exp(-(-42.79+4.13*m))) (0.03 at 3e9, 0.51 at 2.3e10, 0.98 at 2e11; [R1290], VERIFIED read): normal, center 0.23, SD 0.06, clamp 0.12 to 0.38. Center is a STAND-IN derived from Rbox/Lbar 0.42 x Ciambur &amp; Graham zmax/R 0.55; SD set to 25% of the center (E&amp;D17's Rbox/Lbar scatter is 21%); upper clamp 0.38 from the Cao-model MW test fit (check only). Milky Way 0.272 lies +0.8 sigma.</li>
+<li>Thin-bar branch (probability 1-P_BP): normal, center 0.071, SD 0.02, clamp 0.05 to 0.15. Center VERIFIED (length/thickness 14+-4, edge-on, galaxies that show peanuts); SD from the quoted +-4; clamp upper from simulated c/a 0.1 to 0.2 ([R2909] simulation).
+Enforce z0 &lt;= y0 after drawing (design choice, STAND-IN).</li>
+</ul>
+</li>
+<li>Unbarred bulge axis ratios (y0/x0 = B/A, z0/x0 = C/A): B/A normal center 0.83, SD 0.21, clamp 0.30 to 1.00 ([R0902] Table C.1, N=41, COMPUTED from the printed table; MA08 center 0.85 and MA08 floor B/A&gt;=0.5 agree on the center but not the floor; clamp uses the wider table range). C/A normal center 0.54, SD 0.19, clamp 0.19 to 1.00, then C/A = min(C/A, B/A) (last step STAND-IN). VERIFIED numbers, STAND-IN truncation and ordering. Same for early and late (no stage split in any verified source; [R3034] would put C/A near 0.8, recorded as the older, conflicting value).</li>
+<li>Bar angle: uniform on [0, 180) deg, independent of everything else. STAND-IN (symmetry plus assumed-random statements in M-D07, [R1288]; no measured test found). Milky Way 27 deg is only a check draw.</li>
+</ol>
+<p>Not found, with what is needed: (i) a direct external-galaxy B/P vertical axis ratio relative to bar length (needs an edge-on sample with 3D or deprojected B/P height and bar length, e.g. S4G edge-on); (ii) bar fraction by stage AND mass jointly in numbers (only figures in N&amp;A 2010b Fig. 1c and [R1102: Fig. 19]); (iii) bulge share (B/T) bins as numbers (Masters Fig. 6-7, Sheth Fig. 5 are plots); (iv) a measured test of bar-angle uniformity; (v) [R1202] G2 paper text (not on arXiv).
+Scratch: PDFs and scripts in /tmp/claude-0/gen533-research/ (set1 PDFs, set2 VizieR tables); nothing left in /mnt/project-files except this file.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

@@ -21,7 +21,8 @@ depends_on = None
 _COMMON = (
     "gas_oh_dex", "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "mass_fraction_c", "mass_fraction_n", "mass_fraction_o", "mass_fraction_ne", "mass_fraction_s", "mass_fraction_ar",
     "mass_fraction_fe", "abundance_c", "abundance_n", "abundance_o", "abundance_ne", "abundance_s", "abundance_ar", "abundance_fe", "ionized_share", "atomic_share", "molecular_share",
-    "dust_to_gas", "dust_to_metals", "grain_silicate", "grain_iron", "grain_carbon", "grain_pah", "grain_ice", "progenitor_mass_sol",
+    "dust_to_gas", "dust_to_metals", "grain_amorphous_olivine", "grain_amorphous_pyroxene", "grain_crystalline_silicate", "grain_iron", "grain_amorphous_carbon", "grain_graphite", "grain_pah", "grain_sic",
+    "grain_ice", "progenitor_mass_sol",
 )
 _REMNANT = (
     "ejecta_mass_sol", "swept_mass_sol", "ejecta_mass_fraction_h", "ejecta_mass_fraction_he", "ejecta_mass_fraction_z", "swept_mass_fraction_h", "swept_mass_fraction_he", "swept_mass_fraction_z",

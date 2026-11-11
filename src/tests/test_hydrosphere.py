@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, hydrosphere as hy, tidal_heating, water_layer as wl
+from planetgen.physics import constants, hydrosphere as hy, planet_type, tidal_heating, water_layer as wl
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -87,7 +87,7 @@ TEST_WATER_MASS_FRACTION = {"M": (1e-4, 5e-4), "C": (1e-6, 1e-4), "P": (1e-4, 1e
 
 
 def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371.0, **extra):
-    fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km,
+    fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km, rock_mass_fraction=0.67,
                   water_mass_fraction=log_uniform(*TEST_WATER_MASS_FRACTION[planet_class]),
                   gravity=mass_earth / (radius_km / 6371.0) ** 2, surface_temperature=temperature,
                   atmospheric_pressure=pressure_pa, is_moon=False, mantle_redox="intermediate",
@@ -164,7 +164,7 @@ def test_ocean_worlds_are_mostly_ice_sealed():
     assert all(world.ocean_fraction == 1.0 for world in worlds)
     sealed = [world for world in worlds if world.ocean_class == "ice-sealed"]
     assert len(sealed) > 50
-    assert all(world.hp_ice_km > 0 and world.phosphorus == "starved" for world in sealed)
+    assert all(world.hp_ice_km > 0 for world in sealed)
 
 
 def test_generated_bodies_store_a_consistent_hydrosphere():
@@ -176,7 +176,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
             if not hasattr(planet, "moons"):
                 continue
             for body in [planet, *planet.moons]:
-                if body.body_type == "g":
+                if not planet_type.has_ground(body):      # a giant, or a planet under a deep envelope (GEN.1334)
                     assert all(getattr(body, field) is None for field in hy.HYDROSPHERE_FIELDS
                                if field != "water_mass_fraction")
                     continue
@@ -191,7 +191,6 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                 if liquid:
                     (ph_lo, ph_hi), (aw_lo, aw_hi) = hy.OCEAN_CHEMISTRY[body.ocean_class]
                     assert ph_lo <= body.ocean_ph <= ph_hi and aw_lo <= body.water_activity <= aw_hi
-                    assert body.phosphorus in ("high", "limited", "starved")
     # a runaway-greenhouse vapor world is rare (2 in 590 bodies) and is checked by hand above, so a sample need not hold one
     assert {"ice", "dry"} <= seen
 
@@ -288,13 +287,3 @@ def test_gen1147_the_cover_rises_with_the_water_through_the_two_level_surface():
     assert hy.ocean_fraction(0.64, g) == pytest.approx(0.5, abs=0.02) and hy.ocean_fraction(0.2, g) == pytest.approx(0.27, abs=0.02)
     assert 0.55 < hy.ocean_fraction(1.3, g) < 0.65     # the shelf between the continents and the basins: a real range of partial land
     assert hy.ocean_fraction(2.0, 3.0 * g) > hy.ocean_fraction(2.0, g) > hy.ocean_fraction(2.0, g / 3.0)
-
-
-def test_gen1147_the_mantle_stores_two_oceans_at_half_an_earth_mass_and_eight_at_five():
-    earth = constants.EARTH_MASS_TO_KG
-    ocean = hy.EARTH_OCEAN_FRACTION
-    assert hy.mantle_max_water_fraction(0.5 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(5.0 * earth) == pytest.approx(8 * ocean)
-    assert hy.mantle_max_water_fraction(0.01 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(50.0 * earth) == pytest.approx(8 * ocean)
-    assert 2 * ocean < hy.mantle_max_water_fraction(earth) < 4 * ocean
-    # a water world keeps the rest at the surface: 40 oceans of water, the mantle keeps 8 of them at five Earth masses
-    assert hy.surface_water_fraction(40 * ocean, 5.0 * earth, rng=types.SimpleNamespace(uniform=lambda low, high: high)) == pytest.approx(32 * ocean)

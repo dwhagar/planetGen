@@ -209,7 +209,10 @@ def _axis(body):
     return None if any(value is None for value in axis) else axis
 
 
-def _normal(body):
+def _normal(body, planet=None):
+    """The normal of the orbit of `body` in the system's frame: a moon's elements are against its `planet`'s equator (GEN.1352)."""
+    if planet is not None:
+        return spin.moon_orbit_normal(body, planet)
     return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
 
 
@@ -227,9 +230,9 @@ def _love_k2(body, mass, radius_m, rate):
     return tidal_heating.rigid_k2(mass, radius_m)
 
 
-def compute(body, parent=None):
+def compute(body, parent=None, extra=()):
     """
-    The `FIELDS` of a planet or moon as a dict (`parent` the planet a moon orbits): a `surface ocean` gets its spring and neap ranges and its liquid, an
+    The `FIELDS` of a planet or moon as a dict (`parent` the planet a moon orbits; `extra` the `Raiser`s of the other bodies of the system, `tide_sources.raisers_of`, GEN.1446): a `surface ocean` gets its spring and neap ranges and its liquid, an
     `ice-covered ocean` zero ranges, any other body `None`. Pure: no draws.
     """
     out = dict.fromkeys(FIELDS)
@@ -247,10 +250,12 @@ def compute(body, parent=None):
                          _retrograde(axis, _normal(host)))]
     if parent is not None:
         raisers.append(Raiser.of("planet", parent.mass, body.distance * constants.AU_TO_M, mass, getattr(body, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(body))))
+                                 _retrograde(axis, _normal(body, parent))))
     for moon in getattr(body, "moons", None) or ():
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
-                                 _retrograde(axis, _normal(moon))))
+                                 _retrograde(axis, _normal(moon, body))))
+    for raiser in extra:
+        raisers.append(Raiser(raiser.name, raiser.mass_kg, raiser.distance_m, raiser.eccentricity, -abs(raiser.orbital_rate_rad_s) if _retrograde(axis, _normal(body, parent)) else abs(raiser.orbital_rate_rad_s)))
     liquid = _liquid_of(body)
     try:
         tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
@@ -260,7 +265,7 @@ def compute(body, parent=None):
     return out
 
 
-def generate(body, parent=None):
-    """Sets `FIELDS` on a planet or moon (`parent` the planet a moon orbits)."""
-    for name, value in compute(body, parent).items():
+def generate(body, parent=None, extra=()):
+    """Sets `FIELDS` on a planet or moon (`parent` the planet a moon orbits, `extra` the `Raiser`s of the other bodies of the system)."""
+    for name, value in compute(body, parent, extra).items():
         setattr(body, name, value)

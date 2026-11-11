@@ -19,6 +19,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { unpackSky } = await import(`./skypack.js${VERSION_QUERY}`);
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { createSkySphere, skyYears } = await import(`./skysphere.js${VERSION_QUERY}`);
 const { createSkySprites } = await import(`./skysprites.js${VERSION_QUERY}`);
 const { createSkyBand, imageFromHalfFloats } = await import(`./skyband.js${VERSION_QUERY}`);
@@ -84,9 +85,9 @@ export function noteFor(state) {
     case "filling": {
       const report = state.report || {};
       const built = Number.isFinite(report.built_to_pc) ? ", built to " + parsecs(report.built_to_pc) : "";
-      return "Sky of " + state.count.toLocaleString("en-US") + " stars" + built + ", filling in.";
+      return "Sky of " + formatNumber(state.count) + " stars" + built + ", filling in.";
     }
-    case "ready": return "Sky of " + state.count.toLocaleString("en-US") + " stars, with the glow of the fainter ones.";
+    case "ready": return "Sky of " + formatNumber(state.count) + " stars, with the glow of the fainter ones.";
     default: return "";
   }
 }

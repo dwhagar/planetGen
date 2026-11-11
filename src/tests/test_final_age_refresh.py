@@ -16,7 +16,7 @@ from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 
-ICY_SEEDS = (5, 15, 19, 25, 39)
+ICY_SEEDS = (5, 10, 15, 19, 25, 39)
 """The seeds whose systems hold ice-covered oceans (the life pass moves many moons in, so a short range of seeds holds few)."""
 
 
@@ -102,3 +102,16 @@ def test_a_giant_a_belt_and_a_body_with_no_water_drawn_are_left_alone():
     before = body.ice_shell_km
     planets.refresh_at_final_age(body)
     assert body.ice_shell_km == before
+
+
+def test_the_final_age_redraw_does_not_depend_on_the_provisional_class_letter():
+    # GEN.1398 (class-last audit F1): two bodies identical but for the letter they carried draw the same ground and water
+    body = next(body for body in icy(ICY_SEEDS))
+    letter = body.planet_class
+    results = []
+    for fake in (letter, "A", "Z"):
+        body.planet_class = fake
+        planets.refresh_at_final_age(body)
+        results.append((body.ice_shell_km, body.hydrosphere, body.ocean_class, surface_composition.mix_of(body)))
+    body.planet_class = letter
+    assert results[0] == results[1] == results[2]

@@ -8927,6 +8927,204 @@
    "state": "partly verified",
    "limit": "identity not reached",
    "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Li",
+   "name": "atomic lithium",
+   "cas": null,
+   "molar_mass_research_g_mol": 6.94,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "LiH",
+   "name": "lithium hydride",
+   "cas": null,
+   "molar_mass_research_g_mol": 7.948,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 29.75,
+    "1000": 36.07
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "LiOH",
+   "name": "lithium hydroxide vapor",
+   "cas": null,
+   "molar_mass_research_g_mol": 23.947,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 46.08,
+    "1000": 54.02
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "LiCl",
+   "name": "lithium chloride vapor",
+   "cas": null,
+   "molar_mass_research_g_mol": 42.39,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 33.29,
+    "1000": 37.53
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "P",
+   "name": "atomic phosphorus",
+   "cas": null,
+   "molar_mass_research_g_mol": 30.974,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 20.79,
+    "1000": 20.79
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "PO",
+   "name": "phosphorus monoxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 46.973,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 31.76,
+    "1000": 35.98
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "PN",
+   "name": "phosphorus mononitride",
+   "cas": null,
+   "molar_mass_research_g_mol": 44.981,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 29.71,
+    "1000": 35.47
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "PS",
+   "name": "phosphorus monosulfide",
+   "cas": null,
+   "molar_mass_research_g_mol": 63.034,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 35.26,
+    "1000": 37.38
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "PH",
+   "name": "phosphorus monohydride",
+   "cas": null,
+   "molar_mass_research_g_mol": 31.982,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 29.18,
+    "1000": 33.1
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   }
  ]
 }

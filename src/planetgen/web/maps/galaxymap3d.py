@@ -344,7 +344,7 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     <li><strong>Marks and symbols</strong>: black holes and the worlds, life, and civilizations the Menu's Show on the map
     lists, each with its own symbol or color in the Key.</li>
     <li><strong>In an opened sector</strong>: points of light are stars, black holes, neutron stars, quasars, and rogue
-    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants, and asteroid fields, and outlines
+    planets, small spheres are interstellar comets, soft clouds are nebulae, remnants, and asteroid fields, pale-gold balls are globular clusters, and outlines
     are the sectors beside it.</li>
     <li><strong>Course</strong>: a line through every stop of a course shown from the Nav page, and a dashed line for the
     direct line from its start to its end.</li>
@@ -478,7 +478,7 @@ def _course_readout_html(course):
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/nodes",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage", window_path="/galaxy/window",
-                              near_path="/galaxy/near", locate_path="/galaxy/locate", course=None, made=None,
+                              near_path="/galaxy/near", locate_path="/galaxy/locate", course=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, clusters=None, nearby_url=None,
@@ -598,10 +598,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         clusters (list or None): The galaxy's globular clusters (MAP.224; `web/galaxy_views.py`): `ref`, `name` (its name, else its
             designation), `named`, `href` (its page), `x`, `y`, `z` and `radius_pc` each, offered to the label engine as the
             cluster's name. `None` names none.
-        made (dict or None): The sectors a generate job made (ADM.31):
-            `total`, `points` (their centers, parsecs) and `sectors`
-            (`[shell, band, wedge]`), up to a cap. The map rings them and
-            opens on the smallest stage holding them. `None` shows none.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -623,7 +619,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
-        "made": made,
         "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
         "clusters": list(clusters or []),
         "pick": pick["pick"] if pick else None,
@@ -714,17 +709,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             + '">back to NAV</a></p>'
         )
 
-    made_hint = ""
-    if made is not None:
-        shown = len(made["points"])
-        made_hint = (
-            '<p class="hint">' + (
-                "That run made no sectors." if not made["total"] else
-                f"Showing the {made['total']:,} sector{'s' if made['total'] != 1 else ''} that run made, ringed on the map"
-                + (f" (the first {shown:,} are ringed)" if shown < made["total"] else "")
-            ) + ' &middot; <a href="/galaxy">Clear</a></p>'
-        )
-
     shape_hint = (
         ""
         if galaxy_shape
@@ -811,7 +795,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="panel-header">
   <h2 class="sr-only">{title}</h2>
 </div>
-{pick_banner}{shape_hint}{course_hint}{made_hint}
+{pick_banner}{shape_hint}{course_hint}
 {address_block}<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
 {crumbs_block}<div class="starmap-layout">
 <div class="galaxy-map-row">

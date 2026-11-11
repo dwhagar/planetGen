@@ -9,7 +9,7 @@ The seasonal swing of the temperature at a latitude, from the planet's tilt and 
 tilted planet's seasons are its weather: Uranus-like tilts give a pole in daylight at noon-equator brightness for decades, Mars's eccentric orbit adds a second
 season, and the Earth without its Moon is the middle case ([R4708]:254; [R4709], 2003, Int. J. Astrobiol. 1:61 and
 2:1; [R4171]:596, Icarus; [R0149]:277; recalled, none opened). This module is that
-calculation as a pure function of stored quantities. Nothing calls it yet (GEN.1048 wires it into the regional temperatures).
+calculation as a pure function of stored quantities. The temperatures of every place (GEN.1263, below) read it; oddity W1 (GEN.1048) names the planets whose tilt makes the seasons the main weather.
 
 **The light.** The day's mean insolation at latitude `phi` for the Sun at declination `delta` is the closed form of `regional_temperature._daily_insolation`
 (`Q = (h sin phi sin delta + cos phi cos delta sin h) / pi`, `h` the half day length). The declination follows the planet round its orbit: `sin delta = sin(eps)
@@ -82,7 +82,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from planetgen.physics import climate_branches, constants, habitability, regional_temperature, surface_cycle
+from planetgen.physics import climate_branches, constants, daylight, habitability, oddities, regional_temperature, sky_suns, surface_cycle
 from planetgen.util import detmath
 
 STEPS = 96
@@ -156,7 +156,7 @@ def orbit_year(eccentricity, perihelion_longitude_deg=0.0, steps=STEPS):
     return np.sin(true + math.radians(perihelion_longitude_deg)), 1.0 / distance ** 2
 
 
-def daily_insolation_year(latitudes_deg, obliquity_deg, eccentricity, perihelion_longitude_deg=0.0, steps=STEPS):
+def daily_insolation_year(latitudes_deg, obliquity_deg, eccentricity, perihelion_longitude_deg=0.0, steps=STEPS, suns=()):
     """
     The day's mean insolation at each latitude through the year, in units of the flux at the orbit's semi-major axis: an array of shape `(latitudes, steps)`. The tilt is
     folded about 90 degrees (a retrograde spin is the same seasons the other way round).
@@ -166,8 +166,15 @@ def daily_insolation_year(latitudes_deg, obliquity_deg, eccentricity, perihelion
     sin_longitude, inverse_square = orbit_year(eccentricity, perihelion_longitude_deg, steps)
     declination = np.arcsin(math.sin(tilt) * sin_longitude)
     latitude = np.radians(np.asarray(latitudes_deg, dtype=float))[:, None]
-    flux = regional_temperature._daily_insolation(latitude, declination[None, :])
-    return flux * inverse_square[None, :]
+    flux = regional_temperature._daily_insolation(latitude, declination[None, :]) * inverse_square[None, :]
+    if not suns:
+        return flux
+    # GEN.1458: the other suns stand at the declination of their own direction through the year and take their share of the light (their distance taken as the mean)
+    folded = math.radians(daylight.folded_tilt_deg(obliquity_deg))
+    total = (1.0 - sum(sun.share for sun in suns)) * flux
+    for share, sin_declination, _ in sky_suns.terms(folded, suns):
+        total = total + share * regional_temperature._daily_insolation(latitude, np.full((1, 1), math.asin(max(-1.0, min(1.0, sin_declination)))))
+    return total
 
 
 def sphere_mean_insolation(eccentricity):
@@ -436,6 +443,9 @@ def _anderson(step, start):
     size = updated.size
     delta_f = np.empty((ANDERSON_DEPTH, size))
     delta_g = np.empty((ANDERSON_DEPTH, size))
+    # PERF.255: the Gram matrix of the stored differences, kept between passes. A pass replaces one slot, so only its row and column are new; the rest hold the sums they
+    # held (each summed left to right by `detmath.matmul`, and a product commutes exactly, so a column is the row it mirrors, bit for bit).
+    gram_store = np.empty((ANDERSON_DEPTH, ANDERSON_DEPTH))
     count = 0
     previous_f = previous_g = None
     passes = 1
@@ -453,7 +463,10 @@ def _anderson(step, start):
         used = min(count, ANDERSON_DEPTH)
         if used:
             matrix = delta_f[:used]
-            gram = detmath.matmul(matrix, matrix.T)
+            row = detmath.matmul(delta_f[slot:slot + 1], matrix.T)[0]
+            gram_store[slot, :used] = row
+            gram_store[:used, slot] = row
+            gram = gram_store[:used, :used].copy()
             gamma = np.linalg.solve(gram + (1.0e-10 * np.trace(gram) + 1.0e-30) * np.eye(used), detmath.matmul(matrix, change[:, None])[:, 0])
             mixed = current_g - detmath.matmul(gamma, delta_g[:used])
         else:
@@ -478,7 +491,7 @@ def _mean_balance(absorbed_w_m2, emissivity_sigma, transport, world_mean_k, weig
 
 
 def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_flux_w_m2, bond_albedo, pressure_pa, gravity_ms2, ocean_fraction,
-                       ice_fraction=None, ice_law=None, transmission=None, rows=surface_cycle.CELL_ROWS, columns=None, samples_per_day=SAMPLES_PER_DAY, steps_per_year=STEPS_PER_YEAR, max_steps=TEMPERATURE_MAX_STEPS,
+                       ice_fraction=None, ice_law=None, transmission=None, suns=(), rows=surface_cycle.CELL_ROWS, columns=None, samples_per_day=SAMPLES_PER_DAY, steps_per_year=STEPS_PER_YEAR, max_steps=TEMPERATURE_MAX_STEPS,
                        ocean_heat_capacity_j_m3_k=WATER_HEAT_CAPACITY_J_M3_K, mixed_layer_m=OCEAN_MIXED_LAYER_M, diffusivity=OCEAN_EDDY_DIFFUSIVITY_M2_S):
     """
     The temperature of every cell of the grid at every step of the year (the module section "The temperature of every place"): `TemperatureSeries`.
@@ -502,7 +515,7 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
     if columns is None:
         columns = columns_for(rotation_hours, orbital_hours, tilt_deg)
     light = surface_cycle.series(rotation_hours, orbital_hours, tilt_deg, None, transmission, rows=rows, columns=columns, samples_per_day=samples_per_day, max_steps=max_steps,
-                                 periodic=True, steps_per_year=steps_per_year)
+                                 periodic=True, steps_per_year=steps_per_year, suns=suns)
     grid = light.grid
     rows, columns, steps = light.cosine.shape
     weights = np.repeat(grid.row_weight / columns, columns).reshape(rows, columns)
@@ -581,3 +594,13 @@ def temperature_series(rotation_hours, orbital_hours, tilt_deg, mean_k, stellar_
     temperature = temperature + shift
     return TemperatureSeries(grid, light.time_days, light.step_days, span_days, temperature, temperature.mean(axis=2), albedo, cover, share, light.solar_days,
                              light.orbital_days, float(shift), emission / sigma, passes, converged)
+
+
+@oddities.register("seasons_from_tilt")
+def seasons_from_tilt(body, row):
+    """
+    The effect of oddity W1 (GEN.1048): a planet tilted 60 to 120 degrees, with no moon to steady it, has seasons that are its main weather (a pole in daylight at the
+    equator's noon brightness for a season). The tilt was drawn with the spin and `temperature_series` already reads it, so nothing on the body changes: the effect only
+    lets the table name it, so that the page says why this world's year is so strong.
+    """
+    return None

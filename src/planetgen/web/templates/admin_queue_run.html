@@ -17,6 +17,7 @@
     {%- if run.job_url %}<div><dt>Job</dt><dd><a href="{{ run.job_url }}">Generate page job and its output</a></dd></div>{% endif %}
   </dl>
   {%- if run.error %}<p class="error">{{ run.error }}</p>{% endif %}
+  {%- if run.killed %}<p class="error">This run was killed{% if run.killed_reason %}: {{ run.killed_reason }}{% endif %}. A killed run can be carried on from the stage it did not finish.</p>{% endif %}
   {%- if run.stale %}<p class="error">This run has not been heard from for too long: it has stopped answering.</p>{% endif %}
   <p class="queue-actions">
     {%- for action, label in run.actions %}
@@ -47,6 +48,35 @@
   </table>
   </div>
 </section>
+{%- if unit_rows %}
+<section class="panel" aria-labelledby="units-heading">
+  <h2 id="units-heading">Running units</h2>
+  <p class="hint">{{ unit_summary }}. A unit whose counter is moving is never stopped; only a quiet or dead unit is, after two checks in a row.</p>
+  <div class="table-scroll" tabindex="0">
+  <table class="unit-table">
+    <caption class="sr-only">The units running now, the ones that need a look first</caption>
+    <thead><tr><th scope="col">Stage</th><th scope="col">Unit</th><th scope="col">State</th><th scope="col">Doing</th><th scope="col">Counter</th><th scope="col">Rate</th><th scope="col">Time left</th><th scope="col">Last beat</th><th scope="col">Running</th><th scope="col">Memory</th></tr></thead>
+    <tbody>
+    {%- for unit in unit_rows %}
+      <tr>
+        <th scope="row">{{ unit.stage }}</th>
+        <td>{{ unit.unit }}</td>
+        <td><span class="badge unit-{{ unit.state }}{% if unit.severity %} unit-{{ unit.severity }}{% endif %}" title="{{ unit.reason }}">{{ unit.state_label }}</span>{% if unit.stop %} <span class="hint">to be stopped</span>{% endif %}</td>
+        <td>{{ unit.phase }}</td>
+        <td>{{ unit.counter }}</td>
+        <td>{{ unit.rate }}</td>
+        <td>{{ unit.left }}</td>
+        <td>{{ unit.beat }} ago</td>
+        <td>{{ unit.running }}</td>
+        <td>{{ unit.memory }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- if unit_hidden %}<p class="hint">{{ unit_hidden }} more {{ 'unit is' if unit_hidden == 1 else 'units are' }} running; the worst states are listed first.</p>{% endif %}
+</section>
+{%- endif %}
 <section class="panel" aria-labelledby="log-heading">
   <h2 id="log-heading">Log</h2>
   {%- if events %}

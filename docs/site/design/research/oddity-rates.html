@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rates of the weird-worlds oddities against papers (GEN.1037) - planetGen docs</title>
+<meta name="description" content="Sources 1 lane, 10-30.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/research/oddity-rates.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/research/oddity-rates.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="rates-of-the-weird-worlds-oddities-against-papers-gen1037">Rates of the weird-worlds oddities against papers (GEN.1037)</h1><p class="meta">docs/design/research/oddity-rates.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#result-in-one-paragraph">Result in one paragraph</a></li><li style="margin-left:0px"><a href="#added-for-gen1094-the-heating-capable-librating-share-of-near-resonant-pairs-w5">Added for GEN.1094: the heating-capable (librating) share of near-resonant pairs (W5)</a></li><li style="margin-left:0px"><a href="#the-table">The table</a></li><li style="margin-left:0px"><a href="#what-each-row-means-for-the-build">What each row means for the build</a></li><li style="margin-left:0px"><a href="#what-was-not-done">What was not done</a></li><li style="margin-left:0px"><a href="#gen1095-the-remaining-r-rates-w6-w7-w9-w12-w16-w21-w22-w23-w26-g1-g7">GEN.1095: the remaining [R] rates (W6, W7, W9, W12, W16, W21, W22, W23, W26, G1, G7)</a></li></ul></details>
+<p>Sources 1 lane, 10-30. This checks the rates and thresholds marked [R] (recalled) in <a href="../systems/weird-worlds.html">weird-worlds.md</a> for W3, W4, W5, W10, W14, W15 and W20, the seven the design named for confirmation first. Every number below was read in a paper whose arXiv text I opened (secondary sources accepted by the rule of 8:16 PM EDT 10-29), or counted from the NASA Exoplanet Archive; &quot;read&quot; says which. Stand-in rows WR1 to WR7 in section 6.82 of <a href="gap-filling-plan.html">gap-filling-plan.md</a> carry the numbers into GEN.725. Nothing in the generator changes.</p>
+<h2 id="result-in-one-paragraph">Result in one paragraph</h2>
+<p>Four of the seven design rates stand, three need changing. <strong>Stand:</strong> W3 (about 10 percent of giant planets above e 0.5, now with the paper's own distribution), W15 (super-puffs about 1 percent of small Neptunes; counted 0.8 to 1.2 percent), W20 (the bistable window is 10 to 15 percent of the flux, but it is zero for several common cases), and W4's hot-star gate (6,250 K). <strong>Change:</strong> W4 (the misaligned share is not &quot;a third&quot; but 8, 63 or 80 percent by host temperature), W5 (near-resonance is common, 15 percent of neighbouring pairs, not &quot;1 to 2 percent of multis&quot;; the heating-capable subset is smaller and is a different number), W14 (the design's &quot;1 in 1,000 ultra-short-period planets&quot; is 1 in 50 of the detected ones, and the paper turns that into a progenitor rate of 0.02 to 0.3 percent of stars). <strong>Contested:</strong> W10 (super-Mercuries fell from 5 of 22 to 1 of 21 when the sample was made homogeneous; the rate is a stand-in with a wide bracket).</p>
+<h2 id="added-for-gen1094-the-heating-capable-librating-share-of-near-resonant-pairs-w5">Added for GEN.1094: the heating-capable (librating) share of near-resonant pairs (W5)</h2>
+<p>Source read: [R1605], ApJ, &quot;Dynamics and Origins of the Near-Resonant Kepler Planets&quot; ([R1605]; text opened, sections 3.2 to 3.3, 5.1, 5.2 and 6). They take 105 first-order pairs (40 near 2:1, 37 near 3:2) with transit-timing fits from Jontof-Hutter and others 2021 and compute the mixed resonant angle psi of each from the posterior.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Quantity</th>
+<th>Value</th>
+<th>Where</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>libration to circulation break</td>
+<td>psi is clustered at pi for |Delta| below about 0.006 and uniform above (Kuiper test false-alarm probability 0.0063 for the two groups)</td>
+<td>section 3.2, Figure 1</td>
+</tr>
+<tr>
+<td>pairs with |Delta| below 0.006</td>
+<td><strong>22 of 105 (21 percent)</strong>; only 2 of the 22 are near 2:1 although 2:1 is 40 of the 105; the eight smallest |Delta| are all in systems with three or more transiting planets</td>
+<td>section 5.1</td>
+</tr>
+<tr>
+<td>formal resonance (a separatrix exists)</td>
+<td>Delta below Delta_crit = (3/2)(4/15)^(2/3) ((m1+m2)/M_star)^(2/3) k^(1/3); about 0.001 for two 10 Earth-mass planets round a Sun-like star at k 3, so most pairs in the 0.001 to 0.006 range librate without being strictly in resonance</td>
+<td>equation 12</td>
+</tr>
+<tr>
+<td>forced eccentricity of a resonant pair</td>
+<td>sigma_eq = 4 (m1+m2) / (5 Delta M_star), |Z_eq| about sigma_eq / sqrt 2; a factor about 2 smaller for 2:1. For two 10 Earth-mass planets at Delta 0.006 this is about 0.008. The measured eccentricities exceed it by up to an order of magnitude except at |Delta| below 0.006</td>
+<td>equation 13, Figure 2</td>
+</tr>
+<tr>
+<td>bias</td>
+<td>the sample leaves out weak-TTV systems (low-mass planets, pairs far from resonance, nearly circular systems), so 21 percent is a share of TTV-measurable pairs and an upper bound on the share of all near-resonant pairs; Izidoro and others 2021 (quoted there) put the share of systems that stay stable and resonant at no more than 5 percent</td>
+<td>section 5.2, conclusion</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Result for W5.</strong> Of the near-resonant pairs (15.6 percent of all neighbouring pairs, Dai and others 2024) at most 21 percent librate, so at most about 3 percent of neighbouring pairs (0.156 x 0.21 = 0.033) are heating-capable, and the strict resonant fraction is lower still; for young systems the near-resonant share is 70 percent, so up to 15 percent of young pairs. The forced eccentricity is a few times 0.001 to 0.01 for 10 Earth-mass planets, which is the design's range. Registered as WR8 (share) and WR9 (forced eccentricity).</p>
+<h2 id="the-table">The table</h2>
+<p>Tier and tweak as in GEN.725 (T1 a number as a paper I read prints it; T2 a number I computed from a paper's fitted distribution; T3 a count from a sample with a known bias or a contested result; T6 a gate that is our own guess). All shares are of the gated population, as the design's rate rule 4.3 asks.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Design value [R]</th>
+<th>Found</th>
+<th>Source (read)</th>
+<th>Tier, tweak</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W3</td>
+<td>about 10 percent of RV giants beyond 1 AU have e &gt; 0.5</td>
+<td>P(e &gt; 0.5) = 10.1 percent (8.3 to 12.1) for all 396 RV planets with K/sigma_K &gt; 5, from a Beta(a 0.867, b 3.03) fit; P(e &gt; 0.8) = 0.6 percent; P(e &gt; 0.9) = 0.07 percent</td>
+<td>[R2366], MNRAS, [R2366], sections 2 and 3.1 (numbers); [R4719], section 3 (smaller planets and multis have lower e)</td>
+<td>T2, L0</td>
+<td><strong>Stands</strong>, but the sample is all periods, not &quot;beyond 1 AU&quot;; I read no period split. A giant's eccentricity drawn from this Beta already makes the tail, so W3 needs no coin flip, only the name &quot;Odd: highly eccentric&quot; for e above 0.5. HD 80606 b (0.93) sits in the 0.07 percent tail</td>
+</tr>
+<tr>
+<td>W4</td>
+<td>misaligned fraction of hot Jupiters about a third, most for hot hosts; gate host above 6,250 K</td>
+<td>hot Jupiters with a/R &lt; 10, misaligned = lambda &gt; 10 deg at 3 sigma: <strong>cool hosts (below 6,250 K) 3 of 39 with a clear verdict (36 aligned, 3 misaligned, 8 ambiguous of 47); 6,250 to 7,000 K 22 misaligned against 13 aligned (63 percent); above 7,000 K 12 against 3 (80 percent)</strong>. With the true 3-D angle known for 57 systems: 38 aligned, 19 misaligned, 18 of the 19 between 80 and 125 deg (a polar peak)</td>
+<td>[R0061], PP VII, [R0061], sections 3.1 and 3.7</td>
+<td>T1, L0</td>
+<td><strong>Change</strong>: use the three host-temperature bands, not one third. The 6,250 K break is confirmed ([R0827], quotes the Kraft break at about 6,100 K). Selection caveat: the sample is hot Jupiters observed by the Rossiter-McLaughlin effect, so it is a share of that population only</td>
+</tr>
+<tr>
+<td>W5</td>
+<td>about 1 to 2 percent of Kepler multis are in chains with an excess just wide of resonance</td>
+<td>a neighbouring pair has 15.6 +/- 1.1 percent chance (177 of 1,131) of being within the window of a first-order commensurability (2:1, 3:2, 4:3, 5:4, 6:5, window -1.5 to +3 percent in period ratio) and 5.8 percent of a second-order one; by age 70 +/- 15 (young, under 100 Myr), 24 +/- 8 (0.1 to 1 Gyr), 15 +/- 2 percent (over 1 Gyr); a system has at least one such pair in 86 +/- 13, 38 +/- 12 and 23 +/- 3 percent; 9.1 percent of 2-planet systems and 57.5 percent of 6-planet systems have a first-order pair. After one pair is found the chance of a second is 32.6 +/- 3.4 percent, twice the 15.6 percent base rate. Only pairs within about 0.6 percent are argued to librate; the majority of the near-resonant pairs (1 to 3 percent) have large-amplitude libration or circulate</td>
+<td>Dai and others 2024, AJ 168, 239, [R0974], abstract, section 3, table 1, section 4.1 and 4.2</td>
+<td>T1, L0</td>
+<td><strong>Change</strong>: near-resonance is the common state of young systems, so the gate can be broad. The &quot;1 to 2 percent&quot; the design recalled is not a statistic in this paper. For forced-eccentricity heating (Io type) only the tightly resonant subset counts and the paper gives no share for it: stand-in below. The window and the age dependence are the sourced part</td>
+</tr>
+<tr>
+<td>W10</td>
+<td>a few percent of super-Earths are iron-enhanced outliers</td>
+<td>A21 sample: 22 planets, 5 super-Mercuries (iron mass fraction above about 60 percent), 6 of 28 with six more planets; a homogeneous re-analysis of 21 planets leaves <strong>1</strong> super-Mercury (from 4) and mock populations reproduce the outliers about 15 percent of the time by mass-radius scatter alone; a 20-planet sample finds none distinct, 75 percent of planets within 1 sigma of their star's core mass fraction</td>
+<td>Adibekyan and others 2021 as restated in [R2090], section 1; Plotnykov and others 2025, [R3546], abstract; Brinkman and others 2024, [R0541], abstract (and 2410.00213, abstract: Kepler-100 b and HD 93963 A b lower mass than first reported)</td>
+<td>T3, L1</td>
+<td><strong>Contested.</strong> Boss's rule (two in question = widest range): bracket 1 percent (1 of 21 is 5 percent; no distinct population is 0) to 23 percent (5 of 22), mid value 5 percent (the newest and homogeneous sample). Gate planets under 10 Earth masses, rocky</td>
+</tr>
+<tr>
+<td>W14</td>
+<td>about 1e-5 per star, about 1 in 1,000 ultra-short-period planets</td>
+<td>2 disintegrating planets (Kepler-1520 b, KOI-2700 b) among 116,537 FGK dwarfs: <strong>1.7e-5 per star observed</strong>; the paper's progenitor rate, with transit probability 0.25 and an active share of the life of 21 Myr over 1 Gyr, is <strong>more than about 0.3 percent of systems</strong>; with the planet lifetime at its upper limit of 370 Myr the same arithmetic gives 0.02 percent. K2-22 b is one in 21,647 K2 Field 1 stars. Kepler has 106 well-vetted ultra-short-period candidates, so 2 of 106 (about 2 percent) of the detected USPs disintegrate</td>
+<td>Schlawin and others 2021, [R3954], section 5 (the arithmetic and f_obs); Sanchis-Ojeda and others 2015, [R3903], section 1 (K2 field, 106 USPs)</td>
+<td>T2, L0</td>
+<td><strong>Change</strong>: 1 per 1,000 USPs is 20 times too low as a share of those detected; as a rate on stars use a progenitor population of 0.02 to 0.3 percent of FGK stars (those with a rocky body of about 0.02 to 0.1 Earth mass at under 1 d) and let the existing lifetime module (GEN.1041) decide which are active. Cross-check: the USP occurrence of [R3904] is 1.1 +/- 0.4 percent for M dwarfs (read, as quoted in [R0029], section 4.2) and about 0.5 percent for G and K dwarfs (recalled, not opened), so a progenitor rate of 0.02 to 0.3 percent is between 4 and 60 percent of all USPs; the two disintegrating planets may not be among the 106, so &quot;2 of 106&quot; is indicative</td>
+</tr>
+<tr>
+<td>W15</td>
+<td>under 1 percent of sub-Neptunes</td>
+<td>transiting planets of 4 to 10 Earth radii with P &lt; 100 d and a measured mass (NASA Exoplanet Archive, 10-30): 211; of these <strong>20 have M at most 10 Earth masses</strong> (9.5 percent) and <strong>4 have density under 0.1 g/cc</strong> (1.9 percent: Kepler-51 b and c, Kepler-79 d, K2-141 c); 6 of the 20 are younger than 1 Gyr. Occurrence per star for P &lt; 85 d: large Neptunes (4 to 6 R) 1.97 +/- 0.23 percent, giants (6 to 22 R) 2.0 percent, small Neptunes (2 to 4 R) 23.5 percent. So super-puffs are about 0.2 to 0.3 percent of stars (9.5 percent of the 2 to 3 percent that have a planet of 4 to 10 Earth radii), <strong>0.8 to 1.2 percent of small Neptunes</strong> (2 to 4 Earth radii, 23.5 percent of stars) and 0.4 to 0.6 percent of all sub-Neptunes and super-Earths together (47 percent). Definition in the literature: R above 4 R, M under 6 to 10 M, Teq 300 to 800 K</td>
+<td>Fressin and others 2013, [R1459], table 3; [R2609], section 4 (R above 4 R planets &quot;more than an order of magnitude more rare&quot; at P &lt; 50 d); [R1515], section 1 and table 1; archive counts: <code>/mnt/project-files/data/gen1037-oddity-rates/</code></td>
+<td>T1 (occurrence), T3 (count), L0</td>
+<td><strong>Stands</strong> (about 1 percent of small Neptunes, under 1 percent of all sub-Neptunes and super-Earths). The measured-mass sample is biased towards systems with transit timing, so the 9.5 percent is an upper bound on the share among R above 4 planets. Hazes may make some of these gas-poor ([R1515]: gas share under 10 percent for Kepler-51 b), which the radius row must allow for</td>
+</tr>
+<tr>
+<td>W20</td>
+<td>bistable window about 10 to 20 percent of flux</td>
+<td>Earth-like planets around F, G, K stars are bistable for S/S0 = 0.99 to 1.14, 0.92 to 1.06, 0.88 to 0.98 (widths 15, 14, 10 percent); intermediate-complexity models give 0.93 to 1.05 (12 percent) for Earth. The window <strong>disappears</strong> for tidally locked planets, for long solar days (reduced for tens of Earth days, gone for hundreds; mixed-layer depth 1 m removes most of it), and for orbital eccentricity 0.2 to 0.3 (the snowball exit flux falls from 0.99 S0 at e 0 to 0.89 S0 at e 0.2); intermediate-complexity runs lose much hysteresis by e 0.5. A 33 percent share of rocky exoplanets have 1-sigma eccentricity limits above 0.25</td>
+<td>Wolf and others 2017, [R4734], section 4 and the paragraph on bistability; Abbot and others 2018, [R0008], abstract and figure 3; [R2161], abstract, introduction and section 3.1 (it also cites Linsenmeier and others 2015, a large loss of hysteresis from e 0 to 0.5, which I did not open)</td>
+<td>T1 (window), T3 (gates), L0</td>
+<td><strong>Stands</strong>, with gates the design lacked: no bistability for locked planets, for a solar day over about 100 Earth days, or for e at or above 0.2. The window moves down in flux for cooler stars. Which branch a planet sits on is a history question (below)</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="what-each-row-means-for-the-build">What each row means for the build</h2>
+<ol>
+<li><strong>W3</strong> is an outcome of the eccentricity draw, not a separate oddity draw. Draw giant eccentricity from Beta(0.867, 3.03) for the RV-like population and name the tail. Rocky planets and members of compact multis have lower e (Winn and Fabrycky); no number for them was read here.</li>
+<li><strong>W4</strong> is three rates by host temperature on a gated population (close-in giant, a/R under 10). The polar peak (18 of 19 misaligned systems between 80 and 125 degrees) says the misaligned obliquity should be drawn near 100 degrees, not isotropically. Storing the angle is flavor; the Hill stability of moons is the only physics it touches.</li>
+<li><strong>W5</strong> needs two things the paper separates: the <strong>near-resonant</strong> share (15 percent of pairs, by age) which is only a period-ratio statistic, and the <strong>heating-capable</strong> share, pairs close enough to resonance (within about 0.6 percent) to librate and hold a forced eccentricity. The paper gives no number for the second; the share is now sourced (section above, GEN.1094): at most 21 percent of the near-resonant pairs librate, about 3 percent of all pairs. A young system (under 100 Myr) has a 70 percent chance per pair, which is where the Io-like heating oddity belongs.</li>
+<li><strong>W10</strong> has no settled rate. Keep it behind a low default and say so in the page text (&quot;some planets are iron-rich&quot;); do not name a real planet as an example.</li>
+<li><strong>W14</strong>: replace the rate by a progenitor population, let GEN.1041's lifetime decide the active ones. The age of the star enters twice (the planet must still be alive and the star must be old enough to be one of the observed few); with the module's 21 Myr lifetime and a 1 Gyr star the active share is 2 percent of progenitors.</li>
+<li><strong>W15</strong> is a small share of the planets that are 4 to 10 Earth radii and young or hazy; the density cut (under 0.1 g/cc) is rarer than the mass cut (under 10 Earth masses) by a factor 5.</li>
+<li><strong>W20</strong>: the design's &quot;history draw&quot; can be a rule. Star luminosity rises with age, so the flux a planet gets was lower before; a planet that began warm drops into the snowball only if its flux was ever below the lower edge of its window, and leaves it only above the upper edge or by CO<sub>2</sub> build-up. That makes the branch deterministic from the luminosity history and the CO<sub>2</sub> outgassing, with a coin flip only for planets whose history is unknown. This is my inference from the window and the monotonic luminosity, not a number from a paper, so it has no registry row.</li>
+</ol>
+<h2 id="what-was-not-done">What was not done</h2>
+<p>Not read: Checlair and others 2017 on locked planets (the claim is cited by [R4734] and by the 2025 eccentricity paper, both read), the full text of the two papers (windows are quoted by [R4734]), [R3904] (the USP occurrence, quoted by [R0029], section 4.2), [R3666] and 2014 (the Kepler-1520 b and KOI-2700 b discoveries; counted from [R3954]). The other [R] rates of the design (W1, W2 share is replaced by GEN.1038, W6, W7, W9, W12, W16, W21 to W26 and the G rows) were not part of this item; the ones that remain recalled are listed in the wiring of the oddity table as stand-ins by whoever builds each module. All the papers above are open on arXiv.</p>
+<h2 id="gen1095-the-remaining-r-rates-w6-w7-w9-w12-w16-w21-w22-w23-w26-g1-g7">GEN.1095: the remaining [R] rates (W6, W7, W9, W12, W16, W21, W22, W23, W26, G1, G7)</h2>
+<p>Sources 1 lane, 10-30, same method as above; registry rows WR8 to WR19 in plan section 6.101. Papers read (arXiv text, abstract plus the sections named in the rows): [R0149, R0535, R2109, R2143, R2367, R2769, R2804, R2963] (and the abstract of [R2812]). <strong>Result: six stand, three change, two have no rate to confirm.</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Design value [R]</th>
+<th>Found</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>W6</td>
+<td>at least 10 percent of close eclipsing binaries host a planet above 6 Earth radii inside 300 d if coplanar</td>
+<td>10.0 percent (3.5 to 28, 95 percent) coplanar; at least 47 percent if isotropic; above 10 Earth radii only 1.4 percent (95 percent upper bound 5.9); hosts all have binary periods of 5 d or more and the shortfall at shorter periods is real</td>
+<td><strong>stands</strong>; add the 5 d lower edge to the trigger (WR8, WR9)</td>
+</tr>
+<tr>
+<td>W7</td>
+<td>no confirmed exoplanet case</td>
+<td>still true: 0 of 2244 Kepler candidates, TROY 1 robust and 25 weak of 95 planets; stable if planet plus trojan is under about 4 percent of the star's mass</td>
+<td><strong>stands</strong>; upper bound 5 percent per transiting planet (WR10)</td>
+</tr>
+<tr>
+<td>W9</td>
+<td>follows from the moon evolution</td>
+<td>Phobos has 40 Myr to fall; ring-satellite cycles make each inner moon lighter; Roche limit 3.1 to 3.4 Mars radii; [R1927] itself not reached</td>
+<td><strong>no rate to confirm</strong>; numbers second-hand (WR11)</td>
+</tr>
+<tr>
+<td>W12</td>
+<td>about 3 percent of hosts have C/O above 0.8</td>
+<td><strong>under 0.13 percent</strong> (0 of 849 FGK dwarfs; maximum C/O 0.66; median 0.47); other spectroscopic estimates 0 to 10 percent are contested; a photometric survey agrees with Brewer (4 of 10,000 low-mass stars above 1)</td>
+<td><strong>changes</strong>: 30 times lower (WR12)</td>
+</tr>
+<tr>
+<td>W16</td>
+<td>helium-rich air after envelope loss above 90 percent</td>
+<td>no loss-share trigger in the paper; planets of 1.6 to 2.5 Earth radii reach a helium mass fraction above 40 percent after Gyr of photoevaporation; built as GEN.1045 (rows HF1 to HF3)</td>
+<td><strong>changes</strong>: drop the 90 percent, use the radius window (WR13)</td>
+</tr>
+<tr>
+<td>W21</td>
+<td>a large share of M-dwarf habitable-zone planets lose water</td>
+<td>no share in the paper; the rates are: 5 bar/Myr O<sub>2</sub> on an Earth-mass planet, up to 25 on super-Earths, several hundred Myr of runaway, up to 10 Earth oceans, up to 2000 bar</td>
+<td><strong>rate stands, share has no source</strong>; let the generated water, star history and sink decide (WR14)</td>
+</tr>
+<tr>
+<td>W22</td>
+<td>all ultra-hot locked giants; WASP-12 b decays about 29 ms per yr</td>
+<td>29 +/- 2 ms per yr, P over its derivative 3.25 +/- 0.23 Myr</td>
+<td><strong>stands</strong>; the condensate lists ([R1227] and others) not opened (WR15)</td>
+</tr>
+<tr>
+<td>W23</td>
+<td>TrES-2 b albedo about 0.01</td>
+<td>0.0253 +/- 0.0072 as scattering, under 0.01 with emission</td>
+<td><strong>stands</strong> (WR16)</td>
+</tr>
+<tr>
+<td>W24, W25</td>
+<td>follow from W5 and the moons; Io about 2 W/m2</td>
+<td>Io heat-flow papers fetched give maps, not the mean; [R4522] not reached, 2.24 W/m2 stays recalled</td>
+<td><strong>no rate</strong>; not registered</td>
+</tr>
+<tr>
+<td>W26</td>
+<td>about a third of sub-Neptunes in the ecosphere qualify as Hycean</td>
+<td><strong>no occurrence rate in the paper</strong>; it defines the box (up to 10 Earth masses, up to 2.6 Earth radii, water at least 10 percent, base 300 to 400 K) and the existing box HC1 has a density range (1.5 to 3.0) the paper does not state</td>
+<td><strong>changes</strong>: drop the 'third'; the flag follows from the generated planet (WR17)</td>
+</tr>
+<tr>
+<td>G1</td>
+<td>about 1 ice giant in 5 tilted over 60 degrees</td>
+<td>embryo-collision runs: 14 to 43 percent give a Uranus-Neptune pair with a giant collision each, 9 to 16 percent of those pairs have two or more collisions (the [R3149] condition for a tilt with prograde moons)</td>
+<td><strong>stands</strong>: supports the 0.2 of GT3 (6.78) (WR18)</td>
+</tr>
+<tr>
+<td>G7</td>
+<td>few Neptunes inside 3 d</td>
+<td>desert edges as straight lines in log period; reaches 5 to 10 d, not 3; flux-based edges exist ([R2812], abstract only)</td>
+<td><strong>stands, widened</strong> (WR19)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Not opened: [R1227, R1927] and the other ultra-hot-giant condensate papers, [R4522] (Io), [R2812] beyond the abstract. No L3 or L4 row was added, so there is no burn-down line.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

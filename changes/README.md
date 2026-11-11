@@ -86,6 +86,13 @@ of them:
    epoch after the first has the list, and `--check-pr` refuses one without it;
 3. a line `generation-output: changed` in the PR's note, inside the section it belongs to.
 
+**A lane's note on a merge train says which stages its change alters** (Boss, 2026-11-08: every train had claimed all four
+stages, so each one redrew the scatters and the block lights). Put a line `generation-affects: fill` (or `scatter, fill`, any
+of `plan`, `scatter`, `fill`, `population`; `none` when the change alters no generated output) in the note. The train runner
+(`python scripts/train.py golden`, with no `--affects`) takes the union of the lines of the notes the train adds
+(`python scripts/train.py affects` prints it). A note with no such line counts as every stage and is named, so a lane that forgets
+costs the train a wider epoch, never a wrong one. A wrong line fails the note check.
+
 The PR that adds the first golden files needs no epoch bump (the rule asks whether golden files existed at the merge
 base). A change that leaves the output as it was touches none of them.
 `planetgen.util.generator_epoch.generator_epoch()` reads the epoch; stamping the release fills in the epoch's

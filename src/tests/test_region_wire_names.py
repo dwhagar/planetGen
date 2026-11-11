@@ -8,6 +8,7 @@ another size, not a 9-block with no generated sector, and nothing at all while n
 import pytest
 
 from planetgen.db import block_stats, nodes, query, region_stats, store
+from tests.chart_support import chart_all
 from planetgen.galaxy import drill, named_regions
 from planetgen.names import naming_key
 from planetgen.web.lib import tilecache, tilepack
@@ -33,6 +34,7 @@ def galaxy(mysql_config):
                     "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems,"
                     " actual_stars, mean_age_gy, total_luminosity_sol, bright_level_sol) VALUES (?, ?, ?, 1.5, 1, 2, 1.0, 10.0, 0)",
                     (shell, band, wedge))
+            chart_all(conn)
             block_stats.rebuild(conn)
     finally:
         conn.close()

@@ -167,9 +167,9 @@ def _load_count_pmf(path=COUNT_FILE):
 
 
 HABITABLE_COUNT_PMF = _load_count_pmf()
-"""tuple[float]: The share of star systems holding 0, 1, 2, ... habitable bodies (a body of a life class, `tuning.HABITABLE_PLANET_CLASSES`),
+"""tuple[float]: The share of star systems holding 0, 1, 2, ... habitable bodies (a body with life on it, `habitable_request.carries_life`),
 read from `physics/data/habitable_count.json`, which `scripts/measure_habitable_count.py` writes from `StarSystem(SystemConfig())` on the
-current generator (GEN.1245; registered as HCT1 in the stand-in registry). A change to which bodies are of a life class, or to how
+current generator (GEN.1245; registered as HCT1 in the stand-in registry). A change to which bodies have life, or to how
 many a system makes, moves it: re-run the script. The list ends at the largest count the sample met, so a count beyond it is
 taken as impossible (`impossible` only judges a request the forced fill cannot reach either)."""
 

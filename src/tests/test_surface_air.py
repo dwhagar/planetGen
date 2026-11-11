@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, giant_draw, greenhouse, greenhouse_table, orbit_elements, planet_type, radiation_field, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -317,18 +317,18 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
         assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
         absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA:
+        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.MAX_SURFACE_TEMPERATURE_K:
             continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze_temperature = body.surface_temperature
-        if body.body_type == "g":
+        if not planet_type.has_ground(body):
             # a giant takes one step of the fixed point, so its haze is the one of the temperature the step starts from (the no-air one at the stored albedo)
             starlight = body.star.luminosity / (4.0 * math.pi * (body._star_distance_au * constants.AU_M) ** 2)
             haze_temperature = climate_draws.equilibrium_temperature_k(body.bond_albedo, starlight)
         haze = aerosols.haze_of(air, gravity, haze_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
-        if body.body_type == "g":
+        if not planet_type.has_ground(body):
             # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
             # the air it has is warmed under the starlight and its own heat together
             radiated = absorbed + giant_draw.own_flux_w_m2(body)
@@ -336,7 +336,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
             continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
-        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
+        assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=2e-3)       # a thin cold air's G of a few 1e-4 moves T by under 0.05 percent and cannot be read back from the stored haze closer than that
     assert bodies > 5
     assert skipped <= max(1, bodies // 10)          # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them
 
@@ -356,6 +356,7 @@ def _earth_like_planet(seed=3):
 
     config = SystemConfig()
     config.STAR_TYPE = "G2V"
+    config.WEIRDNESS_DIAL = 0.0      # no oddity: W20 solves the air a second time from the other start, and these tests read one solve
     with draw.bound("surface-air-star"):
         star = Star(config)
     inner, outer = star.habitable_zone
@@ -465,7 +466,7 @@ def test_the_albedo_and_greenhouse_a_generated_body_stores_give_back_its_tempera
     for planet in _generated(range(8)):
         if planet.body_type != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
             continue
-        flux = climate_draws.starlight_w_m2(planet.star.luminosity, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity) * constants.AU_TO_KM)
+        flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity)) * (planet.light_factor or 1.0)       # GEN.1441: every star's light
         assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6)
         checked += 1
     assert checked > 0

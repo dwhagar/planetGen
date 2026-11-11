@@ -38,16 +38,19 @@ from planetgen.queue import commands, redisqueue, runrecord, wrapper
 
 FINISHABLE = frozenset({
     "generate-start-sector", "generate-neighborhood", "generate-sectors", "link-neighbors", "scatter-mass",
-    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "draw-nebula-field", "refresh-block-lights",
+    "scatter-luminosity", "scatter-phenomena", "finish-phenomena", "clear-bright-stars", "empty-phenomenon-scatter", "drop-phenomenon-indexes", "empty-nebula-field", "draw-nebula-field", "refresh-block-lights",
     "scatter-backfill", "run-population", "run-territories", "settle-sector-paths", "refresh-run-blocks"})
 """frozenset[str]: The commands whose stage can be run again from its start after it stopped partway, and give the
 galaxy an uninterrupted run would have: each either empties what it rewrites when it opens (`prepare`) or does work that
 saves nothing twice (a sector already saved is skipped, a total made again is the same total)."""
 
-REWIND_WITH = {"finish-phenomena": "scatter-phenomena", "scatter-luminosity": "scatter-mass"}
-"""dict: The command whose stage stopped -> the command of the stage before it that runs again with it. The special
-phenomena are added to the rows the shells wrote, and the bright stars of a run that draws both passes are split from the
-massive ones at a limit the run stores when it ends, so neither can be emptied alone."""
+REWIND_WITH = {"finish-phenomena": ("scatter-phenomena",), "scatter-phenomena": ("drop-phenomenon-indexes",),
+               "drop-phenomenon-indexes": ("empty-phenomenon-scatter",), "scatter-mass": ("clear-bright-stars",),
+               "scatter-luminosity": ("scatter-mass", "clear-bright-stars"), "draw-nebula-field": ("empty-nebula-field",)}
+"""dict: The command whose stage stopped -> the commands of the stage before it that runs again with it (the nearest one before it
+counts). The special phenomena are added to the rows the shells wrote, a pass is drawn over what its clearing left, and the bright stars
+of a run that draws both passes are split from the massive ones at a limit the run stores when it ends, so none of them can be emptied
+alone."""
 
 AGAIN = "again"
 """str: The step parameter that marks the stage that stopped: it is run again from its start (`generate_sectors_unit`
@@ -159,7 +162,8 @@ def plan(conn, run_id, galaxy_seed, build, database):
     if run["state"] in runrecord.LIVE_STATES:
         if not runrecord.holder_is_dead(conn, run_id):
             raise CannotFinish(f"Run {run_id} ({run['title']}) is still running.")
-        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended")
+        runrecord.finish_run(conn, run_id, "failed", error="its process was gone (killed or restarted) before the run ended",
+                             killed=True)
         run = runrecord.read_run(conn, run_id)
     if run["state"] == "done":
         raise CannotFinish(f"Run {run_id} ({run['title']}) was done; there is nothing to finish.")
@@ -189,9 +193,9 @@ def plan(conn, run_id, galaxy_seed, build, database):
     first = stopped
     while True:
         earlier = REWIND_WITH.get(queued[first].kind)
-        if earlier is None or (queued[first].kind == "scatter-luminosity" and queued[first].params.get("clear")):
+        if earlier is None:
             break
-        found = next((index for index in range(first - 1, -1, -1) if queued[index].kind == earlier), None)
+        found = next((index for index in range(first - 1, -1, -1) if queued[index].kind in earlier), None)
         if found is None:
             break
         first = found

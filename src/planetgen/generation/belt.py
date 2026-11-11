@@ -18,10 +18,11 @@ this module's logic.
 
 
 import functools
+import math
 import weakref
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiogenic, small_body_composition
+from planetgen.physics import belt_forcing, belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiation_field, radiogenic, small_body_composition
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 from planetgen.util import log
@@ -65,6 +66,23 @@ def star_al26_ratio(system_config, star):
     return radiogenic.al26_mean(shape, getattr(star, "metallicity_fe_h", None)) if ratio is None else ratio
 
 
+def ring_light_ratio(star, lower_limit, upper_limit):
+    """The total starlight over the host's own across the belt's ring (GEN.1444, `radiation_field.ring_light_ratio`): 1.0 round a lone star."""
+    return radiation_field.ring_light_ratio(star, lower_limit, upper_limit)
+
+
+def lit_luminosity_w(star, lower_limit, upper_limit):
+    """The luminosity of a lone star that lights a belt's ring as much as `star` and its companions do: the temperature, the taxa of the bodies and the snow line the belt goes by (GEN.1444).
+    `star.luminosity` itself, to the last digit, round a lone star."""
+    ratio = ring_light_ratio(star, lower_limit, upper_limit)
+    return star.luminosity if ratio == 1.0 else star.luminosity * ratio
+
+
+def size_law(distance, snow_line_au, light_ratio=1.0):
+    """The size law of a belt at `distance`: the icy one where it is lit like a lone star's belt out past the snow line (`light_ratio`, the ring's total starlight over the host's own, GEN.1444), else the rocky one."""
+    return belt_ledger.ICY_LAW if distance / math.sqrt(light_ratio) >= snow_line_au else belt_ledger.ROCKY_LAW
+
+
 def present_state(star, distance, lower_limit, upper_limit, primordial_earth=None):
     """
     `(largest body km, mass kg, density word)` of a belt between `lower_limit` and `upper_limit` AU around `star` at its age: the largest body drawn from the size law (`belt_ledger.ICY_LAW` for a
@@ -72,18 +90,22 @@ def present_state(star, distance, lower_limit, upper_limit, primordial_earth=Non
     GEN.1000), from `primordial_earth` Earth masses when the giants have already acted on it (`belt_origin`, GEN.1068) or from the whole disk otherwise. `belt_birth` reads it to keep only the belts
     that are left to count.
     """
-    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)[:3]
+    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth,
+                          ring_light_ratio(star, lower_limit, upper_limit))[:3]
 
 
 def present_settled(star, distance, lower_limit, upper_limit, primordial_earth=None):
     """The `belt_ledger.BeltLedger` that `present_state` settled (the stored bodies and the mass), or None where the giants took all of the belt's solids (GEN.1070)."""
-    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth)[3]
+    return _present_state(star.mass, star.snow_line_au, star.age, bulk_draw.metal_ratio_to_solar(star), distance, lower_limit, upper_limit, primordial_earth,
+                          ring_light_ratio(star, lower_limit, upper_limit))[3]
 
 
 @functools.lru_cache(maxsize=4096)
-def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lower_limit, upper_limit, primordial_earth):
-    """`present_state` on the numbers it reads (so the same belt asked for again, by the builder and by the belt itself, is settled once), with the settled ledger as a fourth item."""
-    law = belt_ledger.ICY_LAW if distance >= snow_line_au else belt_ledger.ROCKY_LAW
+def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lower_limit, upper_limit, primordial_earth, light_ratio=1.0):
+    """`present_state` on the numbers it reads (so the same belt asked for again, by the builder and by the belt itself, is settled once), with the settled ledger as a fourth item.
+    The size law is the icy one where the belt is lit like a lone star's belt out past the snow line (`light_ratio`, GEN.1444: the ring's total starlight over the host's own); the
+    disk's solids (`belt_ledger.belt_state`) are the disk the belt grew in, at its own distance."""
+    law = size_law(distance, snow_line_au, light_ratio)
     stream = draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{star_mass_kg!r}")   # not the outer limit: a belt cut back keeps its own draw
     mass_kg, density, settled = belt_ledger.belt_state(lower_limit, upper_limit, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth)
     return (0.0 if settled is None else settled.largest_km), mass_kg, density, settled
@@ -143,6 +165,12 @@ class AsteroidBelt:
     scatter_fates = None
     scatter_giant_au = None
     captured_mass_kg = 0.0
+    swept_kg = None
+    """dict or None: Where the mass an outer disk lost went (GEN.1308, `physics/swept_hand_on.hand_on`: `ejected`, `implanted`, `captured`, `other`, kilograms); set by `belt_birth.hand_on`. Not stored."""
+    scatter_giant_kg = None
+    scatter_giant_radius_km = None
+    implanted_kg = 0.0
+    """float: The mass an outer disk's giant implanted in this inner belt (GEN.1308), kg; part of the mass and the primordial mass it has. Not stored."""
     largest_body_km = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disk`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
@@ -179,11 +207,39 @@ class AsteroidBelt:
             self.scatter_fates = scatter_fates
             self.scatter_giant_au = scatter_giant_au
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disk's solids after {star.age:.4g} Gy, its largest body {self.largest_body_km:.4g} km (stand-in)")
-        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
+        self.makeup = small_body_composition.draw_belt(distance, lit_luminosity_w(star, lower_limit, upper_limit), star_al26_ratio(system_config, star), host=bulk_draw.host_ratios(star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
 
     _members = None
+    _secular_planets = ((), ())
+
+    def give_secular_planets(self, axes_au, masses_kg):
+        """
+        Tells the belt which planets of its star stand beside it (their semi-major axes in AU and masses in kg) once their orbits are final, for the apsidal rate that dilutes a companion
+        star's forcing of its members (GEN.1492, `belt_forcing`); the members are drawn again with it on next use.
+        """
+        self._secular_planets = (tuple(axes_au), tuple(masses_kg))
+        self._members = None
+
+    def _force_by_companions(self, star, rows):
+        """
+        The members' eccentricity and periapsis as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`): the vector sum of the drawn eccentricity and the forced one, at
+        each member's own distance, with the dilution of the planets given by `give_secular_planets`. A star with no companion, and a member outside the theory, keep what was drawn.
+        """
+        sources = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au))
+                   for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
+        if not sources:
+            return rows
+        axes, masses = self._secular_planets
+        for row in rows:
+            distance = row["distance_au"]
+            vector = belt_forcing.forced_vector(distance, star.mass, sources, belt_forcing.planet_rate(distance, axes, masses, star.mass))
+            if vector == 0j:
+                continue
+            eccentricity, periapsis = belt_forcing.combined(row["eccentricity"], math.radians(row["periapsis_deg"]), vector)
+            row["eccentricity"], row["periapsis_deg"] = min(eccentricity, belt_roster.E_MAX), math.degrees(periapsis)
+        return rows
 
     @property
     def members(self):
@@ -209,7 +265,7 @@ class AsteroidBelt:
         populations = None if self.scatter_fates is None else belt_populations.member_weights(self.scatter_fates)
         entries = belt_roster.draw_roster(len(ledger.masses_kg), self.lower_limit, self.upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), stream,
                                           populations, self.scatter_giant_au)
-        record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), star.luminosity,
+        record = belt_page.BeltRecord(None, self.lower_limit, self.upper_limit, units.convert(star.mass, "kg", "Msun"), lit_luminosity_w(star, self.lower_limit, self.upper_limit),
                                       star_al26_ratio(self.system_config, star), ledger, tuple(entry.placement for entry in entries))
         rows = []
         for body, entry in zip(belt_page.member_bodies(record), entries):
@@ -220,7 +276,24 @@ class AsteroidBelt:
                 "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
                 "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
                 "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
-        return rows
+        return self._force_by_companions(star, rows)
+
+    def receive(self, mass_kg, sentence=None):
+        """
+        Adds `mass_kg` of bodies a giant implanted from an outer disk (GEN.1308) to this belt: its primordial mass and so the mass it has after the star's age grow by it, the members are drawn again for the
+        larger belt on next use, and `sentence` (if any) is added to what the belt says of its origin. Returns False, and changes nothing, for a belt that was not made in this run.
+        """
+        star = _STARS.get(self)
+        if star is None or self.origin is None or not mass_kg > 0.0:
+            return False
+        self.primordial_mass_earth += units.convert(mass_kg, "kg", "Mearth")
+        self.implanted_kg += mass_kg
+        self._members = None
+        left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+        self.largest_body_km, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, self.upper_limit, left_earth)
+        if sentence:
+            self.origin_sentence = f"{self.origin_sentence} {sentence}"
+        return True
 
     def shorten_to(self, upper_limit):
         """

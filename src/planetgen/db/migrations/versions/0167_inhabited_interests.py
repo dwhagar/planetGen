@@ -19,7 +19,7 @@ depends_on = None
 
 STEPS = 3
 
-_CLASSES = ", ".join(f"'{letter}'" for letter in tuning.HABITABLE_PLANET_CLASSES)
+_CLASSES = ", ".join(f"'{letter}'" for letter in ("E", "F", "G", "H", "K", "L", "M", "O", "P", "V"))      # the list of life classes as it stood then (it is gone: GEN.1387)
 
 
 def upgrade():

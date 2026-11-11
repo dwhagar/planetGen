@@ -12,8 +12,8 @@ from planetgen.physics.elements import DataError
 
 
 def test_the_file_holds_the_gases_and_the_condensed_phases_the_chemistry_needs():
-    assert len(st.SPECIES) == 104
-    assert len(st.GASES) == 84 and len(st.CONDENSED) == 20
+    assert len(st.SPECIES) == 117
+    assert len(st.GASES) == 95 and len(st.CONDENSED) == 22
     for name in ("H2", "H2O", "CO", "CO2", "CH4", "NH3", "N2", "H2S", "SO2", "Na", "K", "SiO", "TiO", "VO", "Fe", "Mg"):
         assert name in st.GASES
     for name in ("H2O(cr)", "H2O(L)", "C(gr)", "Fe(L)", "SiO2(L)"):
@@ -140,3 +140,32 @@ def test_the_halogen_species_are_in_the_table_and_hydrogen_chloride_leads_the_ch
         result = gas_equilibrium.solve({"H": 2.0, "O": 1.0, "C": 0.3, "Cl": 0.002, "F": 0.001}, temperature, 100.0)
         assert result.moles["HCL"] > 0.99 * 0.002          # the dominant chlorine gas below 1500 K [R3945]
         assert result.moles["HF"] > 0.99 * 0.001
+
+
+def test_the_hydrides_made_from_atoms_bind_as_the_laboratory_values_do_and_join_the_database_form():
+    # GEN.1374: FeH and CrH are not in the NASA file; they are the atoms' fits plus the equilibrium constant of M + H = MH ([R5162] as FastChem fits it).
+    for name, atoms, bond_ev in (("FeH", ("Fe", "H"), 1.6), ("CrH", ("Cr", "H"), 2.0)):
+        row = st.species(name)
+        assert row.range_k == (300.0, 6000.0) and set(row.elements) == set(atoms)
+        for earlier, later in zip(row.fits, row.fits[1:]):
+            assert earlier.t_max_k == later.t_min_k
+        bond_j_mol = st.species(atoms[0]).formation_enthalpy_j_mol + st.species("H").formation_enthalpy_j_mol - row.formation_enthalpy_j_mol
+        assert bond_j_mol / 96485.33 == pytest.approx(bond_ev, abs=0.25), name       # 298 K enthalpy, a little under D0
+        assert st.log10_k({name: 1, atoms[0]: -1, "H": -1}, 1000.0) > 0.0           # formed from atoms at 1000 K
+        assert st.log10_k({name: 1, atoms[0]: -1, "H": -1}, 3000.0) < st.log10_k({name: 1, atoms[0]: -1, "H": -1}, 1000.0)
+
+
+def test_the_atoms_based_convention_is_the_one_the_database_itself_obeys():
+    # the same ln K = (G_Fe + G_O - G_FeO) / RT that the FastChem fit of FeO (JANAF) gives, to 0.02, at the temperatures the hydrides are used at
+    fit = (4.9390895151101140e+04, -1.5438949497821852e+00, -2.0833265592390262e+00, 3.9241361623559845e-04, -2.8955704968573172e-08)
+    for temperature in (500.0, 1000.0, 2000.0, 3000.0):
+        ln_k = fit[0] / temperature + fit[1] * math.log(temperature) + fit[2] + fit[3] * temperature + fit[4] * temperature ** 2
+        assert ln_k == pytest.approx(st.g_over_rt("Fe", temperature) + st.g_over_rt("O", temperature) - st.g_over_rt("FeO", temperature), abs=0.02)
+
+
+def test_the_lithium_and_alkali_chlorides_carry_the_gas_tables_formulas():
+    for name, formula in {"LiCL": "LiCl", "NaCL": "NaCl", "KCL": "KCl", "LiH": "LiH", "FeH": "FeH", "CrH": "CrH"}.items():
+        assert st.SPECIES[name].formula == formula and gases.has(formula)
+        assert gases.gas(formula).molar_mass == pytest.approx(st.SPECIES[name].molar_mass, abs=1.5e-5)
+    for formula in ("Li", "LiOH"):
+        assert gases.has(formula)

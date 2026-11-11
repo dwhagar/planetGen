@@ -13,7 +13,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import body_state, constants as pc
+from planetgen.physics import body_state, constants as pc, spin
 from planetgen.physics import state_vectors as sv
 
 KM_S_PER_AU_YR = pc.AU_TO_KM / pc.SECONDS_PER_YEAR
@@ -179,6 +179,9 @@ def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config)
                             position[0] * velocity[1] - position[1] * velocity[0])
                 inclination, node = math.radians(row["orbital_inclination_deg"]), math.radians(row["orbital_ascending_node_deg"])
                 normal = (math.sin(node) * math.sin(inclination), -math.cos(node) * math.sin(inclination), math.cos(inclination))
+                if table == "moons":    # GEN.1352: a moon's inclination and node are against its planet's equator
+                    pole = conn.execute("SELECT spin_axis_x, spin_axis_y, spin_axis_z FROM planets WHERE id = ?", (row["planet_id"],)).fetchone()
+                    normal = spin.turn_to_axis(normal, (pole["spin_axis_x"], pole["spin_axis_y"], pole["spin_axis_z"]))
                 size = math.sqrt(sum(c * c for c in momentum))
                 assert sum(m * n for m, n in zip(momentum, normal)) / size == pytest.approx(1.0, abs=1e-9)
         for row in conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchall():

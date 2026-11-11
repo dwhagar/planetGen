@@ -174,3 +174,26 @@ def test_a_nitrogen_gas_with_a_stoichiometric_trace_of_carbon_monoxide_settles_w
 def test_a_gas_of_an_element_no_species_holds_still_raises():
     with pytest.raises(ge.EquilibriumError):
         ge.solve({"Og": 1.0, "N": 1e-15}, 610.0, 1.0)
+
+
+# --- Phosphorus above 6000 K (GEN.1512) ------------------------------------------------------------------------------------------
+
+
+def test_phosphorus_has_a_gas_above_6000_k_in_atomic_form():
+    abundances = {"H": 1.0, "C": 3e-4, "P": 3e-7}
+    cool = ge.solve(abundances, 3000.0, 1.0)
+    hot = ge.solve(abundances, 7500.0, 1.0)
+    assert any("P" in st.SPECIES[name].elements for name in cool.moles)
+    assert hot.moles["P"] > 0.0
+    assert sum(hot.mole_fractions.values()) == pytest.approx(1.0)
+
+
+def test_phosphorus_alone_still_settles_at_the_top_of_the_table():
+    hot = ge.solve({"P": 1.0}, 20000.0, 1.0)
+    assert hot.mole_fractions["P"] == pytest.approx(1.0, rel=1e-3)
+
+
+def test_phosphorus_monoxide_and_nitride_carry_the_phosphorus_of_a_hot_air_below_6000_k():
+    hot = ge.solve({"H": 1.0, "N": 1e-3, "O": 1e-3, "P": 1e-6}, 4500.0, 1.0)
+    carriers = {name for name in hot.moles if "P" in st.SPECIES[name].elements}
+    assert {"P", "PO"} <= carriers

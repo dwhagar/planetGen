@@ -353,3 +353,34 @@ def test_every_library_the_code_imports_is_in_the_lock():
                     if owners and not any(lock_pins.normalize(owner) in locked for owner in owners):
                         missing.setdefault(module, os.path.relpath(path, ROOT))
     assert not missing, f"imported but not in requirements-server.lock: {missing}"
+
+
+def test_the_scripts_macos_runs_use_no_bash_4_syntax():
+    """OPS.120: `deploy-common.sh` and the scripts that source it also run under macOS's bash 3.2, which has no `${var^^}` or `${var,,}` case change, no
+    associative arrays, no `mapfile`/`readarray` and no `|&`; the first of them in `deploy-common.sh` made three install tests die on `log_info: command not found`."""
+    import pathlib
+    import re
+
+    root = pathlib.Path(__file__).resolve().parents[2]
+    bash4 = re.compile(r"\$\{[A-Za-z_]\w*(\^\^|,,|\^|,)\}|\b(declare|local|typeset)\s+-[a-zA-Z]*A\b|\bmapfile\b|\breadarray\b|\|&|&>>|\bcoproc\b")
+    found = []
+    for name in ("scripts/deploy-common.sh", "scripts/install-python-deps.sh", "update.sh", "install.sh"):
+        for number, text in enumerate((root / name).read_text(encoding="utf-8").splitlines(), 1):
+            code = text.split("#", 1)[0] if not re.search(r"['\"]", text.split("#", 1)[0]) else text
+            if bash4.search(code) and not text.lstrip().startswith("#"):
+                found.append(f"{name}:{number}: {text.strip()}")
+    assert not found, "bash 4 syntax in a script macOS runs:\n" + "\n".join(found)
+
+
+def test_install_and_update_both_run_the_one_list():
+    """install.sh installs and update.sh --check checks the same REQUIREMENTS list, so neither can miss a library the other has."""
+    assert 'install-python-deps.sh"' in _code(_read("install.sh"))
+    assert 'install-python-deps.sh" --check' in _code(_read("update.sh"))
+    assert "psutil>=7.2.2" in _script_requirements()
+
+
+def test_every_requirement_is_pinned_in_both_lock_files():
+    for lock in ("requirements.lock", "requirements-server.lock"):
+        pinned = {m.lower().replace("_", "-") for m in re.findall(r"^([A-Za-z0-9_.-]+)==", _read(lock), re.M)}
+        for spec in _script_requirements():
+            assert re.match(r"[a-z0-9-]+", spec).group(0) in pinned, f"{spec} is not pinned in {lock}"

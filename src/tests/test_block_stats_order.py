@@ -10,6 +10,7 @@ import random
 import pytest
 
 from planetgen.db import block_stats, store
+from tests.chart_support import chart_all
 from tests.test_block_stats import _addresses
 
 REL_BOUND = 1e-12
@@ -97,6 +98,7 @@ def test_rebuild_stores_the_same_totals_whatever_order_the_sectors_were_inserted
                         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, expected_systems, actual_systems, actual_stars, mean_age_gy,"
                         " total_luminosity_sol, bright_level_sol, habitable_worlds, total_mass_kg) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)",
                         (shell, band, wedge, f["expected"], f["systems"], f["stars"], f["mean_age"], f["luminosity"], f["habitable"], f["mass"]))
+                chart_all(conn)
                 block_stats.rebuild(conn)
             rows = conn.execute("SELECT * FROM galaxy_block_stats ORDER BY m, shell_index, band_index, wedge_index").fetchall()
             stored.append([dict(row) for row in rows])

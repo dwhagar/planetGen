@@ -30,7 +30,7 @@ import time
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, progress_file, redisqueue, runline, runrecord, stagetimes, units, workers
+from planetgen.queue import commandgaps, commands, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
@@ -132,9 +132,42 @@ def _expand(conn, run_id, index):
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
     step comes from the run record, so any process can do this.
 
+    The cut is the *opening* of the stage (PERF.252). Since PERF.254 it is a job of its own (`units.open_stage`), claimed on the memory
+    gate; the run record names the stage being opened (`runrecord.begin_opening`) while it lasts, and the log says that it is opening and
+    how much memory the process holds after each step, since the stage's own start line is written only when the cut is done.
+
     Returns:
         int: How many units the stage queued.
     """
+    runrecord.begin_opening(conn, run_id, index)
+    _clear_the_floor_for_the_opening(conn, run_id)
+    try:
+        return _open(conn, run_id, index)
+    finally:
+        runrecord.end_opening(conn, run_id)
+
+
+def _clear_the_floor_for_the_opening(conn, run_id):
+    """
+    PERF.226: asks every bulk worker but the one that opens the stage to finish and exit, so the cut has the host's memory to itself.
+    The stage before is complete, so the others only wait, each holding what its last unit left (up to 2,100 MB with the star tables):
+    the run of 2026-11-08 held 15 workers at 15,128 MB of 15,992 when the cut of the stage after the block lights was killed. The
+    run's `ensure` starts the next stage's workers again once the cut is done (`_await_plan` holds it back until then).
+    """
+    if queue_of(runrecord._s(conn.hget(runrecord.run_key(run_id), "kind"))) == redisqueue.BULK_QUEUE:
+        workers.shed_bulk(conn, 1)
+
+
+def _say_opening(conn, run_id, index, text, held):
+    """Logs one step of an opening with the memory the process holds after it (`units.resident_mb`); returns the most it has held so far."""
+    now = units.resident_mb()
+    held = max(held, now)
+    runrecord.log(conn, run_id, f"Opening stage {index + 1}: {text}" + (f" (this process holds {now:,.0f} MB, at most {held:,.0f} MB so far)" if now else ""),
+                  kind="stage.opening", stage=index, peak_mb=round(held) if held else None)
+    return held
+
+
+def _open(conn, run_id, index):
     stages = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
     key = stages[index]["key"]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id) if item["key"] == key)
@@ -142,15 +175,19 @@ def _expand(conn, run_id, index):
     if step.params.get(FINISHED_BY):
         _carry_finished_stage(conn, run_id, index, step, started)
         return 0
+    held = _say_opening(conn, run_id, index, f"{stages[index]['label']} is being cut into its units", 0.0)
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
     if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
         _ensure_cluster_field(params)
+        held = _say_opening(conn, run_id, index, "the cluster field is ready", held)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(params)
+        held = _say_opening(conn, run_id, index, "its preparation is done", held)
     expansion = commands.expand_function(step.kind)(params)
+    held = _say_opening(conn, run_id, index, f"cut into {len(expansion.units):,} unit(s) after {time.time() - started:,.0f} s", held)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
@@ -438,9 +475,12 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
         plan = runrecord.read_plan(conn, run_id, index)
-        metrics = {}
+        results = _stage_results(conn, run_id, index)
+        # OPS.123: the speeds and the row's counts are what the units report, written here, not a hook of each command
+        stages.record_unit_samples(_mysql_config(step.params["database"]), step.params.get("workers", 1), results)
+        metrics = stages.stage_row_metrics(plan["detail"], results)
         if hook is not None:
-            metrics = hook(step.params, plan["detail"], _stage_results(conn, run_id, index), seconds) or {}
+            metrics = {**metrics, **(hook(step.params, plan["detail"], results, seconds) or {})}
         if declared.get("row"):
             skipped = (plan["detail"] or {}).get("skip")
             if skipped:
@@ -546,7 +586,7 @@ def _await_plan(conn, run_id, index, ensure, clock=time.monotonic, sleep=time.sl
         if state not in runrecord.LIVE_STATES:
             error = runrecord._s(conn.hget(runrecord.run_key(run_id), "error"))
             raise units.RunStopped(error or f"the run {state} before stage {index} was queued")
-        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS:
+        if ensure is not None and clock() - last_ensure >= units.ENSURE_SECONDS and runrecord.opening(conn, run_id) is None:
             last_ensure = clock()
             ensure()
         sleep(units.POLL_SECONDS)
@@ -770,7 +810,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                     conn, run_id, index, plan["units"], lambda unit, result, index=index: on_result(index, unit, result),
                     None if on_progress is None else
                     (lambda unit, done, estimate, index=index: on_progress(index, unit, done, estimate)),
-                    ensure, on_debug=on_debug)
+                    ensure, on_debug=on_debug, watch=unitwatch.UnitWatch(conn, run_id, index, steps[index].kind, history_of=commandgaps.history_of(conn, run_id), rate_of=unitrates.rate_of(conn, run_id)))
             if commands.spec(steps[index].kind).conclude is not None:
                 conclusion = _await_conclusion(conn, run_id, index, ensure, on_debug=on_debug)
             if on_stage_done is not None:

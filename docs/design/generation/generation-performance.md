@@ -307,7 +307,7 @@ systems, 25,550 sector paths, 3 workers, one run each, release 8.0.2070):
 | Stage | Seconds | Per sector | One unit before? |
 |---|---|---|---|
 | Generate the sectors | 324.6 | 3.2 s | no, a unit per run of sectors |
-| Link the neighbours | 7.0 | 70 ms | yes (`link-neighbours`), cut into chunks by PERF.113 |
+| Link the neighbours | 7.0 | 70 ms | yes (`link-neighbors`), cut into chunks by PERF.113 |
 | Backfill | 7.0 | 3.5 ms (2,018 sectors) | no |
 | Population | 0.2 | | yes, but it had no species to name here |
 | Settle the sector paths | 18.2 | 182 ms | yes (`settle-sector-paths`) |

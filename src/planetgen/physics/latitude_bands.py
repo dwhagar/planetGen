@@ -34,7 +34,7 @@ from dataclasses import dataclass, replace
 
 import numpy as np
 
-from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening, surface_cycle
+from planetgen.physics import constants, daylight, regional_temperature as rt, ring_darkening, sky_suns, surface_cycle
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
@@ -220,14 +220,14 @@ def spells(latitudes_deg, tilt_deg, alpha, orbital_hours, solar_day_hours, sampl
                   share.sum(axis=1) * step / np.maximum(days, 1.0e-9) * (days > 0), (1.0 - share).sum(axis=1) * step / np.maximum(nights, 1.0e-9) * (nights > 0), step)
 
 
-def _band_insolation(tilt_deg):
+def _band_insolation(tilt_deg, suns=()):
     """Each band's annual-mean insolation over the planet's mean, area-weighted over its latitudes (a sphere averages 1)."""
     tilt = math.radians(min(max(tilt_deg or 0.0, 0.0), 180.0))
     out = []
     for high, low in _bounds():
         latitudes = np.radians(_latitudes(high, low))
         weight = np.cos(latitudes)
-        out.append(float(4.0 * np.sum(weight * rt._annual_insolation(np.abs(latitudes), tilt)) / np.sum(weight)))
+        out.append(float(4.0 * np.sum(weight * rt._annual_insolation(np.abs(latitudes), tilt, suns)) / np.sum(weight)))
     return out
 
 
@@ -314,6 +314,8 @@ def compute(values, alpha_deg=0.0):
     rotation = values.get("rotation_period_hours")
     if not mean or mean <= 0.0 or not rotation or rotation <= 0.0:
         return []
+    if values.get("starless") or values.get("day_share_mean") == 0.0:
+        return []           # GEN.1496: no star is ever up (a rogue planet, or the moon of one), so there is no sun for a band to follow
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
     period_years = values.get("period_years")
@@ -333,7 +335,7 @@ def compute(values, alpha_deg=0.0):
         return bands
     orbital_hours = _yr_to_h(period_years) if period_years else None
     solar_day = daylight.solar_day_hours(rotation, orbital_hours, tilt <= 90.0) if orbital_hours else None
-    insolation = _band_insolation(tilt)
+    insolation = _band_insolation(tilt, sky_suns.decode(values.get("sky_suns")))
     shade = ring_shade(values, tilt)
     if shade:
         insolation = [i * k for i, k in zip(insolation, shade)]       # GEN.1055 R8: the ring takes sunlight off the bands behind it; the world's mean stays what it was solved to be

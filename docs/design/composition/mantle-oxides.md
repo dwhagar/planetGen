@@ -13,7 +13,7 @@ The Cr, Mn, P, Na and K the core took, and the Ni it took, join the metal; a car
 
 ## What is stored
 
-Seven columns on `planets`, `moons` and `rogue_planets` (migration 0227): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL for a carbon rock or a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
+Seven columns on `planets`, `moons` and `rogue_planets` (migration 0230): `rock_na2o_fraction`, `rock_k2o_fraction`, `rock_tio2_fraction`, `rock_cr2o3_fraction`, `rock_mno_fraction`, `rock_nio_fraction`, `rock_p2o5_fraction`, each a mass fraction of the rock, NULL for a carbon rock or a body saved before v227. `surface_composition._rock_oxides_of` hands them to `rock_types.rock_oxides`, so the norm and the ground types read them.
 
 ## Calibration (a test point, never an input)
 
@@ -29,4 +29,9 @@ Seven columns on `planets`, `moons` and `rogue_planets` (migration 0227): `rock_
 
 The Earth is within 1.5 times in every oxide (the anchor of D). Mars (formation distance 1.524 AU, cut 1066 K, FeO 0.147) is within 2.5 times in all but its nickel. Mars's mantle nickel is the open item: the leading-term redox law cannot reach it, and the pressure, temperature and sulfur of the real metal-silicate partition are not in the model. Mercury and the Moon are not targets (their history is an impact, `volatile_depletion`).
 
-Stand-ins: MO1 to MO4 in section 6.210 of the gap-filling plan.
+Stand-ins: MO1 to MO4 in section 6.216 of the gap-filling plan.
+
+
+## The phosphorus budget (GEN.1367)
+
+`physics/phosphorus_budget.py` takes the P2O5 above to the ocean. The crust is the batch melt of the mantle, so its P2O5 is the mantle's times `1 / F` (phosphorus is incompatible), with F the melt fraction of the body's heat flow (`surface_composition.melt_fraction`); the Earth's 0.021 percent makes 0.14. A logistic of the mantle redox about iron-wuestite minus 3 decides how much of it is schreibersite; the rest is apatite where the crust is wet and merrillite where it is dry. The ocean's phosphate is the Earth's 2.3 umol/L times the ratio of the crust's P2O5, the reactive share of its hosts (merrillite weathers three times faster than apatite, schreibersite barely), the erosion of the lid and the rock area the rain reaches, over the volume of the ocean. A soda lake lacks the calcium to precipitate apatite and holds 400 times longer, to a ceiling of 1000 umol/L; a sealed ocean is cut off from rock and holds 0.01. Left out: the burial with iron oxides (inside the Earth's calibration) and the recycling of a biosphere. Stand-ins PB1 to PB10 are in section 6.222 of the gap-filling plan.

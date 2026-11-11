@@ -228,3 +228,195 @@ def test_the_giant_mixture_is_deterministic_and_sums_to_one():
     assert first.mole_fractions == second.mole_fractions
     assert sum(first.mole_fractions.values()) == pytest.approx(1.0, abs=1e-12)
     assert all(st.SPECIES and value > 0 for value in first.mole_fractions.values())
+
+
+def made_median_keeps_the_disk(subject, recipe, disk):
+    from planetgen.physics import disk_condensation
+    median = dataclasses.replace(recipe, values={**recipe.values, "f7": disk_condensation.RECIPE_C_OVER_O_MEDIAN})
+    with draw.bound(6):
+        return mg.giant_mixture(subject, median).constants["c_over_o"] == pytest.approx(disk, rel=1e-6)
+
+
+def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_the_recipe():
+    from planetgen.physics import disk_condensation
+    subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disk_carbon=1.0, disk_oxygen=1.0)
+    with draw.bound(5):
+        recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
+    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"])      # GEN.1471: the envelope carries a share of the bulk metals
+    for f7 in (disk_condensation.RECIPE_C_OVER_O_MEDIAN, 0.4, 1.2):
+        shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
+        with draw.bound(6):
+            made = mg.giant_mixture(subject, shifted)
+        assert made.constants["c_over_o"] == pytest.approx(disk * (f7 / disk_condensation.RECIPE_C_OVER_O_MEDIAN) ** disk_condensation.RECIPE_C_OVER_O_SPREAD_EXPONENT, rel=1e-6)
+    assert made_median_keeps_the_disk(subject, recipe, disk)
+    bare = dataclasses.replace(recipe, values={**recipe.values, "f7": 0.9})
+    with draw.bound(6):
+        no_disk = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), bare)
+    assert no_disk.constants["c_over_o"] == 0.9          # a giant with no disk keeps the recipe's value
+
+
+def test_a_giant_with_a_disk_enriches_its_nitrogen_sulfur_and_noble_gases_element_by_element():
+    from planetgen.physics import disk_condensation
+    cold = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=40.0, disk_carbon=1.0, disk_oxygen=1.0)
+    with draw.bound(5):
+        recipe = RECIPES.draw_all(cold, categories="abdcefghijkl")
+    with draw.bound(6):
+        made = mg.giant_mixture(cold, recipe)
+    factors = disk_condensation.envelope_enrichments(40.0, recipe.values["f5"])
+    for symbol, factor in factors.items():
+        assert made.constants[f"enrichment_{symbol.lower()}"] == pytest.approx(factor)
+    inventory = made.inventory
+    assert inventory["Ar"] / mg.SOLAR_PER_HYDROGEN["Ar"] == pytest.approx(factors["Ar"])
+    assert inventory["N"] / mg.SOLAR_PER_HYDROGEN["N"] == pytest.approx(factors["N"])
+    assert inventory["Fe"] / mg.SOLAR_PER_HYDROGEN["Fe"] == pytest.approx(recipe.values["f5"])     # the rock-forming metals keep the one scale
+    with draw.bound(6):
+        bare = mg.giant_mixture(giant(t_layer_k=350.0, teq_k=350.0), recipe)
+    assert "enrichment_n" not in bare.constants                                   # a subject with no disk keeps the one scale for every metal
+    assert bare.inventory["N"] / mg.SOLAR_PER_HYDROGEN["N"] == pytest.approx(recipe.values["f5"])
+
+
+def test_the_host_metallicity_scales_the_stars_own_amount_of_the_enriched_elements():
+    budget = mg.element_budget(0.5, disk_factors={"N": 2.0}, star_log_scale=0.3)
+    assert budget["N"] == pytest.approx(mg.SOLAR_PER_HYDROGEN["N"] * 10.0 ** 0.3 * 2.0)
+    assert budget["Mg"] == pytest.approx(mg.SOLAR_PER_HYDROGEN["Mg"] * 10.0 ** 0.5)
+
+
+# --- GEN.1374: the lithium test, the alkali chlorides and the oxide to hydride transition of a brown dwarf's air ---------------------------------
+
+def one_bar_air(temperature_k, **changes):
+    """The equilibrium gas of a solar brown dwarf layer at 1 bar and `temperature_k` (the clouds of `remove_clouds`, the alkali clouds where the rows put them)."""
+    budget = mg.element_budget(0.0, lithium_burned=changes.pop("lithium_burned", False))
+    budget, _ = mg.remove_clouds(budget, temperature_k, 1.0, 0.0, keep_sodium=temperature_k >= mg.ALKALI_ONSET_K["Na"],
+                                 keep_potassium=temperature_k >= mg.ALKALI_ONSET_K["K"], **changes)
+    return ge.solve(budget, temperature_k, 1.0).mole_fractions
+
+
+def crossing(temperature_a, temperature_b, first, second):
+    """The temperature (K) between two where the mole fractions of `first` and `second` at 1 bar are equal (bisection on the log ratio)."""
+    def ratio(temperature):
+        fractions = one_bar_air(temperature)
+        return math.log(fractions[first] / fractions[second])
+    low, high = temperature_a, temperature_b
+    assert ratio(low) * ratio(high) < 0.0
+    for _ in range(40):
+        middle = 0.5 * (low + high)
+        low, high = (middle, high) if ratio(middle) * ratio(low) > 0.0 else (low, middle)
+    return 0.5 * (low + high)
+
+
+def test_the_titanate_and_chromium_clouds_stand_where_the_review_puts_them_at_one_bar():
+    cond = mg.condensation_temperatures(1.0, 0.0)
+    assert cond["titanate"] == pytest.approx(1963.0)                 # [R2725]: Ca4Ti3O10 first
+    assert cond["chromium"] == pytest.approx(1518.0)                  # [R2731]: chromium metal
+    assert cond["iron"] == pytest.approx(1838.0, abs=10.0)            # the review's 1843 K
+    assert cond["chromium"] < cond["forsterite"] < cond["iron"] < cond["titanate"]
+    richer = mg.condensation_temperatures(1.0, 1.0)
+    assert richer["titanate"] > cond["titanate"] and richer["chromium"] > cond["chromium"]
+
+
+def test_the_oxides_leave_before_the_iron_and_the_iron_before_the_chromium_so_the_hydrides_outlast_the_oxides():
+    budget = mg.element_budget(0.0)
+    window, clouds = mg.remove_clouds(budget, 1900.0, 1.0, 0.0)               # between the titanate (1963 K) and the iron (1838 K)
+    assert window["Ti"] == 0.0 and window["V"] == 0.0 and window["Ca"] == 0.0
+    assert window["Fe"] == budget["Fe"] and window["Cr"] == budget["Cr"] and set(clouds) == {"oxides"}
+    after_iron, clouds = mg.remove_clouds(budget, 1750.0, 1.0, 0.0)             # iron gone, forsterite (about 1700 K) and chromium not yet
+    assert after_iron["Fe"] == 0.0 and after_iron["Mg"] == budget["Mg"] and after_iron["Cr"] == budget["Cr"] and "chromium" not in clouds
+    below, clouds = mg.remove_clouds(budget, 1450.0, 1.0, 0.0)
+    assert below["Cr"] == 0.0 and "chromium" in clouds
+    metal, _ = mg.remove_clouds(budget, 1450.0, 1.0, 0.0)
+    assert metal["O"] > mg.remove_clouds(budget, 1800.0, 1.0, 0.0)[0]["O"] * 0.7   # chromium metal takes no oxygen
+
+
+def test_titanium_and_vanadium_oxides_fade_where_the_hydrides_of_iron_and_chromium_take_over():
+    hot, window, cooler, cold = (one_bar_air(t) for t in (2200.0, 1900.0, 1700.0, 1400.0))
+    assert hot["TiO"] > 1e-8 and hot["VO"] > 1e-10 and hot["FeH"] > 1e-9 and hot["CrH"] > 1e-10
+    assert window.get("TiO", 0.0) == 0.0 and window.get("VO", 0.0) == 0.0         # the M to L transition: the oxides are gone first
+    assert window["FeH"] > 1e-9 and window["CrH"] > 1e-10                          # while the hydrides are in the gas
+    assert cooler.get("FeH", 0.0) == 0.0 and cooler["CrH"] > 1e-10                 # the iron cloud takes FeH, then the chromium cloud takes CrH
+    assert cold.get("FeH", 0.0) == 0.0 and cold.get("CrH", 0.0) == 0.0
+
+
+def test_the_lithium_gas_changes_from_the_atom_to_the_chloride_where_the_review_puts_it():
+    # [R2731: section 1.5.5]: atomic Li is the main lithium gas down to 1520 K at 1 bar, then LiCl
+    assert crossing(1400.0, 1700.0, "Li", "LiCL") == pytest.approx(1520.0, abs=40.0)
+    hot, cold = one_bar_air(1800.0), one_bar_air(1100.0)
+    assert hot["Li"] > hot["LiCL"] and cold["LiCL"] > cold["Li"]
+
+
+def test_the_potassium_gas_changes_from_the_atom_to_the_chloride_near_980_k():
+    # [R2731: section 1.5.4]: K and KCl are equal at about 980 K at 1 bar
+    assert crossing(900.0, 1100.0, "K", "KCL") == pytest.approx(980.0, abs=40.0)
+
+
+def test_a_brown_dwarf_above_the_lithium_burning_mass_has_no_lithium_and_one_below_keeps_it():
+    def subject_of(mass_jupiter):
+        return Subject("brown-dwarf", {**JUPITER, "mass_jupiter": mass_jupiter, "mass_earth": mass_jupiter * 318.0, "radius_km": 70000.0,
+                                       "teff_k": 1600.0, "t_layer_k": 1600.0, "zone": "r"})
+    results = {}
+    for mass in (30.0, 75.0):
+        subject = subject_of(mass)
+        with draw.bound(9):
+            results[mass] = mg.giant_mixture(subject, RECIPES.draw_all(subject, categories="abdcefghijkl"))
+    assert not results[30.0].constants.get("lithium_burned") and results[30.0].inventory["Li"] > 1e-10
+    assert results[75.0].constants["lithium_burned"] is True and results[75.0].inventory["Li"] == 0.0
+    assert any(results[30.0].mole_fractions.get(name, 0.0) > 0.0 for name in ("Li", "LiCl", "LiOH", "LiH"))
+    assert not any(results[75.0].mole_fractions.get(name, 0.0) > 0.0 for name in ("Li", "LiCl", "LiOH", "LiH"))
+    assert mg.burned_lithium(75.0) and not mg.burned_lithium(30.0) and not mg.burned_lithium(None)
+
+
+def test_a_giant_planet_never_burns_its_lithium_and_the_potassium_cloud_takes_chlorine_with_it():
+    budget = mg.element_budget(0.0)
+    assert budget["Li"] > 0.0 and budget["Cl"] == pytest.approx(10.0 ** (5.31 - 12.0))
+    gone, clouds = mg.remove_clouds(budget, 600.0, 0.3, 0.0, keep_potassium=False)
+    assert gone["K"] == 0.0 and "potassium_chloride" in clouds
+    assert gone["Cl"] == pytest.approx(budget["Cl"] - budget["K"])
+
+
+def test_lithium_chloride_condenses_under_about_680_k_at_one_bar_and_takes_its_chlorine_and_lithium():
+    for temperature, condensed in ((900.0, False), (760.0, False), (620.0, True), (300.0, True)):
+        budget, _ = mg.remove_clouds(mg.element_budget(0.0), temperature, 1.0, 0.0, keep_sodium=False, keep_potassium=False)
+        result, _, ices = mg.cap_ices(budget, temperature, 1.0, lambda trial, t=temperature: ge.solve(trial, t, 1.0))
+        assert ("LiCl" in ices) is condensed, temperature
+    assert mg.nasa_saturation_pa("LiCl", 700.0) == pytest.approx(5.6e-9 * 1e5, rel=0.1)
+    assert mg.nasa_saturation_pa("H2O", 300.0) is None
+    assert mg.nasa_saturation_pa("LiCl", 100.0) == mg.nasa_saturation_pa("LiCl", 300.0)      # under the fit read at its lower end
+
+
+def test_the_ice_caps_settle_when_the_oxygen_left_sits_in_a_species_that_does_not_condense():
+    """
+    A cold giant layer whose water, methane and ammonia have all condensed leaves 1e-37 of oxygen per hydrogen, and 1.5e-7 of lithium holds most of it as lithium hydroxide at the
+    chemistry's 300 K. Water is over its cap at 26 K by 40 orders, so each round took a sliver of the water and the equilibrium made it again from the hydroxide: 1000 rounds, then
+    `MixtureError`. Seed 533 of a G2V system with PLANETS and MAX_PLANETS (Lane 21's giant-density read, 2026-11-09) is this layer; the budget, 26.49 K, 0.3 bar and 300 K are its own.
+    What stays over the cap is under `MIN_CONDENSED` per hydrogen atom, the amount a condensate is dropped from the record at.
+    """
+    budget = {"H": 1.0, "He": 0.08203515443298177, "C": 0.007923251589436131, "N": 0.0022446996159850695, "O": 0.04823973997996018, "Ne": 0.009541950492118954,
+              "S": 2.168404344971009e-19, "Ar": 2.3988329190194897e-06, "P": 2.1361766269879255e-05, "Kr": 1.31825673855641e-09, "Xe": 2.0859830264783805e-08,
+              "Cl": 7.204043020470654e-06, "Li": 1.4778731499033949e-07}
+    without_co = tuple(name for name in st.GASES if name != "CO")      # the species of a layer whose carbon monoxide quenched (`mixture_giant.draw`)
+    result, left, ices = mg.cap_ices(budget, 26.487872842214287, 0.3, lambda trial: ge.solve(trial, 300.0, 0.3, species=without_co))
+    assert set(ices) >= {"H2O", "CH4", "NH3"} and ices["H2O"] == pytest.approx(0.04823973997996018, rel=1e-6)
+    assert left["O"] < mg.MIN_CONDENSED and result.mole_fractions.get("H2O", 0.0) * 0.3 < 1e-30
+
+
+def test_the_ice_caps_still_refuse_a_layer_that_cycles_with_oxygen_to_spare():
+    """The settling above is only for a species the budget cannot make more of than `MIN_CONDENSED`; a cycle with more to condense still raises."""
+    class Cycling:
+        mole_fractions = {"H2O": 1e-3}
+        moles = {"H2O": 1e-3}
+        total_moles = 1.0
+    with pytest.raises(MixtureError, match="did not settle"):
+        mg.cap_ices({"H": 1.0, "O": 0.5}, 100.0, 1.0, lambda trial: Cycling(), iterations=5)
+
+
+@pytest.mark.parametrize("layer_k", [20000.0, 27559.5, 5.0e4])
+def test_a_layer_hotter_than_the_gas_table_is_equilibrated_at_the_top_of_the_table(layer_k):
+    """A giant lit by an O star has a quoted layer far above the table's 20,000 K (the zeta Ophiuchi example drew one at 27,560 K and the build stopped with 'no species can be made'): the gas is the
+    table's own at its hottest temperature, and the temperature drawn is the one kept."""
+    cool = giant()
+    hot = giant(t_layer_k=layer_k, tday_k=layer_k, teq_k=layer_k, teff_k=layer_k)
+    with draw.bound(3):
+        recipe = RECIPES.draw_all(cool, categories="abdcefghijkl")
+        result = mg.giant_mixture(hot, recipe)
+    assert mg.CHEMISTRY_CEILING_K == 20000.0
+    assert sum(result.mole_fractions.values()) == pytest.approx(1.0, abs=1e-6)
+    assert result.mole_fractions["H2"] + result.mole_fractions.get("H", 0.0) > 0.1

@@ -201,6 +201,28 @@ def _uses_playwright(item):
     return bool(BROWSER_FIXTURES & set(getattr(item, "fixturenames", ()))) or _imports_playwright(str(item.path))
 
 
+BROWSER_START_SKIPS = ("Playwright could not start", "No Chromium for Playwright", "Chromium is not available")
+"""tuple: The start of the skip reasons the browser fixtures give when Playwright or its Chromium will not start (TEST.693)."""
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """
+    TEST.693: with `PLANETGEN_REQUIRE_BROWSER` set (the browser phase of `scripts/test.py` sets it), a browser test that skipped because Playwright or
+    its Chromium would not start is a failure, not a skip. Before this a version mismatch (every test skipped with "Executable doesn't exist") and
+    one test that left an asyncio loop behind (every later test skipped with "inside the asyncio loop") each turned about 1,500 browser tests into skips
+    while the phase still printed a pass.
+    """
+    outcome = yield
+    report = outcome.get_result()
+    if not report.skipped or not os.environ.get("PLANETGEN_REQUIRE_BROWSER"):
+        return
+    reason = report.longrepr[2] if isinstance(report.longrepr, tuple) and len(report.longrepr) == 3 else str(report.longrepr)
+    if any(marker in reason for marker in BROWSER_START_SKIPS):
+        report.outcome = "failed"
+        report.longrepr = f"the browser could not start, so the test did not run: {reason}"
+
+
 def pytest_collection_modifyitems(config, items):
     """Suite markers (registered in pytest.ini), so a run can pick a slice:
     `-m "not db"` without a database, `-m "not slow"` for a quick loop,
@@ -567,6 +589,18 @@ def _run_queue_inline(monkeypatch, request):
         return
     with inline_queue.inline_queue(monkeypatch):
         yield
+
+
+@pytest.fixture(autouse=True)
+def _no_test_process_is_replaced(monkeypatch):
+    """
+    TEST.713: `os.execv` in a test process would replace the process: a pytest-xdist node that ran a real queue worker's `prepare_execution` (the worker starts itself over for a unit
+    that needs no star tables when it holds them, PERF.226) went down and its tests were lost. A test that wants to see the call patches it itself (that patch comes after this one).
+    """
+    def refuse(*args, **kwargs):
+        raise AssertionError(f"os.execv{args[:1]!r} would replace the test process; patch it in the test (TEST.713)")
+    monkeypatch.setattr(os, "execv", refuse)
+    yield
 
 
 ROOMY_DISK_BYTES = 200 * 1024 ** 3

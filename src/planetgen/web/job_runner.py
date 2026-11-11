@@ -44,6 +44,7 @@ import sys
 import tempfile
 import time
 
+from planetgen.queue import jobbeat
 from planetgen.util import log as planetgen_log
 from planetgen.util import logrecord, memwatch
 
@@ -421,15 +422,21 @@ def _log_traceback(job_dir):
 
 def run(job_dir):
     """
-    Runs the job in `job_dir` to completion.
+    Runs the job in `job_dir` to completion (with a beat for the Queue page while it runs, OPS.142).
 
     Returns:
         int: 0 when every step succeeded, else 1.
     """
     job_dir = os.path.abspath(job_dir)
-    jobs_dir = os.path.dirname(job_dir)
     with open(os.path.join(job_dir, "job.json"), "r", encoding="utf-8") as f:
         job = json.load(f)
+    with jobbeat.beating("web", job.get("id", os.path.basename(job_dir)), label=str(job.get("title") or job.get("label") or "")) as beat:
+        return _run(job_dir, job, beat)
+
+
+def _run(job_dir, job, beat):
+    """The body of `run` once the job is read and its beat is going (`beat.phase` says the step)."""
+    jobs_dir = os.path.dirname(job_dir)
 
     state_path = os.path.join(job_dir, "state.json")
     progress_path = os.path.join(job_dir, "progress.json")
@@ -479,6 +486,7 @@ def run(job_dir):
                 if _cancel_requested():
                     break
                 state["step"] = index
+                beat.phase(f"step {index} of {len(steps)}: {step['label']}")
                 state["step_started_at"] = time.time()
                 _write_json(state_path, state)
                 try:

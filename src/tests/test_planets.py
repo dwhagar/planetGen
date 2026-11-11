@@ -16,6 +16,7 @@ import pytest
 from planetgen.describe import build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
+from planetgen.generation.system import StarSystem
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 from planetgen.physics import constants, gases, planet_classes, surface_air
@@ -145,7 +146,7 @@ def test_the_class_that_lives_on_a_world_is_stored_among_the_classes_it_supports
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     """
     Regression test for the Phase 0 bug (see TODO.md): flavor text used to be
-    rolled -- and system_config.system_flavor_count/recent_flavor_texts
+    rolled -- and system_config.system_flavor_count/used_flavor_ids
     mutated -- at render time, so describing a planet twice double-rolled and
     double-mutated shared state. planetLife.decide_flavor_text now makes that decision
     once, at generation time, and the Document is a pure read of the
@@ -170,25 +171,28 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
 
 
 def test_the_flavor_line_is_stored_as_a_key_and_read_back_from_it(host_star, monkeypatch):
-    """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
+    """DB.51, GEN.1430: the line is kept as its id in the flavor tree (`physics/flavor_tree.py`) and read back from it."""
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
     planet = make_planet(host_star, "e")
     planet.life_class, planet.life_class_variant, planet.life_stage = 3, "b", "multicellularity"
     planetLife.decide_flavor_text(planet)
-    category, index = planet.flavor_key.split(":")
-    assert category == "habitable"
-    assert planet.flavor_text == prog_c.HABITABLE_FLAVOR[int(index)]
-    assert planetLife.flavor_key("planet", prog_c.PLANET_FLAVOR[3]) == "planet:3"
+    from planetgen.physics import flavor_tree
+    assert planet.flavor_key in flavor_tree.load()[1]
+    assert planet.flavor_text == flavor_tree.text_of(planet.flavor_key)
+    assert planetLife.flavor_line("planet:3") == flavor_tree.text_of("planet:3")
     assert planetLife.flavor_line(None) is None
 
 
-def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star):
+def test_habitable_world_false_bars_a_planet_that_meets_the_request_instead_of_drawing_it_again(host_star):
+    """GEN.1397: a planet is drawn once; the bar is on the conditions of a habitable world, not a class letter, and a planet that meets them is what
+    a barred body is dropped for (`_drop_barred_bodies`), never drawn again."""
     cfg = SystemConfig()
     cfg.HABITABLE_WORLD = False
     distance = distance_for_zone(host_star, 'e')
     for seed in range(15):
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
-        assert not habitable_request.meets(planet)         # GEN.916: the bar is on the conditions of a habitable world, not a class letter
+        if habitable_request.meets(planet):
+            assert StarSystem._barred(planet)
 
 
 @pytest.mark.parametrize("zone", list(ZONE_CHARS))
@@ -200,8 +204,6 @@ def test_fully_random_planet_respects_zone_and_habitable_world(host_star, zone, 
     for seed in range(6):
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
         assert planet.zone == zone
-        if habitable_world is False and zone == 'e':  # the bar is on the ecosphere; a hot or cold body's conditions are its own
-            assert not habitable_request.meets(planet)
 
 
 def test_a_moon_keeps_its_orbit_around_its_parent(host_star):

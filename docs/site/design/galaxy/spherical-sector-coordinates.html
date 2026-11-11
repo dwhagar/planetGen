@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spherical sector coordinates: the plan - planetGen docs</title>
+<meta name="description" content="Status: built.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/spherical-sector-coordinates.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/spherical-sector-coordinates.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="spherical-sector-coordinates-the-plan">Spherical sector coordinates: the plan</h1><p class="meta">docs/design/galaxy/spherical-sector-coordinates.md</p><details class="toc"><summary>On this page (7 headings)</summary><ul><li style="margin-left:0px"><a href="#1-what-boss-decided">1. What Boss decided</a></li><li style="margin-left:0px"><a href="#2-the-grid-made-precise">2. The grid, made precise</a></li><li style="margin-left:0px"><a href="#3-decisions-still-open">3. Decisions still open</a></li><li style="margin-left:0px"><a href="#4-what-is-already-built-that-this-replaces">4. What is already built that this replaces</a></li><li style="margin-left:0px"><a href="#5-how-the-work-should-run">5. How the work should run</a></li><li style="margin-left:0px"><a href="#6-work-items-todo-assigns-the-numbers-order-is-the-build-order">6. Work items (TODO assigns the numbers; order is the build order)</a></li><li style="margin-left:0px"><a href="#7-risks">7. Risks</a></li></ul></details>
+<p>Status: built. The switch merged to main on 2026-10-15 (#1607, schema v91); the grid as built is described in <a href="galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>, and the Galaxy Map's ladder on shells (items 7 and 8 below) is still being built as MAP.205 and MAP.206. The text below is the plan as written on 2026-10-15, before anything was built. Boss decided to move the galaxy's sector grid from the cylindrical ring/layer/slot grid to spherical shells (Boss, 2026-10-15 06:39Z). This file was the brief for the dedicated thread &quot;Spherical Sector Coordinates&quot; and the source for the TODO items in section 6. The study behind it is <a href="spherical-shell-sectors.html">spherical-shell-sectors.md</a>; its scripts and raw output are in <code>/mnt/project-files/research/scripts/spherical-sectors/</code> (<code>05_caps_and_wedge_schemes.py</code> and <code>results-caps.txt</code> are the ones for the rules below).</p>
+<p>Evidence tags: [C] computed with those scripts on the real default density model, [B] Boss's words, [S] read in the repository.</p>
+<h2 id="1-what-boss-decided">1. What Boss decided</h2>
+<ul>
+<li>[B] Use math terms: <strong>shell</strong> (radius), <strong>band</strong> (horizontal), <strong>wedge</strong> (vertical: two meridian lines from pole to pole). Shell, band and wedge together name one 3D segment of the sphere.</li>
+<li>[B] The core is a ball 4 pc across, shell 0 (the old &quot;layer 0 is the sphere&quot;).</li>
+<li>[B] The depth of a shell is always 4 pc. Everything else may be adjusted.</li>
+<li>[B] Keep bands and wedges as close to 4 pc arcs as possible, especially at the poles.</li>
+<li>[B] Each shell has a circular <strong>cap</strong> at each pole: a circular segment, nominally 4 pc radius and 4 pc deep. Wedges start at a 4 pc gap on the cap's rim, so if the cap must be a little other than 4 pc to make that work, balance it.</li>
+<li>[B] This goes to TODO at top priority. All other work stops when each lane's current task finishes (no chaining), and a new thread starts for this.</li>
+</ul>
+<h2 id="2-the-grid-made-precise">2. The grid, made precise</h2>
+<p>Edge <code>e</code> = 4 pc. All of this is closed form in both directions.</p>
+<ul>
+<li><strong>Core (shell 0):</strong> ball of radius <code>e/2</code> = 2 pc.</li>
+<li><strong>Shell <code>k</code> &gt;= 1:</strong> <code>r</code> in <code>[(k - 1/2) e, (k + 1/2) e)</code>, centreline radius <code>R = k e</code>.</li>
+<li><strong>Cap:</strong> the part of the shell within colatitude <code>alpha</code> of a pole, one cell at each pole. Its rim is cut by <code>W1 = 6</code> wedges whose rim gap is exactly <code>e</code>, so the rim circumference is <code>6 e</code> and the cap's chord radius is <code>rho = 6 e / (2 pi) = 3.82 pc</code> (nominal 4 pc is 6.28 wedges, so 6 is the nearest whole number). <code>alpha = asin(rho / R)</code>. Volume about 2.9 edge cubes [C].</li>
+<li><strong>Bands:</strong> between the caps, <code>n</code> bands of equal colatitude step, <code>n</code> the odd integer nearest <code>R (pi - 2 alpha) / e</code>, so the galactic plane runs through the middle of the equatorial band (band 0, signed bands above and below).</li>
+<li><strong>Wedges in a band (Boss, 2026-10-15 07:17Z: one rule everywhere, no special regions):</strong> every band of every shell, in the galaxy or in any other shape of sphere, has <code>W(b) = 6 * m</code> wedges, where <code>m</code> is a number whose prime factors are only 2, 3, 5 and 7 and which is nearest (in ratio) to <code>2 pi R sin(phi_b) / (6 e)</code>, <code>phi_b</code> being the band's center colatitude; <code>m</code> is at least 1. The six pole meridians therefore bound every band, and the rule never looks at the outline, the window or the neighbouring shell, so <code>address_at</code> stays closed form. Caps keep 6 wedges at the rim. Measured on shell 3,000 [C, <code>10_uniform_smooth_rule.py</code>]: arcs 0.981 to 1.019 of 4 pc, 95% of neighbouring band steps nested, 444 count changes per shell; 240 distinct equator counts over shells 4 to 3,764 (about 16 shells per count). Near the poles, small counts let arcs stray further (about 0.76 to 1.06 at shell 10). This replaces the earlier &quot;fine in the window, nested above it&quot; rule (06:57Z), which depended on the outline. Wedge 0 starts at the +X meridian.</li>
+<li><strong>No undefined space (Boss, 2026-10-15 06:59Z):</strong> the core ball, every shell, every cap and every band and wedge together tile all of space: each point has exactly one address, with no gap and no overlap, whether or not that sector has been generated. The outline (item 2) only says which cells may be generated; it never decides which cells exist, and <code>address_at</code> answers for any point, inside or outside the outline, as far as the 40-bit birth-sector field reaches (shell below 4,096, about 53,000 ly, beyond the galaxy's 3,764 outline shells). Shells 1 to 3 (hand-tabled), the caps, and the primes-up-to-7 wedge rule all have to meet this.</li>
+<li><strong>Address:</strong> <code>(shell, band, wedge)</code>; a cap is band <code>+/-</code> its end index with wedge 0. Closed form: shell from <code>|p|</code>, band from <code>acos(z / |p|)</code>, wedge from <code>atan2(y, x)</code>.</li>
+<li><strong>Local frame and sampling:</strong> unchanged in meaning (+X radial, +Y toward increasing longitude, +Z galactic north). Sampling inside a cell is separable: cube root for <code>r</code>, uniform in <code>cos(colatitude)</code>, uniform in longitude; a cap samples a disk.</li>
+</ul>
+<p>Measured on the default galaxy, shells 4 and out, outline built with the skeleton's own bound test [C]:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th></th>
+<th>Cylinder today</th>
+<th>This rule (multiples of 6)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Candidate cells</td>
+<td>23,920,622,421</td>
+<td>about 23.933 billion (+0.05%)</td>
+</tr>
+<tr>
+<td>Wedge and band arcs</td>
+<td>0.945 to 1.062 of 4 pc</td>
+<td>99.8% of cells within 0.5% of 4 pc</td>
+</tr>
+<tr>
+<td>Cell volume (edge cubes)</td>
+<td>0.945 to 1.062</td>
+<td>0.997 to 1.003 for 99.8%; 0.74 to 1.44 in the few cells near a pole</td>
+</tr>
+<tr>
+<td>Cells with edges within 10%</td>
+<td>100%</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Polar caps</td>
+<td>none</td>
+<td>2 per shell up to shell 927: about 2,000 cells of 2.9 edge cubes</td>
+</tr>
+</tbody>
+</table></div>
+<p>Other rules tried: any wedge count per band (volume 0.94 to 1.09, but boundaries shift between bands so blocks cannot cut on shared meridians) and doubling 6, 12, 24 (only 23% of cells within 10% of a cube). Cap size by rim wedges: 5 gives radius 3.18 pc (2.0 cubes), 6 gives 3.82 (2.9), 7 gives 4.46 (3.9).</p>
+<p>Known costs, from the study: face neighbours go from 6 to 7 up to roughly 10 to 15; flat height slabs and the aligned vertical columns are gone, so a region is an arc per (shell, band), not per ring (27 times the range clauses for a 27-wide block); a cap near the dense core holds about 2,800 systems against 1,114 for today's densest cell; the 40-bit birth-sector field of the 80-bit object ID (the first layout; 96 bits is the default since Boss, 2026-10-15, see object-id-options.md) still fits (shell below 4,096, band offset up to 1,456 below 2,048, wedge up to about 23,650 below 65,536).</p>
+<h2 id="3-decisions-still-open">3. Decisions still open</h2>
+<p>The plan assumes the recommended answer for any row not marked Decided.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Question</th>
+<th>Assumed</th>
+<th>Alternatives</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wedge count per band</td>
+<td>Decided (Boss 07:17Z): 6 * m, m with primes 2, 3, 5, 7 only, nearest the 4 pc arc, same rule in every band and shell</td>
+<td>Blocks cut on cells: decided no, blocks hold the cells whose center they hold (Boss 06:58Z), so the ladder item picks a block count per level</td>
+</tr>
+<tr>
+<td>Wedges meeting a cap</td>
+<td>6 (cap radius 3.82 pc)</td>
+<td>5 (3.18) or 7 (4.46)</td>
+</tr>
+<tr>
+<td>The plane</td>
+<td>Middle of the equatorial band (odd bands)</td>
+<td>On a band boundary (even bands)</td>
+</tr>
+<tr>
+<td>Galaxy Map ladder</td>
+<td>Decided (Boss 07:22Z, &quot;proceed with your plan&quot;): built after coordinates and migration</td>
+<td>In parallel (not adopted)</td>
+</tr>
+<tr>
+<td>Object IDs in the conversion</td>
+<td>Decided (Boss 07:32Z): renumber; every object gets a new ID from its new sector in the DB.32 conversion, positions unchanged</td>
+<td>Keep the old IDs (not adopted)</td>
+</tr>
+<tr>
+<td>Equal-volume bands</td>
+<td>Decided (Boss 07:22Z): not adopted; the wedge rule stays primes up to 7</td>
+<td>Bands of equal volume (not adopted)</td>
+</tr>
+</tbody>
+</table></div>
+<p>Settled in the first item (GEN.224): shells 1 to 3 are too small for the cap rule to look right (shell 1's cap arc radius is 3.82 pc on a 4 pc sphere), so they are a hand-checked table in <code>spherical.py</code> (<code>SMALL_SHELL_TABLE</code>): shell 1 has caps cut at 37.5 degrees and one band of 12 wedges (cell volumes 0.9 to 1.4 edge cubes, against 4.8 for the caps and 0.67 for the cells under the rule), shells 2 and 3 keep the rule's own result. Decided (Boss, 07:56Z): the migration merges on a green gate without a fresh word from Boss, unless a question has no reasonable default.</p>
+<h2 id="4-what-is-already-built-that-this-replaces">4. What is already built that this replaces</h2>
+<p>[S] <code>galaxy/geometry.py</code> (821 lines), <code>galaxy/skeleton.py</code>, <code>galaxy/region.py</code>, <code>span.py</code>, <code>window.py</code>, <code>drill.py</code>, <code>galaxy/uid.py</code> and the sector parts of <code>object_uid.py</code>; <code>static/galaxyprisms.js</code>, <code>galaxystageview.js</code>, <code>galaxymap3d.js</code>, <code>galaxyblocks.js</code>, <code>galaxytilecut.js</code>, <code>galaxystages.js</code>; <code>db/store.py</code>, <code>db/query.py</code>, <code>db/models.py</code>, <code>db/block_stats.py</code>; <code>generation/run_plan.py</code>, <code>run_galaxy.py</code>, <code>bright_stars.py</code>, <code>phenomenon_scatter.py</code>; the seven address-keyed tables (<code>sectors</code>, <code>bright_stars</code>, <code>sector_stats</code>, <code>phenomenon_scatter</code>, <code>galaxy_layer</code>, <code>galaxy_column</code>, <code>galaxy_block_stats</code>); 46 non-test source files naming ring, layer or slot (882 lines) and 79 of 373 test files (707 lines).</p>
+<p>TODO items that assume the cylinder and need rewording, holding or retiring (the TODO thread sweeps <code>ring</code>, <code>layer</code>, <code>slot</code>, <code>slab</code> and <code>wedge</code> for the rest): MAP.151 (151a and 151c are built on rings; 151b is unmerged), MAP.152, GEN.101, GEN.24, ADM.29, ADM.30, and anything keyed to the 243/81/27/9/3/1 ladder.</p>
+<h2 id="5-how-the-work-should-run">5. How the work should run</h2>
+<p>Switch structure (2026-10-15): DB.32, GEN.227 and UX.111 are PRs into a shared integration branch <code>claude/spherical-switch</code>, owned by the Spherical Sector Coordinates thread; one final PR goes to main and the lane merges it on a green gate, without waiting for Boss's word unless a question has no reasonable default (Boss, 07:56Z). MAP.205 and MAP.206 are built in parallel on their own branch and merge after that.</p>
+<p>One dedicated thread, &quot;Spherical Sector Coordinates&quot;, owns the grid (items 1 to 6). It is the only migration lane while this runs, so the Database lane's DB.2x items queue behind it unless they touch other tables. Maps, Generation and UX lanes stay stopped until their items below are open. The Test Suite thread owns the TEST items. Each item merges on a green <code>scripts/test.py changed</code>; the full suite runs when item 6 finishes.</p>
+<p>Rules that carry over: no backward compatibility, no shims; PRs add a <code>changes/</code> note and never bump the version; no <code>.major.md</code> note without Boss's word; update.sh refuses while jobs are running.</p>
+<h2 id="6-work-items-todo-assigns-the-numbers-order-is-the-build-order">6. Work items (TODO assigns the numbers; order is the build order)</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>#</th>
+<th>Working title</th>
+<th>Lane</th>
+<th>Needs</th>
+<th>Done when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Spherical grid module: shells, bands, wedges, caps and the core ball</td>
+<td>Generation</td>
+<td>none</td>
+<td><code>planetgen/galaxy/spherical.py</code> (pure geometry) with the rules in section 2: layout per shell, cell bounds, volume, <code>address_at</code> and <code>cell_center</code>, face neighbours, local frame, a cap-aware <code>SectorCell</code> sampler; shells 1 to 3 tabled; tests for exact tiling (cell volumes sum to the ball, and random points inside and outside the outline each land in exactly one cell, with no gap or overlap at shell, band, wedge, cap or core boundaries), round trip, counts near 23.93 billion, and the measured arcs</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Outline and bounds on shells</td>
+<td>Generation</td>
+<td>1</td>
+<td><code>skeleton.py</code> builds the outline as a band range per shell (and the column view); <code>GalaxyBounds.contains</code> and <code>random_address</code> use it; cells counted against the cylinder's</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Addresses: designation, sector ID, seeds, object ID</td>
+<td>Generation</td>
+<td>1</td>
+<td><code>provisional_sector_designation</code>, <code>sector_uid</code>, the 40-bit birth-sector field and the per-sector seed string use shell, band, wedge; width checks added to the plan step; GEN.69/170 rules unchanged otherwise</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Schema: rename and migrate</td>
+<td>Database</td>
+<td>1, 2, 3</td>
+<td>A new Alembic revision renames <code>ring_index</code>, <code>layer_index</code>, <code>ring_slot_index</code> to <code>shell_index</code>, <code>band_index</code>, <code>wedge_index</code> in the seven tables, deletes galaxy-placed sectors, systems and phenomena, rebuilds the outline, adds the old-schema fixture; merged only with Boss's go-ahead for the delete</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Generation paths on shells</td>
+<td>Generation</td>
+<td>1 to 4</td>
+<td><code>run_plan</code>, <code>run_galaxy</code>, <code>bright_stars</code>, <code>phenomenon_scatter</code>, regions, spans and fills (GEN.24 core by whole shells, ADM.29/30 as shell and band ranges, GEN.101 fill order) use the new grid</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Reads and web wording</td>
+<td>Database, UX</td>
+<td>4, 5</td>
+<td><code>query.py</code>, <code>store.py</code>, the API, the Galaxy and Sector pages, URLs and bookmarks say shell, band, wedge; &quot;layer&quot; and &quot;slab&quot; mean nothing any more; pages and API keep working on a regenerated small galaxy</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Galaxy Map ladder for shells</td>
+<td>Maps</td>
+<td>6 and the ladder card</td>
+<td>A design note for nested blocks on shells (master rules in longitude and latitude, caps, stage keys, <code>galaxy_block_stats</code>), then <code>drill.py</code>, <code>region.py</code>, <code>window.py</code>, the block stats table and the migration</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Galaxy Map drawing</td>
+<td>Maps</td>
+<td>7</td>
+<td><code>galaxyprisms.js</code>, <code>galaxystageview.js</code>, <code>galaxymap3d.js</code>, tile cuts and picking draw and pick shell cells and caps; slab slider becomes a band control</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Tests</td>
+<td>Test Suite</td>
+<td>each of 1 to 8</td>
+<td>The 79 affected test files rewritten as each item lands; a MISSED line is a selection bug</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Docs</td>
+<td>Docs</td>
+<td>6</td>
+<td><code>galaxy-coordinate-system.md</code> rewritten, the cylinder design archived, README, INSTALL and the docs sweep updated</td>
+</tr>
+</tbody>
+</table></div>
+<p>After item 6 Boss can regenerate a galaxy and look at it before Maps work begins.</p>
+<h2 id="7-risks">7. Risks</h2>
+<ul>
+<li><strong>Heavy polar cells.</strong> A cap near the core holds about 2.5 times today's heaviest cell. If generation time for those cells hurts, the cap wedge count (card 2) or a cap fill cap is the lever.</li>
+<li><strong>Block nesting.</strong> Item 7 needs a latitude master rule on top of the longitude one. A first try with odd 3^z masters gave band arcs of 0.89 to 1.11 of 4 pc [C]; longitude masters reach to within 4 to 7 degrees of the poles. Not designed.</li>
+<li><strong>Wide change set.</strong> Items 1 to 6 touch four lanes' code; the order above keeps the tree buildable by keeping the pure geometry (item 1) first and the delete last.</li>
+<li><strong>Silent meaning change.</strong> &quot;Layer&quot; and &quot;ring&quot; must not be reused for the new indexes; the rename in item 4 is what makes a missed spot fail loudly.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>

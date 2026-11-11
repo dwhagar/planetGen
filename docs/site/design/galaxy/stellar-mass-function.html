@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The stellar mass function (GEN.927 to GEN.931) - planetGen docs</title>
+<meta name="description" content="Status (2026-10-30): built on bug1/star-epoch for the long-term star epoch (GEN.932, parent GEN.922).">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/galaxy/stellar-mass-function.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/galaxy/stellar-mass-function.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="the-stellar-mass-function-gen927-to-gen931">The stellar mass function (GEN.927 to GEN.931)</h1><p class="meta">docs/design/galaxy/stellar-mass-function.md</p><details class="toc"><summary>On this page (6 headings)</summary><ul><li style="margin-left:0px"><a href="#the-curves">The curves</a></li><li style="margin-left:0px"><a href="#who-reads-which">Who reads which</a></li><li style="margin-left:0px"><a href="#the-remnants-of-the-same-curve">The remnants of the same curve</a></li><li style="margin-left:0px"><a href="#what-moves-and-why-it-is-not-a-defect">What moves, and why it is not a defect</a></li><li style="margin-left:0px"><a href="#source-tiers">Source tiers</a></li><li style="margin-left:0px"><a href="#open">Open</a></li></ul></details>
+<p><strong>Status (2026-10-30):</strong> built on <code>bug1/star-epoch</code> for the long-term star epoch (GEN.932, parent GEN.922). Boss approved the
+full, no-patch fix at 5:27 PM EDT 10-29 (&quot;let's build a robust fix so we match the curve segments for all mass levels and
+star-like-object-types across the mass range&quot;).</p>
+<p>Every star the generator makes, and every remnant, comes from one family of curves. This note says what the curves are,
+what is set and what is derived, and what each consumer reads.</p>
+<h2 id="the-curves">The curves</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Curve</th>
+<th>Name in code</th>
+<th>What it counts</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single stars</td>
+<td><code>imf.SINGLE</code> (<code>xi</code>)</td>
+<td>Every star born, by mass</td>
+<td>Set: [R0705] (PASP 115:763, Table 2, disk, individual stars)</td>
+</tr>
+<tr>
+<td>Primaries</td>
+<td><code>imf.PRIMARY</code> (<code>P</code>)</td>
+<td>The star a system is built around, by its birth mass</td>
+<td>Derived: <code>xi</code> less the companions of heavier primaries (<code>generation/primary_mass_function.py</code>)</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Single stars.</strong> A log-normal in log mass below 1 solar mass (center 0.079, width 0.69 dex) and the power law
+<code>dN/dM ~ M^-2.3</code> above, joined continuously at 1 solar mass. The function is kept as a continuous piecewise power law
+(<code>tuning.IMF_BREAKS_SOL</code>, <code>IMF_SLOPES</code>): the log-normal is cut at every 0.05 dex and each pair of nodes is joined by the
+chord of <code>ln dN/dM</code> against <code>ln M</code>, within 0.07% of the log-normal. The sampler, the integrals and the number counts of
+<code>physics/imf.py</code> stay exact on it. The birth slope is 2.3; the steeper 2.7 of the field [R2499] counts
+stars still alive, and the disk history reproduces it from this slope and the ages. The old two-segment function (1.3 below
+0.5 solar masses, 2.3 above) did not have the log-normal's turnover, which is what the published counts of low-mass stars
+show.</p>
+<p><strong>Primaries.</strong> A system's companions are stars too, and each is lighter than its primary. So at each mass the stars born are
+the primaries of that mass plus the companions of the heavier primaries that fall there:</p>
+<pre><code>xi(m) = P(m) + sum over primaries M &gt;= m of P(M) n_c(M) (share of M's companions that land at m)
+</code></pre>
+<p><code>n_c(M)</code> is the mean count less one of the <code>star-count</code> table for the class of the star (<code>multistar.companion_class</code>), and a
+companion's mass is its primary's times a ratio from the law of [R3108: Table 13] between <code>max(0.1, 0.08 / M)</code> and 1
+(<code>multistar.companion_ratio_range</code>, <code>mass_ratio.py</code>, GEN.951, below).
+Companions are never heavier than the primary, so the equation is solved from the top mass down in one pass, with no
+iteration. The result peaks higher than <code>xi</code>, as the published systems' functions do (Chabrier's own for systems has its center
+at 0.22). Systems per star born is 0.695 and systems per solar mass of stars born 1.124 (<code>systems_per_star</code>,
+<code>systems_per_solar_mass</code>; they were 0.697 and 1.128 with a flat mass ratio).</p>
+<p>What the derivation leaves out, and the reason: the companions past the seventh star of a system (a chance of about 1e-5 of
+a system); the brown dwarf companion (below the hydrogen-burning limit, outside <code>xi</code>); the mergers and stripped stars of
+<code>multistar</code>, which move a star between bins after its birth.</p>
+<p><strong>The mass ratio of a companion (GEN.951).</strong> At one orbital period the density of the ratio q = M2/M1 is a power law, <code>q ** gamma_smallq</code>
+over 0.1 to 0.3 and <code>q ** gamma_largeq</code> over 0.3 to 1, continuous at 0.3, with a fraction <code>F_twin</code> of the companions with q &gt; 0.3
+spread evenly over 0.95 to 1 on top of it ([R3108]:15, Eqn. 2 and Table 1). Their Table 13 gives the three
+numbers at log P = 1, 3, 5 and 7 for solar-type, A / late-B, mid-B, early-B and O-type primaries
+(<code>tuning.MASS_RATIO_*</code>, rows in the order of <code>COMPANIONS_PER_DECADE_BY_PRIMARY_MASS</code>, straight in log mass between them): a solar-type
+primary stays near flat (slopes -0.5 to +0.3) with a twin fraction 0.3, 0.2 and 0.1 at log P 1, 3 and 5; a massive one is flat at log P = 1
+(twins 0.08 to 0.17) and by log P = 3 to 5 leans to light companions (slopes -1.7 to -2.0), nearly random pairings from the mass
+function, with no twins. The draw puts the masses before the periods, so the law used is the mix of the four periods' laws in
+the shares of the primary's companions at them (the companions per decade of the same table); the link between one companion's ratio and its period is lost,
+the average over companions is the table's (MR3 in the stand-in registry). A companion under the hydrogen-burning limit is not a
+star of the <code>star-count</code> table, so the law is cut at the lowest ratio that keeps the star above it and renormalised. The primary function's
+equation takes the share of a primary's companions that land in a cell from the same law (<code>mass_ratio.Ratios.fraction_below</code>), so the stars of the
+systems together still follow the single-star function. The mean ratio of a solar-type primary's companions is 0.53 (0.55 flat), a massive
+one's (12 solar masses) 0.38; the share with q &gt; 0.95 is 12% against 6% flat for a solar-type primary and 4% against 6% for an early-B one.</p>
+<h2 id="who-reads-which">Who reads which</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Consumer</th>
+<th>Curve</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>The star a placed system is built around (<code>stellar_evolution.sample_living_star</code>, <code>star_population._mass_grid</code>, <code>system_mass._placed_bins</code>)</td>
+<td><code>PRIMARY</code></td>
+<td>A system has one primary; its other stars come from its own tree</td>
+</tr>
+<tr>
+<td>Systems per solar mass, the galaxy's system count (GEN.929)</td>
+<td><code>PRIMARY</code> over <code>SINGLE</code></td>
+<td>Both are on one scale</td>
+</tr>
+<tr>
+<td>Per-star rates: H II regions, black hole and neutron star rates, mass return, nebula seeds, remnant progenitors</td>
+<td><code>SINGLE</code></td>
+<td>They are rates of events per star born, whatever system the star is in</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="the-remnants-of-the-same-curve">The remnants of the same curve</h2>
+<ul>
+<li><strong>White dwarfs</strong> carry one initial-final mass relation, <code>tuning.WD_IFMR_PIECES</code> ([R0961]:21, MIST
+fit, equations 4 to 6, read): <code>0.080 M + 0.489</code> for 0.83 to 2.85 solar masses, <code>0.187 M + 0.184</code> for 2.85 to 3.6, `0.107 M
+<ul>
+<li>0.471<code>for 3.6 to 7.2, the last piece carried to 8 (a 1.33 solar mass white dwarf at the top). Read by the star model, the member draw, the disk history and</code>mass_loss<code>, through </code>physics/remnant_mass.py`. The [R2230] relation the
+generator used before ran 0.04 to 0.06 under it, and another relation, the disk history's, 0.1 to 0.16 under at 5 to 7
+solar masses. The disk history's return fraction is 0.384 (it was 0.371).</li>
+</ul>
+</li>
+<li><strong>Neutron stars</strong> are drawn from the Gaussian of the slow pulsars ([R3396]: 1.49 +- 0.19), held to 1.1 to 2.2
+solar masses; <code>remnant_mass.share_above</code> and <code>moments</code> are the same Gaussian's for the scatter cut and the placement terms.</li>
+<li><strong>Black holes</strong> stay uniform over 5 to 20 solar masses: the widest of the published ranges stands.</li>
+</ul>
+<h2 id="what-moves-and-why-it-is-not-a-defect">What moves, and why it is not a defect</h2>
+<p>The massive share (8 to 150 solar masses) of the stars born goes from 0.637% to 0.713%. The bound neutron stars are fixed by
+the census (0.004 per star), so the share of the massive stars left to fail and make black holes is larger: the middle draw of
+the solar failed share goes from 13.6% to 17.5% (<code>black_hole_formation.share_cap</code>). A galaxy with the Milky Way's 5e10 solar
+masses of stars holds 1.0e8 black holes, in line with the published estimate, and a metal-rich busy shell holds 1.6 neutron
+stars to a black hole (it was 2.1).</p>
+<h2 id="source-tiers">Source tiers</h2>
+<p>The four numbers of the log-normal are Confident Unverified, level L0 (recalled, not read in the paper, and used as
+published); the Cummings pieces and the Ozel and Freire Gaussian are Verified. The primary function has no set number.
+Registry section 6.50 of <code>research/gap-filling-plan.md</code>.</p>
+<h2 id="open">Open</h2>
+<ul>
+<li>GEN.931: the arm contrast by population and the A stars.</li>
+<li>GEN.936 and GEN.948 (built on their own branch): the main sequence from 0.07 to 0.1 solar masses and the brown dwarf cooling track are read from the [R0254] table, and the star/brown-dwarf boundary is one split at 0.08 with a class that depends on the place's [Fe/H].</li>
+<li>GEN.951: the remaining items of the chain.</li>
+</ul>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
