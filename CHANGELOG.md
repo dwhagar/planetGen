@@ -2,6 +2,278 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3861] - 2026-11-11
+
+**Headline:** A planet with no ground (a giant, a sub-Neptune or a gas dwarf) now shows its pressure as the "Pressure at the 1 bar reference level", not as a "Surface pressure".
+
+### Changed
+
+- The pressure stored for a body with no ground is the 1 bar level its air is solved at (GEN.1334), the same convention a giant uses, so it read 100 kPa on almost every gas dwarf. The property sheet and the API, the description's facts, the system map's side panel and the page's summary sentence now name it as the reference level, and say that the temperature is at that level too. Bodies with a ground keep "Surface pressure". No generated value changes. Found in the GEN.1407 probe and GEN.1532.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3860] - 2026-11-11
+
+**Headline:** An unused function that drew the composition of ring material from the planet's disk is removed; rings take their ice share from `rings.build_ring` as before.
+
+### Changed
+
+- `small_body_composition.draw_ring` had no caller since the rings were rebuilt from history (GEN.1057): a ring's ice share is drawn by its kind in `rings.build_ring` (broad rings 90 to 99 percent ice like Saturn's, the stripped mantle of a differentiated moon), not from a distance in the circumplanetary disk. The function, its test and its wiring-register line are gone; `disk_ice_fraction`, which the moons read, stays. No generated value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3859] - 2026-11-11
+
+**Headline:** Every running unit now has its own progress bar and time left, with an estimate from the first second, and the unit list in the work API carries it.
+
+### Changed
+
+- `GET /api/admin/work/<id>/units` gives each running unit a `progress` record (`queue/taskprogress.py`): `show` (true once the unit is expected to take, or has run, longer than 15 s), `percent`, `eta_seconds`, and `source` (`stored`, `blended` or `live`). It is worked out from the unit's heartbeat counter (OPS.136 to OPS.138), so the page, the API and the log read the same numbers.
+- The time left moves from the rate recorded for the command to the running unit's own as it proceeds: the running rate's weight is the share of the unit done over a quarter, and the running rate is held back for its first 20 s (`progress_rate.HOLD_SECONDS`).
+- New: the server records how fast each command's units work (`queue/unitrates.py`, items a second over the seconds worked, not counting waits on the gate or a lock). A run keeps the rate of its finished units, a run that ends done folds it into the server's, and a unit's bar uses the run's rate first, then the server's.
+- The shell scatter's second bar now appears when tasks take longer than 15 s (it was 30 s) and goes away under 10 s (it was 20 s), the threshold every bar shares.
+- A bar macro for the unit rows of the Queue page (`partials/task_bar.html`) is added for the unit rows that OPS.139 builds.
+
+generation-output: unchanged
+
+## [8.0.3858] - 2026-11-11
+
+**Headline:** A script now draws the same few hundred seeded systems on two builds and counts how many bodies a change moved in ocean tide, tidal heating, locking, spin, tilt and eccentricity; no generated world changes.
+
+### Changed
+
+- GEN.1448: new `scripts/census_interactions.py` (`draw` then `compare`). It draws seeded systems of the six census star types, records for each planet and moon the spring ocean tide range, tidal heating flux, locking state, spin period, tilt and eccentricity (and any Kozai loss a build records), and a second run on another build is compared body by body; a system whose body count changed is counted apart. It is run before and after GEN.1446, GEN.1449, GEN.1454 and GEN.1450 land so each says what it did to the world.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3857] - 2026-11-11
+
+**Headline:** a unit that has just left a long wait is no longer stopped as stuck, and the heartbeat has one test that runs every rule on a fake clock.
+
+### Changed
+
+- OPS.143: `tests/test_heartbeat_rules.py` drives the whole chain (a horse that beats, the follower's watch, the stuck action, the stale rule, the job rows) over hours of fake time: work, slow, a long wait, quiet and stopped, the false kill (a moving counter at ten times its estimate for six hours is flagged and never touched), dead, stuck twice, the stale rule for every mix of states, and the API, web and tile jobs.
+- Fixed, found by that test: the time a unit spent waiting on the gate, the sky lock or MySQL counted as time its counter stood still, so a unit that left a wait of more than five minutes was judged quiet at once and stopped after two polls. The horse now writes the completed waits since the counter last changed (`waited`) and the judge subtracts them.
+- Fixed, found by that test: a unit queued again by the pass that found its stop had taken effect was looked up in the verdicts the watch had just forgotten, which raised a `KeyError` in the follower; it is skipped now.
+
+## [8.0.3856] - 2026-11-11
+
+**Headline:** The Queue run page lists each running unit with its state, last beat, counter, phase and rate, the ones that need a look first.
+
+### Changed
+- **Running units on the run page (OPS.139).** `/admin/queue/<run>` of a live run gets a "Running units" table drawn from `GET /api/admin/work/<id>/units` (OPS.138, through `apiclient.admin_work_units`): stage, unit, a state badge (working, slow, waiting, quiet, looping, dead; the reason is its tooltip), what it is doing and what it waits on, the counter (`done of estimate`, or "no counter"), the rate, the time left at that rate, the age of its last beat, how long it has run, its memory, and "to be stopped" on a unit two checks in a row have called quiet or dead. A summary line counts the states; the worst states are listed first and at most 200 rows are drawn. A run that is over, or one with no unit judged yet, has no table. Reused, not rebuilt: the verdicts and their view (`unitwatch.view`), the route, `_duration`, `counted`, the page's panel/table markup and `.badge`. No migration.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3855] - 2026-11-11
+
+**Headline:** The Queue pages show run durations, ETA ranges and heartbeat ages in their original form again ("3 m 05 s", "12.4 s").
+
+### Fixed
+- **OPS.142 defined a second `_duration` in `web/queue_page.py`**, which replaced the first at import and changed every figure that used it. The other-job rows' short form is now `_beat_gap`; a test checks the two forms and that no function of the module is defined twice.
+generation-output: none
+
+## [8.0.3854] - 2026-11-11
+
+**Headline:** The program can now work out how far a planet's tilt wanders under the pull of its star, moons, sibling planets and a companion star; nothing reads it yet, so no planet changes.
+
+### Changed
+
+- GEN.1454 (part 1): new `physics/obliquity_variation.py`. From a planet's spin, its moons, the star and a companion it works out the precession of the spin axis; set against the nodal modes of the secular exchange (GEN.1450) it gives the range of the planet's obliquity, whether the tilt sits in a resonance and whether two resonances overlap into a chaotic zone. The Earth with its Moon comes out at 22.6 to 24.3 degrees against the 22.1 to 24.5 measured, and without the Moon it swings about five times as far. It is a lower bound for the chaos of the full theory. Registry section 6.271 (OB1 to OB5). Part 2 will use it in the settle pass, the seasonal swing and the oddity table. The pendulum picture and the Moon-less Earth case follow [R2571, R5227].
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3853] - 2026-11-11
+
+**Headline:** A very hot giant now keeps its phosphorus in the gas: atomic phosphorus and four phosphorus molecules are in the gas table, and the stop-gap that dropped phosphorus above 6000 K is gone.
+
+### Changed
+
+- The gas table gained atomic P (fitted to 20000 K) and PO, PN, PS and PH (to 6000 K), from the same NASA Glenn database as the other species (GEN.1512), 117 species in all. Before this the table's only phosphorus gases, P2 and PH3, ended at 6000 K, and PR 5928 made the gas of the other elements above that temperature.
+- `gas_equilibrium` no longer drops an element that has no gas in range (`NoSpeciesError` and the retry that dropped it are removed): every element of the table has a gas to 20000 K now, so the case cannot arise.
+- The stored gas mixtures of giants with a chemistry temperature above 6000 K, and of any gas with phosphorus below it, now carry atomic P, PO, PN, PS and PH where they hold the phosphorus. Stand-ins PHG1 and PHG2 are registered in GEN.725: the molecules are left out above 6000 K where their fits end, which moves the carrier of the phosphorus (not its presence) at the highest pressures.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3852] - 2026-11-11
+
+**Headline:** A galaxy generated with the Rogues dial left on Auto now gets the Few number of free-floating planets, about 2.5 a star at most instead of 4.3.
+
+### Changed
+- **The Auto level of the Rogues dial means Few, not Normal (GEN.1506).** Boss, after the PERF.136 measure: at Normal the rogue top-up added about 67 percent to the time it takes to generate a sector's systems, at Few about 43 percent. A sector's top-up now stops at 2.5 rogues a star on Auto where it stopped at 4.3, so a new galaxy holds roughly 40 percent fewer topped-up rogues than before (rogues thrown out by the systems themselves are not counted against the level and are unchanged). None, Few, Normal and Many keep their numbers, and the Generate page, the console help and the design text say what Auto means.
+generation-output: changed
+
+generation-affects: population
+
+## [8.0.3851] - 2026-11-11
+
+**Headline:** the tidal heating of a planet or moon now counts every body that pulls on it, and the spin torques of the other bodies use the exact mean of their distance to the sixth power.
+
+### Changed
+
+- `tidal_heating.moon_tides_of` (GEN.1503, GEN.1446 part 3) adds to a planet's moons, and to a moon, the tide of every companion star and sibling planet (and for a moon the host star at its planet's place and the other moons of its planet), each against the body's spin as the moons' tides already were. The effect ledger notes every source's heating power (`tide_sources.heating_by_source`, at a nominal `k2/Q` so the shares are what is kept).
+- `tide_sources` takes the torque and heat of such a source from the exact mean of `1 / d^6` of two circles instead of the square of the mean of `1 / d^3` (registry row TS6 rewritten); that also corrects the spin torques of GEN.1502 for close neighbours.
+- Census over 30 systems (98 bodies): tidal flux moves on 39 bodies (most from values near zero; two close planets 0.013 AU apart go from 5e-27 to 5e-5 W/m2) and internal heat flux on 22, by under 0.1 percent; temperatures move on one body, by 1e-6 K.
+
+generation-affects: fill
+
+## [8.0.3850] - 2026-11-11
+
+**Headline:** the tidal locking and spin-down of a planet or moon now count every body that pulls on it, not only its host and its own moons.
+
+### Changed
+
+- `tide_sources.register` tells each planet and moon who else pulls on it (the other planets of its host, and a moon's planet) when the final-age spin history is run; `body_spin.torques_of` adds the tide of every companion star and sibling planet (and, for a moon, the host star at its planet's place and the other moons of its planet) as extra `spin_torques.Raiser`s (GEN.1502, GEN.1446 part 2). The first raiser stays the host, so spin-orbit resonances are measured against it as before. Over 40 systems (148 bodies) one rotation period moves, by 5e-9 of itself: the extra pulls are far below the host's.
+- Registry row TS6: the torque of such a source uses the square of its mean `1 / d^3`.
+
+generation-affects: fill
+
+## [8.0.3849] - 2026-11-11
+
+**Headline:** The members of a belt whose star has a companion star now carry the eccentricity and periapsis that the companion's secular pull gives them; a lone star's belt is unchanged.
+
+### Changed
+- **A companion star forces its star's belt members (GEN.1492 slice 1).** `AsteroidBelt._draw_members` now sets each member's eccentricity and periapsis to the vector sum of its drawn (free) orbit and the forced vector of `physics/belt_forcing.py` (slice 0), at the member's own distance, diluted by the apsidal rate of the star's planets (`AsteroidBelt.give_secular_planets`, given once the orbits are final in `StarSystem._give_belts_their_planets`). The companion's periapsis direction is one angle per system from a stream of its own (stand-in FE2, L1); inclination stays as drawn (coplanar star orbits, FE3). A lone star, a circular companion, a member beyond `ALPHA_LIMIT` of the companion or one forced past the linear limit keeps its drawn orbit exactly; the eccentricity is cut at `belt_roster.E_MAX`. Census of 300 generated pairs (499 belts of stars with a companion): the forcing moves 116,575 of 146,892 members in 497 belts, mostly by a small amount (median forced eccentricity 2 percent of the drawn rms); 11 belts (2 percent) have their mean eccentricity raised by half or more (`tests/audit/belt_forced_members_census.py`, `reports/gen1492-forced-members-census-2026-11-09.md`). Reused, not rebuilt: slice 0's `belt_forcing`, `secular_chain.matrices`, `radiation_field.companions_of`. The wiring-register lines of the module and FE4 are gone as it is now read. No migration.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.3848] - 2026-11-11
+
+**Headline:** A star with a companion inside 47 AU now loses about two thirds of its gas giants, because its disk loses its gas early.
+
+### Changed
+- **A close companion shortens the disk's gas life (GEN.1475).** [R5220, R5225]: about two thirds of binaries closer than about 40 to 47 AU lose their disk gas within a Myr, and the planet occurrence inside 47 AU is 0.34 of the wider and single stars. A star whose nearest companion (or, for a close pair, its two stars) is inside 47 AU now has the chance a core finds gas multiplied by 0.34, so about 66 percent of its giants are not made; its rocky planets are unchanged. About 21 percent of solar-type stars are affected, so roughly 14 percent fewer gas giants and 0.8 percent fewer planets in all; lone stars and wide pairs draw exactly as before. The stand-ins are CD1 and CD2 in the registry (section 6.264).
+generation-output: changed
+
+generation-affects: fill
+
+## [8.0.3847] - 2026-11-11
+
+**Headline:** The reductants that eat a young world's first oxygen are now counted at the heat the world gave off then, so the oxygen of a planet rises later than before, as the Great Oxidation did on Earth.
+
+### Changed
+
+- The surplus that fills the store before the oxygen rises (`biogenic_oxygen.rise_age_gyr`) took the reductant flux `R` at the heat flow the body has now, for every age. The heat of a rocky body was 2 to 5 times higher when its life began, and `R` goes with it, so the surplus `S - R` is summed with `R` at the heat of each age (`reductant_history_factor`, from `interior_heat.heat_at`, the body's own thermal history, in steps of 0.25 Gyr) and past the star's age `R` is what it is now. The steady oxygen of the air still follows the balance now.
+- `EARTH_STORE_MOL` is 4e21 mol, not 5e21: it is set so that Earth's delay after the 2.7 Ga biomarkers is still 0.714 Gyr with `R` at 2.2 times today's value falling to 1.9 times (the model's heat history of an Earth-mass body), inside the 0.3 to 1 Gyr bracket. Registry rows BO3 (value) and BO10 (the history factor) say so.
+- Effect on 100 seeded systems of a G2V star with a habitable-world request (34 worlds with oxygenic life candidates): the median wait from the first producers to the oxygen rises from 6.3 to 8.9 Gyr, 25 of the 34 rise ages move, the worlds that never rise stay 9, and the worlds whose oxygen rises inside the star's age fall from 13 to 10. This is the physical direction (more reductant when young, so a later rise) and not the lever the filing hoped for: the shortfall of oxygen worlds is made a little larger, not smaller.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3846] - 2026-11-11
+
+**Headline:** A captured moon inclined to the Laplace plane at its distance now has its eccentricity pumped by the star (Kozai-Lidov), and a moon the cycle drives into its planet is lost; moons that formed in place are not touched, and nothing is stored yet.
+
+### Added
+
+- `physics/kozai_bodies.py`: the orbit-averaged quadrupole cycle of a body that has a distant third one, integrated (not fitted) for the maximum eccentricity, the period and the state at the system's age; the quenches that stop it (the hierarchy, the inclination window of 39.2 to 140.8 degrees, a Kozai time longer than the age, general relativity, a faster precession from the siblings or the planet's bulge) each name their cause; the octupole cap of 0.98; and the Laplace plane of a planet (`laplace_tilt_rad`, `moon_free_inclination`) so a moon is measured against the plane it precesses about and not against the planet's orbit.
+- `StarSystem._kozai_pumping` runs after the secular exchange of the settling to the final age: a surviving moon takes the eccentricity of its place in the cycle at the star's age (which the tide then wears down from there), a lost one is removed from its planet, and the star's pull on every moon is noted as the effect ledger's secular rate.
+- Stand-in rows KZ1 to KZ6 (GEN.725, section 6.262).
+
+### Changed
+
+- Over 60 seeds, 3 of 167 moons screened cycle and 2 are lost. The moons that formed in a disk, an impact or a ring keep the inclination to the equator they were drawn with as their free one, so none of them cycles; the planets (waiting for GEN.1500) and the belts and comets (GEN.1446) are not in this slice.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3845] - 2026-11-11
+
+**Headline:** the ocean tide of a planet or moon now counts every body that pulls on it: the companion stars, the other planets of its star and the other moons of its planet, and each pull is noted in the effect ledger.
+
+### Changed
+
+- `physics/tide_sources.py` (GEN.1446, first part): lists every source of tide on a planet or moon with the time-averaged `1 / d^3` it gives (exact two-body mean for the host and a moon's planet, an exact elliptic-integral mean for two circles, an orbit average for an eccentric source) and `ocean_tides` takes the sources it did not have as extra raisers. Spring and neap ranges move by the sibling's share, about 1e-5 to 1e-4 of the host's for a planet and more for a moon with a large sibling moon. Each pull is added to the effect ledger as a tide-raising acceleration. A lone star with no other body gives the numbers it gave before.
+- Registry section 6.260 (TS1 to TS5): the coplanar upper bound, the planet with its moons as one point, the receiver on its circle, the synodic rate, and belts not yet sources (GEN.1464).
+
+generation-affects: fill
+
+## [8.0.3844] - 2026-11-11
+
+**Headline:** A rocky planet or moon whose orbit wore down after its air was made now gets its air, climate, dose and spin made again on the settled orbit, even when its star's age barely moved.
+
+### Changed
+
+- GEN.1402: `refinish_rocky` made a rocky body again only when the star's age rose past `AGE_SETTLE_TOLERANCE`; a planet whose eccentricity `settle_orbit` lowered past `ECCENTRICITY_SETTLE_TOLERANCE` in a young-enough system kept an air, temperature, dose and spectrum made on the older, more eccentric orbit. The body now notes the eccentricity its air was made on (`_air_eccentricity`, kept, not stored) and `needs_remake` is true on a moved age or a moved orbit, for a rocky planet and for its moons (their host's eccentricity); a gas giant is made again on a moved orbit only (its temperature reads the light of the orbit; its age does not move its end stages). Reused: `settle_orbit`, `age_moved`, `remake_end_stages`, `refinish_rocky`; the radiation sweep test no longer needs its "air on the light now" stopgap and checks every body.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3843] - 2026-11-11
+
+**Headline:** A companion star's secular forcing of a belt's members is built and measured, but nothing reads it yet, so nothing generated changes.
+
+### Changed
+- New `physics/belt_forcing.py` (GEN.1492 slice 0): the forced eccentricity of a belt member from each companion (exact Laplace coefficients, the eccentric-companion factors), diluted by the apsidal rate of the star's planets and relativity (`secular_chain.matrices` with the member as a body of no mass), the vector sum with the member's drawn eccentricity, and the companion's periapsis direction drawn per system from its own stream. Stand-in rows FE1 to FE4 (section 6.256), wiring-register lines for the module and rows FE2 and FE4.
+- A census of 499 belts of 300 generated pairs (`tests/audit/belt_forcing_census.py`): median forced eccentricity 2 percent of the drawn rms, 4 percent of belts forced harder than drawn, 31 percent diluted by half or more by the planets. These go to slice 1.
+- Nothing is wired, stored or drawn; output is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3842] - 2026-11-11
+
+**Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
+
+### Added
+- **Design note for GEN.1492** (`docs/design/systems/belt-secular-excitation-by-companions.md`): what the belt roster does today, the first-order secular theory (forced eccentricity, diluted by the planets' own precession), what it leaves out (inclination, Kozai, planets), and two slices (the calibration module, then the wiring as a lock item). Three questions for TODO.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3841] - 2026-11-11
+
+**Headline:** The 3D system view now draws the heaviest bodies of each asteroid belt one by one, as lumps or balls in their own colours, among the belt's dust.
+
+### Changed
+
+- MAP.415: a new setting, **Belt bodies drawn in 3D** (`web.belt_bodies_drawn`, in the Look group of the settings page and `config.json`), 0 to 2000, default 200. The same belt always draws the same bodies: the heaviest by rank, so the choice is a pure function of the belt's stored rows and the number.
+- MAP.414: `GET /api/systems/<id>/scene` gives each belt a `members` list: the heaviest bodies it stores, as many as the setting `web.belt_bodies_drawn` says (MAP.415; 200 by default, 0 draws only the dust) (`systemscene._belt_members`), each with its designation, rank, radius, `look` (`bodylook.member_look`, its seed the designation's, so the page of the body (MAP.413) and this view draw one and the same body) and `position_km`, where its stored orbit puts it at the epoch (`system_bodies.relative_position_au`). A body that has since become a moon is left out.
+- `static/systemview3d.js` hangs each from what the belt goes round: a lump (MAP.279) when it is under the roundness limit, a sphere otherwise, painted by the same texture tiers, queue and cache as the planets. They are not pickable, labelled or dotted (a belt keeps hundreds); the dust points stay. `static/systemscale.js` gains `layout.radiusFor(kind, km)` and a `belt_member` radius: smaller than any moon when compressed, true size otherwise.
+- Reused: `member_look`, `lumpyGeometry`, `paintSolid`, the texture queue and cache, `relative_position_au`. Tests: `tests/js/systembeltmembers.test.mjs`, `tests/test_system_scene.py` (the query and positions without a database, and with one).
+
+generation-affects: none
+
+## [8.0.3840] - 2026-11-11
+
+**Headline:** A planet's or moon's page now names the other suns and the white dwarf in its sky, with their kind, colour, width and share of the light.
+
+### Changed
+
+- The description of a planet or moon gains a sky paragraph (`physics/sky_view.py`, `describe/build.py`): every other source of the system's radiation field (GEN.1441) that gives the body at least the light of a full Moon is named, with its kind (a white dwarf, a K-type star), its colour, its width in degrees and its share of the light. A source that gives at least the twilight of a day (`daylight.DAY_SUN_W_M2`, GEN.1461) is a second (third, ...) sun that makes a day of its own; a fainter one lights the nights, in full Moons. A body that circles a white dwarf is told so.
+- A planet of a lone main-sequence star reads the same as before, and nothing is stored: the paragraph is worked out when the page is made, from the ledger of sources that every loaded system already builds. The light and the width of a source follow one distance, so the text agrees with the temperature (the one-companion light is `sky_suns.light_of`, shared with the suns of GEN.1458).
+- The neutron stars, black holes with accretion disks and brown dwarfs of the orbit tree give no light in the field yet, so they are not in the sky text: that part of the item is GEN.1501 (stand-in SKY3, section 6.259).
+
+generation-output: unchanged
+
+## [8.0.3839] - 2026-11-11
+
+**Headline:** Three groups of tests that went red on main after Train 22 now look for the case they need instead of taking the first one.
+
+### Changed
+
+- TEST.714: `test_web_generate.py::test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting` claimed a scatter step's own stage comes first; since OPS.123 slice 3 (#5876 for the bright stars, #5896 for the phenomena) a scatter lists what it empties first. It now says the step's own stage is in the list, only clears come before it, and the rest follows. Nothing in the code changed.
+- TEST.714: `test_effect_ledger.py` took the first binary system with planets, but a lone source is implied away and writes no row, and which binaries have a planet that two stars light is the draw's (seed 0 after Train 22 had none). The helper takes the first that has one.
+- TEST.714: `test_api_life_air.py` took the first airy rocky planet; the history has a methane step only when the air can hold methane and still show it, which that planet's draw decides (its two tests failed with no CH4). The helper takes the first of the same draws whose history through the API has methane. No claim of either test is weaker.
+
+generation-affects: none
+
+## [8.0.3838] - 2026-11-11
+
+**Headline:** The 29 constants that the GEN.945 audit found hand-set and unregistered now have a tier, a tweak level and a replacement path in the stand-in registry (section 6.270).
+
+### Changed
+
+- GEN.1524: registry rows AUD1 to AUD29 cover the whole ranked shortlist (the metallicity clip, the core tier factor, the type Ia share, the age windows, the remnant mass ranges, the cluster and halo laws, the rare compact object rates, the reference stellar density, the giant mass slope, the comet and belt draws, the icy water line, the pre-main-sequence and remnant factors, the fit scopes, the flavor chances and the run limits). Nine are hand-tuned (L3 or L4) and have burn-down lines. No generator value changes.
+
 ## [8.0.3837] - 2026-11-11
 
 **Headline:** Each star system now stores what its rows add up to (star, planet and moon mass, luminosity, body counts), so the gravity map and the sector paths stop summing them again.

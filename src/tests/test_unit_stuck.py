@@ -258,3 +258,18 @@ def test_a_hold_whose_follower_is_gone_lifts_when_the_unit_job_has_ended(conn, r
     assert pause.is_paused(conn)
     job.set_status(rq.job.JobStatus.FINISHED)
     assert not pause.is_paused(conn)
+
+
+def test_a_unit_queued_again_in_the_pass_that_finds_it_stopped_is_not_acted_on_with_the_verdict_of_its_old_attempt(conn, run_id):
+    """OPS.143: the unit is still dead or quiet when its stop takes effect, so it is in `agreed` and gone from the verdicts the watch forgot; that is not a crash."""
+    stopped = []
+    action = _stuck(conn, run_id, stopped=stopped)
+    _beat(conn, run_id, 1)
+    action.step([1], {1: _quiet()})
+    job = _job(conn, run_id, 1)
+    redisqueue.queue(redisqueue.BULK_QUEUE, conn).remove(job.id)
+    job.set_status(rq.job.JobStatus.STOPPED)
+    verdicts = {1: _quiet()}
+    action = unitstuck.Stuck(conn, run_id, 0, dump=lambda raw: "STACK", stop=stopped.append, record_error=lambda *a, **k: None, forget=lambda unit: verdicts.pop(unit, None))
+    action.step([1], verdicts)         # requeues, forgets the unit, and must not look the old verdict up
+    assert action.records()[1]["phase"] == "requeued" and len(stopped) == 1
