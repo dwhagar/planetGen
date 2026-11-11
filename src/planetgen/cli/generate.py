@@ -774,7 +774,7 @@ def add_sectors_arguments(parser):
                              f"{region_run.BLOCK_SECTORS}).")
     parser.add_argument('--rogues', type=dials.lever("rogues").parse, metavar="{" + ",".join(dials.lever("rogues").choices) + "}",
                         help="With --around: the Rogues level of the run's top-up (stage 3, after every sector is built), for this run only. Default: the level "
-                             "the galaxy's plan was given (plan --rogues), else normal.")
+                             "the galaxy's plan was given (plan --rogues), else few.")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
