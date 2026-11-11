@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.303 |
+| UX | UX.305 |
 | MAP | MAP.426 |
 | NAV | NAV.78 |
 | GEN | GEN.1556 |
@@ -4683,6 +4683,8 @@ Each citation below resolves to one item by its date.
 | UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | open |
 | UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | open |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |
+| UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | open |
+| UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | open |
 
 ### Code tags `TODO(<area> #N)`
 
