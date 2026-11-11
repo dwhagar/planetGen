@@ -13159,6 +13159,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 11. Prerequisites: GEN.1548. Related: GEN.1537, GEN.1548.
   Filed by the TODO thread.
 
+- [ ] **MAP.424 (bug) The Galaxy Map's sector list query (GET /api/galaxy/sectors) hits the 10 s database statement timeout on Boss's server, so /galaxy returns 504 and the cache warm-up fails with QUERY_TIMEOUT**
+  Boss live report (5:20 PM EST on 2026-11-11, on his test server): every call to /api/galaxy/sectors ends in "DB statement_timeout seconds=10.0" on the sectors query that joins each sector to its system count (SELECT sec.id, sec.name, sec.center_x_pc ... COALESCE(counts.n, 0) AS system_count FROM sectors sec LEFT JOIN (SELECT sector_id, ...)), the page /galaxy then gives 504, and the warm-up stage "Warm galaxy-map" stops at unit 0 with the same QUERY_TIMEOUT. /api/galaxy/changes and /api/auth/me answer normally, so the database is up; only this query is too slow at his current row counts. Do: find the plan (missing index on the systems sector column, a full scan of systems per request, or a lock held by a long job), fix the query or add the index (a migration if needed, so it may ride a train), serve the counts from a stored per-sector count if the scan cannot be made fast, and add a test that holds the query to an index plan. Also ask whether the same pattern is in other galaxy-wide list queries.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 04, hotfix, first priority. Related: PERF.226, OPS.118.
+  Filed by the TODO thread. Boss-visible bug.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
