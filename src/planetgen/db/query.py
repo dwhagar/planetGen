@@ -4508,20 +4508,32 @@ def galaxy_placed_sectors(conn):
     Unplaced sectors (`center_x_pc IS NULL`) have nothing to plot and are
     excluded at the query itself.
 
+    The system count is a scan of every system in the galaxy, which no longer fits the web limit of a request once the galaxy holds millions
+    of systems (MAP.424: /galaxy gave 504 and the warm-up stopped). It is a stored count (`countcache`, as the table pages' counts are): the
+    answer made under the galaxy's current content stamp is served as it is, an older one is served while one background count makes the next,
+    and with no answer at all the sectors come back at once with `system_count` `None` (not counted yet) for the map to draw as it draws zero.
+
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
-            `galactic_radius_pc`, `shell_index`, `system_count`.
+            `galactic_radius_pc`, `shell_index`, `system_count` (`None` until the first stored count is made).
     """
+    return _counted(conn, "galaxy-placed-sectors", lambda counting: _placed_sectors(counting, True), lambda quick: _placed_sectors(quick, False))
+
+
+def _placed_sectors(conn, counted):
+    """`galaxy_placed_sectors`' rows, with each sector's system count (`counted`) or without it (`system_count` `None`: no scan of the systems)."""
+    count_sql, join_sql = (
+        ("COALESCE(counts.n, 0)", "LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems WHERE sector_id IS NOT NULL GROUP BY sector_id) counts "
+                                  "ON counts.sector_id = sec.id") if counted else ("NULL", ""))
     rows = conn.execute(
         f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, COALESCE(counts.n, 0) AS system_count
+               sec.galactic_radius_pc, sec.shell_index, {count_sql} AS system_count
         FROM sectors sec
-        LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
-                   WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
+        {join_sql}
         WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
         ORDER BY sec.galactic_radius_pc
         """,

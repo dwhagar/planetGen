@@ -235,3 +235,48 @@ def test_the_uncharted_count_follows_a_rescatter_and_a_reset(counting, mysql_con
     assert _until(lambda: _uncharted(mysql_config) == 5)
     _write(mysql_config, store.clear_bright_stars)
     assert _until(lambda: _uncharted(mysql_config) == 0)
+
+
+def _placed(mysql_config):
+    conn = query.open_readonly(mysql_config)
+    try:
+        return query.galaxy_placed_sectors(conn)
+    finally:
+        conn.close()
+
+
+def test_the_sectors_the_galaxy_map_plots_carry_their_system_count_from_a_stored_count(counting, mysql_config):
+    """MAP.424: the per-sector system count scanned every system on every request and passed the web limit; it is a stored count now, exact once made."""
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
+    rows = _placed(mysql_config)
+    assert [row["name"] for row in rows] == ["One"] and rows[0]["system_count"] == 1
+    _place_sector(mysql_config, "Two", (50.0, 5.0, 5.0))
+    assert _until(lambda: sorted(row["name"] for row in _placed(mysql_config)) == ["One", "Two"])
+    assert _until(lambda: all(row["system_count"] == 1 for row in _placed(mysql_config)))
+
+
+def test_the_sectors_list_never_scans_the_systems_inside_the_request_when_no_count_is_stored(counting, mysql_config, monkeypatch):
+    """Without a stored answer the sectors come back at once with no count (`None`), the way the table pages fall back to an estimate."""
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
+    monkeypatch.setattr(countcache, "WAIT_SECONDS", 0.0)
+    monkeypatch.setattr(countcache, "_start", lambda *a: None)
+    conn = query.open_readonly(mysql_config)
+    seen = []
+    real = conn.execute
+    conn.execute = lambda sql, params=(): seen.append(" ".join(sql.split())) or real(sql, params)
+    try:
+        rows = query.galaxy_placed_sectors(conn)
+    finally:
+        conn.close()
+    assert [row["name"] for row in rows] == ["One"] and rows[0]["system_count"] is None
+    assert not [sql for sql in seen if "COUNT(" in sql.upper()], seen        # the content stamp reads MAX(id)s, which is cheap; a scan of the systems is a COUNT
+
+
+def test_a_sectors_list_under_an_unchanged_stamp_is_not_counted_again(counting, mysql_config, monkeypatch):
+    _place_sector(mysql_config, "One", (5.0, 5.0, 5.0))
+    assert _placed(mysql_config)[0]["system_count"] == 1
+    started = []
+    real = countcache._start
+    monkeypatch.setattr(countcache, "_start", lambda *a: started.append(1) or real(*a))
+    assert _placed(mysql_config)[0]["system_count"] == 1
+    assert started == []
