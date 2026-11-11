@@ -50,7 +50,7 @@ def test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause(mysql_co
 
         with conn:
             nebula_id = _placed_nebula(conn, sector_id, (100.0, 0.0, 0.0), radius_ly=50.0)
-            conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 10 WHERE id = ?", (nebula_id,))
+            conn.execute("UPDATE nebulae SET name = 'Test Cloud', density_cm3 = 3000, temperature_k = 10 WHERE id = ?", (nebula_id,))
         detail = query.system_detail(conn, system_id)
         assert detail["inside"]["id"] == nebula_id
         assert detail["inside"]["density_cm3"] == 3000

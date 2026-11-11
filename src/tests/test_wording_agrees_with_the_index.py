@@ -179,13 +179,16 @@ def test_every_scored_body_has_both_equipment_lines_and_its_per_item_specs_in_it
             blocks = by_name[body.name]["blocks"]
             ratings = next(block for block in blocks if block["type"] == "ratings")
             gear = describe.quantity.inline_text(ratings["gear"])
-            assert gear == " ".join(line for line in equipment.lines(equipment.compute(body.habitability_world()[0])) if line)
+            # The page writes a formula as a formula (UX.149: "CO₂" in the plain text of the Document), the equipment line keeps the plain letters, so the line goes through the same step first.
+            line = " ".join(line for line in equipment.lines(equipment.compute(body.habitability_world()[0])) if line)
+            assert gear == describe.quantity.inline_text(model.chem_text(line))
             levels = equipment.compute(body.habitability_world()[0])
             table = next((block for block in blocks if block["type"] == "facts" and block["caption"] == "Survival equipment"), None)
             names = equipment.required_names(levels) + equipment.recommended_names(levels)
             if names:
                 rows = [describe.quantity.inline_text(row["value"]).lower() for row in table["rows"]]
-                assert all(any(row.startswith(name + ":") for row in rows) for name in names), (body.name, names, rows)
+                written = [describe.quantity.inline_text(model.chem_text(name)).lower() for name in names]      # the table writes "CO₂ scrubber" as the page does
+                assert all(any(row.startswith(name + ":") for row in rows) for name in written), (body.name, written, rows)
             else:
                 assert table is None
             seen += 1
