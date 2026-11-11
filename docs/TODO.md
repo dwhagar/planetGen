@@ -13140,6 +13140,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 12. Prerequisites: none. Related: GEN.1497, GEN.1498.
   Filed by the TODO thread.
 
+- [ ] **GEN.1534 A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs)**
+  Lane 21's GEN.946 triage (reports/gen946-no-data-triage-2026-11-11.md), 12:07 PM EST on 2026-11-11: SEP1 cannot be checked against HYG, which is held but incomplete and mixes wide pairs; a Gaia nearby-stars sample (distance-limited, with parallaxes and companions) would. Do: add a setup dataset fetch (small, raw data never in the repo, a licence line for Boss in DATA-LICENSE.md), read the separation distribution from it, move SEP1 from L3 to L1 or L2, update the registry and burn-down lines. Lock item if it moves draws.
+  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 21. Prerequisites: none. Related: GEN.946, GEN.725, GEN.1525.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
