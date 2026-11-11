@@ -12553,22 +12553,6 @@ clears each one.
   Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
 
-- [ ] **GEN.1318 Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers**
-  Boss, 6:36 PM EST on 2026-11-06 (relayed by the coordinator): the oxygen
-  envelope was still being fixed when the fudge cap was set, so revisit the
-  spread. Do: after GEN.1309 and GEN.1306 parts 2 and 3 are on main, rerun
-  the sensitivity harness (GEN.1311) and the no-cap minimal-fudge sweep
-  (GEN.1312), rebuild the matrix and the table (GEN.1313), re-derive the
-  widths and the cap tiers at the knees of the share-placed-versus-cap
-  curve, and report what changed against the first run (cap tiers, share of
-  bodies placed, bodies past the widest tier). The run is on a lane machine
-  with MySQL, Redis and the datasets (scripts/lane_up.sh). Lock-free until
-  the table is read (GEN.1314); if GEN.1314 is already on a train, the
-  re-derived table rides it. Version 8.1. Owner: the thread "Run fudge cap
-  simulation sweep". Filed by the TODO thread.
-  Prerequisites: GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
-  Status (TODO, 2026-11-11): GEN.1313 is built (PR 5944, Lane 23, report reports/fudge-table/fudge-table-first-build-2026-11-11.md): 31 stand-in rows measured on 471 rocky bodies with frozen-body runs, so only the constant moves; mass and gravity use the tier-scaled fallback. Scope left for this revisit (Lane 23's note): price the 53 population rows (they shift which worlds exist, not one world's width) with a run that holds the draw count or measures class-share distributions per row; 9 rows were unstable in some seed and are listed in the report.
-
 - [ ] **OPS.118 Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)**
   PR 5575 found no code that sends SIGTERM to a work horse in that sequence (only stop-all and the update guard's cancel do, and neither ran), and now names the signal. Do: on the test server look at what killed it (earlyoom or another memory guard, systemd-oomd, a manual stop; journal and kernel log around the time), and if a guard on the machine ends the horses, make the run fit (smaller chunks, fewer workers at once, or a documented guard setting in the install notes). OPS.116's error.log will carry the next one with its signal and unit. Done: the cause is named, and either fixed in the program or written into the install and update notes. Lock-free. Goal issue #5433. Version 8.1. Owner: Aux 2. Progress (PRs 5583 and 5578 merged 2026-11-07, 1:31 PM EST): the guard warning in install.sh and update.sh, the kernel and guard kill report after a failed warm-up, and the INSTALL.md Memory guards section are on main; the sender of the status 15 is still unnamed, and stays open until error.log catches the next kill with its signal and unit.
   Prerequisites: none (runs after OPS.117 merges). Related: OPS.116, PERF.235.
