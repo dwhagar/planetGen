@@ -151,13 +151,13 @@ def test_ice_weights_hold_only_the_lines_between_the_edge_and_the_place():
 
 
 def test_a_giant_gathers_its_gas_when_the_pebbles_have_built_the_critical_core_and_not_later_than_the_pebbles_end():
-    age = dd.gathering_age_myr(150.0, SUN_SNOW_LINE_AU)
-    place = dd.place_au(150.0, SUN_SNOW_LINE_AU)
+    age = dd.gathering_age_myr(500.0, SUN_SNOW_LINE_AU)
+    place = dd.place_au(500.0, SUN_SNOW_LINE_AU)
     assert dd.arrival_myr(place) < age < dd.pebble_end_myr(SUN_SNOW_LINE_AU)
-    # the pebble mass that passed the place by then is the core
+    # the pebble mass that passed the place by then is what the core needs at its accretion efficiency (GEN.1518)
     coefficient = (dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * (dd.solids_over_gas() / dd.REFERENCE_SOLIDS_OVER_GAS) ** dd.PEBBLE_FLUX_Z_EXPONENT * dd.MYR_YR * 1.5)
     built = coefficient * (age ** (2.0 / 3.0) - dd.arrival_myr(place) ** (2.0 / 3.0))
-    assert built == pytest.approx(dd.CRITICAL_CORE_EARTH, rel=1e-6)
+    assert built == pytest.approx(dd.pebble_mass_for_core(place, dd.CRITICAL_CORE_EARTH), rel=1e-6)
 
 
 def test_a_core_the_pebbles_cannot_build_gathers_gas_as_the_pebbles_end_and_sees_no_pebbles():
@@ -228,3 +228,23 @@ def test_a_giant_whose_gas_holds_no_argon_still_makes_a_mixture():
     assert budget["Ar"] == 0.0 and budget["H"] > 0.0
     result = gas_equilibrium.solve({symbol: value for symbol, value in budget.items() if value > 0.0}, 800.0, 1.0)
     assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
+
+
+def test_the_pebble_mass_a_core_needs_follows_the_accretion_efficiency_of_a_growing_core():
+    # GEN.1518, [R5211: Eq. 33]: dMc = f dM_pebbles with f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2), capped at 1; integrate it step by step and compare
+    for place in (0.3, 1.0, 5.0, 10.0, 30.0):
+        mass, pebbles, step = dd.CORE_SEED_EARTH, 0.0, 0.01
+        while mass < dd.CRITICAL_CORE_EARTH:
+            share = min(dd.CORE_EFFICIENCY_AT_REFERENCE * mass ** (2.0 / 3.0) * (place / dd.CORE_EFFICIENCY_AU) ** -0.5, 1.0)
+            pebbles += step
+            mass += share * step
+        assert dd.pebble_mass_for_core(place, dd.CRITICAL_CORE_EARTH) == pytest.approx(pebbles, rel=0.03), place
+
+
+def test_a_core_farther_out_needs_more_pebbles_and_a_larger_core_needs_more():
+    needs = [dd.pebble_mass_for_core(place, 15.0) for place in (0.3, 1.0, 5.0, 30.0)]
+    assert needs == sorted(needs) and needs[0] < needs[-1]
+    assert dd.pebble_mass_for_core(5.0, 10.0) < dd.pebble_mass_for_core(5.0, 15.0) < dd.pebble_mass_for_core(5.0, 20.0)
+    assert dd.pebble_mass_for_core(5.0, 15.0) > dd.CRITICAL_CORE_EARTH             # the efficiency is below 1: more pebbles pass than the core keeps
+    with pytest.raises(ValueError):
+        dd.pebble_mass_for_core(5.0, 1e-4)

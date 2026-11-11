@@ -88,6 +88,17 @@ CRITICAL_CORE_EARTH = 15.0
 """float: The core mass at which a giant starts to gather gas, Earth masses (the critical core, 10 to 20), the mass the pebbles must build before the gas is gathered. My derivation to avoid a new
 draw. [Stand-in DE9, tier T6, tweak L0.]"""
 
+CORE_EFFICIENCY_AT_REFERENCE = 0.034
+"""float: The share of the pebbles that drift past a core that it accretes, for a core of 1 Earth mass at 10 AU in pebbles of Stokes number 0.1: `f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)`
+([R5211: Eq. 33], the Hill-sphere accretion of Eq. 28; capped at 1). [Stand-in DE12, tier T1, tweak L0.]"""
+
+CORE_EFFICIENCY_AU = 10.0
+"""float: The distance the efficiency `CORE_EFFICIENCY_AT_REFERENCE` is given at, AU ([R5211: Eq. 33]). [Stand-in DE12, tier T1, tweak L0.]"""
+
+CORE_SEED_EARTH = 1.0e-3
+"""float: The mass of the seed core pebble accretion grows from, Earth masses ([R5211] section 3.3: a seed of 10^-3 Earth masses). Its third root is small against the critical core's, so the age hardly
+depends on it. [Stand-in DE12, tier T1, tweak L0.]"""
+
 INTEGRATION_INTERVALS = 32
 """int: The intervals of the Simpson rule that averages the ratio over a lag window (in the age to the 2/3, where the ratio is smooth)."""
 
@@ -264,7 +275,7 @@ def ice_weights(temperature_k, age_myr, snow_line_au, mass_solar=1.0, metal_rati
 def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):
     """
     The age at which a giant that formed where the disk was at `temperature_k` gathers its gas, Myr (DE9): when the pebbles that pass its place have built `CRITICAL_CORE_EARTH`
-    from the front's arrival there, capped at the disk's lifetime (`scatter.DISK_LIFETIME_YR`) and at the end of the pebbles (a core the pebbles cannot build in time gathers
+    from the front's arrival there at the efficiency of `pebble_mass_for_core`, capped at the disk's lifetime (`scatter.DISK_LIFETIME_YR`) and at the end of the pebbles (a core the pebbles cannot build in time gathers
     its gas as the pebbles end and sees the pebble-depleted gas).
     """
     place = place_au(temperature_k, snow_line_au)
@@ -277,9 +288,26 @@ def gathering_age_myr(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1
     # mass(t) = K x (t^(2/3) - t0^(2/3)) with the flux K' t^(-1/3): the integral of t^(-1/3) is 1.5 t^(2/3)
     coefficient = (PEBBLE_FLUX_EARTH_MASSES_PER_YR * (z / REFERENCE_SOLIDS_OVER_GAS) ** PEBBLE_FLUX_Z_EXPONENT * disk_mass_scale(mass_solar) * MYR_YR
                    / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
-    needed = CRITICAL_CORE_EARTH / coefficient + arrived ** (PEBBLE_FLUX_AGE_EXPONENT + 1.0)
+    needed = pebble_mass_for_core(place, CRITICAL_CORE_EARTH) / coefficient + arrived ** (PEBBLE_FLUX_AGE_EXPONENT + 1.0)
     age = needed ** (1.0 / (PEBBLE_FLUX_AGE_EXPONENT + 1.0))
     return min(age, cap)
+
+
+def pebble_mass_for_core(place_au_value, core_earth):
+    """
+    The pebble mass that must drift past a core at `place_au_value` AU for it to grow from its seed (`CORE_SEED_EARTH`) to `core_earth` Earth masses, Earth masses (DE12): the core accretes
+    the share `f = CORE_EFFICIENCY_AT_REFERENCE (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)` of the pebbles that pass ([R5211: Eq. 33]), so `d(Mc^(1/3)) = (f_0 / 3) (r / 10 AU)^(-1/2) dM_pebbles`
+    and `Mc^(1/3)` grows linearly with the pebble mass until `f` reaches 1 (close in, small core), after which every pebble that passes is accreted.
+    """
+    if not place_au_value > 0.0 or not core_earth > CORE_SEED_EARTH:
+        raise ValueError("the place must be positive and the core larger than its seed")
+    slope = CORE_EFFICIENCY_AT_REFERENCE / 3.0 * (place_au_value / CORE_EFFICIENCY_AU) ** -0.5
+    full = (1.0 / (CORE_EFFICIENCY_AT_REFERENCE * (place_au_value / CORE_EFFICIENCY_AU) ** -0.5)) ** 1.5          # the core mass at which f = 1
+    if core_earth <= full:
+        return (core_earth ** (1.0 / 3.0) - CORE_SEED_EARTH ** (1.0 / 3.0)) / slope
+    start = max(full, CORE_SEED_EARTH)
+    below = (start ** (1.0 / 3.0) - CORE_SEED_EARTH ** (1.0 / 3.0)) / slope if start > CORE_SEED_EARTH else 0.0
+    return below + core_earth - start
 
 
 def giant_ice_weights(temperature_k, snow_line_au, mass_solar=1.0, metal_ratio=1.0):

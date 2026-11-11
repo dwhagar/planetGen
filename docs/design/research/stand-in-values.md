@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1548 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1549 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,14 +40,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1522 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1523 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 184 | 20 | 11 | 1 | 0 | 216 |
+| T1 | 185 | 20 | 11 | 1 | 0 | 217 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 79 | 11 | 4 | 22 | 12 | 128 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 879 | 302 | 75 | 240 | 52 | 1548 |
+| All | 880 | 302 | 75 | 240 | 52 | 1549 |
 
 ## How the labels were given
 
@@ -2602,9 +2602,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE6 | T | T6 | L0 | disk_drift.COLD_FINGER_LEAK 0.9 (reported by `cold_finger_enrichment`, read by nothing yet): the share of the vapor that goes back out and freezes just outside the line; the ice there is enriched by 1/(1 - leak) and the net flux inward is unchanged | 0.35 to 0.95 | the water line, other lines when asked | a measured ice-to-rock ratio just outside a snow line | a diffusion model of the line | [R5209] abstract read: local vapor enhanced by more than an order of magnitude under nominal conditions, solids enhanced outside the front; the band width (a gas scale height) is mine | predicted only | - | - |
 | DE7 | D | T5 | L0 | disk_drift.arrival_myr: a species is carried only by pebbles that began beyond its line, so its flux starts when the front reaches the line (t_L) | none | all ices | none: it follows from the front | none | geometry of the front, section 2.1 of the note | predicted only | - | - |
 | DE8 | D | T5 | L0 | disk_drift.ice_weights and `disk_condensation._gas_and_solid_atoms(ice_weights=)`: the gas supply is the static gas at the disc's edge; each ice between the edge and the place is added with the weight E | none | all discs | E = 1 not reproducing the static gas (the build's test) | none | `disk_condensation._gas_and_solid_atoms`, E = 1 recovers GEN.1363 | predicted only | - | - |
-| DE9 | P | T6 | L0 | disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
+| DE9 | P | T6 | L0 | disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches what the critical core (CRITICAL_CORE_EARTH) needs at the accretion efficiency of DE12 (`pebble_mass_for_core`), capped at the disc's lifetime (`scatter.DISK_LIFETIME_YR`); no new draw | core mass 10 to 20 Earth masses | giants with a disc | a giant whose age of gas gathering is measured or modelled otherwise | a formation-history model per giant | my derivation to avoid a draw; speculative | predicted only | - | - |
 | DE10 | P | T6 | L0 | disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
 | DE11 | D | T5 | L0 | disk_drift.enrichment_ratio: gas at the place that has not crossed a line yet (the age under `lag_myr` from the line to the place) has `E = 1`, the static budget: it is the disc's own gas of the start, which holds every vapor inside its line. Past the lag the gas crossed the line at `age - lag` and the lagged ratio of DE5 applies (a step from 1 to the ratio at the lag, as a gas without diffusion has) | none | gas gathered before the vapor of a line could reach its place | a measured volatile-poor or noble-gas-poor envelope of a giant that gathered its gas early | a transport model with diffusion of the vapor against the gas flow | physics: advection of the start state; the design note of GEN.1472 started the gas at the edge's composition, which is the cold, ice-free supply, and GEN.1517 corrects it | predicted only | - | - |
+| DE12 | T | T1 | L0 | disk_drift.CORE_EFFICIENCY_AT_REFERENCE 0.034, CORE_EFFICIENCY_AU 10, CORE_SEED_EARTH 1e-3: a core accretes the share f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2) of the pebbles that pass it (capped at 1), pebbles of Stokes number 0.1, from a seed of 1e-3 Earth masses | Stokes number 0.01 to 0.1 changes the prefactor by (tau / 0.1)^(-1/3) | pebble-accreting cores of 0.001 to 20 Earth masses between 0.3 and 50 AU | a core-growth model with a different efficiency law, or a measured core mass at a known age | a full pebble-accretion model with a core in the flux of other cores | Eq. 33 and section 3.3 of [R5211], read in full text (the formula and the seed verbatim); the paper's own 15 to 20 percent end-to-end conversion is of the same size as this law at the critical core | predicted only | - | - |
 
 ## 6.243 Stand-ins of the spacing of orbits against every neighbour
 
