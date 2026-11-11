@@ -32,7 +32,7 @@ _EARTH_KG = constants.EARTH_MASS_TO_KG
 _MAX_TERRESTRIAL_EARTH = 20.0
 
 
-def draw_formation(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None):
+def draw_formation(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None, gas_factor=1.0):
     """
     The kind, mass and origin of the planet formed at `distance_au`. Draws exactly what `planet_mass.planet_mass` draws,
     so the same stream gives the same planet.
@@ -44,11 +44,12 @@ def draw_formation(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_rati
         fe_h (float): The star's [Fe/H] in dex.
         metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disk's solids scale with it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
+        gas_factor (float): The factor on the chance a core finds gas (`disk_truncation.gas_survival_factor`, GEN.1475).
 
     Returns:
         Formation: The kind, mass, core, runaway flag and origin.
     """
-    mass = planet_mass.planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h, metal_ratio, stream)
+    mass = planet_mass.planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h, metal_ratio, stream, gas_factor)
     beyond = distance_au >= snow_line_au
     critical = tuning.GIANT_CORE_CRITICAL_MASS_EARTH * _EARTH_KG
     giant = mass.runaway or mass.mass_kg > _MAX_TERRESTRIAL_EARTH * _EARTH_KG or (beyond and mass.core_kg >= critical)

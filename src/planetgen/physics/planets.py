@@ -24,7 +24,7 @@ import math
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
-from planetgen.physics import eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
+from planetgen.physics import disk_truncation, eclipses, isotope_record, ore_deposits, radiation_field, sky_suns
 from planetgen import tuning
 from planetgen.generation import irregular_moons
 from planetgen.util import draw
@@ -232,7 +232,8 @@ def generate_planet_properties(planet, zone_override=None):
         kind = planet_kind.kind_of_given(planet.mass if mass_given else None, planet.radius if radius_given else None, beyond)
     else:
         formation = planet_kind.draw_formation(planet.distance, planet.star.mass, planet.star.snow_line_au,
-                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star))
+                                               _star_fe_h(planet.star), bulk_draw.metal_ratio_to_solar(planet.star),
+                                               gas_factor=disk_truncation.gas_survival_factor(planet.star))
         kind = formation.kind
         planet.mass = max(formation.mass_kg, tuning.PLANET_MIN_MASS_KG)
         mass_given = True
@@ -328,6 +329,21 @@ def age_moved(body):
     return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
 
 
+def orbit_moved(body):
+    """Whether the eccentricity the body's light goes by (a moon's host's) has moved by more than `ECCENTRICITY_SETTLE_TOLERANCE` since its air was made (GEN.1402): `settle_orbit` wore the
+    orbit down after the air was drawn, so the air, temperature, dose and tide's heat were made on another orbit. A body with no air made on an orbit is not moved."""
+    made_on = getattr(body, "_air_eccentricity", None)
+    if made_on is None:
+        return False
+    now = body.host_eccentricity if body.is_moon else body.eccentricity
+    return abs(float(now) - made_on) > ECCENTRICITY_SETTLE_TOLERANCE
+
+
+def needs_remake(body):
+    """Whether a rocky body's end stages are to be made again: the star's age rose past `AGE_SETTLE_TOLERANCE` (`age_moved`) or the orbit settled past `ECCENTRICITY_SETTLE_TOLERANCE` (`orbit_moved`)."""
+    return age_moved(body) or orbit_moved(body)
+
+
 def remake_end_stages(body, planet):
     """
     Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
@@ -353,7 +369,7 @@ def refinish_rocky(planet):
     habitability score; `generate_spin`), the same sequence a moved planet gets (`validation.reconcile_moved_planet`), but from a stream of
     the body's own (mass, distance, star and the age it settles to), so the run's stream does not move. A body keeps its mass, radius,
     composition and orbit. The forced requests are judged on the classes this makes (`StarSystem`), and the moons' induced fields, rings and
-    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at is left.
+    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at, and whose eccentricity moved by no more than `ECCENTRICITY_SETTLE_TOLERANCE` since its air was made, is left (GEN.1402).
 
     Args:
         planet (Planet): A rocky planet (`body_type` "t", not a moon) with its moons; a giant's moons are made again too.
@@ -362,7 +378,8 @@ def refinish_rocky(planet):
         int: How many bodies were made again (the planet and its moons).
     """
     made = 0
-    with_planet = planet.body_type == "t" and not planet.is_moon and age_moved(planet)
+    # a rocky planet on a moved age or orbit; a giant only on a moved orbit (its temperature reads the light of the orbit, GEN.1402; its age does not move its end stages)
+    with_planet = not planet.is_moon and ((planet.body_type == "t" and needs_remake(planet)) or (planet.body_type == "g" and orbit_moved(planet)))
 
     def bodies():
         if with_planet:
@@ -370,7 +387,7 @@ def refinish_rocky(planet):
         yield from list(planet.moons)      # read after the planet is made again: its moons' history (GEN.959) can replace a moon with a new body
 
     for body in bodies():
-        if not age_moved(body):
+        if not needs_remake(body):
             continue
         remake_end_stages(body, planet)
         body._age_drawn = body.star.age
@@ -630,6 +647,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
     # GEN.727: the light of an eccentric orbit, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4)
     distance = orbit_elements.flux_distance_au(distance, planet.host_eccentricity if planet.is_moon else planet.eccentricity)
+    planet._air_eccentricity = float(planet.host_eccentricity if planet.is_moon else planet.eccentricity)      # kept, not stored: the orbit this air was made on (`orbit_moved`, GEN.1402)
     planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
     planet.light_factor = eclipses.light_factor_of(planet)       # GEN.1484: the share of its light a circumbinary planet keeps after its two stars eclipse each other; None for every other body
     solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * (planet.light_factor or 1.0)     # GEN.1441: the host's light and every other star's, by position
