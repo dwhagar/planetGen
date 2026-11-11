@@ -13614,6 +13614,11 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1514. Related: GEN.1473, GEN.1514, GEN.1516, GEN.1517, GEN.1518.
   Filed by the TODO thread.
 
+- [ ] **GEN.1521 Chain-aware spacing test for tight chains of small planets (N-body screen follow-up)**
+  Lane 04's GEN.1468 report (reports/gen1468-nbody-screens-2026-11-09.md): the Hill-radius screen holds (247 of 251 runs stable; the control at 0.6 spacing finds instability in 22 percent of finished runs) and Laplace-Lagrange agrees (median ratio 1.00), but 3 tight chains of 4 or more small M-dwarf planets at the 10-radii floor still scatter. Do: add a chain-aware spacing test (the pairwise screen is not enough for chains of 4 or more), report how many drawn seeds change, and register any stand-in in GEN.725. Changes what seeds draw, so a lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 14, lock item for a train. Related: GEN.1468.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
