@@ -495,6 +495,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1519 | Provenance of the planetesimals a giant accretes (where they formed), so noble gases reach the envelope through solids that froze them | GEN.1514 | Lane 14, 2026-11-11. |
 | GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | Lane 14, 2026-11-11. |
 | GEN.1521 | Chain-aware spacing test for tight chains of small planets (N-body screen follow-up) | GEN.1468 | Lane 04 report, 2026-11-11. |
+| GEN.1522 | (bug) A giant next to a very hot star (27,560 K quoted air) crashes the build: the gas table ends at 20,000 K | none | Lane 04, 2026-11-11. |
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
 | OPS.133 | scripts/train.py stamps each train epoch with the union of the stages its items declared, plus a fifth stage 'derived' for refills, and takes the epoch out of the map node-cache key (audit C7) |  | Generation rescan audit, 2026-11-09. |
 | OPS.134 | Heartbeat part 1: the sky unit reports real progress and gets its own expected time (the bug behind the 11-08 full-galaxy failure) | none | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
