@@ -8722,6 +8722,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.944.
 
 - [ ] **GEN.993 Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12**
+  Owner changed (TODO, 2026-11-11): Lane 21 (took it from the open list, 9:20 AM EST).
   Found by GEN.777 (Sources 1, as the lane reported 10:35 PM EDT
   2026-10-29): the Mars check says the core's light-element total needs
   a wider range (0.02 to 0.25, 0.25 dex) than the uniform 0.03 to 0.12
@@ -9059,18 +9060,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.275; separate branch). Version 8.1.
   Prerequisites: GEN.1036. Related: GEN.732, MAP.275.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1058 Wire the G1 giant-impact tilt and the ring plane following the equator**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 9 (with the
-  W5, W3, W4 wiring). Done: tests, harness, census. Owner: Lane 14.
-  Version 8.1.
-  Prerequisites: GEN.1047. Related: GEN.1033.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-  Owner change (TODO) (2026-11-06 6:05 PM EST, efficiency hand-off, awaiting the lane's word): Lane 11 takes it: the oddity wiring chain as one stacked PR (modules by Lane 21, Aux 7, Lane 14 and Aux 3 are in the repo), then TEST.492 once.
 
 - [ ] **GEN.1068 Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py)**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
@@ -9836,26 +9825,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   part now reads the stored columns, so it waits for GEN.1276 and
   GEN.1277.
   Prerequisites: GEN.1269. Related: GEN.1269, GEN.1276, GEN.1277.
-
-- [ ] **GEN.1283 The habitability re-score gives a different first-band day length than generation stored (14.21 against 13.60 hours on a 'wide' system) (bug)**
-  Lane 11 (as the lane reported, about 5:16 PM EST on 2026-11-05, while
-  fixing PERF.228) found two tests in tests/test_habitability_fill.py
-  red on plain main:
-  test_a_system_comes_back_with_the_numbers_generation_stored and
-  test_the_command_re_scores_every_system_and_a_second_run_changes_nothing.
-  The re-score of a 'wide' system, planet 1, gives band1_day_hours 14.21
-  where generation stored 13.60. A re-score must reproduce what
-  generation stored, or a second run changes the galaxy. Do: find which
-  input differs between the generation pass and the re-score (the same
-  class of cause as the day_share_mean fix in values_from_body in
-  GEN.1265: a value generation read from the live body that the re-score
-  reads from the stored row, or the reverse), fix the side that is
-  wrong, and check every band number, not only the day length. Done:
-  both tests pass and a re-score of a generated galaxy changes no stored
-  number. A fix that changes generated numbers is a lock item (epoch).
-  Version 8.1. Owner: Lane 11. Filed by the TODO thread.
-  Prerequisites: none. Related: GEN.1265, PERF.228.
-  Folded in (2026-11-07, Boss approved the TODO plan): TEST.591 test_number_guard (Oxford comma wording) and test_habitability_fill (life_microbial of a rescore differs from generation) are red on plain main (bug). Its Done line: both pass on plain main under the narrow gate.
 
 - [ ] **GEN.1292 The central molecular zone as a gas ring in the dust model: the ring of galaxy.core_gas (GEN.282) adds its extinction toward the galactic centre (later)**
   Boss (5:46 PM EST on 2026-11-05) approved the realistic-dust
@@ -12955,15 +12924,6 @@ clears each one.
   Prerequisites: GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
   Status (TODO, 2026-11-11): GEN.1313 is built (PR 5944, Lane 23, report reports/fudge-table/fudge-table-first-build-2026-11-11.md): 31 stand-in rows measured on 471 rocky bodies with frozen-body runs, so only the constant moves; mass and gravity use the tier-scaled fallback. Scope left for this revisit (Lane 23's note): price the 53 population rows (they shift which worlds exist, not one world's width) with a run that holds the draw count or measures class-share distributions per row; 9 rows were unstable in some seed and are listed in the report.
 
-- [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
-  REWORKED: a request for class E is no longer snapped into the ecosphere once GEN.1397 removes the life list (an E request is a deep-frozen world); PR 5640 keeps its behaviour for the other classes, and GEN.1397 owns the E change.
-  Lane 14 (as the lane reported 2:48 AM EST on 2026-11-07), from TEST.665: a request for a class (the forced-class draw behind `test_a_forced_rare_class_is_in_the_system`) finds P and G in about 1 of 24 forced systems on main even with three times the attempts, and with the GEN.1323 envelope step on its branch [G] fails in seeds 1 to 24. V was the same until GEN.1323 added a late-forming bare-core draw for it (V now 12 of 40 seeds, was 24). The test was not loosened. Do: find why a forced G and a forced P are rarely reachable (the physics gate that stops them, or the draw that never aims at them), then give each a physically honest route as V got (a late-forming or special-history draw, never a fixed body), or say in the commit that a class is unreachable by physics and change the request to say so. Boss decides if a class that physics makes this rare should still be requestable (the options go to him from the TODO thread when the finding is in). Done: a forced request for each class that physics allows is met in at least 18 of 24 seeds, or the test names the classes it exempts with the reason. Lock item (changes the drawn bodies for forced requests only; epoch note). Version 8.1. Owner: Lane 14 (after GEN.1323 and GEN.1331). Built as PR 5640 (Lane 14, 9:08 PM EST on 2026-11-07), held for train 17 to land. Boss, 9:25 PM EST on 2026-11-07 (answer 1): the rare classes (P, and M, H, O, R behind it) stay requestable and a request reports unmet when the draw cannot make one; nothing is forced. Filed by the TODO thread.
-  Prerequisites: GEN.1323. Related: TEST.665, GEN.1323, GEN.1306.
-
-- [ ] **GEN.1343 Super-puff planets (W15): an envelope-bearing sub-Neptune branch through the air solver, class and radius, so the super_puff module has a body to inflate**
-  Lane 11 (as the lane reported 10:34 AM EST on 2026-11-07), split out of GEN.1048: the super_puff module exists (radius, fade and gate) but the generator has no sub-Neptune with a primordial envelope to inflate. Giants start at 10 Earth masses (0 of 17 sampled giants were under 10), and a rocky planet's radius comes from its solids while its stored envelope share is rewritten from the solved air. Do: add an envelope-bearing terrestrial branch (low-mass, low-density, hydrogen and helium envelope kept) through the air solver, class and radius steps by physics, then wire the super_puff radius, fade and gate onto it, with the rate confirmed from the research and any stand-in registered in GEN.725 with tier and tweak level. Done: a census shows super-puffs at the researched rate, the radius valley test still passes, the wiring-register line for W15 is retired, and tests cover the branch. Lock item (epoch). Goal issue #4117. Version 8.1. Owner: Lane 21 (the lane is free), after GEN.1323 is on main (GEN.1323 already gives rocky planets of 1 to 20 Earth masses a start envelope; the heavier start, low density, young age and tidal inflation are what is missing). Filed by the TODO thread.
-  Prerequisites: none (runs after GEN.1323 merges; it does not need GEN.1047). Related: GEN.1048, GEN.1323, TEST.676.
-
 - [ ] **OPS.118 Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)**
   PR 5575 found no code that sends SIGTERM to a work horse in that sequence (only stop-all and the update guard's cancel do, and neither ran), and now names the signal. Do: on the test server look at what killed it (earlyoom or another memory guard, systemd-oomd, a manual stop; journal and kernel log around the time), and if a guard on the machine ends the horses, make the run fit (smaller chunks, fewer workers at once, or a documented guard setting in the install notes). OPS.116's error.log will carry the next one with its signal and unit. Done: the cause is named, and either fixed in the program or written into the install and update notes. Lock-free. Goal issue #5433. Version 8.1. Owner: Aux 2. Progress (PRs 5583 and 5578 merged 2026-11-07, 1:31 PM EST): the guard warning in install.sh and update.sh, the kernel and guard kill report after a failed warm-up, and the INSTALL.md Memory guards section are on main; the sender of the status 15 is still unnamed, and stays open until error.log catches the next kill with its signal and unit.
   Prerequisites: none (runs after OPS.117 merges). Related: OPS.116, PERF.235.
@@ -13307,6 +13267,7 @@ clears each one.
   Filed by the TODO thread.
 
 - [ ] **GEN.1475 Disk lifetime of close companions: a companion within a few tens of AU shortens the planet-forming disk, which would change planet counts (needs a source first)**
+  Owner changed (TODO, 2026-11-11): Lane 15 (built on claude/lane15-gen1475; Lane 21 dropped its copy).
   Found by Lane 21 in the GEN.1469 read (reports/gen1469-companion-disk-truncation-read-2026-11-09.md): the disk is already cut at the companion by the stability limit, so a separate truncation radius changes nothing, but the disk's lifetime near a close companion is not modelled (observed disks around close binaries disperse sooner), and it would change planet counts. Do: find a published relation for the disk lifetime against companion separation (second-hand sources accepted by Boss's rule; stand-ins registered in GEN.725 with tier and tweak level), then shorten the disk lifetime used for the oligarch chain and the giant formation window accordingly; a generator change, so a new epoch with --affects; scripts/test.py changed --resume. Reuse the ledger's a_crit_au and the disc lifetime already drawn; no second draw.
   Version 8.1. Owner (TODO, proposed Lane 21, confirm with TODO before taking): waits for a source; then a lock item. Prerequisites: none. Related: GEN.1469, GEN.1463, GEN.1447, GEN.725.
   Filed by the TODO thread.
@@ -13717,6 +13678,7 @@ clears each one.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
 
 - [ ] **GEN.1404 Land fraction against the water inventory: read the Cowan and Abbot mantle-water land fraction paper and the mantle water cap work, and report whether the model's 95 to 100 percent ocean cover for most sea worlds is what the physics gives**
+  Owner changed (TODO, 2026-11-11): Lane 21 (took it from the open list, 9:20 AM EST).
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 5. Only 3 of 59 sea worlds sit in class M's 20 to 80 percent cover band, because the mantle water cap (MANTLE_CAP_OCEANS, 2 to 8 oceans), the relief scale 1/g and the delivered water (Bern) put most sea worlds at global ocean (GEN.1339 measured it and made no change). The Cowan and Abbot paper argues that mantle hydration and degassing can keep land above water for a wide range of inventories; the sources read so far (Raymond and Kite and Ford, as the report cites them) favour a deep-water median. Do: obtain the Cowan and Abbot paper (second-hand if Boss cannot supply the paper), read what land fraction a given water inventory leaves, compare with the generated ocean-cover distribution, and report. Per Boss's rule, physics found in research wins: if the source shows the cap or the relief scale is off, file the retuning as its own lock item; do not retune to hit an answer. Research and report, no code change.
   Boss, 3:25 PM EST on 2026-11-08: lever 5 waits until the lane has read its source; no retuning before the report.
   Version 8.1. Prerequisites: none. Related: GEN.1339, GEN.1309.
