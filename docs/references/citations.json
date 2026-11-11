@@ -26118,6 +26118,11 @@
     },
     "R5227": {
       "kind": "paper",
+      "label": "Laskar et al. 1993",
+      "title": "Stabilization of the Earth's obliquity by the Moon"
+    },
+    "R5228": {
+      "kind": "paper",
       "label": "Pu (濮勃南) and Wu (武延庆) 2015a",
       "title": "SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY"
     }

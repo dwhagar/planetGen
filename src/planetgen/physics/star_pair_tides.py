@@ -19,7 +19,7 @@ Everything here is pure: it reads a star's mass, radius, temperature, class and 
 to the stars of a pair (a hierarchy is taken a pair node at a time, each star against the mass of the other side) and notes the precession in the effect ledger (effect 6).
 The orbit is held as it is today (the period and eccentricity cuts of GEN.1011), so no stored orbit moves; the circular cut below 7 days stays (`multistar.CIRCULAR_BELOW_DAYS`).
 
-Stand-ins are KT1 to KT8 of `docs/design/research/gap-filling-plan.md` section 6.272: the radius of gyration (KT1), the convective envelope share by mass (KT2), the convective and
+Stand-ins are KT1 to KT8 of `docs/design/research/gap-filling-plan.md` section 6.273: the radius of gyration (KT1), the convective envelope share by mass (KT2), the convective and
 radiative choice (KT3), the first-order relaxation over the whole age with the orbit held and the breakup cap (KT4), the white dwarf, neutron star and black hole exclusions (KT5), the
 alignment time (KT6), the apsidal constants by kind (KT7), and the pair-by-pair reading of a hierarchy with no third-body term (KT8).
 """
