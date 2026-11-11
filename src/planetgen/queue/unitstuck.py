@@ -12,7 +12,7 @@ still for far longer than this command has ever stood still (`beatjudge`: dead a
 4. **failed, the second time**: a unit that is stuck again on its second attempt fails the run, with both stacks in the message.
 
 A unit whose counter moves is never here, at any size over its estimate: `beatjudge` only calls dead and quiet actionable. Every stop or failure sets the run's killed flag
-(`runrecord.mark_killed`, OPS.144) with the reason. What was done to each unit is kept in `runrecord.stuck_key` (one JSON field to a unit), so a follower that is restarted
+(`runrecord.mark_killed`, OPS.144; `finish_run(killed=True)` for the failure) with the reason. What was done to each unit is kept in `runrecord.stuck_key` (one JSON field to a unit), so a follower that is restarted
 neither forgets a stop it began nor stops the same unit twice. The unit's time limit is only the backstop (`units.unit_timeout`, 6 hours).
 """
 
@@ -145,7 +145,7 @@ class Stuck:
             self._fail(unit, reason, record.get("dump", ""), stack, now)
             return
         self.conn.hset(self.key, unit, json.dumps({"attempts": 1, "phase": "stopping", "at": now, "reason": reason, "dump": stack}))
-        runrecord.mark_killed(self.conn, self.run_id, "heartbeat", reason)
+        runrecord.mark_killed(self.conn, self.run_id, reason)
         runrecord.log(self.conn, self.run_id, f"{reason}; its stack is below, it is being stopped and will be queued again once\n{stack}", "warning", "unit-stuck",
                       stage=self.stage, unit=unit)
         self._to_error_log(f"run {self.run_id} stage {self.stage}: {reason}; stopped, to be queued again once\n{stack}", unit)
@@ -172,9 +172,10 @@ class Stuck:
     def _fail(self, unit, reason, first, second, now):
         from planetgen.queue import wrapper         # the wrapper queues units, so it imports this file
         name = wrapper.stage_name(self.conn, self.run_id, self.stage)
-        runrecord.mark_killed(self.conn, self.run_id, "heartbeat", reason)
+        runrecord.mark_killed(self.conn, self.run_id, reason)
         shown = (f"\nfirst time:\n{first[:MESSAGE_STACK_CHARS]}" if first else "") + (f"\nthis time:\n{second[:MESSAGE_STACK_CHARS]}" if second else "")
-        runrecord.finish_run(self.conn, self.run_id, "failed", error=f"unit {unit} of stage {name} was stuck twice and the run stops: {reason}{shown}", now=now)
+        runrecord.finish_run(self.conn, self.run_id, "failed", error=f"unit {unit} of stage {name} was stuck twice and the run stops: {reason}{shown}", now=now,
+                             killed=True)
         self._to_error_log(f"run {self.run_id}: unit {unit} of stage {name} was stuck twice; {reason}{shown}", unit)
 
     # --- RQ ---------------------------------------------------------------------------------------------------

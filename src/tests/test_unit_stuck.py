@@ -61,7 +61,7 @@ def test_a_stuck_unit_is_dumped_and_stopped_and_the_run_notes_it(conn, run_id):
     record = action.records()[1]
     assert record["phase"] == "stopping" and record["attempts"] == 1 and record["dump"] == "STACK"
     run = conn.hgetall(runrecord.run_key(run_id))
-    assert run[b"killed"] == b"1" and run[b"killed_by"] == b"heartbeat" and b"quiet" in run[b"killed_reason"]
+    assert run[b"killed"] == b"1" and b"quiet" in run[b"killed_reason"]
     assert runrecord.read_run(conn, run_id)["state"] == "running" and errors and "STACK" in errors[0]
     action.step([1], {1: _quiet()})
     assert stopped == [units.job_id(run_id, 0, 1)], "a stop under way is not repeated"
@@ -101,7 +101,7 @@ def test_a_unit_stuck_on_its_second_attempt_fails_the_run_with_both_stacks(conn,
     second.step([1], {1: _quiet()})
     run = runrecord.read_run(conn, run_id)
     assert run["state"] == "failed" and "stuck twice" in run["error"] and "FIRST" in run["error"] and "SECOND" in run["error"]
-    assert conn.hget(runrecord.run_key(run_id), "killed_by") == b"heartbeat" and any("SECOND" in line for line in errors)
+    assert run["killed"] and any("SECOND" in line for line in errors)
 
 
 def test_a_stop_that_does_not_take_effect_fails_the_run(conn, run_id, monkeypatch):

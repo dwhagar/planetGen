@@ -666,18 +666,6 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
     return True
 
 
-def mark_killed(conn, run_id, by, reason, now=None):
-    """
-    Notes on the run record that the run was ended without finishing (OPS.144): `killed` ("1"), `killed_by` (a short name: `heartbeat`, `stop-all`, `admin`, `memory`, `process`),
-    `killed_at` and `killed_reason`, so the admin page knows to offer a resume. Every path that stops or fails a run for a reason other than its own work calls this; the heartbeat
-    action (OPS.140) is one. Does nothing for a run that is unknown.
-    """
-    if not conn.exists(run_key(run_id)):
-        return False
-    conn.hset(run_key(run_id), mapping={"killed": "1", "killed_by": by, "killed_at": _now(now), "killed_reason": reason})
-    return True
-
-
 def _log_unrun_dependents(conn, run_id, state, now):
     """PERF.247: a stage that requires (`queue.commands.REQUIRES`) a stage the run did not finish is written to the log as not run, with
     the stage it waited for, so a failed or canceled run says what it left undone and why."""
