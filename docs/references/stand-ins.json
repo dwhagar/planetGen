@@ -42565,7 +42565,7 @@
           "fields": [
             [
               "What it is",
-              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+              "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (cosmic_dust.influx_per_area_kg_m2_yr at least dust_min_share_of_reference of Venus's, CV11 to CV14; GEN.1542)"
             ],
             [
               "The range it moves in",
@@ -42581,7 +42581,7 @@
             ],
             [
               "What replaces it",
-              "a per-planet dust influx and a second paper"
+              "a second paper"
             ],
             [
               "Evidence",
@@ -42596,7 +42596,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default and closed without a dust supply (the generator tracks dust per system, not per planet, so carbon_dust is the caller's)"
+          "what": "V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (cosmic_dust.influx_per_area_kg_m2_yr at least dust_min_share_of_reference of Venus's, CV11 to CV14; GEN.1542)"
         },
         {
           "burn_down": null,
@@ -42677,6 +42677,158 @@
           "tweak": "L3",
           "unread": null,
           "what": "V10: the unidentified ultraviolet absorber as a Gaussian band, centre absorber_center_um 0.34 and full width absorber_fwhm_um 0.14 micron, peak absorber_depth_per_cloud_depth 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to absorber_so2_reference_share 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored aerosol_draw (a normal deviate held to two sigma either way, sulfur_cloud_set.absorber_band; the two-sigma limit is a numerical choice)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cosmic_dust.EARTH_INFLUX_KG_YR 1e7 kg a year (28 tonnes a day), the cosmic dust that reaches the Earth, the anchor of the influx on any body"
+            ],
+            [
+              "The range it moves in",
+              "5 to 300 tonnes a day by method"
+            ],
+            [
+              "Where it holds",
+              "any body"
+            ],
+            [
+              "What would show it wrong",
+              "a measured influx on another planet far from the scaling"
+            ],
+            [
+              "What replaces it",
+              "a dust-model fit per planet"
+            ],
+            [
+              "Evidence",
+              "STATUS observed (the Earth, by several methods that disagree by a factor of 50); READ ([R5220], recalled)"
+            ]
+          ],
+          "id": "CV11",
+          "key": "6.229:CV11",
+          "kind": "P",
+          "slug": "6-229-cv11",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cosmic_dust.EARTH_INFLUX_KG_YR 1e7 kg a year (28 tonnes a day), the cosmic dust that reaches the Earth, the anchor of the influx on any body"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cosmic_dust.DISTANCE_EXPONENT 1.8: the mass flux per area falls with the star's distance as the zodiacal dust's density (index 1.3, recalled) times the encounter speed (0.5)"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 2.1"
+            ],
+            [
+              "Where it holds",
+              "0.3 to 3 AU, where the zodiacal law is measured"
+            ],
+            [
+              "What would show it wrong",
+              "an influx on Mars or Mercury far from the scaling"
+            ],
+            [
+              "What replaces it",
+              "a dust-model fit"
+            ],
+            [
+              "Evidence",
+              "STATUS recalled, not read; gives Venus 31 tonnes a day and Mars 1.7"
+            ]
+          ],
+          "id": "CV12",
+          "key": "6.229:CV12",
+          "kind": "P",
+          "slug": "6-229-cv12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cosmic_dust.DISTANCE_EXPONENT 1.8: the mass flux per area falls with the star's distance as the zodiacal dust's density (index 1.3, recalled) times the encounter speed (0.5)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cosmic_dust.STAR_MASS_EXPONENT 0.5: the flux rises with the star's mass through the encounter speed; the dust a star's belts and comets make is taken as the Sun's"
+            ],
+            [
+              "The range it moves in",
+              "0 to 1"
+            ],
+            [
+              "Where it holds",
+              "stars of 0.3 to 2 solar masses"
+            ],
+            [
+              "What would show it wrong",
+              "a dust measurement around another star (exozodi)"
+            ],
+            [
+              "What replaces it",
+              "a per-system dust model"
+            ],
+            [
+              "Evidence",
+              "STATUS educated guess from physics"
+            ]
+          ],
+          "id": "CV13",
+          "key": "6.229:CV13",
+          "kind": "P",
+          "slug": "6-229-cv13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cosmic_dust.STAR_MASS_EXPONENT 0.5: the flux rises with the star's mass through the encounter speed; the dust a star's belts and comets make is taken as the Sun's"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "sulfur_cloud_set number dust_min_share_of_reference 0.1: the least influx per area, as a share of Venus's, that gate 5 calls a supply for V8; a rocky planet out to about 2.5 AU of a Sun-like star passes"
+            ],
+            [
+              "The range it moves in",
+              "0.03 to 0.3"
+            ],
+            [
+              "Where it holds",
+              "V8 only, off by default"
+            ],
+            [
+              "What would show it wrong",
+              "a second paper that puts the need outside the 600 and 3 thousand years"
+            ],
+            [
+              "What replaces it",
+              "the paper's cloud-top budget"
+            ],
+            [
+              "Evidence",
+              "STATUS from needed output; no source gives the share"
+            ]
+          ],
+          "id": "CV14",
+          "key": "6.229:CV14",
+          "kind": "P",
+          "slug": "6-229-cv14",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "sulfur_cloud_set number dust_min_share_of_reference 0.1: the least influx per area, as a share of Venus's, that gate 5 calls a supply for V8; a rocky planet out to about 2.5 AU of a Sun-like star passes"
         },
         {
           "burn_down": [

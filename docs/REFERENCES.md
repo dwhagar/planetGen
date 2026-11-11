@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5098 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5099 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -3731,6 +3731,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3542"></a>**R3542** Planck Collaboration, et al. 2014, Planck 2013 results. XVI. Cosmological parameters, A&A, 571, A16, doi:10.1051/0004-6361/201321591, arXiv:1303.5076. [paper](https://doi.org/10.1051/0004-6361/201321591) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201321591/abstract)
 - <a id="paper-r3543"></a>**R3543** Planck Collaboration, et al. 2016, Planck 2015 results, A&A, 594, A28, doi:10.1051/0004-6361/201525819, arXiv:1502.01599. [paper](https://doi.org/10.1051/0004-6361/201525819) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201525819/abstract)
 - <a id="paper-r3544"></a>**R3544** Planck Collaboration, et al. 2020, Planck 2018 results, A&A, 641, A6, doi:10.1051/0004-6361/201833910, arXiv:1807.06209. [paper](https://doi.org/10.1051/0004-6361/201833910) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201833910/abstract)
+- <a id="paper-r5220"></a>**R5220** Plane, J. M. C. 2012, Cosmic dust in the earth's atmosphere, Chem. Soc. Rev., 41, 6507, doi:10.1039/c2cs35132c. [paper](https://doi.org/10.1039/c2cs35132c) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1039/c2cs35132c/abstract)
 - <a id="paper-r3545"></a>**R3545** Plotnykov, M. & Valencia, D. 2020, Chemical fingerprints of formation in rocky super-Earths’ data, MNRAS, 499, 932, doi:10.1093/mnras/staa2615, arXiv:2010.06480. [paper](https://doi.org/10.1093/mnras/staa2615) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/staa2615/abstract)
 - <a id="paper-r3546"></a>**R3546** Plotnykov, M., Valencia, D., Ross, A., Reggiani, H., & Schlaufman, K. C. 2026, Evidence of 1:1 Slope between Rocky Super-Earths and Their Host Stars, ApJ, 997, 253, doi:10.3847/1538-4357/ae200b, arXiv:2511.17717. [paper](https://doi.org/10.3847/1538-4357/ae200b) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/ae200b/abstract)
 - <a id="paper-r3547"></a>**R3547** P. Loyd, R. O., et al. 2016, THE MUSCLES TREASURY SURVEY. III. X-RAY TO INFRARED SPECTRA OF 11 M AND K STARS HOSTING PLANETS, ApJ, 824, 102, doi:10.3847/0004-637x/824/2/102. [paper](https://doi.org/10.3847/0004-637x/824/2/102) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/0004-637x/824/2/102/abstract)

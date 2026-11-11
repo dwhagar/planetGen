@@ -186,6 +186,12 @@
    "tier": "T9",
    "tweak": "L3",
    "basis": "The sulfur dioxide share of the air at which the absorber reaches its full strength; the strength falls in proportion below it and stays at the full value above. Venus's lower air is 1.3e-4 to 1.8e-4 (the Venus acid-cloud report), a hand-set reference"
+  },
+  "dust_min_share_of_reference": {
+   "value": 0.1,
+   "tier": "T9",
+   "tweak": "L3",
+   "basis": "The least cosmic-dust influx per area (`cosmic_dust.influx_per_area_kg_m2_yr`) that gate 5 calls a supply for V8, as a share of Venus's, the one planet the species is proposed for. The paper needs the cloud-top carbon and iron to be 600 and 3 thousand years of the influx at the least ([R5170], abstract only), so a tenfold weaker supply stretches those to 6 thousand and 30 thousand years; from needed output, no source gives the share. At 0.1 a rocky planet out to about 2.5 AU of a Sun-like star passes"
   }
  }
 }

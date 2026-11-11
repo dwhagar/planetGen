@@ -179,18 +179,26 @@ def annulus_area_m2(planet, cold=True):
     return math.pi * (outer * outer - inner * inner)
 
 
+def focusing(mass_kg, radius_m, distance_au, star_mass_kg):
+    """
+    The gravitational focusing `1 + v_esc^2 / v_inf^2` of a body of `mass_kg` for something that arrives at `radius_m` from its center, at `distance_au` from a star of `star_mass_kg`:
+    `v_inf` is a share `COMET_ENCOUNTER_FRACTION` of the circular speed there (the encounter speed of the comets, the meteoroids of the ring's erosion and, GEN.1542, the dust that falls on an air).
+    """
+    v_inf = COMET_ENCOUNTER_FRACTION * math.sqrt(constants.G * star_mass_kg / (distance_au * constants.AU_TO_M))
+    return 1.0 + 2.0 * constants.G * mass_kg / radius_m / v_inf ** 2
+
+
 def meteoroid_flux_kg_m2_s(planet, cold=True):
     """
     The meteoroid mass that falls on the planet's ring, kg per m2 per second: `METEOROID_FLUX_KG_M2_S` scaled from Saturn's distance by `METEOROID_FLUX_EXPONENT` and
-    by the gravitational focusing `1 + v_esc^2 / v_inf^2` at the middle of the annulus against Saturn's, the encounter speed a share `COMET_ENCOUNTER_FRACTION` of the circular speed.
+    by the gravitational focusing `focusing` at the middle of the annulus against Saturn's.
     """
-    def focusing(body):
+    def focus(body):
         inner, outer = annulus_m(body, cold)
-        v_inf = COMET_ENCOUNTER_FRACTION * math.sqrt(constants.G * body.star_mass_kg / (body.distance_au * constants.AU_TO_M))
-        return 1.0 + 2.0 * constants.G * body.mass_kg / (0.5 * (inner + outer)) / v_inf ** 2
+        return focusing(body.mass_kg, 0.5 * (inner + outer), body.distance_au, body.star_mass_kg)
     saturn = Planet(**SATURN)
     return (METEOROID_FLUX_KG_M2_S * (saturn.distance_au / planet.distance_au) ** METEOROID_FLUX_EXPONENT
-            * focusing(planet) / focusing(saturn))
+            * focus(planet) / focus(saturn))
 
 
 @functools.lru_cache(maxsize=4096)

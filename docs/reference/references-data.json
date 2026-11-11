@@ -131875,6 +131875,25 @@
    "volume": "13",
    "year": 2011
   },
+  "10.1039/c2cs35132c": {
+   "authors": [
+    [
+     "Plane",
+     "J. M. C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1039/c2cs35132c",
+   "editors": [],
+   "journal": "Chem. Soc. Rev.",
+   "page": "6507",
+   "publisher": "Royal Society of Chemistry (RSC)",
+   "src": "crossref",
+   "title": "Cosmic dust in the earth's atmosphere",
+   "type": "journal-article",
+   "volume": "41",
+   "year": 2012
+  },
   "10.1039/c4cp04564e": {
    "authors": [
     [
@@ -282797,7 +282816,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5220,
+ "id_next": 5221,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -284504,6 +284523,7 @@
   "10.1038/s43017-021-00203-6": "R1950",
   "10.1038/srep13582": "R5182",
   "10.1039/c1cp21980d": "R2604",
+  "10.1039/c2cs35132c": "R5220",
   "10.1039/c4cp04564e": "R0242",
   "10.1039/c9cp04325j": "R1242",
   "10.1039/c9nr02850a": "R4896",
