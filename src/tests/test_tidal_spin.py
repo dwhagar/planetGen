@@ -261,6 +261,7 @@ def test_a_locked_or_resonant_planet_keeps_a_small_tilt_not_exactly_zero():
     assert tilts[len(tilts) // 2] < 1.0 and tilts[int(0.95 * len(tilts))] < 5.0
 
 
+@pytest.mark.slow       # a seeded sweep of whole systems until four gas giants turn up: about seven minutes
 def test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only():
     """GEN.1165 / GEN.753 row 10: over generated systems an ice giant of 5 to 30 Earth masses is sometimes tilted past 60 degrees; a heavier giant never is."""
     from planetgen.physics import giant_tilt
