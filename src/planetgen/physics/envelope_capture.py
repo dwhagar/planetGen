@@ -119,9 +119,8 @@ def tidal_q_prime(body):
     The tidal quality factor `Q'` of `body` (GEN.1347, row PF5): log-uniform over `super_puff.TIDAL_Q_PRIME_RANGE`, from a stream of the planet's own (its mass, formation
     distance and star), so the run's stream does not move and every pass draws the same value.
     """
-    from planetgen.physics import planets
     low, high = super_puff.TIDAL_Q_PRIME_RANGE
-    stream = draw.Stream(f"tidal-q-prime:{float(body.mass)!r}:{float(planets.formation_distance_au(body))!r}:{float(body.star.mass)!r}")
+    stream = draw.body_stream_of("tidal-q-prime", body)
     with draw.bound(stream):
         return math.exp(math.log(low) + draw.random() * (math.log(high) - math.log(low)))
 
