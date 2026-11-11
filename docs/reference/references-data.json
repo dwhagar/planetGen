@@ -73672,6 +73672,29 @@
    "volume": "119",
    "year": 2014
   },
+  "10.1002/2014gc005566": {
+   "authors": [
+    [
+     "Parai",
+     "R."
+    ],
+    [
+     "Mukhopadhyay",
+     "S."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1002/2014gc005566",
+   "editors": [],
+   "journal": "GGG",
+   "page": "719",
+   "publisher": "American Geophysical Union (AGU)",
+   "src": "crossref",
+   "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts",
+   "type": "journal-article",
+   "volume": "16",
+   "year": 2015
+  },
   "10.1002/2014gl061138": {
    "authors": [
     [
@@ -282774,13 +282797,14 @@
   }
  },
  "id_aliases": {},
- "id_next": 5219,
+ "id_next": 5220,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
   "10.1002/14356007.a24_507.pub2": "R2764",
   "10.1002/2013gl058955": "R3812",
   "10.1002/2013je004539": "R2419",
+  "10.1002/2014gc005566": "R5219",
   "10.1002/2014gl061138": "R2282",
   "10.1002/2014ja020215": "R2930",
   "10.1002/2014jd022659": "R3811",
