@@ -317,6 +317,26 @@ def _held_view(held):
     return {"total": held["total"], "shown": len(rows), "rows": rows}
 
 
+def _beating_view(body):
+    """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
+    jobs = (body or {}).get("jobs") or []
+    if not jobs:
+        return None
+    names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
+    return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
+                      "phase": job["phase"], "running": _duration(job["running_seconds"]), "heard": _duration(job["beat_age_seconds"])} for job in jobs]}
+
+
+def _duration(seconds):
+    """Seconds as `5 s`, `4 min` or `2 h 10 min`."""
+    seconds = int(max(seconds or 0, 0))
+    if seconds < 90:
+        return f"{seconds} s"
+    if seconds < 5400:
+        return f"{seconds // 60} min"
+    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+
+
 def _iso(seconds):
     """A time given in seconds since the epoch as the ISO text `time_text` reads, or `None`."""
     if not seconds:
@@ -333,7 +353,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = None
+    workers = warm = held = beating = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -343,6 +363,10 @@ def admin_queue():
             held = _held_view(apiclient.admin_work_held(cookie_header))
         except apiclient.ApiError:
             held = None
+        try:
+            beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
+        except apiclient.ApiError:
+            beating = None
         try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
@@ -357,7 +381,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )

@@ -1067,6 +1067,10 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).
+  `GET /api/admin/work/jobs` (OPS.142) answers `{"jobs": [...], "available"}`, the
+  jobs that are not units of a run and are running, from their beats: `"kind"`
+  ("api", "web" or "tile-prefetch"), `"job"`, `"label"`, `"state"` ("working" or
+  "dead"), `"reason"`, `"phase"`, `"running_seconds"`, `"beat_age_seconds"`.
   `GET /api/admin/work/<id>/units` (OPS.138) answers `{"units": [...]}`, one
   per running unit of the followed stage: `"stage"`, `"unit"`, `"state"`
   ("working", "slow", "waiting", "quiet", "looping" or "dead"), `"severity"`,
