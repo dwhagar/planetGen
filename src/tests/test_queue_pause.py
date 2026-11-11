@@ -24,7 +24,7 @@ def flag(redis_server):
 
 
 def test_pause_and_resume_set_and_clear_one_flag_that_names_who_and_when(flag):
-    assert pause.state(flag) == {"paused": False, "by": None, "at": None}
+    assert pause.state(flag) == {"paused": False, "by": None, "at": None, "reason": None, "solo": None}
     before = time.time()
     assert pause.pause("boss", flag) and not pause.pause("someone else", flag)       # the first pause is kept
     state = pause.state(flag)
@@ -38,7 +38,7 @@ def test_without_redis_nothing_is_paused():
     class Down:
         def get(self, key):
             raise OSError("no server")
-    assert pause.state(Down()) == {"paused": False, "by": None, "at": None}
+    assert pause.state(Down()) == {"paused": False, "by": None, "at": None, "reason": None, "solo": None}
 
 
 def test_the_api_lanes_and_the_generate_pages_queues_are_never_held():

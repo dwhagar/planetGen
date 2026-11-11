@@ -1,5 +1,8 @@
 {#- One body a belt keeps (/object/belt:<ID>/member/<rank>, web/belt_member_page.py, GEN.1070): its status, mass, size, makeup, orbit and the history of its belt. -#}
 {% extends "base.html" %}
+{% block head %}
+{% if example %}<script type="module" src="{{ static_url('bodyview.js') }}"></script>{% endif %}
+{% endblock %}
 {% block subhead %}
 <div class="page-subhead">
   <p class="badges">
@@ -10,6 +13,16 @@
 </div>
 {% endblock %}
 {% block content %}
+{%- if example %}
+<section class="panel" id="member-example" aria-labelledby="member-example-heading">
+  <div class="panel-header"><h2 id="member-example-heading">Sensor view</h2></div>
+  <figure class="body-view" hidden>
+    <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ designation }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
+    <button type="button" class="btn btn-small btn-secondary body-view-spin" data-spin aria-pressed="true" hidden>Spin</button>
+    {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
+  </figure>
+</section>
+{%- endif %}
 <section class="panel" id="member-body" aria-labelledby="member-body-heading">
   <div class="panel-header"><h2 id="member-body-heading">The body</h2></div>
   <p>This body has a designation, not a name. It is number {{ member.rank }} by mass among the {{ belt.individual_count }} bodies its belt keeps one by one, and holds

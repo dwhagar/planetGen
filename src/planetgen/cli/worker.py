@@ -106,6 +106,9 @@ def worker_class(round_robin=False):
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
 
+    OPS.145: the flag may be a solo hold (`pause.hold_solo`), for the one restarted unit that is to run alone. A worker then takes jobs as usual to reach that unit, which is at the
+    front of its queue, and turns every other job it takes back to the queue and waits (`_turn_away_during_solo_hold`).
+
     PERF.254: every job passes the memory gate (`queue/memorygate.py`) before it is prepared: the worker takes the job's claim
     (`claims.claim_for`) and waits, with its heartbeat going, until the host has room for it; it gives the claim up when the job ends,
     renews it at every heartbeat while the job runs, and keeps the most the job held (the gate learns the size of each kind from it). A
@@ -199,26 +202,44 @@ def worker_class(round_robin=False):
             self.register_death()
             os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
 
-        def _wait_while_paused(self):
+        def _wait_while_paused(self, job_id=None):
             if not any(pause.holds(name) for name in self.queue_names()):
                 return
+            if not pause.blocks(self.connection, job_id):
+                return
             log.debug("worker holds: the queue is paused", area="queue")
-            while pause.is_paused(self.connection) and not self._stop_requested:
+            while pause.blocks(self.connection, job_id) and not self._stop_requested:
                 self.heartbeat()
                 time.sleep(pause.WAIT_SECONDS)
 
+        def _turn_away_during_solo_hold(self, job):
+            """
+            OPS.145: a job taken while the queues are held for a restarted unit that runs alone, and that is not that unit, goes back to the back of its queue (the unit is at the front, and a job put in front of it
+            could keep every worker from reaching it) and this worker holds off until the hold lifts, so nothing starts beside the unit. Returns whether it was turned away. (A pause by hand keeps the job in hand, as before.)
+            """
+            if not any(pause.holds(name) for name in self.queue_names()) or pause.solo_of(self.connection) is None or not pause.blocks(self.connection, job.id):
+                return False
+            log.debug("worker turns %s away: the queue is held for a unit that runs alone", job.id, area="queue")
+            next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id)
+            self._wait_while_paused(job.id)
+            return True
+
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
-            if stale():
-                log.debug("worker restarts itself: the release on disk is not the one it loaded", area="queue")
-                self.register_death()
-                os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
-            self._exit_if_stopped()
-            self._wait_while_paused()
-            result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
-            if result is not None:
+            while True:
+                if stale():
+                    log.debug("worker restarts itself: the release on disk is not the one it loaded", area="queue")
+                    self.register_death()
+                    os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
                 self._exit_if_stopped()
                 self._wait_while_paused()
-            return result
+                result = super().dequeue_job_and_maintain_ttl(*args, **kwargs)
+                if result is None:
+                    return result
+                self._exit_if_stopped()
+                if self._turn_away_during_solo_hold(result[0]):
+                    continue
+                self._wait_while_paused(result[0].id)
+                return result
 
         def _exit_if_stopped(self):
             """PERF.186: a worker that is still alive when everything is stopped ends before it takes or starts a job."""

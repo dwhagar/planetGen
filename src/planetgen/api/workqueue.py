@@ -53,7 +53,8 @@ def _status(connection, now):
     live = [run_id for kind in runrecord.KINDS for run_id in [runrecord.active_run(connection, kind)] if run_id]
     heard = None if held is None else max(now - (held["updated"] or held["started"] or now), 0.0)
     return {
-        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"],
+        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"], "paused_reason": paused["reason"],
+        "solo_unit": paused["solo"]["unit"] if paused["solo"] else None,
         "holder": holder, "holder_title": held["title"] if held else None, "heartbeat_age_s": heard,
         "stale": runrecord.is_stale(held, now) if held else False,
         "workers_active": sum(queueWorkers.live_worker_count(redisqueue.queue(name, connection))

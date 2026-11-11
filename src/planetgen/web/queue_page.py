@@ -223,6 +223,8 @@ def _status_view(status):
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
         "paused_at": _iso(status.get("paused_at")),
+        "paused_reason": status.get("paused_reason"),
+        "solo_unit": status.get("solo_unit"),
         "holder": status.get("holder"),
         "holder_title": status.get("holder_title"),
         "heartbeat": _duration(status.get("heartbeat_age_s")),
