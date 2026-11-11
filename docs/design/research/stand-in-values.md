@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1549 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1552 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1523 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1526 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 79 | 11 | 4 | 22 | 12 | 128 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
-| T6 | 196 | 106 | 30 | 79 | 4 | 415 |
+| T5 | 77 | 24 | 6 | 1 | 1 | 109 |
+| T6 | 198 | 106 | 30 | 79 | 4 | 417 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 880 | 302 | 75 | 240 | 52 | 1549 |
+| All | 883 | 302 | 75 | 240 | 52 | 1552 |
 
 ## How the labels were given
 
@@ -2606,6 +2606,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | DE10 | P | T6 | L0 | disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation | none | the open points of the note | a measure in which the enrichment ratio is clearly lower in discs with giants | each as its own item | listed in section 6 of the note as not modelled | predicted only | - | - |
 | DE11 | D | T5 | L0 | disk_drift.enrichment_ratio: gas at the place that has not crossed a line yet (the age under `lag_myr` from the line to the place) has `E = 1`, the static budget: it is the disc's own gas of the start, which holds every vapor inside its line. Past the lag the gas crossed the line at `age - lag` and the lagged ratio of DE5 applies (a step from 1 to the ratio at the lag, as a gas without diffusion has) | none | gas gathered before the vapor of a line could reach its place | a measured volatile-poor or noble-gas-poor envelope of a giant that gathered its gas early | a transport model with diffusion of the vapor against the gas flow | physics: advection of the start state; the design note of GEN.1472 started the gas at the edge's composition, which is the cold, ice-free supply, and GEN.1517 corrects it | predicted only | - | - |
 | DE12 | T | T1 | L0 | disk_drift.CORE_EFFICIENCY_AT_REFERENCE 0.034, CORE_EFFICIENCY_AU 10, CORE_SEED_EARTH 1e-3: a core accretes the share f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2) of the pebbles that pass it (capped at 1), pebbles of Stokes number 0.1, from a seed of 1e-3 Earth masses | Stokes number 0.01 to 0.1 changes the prefactor by (tau / 0.1)^(-1/3) | pebble-accreting cores of 0.001 to 20 Earth masses between 0.3 and 50 AU | a core-growth model with a different efficiency law, or a measured core mass at a known age | a full pebble-accretion model with a core in the flux of other cores | Eq. 33 and section 3.3 of [R5211], read in full text (the formula and the seed verbatim); the paper's own 15 to 20 percent end-to-end conversion is of the same size as this law at the critical core | predicted only | - | - |
+| PRV1 | T | T5 | L0 | disk_condensation.provenance_condensed and PROVENANCE_SAMPLES 64: the planetesimals a giant accretes are the mean of the frozen species over the annuli between its place and the disk's edge, each annulus counting by its distance (equal per AU: a disk of solids surface density 1/r, as the gas of [R5211]) | samples 32 to 128 change a share by under 2 percent | giants that formed inside the disk's edge | a measured provenance of the solids of a giant (the noble gas pattern of a giant whose formation place is known) | a planetesimal formation model with the line-pileups where streaming instability makes them | the solids over gas of a disk of gas surface density 1/r is constant, so the solids per AU are equal; the equal weight of every annulus is mine | predicted only | - | - |
+| PRV2 | P | T6 | L0 | disk_condensation.envelope_enrichments(solids_edge_k=...) and mixture_giant: every planetesimal formed between the giant's place and the edge is equally accessible to the giant (no fall-off with distance, no accretion efficiency by distance); the envelope takes the planetesimals' ices, the gas keeps the ices of its own place and the drift weights | fall-off exponent 0 to -1 of the weight with distance | giants with a disk; the edge is the generator's (18 snow lines, DE3, GEN.1520) | a giant's heavy-element pattern that needs a nearer or a farther source | a model of the planetesimals scattered into a giant's feeding zone by its own growth | the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids ([R5163]); where those solids formed is mine | predicted only | - | - |
+| PRV3 | P | T6 | L0 | disk_condensation.envelope_enrichments(solids_edge_k=...): the ices colder than the edge (CO, N2) are solid nowhere in the disk, so they come to a giant only as gas (the edge temperature is 42.9 K at 18 snow lines) | edge 30 to 60 K | all giants of the generator | a giant whose CO or N2 enrichment needs solids | the disk edge from observed sizes (GEN.1520) | follows from DE3 and the generator's edge; no source for the edge itself | predicted only | - | - |
 
 ## 6.243 Stand-ins of the spacing of orbits against every neighbour
 

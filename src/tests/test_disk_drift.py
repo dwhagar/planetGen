@@ -215,11 +215,10 @@ def test_a_giant_subject_hands_the_same_weights_to_its_nitrogen_sulfur_and_noble
     weights = {"H2S": 2.0, "Xe": 3.0, "Kr": 0.5, "Ar": 0.0}
     monkeypatch.setattr(mixture_giant, "_disk_ice_weights", lambda subject, temperature: weights)
     drift = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
-    assert drift == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, weights)
-    assert drift["Ar"] == 0.0 and drift["Xe"] == pytest.approx(3.0) and drift["Kr"] == pytest.approx(0.5)
+    assert drift == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, weights, dd.edge_temperature_k())
     monkeypatch.undo()
     static = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
-    assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0)
+    assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, None, dd.edge_temperature_k())
 
 
 def test_a_giant_that_gathers_its_gas_before_the_vapor_could_reach_it_keeps_the_static_disk():
@@ -227,7 +226,7 @@ def test_a_giant_that_gathers_its_gas_before_the_vapor_could_reach_it_keeps_the_
     subject = {"formation_temperature_k": 500.0, "disk_snow_line_au": 3.7, "host_mass_solar": 1.2}
     weights = mixture_giant._disk_ice_weights(subject, 500.0)
     assert weights["Ar"] == 1.0 and weights["CO2"] == 1.0
-    assert mixture_giant._disk_enrichments(subject, 0.6)["Ar"] == pytest.approx(1.0)
+    assert mixture_giant._disk_enrichments(subject, 0.6)["Ar"] == pytest.approx(dc.envelope_enrichments(500.0, 10.0 ** 0.6, ice_weights=weights, solids_edge_k=dd.edge_temperature_k())["Ar"])
 
 
 def test_a_cool_giant_of_a_sun_like_star_gathers_its_gas_late_and_the_gas_has_few_of_the_ices():
@@ -235,7 +234,7 @@ def test_a_cool_giant_of_a_sun_like_star_gathers_its_gas_late_and_the_gas_has_fe
     subject = {"formation_temperature_k": 100.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
     weights = mixture_giant._disk_ice_weights(subject, 100.0)
     assert all(0.0 <= value < 0.2 for value in weights.values())
-    assert mixture_giant._disk_enrichments(subject, 0.6)["Ar"] < 0.3
+    assert 1.0 < mixture_giant._disk_enrichments(subject, 0.6)["Ar"] < 3.0           # the gas has almost none; the planetesimals formed beyond the argon line bring it (GEN.1519)
 
 
 def test_a_giant_whose_gas_holds_no_argon_still_makes_a_mixture():
