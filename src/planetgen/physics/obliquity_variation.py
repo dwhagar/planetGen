@@ -165,11 +165,6 @@ def all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
     return tuple(out)
 
 
-def sibling_modes(index, a_au, masses_kg, host_mass_kg, inclination_rad, node_rad):
-    """The nodal modes that drive planet `index` (`all_sibling_modes` for one planet)."""
-    return all_sibling_modes(a_au, masses_kg, host_mass_kg, inclination_rad, node_rad)[index]
-
-
 def companion_mode(a_au, host_mass_kg, companion_mass_kg, companion_a_au, companion_eccentricity, mutual_inclination_rad):
     """
     The nodal mode a companion star drives in a planet at `a_au` round a host: the planet's orbit precesses about the companion's orbit at `-(3/4) n (M_c / M) (a / a_c)^3

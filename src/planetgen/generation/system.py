@@ -2278,6 +2278,10 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+            for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
+                moved = planetPhysics.settle_obliquity(planets, star.mass)
+                if moved:
+                    log.debug(f"{star.name}: {moved} planet{'s' if moved != 1 else ''} given a tilt from a chaotic zone of the spin-orbit resonances")
 
     def _refresh_wobble(self):
         """The reflex wobble of the planets and of the stars, from the planets and moons as they are (called when the orbits are final, and again if a body is dropped, GEN.1275)."""

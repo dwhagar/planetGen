@@ -23,7 +23,7 @@ def _earth(with_moon):
     ellipticity = ov.dynamical_ellipticity(5.972e24, 6.371e6, 7.292e-5, 0.3307)
     torquers = [ov.Torquer(SUN, 1.0 * AU, 0.0167)] + ([MOON] if with_moon else [])
     alpha = ov.precession_constant_rad_yr(ellipticity, 7.292e-5, torquers)
-    return alpha, ov.sibling_modes(EARTH, A_AU, MASS, SUN, INCLINATION, NODE)
+    return alpha, ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[EARTH]
 
 
 def test_the_fluid_love_number_and_ellipticity_of_the_earth_are_the_measured_ones_to_a_few_percent():
@@ -45,7 +45,7 @@ def test_the_nodal_modes_of_the_solar_system_are_the_laplace_lagrange_ones():
     frequencies = sorted(f * ov.ARCSEC_PER_RAD for f in secular_chain._modes(B)[0])
     assert frequencies[0] == pytest.approx(-25.7, abs=1.0) and frequencies[1] == pytest.approx(-18.7, abs=1.0)
     assert frequencies[-2] == pytest.approx(-0.7, abs=0.3)                       # s1 to s8 of Laskar: -5.6, -7.1, -17.7, -18.8, -26.3 (first order, eight bodies)
-    assert all(abs(m.frequency_rad_yr) > ov.MODE_FLOOR_RAD_YR for m in ov.sibling_modes(EARTH, A_AU, MASS, SUN, INCLINATION, NODE))
+    assert all(abs(m.frequency_rad_yr) > ov.MODE_FLOOR_RAD_YR for m in ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[EARTH])
 
 
 def test_the_earth_with_its_moon_stays_inside_a_degree_or_so_of_its_measured_range():
@@ -68,7 +68,7 @@ def test_the_earth_without_its_moon_swings_several_times_as_far():
 
 def test_mars_at_its_measured_ellipticity_sits_inside_a_resonance_with_a_wide_swing():
     alpha = ov.precession_constant_rad_yr(0.0048, 7.088e-5, [ov.Torquer(SUN, 1.5237 * AU, 0.0934)])
-    variation = ov.analyse(alpha, 25.19, ov.sibling_modes(MARS, A_AU, MASS, SUN, INCLINATION, NODE))
+    variation = ov.analyse(alpha, 25.19, ov.all_sibling_modes(A_AU, MASS, SUN, INCLINATION, NODE)[MARS])
     assert variation.resonant and variation.maximum_deg - variation.minimum_deg > 15.0          # the full theory finds it chaotic, 0 to 60: this is the lower bound
 
 

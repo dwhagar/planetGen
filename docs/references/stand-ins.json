@@ -62297,6 +62297,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked, resonant or lone planet keeps its tilt"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "free-spinning planets of a star with at least two planets and belts"
+            ],
+            [
+              "What would show it wrong",
+              "a chaotic planet whose stored tilt stays at its birth value, or a regular planet that is moved"
+            ],
+            [
+              "What replaces it",
+              "a numerical integration of the spin of the generated planet over the age of the star (the long-time distribution of the tilt)"
+            ],
+            [
+              "Evidence",
+              "even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is not yet added (part 3)"
+            ]
+          ],
+          "id": "OB6",
+          "key": "6.271:OB6",
+          "kind": "P",
+          "slug": "6-271-ob6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked, resonant or lone planet keeps its tilt"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",

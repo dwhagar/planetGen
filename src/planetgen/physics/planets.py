@@ -1043,6 +1043,60 @@ def carry_spin_with_orbit(planet, old_inclination_deg, old_node_deg):
         orient_moons(planet)
 
 
+def settle_obliquity(planets, host_mass_kg):
+    """
+    GEN.1454: a free-spinning planet whose tilt lies in a chaotic zone of the spin-orbit secular resonances (`obliquity_variation`: the torques of the star and the planet's moons on its
+    bulge against the nodal modes of the other planets' pull on its orbit) is not at the tilt it was made with: over the age of the star its axis has wandered over the zone, so it is
+    given a tilt drawn from the zone (even in the cosine) from a stream of the body's own, the axis kept at its angle round the orbit's normal. Called with the orbits final
+    (`StarSystem._settle_to_final_age`) for one star's planets and belts in orbital order. A planet whose tilt is not chaotic keeps it (the regular wander of an Earth or a Mars
+    is a few degrees to a few tens, and the stored tilt is one place in it); a locked or resonant body takes the Cassini state instead; a lone planet has no modes. The sky of the other
+    suns follows the new tilt, the day and night shares it, and the moons are set in the new equator, as `carry_spin_with_orbit` does. Returns how many planets changed tilt.
+    """
+    from planetgen.physics import obliquity_variation, tidal_spin
+
+    bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
+    if len(bodies) < 2 or not host_mass_kg > 0.0:
+        return 0
+    a_au = [b.distance for b in bodies]
+    masses = [b.mass for b in bodies]
+    inclinations = [math.radians(b.orbital_inclination_deg or 0.0) for b in bodies]
+    nodes = [math.radians(b.orbital_ascending_node_deg or 0.0) for b in bodies]
+    changed = 0
+    all_modes = None
+    for index, body in enumerate(bodies):
+        tilt = getattr(body, "axial_tilt_deg", None)
+        rotation = getattr(body, "rotation_period_hours", None)
+        axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+        if tilt is None or not rotation or not body.radius or any(c is None for c in axis):
+            continue
+        if spin.spin_state(rotation, body.period)[0] != "free":
+            continue
+        omega = 2.0 * math.pi / (abs(rotation) * 3600.0)
+        torquers = [obliquity_variation.Torquer(host_mass_kg, body.distance * constants.AU_TO_M, getattr(body, "eccentricity", 0.0) or 0.0)]
+        torquers.extend(obliquity_variation.Torquer(moon.mass, moon.distance * constants.AU_TO_M, getattr(moon, "eccentricity", 0.0) or 0.0)
+                        for moon in getattr(body, "moons", ()) if moon.mass and moon.distance)
+        ellipticity = obliquity_variation.dynamical_ellipticity(body.mass, body.radius * 1000.0, omega, tidal_spin.moment_factor(body))
+        alpha = obliquity_variation.precession_constant_rad_yr(ellipticity, omega, torquers)
+        if all_modes is None:                    # the matrix is made once for the star's planets, and only if a planet is free to wander
+            all_modes = obliquity_variation.all_sibling_modes(a_au, masses, host_mass_kg, inclinations, nodes)
+        variation = obliquity_variation.analyse(alpha, tilt, all_modes[index])
+        if not variation.chaotic:
+            continue
+        stream = draw.Stream(f"chaotic-obliquity:{float(body.mass)!r}:{float(body.distance)!r}:{float(host_mass_kg)!r}:{float(body.radius)!r}")
+        new_tilt = obliquity_variation.chaotic_tilt_deg(variation, stream.random())
+        normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+        body.spin_axis_x, body.spin_axis_y, body.spin_axis_z = spin.carry_axis(axis, normal, normal, new_tilt)
+        body.axial_tilt_deg = new_tilt
+        daylight.generate(body)
+        body.sky_suns = sky_suns.encode(sky_suns.suns_of(
+            body.star, (body.spin_axis_x, body.spin_axis_y, body.spin_axis_z), normal,
+            orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))))
+        if getattr(body, "moons", None):
+            orient_moons(body)
+        changed += 1
+    return changed
+
+
 SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")
 """tuple: What `secular_exchange` reports for a star's planets: the orbits took the exchange; some eccentricity was held short of what the exchange gave because the spacing would not hold;
 nothing moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`; or the planets or the result were beyond the first-order theory's limits."""
