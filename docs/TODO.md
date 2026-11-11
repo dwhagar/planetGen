@@ -13117,6 +13117,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 11. Prerequisites: GEN.1501. Related: GEN.1353, GEN.1501.
   Filed by the TODO thread.
 
+- [ ] **GEN.1538 Design check: settle the orbit before making the air (birth orbit, settle, air once) instead of making the air and remaking it after the settle**
+  Boss, 2026-11-11 (asked through the coordinator why the air is made and then remade after the orbit settles). Report only, no build. Map every reader of the first-pass air, surface temperature and planet class before `_settle_to_final_age` (moon history, orbit spacing and reconcile_moved_planet, the forced habitable-world requests, belts), say which of them could change after the settle, and propose the order birth orbit, settle, air once. The reason it is not trivial: the settle needs the star's final age, the planets' mutual pull and the resonant chains, which exist only after all planets are in. Output: a report under reports/ with the reader map, what would move, the cost of the remake today, and a recommendation; any build is a later lock item.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 05 (Lane 14 for the air side if asked). Prerequisites: none. Related: GEN.1402, GEN.1463.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
