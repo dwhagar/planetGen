@@ -636,3 +636,17 @@ def test_resume_run_is_refused_when_the_run_cannot_be_carried_on(web_app, admin_
     assert response.status_code == 303
     response = _post(web_app, admin_client, action="resume", run=killed)
     assert "planned again" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+
+
+def test_the_jobs_route_and_the_page_list_the_jobs_that_are_running_by_their_beats(admin_client, control_config, conn):
+    """OPS.142: `GET /api/admin/work/jobs` and the Jobs running now panel."""
+    from planetgen.queue import jobbeat
+    assert admin_client.get("/api/admin/work/jobs").get_json()["jobs"] == []
+    with jobbeat.beating("web", "job-7", label="Fill the map", conn=conn) as beat:
+        beat.phase("step 1 of 2: Fill")
+        beat.write()
+        body = admin_client.get("/api/admin/work/jobs").get_json()
+        assert [(job["kind"], job["job"], job["label"], job["state"], job["phase"]) for job in body["jobs"]] == [("web", "job-7", "Fill the map", "working", "step 1 of 2: Fill")]
+        html = admin_client.get("/admin/queue").get_data(as_text=True)
+        assert "Jobs running now" in html and "Generate page job" in html and "Fill the map" in html and "step 1 of 2: Fill" in html
+    assert "Jobs running now" not in admin_client.get("/admin/queue").get_data(as_text=True)

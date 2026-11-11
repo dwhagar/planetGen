@@ -251,8 +251,12 @@ def build_nodes(db, keys):
     Returns:
         dict: `nodes` asked and `built` (those that were not stored).
     """
+    from planetgen.queue import jobbeat
     from planetgen.web import warmup
-    app = warmup.build_app()
-    with app.test_request_context("/"):
-        result = tilecache.fetch_nodes(db, list(keys), ahead=True)
+    import rq
+    current = rq.get_current_job()
+    with jobbeat.beating("tile-prefetch", current.id if current is not None else "?", label=f"{len(keys)} nodes of {db}"):      # OPS.142
+        app = warmup.build_app()
+        with app.test_request_context("/"):
+            result = tilecache.fetch_nodes(db, list(keys), ahead=True)
     return {"nodes": len(keys), "built": len(keys) - result["cached"]}

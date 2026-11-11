@@ -2,6 +2,53 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3816] - 2026-11-11
+
+**Headline:** The settings test names `PLANETGEN_MEMORY_GATE` as a one-process switch, as it does the other environment variables that are not site options.
+
+### Changed
+
+- `tests/test_settings.py::test_the_code_reads_no_variable_the_model_does_not_name` was red on main: `queue/memorygate.py` reads `PLANETGEN_MEMORY_GATE` (PERF.254; `0` turns the gate off for the process so every claim is admitted at once), a variable that is neither a `config.json` option nor in `NON_OPTION_VARIABLES`. It is a switch for one process (a benchmark or debugging run), not a site setting, since the gate is the rule on every install, so it joins the list with that reason. The code is unchanged.
+
+generation-affects: none
+
+## [8.0.3815] - 2026-11-11
+
+**Headline:** The Generate page's jobs, the API's jobs and the map's tile prefetch now give a sign of life while they run, and the Queue page lists them, so a dead one shows as dead instead of as nothing (OPS.142, heartbeat part 9).
+
+### Added
+- **`queue/jobbeat.py`.** `jobbeat.beating(kind, job_id, label)` runs the same beat thread as a unit (`unitbeat.UnitBeat`, Redis server clock) for a job that is not a unit of a run: an API job (`api_jobs.execute`), a web job (`web/job_runner.run`, with the step it is on as the phase) and a tile prefetch chunk (`tileprefetch.build_nodes`). The records sit in one hash, `planetgen:jobbeats`, removed when the job ends; a job that is killed leaves its record, which reads `dead` for an hour and is then dropped. These jobs have no unit of work to count, so the judge says only `working` or `dead`; nothing is ended on its state (RQ's time limit still is). Where Redis does not answer, the job runs without a beat.
+- **`GET /api/admin/work/jobs`** (admin; additive, API version unchanged) and a **Jobs running now** panel on the Queue page: kind, label, state, what it is doing, how long it has run, and when it was last heard from.
+
+### Changed
+- `UnitBeat` can write to a hash and field of its own (`hash_key`, `extra`), which is how the job beat reuses it.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3814] - 2026-11-11
+
+**Headline:** A run is now called stale only when every unit that is running is dead or stuck, so one long unit whose count moves no longer shows a "Clear the stale run" offer after two minutes (OPS.141, heartbeat part 8).
+
+### Changed
+- **`runrecord.is_stale` reads the unit states.** `read_run` now carries, for each stage, the states the follower last published for its running units (`stage["unit_states"]`, from `unitwatch`, OPS.138). While any unit is judged, the run is stale exactly when every one of them is `dead` or `quiet`; a unit that works, is slow, loops, or waits on a lock keeps the run alive however long it goes without finishing a unit or logging an event. Before this, a run was stale after `max(120 s, 3 x its longest unit so far)` without a finished unit or an event, which one 30 minute sky cell always tripped.
+- With no unit judged (none has started, or an older process follows the run) the old rule stands, so a run with queued units and no worker is still called stale after the same time. A run whose follower is gone is still found by `holder_is_dead`, which the Clear offer reads too.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3813] - 2026-11-11
+
+**Headline:** main is green again: the wiring register lists the two fudge data files that GEN.1313 added.
+
+### Changed
+
+- `docs/design/research/wiring-register.md`: a line for `physics/data/fudge_matrix.json` (by design: only the table builder and its test read it) and one for `fudge_table.json` (GEN.1314 wires it). Test only; nothing in generation changes.
+
+generation-affects: none
+
 ## [8.0.3812] - 2026-11-11
 
 **Headline:** The nebula composition range test of the object lists passes the unit the columns are stored in.

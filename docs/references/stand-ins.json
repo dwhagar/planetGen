@@ -61239,6 +61239,90 @@
       ],
       "slug": "6-262-stand-ins-of-the-kozai-lidov-pumping-of-moons",
       "title": "Stand-ins of the Kozai-Lidov pumping of moons"
+    },
+    {
+      "key": "6.263",
+      "number": "6.263",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "300 to 20000 K for P, 300 to 6000 K for the molecules"
+            ],
+            [
+              "What would show it wrong",
+              "a measured partition function or a JANAF value that differs from the fit by more than the fit's own error"
+            ],
+            [
+              "What replaces it",
+              "a fit that extends the molecules past 6000 K"
+            ],
+            [
+              "Evidence",
+              "the fits are the database's own numbers, built by the same script as the other 112 species"
+            ]
+          ],
+          "id": "PHG1",
+          "key": "6.263:PHG1",
+          "kind": "T",
+          "slug": "6-263-phg1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "gas above 6000 K at the pressures of a giant (1 bar to 1e4 bar)"
+            ],
+            [
+              "What would show it wrong",
+              "a computed or measured abundance of a phosphorus molecule at 6000 K and above that holds more than a few percent of the phosphorus"
+            ],
+            [
+              "What replaces it",
+              "an extrapolated or ab initio fit of PH, PO and PN above 6000 K"
+            ],
+            [
+              "Evidence",
+              "measured with the table: at 5990 K (a solar-ratio hydrogen air with 3e-7 phosphorus) atomic P holds 99.7 percent of the phosphorus at 1 bar and 81 percent at 100 bar, but at 1e4 bar PH holds 82 percent, so the step at 6000 K changes which species carries the phosphorus at the highest pressures but not that it is in the gas"
+            ]
+          ],
+          "id": "PHG2",
+          "key": "6.263:PHG2",
+          "kind": "T",
+          "slug": "6-263-phg2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there"
+        }
+      ],
+      "slug": "6-263-stand-ins-of-the-phosphorus-gases-above-6000-k",
+      "title": "Stand-ins of the phosphorus gases above 6000 K"
     }
   ]
 }

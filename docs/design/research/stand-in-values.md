@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1563 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1565 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1537 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1539 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 184 | 20 | 11 | 1 | 0 | 216 |
+| T1 | 185 | 20 | 11 | 1 | 0 | 217 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
 | T4 | 82 | 11 | 4 | 22 | 12 | 131 |
-| T5 | 78 | 24 | 6 | 1 | 1 | 110 |
+| T5 | 79 | 24 | 6 | 1 | 1 | 111 |
 | T6 | 199 | 106 | 30 | 79 | 4 | 418 |
 | T7 | 55 | 19 | 9 | 31 | 0 | 114 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 894 | 302 | 75 | 240 | 52 | 1563 |
+| All | 896 | 302 | 75 | 240 | 52 | 1565 |
 
 ## How the labels were given
 
@@ -2766,3 +2766,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | KZ4 | P | T5 | L0 | kozai_bodies.OTHER_PRECESSION_QUENCH 1.0: another apsidal precession (siblings, the planet's bulge) at least as fast as the Kozai rate (the product of its size and the Kozai time at least 1), stops the cycle | 0.5 to 2 | moons and planets with siblings or a bulge | an integrated orbit with a precession rate within a factor of two of the Kozai rate that still reaches the averaged peak | the full precession-resonance criterion of the secular problem | the rate the star turns the orbit is `1 / t_kl`, and the bulge holds a moon to the equator inside the Laplace radius where the two are equal (Tremaine, Touma and Namouni 2009; Innanen et al 1997) | predicted only | - | - |
 | KZ5 | P | T5 | L0 | a moon that formed in place (`moon_origin` disk, impact, ring or binary) keeps its stored inclination to the equator as its inclination to the local Laplace plane; a captured moon's is the angle from its orbit normal to the Laplace plane (`kozai_bodies.laplace_tilt_rad`) | none | moons of planets with a spin axis | a regular moon far outside the Laplace radius whose plane is observed to sit at the equator and not the planet's orbit | a model of the disk's warp with distance | a circumplanetary disk is held in the local Laplace plane by the same two torques (Tremaine, Touma and Namouni 2009); the generator draws a regular moon near the equator at every distance (GEN.714, GEN.1352) | predicted only | - | - |
 | KZ6 | P | T7 | L0 | the cycle sets the moon's eccentricity at the system's age and the tide wears it from there (`_orbit_birth`); the inclination and node are not turned by it, and the moon's pericenter is not tested again against the planet's Roche limit after the tide | none | captured moons that cycle | a cycling moon whose eccentricity after the tide is higher than the cycle's peak | the tide and the cycle integrated together | the tide's wear (GEN.842) is computed from the birth eccentricity; keeping that number the pumped one lets it do what it already does | predicted only | - | - |
+
+## 6.263 Stand-ins of the phosphorus gases above 6000 K
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PHG1 | T | T1 | L0 | the NASA Glenn fits of atomic P (300 to 20000 K), PO, PN, PS and PH (300 to 6000 K), read from the thermodynamic database of [R2968] and written in the same form as the other species | none | 300 to 20000 K for P, 300 to 6000 K for the molecules | a measured partition function or a JANAF value that differs from the fit by more than the fit's own error | a fit that extends the molecules past 6000 K | the fits are the database's own numbers, built by the same script as the other 112 species | predicted only | - | - |
+| PHG2 | T | T5 | L0 | the phosphorus molecules (P2, PH3, PO, PN, PS, PH) are left out of a gas above 6000 K, where their fits end, and atomic P carries all the phosphorus: they are dissociated there | none | gas above 6000 K at the pressures of a giant (1 bar to 1e4 bar) | a computed or measured abundance of a phosphorus molecule at 6000 K and above that holds more than a few percent of the phosphorus | an extrapolated or ab initio fit of PH, PO and PN above 6000 K | measured with the table: at 5990 K (a solar-ratio hydrogen air with 3e-7 phosphorus) atomic P holds 99.7 percent of the phosphorus at 1 bar and 81 percent at 100 bar, but at 1e4 bar PH holds 82 percent, so the step at 6000 K changes which species carries the phosphorus at the highest pressures but not that it is in the gas | predicted only | - | - |

@@ -51,6 +51,24 @@
   {%- endif %}
   {%- endif %}
 </section>
+{%- if beating %}
+<section class="panel" id="queue-beating" aria-labelledby="queue-beating-heading">
+  <h2 id="queue-beating-heading">Jobs running now</h2>
+  <p>Work that is not a unit of a run, with the sign of life each job gives every few seconds. A job that stops giving it shows as <strong>dead</strong> for an hour.</p>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">Jobs running now, from their beats</caption>
+    <thead><tr><th scope="col">Job</th><th scope="col">State</th><th scope="col">Doing</th><th scope="col">Running</th><th scope="col">Last heard</th></tr></thead>
+    <tbody>
+    {%- for row in beating.rows %}
+    <tr><td>{{ row.kind }}{% if row.label %}: {{ row.label }}{% endif %} <code>{{ row.id }}</code></td><td>{% if row.dead %}<strong class="error">dead</strong>{% else %}{{ row.state }}{% endif %}</td>
+      <td>{{ row.phase }}</td><td>{{ row.running }}</td><td>{{ row.heard }} ago</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+{%- endif %}
 {%- if held %}
 <section class="panel" id="queue-held" aria-labelledby="queue-held-heading">
   <h2 id="queue-held-heading">Held jobs</h2>
