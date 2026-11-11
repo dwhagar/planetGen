@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3829] - 2026-11-11
+
+**Headline:** A comet's chance of turning active now follows how bright its star is, not the Sun's 3 AU: comets of bright stars turn active from farther out and comets of faint stars only close in.
+
+### Changed
+- **The activity distance scales with the host's luminosity (GEN.1491).** A comet's chance of showing a coma fell from 0.9 at the star to 0.05 at a perihelion of 3 AU, the Sun's, round any star. The perihelion is now first made the distance from a lone star that is lit as much (every star's light counts, GEN.1444) and then divided by `sqrt(L / Lsun)`, the distance round the Sun that gives the same flux on an airless body (`physics/comet_activity.py`). So the floor chance is reached at 30 AU round a star of 100 solar luminosities and at 0.3 AU round one of 0.01. A host of exactly the Sun's luminosity, alone, and a comet with no host give the chances of before. The disk's temperature law (`L^0.25 r^-0.62`) is not used: it is for a passively heated disk, not a bare nucleus. Only `is_active` of comets of other hosts can change. In a census of 480 seeds (335 comets), the mean chance fell from 0.37 to 0.08 for comets of hosts under 0.1 solar luminosities (303 comets, most of them red dwarfs), from 0.51 to 0.42 for hosts of 0.1 to 3, and rose from 0.47 to 0.70 for hosts over 3; none changed at exactly the Sun's luminosity (`tests/audit/comet_activity_census.py`, `reports/gen1491-comet-activity-census-2026-11-09.md`). Reused, not rebuilt: `radiation_field.lit_distance_au` (GEN.1444), `_activity_chance`, the Sun's constants of `tuning`. Stand-in rows CA1 to CA3 (section 6.253), none hand-tuned. No migration.
+
+generation-affects: fill
+
+generation-output: changed
+
 ## [8.0.3828] - 2026-11-11
 
 **Headline:** A planet that circles a close pair of stars is slightly cooler: its light is cut by the share the two stars hide of each other, 0.1 to 1 percent.
