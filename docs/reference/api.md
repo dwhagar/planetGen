@@ -423,8 +423,9 @@ connectivity to that specific schema rather than the default one.
   diameter, distance, eccentricity, inclination, density, `taxon`, `analogue`, composition shares, the `status` word with Soter's mu, and the `population`
   of a member the giants scattered), `bins` (the rest of the belt mass by diameter: count, mass, share of the belt, `tier` (`on demand` or `total only`),
   typical composition and density), `density_factor` (`by_diameter`: the objects per square AU above 1, 10 and 100 km; `mass`: kilograms per square AU)
-  and `totals` (the belt, the listed bodies and the bins, which add up). Every number is `{value, unit, text}`. A new route, so the API version stays; a
-  reference that is not a belt, or names nothing, is a `404`.
+  `totals` (the belt, the listed bodies and the bins, which add up) and `planets` (GEN.1511: the planets the belt made of its heaviest round bodies, GEN.1510, each with
+  its `rank`, `designation`, `name`, `ref`, `planet_class`, `mass`, `diameter` and `distance`; empty when it made none; their mass is not in `totals`). Every number is
+  `{value, unit, text}`. A new route, so the API version stays; a reference that is not a belt, or names nothing, is a `404`.
 - `GET /api/objects/<ref>/irregular-moons` — the irregular moons a planet keeps (GEN.1086, `describe/irregular_moon_info.py`): `planet` (`designation`, `name`, `star`, `mass`,
   `hill_radius`), `moons` (heaviest first, each with `rank` (the page address), `designation` (`<planet ID>.<rank hex>`, the rank being the stored rank plus one, or the belt's
   designation `<belt ID>.<rank hex>` for a body caught from an inner belt, with `belt_designation` true), `window` (`gas`, `encounter` or `exchange`), `retrograde`, `mass`,
@@ -444,7 +445,8 @@ connectivity to that specific schema rather than the default one.
   `argument_of_periapsis`, `mean_anomaly`, and the `closest_distance`, `farthest_distance` and `period` they and the star's mass give), `share` of the belt's mass,
   `belt` (its `designation`, `star`, `origin` and `history` sentences, `history_text` and `individual_count`) and the `previous` (heavier) and `next` (lighter)
   designations. Every number is `{value, unit, text}`. A new route, so the API version stays. A reference that is not a belt, a rank not written as the
-  designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a `404`.
+  designation writes it, or a body the belt does not keep (a rank above its individual count is drawn on demand and has no page yet) is a `404`. The rank of a body
+  that was made a planet (GEN.1510) answers `designation`, `rank` and `promoted` (that planet's `ref`, `name`, `planet_class`, `mass`, `diameter` and `distance`) in place of the member page.
 - `GET /api/objects/<ref>/field-members` — the bodies an interstellar asteroid field keeps individually (GEN.1105, `describe/field_member_info.py`): `field` (its
   `designation`, `name` and `mass`), `count` and `bodies`, heaviest first, each with its `rank`, `designation` (`<field ID>.<rank hex>`), `mass`, `diameter`,
   `density`, `composition` shares and `status` word. Every number is `{value, unit, text}`. A field with no ledger keeps none (`count` 0). A new route, so the
