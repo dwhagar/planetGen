@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, redisqueue, requires, runrecord, unitbeat
+from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -85,11 +85,11 @@ def job_id(run_id, stage, unit):
 
 def unit_timeout(expected_seconds=None):
     """
-    How long a unit of a stage may run before RQ ends it (PERF.106): `redisqueue.job_timeout` of the stage's
-    expected seconds (`runrecord.Stage.expected_seconds`); the ceiling (6 hours) when the stage has no recorded
-    time. Never -1 (no limit).
+    The time limit RQ puts on a unit: the ceiling (`redisqueue.MAX_TIMEOUT_SECONDS`, 6 hours), whatever the stage's expected time (OPS.140). It is a backstop only: a unit
+    that is dead or stuck is found by its beat (`unitwatch`, `unitstuck`) in a minute or a few, and a unit whose counter moves is never ended for taking longer than
+    estimated (Boss, 11-09). `expected_seconds` is kept in the signature for the callers that name it. Never -1 (no limit).
     """
-    return redisqueue.job_timeout(expected_seconds)
+    return redisqueue.MAX_TIMEOUT_SECONDS
 
 
 def coarsen(count, size):
@@ -131,22 +131,8 @@ def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     return chunks
 
 
-def _unit_limit(stage_timeout, args):
-    """
-    The time limit of one unit (OPS.134): the stage's (`unit_timeout` of the stage's expected seconds), or, for a unit whose `args["expected_seconds"]` says how long it alone is predicted to take, the limit of that if it is longer.
-    A stage's expected seconds are what earlier runs of the stage took, mostly its small units; a unit that is many times a typical one (a sky cell, half an hour in a stage of seconds) names its own.
-    """
-    own = args.get(EXPECTED_SECONDS_ARG) if isinstance(args, dict) else None
-    if own is None:
-        return stage_timeout
-    try:
-        return max(stage_timeout, unit_timeout(float(own)))
-    except (TypeError, ValueError):
-        return stage_timeout
-
-
 EXPECTED_SECONDS_ARG = "expected_seconds"
-"""str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for its own time limit (`_unit_limit`)."""
+"""str: The key of a unit's arguments that gives the seconds that unit alone is predicted to take, for the heartbeat judge (its expected rate, OPS.135); the time limit does not read it (`unit_timeout`)."""
 
 
 def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_seconds=None):
@@ -156,7 +142,7 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
     Args:
         units (list[tuple]): `(args, cost)` per unit, in unit order (the index is the position): a JSON-able dict
             and the unit's predicted cost for the stage's bar and ETA. The dict may name `expected_seconds`, the unit's own
-            predicted time, which sets its time limit when longer than the stage's (`_unit_limit`).
+            predicted time (`EXPECTED_SECONDS_ARG`).
         expected_seconds (float, optional): How long the stage is expected to take, for each unit's time limit
             (`unit_timeout`).
 
@@ -173,7 +159,7 @@ def enqueue_units(conn, run_id, stage, kind, units, queue_name=None, expected_se
         queue.enqueue_many([
             queue.prepare_data(
                 UNIT_FUNCTION, args=(run_id, stage, index, kind, args, cost), job_id=job_id(run_id, stage, index),
-                timeout=_unit_limit(timeout, args), result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
+                timeout=timeout, result_ttl=0, failure_ttl=FAILED_KEEP_SECONDS,
                 retry=rq.Retry(max=1), on_failure=Callback(FAILURE_FUNCTION), description=f"{kind} {index}")
             for index, (args, cost) in enumerate(units[start:start + ENQUEUE_BATCH], start)])
 
@@ -234,8 +220,10 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
               f"arguments {_short(args)}", area="queue")
-    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
+    with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit)) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
         result = commands.unit_function(kind)(args, report)
+        gap = report.longest_gap()
+    commandgaps.note(conn, run_id, kind, gap)       # OPS.135
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
@@ -512,7 +500,7 @@ def _progress(conn, run_id, stage):
 
 
 def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure=None, clock=time.monotonic,
-                 sleep=time.sleep, on_debug=None, touch=True):
+                 sleep=time.sleep, on_debug=None, touch=True, watch=None):
     """
     Follows stage `stage` of the run until its `units` units are done: calls `on_result(unit, result)` once for
     each as it finishes and `on_progress(unit, done, estimate)` for those still working, and `ensure()` every
@@ -524,9 +512,22 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             started the run does; one that only watches it (`wrapper.follow`, PERF.235) does not, so a run whose own
             process is gone is not taken for a live one on its account.
 
+        watch (unitwatch.UnitWatch, optional): Judges the beat of each running unit at every poll (OPS.138); only the process that started the run has one.
+
     Raises:
         RunStopped: The run is no longer live and the stage is not complete (a unit failed, or it was canceled).
     """
+    try:
+        _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch)
+    finally:
+        if watch is not None:
+            try:
+                watch.clear()
+            except Exception:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
+                pass
+
+
+def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):
     seen = set()
     last_ensure = float("-inf")
 
@@ -559,6 +560,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
             for unit, (done, estimate) in _progress(conn, run_id, stage).items():
                 if unit not in seen:
                     on_progress(unit, done, estimate)
+        if watch is not None:
+            watch.check()
         if ensure is not None and clock() - last_ensure >= ENSURE_SECONDS:
             last_ensure = clock()
             ensure()

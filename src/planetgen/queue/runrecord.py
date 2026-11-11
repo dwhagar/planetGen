@@ -156,6 +156,21 @@ def progress_key(run_id, index):
     return _k("run", run_id, f"s{index}", "progress")
 
 
+def gaps_key(run_id):
+    """The hash of the longest counter gap of each command the run ran, seconds (OPS.135: `commandgaps`)."""
+    return _k("run", run_id, "gaps")
+
+
+def stuck_key(run_id, index):
+    """The hash of what the heartbeat action did to each unit of stage `index` (OPS.140: `unitstuck`), one JSON field to a unit."""
+    return _k("run", run_id, f"s{index}", "stuck")
+
+
+def unitstate_key(run_id, index):
+    """The hash of the verdict on each running unit of stage `index` (OPS.138: `unitwatch`), one JSON field to a unit."""
+    return _k("run", run_id, f"s{index}", "unitstate")
+
+
 def plan_key(run_id, index):
     return _k("run", run_id, f"s{index}", "plan")
 
@@ -649,6 +664,12 @@ def finish_run(conn, run_id, state="done", error=None, now=None, killed=False):
         now=now)
     if state != "done":
         _log_unrun_dependents(conn, run_id, state, now)
+    else:
+        try:
+            from planetgen.queue import commandgaps
+            commandgaps.fold(conn, run_id)          # OPS.135: what the commands learned about how long a counter stands still
+        except Exception:   # noqa: BLE001 -- the history is for the next run; the end of this one does not wait on it
+            pass
     pipe = conn.pipeline()
     for key in _keys_of(conn, run_id):
         pipe.expire(key, KEEP_SECONDS)
@@ -682,12 +703,12 @@ def _keys_of(conn, run_id, every=False):
     """The keys the run keeps for `KEEP_SECONDS` once it is over (the stage count comes from the record), and with
     `every` the ones that expire by themselves too (the banner figure, the sign of life, the debug stream)."""
     stages = len(json.loads(conn.hget(run_key(run_id), "stages") or "[]"))
-    keys = [run_key(run_id), events_key(run_id)]
+    keys = [run_key(run_id), events_key(run_id), gaps_key(run_id)]
     if every:
         keys += [banner_key(run_id), alive_key(run_id), debug_key(run_id)]
     for index in range(stages):
         keys += [stage_key(run_id, index), done_key(run_id, index), advanced_key(run_id, index),
-                 results_key(run_id, index), progress_key(run_id, index), plan_key(run_id, index)]
+                 results_key(run_id, index), progress_key(run_id, index), unitstate_key(run_id, index), stuck_key(run_id, index), plan_key(run_id, index)]
     return keys
 
 
@@ -799,6 +820,7 @@ def read_run(conn, run_id):
     pipe = conn.pipeline()
     for index in range(len(declared)):
         pipe.hgetall(stage_key(run_id, index))
+        pipe.hgetall(unitstate_key(run_id, index))
     run = {"id": run_id, "title": record.get("title") or run_id, "kind": record.get("kind") or GENERATION,
            "who": record.get("who") or "",
            "database": record.get("database") or "", "job": record.get("job") or None, "argv": json.loads(record.get("argv") or "[]"),
@@ -810,9 +832,11 @@ def read_run(conn, run_id):
            "stages": []}
     for name in ("created", "started", "updated", "finished"):
         run[name] = float(record[name]) if record.get(name) else None
-    for stage, counters in zip(declared, pipe.execute()):
-        counters = {_s(k): _s(v) for k, v in counters.items()}
+    fetched = pipe.execute()
+    for index, stage in enumerate(declared):
+        counters = {_s(k): _s(v) for k, v in fetched[2 * index].items()}
         stage = dict(stage)
+        stage["unit_states"] = _unit_states(fetched[2 * index + 1])
         for name in _STAGE_NUMBERS:
             stage[name] = float(counters[name]) if name in counters else None
         for name in ("units", "done"):
@@ -823,11 +847,33 @@ def read_run(conn, run_id):
     return run
 
 
+def _unit_states(fields):
+    """`{unit: state}` from the verdicts the follower published for a stage (`unitwatch`, OPS.138); a field that does not read is left out."""
+    states = {}
+    for unit, raw in fields.items():
+        try:
+            states[int(_s(unit))] = str(json.loads(_s(raw)).get("state") or "")
+        except (ValueError, TypeError, AttributeError):
+            continue
+    return states
+
+
+STUCK_STATES = ("dead", "quiet")
+"""tuple: The unit states (`beatjudge`) that count as no sign of life for the run: the unit's process is gone, or it stands still far longer than its command ever has."""
+
+
 def is_stale(run, now=None):
-    """Whether a live run has shown no sign of life -- no unit finished, no event -- for `max(120 s, 3 x its
-    longest unit so far)`: the Queue page offers to clear it."""
+    """
+    Whether a live run has shown no sign of life, so the Queue page offers to clear it (OPS.141). While the units of the run that are running have been judged by their
+    beats (`unitwatch`: `stage["unit_states"]`), the run is stale when **every one of them is dead or quiet** and not otherwise: one long unit whose count moves, or that waits on
+    a lock, keeps the run alive however long it goes without finishing a unit or logging an event. With no unit judged (none has started, or the run is followed by an older
+    process) the old rule stands: no unit finished and no event for `max(120 s, 3 x its longest unit so far)`.
+    """
     if run is None or run["state"] not in LIVE_STATES:
         return False
+    judged = [state for stage in run["stages"] for state in (stage.get("unit_states") or {}).values()]
+    if judged:
+        return all(state in STUCK_STATES for state in judged)
     now = _now(now)
     longest = max([stage.get("longest_gap") or 0.0 for stage in run["stages"]] or [0.0])
     return now - (run["updated"] or run["started"] or now) > max(STALE_FLOOR_SECONDS, 3.0 * longest)

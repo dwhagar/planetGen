@@ -12909,7 +12909,7 @@ clears each one.
   goldens and TEST.430 re-baseline; letters near edges move. Needs the oxygen window as ruled (Boss, 11:19 PM EST on 2026-11-06: oxygen judged by partial pressure, carbon dioxide too on the oxygen-water classes, GEN.1320, GEN.1321, GEN.1330); its oxygen and carbon dioxide widths are stored in pressure units. Lock item. Done: the class
   census passes on the re-baselined ranges and each moved letter is
   explained.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 23 (built GEN.1313), lock item for Train 24 (class edges change); prerequisites GEN.1313 (merged, PR 5944). Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430, GEN.1331.
   Update (Boss, 6:31 PM EST on 2026-11-06, plan section 4c, prototype /mnt/project-files/design-drafts/fudge-prototype/minfudge.py): the selection rule replaces the best geometric mean. No fudge if any class fits fully; otherwise the fewest values moved first (mean temperature with its bands, day and night counts as one value), then the smallest total move in widths of the fudge table; a class needing a move past the cap is not eligible. The body stores which values were fudged and the amount (new columns), and the match is rebuilt from the amount. Cap tiers come from the part 2 sweep (section 4d).
 
@@ -12953,6 +12953,7 @@ clears each one.
   re-derived table rides it. Version 8.1. Owner: the thread "Run fudge cap
   simulation sweep". Filed by the TODO thread.
   Prerequisites: GEN.1312, GEN.1313. Related: GEN.1306, GEN.1314.
+  Status (TODO, 2026-11-11): GEN.1313 is built (PR 5944, Lane 23, report reports/fudge-table/fudge-table-first-build-2026-11-11.md): 31 stand-in rows measured on 471 rocky bodies with frozen-body runs, so only the constant moves; mass and gravity use the tier-scaled fallback. Scope left for this revisit (Lane 23's note): price the 53 population rows (they shift which worlds exist, not one world's width) with a run that holds the draw count or measures class-share distributions per row; 9 rows were unstable in some seed and are listed in the report.
 
 - [ ] **GEN.1333 A forced class G or P request is reachable in about 1 of 24 systems, and fails every time after the GEN.1323 envelopes: make the forced-class draw reach every class it offers**
   REWORKED: a request for class E is no longer snapped into the ecosphere once GEN.1397 removes the life list (an E request is a deep-frozen world); PR 5640 keeps its behaviour for the other classes, and GEN.1397 owns the E change.
@@ -13576,6 +13577,31 @@ clears each one.
 - [ ] **OPS.147 Per-stage golden digests (plan alone, scatter tables, facilities) so a train's declared stages can be checked against what its golden moved**
   Lane 05's OPS.133 step 0 audit (reports/lane05/affects-audit-2026-11-11.md, 2026-11-11): the golden plan digest moved at 7 epochs while the plan stage alone moved at one, so it cannot check a declaration. Do: split the golden battery's digest into one per stage (plan alone, the scatter tables, the facilities, fill, population where the golden galaxy can measure it) and make scripts/train.py compare the stages that moved with the union the items declared: a stage that moved but was not declared fails the build, a stage declared but unmoved warns. Reuse the golden battery and the OPS.133 union code. Test-side and tooling only, lock-free.
   Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 05 (offered by the audit), after OPS.133 step 1. Prerequisites: OPS.133. Related: OPS.133, GEN.1479.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1514 Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: replace the step in the pebble flux at the pebble end with a smooth decay, keep stand-in DE3 registered in GEN.725 with its tier and tweak level, and report how many giants' envelopes change.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473, GEN.1518 (hold: both matter only once the gas-gathering age is realistic). Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1515 Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: derive the lag window from the disk's drift speed, keep stand-in DE5 registered in GEN.725, and report the change in the drifted ice weights.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473, GEN.1518 (hold: both matter only once the gas-gathering age is realistic). Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1516 Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines)**
+  Lane 14's follow-up list for the water drift model (2026-11-11). Do: extend the envelope enrichment so N2, NH3, H2S, Ar, Kr and Xe follow the drifted ice weights through their volatility lines, register each stand-in in GEN.725, and report the change in the giants' bulk gas (it changes it the most of the three, so build it first).
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473, GEN.1517 (hold: on the current weights GEN.1516 would erase the noble gases from every Sun-like giant). Related: GEN.1472, GEN.1473.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1517 (bug) The water drift model starts the gas inside each ice line as pure evaporated ice, so a giant that gathers early gets no argon, krypton, xenon or CO2 carbon**
+  Lane 14, 8:12 AM EST on 2026-11-11, while building GEN.1516: the GEN.1473 drift model gives a giant's gas zero of every ice whose line is far upstream when the giant gathers its gas early. For a Sun-like star giants gather at 0.02 to 0.11 Myr, but the gas takes 0.6 to 1.6 Myr to travel from the argon, krypton, xenon and CO2 lines to the giant's place, so those weights are 0 and the envelope gets no argon, krypton or xenon (Jupiter measures 2 to 3 times solar). Cause: the design's start state treats the gas inside a line as made only of evaporated pebble ice, but at time zero the gas inside each line is the original solar gas with that vapor already in it, and it stays so until gas from outside the line has flowed in. The same flaw lowers the CO and CO2 carbon in the C/O of GEN.1473 (G stars 18 to 12 percent over C/O 0.8 may be overstated). Do: if the viscous travel time from the line to the giant's place is longer than the gathering age, the gas never crossed the line and keeps weight 1; otherwise the existing lagged ratio. Register the stand-in in GEN.725, report the change in the giants' C/O and noble gases. GEN.1473 (PR 5881) ships in Train 22 as it is, since its C/O change is small and documented; this corrects it on the next train. GEN.1516 waits for this item.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1473. Related: GEN.1472, GEN.1473, GEN.1516.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1518 Giant gas-gathering age from a pebble accretion efficiency (stand-in DE9), so the drift model reaches Sun-like giants**
+  Lane 14, 8:20 AM EST on 2026-11-11, while building GEN.1517: the giant's gas-gathering age (stand-in DE9) is 0.04 Myr at the median, shorter than the gas travel time from nearly any ice line (18 of 24 grid cells for a 1 solar mass star come out exactly static), so the drift model touches only giants of dwarf stars and giants that gather their gas late. A giant's gas takes about a Myr to gather (cores take about a Myr because pebble accretion is not 100 percent efficient). Do: research the pebble accretion efficiency in the literature (secondary sources fine; do not tune to a target), derive the giant's gas-gathering age from it, replace stand-in DE9 with the derived value registered in GEN.725 with its tier and tweak level, and report how the drift model's reach changes for Sun-like giants. Lock item. GEN.1514 and GEN.1515 wait behind this item, since both only matter once the age is realistic.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 14, lock item for a train. Prerequisites: GEN.1517. Related: GEN.1473, GEN.1514, GEN.1515, GEN.1516, GEN.1517.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
