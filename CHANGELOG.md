@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3831] - 2026-11-11
+
+**Headline:** A rocky planet's late-accreted veneer now comes from the belts and planets of its own system instead of one drawn number, and its air, water and ground are made again with it.
+
+### Changed
+- **The late accretion of a rocky planet follows its system (GEN.1493 slice 1).** The air of a rocky planet drew its late-accreted mass from a log-normal law (GEN.739) because the belts did not exist yet. Once the system is whole, `generation/late_accretion.py` takes the mass from the system's belts and planets (`physics/late_supply.py`, slice 0), at least 5 percent of the law's mean for its mass (planetesimals that never formed a belt) and at most the old 3 percent, and makes the planet's air, water and ground again by replaying `calculate_atmospheric_conditions` from the stream state saved at its last call (`planets.remake_air`) in a stream of its own, so no draw of the run's stream moves; a planet with no air, and one whose new late accretion moves its carbon and nitrogen by under half of what its volcanoes gave (`planets.LATE_ACCRETION_GATE`), keeps its air. In a census of 240 seeds (246 planets of 0.3 to 3 Earth masses) 43 percent take the floor, 22 percent sit at the ceiling and the median planet takes 0.13 of what the law gave; the pass is 8.8 percent of generation time (18 percent without the gate; 201 of 246 planets are identical to the full replay, 13 differ by more than 1 percent, the worst by a climate branch) (`tests/audit/late_accretion_census.py`, `reports/gen1493-late-accretion-census-2026-11-09.md`). Moons, giants and bodies of no star are as before. Reused, not rebuilt: `late_supply.veneer_fraction`, `influx.Reservoir`, the stream-state replay of `refinish_rocky` (GEN.992) and `refresh_at_final_age` (GEN.839). Stand-in rows LA1 to LA3 (section 6.255), all L3 with burn-down lines; the wiring-register lines of `late_supply` and LS1 to LS3 are gone as the module is now read. No migration.
+- **A planet whose air was made again also gets its class, spin, dose, ultraviolet index, equipment and habitability scores made again on it (train 22 fix).** `planets.remake_air` now follows the air with `apply_class` and `generate_spin` (the birth spin kept) from a stream of the planet's own, as `remake_end_stages` does, and the moons' day and night shares. The `sky_suns` and `light_factor` columns of `planets` and `rogue_planets` (GEN.1458, GEN.1484) were never written by the saver, so a re-score read them back empty and could rate a planet differently from generation; they are written and read back now.
+
+generation-affects: fill, population
+
+generation-output: changed
+
 ## [8.0.3830] - 2026-11-11
 
 **Headline:** The late supply a rocky planet takes from the belts of its own system is built and calibrated, but nothing reads it yet, so nothing generated changes.
