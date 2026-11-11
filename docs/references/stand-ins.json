@@ -28831,7 +28831,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1523",
+          "unread": "GEN.1527",
           "what": "helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium"
         },
         {
@@ -28869,7 +28869,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "GEN.1523",
+          "unread": "GEN.1527",
           "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
@@ -28907,7 +28907,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "GEN.1523",
+          "unread": "GEN.1527",
           "what": "helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets"
         }
       ],

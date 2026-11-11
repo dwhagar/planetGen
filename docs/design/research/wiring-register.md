@@ -80,10 +80,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.physics.helium_fractionation | GEN.1523 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
-| row | 6.77:HF1 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF2 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF3 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
+| module | planetgen.physics.helium_fractionation | GEN.1527 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
+| row | 6.77:HF1 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF2 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF3 | GEN.1527 | a constant of the helium fractionation module, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
