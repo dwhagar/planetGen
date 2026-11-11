@@ -864,8 +864,7 @@
     },
     {
       "epoch": 145,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.3844",
       "reason": "Train 23: tide sources and spin and heating from every body, Kozai moons, phosphorus gases, close-companion disk gas, belt members forced by companion stars, settled-orbit remake, oxygen sink with age, auto rogue count",
       "affects": ["fill", "population"]
     }
