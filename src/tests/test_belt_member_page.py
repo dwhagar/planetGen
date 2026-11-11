@@ -11,6 +11,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import object_uid
+from planetgen.web.maps import bodylook
 from tests.publicids import pid
 from tests.test_web_a11y import site_app, site_db  # noqa: F401 -- fixtures
 
@@ -66,6 +67,19 @@ def test_the_page_shows_the_body_and_links_its_neighbours_and_its_belt(client, b
     assert f'href="/object/{ref}"' in text and f'href="/object/{ref}/belt"' in text
     if members > 1:
         assert f'href="/object/{ref}/member/{_rank(2)}"' in text
+
+
+def test_the_page_draws_its_body_from_the_look_of_a_belt_member(client, belt):
+    """MAP.413: the Sensor view is a canvas with the member's look record (`bodylook.member_look`, its seed from the designation), painted by bodyview.js."""
+    import html
+    import json
+
+    ref, _members = belt
+    text = client.get(f"/object/{ref}/member/{_rank(1)}").get_data(as_text=True)
+    assert 'id="member-example"' in text and "bodyview.js" in text and 'class="body-view-canvas"' in text
+    look = json.loads(html.unescape(text.split("data-look='", 1)[1].split("'", 1)[0]))
+    assert look["kind"] == "belt_member" and look["body"] == "solid" and look["color"].startswith("#") and look["radiusKm"] > 0
+    assert look["seed"] == bodylook.seed_for("belt_member", client.get(f"/api/objects/{ref}/belt-members/{_rank(1)}").get_json()["designation"])
 
 
 def test_the_belt_page_links_every_body_to_its_page(client, belt):

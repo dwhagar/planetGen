@@ -42,6 +42,7 @@ Nothing here changes what a run generates: the work seed does not depend on how 
 """
 
 import contextlib
+import dataclasses
 import json
 import os
 import socket
@@ -126,13 +127,15 @@ def enabled():
 @dataclass(frozen=True)
 class Claim:
     """What one job asks of the host: its `kind` (the key claims are learned under), `mb` of memory, `cpu` cores, the `lane` it is on and
-    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage)."""
+    whether it needs the bulk lane to itself (`exclusive`: the cut of a stage). `solo` (OPS.145) is the claim of the restarted unit that runs alone: it asks for the whole
+    memory budget of the lanes that are not the site's (`solo_mb`) and waits for every other claim of those lanes to end, and none of them is admitted while it is held."""
 
     kind: str
     mb: float
     cpu: float = 1.0
     lane: str = LANE_OTHER
     exclusive: bool = False
+    solo: bool = False
 
 
 @dataclass(frozen=True)
@@ -247,7 +250,7 @@ def holders(conn, now=None):
         name = _decode(name)
         try:
             row = json.loads(_decode(raw))
-            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")))
+            claim = Claim(row["kind"], float(row["mb"]), float(row["cpu"]), row["lane"], bool(row.get("exclusive")), bool(row.get("solo")))
             pid, host = int(row["pid"]), row["host"]
             expires, peak = float(row["expires"]), float(row.get("peak", 0.0))
         except (ValueError, KeyError, TypeError):
@@ -290,6 +293,16 @@ def kept_cores(held, host, places=None):
     return max(0.0, min(places * KEEP_CPU_PER_PLACE, KEEP_CPU_SHARE * host.cores) - in_use)
 
 
+def solo_mb(host, held=(), places=None):
+    """The memory a solo claim asks for, MB: the host's, less what it keeps for itself (`reserve_mb`) and for the interactive and long lanes (`kept_mb`), so the site keeps its places."""
+    return max(float(MIN_CLAIM_MB), host.total_mb - reserve_mb(host) - kept_mb(held, places))
+
+
+def with_solo_mb(claim, host, places=None):
+    """`claim`, a solo one, with the whole budget as its memory (any other claim as it is)."""
+    return dataclasses.replace(claim, mb=max(claim.mb, solo_mb(host, places=places))) if claim.solo else claim
+
+
 def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     """
     The gate's rule (pure: the host and the claims held are given). `held` are the other claims (`holders`); `own_mb` is what the
@@ -300,10 +313,17 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     need = max(0.0, claim.mb - own_mb)
     if not others:
         return Decision(True, "alone: nothing else holds a claim", need, host.available_mb)
+    if claim.solo:
+        busy = sorted({holder.claim.kind for holder in others if holder.claim.lane not in SHORT_LANES})
+        if busy:
+            return Decision(False, f"a solo run waits for {', '.join(busy[:3])} to end", need, host.available_mb)
+        return Decision(True, "solo: no claim of the bulk or maintenance lanes is held", need, host.available_mb)
+    if not short and any(holder.claim.solo for holder in others):
+        return Decision(False, "a solo run holds the host", need, host.available_mb)
     if claim.exclusive and any(holder.claim.lane == claim.lane for holder in others):
         names = sorted({holder.claim.kind for holder in others if holder.claim.lane == claim.lane})
         return Decision(False, f"waits for the {claim.lane} lane to be clear of {', '.join(names[:3])}", need, host.available_mb)
-    unrealised = sum(max(0.0, holder.claim.mb - holder.held_mb) for holder in others)
+    unrealised = sum(max(0.0, holder.claim.mb - holder.held_mb) for holder in others if not (short and holder.claim.solo))      # the site's places are outside its budget
     keep = 0.0 if short else kept_mb(others, places)
     reserve = reserve_mb(host) / (2.0 if short else 1.0)
     free = host.available_mb - reserve - keep - unrealised
@@ -338,7 +358,7 @@ def _decision_lock(conn, wait=LOCK_SECONDS, sleep=time.sleep):
 
 def _write(conn, name, claim, pid, job, now):
     conn.hset(_key("claims"), name, json.dumps({
-        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "pid": pid,
+        "kind": claim.kind, "mb": claim.mb, "cpu": claim.cpu, "lane": claim.lane, "exclusive": claim.exclusive, "solo": claim.solo, "pid": pid,
         "host": socket.gethostname(), "job": job, "started": now, "expires": now + CLAIM_SECONDS, "peak": 0.0}))
 
 
@@ -374,11 +394,13 @@ def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, cloc
 def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wait, scheduler):
     started = clock()
     announced = float("-inf")
+    asked = claim
     while True:
         waited = clock() - started
         with _decision_lock(conn):
             held = holders(conn)
             host = read_host()
+            claim = with_solo_mb(asked, host)
             if enabled():
                 if scheduler is None:
                     decision = decide(claim, host, held, own_mb=held_mb(pid), name=name)
@@ -431,7 +453,8 @@ def release(conn, name):
     if peak > 0.0:
         learn(conn, row["kind"], peak)
     from planetgen.queue import scheduler
-    scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
+    if not row.get("solo"):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
+        scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
     return peak
 
 

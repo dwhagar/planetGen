@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1547 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1551 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1521 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1525 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 184 | 20 | 11 | 1 | 0 | 216 |
 | T2 | 144 | 59 | 1 | 1 | 0 | 205 |
 | T3 | 108 | 47 | 9 | 10 | 0 | 174 |
-| T4 | 79 | 11 | 4 | 22 | 12 | 128 |
-| T5 | 75 | 24 | 6 | 1 | 1 | 107 |
-| T6 | 196 | 106 | 30 | 79 | 4 | 415 |
+| T4 | 81 | 11 | 4 | 22 | 12 | 130 |
+| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
+| T6 | 197 | 106 | 30 | 79 | 4 | 416 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 43 | 16 | 5 | 90 | 34 | 188 |
-| All | 878 | 302 | 75 | 240 | 52 | 1547 |
+| All | 882 | 302 | 75 | 240 | 52 | 1551 |
 
 ## How the labels were given
 
@@ -2735,3 +2735,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AL2 | T | T4 | L2 | `star_orbit_alignment.ALIGNED_SCALE_DEG` 5: the tilt of an aligned orbit is a Rayleigh law of this scale (mean 6.3 degrees), prograde | 2 to 10 degrees | every multiple | planets or inner pairs of aligned multiples whose measured tilts to the outer plane are mostly beyond 15 degrees | the scale of the distribution of the tilts of aligned multiples | recalled from [R3333] (aligned means within a few to ten degrees), not read; the planets' own Rayleigh law about their reference plane is the model (`orbit_elements.draw_planet_inclination_deg`) | predicted only | - | - |
 | AL3 | T | T6 | L0 | the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before | none | random-orientation multiples (wide pairs formed by fragmentation) | a sample of wide multiples whose planes prefer a direction against the planets' plane | the measured distribution of the tilts of wide multiples | design: the draw `Tree.place` made before GEN.1500, kept for the share that is not aligned | predicted only | - | - |
 | AL4 | T | T6 | L0 | the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (`stability.mutual_inclination`); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn | none | triples and quadruples | a census of the accepted triples whose mutual inclination shows the peaks without the planet screen | the Kozai screen of GEN.1447 run on the planets | design; reuse of `stability.mutual_inclination` and `kozai_verdict` | predicted only | - | - |
+
+## 6.261 Stand-ins of the fudge table
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| FT1 | P | T4 | L0 | the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is its hand shoulder (CF, DM) times `1 + score / 12`, `score` the mean registry unreliability score of the area that makes it (`build_fudge_table.FALLBACK_SCORES`, 3.3 to 5.2) | factor 1.3 to 1.45 | quantities the frozen sample cannot move | a measured width for the same quantity that differs from the fallback by more than a factor of 2 | a sensitivity run that moves the mass law and the radius law with the population held (GEN.1318) | design: the ranking report of 11-06 section 2b gives the scores; the factor is a stated stand-in, not derived | predicted only | - | - |
+| FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
+| FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
+| FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |

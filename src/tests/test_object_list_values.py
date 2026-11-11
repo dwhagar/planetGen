@@ -121,9 +121,9 @@ def test_the_nebula_list_filters_and_sorts_by_the_stored_composition(indexed, cl
     assert row["mass_fraction_h"] is not None and row["dust_to_gas"] is not None
     items, _pages, total = _walk(config, "nebula", 5, sort="mass_fraction_h")
     assert total == 1 and items[0]["values"]["mass_fraction_h"]["value"] == pytest.approx(row["mass_fraction_h"])
-    kept, _pages, kept_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] - 0.01, row["mass_fraction_h"] + 0.01, "ratio")})
+    kept, _pages, kept_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] - 0.01, row["mass_fraction_h"] + 0.01, "frac")})
     assert kept_total == 1
-    nothing, _pages, none_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] + 0.1, None, "ratio")})
+    nothing, _pages, none_total = _walk(config, "nebula", 5, ranges={"mass_fraction_h": (row["mass_fraction_h"] + 0.1, None, "frac")})
     assert nothing == [] and none_total == 0
     body = client.get("/api/object-lists/nebula", query_string={"nebula_min_dust_to_gas": 0.0, "sort": "dust_to_gas"}).get_json()
     assert body["total"] == 1, body
