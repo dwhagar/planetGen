@@ -12533,7 +12533,7 @@ clears each one.
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Same train as GEN.1314. Lock item. Done: the habitable count by threshold,
   the barred-world loop and the +habitable_world request read the stored
   match and the search filters offer it.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 23 (built parts 1 to 3, owns GEN.1314), lock item for Train 25 (Train 24 carries GEN.1314); the old owner, the fudge thread, was not a current lane, which is why it sat unscheduled. Filed by the TODO thread.
   Prerequisites: GEN.1314. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1316 Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge**
@@ -12543,14 +12543,14 @@ clears each one.
   pages say what the fudge is (the model's uncertainty, not the world's
   variety). Lock-free. Done: the column and the pages are built from the
   table.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14, lock-free, starts when Train 24 (GEN.1314) merges. Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **GEN.1317 Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed**
   Fudge table plan (/mnt/project-files/design-drafts/fudge-table-from-stand-in-confidence-2026-11-06.md), approved by Boss, 6:28 PM EST on 2026-11-06 (relayed by the coordinator). Boss, 6:28 PM EST on 2026-11-06: make the system check the data against
   the epoch during update, and if the epoch has changed regenerate the fudge
   table automatically. update.sh checks the generator epoch and the registry hash against the table header and rebuilds it automatically when they differ. The table is a derived file in PLANETGEN_DATA_DIR (not committed), the build is deterministic, a committed fixture serves the tests, and a stale or missing table makes generation refuse, as GEN.590 does. The regeneration is the sensitivity run (hours on a lane machine), so the design must say how update does it (a fast mode on the stored matrix when only a constant's value changed, a background job otherwise, never blocking the web site for hours) and state the run time. Lock item: touches update.sh and the epoch, in the same train as GEN.1314 and GEN.1315 (order: parts 1, 2, 3 first; 4, 5 and 7 in one train after 3). Done: after an epoch change update rebuilds the table, and a test covers a stale epoch stamp.
-  Version 8.1. Owner: the fudge thread (started by the coordinator); a lane machine for the run is picked by TODO. Filed by the TODO thread.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 23 after GEN.1315, lock item for the same train (touches update.sh and the epoch). Filed by the TODO thread.
   Prerequisites: GEN.1313. Related: GEN.725, GEN.1306, TEST.430.
 
 - [ ] **OPS.118 Find what sent SIGTERM to the work horse on unit 11 of Boss's warm-up (status 15): no code path in the program sends it, so it is outside the program or a manual stop (bug)**
@@ -13184,6 +13184,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 11, with GEN.1549. Prerequisites: GEN.1549, GEN.1551, GEN.1552. Related: GEN.1549.
   Filed by the TODO thread. Top priority (Boss).
 
+- [ ] **GEN.1554 K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone, lever 8 of the Class M rarity report**
+  Boss, 6:00 PM EST on 2026-11-11 (the Class M fixes that were planned, as the coordinator relayed), from reports/class-m-rarity-and-levers-2026-11-08.md (section 5, lever 8): GEN.909 left open that K5V worlds are cold in the inner third of the habitable zone, and K and M dwarfs are most stars. Do: a probe split by incident flux for K and M dwarf worlds (temperature against the zone position), read how the zone edges shift with the redder spectrum (ice-albedo and Rayleigh scattering), decide with the numbers whether the zone edges or the greenhouse term need a sourced change, and report; build the change if it is clear (register stand-ins in GEN.725 with tier and tweak level; physics found in research wins). Done: the report with the flux-split table and, if a change is clear, its PR. Moves K and M dwarf temperate counts only; a lock item if built.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 15 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
@@ -13278,7 +13283,7 @@ clears each one.
 
 - [ ] **GEN.1403 Water-limited weathering: the carbon dioxide drawdown scales with land times the share of that land that is wet, instead of land alone (the GEN.909 option 3 lever)**
   Class M rarity report /mnt/project-files/reports/class-m-rarity-and-levers-2026-11-08.md (section 5), lever 4. GEN.909 was closed as a diagnosis (cold by the physics); its option 3 was measured: temperate worlds with at least 10 kPa went from 16 of 45 to 19 or 20 of 45 (G2V) and from 6 of 40 to 6 or 9 of 40 (K5V), the cold share from 60 to 48 or 49 percent (G2V). Small, and it does not recover the zone by itself. Do: source the form (land times min(1, ocean cover over the Earth value 0.71), or a cap of land at Earth's 0.29), register it in GEN.725 with tier and tweak level (an educated guess from physics, L1 inside the published range), build it behind the carbon dioxide step of GEN.1309 and re-measure. Lock item (changes the temperature of nearly every dry world and moves E and W worlds into other classes). Do not start before GEN.1309 steps A and B merge; Boss decides whether to build.
-  Version 8.1. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14 (moved up from 8.2 for the Class M fixes), lock item for Train 25. Prerequisites: none. Related: GEN.1309, GEN.909, GEN.725.
   Filed by the TODO thread, from the class M rarity report (Boss, 2026-11-08).
 
 - [ ] **GEN.1408 Fictional materials part 1: the fiction table (the four fictional materials only: Kyber crystal, Solar crystal, Aurora crystal and Tritanium; each with its kind, default inclusion and default name)**
