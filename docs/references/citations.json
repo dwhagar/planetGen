@@ -26120,6 +26120,16 @@
       "kind": "paper",
       "label": "Laskar et al. 1993",
       "title": "Stabilization of the Earth's obliquity by the Moon"
+    },
+    "R5228": {
+      "kind": "paper",
+      "label": "Correia and Rodríguez 2013",
+      "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES"
+    },
+    "R5229": {
+      "kind": "paper",
+      "label": "Noyelles and Lhotka 2013",
+      "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury"
     }
   }
 }

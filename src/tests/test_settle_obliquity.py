@@ -56,22 +56,50 @@ def test_the_tilt_is_the_same_for_the_same_planet_and_comes_from_the_planets_own
     assert first.axial_tilt_deg == second.axial_tilt_deg
 
 
-def test_a_regular_planet_a_lone_planet_a_locked_planet_and_one_with_no_axis_keep_their_tilt(monkeypatch, quiet):
+def test_a_regular_planet_a_lone_planet_and_one_with_no_axis_keep_their_tilt(monkeypatch, quiet):
     keep = _planet(1.0)
     assert planets.settle_obliquity([keep], SUN) == 0                                   # a lone planet has no modes
     monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(20.0, 26.0, False, False, 1.0, (), alpha))
     regular = _planet(1.0)
     assert planets.settle_obliquity([regular, _planet(5.0, body_type="g")], SUN) == 0 and regular.axial_tilt_deg == 23.0
     _chaotic(monkeypatch)
-    locked = _planet(1.0, rotation_hours=1.0 * 1.0 ** 1.5 * 365.25 * 24.0)               # one turn an orbit
-    assert planets.spin.spin_state(locked.rotation_period_hours, locked.period)[0] == "locked"
-    planets.settle_obliquity([locked, _planet(5.0, body_type="g")], SUN)
-    assert locked.axial_tilt_deg == 23.0
     bare = _planet(1.0)
     bare.spin_axis_x = None
     planets.settle_obliquity([bare, _planet(5.0, body_type="g")], SUN)
     assert bare.axial_tilt_deg == 23.0
-    assert quiet == [] or all(entry[1] != locked.name for entry in quiet)
+
+
+def _locked(distance=0.4, **kwargs):
+    planet = _planet(distance, rotation_hours=distance ** 1.5 * 365.25 * 24.0, inclination=7.0, **kwargs)
+    assert planets.spin.spin_state(planet.rotation_period_hours, planet.period)[0] == "locked"
+    return planet
+
+
+def test_a_locked_rocky_planet_takes_the_cassini_tilt_of_its_figure_and_a_giant_or_a_free_one_does_not(monkeypatch, quiet):
+    """GEN.1536: the tilt is the first Cassini state against the nodal modes of the orbit, not the early share of the inclination; the sky and moons follow."""
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: 0.02)
+    locked = _locked(moons=[SimpleNamespace(mass=1.0e20, distance=0.001, eccentricity=0.0)])
+    giant = _locked(1.5, body_type="g")
+    outer = _planet(5.0, body_type="g")
+    assert planets.settle_obliquity([locked, giant, outer], SUN) >= 1
+    assert 0.0 <= locked.axial_tilt_deg < 7.0 and locked.axial_tilt_deg != 23.0
+    assert giant.axial_tilt_deg == 23.0 and outer.axial_tilt_deg == 23.0
+    assert ("daylight", locked.name) in quiet and ("moons", locked.name) in quiet
+    axis = (locked.spin_axis_x, locked.spin_axis_y, locked.spin_axis_z)
+    normal = planets.spin.orbit_normal(7.0, 10.0)
+    assert math.degrees(math.acos(sum(a * b for a, b in zip(axis, normal)))) == pytest.approx(locked.axial_tilt_deg, abs=1e-6)
+
+
+def test_the_cassini_tilt_is_the_same_for_the_same_planet_and_a_hot_one_keeps_the_hydrostatic_figure(monkeypatch, quiet):
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: 0.02)
+    first, second = _locked(), _locked()
+    planets.settle_obliquity([first, _planet(5.0, body_type="g")], SUN)
+    planets.settle_obliquity([second, _planet(5.0, body_type="g")], SUN)
+    assert first.axial_tilt_deg == second.axial_tilt_deg
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: 5.0)
+    hot = _locked()
+    planets.settle_obliquity([hot, _planet(5.0, body_type="g")], SUN)
+    assert hot.axial_tilt_deg > first.axial_tilt_deg      # the relaxed figure is the fossil one divided by its factor (22.7 to 94): the axis is held less to the orbit
 
 
 def test_the_inputs_of_the_analysis_are_the_planets_own_moons_orbits_and_spin(monkeypatch, quiet):
@@ -94,11 +122,11 @@ def test_the_inputs_of_the_analysis_are_the_planets_own_moons_orbits_and_spin(mo
 
 
 def test_the_range_of_the_tilt_is_kept_for_a_planet_that_is_worked_and_not_for_a_locked_one(monkeypatch, quiet):
-    """GEN.1535: `obliquity_min_deg` and `obliquity_max_deg` are the analysed range, set whether or not the zone is chaotic; a locked planet is not worked."""
+    """GEN.1535: `obliquity_min_deg` and `obliquity_max_deg` are the analysed range, set whether or not the zone is chaotic; a locked planet takes the Cassini tilt (GEN.1536) and has no range."""
     monkeypatch.setattr(ov, "analyse", lambda alpha, tilt, modes: ov.Variation(18.0, 31.0, False, False, 0.0, (), alpha))
     free, locked = _planet(1.0), _planet(5.0, rotation_hours=5.0 ** 1.5 * 8766.0)
     free.obliquity_min_deg = free.obliquity_max_deg = locked.obliquity_min_deg = locked.obliquity_max_deg = None
-    assert planets.settle_obliquity([free, locked], SUN) == 0
+    assert planets.settle_obliquity([free, locked], SUN) == 1       # the locked one
     assert (free.obliquity_min_deg, free.obliquity_max_deg) == (18.0, 31.0)
     assert locked.obliquity_min_deg is None and locked.obliquity_max_deg is None
 
