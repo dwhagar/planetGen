@@ -309,10 +309,18 @@ The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the at
 | LiH | 7.948 | - | 29.75 | 36.07 | no phase data; free energy in species_thermo.py | COMPUTED |
 | LiOH | 23.947 | - | 46.08 | 54.02 | no phase data; free energy in species_thermo.py | COMPUTED |
 | LiCl | 42.390 | - | 33.29 | 37.53 | no phase data; free energy in species_thermo.py | COMPUTED |
+| P | 30.974 | - | 20.79 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
+| PO | 46.973 | - | 31.76 | 35.98 | no phase data; free energy in species_thermo.py | COMPUTED |
+| PN | 44.981 | - | 29.71 | 35.47 | no phase data; free energy in species_thermo.py | COMPUTED |
+| PS | 63.034 | - | 35.26 | 37.38 | no phase data; free energy in species_thermo.py | COMPUTED |
+| PH | 31.982 | - | 29.18 | 33.10 | no phase data; free energy in species_thermo.py | COMPUTED |
 
 The last three rows (Cl, F, F2; GEN.1337) are the halogen atoms and fluorine that a hot outgassed gas holds once its hydrogen halides dissociate: `physics/gas_equilibrium.py` already carries their free energies, and a drawn mixture whose unlisted share was above the 1e-3 limit of `mixture_base.finish` failed with a MixtureError (about 1 in 240 G2V systems) until the table listed them. Cp is the NASA Glenn fit, as above.
 
 The four lithium rows (Li, LiH, LiOH, LiCl; GEN.1374) are the lithium gases of a brown dwarf's air: atomic Li down to 1520 K at 1 bar, then LiCl, with LiOH and LiH beside them ([R2731] section 1.5.5). Cp is the NASA Glenn fit, as above. The FeH and CrH rows above are no longer "NOT REACHED" for their free energy: `species_thermo` holds both since GEN.1374, made from atoms and the equilibrium constants of [R5162].
+
+The five phosphorus rows (P, PO, PN, PS, PH; GEN.1512) are the phosphorus gases a hot giant holds: before them P2 and PH3 were the only gases with phosphorus, both fitted only to 6000 K, so a giant hotter than that had no gas to put its phosphorus in. Atomic P is fitted to 20000 K in the NASA Glenn database [R2968], which is the one species that carries the element above 6000 K; PO, PN, PS and PH are fitted to 6000 K and hold the phosphorus between 1000 and 6000 K. Cp is the NASA Glenn fit, as above.
+
 
 ## 6. Saturation vapour pressure correlations
 
