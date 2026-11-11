@@ -170,7 +170,7 @@ def test_black_hole_spin_follows_the_beta_draw():
                 reason="GEN.1504: the secular exchange (GEN.1450) turns the orbit but not the stored spin tilt",
             ),
         )
-        if seed in (0, 4, 5)
+        if seed in (4, 5)      # seed 0 passed once the belts pulled on the planets (GEN.1464): its orbit no longer leaves the tilt behind
         else seed
         for seed in range(6)
     ],
