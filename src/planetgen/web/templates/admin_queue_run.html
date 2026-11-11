@@ -17,6 +17,7 @@
     {%- if run.job_url %}<div><dt>Job</dt><dd><a href="{{ run.job_url }}">Generate page job and its output</a></dd></div>{% endif %}
   </dl>
   {%- if run.error %}<p class="error">{{ run.error }}</p>{% endif %}
+  {%- if run.killed %}<p class="error">This run was killed{% if run.killed_reason %}: {{ run.killed_reason }}{% endif %}. A killed run can be carried on from the stage it did not finish.</p>{% endif %}
   {%- if run.stale %}<p class="error">This run has not been heard from for too long: it has stopped answering.</p>{% endif %}
   <p class="queue-actions">
     {%- for action, label in run.actions %}

@@ -2,6 +2,357 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3821] - 2026-11-11
+
+**Headline:** The squeezed-heliopause system-sheet test names its nebula, so the text it checks matches what the sheet says for a named cloud.
+
+### Fixed
+- **`test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause` named an unnamed nebula.** `_placed_nebula` inserts a nebula with an empty name, and the sheet then says "the gas of the cloud around the system presses it in" while the test looked for "the gas of  around ..." with the empty name. The test now gives the nebula the name "Test Cloud" with the same update that sets its density and temperature, so the sentence it checks carries a name. A test-side fix only; no product code changed. Reused: the existing `_placed_nebula` helper and the sheet's own `or 'the cloud'` fallback.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3820] - 2026-11-11
+
+**Headline:** After the stuck action stops a unit and queues it again, every other task is held so the restarted unit runs alone, the Queue page says so and who holds it, and the hold lifts by itself when the unit completes or fails (OPS.145, heartbeat part 8).
+
+### Added
+- **A solo hold on the one pause flag.** `queue/pause.py` keeps its flag (`planetgen:queue:paused`) and gives it two fields, `reason` and `solo` (the unit whose job is let through). `pause.hold_solo` is called by `unitstuck.Stuck` when it queues the stopped unit again, at the front of its queue (`redisqueue.requeue_job(..., at_front=True)`); `pause.blocks` is what the workers ask. A worker that takes any other job while the hold is on puts it back at the end of its queue and waits (`cli/worker.py`), so nothing new starts beside the unit; units already running finish or stop at their next batch. A pause made by hand is never replaced by a hold, and the follower never lifts a pause it did not make.
+- **The hold lifts by itself.** The follower lifts it when the unit is complete, when the run fails (including the unit's second stuck verdict) or ends, and `pause.state` drops it when the unit's job has ended or is gone (a follower that died). An admin can lift it from the Queue page: it reads "The queue is held by run ...: solo run of unit N (stage S) after a restart", with a Lift the hold button (`queue-resume`). `GET /api/admin/work` status gains `paused_reason` and `solo_unit`.
+- **The memory gate gives the restarted unit the host.** `memorygate.Claim.solo`: the unit asks for the whole memory budget of the lanes that are not the site's (`memorygate.solo_mb`: the host's memory less its own reserve and the places kept for the interactive and long lanes), waits until no claim of the bulk or maintenance lanes is held, and no bulk or maintenance claim is admitted while it is held. The site's lanes are not held.
+- **The scheduler treats the solo run as a turn that does not rotate.** The solo ticket goes before every other (`scheduler.SOLO_WEIGHT`), holds the bulk lanes back while it waits, and its time is not charged to its kind (`memorygate.release`), so the kinds that waited are not behind it when the hold lifts and keep the waiting they did.
+
+### Changed
+- `pause.state()` returns `reason` and `solo` too (`None` for a pause by hand).
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3819] - 2026-11-11
+
+**Headline:** The page of a belt member now shows a picture of the body: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.413: `/object/belt:<ID>/member/<rank>` has a "Sensor view" panel above the table. `bodyview.member_view(designation, member)` makes the look record with `bodylook.member_look` (MAP.412) from the page's member block, its seed from the designation so the 3D view (MAP.414) draws the same body; the existing `static/bodyview.js` paints it (a body under the roundness limit through `lumpyview.js`, a round one as a sphere). One body per page; nothing is guessed, so there is no estimate line. The caption says the colour comes from the taxon and the shares of rock, metal, water and ice.
+- Reused: `bodyview.js`, `lumpyview.js` and `lumpymesh.js` unchanged, the item page's Sensor panel markup, `bodylook.member_look`. Checked in headless Chromium: a lumpy dark carbonaceous body and a round stony one paint with no console message.
+
+generation-affects: none
+
+## [8.0.3818] - 2026-11-11
+
+**Headline:** A belt member now has a look record, so the pages and the 3D view can draw it: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.412: `bodylook.member_look(member)` gives the look record of a `belt_members` row: `kind` `belt_member`, a seed from its id, its radius and density, its taxon, and a colour (`member_grain_color`) that mixes the colour of the taxon's rock family (the same `ASTEROID_GRAIN_COLORS` the asteroid fields use; the dark taxa C, B, P and D carbonaceous, V basaltic, M metallic, the rest stony) with the metallic grey by its metal share and the icy pale blue-grey by its water and ice shares. `lumpy` is true when its roundness ratio at the median strength (`body_strength.ratio_for`) is under 1, so `lumpymesh.js` draws a lump; a body of Ceres' size is a ball. The info panel's account (`colour_account`) names the taxon and the shares.
+- Reused: `seed_for`, `ASTEROID_GRAIN_COLORS`, `_srgb_byte`, `body_strength.ratio_for`. Not built here: the member page and the 3D view that call it (MAP.413, MAP.414), and members at or above the planet class floor, which draw through `planet_look` (GEN.1509 to GEN.1511). No query or stored value changes.
+
+generation-affects: none
+
+## [8.0.3817] - 2026-11-11
+
+**Headline:** Tests that need a rare case search a bounded number of seeds for it instead of pinning the seed that once had it.
+
+### Changed
+
+- TEST.714: new `tests/fuzz_support.first_seed_with(build, wanted, seeds=range(64), what=...)`: builds each seed under `deterministic_entropy`, stops at the first that `wanted` accepts, and fails naming how many seeds it tried when none has the case (with its own tests in `tests/test_first_seed_with.py`).
+- `test_describe_render.py::test_headings_follow_the_tree_in_each_format` searches the seeds for a described system with a moon (it took the first of three pinned seeds). `test_moon_history.py` finds the planet with its born moons (two tests) and the moon that moved by 5 percent (it skipped when none of 16 seeds had one) by the same search; the sample test runs its 16 seeds as before and goes on to 64 only while it has not seen a fallen moon and six moons.
+- The Train 22 pin reds the Train Manager listed (`test_planet_zones`, `test_circumbinary_light`, `test_db_column_round_trip`, `test_species_limits`/`test_population`, `test_swept_hand_on`) are on `claude/train-22`, fixed there by their owners; they are converted to the helper once they are on main.
+
+generation-affects: none
+
+## [8.0.3816] - 2026-11-11
+
+**Headline:** The settings test names `PLANETGEN_MEMORY_GATE` as a one-process switch, as it does the other environment variables that are not site options.
+
+### Changed
+
+- `tests/test_settings.py::test_the_code_reads_no_variable_the_model_does_not_name` was red on main: `queue/memorygate.py` reads `PLANETGEN_MEMORY_GATE` (PERF.254; `0` turns the gate off for the process so every claim is admitted at once), a variable that is neither a `config.json` option nor in `NON_OPTION_VARIABLES`. It is a switch for one process (a benchmark or debugging run), not a site setting, since the gate is the rule on every install, so it joins the list with that reason. The code is unchanged.
+
+generation-affects: none
+
+## [8.0.3815] - 2026-11-11
+
+**Headline:** The Generate page's jobs, the API's jobs and the map's tile prefetch now give a sign of life while they run, and the Queue page lists them, so a dead one shows as dead instead of as nothing (OPS.142, heartbeat part 9).
+
+### Added
+- **`queue/jobbeat.py`.** `jobbeat.beating(kind, job_id, label)` runs the same beat thread as a unit (`unitbeat.UnitBeat`, Redis server clock) for a job that is not a unit of a run: an API job (`api_jobs.execute`), a web job (`web/job_runner.run`, with the step it is on as the phase) and a tile prefetch chunk (`tileprefetch.build_nodes`). The records sit in one hash, `planetgen:jobbeats`, removed when the job ends; a job that is killed leaves its record, which reads `dead` for an hour and is then dropped. These jobs have no unit of work to count, so the judge says only `working` or `dead`; nothing is ended on its state (RQ's time limit still is). Where Redis does not answer, the job runs without a beat.
+- **`GET /api/admin/work/jobs`** (admin; additive, API version unchanged) and a **Jobs running now** panel on the Queue page: kind, label, state, what it is doing, how long it has run, and when it was last heard from.
+
+### Changed
+- `UnitBeat` can write to a hash and field of its own (`hash_key`, `extra`), which is how the job beat reuses it.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3814] - 2026-11-11
+
+**Headline:** A run is now called stale only when every unit that is running is dead or stuck, so one long unit whose count moves no longer shows a "Clear the stale run" offer after two minutes (OPS.141, heartbeat part 8).
+
+### Changed
+- **`runrecord.is_stale` reads the unit states.** `read_run` now carries, for each stage, the states the follower last published for its running units (`stage["unit_states"]`, from `unitwatch`, OPS.138). While any unit is judged, the run is stale exactly when every one of them is `dead` or `quiet`; a unit that works, is slow, loops, or waits on a lock keeps the run alive however long it goes without finishing a unit or logging an event. Before this, a run was stale after `max(120 s, 3 x its longest unit so far)` without a finished unit or an event, which one 30 minute sky cell always tripped.
+- With no unit judged (none has started, or an older process follows the run) the old rule stands, so a run with queued units and no worker is still called stale after the same time. A run whose follower is gone is still found by `holder_is_dead`, which the Clear offer reads too.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3813] - 2026-11-11
+
+**Headline:** main is green again: the wiring register lists the two fudge data files that GEN.1313 added.
+
+### Changed
+
+- `docs/design/research/wiring-register.md`: a line for `physics/data/fudge_matrix.json` (by design: only the table builder and its test read it) and one for `fudge_table.json` (GEN.1314 wires it). Test only; nothing in generation changes.
+
+generation-affects: none
+
+## [8.0.3812] - 2026-11-11
+
+**Headline:** The nebula composition range test of the object lists passes the unit the columns are stored in.
+
+### Changed
+
+- `tests/test_object_list_values.py::test_the_nebula_list_filters_and_sorts_by_the_stored_composition` gave the nebula composition ranges (`mass_fraction_h`) the unit `ratio`, but those columns are stored as `frac` (`db/column_units.py`) and `search_values.convert` refuses `ratio` to `frac` ("The two measure different things"). It has been red on main since the test came in with GEN.1276; the test now passes `frac`. No code changes.
+
+generation-affects: none
+
+## [8.0.3811] - 2026-11-11
+
+**Headline:** the fudge table exists as data: the width of every class quantity, built from how far the stand-ins that make it could move it.
+
+### Changed
+
+- `scripts/stand_in_sensitivity.py screen --frozen` (GEN.1313): makes the systems once and, for each override, makes the end stages (air, water, surface, class, spin) of the same rocky planets and moons again from each body's own stream, so only the constant moves and every row is paired; the bodies are settled to their fixed point first and a row that does not bring them back to the baseline is flagged. `combine` also keeps the per-body movements.
+- `scripts/build_fudge_table.py` builds `physics/data/fudge_table.json` from `physics/data/fudge_matrix.json` (31 rows, 3 seeds x 40 systems), the class table and the registry: width = 2 sigma of the tier-widened, half-gap-clipped movements, per class edge, never past the half-gap to the next edge, with the five biggest makers of each width; quantities no row moves take the hand shoulder times 1 + score / 12. `src/tests/test_fudge_table.py` fails when the committed table differs. Registry section 6.261 (FT1 to FT4).
+- Nothing reads the table yet: `class_fit` is unchanged (part 4 of the plan).
+
+generation-affects: none
+
+## [8.0.3810] - 2026-11-11
+
+**Headline:** Every command now remembers the longest time its counter has stood still between two changes, so the heartbeat's "quiet" rule is 5 times what that command has really done and not a guess (OPS.135, heartbeat part 2).
+
+### Added
+- **The gap, measured in the horse.** `UnitBeat.longest_gap()` is the longest seconds between two changes of the unit's counter, from the unit's start to its end, less the time spent waiting on the sky lock, MySQL or the gate (waiting is not standing still). It is also in the beat record as `longest_gap`.
+- **`queue/commandgaps.py`.** A finished unit notes its gap; the run keeps the largest per command (`runrecord.gaps_key`, a hash of command to seconds, expiring with the run). A run that ends `done` folds its gaps into the server's (`planetgen:command-gaps`, beside `stagetimes`): a longer gap replaces the stored one, a shorter one pulls it down by half, so one slow night does not loosen the rule for ever. A failed or stopped run adds nothing.
+- **For the judge.** `commandgaps.history_of(conn, run_id)` is the `history_of` of the `UnitWatch` that `wrapper.run` makes: the larger of the server's gap and this run's so far, which `beatjudge.quiet_limit_seconds` turns into `max(5 min, 5 x the longest gap)`.
+
+### Changed
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3809] - 2026-11-11
+
+**Headline:** A unit that is dead or stuck is now found by its heartbeat, its stack is dumped, it is stopped and queued again once, and a second time it fails the run with both stacks; a unit whose count moves is never stopped, however long it takes (OPS.140, heartbeat part 7).
+
+### Added
+- **`queue/unitstuck.py` `Stuck`.** For a unit that `UnitWatch.agreed()` lists (dead or quiet in two checks in a row): the follower sends its horse `SIGUSR1`, which has `faulthandler` write every thread's stack to the unit's stack file (`unitbeat.register_dump`, set up by `_do_unit`; the beat record carries `pid`, `host` and `stack_file`); stops the job with RQ's stop command; and, once the unit has left its horse, queues the same job again. RQ does not retry a job that was stopped on purpose, so this is done here: the job is taken out of the started or failed registry, the stale beat is cleared, and `redisqueue.requeue_job` queues it. A unit stuck again on its second attempt fails the run, with both stacks in the message. A stop that has not taken effect in `STOP_WAIT_SECONDS` (120 s) fails the run. What was done to each unit is kept in `runrecord.stuck_key`, so a restarted follower does not stop a unit twice.
+- **The killed flag** (OPS.144, Lane 13's `runrecord.mark_killed`): the stuck action sets it on every stop, with the reason, and ends a run it fails with `finish_run(killed=True)`, so the Queue page offers Resume run.
+
+### Changed
+- **The unit time limit is only a backstop.** `units.unit_timeout` is now always the 6 hour ceiling (`redisqueue.MAX_TIMEOUT_SECONDS`), not 10 times the stage's expected time, and `_unit_limit` (OPS.134) is gone with it. A moving unit is never ended for taking longer than estimated (Boss, 5:16 PM EST on 11-09).
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3808] - 2026-11-11
+
+**Headline:** The process that follows a run now judges every running unit's heartbeat at each poll, says once in the run log and `error.log` when a unit goes quiet, dead or loops, and shows each unit's state on a new API route (OPS.138, heartbeat part 3).
+
+### Added
+- **`queue/unitwatch.py` `UnitWatch`.** At every poll `follow_stage` has the watch read the beats of the stage's running units (`unitbeat.read`), judge each with `beatjudge.judge` on the Redis server clock (with the beat the unit had at the check before, so a count that goes backward inside a phase is seen), and log **each change of state once**: a run log line (`unit-state`, with the stage and unit) and, for dead, quiet and suspect-looping units, a line in `error.log` too. A unit that works from the start is not announced; one that works again after a flag gets a line saying so; a second attempt of a unit that finished is a new change. `UnitWatch.agreed()` lists the units dead or quiet in two checks in a row (`beatjudge.agreed`), which is what the stuck action (OPS.140) takes; a unit whose count moves is never in it.
+- **`GET /api/admin/work/<id>/units`** (admin): the state of each running unit as the follower last judged it (state, severity, reason, whether two checks agree, counter, rate, projected finish, seconds still, phase, what it waits on, done and estimate, restarts, resident MB, beat age, running seconds). The verdicts are kept in `runrecord.unitstate_key` (a hash to a stage, cleared when the stage ends and deleted with the run). The API version stays: a new route is additive.
+
+### Changed
+- `units.follow_stage` takes `watch`. Only the process that started the run (`wrapper.run`) makes one; `wrapper.follow`, which only watches, does not, so two processes never log the same change twice.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3807] - 2026-11-11
+
+**Headline:** The error-log tests for a killed work horse run again after the memory-gate and killed-flag changes.
+
+### Changed
+- `test_error_log.py`: the stub job of the three horse-killed tests carries a Redis stand-in with no memory-gate claim (PERF.254 reads the claims table when a horse is killed), and the stub for `runrecord.finish_run` takes the `killed` flag OPS.144 added. Tests only; no code under `src/planetgen` changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3806] - 2026-11-11
+
+**Headline:** A second identical `galaxy` run no longer redraws the scatters that are already stored and current, nor remakes the block light totals.
+
+### Changed
+- **A scatter that stands is not planned (PERF.256, audit C4).** `planetgen galaxy` emptied and redrew the star, phenomena and nebula scatters on every run. `run_plan.stored_scatter_skips` now reads the stored facts: a scatter stands when its record in `scatter_epochs` is there, the epoch it was drawn under is not one that changed the scatter stage (`epoch_record.needs`), and the luminosity floor, stellar mass limit, seeds and compact mass the request would draw it with are the stored ones. The stage list shows each such stage as skipped with its reason, the run builds no follower for it, and the estimate counts it as no time. The two star passes stand together; the nebula field is drawn again whenever the phenomena are, and its clearing stage (OPS.123 slice 3) stands and falls with the draw, since a clear without the draw would empty the field. The block light stage is skipped when every scatter stands, the run makes no sector and `block_lights.totals_current` finds the stored totals holding every unbuilt object. A first run, a run at other settings, and a galaxy drawn under an epoch that changed the scatters plan everything as before. Reused, not rebuilt: `scatter_epochs`, `epoch_record.needs` (`bring_to_epoch`'s staleness), `Stage.skip` and the announcements of skipped stages, `scatter_settings`-style stored settings, GEN.1476's unbuilt counts. `_refuse_stored_scatter` and `finished_by` answer other questions (refusing an explicit `scatter` over rows; carrying a stopped run on) and stay. No migration.
+- The emptying of the earlier bright stars (`mass-clear`, OPS.123) is skipped with the star passes, as the nebula clear is with the nebula draw.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3805] - 2026-11-11
+
+**Headline:** A running unit now tells the queue it is alive from a thread of its own, on the Redis server clock, so a long quiet stretch of work no longer looks like a dead unit (OPS.136, heartbeat part 2).
+
+### Added
+- **The beat record.** `queue/unitbeat.py` `UnitBeat` writes one JSON record per running unit into the stage's progress hash (field = unit): `done`, `estimate` (0 = no counter), `beat` (the Redis server time of the write, `conn.time()`, so a horse with a wrong clock cannot look dead or alive), `started`, `moved` (when `done` last changed; absent until it first does), `phase`, `waiting_on` (`sky lock`, `mysql`, or empty), `restarts` (times the current phase began again) and `resident_mb`. `unitbeat.read(conn, run_id, stage)` returns `{unit: beatjudge.Beat}` for the judge (OPS.137).
+- **Tags.** `unitbeat.waiting(tag)` and `unitbeat.phase(text)` reach the running unit from code that is not handed the reporter. The sky draw lock (`DrawLock`) and the contention grant (`db/contention.py`) tag their waits, so a unit waiting for another unit's turn is `waiting`, not `quiet`.
+
+### Changed
+- **The write moved off the work loop.** The unit's reporter only sets numbers in its own process; a thread of the horse writes the record every 10 s (`BEAT_SECONDS`), and sooner, at most every 2 s, while the counter moves. A frozen work loop (a long GET_LOCK, a big query, a C call) keeps a fresh beat; a hung process stops it. The follower reads `done` and `estimate` from the record as it read the old two-number field. Redis writes for a fast reporter go from up to four a second (`REPORT_SECONDS` 0.25) to at most one every 2 s.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3804] - 2026-11-10
+
+**Headline:** A companion star's secular forcing of a belt's members is built and measured, but nothing reads it yet, so nothing generated changes.
+
+### Changed
+- New `physics/belt_forcing.py` (GEN.1492 slice 0): the forced eccentricity of a belt member from each companion (exact Laplace coefficients, the eccentric-companion factors), diluted by the apsidal rate of the star's planets and relativity (`secular_chain.matrices` with the member as a body of no mass), the vector sum with the member's drawn eccentricity, and the companion's periapsis direction drawn per system from its own stream. Stand-in rows FE1 to FE4 (section 6.256), wiring-register lines for the module and rows FE2 and FE4.
+- A census of 499 belts of 300 generated pairs (`tests/audit/belt_forcing_census.py`): median forced eccentricity 2 percent of the drawn rms, 4 percent of belts forced harder than drawn, 31 percent diluted by half or more by the planets. These go to slice 1.
+- Nothing is wired, stored or drawn; output is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3803] - 2026-11-10
+
+**Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
+
+### Added
+- **Design note for GEN.1492** (`docs/design/systems/belt-secular-excitation-by-companions.md`): what the belt roster does today, the first-order secular theory (forced eccentricity, diluted by the planets' own precession), what it leaves out (inclination, Kozai, planets), and two slices (the calibration module, then the wiring as a lock item). Three questions for TODO.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3802] - 2026-11-10
+
+**Headline:** The run-job stage-numbering test plans a 60 pc galaxy, not a 300 pc one, so it takes under a minute instead of several.
+
+### Changed
+
+- `tests/test_run_job.py::test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_run` planned a 300 pc galaxy and scattered mass and luminosity on it: 280 s on a lane machine beside four other jobs, and Lane 05 saw it red alone on main after its 120 s limit while it passed on the branch in 179 s. What the test checks (the stages numbered from the step's offset, the progress file, one run in the history, the stored galaxy) does not depend on the size, so the plan edge is 60 pc: 46 s alone, the whole file 192 s. The generator is unchanged.
+
+generation-affects: none
+
+## [8.0.3801] - 2026-11-10
+
+**Headline:** A killed run can be carried on from the Queue page: a Resume run button, and a stored killed flag on the run record that says when to show it (OPS.144).
+
+### Changed
+- **The run record says when a run was killed.** `runrecord.mark_killed` sets `killed` and `killed_reason` on a run ended from outside its work: canceled (the admin's Cancel and Stop everything), cleared, its process gone, a unit's worker killed or lost, or a unit ended by RQ at its time limit (`JobTimeoutException`, `WorkerLostError`). A unit that fails with an error of its own is a failure, not a kill. `finish_run(..., killed=True)` takes the flag with the ending; the heartbeat judge's stop and fail paths (OPS.140) call `mark_killed` before they end the run. The API's run summary carries `killed` and `killed_reason`.
+- **Resume run.** The Queue page and a run's page show "Resume run" on a generation run that was killed and ended failed or canceled, that no run has carried on, on the galaxy and build it worked on. It confirms first (how many finished stages the new run keeps and where it starts), then starts `planetgen finish-run --run <id>` as a Generate page job: the same carry-on as the Generate page's "Finish the last run" (PERF.182, `generate_page.finish_status` now takes the run). A run's page also says it was killed and why.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3800] - 2026-11-10
+
+**Headline:** `planetgen fill-map-luminosity` no longer reads the whole scatter table once before its first unit starts.
+
+### Changed
+
+- The expansion of the fill counted `phenomenon_scatter` rows with a mass and no map luminosity yet to print how many there were. No index serves that condition, so on a full galaxy the count was a read of the whole table, single-threaded and outside the memory gate, before any unit ran. It is gone; the plan line names the highest id instead. The units read the same rows, a bounded id range each, in parallel and under the gate.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3799] - 2026-11-10
+
+**Headline:** Generating a system is about 9 percent faster, with every stored value identical.
+
+### Changed
+
+- `interior_heat.heat_flow` now keeps the result of each call it has answered (PERF.198): about two calls in three of a system ask the interior-heat box about the same body again (the settle-to-final-age step and the tide's decay-time loops), and the answer is the same object, so the stored numbers do not change. On 12 systems the run took 15.2 s before and 13.8 s after, with the same hash of every body's values.
+- The item as first written (a faster `detmath.matmul` and a cache of equal `gas_equilibrium.solve` calls) found little left to take: `matmul` is 1 to 3 percent of a system since PERF.201 and PERF.246, and equal gas solves repeat in under 1 percent of calls.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3798] - 2026-11-10
+
+**Headline:** A molten world whose buffered oxygen fills the gas pressure at 6000 K now generates, with the carbon gas solved at a slightly higher pressure, instead of failing the whole system.
+
+### Changed
+
+- GEN.1513: `mixture_lava.vapor_mixture` solved the carbon gas of a volatile-bearing melt at the surface pressure with the oxygen held at the buffer's fugacity. At 6000 K the buffer's fugacity can be 10^5.13 bar against 1.4e5 bar of gas (94 percent), the solve then has no room for the carbon and raised "no convergence at 6000 K and 143497 bar", which failed the generation of the zeta Ophiuchi example about one run in eight. New `carbon_gas` tries again at a gas pressure higher by `CARBON_GAS_PRESSURE_STEP` (1.25) up to `CARBON_GAS_PRESSURE_STEPS` (8) times, as the GEN.1296 share rule already raises it for the melt's own oxygen; it converges within three steps from 4500 to 6000 K and fugacities of 1e3 to 1e7 bar, and ends in a `MixtureError` otherwise. A gas that converged is left at its pressure, so nothing that generated before changes.
+- Check: 40 seeds of the zeta Ophiuchi example built with no error (seed 9 was the failing one before).
+
+generation-affects: none
+
+## [8.0.3797] - 2026-11-10
+
+**Headline:** A belt is now numbered among the belts of its own star, closest first from 1, so a lone belt behind four planets is Asteroid belt 1, not Asteroid belt 5.
+
+### Changed
+- **Belt numbers count belts (GEN.1508, Boss's live observation).** A belt has no stored name; the pages, the object lists, the nearby list, the parent chain and the object index built "Asteroid belt N" from the belt's `orbital_index + 1`, which is its slot among all the star's bodies (planets and belts together). They now count the belts of the star by their place out from it, closest first, from 1 (`names.bodies.belt_number`; the database side is `db/belt_names.py`, and the object index's belt name is `objectindex.BELT_NAME_SQL`). Each star of a wide pair counts its own belts, only belts that exist count (no gaps), and a lone belt is `Asteroid belt 1`. Comets carry stored names and no number, and no dwarf planet is named by slot, so they have no such fault. Nothing generated or stored in the body tables changes; the `belt` rows of the derived `object_index` table get the new names the next time it is built (`objectindex build`, which rewrites only changed rows).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3796] - 2026-11-10
+
+**Headline:** The belt-and-habitable-world system test builds two B2V systems, not fifteen, as it does for the other heavy stars.
+
+### Changed
+
+- `tests/test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[B2V]` built fifteen all-flags systems at about 48 s each (716 s measured on a lane machine with four other jobs running) and ran into the 900 s limit on a slower one. B2V joins `HOT_STARS` (O5V, M3IA+, M50, PERF.241 and PERF.249 took the same step), so it builds `HOT_STAR_TRIALS` = 2 systems and keeps the belt, overlap and request checks for each. The generator is unchanged.
+
+generation-affects: none
+
+## [8.0.3795] - 2026-11-10
+
+**Headline:** A very hot giant no longer fails to generate when the gas table has no phosphorus gas above 6000 K; the gas is made of the other elements.
+
+### Changed
+
+- `gas_equilibrium.solve` raised "no species holds P at 7555 K" for an air with phosphorus (a metal of every giant's budget) at a chemistry temperature above 6000 K, where the table's two phosphorus gases (P2, PH3) end. A giant that hot (the example system of zeta Ophiuchi, an O9 star, draws one most runs) failed to generate, so `test_examples.py` was red on main for that file. The solve now leaves out an element the table has gases of but none in range at the temperature and solves the rest, for the default gases and for a named list alike; it still raises for an element the table has no gas of at all, and for a gas left with nothing to be made of (`NoSpeciesError`, a kind of `EquilibriumError`). Draws that used to fail now generate; nothing that generated before changes.
+- Stand-in: the phosphorus left out above 6000 K is a gap in the gas table (atomic P and its ions), to be filled by research; until then it is simply not in the hottest gas.
+
+generation-affects: none
+
+## [8.0.3794] - 2026-11-09
+
+**Headline:** A sky unit's progress counter now moves with its work, and its time limit comes from its own predicted time, not the average of the sector units it shares a stage with (OPS.134, heartbeat part 1; the failure of the 11-08 full-galaxy run).
+
+### Changed
+- **The counter moves.** `sky_charting.chart` takes `progress(done, total)`, called after every batch and every tier, in the predicted cell visits (`sky_tiers` `visits`) of the tiers the ledger lacks (`owed_tiers`, now shared with `_sky_units`). Within a tier the counter follows the cells walked in a straight line to 90% of the prediction, then creeps toward the tier's end without reaching it (`tier_progress`), so a tier that runs over its prediction still moves the counter. `_sky_unit` passes `report` as `progress`; it used to call `report(steps_done[0], steps_done[0] + 1)` with a `steps_done` that never changed, so the unit read 0 of 1 for its whole run.
+- **The unit has its own time limit.** `_sky_units` puts the unit's predicted seconds (visits x `BLOCK_VISIT_SECONDS` x `SKY_WRITE_FACTOR`) in the unit's arguments as `expected_seconds`, and `units.enqueue_units` gives a unit the limit of its own prediction (ten times, 15 minute floor, 6 hour ceiling) when that is longer than the stage's. The stage's expected seconds are what earlier runs of the stage took, mostly its small sector units: 188.5 s gave the 11-08 run a 1,885 s limit for a cell that takes 1,826 s, and RQ ended it. A measured cell now gets about 18,260 s. Any other command may name `expected_seconds` the same way.
+- No cell is drawn differently and no star changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3793] - 2026-11-09
+
+**Headline:** A running unit's state (working, slow, waiting, quiet, looping or dead) is now one tested rule set, and a unit whose counter is moving is never judged for killing.
+
+### Added
+- **The heartbeat judge (OPS.137).** `queue/beatjudge.py` turns a unit's beat record, its command's recorded gaps and a clock into a state with the rules of the heartbeat research: dead after 30 s without a beat, waiting on the gate or the sky lock, quiet when the counter stands still past `max(5 min, 5 x the longest recorded gap)`, looping when the count runs past 3 or 10 times its estimate, goes backward or restarts a phase, and slow below a third of the expected rate. Only dead and quiet may be acted on. Nothing calls it yet; the beat record (OPS.136) and the follower (OPS.138) come next.
+
+generation-affects: none
+
+## [8.0.3792] - 2026-11-09
+
+**Headline:** The atmosphere sweep's cloud rule counts the sulfuric acid cloud that the stored cloud depth and cover already include.
+
+### Changed
+
+- `tests/audit/sweep_atmosphere.py` rule `aerosol-cloud` compared the stored `tau_cloud` and `cloud_cover` with the condensate cloud alone. Since `draw_aerosols` adds the acid cloud (GEN.1019, `sulfuric_cloud.of_draw`: its depth adds to the condensate cloud's and its cover is the larger of the two), a hot wet-carbon-dioxide world with no condensate (sweep body `F5V/Nh9`, 1950 K) was reported as "no condensate but a cloud of depth 22.8". The rule now takes the acid cloud from the stored values (`sulfuric_cloud.of_body`), checks the condensate part of the depth against its limits and accepts the acid cloud's cover. Its breaker adds the acid depth so it still breaks the rule. The generator is unchanged.
+- `test_every_body_of_the_sweep_obeys_every_rule` stays red on the `temperature` rule for eleven bodies until the GEN.1450 secular exchange refreshes the air of a planet whose eccentricity moves by any amount (a separate defect, handed to its owner).
+
+generation-affects: none
+
 ## [8.0.3791] - 2026-11-09
 
 **Headline:** The spin test marks the three seeds that expose GEN.1504 as strict expected failures until the secular exchange keeps the spin tilt in step with the orbit.

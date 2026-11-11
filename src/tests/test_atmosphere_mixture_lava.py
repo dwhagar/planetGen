@@ -225,3 +225,19 @@ def test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_s
     from planetgen.physics import gas_equilibrium, oxygen_fugacity
     alone = gas_equilibrium.solve({"C": ml.VOLATILE_BEARING_PER_CARBON}, 2200.0, 10.0, fixed_o2_log_fugacity=oxygen_fugacity.log_fo2(redox, 2200.0))
     assert alone.mole_fractions["CO2"] / alone.mole_fractions["CO"] == pytest.approx(result.mole_fractions["CO2"] / result.mole_fractions["CO"], rel=1e-6)
+
+
+def test_the_carbon_gas_rises_in_pressure_when_the_held_oxygen_fills_it():
+    """GEN.1513: at 6000 K and 143 kbar a held oxygen of 10^5.13 bar (94 percent of the gas) left no room for the carbon and the solve did not converge, which
+    failed the generation of the zeta Ophiuchi example."""
+    from planetgen.physics import gas_equilibrium, mixture_lava
+    with pytest.raises(gas_equilibrium.EquilibriumError, match="no convergence"):
+        gas_equilibrium.solve({"C": mixture_lava.VOLATILE_BEARING_PER_CARBON}, 6000.0, 143497.17, fixed_o2_log_fugacity=5.1298)
+    gas, pressure = mixture_lava.carbon_gas(6000.0, 143497.17, 5.1298)
+    assert pressure > 143497.17 and gas.mole_fractions["CO2"] > 0.0
+    same, same_pressure = mixture_lava.carbon_gas(6000.0, 143497.17, 3.0)      # a gas that converges is left at its pressure
+    assert same_pressure == 143497.17
+    with pytest.raises(mixture_lava.MixtureError):
+        mixture_lava.carbon_gas(6000.0, 10.0, 12.0)
+
+

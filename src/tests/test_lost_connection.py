@@ -62,7 +62,7 @@ def test_a_sky_unit_goes_on_after_losing_its_connection(monkeypatch):
         opened.append("opened")
         return conn
 
-    def chart(conn, center, limit, on_batch=None):
+    def chart(conn, center, limit, on_batch=None, progress=None):
         calls.append(center)
         if len(calls) == 1:
             raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
@@ -80,7 +80,7 @@ def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monke
     monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
     calls = []
 
-    def lost(conn, center, limit, on_batch=None):
+    def lost(conn, center, limit, on_batch=None, progress=None):
         calls.append(1)
         raise pymysql.err.OperationalError(2006, "gone away")
 
@@ -91,7 +91,7 @@ def test_a_sky_unit_gives_up_after_its_tries_and_other_errors_fail_at_once(monke
     assert len(calls) == run_galaxy.SKY_UNIT_CONNECTION_TRIES
     calls.clear()
 
-    def other(conn, center, limit, on_batch=None):
+    def other(conn, center, limit, on_batch=None, progress=None):
         calls.append(1)
         raise ValueError("a bug")
 
