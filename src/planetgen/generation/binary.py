@@ -372,6 +372,27 @@ class BinaryStarProxy(StellarObject):
         proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
         return proxy
 
+    def refresh_after_evolution(self):
+        """
+        Takes the two stars as they are after `Star.evolve_to_age` evolved them again at the pair's final age (GEN.1545): the pair's age and lifespan, the sums of mass and
+        light, the light-weighted temperature, the larger radius, the habitable zone, the Hill sphere, the heliosphere and the type phrase, all from the same formulas as `__init__`.
+        The snow line, the mutual orbit and the stars' places are the birth ones and are kept (the mass moves by under a part in a hundred outside the giant branch).
+        """
+        primary, secondary = self._primary, self._secondary
+        self.age = max(primary.age, secondary.age)
+        self.lifespan = max(primary.lifespan, secondary.lifespan)
+        self._effective_mass = sum(s.mass for s in self.stars)
+        self._effective_luminosity = sum(s.luminosity for s in self.stars)
+        self.type = f"Binary ({primary.type.split(' ')[0]}/{secondary.type.split(' ')[0]})"
+        self.temperature = (primary.temperature + secondary.temperature) / 2
+        self.radius = max(primary.radius, secondary.radius)
+        light_temperature = ((primary.luminosity * primary.temperature + secondary.luminosity * secondary.temperature)
+                             / (primary.luminosity + secondary.luminosity))
+        self.habitable_zone = calculate_habitable_zone(self._effective_luminosity, light_temperature)
+        self.system_perimeter = self._calculate_system_perimeter_static(self._effective_mass, primary.galactic_center_dist_ly)
+        self.heliosphere_radius = Star._calculate_heliosphere_radius_static(
+            self._effective_mass, self._effective_luminosity, self.radius, primary.type, primary.yerkes_class)
+
     def adjust_age_for_planets(self, planets, members=()):
         """
         Settles one shared age for both constituent stars that suits the

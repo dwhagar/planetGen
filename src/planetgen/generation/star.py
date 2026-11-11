@@ -443,6 +443,7 @@ class Star(StellarObject):
         self.phase_end_age_gy = params["phase_end_age_gy"]
         self.nuclear_arrival_age_gy = params.get("nuclear_arrival_age_gy")
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
+        self.evolved_at_gy = params["age_gy"]
         self._model_fe_h = params.get("metallicity_fe_h")
         self._model_rotation_hours = params.get("rotation_period_hours")
 
@@ -481,6 +482,51 @@ class Star(StellarObject):
             raise ValueError(f"a {record.kind} member has no star to build")
         return cls.from_params(params, system_config, name=name, **kwargs)
 
+    evolved_at_gy = None
+    """float or None: The age, Gy, the star's light, temperature, radius and class were worked out at (the age `adjust_age_for_planets` moves is `age`, which can be ahead of it until `evolve_to_age`)."""
+
+    forced_type = False
+    """bool: Whether the type was asked for (`config.STAR_TYPE`, `_generate_forced_type`): a request holds to the end, so `evolve_to_age` leaves such a star as drawn."""
+
+    def evolve_to_age(self, age_gy):
+        """
+        Evolves the star again at `age_gy` after the system raised its age (GEN.1545, `adjust_age_for_planets`): the same initial mass and birth [Fe/H], read at the new age
+        from the same tracks (`evolve_star`), so the star's light, temperature, radius, mass, class and phase are those of the age it now has; the habitable zone, Hill sphere
+        and heliosphere that follow them; the spin, the coronal X-rays, the XUV and the flares (`spin.star_rotation_period_hours`, `activity.generate_activity`), and the
+        evolutionary state. Nothing is drawn from the run's stream: the draws these steps make (a giant's colour, the spin's scatter, the activity's dice) come from a stream of
+        the star's own, keyed on its mass, [Fe/H] and the new age. The snow line, the [Fe/H] and the spin axis are the star's birth ones and are kept.
+
+        A star whose type was asked for (`forced_type`), a star that has no initial mass (it was not made by the population model) and a star already evolved at `age_gy`
+        (`evolved_at_gy`) are left as they are, as is a star the tracks say has collapsed at the new age (the age never leaves the star's present phase, so that does not arise from `adjust_age_for_planets`).
+
+        Args:
+            age_gy (float): The star's final age, Gy.
+
+        Returns:
+            bool: Whether the star was evolved again.
+        """
+        if self.forced_type or not getattr(self, "initial_mass_sol", None) or age_gy == getattr(self, "evolved_at_gy", None):
+            return False
+        stream = draw.Stream(f"star_evolved_again:{self.initial_mass_sol!r}:{self.metallicity_fe_h!r}:{age_gy!r}")
+        with draw.bound(stream):
+            state = evolve_star(self.initial_mass_sol, age_gy, fe_h=self.metallicity_fe_h,
+                                population=getattr(self.system_config, "POPULATION", None),
+                                fe_h_peaks=getattr(self.system_config, "FE_H_PEAKS", None),
+                                galactic_center_dist_ly=self.galactic_center_dist_ly)
+            if state is None:
+                return False
+            state = helium_core_draw.with_helium_core(state, self.initial_mass_sol, age_gy)
+            self._apply_params(star_params(self.initial_mass_sol, age_gy, state))
+            self.age, self.lifespan = self._model_age_lifespan
+            self.habitable_zone = calculate_habitable_zone(self.luminosity, self.temperature)
+            self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
+            self.heliosphere_radius = self.calculate_heliosphere()
+            self.rotation_period_hours = spin.star_rotation_period_hours(
+                self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
+            activity.generate_activity(self)
+        stellar_state.set_state(self)
+        return True
+
     def generate_star(self, initial_mass_sol=None, age_gy=None, fe_h=None):
         """
         Generates the physical properties of the star from the population
@@ -517,6 +563,7 @@ class Star(StellarObject):
         state = dict(found.state)
         if not found.exact:
             state["temperature_k"] = forced_star.target_temperature_k(spectral_class, subclass)
+        self.forced_type = True
         params = star_params(found.initial_mass_sol, found.age_gy, state)
         model_class = params["yerkes_class"]
         if not found.exact or yerkes_class != model_class:

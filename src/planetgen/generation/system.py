@@ -462,6 +462,8 @@ class StarSystem:
             else:
                 self.star.adjust_age_for_planets(self.planets)
 
+            self._evolve_stars_to_final_age()
+
             # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
             # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
             # habitable world and belt on what is left.
@@ -2277,6 +2279,30 @@ class StarSystem:
             if planet.body_type != 'a':
                 problems.extend(validation.check_lunar_system(planet))
         return problems
+
+    def _evolve_stars_to_final_age(self):
+        """
+        The stars as the age the system settled on makes them (GEN.1545). `Star.adjust_age_for_planets` only moves the age; the star's light, temperature, radius, class,
+        X-rays and flares were worked out at the age it was born with, and the planets built on it read them. Each star of `stars` is evolved again at the shared age
+        (`Star.evolve_to_age`; a close pair's merged proxy takes the two stars again, `refresh_after_evolution`), then the bodies of each star take its habitable zone
+        and their zone letter again (`reconcile_zone`: a body placed in the ecosphere of the younger star can sit in the hot zone of the brighter one). The settle pass that
+        follows (`_settle_to_final_age`) makes the air, class and spin of every body whose star's age moved again on the new light, as it did before; nothing here is
+        drawn from the run's stream.
+        """
+        age = self.primary_star.age
+        if not [star for star in self.stars if star.evolve_to_age(age)]:
+            return
+        if self.binary_type == "close":
+            self.star.refresh_after_evolution()
+        for star, planets in validation.star_lists(self):
+            for planet in planets:
+                if planet.body_type == 'a':
+                    continue
+                planet.habitable_zone = star.habitable_zone
+                planetPhysics.reconcile_zone(planet, planet.star.mass)
+                for moon in planet.moons:
+                    moon.habitable_zone = star.habitable_zone
+                    planetPhysics.reconcile_zone(moon, planet.mass, distance_override=planet.distance)
 
     def _settle_to_final_age(self):
         """
