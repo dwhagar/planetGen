@@ -75,7 +75,7 @@ Columns: what it is and the real examples; the trigger from inputs we already st
 | W23 | **Dark planet.** TrES-2 b albedo about 0.01 | hot giant with alkali and TiO absorption, no cloud | rare | very dark albedo, hot day side | P (`aerosols`) |
 | W24 | **Volcanic, tidal heated worlds.** Io (about 2 W/m2 average, mean surface heat flow 2.5), Europa, Enceladus plumes, Triton nitrogen geysers, TRAPPIST-1 b c; [R3464] | forced e from resonance, a close giant, or W5 | follows from W5 and moons | sulfur or sulfate air, molten patches, plumes, sealed oceans | Y for moons, N for planets |
 | W25 | **Titan and Pluto type air.** methane cycle on a cold moon, haze-covered | cold, mass and escape allow N2 | derived outputs already | covered | Y |
-| W26 | **Hycean worlds.** K2-18 b, TOI-270 d ([R2804]; the DMS claim is contested, Taylor, Welbanks and others) | sub-Neptune, 1.5 to 2.6 Earth radii, ocean under hydrogen air | about a third of observed sub-Neptunes in the ecosphere may qualify [R] | covered by O and N plus envelope | P |
+| W26 | **Hycean worlds.** K2-18 b, TOI-270 d ([R2804]; the DMS claim is contested, Taylor, Welbanks and others) | sub-Neptune, 1.5 to 2.6 Earth radii, ocean under hydrogen air | about a third of observed sub-Neptunes in the ecosphere may qualify [R]; the paper gives no rate (GEN.1095, WR17), so the row names the bodies the box of `hycean_candidate` selects and draws nothing | covered by O and N plus envelope; **built as a naming row (GEN.1523, lever L8)**: the gate is the box (1 to 10 Earth masses, 1.4 to 2.6 Earth radii, 150 to 500 K, 1.5 to 3 g/cc) and no input moves | Y |
 
 ### 3.4 Not weirdness, left out on purpose
 
@@ -185,6 +185,7 @@ An oddity row may only change one of these inputs. Everything else follows from 
 | L5 History | collisions, migration, mass loss, age at which an event hit | W10, W14, W16, W21, G1, G2 |
 | L6 Moon and ring set | moon origin, retrograde moons, rings | W8, W9, G1, G8 |
 | L7 Air state (bistable only) | which branch of snowball or warm, collapsed or kept | W19, W20 |
+| L8 A name on the finished body | no input moves; the row only says what the finished body is (GEN.1523) | W26 |
 
 The dial (section 4.4) scales how often a qualifying body gets an oddity. The gates are: host type and mass, body mass and kind, age, orbit, and the history record. So "the core things" are the seven levers plus those gates.
 
