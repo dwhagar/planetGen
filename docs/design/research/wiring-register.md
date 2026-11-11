@@ -68,11 +68,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
-| module | planetgen.physics.atmosphere_retention | GEN.1523 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
-| row | 6.74:SH1 | GEN.1523 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH2 | GEN.1523 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH3 | GEN.1523 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH4 | GEN.1523 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
+| module | planetgen.physics.atmosphere_retention | by design | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note, held against the generator by the tests and the census (GEN.1523 settled it): the pressure stage reads the Berta-Thompson logistic of the atmosphere recipes rows d, which is the fit to the observed planets, and not this module's K-window fit, so the module is a tested library and the stage never takes its cap from it |
+| row | 6.74:SH1 | by design | `atmosphere_retention.SHORELINE_K`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH2 | by design | `atmosphere_retention.VERDICT_EDGES`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH3 | by design | `atmosphere_retention.PRESSURE_CAPS_PA`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH4 | by design | `atmosphere_retention.JEANS_KEEP`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -84,8 +84,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.hycean_candidate | GEN.1523 | the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands |
-| row | 6.79:HC1 | GEN.1523 | the four ranges of the Hycean box, read when its wiring step lands |
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
 | row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |

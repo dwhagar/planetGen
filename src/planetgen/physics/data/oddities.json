@@ -10,7 +10,8 @@
     "L4": {"label": "interior heat and structure", "inputs": ["internal_heat_flux", "tidal_power", "dynamo", "lid_regime"]},
     "L5": {"label": "history", "inputs": ["collision_count", "migration", "mass_loss", "event_age_gyr"]},
     "L6": {"label": "moon and ring set", "inputs": ["moon_origin", "moon_retrograde", "ring_mass"]},
-    "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]}
+    "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]},
+    "L8": {"label": "a name on the finished body (no input moves)", "inputs": ["hycean_box"]}
   },
   "quantities": {
     "body_type": {"label": "kind of body", "note": "'t' for a terrestrial body, 'g' for a giant"},
@@ -471,6 +472,41 @@
       ],
       "source": "[R2300, R3149] (Uranus at 98 degrees by a giant impact); the module is physics/giant_tilt.py",
       "text": "A giant impact knocked it over, and it turns on its side, its poles taking turns facing the star; its rings lie in the same tipped plane."
+    },
+    {
+      "id": "W26",
+      "name": "Hycean candidate",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "mass_earth", "min": 1.0},
+        {"quantity": "mass_earth", "lt": 10.0000001},
+        {"quantity": "radius_earth", "min": 1.4},
+        {"quantity": "radius_earth", "lt": 2.6000001},
+        {"quantity": "equilibrium_temperature_k", "min": 150.0},
+        {"quantity": "equilibrium_temperature_k", "lt": 500.0000001},
+        {"quantity": "density_g_cm3", "min": 1.5},
+        {"quantity": "density_g_cm3", "lt": 3.0000001}
+      ],
+      "rate": {
+        "value": 1.0,
+        "source": "registry row HC1: the Hycean box is a flag on the finished body's mass, radius, equilibrium temperature and density, so the row names the planets the box selects and there is no extra draw",
+        "label": "READ",
+        "tier": "T4",
+        "tweak": "L0",
+        "registry": "HC1"
+      },
+      "apply": {
+        "lever": "L8",
+        "input": "hycean_box",
+        "effect": "hycean_box",
+        "params": {}
+      },
+      "limits": [
+        {"quantity": "radius_earth", "min": 1.4}
+      ],
+      "source": "[R2804] (Madhusudhan and others, Hycean worlds); the module is physics/hycean_candidate.py",
+      "text": "Its size, mass, density and temperature put it in the Hycean box: a rocky core under a deep water layer that can be liquid at the top, held down by a hydrogen envelope."
     }
   ]
 }

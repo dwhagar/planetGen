@@ -705,6 +705,16 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
+    apply_hycean_oddity(planet)
+
+
+def apply_hycean_oddity(planet):
+    """
+    The row of lever L8 (GEN.1523, W26: the Hycean box of `hycean_candidate`) on the finished body: the mass, radius, density and equilibrium temperature are settled once the air and the
+    envelope share are, and the row names the body or not (it moves nothing). It is rolled again each time the air is made, from its own stream.
+    """
+    oddities.drop(planet, ("L8",))
+    oddities.apply(planet, levers=("L8",))
 
 
 def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):
