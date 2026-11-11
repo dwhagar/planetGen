@@ -16,8 +16,8 @@ from tests.publicids import pid
 from tests.test_api import client  # noqa: F401
 
 
-def _living_planet_system(mysql_config, monkeypatch):
-    """Saves a system whose first airy rocky planet has Class 1a life that made methane, then oxygen; returns `(system_id, planet row id)`."""
+def _living_planet_system(mysql_config, monkeypatch, client):
+    """Saves a system whose first airy rocky planet has Class 1a life that made methane, then oxygen, and whose history the API gives with that methane in it; returns `(system_id, planet row id)`."""
     monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: 1.0e12)
     monkeypatch.setattr(bo, "profile_of", lambda body, *args: bo.Profile(1.0, 0.0, 0.3e9, 1.0, 1.0, 0.3))
     for attempt in range(40):
@@ -42,12 +42,16 @@ def _living_planet_system(mysql_config, monkeypatch):
                 finally:
                     conn.close()
                 if rows:
-                    return system_id, rows[0]["id"]
+                    # TEST.709: whether the history holds a methane step depends on the air the draw gave the planet (its pressure and size set how much methane the air can hold and still show),
+                    # so the planet is the first of these draws whose history does (Train 22 moved what the first draws give).
+                    shown = client.get(f"/api/planets/{pid('planet', rows[0]['id'])}/life-air").get_json().get("life_air")
+                    if shown and "CH4" in {gas["formula"] for gas in shown["gases"]}:
+                        return system_id, rows[0]["id"]
     pytest.skip("no airy rocky planet in these draws")
 
 
 def test_a_living_planets_air_history_has_the_steps_and_stages(client, mysql_config, monkeypatch):
-    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch)
+    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch, client)
     response = client.get(f"/api/planets/{pid('planet', planet_id)}/life-air")
     assert response.status_code == 200, response.get_data(as_text=True)
     body = response.get_json()
@@ -85,7 +89,7 @@ def test_an_unknown_planet_or_moon_is_a_404(client):
 
 
 def test_the_history_sums_every_class_stored_for_the_body_and_says_what_each_made(client, mysql_config, monkeypatch):  # noqa: F811
-    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch)
+    _system_id, planet_id = _living_planet_system(mysql_config, monkeypatch, client)
     ages = [0.2, 0.5, 0.9, 1.5, 2.5]
 
     def entry(class_id, share):

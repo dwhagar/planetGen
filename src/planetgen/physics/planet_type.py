@@ -66,6 +66,24 @@ def has_ground(body):
     return type_of(get("envelope_mass_fraction"), get("body_type"))[0] == TERRESTRIAL
 
 
+SURFACE_PRESSURE_LABEL = "Surface pressure"
+"""str: What a page calls the stored pressure of a body with a ground."""
+
+REFERENCE_PRESSURE_LABEL = "Pressure at the 1 bar reference level"
+"""str: What a page calls the stored pressure of a body with no ground (UX.297, GEN.1532): a giant, or a rocky planet under a deep envelope (a sub-Neptune, a gas dwarf), has no
+surface to stand on, so its air is solved at the 1 bar level (`surface_air.REFERENCE_PRESSURE_BAR`, GEN.1334) and the stored pressure is that convention, not a surface."""
+
+
+def has_ground_type(type_text):
+    """Whether a stored `planet_type` text is a body with a ground (GEN.1334): terrestrial, or no type stored (`None`, an older row), which is read as having one."""
+    return type_text in (None, TERRESTRIAL)
+
+
+def pressure_label(type_text):
+    """The label of a body's stored pressure from its stored `planet_type` text: the surface pressure for a ground, the reference-level pressure for none (UX.297)."""
+    return SURFACE_PRESSURE_LABEL if has_ground_type(type_text) else REFERENCE_PRESSURE_LABEL
+
+
 FIELDS = ("planet_type",)
 """tuple: What a planet or a moon stores of this module, as `planets` and `moons` columns (GEN.1219)."""
 
