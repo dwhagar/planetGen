@@ -13219,6 +13219,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 14 (air side), with Lane 21 for the surface-air test. Prerequisites: none. Related: GEN.1403, GEN.993, GEN.1548.
   Filed by the TODO thread.
 
+- [ ] **MAP.425 (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame)**
+  Boss live observation (relayed by the coordinator, about 6:20 PM EST on 2026-11-11, with screenshots of Agnowee VIb, VIc and VIg), diagnosed by Lane 04 (as the lane reported 6:26 PM EST on 2026-11-11): the scene draws the ring from the moon's stored inclination and ascending node, which are measured in its planet's equator (GEN.1352), but the moon's position comes from its stored state vector, which is in the star's frame, so the ring lies in another plane; 70 of 118 sampled bodies show it, all moons. Do: systemscene._orbit takes inclination and node from the state, as it already does for eccentricity and periapsis; a test checks that every ring's plane contains its body's position and velocity. Display only, lock-free, no migration.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.1352.
+  Filed by the TODO thread. Boss-visible bug.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
