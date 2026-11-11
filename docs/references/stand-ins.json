@@ -1227,7 +1227,7 @@
           "fields": [
             [
               "How it is filled",
-              "1 (The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; the code drew 0.03 to 0.12 uniform from [R1950] until GEN.993); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; GEN.993 built it in bulk_draw.core_light_elements (median CORE_LIGHT_MEDIAN 0.08, CORE_LIGHT_SCATTER_DEX 0.25, clip RANGES), tweak L2: tuned to the Mars total of 0.07 to 0.20, a published statistic, and tested against it."
+              "1 (The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
             ],
             [
               "How it is drawn",
@@ -1248,9 +1248,9 @@
           "slug": "5-2-bc18",
           "tier": "T7",
           "tier_code": "T7",
-          "tweak": "L2",
+          "tweak": "L1",
           "unread": null,
-          "what": "(The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; the code drew 0.03 to 0.12 uniform from [R1950] until GEN.993); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; GEN.993 built it in bulk_draw.core_light_elements (median CORE_LIGHT_MEDIAN 0.08, CORE_LIGHT_SCATTER_DEX 0.25, clip RANGES), tweak L2: tuned to the Mars total of 0.07 to 0.20, a published statistic, and tested against it."
+          "what": "(The split by Dirichlet(8) with fixed means is replaced by CX1 to CX7 of section 6.218, GEN.1364; the total is as drawn today.) Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from [R1950]); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. Second-body check by Sources 1 (2026-10-30, GEN.777): [R4833] ([R4833], READ) read the Martian volatility trend as no more than 7 wt% S in the core with O and H as further light elements, below the more than 10 wt% S of most core models, and the InSight core (radius and density 6.2 to 6.3 g/cm3 at 16 to 40 GPa, quoted in [R2669], 2ND-HAND) is lighter than pure iron-nickel by a larger margin than the Earth's outer core (5 to 10 percent, [R1950]). Mars therefore sits at the top of or above the Earth-based range (a total of about 0.07 to 0.20 of the core mass against Earth's 0.05 to 0.10): the 0.2 dex width of the lognormal covers 0.05 to 0.13 around the median 0.08 and misses the high half of Mars. The widest range rule (two sources in question) puts the clip at 0.02 to 0.25 and the width at 0.25 dex; this is a change for the wiring step, which today draws 0.03 to 0.12 uniform in bulk_draw.RANGES."
         },
         {
           "burn_down": null,
@@ -1721,7 +1721,7 @@
             ],
             [
               "The result lands as",
-              "tables replace. GEN.949 (2026-11-11): the visible methane is now read from the Karkoschka 1998 table (fill AD12 of 6.6, T1); ammonia and water stay on the bins"
+              "tables replace"
             ]
           ],
           "id": "AD1",
@@ -1733,66 +1733,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "Band strengths from neighbouring molecule bands;"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "How it is filled",
-              "physics/uv_cross_sections.methane_optical_depth: the methane depth of a cell is the optical depth of the mean transmission of the table's samples in it, -ln(mean(exp(-N sigma))) for the vertical column N, so strong bands and windows keep their depth at any cell width; the slant path and the longer paths of scattered light are left to the two-stream layers, which take this depth as the vertical one"
-            ],
-            [
-              "How it is drawn",
-              "none"
-            ],
-            [
-              "It is wrong if",
-              "a giant's colour computed line by line differs from the cell depth by more than the band-model error"
-            ],
-            [
-              "The result lands as",
-              "a k-distribution per layer (the Oxford tables of [R2265])"
-            ]
-          ],
-          "id": "AD13",
-          "key": "5.3:AD13",
-          "kind": "D",
-          "slug": "5-3-ad13",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "physics/uv_cross_sections.methane_optical_depth: the methane depth of a cell is the optical depth of the mean transmission of the table's samples in it, -ln(mean(exp(-N sigma))) for the vertical column N, so strong bands and windows keep their depth at any cell width; the slant path and the longer paths of scattered light are left to the two-stream layers, which take this depth as the vertical one"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "How it is filled",
-              "datasets/methane_visible.py: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
-            ],
-            [
-              "How it is drawn",
-              "0 to 50 percent weaker bands at 296 K"
-            ],
-            [
-              "It is wrong if",
-              "a retrieved warm-methane spectrum differs"
-            ],
-            [
-              "The result lands as",
-              "the temperature dependence from the band parameters of [R2265]"
-            ]
-          ],
-          "id": "AD14",
-          "key": "5.3:AD14",
-          "kind": "D",
-          "slug": "5-3-ad14",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "datasets/methane_visible.py: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
         },
         {
           "burn_down": null,
@@ -2801,40 +2741,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant (design note D7)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "Evidence",
-              "DATA (Karkoschka 1998, NASA PDS volume GBAT_0001 data/1995low.tab: the methane absorption coefficient in 1/(km-amagat) at 1 nm resolution, 400 to 1050 nm used, 101 kB, downloaded)"
-            ],
-            [
-              "What it is",
-              "the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands (727, 790, 840, 890 nm) and the windows between them"
-            ],
-            [
-              "What replaces it",
-              "the methane download (methane_visible.py, read by physics/uv_cross_sections.methane_optical_depth and so by every colour with methane in its air; GEN.949, the visible part of AD1)"
-            ],
-            [
-              "Sources",
-              "[R2259] (Karkoschka 1998), [R2258] (Karkoschka 1994); the band model of [R2265] (Karkoschka and Tomasko 2010) is not read"
-            ],
-            [
-              "licence",
-              "the volume states no licence or use restriction; see DATA-LICENSE.md"
-            ]
-          ],
-          "id": "AD12",
-          "key": "6.6:AD12",
-          "kind": "D",
-          "slug": "6-6-ad12",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands (727, 790, 840, 890 nm) and the windows between them"
         }
       ],
       "slug": "6-6-fills-of-the-shared-download-step",
@@ -17801,44 +17707,6 @@
           "tweak": "L1",
           "unread": null,
           "what": "recipe row k7: the width of the comet gases known from 67P alone (N2, O2, OCS, SO2, Ar, Kr, Xe), 0.6 dex, the spread of CO"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "recipe rows h1 to h3 (GEN.994): the hot-giant regime edges are equilibrium_edges computed at the layer's pressure on a reference gas, solar metals and C/O 0.55 (atmosphere_recipes.REGIME_EDGE_METALLICITY, REGIME_EDGE_C_TO_O), with the thermally dissociated regime beginning where 0.9 of the water is left (REGIME_EDGE_WATER_SHARE); they replace the table of anchors the rows held, which were the same lines rounded to a kelvin"
-            ],
-            [
-              "The range it moves in",
-              "metals 1 to 10 times solar moves the methane line up to 270 K at 100 bar and 75 K at 0.1 bar; C/O 0.3 to 1"
-            ],
-            [
-              "Where it holds",
-              "giants with a day side hotter than 700 K"
-            ],
-            [
-              "What would show it wrong",
-              "a hot giant retrieved with its regime change far from the computed line, or a giant whose metals and C/O differ much from the reference"
-            ],
-            [
-              "What replaces it",
-              "the edges at the giant's own metals and C/O (the next refinement of docs/design/composition/equilibrium-chemistry.md)"
-            ],
-            [
-              "Evidence",
-              "test_equilibrium_edges"
-            ]
-          ],
-          "id": "RD7",
-          "key": "6.40:RD7",
-          "kind": "D",
-          "slug": "6-40-rd7",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "recipe rows h1 to h3 (GEN.994): the hot-giant regime edges are equilibrium_edges computed at the layer's pressure on a reference gas, solar metals and C/O 0.55 (atmosphere_recipes.REGIME_EDGE_METALLICITY, REGIME_EDGE_C_TO_O), with the thermally dissociated regime beginning where 0.9 of the water is left (REGIME_EDGE_WATER_SHARE); they replace the table of anchors the rows held, which were the same lines rounded to a kelvin"
         }
       ],
       "slug": "6-40-stand-ins-of-the-brackets-the-atmosphere-recipes-still-draw-by-design",
@@ -26065,7 +25933,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": "by design",
+          "unread": "GEN.1523",
           "what": "atmosphere_retention.SHORELINE_K 3.85e-4: the geometric middle of the window 3.0e-4 to 6.6e-4 that Titan, Pluto and Triton (lower bound) and Ganymede (upper bound) leave"
         },
         {
@@ -26103,7 +25971,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L2",
-          "unread": "by design",
+          "unread": "GEN.1523",
           "what": "atmosphere_retention.VERDICT_EDGES (0.7, 1.0, 2.5, 30.0): the shoreline ratios under which a body holds a dense, moderate, tenuous or trace air and over which it holds none"
         },
         {
@@ -26145,7 +26013,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L3",
-          "unread": "by design",
+          "unread": "GEN.1523",
           "what": "atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar"
         },
         {
@@ -26183,7 +26051,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": "by design",
+          "unread": "GEN.1523",
           "what": "atmosphere_retention.JEANS_KEEP 30: a gas of this Jeans parameter or more at the exobase stays for the age of a body"
         }
       ],
@@ -29001,7 +28869,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium"
         },
         {
@@ -29039,7 +28907,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
@@ -29077,46 +28945,8 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "envelope_capture.HELIUM_LOSS_GATE 0.5: the share of its starting envelope a planet must have lost before the helium history is worked out"
-            ],
-            [
-              "The range it moves in",
-              "0.4 to 0.6"
-            ],
-            [
-              "Where it holds",
-              "sub-Neptunes with an envelope"
-            ],
-            [
-              "What would show it wrong",
-              "a planet that lost under half and is helium-enhanced (Y of 0.4 or more) in the runs of [R2839], or one that lost more than half and is not"
-            ],
-            [
-              "What replaces it",
-              "the loss history itself, for every planet with an envelope (a cost, not a physics, limit)"
-            ],
-            [
-              "Evidence",
-              "[R2839], Introduction and B.1: a planet must lose at least half of its envelope to reach Y of 0.4 (GEN.1527)"
-            ]
-          ],
-          "id": "HF4",
-          "key": "6.77:HF4",
-          "kind": "B",
-          "slug": "6-77-hf4",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L0",
-          "unread": null,
-          "what": "envelope_capture.HELIUM_LOSS_GATE 0.5: the share of its starting envelope a planet must have lost before the helium history is worked out"
         }
       ],
       "slug": "6-77-stand-ins-of-the-helium-enrichment-of-a-thinning-envelope",
@@ -29641,7 +29471,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box"
         }
       ],
@@ -35075,6 +34905,304 @@
       ],
       "slug": "6-136-stand-ins-of-the-core-s-thermal-history",
       "title": "Stand-ins of the core's thermal history"
+    },
+    {
+      "key": "6.150",
+      "number": "6.150",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.mass_earth: 0.4 of the edge (35 Earth masses gives 14: ice giant to gas giant fades from 21 to 49)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 0.6 of the edge"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "measured ice-giant and gas-giant masses that overlap over a different range"
+            ],
+            [
+              "What replaces it",
+              "the envelope share of GEN.428 deciding ice giant against gas giant"
+            ],
+            [
+              "Evidence",
+              "planet_classes.json basis of class I: the drawn ice and gas giant mass ranges overlap from 30 to 60 Earth masses"
+            ]
+          ],
+          "id": "CF1",
+          "key": "6.150:CF1",
+          "kind": "P",
+          "slug": "6-150-cf1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.mass_earth: 0.4 of the edge (35 Earth masses gives 14: ice giant to gas giant fades from 21 to 49)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the 0.5 g and 2 g lines of the habitable classes have no measured soft edge; the width is hand-picked until the GEN.1207 sweep shows how far the class scatter reaches"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.gravity_g: 0.1 of the edge (the 0.5 g and 2 g lines fade over 0.05 and 0.2 g)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2 of the edge"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a habitability model whose gravity limits are sharper or softer than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the gravity lines of the habitability index"
+            ],
+            [
+              "Evidence",
+              "hand-picked; 2 g is the [R0572] upper edge of Earth-sized, which is itself a range (GV1)"
+            ]
+          ],
+          "id": "CF2",
+          "key": "6.150:CF2",
+          "kind": "P",
+          "slug": "6-150-cf2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.gravity_g: 0.1 of the edge (the 0.5 g and 2 g lines fade over 0.05 and 0.2 g)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the temperature shoulder is hand-picked; a measured scatter of one class at fixed insolation would replace it"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.temperature_k: 10 K (freezing, 233.15 K, 320 K and 400 K lines fade over 10 K)"
+            ],
+            [
+              "The range it moves in",
+              "5 to 20 K"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "the climate scatter of one planet class at fixed insolation ([R2628] scatter in pCO2 is wider than 10 K of surface temperature)"
+            ],
+            [
+              "What replaces it",
+              "the spread of the surface-temperature solve (GEN.972 ice-albedo feedback)"
+            ],
+            [
+              "Evidence",
+              "hand-picked; the mean surface of a drawn body is uncertain by about this much from the greenhouse table"
+            ]
+          ],
+          "id": "CF3",
+          "key": "6.150:CF3",
+          "kind": "P",
+          "slug": "6-150-cf3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.temperature_k: 10 K (freezing, 233.15 K, 320 K and 400 K lines fade over 10 K)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the pressure shoulder is hand-picked on a log scale; no source gives a soft edge for the survival pressure limits"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.pressure_pa: 0.3 of the edge"
+            ],
+            [
+              "The range it moves in",
+              "0.15 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "none known"
+            ],
+            [
+              "What replaces it",
+              "the survival equipment fields of thin and thick air"
+            ],
+            [
+              "Evidence",
+              "hand-picked; pressure draws are log-spread, so a share of the edge is the natural width"
+            ]
+          ],
+          "id": "CF4",
+          "key": "6.150:CF4",
+          "kind": "P",
+          "slug": "6-150-cf4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.pressure_pa: 0.3 of the edge"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface)"
+            ],
+            [
+              "The range it moves in",
+              "0.02 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "the ocean-fraction law of GEN.1147 once Boss decides it (a bimodal law makes the shoulder rarely used)"
+            ],
+            [
+              "What replaces it",
+              "the water cover law of GEN.1147"
+            ],
+            [
+              "Evidence",
+              "hand-picked; the cover law saturates, so values near the lines are rare"
+            ]
+          ],
+          "id": "CF5",
+          "key": "6.150:CF5",
+          "kind": "P",
+          "slug": "6-150-cf5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent)"
+            ],
+            [
+              "The range it moves in",
+              "0.25 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "airless bodies"
+            ],
+            [
+              "What would show it wrong",
+              "none known"
+            ],
+            [
+              "What replaces it",
+              "the small-body composition draw"
+            ],
+            [
+              "Evidence",
+              "hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed"
+            ]
+          ],
+          "id": "CF6",
+          "key": "6.150:CF6",
+          "kind": "P",
+          "slug": "6-150-cf6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 of the edge"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "none known"
+            ],
+            [
+              "What replaces it",
+              "the toxicity and equipment lines of the habitability index"
+            ],
+            [
+              "Evidence",
+              "hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge"
+            ]
+          ],
+          "id": "CF7",
+          "key": "6.150:CF7",
+          "kind": "P",
+          "slug": "6-150-cf7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders for the gas shares that stay shares (carbon dioxide of classes F and G, hydrogen, sulfur dioxide, reducing gases; oxygen and the carbon dioxide of the oxygen-water classes are pressures since GEN.1321, row OP2): 0.25 of the edge with a floor of 0.002 to 0.005"
+        }
+      ],
+      "slug": "6-150-stand-ins-of-the-shoulders-of-the-best-fit-classes",
+      "title": "Stand-ins of the shoulders of the best-fit classes"
     },
     {
       "key": "6.156",
@@ -40845,6 +40973,48 @@
           "tweak": "L1",
           "unread": null,
           "what": "planet_class_fit.json oxygen edges as pressures: 3 kPa (class F anoxic below, class L from), 16 kPa (class L below, classes M, H, O, P, R from) and 35.5 kPa (classes M, H, O, P, R below; the fire limit of GEN.1320, 35 percent of an atmosphere); the carbon dioxide edge of the oxygen-water classes as a pressure, 1 kPa (class L from, classes M, H, O, P, R below; 1 percent of an atmosphere); life_classes.json class 2 gate below 3 kPa and class 4 gate from 100 Pa. Class F and G keep the carbon dioxide share (20 percent)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "L3, the oxygen and carbon dioxide pressure shoulders (0.25 of the edge, floors of 500 Pa and 200 Pa) were carried over from the shares and not fitted; they go when the toxicity and equipment lines of the habitability index are fixed from physiology"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.5 of the edge"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "none known"
+            ],
+            [
+              "What replaces it",
+              "the toxicity and equipment lines of the habitability index"
+            ],
+            [
+              "Evidence",
+              "CF7 carried over from the share"
+            ]
+          ],
+          "id": "OP2",
+          "key": "6.201:OP2",
+          "kind": "P",
+          "slug": "6-201-op2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders for oxygen pressure and carbon dioxide pressure: 0.25 of the edge with a floor of 500 Pa and 200 Pa (the shares' 0.25 and 0.005 and 0.002 of an atmosphere)"
         }
       ],
       "slug": "6-201-stand-ins-of-oxygen-and-carbon-dioxide-judged-by-pressure",
@@ -42629,44 +42799,6 @@
           "tweak": "L3",
           "unread": null,
           "what": "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "sulfur_cloud_set.INCLUDE_HYPOTHESES False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on)"
-            ],
-            [
-              "The range it moves in",
-              "on or off"
-            ],
-            [
-              "Where it holds",
-              "the whole set"
-            ],
-            [
-              "What would show it wrong",
-              "a second paper that supports V8 or V9"
-            ],
-            [
-              "What replaces it",
-              "a second paper, then a setting"
-            ],
-            [
-              "Evidence",
-              "a design choice of Boss's set (11-08): single-source hypotheses are registered and off"
-            ]
-          ],
-          "id": "CG3",
-          "key": "6.229:CG3",
-          "kind": "P",
-          "slug": "6-229-cg3",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": null,
-          "what": "sulfur_cloud_set.INCLUDE_HYPOTHESES False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on)"
         }
       ],
       "slug": "6-229-stand-ins-of-the-sulfur-cloud-chemistry-set-and-its-gates",
@@ -47937,6 +48069,132 @@
       "number": "6.183",
       "rows": [
         {
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+            ],
+            [
+              "The range it moves in",
+              "3 to 10 K"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air and stored latitude bands"
+            ],
+            [
+              "What would show it wrong",
+              "a climate scatter among bodies of one class wider or narrower than the band the shoulders give"
+            ],
+            [
+              "What replaces it",
+              "the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep)"
+            ],
+            [
+              "Evidence",
+              "half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design"
+            ]
+          ],
+          "id": "DM1",
+          "key": "6.183:DM1",
+          "kind": "P",
+          "slug": "6-183-dm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5 C"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a wet-bulb limit research that puts the lines elsewhere than 28 and 31 C"
+            ],
+            [
+              "What replaces it",
+              "the limit of the habitability index (habitability.wet_bulb_c, 31 C, [R4521]) with the class lines read from it"
+            ],
+            [
+              "Evidence",
+              "the uncompensable limit of 31 C in species_limits; 28 C is M's margin in the design"
+            ]
+          ],
+          "id": "DM2",
+          "key": "6.183:DM2",
+          "kind": "P",
+          "slug": "6-183-dm2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a class whose humidity edge is measured"
+            ],
+            [
+              "What replaces it",
+              "the humidity edges of the classes from their water and temperature"
+            ],
+            [
+              "Evidence",
+              "none read yet"
+            ]
+          ],
+          "id": "DM3",
+          "key": "6.183:DM3",
+          "kind": "P",
+          "slug": "6-183-dm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+        },
+        {
           "burn_down": null,
           "fields": [
             [
@@ -47987,7 +48245,7 @@
             ],
             [
               "The range it moves in",
-              "each edge by up to its width in the fudge table"
+              "each edge by up to its shoulder"
             ],
             [
               "Where it holds",
@@ -48029,7 +48287,7 @@
             ],
             [
               "The range it moves in",
-              "each edge by its width in the fudge table"
+              "each edge by its shoulder"
             ],
             [
               "Where it holds",
@@ -48071,7 +48329,7 @@
             ],
             [
               "The range it moves in",
-              "each edge by its width in the fudge table"
+              "each edge by its shoulder"
             ],
             [
               "Where it holds",
@@ -48104,6 +48362,48 @@
           "burn_down": [
             "no data",
             "-",
+            "no ammonia share is measured on an icy body outside the Solar System; the 0.03 shoulder around the 0.1 line of Class 8 is a width of the fit"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+            ],
+            [
+              "The range it moves in",
+              "0.01 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "icy bodies with an ice and a water share"
+            ],
+            [
+              "What would show it wrong",
+              "an ammonia share measured on an icy body that puts class 8's window elsewhere than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "the spread of the ammonia share among icy bodies of the generator"
+            ],
+            [
+              "Evidence",
+              "the Class 8 gate (10 percent of the water mass, life-classes.md 3.1)"
+            ]
+          ],
+          "id": "DM8",
+          "key": "6.183:DM8",
+          "kind": "P",
+          "slug": "6-183-dm8",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.ammonia_water_mass_fraction: 0.03 (the 0.1 line of class X, the Class 8 gate of life_classes.json, fades over 0.03 of the water's mass)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
             "no ammonia-water ocean is observed; the box of class X is the ideal band of the ammonia-water phase diagram, read from the lab freezing curve"
           ],
           "fields": [
@@ -48113,7 +48413,7 @@
             ],
             [
               "The range it moves in",
-              "each edge by its width in the fudge table"
+              "each edge by its shoulder"
             ],
             [
               "Where it holds",
@@ -48230,16 +48530,16 @@
           "burn_down": [
             "no data",
             "-",
-            "L4, a body that fits no class takes the nearest of the ordinary families by the fudge rule with no cap; no survey says what such a body is called, so the family list is fitted to keep the stored class defined"
+            "L4, a body that fits no class takes the nearest of the ordinary families by the geometric mean of its memberships with a floor of 0.01; no survey says what such a body is called, so the floor and the family list are fitted to keep the stored class defined"
           ],
           "fields": [
             [
               "What it is",
-              "class_fit.NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class (even with its gravity and air amount set aside) takes the nearest class by the fudge rule with no cap (fewest values moved, then the smallest move) among the ordinary worlds with air, and stores a match of 0"
+              "class_fit.HOLE_FLOOR 0.01 and NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class takes the class with the highest geometric mean of its memberships lifted to 0.01, among the ordinary worlds with air, and stores a match of 0"
             ],
             [
               "The range it moves in",
-              "the families"
+              "the floor 0.001 to 0.1; the families"
             ],
             [
               "Where it holds",
@@ -48251,7 +48551,7 @@
             ],
             [
               "What replaces it",
-              "a missing class for the hole bodies once Boss sorts them (GEN.1306)"
+              "a distance measure on the domains of the class-by-domain matrix once the hole bodies are sorted by Boss"
             ],
             [
               "Evidence",
@@ -48266,7 +48566,7 @@
           "tier_code": "T9",
           "tweak": "L4",
           "unread": null,
-          "what": "class_fit.NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class (even with its gravity and air amount set aside) takes the nearest class by the fudge rule with no cap (fewest values moved, then the smallest move) among the ordinary worlds with air, and stores a match of 0"
+          "what": "class_fit.HOLE_FLOOR 0.01 and NEAREST_FAMILIES M, R, P, O, H, F, G: a body that still fits no class takes the class with the highest geometric mean of its memberships lifted to 0.01, among the ordinary worlds with air, and stores a match of 0"
         }
       ],
       "slug": "6-189-stand-ins-of-the-holes-of-the-best-fit-classifier",
@@ -57949,27 +58249,27 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
             ],
             [
               "The range it moves in",
-              "cut-off radius 0.5 to 3 edges"
+              "step against a decay of one growth time at the edge"
             ],
             [
               "Where it holds",
-              "all disks; the dwarf rows are suspect (the edge of a 0.2 solar mass star is under 1 AU, so its pebbles are 3 orders of magnitude fewer)"
+              "all discs; the M dwarf rows are suspect (0.017 Myr)"
             ],
             [
               "What would show it wrong",
-              "a dwarf disk with pebbles at 1 Myr or more, or a giant core at 5 AU built in 1 Myr in a Sun-like disk (needs 148 Earth masses of pebbles, the tapered flux inside the edge gives 48)"
+              "an M dwarf disc with pebbles at 1 Myr or more"
             ],
             [
               "What replaces it",
-              "a taper from a measured or modeled gas disk with a larger cut-off radius"
+              "a gradual decay law from a disc model"
             ],
             [
               "Evidence",
-              "the exponential cut-off of the gas disk, recalled from [R5211] (section 2, not opened for it); the identification of the cut-off radius with the generator's edge is mine"
+              "my simplest form that conserves the dust; speculative, section 4 of the note"
             ]
           ],
           "id": "DE3",
@@ -57980,7 +58280,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_end_myr: the pebble flux ends at a step when the front reaches the disc's edge (18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER)"
         },
         {
           "burn_down": null,
@@ -58025,11 +58325,11 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.drift_speed_au_per_myr (GEN.1515): the gas crosses a line to a place at the steady-accretion speed v = 3 nu / (2 r) with nu = alpha c_s^2 / Omega, alpha 1e-3 (disk_drift.ALPHA), mean molecular weight 2.3 (MEAN_MOLECULAR_WEIGHT), the sound speed from the disk's temperature (182 K at the snow line, falling as the square root of the distance) and Omega from the star's mass, so v is the same at every distance: 10.5 AU per Myr for the Sun, 8.8 for 0.5 solar masses, 13 for 1.4; the lag tau = (r_L - r) / v (it replaces a fixed 0.05 Myr per AU that was (r_L - r) / (3 nu_1), half the steady speed); the composition at a place is the boxcar mean of the ratio over the lag"
+              "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
             ],
             [
               "The range it moves in",
-              "alpha 1e-4 to 1e-2 (the lag scales as 1/alpha), mean molecular weight 2.3 to 2.4"
+              "alpha 1e-4 to 1e-2"
             ],
             [
               "Where it holds",
@@ -58037,7 +58337,7 @@
             ],
             [
               "What would show it wrong",
-              "a measured turbulence of discs far from 1e-3, or a disc whose gas moves outward in the midplane"
+              "a measured turbulence of discs far from 1e-3"
             ],
             [
               "What replaces it",
@@ -58045,18 +58345,18 @@
             ],
             [
               "Evidence",
-              "steady-disc theory (Lynden-Bell and Pringle), alpha from the observed range; the boxcar is my simplest form, speculative"
+              "steady-disc theory, alpha from the observed range; the boxcar is my simplest form, speculative"
             ]
           ],
           "id": "DE5",
           "key": "6.242:DE5",
           "kind": "P",
           "slug": "6-242-de5",
-          "tier": "T5",
-          "tier_code": "T5",
+          "tier": "T6",
+          "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.drift_speed_au_per_myr (GEN.1515): the gas crosses a line to a place at the steady-accretion speed v = 3 nu / (2 r) with nu = alpha c_s^2 / Omega, alpha 1e-3 (disk_drift.ALPHA), mean molecular weight 2.3 (MEAN_MOLECULAR_WEIGHT), the sound speed from the disk's temperature (182 K at the snow line, falling as the square root of the distance) and Omega from the star's mass, so v is the same at every distance: 10.5 AU per Myr for the Sun, 8.8 for 0.5 solar masses, 13 for 1.4; the lag tau = (r_L - r) / v (it replaces a fixed 0.05 Myr per AU that was (r_L - r) / (3 nu_1), half the steady speed); the composition at a place is the boxcar mean of the ratio over the lag"
+          "what": "disk_drift.ALPHA 1e-3 and the lag tau = (r_L - r) / (3 nu_1), 0.05 Myr per AU: the time the gas takes from a line to a place; the composition at a place is the boxcar mean of the ratio over the lag"
         },
         {
           "burn_down": null,
@@ -58177,7 +58477,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches what the critical core (CRITICAL_CORE_EARTH) needs at the accretion efficiency of DE12 (pebble_mass_for_core), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+              "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
             ],
             [
               "The range it moves in",
@@ -58208,7 +58508,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches what the critical core (CRITICAL_CORE_EARTH) needs at the accretion efficiency of DE12 (pebble_mass_for_core), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
+          "what": "disk_drift.gathering_age_myr and CRITICAL_CORE_EARTH 15: a giant's gas-gathering age is the time the cumulative pebble mass from the front's arrival at its distance reaches the critical core (CRITICAL_CORE_EARTH), capped at the disc's lifetime (scatter.DISK_LIFETIME_YR); no new draw"
         },
         {
           "burn_down": null,
@@ -58247,196 +58547,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "disk_drift (module text): the first build leaves out the pebble flux a formed giant blocks (isolation mass), planets that eat pebbles on the way, the soot line and photoevaporation"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "disk_drift.enrichment_ratio: gas at the place that has not crossed a line yet (the age under lag_myr from the line to the place) has E = 1, the static budget: it is the disc's own gas of the start, which holds every vapor inside its line. Past the lag the gas crossed the line at age - lag and the lagged ratio of DE5 applies (a step from 1 to the ratio at the lag, as a gas without diffusion has)"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "gas gathered before the vapor of a line could reach its place"
-            ],
-            [
-              "What would show it wrong",
-              "a measured volatile-poor or noble-gas-poor envelope of a giant that gathered its gas early"
-            ],
-            [
-              "What replaces it",
-              "a transport model with diffusion of the vapor against the gas flow"
-            ],
-            [
-              "Evidence",
-              "physics: advection of the start state; the design note of GEN.1472 started the gas at the edge's composition, which is the cold, ice-free supply, and GEN.1517 corrects it"
-            ]
-          ],
-          "id": "DE11",
-          "key": "6.242:DE11",
-          "kind": "D",
-          "slug": "6-242-de11",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "disk_drift.enrichment_ratio: gas at the place that has not crossed a line yet (the age under lag_myr from the line to the place) has E = 1, the static budget: it is the disc's own gas of the start, which holds every vapor inside its line. Past the lag the gas crossed the line at age - lag and the lagged ratio of DE5 applies (a step from 1 to the ratio at the lag, as a gas without diffusion has)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "disk_drift.CORE_EFFICIENCY_AT_REFERENCE 0.034, CORE_EFFICIENCY_AU 10, CORE_SEED_EARTH 1e-3: a core accretes the share f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2) of the pebbles that pass it (capped at 1), pebbles of Stokes number 0.1, from a seed of 1e-3 Earth masses"
-            ],
-            [
-              "The range it moves in",
-              "Stokes number 0.01 to 0.1 changes the prefactor by (tau / 0.1)^(-1/3)"
-            ],
-            [
-              "Where it holds",
-              "pebble-accreting cores of 0.001 to 20 Earth masses between 0.3 and 50 AU"
-            ],
-            [
-              "What would show it wrong",
-              "a core-growth model with a different efficiency law, or a measured core mass at a known age"
-            ],
-            [
-              "What replaces it",
-              "a full pebble-accretion model with a core in the flux of other cores"
-            ],
-            [
-              "Evidence",
-              "Eq. 33 and section 3.3 of [R5211], read in full text (the formula and the seed verbatim); the paper's own 15 to 20 percent end-to-end conversion is of the same size as this law at the critical core"
-            ]
-          ],
-          "id": "DE12",
-          "key": "6.242:DE12",
-          "kind": "T",
-          "slug": "6-242-de12",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "disk_drift.CORE_EFFICIENCY_AT_REFERENCE 0.034, CORE_EFFICIENCY_AU 10, CORE_SEED_EARTH 1e-3: a core accretes the share f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2) of the pebbles that pass it (capped at 1), pebbles of Stokes number 0.1, from a seed of 1e-3 Earth masses"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "disk_condensation.provenance_condensed and PROVENANCE_SAMPLES 64: the planetesimals a giant accretes are the mean of the frozen species over the annuli between its place and the disk's edge, each annulus counting by its distance (equal per AU: a disk of solids surface density 1/r, as the gas of [R5211])"
-            ],
-            [
-              "The range it moves in",
-              "samples 32 to 128 change a share by under 2 percent"
-            ],
-            [
-              "Where it holds",
-              "giants that formed inside the disk's edge"
-            ],
-            [
-              "What would show it wrong",
-              "a measured provenance of the solids of a giant (the noble gas pattern of a giant whose formation place is known)"
-            ],
-            [
-              "What replaces it",
-              "a planetesimal formation model with the line-pileups where streaming instability makes them"
-            ],
-            [
-              "Evidence",
-              "the solids over gas of a disk of gas surface density 1/r is constant, so the solids per AU are equal; the equal weight of every annulus is mine"
-            ]
-          ],
-          "id": "PRV1",
-          "key": "6.242:PRV1",
-          "kind": "T",
-          "slug": "6-242-prv1",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "disk_condensation.provenance_condensed and PROVENANCE_SAMPLES 64: the planetesimals a giant accretes are the mean of the frozen species over the annuli between its place and the disk's edge, each annulus counting by its distance (equal per AU: a disk of solids surface density 1/r, as the gas of [R5211])"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "disk_condensation.envelope_enrichments(solids_edge_k=...) and mixture_giant: every planetesimal formed between the giant's place and the edge is equally accessible to the giant (no fall-off with distance, no accretion efficiency by distance); the envelope takes the planetesimals' ices, the gas keeps the ices of its own place and the drift weights"
-            ],
-            [
-              "The range it moves in",
-              "fall-off exponent 0 to -1 of the weight with distance"
-            ],
-            [
-              "Where it holds",
-              "giants with a disk; the edge is the generator's (18 snow lines, DE3, GEN.1520)"
-            ],
-            [
-              "What would show it wrong",
-              "a giant's heavy-element pattern that needs a nearer or a farther source"
-            ],
-            [
-              "What replaces it",
-              "a model of the planetesimals scattered into a giant's feeding zone by its own growth"
-            ],
-            [
-              "Evidence",
-              "the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids ([R5163]); where those solids formed is mine"
-            ]
-          ],
-          "id": "PRV2",
-          "key": "6.242:PRV2",
-          "kind": "P",
-          "slug": "6-242-prv2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "disk_condensation.envelope_enrichments(solids_edge_k=...) and mixture_giant: every planetesimal formed between the giant's place and the edge is equally accessible to the giant (no fall-off with distance, no accretion efficiency by distance); the envelope takes the planetesimals' ices, the gas keeps the ices of its own place and the drift weights"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "disk_condensation.envelope_enrichments(solids_edge_k=...): the ices colder than the edge (CO, N2) are solid nowhere in the disk, so they come to a giant only as gas (the edge temperature is 42.9 K at 18 snow lines)"
-            ],
-            [
-              "The range it moves in",
-              "edge 30 to 60 K"
-            ],
-            [
-              "Where it holds",
-              "all giants of the generator"
-            ],
-            [
-              "What would show it wrong",
-              "a giant whose CO or N2 enrichment needs solids"
-            ],
-            [
-              "What replaces it",
-              "the disk edge from observed sizes (GEN.1520)"
-            ],
-            [
-              "Evidence",
-              "follows from DE3 and the generator's edge; no source for the edge itself"
-            ]
-          ],
-          "id": "PRV3",
-          "key": "6.242:PRV3",
-          "kind": "P",
-          "slug": "6-242-prv3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "disk_condensation.envelope_enrichments(solids_edge_k=...): the ices colder than the edge (CO, N2) are solid nowhere in the disk, so they come to a giant only as gas (the edge temperature is 42.9 K at 18 snow lines)"
         }
       ],
       "slug": "6-242-stand-ins-of-the-drift-and-evaporation-of-the-ices-in-the-disk",
@@ -58573,7 +58683,7 @@
           "fields": [
             [
               "What it is",
-              "secular_chain.matrices: the planets of one star, with general relativity on the apsidal diagonal, and the rings of its belts as bodies that pull (BR1 to BR3, GEN.1464); no moon, no stellar quadrupole or tide, and no companion star"
+              "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
             ],
             [
               "The range it moves in",
@@ -58589,7 +58699,7 @@
             ],
             [
               "What replaces it",
-              "the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads precession_rates"
+              "belts as real masses (GEN.1462); the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads precession_rates"
             ],
             [
               "Evidence",
@@ -58604,7 +58714,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "secular_chain.matrices: the planets of one star, with general relativity on the apsidal diagonal, and the rings of its belts as bodies that pull (BR1 to BR3, GEN.1464); no moon, no stellar quadrupole or tide, and no companion star"
+          "what": "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
         },
         {
           "burn_down": null,
@@ -58643,120 +58753,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (settle_orbit keeps the lower of the tide's and the exchange's)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "secular_chain.BELT_RINGS 8: a belt is cut into eight equal-width rings with the belt's mass spread over its annulus at one surface density (a ring's share goes as its area, its axis is the area's centroid)"
-            ],
-            [
-              "The range it moves in",
-              "4 to 32 rings"
-            ],
-            [
-              "Where it holds",
-              "belts a factor of two wide or less"
-            ],
-            [
-              "What would show it wrong",
-              "a belt with a mass profile that is not flat in surface density (the generator draws none) or a belt wide enough that eight rings differ from sixty-four by more than 5 percent in a planet's rate"
-            ],
-            [
-              "What replaces it",
-              "a drawn radial profile of the belt (GEN.1464 follow-up)"
-            ],
-            [
-              "Evidence",
-              "design: the sum over rings converges; the Laplace coefficients vary smoothly over a belt that sits several Hill radii from the planets"
-            ]
-          ],
-          "id": "BR1",
-          "key": "6.244:BR1",
-          "kind": "P",
-          "slug": "6-244-br1",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L1",
-          "unread": null,
-          "what": "secular_chain.BELT_RINGS 8: a belt is cut into eight equal-width rings with the belt's mass spread over its annulus at one surface density (a ring's share goes as its area, its axis is the area's centroid)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "secular_chain.BELT_ALPHA_LIMIT 0.9: a ring within 10 percent of a planet's axis (a_inner / a_outer above 0.9) is left out of that planet's pull"
-            ],
-            [
-              "The range it moves in",
-              "0.8 to 0.95"
-            ],
-            [
-              "Where it holds",
-              "rings beyond the planets' chaotic zones"
-            ],
-            [
-              "What would show it wrong",
-              "a belt edge that the spacing screen lets within 10 percent of a giant, so that the left-out ring would have turned the giant by more than a tenth of what the kept rings do"
-            ],
-            [
-              "What replaces it",
-              "the planet-belt overlap treatment of the Hill spacing"
-            ],
-            [
-              "Evidence",
-              "design: the series in alpha stops converging near 1; the generator's spacing keeps belts several Hill radii off"
-            ]
-          ],
-          "id": "BR2",
-          "key": "6.244:BR2",
-          "kind": "P",
-          "slug": "6-244-br2",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L1",
-          "unread": null,
-          "what": "secular_chain.BELT_ALPHA_LIMIT 0.9: a ring within 10 percent of a planet's axis (a_inner / a_outer above 0.9) is left out of that planet's pull"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "secular_chain.evolve fixed bodies: the rings of a belt keep a flat circular orbit and are not moved by the planets (they add their pull to each planet's apsidal and nodal rate and force nothing)"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "belts of thousandths to a few Earth masses beside planets of tens to thousands"
-            ],
-            [
-              "What would show it wrong",
-              "a census in which a belt of an Earth mass or more raises its own eccentricity or inclination by the planets' pull enough to change a planet's by more than a tenth"
-            ],
-            [
-              "What replaces it",
-              "rings that evolve with the planets, and a belt stirred by a giant (GEN.1447 follow-up)"
-            ],
-            [
-              "Evidence",
-              "design: a belt is light against the planets that stir it and its own free eccentricity is the belt's drawn spread, not the secular exchange"
-            ]
-          ],
-          "id": "BR3",
-          "key": "6.244:BR3",
-          "kind": "P",
-          "slug": "6-244-br3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": null,
-          "what": "secular_chain.evolve fixed bodies: the rings of a belt keep a flat circular orbit and are not moved by the planets (they add their pull to each planet's apsidal and nodal rate and force nothing)"
         },
         {
           "burn_down": null,
@@ -60925,7 +60921,7 @@
           "fields": [
             [
               "What it is",
-              "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) are sources of the field of GEN.1441 like any star (dark_light.source_of, rows DL1 to DL7), so the sky text names one when it gives the body the full-Moon light; a white dwarf is a star of the tree and counts"
+              "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
             ],
             [
               "The range it moves in",
@@ -60933,19 +60929,19 @@
             ],
             [
               "Where it holds",
-              "systems with no dark member give today's numbers"
+              "systems with no dark member"
             ],
             [
               "What would show it wrong",
-              "a dark member whose light at a body of its system is far from what a measured object of its kind gives"
+              "a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system"
             ],
             [
               "What replaces it",
-              "a stored light per dark member in the effect ledger, with its drawn age"
+              "the light of a dark member drawn from its mass, age and companion (GEN.1501)"
             ],
             [
               "Evidence",
-              "design: the light of a dark member is worked out from its mass, radius and age (GEN.1501); the ledger does not store it yet"
+              "design: the follow-up is filed with the item"
             ]
           ],
           "id": "SKY3",
@@ -60956,273 +60952,7 @@
           "tier_code": "T7",
           "tweak": "L0",
           "unread": null,
-          "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) are sources of the field of GEN.1441 like any star (dark_light.source_of, rows DL1 to DL7), so the sky text names one when it gives the body the full-Moon light; a white dwarf is a star of the tree and counts"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star [R3590]"
-            ],
-            [
-              "The range it moves in",
-              "1e5 to 1e6 yr; 5e5 to 2e6 K"
-            ],
-            [
-              "Where it holds",
-              "a neutron star of 1 to 2 solar masses with no fast direct-Urca cooling"
-            ],
-            [
-              "What would show it wrong",
-              "a neutron star of the age whose measured surface temperature is off the curve by more than a factor of 2"
-            ],
-            [
-              "What replaces it",
-              "a cooling curve by mass and equation of state"
-            ],
-            [
-              "Evidence",
-              "2ND-HAND (reviews of the cooling curves); the curve is a two-power-law fit, not a table"
-            ]
-          ],
-          "id": "DL1",
-          "key": "6.259:DL1",
-          "kind": "P",
-          "slug": "6-259-dl1",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star [R3590]"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.NEUTRON_STAR_PHOTON_ERA_SLOPE = -0.5 and NEUTRON_STAR_NEUTRINO_ERA_SLOPE = -0.1: d ln T_s / d ln t of the surface temperature in the photon era (1e6 K at 1e5 yr to about 1e5 K at 1e7 yr) and before it (the surface stays warm while the core cools by neutrinos)"
-            ],
-            [
-              "The range it moves in",
-              "-0.5 in the photon era; -0.1 before it (T8, L0)"
-            ],
-            [
-              "Where it holds",
-              "ages of 1e3 yr to 1e9 yr"
-            ],
-            [
-              "What would show it wrong",
-              "a measured neutron star of 1e6 to 1e9 yr whose temperature is off the line by more than a factor of 3"
-            ],
-            [
-              "What replaces it",
-              "the tabulated curve of DL1"
-            ],
-            [
-              "Evidence",
-              "the same cooling curves as DL1; the early slope is an educated guess from the curves' flat start"
-            ]
-          ],
-          "id": "DL2",
-          "key": "6.259:DL2",
-          "kind": "P",
-          "slug": "6-259-dl2",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_SLOPE = -0.5 and NEUTRON_STAR_NEUTRINO_ERA_SLOPE = -0.1: d ln T_s / d ln t of the surface temperature in the photon era (1e6 K at 1e5 yr to about 1e5 K at 1e7 yr) and before it (the surface stays warm while the core cools by neutrinos)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.NEUTRON_STAR_PROGENITOR_LIFE_GY = 0.03 Gy: the neutron star is younger than its system by the life of the star that collapsed, 0.01 to 0.04 Gy for 8 to 25 solar masses; the age is never taken under 1e-6 Gy"
-            ],
-            [
-              "The range it moves in",
-              "0.01 to 0.04 Gy"
-            ],
-            [
-              "Where it holds",
-              "systems of 0.1 Gy or older"
-            ],
-            [
-              "What would show it wrong",
-              "a system whose neutron star has the age of the whole system (no collapse delay)"
-            ],
-            [
-              "What replaces it",
-              "the age of the progenitor from the mass of the neutron star's tree member"
-            ],
-            [
-              "Evidence",
-              "design: the main-sequence life of a massive star"
-            ]
-          ],
-          "id": "DL3",
-          "key": "6.259:DL3",
-          "kind": "P",
-          "slug": "6-259-dl3",
-          "tier": "T8",
-          "tier_code": "T8",
-          "tweak": "L0",
-          "unread": null,
-          "what": "dark_light.NEUTRON_STAR_PROGENITOR_LIFE_GY = 0.03 Gy: the neutron star is younger than its system by the life of the star that collapsed, 0.01 to 0.04 Gy for 8 to 25 solar masses; the age is never taken under 1e-6 Gy"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one"
-            ],
-            [
-              "The range it moves in",
-              "0.057 to 0.42"
-            ],
-            [
-              "Where it holds",
-              "thin disks"
-            ],
-            [
-              "What would show it wrong",
-              "an accretion rate that gives a luminosity far from a measured one for the same rate"
-            ],
-            [
-              "What replaces it",
-              "the efficiency from the hole's spin"
-            ],
-            [
-              "Evidence",
-              "2ND-HAND (textbook value of the thin disk)"
-            ]
-          ],
-          "id": "DL4",
-          "key": "6.259:DL4",
-          "kind": "P",
-          "slug": "6-259-dl4",
-          "tier": "T4",
-          "tier_code": "T4",
-          "tweak": "L0",
-          "unread": null,
-          "what": "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.ISCO_SCHWARZSCHILD_RADII = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour"
-            ],
-            [
-              "The range it moves in",
-              "1 to 3"
-            ],
-            [
-              "Where it holds",
-              "a non-rotating hole"
-            ],
-            [
-              "What would show it wrong",
-              "a measured disk whose inner edge is far from this"
-            ],
-            [
-              "What replaces it",
-              "the radius from the spin"
-            ],
-            [
-              "Evidence",
-              "derived: the innermost stable orbit of the Schwarzschild metric"
-            ]
-          ],
-          "id": "DL5",
-          "key": "6.259:DL5",
-          "kind": "P",
-          "slug": "6-259-dl5",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L0",
-          "unread": null,
-          "what": "dark_light.ISCO_SCHWARZSCHILD_RADII = 3: the disk's light comes from the innermost stable orbit of a non-rotating hole, 6 G M / c^2 (3 Schwarzschild radii), which gives the disk's size and colour"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "dark_light.EDDINGTON_W_PER_SOLAR_MASS = 1.26e31 W: the light of a disk never passes the Eddington limit, 4 pi G M m_p c / sigma_T"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "ionised hydrogen"
-            ],
-            [
-              "What would show it wrong",
-              "a measured source that stays over it"
-            ],
-            [
-              "What replaces it",
-              "none"
-            ],
-            [
-              "Evidence",
-              "derived: the balance of radiation and gravity on a proton"
-            ]
-          ],
-          "id": "DL6",
-          "key": "6.259:DL6",
-          "kind": "P",
-          "slug": "6-259-dl6",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "dark_light.EDDINGTON_W_PER_SOLAR_MASS = 1.26e31 W: the light of a disk never passes the Eddington limit, 4 pi G M m_p c / sigma_T"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "winds of 1e-14 to 1e-5 solar masses a year"
-            ],
-            [
-              "What would show it wrong",
-              "a black hole beside a giant that overflows its lobe, which would be far brighter"
-            ],
-            [
-              "What replaces it",
-              "the feed from the evolution of the star (overflow)"
-            ],
-            [
-              "Evidence",
-              "design: the wind law of stellar_wind is the one that sizes the star's bubble, so a star's feed and its heliosphere agree"
-            ]
-          ],
-          "id": "DL7",
-          "key": "6.259:DL7",
-          "kind": "P",
-          "slug": "6-259-dl7",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L1",
-          "unread": null,
-          "what": "a black hole shines only on what the winds of the stars of its tree give it: dark_light.wind_capture_kg_s, the Bondi-Hoyle-Lyttleton rate (G M)^2 Mdot_w / (a^2 v_w (v_w^2 + v_orb^2)^1.5) of each star at its separation, capped by the wind; a star that fills its Roche lobe is not a feeder, and a brown dwarf is read at the age of its system (brown_dwarf.state)"
+          "what": "the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts"
         }
       ],
       "slug": "6-259-stand-ins-of-the-bright-sources-in-a-body-s-sky",
@@ -61473,7 +61203,7 @@
           "fields": [
             [
               "What it is",
-              "the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is the hand shoulder the class fit had before the table (build_fudge_table.FALLBACK_BASE, 40 percent of a mass and 10 percent of a gravity, in natural logs) times 1 + score / 12, score the mean registry unreliability score of the area that makes it (build_fudge_table.FALLBACK_SCORES, 3.3 to 5.2)"
+              "the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is its hand shoulder (CF, DM) times 1 + score / 12, score the mean registry unreliability score of the area that makes it (build_fudge_table.FALLBACK_SCORES, 3.3 to 5.2)"
             ],
             [
               "The range it moves in",
@@ -61504,7 +61234,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is the hand shoulder the class fit had before the table (build_fudge_table.FALLBACK_BASE, 40 percent of a mass and 10 percent of a gravity, in natural logs) times 1 + score / 12, score the mean registry unreliability score of the area that makes it (build_fudge_table.FALLBACK_SCORES, 3.3 to 5.2)"
+          "what": "the width of a quantity no measured row moves (the mass and the gravity, which are fixed before the end stages the frozen sample makes again, and any quantity no registered constant moves) is its hand shoulder (CF, DM) times 1 + score / 12, score the mean registry unreliability score of the area that makes it (build_fudge_table.FALLBACK_SCORES, 3.3 to 5.2)"
         },
         {
           "burn_down": null,
@@ -61587,11 +61317,11 @@
           "fields": [
             [
               "What it is",
-              "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
+              "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at build_fudge_table.UNCAPPED_CLIP_SHOULDERS = 4 hand shoulders"
             ],
             [
               "The range it moves in",
-              "factor 5 to 20 for the lone log edge"
+              "2 to 8 shoulders"
             ],
             [
               "Where it holds",
@@ -61607,7 +61337,7 @@
             ],
             [
               "Evidence",
-              "derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the factor of ten for a lone log edge is a stated choice"
+              "derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice"
             ]
           ],
           "id": "FT4",
@@ -61618,87 +61348,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own); a share stops at 0 and at 1, and the nearer stop acts as an edge; a log quantity with a single edge clips at a factor of ten (UNCAPPED_CLIP_LN); a thermal quantity with a single edge clips at the median half-gap of the other thermal quantities"
-        },
-        {
-          "burn_down": [
-            "no data",
-            "-",
-            "L3, the two caps (0.25 and 1.0 widths) come from one sweep of 1,624 bodies that closed its near misses and fits there; a measured spread of one class at fixed inputs would give a cap per quantity"
-          ],
-          "fields": [
-            [
-              "What it is",
-              "class_fit.CAP_TIERS = 0.25 and 1.0 widths: the most a value may be moved to place a body in a class, tried smaller tier first; the sweep of 1,624 bodies (reports/fudge-cap-sweep-2026-11-06.md) closed its near misses at 0.25 width and its remaining fits by 1"
-            ],
-            [
-              "The range it moves in",
-              "0.15 to 0.4 and 0.75 to 1.5"
-            ],
-            [
-              "Where it holds",
-              "bodies that fit no class fully"
-            ],
-            [
-              "What would show it wrong",
-              "a body of an obvious class that needs more than 1 width, or a class set whose near misses all close at 0.1"
-            ],
-            [
-              "What replaces it",
-              "a per-quantity cap from a measured spread of one class"
-            ],
-            [
-              "Evidence",
-              "reports/fudge-cap-sweep-2026-11-06.md"
-            ]
-          ],
-          "id": "CP1",
-          "key": "6.261:CP1",
-          "kind": "P",
-          "slug": "6-261-cp1",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L3",
-          "unread": null,
-          "what": "class_fit.CAP_TIERS = 0.25 and 1.0 widths: the most a value may be moved to place a body in a class, tried smaller tier first; the sweep of 1,624 bodies (reports/fudge-cap-sweep-2026-11-06.md) closed its near misses at 0.25 width and its remaining fits by 1"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "class_fit.match_of: a class that needs no move scores 1; one that needs moves within the largest cap scores 1 - total / (values * 1.0) (total of the moves in widths, thermal quantities one value); one past the cap scores 0"
-            ],
-            [
-              "The range it moves in",
-              "none: the formula is a definition of the score"
-            ],
-            [
-              "Where it holds",
-              "bodies placed by the fudge rule"
-            ],
-            [
-              "What would show it wrong",
-              "a score whose order disagrees with the fewest-values order of the rule"
-            ],
-            [
-              "What replaces it",
-              "none"
-            ],
-            [
-              "Evidence",
-              "design: fudge-table-from-stand-in-confidence-2026-11-06.md section 4c"
-            ]
-          ],
-          "id": "CP2",
-          "key": "6.261:CP2",
-          "kind": "P",
-          "slug": "6-261-cp2",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L1",
-          "unread": null,
-          "what": "class_fit.match_of: a class that needs no move scores 1; one that needs moves within the largest cap scores 1 - total / (values * 1.0) (total of the moves in widths, thermal quantities one value); one past the cap scores 0"
+          "what": "build_fudge_table.clipped_rms: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at build_fudge_table.UNCAPPED_CLIP_SHOULDERS = 4 hand shoulders"
         }
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
@@ -63435,7 +63085,7 @@
             ],
             [
               "Evidence",
-              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says; wired in planets.companion_modes (GEN.1535) with the mutual inclination of the planet's orbit normal and the companion's (OB8)"
+              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says"
             ]
           ],
           "id": "OB5",
@@ -63447,558 +63097,10 @@
           "tweak": "L0",
           "unread": null,
           "what": "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "free-spinning planets of a star with at least two planets, or with a companion star whose orbit is in another plane"
-            ],
-            [
-              "What would show it wrong",
-              "a chaotic planet whose stored tilt stays at its birth value, or a regular planet that is moved"
-            ],
-            [
-              "What replaces it",
-              "a numerical integration of the spin of the generated planet over the age of the star (the long-time distribution of the tilt)"
-            ],
-            [
-              "Evidence",
-              "even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is added with the siblings' (GEN.1535); the range of the tilt (obliquity_min_deg, obliquity_max_deg) is stored for every planet worked"
-            ]
-          ],
-          "id": "OB6",
-          "key": "6.271:OB6",
-          "kind": "P",
-          "slug": "6-271-ob6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "planets.settle_obliquity: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "oddity W6 gate: a planet whose tilt settle_obliquity found in a chaotic zone of the spin-orbit resonances (tilt_chaotic 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions)"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "rocky planets that settle_obliquity works"
-            ],
-            [
-              "What would show it wrong",
-              "a planet named whose tilt range is a few degrees (the label would then be wrong)"
-            ],
-            [
-              "What replaces it",
-              "a numerical integration of the spin of the generated planet over the age of the star"
-            ],
-            [
-              "Evidence",
-              "the row only names the chaotic planets the module found; the rate is the share of planets the theory puts in a chaotic zone, which the interaction census (GEN.1448) measures"
-            ]
-          ],
-          "id": "OB7",
-          "key": "6.271:OB7",
-          "kind": "P",
-          "slug": "6-271-ob7",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "oddity W6 gate: a planet whose tilt settle_obliquity found in a chaotic zone of the spin-orbit resonances (tilt_chaotic 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
-            ],
-            [
-              "The range it moves in",
-              "0.05 to 0.25"
-            ],
-            [
-              "Where it holds",
-              "a companion on a Keplerian orbit about its host; a hierarchical triple's relative vector is only nearly planar"
-            ],
-            [
-              "What would show it wrong",
-              "a companion whose normal differs from its pair node's plane by more than a degree"
-            ],
-            [
-              "What replaces it",
-              "the pair node's own inclination and node, once the tree gives the plane of every member"
-            ],
-            [
-              "Evidence",
-              "for a Keplerian orbit any two places not on a line through the host give the same plane; 0.1 keeps the two apart without a near-degenerate cross product"
-            ]
-          ],
-          "id": "OB8",
-          "key": "6.271:OB8",
-          "kind": "P",
-          "slug": "6-271-ob8",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
       "title": "Stand-ins of the spin axis and obliquity under every body"
-    },
-    {
-      "key": "6.272",
-      "number": "6.272",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "tuning.CHAIN_K_EFF 12: the minimum spacing for 1e9 years of stability of a compact system on orbits of eccentricity about 0.02"
-            ],
-            [
-              "The range it moves in",
-              "10 (circular orbits) to 12"
-            ],
-            [
-              "Where it holds",
-              "systems of four or more planets of small mass around any star"
-            ],
-            [
-              "What would show it wrong",
-              "an N-body run of a chain at 12 that scatters within 1 Gyr, or one at 10.5 that does not"
-            ],
-            [
-              "What replaces it",
-              "a spacing from a stability-time fit per system (the planet masses, the star's age)"
-            ],
-            [
-              "Evidence",
-              "abstract and section 2 of [R5227], read; the 10.0 to 11.4 chains of GEN.1468 that scattered in 2e4 years sit at K_eff 10.1 to 10.5"
-            ]
-          ],
-          "id": "CH1",
-          "key": "6.272:CH1",
-          "kind": "T",
-          "slug": "6-272-ch1",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "tuning.CHAIN_K_EFF 12: the minimum spacing for 1e9 years of stability of a compact system on orbits of eccentricity about 0.02"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
-            ],
-            [
-              "The range it moves in",
-              "window 4 to 7 planets"
-            ],
-            [
-              "Where it holds",
-              "chains of four planets"
-            ],
-            [
-              "What would show it wrong",
-              "a window whose scattering time is not that of equal gaps at K_eff"
-            ],
-            [
-              "What replaces it",
-              "a per-chain stability time"
-            ],
-            [
-              "Evidence",
-              "the Eq. 10 and 11 of [R5227], read; the carry to a four-planet window is mine"
-            ]
-          ],
-          "id": "CH2",
-          "key": "6.272:CH2",
-          "kind": "T",
-          "slug": "6-272-ch2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "all systems"
-            ],
-            [
-              "What would show it wrong",
-              "a chain broken by a belt that scatters like a chain"
-            ],
-            [
-              "What replaces it",
-              "a chain test over every window, belts as bodies"
-            ],
-            [
-              "Evidence",
-              "design: the orbit spacing pass of GEN.1023 and GEN.1450"
-            ]
-          ],
-          "id": "CH3",
-          "key": "6.272:CH3",
-          "kind": "P",
-          "slug": "6-272-ch3",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain"
-        }
-      ],
-      "slug": "6-272-stand-ins-of-the-chain-spacing-test",
-      "title": "Stand-ins of the chain spacing test"
-    },
-    {
-      "key": "6.273",
-      "number": "6.273",
-      "rows": [
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "star_pair_tides.GYRATION_SQUARED 0.1: the star's moment of inertia over its mass times its radius squared"
-            ],
-            [
-              "The range it moves in",
-              "0.06 to 0.2"
-            ],
-            [
-              "Where it holds",
-              "main-sequence stars and giants"
-            ],
-            [
-              "What would show it wrong",
-              "a star whose measured moment of inertia is off by more than a factor of two"
-            ],
-            [
-              "What replaces it",
-              "a moment of inertia from the star's structure (polytrope index by mass)"
-            ],
-            [
-              "Evidence",
-              "Hurley, Tout and Pols 2002 take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
-            ]
-          ],
-          "id": "KT1",
-          "key": "6.273:KT1",
-          "kind": "P",
-          "slug": "6-273-kt1",
-          "tier": "T2",
-          "tier_code": "T2",
-          "tweak": "L0",
-          "unread": null,
-          "what": "star_pair_tides.GYRATION_SQUARED 0.1: the star's moment of inertia over its mass times its radius squared"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "star_pair_tides.ENVELOPE_MASS_SHARE: the convective envelope's share of a dwarf's mass, 1.0 at 0.35 solar masses and under, 0.25 at 0.6, 0.03 at 1.0, 0.003 at 1.3; a giant 0.5"
-            ],
-            [
-              "The range it moves in",
-              "the four points"
-            ],
-            [
-              "Where it holds",
-              "dwarfs and giants below the radiative limit"
-            ],
-            [
-              "What would show it wrong",
-              "an envelope share from a stellar model that differs by a factor of three at a mass"
-            ],
-            [
-              "What replaces it",
-              "the envelope mass from the stellar evolution track of the star"
-            ],
-            [
-              "Evidence",
-              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997)"
-            ]
-          ],
-          "id": "KT2",
-          "key": "6.273:KT2",
-          "kind": "P",
-          "slug": "6-273-kt2",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": null,
-          "what": "star_pair_tides.ENVELOPE_MASS_SHARE: the convective envelope's share of a dwarf's mass, 1.0 at 0.35 solar masses and under, 0.25 at 0.6, 0.03 at 1.0, 0.003 at 1.3; a giant 0.5"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "star_pair_tides.RADIATIVE_MASS_SOL 1.3 and the Kraft smoothstep below 0.5: a dwarf above that mass or hotter than the middle of the Kraft break has a radiative envelope and the dynamical tide"
-            ],
-            [
-              "The range it moves in",
-              "1.2 to 1.5 solar masses"
-            ],
-            [
-              "Where it holds",
-              "main-sequence stars"
-            ],
-            [
-              "What would show it wrong",
-              "an A or F star with a measured synchronisation time off by a factor of ten"
-            ],
-            [
-              "What replaces it",
-              "the convective envelope depth from the stellar track"
-            ],
-            [
-              "Evidence",
-              "the Kraft break at about 6200 to 8000 K is where the convective envelope ends (spin.KRAFT_BREAK_LOW_K and HIGH_K)"
-            ]
-          ],
-          "id": "KT3",
-          "key": "6.273:KT3",
-          "kind": "P",
-          "slug": "6-273-kt3",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "star_pair_tides.RADIATIVE_MASS_SOL 1.3 and the Kraft smoothstep below 0.5: a dwarf above that mass or hotter than the middle of the Kraft break has a radiative envelope and the dynamical tide"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "the spin relaxes toward the pseudo-synchronous rate as exp(-age / t_sync) over the whole age with the orbit held at today's axis and eccentricity, never faster than 85 percent of breakup"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "pairs whose orbit has not moved much since birth"
-            ],
-            [
-              "What would show it wrong",
-              "a pair whose orbit was wide and shrank by a factor of two or more (the star kept a faster spin than the formula gives)"
-            ],
-            [
-              "What replaces it",
-              "the orbit and the spin integrated together over the age (with magnetic braking)"
-            ],
-            [
-              "Evidence",
-              "the equilibrium-tide relaxation is linear in the spin; Zahn 1977, Hut 1981; the orbit is held because the generator has no orbit history"
-            ]
-          ],
-          "id": "KT4",
-          "key": "6.273:KT4",
-          "kind": "P",
-          "slug": "6-273-kt4",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L0",
-          "unread": null,
-          "what": "the spin relaxes toward the pseudo-synchronous rate as exp(-age / t_sync) over the whole age with the orbit held at today's axis and eccentricity, never faster than 85 percent of breakup"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "a white dwarf, a neutron star and a black hole (Yerkes class beginning D, N or X) keep their drawn spin"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "compact members of a pair"
-            ],
-            [
-              "What would show it wrong",
-              "a tidally locked white dwarf in a close double"
-            ],
-            [
-              "What replaces it",
-              "the dissipation of a degenerate star (Willems et al 2010)"
-            ],
-            [
-              "Evidence",
-              "a white dwarf's tide is orders of magnitude weaker per unit of R/a; the double white dwarf pairs are measured to be unsynchronised"
-            ]
-          ],
-          "id": "KT5",
-          "key": "6.273:KT5",
-          "kind": "P",
-          "slug": "6-273-kt5",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "a white dwarf, a neutron star and a black hole (Yerkes class beginning D, N or X) keep their drawn spin"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time"
-            ],
-            [
-              "The range it moves in",
-              "0.3 to 3"
-            ],
-            [
-              "Where it holds",
-              "pairs whose tide reaches the star"
-            ],
-            [
-              "What would show it wrong",
-              "a close binary whose spin-orbit angle is measured to survive the synchronisation time"
-            ],
-            [
-              "What replaces it",
-              "the Hut 1981 obliquity equations"
-            ],
-            [
-              "Evidence",
-              "Hut 1981: the two relax on the same order"
-            ]
-          ],
-          "id": "KT6",
-          "key": "6.273:KT6",
-          "kind": "P",
-          "slug": "6-273-kt6",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L0",
-          "unread": null,
-          "what": "star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass"
-            ],
-            [
-              "The range it moves in",
-              "the four values"
-            ],
-            [
-              "Where it holds",
-              "main-sequence stars and giants"
-            ],
-            [
-              "What would show it wrong",
-              "a star whose measured apsidal motion constant is off by a factor of three"
-            ],
-            [
-              "What replaces it",
-              "the constants of a stellar model of the star's mass and age (Claret and Gimenez 2010)"
-            ],
-            [
-              "Evidence",
-              "observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14"
-            ]
-          ],
-          "id": "KT7",
-          "key": "6.273:KT7",
-          "kind": "P",
-          "slug": "6-273-kt7",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L2",
-          "unread": null,
-          "what": "star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "triples where the outer orbit is much wider than the inner"
-            ],
-            [
-              "What would show it wrong",
-              "a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own"
-            ],
-            [
-              "What replaces it",
-              "the Kozai and secular terms of GEN.1447 added to the apsidal rate"
-            ],
-            [
-              "Evidence",
-              "the pair node's own tide dominates by the sixth power of the axis ratio"
-            ]
-          ],
-          "id": "KT8",
-          "key": "6.273:KT8",
-          "kind": "P",
-          "slug": "6-273-kt8",
-          "tier": "T7",
-          "tier_code": "T7",
-          "tweak": "L0",
-          "unread": null,
-          "what": "a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin"
-        }
-      ],
-      "slug": "6-273-stand-ins-of-the-mutual-tides-of-the-stars-of-a-pair",
-      "title": "Stand-ins of the mutual tides of the stars of a pair"
     }
   ]
 }
