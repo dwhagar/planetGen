@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1602 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1576 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1579 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 148 | 59 | 1 | 1 | 0 | 209 |
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
-| T5 | 81 | 24 | 6 | 1 | 1 | 113 |
+| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
 | T6 | 202 | 107 | 30 | 82 | 4 | 425 |
-| T7 | 55 | 19 | 9 | 34 | 0 | 117 |
+| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 916 | 310 | 75 | 248 | 53 | 1602 |
+| All | 919 | 310 | 75 | 248 | 53 | 1605 |
 
 ## How the labels were given
 
@@ -2742,6 +2742,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AL3 | T | T6 | L0 | the orbit of a companion that is not aligned is isotropic (the cosine of its tilt uniform), the draw every separation used before | none | random-orientation multiples (wide pairs formed by fragmentation) | a sample of wide multiples whose planes prefer a direction against the planets' plane | the measured distribution of the tilts of wide multiples | design: the draw `Tree.place` made before GEN.1500, kept for the share that is not aligned | predicted only | - | - |
 | AL4 | T | T6 | L0 | the Kozai-Lidov window, the triple stability cut and the quadruple verdicts keep reading the mutual inclination from the stored inclination and node (`stability.mutual_inclination`); the close-pair peaks near 40 and 140 degrees are left to the Kozai code of GEN.1447 and are not drawn | none | triples and quadruples | a census of the accepted triples whose mutual inclination shows the peaks without the planet screen | the Kozai screen of GEN.1447 run on the planets | design; reuse of `stability.mutual_inclination` and `kozai_verdict` | predicted only | - | - |
 
+## 6.259 Stand-ins of the bright sources in a body's sky
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| SKY1 | T | T5 | L0 | `sky_view.NIGHT_LIGHT_W_M2` = 2.6e-3 W/m2: a source shows in the sky text when it gives the body at least the light of a full Moon at Earth, 0.25 lux over the 96 lux per W/m2 of the Sun (1.3e5 lux over 1361 W/m2) | 2.6e-3 W/m2 | the eye at night, a body with an air that scatters like Earth's | a sky where a fainter source is called bright (a dark-adapted eye, a thin air) | a threshold from the sky's brightness in the air the body has | measured: the illuminance of the full Moon at Earth is about 0.25 lux; the Sun at Earth gives about 1.3e5 lux | predicted only | - | - |
+| SKY2 | P | T7 | L0 | a source's width is `2 asin(R / d)` with `d` the distance that the mean light gives (`light = L / (4 pi d^2)`, the root-mean-square distance of the orbit average of GEN.1441); its colour is its blackbody colour as a word | none | a companion whose orbit is not much wider than the body's | a companion on an eccentric orbit that is at its apoapsis at the epoch of the page | the width from the offset of the source at the epoch (GEN.1458 `offset_au`) | design: the light and the width of the source follow one distance, so the text agrees with the temperature | predicted only | - | - |
+| SKY3 | P | T7 | L0 | the dark members of the orbit tree (a brown dwarf, a neutron star, a black hole with its disk, GEN.1013) give no light in the field of GEN.1441 and so are not in the sky text; a white dwarf is a star of the tree and counts | none | systems with no dark member | a neutron star or a black hole with an accretion disk whose light would pass the full-Moon threshold at a body of its system | the light of a dark member drawn from its mass, age and companion (GEN.1501) | design: the follow-up is filed with the item | predicted only | - | - |
+
 ## 6.260 Stand-ins of the tide raised by every body of a system
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
@@ -2807,7 +2815,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AUD14 | P | T7 | L3 | `tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE` 3e-6: the chance a black hole is intermediate-mass | 1e-6 to 1e-5 | stellar systems drawn black holes | a census of intermediate-mass black holes that gives a different count | an intermediate-mass black hole census | GEN.563 (Boss, BH4, 12:34 AM EDT 2026-10-18) holds the count; no catalogue held | predicted only | - | no data |
 | AUD15 | P | T7 | L3 | `tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE` 1e-3: the chance a black hole shows an accretion disk | 1e-4 to 1e-2 | stellar-mass black holes | an observed share of luminous accreting black holes outside the range | an X-ray binary census | most black holes are quiescent; only a minority accrete (Cygnus X-1 type); no catalogue held | predicted only | - | no data |
 | AUD16 | P | T6 | L3 | `tuning.PULSAR_RATE_SCALE` 1.0 and `PULSAR_RECYCLED_CHANCE` 1e-4: the scale on the beamed pulsar rate and the share of recycled pulsars | scale 0.5 to 2; recycled 1e-5 to 1e-3 | isolated neutron stars of a stellar population | a pulsar catalogue count that differs from 1e5 beamed pulsars among about 5e8 neutron stars by more than the scale | a pulsar catalogue (to be fetched) | [R2749] (Living Rev. Relativ. 11, 8) for the beamed share; the pulsar catalogue is not held | predicted only | - | no data |
-| AUD17 | B | T3 | L1 | `tuning.MAGNETAR_BIRTH_FRACTION` 0.10: the share of core collapses that make a magnetar | 0.01 to 0.10 | young supernova remnants | a magnetar birth share outside 1 to 10 percent | a magnetar census | born in 1 to 10 percent of core collapses, default 10 percent ([R3346], [R1566]) | predicted only | - | - |
+| AUD17 | B | T3 | L1 | `tuning.MAGNETAR_BIRTH_FRACTION` 0.10: the share of core collapses that make a magnetar | 0.01 to 0.10 | young supernova remnants | a magnetar birth share outside 1 to 10 percent | a magnetar census | born in 1 to 10 percent of core collapses, default 10 percent [R1566, R3346] | predicted only | - | - |
 | AUD18 | D | T5 | L0 | `tuning.REFERENCE_STELLAR_DENSITY_PC3` 0.14: the stellar density near the Sun that phenomenon rates are scaled by | 0.1 to 0.15 per pc^3 | every rate per star of a rare phenomenon | the generator's own mass function integrated at the Sun differing by more than 10 percent | the integral of the generator's mass function (`stellar-mass-function.md`) | the solar-neighbourhood density; to be derived and then registered as derived | predicted only | - | - |
 | AUD19 | B | T3 | L1 | `tuning.GIANT_MASS_FUNCTION_SLOPE` 0.31: the slope of dN/dlogM of giant planets | 0.2 to 0.5 | giants drawn inside their class's range | an occurrence fit held in the repository that gives a different slope | the four occurrence-fit harness JSONs | [R0960] (PASP 120, 531) measured about 0.31 for radial-velocity giants | predicted only | - | - |
 | AUD20 | P | T7 | L3 | `tuning.COMET_PARABOLIC_CHANCE` 0.3 and `INTERSTELLAR_COMET_ACTIVE_CHANCE` 0.5: the share of bound comets that are parabolic and of interstellar comets that are active | 0.1 to 0.5 | comets | a comet census that gives other shares | a comet orbit catalogue and the interstellar visitor count (n = 2) | design choices; most bound comets are periodic; Borisov active, 'Oumuamua inert | predicted only | - | no data |
