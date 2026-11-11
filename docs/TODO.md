@@ -13244,6 +13244,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 21, after PR 6074; Lane 23 reviews the moon-frame side. Prerequisites: GEN.1536. Related: GEN.1536, GEN.1535, GEN.1352, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1557 (bug) The class T and class I sentences describe a small core and mostly ices, but the stored bodies are rock-dominated (class T rock 50 to 70 percent, envelope 1 to 18 percent), and the day-counter line says "No solid surface" without saying the rock lies deep under the envelope**
+  Boss live observation (as relayed 6:45 PM EST on 2026-11-11): class T lists no solid surface while its description says rock is a large part of the mass. Lane 14 (as the lane reported 6:45 PM EST on 2026-11-11): the class T sentence (planet_classes.json, shown on /classes/planet/T) says a giant with a deep hydrogen and helium envelope over a small core, but stored T bodies are rock 50 to 70 percent and metal 20 to 30 percent of the mass with the envelope only 1 to 18 percent (body type transitional, 2 to 9 Earth masses). The no-surface state is right (the envelope is kilobars thick at the rock), but the wording must say the rock lies deep under it. Class I (ice giant) says mostly ices and rock, but two sampled I bodies at 12 Earth masses store water 0 and rock 59 to 66 percent, the same mismatch; class J (envelope 87 to 96 percent) is consistent. Do: rewrite the T and I sentences to the stored composition, change the day-counter line "No solid surface" so it says any rock is under the envelope, and add a test that each giant class sentence agrees with the stored mix. Text only, lock-free.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14, after the Train 24 chain-spacing fix. Prerequisites: none. Related: GEN.822, GEN.830, GEN.837.
+  Filed by the TODO thread. Boss-visible bug.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
