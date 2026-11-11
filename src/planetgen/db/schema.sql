@@ -1525,6 +1525,7 @@
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v223 (GEN.876): `planets`, `moons` and `rogue_planets` keep the adaptation traits of the life on the body (`life_traits`, VARCHAR(48), text such as `radiation:2,sulfide:3`: the stress and its grade, 2 tolerant
 --   or 3 extreme; `physics/adaptation_traits.py`). NULL for a body with none and for a row made before v223, which gets them when the galaxy is regenerated.
+-- v244 (GEN.1425): `planets`, `moons` and `rogue_planets` keep which species of the Venus sulfur-cloud set the chain gave the air (`cloud_chemistry`, VARCHAR(48), ids such as `V1,V2,V10`; `physics/sulfur_cloud_set.py`). NULL for a body with none, a rogue planet and a row made before v244, which gets it when the galaxy is regenerated.
 -- v218 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
 --   0 when no class fits the body and the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class, NULL when only one passes the gates) and `runner_up_match` (DOUBLE). `class_variant` is 9 when
 --   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v218, which gets them when the galaxy is regenerated.
@@ -2708,6 +2709,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    cloud_chemistry             VARCHAR(48) NULL,  -- v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -3237,6 +3239,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    cloud_chemistry             VARCHAR(48) NULL,  -- v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -4620,6 +4623,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
     life_complexity             DOUBLE NULL,  -- v207 (GEN.1111)
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876)
+    cloud_chemistry             VARCHAR(48) NULL,  -- v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v207 (GEN.1111)
     tide_range_neap_m           DOUBLE NULL,  -- v207 (GEN.1111)
     ocean_liquid                VARCHAR(40) NULL,  -- v207 (GEN.1111)

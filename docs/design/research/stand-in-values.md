@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1585 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1586 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1559 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1560 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 200 | 107 | 30 | 82 | 4 | 423 |
 | T7 | 49 | 19 | 9 | 34 | 0 | 111 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 899 | 310 | 75 | 248 | 53 | 1585 |
+| T9 | 45 | 16 | 5 | 92 | 35 | 193 |
+| All | 900 | 310 | 75 | 248 | 53 | 1586 |
 
 ## How the labels were given
 
@@ -1880,6 +1880,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CV10 | P | T9 | L3 | V10: the unidentified ultraviolet absorber as a Gaussian band, centre `absorber_center_um` 0.34 and full width `absorber_fwhm_um` 0.14 micron, peak `absorber_depth_per_cloud_depth` 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to `absorber_so2_reference_share` 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored `aerosol_draw` (a normal deviate held to two sigma either way, `sulfur_cloud_set.absorber_band`; the two-sigma limit is a numerical choice) | centre 0.34 +/- 0.03, width 0.14 +/- 0.01 (read); strength hand-set | with V1 and sulfur dioxide | a measured band centre or width outside the stated ranges; a peak depth far from 0.1 | a retrieved band strength | STATUS predicted only (its identity); READ for the band ([R5169: abstract and section 4.3]); the strength is a stand-in, not in the text | predicted only | - | no data |
 | CG1 | P | T9 | L3 | sulfur_cloud_set.json `acid_vapor_share_of_so2` 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat | 1 to 10 percent | airs with an acid cloud | a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide | a photochemistry model of the acid vapor | from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it | predicted only | - | replace (GEN.1425) |
 | CG2 | P | T9 | L3 | `cloud_water_min_share` 1e-6, `uv_c_min_w_m2` 0.5, `reductant_min_share` 1e-7, `sulfur_aerosol_min_so2_share` 1e-5, `chlorine_min_share` 1e-7: the floors of the gates | each a decade either way | gates 2 to 4 | a sweep that moves any of them | a sweep | STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors | predicted only | - | no data |
+| CG3 | P | T9 | L0 | `sulfur_cloud_set.INCLUDE_HYPOTHESES` False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on) | on or off | the whole set | a second paper that supports V8 or V9 | a second paper, then a setting | a design choice of Boss's set (11-08): single-source hypotheses are registered and off | predicted only | - | - |
 
 ## 6.235 Stand-ins of the carbide deposits of a carbon-rich body
 
