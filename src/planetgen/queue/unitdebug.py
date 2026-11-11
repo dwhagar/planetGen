@@ -20,7 +20,7 @@ import glob
 import os
 import time
 
-from planetgen.util import log, logpaths
+from planetgen.util import log, logpaths, logrecord
 
 ROTATE_BYTES = 20 * 1024 * 1024
 """int: The size at which the program rotates a unit's debug file."""
@@ -79,12 +79,17 @@ def begin(job_id, attempt, unit_label, reason, first_stack, now=None):
         path = file_path(job_id, attempt)
         os.makedirs(os.path.dirname(path), mode=0o770, exist_ok=True)
         prune(os.path.dirname(path), KEEP_FILES - 1)
-        stamp = time.strftime("%Y-%m-%dT%H:%M:%S%z", time.localtime(time.time() if now is None else now))
+        moment = time.time() if now is None else now
+        def line(message, **fields):
+            return logrecord.file_line(logrecord.Record.at(moment, "info", "queue", message, **fields))
         fd = os.open(path, os.O_WRONLY | os.O_APPEND | os.O_CREAT, FILE_MODE)
         with os.fdopen(fd, "a", encoding="utf-8") as handle:
-            handle.write(f"{stamp} debug file of {unit_label}, attempt {attempt}\n{stamp} the first attempt was found stuck and stopped: {reason}\n"
-                         f"{stamp} the stack of every thread of the first attempt when it was found stuck:\n{(first_stack or '(none)').rstrip()}\n"
-                         f"{stamp} ---- attempt {attempt} begins; what it logs follows ----\n")
+            handle.write("\n".join((
+                line(f"debug file of {unit_label}", attempt=attempt),
+                line(f"the first attempt was found stuck and stopped: {reason}"),
+                line("the stack of every thread of the first attempt when it was found stuck follows"),
+                (first_stack or "(none)").rstrip(),
+                line(f"attempt {attempt} begins; what it logs follows", attempt=attempt))) + "\n")
         with contextlib.suppress(OSError):
             os.chmod(path, FILE_MODE)
         return path
