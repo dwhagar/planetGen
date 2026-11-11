@@ -2,6 +2,64 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3806] - 2026-11-11
+
+**Headline:** A second identical `galaxy` run no longer redraws the scatters that are already stored and current, nor remakes the block light totals.
+
+### Changed
+- **A scatter that stands is not planned (PERF.256, audit C4).** `planetgen galaxy` emptied and redrew the star, phenomena and nebula scatters on every run. `run_plan.stored_scatter_skips` now reads the stored facts: a scatter stands when its record in `scatter_epochs` is there, the epoch it was drawn under is not one that changed the scatter stage (`epoch_record.needs`), and the luminosity floor, stellar mass limit, seeds and compact mass the request would draw it with are the stored ones. The stage list shows each such stage as skipped with its reason, the run builds no follower for it, and the estimate counts it as no time. The two star passes stand together; the nebula field is drawn again whenever the phenomena are, and its clearing stage (OPS.123 slice 3) stands and falls with the draw, since a clear without the draw would empty the field. The block light stage is skipped when every scatter stands, the run makes no sector and `block_lights.totals_current` finds the stored totals holding every unbuilt object. A first run, a run at other settings, and a galaxy drawn under an epoch that changed the scatters plan everything as before. Reused, not rebuilt: `scatter_epochs`, `epoch_record.needs` (`bring_to_epoch`'s staleness), `Stage.skip` and the announcements of skipped stages, `scatter_settings`-style stored settings, GEN.1476's unbuilt counts. `_refuse_stored_scatter` and `finished_by` answer other questions (refusing an explicit `scatter` over rows; carrying a stopped run on) and stay. No migration.
+- The emptying of the earlier bright stars (`mass-clear`, OPS.123) is skipped with the star passes, as the nebula clear is with the nebula draw.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3805] - 2026-11-11
+
+**Headline:** A running unit now tells the queue it is alive from a thread of its own, on the Redis server clock, so a long quiet stretch of work no longer looks like a dead unit (OPS.136, heartbeat part 2).
+
+### Added
+- **The beat record.** `queue/unitbeat.py` `UnitBeat` writes one JSON record per running unit into the stage's progress hash (field = unit): `done`, `estimate` (0 = no counter), `beat` (the Redis server time of the write, `conn.time()`, so a horse with a wrong clock cannot look dead or alive), `started`, `moved` (when `done` last changed; absent until it first does), `phase`, `waiting_on` (`sky lock`, `mysql`, or empty), `restarts` (times the current phase began again) and `resident_mb`. `unitbeat.read(conn, run_id, stage)` returns `{unit: beatjudge.Beat}` for the judge (OPS.137).
+- **Tags.** `unitbeat.waiting(tag)` and `unitbeat.phase(text)` reach the running unit from code that is not handed the reporter. The sky draw lock (`DrawLock`) and the contention grant (`db/contention.py`) tag their waits, so a unit waiting for another unit's turn is `waiting`, not `quiet`.
+
+### Changed
+- **The write moved off the work loop.** The unit's reporter only sets numbers in its own process; a thread of the horse writes the record every 10 s (`BEAT_SECONDS`), and sooner, at most every 2 s, while the counter moves. A frozen work loop (a long GET_LOCK, a big query, a C call) keeps a fresh beat; a hung process stops it. The follower reads `done` and `estimate` from the record as it read the old two-number field. Redis writes for a fast reporter go from up to four a second (`REPORT_SECONDS` 0.25) to at most one every 2 s.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3804] - 2026-11-10
+
+**Headline:** A companion star's secular forcing of a belt's members is built and measured, but nothing reads it yet, so nothing generated changes.
+
+### Changed
+- New `physics/belt_forcing.py` (GEN.1492 slice 0): the forced eccentricity of a belt member from each companion (exact Laplace coefficients, the eccentric-companion factors), diluted by the apsidal rate of the star's planets and relativity (`secular_chain.matrices` with the member as a body of no mass), the vector sum with the member's drawn eccentricity, and the companion's periapsis direction drawn per system from its own stream. Stand-in rows FE1 to FE4 (section 6.256), wiring-register lines for the module and rows FE2 and FE4.
+- A census of 499 belts of 300 generated pairs (`tests/audit/belt_forcing_census.py`): median forced eccentricity 2 percent of the drawn rms, 4 percent of belts forced harder than drawn, 31 percent diluted by half or more by the planets. These go to slice 1.
+- Nothing is wired, stored or drawn; output is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3803] - 2026-11-10
+
+**Headline:** The design for a companion star's secular excitation of a belt's members is written (nothing is built, no output changes).
+
+### Added
+- **Design note for GEN.1492** (`docs/design/systems/belt-secular-excitation-by-companions.md`): what the belt roster does today, the first-order secular theory (forced eccentricity, diluted by the planets' own precession), what it leaves out (inclination, Kozai, planets), and two slices (the calibration module, then the wiring as a lock item). Three questions for TODO.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3802] - 2026-11-10
+
+**Headline:** The run-job stage-numbering test plans a 60 pc galaxy, not a 300 pc one, so it takes under a minute instead of several.
+
+### Changed
+
+- `tests/test_run_job.py::test_the_run_job_command_numbers_its_stages_across_the_job_and_records_one_run` planned a 300 pc galaxy and scattered mass and luminosity on it: 280 s on a lane machine beside four other jobs, and Lane 05 saw it red alone on main after its 120 s limit while it passed on the branch in 179 s. What the test checks (the stages numbered from the step's offset, the progress file, one run in the history, the stored galaxy) does not depend on the size, so the plan edge is 60 pc: 46 s alone, the whole file 192 s. The generator is unchanged.
+
+generation-affects: none
+
 ## [8.0.3801] - 2026-11-10
 
 **Headline:** A killed run can be carried on from the Queue page: a Resume run button, and a stored killed flag on the run record that says when to show it (OPS.144).
