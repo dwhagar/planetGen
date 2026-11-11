@@ -60921,7 +60921,7 @@
           "fields": [
             [
               "What it is",
-              "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star ([R3590])"
+              "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star [R3590]"
             ],
             [
               "The range it moves in",
@@ -60952,7 +60952,7 @@
           "tier_code": "T7",
           "tweak": "L1",
           "unread": null,
-          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star ([R3590])"
+          "what": "dark_light.NEUTRON_STAR_PHOTON_ERA_YR = 1e5 yr and NEUTRON_STAR_PHOTON_ERA_T_K = 1e6 K: the cooling of a neutron star turns from the neutrino era to the photon era at 1e5 yr with a surface temperature of 1e6 K, read off the standard and minimal cooling curves for a 1.4 solar mass star [R3590]"
         },
         {
           "burn_down": null,
@@ -61035,7 +61035,7 @@
           "fields": [
             [
               "What it is",
-              "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk ([R4037]), up to 0.42 for a maximally rotating one"
+              "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one"
             ],
             [
               "The range it moves in",
@@ -61066,7 +61066,7 @@
           "tier_code": "T4",
           "tweak": "L0",
           "unread": null,
-          "what": "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk ([R4037]), up to 0.42 for a maximally rotating one"
+          "what": "dark_light.DISK_EFFICIENCY = 0.1: the share of the rest mass of what a black hole takes in that leaves as light; 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one"
         },
         {
           "burn_down": null,

@@ -50,7 +50,7 @@ NEUTRON_STAR_MIN_AGE_GY = 1.0e-6
 """float: The youngest age the cooling curve is read at (a star of the system's own age less its progenitor's life, never under this), Gy."""
 
 DISK_EFFICIENCY = 0.1
-"""float: The share of the rest mass of what a black hole takes in that leaves as light: 0.057 for a non-rotating hole's thin disk ([R4037]), up to 0.42 for a maximally rotating one. [DL4, T4, L0.]"""
+"""float: The share of the rest mass of what a black hole takes in that leaves as light: 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one. [DL4, T4, L0.]"""
 
 ISCO_SCHWARZSCHILD_RADII = 3.0
 """float: The innermost stable circular orbit of a non-rotating black hole, in Schwarzschild radii (`6 G M / c^2`), which the disk's colour and size are taken at. [DL5, T2, L0.]"""
