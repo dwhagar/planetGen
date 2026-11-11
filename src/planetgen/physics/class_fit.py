@@ -316,3 +316,27 @@ def classify(body):
 def rule_words(cls):
     """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`)."""
     return [planet_classes.condition_words(condition) for condition in cls.when]
+
+
+def softness_words(cls):
+    """
+    How far past each edge of a `FitClass` a value still fits it partly, as plain phrases (GEN.1316): the width of the edge in the fudge table, which is the model's doubt about the value (what the
+    stand-ins that make it could move it by), not the variety of the worlds. A logarithmic quantity is a factor, a share is in percentage points, the rest are in the unit of the quantity.
+    A condition with no edge (an `equals` condition) has no softness and no phrase.
+    """
+    phrases = []
+    for condition in cls.when:
+        if "equals" in condition:
+            continue
+        name = condition["quantity"]
+        edge = condition.get("min", condition.get("lt"))
+        width = WIDTHS[name]["edges"][edge]
+        label, unit, percent = planet_classes.quantity_entry(name)
+        if WIDTHS[name]["unit"] == "ln":
+            far = f"a factor of {math.exp(width):.3g}"
+        elif percent:
+            far = f"{width * 100:.3g} percentage points"
+        else:
+            far = f"{width:.3g} {unit}".rstrip()
+        phrases.append(f"{planet_classes.condition_words(condition)}: soft by {far}")
+    return phrases

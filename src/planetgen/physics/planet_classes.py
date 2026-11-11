@@ -268,19 +268,23 @@ def _number(value, percent):
     return f"{value:,.12g}"
 
 
-def condition_words(condition):
-    """A rule condition as plain words, e.g. `surface pressure below 10 Pa` or `oxygen share of the air at least 10 percent`."""
-    name = condition["quantity"]
+def quantity_entry(name):
+    """`(label, unit, percent)` of a class quantity as the class table names it: the words, the unit (empty for none) and whether a value is shown as a percent (a gas share)."""
     if name.startswith("share_"):
         gas = name[len("share_"):]
         entry = DOCUMENT["quantities"]["share_<gas>"]
-        label, unit, percent = entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
-    elif name.startswith("phase_"):
+        return entry["label"].replace("<gas>", atmosphere.species_name(gas)), "", True
+    if name.startswith("phase_"):
         entry = DOCUMENT["quantities"]["phase_<family>"]
-        label, unit, percent = entry["label"].replace("<family>", name[len("phase_"):].replace("_", "-")), "", False
-    else:
-        entry = DOCUMENT["quantities"][name]
-        label, unit, percent = entry["label"], entry.get("unit", ""), entry.get("percent", False)
+        return entry["label"].replace("<family>", name[len("phase_"):].replace("_", "-")), "", False
+    entry = DOCUMENT["quantities"][name]
+    return entry["label"], entry.get("unit", ""), entry.get("percent", False)
+
+
+def condition_words(condition):
+    """A rule condition as plain words, e.g. `surface pressure below 10 Pa` or `oxygen share of the air at least 10 percent`."""
+    name = condition["quantity"]
+    label, unit, percent = quantity_entry(name)
     suffix = f" {unit}" if unit else ""
     parts = []
     if "min" in condition:
