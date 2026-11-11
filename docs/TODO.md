@@ -13133,6 +13133,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 22. Prerequisites: none. Related: GEN.1489, GEN.993.
   Filed by the TODO thread.
 
+- [ ] **GEN.1545 (bug) A star whose age is raised for its planets is not evolved again, so its light, temperature, radius, type, X-rays, flares and spin stay at the first-guess age**
+  Boss, 5:04 PM EST on 2026-11-11 ('wouldn't the properties change when the age is bumped?'), from the star-evolution research thread (reports/star-last/star-evolved-last-2026-11-11.md). When adjust_age_for_planets (generation/stellar_object.py lines 199 to 296; the pair copy at generation/star.py line 537) raises the star's age, nothing re-evolves the star, so light, temperature, radius, type, X-rays, flares and spin keep the values of the first-guess age (Star._finish_init, generation/star.py lines 313 to 358). On 200 seeds, 54 stars had the age raised; 34 have stored light more than 5 percent off, 7 more than 25 percent, 2 more than 50 percent; G2V is a median 40 percent off. Do: evolve the whole star (and its companion) again at the new age after the bump (about 0.04 ms), then let the planets that read the star's light be remade only if their light moved (the existing remake path), pin a test on a seed whose age is raised, and say in the change note how far the stars moved. Lock item (stored star values change). This is separate from the bigger build-order redesign of GEN.1538.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 11. Prerequisites: none. Related: GEN.1538, GEN.1441.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
