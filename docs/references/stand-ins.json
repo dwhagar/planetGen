@@ -59597,7 +59597,7 @@
           "fields": [
             [
               "What it is",
-              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+              "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit per crossing, and a belt's dust crosses the orbit influx.crossings times (GEN.1543, IP1 and IP2), so it takes 1 - exp(-N R^2 / (4 a^2)) of it; gravitational focusing is not counted; a comet's nucleus crosses once"
             ],
             [
               "The range it moves in",
@@ -59628,7 +59628,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted"
+          "what": "a planet takes R^2 / (4 a^2) of an isotropic stream through the sphere of its orbit per crossing, and a belt's dust crosses the orbit influx.crossings times (GEN.1543, IP1 and IP2), so it takes 1 - exp(-N R^2 / (4 a^2)) of it; gravitational focusing is not counted; a comet's nucleus crosses once"
         },
         {
           "burn_down": null,
@@ -59743,6 +59743,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_BETA 0.01: the radiation-to-gravity ratio of the grains that carry a belt's dust inward round the Sun (Poynting-Robertson drift da/dt = 2 beta G M / (c a)), scaled by the star's luminosity over its mass"
+            ],
+            [
+              "The range it moves in",
+              "0.002 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "grains of tens to hundreds of microns"
+            ],
+            [
+              "What would show it wrong",
+              "a measured size distribution of a debris belt's inward dust"
+            ],
+            [
+              "What replaces it",
+              "a grain-size cascade"
+            ],
+            [
+              "Evidence",
+              "zodiacal dust is mostly grains of tens to hundreds of microns; recalled, not read"
+            ]
+          ],
+          "id": "IP1",
+          "key": "6.247:IP1",
+          "kind": "P",
+          "slug": "6-247-ip1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "influx.GRAIN_BETA 0.01: the radiation-to-gravity ratio of the grains that carry a belt's dust inward round the Sun (Poynting-Robertson drift da/dt = 2 beta G M / (c a)), scaled by the star's luminosity over its mass"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "influx.GRAIN_ECCENTRICITY 0.1: the eccentricity of the dust grains, that of the parent belt's bodies; it sets how many times a grain crosses a planet's orbit while it drifts (crossings, about 3e4 at 1 AU)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "belts stirred by their planets"
+            ],
+            [
+              "What would show it wrong",
+              "a belt of very low or very high eccentricity"
+            ],
+            [
+              "What replaces it",
+              "the belt's own stirring (GEN.1492)"
+            ],
+            [
+              "Evidence",
+              "the asteroid belt's proper eccentricities are 0.1 to 0.2; recalled"
+            ]
+          ],
+          "id": "IP2",
+          "key": "6.247:IP2",
+          "kind": "P",
+          "slug": "6-247-ip2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L2",
+          "unread": null,
+          "what": "influx.GRAIN_ECCENTRICITY 0.1: the eccentricity of the dust grains, that of the parent belt's bodies; it sets how many times a grain crosses a planet's orbit while it drifts (crossings, about 3e4 at 1 AU)"
         }
       ],
       "slug": "6-247-stand-ins-of-the-belt-dust-and-comet-influx-of-a-planet",

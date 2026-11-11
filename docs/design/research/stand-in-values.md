@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1615 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1617 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1589 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1591 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 207 | 108 | 30 | 82 | 4 | 431 |
+| T6 | 207 | 108 | 32 | 82 | 4 | 433 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 45 | 16 | 5 | 93 | 35 | 194 |
-| All | 926 | 312 | 75 | 249 | 53 | 1615 |
+| All | 926 | 312 | 77 | 249 | 53 | 1617 |
 
 ## How the labels were given
 
@@ -2666,10 +2666,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | IF1 | P | T6 | L4 | `influx.BELT_DUST_SHARE` 0.1: the share of a belt's collisional mass loss (`M / t`) that reaches the inner system as dust and small bodies | 0.01 to 0.5 | belts that have ground down along `M = A / t` | a measured share of a debris belt's loss that drifts inward past its edge | a grain-size cascade with radiation-force and drag lifetimes | no source: the order of the share of a cascade in grains the radiation forces move; fitted to nothing | predicted only | - | no data |
 | IF2 | P | T6 | L4 | `influx.COMET_LIFETIME_YR` 1e7: the time over which a comet nucleus of a reservoir gives its mass to the planets | 1e6 to 1e8 | comets of the short-period and Halley kinds | dynamical lifetimes of the comets of a system that differ by over a factor of ten | lifetime from the comet's period class | no source: the tens-of-millions-of-years order of dynamical lifetimes | predicted only | - | no data |
-| IF3 | T | T5 | L0 | a planet takes `R^2 / (4 a^2)` of an isotropic stream through the sphere of its orbit; gravitational focusing is not counted | none | streams much faster than the planet's escape speed | a planet whose escape speed is comparable to the stream's | the focused cross-section `R^2 (1 + v_esc^2 / v^2)` | derived: a cross-section over a sphere's area | predicted only | - | - |
+| IF3 | T | T5 | L0 | a planet takes `R^2 / (4 a^2)` of an isotropic stream through the sphere of its orbit per crossing, and a belt's dust crosses the orbit `influx.crossings` times (GEN.1543, IP1 and IP2), so it takes `1 - exp(-N R^2 / (4 a^2))` of it; gravitational focusing is not counted; a comet's nucleus crosses once | none | streams much faster than the planet's escape speed | a planet whose escape speed is comparable to the stream's | the focused cross-section `R^2 (1 + v_esc^2 / v^2)` | derived: a cross-section over a sphere's area | predicted only | - | - |
 | IF4 | T | T6 | L0 | each giant between the source and the planet ejects the share `1 - exp(-Theta / 10)` of what drifts past, `Theta` its Safronov number (the rule the swept disk of the giants already follows, row SX3) | THETA_EJECT | giants with Theta of a few to a few tens | a system where a giant measurably passes more or less than this | an integration of encounters | reuse of `scatter.THETA_EJECT` (SX3) | predicted only | - | - |
 | IF5 | T | T6 | L0 | a belt sends nothing outward and a comet only reaches a planet its perihelion passes inside; a planet inside the ring gets the part of the ring outside its orbit | none | planets near the star | a belt whose dust is seen outside its own ring | outward transport of the cascade | design | predicted only | - | - |
 | IF6 | T | T6 | L0 | the influx leaves out the giants' scattering of comets inward, a companion star's stirring of a reservoir (GEN.1492) and the dust of a planet's own moons and rings | none | systems with no giant beyond a comet reservoir | a system whose measured comet flux is set by a giant's inward scattering | inward scattering by each giant, a stirring factor from the companion | design; GEN.1453 slice B (GEN.1493) is the air reading the influx | predicted only | - | - |
+| IP1 | P | T6 | L2 | `influx.GRAIN_BETA` 0.01: the radiation-to-gravity ratio of the grains that carry a belt's dust inward round the Sun (Poynting-Robertson drift `da/dt = 2 beta G M / (c a)`), scaled by the star's luminosity over its mass | 0.002 to 0.05 | grains of tens to hundreds of microns | a measured size distribution of a debris belt's inward dust | a grain-size cascade | zodiacal dust is mostly grains of tens to hundreds of microns; recalled, not read | predicted only | - | - |
+| IP2 | P | T6 | L2 | `influx.GRAIN_ECCENTRICITY` 0.1: the eccentricity of the dust grains, that of the parent belt's bodies; it sets how many times a grain crosses a planet's orbit while it drifts (`crossings`, about 3e4 at 1 AU) | 0.05 to 0.2 | belts stirred by their planets | a belt of very low or very high eccentricity | the belt's own stirring (GEN.1492) | the asteroid belt's proper eccentricities are 0.1 to 0.2; recalled | predicted only | - | - |
 
 ## 6.248 Stand-ins of the day with every sun
 
