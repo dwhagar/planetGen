@@ -188,6 +188,21 @@ def planet_sources(planet, siblings):
     return found
 
 
+def perturber_ratio(planet, siblings):
+    """
+    How much the tides of the other bodies add to the star's at `planet` (GEN.1449): the sum over every source besides the host of `m g3` (its mass times the mean of `1 / d^3` at the planet), over the host's
+    `M / a^3`. The Hill sphere is where the planet's pull equals the tide of the star, `r^3 = m a^3 / (3 M)`; with the companion stars and the sibling planets pulling too, the tide to hold against is
+    `3 G (M / a^3) (1 + ratio)` and the sphere shrinks by `(1 + ratio)^(-1/3)`. 0 for a planet with no host or no other source. The sources are those of `planet_sources` (the belts a list holds are
+    in, the comets are not made yet), their means the coplanar upper bound (TS1).
+    """
+    host = getattr(planet, "star", None)
+    if host is None or not getattr(planet, "distance", None):
+        return 0.0
+    host_term = host.mass / (planet.distance * constants.AU_TO_M) ** 3
+    others = sum(source.mass_kg * source.g3 for source in planet_sources(planet, siblings) if source.body is not host)
+    return others / host_term if host_term > 0.0 else 0.0
+
+
 def moon_sources(moon, planet, siblings, at_planet=None):
     """
     Every source of tide on `moon` besides its planet (which `ocean_tides` has): the host star at the planet's place, the host's companion stars, each of `siblings`

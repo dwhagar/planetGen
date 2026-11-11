@@ -61341,6 +61341,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "the dwarf planets and the largest bodies of a belt are in the mass of their belt (belt.mass_kg holds all of it) and are not sources of their own; a tide on a dwarf planet or large asteroid from the planets that pull it and the tide it raises on its own moons are not built"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the sphere a planet's moons keep to is the star's Hill radius times (1 + ratio)^(-1/3) (tide_sources.perturber_ratio, GEN.1449), ratio the sum of m g3 of every other star and planet (and the belts of the list) over the star's M / a^3: the other tides add to the star's in the Hill balance as the star's own does, each at its mean 1 / d^3 on the coplanar upper bound (TS1)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets whose neighbours and companions are far against the planet's Hill sphere (a ratio under a few percent)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet next to a heavy neighbour or inside a close companion's reach, where the balance is the restricted three-body one and not a sum of tides"
+            ],
+            [
+              "What replaces it",
+              "the moon limit of the restricted problem for the planet, the star and the perturber on their orbits ([R1138] runs)"
+            ],
+            [
+              "Evidence",
+              "derived: the Hill radius is r^3 = m / (3 sum of the tide gradients) and the gradients of far point masses add"
+            ]
+          ],
+          "id": "TS8",
+          "key": "6.260:TS8",
+          "kind": "P",
+          "slug": "6-260-ts8",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L1",
+          "unread": null,
+          "what": "the sphere a planet's moons keep to is the star's Hill radius times (1 + ratio)^(-1/3) (tide_sources.perturber_ratio, GEN.1449), ratio the sum of m g3 of every other star and planet (and the belts of the list) over the star's M / a^3: the other tides add to the star's in the Hill balance as the star's own does, each at its mean 1 / d^3 on the coplanar upper bound (TS1)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the resonances and the pulls of the moons on each other are not in the moon history (moon_orbits leaves them out) and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "the moons of the sample"
+            ],
+            [
+              "What would show it wrong",
+              "a moon system with a resonant chain (Io, Europa, Ganymede) whose forced eccentricities the history leaves out"
+            ],
+            [
+              "What replaces it",
+              "moon-moon resonances through resonant_chains (GEN.1449 part 2)"
+            ],
+            [
+              "Evidence",
+              "design: the next part of the item"
+            ]
+          ],
+          "id": "TS9",
+          "key": "6.260:TS9",
+          "kind": "T",
+          "slug": "6-260-ts9",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the resonances and the pulls of the moons on each other are not in the moon history (moon_orbits leaves them out) and the comets, made after the moons, are not in the ratio of TS8; the belts count only when the list holds them"
         }
       ],
       "slug": "6-260-stand-ins-of-the-tide-raised-by-every-body-of-a-system",

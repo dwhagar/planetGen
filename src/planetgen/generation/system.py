@@ -2557,6 +2557,9 @@ class StarSystem:
         validation.space_orbits(planets)
         for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
             if body.body_type != 'a':
+                # GEN.1449: the sphere the moons keep to counts the tide of the companion stars and the other planets (and the belts of the list) beside the star's, before the moons are made
+                body._perturber_ratio = tide_sources.perturber_ratio(body, [other for other in planets if other.body_type == 'a' or (other is not body and other.star is body.star)])
+                planetPhysics.update_hill_sphere(body)
                 body.finish_climate()
 
     def _reconcile_moved_planet(self, planet):

@@ -250,3 +250,54 @@ def test_a_generated_system_with_a_belt_and_comets_notes_them_in_the_tide_ledger
     assert belts and system.comets
     noted = {id(source) for _, pairs in system.effect_ledger.contributions("tide") for source, _ in pairs}
     assert id(belts[0]) in noted and any(id(c) in noted for c in system.comets)
+
+
+# GEN.1449: the sphere a planet's moons keep to counts every perturber
+
+def test_the_perturber_ratio_is_the_other_sources_tide_over_the_hosts_and_a_lone_planet_has_none():
+    star, earth, moon, jupiter = _system()
+    assert tide_sources.perturber_ratio(earth, []) == 0.0
+    ratio = tide_sources.perturber_ratio(earth, [jupiter])
+    g3 = tide_sources.orbit_mean_inverse_cube(1.0, 5.2, 0.048) / constants.AU_TO_M ** 3
+    expected = _mass_with_moons(jupiter) * g3 / (star.mass / constants.AU_TO_M ** 3)
+    assert ratio == pytest.approx(expected, rel=1e-9)
+    assert 1e-6 < ratio < 1e-4      # a Jupiter 4 AU out is a few parts in 10^5 of the Sun's tide on the Earth
+
+
+def _mass_with_moons(body):
+    return body.mass + sum(m.mass for m in body.moons)
+
+
+def test_a_massive_close_neighbour_shrinks_the_sphere_of_the_moons_by_the_cube_root_of_one_plus_the_ratio():
+    from planetgen.physics import planets as planet_physics
+    star, earth, moon, jupiter = _system()
+    earth.primary_mass_kg = star.mass
+    earth.min_orbit_distance = None
+    planet_physics.update_hill_sphere(earth)
+    alone = earth.hill_radius
+    near = _Body(10.0 * constants.EARTH_MASS_TO_KG * 300, 69911.0, 1.3, 0.0, star, name="near")
+    ratio = tide_sources.perturber_ratio(earth, [near])
+    earth._perturber_ratio = ratio
+    planet_physics.update_hill_sphere(earth)
+    assert ratio > 0.01
+    assert earth.hill_radius == pytest.approx(alone * (1.0 + ratio) ** (-1.0 / 3.0), rel=1e-12)
+    # the clearance the next body keeps is the star's Hill radius alone
+    assert earth.min_orbit_distance == pytest.approx(5.0 * alone / constants.AU_TO_M * 1000.0, rel=1e-9)
+
+
+def test_a_generated_system_gives_every_planet_its_perturber_ratio_and_a_sphere_no_bigger_than_the_stars():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.physics.orbits import calculate_hill_sphere
+    from planetgen.util import draw
+    config = SystemConfig()
+    config.MAX_PLANETS = True
+    with draw.bound(4001):
+        system = StarSystem(system_config=config)
+    planets = [p for p in system.planets if p.body_type != "a"]
+    assert len(planets) > 2
+    for planet in planets:
+        assert planet._perturber_ratio >= 0.0
+        host_hill_km = calculate_hill_sphere(planet.distance * constants.AU_TO_M, planet.mass, planet.star.mass) / 1000.0
+        assert planet.hill_radius <= host_hill_km * (1.0 + 1e-12)
+        assert planet.hill_radius == pytest.approx(host_hill_km * (1.0 + planet._perturber_ratio) ** (-1.0 / 3.0), rel=1e-9)

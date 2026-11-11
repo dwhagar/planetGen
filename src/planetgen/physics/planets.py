@@ -586,16 +586,19 @@ def _apply_giant_mass(planet, radius_given, mass_given):
 def update_hill_sphere(planet):
     """
     Sets `planet.hill_radius` (km) and `planet.min_orbit_distance` (5 Hill
-    radii, in AU: the clearance the next body out must keep) from the
+    radii of the star's Hill sphere alone, in AU: the clearance the next body out must keep) from the
     planet's current distance and mass about `planet.primary_mass_kg` (the
-    star for a planet, the parent planet for a moon). Call again whenever
+    star for a planet, the parent planet for a moon). `hill_radius` is the sphere its moons keep to: the star's, made smaller by the tide of the
+    other stars and planets the system holds (`planet._perturber_ratio`, set by `StarSystem.validate_system`; GEN.1449). Call again whenever
     either changes, e.g. after `StarSystem.validate_system` moves the planet.
     """
     distance_m = _au_to_m(planet.distance)
     # A moon's Hill sphere is within its planet's pull, not the star's (GEN.138).
     primary_mass_kg = getattr(planet, "primary_mass_kg", None) or planet.star.mass
-    planet.hill_radius = _m_to_km(calculate_hill_sphere(distance_m, planet.mass, primary_mass_kg))
-    planet.min_orbit_distance = _km_to_au(5 * planet.hill_radius)
+    host_hill_km = _m_to_km(calculate_hill_sphere(distance_m, planet.mass, primary_mass_kg))
+    # GEN.1449: the other stars and planets of the system add to the star's tide on a planet's moons, so the sphere its moons keep to is smaller than the star's alone (`tide_sources.perturber_ratio`)
+    planet.hill_radius = host_hill_km * (1.0 + (getattr(planet, "_perturber_ratio", 0.0) or 0.0)) ** (-1.0 / 3.0)
+    planet.min_orbit_distance = _km_to_au(5 * host_hill_km)       # the clearance the next body out keeps is the star's Hill radius alone (stand-in SP1)
 
 
 def calculate_surface_gravity(planet):
