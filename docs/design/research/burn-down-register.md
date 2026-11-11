@@ -298,3 +298,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.236:ISO21 | no data | - | no measure of a surface D/H of a star exists to fit; the floor of 1e-10 only says the deuterium is burned and any smaller value shows the same |
 | 6.247:IF1 | no data | - | L4, no source prints the share of a belt's collisional mass loss that drifts in past its edge as dust and small bodies; a measured share of a debris belt's loss, or a grain-size cascade with radiation-force and drag lifetimes, replaces the 0.1 |
 | 6.247:IF2 | no data | - | L4, no source prints the time over which a comet reservoir gives its mass to the planets; dynamical lifetimes of the short-period and Halley kinds from an integration, or a lifetime by the comet's period class, replace the 1e7 years |
+| 6.270:AUD2 | no data | - | a design factor of Boss's core note; no measurement exists; tier T9 stays |
+| 6.270:AUD14 | no data | - | no intermediate-mass black hole census is held and the count is Boss's (GEN.563, BH4); any census replaces it |
+| 6.270:AUD15 | no data | - | no X-ray binary census is held; only the qualitative share (a minority) is read |
+| 6.270:AUD16 | no data | - | the pulsar catalogue is not held (GEN.945 section 5); the scale of 1.0 is the physical rate, the recycled share has no source |
+| 6.270:AUD20 | no data | - | no comet orbit catalogue or interstellar visitor count is held; the shares are design choices |
+| 6.270:AUD21 | no data | - | needed output: a belt has some width; no measured width distribution is held |
+| 6.270:AUD23 | no data | - | the MIST and BHAC15 tracks are held but not read for this factor yet; any read replaces it |
+| 6.270:AUD24 | no data | - | only the Sweeney and others ratios are read; no kinematic sample of remnants is held |
+| 6.270:AUD28 | no data | - | a design choice of the flavor rebuild (GEN.1430); no data exists |

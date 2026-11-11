@@ -256,3 +256,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.eclipses | by design | the eclipse shares and times of a body in front of a star are worked out for the tests and the census; no stored value reads them yet (stand-in EC4, section 6.249) (GEN.1462) |
 | module | planetgen.physics.belt_forcing | GEN.1492 | a companion star's forced eccentricity of a belt's members (calibration slice, read by the census and the tests); slice 1 wires it into the belt members |
 | row | 6.256:FE4 | GEN.1492 | the alpha limit is read with the belt forcing module when slice 1 wires it |
+| row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
+| row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
