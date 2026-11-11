@@ -183,6 +183,8 @@ def values_from_body(body):
         "solar_day_hours": getattr(body, "solar_day_hours", None),
         "days_per_year": getattr(body, "days_per_year", None),                  # GEN.1265: with the solar day they give the year of the star a moon is lit through
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
+        "starless": bool(getattr(getattr(body, "star", None), "starless", False)),     # GEN.1496: a rogue planet (or its moon) has no star for the bands to follow, whichever pass reads it first
+        "light_factor": getattr(body, "light_factor", None),                      # GEN.1484: the share of its light a circumbinary planet keeps; None for every other body
         "sky_suns": getattr(body, "sky_suns", None),                              # GEN.1458: the other suns of the sky; the temperature of every place and the bands read them
         "period_years": getattr(body, "period", None),
         "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
@@ -333,7 +335,7 @@ def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2, comp
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2)
+    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (values.get("light_factor") or 1.0)       # GEN.1484
     return max(light, chemical)
 
 
