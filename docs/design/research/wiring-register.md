@@ -252,4 +252,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
 | function | planetgen.physics.helium_fractionation.critical_mass_flux_kg_s | by design | the total mass loss at and under which only hydrogen leaves (Hu 2015 eq. 14), the threshold `partition` crosses; the tests read it to check the paper's numbers and `partition` works from the same flux |
-| function | planetgen.physics.obliquity_variation.companion_mode | GEN.1454 | a companion star's nodal mode of a planet's orbit; part 3 of GEN.1454 adds it to the settle pass with the mutual inclination of the planets' plane and the binary's |
