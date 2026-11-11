@@ -164,10 +164,13 @@ def test_a_belt_pulls_on_the_planets_of_its_star_and_a_system_without_belt_pull_
 
 
 def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass():
-    system = _system(2)
-    belts = [p for p in system.planets if p.body_type == 'a' and p.mass_kg > 0.0]
-    bodies = [p for p in system.planets if p.body_type != 'a']
-    axes, masses = planetPhysics.belt_rings_of(system.planets, [p.distance for p in bodies])
+    for seed in range(2, 20):           # the first system with a belt that has a mass and a ring clear of the planets (the seed that does moves with the generator)
+        system = _system(seed)
+        belts = [p for p in system.planets if p.body_type == 'a' and p.mass_kg > 0.0]
+        bodies = [p for p in system.planets if p.body_type != 'a']
+        axes, masses = planetPhysics.belt_rings_of(system.planets, [p.distance for p in bodies])
+        if axes:
+            break
     assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
     assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
     assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])
