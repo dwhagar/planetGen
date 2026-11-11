@@ -640,7 +640,7 @@ def heat_of(body):
     heats its ice shell (`icy_tide`, GEN.960) and is not in the box. `None` for a body with no stored content or interior (a gas giant, or a row
     from before GEN.699). No draws.
     """
-    return heat_at(body, getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
+    return heat_at(body, getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY)
 
 
 def heat_at(body, age_gy):
