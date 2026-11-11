@@ -2,6 +2,128 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3867] - 2026-11-11
+
+**Headline:** The citation check no longer reads "Manager, 2026" or "EST 2026" in the plan as an author and a year.
+
+### Fixed
+- **`NOT_NAMES` in `scripts/build_references.py` gains `Manager`, `EST`, `EDT` and `UTC`.** A role word or a time zone before a year ("Train Manager, 2026", "9:29 AM EST 2026") was read by the rewrite as a source named by author and year, and `test_no_citation_is_written_outside_the_registry` failed on main twice because of the TODO plan's wording. A new test in `test_citations_outside_the_registry.py` pins those four phrases. Reused: the existing `NOT_NAMES` stop list that the rewrite already consults; no new mechanism.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3866] - 2026-11-11
+
+**Headline:** The giant planet mass function slope was checked against the occurrence fit the project holds and stands; a test now holds it to that fit.
+
+### Changed
+
+- GEN.1525 (row 9 of the GEN.945 audit): the held radial-velocity occurrence fit ([R0960], band `cold_giants_cumming`) gives a giant mass function dN/dlnM going as M to the -0.31 +- 0.2, the same 0.31 as `GIANT_MASS_FUNCTION_SLOPE`. `tests/test_giant_mass_function_held_data.py` holds the constant to that figure and registry row AUD19 records the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3865] - 2026-11-11
+
+**Headline:** The neutron star and white dwarf mass ranges were checked against the equations of state and cooling sequences the project holds and stand; tests now hold them to that data.
+
+### Changed
+
+- GEN.1525 (row 5 of the GEN.945 audit): the 21 equations of state of the neutron star matter set have maximum masses of 2.01 to 2.75 solar masses with a median of 2.22, so the ceiling `NEUTRON_STAR_MASS_RANGE_SOLAR` of 2.2 is their middle and every star up to it has equations of state that support it; the white dwarf sequences run 0.2 to 1.30, inside the range `WD_MASS_RANGE_SOL` except the scaled 1.30 to 1.35 edge. `tests/test_remnant_mass_ranges_held_data.py` holds both ranges to that data and registry rows AUD6 and AUD7 record the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3864] - 2026-11-11
+
+**Headline:** The globular cluster mass laws (peak, width and range) were checked against the Harris catalog of 157 Milky Way clusters and stand; a test now holds them to it.
+
+### Changed
+
+- GEN.1525 (row 6 of the GEN.945 audit): `tests/test_cluster_laws_harris.py` computes cluster masses from the catalog's total absolute magnitudes for mass-to-light ratios of 1.5 to 2.6 and holds `CLUSTER_MASS_PEAK_SOL`, `CLUSTER_MASS_SIGMA_DEX` and `CLUSTER_MASS_RANGE_SOL` to the result (the bright-cluster median 1.3e5 to 2.1e5, width 0.37 to 0.67 dex, heaviest cluster 2.2e6, 8 to 10 percent under the floor of 1e4). Registry rows AUD10 and AUD11 record the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3863] - 2026-11-11
+
+**Headline:** The pre-main-sequence energy factor was checked against the MIST isochrones and BHAC15 tracks the project holds and stands; a test now holds it to MIST.
+
+### Changed
+
+- GEN.1525 (row 12 of the GEN.945 audit): with `PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR` at 2.0 the model's Kelvin-Helmholtz time is within 0.32 dex of MIST's nuclear arrival from 0.15 to 3 solar masses. Against the BHAC15 radius-settled times a factor near 1.0 fits better, but the track is stretched onto those times, so the factor only sets the nuclear-arrival stand-in for the lightest stars, where it was kept at 2.0. `tests/test_pms_energy_factor_held_data.py` holds the factor to MIST and registry row AUD23 records both comparisons. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3862] - 2026-11-11
+
+**Headline:** The default star-formation window and the free compact remnant age window were checked against the thin disk's population windows and stand; a test now holds them to those.
+
+### Changed
+
+- GEN.1525 (row 4 of the GEN.945 audit): `STAR_FORMATION_AGE_RANGE_GY` (0 to 10 Gy) is exactly the young, intermediate and thin disk old population windows laid end to end and lies under the age of the Universe; `COMPACT_REMNANT_AGE_RANGE_GY` tops out at the same 10 Gy and its floor is the magnetar active life. `tests/test_age_windows_held_to_populations.py` holds both to that, and registry rows AUD4 and AUD5 record the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3861] - 2026-11-11
+
+**Headline:** A planet with no ground (a giant, a sub-Neptune or a gas dwarf) now shows its pressure as the "Pressure at the 1 bar reference level", not as a "Surface pressure".
+
+### Changed
+
+- The pressure stored for a body with no ground is the 1 bar level its air is solved at (GEN.1334), the same convention a giant uses, so it read 100 kPa on almost every gas dwarf. The property sheet and the API, the description's facts, the system map's side panel and the page's summary sentence now name it as the reference level, and say that the temperature is at that level too. Bodies with a ground keep "Surface pressure". No generated value changes. Found in the GEN.1407 probe and GEN.1532.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3860] - 2026-11-11
+
+**Headline:** An unused function that drew the composition of ring material from the planet's disk is removed; rings take their ice share from `rings.build_ring` as before.
+
+### Changed
+
+- `small_body_composition.draw_ring` had no caller since the rings were rebuilt from history (GEN.1057): a ring's ice share is drawn by its kind in `rings.build_ring` (broad rings 90 to 99 percent ice like Saturn's, the stripped mantle of a differentiated moon), not from a distance in the circumplanetary disk. The function, its test and its wiring-register line are gone; `disk_ice_fraction`, which the moons read, stays. No generated value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3859] - 2026-11-11
+
+**Headline:** Every running unit now has its own progress bar and time left, with an estimate from the first second, and the unit list in the work API carries it.
+
+### Changed
+
+- `GET /api/admin/work/<id>/units` gives each running unit a `progress` record (`queue/taskprogress.py`): `show` (true once the unit is expected to take, or has run, longer than 15 s), `percent`, `eta_seconds`, and `source` (`stored`, `blended` or `live`). It is worked out from the unit's heartbeat counter (OPS.136 to OPS.138), so the page, the API and the log read the same numbers.
+- The time left moves from the rate recorded for the command to the running unit's own as it proceeds: the running rate's weight is the share of the unit done over a quarter, and the running rate is held back for its first 20 s (`progress_rate.HOLD_SECONDS`).
+- New: the server records how fast each command's units work (`queue/unitrates.py`, items a second over the seconds worked, not counting waits on the gate or a lock). A run keeps the rate of its finished units, a run that ends done folds it into the server's, and a unit's bar uses the run's rate first, then the server's.
+- The shell scatter's second bar now appears when tasks take longer than 15 s (it was 30 s) and goes away under 10 s (it was 20 s), the threshold every bar shares.
+- A bar macro for the unit rows of the Queue page (`partials/task_bar.html`) is added for the unit rows that OPS.139 builds.
+
+generation-output: unchanged
+
+## [8.0.3858] - 2026-11-11
+
+**Headline:** A script now draws the same few hundred seeded systems on two builds and counts how many bodies a change moved in ocean tide, tidal heating, locking, spin, tilt and eccentricity; no generated world changes.
+
+### Changed
+
+- GEN.1448: new `scripts/census_interactions.py` (`draw` then `compare`). It draws seeded systems of the six census star types, records for each planet and moon the spring ocean tide range, tidal heating flux, locking state, spin period, tilt and eccentricity (and any Kozai loss a build records), and a second run on another build is compared body by body; a system whose body count changed is counted apart. It is run before and after GEN.1446, GEN.1449, GEN.1454 and GEN.1450 land so each says what it did to the world.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3857] - 2026-11-11
+
+**Headline:** a unit that has just left a long wait is no longer stopped as stuck, and the heartbeat has one test that runs every rule on a fake clock.
+
+### Changed
+
+- OPS.143: `tests/test_heartbeat_rules.py` drives the whole chain (a horse that beats, the follower's watch, the stuck action, the stale rule, the job rows) over hours of fake time: work, slow, a long wait, quiet and stopped, the false kill (a moving counter at ten times its estimate for six hours is flagged and never touched), dead, stuck twice, the stale rule for every mix of states, and the API, web and tile jobs.
+- Fixed, found by that test: the time a unit spent waiting on the gate, the sky lock or MySQL counted as time its counter stood still, so a unit that left a wait of more than five minutes was judged quiet at once and stopped after two polls. The horse now writes the completed waits since the counter last changed (`waited`) and the judge subtracts them.
+- Fixed, found by that test: a unit queued again by the pass that found its stop had taken effect was looked up in the verdicts the watch had just forgotten, which raised a `KeyError` in the follower; it is skipped now.
+
 ## [8.0.3856] - 2026-11-11
 
 **Headline:** The Queue run page lists each running unit with its state, last beat, counter, phase and rate, the ones that need a look first.
