@@ -69,5 +69,5 @@ def edge_au(star):
     The outer edge, AU, of the gas disk of `star` (a star, a compact remnant or a close pair's proxy): `draw_edge_au` for its mass at formation, from a stream keyed by its
     members' mass, age and place in the galaxy, so every caller gets the same edge and no run's draw moves (the way the star's own snow line is drawn).
     """
-    key = "|".join(f"{member.mass!r}:{member.age!r}:{member.galactic_center_dist_ly!r}" for member in _members(star))
+    key = "|".join(f"{member.mass!r}:{getattr(member, 'age', None)!r}:{getattr(member, 'galactic_center_dist_ly', None)!r}" for member in _members(star))
     return draw_edge_au(formation_mass_solar(star), draw.Stream(f"disk_edge:{key}"))
