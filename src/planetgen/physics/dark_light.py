@@ -35,7 +35,7 @@ NEUTRON_STAR_PHOTON_ERA_YR = 1.0e5
 """float: The age at which a neutron star's cooling passes from the neutrino era (the core cools by neutrinos) to the photon era (the surface radiates the heat the core carries), years. [DL1, T7, L1.]"""
 
 NEUTRON_STAR_PHOTON_ERA_T_K = 1.0e6
-"""float: The surface temperature (at the star, not redshifted) at the end of the neutrino era, K. The standard and minimal cooling curves of Yakovlev and Pethick 2004 and Page et al. 2004, 2006 put it at 5e5 to 2e6 K for a 1.4 solar mass star. [DL1, T7, L1.]"""
+"""float: The surface temperature (at the star, not redshifted) at the end of the neutrino era, K. The standard and minimal cooling curves ([R3590], which tabulates them) put it at 5e5 to 2e6 K for a 1.4 solar mass star. [DL1, T7, L1.]"""
 
 NEUTRON_STAR_PHOTON_ERA_SLOPE = -0.5
 """float: `d ln T_s / d ln t` in the photon era (the same curves fall from 1e6 K at 1e5 yr to about 1e5 K at 1e7 yr and a few 1e3 K at 1e9 yr, a slope of -0.5). [DL2, T7, L1.]"""
@@ -50,7 +50,7 @@ NEUTRON_STAR_MIN_AGE_GY = 1.0e-6
 """float: The youngest age the cooling curve is read at (a star of the system's own age less its progenitor's life, never under this), Gy."""
 
 DISK_EFFICIENCY = 0.1
-"""float: The share of the rest mass of what a black hole takes in that leaves as light: 0.057 for a non-rotating hole's thin disk (Shakura and Sunyaev 1973), up to 0.42 for a maximally rotating one. [DL4, T4, L0.]"""
+"""float: The share of the rest mass of what a black hole takes in that leaves as light: 0.057 for a non-rotating hole's thin disk ([R4037]), up to 0.42 for a maximally rotating one. [DL4, T4, L0.]"""
 
 ISCO_SCHWARZSCHILD_RADII = 3.0
 """float: The innermost stable circular orbit of a non-rotating black hole, in Schwarzschild radii (`6 G M / c^2`), which the disk's colour and size are taken at. [DL5, T2, L0.]"""
