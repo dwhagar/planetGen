@@ -633,6 +633,10 @@ class StarSystem:
                 ocean_tides.generate(body, parent, tide_sources.raisers_of(sources, tide_sources.counted_by_ocean_tides(body, parent)))
                 for source in sources:
                     self.effect_ledger.add("tide", body, source.body, tide_sources.acceleration_m_s2(body, source))
+                primary = body.star if parent is None else parent
+                for source_body, power in tide_sources.heating_by_source(body, sources, primary):
+                    if power > 0.0:
+                        self.effect_ledger.add("heating", body, source_body, power)
 
     def _fill_light_ledger(self):
         """

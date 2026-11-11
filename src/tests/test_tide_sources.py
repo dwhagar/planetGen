@@ -112,3 +112,23 @@ def test_an_inner_source_turns_the_line_at_the_receivers_rate_and_an_outer_one_a
     assert {s.name: s.rate_rad_s for s in inner}["earth"] == pytest.approx(n_jupiter)
     assert {s.name: s.rate_rad_s for s in outer}["jupiter"] == pytest.approx(n_jupiter)
     assert {s.name: s.rate_rad_s for s in outer}["star"] == pytest.approx(n_earth)
+
+
+def test_the_mean_inverse_sixth_of_two_circles_is_the_quadrature_and_a_close_pair_is_far_above_the_cube_squared():
+    for a, b in ((1.0, 1.5), (1.0, 1.1), (2.0, 1.0)):
+        n = 40000
+        mean = sum((a * a + b * b - 2 * a * b * math.cos(2 * math.pi * (k + 0.5) / n)) ** -3 for k in range(n)) / n
+        assert tide_sources.circles_mean_inverse_sixth(a, b) == pytest.approx(mean, rel=1e-6)
+    assert tide_sources.circles_mean_inverse_sixth(1.0, 1.1) > 2.0 * tide_sources.circles_mean_inverse_cube(1.0, 1.1) ** 2
+
+
+def test_heating_by_source_gives_the_orbit_to_the_primary_and_the_tide_to_the_others_and_nothing_without_a_day():
+    star, earth, moon, jupiter = _system()
+    earth.rotation_period_hours = 24.0
+    earth.axial_tilt_deg = 23.0
+    sources = tide_sources.sources_of(earth, None, [earth, jupiter])
+    found = dict((getattr(b, "name", None), w) for b, w in tide_sources.heating_by_source(earth, sources, star))
+    assert found["star"] > 0.0 and found["moon"] > 0.0 and found["jupiter"] > 0.0
+    assert found["jupiter"] < found["moon"]
+    earth.rotation_period_hours = None
+    assert [b.name for b, w in tide_sources.heating_by_source(earth, sources, star)] == ["star"]
