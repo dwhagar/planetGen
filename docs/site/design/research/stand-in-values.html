@@ -200,21 +200,21 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>T2</td>
-<td>150</td>
-<td>59</td>
+<td>151</td>
+<td>60</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
-<td>211</td>
+<td>213</td>
 </tr>
 <tr>
 <td>T3</td>
-<td>117</td>
-<td>53</td>
+<td>116</td>
+<td>52</td>
 <td>10</td>
 <td>10</td>
 <td>0</td>
-<td>190</td>
+<td>188</td>
 </tr>
 <tr>
 <td>T4</td>
@@ -23451,7 +23451,7 @@ main{padding:16px 16px 60px}}
 <td>rocky differentiated parents, no crust layer</td>
 <td>a measured mantle xenolith mix outside 0.4 to 0.7 olivine</td>
 <td>the mantle of the parent from its own composition (GEN.553)</td>
-<td>the ring builder of <code>small_body_composition.draw_ring</code> (precedent), recalled peridotite modal mineralogy</td>
+<td>the earlier ring builder of <code>small_body_composition</code> (precedent, removed in GEN.1523), recalled peridotite modal mineralogy</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28772,8 +28772,8 @@ main{padding:16px 16px 60px}}
 <td>0 to 10 Gy</td>
 <td>stars with no population age</td>
 <td>a thin-disk age window other than the disk history's</td>
-<td><code>galaxy.disk_history</code> (GEN.935 family)</td>
-<td>the thin disk's 0 to 10 Gy; population ages by position come on top</td>
+<td>the thin disk's population windows (<code>tuning.STELLAR_POPULATION_AGE_RANGES_GY</code>, <code>THIN_DISK_OLD_WINDOW_GY</code>; <code>test_age_windows_held_to_populations.py</code> holds the window to them)</td>
+<td>checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; <code>galaxy.disk_history</code> reads the top as its span; population ages by position come on top; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28787,8 +28787,8 @@ main{padding:16px 16px 60px}}
 <td>1e-5 to 10 Gy</td>
 <td>white dwarfs, neutron stars and black holes drawn free</td>
 <td>a free neutron star younger than its first 10 kyr</td>
-<td><code>galaxy.disk_history</code> for the upper edge</td>
-<td>a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)</td>
+<td>the star-formation window's top (<code>test_age_windows_held_to_populations.py</code>)</td>
+<td>checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28856,14 +28856,14 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>AUD10</td>
 <td>B</td>
-<td>T3</td>
-<td>L0</td>
-<td><code>tuning.CLUSTER_MASS_RANGE_SOL</code> (1e4, 3e6): the globular cluster mass range</td>
-<td>1e4 to 3e6 solar masses</td>
+<td>T2</td>
+<td>L1</td>
+<td><code>tuning.CLUSTER_MASS_RANGE_SOL</code> (1e4, 3e6): the globular cluster mass range; and <code>CLUSTER_MASS_PEAK_SOL</code> 2e5, the centre of the log-normal</td>
+<td>peak 1.3e5 to 2.1e5 (M/L_V of 1.5 to 2.6); 1e4 to 3e6</td>
 <td>globular clusters</td>
-<td>a globular outside the range in the Harris catalogue</td>
-<td>the Harris catalogue (GEN.297, reader built)</td>
-<td>compared with the catalogue when GEN.297 reads it</td>
+<td>a cluster brighter than M_V of -6 outside the range, or a bright-cluster median outside the peak band, in the Harris catalog</td>
+<td>the Harris fit (<code>test_cluster_laws_harris.py</code> holds the tuning to it); a floor under 1e4 if the dissolving tail is modelled</td>
+<td>checked against [R1827] (2010 edition, 156 clusters with M_V) on 2026-11-11 (GEN.1525): the bright-cluster median is 1.3e5 (M/L 1.5) to 2.1e5 (M/L 2.6), the heaviest cluster 2.2e6, and 8 to 10 percent of the catalog is under the floor of 1e4 (evolved clusters a log-normal does not make); values unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28871,14 +28871,14 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>AUD11</td>
 <td>B</td>
-<td>T3</td>
-<td>L1</td>
+<td>T2</td>
+<td>L0</td>
 <td><code>tuning.CLUSTER_MASS_SIGMA_DEX</code> 0.5: the width of the globular cluster mass function</td>
-<td>0.4 to 0.6 dex</td>
-<td>globular cluster ensembles</td>
-<td>a measured mass function width outside 0.4 to 0.6 dex</td>
-<td>the Harris catalogue fit (GEN.297)</td>
-<td>recalled; next to <code>CLUSTER_MASS_PEAK_SOL</code> 2e5</td>
+<td>0.37 to 0.67 dex</td>
+<td>globular clusters</td>
+<td>a measured width outside the band of the bright clusters (0.37 dex) and the whole catalog (0.67 dex)</td>
+<td>the Harris fit (<code>test_cluster_laws_harris.py</code>)</td>
+<td>checked against [R1827] on 2026-11-11 (GEN.1525): 0.37 dex for the clusters brighter than M_V of -6, 0.67 dex with the faint tail; the turnover width of 1.2 mag is 0.48 dex; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29057,8 +29057,8 @@ main{padding:16px 16px 60px}}
 <td>1.5 to 3</td>
 <td>pre-main-sequence stars</td>
 <td>a track set that differs by more than the factor</td>
-<td>the MIST and BHAC15 pre-main-sequence tracks</td>
-<td>derived from the tracks when <code>pre_main_sequence</code> reads them</td>
+<td>the MIST isochrones' nuclear arrival (<code>isochrones.pre_main_sequence_arrival_yr</code>; <code>test_pms_energy_factor_held_data.py</code> holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks</td>
+<td>checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (<code>scale</code>, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>no data</td>
