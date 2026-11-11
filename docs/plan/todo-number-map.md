@@ -4687,8 +4687,8 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.411 | Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed | none | done, PR #5737 |
 | MAP.412 | (bug) bodylook.member_look: a look record for a belt member | none | done, PR #5954 |
 | MAP.413 | (bug) The belt member page draws its body | MAP.412 | done, PR #5958 |
-| MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | open |
-| MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | open |
+| MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | done (Train 22 or earlier, 2026-11-11) |
+| MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | done (Train 22 or earlier, 2026-11-11) |
 | MAP.416 | Census of cloud and haze data by class | none | open |
 | MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | none | dropped, folded into MAP.280 |
 | MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | open |
