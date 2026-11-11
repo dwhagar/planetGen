@@ -166,3 +166,45 @@ def test_a_ring_next_to_a_planet_is_left_out_and_a_far_one_kept():
     kept_axes, kept_masses = sc.clear_rings(axes, masses, [2.2])
     assert len(kept_axes) < len(axes) and all(min(a, 2.2) / max(a, 2.2) <= sc.BELT_ALPHA_LIMIT for a in kept_axes)
     assert sc.clear_rings(axes, masses, [0.5]) == (axes, masses)
+
+
+# GEN.1459: the tide of each planet wears its eccentricity down while the others pump it
+
+def _pair():
+    return dict(a_au=[0.5, 1.0], masses_kg=[3e24, 6e24], host_mass_kg=2e30, eccentricity=[0.05, 0.02], periapsis_longitude=[0.3, 1.2],
+                inclination=[0.01, 0.02], node_longitude=[0.1, 0.2])
+
+
+def test_the_damped_exchange_is_the_matrix_exponential_of_the_secular_matrix_with_the_decay_rates():
+    import numpy as np
+    from scipy.linalg import expm
+    pair, years, rates = _pair(), 2.0e8, [1 / 3.0e8, 1 / 5.0e9]
+    result = sc.evolve(**pair, years=years, damping_per_yr=rates)
+    A, _ = sc.matrices(pair["a_au"], pair["masses_kg"], pair["host_mass_kg"])
+    z0 = np.array(pair["eccentricity"]) * np.exp(1j * np.array(pair["periapsis_longitude"]))
+    expected = expm(1j * (A + 1j * np.diag(rates)) * years) @ z0
+    assert result.eccentricity == pytest.approx(tuple(np.abs(expected)), rel=1e-9)
+    assert result.periapsis_longitude == pytest.approx(tuple(float(x) % (2.0 * math.pi) for x in np.angle(expected)), rel=1e-9)
+
+
+def test_no_damping_or_zero_damping_is_the_undamped_exchange_and_inclinations_are_not_damped():
+    pair = _pair()
+    plain = sc.evolve(**pair, years=3.0e8)
+    assert sc.evolve(**pair, years=3.0e8, damping_per_yr=[0.0, 0.0]) == plain
+    damped = sc.evolve(**pair, years=3.0e8, damping_per_yr=[1e-8, 1e-9])
+    assert damped.inclination == pytest.approx(plain.inclination, rel=1e-12)
+    assert all(d < p for d, p in zip(damped.eccentricity, plain.eccentricity))
+
+
+def test_a_planet_the_others_keep_pumping_settles_above_the_decay_of_its_own_tide_and_a_lone_one_dies_away():
+    import numpy as np
+    pair, years = _pair(), 5.0e8
+    rate = 1.0 / 1.0e8        # the inner planet's tide cuts its eccentricity by e every 100 Myr
+    pair["masses_kg"] = [3e24, 6e27]          # a giant beyond it pumps it
+    wear_only = pair["eccentricity"][0] * math.exp(-rate * years)
+    pumped = sc.evolve(**pair, years=years, damping_per_yr=[rate, 0.0]).eccentricity[0]
+    assert pumped > 10.0 * wear_only
+    # with nothing to pump it (the neighbour a test particle) it follows the wear-down alone
+    pair["masses_kg"] = [3e24, 1.0]
+    alone = sc.evolve(**pair, years=years, damping_per_yr=[rate, 0.0]).eccentricity[0]
+    assert alone == pytest.approx(wear_only, rel=5e-3)

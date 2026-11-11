@@ -181,21 +181,23 @@ def precession_rates(a_au, masses_kg, host_mass_kg, fixed_axes_au=(), fixed_mass
     return tuple(float(x) for x in np.diag(A)[:count]), tuple(float(x) for x in np.diag(B)[:count])
 
 
-def _modes(matrix):
-    """`(frequencies, V, V^-1)` of a matrix whose eigenvalues are real."""
+def _modes(matrix, damped=False):
+    """`(frequencies, V, V^-1)` of a matrix whose eigenvalues are real; with `damped` the eigenvalues are complex (the imaginary part is a mode's decay rate, GEN.1459) and kept so."""
     values, vectors = np.linalg.eig(matrix)
+    if damped:
+        return values, vectors, np.linalg.inv(vectors)
     scale = float(np.max(np.abs(values))) if values.size else 0.0
     if scale > 0.0 and float(np.max(np.abs(values.imag))) > MAXIMUM_EIGEN_IMAGINARY_SHARE * scale:
         raise SecularChainError("the secular matrix has complex eigenvalues")
     return values.real, vectors, np.linalg.inv(vectors)
 
 
-def _evolve(matrix, start, years):
-    frequencies, vectors, inverse = _modes(matrix)
+def _evolve(matrix, start, years, damped=False):
+    frequencies, vectors, inverse = _modes(matrix, damped)
     return vectors @ (np.exp(1j * frequencies * years) * (inverse @ start))
 
 
-def _drive(matrix, start, years, held):
+def _drive(matrix, start, years, held, damped=False):
     """`_evolve` for the planets not `held`, which keep their `start` and push on the rest as they are: the rest go round the fixed point those held ones set (`z_eq = -A_PP^-1 A_PH z_H`)
     as `z_eq + exp(i A_PP t) (z(0) - z_eq)`."""
     free = [i for i, h in enumerate(held) if not h]
@@ -203,15 +205,15 @@ def _drive(matrix, start, years, held):
     if not free:
         return start.copy()
     if not fixed:
-        return _evolve(matrix, start, years)
+        return _evolve(matrix, start, years, damped)
     block = matrix[np.ix_(free, free)]
     rest = np.linalg.solve(block, matrix[np.ix_(free, fixed)] @ start[fixed])
     out = start.copy()
-    out[free] = -rest + _evolve(block, start[free] + rest, years)
+    out[free] = -rest + _evolve(block, start[free] + rest, years, damped)
     return out
 
 
-def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=()):
+def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inclination, node_longitude, years, fixed_axes_au=(), fixed_masses_kg=(), damping_per_yr=None):
     """
     The orbits `years` later (negative for earlier): the `Exchange` of planets of the semi-major axes (AU), masses (kg), eccentricities, longitudes of periapsis, inclinations and
     longitudes of node (radians). A planet already beyond the limits of the theory (`LINEAR_ECCENTRICITY_LIMIT`, `LINEAR_INCLINATION_LIMIT_RAD`) is held where it is: it keeps its
@@ -220,6 +222,10 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     `fixed_axes_au` and `fixed_masses_kg` (GEN.1464) are bodies that pull on the planets and keep a flat circular orbit whatever the planets do: the rings of a belt (`belt_rings`). They add their
     pull to each planet's apsidal and nodal rate; being circular and flat they force nothing, and being light (a belt is thousandths of an Earth mass) they are not moved visibly by the planets
     they pull on, so they are held and not evolved (registry BR3). The result is the planets' only.
+
+    `damping_per_yr` (GEN.1459) is each planet's rate (1 / year) at which its own tide wears its eccentricity down, `1 / tau` of `orbit_elements.circularisation_time_yr`: the eccentricity vectors
+    then follow `dz/dt = (i A - Gamma) z`, so a mode the planets keep pumping settles where the pumping and the wear-down balance and a mode with nothing to renew it dies away as `exp(-t / tau)`.
+    The inclinations are not damped (the tide of the orbit does not act on them to first order). Without it the exchange is the undamped one.
     """
     count = len(a_au)
     A, B = matrices([*a_au, *fixed_axes_au], [*masses_kg, *fixed_masses_kg], host_mass_kg, rows=count)
@@ -231,7 +237,11 @@ def evolve(a_au, masses_kg, host_mass_kg, eccentricity, periapsis_longitude, inc
     held_i = i0 > LINEAR_INCLINATION_LIMIT_RAD
     held_e[count:] = True
     held_i[count:] = True
-    z = _drive(A, z0, years, held_e)[:count]
+    damped = damping_per_yr is not None and any(g > 0.0 for g in damping_per_yr)
+    A_e = A
+    if damped:
+        A_e = A.astype(complex) + 1j * np.diag([*[float(g) for g in damping_per_yr], *([0.0] * pad)])[:A.shape[0], :A.shape[1]]
+    z = _drive(A_e, z0, years, held_e, damped)[:count]
     w = _drive(B, w0, years, held_i)[:count]
     held_e, held_i = held_e[:count], held_i[:count]
     e_new = np.abs(z)

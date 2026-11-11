@@ -58873,6 +58873,120 @@
           "fields": [
             [
               "What it is",
+              "secular_chain.evolve(damping_per_yr=...) (GEN.1459): each planet's tide wears its eccentricity vector at 1 / orbit_elements.circularisation_time_yr (the cold tide) while the planets exchange it, dz/dt = (i A - Gamma) z, started from the birth eccentricity (_orbit_birth) and run over the star's age; inclinations are not damped"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets whose tide is linear in the eccentricity (the cold circularisation time is the rate)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose tide softens its own mantle (the heat of the eccentricity tide changes k2/Q; XD2 handles it as a factor), or an eccentricity above the theory's 0.3 (held, undamped)"
+            ],
+            [
+              "What replaces it",
+              "the damped modes of the chain with the tide's own k2/Q of each mode's eccentricity"
+            ],
+            [
+              "Evidence",
+              "derived: the linear damping of the Laplace-Lagrange equations by a tide that cuts e at the rate 1 / tau (Murray and Dermott section 7; the damped secular matrix)"
+            ]
+          ],
+          "id": "XD1",
+          "key": "6.244:XD1",
+          "kind": "P",
+          "slug": "6-244-xd1",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "secular_chain.evolve(damping_per_yr=...) (GEN.1459): each planet's tide wears its eccentricity vector at 1 / orbit_elements.circularisation_time_yr (the cold tide) while the planets exchange it, dz/dt = (i A - Gamma) z, started from the birth eccentricity (_orbit_birth) and run over the star's age; inclinations are not damped"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planets.settle_orbit (GEN.1459): a planet the damped exchange has worn takes the harder tide of orbit_elements.settled_eccentricity (the heat softening the mantle) only as the share it adds to the cold decay from birth, settled / circularised(cold), applied to the exchanged eccentricity"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets with a strong tide (a hot, close, eccentric planet)"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose pumped eccentricity is far from its birth value, where the share from the birth value is not the share at the pumped one"
+            ],
+            [
+              "What replaces it",
+              "the nonlinear damping run inside the exchange (a time-stepped integration)"
+            ],
+            [
+              "Evidence",
+              "design: the ratio keeps the existing melt-feedback result for a lone planet and the exchange's balance for a pumped one"
+            ]
+          ],
+          "id": "XD2",
+          "key": "6.244:XD2",
+          "kind": "P",
+          "slug": "6-244-xd2",
+          "tier": "T7",
+          "tier_code": "T7",
+          "tweak": "L0",
+          "unread": null,
+          "what": "planets.settle_orbit (GEN.1459): a planet the damped exchange has worn takes the harder tide of orbit_elements.settled_eccentricity (the heat softening the mantle) only as the share it adds to the cold decay from birth, settled / circularised(cold), applied to the exchanged eccentricity"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the forcing of a companion star on the planets' eccentricity (a source term in the exchange, GEN.1499) and the pumping of a moon's eccentricity by the other moons (GEN.1449 part 2) are not in the damped equation; a Kozai-pumped moon wears from the pumped value (kozai_bodies)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "planets of single stars and of wide binaries"
+            ],
+            [
+              "What would show it wrong",
+              "a planet in a close binary whose forced eccentricity survives the tide"
+            ],
+            [
+              "What replaces it",
+              "the inhomogeneous equation dz/dt = (i A - Gamma) z + f"
+            ],
+            [
+              "Evidence",
+              "design: the next items (GEN.1499, GEN.1449 part 2)"
+            ]
+          ],
+          "id": "XD3",
+          "key": "6.244:XD3",
+          "kind": "T",
+          "slug": "6-244-xd3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the forcing of a companion star on the planets' eccentricity (a source term in the exchange, GEN.1499) and the pumping of a moon's eccentricity by the other moons (GEN.1449 part 2) are not in the damped equation; a Kozai-pumped moon wears from the pumped value (kozai_bodies)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "planets.secular_exchange: an eccentricity the exchange raises is raised to the most the generator's spacing screen allows (a bisection, SECULAR_BISECTION_STEPS 12); one it lowers is lowered"
             ],
             [

@@ -302,7 +302,14 @@ def settle_orbit(planet):
     if birth is None:
         return False
     # never above what the planet has: the spacing of the orbits may have cut it (`validation`) and ages only rise
-    eccentricity = min(planet.eccentricity, orbit_elements.settled_eccentricity(planet, birth, _gyr_to_yr(planet.star.age), planet.primary_mass_kg, planet.distance))
+    age_yr = _gyr_to_yr(planet.star.age)
+    settled = orbit_elements.settled_eccentricity(planet, birth, age_yr, planet.primary_mass_kg, planet.distance)
+    if getattr(planet, "_exchange_damped_yr", None) == age_yr:
+        # GEN.1459: the secular exchange wore this planet's eccentricity with the cold tide all along, against the pumping of its neighbours; only the harder tide of a strong one
+        # (its heat softening the mantle, `settled_eccentricity`) is left to apply, as the share of the cold decay it adds
+        cold = orbit_elements.circularised(birth, age_yr, orbit_elements.circularisation_time_yr(planet, planet.primary_mass_kg, planet.distance))
+        settled = planet.eccentricity * (min(settled / cold, 1.0) if cold > 0.0 else 1.0)
+    eccentricity = min(planet.eccentricity, settled)
     if planet.eccentricity - eccentricity <= ECCENTRICITY_SETTLE_TOLERANCE:
         return False
     planet.eccentricity = eccentricity
@@ -1112,13 +1119,18 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     bodies = [p for p in planets if getattr(p, "body_type", None) in ("t", "g") and not getattr(p, "is_moon", False) and getattr(p, "period", None) and p.mass and p.distance]
     if len(bodies) < 2 or not host_mass_kg > 0.0 or not age_yr > 0.0:
         return "unchanged"
-    start = []
+    start, damping = [], []
     for body in bodies:
         orbit = body.orbit_from_vector()
-        start.append((orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
+        birth = getattr(body, "_orbit_birth", None)
+        # GEN.1459: the exchange runs from the eccentricity the planet was born on, with its own tide wearing it down all the while (the stored one is already worn for the age it was drawn at)
+        tide_time_yr = orbit_elements.circularisation_time_yr(body, host_mass_kg, body.distance)
+        damped = birth is not None and birth > 0.0 and 0.0 < tide_time_yr < math.inf
+        damping.append(1.0 / tide_time_yr if damped else 0.0)
+        start.append((birth if damped else orbit["eccentricity"], (orbit["ascending_node"] + orbit["arg_periapsis"]) % (2.0 * math.pi), orbit["inclination"], orbit["ascending_node"]))
     ring_axes, ring_masses = belt_rings_of(planets, [b.distance for b in bodies])
     result = secular_chain.evolve([b.distance for b in bodies], [b.mass for b in bodies], host_mass_kg,
-                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses)
+                                  [x[0] for x in start], [x[1] for x in start], [x[2] for x in start], [x[3] for x in start], age_yr, ring_axes, ring_masses, damping)
     if not result.linear:
         return "outside the theory"
     old = [body.eccentricity for body in bodies]
@@ -1129,6 +1141,8 @@ def secular_exchange(planets, host_mass_kg, age_yr, keeps_spacing):
     if not moved:
         return "unchanged"
     for i, body in enumerate(bodies):
+        if damping[i] > 0.0:
+            body._exchange_damped_yr = age_yr       # `settle_orbit` does not wear this eccentricity from its birth again: the exchange wore it (GEN.1459)
         if targets[i] < old[i]:
             body.eccentricity = targets[i]
     held = False
