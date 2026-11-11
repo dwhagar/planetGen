@@ -44,9 +44,12 @@ import math
 from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
+from planetgen.galaxy import object_uid
 from planetgen.physics import body_state, habitability, state_vectors
-from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
+from planetgen.physics import constants as pc
+from planetgen.web.maps.bodylook import comet_nucleus_color, member_look, planet_look, star_look
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
+from planetgen.physics import system_bodies as ledger
 from planetgen.physics import unit_registry as units
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -193,11 +196,44 @@ def _planet(planet, around, kind="planet", parent=None):
     return item
 
 
-def _belt(belt, around):
+BELT_MEMBERS_DRAWN = 200
+"""int: How many of a belt's stored bodies the 3D view draws one by one (MAP.414, MAP.415 sets it): the heaviest, since a belt keeps them by rank. The rest stay the belt's dust."""
+
+_MEMBER_COLUMNS = ("member_rank, mass_kg, radius_km, distance_km, eccentricity, inclination_deg, ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, taxon, density_g_cm3, "
+                   "rock_fraction, metal_fraction, water_fraction, ice_fraction, status")
+
+
+def _belt_members(conn, belt, limit=BELT_MEMBERS_DRAWN):
+    """
+    The heaviest `limit` bodies a belt stores (MAP.414), each with its designation, radius, `look` (`bodylook.member_look`, its id the designation, so the page of the body
+    (MAP.413) and this view draw the same one) and `position_km`: where its stored orbit puts it, relative to what the belt goes round, at the belt's epoch.
+    A body that has since become a moon is no longer in the belt and is left out.
+    """
+    if limit <= 0:
+        return []
+    uid = belt.get("uid")
+    belt_id = object_uid.from_bytes(uid) if uid is not None else None
+    out = []
+    rows = conn.execute(f"SELECT {_MEMBER_COLUMNS} FROM belt_members WHERE belt_id = ? AND status <> 'moon' ORDER BY member_rank LIMIT {int(limit)}", (belt["id"],)).fetchall()
+    for row in rows:
+        member = dict(row)
+        rank = member["member_rank"]
+        designation = object_uid.designation(belt_id, rank) if belt_id is not None else f"{belt['id']}.{rank:04X}"
+        a_au = member["distance_km"] / pc.AU_TO_KM
+        position_au = ledger.relative_position_au(a_au, min(max(member["eccentricity"], 0.0), 0.999999), member["inclination_deg"], member["ascending_node_deg"],
+                                                  member["arg_periapsis_deg"], member["mean_anomaly_deg"])
+        member["id"] = designation
+        out.append({"designation": designation, "rank": rank, "radius_km": member["radius_km"], "look": member_look(member),
+                    "position_km": [axis * pc.AU_TO_KM for axis in position_au]})
+    return out
+
+
+def _belt(belt, around, members=()):
     return {
         "ref": f"belt:{belt['id']}", "id": belt["id"], "kind": "belt", "name": belt.get("name"),
         "body_type": belt.get("body_type"), "around": around,
         "inner_km": belt["lower_limit_km"], "outer_km": belt["upper_limit_km"], "distance_km": belt["distance_km"],
+        "members": list(members),
     }
 
 
@@ -271,6 +307,6 @@ def build_scene(conn, system_id):
         "stars": _stars(conn, system_id, stars, row),
         "tree": tree,
         "planets": planets,
-        "belts": [_belt(b, _star_around(b, stars, row, pair_around)) for b in detail["belts"]],
+        "belts": [_belt(b, _star_around(b, stars, row, pair_around), _belt_members(conn, b)) for b in detail["belts"]],
         "comets": [_comet(c, _star_around(c, stars, row, pair_around)) for c in detail["comets"]],
     }
