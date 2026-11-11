@@ -197,3 +197,23 @@ def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_withou
     static = mixture_giant._disk_c_over_o({"formation_temperature_k": 300.0}, 0.3)
     assert drift < static
     assert math.isfinite(drift)
+
+
+def test_a_giant_subject_with_a_snow_line_gives_its_nitrogen_sulfur_and_noble_gases_the_drift_weights_too():
+    # GEN.1516: `_disk_enrichments` passes the same weights `_disk_c_over_o` does; a subject without a snow line keeps the static factors.
+    subject = {"formation_temperature_k": 250.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
+    drift = mixture_giant._disk_enrichments(subject, 0.6)
+    static = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
+    assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0)
+    assert drift != static
+    weights = mixture_giant._disk_ice_weights(subject, 250.0)
+    assert drift["Ar"] == pytest.approx(weights["Ar"]) and drift["Xe"] == pytest.approx(weights["Xe"])
+    assert all(math.isfinite(value) and value >= 0.0 for value in drift.values())
+
+
+def test_a_giant_whose_gas_holds_no_argon_still_makes_a_mixture():
+    from planetgen.physics import gas_equilibrium
+    budget = mixture_giant.element_budget(0.5, disk_factors={"N": 1.5, "S": 1.0, "Ar": 0.0, "Kr": 0.0, "Xe": 0.0})
+    assert budget["Ar"] == 0.0 and budget["H"] > 0.0
+    result = gas_equilibrium.solve({symbol: value for symbol, value in budget.items() if value > 0.0}, 800.0, 1.0)
+    assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
