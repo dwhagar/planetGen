@@ -12994,16 +12994,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 22, with Lane 11 for the map. Prerequisites: GEN.1510. Related: GEN.1509, GEN.1510, MAP.412, MAP.414.
   Filed by the TODO thread.
 
-- [ ] **MAP.414 (bug) The 3D system view draws the largest members of each belt as lumpy meshes**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Today the view draws a belt as random seeded points and ignores the members. Do: draw the top N members by radius as lumpy meshes (tiered by projected size, dust points stay for the rest), reusing lumpymesh.js and the existing tier and LRU rules, one shared geometry cache; N capped (say 200 per belt).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.412. Related: MAP.412, MAP.415.
-  Filed by the TODO thread.
-
-- [ ] **MAP.415 Belt draw cap setting and a determinism test**
-  Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. A cap setting for N in MAP.414 (admin or per belt) and a test that the same belt draws the same members (a hash of the chosen member ids).
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 04 (Lane 11 is not running; 2026-11-09). Prerequisites: MAP.414. Related: MAP.414.
-  Filed by the TODO thread.
-
 - [ ] **MAP.416 Census of cloud and haze data: share of generated planets and moons with cloud_cover or tau_haze above zero, by class**
   Boss, 2026-11-09 ('render every body including belt members, and finish haze and clouds on planets'); report reports/render-belts-haze-clouds-2026-11-09.md. Read-only report (reports/). It tells us whether the thin haze and cloud look is the code or the data. Lock-free; a waiting lane may take it early, it is the first step of the haze and cloud chain.
   Version 9.0, with MAP.280 (Boss, 6:11 PM EST on 2026-11-09: haze and clouds need not be in 8.1 and must not bump other work). Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): the map lane (Lane 11 is not running; an idle lane takes it, confirmed with TODO). Prerequisites: none. Related: MAP.350, MAP.280.
@@ -13149,6 +13139,16 @@ clears each one.
 - [ ] **GEN.1535 Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity**
   Lane 21 (as the lane reported 12:48 PM EST on 2026-11-11), GEN.1454 parts 1 and 2 are PR 6012 (obliquity_variation module) and PR 6013 (chaotic-zone tilt at the end of the settle pass). Left for this part: the companion star's mode (built, not wired); storing the range of obliquity (two columns, one migration) so the seasonal swing can read it; the Cassini state computed from the real precession constant instead of the log-uniform stand-in; an oddity name for chaotic obliquity. Lock item.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 21. Prerequisites: GEN.1454 (parts 1 and 2). Related: GEN.1454, GEN.1450, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1536 The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in**
+  Lane 21 (as the lane reported 2:00 PM EST on 2026-11-11), left out of GEN.1535 (PR 6023). With the fluid Darwin-Radau figure a Mercury-like body gets a precession constant alpha of 5 arcsec/yr, which puts its tilt at 4 to 7 degrees against the real 0.03 degrees, because the real figure is frozen in. So the log-uniform Cassini-state stand-in cannot be replaced until the body's stored J2 or C22 figure (its frozen shape) is available to the precession constant. Build: store or derive that figure, compute alpha from it, set the Cassini-state tilt from it, retire the stand-in in the registry (GEN.725) and say what moved in the change note. Lock item if it adds a column.
+  Version 8.1. Owner (TODO, proposed 2026-11-11, confirm with TODO before taking): Lane 21. Prerequisites: GEN.1535. Related: GEN.1535, GEN.1454, GEN.1447, GEN.725.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1537 Class and life census re-tag after trains 22 and 23 (epochs 144 to 146): re-measure the census shares and re-baseline the class and life ranges the trains moved**
+  Lane 11 (as the lane reported 2:07 PM EST on 2026-11-11): the stars, phenomena and life censuses pass on the GEN.1501 build; the systems census raised 7 flags (G2V life abiogenesis, K0III complex cells and multicellularity, zero planets, K giants at 2 to 8 AU, oddity W5) and the class census raised 17, of which 5 are cells with no bodies drawn that look like machine load. Re-run the class census alone, decide each flag (real shift, re-baseline, or fault to file), and re-baseline the ranges the trains moved. Same work as GEN.1353 after train 15.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 11. Prerequisites: GEN.1501. Related: GEN.1353, GEN.1501.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

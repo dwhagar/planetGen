@@ -18,7 +18,7 @@ Messaging rule (Boss, 5:59 PM EDT 2026-10-23): lanes message only to report merg
 
 Retirement rule (Boss, 6:58 PM EDT 2026-10-23): only the core lanes (Cores 1 to 5) and the TODO thread never retire; every other lane retires when its queue ends, including Bug Hunt, Performance, Debug mode, Survival equipment, Map nodes, the class lane, lanes A to M and the docs cleanup thread (repeated by Boss, 8:31 PM EDT). When a non-core lane posts its handoff after its last merge, the TODO thread runs the progress update and the coordinator resolves the thread.
 
-TODO RETIRE CHECK of 2026-11-11: before retiring an item from docs/TODO.md, run `python scripts/wiring_guard.py --check`; any register line in docs/design/research/wiring-register.md that names the retired item must be pointed at the open item that now wires it (or `by design`) in the same PR, or main goes red.
+TODO RETIRE CHECK, added 2026-11-11: before retiring an item from docs/TODO.md, run `python scripts/wiring_guard.py --check`; any register line in docs/design/research/wiring-register.md that names the retired item must be pointed at the open item that now wires it (or `by design`) in the same PR, or main goes red.
 
 | Lane | Doing now | Gate | Next |
 |---|---|---|---|

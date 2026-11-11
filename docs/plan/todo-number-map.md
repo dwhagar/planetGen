@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.298 |
 | MAP | MAP.424 |
 | NAV | NAV.78 |
-| GEN | GEN.1536 |
+| GEN | GEN.1538 |
 | PERF | PERF.260 |
 | DB | DB.122 |
 | API | API.48 |
@@ -3719,6 +3719,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1533 | Give the GEN.1497 body history table a reader: nothing in production code reads the stored history yet | GEN.1497 | open |
 | GEN.1534 | A Gaia nearby-stars sample fetched at setup replaces the stand-in separation distribution SEP1 (HYG is incomplete and mixes wide pairs) | none | open |
 | GEN.1535 | Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity | GEN.1454 | open |
+| GEN.1536 | The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in | GEN.1535 | open |
+| GEN.1537 | Class and life census re-tag after trains 22 and 23 (epochs 144 to 146): re-measure the census shares and re-baseline the class and life ranges the trains moved | GEN.1501 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4685,8 +4687,8 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.411 | Map browser reds not yet split between page and test: black hole marker not found by hover, no tooltip for the neutron star, nebula group ring missing, close-star choices popup not shown, info card scrolls at short windows, flag drag lands 0.019 off, scale line unchanged after wheel, galaxy_closed | none | done, PR #5737 |
 | MAP.412 | (bug) bodylook.member_look: a look record for a belt member | none | done, PR #5954 |
 | MAP.413 | (bug) The belt member page draws its body | MAP.412 | done, PR #5958 |
-| MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | open |
-| MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | open |
+| MAP.414 | (bug) The 3D system view draws the largest members of each belt as lumpy meshes | MAP.412 | done (Train 22 or earlier, 2026-11-11) |
+| MAP.415 | Belt draw cap setting and a determinism test | MAP.414 | done (Train 22 or earlier, 2026-11-11) |
 | MAP.416 | Census of cloud and haze data by class | none | open |
 | MAP.417 | (bug) Opaque-deck worlds paint the cloud or haze deck as the surface | none | dropped, folded into MAP.280 |
 | MAP.418 | (bug) Cloud and haze colour come from the dominant condensate or haze material | MAP.416 | open |
