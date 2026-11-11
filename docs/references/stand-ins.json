@@ -51293,7 +51293,7 @@
             ],
             [
               "Evidence",
-              "the ring builder of small_body_composition.draw_ring (precedent), recalled peridotite modal mineralogy"
+              "the earlier ring builder of small_body_composition (precedent, removed in GEN.1523), recalled peridotite modal mineralogy"
             ]
           ],
           "id": "IF24",
@@ -62053,11 +62053,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history (GEN.935 family)"
+              "the thin disk's population windows (tuning.STELLAR_POPULATION_AGE_RANGES_GY, THIN_DISK_OLD_WINDOW_GY; test_age_windows_held_to_populations.py holds the window to them)"
             ],
             [
               "Evidence",
-              "the thin disk's 0 to 10 Gy; population ages by position come on top"
+              "checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; galaxy.disk_history reads the top as its span; population ages by position come on top; value unchanged"
             ]
           ],
           "id": "AUD4",
@@ -62091,11 +62091,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history for the upper edge"
+              "the star-formation window's top (test_age_windows_held_to_populations.py)"
             ],
             [
               "Evidence",
-              "a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)"
+              "checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged"
             ]
           ],
           "id": "AUD5",
@@ -62799,11 +62799,11 @@
             ],
             [
               "What replaces it",
-              "the MIST and BHAC15 pre-main-sequence tracks"
+              "the MIST isochrones' nuclear arrival (isochrones.pre_main_sequence_arrival_yr; test_pms_energy_factor_held_data.py holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks"
             ],
             [
               "Evidence",
-              "derived from the tracks when pre_main_sequence reads them"
+              "checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (scale, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged"
             ]
           ],
           "id": "AUD23",
@@ -63055,6 +63055,204 @@
       ],
       "slug": "6-270-stand-ins-of-the-constants-the-gen-945-audit-shortlisted",
       "title": "Stand-ins of the constants the GEN.945 audit shortlisted"
+    },
+    {
+      "key": "6.271",
+      "number": "6.271",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.fluid_love_number and dynamical_ellipticity: the Darwin-Radau fluid Love number k_f = (3/2) / (1 + (5/2)(1 - (3/2) C/MR^2)^2) and E = k_f q / 3 / (C/MR^2) of a planet"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a planet that has settled to the shape its spin gives it"
+            ],
+            [
+              "What would show it wrong",
+              "the Earth's E off the measured 0.003274 by more than 5 percent, or a stiff planet's (Mars 0.0054 against 0.0041) taken to matter more than the Moon-less result's lower-bound character"
+            ],
+            [
+              "What replaces it",
+              "the planet's stored J2 and moment of inertia, once the figure is stored"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: the Earth's 0.00319 against 0.003274 measured (2.6 percent); Mars's fluid value is 23 percent low, which the module states"
+            ]
+          ],
+          "id": "OB1",
+          "key": "6.271:OB1",
+          "kind": "P",
+          "slug": "6-271-ob1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.fluid_love_number and dynamical_ellipticity: the Darwin-Radau fluid Love number k_f = (3/2) / (1 + (5/2)(1 - (3/2) C/MR^2)^2) and E = k_f q / 3 / (C/MR^2) of a planet"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.precession_constant_rad_yr: alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2)) over the star, the moons and a companion"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a spinning planet with its moons in the equator"
+            ],
+            [
+              "What would show it wrong",
+              "the Earth's alpha off 50.3 arcsec a year by more than 10 percent"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: Sun 16.0, Sun and Moon 53.96 against 50.3 measured (7 percent)"
+            ]
+          ],
+          "id": "OB2",
+          "key": "6.271:OB2",
+          "kind": "P",
+          "slug": "6-271-ob2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.precession_constant_rad_yr: alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2)) over the star, the moons and a companion"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.resonances_of: the half-width W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha) in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near alpha cos(eps) = -s)"
+            ],
+            [
+              "The range it moves in",
+              "none (derived in the module docstring)"
+            ],
+            [
+              "Where it holds",
+              "small orbit inclinations (the first-order exchange's limits)"
+            ],
+            [
+              "What would show it wrong",
+              "a zone width that differs from a numerical integration of the spin's equations by a factor of 2"
+            ],
+            [
+              "What replaces it",
+              "a numerical integration of the spin of the generated system (Laskar's frequency analysis)"
+            ],
+            [
+              "Evidence",
+              "derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give"
+            ]
+          ],
+          "id": "OB3",
+          "key": "6.271:OB3",
+          "kind": "P",
+          "slug": "6-271-ob3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.resonances_of: the half-width W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha) in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near alpha cos(eps) = -s)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation._chains: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion)"
+            ],
+            [
+              "The range it moves in",
+              "none (a criterion)"
+            ],
+            [
+              "Where it holds",
+              "resonances of comparable strength"
+            ],
+            [
+              "What would show it wrong",
+              "a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound"
+            ],
+            [
+              "What replaces it",
+              "a frequency map of the generated planet's spin"
+            ],
+            [
+              "Evidence",
+              "test_obliquity_variation.py: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says"
+            ]
+          ],
+          "id": "OB4",
+          "key": "6.271:OB4",
+          "kind": "P",
+          "slug": "6-271-ob4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation._chains: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a companion beyond five times the planet's distance; the mode is taken as separate from the siblings'"
+            ],
+            [
+              "What would show it wrong",
+              "a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration"
+            ],
+            [
+              "What replaces it",
+              "a coupled Laplace-Lagrange matrix with the companion as a body"
+            ],
+            [
+              "Evidence",
+              "the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says"
+            ]
+          ],
+          "id": "OB5",
+          "key": "6.271:OB5",
+          "kind": "P",
+          "slug": "6-271-ob5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "obliquity_variation.companion_mode: the nodal precession -(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i) of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude"
+        }
+      ],
+      "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
+      "title": "Stand-ins of the spin axis and obliquity under every body"
     }
   ]
 }

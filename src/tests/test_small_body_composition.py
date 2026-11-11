@@ -201,21 +201,13 @@ def test_a_dwarf_planet_may_be_a_stripped_one_and_a_class_d_body_may_not():
         sb.draw_icy_body("planet")
 
 
-def test_a_ring_gains_ice_with_the_distance_past_the_ice_line():
+def test_the_disk_ice_fraction_gains_ice_with_the_distance_past_the_ice_line():
     # the order of the Galilean ramp of decision S8 (Io, Europa, Ganymede, Callisto at r / r_ice 0.295, 0.47, 0.75, 1.3)
     fractions = [sb.disk_ice_fraction(r, 0.35) for r in (0.295, 0.47, 0.75, 1.315)]
     assert fractions[0] == 0.0
     assert fractions[1] == pytest.approx(0.0618, abs=0.002) and fractions[2] == pytest.approx(0.240, abs=0.003)
     assert fractions[3] == pytest.approx(0.35)
     assert fractions == sorted(fractions)
-    with draw.bound(31):
-        rings = [(r, sb.draw_ring(r)) for r in (0.3, 0.6, 1.0, 2.0, 4.0) for _ in range(30)]
-    for r, ring in rings:
-        assert ring.rock + ring.water == pytest.approx(1.0) and ring.metal == 0.0
-        assert ring.water == pytest.approx(sb.disk_ice_fraction(r, ring.detail["f_inf"]))
-    means = [statistics.mean(ring.water for r, ring in rings if r == x) for x in (0.3, 0.6, 1.0, 2.0, 4.0)]
-    assert means[0] == 0.0 and means[:3] == sorted(means[:3]) and means[1] > 0.0 and means[2] > 0.25
-    assert all(ring.water <= ring.detail["f_inf"] + 1e-12 for _r, ring in rings)       # the ramp saturates at f_inf past 1 r_ice
     with pytest.raises(ValueError):
         sb.disk_ice_fraction(0.0, 0.3)
 
@@ -240,9 +232,8 @@ def _worker(seed):
         belt = sb.draw_belt(3.1, SUN_W, AL26)
         comet = sb.draw_comet("halley_type")
         icy = sb.draw_icy_body(sb.DWARF_PLANET)
-        ring = sb.draw_ring(1.4)
     return (belt.detail["taxon_shares"], belt.bulk_density_kg_m3, comet.components, comet.bulk_density_kg_m3, icy.rock,
-            icy.detail["row"], ring.water)
+            icy.detail["row"])
 
 
 def test_the_same_seed_gives_the_same_bodies_at_one_and_four_workers():
