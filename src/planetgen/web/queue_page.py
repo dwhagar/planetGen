@@ -326,11 +326,11 @@ def _beating_view(body):
         return None
     names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
     return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
-                      "phase": job["phase"], "running": _duration(job["running_seconds"]), "heard": _duration(job["beat_age_seconds"])} for job in jobs]}
+                      "phase": job["phase"], "running": _beat_gap(job["running_seconds"]), "heard": _beat_gap(job["beat_age_seconds"])} for job in jobs]}
 
 
-def _duration(seconds):
-    """Seconds as `5 s`, `4 min` or `2 h 10 min`."""
+def _beat_gap(seconds):
+    """Seconds as `5 s`, `4 min` or `2 h 10 min` (the other-job rows; `_duration` is the long form of the stage and run pages)."""
     seconds = int(max(seconds or 0, 0))
     if seconds < 90:
         return f"{seconds} s"

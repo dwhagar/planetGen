@@ -9,6 +9,9 @@ Tests that take the `mysql_config` fixture (see `conftest.py`) are skipped, not 
 configured/reachable; those that take `redis_server` when there is no Redis.
 """
 
+import ast
+import inspect
+
 import pytest
 from html import escape as html_escape
 
@@ -662,3 +665,11 @@ def test_the_jobs_route_and_the_page_list_the_jobs_that_are_running_by_their_bea
         html = admin_client.get("/admin/queue").get_data(as_text=True)
         assert "Jobs running now" in html and "Generate page job" in html and "Fill the map" in html and "step 1 of 2: Fill" in html
     assert "Jobs running now" not in admin_client.get("/admin/queue").get_data(as_text=True)
+
+
+def test_the_two_duration_formats_stay_apart():
+    """The run, stage, ETA and heartbeat figures use `_duration` ("3 m 05 s", "12.4 s"); only the other-job rows use `_beat_gap` ("4 min"). OPS.142 once defined a second `_duration` that replaced the first at import."""
+    assert queue_page._duration(185) == "3 m 05 s" and queue_page._duration(12.4) == "12.4 s" and queue_page._duration(None) == ""
+    assert queue_page._beat_gap(5) == "5 s" and queue_page._beat_gap(240) == "4 min" and queue_page._beat_gap(7800) == "2 h 10 min"
+    names = [node.name for node in ast.parse(inspect.getsource(queue_page)).body if isinstance(node, ast.FunctionDef)]
+    assert len(names) == len(set(names)), "a function is defined twice in web/queue_page.py"
