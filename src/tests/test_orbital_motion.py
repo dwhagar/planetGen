@@ -35,7 +35,7 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import spin
+from planetgen.physics import secular_chain, spin
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
 from tests.tide_support import locking_time_s, rocky
@@ -98,8 +98,11 @@ def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
         assert 0 <= body.orbital_ascending_node_deg < 360
         assert not hasattr(body, "orbital_phase_deg")  # GEN.289: the state vector is the body
 
+    # The birth draw stops at PLANET_ORBITAL_INCLINATION_MAX_DEG, but the secular exchange (GEN.1450) shares the planets' inclinations among them against the star's reference
+    # plane, so a planet can end up to the limit of the theory (secular_chain.LINEAR_INCLINATION_LIMIT_RAD) from it: a planet beside a tilted neighbour is not held to the draw's limit.
+    ceiling = max(pc.PLANET_ORBITAL_INCLINATION_MAX_DEG, math.degrees(secular_chain.LINEAR_INCLINATION_LIMIT_RAD))
     for planet in planets:
-        limit = 90.0 if planet.belt_rank is not None else pc.PLANET_ORBITAL_INCLINATION_MAX_DEG      # GEN.1510: a body promoted from a belt keeps the belt's inclination, not a planet's
+        limit = 90.0 if planet.belt_rank is not None else ceiling      # GEN.1510: a body promoted from a belt keeps the belt's inclination, not a planet's
         assert 0 <= planet.orbital_inclination_deg <= limit
     for moon in moons:
         # GEN.714: a regular moon lies near the equator, a captured one can be retrograde

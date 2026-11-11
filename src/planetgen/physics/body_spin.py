@@ -25,7 +25,7 @@ rows of `docs/design/research/gap-filling-plan.md` sections 6.14 (SP7 to SP10, n
 import math
 
 from planetgen.physics import constants, icy_tide, interior_heat, radiogenic, spin_torques, tidal_heating, tidal_spin
-from planetgen.physics import radiation_field
+from planetgen.physics import eclipses, radiation_field
 
 
 def planet_of(body):
@@ -59,7 +59,7 @@ def starlight_w_m2(body):
     if not luminosity or not body.distance:
         return 0.0
     distance_au = orbit_elements.flux_distance_au(body.distance, body.host_eccentricity if body.is_moon else body.eccentricity)
-    return luminosity / (4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
+    return (luminosity / (4.0 * math.pi * (distance_au * constants.AU_TO_M) ** 2) + radiation_field.companion_light_w_m2(star, distance_au)) * (eclipses.light_factor_of(body) or 1.0)     # GEN.1441, GEN.1484
 
 
 def thermal_tide_of(body, star_raiser):

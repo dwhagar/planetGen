@@ -533,7 +533,7 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     Regression test for the Phase 0 bug (see TODO.md): both
     Planet._generate_life_and_flavor_paragraphs and StarSystem.__str__ used
     to roll flavor text and mutate system_config.system_flavor_count/
-    recent_flavor_texts at render time (inside the text writers)
+    used_flavor_ids at render time (inside the text writers)
     rather than at generation time, so calling either twice on the same
     object double-rolled and double-mutated shared counters. Flavor text is
     now decided once during StarSystem.__init__ (system-level in
@@ -549,14 +549,14 @@ def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
     assert system.system_config.system_flavor_count > 0
 
     flavor_count_after_generation = system.system_config.system_flavor_count
-    recent_flavor_after_generation = list(system.system_config.recent_flavor_texts)
+    recent_flavor_after_generation = list(system.system_config.used_flavor_ids)
 
     first_render = render_support.text(system)
     second_render = render_support.text(system)
 
     assert first_render == second_render
     assert system.system_config.system_flavor_count == flavor_count_after_generation
-    assert system.system_config.recent_flavor_texts == recent_flavor_after_generation
+    assert system.system_config.used_flavor_ids == recent_flavor_after_generation
 
 
 def test_binary_system_star_properties_are_sane():

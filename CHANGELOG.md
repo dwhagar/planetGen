@@ -2,6 +2,307 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3838] - 2026-11-11
+
+**Headline:** The 29 constants that the GEN.945 audit found hand-set and unregistered now have a tier, a tweak level and a replacement path in the stand-in registry (section 6.270).
+
+### Changed
+
+- GEN.1524: registry rows AUD1 to AUD29 cover the whole ranked shortlist (the metallicity clip, the core tier factor, the type Ia share, the age windows, the remnant mass ranges, the cluster and halo laws, the rare compact object rates, the reference stellar density, the giant mass slope, the comet and belt draws, the icy water line, the pre-main-sequence and remnant factors, the fit scopes, the flavor chances and the run limits). Nine are hand-tuned (L3 or L4) and have burn-down lines. No generator value changes.
+
+## [8.0.3837] - 2026-11-11
+
+**Headline:** Each star system now stores what its rows add up to (star, planet and moon mass, luminosity, body counts), so the gravity map and the sector paths stop summing them again.
+
+### Changed
+- **`system_summary` holds the figures (GEN.1478, migration 0237).** For each star system: the stars' mass, the stars', planets' and moons' mass, the brightest star's and all the stars' luminosity, and the counts of stars, planets, moons, belts and comets (`db/system_summary.py`). The system save and the editor write them; the migration fills every system already stored, in runs of 20,000, with progress shown.
+- **Two readers use them.** The gravity sources (`db/gravity_sources.py`) read `system_mass_kg` and the sector paths (`db/sector_paths.py`) read `stars_mass_kg`, instead of grouping the `stars`, `planets` and `moons` rows of every system in the neighbourhood each time. The object index and the sector totals still sum their own rows (the sector total is an exact decimal sum and must not go through a stored double).
+
+generation-affects: none
+
+## [8.0.3836] - 2026-11-11
+
+**Headline:** A planet whose eccentricity the secular exchange changes, however little, now has its air and temperature made again on the new orbit, giants included.
+
+### Changed
+
+- After the secular exchange of GEN.1450 moved a planet's eccentricity, its air, class and temperature were made again only for a change over 1e-4 (`ECCENTRICITY_SETTLE_TOLERANCE`), and a giant's only if its radius moved, so a smaller change left the mean light, the temperature and the air on the old orbit (a sweep body at 310.788 K against 310.774 K). Any change of the eccentricity now marks the planet's air stale (`planets.stale_air`), and a giant's air is made again in `settle_giant` on the orbit it has then, whether or not its radius moved (volume and gravity are only remade when it did). A planet the exchange leaves alone is unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3835] - 2026-11-11
+
+**Headline:** A planet whose orbit the secular exchange tilts now keeps its spin axis with the orbit, so its stored axial tilt matches its axis again.
+
+### Changed
+
+- The secular exchange of GEN.1450 changes a planet's orbital inclination and node, but left its spin axis and axial tilt as they were drawn, so `axial_tilt_deg` no longer matched the angle between the axis and the orbit normal (`test_every_generated_system_body_spins` red on main). The axis is now turned with the orbit normal (`planets.carry_spin_with_orbit`, `spin.carry_axis`): the obliquity and the angle round the normal are kept, because a planet's spin precesses about its normal far faster than the plane's nodes regress. A locked or resonant planet keeps its Cassini-state share of the new inclination (its tilt moves in proportion to the folded inclination). The sky of the other suns follows the new normal, the day and night shares follow a changed tilt, and the moons are set in the new equator again. No draws.
+- Registry row SC6 (section 6.244).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3834] - 2026-11-11
+
+**Headline:** The orbits of the stars of a binary or triple now line up when the stars are close and point anywhere when they are far apart.
+
+### Changed
+
+- Every companion's orbit used to be drawn with a random tilt (the whole sphere, at every separation). It is now drawn from two populations (`physics/star_orbit_alignment.py`): aligned, a small prograde tilt (a Rayleigh law of 5 degrees), and random, the sphere as before. The share that is aligned is all of them at 30 AU and inside, none at 1,000 AU and beyond, and falls with the logarithm of the separation between. The separation is the companion's own axis for a star's first companion, whose tilt is the tilt against the plane of that star's planets, and the axis of the pair it orbits for the inner pair of a triple, whose tilt is against that outer orbit.
+- The tilt is drawn as the angle to the reference plane and turned about that plane's normal into the stored inclination and ascending node, so no column changes: the mutual inclination is still derived from the stored values (`stability.mutual_inclination`), and the triple stability cut, the Kozai-Lidov verdict and the quadruple verdicts read it as before.
+- The stand-ins (the 30 and 1,000 AU edges, the 5 degree scale) are registry section 6.258 (AL1 to AL4). A first-companion tilt, which sets how a companion's plane sits against its star's planets, is drawn after the axis, so the draws of a multiple shift from the first companion on.
+- Readers of the new tilt (the planet Kozai screen of GEN.1447, the forced inclination of GEN.1492, the precession of GEN.1467) are later slices and are not in this change.
+
+generation-output: changed
+generation-affects: scatter, fill
+
+## [8.0.3833] - 2026-11-11
+
+**Headline:** A new table, `body_history`, keeps for every planet and moon the numbers its history leaves that cannot be worked out again from the stored values: the eccentricity and the spin (rate and tilt) it was born with and the two draws that decided its spin resonance captures. It changes no result.
+
+### Added
+
+- `body_history` table (migration 0243): one row a planet or moon that has any, filled when the system is saved from what the generator already keeps on the body (`_orbit_birth`, `_birth_spin`), with a `formula_version` so a later change to the formulas can tell the rows it can refill from the rows it must not. Nothing is drawn.
+- An edit of a system keeps the rows of the bodies it keeps and deletes those of a planet or moon it deleted; deleting the system deletes its rows.
+- `physics/body_history.py` names the columns and reads them off a body. The Kozai cycle numbers and the tidal lock age are not in it yet: each lane that builds them adds its own column.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3832] - 2026-11-11
+
+**Headline:** A rogue planet, and the moon of one, no longer has a day, daylight or latitude bands from a star it does not have: it is dark all year.
+
+### Changed
+- **No sun, no day (GEN.1496).** A body under a star-less host (a rogue planet, or the moon of one) has the empty set of suns in `daylight.compute`: `day_share_equator`, `day_share_mean` and `daylight_hours` are 0, the polar circle, the solar day, the night hours and the days a year are empty, and the state word is the new `no sun` (`day_night.NO_SUN`; a giant still says `no solid surface`). `latitude_bands.compute` gives no bands for such a body (`habitability_world.values_from_body` now says whether the star is star-less), so the rogue planets of a galaxy store no `band1_*` to `band7_*` and the page shows no band table for them. Before, they stored a day share of 0.5 and half a rotation of daylight, and a rocky one stored bands in the state `polar day and night`. Surface temperatures are unchanged. New epoch, `--affects fill`.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3831] - 2026-11-11
+
+**Headline:** A rocky planet's late-accreted veneer now comes from the belts and planets of its own system instead of one drawn number, and its air, water and ground are made again with it.
+
+### Changed
+- **The late accretion of a rocky planet follows its system (GEN.1493 slice 1).** The air of a rocky planet drew its late-accreted mass from a log-normal law (GEN.739) because the belts did not exist yet. Once the system is whole, `generation/late_accretion.py` takes the mass from the system's belts and planets (`physics/late_supply.py`, slice 0), at least 5 percent of the law's mean for its mass (planetesimals that never formed a belt) and at most the old 3 percent, and makes the planet's air, water and ground again by replaying `calculate_atmospheric_conditions` from the stream state saved at its last call (`planets.remake_air`) in a stream of its own, so no draw of the run's stream moves; a planet with no air, and one whose new late accretion moves its carbon and nitrogen by under half of what its volcanoes gave (`planets.LATE_ACCRETION_GATE`), keeps its air. In a census of 240 seeds (246 planets of 0.3 to 3 Earth masses) 43 percent take the floor, 22 percent sit at the ceiling and the median planet takes 0.13 of what the law gave; the pass is 8.8 percent of generation time (18 percent without the gate; 201 of 246 planets are identical to the full replay, 13 differ by more than 1 percent, the worst by a climate branch) (`tests/audit/late_accretion_census.py`, `reports/gen1493-late-accretion-census-2026-11-09.md`). Moons, giants and bodies of no star are as before. Reused, not rebuilt: `late_supply.veneer_fraction`, `influx.Reservoir`, the stream-state replay of `refinish_rocky` (GEN.992) and `refresh_at_final_age` (GEN.839). Stand-in rows LA1 to LA3 (section 6.255), all L3 with burn-down lines; the wiring-register lines of `late_supply` and LS1 to LS3 are gone as the module is now read. No migration.
+- **A planet whose air was made again also gets its class, spin, dose, ultraviolet index, equipment and habitability scores made again on it (train 22 fix).** `planets.remake_air` now follows the air with `apply_class` and `generate_spin` (the birth spin kept) from a stream of the planet's own, as `remake_end_stages` does, and the moons' day and night shares. The `sky_suns` and `light_factor` columns of `planets` and `rogue_planets` (GEN.1458, GEN.1484) were never written by the saver, so a re-score read them back empty and could rate a planet differently from generation; they are written and read back now.
+
+generation-affects: fill, population
+
+generation-output: changed
+
+## [8.0.3830] - 2026-11-11
+
+**Headline:** The late supply a rocky planet takes from the belts of its own system is built and calibrated, but nothing reads it yet, so nothing generated changes.
+
+### Changed
+
+- New `physics/late_supply.py` (GEN.1493 slice 0): the share of a belt's early mass that lands on a planet, with the other planets, the giants above all, as the sinks (capture cross-section with focusing), reusing `influx.reach`. Stand-in rows LS1 to LS4 (section 6.254), burn-down lines for LS1 to LS3, a wiring-register line for the module.
+- A census of 581 generated rocky planets (`tests/audit/late_supply_census.py`) puts the fitted inward share at 0.105 (0.1 kept) and shows that planets of systems with a giant take about 20 times less, that 31 percent take nothing (no belt outside them), and that the spread is much wider than the present law's. These go to slice 1.
+- Nothing is wired, stored or drawn; output is unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3829] - 2026-11-11
+
+**Headline:** A comet's chance of turning active now follows how bright its star is, not the Sun's 3 AU: comets of bright stars turn active from farther out and comets of faint stars only close in.
+
+### Changed
+- **The activity distance scales with the host's luminosity (GEN.1491).** A comet's chance of showing a coma fell from 0.9 at the star to 0.05 at a perihelion of 3 AU, the Sun's, round any star. The perihelion is now first made the distance from a lone star that is lit as much (every star's light counts, GEN.1444) and then divided by `sqrt(L / Lsun)`, the distance round the Sun that gives the same flux on an airless body (`physics/comet_activity.py`). So the floor chance is reached at 30 AU round a star of 100 solar luminosities and at 0.3 AU round one of 0.01. A host of exactly the Sun's luminosity, alone, and a comet with no host give the chances of before. The disk's temperature law (`L^0.25 r^-0.62`) is not used: it is for a passively heated disk, not a bare nucleus. Only `is_active` of comets of other hosts can change. In a census of 480 seeds (335 comets), the mean chance fell from 0.37 to 0.08 for comets of hosts under 0.1 solar luminosities (303 comets, most of them red dwarfs), from 0.51 to 0.42 for hosts of 0.1 to 3, and rose from 0.47 to 0.70 for hosts over 3; none changed at exactly the Sun's luminosity (`tests/audit/comet_activity_census.py`, `reports/gen1491-comet-activity-census-2026-11-09.md`). Reused, not rebuilt: `radiation_field.lit_distance_au` (GEN.1444), `_activity_chance`, the Sun's constants of `tuning`. Stand-in rows CA1 to CA3 (section 6.253), none hand-tuned. No migration.
+
+generation-affects: fill
+
+generation-output: changed
+
+## [8.0.3828] - 2026-11-11
+
+**Headline:** A planet that circles a close pair of stars is slightly cooler: its light is cut by the share the two stars hide of each other, 0.1 to 1 percent.
+
+### Changed
+- **Eclipses of a close pair take light from its planets (GEN.1484).** `eclipses.light_factor_of` gives a planet of a close pair the share of its light it keeps after the two stars eclipse each other, from the pair's separation, period and plane and the planet's own height above it (the eclipse functions of GEN.1462, registry rows EC1 to EC4). It is stored as `light_factor` (`planets`, `moons`, `rogue_planets`, migration 0242; NULL for every other body) and applied to the light in the air and temperature chain, a giant's light and radius, the mixture's equilibrium temperature, the thermal tide and the energy flux of the habitability score. A median circumbinary planet loses 3e-4 of its light and the most lose 1.9 percent (56 planets in 400 systems), which is 0.1 to 0.5 percent in temperature. A lone star, a moon and a rogue planet read as before. New epoch, `--affects fill`.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3827] - 2026-11-11
+
+**Headline:** The gas a giant planet gathers now has the water and CO2 that drifting pebbles evaporated into it, so fewer giants come out carbon-rich.
+
+### Changed
+
+- The carbon-to-oxygen ratio of a gas giant's envelope is now set by the disc gas at the age the giant gathered it (GEN.1473, `physics/disk_drift.py`): pebbles drift inward faster than the gas and evaporate at each ice line, so the gas inside the water line is oxygen-rich while the pebbles last and the gas inside the CO2 line gets CO2 once the pebble front has reached it. The age comes from the star's mass, metals and stored snow line and the giant's formation temperature; there is no new random draw.
+- In a sample of 2,787 generated giants the share with C/O over 0.8 falls from 18 to 12 percent (Sun-like stars) and from 18 to 11 percent (K stars), the median stays where it was, and the share under 0.35 rises by about 2 points; M dwarf giants change the most (median 0.62 to 0.44). The measure is in `reports/gen1473-drift-measure-2026-11-09.md`.
+- Stand-ins DE1 to DE10 are in section 6.242 of the registry (the pebble flux and front are read from the paper, the end of the pebbles, the viscous gas flux, the lag and the gas-gathering age are registered stand-ins).
+- Generated giants' atmospheres change, so this is a new epoch; planets, orbits, masses and everything else are unchanged.
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3826] - 2026-11-11
+
+**Headline:** The flavor lines of planets, moons and systems are now a gated tree in a data file, walked so only the lines that fit the body are offered.
+
+### Changed
+- **The flavor text is a tree (GEN.1430).** `physics/data/flavor_tree.json` holds the 82 lines of the four old lists in two scopes (system, planet), with gates on stored conditions (a ground to stand on, multicellular or technological life) and a tag for the ancient works family; `physics/flavor_tree.py` walks it with the gate evaluator that `planet_class_fit.json` and `oddities.json` already use, takes out the lines the system already showed (this replaces the recency list), and draws one by weight on the body's own stream, so the line no longer depends on the order the bodies were made in. The four lists in `tuning.py` and `life.flavor_key` are gone; stored rows keep their keys, which are the line ids. A world with multicellular life is now offered the life lines and the ground lines together. This changes the generator output, so it takes a generator epoch (the Train Manager assigns it).
+
+generation-output: changed
+generation-affects: fill
+
+## [8.0.3825] - 2026-11-11
+
+**Headline:** A giant lit by a very hot star no longer stops the build of its system; its air is worked out at the hottest temperature the gas table reaches.
+
+### Changed
+
+- GEN.1522 (bug): `mixture_giant.giant_mixture` solved the layer's gas at the layer's own temperature, and the gas table ends at 20,000 K. A giant or brown dwarf near an O star (zeta Ophiuchi's example, seed 152 of a seeded sweep, 27,560 K at the quoted layer) found no gas to make and the system failed with "no species can be made of these elements at this temperature". The layer is now equilibrated at no more than `mixture_giant.CHEMISTRY_CEILING_K` (the table's top, 20,000 K), as a colder one already was at `CHEMISTRY_FLOOR_K`; the temperature drawn is kept everywhere else (the quench level, the record). Ionization is not modelled, so the stand-in is the neutral and molecular gas at 20,000 K, tier "from needed output", tweak L0 (registry row BD6), until the table is extended.
+- This was the cause of `test_example_star_age_never_exceeds_lifespan[zeta_ophiuchi_system.json]` failing on a rare draw (the test builds the example three times with unseeded draws, and a build that stops fails it). Test: `tests/test_atmosphere_mixture_giant.py` (20,000, 27,560 and 50,000 K).
+
+generation-affects: none
+
+## [8.0.3824] - 2026-11-11
+
+**Headline:** The test that checks the habitability gear sentence against the equipment line now compares them the way the page writes them, formulas set properly.
+
+### Changed
+
+- TEST.155: `test_every_scored_body_has_both_equipment_lines_and_its_per_item_specs_in_its_details` compared the Document's gear sentence, where a formula is written as a formula (UX.149: `CO₂`), with the equipment line's plain letters (`CO2`). It passed while none of the first 8 seeds needed a CO2 scrubber and failed once Train 21's draws gave a world that does (Illughoris II). The line and the item names now go through `model.chem_text` first, as the page does. No code under test changed.
+
+generation-affects: none
+
+## [8.0.3823] - 2026-11-11
+
+**Headline:** Emptying the earlier phenomena and taking off their indexes are steps of their own in a scatter run, no longer a hook of the phenomena shells (OPS.123 slice 3, phenomena verb).
+
+### Changed
+- **`empty-phenomenon-scatter` and `drop-phenomenon-indexes` are their own commands and stages.** The `prepare` of `scatter-phenomena` is gone; its two effects are two one-unit stages, "Clear the earlier phenomena" (`phenomena-clear`) and "Take off the phenomenon indexes" (`phenomena-unindex`), before "Scatter the phenomena". The first reads the same deferred scatter settings as the shells, so a `scatter --phenomena` that is refused because phenomena are stored is refused before anything is emptied. A galaxy run counts two more stages (18). `finish_run.REWIND_WITH` chains a stopped phenomena scatter back through the indexes to the clearing (and the special phenomena back through the scatter), so a carried-on scatter empties the table again first instead of adding to the rows already written. Reused: `store.clear_phenomenon_scatter`, `store.drop_phenomenon_scatter_indexes`, the deferred `scatter-settings` parameter, the one-unit whole expansion of `clear-scatter` and the stage pattern of the nebula field and bright star verbs. `clear-scatter` itself was not reused: it refreshes the block lights and resets the scatter epoch.
+- **A galaxy run skips the two new steps with the phenomena (PERF.256).** `STORED_SCATTER_STAGES` lists `phenomena-clear` and `phenomena-unindex` with the phenomena, so a standing phenomena scatter plans neither (`test_scatter_skips`).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3822] - 2026-11-11
+
+**Headline:** A rocky world's sheet now shows the xenon-136 over xenon-130 of its mantle gas, which carries the plutonium-244 that its star's gas held.
+
+### Changed
+
+- The property sheet of a rocky body has a fifth mantle line, the 136Xe/130Xe of its mantle's gas (GEN.1507): the solar wind's 1.797 plus the Earth's fission excess (the ridge sources' 2.478), of which 28 percent is the 244Pu part and scales with the body's own birth 244Pu/238U over the early Solar System's. A star poorer in plutonium gives its worlds a smaller 136Xe excess. The line is derived from the stored isotope rows, so nothing new is stored.
+- Stand-ins ISO35 to ISO38 are in section 6.236 of the registry; the numbers are from a paper on the fission xenon of ridge basalts (R5219).
+- Stored values, generation and the epoch are unchanged.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3821] - 2026-11-11
+
+**Headline:** The squeezed-heliopause system-sheet test names its nebula, so the text it checks matches what the sheet says for a named cloud.
+
+### Fixed
+- **`test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause` named an unnamed nebula.** `_placed_nebula` inserts a nebula with an empty name, and the sheet then says "the gas of the cloud around the system presses it in" while the test looked for "the gas of  around ..." with the empty name. The test now gives the nebula the name "Test Cloud" with the same update that sets its density and temperature, so the sentence it checks carries a name. A test-side fix only; no product code changed. Reused: the existing `_placed_nebula` helper and the sheet's own `or 'the cloud'` fallback.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3820] - 2026-11-11
+
+**Headline:** After the stuck action stops a unit and queues it again, every other task is held so the restarted unit runs alone, the Queue page says so and who holds it, and the hold lifts by itself when the unit completes or fails (OPS.145, heartbeat part 8).
+
+### Added
+- **A solo hold on the one pause flag.** `queue/pause.py` keeps its flag (`planetgen:queue:paused`) and gives it two fields, `reason` and `solo` (the unit whose job is let through). `pause.hold_solo` is called by `unitstuck.Stuck` when it queues the stopped unit again, at the front of its queue (`redisqueue.requeue_job(..., at_front=True)`); `pause.blocks` is what the workers ask. A worker that takes any other job while the hold is on puts it back at the end of its queue and waits (`cli/worker.py`), so nothing new starts beside the unit; units already running finish or stop at their next batch. A pause made by hand is never replaced by a hold, and the follower never lifts a pause it did not make.
+- **The hold lifts by itself.** The follower lifts it when the unit is complete, when the run fails (including the unit's second stuck verdict) or ends, and `pause.state` drops it when the unit's job has ended or is gone (a follower that died). An admin can lift it from the Queue page: it reads "The queue is held by run ...: solo run of unit N (stage S) after a restart", with a Lift the hold button (`queue-resume`). `GET /api/admin/work` status gains `paused_reason` and `solo_unit`.
+- **The memory gate gives the restarted unit the host.** `memorygate.Claim.solo`: the unit asks for the whole memory budget of the lanes that are not the site's (`memorygate.solo_mb`: the host's memory less its own reserve and the places kept for the interactive and long lanes), waits until no claim of the bulk or maintenance lanes is held, and no bulk or maintenance claim is admitted while it is held. The site's lanes are not held.
+- **The scheduler treats the solo run as a turn that does not rotate.** The solo ticket goes before every other (`scheduler.SOLO_WEIGHT`), holds the bulk lanes back while it waits, and its time is not charged to its kind (`memorygate.release`), so the kinds that waited are not behind it when the hold lifts and keep the waiting they did.
+
+### Changed
+- `pause.state()` returns `reason` and `solo` too (`None` for a pause by hand).
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3819] - 2026-11-11
+
+**Headline:** The page of a belt member now shows a picture of the body: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.413: `/object/belt:<ID>/member/<rank>` has a "Sensor view" panel above the table. `bodyview.member_view(designation, member)` makes the look record with `bodylook.member_look` (MAP.412) from the page's member block, its seed from the designation so the 3D view (MAP.414) draws the same body; the existing `static/bodyview.js` paints it (a body under the roundness limit through `lumpyview.js`, a round one as a sphere). One body per page; nothing is guessed, so there is no estimate line. The caption says the colour comes from the taxon and the shares of rock, metal, water and ice.
+- Reused: `bodyview.js`, `lumpyview.js` and `lumpymesh.js` unchanged, the item page's Sensor panel markup, `bodylook.member_look`. Checked in headless Chromium: a lumpy dark carbonaceous body and a round stony one paint with no console message.
+
+generation-affects: none
+
+## [8.0.3818] - 2026-11-11
+
+**Headline:** A belt member now has a look record, so the pages and the 3D view can draw it: a lump or a ball in the colour of its taxon and makeup.
+
+### Changed
+
+- MAP.412: `bodylook.member_look(member)` gives the look record of a `belt_members` row: `kind` `belt_member`, a seed from its id, its radius and density, its taxon, and a colour (`member_grain_color`) that mixes the colour of the taxon's rock family (the same `ASTEROID_GRAIN_COLORS` the asteroid fields use; the dark taxa C, B, P and D carbonaceous, V basaltic, M metallic, the rest stony) with the metallic grey by its metal share and the icy pale blue-grey by its water and ice shares. `lumpy` is true when its roundness ratio at the median strength (`body_strength.ratio_for`) is under 1, so `lumpymesh.js` draws a lump; a body of Ceres' size is a ball. The info panel's account (`colour_account`) names the taxon and the shares.
+- Reused: `seed_for`, `ASTEROID_GRAIN_COLORS`, `_srgb_byte`, `body_strength.ratio_for`. Not built here: the member page and the 3D view that call it (MAP.413, MAP.414), and members at or above the planet class floor, which draw through `planet_look` (GEN.1509 to GEN.1511). No query or stored value changes.
+
+generation-affects: none
+
+## [8.0.3817] - 2026-11-11
+
+**Headline:** Tests that need a rare case search a bounded number of seeds for it instead of pinning the seed that once had it.
+
+### Changed
+
+- TEST.714: new `tests/fuzz_support.first_seed_with(build, wanted, seeds=range(64), what=...)`: builds each seed under `deterministic_entropy`, stops at the first that `wanted` accepts, and fails naming how many seeds it tried when none has the case (with its own tests in `tests/test_first_seed_with.py`).
+- `test_describe_render.py::test_headings_follow_the_tree_in_each_format` searches the seeds for a described system with a moon (it took the first of three pinned seeds). `test_moon_history.py` finds the planet with its born moons (two tests) and the moon that moved by 5 percent (it skipped when none of 16 seeds had one) by the same search; the sample test runs its 16 seeds as before and goes on to 64 only while it has not seen a fallen moon and six moons.
+- The Train 22 pin reds the Train Manager listed (`test_planet_zones`, `test_circumbinary_light`, `test_db_column_round_trip`, `test_species_limits`/`test_population`, `test_swept_hand_on`) are on `claude/train-22`, fixed there by their owners; they are converted to the helper once they are on main.
+
+generation-affects: none
+
+## [8.0.3816] - 2026-11-11
+
+**Headline:** The settings test names `PLANETGEN_MEMORY_GATE` as a one-process switch, as it does the other environment variables that are not site options.
+
+### Changed
+
+- `tests/test_settings.py::test_the_code_reads_no_variable_the_model_does_not_name` was red on main: `queue/memorygate.py` reads `PLANETGEN_MEMORY_GATE` (PERF.254; `0` turns the gate off for the process so every claim is admitted at once), a variable that is neither a `config.json` option nor in `NON_OPTION_VARIABLES`. It is a switch for one process (a benchmark or debugging run), not a site setting, since the gate is the rule on every install, so it joins the list with that reason. The code is unchanged.
+
+generation-affects: none
+
+## [8.0.3815] - 2026-11-11
+
+**Headline:** The Generate page's jobs, the API's jobs and the map's tile prefetch now give a sign of life while they run, and the Queue page lists them, so a dead one shows as dead instead of as nothing (OPS.142, heartbeat part 9).
+
+### Added
+- **`queue/jobbeat.py`.** `jobbeat.beating(kind, job_id, label)` runs the same beat thread as a unit (`unitbeat.UnitBeat`, Redis server clock) for a job that is not a unit of a run: an API job (`api_jobs.execute`), a web job (`web/job_runner.run`, with the step it is on as the phase) and a tile prefetch chunk (`tileprefetch.build_nodes`). The records sit in one hash, `planetgen:jobbeats`, removed when the job ends; a job that is killed leaves its record, which reads `dead` for an hour and is then dropped. These jobs have no unit of work to count, so the judge says only `working` or `dead`; nothing is ended on its state (RQ's time limit still is). Where Redis does not answer, the job runs without a beat.
+- **`GET /api/admin/work/jobs`** (admin; additive, API version unchanged) and a **Jobs running now** panel on the Queue page: kind, label, state, what it is doing, how long it has run, and when it was last heard from.
+
+### Changed
+- `UnitBeat` can write to a hash and field of its own (`hash_key`, `extra`), which is how the job beat reuses it.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3814] - 2026-11-11
+
+**Headline:** A run is now called stale only when every unit that is running is dead or stuck, so one long unit whose count moves no longer shows a "Clear the stale run" offer after two minutes (OPS.141, heartbeat part 8).
+
+### Changed
+- **`runrecord.is_stale` reads the unit states.** `read_run` now carries, for each stage, the states the follower last published for its running units (`stage["unit_states"]`, from `unitwatch`, OPS.138). While any unit is judged, the run is stale exactly when every one of them is `dead` or `quiet`; a unit that works, is slow, loops, or waits on a lock keeps the run alive however long it goes without finishing a unit or logging an event. Before this, a run was stale after `max(120 s, 3 x its longest unit so far)` without a finished unit or an event, which one 30 minute sky cell always tripped.
+- With no unit judged (none has started, or an older process follows the run) the old rule stands, so a run with queued units and no worker is still called stale after the same time. A run whose follower is gone is still found by `holder_is_dead`, which the Clear offer reads too.
+- No star, planet or stored number changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3813] - 2026-11-11
+
+**Headline:** main is green again: the wiring register lists the two fudge data files that GEN.1313 added.
+
+### Changed
+
+- `docs/design/research/wiring-register.md`: a line for `physics/data/fudge_matrix.json` (by design: only the table builder and its test read it) and one for `fudge_table.json` (GEN.1314 wires it). Test only; nothing in generation changes.
+
+generation-affects: none
+
 ## [8.0.3812] - 2026-11-11
 
 **Headline:** The nebula composition range test of the object lists passes the unit the columns are stored in.

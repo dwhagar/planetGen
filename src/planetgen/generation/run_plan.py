@@ -2960,7 +2960,7 @@ class _PhenomenaBook:
 class PhenomenaFollower(followed.Follower):
     """
     The shells of the phenomenon scatter as a stage of a run (PERF.106): the `scatter-phenomena` command's units, a
-    run of shells each. The earlier scatter was emptied when the stage opened (`prepare_scatter_phenomena`).
+    run of shells each. The earlier scatter was emptied, and the indexes taken off, by the two stages before it (OPS.123).
     """
 
     key = "phenomena"
@@ -3068,7 +3068,9 @@ def phenomena_followers(args, refuse=None, tag=""):
         RuntimeError: The skeleton was never built.
     """
     book = _PhenomenaBook()
-    followers = [PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+    followers = [EmptyPhenomenonScatterFollower(args, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
+                 DropPhenomenonIndexesFollower(args),
+                 PhenomenaFollower(args, book, _phenomena_settings_marker(args, "phenomena", refuse, tag)),
                  PhenomenaIndexFollower(args, book, _phenomena_settings_marker(args, "phenomena-index", refuse, tag)),
                  EmptyNebulaFieldFollower(args), NebulaFieldFollower(args)]
     return followers, book
@@ -3126,16 +3128,72 @@ def planned_phenomena(args, refuse=None, tag=""):
     return followed.Planned(followers + [BlockLightsFollower(args)], "Phenomena", book.summary)
 
 
-def prepare_scatter_phenomena(params):
-    """The `prepare` of the `scatter-phenomena` command (PERF.172), when its stage opens: empties the earlier scatter, and
-    takes off the indexes: none to keep up to date while tens of millions of rows go in, built once at the end
-    (`finish_phenomena_unit`, PERF.73)."""
+def expand_empty_phenomenon_scatter(params):
+    """The `empty-phenomenon-scatter` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def empty_phenomenon_scatter_unit(params, report):
+    """
+    The `empty-phenomenon-scatter` command's unit (OPS.123; the first half of the `prepare` of `scatter-phenomena` before it, PERF.172):
+    empties the earlier phenomenon scatter before it is drawn again (`store.clear_phenomenon_scatter`).
+
+    Returns:
+        dict: `emptied`, always true.
+    """
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.clear_phenomenon_scatter(conn)
+    finally:
+        conn.close()
+    return {"emptied": True}
+
+
+def expand_drop_phenomenon_indexes(params):
+    """The `drop-phenomenon-indexes` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def drop_phenomenon_indexes_unit(params, report):
+    """
+    The `drop-phenomenon-indexes` command's unit (OPS.123; the second half of the `prepare` of `scatter-phenomena` before it, PERF.172):
+    takes off the table's indexes: none to keep up to date while tens of millions of rows go in, built once at the end
+    (`finish_phenomena_unit`, PERF.73).
+
+    Returns:
+        dict: `dropped`, always true.
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
         store.drop_phenomenon_scatter_indexes(conn)
     finally:
         conn.close()
+    return {"dropped": True}
+
+
+class EmptyPhenomenonScatterFollower(followed.Follower):
+    """
+    The emptying of the earlier phenomenon scatter as a stage of a run (OPS.123): the `empty-phenomenon-scatter` command, one unit,
+    the first of the scatter. It reads the same deferred settings as the shells (`_phenomena_settings`), so a scatter that is refused
+    because its rows are stored is refused before anything is emptied.
+    """
+
+    key = "phenomena-clear"
+    label = "Clear the earlier phenomena"
+
+    def __init__(self, args, settings):
+        super().__init__(args)
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
+
+
+class DropPhenomenonIndexesFollower(followed.Follower):
+    """The taking off of the phenomenon table's indexes as a stage of a run (OPS.123): the `drop-phenomenon-indexes` command, one unit."""
+
+    key = "phenomena-unindex"
+    label = "Take off the phenomenon indexes"
 
 
 def conclude_scatter_phenomena(params, plan, results, seconds):
@@ -3338,8 +3396,8 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
-"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena shells with their indexes, the nebula clear and draw."""
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 
 def _scatter_stands(conn, kinds, current, behind):

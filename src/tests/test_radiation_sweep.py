@@ -81,7 +81,7 @@ def _starlight_w_m2(body):
     luminosity = getattr(getattr(body, "star", None), "luminosity", None)
     if not distance_au or not luminosity:
         return None
-    return radiation_field.starlight_w_m2(body.star, distance_au)       # GEN.1441: the host's light and every other star's
+    return radiation_field.starlight_w_m2(body.star, distance_au) * (getattr(body, "light_factor", None) or 1.0)       # GEN.1441: the host's light and every other star's; GEN.1484: after its stars' eclipses
 
 
 def _same(a, b):

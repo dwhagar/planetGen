@@ -1026,8 +1026,8 @@ forced credential change. They back the admin stats page
   Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "holder", "holder_title", "heartbeat_age_s",
-  "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
+  "paused_by", "paused_at", "paused_reason", "solo_unit", "holder", "holder_title",
+  "heartbeat_age_s", "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
   first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
   ("generation", "maintenance" or "check"), "who", "database", "job" (the
   Generate page job that started it), "argv", "state" ("running",
@@ -1067,6 +1067,10 @@ forced credential change. They back the admin stats page
   `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
   from Redis while the run's record lasts (30 days) and from the file in the
   jobs directory's `runs` folder after (the last 20 are kept).
+  `GET /api/admin/work/jobs` (OPS.142) answers `{"jobs": [...], "available"}`, the
+  jobs that are not units of a run and are running, from their beats: `"kind"`
+  ("api", "web" or "tile-prefetch"), `"job"`, `"label"`, `"state"` ("working" or
+  "dead"), `"reason"`, `"phase"`, `"running_seconds"`, `"beat_age_seconds"`.
   `GET /api/admin/work/<id>/units` (OPS.138) answers `{"units": [...]}`, one
   per running unit of the followed stage: `"stage"`, `"unit"`, `"state"`
   ("working", "slow", "waiting", "quiet", "looping" or "dead"), `"severity"`,
@@ -1088,7 +1092,9 @@ forced credential change. They back the admin stats page
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it; `503` when Redis does not answer. Each answers
+  or resumes it (OPS.145: the same flag is a solo hold, `paused_reason` naming it and `solo_unit` the unit,
+  which the follower sets after it restarts a stuck unit so that unit runs alone; it lifts when the unit
+  completes or fails, and `resume` lifts it by hand); `503` when Redis does not answer. Each answers
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):

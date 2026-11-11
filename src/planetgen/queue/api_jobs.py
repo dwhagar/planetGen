@@ -29,7 +29,7 @@ import time
 
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, workers
+from planetgen.queue import jobbeat, redisqueue, workers
 from planetgen.util import log
 
 QUEUE_PREFIX = "planetgen-api-"
@@ -107,6 +107,13 @@ def decode_argument(value):
     return value
 
 
+def _current_job_id():
+    """The id of the job this worker is running without the prefix, or `?` outside a worker."""
+    import rq
+    job = rq.get_current_job()
+    return (job.id if job is not None else "?").removeprefix(QUEUE_PREFIX)
+
+
 def execute(reference, args):
     """
     What a worker runs for a queued job: the function named by `reference`
@@ -122,7 +129,8 @@ def execute(reference, args):
     module, _, name = allowlist.check_reference(reference).partition(":")      # SEC.45: only the API's own functions
     function = getattr(importlib.import_module(module), name)
     try:
-        return {"result": function(*[decode_argument(arg) for arg in args])}
+        with jobbeat.beating("api", _current_job_id(), label=name):        # OPS.142: the Queue page sees this job is alive
+            return {"result": function(*[decode_argument(arg) for arg in args])}
     except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
         common = sys.modules.get("planetgen.api.common")
         if common is not None and isinstance(exc, common.ApiError):

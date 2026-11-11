@@ -164,6 +164,8 @@ def _airless_planets():
     draw.set_run_seed(5)
     for _ in range(400):
         system = StarSystem(system_config=SystemConfig())
+        if len(system.stars) != 1:      # a companion star adds light that does not follow the planet's orbit (GEN.1441, GEN.1500), and the laws held here are those of one star
+            continue
         for planet in system.planets:
             if isinstance(planet, Planet) and planet.atmosphere == "None" and planet.body_type == "t" and not planet.is_moon:
                 yield planet

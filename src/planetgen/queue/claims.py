@@ -16,7 +16,7 @@ largest peak, `memorygate.learn`, and claims that with a margin). A stand-in is 
 them because they are replaced by a measurement in the first run, and `memorygate.snapshot` shows what was learned.
 """
 
-from planetgen.queue import commands, memorygate, redisqueue, workers
+from planetgen.queue import commands, memorygate, pause, redisqueue, workers
 from planetgen.queue.memorygate import Claim
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -194,4 +194,5 @@ def claim_for(job, conn):
     else:
         (mb, cpu), exclusive = function_table(function), False
         kind = f"fn:{function}"
-    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id), cpu, lane, exclusive)
+    solo = pause.solo_of(conn)
+    return Claim(kind, memorygate.claim_mb(conn, kind, mb, job_id=job.id), cpu, lane, exclusive, solo=bool(solo and solo["job"] == job.id))
