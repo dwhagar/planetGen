@@ -1721,7 +1721,7 @@
             ],
             [
               "The result lands as",
-              "tables replace. GEN.949 (2026-11-11): the visible methane is now read from the Karkoschka 1998 table (fill AD12 of 6.6, T1); ammonia and water stay on the bins"
+              "tables replace. GEN.949 (2026-11-11): the visible methane is now read from the [R2259] table (fill AD12 of 6.6, T1); ammonia and water stay on the bins"
             ]
           ],
           "id": "AD1",
@@ -1769,7 +1769,7 @@
           "fields": [
             [
               "How it is filled",
-              "datasets/methane_visible.py: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
+              "datasets/methane_visible.py: the one effective spectrum of [R2259], which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
             ],
             [
               "How it is drawn",
@@ -1792,7 +1792,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "datasets/methane_visible.py: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
+          "what": "datasets/methane_visible.py: the one effective spectrum of [R2259], which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives"
         },
         {
           "burn_down": null,
@@ -2807,7 +2807,7 @@
           "fields": [
             [
               "Evidence",
-              "DATA (Karkoschka 1998, NASA PDS volume GBAT_0001 data/1995low.tab: the methane absorption coefficient in 1/(km-amagat) at 1 nm resolution, 400 to 1050 nm used, 101 kB, downloaded)"
+              "DATA ([R2259], NASA PDS volume GBAT_0001 data/1995low.tab: the methane absorption coefficient in 1/(km-amagat) at 1 nm resolution, 400 to 1050 nm used, 101 kB, downloaded)"
             ],
             [
               "What it is",
@@ -2819,7 +2819,7 @@
             ],
             [
               "Sources",
-              "[R2259] (Karkoschka 1998), [R2258] (Karkoschka 1994); the band model of [R2265] (Karkoschka and Tomasko 2010) is not read"
+              "[R2258, R2259]; the band model of [R2265] is not read"
             ],
             [
               "licence",
@@ -58387,7 +58387,7 @@
             ],
             [
               "Evidence",
-              "the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids ([R5163]); where those solids formed is mine"
+              "the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids [R5163]; where those solids formed is mine"
             ]
           ],
           "id": "PRV2",
@@ -63385,7 +63385,7 @@
           "fields": [
             [
               "What it is",
-              "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
+              "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227: Eq. 10], found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
             ],
             [
               "The range it moves in",
@@ -63416,7 +63416,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
+          "what": "clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227: Eq. 10], found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window"
         },
         {
           "burn_down": null,
@@ -63527,7 +63527,7 @@
             ],
             [
               "Evidence",
-              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997)"
+              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 [R0706]"
             ]
           ],
           "id": "KT2",
