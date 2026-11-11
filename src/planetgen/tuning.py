@@ -346,16 +346,10 @@ CHAIN_K_EFF = 12.0
 DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 
 # Real disks are truncated far short of a star's own galactic-tidal Hill
-# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU) --
-# viscous spreading and photoevaporation cut them off at tens to a few
-# hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
-# scales with the same star-dependent quantity that sets where solids can
-# even condense in the first place: the snow line
-# (`formation.snow_line_au`, drawn per star and stored: `Star.snow_line_au`) --
-# our own Solar System's own giant-planet/Kuiper-belt region extends to
-# roughly this same multiple (~18x) of its own ~2.7 AU snow line. See
-# `StarSystem._plan_architecture`.
-DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
+# sphere (`Star.system_perimeter`, tens to hundreds of thousands of AU): the
+# gas disk's outer edge is drawn per star from its mass at formation
+# (`physics/disk_size.py`, GEN.1520: 100 au for the Sun, M^0.5, a factor of 2
+# of scatter), and `StarSystem._disk_outer_edge_au` places the planets to it.
 
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the

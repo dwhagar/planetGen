@@ -19133,7 +19133,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+              "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
             ],
             [
               "The range it moves in",
@@ -19164,7 +19164,7 @@
           "tier_code": "T9",
           "tweak": "L1",
           "unread": null,
-          "what": "tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
+          "what": "disk_size.edge_au (GEN.1520: 100 au for the Sun, mass to the 0.5, a factor of 2 of scatter; the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (comet_ice_budget.formation_ratios); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone"
         }
       ],
       "slug": "6-46-stand-ins-of-the-comet-ice-budget",
@@ -57949,7 +57949,7 @@
           "fields": [
             [
               "What it is",
-              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+              "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, the star's own gas disk edge disk_size.edge_au, GEN.1520); before GEN.1514 it was a step to zero when the front reached the edge"
             ],
             [
               "The range it moves in",
@@ -57980,7 +57980,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, 18 snow lines, tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER); before GEN.1514 it was a step to zero when the front reached the edge"
+          "what": "disk_drift.pebble_taper: the pebble flux is multiplied by exp(-front / edge), the gas surface density at the front's place in the exponential cut-off of the gas disk (cut-off radius = the disk's edge, the star's own gas disk edge disk_size.edge_au, GEN.1520); before GEN.1514 it was a step to zero when the front reached the edge"
         },
         {
           "burn_down": null,

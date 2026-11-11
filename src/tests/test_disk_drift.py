@@ -8,6 +8,8 @@ from planetgen import tuning
 from planetgen.physics import disk_condensation as dc, disk_drift as dd, mixture_giant
 
 SUN_SNOW_LINE_AU = 2.3
+SUN_EDGE_AU = 18.0 * SUN_SNOW_LINE_AU
+"""float: The edge (41.4 AU) the pebble clocks of this file are checked at: `disk_drift` takes the edge as an argument (GEN.1520: the star's own, `disk_size.edge_au`)."""
 
 
 def test_the_front_and_its_inverse_agree_and_the_pebble_flux_tapers_as_the_front_reaches_the_edge():
@@ -15,14 +17,14 @@ def test_the_front_and_its_inverse_agree_and_the_pebble_flux_tapers_as_the_front
     for distance in (0.5, 5.0, 35.0, 120.0):
         assert dd.front_au(dd.arrival_myr(distance)) == pytest.approx(distance)
     assert dd.front_au(1.0, 8.0) == pytest.approx(2.0 * dd.FRONT_AU_AT_1_MYR)           # the star's mass to the 1/3
-    edge = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * SUN_SNOW_LINE_AU
+    edge = SUN_EDGE_AU
     # GEN.1514: the flux falls as exp(-front / edge), 1 for a young front and exp(-1) when the front is at the edge (0.2 Myr for the Sun)
     reached = dd.arrival_myr(edge)
     assert 0.1 < reached < 0.4
-    assert dd.pebble_taper(reached, SUN_SNOW_LINE_AU) == pytest.approx(math.exp(-1.0))
-    assert dd.pebble_taper(1e-6, SUN_SNOW_LINE_AU) == pytest.approx(1.0, abs=1e-3)
-    assert dd.pebble_taper(0.5 * reached, SUN_SNOW_LINE_AU) > dd.pebble_taper(reached, SUN_SNOW_LINE_AU) > dd.pebble_taper(2.0 * reached, SUN_SNOW_LINE_AU) > 0.0
-    assert dd.tapered_ratio(0.05, SUN_SNOW_LINE_AU) == pytest.approx(dd.instant_ratio(0.05) * dd.pebble_taper(0.05, SUN_SNOW_LINE_AU))
+    assert dd.pebble_taper(reached, SUN_EDGE_AU) == pytest.approx(math.exp(-1.0))
+    assert dd.pebble_taper(1e-6, SUN_EDGE_AU) == pytest.approx(1.0, abs=1e-3)
+    assert dd.pebble_taper(0.5 * reached, SUN_EDGE_AU) > dd.pebble_taper(reached, SUN_EDGE_AU) > dd.pebble_taper(2.0 * reached, SUN_EDGE_AU) > 0.0
+    assert dd.tapered_ratio(0.05, SUN_EDGE_AU) == pytest.approx(dd.instant_ratio(0.05) * dd.pebble_taper(0.05, SUN_EDGE_AU))
     assert dd.disk_end_myr() == pytest.approx(3.0)
 
 
@@ -43,22 +45,22 @@ def test_a_richer_disk_has_more_pebbles_per_gas_to_the_two_thirds():
 
 def test_a_species_has_no_pebbles_before_the_front_arrives_and_fewer_and_fewer_after_the_front_passes_the_edge():
     arrival = dd.arrival_myr(dd.line_au_of("CO2", SUN_SNOW_LINE_AU))
-    reached = dd.arrival_myr(dd.edge_au(SUN_SNOW_LINE_AU))
+    reached = dd.arrival_myr(SUN_EDGE_AU)
     assert 0.0 < arrival < reached
-    assert dd.enrichment_ratio("CO2", 0.5 * arrival, SUN_SNOW_LINE_AU) == 0.0
-    middle = dd.enrichment_ratio("CO2", 0.5 * (arrival + reached), SUN_SNOW_LINE_AU)
+    assert dd.enrichment_ratio("CO2", 0.5 * arrival, SUN_SNOW_LINE_AU, SUN_EDGE_AU) == 0.0
+    middle = dd.enrichment_ratio("CO2", 0.5 * (arrival + reached), SUN_SNOW_LINE_AU, SUN_EDGE_AU)
     assert 0.5 < middle < dd.instant_ratio(0.5 * (arrival + reached))                # the taper has already cut the flux a little when the front is near the edge
-    after = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU) for age in (reached, 2.0 * reached, 5.0 * reached)]
+    after = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, SUN_EDGE_AU) for age in (reached, 2.0 * reached, 5.0 * reached)]
     assert after[0] > after[1] > after[2] > 0.0                                      # no step: the flux fades as the taper does (GEN.1514)
-    assert dd.enrichment_ratio("CO2", dd.disk_end_myr(), SUN_SNOW_LINE_AU) == 0.0     # the disk is gone
-    assert dd.enrichment_ratio("H2O", 0.01, SUN_SNOW_LINE_AU) > 1.0                  # the water line is crossed first
+    assert dd.enrichment_ratio("CO2", dd.disk_end_myr(), SUN_SNOW_LINE_AU, SUN_EDGE_AU) == 0.0     # the disk is gone
+    assert dd.enrichment_ratio("H2O", 0.01, SUN_SNOW_LINE_AU, SUN_EDGE_AU) > 1.0                  # the water line is crossed first
 
 
 def test_a_line_outside_the_disk_edge_gets_no_pebbles():
-    assert dd.line_au_of("CO", SUN_SNOW_LINE_AU) > dd.edge_au(SUN_SNOW_LINE_AU)
-    assert dd.enrichment_ratio("CO", 0.1, SUN_SNOW_LINE_AU) == 0.0
+    assert dd.line_au_of("CO", SUN_SNOW_LINE_AU) > SUN_EDGE_AU
+    assert dd.enrichment_ratio("CO", 0.1, SUN_SNOW_LINE_AU, SUN_EDGE_AU) == 0.0
     with pytest.raises(ValueError):
-        dd.enrichment_ratio("Unobtainium", 0.1, SUN_SNOW_LINE_AU)
+        dd.enrichment_ratio("Unobtainium", 0.1, SUN_SNOW_LINE_AU, SUN_EDGE_AU)
 
 
 def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_the_disk():
@@ -67,25 +69,25 @@ def test_the_lag_is_a_boxcar_of_the_ratio_that_never_looks_before_the_start_of_t
     lag = dd.lag_myr(line, place, SUN_SNOW_LINE_AU)
     assert lag == pytest.approx((line - place) / dd.drift_speed_au_per_myr(SUN_SNOW_LINE_AU))
     assert dd.lag_myr(5.0, 35.0, SUN_SNOW_LINE_AU) == 0.0                                              # a place outside the line has no lag
-    first, reached = dd.arrival_myr(line), dd.arrival_myr(dd.edge_au(SUN_SNOW_LINE_AU))
+    first, reached = dd.arrival_myr(line), dd.arrival_myr(SUN_EDGE_AU)
     # before the gas could have crossed the line (the age under the lag): the gas at the place is the disk's own gas of the start, with its vapor (GEN.1517)
-    assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, to_au=place) == 1.0
-    assert dd.enrichment_ratio("CO2", 0.999 * lag, SUN_SNOW_LINE_AU, to_au=place) == 1.0
-    assert dd.enrichment_ratio("CO2", 1.001 * lag, SUN_SNOW_LINE_AU, to_au=place) != 1.0       # past it the gas crossed the line, and the lagged ratio takes over
+    assert dd.enrichment_ratio("CO2", 0.5 * first, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=place) == 1.0
+    assert dd.enrichment_ratio("CO2", 0.999 * lag, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=place) == 1.0
+    assert dd.enrichment_ratio("CO2", 1.001 * lag, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=place) != 1.0       # past it the gas crossed the line, and the lagged ratio takes over
     # after the front passes the edge, the window still holds the pebbles that were: the lagged value fades with the taper and is zero when the disk is gone
     ages = [reached + 1.0 * lag, reached + 2.0 * lag, reached + 4.0 * lag]
-    values = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, to_au=place) for age in ages]
+    values = [dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=place) for age in ages]
     assert values[0] > values[1] > values[2] > 0.0
     # the mean never exceeds the largest tapered ratio in the epoch
-    top = max(dd.tapered_ratio(t, SUN_SNOW_LINE_AU) for t in (first, 0.5 * (first + reached), reached))
-    assert 0.0 < dd.enrichment_ratio("CO2", reached + lag, SUN_SNOW_LINE_AU, to_au=place) < top
+    top = max(dd.tapered_ratio(t, SUN_EDGE_AU) for t in (first, 0.5 * (first + reached), reached))
+    assert 0.0 < dd.enrichment_ratio("CO2", reached + lag, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=place) < top
 
 
 def test_the_lagged_mean_of_a_constant_window_is_the_instant_value():
     # a place so near the line that the lag is tiny: the mean over the window equals the instant ratio
     line = dd.line_au_of("CO2", SUN_SNOW_LINE_AU)
-    age = 0.5 * (dd.arrival_myr(line) + dd.arrival_myr(dd.edge_au(SUN_SNOW_LINE_AU)))
-    assert dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, to_au=line - 1e-4) == pytest.approx(dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU), rel=1e-3)
+    age = 0.5 * (dd.arrival_myr(line) + dd.arrival_myr(SUN_EDGE_AU))
+    assert dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, SUN_EDGE_AU, to_au=line - 1e-4) == pytest.approx(dd.enrichment_ratio("CO2", age, SUN_SNOW_LINE_AU, SUN_EDGE_AU), rel=1e-3)
 
 
 @pytest.mark.parametrize("temperature", [30.0, 45.0, 60.0, 100.0, 150.0, 182.0, 250.0, 450.0])
@@ -138,10 +140,10 @@ def test_the_carbon_and_oxygen_in_the_gas_and_the_solids_stay_the_budget_for_the
 
 
 def test_inside_the_water_line_the_pebble_epoch_gas_is_oxygen_rich_and_the_late_gas_is_the_supply():
-    early = dd.ice_weights(300.0, 0.15, SUN_SNOW_LINE_AU)                                 # 0.14 Myr is the lag from the water line to 300 K
+    early = dd.ice_weights(300.0, 0.15, SUN_SNOW_LINE_AU, SUN_EDGE_AU)                                 # 0.14 Myr is the lag from the water line to 300 K
     assert early["H2O"] > 1.0
-    assert dd.ice_weights(300.0, 0.05, SUN_SNOW_LINE_AU)["H2O"] == 1.0                    # younger than the lag from the water line: the gas never crossed it (GEN.1517)
-    late = dd.ice_weights(300.0, 5.0, SUN_SNOW_LINE_AU)
+    assert dd.ice_weights(300.0, 0.05, SUN_SNOW_LINE_AU, SUN_EDGE_AU)["H2O"] == 1.0                    # younger than the lag from the water line: the gas never crossed it (GEN.1517)
+    late = dd.ice_weights(300.0, 5.0, SUN_SNOW_LINE_AU, SUN_EDGE_AU)
     assert late["H2O"] == 0.0
     c_static = dc.envelope_c_over_o(300.0, 0.0)
     c_early = dc.envelope_c_over_o(300.0, 0.0, ice_weights=early)
@@ -150,45 +152,45 @@ def test_inside_the_water_line_the_pebble_epoch_gas_is_oxygen_rich_and_the_late_
 
 
 def test_ice_weights_hold_only_the_lines_between_the_edge_and_the_place():
-    weights = dd.ice_weights(120.0, 0.1, SUN_SNOW_LINE_AU)
+    weights = dd.ice_weights(120.0, 0.1, SUN_SNOW_LINE_AU, SUN_EDGE_AU)
     assert "H2O" not in weights and "NH3" not in weights                               # still frozen at 120 K
     assert "CO2" in weights and "H2S" in weights
     assert "CH4" not in weights and "CO" not in weights                                # colder than the edge: already in the supply gas
-    assert dd.ice_weights(dd.edge_temperature_k() - 1.0, 0.1, SUN_SNOW_LINE_AU) == {}
+    assert dd.ice_weights(dd.edge_temperature_k(SUN_SNOW_LINE_AU, SUN_EDGE_AU) - 1.0, 0.1, SUN_SNOW_LINE_AU, SUN_EDGE_AU) == {}
 
 
 def test_a_giant_gathers_its_gas_when_the_pebbles_have_built_the_critical_core_and_not_later_than_the_pebbles_end():
-    age = dd.gathering_age_myr(500.0, SUN_SNOW_LINE_AU)
+    age = dd.gathering_age_myr(500.0, SUN_SNOW_LINE_AU, SUN_EDGE_AU)
     place = dd.place_au(500.0, SUN_SNOW_LINE_AU)
     assert dd.arrival_myr(place) < age < dd.disk_end_myr()
     # the pebble mass that passed the place by then is what the core needs at its accretion efficiency (GEN.1518)
     coefficient = (dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * (dd.solids_over_gas() / dd.REFERENCE_SOLIDS_OVER_GAS) ** dd.PEBBLE_FLUX_Z_EXPONENT * dd.MYR_YR * 1.5)
-    decay = dd.FRONT_AU_AT_1_MYR / dd.edge_au(SUN_SNOW_LINE_AU)                      # the flux is tapered by exp(-front / edge) = exp(-decay x age^(2/3)) (GEN.1514)
+    decay = dd.FRONT_AU_AT_1_MYR / SUN_EDGE_AU                      # the flux is tapered by exp(-front / edge) = exp(-decay x age^(2/3)) (GEN.1514)
     built = coefficient * (math.exp(-decay * dd.arrival_myr(place) ** (2.0 / 3.0)) - math.exp(-decay * age ** (2.0 / 3.0))) / decay
     assert built == pytest.approx(dd.pebble_mass_for_core(place, dd.CRITICAL_CORE_EARTH), rel=1e-6)
 
 
 def test_a_core_the_tapered_pebbles_cannot_build_gathers_its_gas_as_the_disk_goes_and_sees_few_pebbles():
     # the Sun's pebbles inside the edge add up to about 48 Earth masses, a core at 5 AU needs 148
-    age = dd.gathering_age_myr(150.0, SUN_SNOW_LINE_AU)
+    age = dd.gathering_age_myr(150.0, SUN_SNOW_LINE_AU, SUN_EDGE_AU)
     assert age == pytest.approx(dd.disk_end_myr())
-    assert dd.enrichment_ratio("H2O", age, SUN_SNOW_LINE_AU) < 0.01                  # the flux has all but gone
-    total = dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * dd.MYR_YR * 1.5 / (dd.FRONT_AU_AT_1_MYR / dd.edge_au(SUN_SNOW_LINE_AU))
+    assert dd.enrichment_ratio("H2O", age, SUN_SNOW_LINE_AU, SUN_EDGE_AU) < 0.01                  # the flux has all but gone
+    total = dd.PEBBLE_FLUX_EARTH_MASSES_PER_YR * dd.MYR_YR * 1.5 / (dd.FRONT_AU_AT_1_MYR / SUN_EDGE_AU)
     assert total < dd.pebble_mass_for_core(dd.place_au(150.0, SUN_SNOW_LINE_AU), dd.CRITICAL_CORE_EARTH)
 
 
 def test_the_gathering_age_is_capped_at_the_disk_lifetime_and_is_a_function_of_the_inputs_only():
     from planetgen.physics import scatter
     for mass in (0.1, 0.3, 1.0, 1.5, 2.5):
-        age = dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, mass)
+        age = dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, SUN_EDGE_AU * mass, mass)
         assert 0.0 < age <= scatter.DISK_LIFETIME_YR / dd.MYR_YR
-        assert age == dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, mass)
+        assert age == dd.gathering_age_myr(200.0, SUN_SNOW_LINE_AU * mass, SUN_EDGE_AU * mass, mass)
 
 
 def test_the_taper_of_a_dwarf_and_of_a_heavier_star_follows_the_front_and_its_edge():
-    dwarf = dd.arrival_myr(dd.edge_au(0.3), 0.3)
-    heavy = dd.arrival_myr(dd.edge_au(4.0), 1.5)
-    assert dwarf < 0.05 < dd.arrival_myr(dd.edge_au(SUN_SNOW_LINE_AU)) < heavy
+    dwarf = dd.arrival_myr((18.0 * 0.3), 0.3)
+    heavy = dd.arrival_myr((18.0 * 4.0), 1.5)
+    assert dwarf < 0.05 < dd.arrival_myr(SUN_EDGE_AU) < heavy
 
 
 
@@ -201,7 +203,7 @@ def test_the_cold_finger_enrichment_is_one_over_one_minus_the_leak_cut_by_the_ic
 
 
 def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_without_keeps_the_static_disk():
-    subject = {"formation_temperature_k": 250.0, "disk_snow_line_au": 3.7, "host_mass_solar": 1.2, "metallicity_fe_h": 0.0}   # a giant of an F star gathers its gas after the lag from the water line
+    subject = {"formation_temperature_k": 250.0, "disk_snow_line_au": 3.7, "disk_edge_au": 18.0 * 3.7, "host_mass_solar": 1.2, "metallicity_fe_h": 0.0}   # a giant of an F star gathers its gas after the lag from the water line
     assert mixture_giant._disk_ice_weights(subject, 250.0)["H2O"] > 1.0
     assert mixture_giant._disk_ice_weights({"formation_temperature_k": 250.0}, 250.0) is None
     drift = mixture_giant._disk_c_over_o(subject, 0.3)
@@ -211,27 +213,27 @@ def test_a_giant_subject_with_a_snow_line_takes_the_drift_weights_and_one_withou
 
 
 def test_a_giant_subject_hands_the_same_weights_to_its_nitrogen_sulfur_and_noble_gases_as_to_its_carbon_and_oxygen(monkeypatch):
-    # GEN.1516: `_disk_enrichments` passes the weights `_disk_c_over_o` does; a subject without a snow line keeps the static factors.
+    # GEN.1516: `_disk_enrichments` passes the weights `_disk_c_over_o` does; a subject without a snow line keeps the static factors and places no solids edge (GEN.1520).
     weights = {"H2S": 2.0, "Xe": 3.0, "Kr": 0.5, "Ar": 0.0}
     monkeypatch.setattr(mixture_giant, "_disk_ice_weights", lambda subject, temperature: weights)
     drift = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
-    assert drift == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, weights, dd.edge_temperature_k())
+    assert drift == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, weights, None)
     monkeypatch.undo()
     static = mixture_giant._disk_enrichments({"formation_temperature_k": 250.0}, 0.6)
-    assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, None, dd.edge_temperature_k())
+    assert static == dc.envelope_enrichments(250.0, 10.0 ** 0.6, 1.0, 1.0, 1.0, 1.0, 1.0, None, None)
 
 
 def test_a_giant_that_gathers_its_gas_before_the_vapor_could_reach_it_keeps_the_static_disk():
     # GEN.1517: a hot giant of an F star gathers its gas at 0.05 Myr, the argon line is a Myr of gas flow away: the gas is the disk's own, with its noble gases
-    subject = {"formation_temperature_k": 500.0, "disk_snow_line_au": 3.7, "host_mass_solar": 1.2}
+    subject = {"formation_temperature_k": 500.0, "disk_snow_line_au": 3.7, "disk_edge_au": 18.0 * 3.7, "host_mass_solar": 1.2}
     weights = mixture_giant._disk_ice_weights(subject, 500.0)
     assert weights["Ar"] == 1.0 and weights["CO2"] == 1.0
-    assert mixture_giant._disk_enrichments(subject, 0.6)["Ar"] == pytest.approx(dc.envelope_enrichments(500.0, 10.0 ** 0.6, ice_weights=weights, solids_edge_k=dd.edge_temperature_k())["Ar"])
+    assert mixture_giant._disk_enrichments(subject, 0.6)["Ar"] == pytest.approx(dc.envelope_enrichments(500.0, 10.0 ** 0.6, ice_weights=weights, solids_edge_k=dd.edge_temperature_k(3.7, 18.0 * 3.7))["Ar"])
 
 
 def test_a_cool_giant_of_a_sun_like_star_gathers_its_gas_late_and_the_gas_has_few_of_the_ices():
     # GEN.1514: the tapered pebbles cannot build the core by the end of the disk, the gas that reaches it came after the pebbles had stripped the ices
-    subject = {"formation_temperature_k": 100.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "host_mass_solar": 1.0}
+    subject = {"formation_temperature_k": 100.0, "disk_snow_line_au": SUN_SNOW_LINE_AU, "disk_edge_au": SUN_EDGE_AU, "host_mass_solar": 1.0}
     weights = mixture_giant._disk_ice_weights(subject, 100.0)
     assert all(0.0 <= value < 0.2 for value in weights.values())
     assert 1.0 < mixture_giant._disk_enrichments(subject, 0.6)["Ar"] < 3.0           # the gas has almost none; the planetesimals formed beyond the argon line bring it (GEN.1519)

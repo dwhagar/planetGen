@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_size, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -1248,16 +1248,16 @@ class StarSystem:
     def _disk_outer_edge_au(self, star):
         """
         How far out `_generate_planets` places random slots around `star`:
-        its protoplanetary disk's outer edge, the same
-        `DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times the snow line
-        `_plan_architecture` builds its oligarch chain out to (GEN.37).
+        its protoplanetary disk's outer edge, the gas disk's cut-off radius
+        `disk_size.edge_au` draws from the star's mass at formation (GEN.1520),
+        the same edge `_plan_architecture` builds its oligarch chain out to (GEN.37).
         Without this edge the slots would run planets far past the disk (a red dwarf's
         out to hundreds of times its habitable zone). An evolved star or
         remnant whose present light puts that edge inside its orbit floor
         (`_orbit_floor_au`) no longer describes its disk, so it gets no
         edge.
         """
-        edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+        edge_au = disk_size.edge_au(star)
         return edge_au if edge_au > self._orbit_floor_au(star) else math.inf
 
     def _orbit_floor_au(self, star):
@@ -2539,7 +2539,7 @@ class StarSystem:
         metal_ratio = bulk_draw.metal_ratio_to_solar(star)
         disk_edge_au = self._disk_outer_edge_au(star)
         if math.isinf(disk_edge_au):
-            disk_edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+            disk_edge_au = disk_size.edge_au(star)
         outer_au = min(orbit_ceiling_au, disk_edge_au)
 
         sublimation_au = planet_architecture.sublimation_au(star.luminosity or 0.0)
