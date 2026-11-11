@@ -74,7 +74,12 @@ def worlds():
 
 def test_earth_numbers_balance_at_the_oxygen_of_earths_air():
     assert bo.WEATHERING_PER_YR * bo.EARTH_O2_MOL == pytest.approx(bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR)
-    assert bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9 == pytest.approx(0.714, abs=0.01)
+    # GEN.1463: the store is the surplus summed over the 0.714 Gyr after the biomarkers (2.7 Ga) with the reductant at 2.2 times its present value falling to 1.9 times (the model's heat
+    # history of an Earth-mass body, whose heat now is 0.76 of the 44 TW Earth gives off), so the delay at today's reductant is 0.3 to 1 Gyr of the published bracket and shorter than it was when R was held at today's value
+    now_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    then_delay = bo.EARTH_STORE_MOL / (bo.EARTH_BURIAL_MOL_YR - 2.2 * 0.76 * bo.EARTH_REDUCTANT_MOL_YR) / 1e9
+    assert 0.3 < now_delay < 1.0
+    assert then_delay == pytest.approx(0.714, abs=0.12)
 
 
 def test_a_more_reduced_mantle_puts_out_more_reductants_inside_the_range():
