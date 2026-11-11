@@ -3528,7 +3528,7 @@
     },
     "R0706": {
       "kind": "paper",
-      "label": "Chabrier and Baraffe 1997",
+      "label": "Chabrier and Baraffe 1997b",
       "title": "Theory of low mass stars, brown dwarfs and extra-solar giant planets"
     },
     "R0707": {
@@ -26075,6 +26075,36 @@
       "kind": "paper",
       "label": "Levison and Duncan 1997",
       "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets"
+    },
+    "R5219": {
+      "kind": "paper",
+      "label": "Hurley et al. 2002",
+      "title": "Evolution of binary stars and the effect of tides on binary populations"
+    },
+    "R5220": {
+      "kind": "paper",
+      "label": "Claret and Giménez 2010",
+      "title": "The apsidal-motion test of stellar structure and evolution: an update"
+    },
+    "R5221": {
+      "kind": "paper",
+      "label": "Willems et al. 2010",
+      "title": "ENERGY DISSIPATION THROUGH QUASI-STATIC TIDES IN WHITE DWARF BINARIES"
+    },
+    "R5222": {
+      "kind": "paper",
+      "label": "Rasio et al. 1996",
+      "title": "Tidal Decay of Close Planetary Orbits"
+    },
+    "R5223": {
+      "kind": "paper",
+      "label": "Sterne 1939",
+      "title": "Apsidal Motion in Binary Stars"
+    },
+    "R5224": {
+      "kind": "paper",
+      "label": "Chabrier and Baraffe 1997a",
+      "title": "Structure and evolution of low-mass stars"
     }
   }
 }

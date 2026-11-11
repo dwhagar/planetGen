@@ -60083,7 +60083,7 @@
             ],
             [
               "Evidence",
-              "Hurley, Tout and Pols 2002 take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
+              "[R5219] take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
             ]
           ],
           "id": "KT1",
@@ -60121,7 +60121,7 @@
             ],
             [
               "Evidence",
-              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997)"
+              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 [R5224]"
             ]
           ],
           "id": "KT2",
@@ -60197,7 +60197,7 @@
             ],
             [
               "Evidence",
-              "the equilibrium-tide relaxation is linear in the spin; Zahn 1977, Hut 1981; the orbit is held because the generator has no orbit history"
+              "the equilibrium-tide relaxation is linear in the spin; the tidal theory as given by [R5219]; the orbit is held because the generator has no orbit history"
             ]
           ],
           "id": "KT4",
@@ -60231,7 +60231,7 @@
             ],
             [
               "What replaces it",
-              "the dissipation of a degenerate star (Willems et al 2010)"
+              "the dissipation of a degenerate star [R5221]"
             ],
             [
               "Evidence",
@@ -60269,11 +60269,11 @@
             ],
             [
               "What replaces it",
-              "the Hut 1981 obliquity equations"
+              "the obliquity equations of the tidal theory [R5219]"
             ],
             [
               "Evidence",
-              "Hut 1981: the two relax on the same order"
+              "[R5219]: the two relax on the same order"
             ]
           ],
           "id": "KT6",
@@ -60307,7 +60307,7 @@
             ],
             [
               "What replaces it",
-              "the constants of a stellar model of the star's mass and age (Claret and Gimenez 2010)"
+              "the constants of a stellar model of the star's mass and age [R5220]"
             ],
             [
               "Evidence",
