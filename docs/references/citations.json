@@ -26115,6 +26115,11 @@
       "kind": "paper",
       "label": "Fabrycky and Tremaine 2007",
       "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction"
+    },
+    "R5227": {
+      "kind": "paper",
+      "label": "Laskar et al. 1993",
+      "title": "Stabilization of the Earth's obliquity by the Moon"
     }
   }
 }

@@ -152,8 +152,8 @@ def run_units(run_id):
     """
     `GET /api/admin/work/<id>/units` -- what each running unit of the run is doing (OPS.138): `{"units": [{"stage", "unit", "state", "severity", "reason", "actionable", "agreed",
     "counter", "rate", "projected_finish_seconds", "still_seconds", "over_limit", "phase", "waiting_on", "done", "estimate", "restarts", "resident_mb", "beat_age_seconds",
-    "running_seconds"}]}`, as the process that follows the run last judged them (`unitwatch`, the judge of `beatjudge`). `state` is `working`, `slow`, `waiting`, `quiet`, `looping`
-    or `dead`; only the stage being followed has units, and a run that is over has none.
+    "running_seconds", "progress"}]}`, as the process that follows the run last judged them (`unitwatch`, the judge of `beatjudge`). `progress` is the unit's own bar (PERF.147, `taskprogress.as_dict`: `show` once the unit is expected or has been running over 15 s, `percent`,
+    `eta_seconds`, `source` stored, blended or live). `state` is `working`, `slow`, `waiting`, `quiet`, `looping` or `dead`; only the stage being followed has units, and a run that is over has none.
     """
     run_id = _run_id(run_id)
     connection = _connection()

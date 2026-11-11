@@ -20,8 +20,8 @@ of the one shared materials table (GEN.427), a porosity, and from them `physics.
   normal about 0.70 ([R0390]: 70 percent rock matches 14 of 17 Kuiper belt objects within 2 sigma; the width and
   limits are the repository's), or for a dwarf planet that lost its ice in a collision a second row (the weights are open); the bulk density is the
   tapered brittle law of `physics.compaction`.
-* **A ring** (`draw_ring`): material of a circumplanetary disk, whose ice fraction rises with the formation distance past the
-  disk's ice line (`disk_ice_fraction`, decision S8; [R0804] sets the bracket 0.5 to 0.85 for the moons).
+* **The ice fraction of disk-born material** rises with the formation distance past the circumplanetary disk's ice line (`disk_ice_fraction`, decision S8; [R0804] sets the bracket 0.5 to 0.85 for the
+  moons); the moons read it (`moon_composition`). A ring has no draw of its own here: `rings.build_ring` draws its ice share by kind (GEN.1523).
 
 What each draw returns is a `SmallBodyMakeup`: the mass fractions by component, their sums in four groups (metal, rock, water,
 other ice: the shape of lane I's `BulkFractions`), the porosity, the grain and bulk density. The draws read only `util.draw` in a
@@ -568,22 +568,6 @@ def disk_ice_fraction(r_over_r_ice, f_inf):
     if not r_over_r_ice > 0.0:
         raise ValueError("the distance must be positive")
     return f_inf * min(max(math.log(r_over_r_ice / ICE_LINE_RADII_COEFFICIENT) / RAMP_LENGTH, 0.0), 1.0)
-
-
-def draw_ring(r_over_r_ice):
-    """
-    The composition of ring material that formed at `r / r_ice` in its parent's circumplanetary disk: ice by the ramp of
-    `disk_ice_fraction` with a drawn asymptote, the rest rock. A ring has no porosity of its own here (its particles are grains).
-
-    Returns:
-        SmallBodyMakeup: With `detail["r_over_r_ice"]` and `detail["f_inf"]`.
-    """
-    f_inf = _truncated_normal(*F_INF)
-    ice = disk_ice_fraction(r_over_r_ice, f_inf)
-    components = {"forsterite": (1.0 - ice) * 0.5, "enstatite": (1.0 - ice) * 0.5}
-    if ice > 0.0:
-        components["water_ice"] = ice
-    return _makeup("ring", components, 0.0, detail={"r_over_r_ice": r_over_r_ice, "f_inf": f_inf})
 
 
 # ---------------------------------------------------------------------------------------------------------------------

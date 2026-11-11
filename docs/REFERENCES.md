@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**5105 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+**5106 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
 
 ## Contents
 
@@ -2705,6 +2705,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r2568"></a>**R2568** la Rosa, C. M. D., et al. 2026, How large can galaxies be? Ultra-deep imaging of IC 1101, the most extended known galaxy, arXiv:2607.15340. [paper](https://arxiv.org/abs/2607.15340) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2607.15340/abstract)
 - <a id="paper-r2569"></a>**R2569** Larsen, K. K., et al. 2011, EVIDENCE FOR MAGNESIUM ISOTOPE HETEROGENEITY IN THE SOLAR PROTOPLANETARY DISK, ApJ, 735, L37, doi:10.1088/2041-8205/735/2/l37. [paper](https://doi.org/10.1088/2041-8205/735/2/l37) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/2041-8205/735/2/l37/abstract)
 - <a id="paper-r2570"></a>**R2570** Larson, R. B. 1976, Models for the Formation of Disc Galaxies, MNRAS, 176, 31, doi:10.1093/mnras/176.1.31. [paper](https://doi.org/10.1093/mnras/176.1.31) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/176.1.31/abstract)
+- <a id="paper-r5227"></a>**R5227** Laskar, J., Joutel, F., & Robutel, P. 1993, Stabilization of the Earth's obliquity by the Moon, Nature, 361, 615, doi:10.1038/361615a0. [paper](https://doi.org/10.1038/361615a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/361615a0/abstract)
 - <a id="paper-r2571"></a>**R2571** Laskar, J. & Robutel, P. 1993, The chaotic obliquity of the planets, Nature, 361, 608, doi:10.1038/361608a0. [paper](https://doi.org/10.1038/361608a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/361608a0/abstract)
 - <a id="paper-r2572"></a>**R2572** Lattimer, J. M. & Lim, Y. 2013, CONSTRAINING THE SYMMETRY PARAMETERS OF THE NUCLEAR INTERACTION, ApJ, 771, 51, doi:10.1088/0004-637x/771/1/51, arXiv:1203.4286. [paper](https://doi.org/10.1088/0004-637x/771/1/51) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/771/1/51/abstract)
 - <a id="paper-r2573"></a>**R2573** Lattimer, J. M. & Prakash, M. 2001, Neutron Star Structure and the Equation of State, ApJ, 550, 426, doi:10.1086/319702, arXiv:astro-ph/0002232. [paper](https://doi.org/10.1086/319702) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/319702/abstract)
