@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3864] - 2026-11-11
+
+**Headline:** The globular cluster mass laws (peak, width and range) were checked against the Harris catalog of 157 Milky Way clusters and stand; a test now holds them to it.
+
+### Changed
+
+- GEN.1525 (row 6 of the GEN.945 audit): `tests/test_cluster_laws_harris.py` computes cluster masses from the catalog's total absolute magnitudes for mass-to-light ratios of 1.5 to 2.6 and holds `CLUSTER_MASS_PEAK_SOL`, `CLUSTER_MASS_SIGMA_DEX` and `CLUSTER_MASS_RANGE_SOL` to the result (the bright-cluster median 1.3e5 to 2.1e5, width 0.37 to 0.67 dex, heaviest cluster 2.2e6, 8 to 10 percent under the floor of 1e4). Registry rows AUD10 and AUD11 record the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3863] - 2026-11-11
 
 **Headline:** The pre-main-sequence energy factor was checked against the MIST isochrones and BHAC15 tracks the project holds and stands; a test now holds it to MIST.
