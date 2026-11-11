@@ -1,0 +1,474 @@
+{
+ "title": "The flavor text tree: lines gated on stored conditions, walked so only options that work are gathered (GEN.1430)",
+ "version": 1,
+ "rules": "Gates read the stored quantities named in flavor_tree.QUANTITIES and the quantity table of oddities.json, never a class letter. A gate is a list of tests joined by 'and' (quantity with min, lt, equals or not_equals, the form of planet_class_fit.json and oddities.json); a node inherits the gates above it. Line ids are permanent: the first four families keep the keys they were stored under (habitable:N, planet:N, orbital:N, system:N), a removed line stays with 'retired' true so old rows still read. A node tagged ancient_works is skipped when the galaxy plan turns that family off.",
+ "scopes": {
+  "system": {
+   "id": "system",
+   "children": [
+    {
+     "id": "system.ancient_works",
+     "tags": [
+      "ancient_works"
+     ],
+     "lines": [
+      {
+       "id": "system:0",
+       "weight": 1.0,
+       "text": "a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason."
+      },
+      {
+       "id": "system:1",
+       "weight": 1.0,
+       "text": "an automated buoy with a mass driver. It catches data pods and flings them toward the inner system."
+      },
+      {
+       "id": "system:2",
+       "weight": 1.0,
+       "text": "a huge, thin sheet of reflective foil adrift in the system. It was once set up to shade a world."
+      },
+      {
+       "id": "system:3",
+       "weight": 1.0,
+       "text": "thousands of small, passive reflectors scattered across the system. They bounce radio waves back and forth."
+      },
+      {
+       "id": "system:4",
+       "weight": 1.0,
+       "text": "an ancient navigation beacon at the edge of the system. It runs on nuclear power and is kept up by a local artificial intelligence."
+      },
+      {
+       "id": "system:5",
+       "weight": 1.0,
+       "text": "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm."
+      },
+      {
+       "id": "system:6",
+       "weight": 1.0,
+       "text": "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center."
+      },
+      {
+       "id": "system:7",
+       "weight": 1.0,
+       "text": "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it."
+      },
+      {
+       "id": "system:8",
+       "weight": 1.0,
+       "text": "a round dead zone in deep space. Every scan, signal, and burst of radiation that enters it drops to nothing."
+      },
+      {
+       "id": "system:9",
+       "weight": 1.0,
+       "text": "a jagged, glowing crack in space-time. It keeps venting energy into the void around it."
+      },
+      {
+       "id": "system:10",
+       "weight": 1.0,
+       "text": "a network of automated defense satellites spread across the system."
+      },
+      {
+       "id": "system:11",
+       "weight": 1.0,
+       "text": "an array of laser transceivers. They hold a steady, high-speed optical link with one another."
+      },
+      {
+       "id": "system:12",
+       "weight": 1.0,
+       "text": "a swarm of automated solar collectors skimming the star's corona. They feed steady power to huge, fully charged battery arrays."
+      },
+      {
+       "id": "system:13",
+       "weight": 1.0,
+       "text": "a half-built ring of solar collectors around the star. The gaps suggest the work was abandoned."
+      },
+      {
+       "id": "system:14",
+       "weight": 1.0,
+       "text": "a cluster of dormant, self-replicating probes holding formation. Their fabrication cycles stopped partway through."
+      },
+      {
+       "id": "system:15",
+       "weight": 1.0,
+       "text": "a derelict generation ship on a slow, decaying orbit. Its hull is dark, and its drive is cold after generations adrift."
+      },
+      {
+       "id": "system:16",
+       "weight": 1.0,
+       "text": "a mirror array angled to turn the star's light pressure into a gentle push. It has come loose and is drifting."
+      },
+      {
+       "id": "system:17",
+       "weight": 1.0,
+       "text": "a pair of gravitational lensing relays aimed at a target far beyond the system. They are still listening."
+      },
+      {
+       "id": "system:18",
+       "weight": 1.0,
+       "text": "a broken ring segment holding a stable orbit by itself. It seems to wait for the rest of the structure to return."
+      },
+      {
+       "id": "system:19",
+       "weight": 1.0,
+       "text": "a scattering of paired relay buoys. They still send signals to partners that fell silent long ago."
+      },
+      {
+       "id": "system:20",
+       "weight": 1.0,
+       "text": "an automated probe holding station at the edge of the system. Its greeting message loops with no one to hear it."
+      },
+      {
+       "id": "system:21",
+       "weight": 1.0,
+       "text": "a magnetic siphon rig drawing material from the star's outer layers. It is still running long after its operators left."
+      },
+      {
+       "id": "system:22",
+       "weight": 1.0,
+       "text": "a shell of solar-collecting satellites in a wide, half-finished orbit. Their construction drones are nowhere to be found."
+      }
+     ]
+    }
+   ]
+  },
+  "planet": {
+   "id": "planet",
+   "children": [
+    {
+     "id": "planet.ground",
+     "gate": [
+      {
+       "quantity": "has_ground",
+       "equals": 1
+      }
+     ],
+     "tags": [
+      "ancient_works"
+     ],
+     "lines": [
+      {
+       "id": "planet:0",
+       "weight": 1.0,
+       "text": "a massive hollow metallic cylinder embedded in the crust."
+      },
+      {
+       "id": "planet:1",
+       "weight": 1.0,
+       "text": "the crashed hull of a derelict pre-warp ship."
+      },
+      {
+       "id": "planet:2",
+       "weight": 1.0,
+       "text": "the crashed hull of a derelict primitive warp ship."
+      },
+      {
+       "id": "planet:3",
+       "weight": 1.0,
+       "text": "a solar-powered beacon looping a brief audio distress call."
+      },
+      {
+       "id": "planet:4",
+       "weight": 1.0,
+       "text": "an array of automated radio dishes tracking empty coordinates in deep space."
+      },
+      {
+       "id": "planet:5",
+       "weight": 1.0,
+       "text": "a vast, precise grid of ancient cargo containers showing faint energy readings."
+      },
+      {
+       "id": "planet:6",
+       "weight": 1.0,
+       "text": "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs."
+      },
+      {
+       "id": "planet:7",
+       "weight": 1.0,
+       "text": "a vast, perfectly smooth glass crater with refined materials fused into its center."
+      },
+      {
+       "id": "planet:8",
+       "weight": 1.0,
+       "text": "an automated surface rover actively sorting stones by size and composition into a grid."
+      },
+      {
+       "id": "planet:9",
+       "weight": 1.0,
+       "text": "the collapsed base of a space elevator, its severed cable coiled across the surrounding terrain for kilometers."
+      },
+      {
+       "id": "planet:10",
+       "weight": 1.0,
+       "text": "a sealed cryogenic vault built into the bedrock, its status lights still cycling after some uncounted span of time."
+      },
+      {
+       "id": "planet:11",
+       "weight": 1.0,
+       "text": "a field of dormant terraforming seeders, half-buried and inert, that should have blanketed the world in engineered soil long ago."
+      },
+      {
+       "id": "planet:12",
+       "weight": 1.0,
+       "text": "a buried genetic seed vault with a collapsed access shaft, its contents unknown."
+      },
+      {
+       "id": "planet:13",
+       "weight": 1.0,
+       "text": "a standing obelisk of unidentified alloy on an otherwise featureless plain, untouched by weathering."
+      },
+      {
+       "id": "planet:14",
+       "weight": 1.0,
+       "text": "an abandoned colony's foundation grid, its structural bones outlining streets and buildings that were never raised."
+      },
+      {
+       "id": "planet:15",
+       "weight": 1.0,
+       "text": "the fallen anchor of an orbital elevator, its counterweight long gone, embedded deep in the crust."
+      },
+      {
+       "id": "planet:16",
+       "weight": 1.0,
+       "text": "an automated excavation still cutting the same exhausted mineral seam decades after it ran dry."
+      },
+      {
+       "id": "planet:17",
+       "weight": 1.0,
+       "text": "a scorched landing zone cleared by a controlled burn that was, by every visible sign, never used."
+      },
+      {
+       "id": "planet:18",
+       "weight": 1.0,
+       "text": "a shallow crater ringed with fused glass, the unmistakable signature of an old kinetic impact test."
+      }
+     ]
+    },
+    {
+     "id": "planet.no_ground",
+     "gate": [
+      {
+       "quantity": "has_ground",
+       "equals": 0
+      }
+     ],
+     "tags": [
+      "ancient_works"
+     ],
+     "lines": [
+      {
+       "id": "orbital:0",
+       "weight": 1.0,
+       "text": "several dead delivery drones and cargo pods in stable orbits."
+      },
+      {
+       "id": "orbital:1",
+       "weight": 1.0,
+       "text": "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits."
+      },
+      {
+       "id": "orbital:2",
+       "weight": 1.0,
+       "text": "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels it flags as requiring extensive repairs."
+      },
+      {
+       "id": "orbital:3",
+       "weight": 1.0,
+       "text": "a primitive interstellar probe caught in orbit."
+      },
+      {
+       "id": "orbital:4",
+       "weight": 1.0,
+       "text": "a derelict light cruiser venting plasma slowly into the surrounding void."
+      },
+      {
+       "id": "orbital:5",
+       "weight": 1.0,
+       "text": "a derelict transport ship whose severed bow trails forty kilometers behind its own stern."
+      },
+      {
+       "id": "orbital:6",
+       "weight": 1.0,
+       "text": "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies."
+      },
+      {
+       "id": "orbital:7",
+       "weight": 1.0,
+       "text": "a monolithic stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north."
+      },
+      {
+       "id": "orbital:8",
+       "weight": 1.0,
+       "text": "a constellation of large solar mirrors suspended in a rough orbital grid."
+      },
+      {
+       "id": "orbital:9",
+       "weight": 1.0,
+       "text": "a ring of cryostasis pods tumbling freely, their occupants' status unreadable at this range."
+      },
+      {
+       "id": "orbital:10",
+       "weight": 1.0,
+       "text": "the wreckage of a one-sided battle, hulls scattered with no intact vessel among them."
+      },
+      {
+       "id": "orbital:11",
+       "weight": 1.0,
+       "text": "a stationary listening post bristling with dish arrays, all aimed at a patch of empty sky."
+      },
+      {
+       "id": "orbital:12",
+       "weight": 1.0,
+       "text": "a dormant ring-shaped gate of unfamiliar design, its inner surface dark and its function unconfirmed."
+      },
+      {
+       "id": "orbital:13",
+       "weight": 1.0,
+       "text": "a cluster of sealed seed pods tumbling in a slow, decaying orbit, clearly not of local origin."
+      },
+      {
+       "id": "orbital:14",
+       "weight": 1.0,
+       "text": "an automated checkpoint platform still broadcasting docking instructions in a language no database recognizes."
+      },
+      {
+       "id": "orbital:15",
+       "weight": 1.0,
+       "text": "a field of armed kinetic interceptors, live and waiting, with no record of who deployed them."
+      },
+      {
+       "id": "orbital:16",
+       "weight": 1.0,
+       "text": "a solitary dark-hulled relay emitting a tight beam toward the star and nothing else."
+      },
+      {
+       "id": "orbital:17",
+       "weight": 1.0,
+       "text": "the fused, burned-out frame of an old drive test rig, its containment ring melted solid."
+      },
+      {
+       "id": "orbital:18",
+       "weight": 1.0,
+       "text": "a loose formation of repair drones still patrolling a ship that no longer exists."
+      }
+     ]
+    },
+    {
+     "id": "planet.life",
+     "gate": [
+      {
+       "quantity": "life_multicellular",
+       "equals": 1
+      }
+     ],
+     "lines": [
+      {
+       "id": "habitable:0",
+       "weight": 1.0,
+       "text": "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence."
+      },
+      {
+       "id": "habitable:1",
+       "weight": 1.0,
+       "text": "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand."
+      },
+      {
+       "id": "habitable:2",
+       "weight": 1.0,
+       "text": "high-altitude predators with hyper-thin membranous wings that ride the solar wind."
+      },
+      {
+       "id": "habitable:3",
+       "weight": 1.0,
+       "text": "jagged, forest-like continental structures built from the hard mineral shells of colonial insects."
+      },
+      {
+       "id": "habitable:4",
+       "weight": 1.0,
+       "text": "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton."
+      },
+      {
+       "id": "habitable:5",
+       "weight": 1.0,
+       "text": "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids."
+      },
+      {
+       "id": "habitable:6",
+       "weight": 1.0,
+       "text": "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods."
+      },
+      {
+       "id": "habitable:7",
+       "weight": 1.0,
+       "text": "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases."
+      },
+      {
+       "id": "habitable:8",
+       "weight": 1.0,
+       "text": "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers."
+      },
+      {
+       "id": "habitable:9",
+       "weight": 1.0,
+       "text": "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources."
+      },
+      {
+       "id": "habitable:10",
+       "weight": 1.0,
+       "text": "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust."
+      },
+      {
+       "id": "habitable:11",
+       "weight": 1.0,
+       "text": "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins."
+      },
+      {
+       "id": "habitable:12",
+       "weight": 1.0,
+       "text": "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides."
+      },
+      {
+       "id": "habitable:13",
+       "weight": 1.0,
+       "text": "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls."
+      },
+      {
+       "id": "habitable:14",
+       "weight": 1.0,
+       "text": "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on."
+      },
+      {
+       "id": "habitable:15",
+       "weight": 1.0,
+       "text": "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them."
+      },
+      {
+       "id": "habitable:16",
+       "weight": 1.0,
+       "text": "lichen-like organisms that ride migrating herds, trading camouflage for transport."
+      },
+      {
+       "id": "habitable:17",
+       "weight": 1.0,
+       "text": "herd animals that bury themselves and estivate for years to survive multi-year droughts."
+      },
+      {
+       "id": "habitable:18",
+       "weight": 1.0,
+       "text": "predators whose skin patterns mimic local flora so precisely they vanish at rest."
+      },
+      {
+       "id": "habitable:19",
+       "weight": 1.0,
+       "text": "colonial organisms that briefly link into a single distributed nervous system during seasonal migration."
+      },
+      {
+       "id": "habitable:20",
+       "weight": 1.0,
+       "text": "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
+      }
+     ]
+    }
+   ]
+  }
+ }
+}

@@ -42,7 +42,7 @@ Not wired: the ice over rock that sets the jump of the surface density at the sn
 
 - Water mass: the repo's Lodders equilibrium had all spare oxygen as water; the disc measurement has CO and CO2 holding a large share. Part B takes the disc side, so the icy bodies get less water than before; comets (ice over rock near 1, [R2865]) are the check.
 - N2 22 K and H2S 80 K are recalled; both are registered at T3 until a source is opened.
-- Equilibrium supply; no trapping in water ice, no drift, no cooling disc.
+- Equilibrium supply; no trapping in water ice, no cooling disc. The drift of pebbles across the lines is `physics/disk_drift.py` (GEN.1473, `docs/design/composition/disk-drift-evaporation.md`): a giant's gas is weighted by the ratio of the pebble flux to the gas flux at the age it gathers it; the static budget here is the case where every weight is 1.
 - The solid boost at the snow line is read from the disk budget (section 6, GEN.1396).
 - The giant C/O upper tail (GEN.1471): a giant that took mostly gas has the oxygen-poor gas C/O of the disc, 0.89 for the Sun's (1.05 below 45 K), because the water is frozen out; 22 to 26 percent of the generated giants are above 0.8 where LExACoM has 4 to 9. The model has no drift and evaporation of water between the lines, which would spread the gas C/O between the star's and 1, and no intermediate state, so no setting of DSC8 or DSC9 closes it. It needs that model (open research).
 

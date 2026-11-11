@@ -275,6 +275,16 @@ def _counted_sky(body, parent, star, host):
     return tilt, flux_au, counted
 
 
+def _dark(out, solid):
+    """`out` for a body that no star lights (a rogue planet's host holds no light, and nor does a moon's, GEN.1496): the set of suns is empty, so the union of the arcs they light
+    (`lit_arcs_share`) is nothing at every latitude all year. The time a star is up is 0 at the equator and over the surface, there is no daylight and no polar circle, and with no star
+    to return to the same place there is no solar day, no night to count in it and no days in a year; the state is `no sun` (a giant still has no surface to stand on)."""
+    out["day_share_equator"] = out["day_share_mean"] = lit_arcs_share([])
+    out["daylight_hours"] = 0.0
+    out["day_night_state"] = day_night.state(1.0, 1.0, None, solid, no_sun=True)
+    return out
+
+
 def compute(body, parent=None):
     """
     The `FIELDS` of a planet or moon as a dict (`None` for what the body has not): `parent` is the planet a moon orbits. A body
@@ -289,6 +299,8 @@ def compute(body, parent=None):
         out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:
         return out
+    if getattr(star, "starless", False):
+        return _dark(out, solid)       # GEN.1496: no star to count, so no sun of the day
     distance_au = getattr(host, "distance", None)
     orbital_hours = _yr_to_h(getattr(host, "period", None) or 0.0)
     alpha = angular_radius(getattr(star, "radius", None), distance_au)

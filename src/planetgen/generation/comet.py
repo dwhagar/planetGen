@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import body_strength, bulk_draw, comet_control, comet_ice_budget, kepler, radiation_field, small_body_composition, spin
+from planetgen.physics import body_strength, bulk_draw, comet_activity, comet_control, comet_ice_budget, kepler, radiation_field, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -300,11 +300,12 @@ class Comet(SmallBody):
 
         self.update_orbital_state()
         lit_perihelion_au = self.perihelion_distance_au if star is None else radiation_field.lit_distance_au(star, self.perihelion_distance_au)    # GEN.1444: every star's light at q
-        activity_chance = _activity_chance(lit_perihelion_au)
+        solar_perihelion_au = comet_activity.solar_equivalent_au(lit_perihelion_au, getattr(star, "luminosity", None))    # GEN.1491: and the host's luminosity, against the Sun's 3 AU
+        activity_chance = _activity_chance(solar_perihelion_au)
         self.is_active = draw.random() < activity_chance
         log.choice("Comet activity", self.is_active,
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
-                   f"{self.perihelion_distance_au:.4g} AU (lit like {lit_perihelion_au:.4g} AU round a lone star)")
+                   f"{self.perihelion_distance_au:.4g} AU (lit like {solar_perihelion_au:.4g} AU round the Sun)")
         # GEN.104: a small body's spin, YORP-tilted from its orbit normal.
         self.rotation_period_hours = spin.small_body_period_hours()
         spin.set_spin(self, spin.orbit_normal(self.inclination_deg, self.ascending_node_deg),

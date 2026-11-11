@@ -466,7 +466,7 @@ def test_the_albedo_and_greenhouse_a_generated_body_stores_give_back_its_tempera
     for planet in _generated(range(8)):
         if planet.body_type != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
             continue
-        flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity))       # GEN.1441: every star's light
+        flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity)) * (planet.light_factor or 1.0)       # GEN.1441: every star's light
         assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6)
         checked += 1
     assert checked > 0
