@@ -1,15 +1,15 @@
-scores-class-blind: 0 of 368 bodies differ with the class letter
-terrestrial bodies 356; the life model gives a class to 113, by the letter each was drawn with:
-  B: 2 of 4
-  C: 34 of 50
-  D: 42 of 156
-  E: 21 of 37
+scores-class-blind: 0 of 342 bodies differ with the class letter
+terrestrial bodies 305; the life model gives a class to 106, by the letter each was drawn with:
+  A: 1 of 1
+  C: 19 of 30
+  D: 34 of 177
+  E: 31 of 46
   F: 3 of 3
-  I: 0 of 9
-  N: 0 of 8
-  S: 7 of 13
-  T: 2 of 68
-  U: 1 of 1
-  V: 0 of 1
-  Z: 1 of 6
-STALE NOTES: these listed places no longer read the class letter; remove them from tests/data/class_blind_life_notes.json: planetgen.generation.life:decide_flavor_text, planetgen.physics.habitability_world:values_from_body
+  G: 0 of 3
+  H: 0 of 6
+  N: 0 of 13
+  O: 1 of 1
+  P: 2 of 2
+  S: 8 of 14
+  T: 3 of 3
+  V: 4 of 6
