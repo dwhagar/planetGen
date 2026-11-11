@@ -134,7 +134,7 @@ def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatc
     monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
     monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
 
-    def chart(conn, center, limit, on_batch=None):
+    def chart(conn, center, limit, on_batch=None, progress=None):
         calls.append(1)
         if len(calls) == 1:
             raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
