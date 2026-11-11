@@ -13214,6 +13214,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: none. Related: UX.283.
   Filed by the TODO thread.
 
+- [ ] **GEN.1555 (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body)**
+  Two lane reports, 6:15 PM EST on 2026-11-11 (as the lanes reported). Lane 14, found by GEN.1403 (PR 6062): a body at 2.44 au that sat on MOIST_LIMIT_K (375 K) before goes to frozen and airless (about 230 K colder) after a small change in weathering, and a second body (G2V seed 3085) goes from 313 K to 120 K; less weathering cannot cool a real world, so this is the solver choosing the other branch, not the feedback; seeds G2V 3032 and 3085 on the GEN.1403 branch show it. Lane 21, found by the Train 24 red in test_surface_air: bodies near water's boiling point at a pinned 10 kPa swing between a cool CO2 air (about 459 K, 140 Pa of water) and a steam air (about 600 K, 8.6 kPa of water) every step, so the fixed point never settles; the same cycle shows in the class T and class E cases; unsettled airs are 10 of 132 on main and 8 of 129 on Train 24 (about 6 to 8 percent). Do: find the cause in the fixed-point loop (the guard at MOIST_LIMIT_K and the water-vapor step), make the branch choice a deterministic, physical rule (damped or bracketed solve, or pick the stable branch by energy balance), report how many bodies change, and replace the loosened test cap (a fifth) with a real bound. Lock item (stored output changes), new epoch.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 14 (air side), with Lane 21 for the surface-air test. Prerequisites: none. Related: GEN.1403, GEN.993, GEN.1548.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
