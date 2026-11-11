@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3848] - 2026-11-11
+
+**Headline:** A star with a companion inside 47 AU now loses about two thirds of its gas giants, because its disk loses its gas early.
+
+### Changed
+- **A close companion shortens the disk's gas life (GEN.1475).** [R5220, R5225]: about two thirds of binaries closer than about 40 to 47 AU lose their disk gas within a Myr, and the planet occurrence inside 47 AU is 0.34 of the wider and single stars. A star whose nearest companion (or, for a close pair, its two stars) is inside 47 AU now has the chance a core finds gas multiplied by 0.34, so about 66 percent of its giants are not made; its rocky planets are unchanged. About 21 percent of solar-type stars are affected, so roughly 14 percent fewer gas giants and 0.8 percent fewer planets in all; lone stars and wide pairs draw exactly as before. The stand-ins are CD1 and CD2 in the registry (section 6.264).
+generation-output: changed
+
+generation-affects: fill
+
 ## [8.0.3847] - 2026-11-11
 
 **Headline:** The reductants that eat a young world's first oxygen are now counted at the heat the world gave off then, so the oxygen of a planet rises later than before, as the Great Oxidation did on Earth.
