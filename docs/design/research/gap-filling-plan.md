@@ -4017,3 +4017,14 @@ The fifteen entries of the ranked shortlist of `reports/gen945-constants-audit-2
 | AUD27 | P | T6 | L0 | `giant_tilt.MASS_RANGE_EARTH` (5, 30): the planet masses the merger tilt draws for | 5 to 30 Earth masses | ice giants and gas dwarfs (row GT3) | a tilted giant outside the range | the design table, row GT3 | the design table; the rate is registered as GT3 |
 | AUD28 | P | T9 | L4 | `tuning.FLAVOR_CHANCE_PLANET` 0.05 and `FLAVOR_CHANCE_SYSTEM` 0.05: how often flavor text is added | 0 to 0.2 | every planet and system page | none: a design choice of the flavor rebuild | the flavor rebuild (GEN.1430 to GEN.1438) | design; dropped or replaced with the rebuild |
 | AUD29 | P | T9 | L0 | `generation.limits.MAX_GENERATE_RADIUS_PC` 200, `bright_stars.OBJECT_FIRST_BAND_WEIGHT_STARS` 0.02 and `tuning.MAX_STARS_CEILING` 64: run limits of the program | as set | the generate and band code | a run that needs more than the limit | none: limits of the program, not of the physics | out of scope for the physics; listed so the audit of GEN.945 finds every shortlisted name registered |
+
+### 6.271 Stand-ins of the chain spacing test (GEN.1521)
+
+The spacing a planet that ends a chain of four holds (`tuning.CHAIN_WINDOW`, `tuning.CHAIN_K_EFF`, `clearance_ledger.chain_distance_au`). Tiers and tweaks are the lane's reading (Lane 14), for the owner to confirm.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| CH1 | T | T1 | L0 | tuning.CHAIN_K_EFF 12: the minimum spacing for 1e9 years of stability of a compact system on orbits of eccentricity about 0.02 | 10 (circular orbits) to 12 | systems of four or more planets of small mass around any star | an N-body run of a chain at 12 that scatters within 1 Gyr, or one at 10.5 that does not | a spacing from a stability-time fit per system (the planet masses, the star's age) | abstract and section 2 of [R5220], read; the 10.0 to 11.4 chains of GEN.1468 that scattered in 2e4 years sit at K_eff 10.1 to 10.5 |
+| CH2 | T | T6 | L0 | clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5220] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window | window 4 to 7 planets | chains of four planets | a window whose scattering time is not that of equal gaps at K_eff | a per-chain stability time | the Eq. 10 and 11 of [R5220], read; the carry to a four-planet window is mine |
+| CH3 | P | T6 | L0 | validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain | none | all systems | a chain broken by a belt that scatters like a chain | a chain test over every window, belts as bodies | design: the orbit spacing pass of GEN.1023 and GEN.1450 |
+

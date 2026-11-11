@@ -8,7 +8,11 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
+<<<<<<< HEAD
 **5105 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+=======
+**5099 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+>>>>>>> origin/pr-5972
 
 ## Contents
 
@@ -3818,7 +3822,8 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3618"></a>**R3618** Prša, A., et al. 2016, NOMINAL VALUES FOR SELECTED SOLAR AND PLANETARY QUANTITIES: IAU 2015 RESOLUTION B3 \* †, AJ, 152, 41, doi:10.3847/0004-6256/152/2/41, arXiv:1605.09788. [paper](https://doi.org/10.3847/0004-6256/152/2/41) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/0004-6256/152/2/41/abstract)
 - <a id="paper-r3619"></a>**R3619** Prugniel, P., Maubon, G., & Simien, F. 2001, The formation of galaxy bulges: Spectrophotometric constraints, A&A, 366, 68, doi:10.1051/0004-6361:20000009. [paper](https://doi.org/10.1051/0004-6361%3A20000009) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361%3A20000009/abstract)
 - <a id="paper-r3620"></a>**R3620** Ptashnik, I. V., Klimeshina, T. E., Solodov, A. A., & Vigasin, A. A. 2019, Spectral composition of the water vapour self-continuum absorption within 2.7 and 6.25 µm bands, JQSRT, 228, 97, doi:10.1016/j.jqsrt.2019.02.024. [paper](https://doi.org/10.1016/j.jqsrt.2019.02.024) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.jqsrt.2019.02.024/abstract)
-- <a id="paper-r3621"></a>**R3621** Pu, B. & Wu, Y. 2015, Spacing of Kepler Planets: Sculpting by Dynamical Instability, arXiv:1502.05449. [paper](https://arxiv.org/abs/1502.05449) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1502.05449/abstract)
+- <a id="paper-r5220"></a>**R5220** Pu (濮勃南), B. & Wu (武延庆), Y. 2015a, SPACING OF KEPLER PLANETS: SCULPTING BY DYNAMICAL INSTABILITY, ApJ, 807, 44, doi:10.1088/0004-637x/807/1/44. [paper](https://doi.org/10.1088/0004-637x/807/1/44) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/807/1/44/abstract)
+- <a id="paper-r3621"></a>**R3621** Pu, B. & Wu, Y. 2015b, Spacing of Kepler Planets: Sculpting by Dynamical Instability, arXiv:1502.05449. [paper](https://arxiv.org/abs/1502.05449) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1502.05449/abstract)
 - <a id="paper-r3622"></a>**R3622** Pugh, D. & Woodworth, P. 2014, Sea-Level Science, Cambridge University Press, doi:10.1017/cbo9781139235778. [paper](https://doi.org/10.1017/cbo9781139235778) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/cbo9781139235778/abstract)
 - <a id="paper-r3623"></a>**R3623** Puiu, A., Giubileo, G., Cesaro, S. N., & Palucci, A. 2016, Application of Laser Photoacoustic Spectroscopy and Chemometrics in Homeland Security, in Springer Proceedings in Physics, Springer International Publishing, doi:10.1007/978-3-319-30137-2\_4. [paper](https://doi.org/10.1007/978-3-319-30137-2_4) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/978-3-319-30137-2_4/abstract)
 - <a id="paper-r3624"></a>**R3624** Purcell, C. R., et al. 2006, A CH3CN and HCO+ survey towards southern methanol masers associated with star formation, MNRAS, 367, 553, doi:10.1111/j.1365-2966.2005.09921.x. [paper](https://doi.org/10.1111/j.1365-2966.2005.09921.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2005.09921.x/abstract)
