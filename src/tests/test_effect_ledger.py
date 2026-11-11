@@ -220,7 +220,7 @@ def test_a_lone_star_system_saves_no_light_rows_and_a_binary_saves_light_and_ult
         light_rows = conn.execute("SELECT COUNT(*) AS n FROM effect_ledger WHERE star_system_id = ? AND effect IN (1, 2)", (lone_id,)).fetchone()["n"]
         assert light_rows == 0      # the lone source is the host star: nothing is implied away (the star's Kozai pull on a moon, effect 5, is a row of its own, GEN.1447)
         effects = {row["effect"] for row in conn.execute("SELECT DISTINCT effect FROM effect_ledger WHERE star_system_id = ?", (binary_id,)).fetchall()}
-        assert {1, 2} <= effects <= {1, 2, 5}      # light and ultraviolet, and the Kozai rate of a moon; the other gravity effects are computed on demand
+        assert {1, 2} <= effects <= {1, 2, 3, 4, 5, 6}      # light and ultraviolet always; an on-demand effect (tide, heating, secular, precession) keeps its largest source and the summary row only (GEN.1446, GEN.1447, GEN.1503)
     finally:
         conn.rollback()
         conn.close()
