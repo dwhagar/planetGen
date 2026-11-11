@@ -28,7 +28,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -245,7 +245,7 @@ _BODY_GROUPS = (
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
-           ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
+           ("cloud_cover", "Cloud cover"), ("cloud_chemistry", "Sulfur-cloud chemistry (the Venus set the air, light and ground allow)", TEXT), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"),
@@ -794,6 +794,8 @@ def _value(spec, table, stored):
     quantity = spec.quantity
     if spec.stored_column() == "life_traits":
         return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
+    if spec.stored_column() == sulfur_cloud_set.COLUMN:
+        return [sulfur_cloud_set.sentence(stored)]       # GEN.1425: the species of the Venus set, as words
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         return [text[:1].upper() + text[1:]]
@@ -974,6 +976,8 @@ _BODY_RULES = [
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen, or airless body has none"),
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
+    (("cloud_chemistry",), lambda klass, row: row is None or row.get("cloud_chemistry") is not None,
+     "only a rocky body whose air, light and ground open at least one gate of the Venus sulfur-cloud set (GEN.1425) stores its species; a body with no air, or an air with none of the sulfur, chlorine, carbon monoxide or carbonyl sulfide the gates need, stores none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,

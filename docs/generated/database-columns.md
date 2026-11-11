@@ -773,6 +773,7 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active |
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
+| `cloud_chemistry` | VARCHAR(48) | NULL | v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
 | `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
@@ -1249,6 +1250,7 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active |
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
+| `cloud_chemistry` | VARCHAR(48) | NULL | v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
 | `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
@@ -2234,6 +2236,7 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v207 (GEN.1111) |
 | `life_complexity` | DOUBLE | NULL | v207 (GEN.1111) |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876) |
+| `cloud_chemistry` | VARCHAR(48) | NULL | v244 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v207 (GEN.1111) |
 | `tide_range_neap_m` | DOUBLE | NULL | v207 (GEN.1111) |
 | `ocean_liquid` | VARCHAR(40) | NULL | v207 (GEN.1111) |
