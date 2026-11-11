@@ -65,3 +65,23 @@ a heavy belt and no giant; a giant between the belt and the planet lowers it by 
 1. Is the published veneer range of the Earth (0.2 to 0.7 percent of its mass) the right target for the calibration, with the share and the collision constants honestly marked as fitted (L3 or L4)?
    Recommended: yes; nothing else measures it.
 2. Is one extra air solve per rocky planet an acceptable cost for the end-of-making pass? Recommended: yes, with the skip when the fraction barely moves.
+
+## Slice 0 result (built: `physics/late_supply.py`, rows LS1 to LS4 of section 6.254, census `tests/audit/late_supply_census.py`)
+
+The law is the shared-sink form: each body takes the scattered part of a belt's early mass in proportion to `R^2 (1 + v_esc^2 / v_rel^2) / a^2`, so a giant next to a belt takes most of it and the planets
+inside take what is left (the ejection is the denominator, not a second shield). With a stand-in inward share of 0.1 an Earth-like planet inside a belt of a few to tens of Earth masses reaches the
+published 0.2 to 0.7 percent of its mass (test). In a census of 581 generated rocky planets of 0.3 to 3 Earth masses of single stars (`reports/gen1493-late-supply-census-2026-11-09.md`):
+
+* the inward share at which the median planet that takes anything takes the mean of the present law is 0.105, so 0.1 stands (row LS1, L3);
+* systems with a giant give a median 20 times lower than systems without one (the giant takes the share), a physical difference the single number never showed;
+* 179 of the 581 planets (31 percent) take nothing, because no belt lies outside them: slice 1 needs an answer for these (a floor from planetesimals that never formed a belt, or a belt-free supply
+  from the planets' own accretion tail); the single number gave them all something, so leaving them at zero would be a step backwards;
+* the spread across planets (10th to 90th percentile a factor of about 1,500) is far wider than the log-normal scatter of the law (sigma 0.65 in ln, `impact_history.LATE_ACCRETED_LN_SIGMA`), which comes from belts that differ by orders of
+  magnitude in mass; slice 1 either accepts it or narrows it with a floor, a call for Boss with the sample in hand.
+
+## Slice 1 result (built: `generation/late_accretion.py`, `planets.remake_air`, rows LA1 to LA3 of section 6.255, census `tests/audit/late_accretion_census.py`)
+
+- The pass runs once the system is whole, before the snow line pass, over the rocky planets of a star (not moons, giants or starless bodies). Each planet's percent is the supply of the system's belts and planets (`late_supply.veneer_fraction`), at least `FLOOR_SHARE` (0.05) of the law's mean for its mass, at most the old ceiling (3 percent).
+- The air is made again by replaying `calculate_atmospheric_conditions` from the stream state saved at its last call (`planet._air_replay`, kept, not stored) in a private `draw.Stream`, so no draw of the run's stream moves. The air solves twice inside, each with its own draw of the late accretion; the replay holds both to the one percent, so a planet comes back as it was within about 1 percent in pressure and temperature when it drew nearly the same twice, and replaying twice with one percent is identical.
+- Census (240 seeds, 246 planets of 0.3 to 3 Earth masses): 43 percent take the floor, 22 percent sit at the ceiling, the median is 0.13 of the law's mean (10th and 90th: 0.05 and 4.36). The pass is 18 percent of generation time (`reports/gen1493-late-accretion-census-2026-11-09.md`).
+- Cost: the pass for every planet is 18 percent of generation time. Tried and dropped: a warm start of the air from the old solution (the fixed point has more than one answer for some planets, 3 of 10 trial planets landed elsewhere). Kept: a gate (`planets.LATE_ACCRETION_GATE`, row LA3): the air is left as it is when the new veneer moves the carbon and the nitrogen it left by less than half of what the volcanoes gave, and a planet with no air is not made again. The pass is then 8.8 percent; 201 of 246 planets are identical to the full replay, 13 differ by more than 1 percent (worst 99 percent in pressure, a climate branch). Gate 1.0 would be about 6 percent with a worst of 29 percent.

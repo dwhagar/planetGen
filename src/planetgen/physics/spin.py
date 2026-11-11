@@ -187,6 +187,39 @@ def tilted_axis(normal, obliquity_deg, precession_rad):
     return _unit(tuple(c * n[k] + s * (cp * u[k] + sp * v[k]) for k in range(3)))
 
 
+def carry_axis(axis, old_normal, new_normal, tilt_deg=None):
+    """
+    GEN.1504: a spin axis after its orbit's plane has moved from `old_normal` to `new_normal`, carried with the plane: the axis is turned by the turn that takes the old normal onto the new
+    (about `old x new`), so its obliquity and its angle round the normal stay as they were. With `tilt_deg` the obliquity is set to that instead (the plane's angle round the normal kept).
+    """
+    a, o, n = _unit(axis), _unit(old_normal), _unit(new_normal)
+    k = _cross(o, n)
+    sin_t = math.sqrt(sum(c * c for c in k))
+    cos_t = sum(x * y for x, y in zip(o, n))
+    if sin_t < 1.0e-12:
+        if cos_t > 0.0:
+            turned = a                                                  # the plane has not moved
+        else:                                                           # turned over: half a turn about any line in the plane (the axis of the old normal's smallest component)
+            helper = (1.0, 0.0, 0.0) if abs(o[0]) < 0.9 else (0.0, 1.0, 0.0)
+            k = _unit(_cross(o, helper))
+            along = sum(x * y for x, y in zip(k, a))
+            turned = _unit(tuple(2.0 * along * k[i] - a[i] for i in range(3)))
+    else:
+        k = tuple(c / sin_t for c in k)
+        kxa = _cross(k, a)
+        along = sum(x * y for x, y in zip(k, a))
+        turned = _unit(tuple(a[i] * cos_t + kxa[i] * sin_t + k[i] * along * (1.0 - cos_t) for i in range(3)))
+    if tilt_deg is None:
+        return turned
+    cos_e = sum(x * y for x, y in zip(turned, n))
+    sideways = tuple(turned[i] - cos_e * n[i] for i in range(3))
+    length = math.sqrt(sum(c * c for c in sideways))
+    if length < 1.0e-12:
+        return turned
+    e = math.radians(tilt_deg)
+    return _unit(tuple(math.cos(e) * n[i] + math.sin(e) * sideways[i] / length for i in range(3)))
+
+
 def obliquity_between(axis, normal):
     """The angle, degrees, between a spin axis and a reference normal."""
     dot = sum(a * b for a, b in zip(_unit(axis), _unit(normal)))

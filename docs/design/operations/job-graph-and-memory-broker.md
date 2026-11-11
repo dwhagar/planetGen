@@ -58,7 +58,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 
 | Today | What it does in one go | Becomes, in sequence |
 |---|---|---|
-| `prepare_scatter_phenomena` | empties the earlier scatter, then takes off the indexes | `clear-phenomena` (exists as a command already), `drop-phenomenon-indexes` |
+| `prepare_scatter_phenomena` (built, OPS.123 slice 3) | empties the earlier scatter, then takes off the indexes | `empty-phenomenon-scatter` (built; `clear-scatter` was not reused: it refreshes the block lights and resets the epoch), `drop-phenomenon-indexes` (built) |
 | `finish_phenomena_unit` (the `finish-phenomena` command) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
 | `conclude_scatter_phenomena` | counts the phenomena per class and stores them | `store-phenomenon-class-counts` |
 | `prepare_scatter_pass` (built, OPS.123 slice 3), `conclude_scatter_pass` | empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch | `clear-bright-stars` (built: one command for both, the stage `mass-clear` or `luminosity-clear`), `store-scatter-limits`, `store-scatter-epoch` |
