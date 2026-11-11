@@ -11,7 +11,7 @@ giant. A pure law over the star and the formation distance; it reads no class an
 1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, [R2709]; Kokubo & Ida
    2000) for a feeding zone `OLIGARCH_SEPARATION_MEDIAN` mutual Hill radii wide, from the minimum-mass nebula scaled for the star's
    mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disk's own scatter (`DISK_SOLIDS_SCATTER_DEX`, [R0114]),
-   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`). Beyond `PLANET_OUTER_GROWTH_AU` the slow
+   boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISK_STEEPENING`). Beyond the star's growth limit (`disk_size.growth_limit_au`, `PLANET_OUTER_GROWTH_AU` for the Sun) the slow
    outer disk has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
    (`oligarch_core_kg`) and thins it; a planet asked for alone at a distance draws one.
 2. **Runaway.** A core of `GIANT_CORE_CRITICAL_MASS_EARTH` or more, beyond the snow line, that finds gas left (a share
@@ -25,7 +25,7 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, mass_boundaries, metallicity, unit_registry as units
+from planetgen.physics import constants, disk_size, formation, mass_boundaries, metallicity, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -62,8 +62,9 @@ def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatt
     """
     density = solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter)
     mass = formation.isolation_mass_kg(distance_au, density, star_mass_kg, separation)
-    if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
-        mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
+    growth_au = disk_size.growth_limit_au(_kg_to_msun(star_mass_kg))        # GEN.1539: where this star's disk has built less
+    if distance_au > growth_au:
+        mass *= (growth_au / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
     return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg, _BROWN_DWARF_LIMIT_KG)
 
 

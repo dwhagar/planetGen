@@ -114,7 +114,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disk_e
     star_mass_kg = remnant_orbits.formation_mass_kg(star)
     snow_line_au = star.snow_line_au
     edge_au = disk_edge_au if disk_edge_au < float("inf") else disk_size.edge_au(star)
-    origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, tuning.PLANET_OUTER_GROWTH_AU, edge_au, u=_stream(star, chain, "survival").random(),
+    origins = belt_origin.build(chain, star_mass_kg, snow_line_au, snow_line_au, disk_size.growth_limit_au(_kg_to_msun(star_mass_kg)), edge_au, u=_stream(star, chain, "survival").random(),
                                 debris=_debris(star, chain), metal_ratio=bulk_draw.metal_ratio_to_solar(star), scatter=disk_scatter, instability=instability,
                                 disk_limit_au=disk_truncation.star_disk_limit_au(star))
     found = []

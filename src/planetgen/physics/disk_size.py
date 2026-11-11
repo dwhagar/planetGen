@@ -16,6 +16,7 @@ the dust disk (Sanchis et al. 2021), and the size rises with star mass as M^0.2 
 gas radii give, and the exponent 0.5 the middle of the direct fits.
 """
 
+from planetgen import tuning
 from planetgen.physics import mass_loss, unit_registry as units
 from planetgen.util import draw
 
@@ -44,6 +45,16 @@ def median_edge_au(mass_solar):
 def edge_au_from(mass_solar, z):
     """The edge, AU, of a star of `mass_solar` that drew `z` sigma from the median."""
     return median_edge_au(mass_solar) * 10.0 ** (EDGE_SCATTER_DEX * z)
+
+
+def growth_limit_au(mass_solar):
+    """
+    Where the disk of a star of `mass_solar` solar masses has built less (GEN.1539): beyond it the assembled solids fall (`planet_mass.oligarch_core_kg`) and an outer-disk belt can start
+    (`belt_origin.tail`, `belt_origin.outer_disk`). It is the Sun's `tuning.PLANET_OUTER_GROWTH_AU` scaled as the disk is, with the mass to `EDGE_MASS_EXPONENT`, so the share of the gas
+    disk's median edge it covers (`tuning.PLANET_OUTER_GROWTH_AU` over `EDGE_AT_SUN_AU`, 11.4 percent) is the same for every star; it reads the median edge, not the star's own scatter,
+    so it is a function of the mass alone. [Stand-in DS5, tier Marginal educated guess from physics, tweak L1.]
+    """
+    return tuning.PLANET_OUTER_GROWTH_AU * (median_edge_au(mass_solar) / EDGE_AT_SUN_AU)
 
 
 def draw_edge_au(mass_solar, stream):
