@@ -36,7 +36,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, disk_ejection, dust_supply, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
@@ -547,6 +547,9 @@ class StarSystem:
         # age rather than its provisional pre-adjustment one. Flavor text is decided
         # in the same pass (after life data, since it reads life_stage) so it
         # too is a fixed, pre-rendered fact rather than something __str__ rolls.
+        with log.timed_phase("dust supply pass"):
+            dust_supply.apply(self)     # GEN.1543: the belts and comets are in, so each rocky body takes the cosmic dust its own system sends it (V8's gate reads it in the life pass)
+
         with log.timed_phase("late accretion pass"):
             late_accretion.apply(self.all_planets)      # GEN.1493: the belts are final, so the air of a rocky planet reads them for its late accretion
 

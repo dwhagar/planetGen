@@ -56,10 +56,15 @@ def apply(planets, gate=planet_physics.LATE_ACCRETION_GATE):
     for planet in planets:
         if planet.body_type == "a" or not applies_to(planet):
             continue
-        siblings = [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
+        siblings = siblings_of(planet, planets)
         star_mass_solar = planet.star.mass / constants.SOLAR_MASS_TO_KG
         made += planet_physics.remake_air(planet, percent_for(planet, siblings, star_mass_solar), gate)
     return made
+
+
+def siblings_of(planet, planets):
+    """The bodies of `planets` (every planet and belt of the system) that share `planet`'s star: its planets and moons-as-bodies, and the belts that circle it (GEN.1543 reads the same set for the dust)."""
+    return [body for body in planets if body.body_type == "a" and _same_star(body, planet) or body.body_type != "a" and body.star is planet.star]
 
 
 def _same_star(belt, planet):

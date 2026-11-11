@@ -21,8 +21,8 @@ The gates, in order (each later one needs the one before it):
 4. **Chlorine** (V3 hydrogen chloride; V6, V9): hydrogen chloride in the air at `chlorine_min_share` (the star's chlorine got into the air through
    `mixture_rocky`'s halogen budget, so the star is not read twice).
 5. **Iron and carbon supply** (V6, V7, V8): iron from an exposed rocky surface (a terrestrial body with no global ocean over it); carbon from cosmic dust, whose influx on the body
-   (`cosmic_dust`, GEN.1542: its size, mass and place) must reach `dust_min_share_of_reference` of Venus's per area (`dust_supply`; the caller of `chemistry` says whether it does
-   with `carbon_dust`, default none) and V8 stays closed without it.
+   (`influx.py` over the belts and comets of its own system, GEN.1543: `generation/dust_supply.py` keeps it on the body) must reach `dust_min_influx_kg_m2_yr` per area (`dust_supply`; the caller of
+   `chemistry` says whether it does with `carbon_dust`, default none) and V8 stays closed without it.
 6. **Colour** (V10): the measured absorber band, with the acid cloud and sulfur dioxide, replaced by V8 or V9 if either is on (their published spectra
    would be used, not added).
 
@@ -37,13 +37,13 @@ import os
 from dataclasses import dataclass, field
 from statistics import NormalDist
 
-from planetgen.physics import acid_medium, aerosols, air_column, atmosphere, constants, cosmic_dust, elements, sulfuric_vapor
+from planetgen.physics import acid_medium, aerosols, air_column, atmosphere, constants, elements, sulfuric_vapor
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfur_cloud_set.json")
 
 INCLUDE_HYPOTHESES = False
 """bool: Whether the chain may give a body V8 and V9, the single-source hypotheses (iron-PAH from cosmic dust, sulfur-chlorine products). Off by default (Boss's set, 11-08);
-turn it on to see them. V8 also needs the body's cosmic-dust influx (`dust_supply`, GEN.1542)."""
+turn it on to see them. V8 also needs the body's cosmic-dust influx from its own system's belts and comets (`dust_supply`, GEN.1543)."""
 
 GLOBAL_OCEAN = ("surface ocean", "hycean")
 """tuple: The hydrosphere values that bury a body's rock under liquid, so no iron is exposed to the air."""
@@ -220,9 +220,11 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
     return Chemistry(tuple(present), gates, cloud, absent)
 
 
-def dust_supply(mass_kg, radius_m, distance_au, star_mass_kg):
-    """Whether the cosmic dust that reaches a body of `mass_kg` and `radius_m` at `distance_au` from a star of `star_mass_kg` is at least `dust_min_share_of_reference` of Venus's per area (gate 5, V8; GEN.1542)."""
-    return cosmic_dust.share_of_reference(mass_kg, radius_m, distance_au, star_mass_kg) >= number("dust_min_share_of_reference")
+def dust_supply(influx_kg_yr, radius_m):
+    """Whether the cosmic dust that reaches a body (`influx_kg_yr`, kg a year, from the belts and comets of its own system: `generation/dust_supply`) is at least `dust_min_influx_kg_m2_yr` per m2 of its surface (gate 5, V8; GEN.1543)."""
+    if not influx_kg_yr or not radius_m or radius_m <= 0.0:
+        return False
+    return influx_kg_yr / (4.0 * math.pi * radius_m ** 2) >= number("dust_min_influx_kg_m2_yr")
 
 
 COLUMN = "cloud_chemistry"
@@ -253,7 +255,7 @@ def fill(body, values):
     """
     Sets `cloud_chemistry` on a rocky planet or moon from its finished air, light and ground (`values` is `habitability_world.values_from_body`, with the energy flux set): the
     species of the Venus set the chain gives it (GEN.1425). Gate 2 is the acid cloud the body's aerosols were drawn with (`sulfuric_cloud.window` at the aerosols' skin
-    temperature), the ultraviolet-C flux is the star's `uv_c_share` of the absorbed flux, the cosmic-dust supply is `dust_supply` of the body's size and place, and V8 and V9
+    temperature), the ultraviolet-C flux is the star's `uv_c_share` of the absorbed flux, the cosmic-dust supply is `dust_supply` of the influx its system's belts and comets send it (`generation/dust_supply`), and V8 and V9
     (single-source hypotheses, off by default) follow `INCLUDE_HYPOTHESES`. A body with no air stores `None`.
     """
     body.cloud_chemistry = None
@@ -268,7 +270,7 @@ def fill(body, values):
     uv_c = flux * share if flux and share is not None else None
     cloud = sulfuric_cloud.window(column, temperature, aerosols.skin_of(body))
     radius_km = getattr(body, "radius", None)
-    dust = bool(radius_km) and star is not None and dust_supply(getattr(body, "mass", None), radius_km * 1000.0, getattr(body, "_star_distance_au", None), getattr(star, "mass", None))
+    dust = bool(radius_km) and dust_supply(getattr(body, "_dust_influx_kg_yr", None), radius_km * 1000.0)       # GEN.1543: set by `generation/dust_supply` once the belts and comets are in
     body.cloud_chemistry = encode(chemistry(values, uv_c_w_m2=uv_c, carbon_dust=dust, include_off_by_default=INCLUDE_HYPOTHESES, cloud=cloud))
 
 

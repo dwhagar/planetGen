@@ -22,7 +22,7 @@ function of the stored belts and planets, so a column would only be a second cop
 * *Crossings (GEN.1543).* A grain of belt dust does not cross the planet's orbit once. Poynting-Robertson drag takes a grain inward at `da/dt = 2 beta G M / (c a)` (`beta` the light-to-gravity ratio of
   the grains, `GRAIN_BETA` for the Sun), and a grain of eccentricity `GRAIN_ECCENTRICITY` crosses the orbit radius twice a period for as long as its semi-major axis is within that share of the planet's: `2 e a / (da/dt)`.
   The number of crossings is `N = e c sqrt(a) / (pi beta sqrt(G M))` (about 3e4 at 1 AU), and the planet takes `1 - exp(-N R_eff^2 / (4 a^2))` of the grain's passes. Without it the Earth got 45 kg a year
-  from a Solar-System belt against the 1e7 measured; with it about 1e6 to 1e7. A comet is a nucleus that crosses once and is not multiplied.
+  from a Solar-System belt against the 1e7 measured [R5228]; with the asteroid belt alone about 8e5 (the Jupiter-family comets are the larger share of the real dust). A comet is a nucleus that crosses once and is not multiplied.
 * *Shield.* Each giant that lies between the reservoir and the planet ejects a share of what drifts past it, `1 - exp(-Theta / THETA_EJECT)` with `Theta` its Safronov number (`scatter`, the rule the
   swept disk of the giants follows); what is left is the product over the giants in the way.
 

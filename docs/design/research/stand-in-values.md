@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1617 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1614 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1591 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1588 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -49,14 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
 | T2 | 149 | 60 | 1 | 1 | 0 | 211 |
-| T3 | 116 | 53 | 9 | 10 | 0 | 188 |
+| T3 | 115 | 52 | 9 | 10 | 0 | 186 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 207 | 108 | 32 | 82 | 4 | 433 |
+| T6 | 207 | 107 | 32 | 82 | 4 | 432 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 45 | 16 | 5 | 93 | 35 | 194 |
-| All | 926 | 312 | 77 | 249 | 53 | 1617 |
+| All | 925 | 310 | 77 | 249 | 53 | 1614 |
 
 ## How the labels were given
 
@@ -1876,13 +1876,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CV5 | T | T6 | L0 | V5: elemental sulfur aerosol (S8 and shorter chains) where the sulfur dioxide is over `sulfur_aerosol_min_so2_share` as well as gate 3 | default on | a sulfur-rich photochemical air | a measured sulfur-rich air without the aerosol | a photochemistry model | STATUS predicted only; READ ([R5169: Table 3] S8 misfit 76 to 120, against 14 for S2O: fits less well, not excluded) | predicted only | - | - |
 | CV6 | T | T6 | L0 | V6: iron(III) chloride where the acid cloud, hydrogen chloride and exposed iron are all present (gates 2, 4, 5) | default on | terrestrial body without a global ocean | a measured acid cloud with chlorine and iron and no trace of it | a model of where the iron goes | STATUS predicted only; READ ([R5169: Table 3] misfit 86; [R5170] abstract, a preprint under review, only the abstract read) | predicted only | - | - |
 | CV7 | T | T6 | L0 | V7: ferric sulfates (acid ferric sulfate, ferric hydroxy sulfates) where the acid cloud and exposed iron are present (gates 2, 5) | default on | terrestrial body without a global ocean | as CV6 | a model of where the iron goes | STATUS predicted only; READ ([R5170] abstract only) | predicted only | - | - |
-| CV8 | T | T7 | L0 | V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (`cosmic_dust.influx_per_area_kg_m2_yr` at least `dust_min_share_of_reference` of Venus's, CV11 to CV14; GEN.1542) | off by default | needs the acid cloud, iron and dust | a measured acid cloud with dust and none of it | a second paper | STATUS predicted only (one preprint); READ ([R5170] abstract only: the cloud-top carbon and iron need 600 and 3 thousand years of influx at the least) | predicted only | - | - |
+| CV8 | T | T7 | L0 | V8: polycyclic aromatic hydrocarbons with iron compounds from cosmic dust, off by default; needs the acid cloud, exposed iron and a cosmic-dust supply on the body (the influx of its system's belts and comets, `influx.py`, at least `dust_min_influx_kg_m2_yr` per area, CV14; GEN.1542, GEN.1543) | off by default | needs the acid cloud, iron and dust | a measured acid cloud with dust and none of it | a second paper | STATUS predicted only (one preprint); READ ([R5170] abstract only: the cloud-top carbon and iron need 600 and 3 thousand years of influx at the least) | predicted only | - | - |
 | CV9 | T | T7 | L0 | V9: sulfur-chlorine products (SCl2, ClSSCl, SO2Cl2), off by default; gates 3 and 4 | off by default | photolysed sulfur and chlorine | as CV8 | a second paper | STATUS predicted only; READ ([R5169: Table 3] SCl2 misfit 57; the others are not in the table) | predicted only | - | - |
 | CV10 | P | T9 | L3 | V10: the unidentified ultraviolet absorber as a Gaussian band, centre `absorber_center_um` 0.34 and full width `absorber_fwhm_um` 0.14 micron, peak `absorber_depth_per_cloud_depth` 0.1 of the cloud depth at 550 nm scaled by the sulfur dioxide share to `absorber_so2_reference_share` 1e-4; replaced by the published spectrum of V8 or V9 if either is on, never added to it; the centre and width of a body move inside the stated +/- by its stored `aerosol_draw` (a normal deviate held to two sigma either way, `sulfur_cloud_set.absorber_band`; the two-sigma limit is a numerical choice) | centre 0.34 +/- 0.03, width 0.14 +/- 0.01 (read); strength hand-set | with V1 and sulfur dioxide | a measured band centre or width outside the stated ranges; a peak depth far from 0.1 | a retrieved band strength | STATUS predicted only (its identity); READ for the band ([R5169: abstract and section 4.3]); the strength is a stand-in, not in the text | predicted only | - | no data |
-| CV11 | P | T3 | L0 | `cosmic_dust.EARTH_INFLUX_KG_YR` 1e7 kg a year (28 tonnes a day), the cosmic dust that reaches the Earth, the anchor of the influx on any body | 5 to 300 tonnes a day by method | any body | a measured influx on another planet far from the scaling | a dust-model fit per planet | STATUS observed (the Earth, by several methods that disagree by a factor of 50); READ ([R5228], recalled) | predicted only | - | - |
-| CV12 | P | T3 | L1 | `cosmic_dust.DISTANCE_EXPONENT` 1.8: the mass flux per area falls with the star's distance as the zodiacal dust's density (index 1.3, recalled) times the encounter speed (0.5) | 1.5 to 2.1 | 0.3 to 3 AU, where the zodiacal law is measured | an influx on Mars or Mercury far from the scaling | a dust-model fit | STATUS recalled, not read; gives Venus 31 tonnes a day and Mars 1.7 | predicted only | - | - |
-| CV13 | P | T6 | L1 | `cosmic_dust.STAR_MASS_EXPONENT` 0.5: the flux rises with the star's mass through the encounter speed; the dust a star's belts and comets make is taken as the Sun's | 0 to 1 | stars of 0.3 to 2 solar masses | a dust measurement around another star (exozodi) | a per-system dust model | STATUS educated guess from physics | predicted only | - | - |
-| CV14 | P | T9 | L3 | `sulfur_cloud_set` number `dust_min_share_of_reference` 0.1: the least influx per area, as a share of Venus's, that gate 5 calls a supply for V8; a rocky planet out to about 2.5 AU of a Sun-like star passes | 0.03 to 0.3 | V8 only, off by default | a second paper that puts the need outside the 600 and 3 thousand years | the paper's cloud-top budget | STATUS from needed output; no source gives the share | predicted only | - | - |
+| CV14 | P | T9 | L3 | `sulfur_cloud_set` number `dust_min_influx_kg_m2_yr` 2.4e-10 kg per m2 a year: the least cosmic-dust influx per area that gate 5 calls a supply for V8, a tenth of Venus's by `influx.py` with a Solar-System asteroid belt (2.4e-9); the comets and the Kuiper belt are not in that reference, so it is on the model's own scale | 2.4e-11 to 2.4e-9 | V8 only, off by default | a second paper that puts the need outside the 600 and 3 thousand years of influx | the paper's cloud-top budget | STATUS from needed output; no source gives the share | predicted only | - | - |
 | CG1 | P | T9 | L3 | sulfur_cloud_set.json `acid_vapor_share_of_so2` 0.03: the acid vapor as a share of the sulfur dioxide at every level of the dry adiabat | 1 to 10 percent | airs with an acid cloud | a measured sub-cloud acid vapor off 2 to 7 percent of the sulfur dioxide | a photochemistry model of the acid vapor | from the base of the published Venus cloud: 3 to 10 ppm of acid in 30 ppm of water at about 1.3 bar puts the curve's base at 356 to 370 K (GEN.1424); one planet calibrates it | predicted only | - | replace (GEN.1425) |
 | CG2 | P | T9 | L3 | `cloud_water_min_share` 1e-6, `uv_c_min_w_m2` 0.5, `reductant_min_share` 1e-7, `sulfur_aerosol_min_so2_share` 1e-5, `chlorine_min_share` 1e-7: the floors of the gates | each a decade either way | gates 2 to 4 | a sweep that moves any of them | a sweep | STATUS predicted only; the floors are those proposed in section 10.2 of the unseen-compounds report (1 ppm of water, 0.1 ppm of chlorine) and hand-set where the report gives none; not solver floors | predicted only | - | no data |
 | CG3 | P | T9 | L0 | `sulfur_cloud_set.INCLUDE_HYPOTHESES` False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on) | on or off | the whole set | a second paper that supports V8 or V9 | a second paper, then a setting | a design choice of Boss's set (11-08): single-source hypotheses are registered and off | predicted only | - | - |
