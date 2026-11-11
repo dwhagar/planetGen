@@ -13128,6 +13128,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 14, with Lane 22 for the belt side. Prerequisites: GEN.1542. Related: GEN.1542, GEN.1440, GEN.1453, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1544 (bug) A planet's cosmogenic isotope rows (Al-26, Be-10) are first made before its magnetic field exists, so they use a field factor of 1.0 until the final-age pass remakes them**
+  Train Manager (as the lane reported 5:01 PM EST on 2026-11-11), found in Train 24: the isotope record is first made inside planets.calculate_atmospheric_conditions (planets.py around line 736) before magnetism.generate_field (around line 1238), but the cosmogenic rows (isotope_record._field_relative, GEN.1489) read the dipole moment, so every planet with a field stores Al-26 and Be-10 records made with moment None (field factor 1.0) until the final-age pass reruns them. It shows in Train 24 as test_isotope_record::test_the_same_body_gets_the_same_record_and_the_run_stream_does_not_move because GEN.993 (wider core light elements) gives the test's seed-3 planet a field; on main that planet has moment 0.0, which hides it. Do: make a second isotope_record.generate(planet) right after generate_field, in its own stream so no run draw moves (or move the first call after the field), and pin a test on a planet with a field. Lock item (stored isotope rows change). Train 24 carries a test-only change meanwhile.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 22. Prerequisites: none. Related: GEN.1489, GEN.993.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
