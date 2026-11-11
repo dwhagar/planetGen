@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
@@ -130,6 +130,19 @@ def run_detail(run_id):
                                 "kind": fields.get("kind", "log"), "message": fields.get("message", ""),
                                 **{name: fields[name] for name in runrecord.EVENT_FIELD_NAMES if name in fields}}
                                for entry_id, fields in events]})
+
+
+@bp.route("/jobs", methods=["GET"])
+@require_admin()
+def running_jobs():
+    """
+    `GET /api/admin/work/jobs` -- the jobs that are not units of a run and are running, from their beats (OPS.142): `{"jobs": [{"kind" ("api", "web" or "tile-prefetch"), "job", "label",
+    "state" ("working" or "dead"), "reason", "phase", "running_seconds", "beat_age_seconds"}]}`, the longest running first. A job that died stays listed, as `dead`, for an hour.
+    """
+    connection = _connection()
+    if connection is None:
+        return jsonify({"jobs": [], "available": False})
+    return jsonify({"jobs": jobbeat.states(connection), "available": True})
 
 
 @bp.route("/<run_id>/units")

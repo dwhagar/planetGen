@@ -78,9 +78,10 @@ class UnitBeat:
     """
 
     def __init__(self, conn, run_id, stage, unit, clock=time.monotonic, beat_seconds=None, counter_write_seconds=None, resident=None, tick_seconds=TICK_SECONDS,
-                 stack_file=None):
+                 stack_file=None, hash_key=None, extra=None):
         self.stack_file = stack_file
-        self.conn, self.key, self.unit = conn, runrecord.progress_key(run_id, stage), str(unit)
+        self.extra = dict(extra or {})
+        self.conn, self.key, self.unit = conn, hash_key or runrecord.progress_key(run_id, stage), str(unit)
         self.clock = clock
         self.beat_seconds = beatjudge.BEAT_SECONDS if beat_seconds is None else beat_seconds
         self.counter_write_seconds = COUNTER_WRITE_SECONDS if counter_write_seconds is None else counter_write_seconds
@@ -151,6 +152,7 @@ class UnitBeat:
                     "pid": os.getpid(), "host": socket.gethostname(), "longest_gap": round(max(self._longest_gap, 0.0), 1)}
             if self.stack_file:
                 made["stack_file"] = self.stack_file
+            made.update(self.extra)
             if self._moved_at is not None:
                 made["moved"] = now_server - (self.clock() - self._moved_at)
             written = self._done
