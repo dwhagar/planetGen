@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1538 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1541 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1512 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1515 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 183 | 20 | 11 | 1 | 0 | 215 |
+| T1 | 184 | 20 | 11 | 1 | 0 | 216 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 111 | 47 | 9 | 10 | 0 | 177 |
 | T4 | 80 | 11 | 3 | 21 | 12 | 127 |
-| T5 | 76 | 24 | 6 | 1 | 1 | 108 |
+| T5 | 78 | 24 | 6 | 1 | 1 | 110 |
 | T6 | 192 | 106 | 30 | 75 | 2 | 405 |
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 877 | 302 | 74 | 235 | 50 | 1538 |
+| All | 880 | 302 | 74 | 235 | 50 | 1541 |
 
 ## How the labels were given
 
@@ -133,7 +133,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AT.j2, j3, j4 | T | T6 | L0 | Mars-, Titan-, Pluto-like occurrence from the escape and retention physics of the generator (shoreline argument), not a separate frequency. | an observed analogue population contradicts | any measured analogue population | predicted only | - | - |
 | AT.m3, m4, m11 | T | T5 (N2O, NO2), T7 (PH3, CH3Cl) | L0 | Abiotic trace yields from lightning and photochemistry; presence follows the chemistry rows. | a detection or strong limit on a temperate planet | any measurement | predicted only | - | - |
 | AT.F | B | T3 | L0 | Each thin row: bracket from its neighbours as listed in the tunable-gaps note (16 rows). | each row's falsifier | per-row data | predicted only | - | - |
-| AD1 | B | T2 (NH3 visible, ExoMol CoYuTe line list via [R2098]), T3 (CH4 and H2O bands) | L0 | Band strengths from neighbouring molecule bands; | a measured giant colour disagrees | tables replace | predicted only | - | - |
+| AD1 | B | T2 (NH3 visible, ExoMol CoYuTe line list via [R2098]), T3 (CH4 and H2O bands) | L0 | Band strengths from neighbouring molecule bands; | a measured giant colour disagrees | tables replace. GEN.949 (2026-11-11): the visible methane is now read from the Karkoschka 1998 table (fill AD12 of 6.6, T1); ammonia and water stay on the bins | predicted only | - | - |
+| AD13 | D | T5 | L0 | `physics/uv_cross_sections.methane_optical_depth`: the methane depth of a cell is the optical depth of the mean transmission of the table's samples in it, `-ln(mean(exp(-N sigma)))` for the vertical column `N`, so strong bands and windows keep their depth at any cell width; the slant path and the longer paths of scattered light are left to the two-stream layers, which take this depth as the vertical one | a giant's colour computed line by line differs from the cell depth by more than the band-model error | a k-distribution per layer (the Oxford tables of [R2265]) | predicted only | - | - |
+| AD14 | D | T5 | L0 | `datasets/methane_visible.py`: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives | a retrieved warm-methane spectrum differs | the temperature dependence from the band parameters of [R2265] | predicted only | - | - |
 | AD2 | B | T3 (dust spectrum beyond the solar band, [R4392, R4394] haze spectrum), T2 (Titan haze optical constants via He 2022 and [R4004]), T1 ([R4743] solar-band single-scattering albedo) | L0 | Dust and haze spectra from similar materials. Citations pass, 2026-10-24 (GEN.792; reports/secondhand-citations-2026-10-24.md Part 10): [R4743] uploaded; its spectra exist only in Figures 12 to 14 (digitize, label them so). [R4392, R4394] (Boss cannot access) is figure-only elsewhere. | measured spectra | tables replace | predicted only | - | - |
 | AD3 | D | T1 | L0 | Compute correlated-k tables from the HITRAN and ExoMol line lists (reachable by 10:59 AM EDT). | the grid disagrees with a published spectrum | none | predicted only | - | - |
 | AD4 | B | T1 (air gases: [R0282, R0575, R2361, R4138] read first-hand), T3 (SO2 and H2S King factors via PICASO, NH3 via the fit in PICASO) | L0 | King factors from NIST for molecules with printed values; others by family. | depolarization of SO2 or H2S measured outside | originals replace | predicted only | - | - |
@@ -180,6 +182,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SL1 | D | T1 | L0 | the blackbody of the effective temperature with a seeded UV-C share (GEN.443, R17) and the BT-Settl chromaticity offsets | the spectra download (`stellar_spectra.py`, read by `physics/stellar_library.py`, GEN.970; wired by GEN.971) | [R0681] (IAU Symp. 210, A20); [R2058] | predicted only | - | - |
 | PS12 | D | T1 | L0 | the spectral subclass linear in temperature inside each letter and the K/M boundary at 3,700 K | the table download (`mamajek_sequence.py`; read by `stellar_evolution.spectral_letter_and_subclass`, GEN.943) | [R3469] | predicted only | - | - |
 | GS1 | D | T1 | L0 | the n = 1 polytrope of a gas giant, the n = 3/2 polytrope of a brown dwarf and the constant-density layers of an ice giant (design note D7) | the hydrogen-helium download (`hhe_eos.py`, read by `physics/giant_structure.py`, GEN.733) | [R0708, R0709] | predicted only | - | - |
+| AD12 | D | T1 | L0 | the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands (727, 790, 840, 890 nm) and the windows between them | the methane download (`methane_visible.py`, read by `physics/uv_cross_sections.methane_optical_depth` and so by every colour with methane in its air; GEN.949, the visible part of AD1) | [R2259] (Karkoschka 1998), [R2258] (Karkoschka 1994); the band model of [R2265] (Karkoschka and Tomasko 2010) is not read | predicted only | - | - |
 
 ## 6.7 Stand-ins of the atmosphere mixture draw
 
