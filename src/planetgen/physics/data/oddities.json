@@ -156,7 +156,7 @@
       "limits": [
         {"quantity": "obliquity_deg", "min": 0.0}
       ],
-      "source": "[R2571, R5220] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "source": "[R2571, R5227] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
       "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
     },
     {
@@ -184,7 +184,7 @@
       "limits": [
         {"quantity": "obliquity_deg", "min": 0.0}
       ],
-      "source": "[R2571, R5220] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
+      "source": "[R2571, R5227] (the chaotic obliquity of the planets, and the Moon's steadying of the Earth's); the module is physics/obliquity_variation.py",
       "text": "Its tilt is not steady: the pull of its neighbours on its orbit sets the spin axis wandering over tens of degrees, so its seasons change over the ages."
     },
     {

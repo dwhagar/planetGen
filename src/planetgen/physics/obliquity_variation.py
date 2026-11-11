@@ -32,7 +32,7 @@ small).
   (the orbit's own nod when `alpha` is small against `|s_k|`, nothing when it is large), added in quadrature.
 * **Inside one resonance** it librates over the zone `[X_k - W_k, X_k + W_k]`.
 * **Where two zones overlap** (`W_j + W_k >= |X_j - X_k|`, Chirikov's criterion) the motion is chaotic over the union of the zones that chain together, and the obliquity over a long
-  time covers it. This is the Moon-less Earth and Mars of [R5220]: a planet with few or no moons beside a heavy neighbour, whose `alpha` is small enough
+  time covers it. This is the Moon-less Earth and Mars of [R5227]: a planet with few or no moons beside a heavy neighbour, whose `alpha` is small enough
   that several `alpha X = -s_k` fall inside its range of tilt.
 
 `analyse` returns the `Variation` of a planet; `chaotic_tilt_deg` draws the tilt a chaotic planet has at a given time from its range. Nothing here is fitted: every number is a
@@ -42,7 +42,7 @@ quantity of the system or a constant of the theory.
 mode's resonance is taken as isolated before the overlap test (the true boundary of a chaotic zone is rougher); the spin rate and the moons are taken as they are now (a planet that
 has tidally despun, or whose big moon formed late, has had other values; `alpha` follows the spin down as `omega^1`, so the past of a slow spinner is more chaotic than its present
 shows); the companion's mode is added without the coupling to the siblings' modes; and the dynamical ellipticity is the fluid one (a stiff planet carries more, Mars 0.0054 against 0.0041, which moves `alpha` and the resonances with it). The theory is also the lower
-bound of the chaos: the Moon-less Earth of Laskar and others [R5220] wanders from 0 to 85 degrees through combination terms of the modes that the isolated pendulums here do not have, and comes
+bound of the chaos: the Moon-less Earth of Laskar and others [R5227] wanders from 0 to 85 degrees through combination terms of the modes that the isolated pendulums here do not have, and comes
 out as a 17 degree swing, and Mars comes out resonant (18 to 37 degrees at its measured `alpha`) where the full theory finds it chaotic from 0 to 60. The Earth with its Moon comes out at
 22.6 to 24.3 degrees against the 22.1 to 24.5 measured. A body locked to its star or resonant with it takes the Cassini state instead (`tidal_spin.cassini_tilt_deg`), not this. The registered stand-ins are in `docs/design/research/gap-filling-plan.md`, section 6.271.
 """

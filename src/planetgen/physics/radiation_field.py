@@ -77,6 +77,12 @@ def _distances_au(axis_au, eccentricity):
     return axis_au * (1.0 - eccentricity * np.cos(anomaly))
 
 
+def separations_au(axis_au, eccentricity):
+    """The distance of a body on an orbit of semi-major axis `axis_au` and eccentricity `eccentricity` from its primary at `ORBIT_SAMPLES` points uniform in time (the grid every
+    mean over a source's orbit here is taken on; GEN.1446 reads it for the mean of `1 / d^3`)."""
+    return _distances_au(axis_au, eccentricity)
+
+
 def mean_inverse_square(distance_au, axis_au, eccentricity):
     """
     `g`, the time-averaged `1/d^2` (1/AU^2) between a body at `distance_au` from its host (taken as a circle) and a source on an orbit of semi-major axis
