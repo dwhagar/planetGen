@@ -533,12 +533,15 @@ DEFAULT_HOME_JITTER_LY = 1.0
 # every existing system's minimum-separation requirement before giving up.
 SECTOR_MAX_PLACEMENT_ATTEMPTS = 100
 
-SECTOR_HILL_SEPARATION_SHARE = 0.5
-"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192). A galactic Hill
-sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood
-overlaps them freely: the mean spacing of systems is 2.2 pc and the nearest neighbour of the Sun is inside its sphere. Keeping the whole sum apart asks a 4 pc
-sector for spheres that fill 0.6 of its volume, which random placement cannot do, so it ran out of room and kept 85 percent of the systems the profile expects (78 percent
-of the mass). Half the sum holds the expected count (424 of 424 requested in 125 solar-circle sectors)"""
+SECTOR_HILL_SEPARATION_SHARE = 0.05
+"""float: The share of the two systems' summed galactic Hill radii that random placement keeps between them (GEN.1284, stand-in SEP1 in 6.192, fitted to Gaia in GEN.1534). A galactic Hill
+sphere (the Jacobi radius, a median 1.3 pc at the solar circle of the audit galaxy) is the edge of what a star can hold bound, and the real solar neighbourhood overlaps them freely:
+in the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, 958 systems within 15 pc, 0.074 systems per cubic parsec) 30 percent of the systems have a neighbour nearer than 1 pc and the
+median nearest neighbour is 1.33 pc, which is what no exclusion at all gives (1.31 pc, 27 percent), while the old half of the sum (1.3 pc between two median systems) forbade every
+neighbour under 1 pc and moved the median to 1.65 pc. `scripts/fit_sector_separation.py` places systems at that density by the galaxy's own rejection and compares the nearest-neighbour
+distribution with the sample's: the Kolmogorov-Smirnov distance is inside the 95 percent band (0.044) for shares up to 0.075, 0.045 at 0.1 and past it from 0.15 (0.086 at 0.2, 0.38 at 0.5).
+0.05 is the middle of the shares the data allow and keeps a mild exclusion; the nearby clustering of real wide pairs and moving groups is not reproduced by any share. Every sector keeps
+every system it is asked for (GEN.1284 found 424 of 424 at the old half, and a smaller share has more room)."""
 
 # --- Space Sector Growth Parameters (Poisson-disk placement) ---
 

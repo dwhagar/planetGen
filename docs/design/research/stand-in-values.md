@@ -47,7 +47,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 185 | 20 | 11 | 1 | 0 | 217 |
+| T1 | 185 | 20 | 12 | 1 | 0 | 218 |
 | T2 | 145 | 59 | 1 | 1 | 0 | 206 |
 | T3 | 116 | 53 | 9 | 10 | 0 | 188 |
 | T4 | 82 | 12 | 4 | 22 | 12 | 132 |
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 200 | 107 | 30 | 82 | 4 | 423 |
 | T7 | 51 | 19 | 9 | 34 | 0 | 113 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 902 | 310 | 75 | 248 | 53 | 1588 |
+| T9 | 44 | 16 | 5 | 91 | 35 | 191 |
+| All | 902 | 310 | 76 | 247 | 53 | 1588 |
 
 ## How the labels were given
 
@@ -1744,7 +1744,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SEP1 | P | T9 | L3 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.5: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`) | 0.3 to 0.7 | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a measured count of stars inside one another's Jacobi spheres in the solar neighbourhood that fixes the share, or a placement that packs the whole sum | a nearest-neighbour distribution from the solar neighbourhood's catalogued stars | reports/gen1284-placement-mass-loss-2026-11-05.md | predicted only | - | no data |
+| SEP1 | P | T1 (the Gaia DR3 nearest-neighbour distribution), T9 (the form: a share of the Hill spheres kept clear) | L2 | tuning.SECTOR_HILL_SEPARATION_SHARE 0.05: the share of the sum of two systems' galactic Hill radii that random placement keeps between them (`required_separation_ly`), fitted by `scripts/fit_sector_separation.py` to the nearest-neighbour distances of the 958 systems within 15 pc of the Gaia DR3 sample within 25 pc (`datasets/gaia_nearby.py`, GEN.1534) | 0 to 0.1 (the Kolmogorov-Smirnov distance is inside the 95 percent band, 0.044, up to 0.075 and 0.045 at 0.1) | a sector whose systems have Hill radii of a parsec or so at 0.05 to 0.1 systems per cubic parsec | a Gaia sample whose nearest-neighbour distribution a share of 0.05 misses by more than the band, or a complete census of the nearest stars with a different spacing (the old 0.5 forbade every neighbour under 1 pc, where 30 percent of the real systems have one) | none; the form of the rule (Hill spheres) is a design choice, the number is now read from data | `tests/test_sector_separation_fit.py` holds the tuned share inside the band when the sample is downloaded; the model scatters the Hill radius log-normally by 0.2 about the audit galaxy's 1.3 pc (`HILL_SIGMA`, an assumption) and does not reproduce the clustering of wide pairs and moving groups (6 percent of real systems under 0.5 pc against 4 percent for no exclusion); reports/gen1284-placement-mass-loss-2026-11-05.md | predicted only | - | replaced |
 
 ## 6.195 Stand-ins of the embryos the planets stir out of a system
 
