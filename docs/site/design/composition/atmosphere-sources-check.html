@@ -196,7 +196,7 @@ main{padding:16px 16px 60px}}
 <td>2ND-HAND, flagged; closer to the snippet value 6.19e-27 at 532 nm</td>
 </tr>
 <tr>
-<td>H<sub>2</sub>O vapor</td>
+<td>H<sub>2</sub>O vapour</td>
 <td>n - 1 = 4.92303e-2/(238.0185 - 1/lam^2) + 1.42723e-3/(57.3262 - 1/lam^2) for lam &gt; 0.23 um; depolarization 2.99e-4 ([R3219] via Ranjan), F = 1.0010. Do not use d = 0.17 (that is liquid water)</td>
 <td>n-1 = 2.362e-4 at 550 nm</td>
 <td>about 0.5</td>
@@ -558,7 +558,7 @@ main{padding:16px 16px 60px}}
 <p>(astro-ph/9810073, abstract READ): Rayleigh scatter dominates in the blue; molecular absorption removes red and infrared; cloud-free atmospheres above about 400 K are dark beyond 0.6 micron.</p>
 <p><strong>Use for GEN.419 (giants):</strong> pick the class from T_eff (or T_eq) by the table, take the B, V, R, I colour from the Cahoy table nearest in class, interpolating in orbital distance and metallicity; do not fix a colour per class letter without that table (the project rule). Cahoy Table 6 has all 16 models.</p>
 <h3 id="55-condensation-partly-verified">5.5 Condensation: partly verified</h3>
-<p>READ ([R2731], astro-ph/0511136, eq. 32 and 34, P in bar, solar composition): NH<sub>4</sub>SH: 10^4/T_cond = 48.91 - 4.15 log10(P) - 4.15 [M/H] (1 bar solar: 204.5 K, COMPUTED by the worker); H<sub>2</sub>S: 10^4/T_cond = 86.49 - 8.54 log10(P) - 8.54 [S/H] (1 bar solar: 115.6 K); H<sub>2</sub>S condenses only if NH<sub>3</sub> is absent or less abundant than H<sub>2</sub>S, but NH<sub>3</sub> is about 4.4 times H<sub>2</sub>S in protosolar gas, so NH<sub>4</sub>SH takes the sulfur first. READ [R2101]: methane condenses at about 1.5 bar on both ice giants; H<sub>2</sub>S above about 3 bar; NH<sub>4</sub>SH near 40 bar. <strong>NOT REACHED:</strong> the NH<sub>3</sub>, H<sub>2</sub>O and CH<sub>4</sub> condensation curves from [R2726]/2010, [R2725, R4653]. Boss to research, or use the Clausius-Clapeyron forms the repo already has for H<sub>2</sub>O (<code>vapor_pressure_kpa</code>) and take NH<sub>3</sub> and CH<sub>4</sub> from NIST/Lodders.</p>
+<p>READ ([R2731], astro-ph/0511136, eq. 32 and 34, P in bar, solar composition): NH<sub>4</sub>SH: 10^4/T_cond = 48.91 - 4.15 log10(P) - 4.15 [M/H] (1 bar solar: 204.5 K, COMPUTED by the worker); H<sub>2</sub>S: 10^4/T_cond = 86.49 - 8.54 log10(P) - 8.54 [S/H] (1 bar solar: 115.6 K); H<sub>2</sub>S condenses only if NH<sub>3</sub> is absent or less abundant than H<sub>2</sub>S, but NH<sub>3</sub> is about 4.4 times H<sub>2</sub>S in protosolar gas, so NH<sub>4</sub>SH takes the sulfur first. READ [R2101]: methane condenses at about 1.5 bar on both ice giants; H<sub>2</sub>S above about 3 bar; NH<sub>4</sub>SH near 40 bar. <strong>NOT REACHED:</strong> the NH<sub>3</sub>, H<sub>2</sub>O and CH<sub>4</sub> condensation curves from [R2726]/2010, [R2725, R4653]. Boss to research, or use the Clausius-Clapeyron forms the repo already has for H<sub>2</sub>O (<code>vapour_pressure_kpa</code>) and take NH<sub>3</sub> and CH<sub>4</sub> from NIST/Lodders.</p>
 <h3 id="56-clouds-in-general">5.6 Clouds in general</h3>
 <ul>
 <li>Venus: [R0157]: optical depth at 0.63 micron: upper haze 0.2-1, upper cloud 6-8, middle 8-10, lower 6-12, lower haze 0.1-0.2; the three main layers sum to about 20-30. <strong>&quot;30-40&quot; is not verified.</strong> Droplets 75-85 percent H<sub>2</sub>SO<sub>4</sub>; modes 0.49, 1.04, 3.85 micron; Bond albedo 0.76 typical, range 0.7-0.82, 0.81 in models ([R1569], READ). [R3014, R3016]: clouds reflect over 70 percent and only about 3 percent reaches the surface.</li>
