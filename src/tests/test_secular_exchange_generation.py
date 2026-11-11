@@ -97,3 +97,26 @@ def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
             for body in (*([planet] if planet.body_type == "t" else []), *getattr(planet, "moons", ())):      # (a giant is not made again by the refresh)
                 if getattr(body, "_age_drawn", None) is not None:
                     assert not planetPhysics.age_moved(body), (body.name, body._age_drawn)
+
+
+def test_a_belt_pulls_on_the_planets_of_its_star_and_a_system_without_belt_pull_differs(monkeypatch):
+    """GEN.1464: the same system made with the belts' rings left out of the exchange leaves the planets on other orbits; the belts are not in the exchange's result."""
+    with_belt = _system(1)
+    belts = [p for p in with_belt.planets if p.body_type == 'a']
+    assert belts and belts[0].mass_kg > 0.0, "seed 1 makes a belt with a mass"
+    monkeypatch.setattr(planetPhysics, "belt_rings_of", lambda planets, axes: ([], []))
+    without = _system(1)
+    planets_with = [p for p in with_belt.planets if p.body_type != 'a']
+    planets_without = [p for p in without.planets if p.body_type != 'a']
+    assert len(planets_with) == len(planets_without) > 1
+    assert any(abs(a.eccentricity - b.eccentricity) > 1e-6 for a, b in zip(planets_with, planets_without)), "the belt's pull moves at least one planet's orbit"
+
+
+def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass():
+    system = _system(2)
+    belts = [p for p in system.planets if p.body_type == 'a' and p.mass_kg > 0.0]
+    bodies = [p for p in system.planets if p.body_type != 'a']
+    axes, masses = planetPhysics.belt_rings_of(system.planets, [p.distance for p in bodies])
+    assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
+    assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
+    assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])

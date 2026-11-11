@@ -58523,7 +58523,7 @@
           "fields": [
             [
               "What it is",
-              "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
+              "secular_chain.matrices: the planets of one star, with general relativity on the apsidal diagonal, and the rings of its belts as bodies that pull (BR1 to BR3, GEN.1464); no moon, no stellar quadrupole or tide, and no companion star"
             ],
             [
               "The range it moves in",
@@ -58539,7 +58539,7 @@
             ],
             [
               "What replaces it",
-              "belts as real masses (GEN.1462); the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads precession_rates"
+              "the companion's Kozai-Lidov pumping and quenching (GEN.1447, Lane 23), which reads precession_rates"
             ],
             [
               "Evidence",
@@ -58554,7 +58554,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "secular_chain.matrices: only the planets of one star, with general relativity on the apsidal diagonal; no belt, no moon, no stellar quadrupole or tide, and no companion star"
+          "what": "secular_chain.matrices: the planets of one star, with general relativity on the apsidal diagonal, and the rings of its belts as bodies that pull (BR1 to BR3, GEN.1464); no moon, no stellar quadrupole or tide, and no companion star"
         },
         {
           "burn_down": null,
@@ -58593,6 +58593,120 @@
           "tweak": "L0",
           "unread": null,
           "what": "planets.secular_exchange: the eccentricities and inclinations the generator draws are the starting state and the exchange runs to the star's final age; the tide then wears an eccentricity (settle_orbit keeps the lower of the tide's and the exchange's)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain.BELT_RINGS 8: a belt is cut into eight equal-width rings with the belt's mass spread over its annulus at one surface density (a ring's share goes as its area, its axis is the area's centroid)"
+            ],
+            [
+              "The range it moves in",
+              "4 to 32 rings"
+            ],
+            [
+              "Where it holds",
+              "belts a factor of two wide or less"
+            ],
+            [
+              "What would show it wrong",
+              "a belt with a mass profile that is not flat in surface density (the generator draws none) or a belt wide enough that eight rings differ from sixty-four by more than 5 percent in a planet's rate"
+            ],
+            [
+              "What replaces it",
+              "a drawn radial profile of the belt (GEN.1464 follow-up)"
+            ],
+            [
+              "Evidence",
+              "design: the sum over rings converges; the Laplace coefficients vary smoothly over a belt that sits several Hill radii from the planets"
+            ]
+          ],
+          "id": "BR1",
+          "key": "6.244:BR1",
+          "kind": "P",
+          "slug": "6-244-br1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "secular_chain.BELT_RINGS 8: a belt is cut into eight equal-width rings with the belt's mass spread over its annulus at one surface density (a ring's share goes as its area, its axis is the area's centroid)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain.BELT_ALPHA_LIMIT 0.9: a ring within 10 percent of a planet's axis (a_inner / a_outer above 0.9) is left out of that planet's pull"
+            ],
+            [
+              "The range it moves in",
+              "0.8 to 0.95"
+            ],
+            [
+              "Where it holds",
+              "rings beyond the planets' chaotic zones"
+            ],
+            [
+              "What would show it wrong",
+              "a belt edge that the spacing screen lets within 10 percent of a giant, so that the left-out ring would have turned the giant by more than a tenth of what the kept rings do"
+            ],
+            [
+              "What replaces it",
+              "the planet-belt overlap treatment of the Hill spacing"
+            ],
+            [
+              "Evidence",
+              "design: the series in alpha stops converging near 1; the generator's spacing keeps belts several Hill radii off"
+            ]
+          ],
+          "id": "BR2",
+          "key": "6.244:BR2",
+          "kind": "P",
+          "slug": "6-244-br2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L1",
+          "unread": null,
+          "what": "secular_chain.BELT_ALPHA_LIMIT 0.9: a ring within 10 percent of a planet's axis (a_inner / a_outer above 0.9) is left out of that planet's pull"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "secular_chain.evolve fixed bodies: the rings of a belt keep a flat circular orbit and are not moved by the planets (they add their pull to each planet's apsidal and nodal rate and force nothing)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "belts of thousandths to a few Earth masses beside planets of tens to thousands"
+            ],
+            [
+              "What would show it wrong",
+              "a census in which a belt of an Earth mass or more raises its own eccentricity or inclination by the planets' pull enough to change a planet's by more than a tenth"
+            ],
+            [
+              "What replaces it",
+              "rings that evolve with the planets, and a belt stirred by a giant (GEN.1447 follow-up)"
+            ],
+            [
+              "Evidence",
+              "design: a belt is light against the planets that stir it and its own free eccentricity is the belt's drawn spread, not the secular exchange"
+            ]
+          ],
+          "id": "BR3",
+          "key": "6.244:BR3",
+          "kind": "P",
+          "slug": "6-244-br3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "secular_chain.evolve fixed bodies: the rings of a belt keep a flat circular orbit and are not moved by the planets (they add their pull to each planet's apsidal and nodal rate and force nothing)"
         },
         {
           "burn_down": null,
