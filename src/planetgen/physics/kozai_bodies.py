@@ -52,6 +52,9 @@ MAX_CYCLE_KOZAI_TIMES = 40.0
 MINIMUM_BIRTH_ECCENTRICITY = 1.0e-3
 """float: The birth eccentricity under which the test-particle equations would not leave zero; the octupole term and the mutual perturbations seed it in a real system (a stand-in, row KZ1)."""
 
+ECCENTRICITY_CEILING = 1.0 - 1.0e-9
+"""float: The eccentricity the integration is never allowed to reach, in a step or in the stages of one: `sqrt(1 - e^2)` stays real, and a body that gets this far is far inside any Roche limit."""
+
 OCTUPOLE_MAXIMUM = 0.98
 """float: `kozai_verdict`'s cap for the octupole widening."""
 
@@ -95,6 +98,7 @@ class Kozai:
 def _derivatives(state, k):
     """`d(e, w)/dt` for the test-particle quadrupole problem with `sqrt(1 - e^2) cos i` held; `state = (e, w, kozai_constant)`; `k = K`."""
     e, w, constant = state
+    e = min(e, ECCENTRICITY_CEILING)   # the stages of a Runge-Kutta step pass 1 when the orbit is near radial (below 0 only the square is used)
     root = math.sqrt(1.0 - e * e)
     cos_i = constant / root
     sin2_i = 1.0 - cos_i * cos_i
@@ -111,7 +115,7 @@ def _step(e, w, constant, k, dt):
     k4 = _derivatives((e + dt * k3[0], w + dt * k3[1], constant), k)
     e_next = e + dt * (k1[0] + 2.0 * k2[0] + 2.0 * k3[0] + k4[0]) / 6.0
     w_next = w + dt * (k1[1] + 2.0 * k2[1] + 2.0 * k3[1] + k4[1]) / 6.0
-    return min(max(e_next, 0.0), 1.0 - 1.0e-9), w_next
+    return min(max(e_next, 0.0), ECCENTRICITY_CEILING), w_next
 
 
 def cycle(e0, mutual_rad, w0_rad, kozai_times=None):

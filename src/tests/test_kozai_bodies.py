@@ -159,3 +159,12 @@ def test_pump_moons_pumps_a_captured_moon_in_the_window_and_removes_one_the_cycl
     else:
         assert lost == [] and captured.eccentricity == kozai.eccentricity_now and captured._orbit_birth == kozai.eccentricity_now
     assert ledger.rows and ledger.rows[0][0] == "secular" and ledger.rows[0][1] > 0.0
+
+
+def test_an_orbit_driven_almost_radial_does_not_leave_the_square_root_domain():
+    """The stages of a Runge-Kutta step may carry the eccentricity past 1 when the cycle reaches 1 - 1e-9 (the crash of 7 test_orbital_motion setups)."""
+    for e in (1.0 - 1.0e-9, 1.0, 1.0 + 1.0e-6, -1.0e-3):
+        de, dw = kb._derivatives((e, 0.7, 0.01), 4.0 / 3.0)
+        assert math.isfinite(de) and math.isfinite(dw)
+    e, w = kb._step(1.0 - 1.0e-9, 0.7, 0.01, 4.0 / 3.0, 1.0 / kb.STEPS_PER_KOZAI_TIME)
+    assert 0.0 <= e < 1.0 and math.isfinite(w)
