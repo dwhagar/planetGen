@@ -1803,7 +1803,11 @@ def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(si
         ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
         ["scatter", "--phenomena", "--compact-min-mass", "2"]]
     for step in steps:
-        assert step["stages"][0]["label"] == step["label"], "the step's own stage comes first, any it ends with after it"
+        # The step's own stage is in its list; what comes before it is only what it empties first (OPS.123: the earlier bright stars, phenomena, indexes and nebula field are stages
+        # of the scatter that draws them again), and what it ends with comes after.
+        labels = [entry["label"] for entry in step["stages"]]
+        assert step["label"] in labels, (step["label"], labels)
+        assert all(label.startswith(("Clear the earlier", "Take off the")) for label in labels[:labels.index(step["label"])]), labels
         assert [entry["skipped"] for entry in step["stages"]] == [None] * len(step["stages"])
 
 
