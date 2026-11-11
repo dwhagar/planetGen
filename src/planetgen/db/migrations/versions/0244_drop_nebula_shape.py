@@ -1,6 +1,6 @@
 """A nebula's shape is the density contour, nothing is stored (GEN.1267).
 
-Schema v241. `nebulae` loses the twelve `shape_*` columns of the GEN.75 metaball shape and the table `nebula_shape_balls` goes. A nebula is now the part of its sphere where the galaxy's
+Schema v244. `nebulae` loses the twelve `shape_*` columns of the GEN.75 metaball shape and the table `nebula_shape_balls` goes. A nebula is now the part of its sphere where the galaxy's
 density, read for it, is at least the form level (`galaxy.nebula_density.inside`), the contour the map draws; it has no shape of its own to store. A table that no longer has them is left
 as it is, so a stopped run can be started again. `inside_nebula_id` of the rows already stored is not changed here: a galaxy is made again at the epoch that carries this change.
 """
@@ -10,8 +10,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0241"
-down_revision = "0240"
+revision = "0244"
+down_revision = "0243"
 branch_labels = None
 depends_on = None
 

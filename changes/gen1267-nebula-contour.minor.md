@@ -9,11 +9,8 @@
 
 ### Removed
 
-- The GEN.75 metaball shape: `galaxy/nebula_shape.py` (the gradient noise moved to `galaxy/gradient_noise.py`), `Nebula.get_shape`, `query.nebula_shape`, the route `GET /api/nebulae/<id>/shape` (the maps draw `.../volume`), `store._store_nebula_shape`, the twelve `nebulae.shape_*` columns and the table `nebula_shape_balls` (migration 0241, schema v241). No shim.
-
-### Tests
-
-- `tests/test_nebula_contour.py` (the contour at every galactic radius, the anchor, the map and the test agree, a dark cloud, rounding, a database never planned). `test_nebula_field.py`, `test_gen_cloud_at_generation.py`, `test_db_persistence.py`, `test_generator_battery.py` follow the new rule; the shape endpoint tests are gone with the route.
+- The GEN.75 metaball shape: `galaxy/nebula_shape.py` (the gradient noise moved to `galaxy/gradient_noise.py`), `Nebula.get_shape`, `query.nebula_shape`, the route `GET /api/nebulae/<id>/shape` (the maps draw `.../volume`), `store._store_nebula_shape`, the twelve `nebulae.shape_*` columns and the table `nebula_shape_balls` (migration 0244, schema v241). No shim.
+- **Tests.** `tests/test_nebula_contour.py` (the contour at every galactic radius, the anchor, the map and the test agree, a dark cloud, rounding, a database never planned). `test_nebula_field.py`, `test_gen_cloud_at_generation.py`, `test_db_persistence.py`, `test_generator_battery.py` follow the new rule; the shape endpoint tests are gone with the route.
 
 generation-output: changed
 generation-affects: fill

@@ -61081,6 +61081,128 @@
       "title": "Stand-ins of the fudge table"
     },
     {
+      "key": "6.264",
+      "number": "6.264",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_density.YOUNG_ANCHOR_FLOOR = 0.8: a young-family nebula (emission, reflection, diffuse, planetary, remnant) anchors its own density on its sphere with the polynomial kernel of a cloud, 0.8 of it kept where the model young density is nil and the other 0.2 scaling with that density, the same split as CLOUD_GAS_FLOOR"
+            ],
+            [
+              "The range it moves in",
+              "0.6 to 1.0"
+            ],
+            [
+              "Where it holds",
+              "a hot-star nebula anywhere in the disk, where the generator grows it around its hot stars wherever they are"
+            ],
+            [
+              "What would show it wrong",
+              "a measured emission nebula in the outer disk whose extent is far under or over its cataloged radius at the form level"
+            ],
+            [
+              "What replaces it",
+              "a young density from the placed stars themselves, so the anchor is the stars"
+            ],
+            [
+              "Evidence",
+              "measured on the test galaxy: the model young density alone is under the form level (0.35) from about 6 kpc out (0.6 percent of points at 8 kpc, none at 10 kpc), so a 40 pc emission nebula at the solar circle drew 15 points of 6/255 (MAP.423)"
+            ]
+          ],
+          "id": "NC1",
+          "key": "6.264:NC1",
+          "kind": "P",
+          "slug": "6-264-nc1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_density.YOUNG_ANCHOR_FLOOR = 0.8: a young-family nebula (emission, reflection, diffuse, planetary, remnant) anchors its own density on its sphere with the polynomial kernel of a cloud, 0.8 of it kept where the model young density is nil and the other 0.2 scaling with that density, the same split as CLOUD_GAS_FLOOR"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_density.CONTAIN_DETAIL = 3 octaves: the containment test reads the coarse form of the contour (finest wavelength 16 pc), which the map's finer octaves refine and do not move"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5"
+            ],
+            [
+              "Where it holds",
+              "any nebula of 10 pc or more"
+            ],
+            [
+              "What would show it wrong",
+              "a star whose containment flips between 3 and 8 octaves in more than a few percent of nebulae"
+            ],
+            [
+              "What replaces it",
+              "the full map detail at a higher cost (about 5 microseconds a point at 5 octaves in a batch)"
+            ],
+            [
+              "Evidence",
+              "nebula_density.octave_bound: a finer octave changes the value by at most its amplitude times the edge weight, so the coarse blobs stay; cost measured 3.6 to 5.5 microseconds a point"
+            ]
+          ],
+          "id": "NC2",
+          "key": "6.264:NC2",
+          "kind": "P",
+          "slug": "6-264-nc2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_density.CONTAIN_DETAIL = 3 octaves: the containment test reads the coarse form of the contour (finest wavelength 16 pc), which the map's finer octaves refine and do not move"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "nebula_density.CONTAIN_ROUND = 1e-4: the density is rounded to this before it is compared to the form level, so a last-bit difference of a platform's arithmetic cannot put a star across the outline"
+            ],
+            [
+              "The range it moves in",
+              "1e-6 to 1e-3"
+            ],
+            [
+              "Where it holds",
+              "every containment test"
+            ],
+            [
+              "What would show it wrong",
+              "a golden that differs between two machines on the nebula-contour case"
+            ],
+            [
+              "What replaces it",
+              "exact arithmetic everywhere"
+            ],
+            [
+              "Evidence",
+              "test_nebula_contour.test_the_form_level_comparison_is_rounded"
+            ]
+          ],
+          "id": "NC3",
+          "key": "6.264:NC3",
+          "kind": "P",
+          "slug": "6-264-nc3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "nebula_density.CONTAIN_ROUND = 1e-4: the density is rounded to this before it is compared to the form level, so a last-bit difference of a platform's arithmetic cannot put a star across the outline"
+        }
+      ],
+      "slug": "6-264-stand-ins-of-the-nebula-contour",
+      "title": "Stand-ins of the nebula contour"
+    },
+    {
       "key": "6.270",
       "number": "6.270",
       "rows": [

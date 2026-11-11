@@ -940,7 +940,7 @@
 --   works the two new ones out for each filled sector from its stars.
 --
 -- v56: a nebula's shape was stored with it (GEN.75): `nebulae.shape_*` and
---   the table `nebula_shape_balls`. v241 (GEN.1267) dropped both: a nebula is
+--   the table `nebula_shape_balls`. v244 (GEN.1267) dropped both: a nebula is
 --   the part of its sphere where the galaxy's density, read for it, is at
 --   least the form level (`galaxy/nebula_density.py` `inside`), the contour
 --   the map draws, so nothing about its shape is stored.

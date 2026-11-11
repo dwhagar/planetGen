@@ -122,3 +122,4 @@ Commit each file came from:
 - v240: efcd7f5 (main), before GEN.1478 system summary figures (0241)
 - v241: after GEN.1478's migration 0241 (system summary figures), before GEN.1484 light_factor column (0242)
 - v242: after GEN.1484's migration 0242 (light_factor column), before GEN.1497 body history table (0243)
+- v243: after GEN.1497's migration 0243 (body history table), before GEN.1267 drop of the nebula shape table and columns (0244)
