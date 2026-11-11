@@ -60053,6 +60053,90 @@
       ],
       "slug": "6-261-stand-ins-of-the-fudge-table",
       "title": "Stand-ins of the fudge table"
+    },
+    {
+      "key": "6.262",
+      "number": "6.262",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+            ],
+            [
+              "The range it moves in",
+              "24 to 106 AU (Kraus et al. 2016: 47 +59/-23)"
+            ],
+            [
+              "Where it holds",
+              "solar-type hosts with a companion of mass ratio above about 0.4"
+            ],
+            [
+              "What would show it wrong",
+              "a measured disk lifetime or planet occurrence that stays the same inside 47 AU, or changes at a clearly different separation"
+            ],
+            [
+              "What replaces it",
+              "a lifetime that falls smoothly with separation, once a source gives the curve"
+            ],
+            [
+              "Evidence",
+              "Kraus et al. 2016, AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU"
+            ]
+          ],
+          "id": "CD1",
+          "key": "6.262:CD1",
+          "kind": "P",
+          "slug": "6-262-cd1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_AXIS_AU 47 AU: a companion inside it hastens the dispersal of the disk's gas"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+            ],
+            [
+              "The range it moves in",
+              "0.19 to 0.48 (S_bin = 0.34 +0.14/-0.15)"
+            ],
+            [
+              "Where it holds",
+              "close companions at any separation inside the edge (no dependence on separation is modelled)"
+            ],
+            [
+              "What would show it wrong",
+              "a disk lifetime or giant occurrence in close binaries more than 0.15 off 0.34"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent share, once a source gives it"
+            ],
+            [
+              "Evidence",
+              "Kraus et al. 2012, ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; Kraus et al. 2016 above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md)"
+            ]
+          ],
+          "id": "CD2",
+          "key": "6.262:CD2",
+          "kind": "P",
+          "slug": "6-262-cd2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_truncation.CLOSE_COMPANION_GAS_SHARE 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin"
+        }
+      ],
+      "slug": "6-262-stand-ins-of-the-gas-a-close-companion-leaves-a-disk",
+      "title": "Stand-ins of the gas a close companion leaves a disk"
     }
   ]
 }

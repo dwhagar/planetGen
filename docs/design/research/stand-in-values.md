@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1534 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1536 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1508 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1510 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,7 +48,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 182 | 20 | 11 | 1 | 0 | 214 |
-| T2 | 144 | 59 | 1 | 1 | 0 | 205 |
+| T2 | 146 | 59 | 1 | 1 | 0 | 207 |
 | T3 | 110 | 47 | 9 | 10 | 0 | 176 |
 | T4 | 80 | 11 | 3 | 21 | 12 | 127 |
 | T5 | 76 | 24 | 6 | 1 | 1 | 108 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 49 | 19 | 9 | 31 | 0 | 108 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 41 | 16 | 5 | 90 | 34 | 186 |
-| All | 873 | 302 | 74 | 235 | 50 | 1534 |
+| All | 875 | 302 | 74 | 235 | 50 | 1536 |
 
 ## How the labels were given
 
@@ -2702,3 +2702,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | FT2 | P | T4 | L0 | `build_fudge_table.TIER_FACTORS`: a row's measured movement is multiplied by 1 for tiers T1 to T3, 1.5 for T4 to T8 and 2 for T9 before it is summed, because an argued range is wider than it prints | 1 to 2 | every row of the matrix | a verified value (T1) whose measured error is larger than its printed range | a per-row range from research | design: fudge-table-from-stand-in-confidence-2026-11-06.md section 3 step 2 | predicted only | - | - |
 | FT3 | P | T6 | L0 | `build_fudge_table.SIGMA_MULTIPLE` = 2: the shoulder is 2 sigma of the summed movements, so a value one sigma past a class edge keeps half its membership | 1 to 3 | every measured quantity | a class set whose edges the widths leave overlapping in most bodies | a smooth normal curve in place of the linear shoulder (open question of the design) | design: the linear shoulder of the class fit is kept; the width follows the standard 2 sigma | predicted only | - | - |
 | FT4 | P | T5 | L0 | `build_fudge_table.clipped_rms`: a body's movement counts for no more than the half-gap between the class edges of its quantity (the figure of a quantity clips at its median half-gap, the width at an edge at its own), and a quantity with one edge clips at `build_fudge_table.UNCAPPED_CLIP_SHOULDERS` = 4 hand shoulders | 2 to 8 shoulders | every measured quantity | a regime switch (runaway greenhouse, tectonics on or off) whose size matters to a class edge farther than the half-gap | per-body distributions of the movement with a stated percentile | derived: a body that moves past the half-gap has changed class whatever the distance, so the distance past carries no information about a shoulder; the 4 shoulders for a lone edge are a stated choice | predicted only | - | - |
+
+## 6.262 Stand-ins of the gas a close companion leaves a disk
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| CD1 | P | T2 | L0 | `disk_truncation.CLOSE_COMPANION_AXIS_AU` 47 AU: a companion inside it hastens the dispersal of the disk's gas | 24 to 106 AU (Kraus et al. 2016: 47 +59/-23) | solar-type hosts with a companion of mass ratio above about 0.4 | a measured disk lifetime or planet occurrence that stays the same inside 47 AU, or changes at a clearly different separation | a lifetime that falls smoothly with separation, once a source gives the curve | Kraus et al. 2016, AJ 152, 8 (arXiv 1604.05744), abstract, read second-hand; the 2012 paper (ApJ 745, 19) puts the edge at 40 AU | predicted only | - | - |
+| CD2 | P | T2 | L0 | `disk_truncation.CLOSE_COMPANION_GAS_SHARE` 0.34: the share of stars with a close companion whose disk keeps its gas long enough for a core to find it (one less the two thirds whose disks go within 1 Myr); the same number as the planet occurrence ratio S_bin | 0.19 to 0.48 (S_bin = 0.34 +0.14/-0.15) | close companions at any separation inside the edge (no dependence on separation is modelled) | a disk lifetime or giant occurrence in close binaries more than 0.15 off 0.34 | a separation-dependent share, once a source gives it | Kraus et al. 2012, ApJ 745, 19 (arXiv 1109.4141), abstract: about 2/3 of close (<40 AU) binaries disperse their disks within 1 Myr, against 10 to 20 percent of wide binaries and single stars; Kraus et al. 2016 above. Rocky planets are not thinned (that is the 0.34 on all planets, left to Boss: reports/gen1475-close-companion-disk-lifetime-2026-11-11.md) | predicted only | - | - |
