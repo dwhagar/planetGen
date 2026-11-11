@@ -62137,11 +62137,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history (GEN.935 family)"
+              "the thin disk's population windows (tuning.STELLAR_POPULATION_AGE_RANGES_GY, THIN_DISK_OLD_WINDOW_GY; test_age_windows_held_to_populations.py holds the window to them)"
             ],
             [
               "Evidence",
-              "the thin disk's 0 to 10 Gy; population ages by position come on top"
+              "checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; galaxy.disk_history reads the top as its span; population ages by position come on top; value unchanged"
             ]
           ],
           "id": "AUD4",
@@ -62175,11 +62175,11 @@
             ],
             [
               "What replaces it",
-              "galaxy.disk_history for the upper edge"
+              "the star-formation window's top (test_age_windows_held_to_populations.py)"
             ],
             [
               "Evidence",
-              "a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)"
+              "checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged"
             ]
           ],
           "id": "AUD5",
@@ -62349,11 +62349,11 @@
           "fields": [
             [
               "What it is",
-              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+              "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
             ],
             [
               "The range it moves in",
-              "1e4 to 3e6 solar masses"
+              "peak 1.3e5 to 2.1e5 (M/L_V of 1.5 to 2.6); 1e4 to 3e6"
             ],
             [
               "Where it holds",
@@ -62361,26 +62361,26 @@
             ],
             [
               "What would show it wrong",
-              "a globular outside the range in the Harris catalogue"
+              "a cluster brighter than M_V of -6 outside the range, or a bright-cluster median outside the peak band, in the Harris catalog"
             ],
             [
               "What replaces it",
-              "the Harris catalogue (GEN.297, reader built)"
+              "the Harris fit (test_cluster_laws_harris.py holds the tuning to it); a floor under 1e4 if the dissolving tail is modelled"
             ],
             [
               "Evidence",
-              "compared with the catalogue when GEN.297 reads it"
+              "checked against [R1827] (2010 edition, 156 clusters with M_V) on 2026-11-11 (GEN.1525): the bright-cluster median is 1.3e5 (M/L 1.5) to 2.1e5 (M/L 2.6), the heaviest cluster 2.2e6, and 8 to 10 percent of the catalog is under the floor of 1e4 (evolved clusters a log-normal does not make); values unchanged"
             ]
           ],
           "id": "AUD10",
           "key": "6.270:AUD10",
           "kind": "B",
           "slug": "6-270-aud10",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L0",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
           "unread": null,
-          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range"
+          "what": "tuning.CLUSTER_MASS_RANGE_SOL (1e4, 3e6): the globular cluster mass range; and CLUSTER_MASS_PEAK_SOL 2e5, the centre of the log-normal"
         },
         {
           "burn_down": null,
@@ -62391,32 +62391,32 @@
             ],
             [
               "The range it moves in",
-              "0.4 to 0.6 dex"
+              "0.37 to 0.67 dex"
             ],
             [
               "Where it holds",
-              "globular cluster ensembles"
+              "globular clusters"
             ],
             [
               "What would show it wrong",
-              "a measured mass function width outside 0.4 to 0.6 dex"
+              "a measured width outside the band of the bright clusters (0.37 dex) and the whole catalog (0.67 dex)"
             ],
             [
               "What replaces it",
-              "the Harris catalogue fit (GEN.297)"
+              "the Harris fit (test_cluster_laws_harris.py)"
             ],
             [
               "Evidence",
-              "recalled; next to CLUSTER_MASS_PEAK_SOL 2e5"
+              "checked against [R1827] on 2026-11-11 (GEN.1525): 0.37 dex for the clusters brighter than M_V of -6, 0.67 dex with the faint tail; the turnover width of 1.2 mag is 0.48 dex; value unchanged"
             ]
           ],
           "id": "AUD11",
           "key": "6.270:AUD11",
           "kind": "B",
           "slug": "6-270-aud11",
-          "tier": "T3",
-          "tier_code": "T3",
-          "tweak": "L1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
           "unread": null,
           "what": "tuning.CLUSTER_MASS_SIGMA_DEX 0.5: the width of the globular cluster mass function"
         },
@@ -62883,11 +62883,11 @@
             ],
             [
               "What replaces it",
-              "the MIST and BHAC15 pre-main-sequence tracks"
+              "the MIST isochrones' nuclear arrival (isochrones.pre_main_sequence_arrival_yr; test_pms_energy_factor_held_data.py holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks"
             ],
             [
               "Evidence",
-              "derived from the tracks when pre_main_sequence reads them"
+              "checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (scale, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged"
             ]
           ],
           "id": "AUD23",

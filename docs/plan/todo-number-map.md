@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.298 |
 | MAP | MAP.424 |
 | NAV | NAV.78 |
-| GEN | GEN.1542 |
+| GEN | GEN.1543 |
 | PERF | PERF.260 |
 | DB | DB.122 |
 | API | API.48 |
@@ -2113,7 +2113,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 | open |
 | GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 | open |
 | GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 | open |
-| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313, GEN.1320, GEN.1321 | open |
+| GEN.1318 | Fudge table revisit: rerun the sensitivity and minimal-fudge sweep after the oxygen fixes (GEN.1309, GEN.1306 parts 2 and 3) and re-derive the widths and cap tiers | GEN.1309, GEN.1312, GEN.1313, GEN.1320, GEN.1321 | done (Train 23, 2026-11-11) |
 | GEN.1319 | Sealed-ocean chemistry: leached sodium and calcium with no chloride or sulfate to balance them give oceans of pH 11 to 14 that lock all carbon into calcite (bug) | none | done, PR #5572 |
 | GEN.1320 | Fire limit by oxygen pressure: the 35 percent oxygen cap becomes a limit on oxygen pressure, so thin-air worlds no longer pile up at exactly 35 percent (bug) | none | done, PR #5540 |
 | GEN.1321 | Oxygen classes judged by oxygen pressure, not share: classes M, H, L, O, P and R and the thick-air worlds that dilute oxygen under 10 percent | none | done, PR #5540 |
@@ -2222,7 +2222,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | done, report gen1445-radiation-field-census-2026-11-08.md |
 | GEN.1446 | Tides between all bodies of a system: every star, planet and moon raises tides on every other by 3D position, joining ocean tides, tidal heating, locking and spin-down | none | done (Train 23, 2026-11-11) |
 | GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | open |
-| GEN.1448 | Tides and secular census: how many planets, moons and belts change tide, locking, spin, heating and orbit once every body counts | none | open |
+| GEN.1448 | Tides and secular census: how many planets, moons and belts change tide, locking, spin, heating and orbit once every body counts | none | done (Train 23, 2026-11-11) |
 | GEN.1449 | Moon systems under every perturber: the Hill limit, stability, resonance and spin of moons count the star, the sibling planets, a companion and the other moons | none | open |
 | GEN.1450 | Planet chains under every body: mutual Hill spacing, resonance and Laplace-Lagrange secular exchange across all planets, with companion stars in the spacing | none | done, PR #5869 |
 | GEN.1451 | Belts and disks under every body: companion truncation, resonance sweep and scattering by sibling planets in belt and disk edges | none | done, PR #5869 |
@@ -3725,6 +3725,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | open |
 | GEN.1540 | (bug) A rare captured moon's position radius is outside its allowed range (a wrong or stale frame), so test_orbital_motion fails by draw luck | none | open |
 | GEN.1541 | The tide a large asteroid or dwarf planet raises on its own moons (GEN.1464 part C) | GEN.1464 | open |
+| GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
