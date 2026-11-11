@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3841] - 2026-11-11
+
+**Headline:** The 3D system view now draws the heaviest bodies of each asteroid belt one by one, as lumps or balls in their own colours, among the belt's dust.
+
+### Changed
+
+- MAP.415: a new setting, **Belt bodies drawn in 3D** (`web.belt_bodies_drawn`, in the Look group of the settings page and `config.json`), 0 to 2000, default 200. The same belt always draws the same bodies: the heaviest by rank, so the choice is a pure function of the belt's stored rows and the number.
+- MAP.414: `GET /api/systems/<id>/scene` gives each belt a `members` list: the heaviest bodies it stores, as many as the setting `web.belt_bodies_drawn` says (MAP.415; 200 by default, 0 draws only the dust) (`systemscene._belt_members`), each with its designation, rank, radius, `look` (`bodylook.member_look`, its seed the designation's, so the page of the body (MAP.413) and this view draw one and the same body) and `position_km`, where its stored orbit puts it at the epoch (`system_bodies.relative_position_au`). A body that has since become a moon is left out.
+- `static/systemview3d.js` hangs each from what the belt goes round: a lump (MAP.279) when it is under the roundness limit, a sphere otherwise, painted by the same texture tiers, queue and cache as the planets. They are not pickable, labelled or dotted (a belt keeps hundreds); the dust points stay. `static/systemscale.js` gains `layout.radiusFor(kind, km)` and a `belt_member` radius: smaller than any moon when compressed, true size otherwise.
+- Reused: `member_look`, `lumpyGeometry`, `paintSolid`, the texture queue and cache, `relative_position_au`. Tests: `tests/js/systembeltmembers.test.mjs`, `tests/test_system_scene.py` (the query and positions without a database, and with one).
+
+generation-affects: none
+
+## [8.0.3840] - 2026-11-11
+
+**Headline:** A planet's or moon's page now names the other suns and the white dwarf in its sky, with their kind, colour, width and share of the light.
+
+### Changed
+
+- The description of a planet or moon gains a sky paragraph (`physics/sky_view.py`, `describe/build.py`): every other source of the system's radiation field (GEN.1441) that gives the body at least the light of a full Moon is named, with its kind (a white dwarf, a K-type star), its colour, its width in degrees and its share of the light. A source that gives at least the twilight of a day (`daylight.DAY_SUN_W_M2`, GEN.1461) is a second (third, ...) sun that makes a day of its own; a fainter one lights the nights, in full Moons. A body that circles a white dwarf is told so.
+- A planet of a lone main-sequence star reads the same as before, and nothing is stored: the paragraph is worked out when the page is made, from the ledger of sources that every loaded system already builds. The light and the width of a source follow one distance, so the text agrees with the temperature (the one-companion light is `sky_suns.light_of`, shared with the suns of GEN.1458).
+- The neutron stars, black holes with accretion disks and brown dwarfs of the orbit tree give no light in the field yet, so they are not in the sky text: that part of the item is GEN.1501 (stand-in SKY3, section 6.259).
+
+generation-output: unchanged
+
 ## [8.0.3839] - 2026-11-11
 
 **Headline:** Three groups of tests that went red on main after Train 22 now look for the case they need instead of taking the first one.
