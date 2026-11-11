@@ -13239,6 +13239,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 06 (UX lane), after UX.301. Prerequisites: UX.303. Related: UX.303, GEN.568.
   Filed by the TODO thread.
 
+- [ ] **GEN.1556 The Cassini state of a moon's tilt from its real nodal regression (the planet's bulge and the star), part 2 of GEN.1536**
+  Lane 21 (as the lane reported 6:44 PM EST on 2026-11-11): GEN.1536 part 1 (PR 6074, stacked on PR 6023) gives a locked or resonant rocky planet its Cassini-state tilt from a real precession constant (hydrostatic figure for icy or hot bodies, a fossil figure for cold despun rocky ones); moons still use the stand-in SP22. Do: a moon's tilt from its own precession constant and its nodal regression, which comes from the planet's bulge (J2 of the planet) and the star's torque, so the moon's Cassini state follows from the same function; register the stand-in rows in GEN.725 with tier and tweak level. Done: a test on the Galilean moons and the Moon. Lock item (stored tilt changes), new epoch.
+  Version 8.1. Owner (TODO, 2026-11-11): Lane 21, after PR 6074; Lane 23 reviews the moon-frame side. Prerequisites: GEN.1536. Related: GEN.1536, GEN.1535, GEN.1352, GEN.725.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
