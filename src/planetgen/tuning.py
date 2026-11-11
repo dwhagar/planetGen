@@ -198,7 +198,7 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 COLLISION_MASS_RETENTION = 0.9
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
-# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
+# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
 # ([R4897], read) and 0.27 percent of early M dwarfs ([R1504], read).
 GIANT_MIGRATION_SHARE = 0.0092
 GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
