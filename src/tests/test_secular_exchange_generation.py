@@ -84,7 +84,7 @@ def test_a_rocky_planet_the_exchange_moved_has_its_air_made_on_its_final_orbit(s
         for planet in system.planets:
             if getattr(planet, "body_type", None) != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
                 continue
-            flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity))
+            flux = radiation_field.starlight_w_m2(planet.star, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity)) * (planet.light_factor or 1.0)
             assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6), planet.name
             checked += 1
             moved += system.secular_outcomes.get(planet.star.name) in ("exchanged", "held by the spacing")
@@ -99,6 +99,7 @@ def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
                     assert not planetPhysics.age_moved(body), (body.name, body._age_drawn)
 
 
+<<<<<<< HEAD
 def test_a_belt_pulls_on_the_planets_of_its_star_and_a_system_without_belt_pull_differs(monkeypatch):
     """GEN.1464: the same system made with the belts' rings left out of the exchange leaves the planets on other orbits; the belts are not in the exchange's result."""
     with_belt = _system(1)
@@ -120,3 +121,54 @@ def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass(
     assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
     assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
     assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])
+=======
+def _planets_with_axes(systems):
+    return [p for s in systems for p in s.planets if hasattr(p, "moons") and getattr(p, "spin_axis_x", None) is not None]
+
+
+def _obliquity(planet):
+    from planetgen.physics import spin
+    return spin.obliquity_between((planet.spin_axis_x, planet.spin_axis_y, planet.spin_axis_z),
+                                  spin.orbit_normal(planet.orbital_inclination_deg, planet.orbital_ascending_node_deg))
+
+
+def test_every_planet_keeps_a_spin_axis_that_matches_its_stored_tilt_after_the_exchange(systems):
+    """GEN.1504: the exchange moves a planet's orbital plane, and its spin axis goes with it, so the obliquity is the stored tilt."""
+    checked = 0
+    for planet in _planets_with_axes(systems):
+        assert _obliquity(planet) == pytest.approx(planet.axial_tilt_deg, abs=1e-6)
+        checked += 1
+    assert checked > 10
+
+
+def test_a_free_spinner_keeps_its_obliquity_when_its_plane_moves_and_a_locked_one_keeps_its_share_of_the_inclination(systems):
+    from planetgen.physics import spin
+    free = locked = 0
+    for planet in _planets_with_axes(systems):
+        old_i, old_n, tilt = planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, planet.axial_tilt_deg
+        state = spin.spin_state(planet.rotation_period_hours, planet.period)[0]
+        planet.orbital_inclination_deg, planet.orbital_ascending_node_deg = old_i + 0.7, (old_n + 40.0) % 360.0
+        planetPhysics.carry_spin_with_orbit(planet, old_i, old_n)
+        if state in ("locked", "resonant") and min(old_i, 180.0 - old_i) > 1e-9:
+            share = min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg) / min(old_i, 180.0 - old_i)
+            assert planet.axial_tilt_deg == pytest.approx(tilt * share, rel=1e-9)
+            locked += 1
+        else:
+            assert planet.axial_tilt_deg == pytest.approx(tilt, abs=1e-9)
+            free += 1
+        assert _obliquity(planet) == pytest.approx(planet.axial_tilt_deg, abs=1e-6)
+    assert free > 5
+
+
+def test_carry_axis_keeps_the_angle_round_the_normal_and_a_plane_turned_over_flips_the_axis():
+    from planetgen.physics import spin
+    old, new = spin.orbit_normal(5.0, 30.0), spin.orbit_normal(12.0, 200.0)
+    axis = spin.tilted_axis(old, 23.0, 1.3)
+    turned = spin.carry_axis(axis, old, new)
+    assert spin.obliquity_between(turned, new) == pytest.approx(23.0, abs=1e-9)
+    back = spin.carry_axis(turned, new, old)
+    assert back == pytest.approx(axis, abs=1e-9)
+    assert spin.obliquity_between(spin.carry_axis(axis, old, new, 4.0), new) == pytest.approx(4.0, abs=1e-9)
+    flipped = spin.carry_axis(axis, old, tuple(-c for c in old))
+    assert spin.obliquity_between(flipped, tuple(-c for c in old)) == pytest.approx(23.0, abs=1e-9)
+>>>>>>> origin/main

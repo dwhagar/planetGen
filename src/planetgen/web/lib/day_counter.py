@@ -31,6 +31,7 @@ STATE_TEXT = {
     day_night.NON_ROTATING: "Not rotating relative to its star: the star goes round the sky once a year.",
     day_night.NO_SURFACE: "No solid surface: the day below counts the turn of its clouds.",
     day_night.NO_NIGHT: "No night.",
+    day_night.NO_SUN: "No star lights it: night all year.",
 }
 """dict: What the page says for each stored state word (`day_night.STATES`), apart from the locked one, which depends on what the body orbits."""
 

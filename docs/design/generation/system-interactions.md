@@ -28,7 +28,7 @@ Every body of a system (stars and other star-like objects, planets, moons, belts
 | Mean light, temperature, climate, albedo, habitable zone | Host star alone; only the size of the light swing counts the other stars | GEN.1441 |
 | UV, X-ray, flare and particle dose, ozone, atmosphere loss | Host star alone | GEN.1442 |
 | Sky and day text | Host star alone | GEN.1443 |
-| Belt, asteroid and comet temperature, ice survival and dose | Built for temperature, taxa, the size law (icy or rocky) and comet activity: the ring's or the perihelion's light counts every star (GEN.1444, rows RF6 to RF8). Belts and comets store no surface dose or temperature, so there is no stored dose to change; a dose for them would be a new stored field | GEN.1444 |
+| Belt, asteroid and comet temperature, ice survival and dose | Built for temperature, taxa, the size law (icy or rocky) and comet activity: the ring's or the perihelion's light counts every star (GEN.1444, rows RF6 to RF8), and a comet's activity distance scales with the host's luminosity as `sqrt(L / Lsun)` (GEN.1491, rows CA1 to CA3). Belts and comets store no surface dose or temperature, so there is no stored dose to change; a dose for them would be a new stored field | GEN.1444 |
 | Tide raisers of a planet (ocean tide, spin, locking) | The host star and the planet's own moons; no companion star, no sibling planet | GEN.1446 |
 | Tidal heating and tidal locking of planets and moons | The host and the body's own moons; the eccentricity heating reads the host mass alone | GEN.1446 |
 | Kozai and secular pumping | Used for stellar triples only (physics/stability.py), not for planets or moons | GEN.1447 |
