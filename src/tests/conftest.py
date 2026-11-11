@@ -571,6 +571,26 @@ def _worker_redis_database():
         private_redis.flush(url)
 
 
+@pytest.fixture
+def queue_command_env():
+    """
+    TEST.717: the environment for a test that runs a command in a process of its own and checks what the command says about THIS test's folders.
+
+    `datasets status` and `check-math` run as check runs through the queue (`wrapper.run`), which hands the work to whatever worker already serves the Redis database
+    (`ensure_workers` starts one only if none does), with that worker's environment: a worker left by an earlier test, or one started with the machine's own data folder,
+    answered with the machine's cache and not the test's. This gives the test the worker's own database with no worker on it, so the command's own workers (which
+    inherit this environment) do the work, and ends them and empties the database afterwards. Without Redis the command runs in its own process as before.
+    """
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if url:
+        stray_workers.reap_database(url)
+        private_redis.flush(url)
+    yield dict(os.environ)
+    if url:
+        stray_workers.reap_database(url)
+        private_redis.flush(url)
+
+
 @pytest.fixture(autouse=True)
 def _run_queue_inline(monkeypatch, request):
     """
