@@ -3396,8 +3396,8 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
-"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena shells with their indexes, the nebula clear and draw."""
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+"""dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 
 def _scatter_stands(conn, kinds, current, behind):
