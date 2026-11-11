@@ -22,7 +22,7 @@ import math
 import weakref
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiation_field, radiogenic, small_body_composition
+from planetgen.physics import belt_forcing, belt_ledger, belt_mass, belt_origin, belt_page, belt_populations, belt_roster, bulk_draw, radiation_field, radiogenic, small_body_composition
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 from planetgen.util import log
@@ -212,6 +212,34 @@ class AsteroidBelt:
         self.chondrite_group = self.makeup.detail["group"]
 
     _members = None
+    _secular_planets = ((), ())
+
+    def give_secular_planets(self, axes_au, masses_kg):
+        """
+        Tells the belt which planets of its star stand beside it (their semi-major axes in AU and masses in kg) once their orbits are final, for the apsidal rate that dilutes a companion
+        star's forcing of its members (GEN.1492, `belt_forcing`); the members are drawn again with it on next use.
+        """
+        self._secular_planets = (tuple(axes_au), tuple(masses_kg))
+        self._members = None
+
+    def _force_by_companions(self, star, rows):
+        """
+        The members' eccentricity and periapsis as a companion star's secular forcing leaves them (GEN.1492, `belt_forcing`): the vector sum of the drawn eccentricity and the forced one, at
+        each member's own distance, with the dilution of the planets given by `give_secular_planets`. A star with no companion, and a member outside the theory, keep what was drawn.
+        """
+        sources = [(c.star.mass, c.axis_au, c.eccentricity, belt_forcing.periapsis_rad(star.mass, c.member_no, c.axis_au))
+                   for c in radiation_field.companions_of(star) if getattr(c.star, "mass", None)]
+        if not sources:
+            return rows
+        axes, masses = self._secular_planets
+        for row in rows:
+            distance = row["distance_au"]
+            vector = belt_forcing.forced_vector(distance, star.mass, sources, belt_forcing.planet_rate(distance, axes, masses, star.mass))
+            if vector == 0j:
+                continue
+            eccentricity, periapsis = belt_forcing.combined(row["eccentricity"], math.radians(row["periapsis_deg"]), vector)
+            row["eccentricity"], row["periapsis_deg"] = min(eccentricity, belt_roster.E_MAX), math.degrees(periapsis)
+        return rows
 
     @property
     def members(self):
@@ -248,7 +276,7 @@ class AsteroidBelt:
                 "anomaly_deg": entry.anomaly_deg, "taxon": body["taxon"], "density_g_cm3": body["density"]["value"] / 1000.0,
                 "rock_fraction": composition["rock"]["value"], "metal_fraction": composition["metal"]["value"], "water_fraction": composition["water"]["value"],
                 "ice_fraction": composition["ice"]["value"], "status": body["status"]["word"], "soter_mu": body["status"]["soter_mu"], "scatter_tag": entry.tag})
-        return rows
+        return self._force_by_companions(star, rows)
 
     def receive(self, mass_kg, sentence=None):
         """
