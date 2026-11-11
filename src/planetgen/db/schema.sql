@@ -5275,6 +5275,9 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 CREATE TABLE IF NOT EXISTS system_summary (
     star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     habitability_stamp  INT UNSIGNED NULL,
+    -- v244 (GEN.1498): the stamp of the code that wrote the system's light and ultraviolet rows of the effect ledger (`db/derived_stamp.py`, family `ledger`); NULL until written.
+    -- `refill-effect-ledger` takes the systems that are NULL or not current. Written by the system save and by `store.refresh_effect_ledger`; an edit of the system clears it.
+    ledger_stamp        INT UNSIGNED NULL,
     -- v241 (GEN.1478): what the system's rows add up to, so no reader sums them again (`db/system_summary.py`): the stars' mass, the stars', planets' and
     -- moons' mass, the brightest star's and all the stars' luminosity (W), and the counts of stars, planets, moons, belts and comets. Written by the system
     -- save and the editor; NULL for a system with no row of that kind (no star: no mass).

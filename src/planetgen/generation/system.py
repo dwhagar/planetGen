@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -644,19 +644,7 @@ class StarSystem:
         distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
         air-solved distance (a belt) has none.
         """
-        for obj in self.all_planets:
-            for body in (obj, *getattr(obj, "moons", ())):
-                distance = getattr(body, "_air_light_au", None)
-                host = getattr(body, "star", None)
-                if not distance or host is None:
-                    continue
-                field = radiation_field.field_at(host, distance)
-                stars = {companion.member_no: companion.star for companion in radiation_field.companions_of(host)}
-                stars[None] = host
-                for effect, band in (("light", field.bolometric_w_m2), ("uv", field.far_uv_ratio)):
-                    for member_no, value in band.by_source.items():
-                        if value > 0.0 and member_no in stars:
-                            self.effect_ledger.add(effect, body, stars[member_no], value)
+        light_ledger.fill(self.effect_ledger, self.all_planets, lambda body, planet: getattr(body, "_air_light_au", None))
 
     @property
     def all_planets(self):

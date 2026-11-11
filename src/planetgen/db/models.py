@@ -4148,6 +4148,7 @@ system_summary = sa.Table(
     metadata,
     sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
     sa.Column('habitability_stamp', mysql.INTEGER(unsigned=True), nullable=True),
+    sa.Column('ledger_stamp', mysql.INTEGER(unsigned=True), nullable=True),
     sa.Column('stars_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('system_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('brightest_star_luminosity_w', mysql.DOUBLE(), nullable=True),
