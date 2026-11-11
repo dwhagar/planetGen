@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -745,16 +745,41 @@ class StarSystem:
 
     def _attach_sources(self, ledger, kind, number, star):
         """Gives `star` the other radiating objects its bodies see, each with the orbit it moves in against the host (GEN.1441, `radiation_field`): the
-        stars of `stars` that hang elsewhere in the orbit tree. A dark member gives no light and a `group` node has no orbit to average over, so a young
+        stars of `stars` that hang elsewhere in the orbit tree. A dark member that glows (GEN.1501, `dark_light`) is one of them, and a `group` node has no orbit to average over, so a young
         system that is not hierarchical has none."""
         try:
             orbits = planet_zones.companion_orbits(ledger.zone((kind, number)), ledger.nodes, ledger.members)
         except ValueError:
             orbits = []
         offsets = self._offsets_from_host(ledger, kind, number)
-        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity,
-                                                                None if offsets is None else offsets.get(member_no))
-                                      for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
+        dark = self._dark_sources(ledger)
+        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no] if member_no < len(self.stars) else dark[member_no], member_no, axis, eccentricity,
+                                                                None if offsets is None else offsets.get(member_no), dark=member_no >= len(self.stars))
+                                      for member_no, axis, eccentricity in orbits if member_no < len(self.stars) or member_no in dark])
+
+    def _dark_sources(self, ledger):
+        """
+        `{member_no: dark_light.DarkSource}` of the dark members of the tree that glow (GEN.1501), numbered on from the stars as the ledger numbers them: a brown dwarf and a neutron star by their
+        age, a black hole by the winds of the stars beside it at their separations from it at the orbit nodes' epoch. A member that gives no light is left out.
+        """
+        if not self.dark_members:
+            return {}
+        age = getattr(self.primary_star, "age", None)
+        try:
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+        except (ValueError, KeyError, IndexError):
+            places = {}
+        found = {}
+        for index, member in enumerate(self.dark_members):
+            number = len(self.stars) + index
+            separations = []
+            if number in places:
+                separations = [math.dist(places[number], places[other]) if other in places else None for other in range(len(self.stars))]
+            source = dark_light.source_of(member, age, dark_light.feeders_of(self.stars, separations))
+            if source is not None:
+                source.member_no = number
+                found[number] = source
+        return found
 
     def _offsets_from_host(self, ledger, kind, number):
         """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);

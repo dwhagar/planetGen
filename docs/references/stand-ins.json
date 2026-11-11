@@ -42799,44 +42799,6 @@
           "tweak": "L3",
           "unread": null,
           "what": "cloud_water_min_share 1e-6, uv_c_min_w_m2 0.5, reductant_min_share 1e-7, sulfur_aerosol_min_so2_share 1e-5, chlorine_min_share 1e-7: the floors of the gates"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "sulfur_cloud_set.INCLUDE_HYPOTHESES False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on)"
-            ],
-            [
-              "The range it moves in",
-              "on or off"
-            ],
-            [
-              "Where it holds",
-              "the whole set"
-            ],
-            [
-              "What would show it wrong",
-              "a second paper that supports V8 or V9"
-            ],
-            [
-              "What replaces it",
-              "a second paper, then a setting"
-            ],
-            [
-              "Evidence",
-              "a design choice of Boss's set (11-08): single-source hypotheses are registered and off"
-            ]
-          ],
-          "id": "CG3",
-          "key": "6.229:CG3",
-          "kind": "P",
-          "slug": "6-229-cg3",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L0",
-          "unread": null,
-          "what": "sulfur_cloud_set.INCLUDE_HYPOTHESES False: the switch that lets the chain give V8 and V9, the single-source hypotheses, to a body (V8 also needs a per-planet dust supply, which the generator does not track, so it stays closed even on)"
         }
       ],
       "slug": "6-229-stand-ins-of-the-sulfur-cloud-chemistry-set-and-its-gates",
