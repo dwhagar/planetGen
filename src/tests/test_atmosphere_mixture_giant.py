@@ -242,7 +242,7 @@ def test_a_giant_with_a_disk_takes_its_carbon_to_oxygen_from_the_disk_spread_by_
     subject = giant(t_layer_k=350.0, teq_k=350.0, formation_temperature_k=100.0, disk_carbon=1.0, disk_oxygen=1.0)
     with draw.bound(5):
         recipe = RECIPES.draw_all(subject, categories="abdcefghijkl")
-    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"], solids_edge_k=disk_drift.edge_temperature_k())      # GEN.1471: the envelope carries a share of the bulk metals
+    disk = disk_condensation.envelope_c_over_o(100.0, disk_condensation.ENVELOPE_METAL_SHARE * recipe.values["f5"], solids_edge_k=None)      # GEN.1471: the envelope carries a share of the bulk metals (GEN.1520: a hand-built subject has no snow line or disk edge, so the solids edge is not placed)      # GEN.1471: the envelope carries a share of the bulk metals
     for f7 in (disk_condensation.RECIPE_C_OVER_O_MEDIAN, 0.4, 1.2):
         shifted = dataclasses.replace(recipe, values={**recipe.values, "f7": f7})
         with draw.bound(6):

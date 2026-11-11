@@ -228,7 +228,7 @@ def test_a_giant_with_the_medians_f7_keeps_its_disks_c_over_o_and_a_lightly_mixe
     from planetgen.physics import disk_drift, mixture_giant
     subject = {"formation_temperature_k": 100.0, "disk_carbon": 1.0, "disk_oxygen": 1.0}
     bulk = mixture_giant._disk_c_over_o(subject, math.log10(18.0))             # 18 times the star's heavy elements in the planet
-    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0, solids_edge_k=disk_drift.edge_temperature_k()))
+    assert bulk == pytest.approx(dc.envelope_c_over_o(100.0, dc.ENVELOPE_METAL_SHARE * 18.0, solids_edge_k=None))      # GEN.1520: a subject without a snow line and disk edge places no solids' edge
     assert bulk > dc.envelope_c_over_o(100.0, 18.0) + 0.04                     # the envelope carries a share of the bulk, so less of the oxygen-rich solids
 
 
