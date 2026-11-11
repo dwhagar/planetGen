@@ -13319,6 +13319,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 04. Prerequisites: none. Related: GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1523 Wire the four built-but-unread physics modules: atmosphere_retention, helium_fractionation, hycean_candidate and small_body_composition.draw_ring**
+  Found 10:12 AM EST on 2026-11-11 when GEN.1047 and GEN.1055 were retired and the wiring guard went red on main: the oddity table and the ring darkening were built, but four modules their register lines named are still read by no production code. Do: atmosphere_retention (shoreline ratio, verdict, pressure cap and Jeans gate; rows 6.74 SH1-SH4) into the pressure stage, helium_fractionation (rows 6.77 HF1-HF3) and hycean_candidate (row 6.79 HC1) into the oddity rows that name them, and small_body_composition.draw_ring (ice fraction of ring material by formation distance) into the stored ring ice share. For each, either wire it, or if the design says the rule is not wanted, say so and mark the register line by design. Registry rows stay in GEN.725. Changes what seeds draw if wired, so a lock item.
+  Version 8.1. Owner (TODO, proposed 2026-11-11): Lane 21 (knows the oddity table); Lane 14 for draw_ring (built the ring work). Prerequisites: none. Related: GEN.1047, GEN.1055, GEN.963.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
