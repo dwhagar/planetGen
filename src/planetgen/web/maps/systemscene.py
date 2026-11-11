@@ -212,7 +212,12 @@ def _belt_members(conn, belt, limit=None):
     if limit <= 0:
         return []
     uid = belt.get("uid")
-    belt_id = object_uid.from_bytes(uid) if uid is not None else None
+    if uid is None:
+        belt_id = None
+    elif isinstance(uid, str):
+        belt_id = object_uid.parse_id(uid)      # `query.system_detail` prints the column as the text the site shows (`_with_printed_uid`)
+    else:
+        belt_id = object_uid.from_bytes(bytes(uid))
     out = []
     rows = conn.execute(f"SELECT {_MEMBER_COLUMNS} FROM belt_members WHERE belt_id = ? AND status <> 'moon' ORDER BY member_rank LIMIT {int(limit)}", (belt["id"],)).fetchall()
     for row in rows:

@@ -216,6 +216,8 @@ def test_the_members_of_a_belt_are_the_heaviest_stored_ones_placed_by_their_orbi
         assert a_km * (1.0 - row["eccentricity"]) * (1.0 - 1e-9) <= distance <= a_km * (1.0 + row["eccentricity"]) * (1.0 + 1e-9)
         sine = member["position_km"][2] / distance
         assert abs(sine) <= math.sin(math.radians(row["inclination_deg"])) * (1.0 + 1e-9)
+    printed = systemscene._belt_members(_MembersOnly(rows), {"id": 7, "uid": object_uid.format_id(belt_id)}, limit=2)
+    assert [m["designation"] for m in printed] == [m["designation"] for m in members], "the printed form of the ID names the same bodies as the column's bytes"
     assert systemscene._belt_members(_MembersOnly(rows), {"id": 7, "uid": uid}, limit=0) == []
     assert pc.AU_TO_KM > 1.0e8
 
@@ -236,7 +238,7 @@ def test_the_same_belt_draws_the_same_bodies_and_a_smaller_cap_draws_the_first_o
     from planetgen.galaxy import object_uid
     from planetgen.web.maps import systemscene
 
-    uid = object_uid.to_bytes(object_uid.parse_id("0000FE81000A2B-0000005-003"))
+    uid = object_uid.format_id(object_uid.parse_id("0000FE81000A2B-0000005-003"))      # the text `query.system_detail` gives a belt
     rows = [_stored_row(rank) for rank in range(1, 9)]
 
     def drawn(limit):
