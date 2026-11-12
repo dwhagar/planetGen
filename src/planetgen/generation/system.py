@@ -582,6 +582,13 @@ class StarSystem:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
+            if self.system_config.FORCE_LIFE_CLASS:       # GEN.1620: judged on the finished bodies, like a forced class letter
+                wanted_life = f"a world with life class {self.system_config.FORCE_LIFE_CLASS}"
+                if not self.bodies_with_life_class(self.system_config.FORCE_LIFE_CLASS):
+                    if wanted_life not in self.unmet_requirements:
+                        self.unmet_requirements.append(wanted_life)
+                elif wanted_life in self.unmet_requirements:
+                    self.unmet_requirements.remove(wanted_life)
         if self._drop_barred_bodies():    # GEN.1275
             self._refresh_wobble()
         self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
@@ -1572,6 +1579,20 @@ class StarSystem:
             return True
         in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
         return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
+
+    def bodies_with_life_class(self, life_class):
+        """
+        The planets and moons that hold life of `life_class` (GEN.1620): a number (`"6"`) for any variant of it, or a number and variant (`"4c"`).
+        """
+        found = []
+        for planet in self.all_planets:
+            for body in (planet, *getattr(planet, "moons", ())):
+                number = getattr(body, "life_class", None)
+                if number is None:
+                    continue
+                if life_class in (str(number), f"{number}{getattr(body, 'life_class_variant', None) or ''}"):
+                    found.append(body)
+        return found
 
     def _forced_class_present(self):
         """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""

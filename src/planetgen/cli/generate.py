@@ -182,6 +182,32 @@ def _validate_star_type(args, parser):
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
 
 
+def class_request_problem(letter, life_class):
+    """What is wrong with a request for a class letter and a life class (GEN.1620), or `None`: the letter must be a planet class, the life
+    class an id of `physics/life_classes.py` or a bare number of one."""
+    from planetgen.physics import life_classes, planet_classes
+    if letter and letter.upper() not in planet_classes.LETTERS:
+        return f"{letter!r} is not a planet class; the classes are {', '.join(planet_classes.LETTERS)}"
+    numbers = {one.rstrip("abc") for one in life_classes.IDS}
+    if life_class and life_class.lower() not in life_classes.IDS and life_class not in numbers:
+        return f"{life_class!r} is not a life class; the classes are {', '.join(life_classes.IDS)} (or just the number)"
+    return None
+
+
+def _validate_class_request(args, parser):
+    """--force-class and --force-life-class must name a class, and --force-class cannot meet a system file's slots."""
+    problem = class_request_problem(args.force_class, args.force_life_class)
+    if problem:
+        parser.error(f"--force-class/--force-life-class: {problem}.")
+    if args.force_class and args.system_file:
+        try:
+            slots = run_system.load_system_file(args.system_file).get("slots")
+        except Exception:        # the system file's own checks say what is wrong with it
+            slots = None
+        if slots:
+            parser.error("--force-class cannot be combined with a system file's slots: a slot already names its class.")
+
+
 def _validate_name(args, parser):
     """--name must fit the database (with room for the planets and moons
     named after it), checked here rather than failing at the save."""
@@ -319,6 +345,15 @@ def add_system_arguments(parser):
     parser.add_argument('--star-type', type=str,
                         help="Force the generation of a specific star type (e.g., G2V).")
 
+    # A class letter or a life class to hold (GEN.1620)
+    parser.add_argument('--force-class', type=str, default=None, metavar='LETTER',
+                        help="Ask for a planet of this class letter (e.g. O): the system is drawn again until one is "
+                             "there, and the result says how well it fits (the nearest class the conditions allow) or "
+                             "that none came out. Cannot be combined with a system file's slots.")
+    parser.add_argument('--force-life-class', type=str, default=None, metavar='ID',
+                        help="Ask for a planet or moon living under this life class: a number (6) or a number and "
+                             "variant (4c). Drawn again until one is there, else the result says none came out.")
+
     # Number of Orbits
     parser.add_argument('--num-orbits', type=int,
                         help="Force an exact number of orbital slots (planets and asteroid belts "
@@ -371,6 +406,7 @@ def validate_system_args(args, parser):
 
     _validate_star_type(args, parser)
     _validate_name(args, parser)
+    _validate_class_request(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
