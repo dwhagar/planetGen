@@ -561,6 +561,10 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.143 | Heartbeat part 10: tests for every rule with a fake clock, and a full-galaxy trial on the lane machine | OPS.137, OPS.140, OPS.141 | Boss approved the heartbeat, 5:16 PM EST on 2026-11-09. |
 | OPS.146 | Heartbeat part 12: a restarted job runs in debug mode with its own debug log (config, on by default) | OPS.140 | Boss, 5:29 PM EST on 2026-11-09. |
 | OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | Lane 05 audit, 2026-11-11. |
+| OPS.148 | Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change | none | 2026-11-12. |
+| OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | 2026-11-12. |
+| OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | 2026-11-12. |
+| OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | MAP.409 | Page error: wheel into a system throws "Cannot read properties of null (reading 'update')" about 60 times and the scene never fades in |  | Lane 03, 2026-11-08. |
 | MAP.410 | Page error: editing the waypoints throws "Cannot read properties of null (reading 'textContent')" |  | Lane 03, 2026-11-08. |
