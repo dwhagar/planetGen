@@ -39,7 +39,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import planet_zones, unit_registry as units
+from planetgen.physics import irregular_zone, planet_zones, unit_registry as units
 
 _msun_to_kg = units.converter("Msun", "kg")
 
@@ -278,6 +278,17 @@ def moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_e
     """
     fraction, extrapolated = moon_hill_fraction(planet_eccentricity, moon_eccentricity, retrograde)
     return planet_radius_km + largest_moon_radius_km + margin_km, hill_radius_km * fraction, extrapolated
+
+
+def irregular_bounds_km(hill_radius_km, outermost_regular_moon_km=0.0, retrograde=False):
+    """
+    The span `(low_km, high_km)` of a planet's Hill sphere that its irregular moons hold (GEN.1086), km from the planet's center: from the orbit of the outermost regular moon (0 with none) out to the stable share
+    of the Hill radius for the sense of the orbit (`irregular_zone.PROGRADE_STABLE_FRACTION`, `irregular_zone.RETROGRADE_STABLE_FRACTION`). It is the space a regular moon may not be placed in once the
+    irregulars are drawn (and the space the irregulars take from a planet's neighbors: it lies inside the Hill sphere, and a planet keeps `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii from it). `low_km >= high_km`
+    means a hot planet whose stable limit lies inside its regular moons: no room.
+    """
+    fraction = irregular_zone.RETROGRADE_STABLE_FRACTION if retrograde else irregular_zone.PROGRADE_STABLE_FRACTION
+    return outermost_regular_moon_km, hill_radius_km * fraction
 
 
 # --- the ledger of one system ----------------------------------------------------------------------------------------------------------

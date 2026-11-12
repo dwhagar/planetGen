@@ -236,6 +236,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
+| function | planetgen.physics.clearance_ledger.irregular_bounds_km | by design | the span a planet's irregular moons hold, stated beside the ledger's other windows; the verifier's check 8 (`clearance.py`) holds the stored bodies to the same limits and `tests/test_clearance_ledger.py` holds the two together; nothing places a body from it, because the irregulars are drawn after the regular moons from `irregular_zone` |
 | function | planetgen.physics.seasonal_swing.peak_wet_bulb_c | by design | the hottest wet bulb of a series for a note; the Temperature score applies the wet bulb rule to each sample (`temperature_coverage.coverage`, GEN.1265) |
 | function | planetgen.physics.field_dispersal.column_density_kg_m2 | GEN.361 | the column density through a field; read by the field render (GEN.361) |
 | function | planetgen.physics.field_dispersal.freeze_out_time_s | GEN.361 | when a field stops colliding; read by the field render (GEN.361) |
@@ -270,3 +271,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
 | module | planetgen.physics.obliquity_variation | GEN.1454 | the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table |
 | module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
+| module | planetgen.physics.planet_moons | GEN.1157 | the disk ceiling and the capture rate and mass of a moon of planet size around a giant (lock-free slice 0); the wiring of `generate_moons` lifts the giants' 1e-3 moon cap to the disk ceiling and adds the capture moon, which changes output and rides a train |
+| row | 6.276:PSM1 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
+| row | 6.276:PSM2 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
+| row | 6.276:PSM3 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
+| row | 6.276:PSM4 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |

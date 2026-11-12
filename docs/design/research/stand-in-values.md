@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1615 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1619 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1589 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1593 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
+| T1 | 187 | 20 | 11 | 1 | 0 | 219 |
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 52 | 10 | 9 | 0 | 184 |
+| T3 | 113 | 52 | 11 | 9 | 0 | 185 |
 | T4 | 84 | 12 | 4 | 22 | 15 | 137 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 208 | 107 | 31 | 81 | 4 | 431 |
+| T6 | 208 | 107 | 31 | 82 | 4 | 432 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 925 | 311 | 77 | 246 | 56 | 1615 |
+| T9 | 45 | 16 | 5 | 92 | 35 | 193 |
+| All | 927 | 311 | 78 | 247 | 56 | 1619 |
 
 ## How the labels were given
 
@@ -2843,3 +2843,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
 | OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
 | OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
+
+## 6.276 Stand-ins of the moons of planet size around the giants
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PSM1 | P | T9 | L0 | `planet_moons.PLANET_MOON_MIN_MASS_KG`: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107) | 0.05 to 0.2 Earth mass | every giant | none (a definition) | none | from needed output | predicted only | GEN.1157 | - |
+| PSM2 | D | T1 | L0 | `planet_moons.DISK_TOTAL_RATIO_MAX` 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent) | none (exact) | giants of 0.1 to 3 Jupiter masses, extended to ten ([R5229] restates the extension) | a regular moon system above 6.4e-4 of its planet | a disk model of the planet's own mass (GEN.466) | [R0642, R0643, R5229] (READ) | predicted only | GEN.1157 | - |
+| PSM3 | P | T3 | L2 | `planet_moons.CAPTURE_CHANCE` 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365] | 0.003 to 0.05 | giants beyond about 0.3 au | a survey of several hundred giants that finds none, or several candidates among 70 | an occurrence rate from a larger exomoon survey | [R2365]: one candidate (Kepler-1708 b-i) in 70; the Kepler-1625 b-i signal is disputed [R1900] | predicted only | GEN.1157 | - |
+| PSM4 | P | T6 | L3 | `planet_moons.EXCHANGE_MAX_RATIO` 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2 | 5e-3 to 5e-2 | every capture | a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower | the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners | [R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037] | predicted only | GEN.1157 | - |
