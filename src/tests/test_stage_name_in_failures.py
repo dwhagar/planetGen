@@ -111,3 +111,21 @@ def test_a_run_that_failed_says_why_and_at_which_stage_and_a_cancel_is_only_a_no
     severity, line, fields = wrapper.stop_line("r1", None, 5, KeyboardInterrupt(), "KeyboardInterrupt", True)
     assert severity == "notice" and "stopped: KeyboardInterrupt." in line
     assert fields == {"run_id": "r1", "cause": "canceled"}
+
+
+def test_a_failed_unit_reaches_error_log_with_its_run_stage_unit_kind_and_traceback(run, monkeypatch):
+    """OPS.162: RQ's own copy of the traceback has no run, stage, unit or kind; the unit's failure line carries them as fields."""
+    from planetgen.util import log
+    seen = []
+    monkeypatch.setattr(log, "record_error", lambda component, message, exc_info=None, **fields: seen.append((component, message, exc_info, fields)))
+    job = _job(run, 2)
+    job.args = ("r1", 2, 101, "sectors", {}, None)
+    try:
+        raise ValueError("no stars here")
+    except ValueError as exc:
+        units.unit_failed(job, run, ValueError, exc, exc.__traceback__)
+    (component, message, exc_info, fields), = seen
+    assert component == "queue"
+    assert message == "Unit 101 of stage Scatter the bright stars failed: ValueError: no stars here"
+    assert exc_info[0] is ValueError and exc_info[2] is not None
+    assert fields == {"run_id": "r1", "stage": 2, "stage_name": "Scatter the bright stars", "unit": 101, "kind": "sectors"}
