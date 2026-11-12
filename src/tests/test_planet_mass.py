@@ -36,7 +36,7 @@ def _no_scatter(monkeypatch):
 
 def test_the_core_is_the_isolation_mass_of_the_median_spacing_at_zero_scatter(monkeypatch):
     _no_scatter(monkeypatch)
-    density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISK_SOLIDS_ENHANCEMENT)
+    density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISK_SOLIDS_ENHANCEMENT) * tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST      # 1 AU is in the terrestrial zone (GEN.1560)
     expected = formation.isolation_mass_kg(1.0, density, SUN_KG, tuning.OLIGARCH_SEPARATION_MEDIAN)
     got = planet_mass.assembled_core_kg(1.0, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
     assert got == pytest.approx(expected)
@@ -48,9 +48,9 @@ def test_solids_grow_outward_and_jump_at_the_snow_line():
         return statistics.median(planet_mass.assembled_core_kg(distance, SUN_KG, SNOW_LINE_AU, 1.0, stream)
                                  for _ in range(400)) / EARTH_KG
     inner, just_inside, just_outside, far = (assembled(d) for d in (0.3, 2.6, 2.8, 5.0))
-    assert inner < just_inside < just_outside < far
-    # the jump of the snow line (GEN.1396): the isolation mass goes as the density to the 3/2, and the two radii are 0.2 AU apart
-    assert just_outside > 0.9 * disk_condensation.SNOW_LINE_SOLID_JUMP ** 1.5 * just_inside
+    assert inner < just_inside and just_outside < far
+    # the jump of the snow line (GEN.1396) on the terrestrial zone's pile-up inside it (GEN.1560, `PLANET_ROCKY_ZONE_SOLIDS_BOOST`): the isolation mass goes as the density to the 3/2, and the two radii are 0.2 AU apart
+    assert just_outside > 0.9 * (disk_condensation.SNOW_LINE_SOLID_JUMP / tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST) ** 1.5 * just_inside
 
 
 def test_the_slow_outer_disk_builds_less_than_the_isolation_mass_alone(monkeypatch):

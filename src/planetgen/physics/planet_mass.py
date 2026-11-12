@@ -50,6 +50,8 @@ def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_r
     density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
     if distance_au < 1.0:
         density *= distance_au ** -tuning.PLANET_INNER_DISK_STEEPENING
+    if tuning.PLANET_ROCKY_ZONE_START_AU <= distance_au < snow_line_au:
+        density *= tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST      # GEN.1560: the terrestrial zone's solids, which the giant-impact stage then merges
     return density
 
 

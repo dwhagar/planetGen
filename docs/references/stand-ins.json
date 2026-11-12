@@ -17127,6 +17127,82 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU)"
+            ],
+            [
+              "The range it moves in",
+              "boost 2 to 6; start 0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "the zone from 0.45 AU to the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_gen1560_the_terrestrial_zone_has_earth_sized_planets_at_about_the_surveyed_rate; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star"
+            ],
+            [
+              "What replaces it",
+              "a disk-evolution and pebble-flux model of the terrestrial zone (GEN.509)"
+            ],
+            [
+              "Evidence",
+              "tuned to a published statistic: [R0572] 0.37 to 0.60 planets of 0.5 to 1.5 Earth radii per Sun-like star in the habitable zone, with PA17 (the model gave 0.95, of Mars mass: median 0.26 Earth masses); [R0771] (recalled) for the several-times-minimum-mass solids; GEN.1396's jump of 1.967 at the snow line now sits on top of a higher inside, so the density falls across the line (a pile-up inside it, [R0572] does not constrain it)"
+            ]
+          ],
+          "id": "PA16",
+          "key": "6.36:PA16",
+          "kind": "P",
+          "slug": "6-36-pa16",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts)"
+            ],
+            [
+              "The range it moves in",
+              "20 to 35"
+            ],
+            [
+              "Where it holds",
+              "the zone from 0.45 AU to the snow line"
+            ],
+            [
+              "What would show it wrong",
+              "test_planet_architecture::test_gen1560_the_giant_impact_stage_merges_the_closest_pair_until_the_zone_is_spaced_out; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star"
+            ],
+            [
+              "What replaces it",
+              "an N-body giant-impact stage of the zone's oligarchs"
+            ],
+            [
+              "Evidence",
+              "tuned to [R0572] with PA16; N-body runs of protoplanets 10 Hill radii apart end in about two Earth-sized planets after 100 Myr ([R2431: Eq. 2]: 0.16 Earth masses at 1 AU before); the merge keeps COLLISION_MASS_RETENTION (PA8)"
+            ]
+          ],
+          "id": "PA17",
+          "key": "6.36:PA17",
+          "kind": "P",
+          "slug": "6-36-pa17",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
