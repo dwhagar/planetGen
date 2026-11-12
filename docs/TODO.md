@@ -13352,42 +13352,56 @@ clears each one.
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Do: the table, its migration and roll-up job, and writers fed from memorygate.release, unitrates.note, stagetimes.record and units.horse_killed, as under "Record first" in the note. Ships first and alone. Test: a small run fills it for every command it ran.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
   Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **OPS.156 Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: no history gives today's claims; history lowers a claim and a memory kill raises it.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **OPS.157 Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: caps equal today's with no history.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.156. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **OPS.158 Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Extends OPS.150.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Then block lights, link, settle and warm-up chunks; the typed constants stay as default and clamp.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: PERF.260. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: PERF.260, OPS.161. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **OPS.159 Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
 
 - [ ] **OPS.160 Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)**
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). After OPS.157, PERF.261 and OPS.159 have run on a full galaxy.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.157. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Filed by the TODO thread.
+
+- [ ] **OPS.161 Dynamic queue chain: every job entering the queue declares suggested break points (with a required or optional split flag and its dependencies) (item boundaries it may be cut at, and spans that must stay whole), and the queue engine picks the split from the job profiles and the machine's free resources**
+  Boss, 3:00 PM EST on 2026-11-12: "Have todo build it and ship it, I want a full dynamic queue chain where the queue engine will decide the split based on resources profiles and suggested break points by the job entering the queue". Do: a break-point declaration in the job spec (the planner, DOC.113) that every command fills (item counts, legal cut boundaries, spans that must stay whole, a cut_neutral flag from PERF.260); the queue engine reads it with the OPS.155 profile and the free memory and cores to choose unit sizes at plan time, frozen in the run record. Commands that declare nothing keep their typed split. Build with PERF.261, which moves each stage onto it.
+  Boss, 3:01 PM EST on 2026-11-12: "Jobs will flag if their split is required or not along with the flag that says what depends on what". So the declaration also carries (a) a split flag per job: required (it cannot run whole: it would not fit in memory or would pass the unit ceiling) or optional (the engine may keep it whole and splits only when the profile says it pays); and (b) its dependencies on other jobs or stages, which the engine uses to decide what may overlap and never cuts across. Reuse the DOC.113 job graph and the OPS.131/132 overlap-by-proof work for (b).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: OPS.155, PERF.260. Related: OPS.122, OPS.123, OPS.156, OPS.157, PERF.261.
+  Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
