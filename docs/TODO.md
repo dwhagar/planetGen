@@ -13538,6 +13538,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
   Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
 
+- [ ] **TEST.727 (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws**
+  Lane 12 (as the lane reported 9:18 PM EST on 2026-11-11): red on main by draw, not caused by a train. Do: find why a forced K5VI subdwarf is classed as a dwarf (V) at about 4,400 K in about 5 percent of draws (the luminosity-class rule against the metal-poor radius, or the forced type not holding through the build); fix the generator if the class is wrong, or fix the test if the draw is legitimate (search seeds with TEST.714's first_seed_with rather than pinning). Never loosen what the test proves. Done: the cause on this item, the test passes over 200 seeds. Lock item only if generated stars change.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11 (stars). Prerequisites: none. Related: TEST.714.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
