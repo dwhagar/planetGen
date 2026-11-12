@@ -181,6 +181,8 @@ def system_request(form):
         argv.append(f"--flavor-chance-planet={chance_planet}")
     if max_flavor:
         argv.append("--max-planet-flavor")
+    if form.get("disregard_missing_data"):
+        argv.append("--disregard-missing-data")
     return {"argv": argv, "debug": bool(form.get("debug")), "system_file": system_file}
 
 

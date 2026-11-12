@@ -250,7 +250,7 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
