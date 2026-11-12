@@ -63101,6 +63101,128 @@
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
       "title": "Stand-ins of the spin axis and obliquity under every body"
+    },
+    {
+      "key": "6.276",
+      "number": "6.276",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.DISK_SURVIVAL_POINTS: the share of stars still holding a dusty disk is 1 at birth, 0.80 at 1 Myr, 0.50 at 3 Myr, 0.10 at 5.5 Myr and none by 10 Myr, joined by straight lines and read as a survival curve for the dispersal time"
+            ],
+            [
+              "The range it moves in",
+              "the 3 Myr point 0.4 to 0.6, the 5.5 Myr point 0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "stars of 0.1 to 2 solar masses in the field of the survey clusters"
+            ],
+            [
+              "What would show it wrong",
+              "a cluster survey of ages 3 to 6 Myr whose disk share differs from the curve by more than 0.15"
+            ],
+            [
+              "What replaces it",
+              "the exponential fit of Mamajek 2009 or a curve per star mass, once read"
+            ],
+            [
+              "Evidence",
+              "the 0.8 at 1 Myr and 0.1 at 5 to 6 Myr are the design table's; the 0.5 at 3 Myr is the usual survey reading (Haisch, Lada and Lada 2001) from memory; reports/young-stars-disks-no-bodies-2026-11-11.md"
+            ]
+          ],
+          "id": "DD1",
+          "key": "6.276:DD1",
+          "kind": "P",
+          "slug": "6-276-dd1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1551",
+          "what": "disk_dispersal.DISK_SURVIVAL_POINTS: the share of stars still holding a dusty disk is 1 at birth, 0.80 at 1 Myr, 0.50 at 3 Myr, 0.10 at 5.5 Myr and none by 10 Myr, joined by straight lines and read as a survival curve for the dispersal time"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal.COMPANION_EARLY_SHARE 2/3 and COMPANION_EARLY_TIME_YR 1 Myr: a star with a companion inside COMPANION_GAS_CUT_AU (47 au) loses its disk within a million years in two cases of three"
+            ],
+            [
+              "The range it moves in",
+              "the share 0.5 to 0.8"
+            ],
+            [
+              "Where it holds",
+              "close binaries"
+            ],
+            [
+              "What would show it wrong",
+              "a binary survey where the disk share of close pairs at 1 to 3 Myr is not far below the single stars'"
+            ],
+            [
+              "What replaces it",
+              "a separation-dependent dispersal time"
+            ],
+            [
+              "Evidence",
+              "the GEN.1475 report's reading of the 47 au cut, not opened by this lane"
+            ]
+          ],
+          "id": "DD2",
+          "key": "6.276:DD2",
+          "kind": "P",
+          "slug": "6-276-dd2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "GEN.1551",
+          "what": "disk_dispersal.COMPANION_EARLY_SHARE 2/3 and COMPANION_EARLY_TIME_YR 1 Myr: a star with a companion inside COMPANION_GAS_CUT_AU (47 au) loses its disk within a million years in two cases of three"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "disk_dispersal: the dispersal time does not depend on the star's mass"
+            ],
+            [
+              "The range it moves in",
+              "a slope of the time with mass of 0 to -0.5"
+            ],
+            [
+              "Where it holds",
+              "all masses"
+            ],
+            [
+              "What would show it wrong",
+              "a survey that finds disks of M dwarfs living longer than a solar-mass star's by more than a factor of 1.5"
+            ],
+            [
+              "What replaces it",
+              "a mass slope of the curve"
+            ],
+            [
+              "Evidence",
+              "no source: the report holds none; the first thing a later reading adds"
+            ]
+          ],
+          "id": "DD3",
+          "key": "6.276:DD3",
+          "kind": "P",
+          "slug": "6-276-dd3",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L0",
+          "unread": null,
+          "what": "disk_dispersal: the dispersal time does not depend on the star's mass"
+        }
+      ],
+      "slug": "6-276-stand-ins-of-the-disk-dispersal-time-of-a-young-star",
+      "title": "Stand-ins of the disk dispersal time of a young star"
     }
   ]
 }

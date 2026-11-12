@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1610 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1613 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1584 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1587 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
-| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
-| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+| T2 | 152 | 61 | 1 | 1 | 0 | 215 |
+| T3 | 114 | 51 | 10 | 9 | 0 | 184 |
+| T4 | 85 | 12 | 4 | 22 | 12 | 135 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
 | T6 | 207 | 107 | 31 | 81 | 4 | 430 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 924 | 310 | 77 | 246 | 53 | 1610 |
+| All | 927 | 310 | 77 | 246 | 53 | 1613 |
 
 ## How the labels were given
 
@@ -2838,3 +2838,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
 | OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
 | OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
+
+## 6.276 Stand-ins of the disk dispersal time of a young star
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| DD1 | P | T2 | L0 | `disk_dispersal.DISK_SURVIVAL_POINTS`: the share of stars still holding a dusty disk is 1 at birth, 0.80 at 1 Myr, 0.50 at 3 Myr, 0.10 at 5.5 Myr and none by 10 Myr, joined by straight lines and read as a survival curve for the dispersal time | the 3 Myr point 0.4 to 0.6, the 5.5 Myr point 0.05 to 0.2 | stars of 0.1 to 2 solar masses in the field of the survey clusters | a cluster survey of ages 3 to 6 Myr whose disk share differs from the curve by more than 0.15 | the exponential fit of Mamajek 2009 or a curve per star mass, once read | the 0.8 at 1 Myr and 0.1 at 5 to 6 Myr are the design table's; the 0.5 at 3 Myr is the usual survey reading (Haisch, Lada and Lada 2001) from memory; reports/young-stars-disks-no-bodies-2026-11-11.md | predicted only | GEN.1551 | - |
+| DD2 | P | T3 | L0 | `disk_dispersal.COMPANION_EARLY_SHARE` 2/3 and `COMPANION_EARLY_TIME_YR` 1 Myr: a star with a companion inside `COMPANION_GAS_CUT_AU` (47 au) loses its disk within a million years in two cases of three | the share 0.5 to 0.8 | close binaries | a binary survey where the disk share of close pairs at 1 to 3 Myr is not far below the single stars' | a separation-dependent dispersal time | the GEN.1475 report's reading of the 47 au cut, not opened by this lane | predicted only | GEN.1551 | - |
+| DD3 | P | T4 | L0 | `disk_dispersal`: the dispersal time does not depend on the star's mass | a slope of the time with mass of 0 to -0.5 | all masses | a survey that finds disks of M dwarfs living longer than a solar-mass star's by more than a factor of 1.5 | a mass slope of the curve | no source: the report holds none; the first thing a later reading adds | predicted only | - | - |
