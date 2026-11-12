@@ -23,7 +23,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import influx_row, model
+from planetgen.describe import clock_rows, influx_row, model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
@@ -108,6 +108,7 @@ NOT_STORED = "not stored"
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
     "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "dose_rate": "dose rate",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
@@ -716,7 +717,7 @@ def specs_for(kind):
 
 _SYMBOLS = {
     "A*m2": " A·m²", "R_planet": " planet radii", "xuv-earth": "× Earth's", "1/yr": " a year", "1/Gy": " per billion years",
-    "mSv/yr": " mSv/yr", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
+    "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
 }
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
@@ -1373,6 +1374,9 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    for group, key, label, value, raw in clock_rows.rows(conn, kind, object_id):
+        by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
+                                "show_absent": False})
     arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
     if arriving:
         value = [model.qty("mass", arriving, "kg")]

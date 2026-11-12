@@ -2,6 +2,119 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3876] - 2026-11-12
+
+**Headline:** The class and systems censuses are re-tagged after Train 22, and the class census draws every cell around a lone star so no cell comes out empty.
+
+### Changed
+
+- **Census re-tag (GEN.1537).** The class, systems, occurrence and oddity censuses ran on the tree after Train 22 (epoch 144). The class census draws its cells with `BINARY_SYSTEM` off: since the radiation field (GEN.1441) a companion's light moves every orbit to the zone of the total light, and the A0V cold, F5V ecosphere and three moon cells drew into the hot zone or nothing and read as "no bodies drawn". The class census then raised 18 flags in small cells (moon life ceilings, planet tiers Red and Yellow, G2V ecosphere Class C 0.190 against 0.138, K0III ecosphere Class E 0.123 against 0.106), all tagged GEN.1537 with their numbers; 17 stale class tags are removed. The systems census raised four flags (G2V abiogenesis 0.49 against 0.516; K0III complex cells 0.30, multicellularity 0.23 and zero-planet systems 0.05, so more K giants host life), tagged GEN.1537 with two stale tags removed. The occurrence census raised one (K giants at 2 to 8 AU, 0.030 against a floor of 0.056), tagged, with the stale G star tag removed. The oddity census raised W5 (resonant chain, 7 of 188 = 0.037 against 0.041), which now has a known-flag table (`prevalence_oddities.KNOWN`) like the others. The stars, phenomena and life censuses pass with no flag. No fault was found; the ranges stay until the re-baseline after the last 8.1 train (TEST.660). Only test data and the census draw change.
+
+generation-output: unchanged
+
+## [8.0.3875] - 2026-11-12
+
+**Headline:** a spelling fix only: "centre" in the obliquity-variation code and its test is now "center".
+
+### Changed
+
+- `test_american_spelling` was red on main because the obliquity-variation module (GEN.1454 part 1) and its test used "centre" (including the field `cos_centre`). Renamed with the repo's own sweep (`scripts/american_spelling_sweep.py apply`); nothing else in the tree was found. No change in behavior.
+
+## [8.0.3874] - 2026-11-12
+
+**Headline:** A test now fails when a new numeric constant is added to the generator's own modules without a registry row, a tag or a place in the constants module.
+
+### Changed
+
+- TEST.715 (the gate TEST.455 names, from the GEN.945 census): `scripts/constants_census.py` is Lane 21's census made importable; `test_constants_completeness.py` fails on a new unregistered constant in physics, galaxy, generation, population or `tuning.py`,. The committed list (`src/tests/baselines/unregistered_constants.txt`, 1,521 names today) may only shrink. Tests and a script only; nothing generated changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3873] - 2026-11-12
+
+**Headline:** A radiation dose now picks its unit by size, so 13,200 mSv/yr reads "13.2 Sv/yr" and not "1.32 × 10⁴ mSv/yr".
+
+### Changed
+- **A dose rate has a unit ladder.** The unit registry gained the `dose_rate` kind (nSv/yr, µSv/yr, mSv/yr, Sv/yr, kSv/yr, MSv/yr) and
+  `util/ladders.py` the `DOSE_RATE` ladder (also in `unitladders.js` and `unitregistry.js`), so a property sheet's dose rows and a
+  Document's dose facts show the largest unit the value is at least 1 of. The sheet had written the number with a fixed mSv/yr and a
+  `.4g` format, which turned any dose of 10,000 mSv/yr or more into scientific notation. The stored columns stay in mSv/yr (no migration, no
+  epoch); the Document's `dose` kind and its factor of 1000 are gone, in favor of the ladder's `dose rate`.
+
+generation-affects: none
+
+## [8.0.3872] - 2026-11-11
+
+**Headline:** Physical constants that several modules each defined for themselves (Avogadro, the gas constant, the densities of ice and water, the melting point of water, the latitude band count) are now defined once in the constants module.
+
+### Changed
+
+- GEN.1526 (from the GEN.945 audit): `AVOGADRO`, `GAS_CONSTANT`, `ICE_DENSITY_KG_M3`, `LIQUID_WATER_DENSITY_KG_M3`, `WATER_MELTING_K` and `BAND_COUNT` are defined in `physics/constants.py` and the modules that each held a copy (isotope record, air column, elements, interior heat, species thermo, core heat, tidal rheology, rings, clathrate brine, aquifers, hydrosphere, regional temperature, planet classes, latitude bands, class domains) read them from there under the same names. The values are the ones the modules already held, to the last digit (`GAS_CONSTANT` keeps its ten-digit CODATA value; astropy's full-precision `R` stays a separate name), so nothing generated changes. `test_astropy_constants` now holds `AVOGADRO`, `GAS_CONSTANT` and `WATER_MELTING_K` against astropy and fails when a module gives one of the six names a number of its own again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3871] - 2026-11-11
+
+**Headline:** The one-off system page can now run with missing data files, as the Generate page can.
+
+### Added
+- **"Disregard missing data files" on the one-off system page (UX.283).** `/admin/generate/system` now has the same tick box the Generate page has; ticked, the page passes `--disregard-missing-data` to `planetgen system`, which then takes a labelled fallback for each missing dataset instead of refusing to run.
+
+## [8.0.3870] - 2026-11-11
+
+**Headline:** the sheet of a star, a planet and a moon now shows how far a clock on it falls behind a distant one each year, the planet's sheet lists how often its moons and inner planets eclipse its star, and a star's sheet gives the focus of its gravitational lens.
+
+### Changed
+
+- `physics/sky_clock.py` (GEN.1434, new): `clock_lag_fraction` and `lag_per_year_s` (the weak-field sum of the body's own surface potential and 3/2 G M / (r c^2) for each host it circles; the Earth lags 0.49 s a year, the Sun's surface 67 s, a close white dwarf thousands), `focal_distance_m` (R^2 c^2 / (4 G M), 548 AU for the Sun, none inside four Schwarzschild radii) and the eclipse calendar `moon_eclipse` and `planet_eclipse` (mean interval from the synodic period and the arcsine share of crossings that touch the star, longest eclipse first contact to last, whole-star time for a larger blocker, deepest cover for a smaller one). It reuses the geometry of `physics/eclipses.py`, the constants and the unit registry (s, yr, h, au, pct), and adds no unit.
+- `describe/clock_rows.py` (new) and `describe/sheet.py`: derived rows built when the sheet is made, no stored column and no migration: "Clock lag behind a distant clock, a year" (star, planet, moon), "Focus of its gravitational lens" (star), and up to four "Eclipses of its star by ..." rows for a planet (its moons and the planets inside its orbit, shortest interval first). The reuse is the moon's longest eclipse row pattern.
+- `physics/eclipses.py` (GEN.1462 fix): `orbiting_the_star` took the rate the direction to the blocker parts from the star at as only the blocker's speed against the observer's over the gap, and left out the turn of the direction to the star as the observer circles it; the new `transit_rate` adds it (3.9 arc minutes an hour for Venus, not 1.5). The Venus touched share is now 9.1e-6 (the real cycle's 1.2e-5, four transits in 243 years and not eight); nothing in generation calls the function, so no generated value changes. EC1 and the test now say four transits in 243 years.
+- Registry rows SK1 to SK3 added (section 6.272 of the gap plan).
+
+generation-affects: none
+
+## [8.0.3869] - 2026-11-11
+
+**Headline:** the Galaxy Map's sector list no longer times out on a big galaxy: each sector's system count is a stored count made in the background.
+
+### Changed
+
+- MAP.424: `GET /api/galaxy/sectors` counted every system in the galaxy on every request, which passed the 10 second web limit once the galaxy held millions of systems (the Galaxy Map gave 504 and the Warm galaxy-map step of the cache warm-up stopped with QUERY_TIMEOUT). Each sector's count is now read from `sector_system_counts`, the stored table the Sectors list already reads, which one background thread refreshes through the stored-count cache; a sector made since the last refresh has `system_count` null (not counted yet) and the map draws it as zero.
+
+## [8.0.3868] - 2026-11-11
+
+**Headline:** Two hand-tuned stand-ins, the accretion spread of planetesimals and the hot Jupiter migration share, were found to follow the data the project holds and are lowered from hand-tuned to tuned to a published figure.
+
+### Changed
+
+- GEN.946: registry row TK5 (`taxon_kernel.ACCRETION_SPREAD_MYR`, 3 Myr) lies inside the 1.8 to 4 Myr read from [R2677] and gives the melted share of 0.54 at the Solar System's aluminium-26 ratio, the 0.55 it is tuned to; row PA9 (the hot Jupiter migration share) has its extra metallicity exponent 2.2 from the two read exponents (3.4 for hot Jupiters less 1.2 for giants), its period ceiling 10 d from the read inner edge, and its share tuned to the read 0.62 and 0.27 percent. Both rows go from L3 to L2 and their burn-down lines to `replaced`; `tests/test_stand_in_tweaks_held_to_sources.py` holds them. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3867] - 2026-11-11
+
+**Headline:** The citation check no longer reads "Manager, 2026" or "EST 2026" in the plan as an author and a year.
+
+### Fixed
+- **`NOT_NAMES` in `scripts/build_references.py` gains `Manager`, `EST`, `EDT` and `UTC`.** A role word or a time zone before a year ("Train Manager, 2026", "9:29 AM EST 2026") was read by the rewrite as a source named by author and year, and `test_no_citation_is_written_outside_the_registry` failed on main twice because of the TODO plan's wording. A new test in `test_citations_outside_the_registry.py` pins those four phrases. Reused: the existing `NOT_NAMES` stop list that the rewrite already consults; no new mechanism.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3866] - 2026-11-11
+
+**Headline:** The giant planet mass function slope was checked against the occurrence fit the project holds and stands; a test now holds it to that fit.
+
+### Changed
+
+- GEN.1525 (row 9 of the GEN.945 audit): the held radial-velocity occurrence fit ([R0960], band `cold_giants_cumming`) gives a giant mass function dN/dlnM going as M to the -0.31 +- 0.2, the same 0.31 as `GIANT_MASS_FUNCTION_SLOPE`. `tests/test_giant_mass_function_held_data.py` holds the constant to that figure and registry row AUD19 records the check. No value changes.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3865] - 2026-11-11
 
 **Headline:** The neutron star and white dwarf mass ranges were checked against the equations of state and cooling sequences the project holds and stand; tests now hold them to that data.

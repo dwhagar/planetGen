@@ -86,7 +86,7 @@ class Resonance:
 
     mode: Mode
     obliquity_deg: float
-    cos_centre: float
+    cos_center: float
     cos_half_width: float
 
 
@@ -192,20 +192,20 @@ def resonances_of(alpha_rad_yr, modes):
         return ()
     out = []
     for mode in modes:
-        centre = -mode.frequency_rad_yr / alpha_rad_yr
-        if abs(centre) >= 1.0:
+        center = -mode.frequency_rad_yr / alpha_rad_yr
+        if abs(center) >= 1.0:
             continue
-        sine = math.sqrt(1.0 - centre * centre)
+        sine = math.sqrt(1.0 - center * center)
         half_width = 2.0 * math.sqrt(2.0 * mode.amplitude_rad * abs(mode.frequency_rad_yr) * sine / alpha_rad_yr)
-        out.append(Resonance(mode, math.degrees(math.acos(centre)), centre, half_width))
-    return tuple(sorted(out, key=lambda r: r.cos_centre))
+        out.append(Resonance(mode, math.degrees(math.acos(center)), center, half_width))
+    return tuple(sorted(out, key=lambda r: r.cos_center))
 
 
 def _chains(resonances):
-    """The resonances grouped into chains whose zones overlap (Chirikov: the sum of two half-widths reaches the distance of the centres), each chain a list in order of `cos`."""
+    """The resonances grouped into chains whose zones overlap (Chirikov: the sum of two half-widths reaches the distance of the centers), each chain a list in order of `cos`."""
     chains = []
     for resonance in resonances:
-        if chains and resonance.cos_half_width + chains[-1][-1].cos_half_width >= resonance.cos_centre - chains[-1][-1].cos_centre:
+        if chains and resonance.cos_half_width + chains[-1][-1].cos_half_width >= resonance.cos_center - chains[-1][-1].cos_center:
             chains[-1].append(resonance)
         else:
             chains.append([resonance])
@@ -234,8 +234,8 @@ def analyse(alpha_rad_yr, obliquity_deg, modes):
     x = math.cos(math.radians(obliquity_deg))
     resonances = resonances_of(alpha_rad_yr, modes)
     for chain in _chains(resonances):
-        low = _clamped_cos(min(r.cos_centre - r.cos_half_width for r in chain))
-        high = _clamped_cos(max(r.cos_centre + r.cos_half_width for r in chain))
+        low = _clamped_cos(min(r.cos_center - r.cos_half_width for r in chain))
+        high = _clamped_cos(max(r.cos_center + r.cos_half_width for r in chain))
         if low <= x <= high:
             ceiling, floor = math.degrees(math.acos(low)), math.degrees(math.acos(high))      # a larger cos is a smaller tilt
             return Variation(floor, ceiling, len(chain) >= 2, True, 0.0, resonances, alpha_rad_yr)

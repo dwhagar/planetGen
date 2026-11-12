@@ -14,6 +14,7 @@ Numbering: 0x runs the system, 1x is core generation and product families, 2x is
 | 04 | Bugs and test health | Bug 1 | the current Bug 1 thread (an older Bug 1 thread ran in October 2026 and is retired) |
 | 05 | Bugs and test health, second lane | none (new 2026-11-08) | Boss, 8:10 PM EST on 2026-11-07: a second bug lane to assist lane 04 with the 8.1 bug-hunt queue (GEN.1390, TEST.695 and their splits) |
 | 06 | Gate shards and red fixes, second gate lane | none (new 2026-11-08) | Boss, 8:14 PM EST on 2026-11-07: a second gate lane to help with train 17 (PR 5626), beside lane 03 |
+| 07 | Dev: builds ahead of trains | none (new 2026-11-11) | Boss, 6:24 PM EST on 2026-11-11: predictive building; stacked branches for blocked items whose owner lane has not started them, never merged before their base lands, no epoch or migration number claimed; rule in lanes.md |
 | 11 | Oddities, census, ore design | Core 1 | |
 | 12 | Storage, remnants, volatility law | Core 2 | |
 | 13 | Galaxy and admin | Core 3 | |
