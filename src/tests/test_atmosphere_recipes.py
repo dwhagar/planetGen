@@ -473,17 +473,70 @@ def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold(
     assert set(species) == {"CH4", "C2H6", "H2CO", "H2S", "N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe"}
 
 
-def test_the_comet_species_k7_draws_between_the_comets_measured_and_covers_the_range():
-    """GEN.1021: each of the seven is log-uniform between its two comets; 67P, Hale-Bopp and C/2016 R2 are reachable, none is the median."""
+COMET = dict(SOLAR_HOST, perihelion_au=1.2, family="icy")
+
+
+def _comets(count=1500, seed=1022):
+    s = Subject("comet", dict(COMET))
+    out = []
+    with draw.bound(seed):
+        for _ in range(count):
+            r = RECIPES.draw_all(s, categories="k")
+            out.append((r.values["k5"], r.values["k7"]))
+    return out
+
+
+def test_ocs_so2_and_o2_of_k7_draw_between_the_comets_measured_and_cover_the_range():
+    """GEN.1021: each is log-uniform between its comets; the comets measured are reachable, none is the median."""
     from planetgen.physics import comet_species as cs
-    s = Subject("comet", dict(SOLAR_HOST))
-    with draw.bound(21):
-        got = [RECIPES.draw_value("k7", s) for _ in range(400)]
-    for species in cs.SPECIES:
+    comets = _comets(400)
+    for species in ("OCS", "SO2", "O2"):
         low, high = cs.bracket_over_h2o(species)
-        values = [g[species] for g in got]
+        values = [k7[species] for _co, k7 in comets]
         assert low <= min(values) and max(values) <= high * (1 + 1e-9), species
         assert min(values) < low * (high / low) ** 0.1 and max(values) > low * (high / low) ** 0.9, species
+
+
+def test_the_species_of_k7_rise_with_the_co_of_k5_the_way_the_comets_measured_say():
+    """GEN.1022: one latent per comet. A CO-rich comet is argon- and nitrogen-rich, and a CO-poor argon-rich one is rare; k5's own spread is unchanged."""
+    import statistics
+    comets = _comets()
+    logs = [math.log10(co) for co, _k7 in comets]
+    assert statistics.mean(logs) == pytest.approx(math.log10(0.025), abs=0.06) and statistics.pstdev(logs) == pytest.approx(0.65, abs=0.05)
+
+    def correlation(xs, ys):
+        mx, my = statistics.mean(xs), statistics.mean(ys)
+        return sum((x - mx) * (y - my) for x, y in zip(xs, ys)) / math.sqrt(sum((x - mx) ** 2 for x in xs) * sum((y - my) ** 2 for y in ys))
+
+    for species in ("N2", "Ar", "Kr", "Xe"):
+        assert correlation(logs, [math.log10(k7[species]) for _co, k7 in comets]) > 0.7, species
+    rich_without_co = sum(1 for co, k7 in comets if co < 0.025 and k7["Ar"] > 1e-4)
+    poor_with_co = sum(1 for co, k7 in comets if co > 0.1 and k7["Ar"] < 1e-5)
+    assert rich_without_co / len(comets) < 0.01 and poor_with_co / len(comets) < 0.01
+    argon = sorted(k7["Ar"] for _co, k7 in comets)
+    assert argon[int(0.02 * len(argon))] < 1.5e-5 and argon[int(0.98 * len(argon))] > 5e-3          # 67P to Hale-Bopp
+
+
+def test_krypton_and_xenon_of_k7_follow_the_argon_and_krypton_of_the_same_comet():
+    comets = _comets(600)
+    kr = [math.log10(k7["Kr"] / k7["Ar"]) for _co, k7 in comets]
+    xe = [math.log10(k7["Xe"] / k7["Kr"]) for _co, k7 in comets]
+    import statistics
+    assert statistics.mean(kr) == pytest.approx(math.log10(0.089), abs=0.03) and statistics.pstdev(kr) == pytest.approx(0.15, abs=0.03)
+    assert statistics.mean(xe) == pytest.approx(math.log10(0.269), abs=0.03) and statistics.pstdev(xe) == pytest.approx(0.15, abs=0.03)
+
+
+def test_a_species_of_a_row_reads_the_ones_drawn_before_it_and_no_other():
+    def with_k7(mutate):
+        document = copy.deepcopy(RECIPES.document)
+        mutate(next(e for e in document["entries"] if e["id"] == "k7")["dists"])
+        return Recipes(document, register=False)
+
+    # Kr reads the argon drawn before it (Ar comes before Kr in the row), so the document loads
+    with_k7(lambda dists: None)
+    # a species that reads a name no species of the row has is refused at load
+    with pytest.raises(DataError):
+        with_k7(lambda dists: dists["Kr"].update(mu="comet_tie_log10('Kr', draw_Nothing)"))
 
 
 def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_it_has_one():
