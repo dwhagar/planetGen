@@ -102,6 +102,17 @@ def test_the_opening_asks_the_other_bulk_workers_to_go_and_the_run_waits_to_star
     assert result == {"units": 1} and ensured and ensured[0] >= 2          # not while the opening lasted
 
 
+def test_a_run_that_failed_says_why_and_at_which_stage_and_a_cancel_is_only_a_notice():
+    """OPS.163: the run-failure line carries the cause and the stage; a stop on purpose is no error."""
+    severity, line, fields = wrapper.stop_line("r1", 2, 5, ValueError("no stars here"), "no stars here", False)
+    assert severity == "error"
+    assert line.startswith("Run r1 stopped at stage 3 of 5: ValueError: no stars here. 'planetgen finish-run'")
+    assert fields == {"run_id": "r1", "cause": "ValueError", "stage": 3}
+    severity, line, fields = wrapper.stop_line("r1", None, 5, KeyboardInterrupt(), "KeyboardInterrupt", True)
+    assert severity == "notice" and "stopped: KeyboardInterrupt." in line
+    assert fields == {"run_id": "r1", "cause": "canceled"}
+
+
 def test_a_failed_unit_reaches_error_log_with_its_run_stage_unit_kind_and_traceback(run, monkeypatch):
     """OPS.162: RQ's own copy of the traceback has no run, stage, unit or kind; the unit's failure line carries them as fields."""
     from planetgen.util import log
