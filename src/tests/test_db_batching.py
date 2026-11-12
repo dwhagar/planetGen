@@ -43,6 +43,7 @@ class _Counter:
 
     def __init__(self, monkeypatch):
         self.statements = []
+        self.rows = 0
         real_run, real_flush = store.Connection._run, store.Connection.flush
         counter = self
 
@@ -52,6 +53,7 @@ class _Counter:
 
         def flush(conn):
             if conn._batch:
+                counter.rows += sum(len(rows) for rows in conn._batch.values())
                 counter.statements.extend(
                     ["INSERT"] * sum(-(-len(rows) // store._BATCH_ROWS) for rows in conn._batch.values()))
             return real_flush(conn)
@@ -83,7 +85,7 @@ def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkey
         assert systems["n"] == 8
         assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 1
         # One INSERT per table/statement shape, not one per row.
-        assert counter.statements.count("INSERT") < 40 < planets + moons + 16
+        assert counter.statements.count("INSERT") * 20 < counter.rows and 40 < planets + moons + 16     # a statement for every 20 rows at least; the count of tables written grew past a fixed 40
         # Every child points at a parent written in the same save.
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM moons m LEFT JOIN planets p ON p.id = m.planet_id WHERE p.id IS NULL"
