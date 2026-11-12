@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3876] - 2026-11-12
+
+**Headline:** The class and systems censuses are re-tagged after Train 22, and the class census draws every cell around a lone star so no cell comes out empty.
+
+### Changed
+
+- **Census re-tag (GEN.1537).** The class, systems, occurrence and oddity censuses ran on the tree after Train 22 (epoch 144). The class census draws its cells with `BINARY_SYSTEM` off: since the radiation field (GEN.1441) a companion's light moves every orbit to the zone of the total light, and the A0V cold, F5V ecosphere and three moon cells drew into the hot zone or nothing and read as "no bodies drawn". The class census then raised 18 flags in small cells (moon life ceilings, planet tiers Red and Yellow, G2V ecosphere Class C 0.190 against 0.138, K0III ecosphere Class E 0.123 against 0.106), all tagged GEN.1537 with their numbers; 17 stale class tags are removed. The systems census raised four flags (G2V abiogenesis 0.49 against 0.516; K0III complex cells 0.30, multicellularity 0.23 and zero-planet systems 0.05, so more K giants host life), tagged GEN.1537 with two stale tags removed. The occurrence census raised one (K giants at 2 to 8 AU, 0.030 against a floor of 0.056), tagged, with the stale G star tag removed. The oddity census raised W5 (resonant chain, 7 of 188 = 0.037 against 0.041), which now has a known-flag table (`prevalence_oddities.KNOWN`) like the others. The stars, phenomena and life censuses pass with no flag. No fault was found; the ranges stay until the re-baseline after the last 8.1 train (TEST.660). Only test data and the census draw change.
+
+generation-output: unchanged
+
 ## [8.0.3875] - 2026-11-12
 
 **Headline:** a spelling fix only: "centre" in the obliquity-variation code and its test is now "center".
