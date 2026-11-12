@@ -867,6 +867,13 @@
       "first_release": "8.0.3844",
       "reason": "Train 23: tide sources and spin and heating from every body, Kozai moons, phosphorus gases, close-companion disk gas, belt members forced by companion stars, settled-orbit remake, oxygen sink with age, auto rogue count",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 146,
+      "first_release": null,
+      "pending": true,
+      "reason": "A young star's own class 0, I or II disk is kept when it holds a belt (GEN.1550)",
+      "affects": ["population"]
     }
   ]
 }
