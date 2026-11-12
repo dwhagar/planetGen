@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1649 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1652 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,36 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1623 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1626 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-<<<<<<< HEAD
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 153 | 62 | 1 | 1 | 0 | 217 |
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
 | T5 | 91 | 23 | 6 | 1 | 1 | 122 |
-| T6 | 215 | 108 | 31 | 73 | 4 | 431 |
+| T6 | 216 | 108 | 31 | 76 | 4 | 435 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 46 | 19 | 5 | 92 | 35 | 197 |
-| All | 955 | 319 | 81 | 238 | 56 | 1649 |
-=======
-| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
-| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
-| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
-| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 208 | 107 | 31 | 81 | 4 | 431 |
-| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
-| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 15 | 5 | 92 | 35 | 191 |
-| All | 925 | 309 | 77 | 246 | 53 | 1610 |
->>>>>>> origin/claude/lane21-gen1570
+| T9 | 46 | 18 | 5 | 92 | 35 | 196 |
+| All | 956 | 318 | 81 | 241 | 56 | 1652 |
 
 ## How the labels were given
 
@@ -2116,12 +2103,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-<<<<<<< HEAD
-=======
-| DM1 | P | T6 | L3 | planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K) | 3 to 10 K | terrestrial bodies with air and stored latitude bands | a climate scatter among bodies of one class wider or narrower than the band the shoulders give | the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep) | half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design | predicted only | - | no data |
-| DM2 | P | T6 | L3 | planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586) | 2 to 5 C | terrestrial bodies with air | a wet-bulb limit research that puts the lines elsewhere than 31 C | the limit of the habitability index (`habitability.wet_bulb_c`, 31 C, [R4521]) with the class lines read from it | the uncompensable limit of 31 C in `species_limits`; M's old 28 C line was a design margin on that limit, and the daytime peak it was read against is about 15 K over the band mean, which put Earth itself on the edge | predicted only | - | no data |
-| DM3 | P | T6 | L3 | planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207) | 0.05 to 0.2 | terrestrial bodies with air | a class whose humidity edge is measured | the humidity edges of the classes from their water and temperature | none read yet | predicted only | - | no data |
->>>>>>> origin/claude/lane14-gen1586-wet-bulb
+| DM1 | P | T6 | L3 | planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K) | 3 to 10 K | terrestrial bodies with air and stored latitude bands | a climate scatter among bodies of one class wider or narrower than the band the shoulders give | the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep) | half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design | predicted only | - | - |
+| DM2 | P | T6 | L3 | planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586) | 2 to 5 C | terrestrial bodies with air | a wet-bulb limit research that puts the lines elsewhere than 31 C | the limit of the habitability index (`habitability.wet_bulb_c`, 31 C, [R4521]) with the class lines read from it | the uncompensable limit of 31 C in `species_limits`; M's old 28 C line was a design margin on that limit, and the daytime peak it was read against is about 15 K over the band mean, which put Earth itself on the edge | predicted only | - | - |
+| DM3 | P | T6 | L3 | planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207) | 0.05 to 0.2 | terrestrial bodies with air | a class whose humidity edge is measured | the humidity edges of the classes from their water and temperature | none read yet | predicted only | - | - |
 | DM4 | P | T9 | L0 | planet_class_fit.json weights: 1 for each of the six main domains | any positive weights | every body | Boss tilting a domain | Boss's list | the design asks for equal weights to start, one list in the data file | predicted only | - | - |
 | DM5 | P | T9 | L3 | the ranges of M, H, O, P and R in planet_class_fit.json: mean 275 to 305, 295 to 315, 298 to 312, 240 to 270 and 312 to 345 K, the regional, night and wet-bulb limits, oxygen 16 to 35 percent, 50 to 250 kPa and 0.75 to 1.25 g for the family | each edge by up to its width in the fudge table | terrestrial bodies with oxygen-water air | a class sweep that finds a class near none of its edges, or a body of an obvious class that fits another | the family ranges from a survey of the habitable zone of the generator and the comfort limits of the habitability index | reports/class-families-and-positions-design-2026-10-31.md section 3 (Boss's directions of 10:39 to 10:55 AM EDT 10-31) | predicted only | - | no data |
 | DM6 | P | T9 | L3 | the range of Z, the hot thin-air world: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean | each edge by its width in the fudge table | terrestrial bodies with thin air | a sweep that finds the gap filled by a different class or a body of Z outside the box | the sweep of the gap by GEN.1207 | reports/class-fit-shadow-2026-10-31.md (about 1.6 percent of bodies fit no class) | predicted only | - | no data |

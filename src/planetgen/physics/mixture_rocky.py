@@ -78,7 +78,7 @@ INVENTORY = {
     # for the CI chondrites, 0.074 for the air of Venus and 0.055 for the air of Mars, and its log-middle 0.022 is the Earth's (GEN.813).
     # GEN.1584: the bracket is now the DELIVERED ratio, 0.012 (Kargel and Lewis) to 0.23, log-middle 0.053 (the CI chondrites' 0.059); the nitrogen specific degassing share
     # (`surface_pressure.DEGAS_EFFICIENCY_N`, 0.3 to 0.55) brings the nitrogen at the surface back to the Earth's, and `nitrogen_budget.mantle_retention` takes the metal's share off a
-    # more oxidised body (stand-ins NB1 to NB4).
+    # more oxidized body (stand-ins NB1 to NB4).
     "nitrogen_per_carbon": (0.012, 0.23, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
     # Potassium of the rock (weight percent), for the 40Ar: the bulk silicate Earth 0.024, the continental crust 2.1: open, GEN.492.

@@ -26180,6 +26180,16 @@
       "kind": "web",
       "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
       "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5240": {
+      "kind": "paper",
+      "label": "McGinn et al. 2003",
+      "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803"
+    },
+    "R5241": {
+      "kind": "paper",
+      "label": "Birmingham and Colman 1979",
+      "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae"
     }
   }
 }

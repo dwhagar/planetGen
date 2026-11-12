@@ -11,10 +11,10 @@ from planetgen.physics import mixture_rocky, nitrogen_budget as nb, surface_pres
 
 def test_the_partition_coefficient_follows_the_table_it_was_taken_from():
     assert nb.metal_silicate_d(nb.REDUCED_DIW) == pytest.approx(1.0)
-    assert nb.metal_silicate_d(nb.OXIDISED_DIW) == pytest.approx(39.0)
+    assert nb.metal_silicate_d(nb.OXIDIZED_DIW) == pytest.approx(39.0)
     assert nb.metal_silicate_d(-2.5) == pytest.approx(39.0 ** 0.5, rel=1e-9)                        # halfway between the ends, geometrically
     assert nb.metal_silicate_d(-20.0) == 1.0 and nb.metal_silicate_d(20.0) == nb.D_N_MAX            # held inside the table's range
-    assert [nb.metal_silicate_d(x) for x in (-3.0, -2.0, -1.0, 0.0)] == sorted(nb.metal_silicate_d(x) for x in (-3.0, -2.0, -1.0, 0.0))     # more oxidised, more in the metal
+    assert [nb.metal_silicate_d(x) for x in (-3.0, -2.0, -1.0, 0.0)] == sorted(nb.metal_silicate_d(x) for x in (-3.0, -2.0, -1.0, 0.0))     # more oxidized, more in the metal
 
 
 def test_the_earth_twins_core_formation_sits_at_the_measured_partition():
@@ -23,7 +23,7 @@ def test_the_earth_twins_core_formation_sits_at_the_measured_partition():
     assert nb.mantle_share(nb.REFERENCE_DIW, 0.47) == pytest.approx(1.0 / (1.0 + d * 0.47))
 
 
-def test_the_earth_twin_and_every_more_reduced_body_keep_the_inventory_and_an_oxidised_one_loses_to_the_metal():
+def test_the_earth_twin_and_every_more_reduced_body_keep_the_inventory_and_an_oxidized_one_loses_to_the_metal():
     assert nb.mantle_retention(nb.REFERENCE_DIW, 0.47) == 1.0
     assert nb.mantle_retention(-1.5, 0.47) == 1.0
     assert nb.mantle_retention(1.5, 0.47) < nb.mantle_retention(1.0, 0.47) < 1.0

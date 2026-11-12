@@ -216240,6 +216240,60 @@
    "volume": "112",
    "year": 2025
   },
+  "10.1104/pp.019349": {
+   "authors": [
+    [
+     "McGinn",
+     "P. J."
+    ],
+    [
+     "Price",
+     "G. D."
+    ],
+    [
+     "Maleszka",
+     "R."
+    ],
+    [
+     "Badger",
+     "M. R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.019349",
+   "editors": [],
+   "journal": "Plant Physiology",
+   "page": "218",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Inorganic Carbon Limitation and Light Control the Expression of Transcripts Related to the CO2-Concentrating Mechanism in the Cyanobacterium Synechocystis sp. Strain PCC6803",
+   "type": "journal-article",
+   "volume": "132",
+   "year": 2003
+  },
+  "10.1104/pp.64.5.892": {
+   "authors": [
+    [
+     "Birmingham",
+     "B. C."
+    ],
+    [
+     "Colman",
+     "B."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1104/pp.64.5.892",
+   "editors": [],
+   "journal": "Plant Physiol.",
+   "page": "892",
+   "publisher": "Oxford University Press (OUP)",
+   "src": "crossref",
+   "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae",
+   "type": "journal-article",
+   "volume": "64",
+   "year": 1979
+  },
   "10.1107/s0021889809027897": {
    "authors": [
     [
@@ -283272,7 +283326,7 @@
   }
  },
  "id_aliases": {},
- "id_next": 5240,
+ "id_next": 5242,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -286955,6 +287009,8 @@
   "10.1103/revmodphys.97.025002": "R3117",
   "10.1103/sbrn-z9sn": "R2235",
   "10.1103/tz74-d3kh": "R2221",
+  "10.1104/pp.019349": "R5240",
+  "10.1104/pp.64.5.892": "R5241",
   "10.1107/s0021889809027897": "R1425",
   "10.1107/s0365110x59002419": "R3353",
   "10.1107/s0365110x59002420": "R3354",
