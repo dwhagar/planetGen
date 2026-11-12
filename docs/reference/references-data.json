@@ -152993,6 +152993,25 @@
    "volume": "21",
    "year": 2017
   },
+  "10.1080/14786441008636148": {
+   "authors": [
+    [
+     "Saha",
+     "M. N."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1080/14786441008636148",
+   "editors": [],
+   "journal": "The London, Edinburgh, and Dublin Philosophical Magazine and Journal of Science",
+   "page": "472",
+   "publisher": "Informa UK Limited",
+   "src": "crossref",
+   "title": "LIII. Ionization in the solar chromosphere",
+   "type": "journal-article",
+   "volume": "40",
+   "year": 1920
+  },
   "10.1080/14786443109461710": {
    "authors": [
     [
@@ -283253,7 +283272,11 @@
   }
  },
  "id_aliases": {},
+<<<<<<< HEAD
  "id_next": 5238,
+=======
+ "id_next": 5230,
+>>>>>>> origin/claude/lane14-gen1580-ceiling
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285437,6 +285460,7 @@
   "10.1080/03147538708712456": "R0933",
   "10.1080/10409230490496577": "R3648",
   "10.1080/13669877.2017.1304975": "R1618",
+  "10.1080/14786441008636148": "R5229",
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
@@ -289766,6 +289790,7 @@
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
+  "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5228",
   "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
   "web:https://shoelace.style/": "R5033",
   "web:https://tanstack.com/table/": "R5034",
@@ -290305,6 +290330,15 @@
    "provider": "arXiv (Watanabe and Maruyama, preprint of the book chapter)",
    "url": "https://arxiv.org/abs/1109.3511",
    "year": "2012"
+  },
+  {
+   "checked": "2026-11-12",
+   "identifier": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "kind": "web page",
+   "name": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+   "provider": "NIST",
+   "url": "https://physics.nist.gov/PhysRefData/ASD/ionEnergy.html",
+   "year": "2024"
   }
  ]
 }

@@ -119,11 +119,11 @@ def test_a_sunlight_taken_aloft_cools_the_surface_of_a_titan_like_air():
     assert hazy < clear - 3.0
 
 
-def test_an_input_outside_the_fitted_range_is_held_at_its_edge_and_stays_finite():
+def test_an_input_outside_the_fitted_range_is_held_at_its_edge_and_stays_finite():          # GEN.1580: no hard ceiling at the fit's 4,000 K
     for air, gravity, flux in (({"H2": 1.0e12}, 5.0, 1.0e6), ({"CO2": 1.0e-12}, 0.01, 1.0e-6), (VENUS, 80.0, 40.0)):
         warming = gt.warming(air, gravity, flux)
         assert math.isfinite(warming.surface_temperature_k)
-        assert warming.effective_temperature_k <= warming.surface_temperature_k <= max(gt.HIGHEST_SURFACE_K, warming.effective_temperature_k)
+        assert warming.effective_temperature_k <= warming.surface_temperature_k
 
 
 def test_an_air_thicker_than_the_table_was_fitted_on_keeps_its_top_value_and_then_rises_by_the_adiabat():
@@ -138,7 +138,7 @@ def test_an_air_thicker_than_the_table_was_fitted_on_keeps_its_top_value_and_the
     gamma = gt.features({"H2O": top}, 8.87, 411.0)[gt.FEATURE_NAMES.index("heat_capacity_ratio")]
     rise = math.log(steam(10.0 * top) / steam(top))
     assert rise == pytest.approx((1.0 - 1.0 / gamma) * math.log(10.0), rel=1e-6)
-    assert steam(1.0e4 * top) <= gt.HIGHEST_SURFACE_K
+    assert steam(1.0e4 * top) > steam(1.0e3 * top)                                           # GEN.1580: no 4,000 K clamp (`FITTED_UP_TO_K` is where the fit ends)
 
 
 def test_bad_inputs_are_refused():

@@ -21,6 +21,7 @@ and moon in a system after all of them have been generated.
 
 import contextlib
 import math
+import os
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, composition_text, constants, envelope_capture, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, moon_disk_zone, orbit_elements, planet_classes, planet_kind, planet_mass, rings, oddities
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, class_code, daylight, envelope_share, planet_type, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, phosphorus_budget, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin, air_branches, venus_spin
@@ -54,7 +55,7 @@ _au_yr_to_kms = units.converter("au_yr", "km_s")
 _TWO_PI_RAD = 2.0 * math.pi
 
 CAP_TOLERANCE = 1e-9
-"""float: How far above the stored temperature the air's uncapped warming must reach to count as held at `surface_air.MAX_SURFACE_TEMPERATURE_K` (GEN.1236)."""
+"""float: How far above the stored temperature the air's uncapped warming must reach to count as held at the ionization ceiling (`surface_air.Air.ceiling_k`, GEN.1236, GEN.1580)."""
 
 
 def uses_giant_mass_radius(planet):
@@ -703,6 +704,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_density = planet.atm_molar_density = planet.scale_height = None
         atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
     else:
+        if air.at_ceiling:
+            _warn_at_ceiling(planet, air, distance)
         planet.surface_temperature = air.temperature_k
         planet.atmospheric_pressure = air.pressure_pa
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
@@ -710,7 +713,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.scale_height = _m_to_km(air.state.scale_height_m)
         factor = air.greenhouse_factor
         albedo_kept = albedo if air.albedo is None else air.albedo      # a body with ice has the albedo of its last step (GEN.972)
-        # GEN.1236: the fixed point holds the surface at `surface_air.MAX_SURFACE_TEMPERATURE_K` (a stand-in guard, the equilibrium of the gas does
+        # GEN.1236: the fixed point holds the surface at the ionization ceiling (`ionization.ceiling_k`, GEN.1580; a guard no generated body should reach, the equilibrium of the gas does
         # not converge far above it), but the warming it keeps is the uncapped one, so a body at the cap kept a greenhouse factor that gave 2370 K
         # or 2600 K; its stored G is taken from the stored temperature too, so the three numbers agree.
         capped = air.warming is not None and air.warming.surface_temperature_k > air.temperature_k * (1.0 + CAP_TOLERANCE)
@@ -749,6 +752,33 @@ def apply_finished_body_oddities(planet):
     """
     oddities.drop(planet, ("L8",))
     oddities.apply(planet, levers=("L8",))
+
+
+class CeilingReached(RuntimeError):
+    """A body's air asked for more than the ionization ceiling while `RAISE_AT_CEILING` was on (the test suite turns it on, GEN.1580)."""
+
+
+CEILING_IS_ERROR_VARIABLE = "PLANETGEN_CEILING_IS_ERROR"
+"""str: The environment variable that makes a body held at the ionization ceiling an error (`CeilingReached`) and not only a log line. Off in a run, set in the test suite
+(`tests/conftest.py`, workers included), so every seeded census and fuzz run that makes a body at the ceiling fails and the body is explained (Boss, 2026-11-12, GEN.1580)."""
+
+
+def _warn_at_ceiling(planet, air, distance_au):
+    """
+    GEN.1580: one normal-log line per body whose air asked for more than the ionization ceiling (`ionization.ceiling_k`) and was held at it: the body, the
+    uncapped surface the greenhouse gave, the ceiling and the air. The ceiling is the temperature the main gas is half ionized, so a body here is a mistake of
+    the model to explain, never a state to keep (the test suite sets `CEILING_IS_ERROR_VARIABLE`, so a seeded sweep that makes one fails).
+    """
+    if getattr(planet, "_ceiling_warned", False):
+        return
+    planet._ceiling_warned = True
+    name = getattr(planet, "name", None) or "a body not yet named"
+    composition = ", ".join(f"{formula} {pressure:.4g} Pa" for formula, pressure in sorted(air.partials_pa.items(), key=lambda item: -item[1])[:6])
+    message = (f"Ionization ceiling: {name} ({planet.mass / constants.EARTH_MASS_TO_KG:.4g} Earth masses, {distance_au:.4g} au) asked for {air.warming.surface_temperature_k:.0f} K "
+               f"and was held at {air.ceiling_k:.0f} K, the half-ionization temperature of its main gas ({composition}).")
+    log.normal(message)
+    if os.environ.get(CEILING_IS_ERROR_VARIABLE) == "1":
+        raise CeilingReached(message)
 
 
 def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):

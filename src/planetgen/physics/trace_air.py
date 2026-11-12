@@ -79,12 +79,11 @@ def apply(body):
         partials = {formula: pascal * (1.0 - share) for formula, pascal in partials.items()}
         partials.update({formula: fraction * total for formula, fraction in amounts.items()})
     atmosphere.store_air(body, partials, body.mantle_delta_iw)
-    if amounts:
-        # the trace gases (a part in 1e7 or so) shift the mean molar mass at the eighth digit: the stored molar mass, density and scale height follow the
-        # air they describe (TEST.585: the atmosphere sweep's rules hold them to 1e-9)
-        state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
-        body.atm_molar_density = state.mean_molar_mass_kg_mol
-        body.atm_density = state.density_kg_m3
-        body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
+    # the trace gases (a part in 1e7 or so) shift the mean molar mass at the eighth digit, and `_strip` takes out of a hot air the equilibrium amounts of the same gases (NO2, N2O at
+    # 4000 K and more, GEN.1580), so the stored molar mass, density and scale height follow the air they describe either way (TEST.585: the atmosphere sweep's rules hold them to 1e-9)
+    state = atmosphere_state.air_state(partials, body.surface_temperature, body.gravity * constants.EARTH_GRAVITY)
+    body.atm_molar_density = state.mean_molar_mass_kg_mol
+    body.atm_density = state.density_kg_m3
+    body.scale_height = state.scale_height_m / 1000.0      # km, as `planets` stores it
     envelope_share.fill(body)       # GEN.1226: the trace gases take a share of the air
     return tuple(sorted(amounts))

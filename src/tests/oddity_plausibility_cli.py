@@ -29,7 +29,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air, venus_spin
+from planetgen.physics import atmosphere, constants, ionization, mantle_stripping, oddities, planet_classes, relations, rings, venus_spin
 from planetgen.physics import orbit_oddities, super_puff
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
@@ -354,8 +354,9 @@ def general_failures(body, star):
         return failures      # the rest read these numbers
 
     temperature = body.surface_temperature
-    if not (constants.COSMIC_BACKGROUND_TEMPERATURE_K * 0.999 <= temperature <= surface_air.MAX_SURFACE_TEMPERATURE_K):
-        failures.append(("energy", f"surface temperature {temperature:.1f} K outside {constants.COSMIC_BACKGROUND_TEMPERATURE_K} to {surface_air.MAX_SURFACE_TEMPERATURE_K} K"))
+    ceiling = ionization.ceiling_of(atmosphere.gas_partials_pa(body))
+    if not (constants.COSMIC_BACKGROUND_TEMPERATURE_K * 0.999 <= temperature <= ceiling):
+        failures.append(("energy", f"surface temperature {temperature:.1f} K outside {constants.COSMIC_BACKGROUND_TEMPERATURE_K} to {ceiling} K"))
     distance_m = body.distance * constants.AU_M
     if body.atmospheric_pressure == 0.0 and body.body_type == "t":
         starlight = star.luminosity / (4.0 * math.pi * distance_m ** 2)

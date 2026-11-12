@@ -5,10 +5,17 @@
   },
   "papers": {
     "books": 31,
+<<<<<<< HEAD
     "datasets": 26,
     "entries": 5141,
     "with_arxiv": 1521,
     "with_doi": 4906,
+=======
+    "datasets": 25,
+    "entries": 5132,
+    "with_arxiv": 1519,
+    "with_doi": 4897,
+>>>>>>> origin/claude/lane14-gen1580-ceiling
     "without_doi": 235
   },
   "stand_ins": {
@@ -24,11 +31,19 @@
       "T9": 197
     },
     "by_tweak": {
+<<<<<<< HEAD
       "L0": 954,
       "L1": 318,
       "L2": 81,
       "L3": 236,
       "L4": 56
+=======
+      "L0": 925,
+      "L1": 309,
+      "L2": 77,
+      "L3": 246,
+      "L4": 53
+>>>>>>> origin/claude/lane14-gen1580-ceiling
     },
     "rows": 1645
   },

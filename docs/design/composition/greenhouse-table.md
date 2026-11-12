@@ -25,7 +25,8 @@ fractions of H2O, CO2, CH4, NH3, SO2, H2S, CO, HCN (GEN.852), N2, O2, H2 and He 
 `ir`) and of the weak ones (`weak`), which the model gives stand-in bands (IR1, IR2); of the mean molar mass; the heat-capacity ratio at `T_e`; and the share of the
 absorbed sunlight a haze takes aloft with the logarithm of the pressure it takes it at over the surface pressure (GEN.851 below). A feature outside the fitted range is
 held at its edge, as the k-tables hold their edge beyond 100 K and 100 bar; the table is fitted up to a surface pressure of 1e8 Pa (1000 bar), above which the model
-does not converge, and the output is capped at 4000 K.
+does not converge. The model's surface stops at 4000 K, so the fit ends there; since GEN.1580 the table no longer clamps its output at 4000 K: above it the warming is the same
+log ratio of the air and the flux, an extrapolation (registry IR18), and the surface of an air stops where its main gas is half ionized (`ionization.ceiling_k`, CC7).
 
 ## The fit
 
