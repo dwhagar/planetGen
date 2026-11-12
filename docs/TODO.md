@@ -13647,6 +13647,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23 (GEN.1464 part A), in Train 25. Prerequisites: none. Related: GEN.1464, GEN.1661.
   Filed by the TODO thread.
 
+- [ ] **SEC.48 Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters**
+  Boss, 5:02 PM EST on 2026-11-12: "mask keys and credentials in logs with the first 4 characters and the last 2 characters and the rest are X's". Do: one masking helper in the log layer (util/log, logrecord) applied to every record at every level (normal, debug, error, error.log, job logs, warm-up log and the Queue page stream): API keys, integration keys, session and reset tokens, passwords, database and Redis URLs with credentials, and secrets from config.json, found by field name and by known value. Shape: abcdXXXXXXXXyz (a value of 6 characters or fewer is all X's, so nothing is revealed). Test: a test that fails if any key, token or password appears unmasked in any log output, run over the log fixtures and a sample of real log calls. Output unchanged; lock-free, merges directly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
