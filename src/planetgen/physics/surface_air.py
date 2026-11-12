@@ -579,7 +579,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         if degassed_sulfur > 0.0:
             lifetimes, age_s, oxidized_share = sulfur
             kept = sulfur_balance.balance(degassed_sulfur / setting.area_m2, age_s=age_s, ocean_present=ocean, oxidized_share=oxidized_share,
-                                          crust_kg_m2=crust_kg_m2, lifetimes=lifetimes)
+                                          crust_kg_m2=crust_kg_m2, lifetimes=lifetimes, temperature_k=temperature_k,
+                                          water_layer_m=setting.water_kg / (1000.0 * setting.area_m2))
             shares_["S"] *= kept.air_mol_m2 * setting.area_m2 / degassed_sulfur
             sulfate_mol_m2 = kept.sulfate_mol_m2
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
