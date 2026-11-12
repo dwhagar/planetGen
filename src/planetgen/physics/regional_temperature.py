@@ -37,7 +37,7 @@ from planetgen.physics import unit_registry as units
 _yr_to_s = units.converter("yr", "s")
 _s_to_h = units.converter("s", "h")
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 """int: How many bands a body's climate is stored in (`latitude_bands`)."""
 
 BAND_FIELDS = ("mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")

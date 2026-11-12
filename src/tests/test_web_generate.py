@@ -1328,7 +1328,7 @@ def test_system_page_renders_every_option(site, client):
     for name, _label in system_page.TRISTATE_FIELDS:
         assert f'name="{name}"' in html
     for name in ("name", "star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system",
-                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug"):
+                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug", "disregard_missing_data"):
         assert f'name="{name}"' in html
     assert "Raise the odds" in html  # habitable world and intelligent life only raise the odds (GEN.1130)
     # Linked from the Generate page.
@@ -2129,3 +2129,8 @@ def test_bring_to_epoch_does_not_start_when_it_has_nothing_it_can_do(site, clien
     resp = _post(client, action="bring_to_epoch")
     assert resp.status_code == 400 and said in resp.get_data(as_text=True)
     assert no_spawn == []
+
+
+def test_system_request_passes_disregard_missing_data_on():
+    assert "--disregard-missing-data" in system_page.system_request({"disregard_missing_data": "on"})["argv"]
+    assert "--disregard-missing-data" not in system_page.system_request({})["argv"]
