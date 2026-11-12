@@ -634,10 +634,12 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
     try:
         conn = store.get_control_connection(store.control_mysql_config(mysql_config))
     except Exception as exc:  # noqa: BLE001 -- no control database yet
+        log.swallowed("generation/run_plan", "_draw_naming_key", exc)
         return f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh."
     try:
         key = naming_key.draw(conn, mysql_config.database, galaxy_seed, replace=new_seed)
     except Exception as exc:  # noqa: BLE001 -- control schema older than v9
+        log.swallowed("generation/run_plan", "_draw_naming_key", exc)
         return f"No naming key drawn: {exc}. Run update.sh."
     finally:
         conn.close()
@@ -3130,6 +3132,7 @@ def refresh_block_lights_unit(params, report):
         written, made = make_block_lights(conn, report, say, params.get("run_id"), rebuild=bool(params.get("rebuild")),      # MAP.402: a sector row for every cell the scatter left something in
                                           part=params.get("part", "all"), shells=params.get("shells"))
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
+        log.swallowed("generation/run_plan", "refresh_block_lights_unit", exc)
         return {"written": 0, "made": 0, "lines": lines, "warning": f"{type(exc).__name__}: {exc}", "part": params.get("part", "all")}
     finally:
         conn.close()
