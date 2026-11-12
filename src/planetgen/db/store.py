@@ -2970,7 +2970,7 @@ BODY_FIELDS = (
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
-    object_rows.each(body_strength.FIELDS),
+    object_rows.each(body_strength.BODY_FIELDS),
     object_rows.each(planet_type.FIELDS),
     object_rows.each(class_code.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),

@@ -49133,7 +49133,7 @@
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
-          "unread": "GEN.1201",
+          "unread": null,
           "what": "shape_temperature.ICE_SPECIFIC_HEAT 1700 J/(kg K): the heat capacity of the ice of a body (ice Ih is about 1500 at 160 K and 2100 at 273 K)"
         },
         {
@@ -49171,7 +49171,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1201",
+          "unread": null,
           "what": "shape_temperature.WINDOW_SHAPE_FACTOR pi^2: the heat a body keeps is the heat its rock makes in R^2 / (pi^2 kappa), the decay time of the first conduction mode of a sphere; the heat is spread over the whole body, so the temperature is the centre's, an upper bound for the mean"
         }
       ],
