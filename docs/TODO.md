@@ -13599,6 +13599,26 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1520.
   Filed by the TODO thread.
 
+- [ ] **OPS.148 Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change**
+  Boss asked (as the building thread reported 10:07 PM EST on 2026-11-11). Built in PR 6147 (queue/adaptive.py; docs/design redis-and-the-work-queue.md section 5.17; changes/adaptive-worker-limit.patch.md). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: none. Related: OPS.118, PERF.254, OPS.130. No lock files, no change to generated output.
+  Filed by the TODO thread.
+
+- [ ] **OPS.149 Apply the adaptive worker limit to the maintenance lane (warm-ups)**
+  Follow-up of OPS.148. Do: reuse queue/adaptive.py for the maintenance lane; test the same lower/raise/floor rules. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
+  Filed by the TODO thread.
+
+- [ ] **OPS.150 Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent)**
+  Follow-up of OPS.148. Do: show the current limit and the recent changes on the status page and the admin page. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
+  Filed by the TODO thread.
+
+- [ ] **OPS.151 Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log**
+  Follow-up of OPS.148. Waits on Boss sharing his full run log after his run ends. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148, OPS.143. No lock files, no change to generated output.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
