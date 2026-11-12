@@ -705,6 +705,9 @@ NOT_SHOWN = {
         **{f"velocity_{axis}_kms": "a component of its galactic motion; the orbit rows summarize it" for axis in "xyz"},
     },
 }
+
+for _kind in ("star", "belt", "comet", "nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant", "interstellar_comet", "quasar"):
+    NOT_SHOWN[_kind]["flavor_key"] = "which flavor line the page says after \"Sensors show\" (GEN.1433); the page prints the line, so the id is bookkeeping"
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
 
