@@ -39,7 +39,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | fudge_table.json | GEN.1314 | the width of every class edge, built from the matrix (GEN.1313); `class_fit` will read it per edge in GEN.1314 and that item deletes this line |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
 | module | planetgen.physics.bare_body | GEN.1548 | the scale height, surface temperature and thermal-tide test of a body before its air is solved; the reordered build (GEN.1548) reads them in `moon_orbit_bounds_km` and the tide decay, and deletes this line |
-| row | 6.273:BB1 | GEN.1548 | `bare_body.BARE_ROCKY_MOLAR_MASS_KG_MOL`, not read until the reordered build calls `bare_body.scale_height_km` in `moon_orbit_bounds_km` |
+| row | 6.275:BB1 | GEN.1548 | `bare_body.BARE_ROCKY_MOLAR_MASS_KG_MOL`, not read until the reordered build calls `bare_body.scale_height_km` in `moon_orbit_bounds_km` |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |

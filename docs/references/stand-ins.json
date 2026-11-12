@@ -63103,8 +63103,8 @@
       "title": "Stand-ins of the spin axis and obliquity under every body"
     },
     {
-      "key": "6.273",
-      "number": "6.273",
+      "key": "6.275",
+      "number": "6.275",
       "rows": [
         {
           "burn_down": null,
@@ -63135,9 +63135,9 @@
             ]
           ],
           "id": "BB1",
-          "key": "6.273:BB1",
+          "key": "6.275:BB1",
           "kind": "P",
-          "slug": "6-273-bb1",
+          "slug": "6-275-bb1",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -63145,7 +63145,7 @@
           "what": "bare_body.BARE_ROCKY_MOLAR_MASS_KG_MOL: the mean molar mass of the gas a bare rocky body could hold, 28 g/mol (nitrogen), for the scale height that keeps a moon 15 heights clear of its planet before the air is solved"
         }
       ],
-      "slug": "6-273-stand-ins-of-the-bare-body-before-its-air",
+      "slug": "6-275-stand-ins-of-the-bare-body-before-its-air",
       "title": "Stand-ins of the bare body before its air"
     }
   ]
