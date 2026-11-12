@@ -265,3 +265,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.276:PSM2 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
 | row | 6.276:PSM3 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
 | row | 6.276:PSM4 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
+| module | planetgen.physics.kozai_planets | GEN.1645 | the Kozai-Lidov screen of a planet by a companion star or an outer sibling (lock-free slice 0); the wiring in `StarSystem._kozai_pumping` (waits for the stored companion planes of GEN.1500) applies the outcome to the planet's eccentricity and inclination and drops a planet the maximum puts inside the star, and is a lock item |
+| row | 6.284:KZP2 | GEN.1645 | read when `StarSystem._kozai_pumping` runs the planet case |
