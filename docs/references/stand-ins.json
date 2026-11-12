@@ -54089,7 +54089,7 @@
           "fields": [
             [
               "What it is",
-              "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
+              "body_status.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
             ],
             [
               "The range it moves in",
@@ -54120,14 +54120,14 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
+          "what": "body_status.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
+              "body_status.MARGOT_COEFFICIENT 1.9e-4 and body_status.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
             ],
             [
               "The range it moves in",
@@ -54158,7 +54158,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
+          "what": "body_status.MARGOT_COEFFICIENT 1.9e-4 and body_status.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
         },
         {
           "burn_down": null,
