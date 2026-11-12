@@ -1,0 +1,114 @@
+{
+ "retrieved": "2026-11-12",
+ "title": "First ionization energies of the elements an atmosphere holds (GEN.1580)",
+ "sources": [
+  "NIST Atomic Spectra Database, Ionization Energies Form [R5228] (ground-state atom to ion, eV, with the stated uncertainty), fetched 2026-11-12 for the 26 elements of the gas list (`gases.json`)"
+ ],
+ "notes": "ev is the energy to take the first electron off the ground-state atom, eV; unc_ev its stated uncertainty. Read by `physics/ionization.py`; D and T count as H.",
+ "elements": {
+  "Al": {
+   "ev": 5.985769,
+   "unc_ev": 3e-06
+  },
+  "Ar": {
+   "ev": 15.7596119,
+   "unc_ev": 5e-07
+  },
+  "Br": {
+   "ev": 11.81381,
+   "unc_ev": 6e-05
+  },
+  "C": {
+   "ev": 11.260288,
+   "unc_ev": 1.1e-06
+  },
+  "Ca": {
+   "ev": 6.113154921,
+   "unc_ev": 5e-10
+  },
+  "Cl": {
+   "ev": 12.967633,
+   "unc_ev": 1.6e-05
+  },
+  "Cr": {
+   "ev": 6.76651,
+   "unc_ev": 4e-05
+  },
+  "F": {
+   "ev": 17.42282,
+   "unc_ev": 5e-05
+  },
+  "Fe": {
+   "ev": 7.9024681,
+   "unc_ev": 1.2e-06
+  },
+  "H": {
+   "ev": 13.598434599702,
+   "unc_ev": 1.2e-11
+  },
+  "He": {
+   "ev": 24.587389011,
+   "unc_ev": 2.5e-08
+  },
+  "K": {
+   "ev": 4.34066373,
+   "unc_ev": 9e-08
+  },
+  "Kr": {
+   "ev": 13.9996055,
+   "unc_ev": 2e-06
+  },
+  "Li": {
+   "ev": 5.391714996,
+   "unc_ev": 2.2e-08
+  },
+  "Mg": {
+   "ev": 7.646236,
+   "unc_ev": 4e-06
+  },
+  "N": {
+   "ev": 14.53413,
+   "unc_ev": 4e-05
+  },
+  "Na": {
+   "ev": 5.13907696,
+   "unc_ev": 2.5e-07
+  },
+  "Ne": {
+   "ev": 21.564541,
+   "unc_ev": 7e-06
+  },
+  "O": {
+   "ev": 13.618055,
+   "unc_ev": 7e-06
+  },
+  "P": {
+   "ev": 10.486686,
+   "unc_ev": 1.5e-05
+  },
+  "Rn": {
+   "ev": 10.7485,
+   "unc_ev": null
+  },
+  "S": {
+   "ev": 10.3600167,
+   "unc_ev": 1.4e-06
+  },
+  "Si": {
+   "ev": 8.15168,
+   "unc_ev": 3e-05
+  },
+  "Ti": {
+   "ev": 6.82812,
+   "unc_ev": 1.2e-05
+  },
+  "V": {
+   "ev": 6.746187,
+   "unc_ev": 2.1e-05
+  },
+  "Xe": {
+   "ev": 12.1298437,
+   "unc_ev": 1.5e-06
+  }
+ }
+}

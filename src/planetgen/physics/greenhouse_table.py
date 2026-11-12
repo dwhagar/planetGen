@@ -66,8 +66,10 @@ ABSORBER_SHARE_MIN = 0.01
 the warming is scaled by the share over this: an air of noble gases has no greenhouse, and the network, fitted on airs that always hold some absorber, does not know it."""
 PRESSURE_MAX_PA = 1.0e8
 """float: The surface pressure the table was fitted up to (1000 bar; the k-tables stop at 100 bar, and the model does not converge beyond about 1e8 Pa)."""
-HIGHEST_SURFACE_K = 4000.0
-"""float: The hottest surface the table gives (the model's own ceiling, `radiative_convective.HIGHEST_SURFACE_K`)."""
+FITTED_UP_TO_K = 4000.0
+"""float: The hottest surface the table was fitted on (the radiative-convective model's own limit, `radiative_convective.HIGHEST_SURFACE_K`). The table does not stop there (GEN.1580): the warming
+it gives is the same log ratio of the air and the flux above it, an extrapolation of the fit (stand-in, registry CC7), and the hottest surface of an air is the ionization of its gas
+(`ionization.ceiling_k`), not this."""
 DEFAULT_ALOFT_SHARE_OF_PRESSURE = 0.1
 """float: The pressure aloft, as a share of the surface pressure, of an air with no sunlight taken aloft (any value: the share is zero)."""
 
@@ -186,6 +188,6 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     ratio += _deep_air_rise(total, vector)
     absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
-    surface = min(effective * math.exp(ratio), HIGHEST_SURFACE_K) if effective < HIGHEST_SURFACE_K else effective
+    surface = effective * math.exp(ratio)
     return Warming(effective_temperature_k=effective, surface_temperature_k=surface,
                    factor=max((surface / effective) ** 4 - 1.0, 0.0))

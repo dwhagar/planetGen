@@ -317,8 +317,8 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         assert body.scale_height == pytest.approx(state.scale_height_m / 1000.0, rel=1e-6)
         assert body.bond_albedo is not None and 0.0 <= body.bond_albedo < 1.0
         absorbed = constants.STEFAN_BOLTZMANN_CONSTANT * body.surface_temperature ** 4 / (1.0 + body.greenhouse_factor)
-        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.MAX_SURFACE_TEMPERATURE_K:
-            continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
+        if body.atmospheric_pressure > greenhouse_table.PRESSURE_MAX_PA or body.surface_temperature >= sa.ionization.ceiling_k(air):
+            continue            # the table holds its edge above 1000 bar and the fixed point stops at the ionization ceiling of the air: no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze_temperature = body.surface_temperature
@@ -364,18 +364,30 @@ def _earth_like_planet(seed=3):
         return Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
 
 
-def test_a_runaway_greenhouse_stops_at_the_ceiling(monkeypatch):
-    """The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
-    `MOIST_LIMIT_K`), so the test declares it past the limit and asks the ceiling the same question as before."""
+def test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named(monkeypatch, caplog):
+    """GEN.1580: the surface stops where the main gas of the air is half ionized (`ionization.ceiling_k`), a limit no generated body should reach: the test suite makes
+    a body there an error (`PLANETGEN_CEILING_IS_ERROR`, checked first), and in a run it is one normal-log line with the body, the uncapped value, the ceiling and the air.
+    The ceiling is the guard of a body that can hold steam; the Earth-like body of the sample is under its runaway limit (GEN.1329 holds such a body under
+    `MOIST_LIMIT_K`), so the test declares it past the limit."""
     import dataclasses
+    import logging
+
+    from planetgen.physics import planets
 
     real = sa.atmosphere_state.greenhouse_warming
     monkeypatch.setattr(sa.atmosphere_state, "greenhouse_warming",
-                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=5000.0))
+                        lambda *args: dataclasses.replace(real(*args), surface_temperature_k=1.0e6))
     monkeypatch.setattr(sa, "_steam_possible", lambda *args: True)
-    planet = _earth_like_planet()
+    with pytest.raises(planets.CeilingReached, match="asked for 1000000 K"):                # the suite's switch: a body at the ceiling is an error
+        _earth_like_planet()
+    monkeypatch.delenv(planets.CEILING_IS_ERROR_VARIABLE)
+    caplog.clear()
+    with caplog.at_level(logging.INFO, logger="planetgen"):
+        planet = _earth_like_planet()
     assert planet.atmospheric_pressure > 0.0
-    assert planet.surface_temperature == pytest.approx(sa.MAX_SURFACE_TEMPERATURE_K)
+    assert planet.surface_temperature == pytest.approx(sa.ionization.ceiling_k(atmosphere.gas_partials_pa(planet)))
+    lines = [record.getMessage() for record in caplog.records if "Ionization ceiling" in record.getMessage()]
+    assert len(lines) == 1 and "asked for 1000000 K" in lines[0] and "main gas" in lines[0]
 
 
 def test_a_pressure_that_falls_to_a_vacuum_is_airless(monkeypatch):
@@ -389,8 +401,11 @@ def test_a_pressure_that_falls_to_a_vacuum_is_airless(monkeypatch):
         return real(subject, **kwargs)
 
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_after_the_first)
-    with pytest.raises(sa.gas_equilibrium.EquilibriumError):
-        _earth_like_planet()                       # at an Earth-like pressure a failure is a fault, not a vacuum
+    solved = []
+    real_solve = sa.solve
+    monkeypatch.setattr(sa, "solve", lambda *args: solved.append(real_solve(*args)) or solved[-1])
+    planet = _earth_like_planet()                  # GEN.1580: at an Earth-like pressure a failure is not a vacuum: the body keeps the last air the equilibrium solved, unsettled
+    assert planet.atmospheric_pressure > 0.0 and solved and not solved[0].converged
     assert len(calls) == 2 + sa.MAX_EQUILIBRIUM_STALLS                # the fixed point stepped back a few times first
     calls.clear()
     monkeypatch.setattr(sa, "VACUUM_PRESSURE_PA", 1.0e12)

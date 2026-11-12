@@ -12885,27 +12885,27 @@
           "fields": [
             [
               "What it is",
-              "surface_air.MAX_SURFACE_TEMPERATURE_K 2000 (a greenhouse that runs away stops at molten rock radiating through its windows)"
+              "ionization.ceiling_k: the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
             ],
             [
               "The range it moves in",
-              "1500 to 2500"
+              "the share defining the ceiling 0.1 to 0.9 (moves T by under 20 percent); weight ratio 0.5 to 6 (under 2 percent)"
             ],
             [
               "Where it holds",
-              "rocky bodies with a steam or carbon dioxide air"
+              "every body with air; 12,500 K for 1 bar of CO2, 15,400 K for 1 bar of N2, 40,000 K for 10,000 bar of N2"
             ],
             [
               "What would show it wrong",
-              "test_surface_air::test_a_runaway_greenhouse_stops_at_the_ceiling; a surface above 2200 K held by an air"
+              "test_ionization; test_surface_air::test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named; the suite fails on any generated body at the ceiling"
             ],
             [
               "What replaces it",
-              "a radiative-convective model of a magma-ocean steam air"
+              "a radiative model of a hot plasma air"
             ],
             [
               "Evidence",
-              "RECALLED (magma-ocean literature: a radiative limit near 1500 to 1800 K); the unbounded iteration reached 3700 K"
+              "READ (Saha equation and NIST energies); the choice of half ionization as the ceiling is a DESIGN stand-in (Boss, 2026-11-12: a sourced, very high physical ceiling, tens of thousands of K); the 80-system sweep reached 5,900 K at most"
             ]
           ],
           "id": "CC7",
@@ -12914,9 +12914,9 @@
           "slug": "6-22-cc7",
           "tier": "T5",
           "tier_code": "T5",
-          "tweak": "L1",
+          "tweak": "L0",
           "unread": null,
-          "what": "surface_air.MAX_SURFACE_TEMPERATURE_K 2000 (a greenhouse that runs away stops at molten rock radiating through its windows)"
+          "what": "ionization.ceiling_k: the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
         },
         {
           "burn_down": null,

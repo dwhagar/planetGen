@@ -26120,6 +26120,16 @@
       "kind": "paper",
       "label": "Laskar et al. 1993",
       "title": "Stabilization of the Earth's obliquity by the Moon"
+    },
+    "R5228": {
+      "kind": "web",
+      "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+      "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+    },
+    "R5229": {
+      "kind": "paper",
+      "label": "Saha 1920",
+      "title": "LIII. Ionization in the solar chromosphere"
     }
   }
 }
