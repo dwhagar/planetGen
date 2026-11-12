@@ -146,6 +146,9 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
+# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
+FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -322,6 +325,16 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # `Planet.min_orbit_distance`/`physics.planets.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
 
+# Chains of planets need more than the pairwise floor (GEN.1521). Lane 04's N-body spot-check (GEN.1468, reports/gen1468-nbody-screens-2026-11-09.md)
+# found the pairwise screen holds for pairs but three chains of four or more small planets, every pair at 10.0 to 11.4 mutual Hill radii, scattered within
+# 2e4 years. Pu and Wu 2015 ([R5231]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
+# radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
+# equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
+# `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.277.]
+CHAIN_WINDOW = 4
+CHAIN_K_EFF = 12.0
+
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
 # to carry more solid mass around more massive stars, and steeply so --
 # not a flat "1 + log10(solar_masses)" scaling. Disk dust-mass-vs-
@@ -351,8 +364,8 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
 # law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
-# factor 2 to 3 the observed lines move.
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
+# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
 SNOW_LINE_SCATTER_DEX = 0.2
 SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
@@ -1317,6 +1330,19 @@ STELLAR_SOLAR_LOG_EPS = {
     "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
 """dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
 Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_HEAVY_LOG_EPS = {
+    "Sr": 2.83, "Y": 2.21, "Zr": 2.59, "Ba": 2.27, "La": 1.11, "Ce": 1.58, "Pr": 0.75, "Nd": 1.42, "Sm": 0.95, "Gd": 1.08, "Tb": 0.31, "Dy": 1.10,
+    "Ho": 0.48, "Er": 0.93, "Tm": 0.11, "Yb": 0.85, "Lu": 0.10, "Os": 1.35, "Ir": 1.32, "Pt": 1.61, "Au": 0.91, "Pb": 1.95}
+"""dict: GEN.1371: the heavy elements of the s- and r-process split, A21 Table 2 log eps (H = 12; Ir and Pt are the CI-chondrite value the table adopts, the rest the photosphere); Eu, Th and U are above.
+Tier T1 (read), tweak L0."""
+STELLAR_HEAVY_R_FRACTION = {
+    "Sr": 0.11, "Y": 0.08, "Zr": 0.18, "Ba": 0.15, "La": 0.25, "Ce": 0.18, "Pr": 0.49, "Nd": 0.42, "Sm": 0.67, "Gd": 0.85, "Tb": 0.93, "Dy": 0.88,
+    "Ho": 0.92, "Er": 0.83, "Tm": 0.83, "Yb": 0.68, "Lu": 0.79, "Os": 0.91, "Ir": 0.99, "Pt": 0.95, "Au": 0.94, "Pb": 0.19}
+"""dict: GEN.1371: the share of each element's solar abundance made by the r-process, as recalled from [R5228] (Table 10) and the papers that quote it (the Eu 0.97 and Ba 0.15 of the research
+note agree); the rest is the s-process. Tier T3 (Marginal Unverified, second hand), tweak L0; each value is flagged for upgrade if the table is supplied."""
+STELLAR_S_PROCESS_XFE = (0.030, -0.076, 0.149)
+"""tuple: `(a, b, sigma)`: [s/Fe] = a + b [Fe/H] with scatter sigma (dex), the s-process proxy, the [R0535] fit of [Y/Fe] against [Fe/H] for all 1,615 dwarfs (`research/real-material-data-1`
+section 1.2); the one trend in hand for the s-process, taken for Ba and every other s-process element. Tier T5, tweak L1."""
 STELLAR_PROTO_NO_OFFSET = ("Li",)
 """tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
 added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""

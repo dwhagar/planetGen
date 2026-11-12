@@ -208,7 +208,7 @@ def _resonance_forced(body, star, stream):
 
 
 def _noop(body, star, stream):
-    """W14 and W9 (GEN.1050): the body is already what the row names (the wind's gate, the ring's origin); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
+    """W14 and W9 (GEN.1050) and W26 (GEN.1523, the Hycean box): the body is already what the row names (the wind's gate, the ring's origin, the box); the effect changes nothing. W19 and W20 (GEN.1051) replace the air
     the solver has just made, which a body drawn whole cannot be given again here: they are checked through the generator (`tests/test_oddities_wiring.py`)."""
 
 
@@ -219,6 +219,8 @@ EFFECTS = {
     "other_branch": _noop,
     "ring_from_moon": _noop,
     "chaotic_tilt": _noop,
+    "hycean_box": _noop,
+    "helium_enriched": _noop,
     "high_eccentricity": _high_eccentricity,
     "polar_orbit": _polar_orbit,
     "resonance_forced": _resonance_forced,

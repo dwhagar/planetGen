@@ -12,17 +12,17 @@ precession constant `V`, the normal precesses about the Laplace plane at `s` (ne
 which is 0 where the planet's shape holds the axis to the orbit (`V >> |s|`) and `i` where it does not. The planet's orbit carries several nodal modes (`obliquity_variation`), each of
 them drives the axis on its own in this linear theory, and the tilt is the quadrature sum over the modes `k`: `eps^2 = sum_k (i_k |s_k| / (V + |s_k|))^2`.
 
-**The spin side, `V`.** Peale's form for a body in the p:2 resonance with its orbit (as [R5229] write it: `eps = -c Omega' sin(i) / (c Omega' cos(i) + 2 n C22 (7/2 e - 123/16 e^3) / ... )`), divided
+**The spin side, `V`.** Peale's form for a body in the p:2 resonance with its orbit (as [R5239] write it: `eps = -c Omega' sin(i) / (c Omega' cos(i) + 2 n C22 (7/2 e - 123/16 e^3) / ... )`), divided
 by the body's moment `C`, gives
 
     V = (n / c) [ J2 (1 - e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3) ]
 
-for the orbital mean motion `n`, `c = C / M R^2`, and the body's **stored figure** `J2` and `C22`. Mercury's MESSENGER figure (`J2` 5.03e-5, `C22` 8.09e-6, `c` 0.346, [R5229]) gives
+for the orbital mean motion `n`, `c = C / M R^2`, and the body's **stored figure** `J2` and `C22`. Mercury's MESSENGER figure (`J2` 5.03e-5, `C22` 8.09e-6, `c` 0.346, [R5239]) gives
 `V` of 1000 arcsec per year against its nodal regression of 4.7, and with the inclination of 8.6 degrees a tilt of 2.4 arcmin against the 2.04 measured. (For a body locked 1:1 the `C22` term
 is taken as 0: its coefficient is of the order of the eccentricity, which a locked body has tidally worn down.)
 
 **The figure.** The first version of GEN.1536's idea took the fluid Darwin-Radau figure `J2 = k_f q / 3`, which gives a Mercury-like body a `V` of 5 arcsec per year and a tilt of 4 to 7
-degrees against the real 0.03: the real figure of a body that has despun is not the fluid figure of its present spin. Table 2 of [R5228] sets each body's observed `J2` against the
+degrees against the real 0.03: the real figure of a body that has despun is not the fluid figure of its present spin. Table 2 of [R5238] sets each body's observed `J2` against the
 hydrostatic one it would have (the rotational part `k_f q_omega / 3` and the tidal part `(k_f / 2) q_n (1 - e^2)^(-3/2)`, `q_x = x^2 R^3 / G M`):
 
 | body | observed `J2` / hydrostatic | state |
@@ -54,12 +54,12 @@ import math
 from planetgen.physics import bulk_draw, constants, obliquity_variation, tidal_spin
 
 FOSSIL_FACTOR_RANGE = (22.7, 94.2)
-"""tuple: The observed `J2` over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform: the Moon's 203.8e-6 over 8.968e-6 and Mercury's 50.3e-6 over 0.534e-6 (Table 2 of [R5228]; Venus
+"""tuple: The observed `J2` over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform: the Moon's 203.8e-6 over 8.968e-6 and Mercury's 50.3e-6 over 0.534e-6 (Table 2 of [R5238]; Venus
 between, 86). Source tier T3 (three bodies), tweak level L1 (the bracket is the data; the log-uniform spread inside it is the stand-in)."""
 FOSSIL_C22_OVER_J2 = 0.133
-"""float: `C22 / J2` of a fossil figure: the geometric mean of Mercury's 0.161 and the Moon's 0.110 [R5228: Table 2], against the hydrostatic 3/10. Source tier T2, tweak level L0."""
+"""float: `C22 / J2` of a fossil figure: the geometric mean of Mercury's 0.161 and the Moon's 0.110 [R5238: Table 2], against the hydrostatic 3/10. Source tier T2, tweak level L0."""
 HYDROSTATIC_C22_OVER_J2 = 0.3
-"""float: `C22 / J2` of a synchronously turning hydrostatic body, 3/10 [R5228]. Source tier T1, tweak level L0."""
+"""float: `C22 / J2` of a synchronously turning hydrostatic body, 3/10 [R5238]. Source tier T1, tweak level L0."""
 RELAXED_HEAT_FLUX_W_M2 = 0.5
 """float: The internal heat flux above which a rocky body keeps its interior relaxed, so that its figure follows its spin (Io, 2.5; Venus and Mercury, under 0.1, are fossil). Source tier T3, tweak level L1."""
 

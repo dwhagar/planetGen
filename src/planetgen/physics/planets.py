@@ -133,6 +133,7 @@ def apply_class(planet):
     """
     planet.planet_class = None
     planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
+    planet.class_fudge_values = planet.class_fudge_amount = None
     planet_type.fill(planet)            # GEN.1219: terrestrial, transitional, super-puff or gas, from the envelope share (GEN.1226) and the super-puff gate (GEN.1343)
     body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     detail = planet_classes.classify_detail(planet)
@@ -142,6 +143,9 @@ def apply_class(planet):
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
+    # GEN.1314: the values the class needed moved to fit (NULL for a full fit) and how far, in widths of the fudge table
+    planet.class_fudge_values = ",".join(detail.fudge_values) or None
+    planet.class_fudge_amount = detail.fudge_amount
 
 
 @finite_domain()
@@ -458,6 +462,7 @@ def apply_envelope(planet):
             del planet._formation_fractions
     if result is None:                  # it kept an envelope before and keeps none now: the drawn core again
         planet.envelope_helium_fraction = planet.envelope_z_fraction = None
+        planet._envelope_helium_y = None
         planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
@@ -471,7 +476,8 @@ def apply_envelope(planet):
                 setattr(planet, name, value * keep)
         planet.envelope_mass_fraction = fraction
         planet._captured_envelope = fraction
-        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
+        planet._envelope_helium_y = envelope_capture.helium_share(planet, start, tides=True)       # GEN.1527: hydrogen leaves first from a planet that lost half its envelope or more (W16); None otherwise
+        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's (its helium share changed by that loss) and the star's heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
         planet._tidal_radius_km = planet.radius if tide_ratio > 1.0 + 1e-9 else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate (GEN.1480: the ratio itself; the loss follows the tide, so an uninflated envelope is not the one to compare with)
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
@@ -732,6 +738,16 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
+    apply_finished_body_oddities(planet)
+
+
+def apply_finished_body_oddities(planet):
+    """
+    The rows of lever L8 (GEN.1523, W26: the Hycean box of `hycean_candidate`; GEN.1527, W16: the helium-rich envelope of `helium_fractionation`) on the finished body: the mass, radius, density and
+    equilibrium temperature are settled once the air and the envelope share are, and a row names the body or not (it moves nothing). It is rolled again each time the air is made, from its own stream.
+    """
+    oddities.drop(planet, ("L8",))
+    oddities.apply(planet, levers=("L8",))
 
 
 def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):

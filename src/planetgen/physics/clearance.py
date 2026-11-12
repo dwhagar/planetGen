@@ -35,6 +35,10 @@ the generator itself promises is broken; an **advisory** is a physical limit the
    planet (`moon-in-planet`, hard) and outside its rigid-body Roche limit for the two densities (`moon-roche`, advisory).
 7. **Belts**: the annulus does not hold a planet's orbit (`belt-planet`, hard) and lies inside the host's S-type critical axis
    (`belt-s-type`, hard).
+8. **Irregular moons** (GEN.1086): the semi-major axis lies inside `IRREGULAR_PROGRADE_HILL_FRACTION` of the planet's Hill radius for a prograde orbit and
+   `IRREGULAR_RETROGRADE_HILL_FRACTION` for a retrograde one (`irregular-hill`, hard, [R3263] as quoted by VNL08), the inclination is outside the Kozai band
+   (`irregular-kozai`, hard) and the closest approach is outside the outermost regular moon's orbit (`irregular-inner`, hard, VNL08). The irregular zone is what is
+   left of the planet's Hill sphere between the outermost regular moon and these limits; `clearance_ledger.irregular_bounds_km` gives it as a span.
 
 Not checked yet, because the rows do not hold what they need: the history rule (a star that was a giant keeps its largest
 radius only in the generator's memory, GEN.1006 4.3, which waits for the member record's `radius_max_au`), the Kozai-Lidov
@@ -63,6 +67,15 @@ MOON_PROGRADE_HILL_FRACTION = 0.4895
 RIGID_ROCHE_COEFFICIENT = 1.26
 """float: A rigid satellite breaks up inside `1.26 R (rho_host / rho_body)^(1/3)` of its host (Roche 1849, in [R3220]);
 the fluid coefficient 2.44 would flag a rocky body the generator is entitled to place."""
+
+IRREGULAR_PROGRADE_HILL_FRACTION = 0.4
+"""float: A prograde irregular moon is stable out to this share of its planet's Hill radius, time averaged (surveys give 0.4 to 0.5; GEN.1076)."""
+
+IRREGULAR_RETROGRADE_HILL_FRACTION = 0.55
+"""float: A retrograde irregular moon is stable out to this share of the Hill radius, the middle of 0.5 to 0.6 of [R3263] as quoted by VNL08."""
+
+IRREGULAR_KOZAI_BAND_DEG = (55.0, 130.0)
+"""tuple: An orbit inclined between these angles to the planet's has its eccentricity driven into the planet or the regular moons by the star, so no irregular moon stays there."""
 
 LIMIT_TOLERANCE = 1.0e-4
 """float: How far past a limit a value may stand before it is a violation: the generator places bodies exactly on a limit, and the
@@ -432,6 +445,36 @@ def _audit_moons(moons, planets, tree):
     return out
 
 
+def _audit_irregular_moons(irregulars, moons, planets, tree):
+    """The irregular moons (GEN.1086): inside the stable share of the Hill radius for their sense, outside the Kozai band and with a closest approach beyond the outermost regular moon."""
+    out = []
+    by_id = {planet["id"]: planet for planet in planets}
+    outermost = {}
+    for moon in moons:
+        outermost[moon["planet_id"]] = max(outermost.get(moon["planet_id"], 0.0), moon["distance_km"] / AU_KM)
+    for body in irregulars:
+        planet = by_id.get(body["planet_id"])
+        if planet is None or not planet.get("mass_kg"):
+            continue
+        host = _host_of(planet, tree)
+        if host is None:
+            continue
+        where = f"irregular moon {body['planet_id']}.{body['moon_rank']}"
+        host_mass = _host_mass_solar(host, tree) * SOLAR_MASS_KG
+        hill_au = planet["distance_km"] / AU_KM * (planet["mass_kg"] / (3.0 * host_mass)) ** (1.0 / 3.0)
+        a_body, e_body, inclination = body["distance_km"] / AU_KM, body.get("eccentricity") or 0.0, body["inclination_deg"]
+        low, high = IRREGULAR_KOZAI_BAND_DEG
+        if low <= inclination <= high:
+            out.append(Violation("irregular-kozai", where, inclination, low, "deg", detail=f"inclination inside the band from {low} to {high} degrees"))
+        fraction = IRREGULAR_RETROGRADE_HILL_FRACTION if inclination > 90.0 else IRREGULAR_PROGRADE_HILL_FRACTION
+        if a_body > fraction * hill_au * (1.0 + LIMIT_TOLERANCE):
+            out.append(Violation("irregular-hill", where, a_body, fraction * hill_au, "AU"))
+        inner = outermost.get(body["planet_id"], 0.0)
+        if a_body * (1.0 - e_body) <= inner * (1.0 - LIMIT_TOLERANCE):
+            out.append(Violation("irregular-inner", where, a_body * (1.0 - e_body), inner, "AU", detail="closest approach inside the outermost regular moon's orbit"))
+    return out
+
+
 def _audit_belts(belts, planets, tree):
     out = []
     for belt in belts:
@@ -468,8 +511,8 @@ def audit(rows):
         rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
             too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
             `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `moons` (`id`, `planet_id`,
-            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`) and `belts` (`id`, `star_id`, `lower_limit_km`,
-            `upper_limit_km`); the last three may be empty. A planet or belt with no `star_id` goes round the system's pair.
+            `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `belts` (`id`, `star_id`, `lower_limit_km`,
+            `upper_limit_km`) and `irregular_moons` (`planet_id`, `moon_rank`, `distance_km`, `eccentricity`, `inclination_deg`); the last four may be empty. A planet or belt with no `star_id` goes round the system's pair.
 
     Returns:
         list[Violation]: Empty for a system with room for every body.
@@ -478,6 +521,7 @@ def audit(rows):
     planets, moons, belts = rows.get("planets") or [], rows.get("moons") or [], rows.get("belts") or []
     found = _audit_nodes(tree) + _audit_stability(tree)
     found += _audit_planets(planets, tree) + _audit_moons(moons, planets, tree) + _audit_belts(belts, planets, tree)
+    found += _audit_irregular_moons(rows.get("irregular_moons") or [], moons, planets, tree)
     return found
 
 
@@ -504,4 +548,7 @@ def stored_rows(conn, system_id):
     belts = [dict(row) for row in conn.execute(
         "SELECT id, star_id, lower_limit_km, upper_limit_km FROM asteroid_belts WHERE star_system_id = ? ORDER BY id",
         (system_id,)).fetchall()]
-    return {"stars": stars, "nodes": nodes, "planets": planets, "moons": moons, "belts": belts}
+    irregular_moons = [dict(row) for row in conn.execute(
+        "SELECT i.planet_id, i.moon_rank, i.distance_km, i.eccentricity, i.inclination_deg FROM irregular_moons i JOIN planets p ON p.id = i.planet_id"
+        " WHERE p.star_system_id = ? ORDER BY i.planet_id, i.moon_rank", (system_id,)).fetchall()]
+    return {"stars": stars, "nodes": nodes, "planets": planets, "moons": moons, "belts": belts, "irregular_moons": irregular_moons}

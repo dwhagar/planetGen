@@ -390,6 +390,35 @@ def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
             assert low * (1 - 1e-9) <= moon_radius <= high * (1 + 1e-9)
 
 
+def test_a_moon_the_kozai_pass_changed_sits_on_the_ellipse_it_ends_with():
+    """
+    GEN.1540: the star's pull (GEN.1447) sets a cycling moon's eccentricity to its place in the cycle at the star's age; the moon's position and speed were drawn on
+    the eccentricity it had before, so a captured moon pumped down from a high eccentricity sat far outside `a (1 + e)` (0.507 AU against 0.233 to 0.313 AU). Found by
+    the position test above on a rare draw; this one searches the seeds for a system that has a moon the pass cycled.
+    """
+    from tests.fuzz_support import deterministic_entropy, first_seed_with
+
+    def build(seed):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE, cfg.MOONS, cfg.MAX_PLANETS = "G2V", True, True
+        return StarSystem(system_config=cfg)
+
+    def has_pumped_moon(system):
+        return any(getattr(moon, "_kozai", None) is not None for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+
+    _, system = first_seed_with(build, has_pumped_moon, seeds=range(60), what="a moon the Kozai-Lidov pass cycled")
+    checked = 0
+    for planet in system.planets:
+        if planet.body_type == "a":
+            continue
+        for moon in planet.moons:
+            radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
+            low, high = _orbit_range(moon)
+            assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9), f"{moon.name}: {radius:.4g} AU outside {low:.4g} to {high:.4g}"
+            checked += 1
+    assert checked
+
+
 # ---------------------------------------------------------------------------
 # Floating-point update guard (CHANGELOG's "Floating-point update guard"
 # entry): `orbits.minimum_update_interval_years`, plus its wiring into

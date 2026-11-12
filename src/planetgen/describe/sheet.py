@@ -23,12 +23,12 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import influx_row, model
+from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -76,8 +76,10 @@ GLANCE = {
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
     "black_hole": ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "luminosity_w"),
     "neutron_star": ("pulsar_type", "mass_solar", "radius_km", "magnetic_field_gauss", "spin_period_ms"),
-    "nebula": ("nebula_class", "nebula_type", "radius_ly", "mass_kg", "temperature_k", "density_cm3"),
-    "supernova_remnant": ("remnant_class", "age_years", "radius_ly", "compact_remnant_kind", "temperature_k"),
+    "nebula": ("nebula_class", "nebula_type", "radius_ly", "mass_kg", "temperature_k", "density_cm3",
+               "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"),
+    "supernova_remnant": ("remnant_class", "age_years", "radius_ly", "compact_remnant_kind", "temperature_k",
+                          "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"),
     "rogue_planet": ("planet_class", "mass_kg", "radius_km", "surface_temperature_k", "surface_pressure_pa",
                      "has_liquid_water"),
     "asteroid_field": ("field_class", "radius_ly", "density", "mass_kg", "composition_summary"),
@@ -108,9 +110,13 @@ NOT_STORED = "not stored"
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
     "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "dose_rate": "dose rate", "magnetic_field": "magnetic field",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
+
+RATE_UNITS = ("1/yr", "1/Gy")
+"""tuple: The column units of how often something happens; they go on the rate ladder (UX.304). Another frequency, such as the photons a second of a nebula, stays a plain number."""
 
 TEXT, FLAG, TIER, RATING, LIMIT, AUTO = "text", "flag", "tier", "rating", "limit", "auto"
 """str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, as a facility
@@ -184,6 +190,8 @@ _BODY_GROUPS = (
     *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class, 9 a world limited by its gravity or air amount)"),
            ("class_match", "Class match (how well the class fits the body; 0 when no class fits it and this is the nearest)"),
            ("runner_up_class", "Runner-up class", TEXT), ("runner_up_match", "Runner-up class match"),
+           ("class_fudge_values", "Values fudged to fit the class (the quantities the class needed moved, comma separated; the temperatures as temperature_k; empty for a full fit)", TEXT),
+           ("class_fudge_amount", "Class fudge (the total move of those values in widths of the fudge table; 0 for a full fit, about 1 for the edge of fitting)"),
            ("planet_type", "Body type (terrestrial, transitional, super-puff or gas, by the share of its mass that is a hydrogen-helium envelope; a super-puff is a transitional planet under 0.1 g/cc in the period range of the Kepler super-puffs)", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
@@ -244,7 +252,7 @@ _BODY_GROUPS = (
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
-           ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
+           ("cloud_cover", "Cloud cover"), ("cloud_chemistry", "Sulfur-cloud chemistry (the Venus set the air, light and ground allow)", TEXT), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"),
@@ -589,8 +597,8 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
-    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
-    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses (GEN.1484); the temperatures and the energy it shapes are shown, not the factor",
+    "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
+    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -717,7 +725,7 @@ def specs_for(kind):
 
 _SYMBOLS = {
     "A*m2": " A·m²", "R_planet": " planet radii", "xuv-earth": "× Earth's", "1/yr": " a year", "1/Gy": " per billion years",
-    "mSv/yr": " mSv/yr", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
+    "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
 }
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
@@ -793,9 +801,12 @@ def _value(spec, table, stored):
     quantity = spec.quantity
     if spec.stored_column() == "life_traits":
         return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
+    if spec.stored_column() == sulfur_cloud_set.COLUMN:
+        return [sulfur_cloud_set.sentence(stored)]       # GEN.1425: the species of the Venus set, as words
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
-        return [text[:1].upper() + text[1:]]
+        text = text[:1].upper() + text[1:]
+        return model.chem_text(text) or [text]  # UX.149: a gas the text names ("H+, e-, O2+") is written out
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
     if quantity == RATING:
@@ -810,7 +821,7 @@ def _value(spec, table, stored):
         return [INFINITE_ENERGY]    # GEN.1162: a black hole stores -1 for an infinite binding energy
     unit = column_units.COLUMNS[(table, column)]
     info = column_units.unit_info(unit)
-    kind = quantity if quantity != AUTO else REGISTRY_QUANTITIES.get(info.kind)
+    kind = quantity if quantity != AUTO else ("rate" if unit in RATE_UNITS else REGISTRY_QUANTITIES.get(info.kind))
     if kind is None or info.factor is None or (quantity == AUTO and unit not in unit_registry.UNITS):
         return [_plain_number(stored, unit)]
     value = float(stored)
@@ -933,10 +944,12 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
      "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
+    (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
+     "a body that fits its class with no value moved (the fit is full, `class_fudge.fit`) has nothing fudged, so the list of values is empty and the amount is 0 or empty (GEN.1314)"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
@@ -973,6 +986,8 @@ _BODY_RULES = [
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen, or airless body has none"),
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
+    (("cloud_chemistry",), lambda klass, row: row is None or row.get("cloud_chemistry") is not None,
+     "only a rocky body whose air, light and ground open at least one gate of the Venus sulfur-cloud set (GEN.1425) stores its species; a body with no air, or an air with none of the sulfur, chlorine, carbon monoxide or carbonyl sulfide the gates need, stores none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
@@ -1374,6 +1389,10 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
+        by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
+                                "show_absent": False})
     arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
     if arriving:
         value = [model.qty("mass", arriving, "kg")]

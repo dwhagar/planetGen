@@ -260,6 +260,9 @@ def words(row):
     return f"Odd: {row.name}. {row.text}"
 
 
+BOND_ALBEDO_FOR_GATES = 0.3
+"""float: The Bond albedo the equilibrium temperature of a gate is taken at (the Earth's, as `atmosphere_retention` and `envelope_escape` take it; stand-in HC1 note)."""
+
 KIND_OF_BODY = {"t": "planet", "g": "giant"}
 """dict: The row `kind` a body is asked about, by its `body_type`; a moon is asked as a moon, a rogue planet as a rogue."""
 
@@ -267,7 +270,8 @@ KIND_OF_BODY = {"t": "planet", "g": "giant"}
 EFFECT_MODULES = ("planetgen.physics.mantle_stripping", "planetgen.physics.venus_spin", "planetgen.physics.seasonal_swing",
                   "planetgen.physics.resonant_chains", "planetgen.physics.orbit_oddities",
                   "planetgen.physics.disintegrating_planet", "planetgen.physics.rings",
-                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.obliquity_variation")
+                  "planetgen.physics.air_branches", "planetgen.physics.giant_tilt", "planetgen.physics.obliquity_variation",
+                  "planetgen.physics.hycean_candidate", "planetgen.physics.helium_fractionation")
 """tuple: The modules that register an effect (`register`), imported the first time `apply` has a row to run; a module that implements a row's effect is listed here."""
 
 
@@ -317,6 +321,12 @@ def quantities_of(body):
     put("mass_earth", None if mass is None else mass / constants.EARTH_MASS_TO_KG)
     put("radius_earth", None if radius is None else radius / constants.EARTH_RADIUS_KM)
     put("semi_major_axis_au", getattr(body, "distance", None))
+    if mass and radius:       # GEN.1523: the bulk density (`hycean_candidate.density_g_cm3`, the one the box reads) and the equilibrium temperature a gate reads
+        from planetgen.physics import hycean_candidate
+
+        put("density_g_cm3", hycean_candidate.density_g_cm3(mass / constants.EARTH_MASS_TO_KG, radius / constants.EARTH_RADIUS_KM))
+    put("equilibrium_temperature_k", _equilibrium_temperature_k(body))
+    put("envelope_helium_y", getattr(body, "_envelope_helium_y", None))      # GEN.1527: set by `envelope_capture.helium_share` when the loss changed it
     host_radius_km = getattr(getattr(body, "star", None), "radius", None)
     if getattr(body, "distance", None) and host_radius_km and not getattr(body, "is_moon", False):
         put("distance_over_host_radius", body.distance * constants.AU_TO_KM / host_radius_km)
@@ -347,6 +357,18 @@ def quantities_of(body):
     for name, value in (getattr(body, "oddity_quantities", None) or {}).items():
         put(name, value)       # quantities the chain keeps with the body for a gate (the architecture's, the moon set's)
     return found
+
+
+def _equilibrium_temperature_k(body):
+    """The equilibrium temperature of a planet at the Bond albedo `BOND_ALBEDO_FOR_GATES` under the light of every star at its distance (`radiation_field.starlight_w_m2`, GEN.1441);
+    `None` for a moon, or a body with no star, orbit or luminosity."""
+    from planetgen.physics import climate_draws, orbit_elements, radiation_field
+
+    star, distance = getattr(body, "star", None), getattr(body, "distance", None)
+    if star is None or not distance or not getattr(star, "luminosity", None) or getattr(body, "is_moon", False):
+        return None
+    flux = radiation_field.starlight_w_m2(star, orbit_elements.flux_distance_au(distance, getattr(body, "eccentricity", 0.0) or 0.0))
+    return climate_draws.equilibrium_temperature_k(BOND_ALBEDO_FOR_GATES, flux)
 
 
 def ids_of(body):

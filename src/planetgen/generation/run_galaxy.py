@@ -25,7 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, wrapper
@@ -662,10 +662,20 @@ def _sky_unit(unit_args, report):
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
+    before, opened, ticked = None, 0.0, 0.0
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = store.get_connection(_mysql_config_of(unit_args))
         try:
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), progress=report)
+            if before is not None:
+                connection_loss.explain(conn, before, time.monotonic() - ticked, time.monotonic() - opened)      # DB.115: what the new connection says about the lost one
+            before, opened = connection_loss.facts(conn), time.monotonic()
+            ticked = opened
+
+            def tick(batches, cells, stars):
+                nonlocal ticked
+                ticked = time.monotonic()
+
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=report)
             break
         except BaseException as exc:
             conn.rollback()

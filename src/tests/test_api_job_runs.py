@@ -60,7 +60,7 @@ def test_regenerating_a_sector_is_a_run_of_the_sector_a_backfill_and_a_settle(my
     old_id = _a_galaxy_sector(mysql_config)
     result = api_jobs.regenerate_sector(old_id, mysql_config)
     assert result["sector_id"] is not None and result["sector_id"] != old_id
-    assert [row["id"] for row in _all_sectors(mysql_config)] == [result["sector_id"]]
+    assert [row["id"] for row in _charted_sectors(mysql_config)] == [result["sector_id"]]
     titles, runs = _titles(conn)
     assert len(titles) == 3 and titles[0].startswith("Sector (") and titles[1:] == ["Bright-star backfill", "Sector paths"]
     assert {run["state"] for run in runs} == {"done"} and {run["kind"] for run in runs} == {runrecord.GENERATION}

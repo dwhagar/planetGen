@@ -1525,6 +1525,7 @@
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v223 (GEN.876): `planets`, `moons` and `rogue_planets` keep the adaptation traits of the life on the body (`life_traits`, VARCHAR(48), text such as `radiation:2,sulfide:3`: the stress and its grade, 2 tolerant
 --   or 3 extreme; `physics/adaptation_traits.py`). NULL for a body with none and for a row made before v223, which gets them when the galaxy is regenerated.
+-- v245 (GEN.1425): `planets`, `moons` and `rogue_planets` keep which species of the Venus sulfur-cloud set the chain gave the air (`cloud_chemistry`, VARCHAR(48), ids such as `V1,V2,V10`, set by `physics/sulfur_cloud_set.py`). NULL for a body with none, a rogue planet and a row made before v244, which gets it when the galaxy is regenerated.
 -- v218 (GEN.1207): `planets`, `moons` and `rogue_planets` keep how well the class fits the body: `class_match` (DOUBLE, 0 to 1, the geometric mean of the memberships of the conditions of the class,
 --   0 when no class fits the body and the stored one is the nearest), `runner_up_class` (CHAR(1), the next best class, NULL when only one passes the gates) and `runner_up_match` (DOUBLE). `class_variant` is 9 when
 --   the class is found only with the gravity and the air amount set aside (`physics/class_fit.py`). NULL for an Asteroid and for a row made before v218, which gets them when the galaxy is regenerated.
@@ -1548,9 +1549,10 @@
 -- v224 (GEN.1085): `irregular_moons` keeps the belt a body was caught from: `belt_order` (the belt's number among the belts of the planet's star, nearest first) and, for a stored member of that belt, `belt_rank` (its rank there, kept in its designation; the member's row stays in `belt_members` with the status moon). Both NULL for a body of the outer disk or of the planet's own zone and for a row made before v224, nothing is backfilled.
 -- v225 (GEN.1103): `asteroid_fields` keeps how a field spreads and where it came from: `rms_speed_kms` (the rms speed of its pieces), `birth_age_yr` (its age at the sector's epoch, from which its radius follows), `shape` (ball or annulus), `origin` (how it came to be), `history` (the sentence of where it came from), `largest_body_kg` (the mass of its largest piece). All NULL for a row made before v225, nothing is backfilled.
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
+-- v244 (GEN.1314): `planets`, `moons` and `rogue_planets` gain `class_fudge_values` (VARCHAR(120), NULL): the values fudged to fit the stored class (quantity names, comma separated; the temperatures as `temperature_k`), NULL for a full fit, and `class_fudge_amount` (DOUBLE, NULL): their total move in widths of the fudge table (`physics/data/fudge_table.json`), 0 for a full fit. A row made before v244 gets them when the galaxy is regenerated.
 -- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
 -- v242 (GEN.1484): `planets`, `moons` and `rogue_planets` gain `light_factor` (DOUBLE, NULL): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other, NULL for every other body.
--- v244 (GEN.1535): `planets`, `moons` and `rogue_planets` gain `obliquity_min_deg` and `obliquity_max_deg` (DOUBLE, NULL): the lowest and highest tilt a free-spinning planet's axis reaches over the age of its star, from the spin-orbit secular resonances (`physics/obliquity_variation.py`), NULL for a body that was not worked (a moon, a rogue planet, a locked or resonant body); a free-spinning planet with no mode to drive it has a range of its own tilt.
+-- v247 (GEN.1535): `planets`, `moons` and `rogue_planets` gain `obliquity_min_deg` and `obliquity_max_deg` (DOUBLE, NULL): the lowest and highest tilt a free-spinning planet's axis reaches over the age of its star, from the spin-orbit secular resonances (`physics/obliquity_variation.py`), NULL for a body that was not worked (a moon, a rogue planet, a locked or resonant body); a free-spinning planet with no mode to drive it has a range of its own tilt.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2568,11 +2570,13 @@ CREATE TABLE IF NOT EXISTS planets (
     class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
+    class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
+    class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
-    obliquity_min_deg           DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
-    obliquity_max_deg           DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_min_deg           DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg           DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2711,6 +2715,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    cloud_chemistry             VARCHAR(48) NULL,  -- v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -3104,11 +3109,13 @@ CREATE TABLE IF NOT EXISTS moons (
     class_match                 DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class             CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match             DOUBLE,  -- v218 (GEN.1207): its match
+    class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
+    class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
-    obliquity_min_deg           DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
-    obliquity_max_deg           DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_min_deg           DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg           DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -3242,6 +3249,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none
+    cloud_chemistry             VARCHAR(48) NULL,  -- v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
     tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
     ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
@@ -4590,11 +4598,13 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     class_match                   DOUBLE,  -- v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body
     runner_up_class               CHAR(1),  -- v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates
     runner_up_match               DOUBLE,  -- v218 (GEN.1207): its match
+    class_fudge_values            VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
+    class_fudge_amount            DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
     sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                  DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
-    obliquity_min_deg             DOUBLE,  -- v244 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
-    obliquity_max_deg             DOUBLE,  -- v244 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_min_deg             DOUBLE,  -- v247 (GEN.1535): the lowest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
+    obliquity_max_deg             DOUBLE,  -- v247 (GEN.1535): the highest tilt the planet's axis reaches over the age of its star (`physics/obliquity_variation.py`), degrees
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
     moon_disk_lifetime_myr      DOUBLE,  -- v207 (GEN.1111)
     moon_disk_alpha_over_f      DOUBLE,  -- v207 (GEN.1111)
@@ -4627,6 +4637,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v207 (GEN.1111)
     life_complexity             DOUBLE NULL,  -- v207 (GEN.1111)
     life_traits                 VARCHAR(48) NULL,  -- v223 (GEN.876)
+    cloud_chemistry             VARCHAR(48) NULL,  -- v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none
     tide_range_spring_m         DOUBLE NULL,  -- v207 (GEN.1111)
     tide_range_neap_m           DOUBLE NULL,  -- v207 (GEN.1111)
     ocean_liquid                VARCHAR(40) NULL,  -- v207 (GEN.1111)
@@ -5271,6 +5282,9 @@ CREATE TABLE IF NOT EXISTS effect_ledger (
 CREATE TABLE IF NOT EXISTS system_summary (
     star_system_id      BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     habitability_stamp  INT UNSIGNED NULL,
+    -- v246 (GEN.1498): the stamp of the code that wrote the system's light and ultraviolet rows of the effect ledger (`db/derived_stamp.py`, family `ledger`); NULL until written.
+    -- `refill-effect-ledger` takes the systems that are NULL or not current. Written by the system save and by `store.refresh_effect_ledger`; an edit of the system clears it.
+    ledger_stamp        INT UNSIGNED NULL,
     -- v241 (GEN.1478): what the system's rows add up to, so no reader sums them again (`db/system_summary.py`): the stars' mass, the stars', planets' and
     -- moons' mass, the brightest star's and all the stars' luminosity (W), and the counts of stars, planets, moons, belts and comets. Written by the system
     -- save and the editor; NULL for a system with no row of that kind (no star: no mass).

@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drift and evaporation of water and the other ices in the disc (GEN.1472) - planetGen docs</title>
+<meta name="description" content="Item GEN.1472, Lane 14.">
+<style>
+:root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
+@media (prefers-color-scheme: dark){:root{--bg:#0C1118;--surface:#141B25;--sunk:#1A2330;--ink:#E5EAF1;--muted:#97A3B5;--line:#273244;--link:#7DB4F0;--code:#1B2431;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--link);text-decoration:none} a:hover{text-decoration:underline}
+header.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:center;padding:8px 16px}
+header.top .brand{font-weight:700;color:var(--ink)} header.top input{flex:1;max-width:420px;padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink);font:inherit}
+header.top .src{margin-left:auto;font-size:14px;color:var(--muted)} #menu-toggle{display:none}
+.layout{display:flex;align-items:flex-start}
+nav#nav{width:290px;flex:none;position:sticky;top:49px;max-height:calc(100vh - 49px);overflow:auto;padding:12px 10px 40px 16px;font-size:14px;border-right:1px solid var(--line)}
+nav#nav details{margin:2px 0} nav#nav summary{cursor:pointer;font-weight:600;padding:2px 0} nav#nav ul{list-style:none;margin:0;padding-left:12px}
+nav#nav li{padding:1px 0} nav#nav a.here{font-weight:700;color:var(--ink)} #results{list-style:none;padding:0;margin:0}
+#results li{padding:3px 0}
+main{flex:1;min-width:0;max-width:980px;padding:22px 28px 80px}
+main h1{font-size:1.9rem;line-height:1.2;margin:0 0 .4em} main h2{font-size:1.4rem;margin:1.6em 0 .4em;border-bottom:1px solid var(--line);padding-bottom:3px}
+main h3{font-size:1.15rem;margin:1.4em 0 .3em} main h4{margin:1.2em 0 .2em}
+main :is(h1,h2,h3,h4,h5,h6){scroll-margin-top:60px}
+code{background:var(--code);padding:1px 5px;border-radius:4px;font:.88em ui-monospace,Menlo,Consolas,monospace}
+pre{background:var(--code);padding:12px 14px;border-radius:8px;overflow:auto} pre code{background:none;padding:0}
+blockquote{margin:1em 0;padding:2px 14px;border-left:4px solid var(--line);color:var(--muted)}
+.table{overflow-x:auto;margin:1em 0} table{border-collapse:collapse;font-size:14.5px} th,td{border:1px solid var(--line);padding:5px 9px;vertical-align:top;text-align:left}
+th{background:var(--sunk)} img{max-width:100%} sub{font-size:.75em;line-height:0}
+details.toc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 14px;margin:0 0 18px;font-size:14.5px}
+details.toc ul{list-style:none;padding-left:14px;margin:4px 0} details.toc>ul{padding-left:0}
+.math.display{display:block;overflow-x:auto;margin:.8em 0}
+.meta{color:var(--muted);font-size:13px;margin:0 0 14px}
+.cards{list-style:none;padding:0} .cards li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 13px;margin:7px 0}
+.cards li p{margin:2px 0 0;color:var(--muted);font-size:14.5px}
+@media (max-width:860px){nav#nav{display:none;position:fixed;top:49px;left:0;z-index:4;background:var(--surface);width:84vw;max-height:calc(100vh - 49px)}
+nav#nav.open{display:block} #menu-toggle{display:inline-block;background:none;border:1px solid var(--line);border-radius:6px;color:var(--ink);padding:4px 9px}
+main{padding:16px 16px 60px}}
+</style>
+
+<header class="top"><button id="menu-toggle" aria-label="Menu">Menu</button><a class="brand" href="../../index.html">planetGen docs</a>
+<input id="q" type="search" placeholder="Search the docs" aria-label="Search the docs"><a class="src" href="https://github.com/dwhagar/planetGen/blob/main/docs/design/composition/disk-drift-evaporation.md">Source on GitHub</a></header>
+<div class="layout">
+<nav id="nav" data-root="../../" data-here="design/composition/disk-drift-evaporation.html"><a href="../../index.html">Site index</a></nav>
+<main>
+<h1 id="drift-and-evaporation-of-water-and-the-other-ices-in-the-disc-gen1472">Drift and evaporation of water and the other ices in the disc (GEN.1472)</h1><p class="meta">docs/design/composition/disk-drift-evaporation.md</p><details class="toc"><summary>On this page (17 headings)</summary><ul><li style="margin-left:0px"><a href="#0-what-this-note-decides">0. What this note decides</a></li><li style="margin-left:0px"><a href="#1-what-is-missing">1. What is missing</a></li><li style="margin-left:0px"><a href="#2-the-model">2. The model</a></li><li style="margin-left:14px"><a href="#21-the-clocks">2.1 The clocks</a></li><li style="margin-left:14px"><a href="#22-the-enrichment-ratio">2.2 The enrichment ratio</a></li><li style="margin-left:14px"><a href="#23-the-gas-at-a-place-and-a-time">2.3 The gas at a place and a time</a></li><li style="margin-left:14px"><a href="#24-the-cold-finger-de6">2.4 The cold finger (DE6)</a></li><li style="margin-left:14px"><a href="#25-what-a-giant-gathers">2.5 What a giant gathers</a></li><li style="margin-left:0px"><a href="#3-first-numbers-an-offline-script-not-repo-code-the-static-values-it-departs-from-are-0895-outside-the-water-line-and-0381-inside">3. First numbers (an offline script, not repo code; the static values it departs from are 0.895 outside the water line and 0.381 inside)</a></li><li style="margin-left:0px"><a href="#4-which-parts-are-secondary-or-speculative">4. Which parts are secondary or speculative</a></li><li style="margin-left:0px"><a href="#5-wiring-for-gen1473">5. Wiring for GEN.1473</a></li><li style="margin-left:0px"><a href="#6-open-points">6. Open points</a></li><li style="margin-left:0px"><a href="#7-what-the-build-changed-and-measured-gen1473">7. What the build changed and measured (GEN.1473)</a></li><li style="margin-left:0px"><a href="#8-the-start-state-of-the-gas-and-the-noble-gases-gen1517-gen1516">8. The start state of the gas, and the noble gases (GEN.1517, GEN.1516)</a></li><li style="margin-left:0px"><a href="#9-the-age-a-giant-gathers-its-gas-from-the-efficiency-of-pebble-accretion-gen1518">9. The age a giant gathers its gas, from the efficiency of pebble accretion (GEN.1518)</a></li><li style="margin-left:0px"><a href="#10-the-pebble-flux-tapers-instead-of-stopping-gen1514">10. The pebble flux tapers instead of stopping (GEN.1514)</a></li><li style="margin-left:0px"><a href="#11-where-the-planetesimals-formed-gen1519">11. Where the planetesimals formed (GEN.1519)</a></li></ul></details>
+<p>Item GEN.1472, Lane 14. A design note, built by GEN.1473 (<code>physics/disk_drift.py</code>; section 7 says what the build changed and what it measured). Boss's rule for this note (7:44 PM EST 11-08): build the model, secondary and tertiary citations are accepted by default, and speculative theory that fits the physics is allowed, as long as every part says which it is. Every stand-in is a row in the registry (section 6.242 of <code>docs/design/research/gap-filling-plan.md</code>, rows DE1 to DE10).</p>
+<h2 id="0-what-this-note-decides">0. What this note decides</h2>
+<ol>
+<li>The disc's gas does not keep the composition of the static budget (<code>disk_condensation.gas_and_solid_c_over_o</code>). Pebbles grow, drift inward faster than the gas, and evaporate where they cross each ice line. The gas inside a line gets that line's ice at a rate set by the pebble flux over the gas flux, not at the ratio the budget holds.</li>
+<li>One number does the work: the <strong>enrichment ratio</strong> <code>E_L(t)</code>, the flux of a line's ice carried in by pebbles over the flux the static budget would carry with the gas. <code>E = 1</code> is the static model of GEN.1363 and must reproduce it exactly (a test the build carries). <code>E &gt; 1</code> while pebbles are plentiful, <code>E = 0</code> before the front arrives and after the pebbles are gone.</li>
+<li>Everything else in the model is a clock (when the pebbles arrive, when they stop, how long the gas takes to carry the vapor to a place) or a leak (how much vapor goes back out and freezes again, the cold finger).</li>
+<li>The model has no new random draw. Its inputs are already drawn and stored: the star's mass and luminosity, its drawn snow line, the disc's outer edge (18 times the snow line, <code>tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER</code>), its metal ratio, and a giant's core mass.</li>
+</ol>
+<h2 id="1-what-is-missing">1. What is missing</h2>
+<p><code>disk_condensation</code> holds a disc that stays as it was born. Water is a vapor inside 182 K and ice outside, the CO<sub>2</sub> and CO lines do the same further out, and the C/O of the gas at a place is a function of the temperature at that place only. That is right for a disc in which solids and gas move together. They do not. [R5208] (abstract read) says pebbles carry volatiles inward and enrich the gas at snow lines; [R5209] (abstract read) says particles drifting through an evaporation front raise the local vapor by more than an order of magnitude under nominal conditions, that the enhancement spreads inward, and that solids are enhanced outside the front, for any condensible; [R5210] (abstract read) says an atmosphere dominated by vapor from evaporating pebbles lets a giant hold a large heavy-element content, that planets formed farther out tend to have higher C/O, and that low C/O goes with high heavy-element content. [R3322] (read) gave the static picture we already use. [R5212] (title only) is the same question for the effect of drift and viscous accretion on the lines.</p>
+<p>Two things in the generator want this: the C/O of the gas a giant gathers (GEN.1363 part C, GEN.1471), and the ice-to-rock ratio of the solids just outside the water line (the jump <code>SNOW_LINE_SOLID_JUMP</code>, GEN.1396).</p>
+<h2 id="2-the-model">2. The model</h2>
+<h3 id="21-the-clocks">2.1 The clocks</h3>
+<p><strong>The pebble front (DE1, DE2).</strong> Dust grows where the growth time is shorter than the age, so a front sweeps outward, <code>r_g(t) = 122 AU x (t / 1 Myr)^(2/3) x (M* / Msun)^(1/3)</code> (the form and exponents of [R5211], recalled; the number follows from a growth efficiency of 0.05 and a dust-to-gas ratio of 0.01, both recalled). The pebbles the front leaves behind drift inward. The line of an ice at distance <code>r_L</code> (<code>disk_condensation.line_au</code>, for the Sun 2.3 AU for water, 35 AU for CO<sub>2</sub>, 194 AU for CO) sees its pebbles from <code>t_L = 1 Myr x (r_L / (122 AU x M*^(1/3)))^(3/2)</code>.</p>
+<p><strong>The pebble flux (DE1).</strong> <code>Mdot_F(t) = 9.5e-5 Earth masses per year x (Z / 0.01)^(5/3) x (M* / Msun)^(1/3) x (t / 1 Myr)^(-1/3)</code> ([R5211], recalled; <code>Z</code> is the solids over gas of the star, <code>disk_condensation.masses_percent(15 K)</code> summed, 1.43 percent for the Sun, scaled by the star's metal ratio). The flux ends when the front reaches the disc's edge, <code>t_end = t_L(edge)</code>: the dust beyond is gone. The edge is the drawn 18 snow lines, so <code>t_end</code> is 0.25 Myr for the Sun (edge 49 AU), 0.017 Myr for a 0.3 solar-mass star and 0.63 Myr for 1.5 solar masses. This is speculative (DE3): a real disc loses its pebbles gradually, over a few Myr, not at a step. The step is the simplest form that conserves the dust. The build keeps the step and puts a decay time of one growth time at the edge on the stand-in list if the measure asks for it.</p>
+<p><strong>The gas flux (DE4).</strong> The disc accretes viscously, <code>Mdot_g(t) = Mdot_0 x (1 + t / t_nu)^(-3/2)</code>, with <code>Mdot_0 = Md_0 / (2 t_nu)</code>, <code>Md_0 = 0.05 Msun</code> and <code>t_nu = 0.5 Myr</code> for the Sun (typical Class II accretion rates are 1e-8 Msun per year at 1 to 2 Myr, which this gives). The disc mass scales as <code>M*^1.8</code> (<code>tuning.DISK_MASS_STELLAR_MASS_EXPONENT</code>, [R0114]), and <strong>cancels</strong>: the flux of pebbles of [R5211] is proportional to the same disc mass, so <code>E</code> does not depend on it.</p>
+<p><strong>The lag (DE5, GEN.1515).</strong> The gas that crosses a line takes time to reach a place inside it. A steady accretion disc carries its gas inward at <code>v = 3 nu / (2 r)</code>, and the viscosity is <code>nu = alpha c_s^2 / Omega</code>, with the sound speed from the disc's temperature (the water line temperature at the snow line, falling as the square root of the distance: the law <code>place_au</code> uses), <code>Omega</code> from the star's mass, <code>alpha = 1e-3</code> and a mean molecular weight of 2.3. With that temperature law <code>nu</code> rises in proportion to <code>r</code>, so the speed is the same everywhere, <code>1.5 nu_1 / 1 AU</code>, and <code>tau(r_L to r) = (r_L - r) / v</code>. For the Sun (snow line 2.3 AU) <code>v</code> is 10.5 AU per Myr (0.095 Myr per AU), for 0.5 solar masses 8.8 (0.113), for 1.4 solar masses 13 (0.077): a hotter disc is faster, a heavier star slower. GEN.1515 replaced the fixed 0.05 Myr per AU, which was <code>(r_L - r) / (3 nu_1)</code>: the steady-disc speed has <code>3/2</code> where that had <code>3</code>, so the old lag was too short by a factor of 2 for the Sun. The lag is 3.1 Myr from the CO<sub>2</sub> line (34 AU) to 2 AU, so a giant of a Sun-like star that gathers its gas inside 3 Myr never sees the CO<sub>2</sub> or argon pebble ice there. The composition at <code>r</code> at time <code>t</code> is the mean of <code>E_L</code> over the window <code>[t - tau, t]</code>. Inside a few AU the lag is under 0.2 Myr and the quasi-steady form is right; beyond 10 AU it is not, and the CO<sub>2</sub> and CO signal arrives a Myr or more after the pebbles that carried it.</p>
+<h3 id="22-the-enrichment-ratio">2.2 The enrichment ratio</h3>
+<p>For the ice of species <code>L</code> (water, CO<sub>2</sub>, CH<sub>4</sub>, CO; ammonia, H<sub>2</sub>S and the noble-gas clathrates follow the same form and ride with their parent line in the first build):</p>
+<p><code>E_L(t) = gate_L(t) x [Mdot_F(t) / (Mdot_g(t) x Z)]</code></p>
+<p><code>gate_L = 1</code> for <code>t_L &lt;= t &lt;= t_end</code> (and the line inside the disc's edge), else 0. A pebble that left the disc beyond the line carries the ice of every species whose line is outside where it started, so the gate is on the front, not on the pebble. The ratio is the pebbles' mass flux over the gas's, in units of the solids-to-gas ratio of the disc: 1 when the solids and the gas move together. For the Sun it comes out near 2 to 4 for the whole pebble epoch (2.3 at 0.05 Myr, 2.1 at 0.25 Myr).</p>
+<h3 id="23-the-gas-at-a-place-and-a-time">2.3 The gas at a place and a time</h3>
+<p>The static gas at temperature <code>T</code> (<code>_gas_and_solid_atoms</code>) is the <strong>supply</strong> (the gas at the disc's edge, where the species with lines warmer than the edge are all frozen) plus the ice atoms of every species whose line lies between the edge and <code>T</code>. The drift model keeps the supply and weights each ice by its <code>E_L</code> (lagged as in 2.1):</p>
+<p><code>gas(T) = supply(T_edge) + sum over L in (T_edge, T] of  E_L x ice_atoms_L</code></p>
+<p>That has the property the build tests: <code>E_L = 1</code> gives <code>_gas_and_solid_atoms(T)</code> exactly. The C/O of the gas is the carbon over the oxygen of that sum; the rock and the refractory carbon are untouched (500 K, DSC3).</p>
+<h3 id="24-the-cold-finger-de6">2.4 The cold finger (DE6)</h3>
+<p>Vapor that crosses a line outward freezes again on the grains just outside it, and those grains drift back in: a loop. If a fraction <code>leak</code> of the vapor goes outward, the steady vapor abundance at the line is <code>1 / (1 - leak)</code> times what the incoming pebbles alone would give, the ice just outside is enriched by the same factor, and the <strong>net</strong> flux inward is unchanged (it equals the pebble flux). So the cold finger does not change the gas composition inward of a line; it changes two other things: the ice-to-rock ratio of the solids in a band just outside the line, and the vapor at the line. [R5209] gives an order of magnitude (<code>leak</code> 0.9); the build takes <code>leak = 0.9</code> (DE6) and a band as wide as the gas scale height at the line. The band's rise of the water ice over rock is <code>1 / (1 - leak) = 10</code> at most, to be cut by the share of the pebble flux that is ice. It feeds the jump <code>SNOW_LINE_SOLID_JUMP</code> only if the measure of GEN.1473 shows the C/O of the solids needs it; the first build leaves the jump at its GEN.1396 value and reports the band.</p>
+<h3 id="25-what-a-giant-gathers">2.5 What a giant gathers</h3>
+<p>A giant takes the gas of its place and the solids it swallows (<code>envelope_c_over_o</code>, GEN.1363 part C). The change here is only where the gas comes from: the gas of section 2.3 at the giant's formation temperature and <strong>at the age it gathers its gas</strong> (DE9). That age is not drawn today. The build derives it without a draw: the time the cumulative pebble mass <code>integral of Mdot_F dt</code> from the front's arrival at the giant's formation distance reaches the core mass in the recipe (the critical core, 10 to 20 Earth masses), capped at the disc's lifetime (3 Myr, <code>scatter.DISK_LIFETIME_YR</code>). A core that the pebble epoch cannot build in time gathers its gas at <code>t_end</code> with a post-pebble core (planetesimal accretion) and sees the pebble-depleted gas.</p>
+<h2 id="3-first-numbers-an-offline-script-not-repo-code-the-static-values-it-departs-from-are-0895-outside-the-water-line-and-0381-inside">3. First numbers (an offline script, not repo code; the static values it departs from are 0.895 outside the water line and 0.381 inside)</h2>
+<p>Solar-mass star, edge 49 AU, no lag (so the CO<sub>2</sub> numbers are an upper bound on how early it arrives):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>age</th>
+<th><code>E</code> (water)</th>
+<th>gas C/O inside water line</th>
+<th>gas C/O 4 snow lines out</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.05 Myr</td>
+<td>2.3</td>
+<td>0.19</td>
+<td>1.00 (no CO<sub>2</sub> yet)</td>
+</tr>
+<tr>
+<td>0.10 Myr</td>
+<td>2.1</td>
+<td>0.21</td>
+<td>1.00</td>
+</tr>
+<tr>
+<td>0.25 Myr</td>
+<td>2.1 (CO<sub>2</sub> front arrives)</td>
+<td>0.26</td>
+<td>0.83</td>
+</tr>
+<tr>
+<td>0.50 Myr and later</td>
+<td>0</td>
+<td>1.00</td>
+<td>1.00</td>
+</tr>
+</tbody>
+</table></div>
+<p>Static model: 0.38 inside, 0.895 outside. The 1.5 solar-mass star behaves alike (0.17 to 0.21 inside during its 0.63 Myr pebble epoch, 0.73 outside in the CO<sub>2</sub> window); the 0.3 solar-mass star's pebble epoch is over before 0.02 Myr, so its gas is pebble-free from the first 0.02 Myr on and sits at 1.00 everywhere it is observable.</p>
+<p>What this says, before the build:</p>
+<ul>
+<li><strong>Inside the water line the drift model is firmly lower than the static one during the pebble epoch (0.2 against 0.38)</strong> and firmly higher after it (1.0). That is the direction of the brief and of [R5210] (inner disc: low C/O early, high late).</li>
+<li><strong>Outside the water line the effect is modest and goes the other way for most of the epoch.</strong> The water is frozen either way. What differs is the CO<sub>2</sub> and CH<sub>4</sub> the gas holds: pebbles with those ices arrive at the CO<sub>2</sub> line (35 AU) only when the front gets there, near the end of the epoch for the Sun, and the gas needs a Myr to carry them in. For most of a disc's life the gas between the lines is the <strong>supply gas, C/O about 1.0</strong>, not the static 0.895; only the lagged CO<sub>2</sub> window brings it down (0.83 at <code>E = 2</code>, 0.73 for the 1.5 solar-mass star). The brief expected gas outside the water line to run the other way from the gas inside (high early, low late). The model gives high early (1.0) and, after the lag, lower while CO<sub>2</sub> arrives (0.8), then high again once the pebbles stop. The honest reading: the gas side outside the water line is a weak lever and may push the over-0.8 share of giants <strong>up</strong>, not down (GEN.1471 left it at 22 to 26 percent against the target of 4 to 9). The build measures it and reports the sign. If the measure goes the wrong way the levers left are the share <code>m</code> of the envelope that is metals (<code>ENVELOPE_METAL_SHARE</code>, one re-check allowed by GEN.1473) and what a giant swallows (section 2.5, the solids); the gas model is not tuned to hit the target.</li>
+<li><strong>The cold finger rises the water ice of the solids just outside the snow line</strong>, which lowers the C/O of the solids a giant swallows there. That is the lever that points down for giants that form near the water line.</li>
+</ul>
+<h2 id="4-which-parts-are-secondary-or-speculative">4. Which parts are secondary or speculative</h2>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>Basis</th>
+<th>Standing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ice moves in with pebbles, evaporates at its line, enriches the gas inside; solids enhanced outside</td>
+<td>[R5208, R5209, R5210] abstracts read</td>
+<td>secondary, read</td>
+</tr>
+<tr>
+<td><code>E = 1</code> is the static budget</td>
+<td>derived from <code>_gas_and_solid_atoms</code></td>
+<td>exact</td>
+</tr>
+<tr>
+<td>Front <code>r_g(t)</code>, flux <code>Mdot_F(t)</code> formulas and numbers</td>
+<td>[R5211] form recalled, numbers recalled, paper not opened</td>
+<td>recalled, T3</td>
+</tr>
+<tr>
+<td>Viscous <code>Mdot_g(t)</code>, <code>Md_0</code>, <code>t_nu</code>, <code>alpha</code></td>
+<td>standard disc theory, observed accretion rates; the numbers are mine</td>
+<td>educated guess</td>
+</tr>
+<tr>
+<td>Pebbles end at the disk's edge as a step (replaced by a taper, GEN.1514, section 10)</td>
+<td>my simplest form</td>
+<td>speculative</td>
+</tr>
+<tr>
+<td>The lag as a boxcar of the viscous time</td>
+<td>my simplest form</td>
+<td>speculative</td>
+</tr>
+<tr>
+<td>Cold finger <code>leak = 0.9</code>, band width</td>
+<td>[R5209] abstract's order of magnitude; the width is mine</td>
+<td>secondary and speculative</td>
+</tr>
+<tr>
+<td>The giant's gas-gathering age from the cumulative pebble mass</td>
+<td>my derivation to avoid a draw</td>
+<td>speculative</td>
+</tr>
+<tr>
+<td>Pebble flux cut by a giant already formed (isolation mass), planets accreting pebbles on the way</td>
+<td>not modelled</td>
+<td>open point</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="5-wiring-for-gen1473">5. Wiring for GEN.1473</h2>
+<ul>
+<li>New module <code>physics/disk_drift.py</code> (the clocks, <code>enrichment_ratio(species, t, star)</code>, <code>gas_atoms(T, t, star)</code>); <code>disk_condensation</code> keeps the static budget and gets <code>gas_and_solid_c_over_o(..., enrichment=None)</code> so <code>None</code> is today's behavior. <code>envelope_c_over_o</code> takes the gas atoms from <code>disk_drift</code> when it is given an age. <code>mixture_giant._disk_c_over_o</code> passes the giant's gas-gathering age. No shim: the static call is the <code>E = 1</code> case, not a second code path.</li>
+<li>Reuse: <code>LINES_K</code>, <code>line_au</code>, <code>_gas_and_solid_atoms</code>, <code>inventory</code>, <code>masses_percent</code> (the budget), <code>snow_line_solid_jump</code>, <code>formation.draw_snow_line_au</code> (the stored snow line), <code>DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER</code> (the edge), <code>DISK_MASS_STELLAR_MASS_EXPONENT</code> (cancels, documented), <code>scatter.DISK_LIFETIME_YR</code>, the star's luminosity track, the giant's formation distance and core mass. Nothing here needs a look-alike of an existing function.</li>
+<li>Tests: <code>E = 1</code> reproduces the static gas and C/O exactly at every temperature; mass conservation (the C and O in the gas plus the ice left behind equals the budget); <code>E = 0</code> gives the supply gas; the lag window never exceeds the age.</li>
+<li>Measure: the same 1,000 G2V systems and 331 fresh giants as the GEN.1395 report, reporting the share over 0.8 and under 0.35 and the median, before and after, and the stars that are not G2V (M dwarf, 1.5 solar masses) for the sign of the epoch lengths.</li>
+</ul>
+<h2 id="6-open-points">6. Open points</h2>
+<ul>
+<li>The numbers of <code>Mdot_F</code> and <code>r_g</code> are recalled. The build reads [R5211] (the PDF through the web-fetch route) and replaces the recalled numbers with the read ones; DE1 and DE2 move from T3 to T1.</li>
+<li>The gas side outside the water line may not lower the share of giants over 0.8; section 3. The result decides what GEN.1473 reports; it does not decide the model.</li>
+<li>The step end of the pebble flux makes M dwarfs pebble-free almost from birth (0.017 Myr), while observed M-dwarf discs hold pebbles for Myr. A smoother decay (one growth time at the edge) is the first thing to try if the M dwarf rows look wrong.</li>
+<li><code>leak = 0.9</code> is read off an abstract's order of magnitude; the net flux does not depend on it, the band does.</li>
+<li>Not modelled: a giant that has formed blocks the pebbles for the inner disc (the isolation mass); planets that eat pebbles on the way; ice in the soot line; photoevaporation of the gas. Each would lower <code>E</code> further in; none is needed to set the sign of the first build.</li>
+<li>The moons' circumplanetary discs (<code>moon_disk_zone</code>) use their own lines; they are out of this note.</li>
+</ul>
+<h2 id="7-what-the-build-changed-and-measured-gen1473">7. What the build changed and measured (GEN.1473)</h2>
+<p><strong>Built.</strong> <code>physics/disk_drift.py</code> holds the clocks, <code>enrichment_ratio</code>, <code>ice_weights</code>, <code>gathering_age_myr</code> and <code>giant_ice_weights</code>; <code>disk_condensation._gas_and_solid_atoms</code> and <code>envelope_c_over_o</code> take <code>ice_weights</code> (<code>None</code> and weights of 1 are the static budget exactly, a test); <code>mixture_subject</code> gives a giant its stored snow line (<code>disk_snow_line_au</code>); <code>mixture_giant._disk_c_over_o</code> passes the weights. No new random draw. Stand-ins DE1 to DE10 are rows of section 6.242, and DE1 and DE2 are now read (T1): the pebble flux and the front are Eq. 14 and Eq. 10 of [R5211], and the growth efficiency of 0.05 that gives the 122 AU is the paper's sticking efficiency of 0.5 over its grain growth ratio of 10. The paper does not state when the flux ends (DE3 stays my step at the disc's edge).</p>
+<p><strong>Differences from the note.</strong> (1) The star-mass term of the pebble flux (the paper's 1/3 power) is replaced by the disc-mass scale (the 1.8 power of <code>tuning.DISK_MASS_STELLAR_MASS_EXPONENT</code>), so the disc mass cancels in the ratio as section 2.1 says; with the 1/3 power it would not cancel and the ratio of a 1.5 solar-mass star would be half the Sun's. (2) The nitrogen, sulfur and noble gases of <code>envelope_enrichments</code> keep their static values; the first build moves the carbon and oxygen only. (3) The doc's 49 AU edge is 18 snow lines of a 2.7 AU snow line; a 2.3 AU snow line (the Sun's) gives an edge of 41 AU and a pebble epoch of 0.20 Myr.</p>
+<p><strong>Measured</strong> (reports/gen1473-drift-measure-2026-11-09.md, 2,787 generated giants of all stars): for G and K stars the share of giants over C/O 0.8 falls from 18 to 12 and 11 percent and the median is unchanged (0.42); the share under 0.35 rises by 2 points; F stars do not move. M dwarfs move a lot (median 0.62 to 0.44, over 0.8: 39 to 12 percent) because 99 percent of their giants gather their gas as the pebbles end, within the lag from the line; that row stands on DE3 and DE5, which are the two stand-ins to revisit first.</p>
+<h2 id="8-the-start-state-of-the-gas-and-the-noble-gases-gen1517-gen1516">8. The start state of the gas, and the noble gases (GEN.1517, GEN.1516)</h2>
+<p><strong>The start state (GEN.1517).</strong> Section 2 started the gas at the disc's edge, where every ice whose line is warmer than the edge is frozen, and gave a place only the vapor that pebbles had carried in, lagged by the gas flow. That is the state of a disc that has been drained of its ices, not of a new one: at time zero the gas inside each line is the solar gas with that line's vapor in it (the static budget of GEN.1363), and it stays so until gas from outside the line has flowed in. The viscous flow carries gas inward at about 20 AU per Myr at the lag of DE5, so the gas at a place at age <code>t</code> began <code>t / LAG_MYR_PER_AU</code> AU farther out. <code>disk_drift.enrichment_ratio</code> now returns <code>E = 1</code> for a species whose line the gas has not crossed (<code>age &lt; lag_myr(line, place)</code>); past it, the gas crossed at <code>age - lag</code> and the ratio of section 2 applies. Stand-in DE11.</p>
+<p>Measured on a grid of stars (0.2 to 1.4 solar masses, [Fe/H] -0.3 to 0.3, formation temperatures 60 to 500 K): before the fix a Sun-like giant's gas held no argon, krypton, xenon or CO<sub>2</sub> at all (every weight 0); with it, 18 of 24 cells of a 1 solar mass star and 20 of 24 of a 1.4 solar mass star are the static disc exactly, and the dwarfs keep more drift (12 of 24 at 0.2, 9 of 24 at 0.4). The cause of the rest being static is the age: the gas-gathering age of DE9 is 0.04 Myr at the median, shorter than the lag from any line at least a few AU away, so the drift reaches only giants close to a line or around dwarfs. Whether 0.04 Myr is a plausible age for a giant's gas (a core of 15 Earth masses built from every pebble that passes, with no accretion efficiency) is the next question for the drift model.</p>
+<p><strong>The noble gases, nitrogen and sulfur (GEN.1516).</strong> <code>disk_condensation.envelope_enrichments</code> takes the same <code>ice_weights</code> as <code>envelope_c_over_o</code>: the vapor of N<sub>2</sub>, NH<sub>3</sub>, H<sub>2</sub>S, Ar, Kr and Xe that evaporated on the way is <code>E</code> times the static vapor, the solids stay the static ones, and <code>sigma</code> is found from the weighted carbon and oxygen as in section 7. With weights of 1 (or none) the factors are the static ones exactly. A giant that formed colder than a line has that ice frozen and takes it with the planetesimals as before; the weight acts only on a gas warmer than the line.</p>
+<h2 id="9-the-age-a-giant-gathers-its-gas-from-the-efficiency-of-pebble-accretion-gen1518">9. The age a giant gathers its gas, from the efficiency of pebble accretion (GEN.1518)</h2>
+<p>Section 7 built the core from every pebble that passes its place (100 percent efficiency), which put the median gas-gathering age of a giant at 0.04 Myr, shorter than the gas needs to carry the vapor of nearly any line to the place. A growing core accretes only a share of the pebbles that drift past it: [R5211: Eq. 33] gives <code>f = 0.034 (Mc / M_E)^(2/3) (r / 10 AU)^(-1/2)</code> for pebbles of Stokes number 0.1 (the Hill-sphere accretion of Eq. 28), and a seed of 1e-3 Earth masses (section 3.3). Because <code>f</code> is a power of <code>Mc</code>, <code>Mc^(1/3)</code> grows in proportion to the pebble mass that has passed: <code>Mc^(1/3) = Mseed^(1/3) + (f_0 / 3) (r / 10 AU)^(-1/2) M_pebbles</code>. <code>disk_drift.pebble_mass_for_core</code> gives the pebble mass a core needs (above <code>f = 1</code>, close in and for small cores, every pebble is kept); <code>gathering_age_myr</code> takes the age at which that mass has passed since the front arrived. Stand-ins DE9 (now through DE12) and DE12.</p>
+<p>The 15 Earth mass critical core needs 66 Earth masses of pebbles at 1 AU, 148 at 5 AU and 209 at 10 AU, about 1 Myr of the pebble flux of the Sun at 5 to 10 AU, which is the paper's &quot;within about 1 Myr&quot; ([R5211] sections 5 and 7, read only in summary here). In the generator that time is longer than the pebbles last for nearly every star: the pebble epoch ends when the front leaves the disk's edge (DE3), 0.2 Myr for the Sun and 0.004 Myr for a 0.2 solar mass dwarf (an edge of 18 snow lines), so on a grid of stars most giants now gather their gas at the end of the pebbles (24 of 24 cells for a 0.2 and a 0.4 solar mass star, 16 of 24 for the Sun). What the drift model then does for a Sun-like giant is set by when the pebbles end, not by the core: the next stand-in to revisit is DE3 (GEN.1514, a smooth decay of the pebble flux instead of a step at the edge).</p>
+<h2 id="10-the-pebble-flux-tapers-instead-of-stopping-gen1514">10. The pebble flux tapers instead of stopping (GEN.1514)</h2>
+<p>Section 4 ended the pebble flux as a step to zero when the front reached the disk's edge (DE3). A front that reaches the exponential cut-off of the gas disk meets less dust, so the flux falls as the gas surface density does at the front's place: <code>exp(-front / edge)</code> (<code>disk_drift.pebble_taper</code>). The taper is 1 for a young front, 0.37 when the front is at the edge (0.2 Myr for the Sun) and 0.002 at the end of the disk's life, and it multiplies the pebble flux in the enrichment ratio (<code>tapered_ratio</code>) and in the pebble mass that builds a core (the integral has a closed form in the age to the 2/3). The pebble epoch no longer has an end age (<code>pebble_end_myr</code> is gone); a species is carried until the disk is, <code>disk_end_myr</code> (3 Myr).</p>
+<p>Measured on the grid of stars (24 cells each): a core of 15 Earth masses at 5 AU needs 148 Earth masses of pebbles (section 9) and the Sun's tapered flux inside its edge brings 48, so a giant of a dwarf or Sun-like star cannot build its core from pebbles inside the generator's disk and gathers its gas as the disk goes (24 of 24 cells for 0.2 and 0.4 solar mass stars, 16 of 24 for the Sun, 9 of 24 for 1.4 solar masses). The gas that reaches it by then crossed the lines after the pebbles had stripped the ices: its weights are 0.02 to 0.05 for CO<sub>2</sub>, H<sub>2</sub>S and the noble gases, and the water weight is under 1. Effects on a giant at 3 times its star's heavy elements: the median carbon over oxygen is unchanged (0.49 to 0.48, the planetesimals' share makes up for the gas), the nitrogen and sulfur stay near the Galileo probe's values (3.0 and 2.8 against 2.96 and 2.75 measured), and the argon, krypton and xenon fall from 1 times the star's to 0.03 to 0.05. That last row is a miss against the probe's 2 to 3 times solar (the model's earlier miss was 1): in this model a giant gets its noble gases only from solids that froze them (a giant that formed colder than 48 K), and the planetesimals of a giant at 100 to 200 K carry none. The follow-up that would repair it is a provenance for the planetesimals a giant accretes, not a change to this taper. The disk edge itself (18 snow lines; a 0.2 solar mass star's is 0.9 AU) is the largest lever in these numbers.</p>
+<h2 id="11-where-the-planetesimals-formed-gen1519">11. Where the planetesimals formed (GEN.1519)</h2>
+<p>With the pebble flux tapered (section 10) the gas of most giants has almost none of the noble gases, and the planetesimals a giant accretes were taken to be the ones that froze at its own place, which for a giant warmer than 48 K have none either. A giant does not accrete only what formed where it sits. <code>disk_condensation.provenance_condensed</code> takes the mean of the frozen species over the annuli between the giant's place and the disk's edge (equal per AU, 64 annuli), and <code>envelope_c_over_o</code> and <code>envelope_enrichments</code> take that mix for the solids (<code>solids_edge_k</code>, which <code>mixture_giant</code> sets to the disk's edge temperature) while the gas keeps the ices of its own place and the drift weights. Stand-ins PRV1 to PRV3.</p>
+<p>Measured on the grid (24 cells per star, envelopes at 3 times the star's heavy elements, median over the cells): argon 0.95 to 1.9, krypton 1.65 to 2.5, xenon 2.9 to 3.6 times the star's from dwarfs to 1.4 solar masses (before: 1 with the static solids, 0.03 to 0.05 with the tapered gas alone); the Galileo probe measured 2.5, 2.7 and 2.6. Nitrogen is 2.3 (the probe's 2.96) and sulfur 3.1 to 3.3 (2.75 plus or minus 0.66); the carbon over oxygen is unchanged at the median (0.49). For a giant at 110 K around the Sun at 4 times the heavy elements, the pattern is Ar 1.4, Kr 2.4, Xe 4.3, N 3.0, S 4.3. The noble gases rise in the order of their lines (xenon most) because the share of the disk colder than a line is larger for a warmer line; the probe's equal enrichment would need solids from colder than argon's 48 K, and the generator's edge is at 43 K, so none exist. Whether the edge should be larger is GEN.1520. Sulfur is high because the H<sub>2</sub>S ice of the planetesimals beyond 80 K adds to a giant that formed warmer: a miss against the probe the item does not try to tune away.</p>
+
+</main>
+</div>
+<script>
+(function(){
+var nav=document.getElementById('nav'),root=nav.dataset.root,here=nav.dataset.here;
+function tree(entries){var html='',groups={};entries.forEach(function(e){(groups[e.section]=groups[e.section]||[]).push(e);});
+ Object.keys(groups).forEach(function(s){var open=groups[s].some(function(e){return e.path===here;});
+  html+='<details'+(open?' open':'')+'><summary>'+s+'</summary><ul>'+groups[s].map(function(e){
+   return '<li><a href="'+root+e.path+'"'+(e.path===here?' class="here"':'')+'>'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a></li>';}).join('')+'</ul></details>';});
+ return html;}
+var data=null,box=document.getElementById('q');
+fetch(root+'nav.json').then(function(r){return r.json();}).then(function(d){data=d;nav.innerHTML=tree(d);}).catch(function(){nav.innerHTML='<a href="'+root+'index.html">Site index</a>';});
+box.addEventListener('input',function(){var q=box.value.trim().toLowerCase();if(!data)return;
+ if(!q){nav.innerHTML=tree(data);return;}
+ var words=q.split(/\s+/),hits=data.filter(function(e){var h=(e.title+' '+e.path+' '+e.text).toLowerCase();return words.every(function(w){return h.indexOf(w)>=0;});}).slice(0,60);
+ nav.innerHTML='<ul id="results">'+hits.map(function(e){return '<li><a href="'+root+e.path+'">'+e.title.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</a><br><small>'+e.path+'</small></li>';}).join('')+'</ul>';});
+var t=document.getElementById('menu-toggle');t.addEventListener('click',function(){nav.classList.toggle('open');});
+})();
+</script>
