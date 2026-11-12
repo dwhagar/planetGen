@@ -1,6 +1,7 @@
 """The progress `planetgen warm --progress` shows for a stage cut into chunks (cli/warm_progress.py)."""
 
 from planetgen.cli import warm_progress
+from planetgen.util import logrecord
 
 
 def _chunk(warmed=64, built=64, seconds=38.0):
@@ -121,10 +122,10 @@ def test_the_whole_warm_up_shows_no_time_left_from_fewer_than_a_few_chunks():
     assert progress.overall_left() is None and progress._overall_left_text() == ""
 
 
-def test_clock_text():
-    assert warm_progress.clock_text(65) == "1:05"
-    assert warm_progress.clock_text(3912) == "1:05:12"
-    assert warm_progress.clock_text(None) == "?"
+def test_the_times_in_a_progress_line_are_the_one_duration_form():
+    assert logrecord.duration_text(65) == "1:05"
+    assert logrecord.duration_text(3912) == "1:05:12"
+    assert logrecord.duration_text(None) == "?"
 
 
 def test_a_unit_that_reports_part_of_itself_moves_the_stage_and_the_whole_warm_up():

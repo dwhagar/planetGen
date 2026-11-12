@@ -33,6 +33,8 @@ done); the time left comes from that overall rate only.
 import sys
 import time
 
+from planetgen.util import logrecord
+
 PROGRESS_SECONDS = 60.0
 """float: Seconds that must pass since a stage's last progress line in a log before the next one (OPS.99)."""
 
@@ -48,16 +50,6 @@ MIN_SECONDS = 0.5
 
 FALLBACK_SECONDS = 1.0
 """float: What a step with no expected cost and no queued cost weighs in the overall bar."""
-
-
-def clock_text(seconds):
-    """`seconds` as `1:05:12` (hours when there are any), or `?` when it is not known."""
-    if seconds is None or seconds != seconds or seconds < 0:
-        return "?"
-    seconds = int(round(seconds))
-    hours, rest = divmod(seconds, 3600)
-    minutes, secs = divmod(rest, 60)
-    return f"{hours}:{minutes:02d}:{secs:02d}" if hours else f"{minutes}:{secs:02d}"
 
 
 class WarmProgress:
@@ -194,7 +186,7 @@ class WarmProgress:
             elapsed = self.clock() - self.started
             stage_left = self._stage_left(elapsed)
             self.progress.update(self.task, completed=min(self._position(), self.units),
-                                 left="" if stage_left is None else f"about {clock_text(stage_left)} left")
+                                 left="" if stage_left is None else f"about {logrecord.duration_text(stage_left)} left")
             self.progress.update(self.overall, completed=self._weight_done(), left=self._overall_left_text())
 
     def _stage_left(self, elapsed):
@@ -227,7 +219,7 @@ class WarmProgress:
         left = self.overall_left()
         if left is None:
             return ""
-        return f"about {clock_text(left)} left" + (" (rough guess)" if self.rough() else "")
+        return f"about {logrecord.duration_text(left)} left" + (" (rough guess)" if self.rough() else "")
 
     def result(self, result, unit=None):
         """One unit (number `unit`) of the current stage finished with `result`; prints what that calls for."""
@@ -247,7 +239,7 @@ class WarmProgress:
             at_once = self._at_once(elapsed)
             self.progress.update(
                 self.task, completed=self.done, description=self._description(),
-                left="" if stage_left is None else f"about {clock_text(stage_left)} left",
+                left="" if stage_left is None else f"about {logrecord.duration_text(stage_left)} left",
                 rate="" if at_once is None else f"{elapsed / self.done:.1f} s/chunk overall, {at_once} at once")
             self.progress.update(self.overall, completed=self._weight_done(),
                                  left=self._overall_left_text())
@@ -276,8 +268,8 @@ class WarmProgress:
         self.last_line_percent = self._percent()
         left = self._stage_left(elapsed)
         overall = self._overall_left_text()
-        return (f"{key} {self._percent()}% ({self.done} of {self.units} chunks), {clock_text(elapsed)} elapsed"
-                + ("" if left is None else f", about {clock_text(left)} left")
+        return (f"{key} {self._percent()}% ({self.done} of {self.units} chunks), {logrecord.duration_text(elapsed)} elapsed"
+                + ("" if left is None else f", about {logrecord.duration_text(left)} left")
                 + (f"; warm-up {overall}" if overall else ""))
 
     def summary(self, key, elapsed):
@@ -291,7 +283,7 @@ class WarmProgress:
                     f"; {at_once} chunk{'' if at_once == 1 else 's'} at once, {self.sums['seconds'] / self.done:.1f} s a chunk on its worker")
         overall = self._overall_left_text()
         return (f"{key}: {self.sums['warmed']:,} {self.noun} warmed ({self.sums['built']:,} built, "
-                f"{self.sums['cached']:,} already stored{out}) in {clock_text(elapsed)} over {self.units} chunks of up "
+                f"{self.sums['cached']:,} already stored{out}) in {logrecord.duration_text(elapsed)} over {self.units} chunks of up "
                 f"to {self.biggest:,} {self.noun}{together}; family {self.index + 1} of {len(self.keys)}"
                 + (f", warm-up {overall}" if overall and self.index + 1 < len(self.keys) else ""))
 
