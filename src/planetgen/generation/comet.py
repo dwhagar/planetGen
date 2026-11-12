@@ -67,6 +67,19 @@ periodic (`P/`); every other star-bound comet is `C/` -- the IAU's own
 split (GEN.13, v40)."""
 
 
+def period_class_of(drawn_class, period_years):
+    """
+    The period class of a comet of `drawn_class` whose orbit has come out with `period_years` (GEN.1608). The class is drawn before the orbit, and the orbit is cut by the star's orbit ceiling and drawn from
+    eccentricity ranges, so a comet drawn `long_period` can have a period of tens of years and `comet_designation` calls it periodic (`P/`). The two sides of `PERIODIC_COMET_MAX_PERIOD_YEARS` follow the
+    designation: a `long_period` comet under it is `halley_type` (the family next to it), and a `jupiter_family` or `halley_type` comet at or over it is `long_period`; every other class is kept.
+    """
+    if drawn_class == "long_period" and period_years < PERIODIC_COMET_MAX_PERIOD_YEARS:
+        return "halley_type"
+    if drawn_class != "long_period" and period_years >= PERIODIC_COMET_MAX_PERIOD_YEARS:
+        return "long_period"
+    return drawn_class
+
+
 def comet_designation(host_name, index, comet):
     """
     A star-bound comet's designation (v40): `P/<host>-<n>` for a periodic
@@ -272,6 +285,7 @@ class Comet(SmallBody):
             semi_major_axis_au = self.perihelion_distance_au / (1 - self.eccentricity)
             primary_mass_kg = _msun_to_kg(primary_mass_solar)
             self.orbital_period_years = calculate_orbital_period_years(semi_major_axis_au, primary_mass_kg)
+            self.period_class = period_class_of(self.period_class, self.orbital_period_years)       # GEN.1608: the label follows the orbit it was drawn for
 
             self.mean_anomaly_deg = draw.uniform(0, 360)
             self.parabolic_mean_anomaly = None
