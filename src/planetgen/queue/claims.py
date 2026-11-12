@@ -142,6 +142,23 @@ def function_table(function):
     return FUNCTION_CLAIMS[function]
 
 
+def typed_mb(kind):
+    """The typed figure of a claim kind (`unit:<command>`, `cut:<command>`, `api:<ref>`, `fn:<name>`), MB, or `None` for a kind with none (OPS.158: the page sets it beside the learned one)."""
+    try:
+        prefix, _, name = kind.partition(":")
+        if prefix == "unit":
+            return float(unit_table_mb(name))
+        if prefix == "cut":
+            return float(CUT_MB)
+        if prefix == "api":
+            return float(api_table(name)[0])
+        if prefix == "fn":
+            return float(function_table(name)[0])
+    except NoClaim:
+        pass
+    return None
+
+
 def default_claim(job):
     """The claim of a job of a kind with no figure: `DEFAULT_MB` and a core, on the job's lane, under the kind `fn:<function>`."""
     return Claim(f"fn:{job.func_name}", float(DEFAULT_MB), 1.0, lane_of(job.origin))

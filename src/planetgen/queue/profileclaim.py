@@ -104,6 +104,9 @@ def claim(conn, kind, typed_mb, token=None, read_rows=None, now=None):
     The claim of `kind` from the profile, MB, or `None` for 'use the typed path'. `token` is the run's id (any other job passes none and is held to the hour). `read_rows(kind)` gives the
     kind's profile rows (`jobprofiles.peaks` by default; a test gives its own). Never raises.
     """
+    pinned = pinned_mb(conn, kind)
+    if pinned is not None:
+        return pinned           # OPS.158: an admin's figure wins, and stays until it is cleared
     if not enabled():
         return None
     try:
@@ -137,6 +140,96 @@ def _log_change(conn, kind, old, new, wanted, floor, details, typed_mb, now):
     log.normal(f"Self-tuning: claim of {kind} {'was ' + format(old, ',.0f') + ' MB' if old is not None else 'had no earlier figure'}, now {new:,.0f} MB (typed {typed_mb if typed_mb is not None else 'none'}; {reason})")
     conn.lpush(_changes_key(), json.dumps({"at": now, "what": "claim", "kind": kind, "old": old, "new": new, "typed": typed_mb, "reason": reason, **details}))
     conn.ltrim(_changes_key(), 0, KEEP_CHANGES - 1)
+
+
+def _pins_key():
+    return memorygate._key("pins")
+
+
+def pinned_mb(conn, kind):
+    """The figure an admin fixed for `kind`, MB, or `None` (OPS.158)."""
+    try:
+        raw = conn.hget(_pins_key(), kind)
+        return None if raw is None else float(memorygate._decode(raw))
+    except Exception:       # noqa: BLE001 -- the pins are not worth a job
+        return None
+
+
+def pin(conn, kind, mb, who="an admin"):
+    """Fixes the claim of `kind` at `mb` until `unpin` or `clear`; logged. Returns the figure."""
+    old = pinned_mb(conn, kind)
+    conn.hset(_pins_key(), kind, f"{float(mb):.3f}")
+    log_change(conn, "pin", kind, old, float(mb), f"fixed by {who}")
+    return float(mb)
+
+
+def unpin(conn, kind, who="an admin"):
+    """Lets the profile decide the claim of `kind` again; logged. Returns whether a pin was there."""
+    old = pinned_mb(conn, kind)
+    if old is None:
+        return False
+    conn.hdel(_pins_key(), kind)
+    log_change(conn, "unpin", kind, old, 0.0, f"released by {who}: the profile decides again")
+    return True
+
+
+def clear(conn, kind, who="an admin"):
+    """
+    Forgets everything learned about `kind`: the settled claim, the largest peak seen (`memorygate.learned`), the stored starting limit and its profile rows in the control database
+    (a pin stays, `unpin` lifts it). The next run claims from the typed table and measures again. Logged. Returns the profile rows deleted.
+    """
+    old = None
+    stored = conn.hget(memorygate._key("profile"), kind)
+    if stored is not None:
+        old = json.loads(memorygate._decode(stored))["figure"]
+    conn.hdel(memorygate._key("profile"), kind)
+    conn.hdel(memorygate._key("learned"), kind)
+    conn.hdel(memorygate._key("adaptive:settled"), kind)
+    removed = 0
+    try:
+        from planetgen.db import store
+        db = store.get_control_connection()
+        try:
+            removed = db.execute("DELETE FROM job_profiles WHERE kind = ?", (kind,)).rowcount
+            db.commit()
+        finally:
+            db.close()
+    except Exception as exc:        # noqa: BLE001 -- the Redis side is cleared whatever the database says
+        log.debug(f"Self-tuning: the profile rows of {kind} were not deleted ({exc}).", area="queue")
+    log_change(conn, "clear", kind, old, 0.0, f"forgotten by {who}: {removed} profile rows deleted, the next run claims from the typed table")
+    return removed
+
+
+def overview(conn):
+    """
+    What the page shows (OPS.158): `{"self_tuning", "kinds", "changes"}`. A kind is every one that has a settled figure, a pin or profile rows: `kind`, `typed_mb`, `figure_mb` (what a run
+    claims from the profile now), `pinned_mb`, `samples`, `last_sample` (UTC text) and `changed` (the newest change made to it). The kinds come out sorted by name.
+    """
+    from planetgen.queue import claims
+    kinds = {}
+    for name, raw in conn.hgetall(memorygate._key("profile")).items():
+        kinds.setdefault(memorygate._decode(name), {})["figure_mb"] = json.loads(memorygate._decode(raw))["figure"]
+    for name, raw in conn.hgetall(_pins_key()).items():
+        kinds.setdefault(memorygate._decode(name), {})["pinned_mb"] = float(memorygate._decode(raw))
+    try:
+        from planetgen.db import store
+        db = store.get_control_connection()
+        try:
+            for row in db.execute("SELECT kind, COUNT(*) AS n, MAX(recorded_at) AS last FROM job_profiles GROUP BY kind").fetchall():
+                entry = kinds.setdefault(row["kind"], {})
+                entry["samples"], entry["last_sample"] = int(row["n"]), str(row["last"])[:19] if row["last"] else None
+        finally:
+            db.close()
+    except Exception as exc:        # noqa: BLE001 -- a page without the control database still shows the Redis side
+        log.debug(f"Self-tuning: the profile rows were not counted ({exc}).", area="queue")
+    recent = changes(conn, KEEP_CHANGES)
+    rows = []
+    for name in sorted(kinds):
+        entry = kinds[name]
+        newest = next((c for c in recent if c["kind"] == name), None)
+        rows.append({"kind": name, "typed_mb": claims.typed_mb(name), "figure_mb": entry.get("figure_mb"), "pinned_mb": entry.get("pinned_mb"),
+                     "samples": entry.get("samples", 0), "last_sample": entry.get("last_sample"), "changed": newest})
+    return {"self_tuning": enabled(), "kinds": rows, "changes": recent[:20]}
 
 
 def log_change(conn, what, kind, old, new, reason, now=None, **extra):

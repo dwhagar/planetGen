@@ -15,12 +15,12 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import jobbeat, load as systemLoad, pause as queuePause, profileclaim, redisqueue, requires, runcontrol, runrecord, runview, stopall, unitwatch, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
 from .routes import _paginate
-from .schemas import QueueAction, RunAction, WorkerCount, parse_body
+from .schemas import QueueAction, RunAction, TuningAction, WorkerCount, parse_body
 
 bp = Blueprint("workqueue", __name__, url_prefix="/api/admin/work")
 
@@ -317,3 +317,32 @@ def set_workers():
     queueWorkers.set_wanted(connection, count)
     audit("work.workers.set", target="workers", detail=f"count={count}" + (" ludicrous" if body.ludicrous else ""))
     return jsonify(_workers_state(connection))
+
+
+@bp.route("/tuning", methods=["GET"])
+@require_admin()
+def tuning():
+    """`GET /api/admin/work/tuning` -- what the queue has learned per job kind (OPS.158): `self_tuning` (whether the job profile is read), `kinds` (each `kind`, `typed_mb`, `figure_mb`
+    the claim from the profile, `pinned_mb`, `samples`, `last_sample`, `changed` the newest change made to it) and `changes` (the newest 20 changes the engine or an admin made)."""
+    return jsonify(profileclaim.overview(_redis()))
+
+
+@bp.route("/tuning", methods=["POST"])
+@require_admin(fresh=True)
+def set_tuning():
+    """
+    `POST /api/admin/work/tuning` `{"action": "pin", "kind": "unit:x", "mb": 1500}` fixes the claim of a job kind, `"unpin"` lets the profile decide again and `"clear"` forgets everything
+    learned about the kind (OPS.158). Logged with the other changes of the engine and written to the audit log. Returns the new overview.
+    """
+    body = parse_body(TuningAction, require_json_body())
+    connection = _redis()
+    who = g.admin_user["username"]
+    if body.action == "pin":
+        profileclaim.pin(connection, body.kind, body.mb, who)
+    elif body.action == "unpin":
+        if not profileclaim.unpin(connection, body.kind, who):
+            raise ApiError("That kind has no pin.", 404)
+    else:
+        profileclaim.clear(connection, body.kind, who)
+    audit(f"work.tuning.{body.action}", target=body.kind, detail=f"mb={body.mb}" if body.mb is not None else "")
+    return jsonify(profileclaim.overview(connection))
