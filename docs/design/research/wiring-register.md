@@ -16,8 +16,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
-| module | planetgen.physics.birth_luminosity | GEN.1611 | the luminosity a star had while its disk was there (BHAC15 where it holds the mass, the zero-age light above 1.4 solar masses); GEN.1611 slice 1 (Lane 21) wires it into `formation_snow_line` |
-| module | planetgen.physics.formation_snow_line | GEN.1611 | the snow line a star's disk saw (an evolved star's from its track at the disk's age, not from today's luminosity); GEN.1611 slice 1 wires it into the star's snow line and belt birth |
 | function | planetgen.physics.ionization.ceiling_of | by design | the ionization ceiling of a stored air, or infinity for none: the bound the tests hold a stored temperature to (GEN.1580); the generator reads `ceiling_k` |
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
@@ -69,12 +67,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.sulfuric_vapor.status_at | by design | whether a temperature is inside the 200 to 350 K of the model, for a caller that reports an extrapolation |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
 | row | 6.63:CF3 | by design | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
-| data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
-| data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
-| data | quadruple_stability_2p2.json | GEN.1016 | the 2+2 quadruple stability rules (validity ranges, the stability definition); read by `quadruple_stability` |
-| data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
-| module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
-| module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
 | module | planetgen.physics.atmosphere_retention | by design | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note, held against the generator by the tests and the census (GEN.1523 settled it): the pressure stage reads the Berta-Thompson logistic of the atmosphere recipes rows d, which is the fit to the observed planets, and not this module's K-window fit, so the module is a tested library and the stage never takes its cap from it |
 | row | 6.74:SH1 | by design | `atmosphere_retention.SHORELINE_K`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
 | row | 6.74:SH2 | by design | `atmosphere_retention.VERDICT_EDGES`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
@@ -94,16 +86,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | module | planetgen.physics.rock_assemblage | GEN.474 | the mineral assemblage of a rock as the CIPW norm of its oxides on the rows of the materials table (lock-free part 2 of GEN.474); the wiring step replaces the fixed ground recipes of `GROUND_TYPES` with it |
 | function | planetgen.physics.rock_types.divalent_pool | GEN.474 | the divalent pool of a rock's norm, read by the unwired rock_assemblage; wired with it |
-| module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
-| row | 6.162:SHT1 | GEN.1201 | `shape_temperature.ICE_SPECIFIC_HEAT`, read when the wiring step lands |
-| row | 6.162:SHT2 | GEN.1201 | `shape_temperature.WINDOW_SHAPE_FACTOR`, read when the wiring step lands |
-| module | planetgen.physics.helium_fractionation | GEN.1523 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
-| row | 6.77:HF1 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF2 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF3 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.hycean_candidate | GEN.1523 | the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands |
-| row | 6.79:HC1 | GEN.1523 | the four ranges of the Hycean box, read when its wiring step lands |
-| module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | function | planetgen.physics.field_mass.mass_is_conserved | by design | the check the tests hold a field's stored bodies and remainder to; the generator never needs to ask |
 | function | planetgen.physics.field_rates.unbound_belt_birth_rate_per_year | by design | the birth rate of fields from supernova-unbound belts of a galaxy: the census the host rule's share of remnants is held to (tests/test_field_host.py) |
 | function | planetgen.physics.field_rates.hosted_age_share | by design | the share of remnants that still host their belt's field: the expected share the host rule's census is held to |
