@@ -285,7 +285,8 @@ class ResponseCache:
                         self._stamps[db] = (known[0], now, known[2], known[3], True)
                     return True
                 self._bump_from(db, changes, recorded)
-        except Exception:  # noqa: BLE001 -- fail open: just don't cache
+        except Exception as exc:  # noqa: BLE001 -- fail open: just don't cache
+            log.swallowed("web/lib/pagecache", "ResponseCache._fresh_stamp", exc)
             return False
         with self._lock:
             self._stamps[db] = (stamp, now, state, now, busy)

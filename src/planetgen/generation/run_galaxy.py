@@ -932,6 +932,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
     report(1, 2)
     try:
@@ -946,6 +947,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new sectors to the block totals failed: {exc}")
     return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
 

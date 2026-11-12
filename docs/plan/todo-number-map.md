@@ -2956,11 +2956,11 @@ Parents marked "new parent" had no old number of their own.
 | OPS.162 | Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed) | none | done, PR #6276 |
 | OPS.163 | Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py) | none | done, PR #6277 |
 | OPS.164 | After-commit callback failures logged with traceback and the callback's name (store.py) | none | done, PR #6278 |
-| OPS.165 | log.degraded helper (rate-limited warning) used at every silent Redis fallback | none | open |
+| OPS.165 | log.degraded helper (rate-limited warning) used at every silent Redis fallback | none | done, PR #6284 |
 | OPS.166 | update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning | none | done, PR #6282 |
 | OPS.167 | Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels | none | done, PR #6279 |
-| OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | open |
-| OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | open |
+| OPS.168 | log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers | none | done, PR #6285 |
+| OPS.169 | One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp | none | done, PR #6296 |
 | OPS.170 | Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS | OPS.169, OPS.155 | open |
 | OPS.171 | connection_loss.explain on every lost-connection retry | none | done, PR #6280 |
 | OPS.172 | Per-sector saved line moves to debug, with a roll-up through the progress ticker | OPS.169 | open |

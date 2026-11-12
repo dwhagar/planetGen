@@ -13413,21 +13413,6 @@ clears each one.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
-- [ ] **OPS.165 log.degraded helper (rate-limited warning) used at every silent Redis fallback**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H4). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
-  Filed by the TODO thread.
-
-- [ ] **OPS.168 log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M1). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
-  Filed by the TODO thread.
-
-- [ ] **OPS.169 One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M3). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: OPS.170, OPS.172.
-  Filed by the TODO thread.
-
 - [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
