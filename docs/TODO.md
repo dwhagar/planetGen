@@ -13375,6 +13375,16 @@ clears each one.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
   Filed by the TODO thread.
 
+- [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
+  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
+  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: GEN.1150. Related: GEN.1151.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
+  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
+  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: none. Related: GEN.1425, GEN.1307.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
