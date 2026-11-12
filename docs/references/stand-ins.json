@@ -17227,7 +17227,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+              "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity a star's disk saw is read, birth_luminosity, formation_snow_line, GEN.1611)"
             ],
             [
               "The range it moves in",
@@ -17235,11 +17235,11 @@
             ],
             [
               "Where it holds",
-              "evolved stars (a subgiant, giant, supergiant or white dwarf)"
+              "every star"
             ],
             [
               "What would show it wrong",
-              "test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_birth_not_of_today; a white dwarf's snow line under 1 AU"
+              "test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_progenitors_birth_not_of_today; a white dwarf's snow line under 1 AU"
             ],
             [
               "What replaces it",
@@ -17257,6 +17257,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
+<<<<<<< HEAD
           "unread": "GEN.1611",
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
         },
@@ -17335,6 +17336,10 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
+=======
+          "unread": null,
+          "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity a star's disk saw is read, birth_luminosity, formation_snow_line, GEN.1611)"
+>>>>>>> origin/claude/lane21-gen1611-s1
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",

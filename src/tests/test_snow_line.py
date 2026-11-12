@@ -12,7 +12,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import condensate_shares, constants, formation
+from planetgen.physics import condensate_shares, constants, formation, formation_snow_line
 from planetgen.util import draw
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -85,7 +85,7 @@ def test_a_system_gives_the_same_line_and_flags_from_its_seed_at_one_and_four_wo
 def test_a_star_stores_a_line_inside_the_scatter_of_its_blackbody_position():
     for seed in range(12):
         star = _system(seed).star
-        center = formation.snow_line_au(star.luminosity)
+        center = formation_snow_line.formation_snow_line_au(formation_snow_line.initial_mass_sol_of(star), star.metallicity_fe_h)     # GEN.1611: the luminosity its disk saw
         assert abs(math.log10(star.snow_line_au / center)) <= tuning.SNOW_LINE_SCATTER_DEX * tuning.SNOW_LINE_SCATTER_MAX_SIGMA + 1e-12
 
 
