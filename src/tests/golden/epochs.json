@@ -867,6 +867,13 @@
       "first_release": "8.0.3844",
       "reason": "Train 23: tide sources and spin and heating from every body, Kozai moons, phosphorus gases, close-companion disk gas, belt members forced by companion stars, settled-orbit remake, oxygen sink with age, auto rogue count",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 146,
+      "first_release": null,
+      "pending": true,
+      "reason": "Dark members of the orbit tree give light to the planets beside them (GEN.1501)",
+      "affects": ["fill", "population"]
     }
   ]
 }
