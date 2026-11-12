@@ -66,7 +66,7 @@ LOCAL_UNITS = {
     "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
     "Pa*s": LocalUnit("dynamic viscosity", 1.0), "kJ/mol": LocalUnit("molar energy", 1000.0),
-    "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
+    "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic", suffix=" pH (7 is neutral)"),
     "aw": LocalUnit("ratio", suffix=" of 1 (life needs about 0.6 or more)"),
     "umol/L": LocalUnit("concentration", 1e-3),
