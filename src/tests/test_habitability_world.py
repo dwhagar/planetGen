@@ -126,6 +126,9 @@ def test_carbon_and_nitrogen_follow_the_water_or_the_air():
                                       p_n2_kpa=300.0, gravity_g=0.9))
     assert dry_venus["H"] < 0.01
     assert dry_venus["C"] > 1.0 and dry_venus["N"] > 1.0
+    water_world = hw.inventories(_earth(water_mass_fraction=2.34e-3, atmospheric_pressure_pa=20000.0, p_n2_kpa=15.0, p_o2_kpa=4.0, p_co2_kpa=0.01, p_ar_kpa=0.5, p_h2o_kpa=0.4))
+    assert water_world["H"] == pytest.approx(10.0, rel=0.05)
+    assert water_world["C"] == water_world["N"] == water_world["H"]      # GEN.1598: the volatiles arrive with the water, so a thin air does not lower them under it
 
 
 def test_a_chloride_brine_is_chaotropic_and_a_neutral_ocean_is_not():

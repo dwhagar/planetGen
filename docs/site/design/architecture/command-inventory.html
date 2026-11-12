@@ -90,8 +90,8 @@ main{padding:16px 16px 60px}}
 <td>none</td>
 </tr>
 <tr>
-<td><code>planetgen fill-map-luminosity</code>, <code>rescore-habitability</code>, <code>clean-nebula-field</code></td>
-<td>One fill or clean-up each, with no setting of a scatter (PERF.122, done)</td>
+<td><code>planetgen fill-map-luminosity</code>, <code>rescore-habitability</code>, <code>refill-effect-ledger</code>, <code>clean-nebula-field</code></td>
+<td>One fill or clean-up each, with no setting of a scatter (PERF.122, done). <code>rescore-habitability</code> takes only the systems whose <code>system_summary.habitability_stamp</code> is not the running code's; <code>--all</code> takes every system (GEN.1479). <code>refill-effect-ledger</code> (GEN.1498) does the same with <code>system_summary.ledger_stamp</code> and writes only the light and ultraviolet rows of the effect ledger</td>
 <td>Yes</td>
 <td>none</td>
 </tr>

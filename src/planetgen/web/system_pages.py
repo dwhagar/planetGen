@@ -565,6 +565,8 @@ def _uncharted_fields(detail):
     label = TYPE_LABELS.get(kind, kind)
     fields = [("Type", f"{label} ({_title_case(subtype)})" if subtype else label, None),
               ("Status", "Uncharted: its sector has not been generated, so it has no record of its own yet", None)]
+    if detail.get("uid"):
+        fields.insert(1, ("Object ID", detail["uid"], None))      # UX.259: the scatter row's own Object ID
     if kind == "hypervelocity_star":
         star = HYPERVELOCITY_EXPECTED_STAR
         fields.append((
@@ -607,7 +609,7 @@ def uncharted_phenomenon(scatter_id):
             return redirect(page_url("system", system_id=target["id"]), code=302)
         return redirect(page_url("phenomenon", phenomenon_type=target["kind"], phenomenon_id=target["id"]), code=302)
     label = TYPE_LABELS.get(detail["type"], detail["type"])
-    name = f"{label} (uncharted)" if not detail["built"] else f"{label} (generated)"
+    name = (detail.get("name_with_sector") or f"{label} (uncharted)") if not detail["built"] else f"{label} (generated)"      # UX.259
     sector = None
     if detail.get("sector_id") is not None:
         sector = {"name": detail.get("sector_name") or "Sector", "url": page_url("sector", sector_id=detail["sector_id"])}

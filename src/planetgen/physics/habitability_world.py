@@ -57,7 +57,7 @@ plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma 
 import math
 
 from planetgen import tuning
-from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, temperature_coverage
+from planetgen.physics import adaptation_traits, aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, phosphorus_budget, planet_type, protection_limits, radiation, regional_temperature, sulfur_cloud_set, temperature_coverage
 from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 
@@ -81,14 +81,14 @@ BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
     *equipment.FIELDS, *regional_temperature.FIELDS, *temperature_coverage.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
-    "relative_humidity", "groundwater",
+    "relative_humidity", "groundwater", "cloud_chemistry",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
 dose refresh re-scores a body from its columns alone)."""
 
-SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation", "relative_humidity", "groundwater"))
-"""tuple: The stored fields `compute` returns (all but the stored energy flux, flux variation, humidity and groundwater, which `generate` stores as the score's inputs)."""
+SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation", "relative_humidity", "groundwater", "cloud_chemistry"))
+"""tuple: The stored fields `compute` returns (all but the stored energy flux, flux variation, humidity, groundwater and cloud chemistry, which `generate` stores as the score's inputs)."""
 
 LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
 """tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
@@ -313,7 +313,9 @@ def air_inventories_kg(values):
 
 
 def inventories(values):
-    """Carbon, nitrogen and hydrogen in Earth units."""
+    """Carbon, nitrogen and hydrogen in Earth units. Hydrogen is the water. Carbon and nitrogen are at least as much as the hydrogen (the volatiles arrive with the water, so a
+    water world is not short of them for want of an air that has not kept them) or the air's own carbon or nitrogen when that is more: the `max` is the rule of
+    docs/design/habitability/habitability-index.md (the inventories row), not a copy slip (GEN.1598)."""
     hydrogen = (values.get("water_mass_fraction") or 0.0) * (values.get("mass_kg") or 0.0) / EARTH_OCEAN_KG
     carbon, nitrogen = air_inventories_kg(values)
     return {"H": hydrogen, "C": max(hydrogen, carbon / EARTH_CARBON_KG),
@@ -565,6 +567,7 @@ def generate(body, internal_flux_w_m2):
         internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0),
         radiation_field.companion_light_w_m2(star, getattr(body, "_star_distance_au", None)) if star is not None and getattr(body, "_star_distance_au", None) else 0.0)
     values["energy_flux_w_m2"] = body.energy_flux_w_m2
+    sulfur_cloud_set.fill(body, values)         # GEN.1425: the species of the Venus set its air and light give it
     body.relative_humidity = relative_humidity(values)      # GEN.1221: stored, for the wet bulb and the water of a class
     body.groundwater = groundwater(values)
     for name, value in compute(values, compact_host_name(star)).items():

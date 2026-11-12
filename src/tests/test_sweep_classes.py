@@ -71,6 +71,8 @@ def test_the_stored_letter_must_be_the_conditions_letter():
     assert check(_entry(_body(planet_class="C"))) != []
     dry = _body(atmospheric_pressure=0.0, hydrosphere="dry", ocean_fraction=0.0, planet_class="C", **{atmosphere.GAS_FIELD: {}})
     dry.mass, dry.gravity = 0.15 * constants.EARTH_MASS_TO_KG, 0.3      # Class C from 0.1 Earth masses (GEN.1160)
+    _letter, dry.class_variant, dry.class_match, dry.runner_up_class, dry.runner_up_match, dry.class_fudge_values, dry.class_fudge_amount = rules._conditions_letter(dry)     # what the generator stores
+    assert _letter == "C"
     assert check(_entry(dry)) == []
     assert check(_entry(_body(planet_class="D"))) and "'D'" in check(_entry(_body(planet_class="D")))[0]
 
@@ -83,7 +85,7 @@ def test_every_rule_has_a_breaker_the_check_reports():
 
 
 def test_the_conditions_letter_is_the_best_fit_class_with_its_digit_match_and_runner_up():
-    assert rules._conditions_letter(_body()) == ("M", 0, 1.0, None, 0.0)
+    assert rules._conditions_letter(_body()) == ("M", 0, 1.0, None, 0.0, None, 0)
     assert rules._conditions_letter(_body())[0] == pc.classify(_body()) == "M"
     giant = _body(body_type="g", mass=20.0 * constants.EARTH_MASS_TO_KG)
     assert rules._conditions_letter(giant)[0] == pc.classify(giant) == "I"

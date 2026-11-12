@@ -1463,6 +1463,43 @@ def test_generate_py_system_takes_the_weirdness_dial_and_forced_oddities(tmp_pat
                              encoding="utf-8", timeout=120)
         assert bad.returncode != 0 and word in bad.stderr
 
+def test_system_page_asks_for_a_rogue_planet_or_a_comet_without_a_database(site, client):
+    """UX.298: the Result choice runs `planetgen phenomenon --type ... --output`, which describes the body and never saves it."""
+    assert 'name="result_kind"' in client.get("/admin/generate/system").get_data(as_text=True)
+    for kind, section in (("rogue-planet", "rogue-planet"), ("comet", "interstellar-comet")):
+        resp = _post_system(client, result_kind=kind, name=f"Starless {kind}")
+        html = resp.get_data(as_text=True)
+        assert resp.status_code == 200, html
+        assert f'<h2 id="system-result-heading">Starless {kind}</h2>' in html
+        assert f"doc-{section}" in html or section in html
+
+
+def test_a_starless_result_takes_only_a_name_and_the_debug_log():
+    spec = system_page.system_request({"result_kind": "rogue-planet", "name": "Drifter", "debug": "on"})
+    assert spec["command"] == "phenomenon" and "--type" in spec["argv"] and "rogue-planet" in spec["argv"]
+    assert "--name=Drifter" in spec["argv"] and spec["system_file"] is None
+    with pytest.raises(generate_page.FormError, match="star type"):
+        system_page.system_request({"result_kind": "comet", "star_type": "G2V"})
+    with pytest.raises(generate_page.FormError, match="weirdness dial"):
+        system_page.system_request({"result_kind": "comet", "weirdness_dial": "0"})
+    with pytest.raises(generate_page.FormError):
+        system_page.system_request({"result_kind": "black-hole"})
+    assert "command" not in system_page.system_request({})
+
+
+def test_generate_py_phenomenon_output_writes_a_file_and_no_database(tmp_path):
+    import subprocess
+
+    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1", "PYTHONIOENCODING": "utf-8"}
+    done = subprocess.run([PY, *jobs.GENERATE_COMMAND, "phenomenon", "--type", "rogue-planet", "--format", "document", "--output", "-",
+                           "--quiet", "--name=Phenom Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
+                          env=env)
+    assert done.returncode == 0, done.stdout + done.stderr
+    assert json.loads(done.stdout)["title"] == "Phenom Out"
+    bad = subprocess.run([PY, *jobs.GENERATE_COMMAND, "phenomenon", "--type", "rogue-planet", "--output", "-", "--sector-id", "1"],
+                         cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
+    assert bad.returncode != 0 and "--sector-id" in bad.stderr
+
 
 # --- Upper bounds (SEC.18) ----------------------------------
 
