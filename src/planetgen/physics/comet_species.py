@@ -144,16 +144,6 @@ def bracket_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
     return low, high
 
 
-def low_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
-    """The low end of `bracket_over_h2o`."""
-    return bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)[0]
-
-
-def high_over_h2o(species, n_over_c=1.0, ar_over_c=1.0, s_over_c=1.0):
-    """The high end of `bracket_over_h2o`."""
-    return bracket_over_h2o(species, n_over_c, ar_over_c, s_over_c)[1]
-
-
 def sigma_dex():
     """The width of each species, in decades."""
     return SIGMA_DEX
