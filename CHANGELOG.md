@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3978] - 2026-11-12
+
+**Headline:** The HEAD and OPTIONS check of every page route has a test value for the irregular-moons page, which turns main green again.
+
+### Changed
+
+- `test_web_old_urls_errors.py` gives `planet_ref` (`planet:1`) in the values it fills page routes with, so `/object/<planet_ref>/irregular-moons` and `/object/<planet_ref>/irregular/<rank>` (GEN.1086) are checked like the belt and field pages.
+
+generation-output: unchanged
+
 ## [8.0.3977] - 2026-11-12
 
 **Headline:** The route snapshot and the link audit now know the two irregular-moon routes that GEN.1086 added, which turns main green again.
