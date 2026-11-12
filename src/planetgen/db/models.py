@@ -283,6 +283,19 @@ body_history = sa.Table(
 )
 
 
+body_numbers = sa.Table(
+    'body_numbers',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('slot_key', sa.String(96), primary_key=True, nullable=False),
+    sa.Column('body_number', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Index('uq_body_numbers_number', 'star_system_id', 'body_number', unique=True),
+    sa.CheckConstraint('(`body_number` between 1 and 4095)', name='body_numbers_chk_1'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_body_numbers_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 bright_stars = sa.Table(
     'bright_stars',
     metadata,

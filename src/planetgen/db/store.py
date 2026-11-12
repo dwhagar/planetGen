@@ -8464,12 +8464,41 @@ def _slot_uids(conn, system_id):
     return out
 
 
-def _carry_uids(conn, system_id, kept):
-    """Gives the bodies of a system that have no ID yet the ID of the body that held their slot (`kept`, from
-    `_slot_uids`): a body of the same kind in the same place is the same body to the outside."""
+def _slot_key(slot):
+    """The text of a slot, the path `body_numbers` keeps it under (DB.75): `star:primary:0`, `planet:primary:3`, `moon:planet:primary:3:1`.
+    A planet's or belt's place is the index in its star's orbits (today `orbital_index`); GEN.1548 gives it the trim-stable index of the
+    spacing sequence and the string becomes Lane 05's `{kind}:{host_seed}:orbit:{slot}` in the same change."""
+    kind, host, index = slot
+    parts = [kind, *(_slot_key(host).split(":") if isinstance(host, tuple) else [str(host)]), str(index)]
+    return ":".join(parts)
+
+
+def _remember_body_numbers(conn, system_id):
+    """Writes the number each body of the system holds today under its slot path (`body_numbers`, DB.75), so a slot that is empty
+    after the next draw and filled again later gets its number back. A number a live body holds is the truth: a row that kept it under
+    another path is dropped."""
+    for slot, uid in _slot_uids(conn, system_id).items():
+        number = objectUid.body_of(objectUid.from_bytes(uid))
+        key = _slot_key(slot)
+        conn.execute("DELETE FROM body_numbers WHERE star_system_id = ? AND body_number = ? AND slot_key <> ?", (system_id, number, key))
+        conn.execute("INSERT INTO body_numbers (star_system_id, slot_key, body_number) VALUES (?, ?, ?) AS written"
+                     " ON DUPLICATE KEY UPDATE body_number = written.body_number", (system_id, key, number))
+
+
+def _carry_body_numbers(conn, system_id):
+    """Gives the bodies of a system that have no ID yet the number their slot path has in `body_numbers`, under the system's own ID: a
+    body of the same kind in the same place is the same body to the outside, whatever the system held in between."""
+    row = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+    if row is None or row["uid"] is None:
+        return
+    system = objectUid.from_bytes(row["uid"])
+    numbers = {r["slot_key"]: r["body_number"] for r in conn.execute(
+        "SELECT slot_key, body_number FROM body_numbers WHERE star_system_id = ?", (system_id,)).fetchall()}
     for (table, row_id), slot in _body_slots(conn, system_id).items():
-        if slot in kept:
-            conn.execute(f"UPDATE {table} SET uid = ? WHERE id = ? AND uid IS NULL", (kept[slot], row_id))
+        number = numbers.get(_slot_key(slot))
+        if number is not None:
+            conn.execute(f"UPDATE {table} SET uid = ? WHERE id = ? AND uid IS NULL",
+                         (objectUid.to_bytes(objectUid.with_body(system, number)), row_id))
 
 
 def replace_star_system_content(conn, star_system_id, star_system, system_config):
@@ -8501,7 +8530,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     temp_id = insert_star_system(conn, star_system, system_config)
     temp_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (temp_id,)).fetchone()["name"]
     keep_body_numbers(conn, star_system_id)  # a number the old bodies held is not given to another body
-    kept_uids = _slot_uids(conn, star_system_id)
+    _remember_body_numbers(conn, star_system_id)
     conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (star_system_id,))
     for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
@@ -8525,7 +8554,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
         conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                      " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
     _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"], reason=None)  # new rows: the placeholder was never a name
-    _carry_uids(conn, star_system_id, kept_uids)  # a body keeps the ID of the one that held its place (DB.75)
+    _carry_body_numbers(conn, star_system_id)  # a body keeps the number its slot has had (DB.75)
     assign_uids(conn, system_ids=[star_system_id])  # the others take the system's next body numbers
     return True
 
