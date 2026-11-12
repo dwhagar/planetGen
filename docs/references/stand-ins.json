@@ -13117,6 +13117,82 @@
           "fields": [
             [
               "What it is",
+              "surface_air.FREEZE_NEAR_K 3 and FREEZE_NEAR_LN_P 0.15 with FREEZE_AFTER 8 and FREEZE_LATEST 30 (the recipe regimes are kept once a step comes within 3 K and 0.15 in ln P of its answer, not at a fixed step; a fixed point that swings for ever keeps them at step 30)"
+            ],
+            [
+              "The range it moves in",
+              "K 1 to 10, ln P 0.05 to 0.5"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with an air"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air_start_independence::test_the_setting_that_is_single_valued_today_stays_so"
+            ],
+            [
+              "What replaces it",
+              "a solver that draws the regimes at the answer by construction"
+            ],
+            [
+              "Evidence",
+              "design: the regimes were drawn from a start-dependent transient, so one body ended hydrogen-rich or nitrogen-rich by where it started (GEN.1555); a search constant of the solver"
+            ]
+          ],
+          "id": "AS2",
+          "key": "6.22:AS2",
+          "kind": "P",
+          "slug": "6-22-as2",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_air.FREEZE_NEAR_K 3 and FREEZE_NEAR_LN_P 0.15 with FREEZE_AFTER 8 and FREEZE_LATEST 30 (the recipe regimes are kept once a step comes within 3 K and 0.15 in ln P of its answer, not at a fixed step; a fixed point that swings for ever keeps them at step 30)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "surface_air.MAX_GIANT_STEPS 24 (a giant's temperature at its reference level is iterated to the fixed-point tolerance; it took one step before)"
+            ],
+            [
+              "The range it moves in",
+              "12 to 60"
+            ],
+            [
+              "Where it holds",
+              "giants"
+            ],
+            [
+              "What would show it wrong",
+              "test_surface_air::test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its_mixture_gives"
+            ],
+            [
+              "What replaces it",
+              "the same solver with a bracket"
+            ],
+            [
+              "Evidence",
+              "design: one step left a hot giant 1,381 K or 1,633 K by its start (GEN.1555); a search constant of the solver"
+            ]
+          ],
+          "id": "AS3",
+          "key": "6.22:AS3",
+          "kind": "P",
+          "slug": "6-22-as3",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": null,
+          "what": "surface_air.MAX_GIANT_STEPS 24 (a giant's temperature at its reference level is iterated to the fixed-point tolerance; it took one step before)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air)"
             ],
             [
