@@ -158,6 +158,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
 | 6.121:TJ7 | no data | - | L4, no survey of how a swarm's stable share climbs past the neighbour limit exists; an N-body run of the survival of a swarm against separation would replace the ramp of 1.0 |
 | 6.121:TJ8 | no data | - | L4, [R1990] give the stability limit for a planet around a binary, not for its trojans; an N-body run of a giant's trojans inside that limit would replace the margin of 2.0 |
+| 6.121:TJ9 | replace | GEN.1643 | L4, the libration amplitude scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it |
+| 6.121:TJ10 | replace | GEN.1643 | L4, the eccentricity scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it |
+| 6.121:TJ11 | replace | GEN.1643 | L4, the inclination scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it |
 | 6.41:TK6 | no data | - | the within-family shares are fixed fractions; the meteorite-group map of GEN.475 labels the group of a mix but gives no shares for the taxa of a family, and no table of asteroid taxa by mass in a belt exists to fit them to |
 | 6.130:AB1 | no data | - | GEN.804 wired the stored XUV history and ion escape (commit e8a437072) but did not replace this fitted constant; the exponents are tuned to the earlier table's level; the rotation and X-ray evolution of [R2183] (the model, not its figure) gives the decay itself, and the upper-atmosphere model that reads the stored XUV is the item that needs it |
 | 6.43:LB1 | replaced | - | GEN.1000: each belt's largest body now comes from the size law (`belt_ledger.belt_state`: drawn from the belt's own stream and settled with the collisional mass); the range stand-in is gone |
@@ -273,10 +276,10 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.223:SD8 | no data | - | no survey says how many source-rock basins a planet with an ocean has; the Earth is the one case |
 | 6.223:SD9 | no data | - | the reference window is a design choice; only the Earth's deposits by era exist |
 | 6.213:DSC5 | no data | - | L3, the split of the nitrogen between N2 (60 percent), ammonium salts (10) and ammonia hydrate was set from the statement that most nitrogen is N2 and unobserved and the salts a minority; no measured split of a disc's nitrogen was read, and the Rosetta salt share is cited second-hand |
-| 6.228:SV7 | replace | GEN.1425 | L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge |
+| 6.228:SV7 | replace | GEN.1644 | L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge |
 | 6.228:SV8 | no data | - | L3, no measurement of the SO3 share of the sub-cloud vapor is in hand; the decomposition above 400 K is named and left out |
 | 6.229:CV10 | no data | - | L3, no paper prints the strength of the ultraviolet absorber's band as a number (only the centre and width are read); the peak depth is hand-set until a retrieval gives it |
-| 6.229:CG1 | replace | GEN.1425 | L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it |
+| 6.229:CG1 | no data | - | L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base (GEN.1425, closed); no second planet measures it, and a photochemistry model of the acid vapor would replace it |
 | 6.229:CG2 | no data | - | L3, the gate floors have no measurement behind them; one calibration planet cannot set them, and a sweep over the census would |
 | 6.236:ISO4 | no data | - | no source prints the spread of one body class's D/H about the law, and the floor and the range keep the law inside the data it was fitted to |
 | 6.236:ISO8 | no data | - | the cap on 40Ar is a design floor for the primordial share and the organics' H, C and O are a formaldehyde stand-in; neither is measured |
@@ -301,3 +304,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.255:LA2 | no data | - | L3, no source prints the scatter of a planet's veneer for a given system; a dynamical model of the belt's mass and reach by system replaces the rule of no scatter of its own |
 | 6.255:LA3 | replace | GEN.1493 | L3, the gate is fitted to the cost of the pass; a cheaper way to make the air again (only the part of the fixed point the veneer moves) replaces it |
 | 6.258:AL1 | no data | - | the 30 and 1,000 AU edges and the log-linear line between are read off the trends of the review ([R3333]: close multiples aligned, wide ones random), not a fitted sample; a volume-limited sample of the mutual inclinations of triples and of planet-bearing binaries would replace the line; tier T4, tweak L3 stay |
+| 6.276:PSM4 | replace | GEN.1157 | L3, the cap on a captured moon is set above the Kepler-1625 b-i candidate; the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners replaces it |
