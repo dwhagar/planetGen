@@ -252,3 +252,19 @@ def test_a_system_makes_fewer_airs_when_the_climate_waits_for_the_spacing(monkey
         return len(calls)
 
     assert total(True) < total(False)
+
+
+def test_a_moved_planet_keeps_its_birth_spin_and_the_air_is_solved_on_its_new_period(star, monkeypatch):
+    """GEN.1597: `reconcile_moved_planet` used to draw a new birth spin and set the period after the air was solved."""
+    draw.set_run_seed(1597)
+    planet = planet_at(star, 1.0, EARTH)
+    born = planet._birth_spin
+    planet.distance = 1.2
+    seen = []
+    real = planetPhysics.calculate_atmospheric_conditions
+    monkeypatch.setattr(planetPhysics, "calculate_atmospheric_conditions", lambda *a, **k: (seen.append(planet.period), real(*a, **k))[1])
+    validation.reconcile_moved_planet(planet)
+    expected = planetPhysics.calculate_orbital_period_years(1.2, star.mass)
+    assert planet._birth_spin == born
+    assert seen[0] == pytest.approx(expected)
+    assert planet.period == pytest.approx(expected)

@@ -181,3 +181,18 @@ def test_a_moon_mass_floor_replaces_the_lightest_moon_and_a_ceiling_under_it_giv
         masses = [planet_kind.draw_moon_mass_kg(parent, False, None, floor) for _ in range(200)]
     assert all(floor * 0.999 <= m <= ceiling * 1.001 for m in masses)
     assert planet_kind.draw_moon_mass_kg(parent, False, floor * 0.5, floor) is None
+
+
+def test_the_disk_full_rejections_stop_at_the_limit_of_the_call(host_star, monkeypatch):
+    """GEN.1599: both kinds of rejection count against the one limit `generate_moons` works out (the disk can only exist round a giant, which has no impact moons, so it is `MOON_REJECTION_LIMIT`)."""
+    from planetgen.physics import moon_composition, moon_disk_zone, planets as planet_physics
+    from planetgen.util import draw
+    host = make_host_planet(host_star, 300.0, "c", moon_count=0)
+    host.moons.clear()
+    monkeypatch.setattr(planet_physics, "MOON_REJECTION_LIMIT", 2)
+    monkeypatch.setattr(moon_composition, "draw_origin", lambda parent_kind, mass: "disk")
+    monkeypatch.setattr(moon_disk_zone, "zone_km", lambda *args, **kwargs: (1.0, 1.0))      # no room in the disk
+    draw.set_run_seed(1599)
+    with draw.counting() as tally:
+        planet_physics.generate_moons(host)
+    assert tally["moon.disk_full"] == 2 and host.moons == []

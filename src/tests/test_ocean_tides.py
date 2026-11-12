@@ -95,3 +95,10 @@ def test_an_ice_covered_ocean_has_no_free_surface_tide():
     tide = _earth(ice_covered=True)
     assert tide.spring_range_m == tide.neap_range_m == 0.0 and "ice" in tide.reason
     assert _earth().reason is None
+
+
+def test_a_hycean_ocean_has_no_thin_sea_tide_by_design():
+    """GEN.1609: a hycean ocean is deep under a hydrogen envelope, not the thin layer the tide formula is for, so its columns stay empty while an ice-covered one is a zero."""
+    from types import SimpleNamespace
+    body = SimpleNamespace(hydrosphere="hycean", star=None, rotation_period_hours=24.0, surface_liquid=None)
+    assert ocean_tides.compute(body) == {name: None for name in ocean_tides.FIELDS}
