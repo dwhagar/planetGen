@@ -19,7 +19,6 @@ an empty uncharted sector (`query.sector_coverage_condition`), which the Sectors
 """
 
 import math
-import time
 
 from planetgen.db import contention, store
 from planetgen.galaxy import uid as galaxyUid

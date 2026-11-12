@@ -39,11 +39,11 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
 
 import math
 import struct
-import time
 
 from planetgen.db import query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
 from planetgen.physics import constants
+from planetgen.util.ticker import Ticker
 
 LEVELS = DRILL_LEVELS[:-1]
 """tuple: The levels stored: every block size above a sector."""
