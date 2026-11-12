@@ -139,6 +139,20 @@ def _log_change(conn, kind, old, new, wanted, floor, details, typed_mb, now):
     conn.ltrim(_changes_key(), 0, KEEP_CHANGES - 1)
 
 
+def log_change(conn, what, kind, old, new, reason, now=None, **extra):
+    """
+    Logs a change the engine made (`what`: `claim`, `workers` or `start limit`; later `split` and `time`) with the kind, the old and new value and the reason, and keeps it in the list `changes`
+    reads (Boss, 3:03 PM EST 2026-11-12). Never raises.
+    """
+    try:
+        now = time.time() if now is None else now
+        log.normal(f"Self-tuning: {what} of {kind} {'was ' + format(old, ',.0f') if old is not None else 'had no earlier figure'}, now {new:,.0f} ({reason})")
+        conn.lpush(_changes_key(), json.dumps({"at": now, "what": what, "kind": kind, "old": old, "new": new, "reason": reason, **extra}))
+        conn.ltrim(_changes_key(), 0, KEEP_CHANGES - 1)
+    except Exception as exc:        # noqa: BLE001
+        log.debug(f"Self-tuning: a change of {kind} was not logged ({exc}).", area="queue")
+
+
 def changes(conn, limit=20):
     """The newest changes the engine made, newest first (for the Queue page)."""
     return [json.loads(memorygate._decode(item)) for item in conn.lrange(_changes_key(), 0, limit - 1)]

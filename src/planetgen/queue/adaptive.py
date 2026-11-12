@@ -149,7 +149,70 @@ def on_memory_wait(conn, name, kind, memory_waited, now=None):
     conn.hset(_key("state"), "memory_wait_at", now)
     from planetgen.queue import scheduler
     waiting = [ticket.name for ticket in scheduler.tickets(conn, now) if ticket.claim.lane == memorygate.LANE_BULK]
-    return lower(conn, f"{kind} has waited {memory_waited:,.0f} s for memory", first=[name, *waiting], now=now)
+    after = lower(conn, f"{kind} has waited {memory_waited:,.0f} s for memory", first=[name, *waiting], now=now)
+    if after is not None:
+        _remember(conn, kind, after)
+    return after
+
+
+SETTLED_KEEP_SECONDS = 30 * 86400
+"""int: How long the limit a kind of stage settled at is remembered (OPS.157)."""
+
+
+def _remember(conn, kind, limit):
+    """OPS.157: the limit the control settled at while jobs of `kind` ran, for the next run of the kind (it starts there). `limit` `None` forgets it (memory has been free up to the cap)."""
+    from planetgen.queue import profileclaim
+    if not profileclaim.enabled() or not kind:
+        return
+    try:
+        if limit is None:
+            conn.hdel(_key("settled"), kind)
+            return
+        host = memorygate.read_host()
+        conn.hset(_key("settled"), kind, json.dumps({"limit": int(limit), "memory": round(host.total_mb), "cores": host.cores}))
+        conn.expire(_key("settled"), SETTLED_KEEP_SECONDS)
+    except Exception as exc:  # noqa: BLE001 -- a memory of the last run is never worth a change of the limit
+        log.debug("adaptive: the settled limit of %s was not kept: %s", kind, exc, area="queue")
+
+
+def settled(conn, kind):
+    """`{"limit", "memory", "cores"}` the last run of `kind` settled at, or `None`."""
+    raw = conn.hget(_key("settled"), kind)
+    return None if raw is None else json.loads(memorygate._decode(raw))
+
+
+def start_limit(conn, command, cap, now=None):
+    """
+    OPS.157: a stage of `command` starts with the bulk limit where the last run of it settled (`_remember`), not at the configured `cap`, so a run does not repeat the minutes of memory
+    waits that taught the limit. Only when no limit is set now and the remembered one is under `cap`. A limit from another machine shape counts half (the mean of it and `cap`). Logged.
+    Returns the limit set, or `None`.
+    """
+    from planetgen.queue import profileclaim
+    if not profileclaim.enabled() or not memorygate.enabled() or limit_of(conn) is not None:
+        return None
+    kind = f"unit:{command}"
+    kept = settled(conn, kind)
+    if kept is None:
+        return None
+    host = memorygate.read_host()
+    same = abs(kept["memory"] - host.total_mb) <= profileclaim.SHAPE_TOLERANCE * host.total_mb and kept["cores"] == host.cores
+    limit = kept["limit"] if same else round((kept["limit"] + cap) / 2)
+    limit = max(MIN_WORKERS, int(limit))
+    if limit >= cap:
+        return None
+    now = _now(now)
+    token = _locked(conn)
+    if token is None:
+        return None
+    try:
+        if limit_of(conn) is not None:
+            return None
+        _set(conn, limit, now, "started_at")
+        _record(conn, cap, limit, f"the last run of {kind} settled at {kept['limit']}" + ("" if same else " on another machine shape, counted half"), now)
+    finally:
+        _unlock(conn, token)
+    profileclaim.log_change(conn, "start limit", kind, cap, limit, f"the last run settled at {kept['limit']} workers" + ("" if same else " on another machine shape, counted half"), now=now)
+    return limit
 
 
 def pressure(host):
@@ -200,10 +263,13 @@ def _adapt(conn, cap, queued, host, held, now):
                     _record(conn, limit, after, "memory has been free", now)
                     log.normal(f"Worker limit raised from {limit} to {after}: no job has waited for memory for {quiet:,.0f} s and "
                                f"{free:,.0f} MB are free for a worker of {biggest:,.0f} MB.")
+                    kind = max(bulk, key=lambda holder: holder.claim.mb).claim.kind if bulk else None
                     if after >= cap:
                         conn.delete(_key("state"))
+                        _remember(conn, kind, None)
                     else:
                         _set(conn, after, now, "raised_at")
+                        _remember(conn, kind, after)
                     limit = after
                 finally:
                     _unlock(conn, token)

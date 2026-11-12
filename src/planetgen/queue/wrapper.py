@@ -700,15 +700,35 @@ def report_wait(holder, position):
         pass
 
 
-def stage_ensure(conn, url, kind, step_kind, workers_count=None):
+def _note_cap(conn, step_kind, cap, run_id):
+    """OPS.157: logs the stage's worker cap when it is not the one the typed table gives (once per run and stage kind), and starts the adaptive limit where the last run of the kind settled."""
+    from planetgen.queue import adaptive, profileclaim
+    try:
+        typed = workers.stage_worker_cap(step_kind)
+        if typed is not None and cap != typed and conn.set(memorygate_key(f"capnote:{run_id}:{step_kind}"), "1", nx=True, ex=86400):
+            profileclaim.log_change(conn, "workers", f"unit:{step_kind}", typed, cap, f"the claim from the job profile is {workers.stage_worker_mb(step_kind, conn, run_id) or 0:,.0f} MB, the typed table {workers.stage_worker_mb(step_kind):,.0f} MB; run {run_id}",
+                                    run=run_id)
+        adaptive.start_limit(conn, step_kind, cap)
+    except Exception as exc:        # noqa: BLE001 -- a note is never worth a run
+        log.debug(f"Self-tuning: the worker cap of {step_kind} was not noted ({exc}).", area="queue")
+
+
+def memorygate_key(name):
+    from planetgen.queue import memorygate
+    return memorygate._key(name)
+
+
+def stage_ensure(conn, url, kind, step_kind, workers_count=None, run_id=None):
     """
     The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
     the stage's workers can take in memory (`workers.stage_worker_cap`), and, on the bulk queue, the live workers over
     that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
     scatter at once. A stage with ordinary workers is not limited.
     """
-    cap = workers.stage_worker_cap(step_kind)
+    cap = workers.stage_worker_cap(step_kind, conn, run_id)       # OPS.157: sized by the claim the gate makes from the job profile (the typed figure with no history)
     count = workers_count if cap is None else min(workers_count or cap, cap)
+    if cap is not None:
+        _note_cap(conn, step_kind, cap, run_id)
 
     def ensure():
         if cap is not None and queue_of(kind) == redisqueue.BULK_QUEUE:
@@ -789,7 +809,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         beat.start()
         # ADM.136: everything after the machine is taken is inside the try, so a failure of the set-up ends the run instead of leaving it
         # for a process that no longer follows it (a worker that lives on holds the machine for ever)
-        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
+        ensures = [stage_ensure(conn, url, kind, step.kind, workers_count, run_id) for step in steps]
         relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
         on_debug = relay.drain if relay else None
         log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
