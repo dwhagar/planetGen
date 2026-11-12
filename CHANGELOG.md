@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3975] - 2026-11-12
+
+**Headline:** Every place that quietly goes on past an error now leaves a debug line saying what it went past.
+
+### Changed
+- **`log.swallowed` in every broad `except` (OPS.168).** 130 handlers in `queue/`, `web/`, `api/`, `db/`, `util/`, `cli/`, `generation/`, `admin/` and others caught every exception and wrote nothing, so a run with debugging on was blind exactly where a fault hid. Each now writes one debug line (the place, what it was doing, the error) and nothing at normal level; behavior is unchanged. A new test fails on any broad `except` that neither re-raises nor logs. generation-output: unchanged
+
 ## [8.0.3974] - 2026-11-12
 
 **Headline:** A Redis that stops answering now shows up in the log as one warning, not as a silently slower site.
