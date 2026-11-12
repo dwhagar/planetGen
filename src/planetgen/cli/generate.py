@@ -60,6 +60,7 @@ from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen import tuning as program_constants
+from planetgen.physics import oddities
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import region_run, scatter_limits
@@ -181,6 +182,17 @@ def _validate_star_type(args, parser):
         parser.error(f"--star-type {args.star_type!r} is not a spectral type: expected a class letter "
                      f"(OBAFGKM), a subclass digit (0-9) and a Yerkes class (0, IA+, IA, IAB, IB, II, "
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
+
+
+def _validate_oddities(args, parser):
+    """--weirdness-dial must be 0 or more, and --force-oddities must name oddity ids of `physics/oddities.py` (UX.299)."""
+    if args.weirdness_dial is not None and args.weirdness_dial < 0:
+        parser.error("--weirdness-dial must be 0 or more.")
+    if args.force_oddities is not None:
+        try:
+            run_system.forced_oddity_ids(args.force_oddities)
+        except ValueError as exc:
+            parser.error(f"--force-oddities: {exc}.")
 
 
 def _validate_name(args, parser):
@@ -325,6 +337,15 @@ def add_system_arguments(parser):
                         help="Force an exact number of orbital slots (planets and asteroid belts "
                              "combined) to be generated.")
 
+    # Oddities (GEN.1047, UX.299)
+    parser.add_argument('--weirdness-dial', type=finite_float, default=None, metavar='X',
+                        help="Multiply the rate of every oddity (rare, physically plausible outcomes, "
+                             "docs/design/systems/weird-worlds.md) by X: 0 turns them all off, 1 is the table's own rates. "
+                             "Blank takes the settings' dial.")
+    parser.add_argument('--force-oddities', type=str, default=None, metavar='IDS',
+                        help="Oddity ids, comma separated (" + ", ".join(oddities.BY_ID) + "), that every body whose "
+                             "conditions allow them is given, without the roll. The gate still applies.")
+
     # Number of stars (GEN.267)
     parser.add_argument('--stars', type=int,
                         help="Force the number of stars in the system, from 1 up to the cap (--max-stars). "
@@ -372,6 +393,7 @@ def validate_system_args(args, parser):
 
     _validate_star_type(args, parser)
     _validate_name(args, parser)
+    _validate_oddities(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")

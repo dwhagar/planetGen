@@ -60,6 +60,12 @@
         <span class="field-hint">Anything <code>--system-file</code> accepts, such as an exact slot layout. The options above override it.</span>
       </label>
     </details>
+    <div class="search-fields">
+      {{ field("weirdness_dial", "Weirdness dial", kind="number", min=0, placeholder="default",
+               hint="Multiplies the rate of every oddity: 0 turns them all off, 1 is the table's own rates.") }}
+      {{ field("force_oddities", "Force oddities", placeholder="none, e.g. W10,G1",
+               hint="Oddity ids that every body whose conditions allow them is given without the roll: " ~ oddity_ids ~ ".") }}
+    </div>
     <div class="search-fields system-format">
       {{ ui_checkbox("debug", "Show the generator's reasoning (debug log)", checked=form.get("debug")) }}
       {{ field("debug_areas", "Debug areas", placeholder="all but branch",
