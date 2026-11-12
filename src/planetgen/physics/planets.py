@@ -1600,7 +1600,7 @@ def generate_moons(planet, moon_count=None):
             if span_low >= span_high:    # the disk has no room left past the last moon
                 draw.redrawn("moon.disk_full")
                 rejected += 1
-                if rejected >= MOON_REJECTION_LIMIT:
+                if rejected >= rejection_limit:      # GEN.1599: the one limit of this call (a disk exists only round a giant, which has no impact moons, so it is MOON_REJECTION_LIMIT here)
                     break
                 continue
         moon_distance_km = math.exp(draw.uniform(math.log(span_low), math.log(span_high)))

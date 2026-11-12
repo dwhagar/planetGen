@@ -180,11 +180,11 @@ def reconcile_moved_planet(planet):
         # GEN.1282: a planet built without its climate has no air or moons to make again; `finish_climate` makes them at this distance.
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
         return
+    planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)       # GEN.1597: before the air, which is solved on the period it has now
     planetPhysics.calculate_atmospheric_conditions(planet)
     planetPhysics.apply_class(planet)
-    planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
     planetPhysics.update_orbital_position(planet)
-    planetPhysics.generate_spin(planet, planet.star.mass)
+    planetPhysics.generate_spin(planet, planet.star.mass, birth=getattr(planet, "_birth_spin", None))        # GEN.1597: the planet keeps the spin it was born with, only the orbit moved
 
     planetPhysics.release_moons(planet)      # GEN.1352: the moons are regenerated in their planet's equator, then set in the system again below
     for moon in planet.moons:
@@ -192,7 +192,7 @@ def reconcile_moved_planet(planet):
         planetPhysics.calculate_atmospheric_conditions(moon, planet.distance, planet.eccentricity)
         planetPhysics.apply_class(moon)
         # GEN.704: the moon's star distance changed, so the dose, UV and score `generate_spin` ends with are re-run as a moved planet's are.
-        planetPhysics.generate_spin(moon, planet.mass)
+        planetPhysics.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
     planetPhysics.orient_moons(planet)
 
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from its moons -- see Planet.reflex_offset_x's docstring) depends on

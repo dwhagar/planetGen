@@ -64,3 +64,16 @@ def test_over_300_sampled_systems_none_breaks_the_bar(chunk):
         if found:
             broken[seed] = found
     assert not broken, f"{len(broken)} of {size} systems (seeds {first} to {first + size - 1}) hold a world that meets the request: {broken}"
+
+
+def test_no_tide_or_heating_row_counts_a_body_the_bar_dropped():
+    """GEN.1604: the bar drops a body before the tide pass, so the ledger of the survivors names no source that is not in the system (seed 433 dropped one and, before, left 40 rows naming it)."""
+    system = barred_system(433)
+    assert system.barred_world_dropped >= 1
+    alive = {id(body) for planet in system.all_planets if planet.body_type != "a" for body in (planet, *planet.moons)}
+    stars = {id(star) for star in (system.star, getattr(system, "secondary_star", None)) if star is not None}
+    for effect in ("tide", "heating"):
+        for _receiver, sources in system.effect_ledger.contributions(effect):
+            for source, _value in sources:
+                if hasattr(source, "is_moon"):
+                    assert id(source) in alive, f"{effect}: a dropped body is still a source"

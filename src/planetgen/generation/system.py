@@ -573,6 +573,8 @@ class StarSystem:
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
+            if self._drop_barred_bodies():    # GEN.1275; GEN.1604: before the tides, so no tide or ledger row of a survivor counts a body that is not in the system
+                self._refresh_wobble()
             self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.
@@ -582,8 +584,6 @@ class StarSystem:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
-        if self._drop_barred_bodies():    # GEN.1275
-            self._refresh_wobble()
         self._fill_light_ledger()      # GEN.1465: the light and ultraviolet each body gets from each star, on the final bodies
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
