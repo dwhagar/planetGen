@@ -504,6 +504,53 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure
 
 
+def _escape_flags(monkeypatch, seed, max_steps=None):
+    """The `escape` flag of every mixture draw of one solve (a seed's Earth-like planet), in step order."""
+    flags = []
+    real = sa.mixture_draw.draw_mixture
+
+    def recording(subject, **kwargs):
+        flags.append(bool(kwargs.get("escape")))
+        return real(subject, **kwargs)
+
+    monkeypatch.setattr(sa.mixture_draw, "draw_mixture", recording)
+    if max_steps is not None:
+        monkeypatch.setattr(sa, "MAX_STEPS", max_steps)
+    _earth_like_planet(seed)
+    return flags
+
+
+def test_an_air_that_settles_without_the_escape_on_its_last_allowed_step_still_gets_the_pass_that_has_it_in(monkeypatch):
+    """GEN.1594: the no-escape fixed point sets the escape on and goes on; if the loop's last step was the one that settled, the escape pass never ran and the air was called converged."""
+    for seed in (1, 3, 7):
+        flags = _escape_flags(monkeypatch, seed)
+        if True not in flags:
+            continue                                               # (an air with no light gas to lose has no escape pass)
+        settled_at = flags.index(True)                             # the draws before it are the no-escape ones: this many steps
+        monkeypatch.undo()
+        again = _escape_flags(monkeypatch, seed, max_steps=settled_at)
+        assert len(again) > settled_at and True in again, (seed, settled_at, len(again))
+        return
+    pytest.skip("no seed of the three needs an escape pass")
+
+
+def test_the_carbon_sink_of_an_air_is_the_last_steps_and_none_when_the_last_step_does_not_weather(monkeypatch):
+    """GEN.1594: the record was only written on steps that weather, so an air whose last step did not kept an earlier step's sink for the life stage to balance against."""
+    planet = _earth_like_planet(3)
+    assert getattr(planet, "_co2_sink", None) is not None            # the Earth-like air weathers
+    calls = []
+    real = sa._weathers
+
+    def first_only(*args, **kwargs):
+        calls.append(1)
+        return real(*args, **kwargs) if len(calls) == 1 else False
+
+    monkeypatch.setattr(sa, "_weathers", first_only)
+    again = _earth_like_planet(3)
+    assert len(calls) > 1
+    assert getattr(again, "_co2_sink", None) is None
+
+
 # --- the late accretion in the supply (GEN.819) -------------------------------------------------------------------------------
 
 EARTH_ORBITAL_SPEED_MS = 29780.0
