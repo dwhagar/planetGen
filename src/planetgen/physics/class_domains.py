@@ -22,7 +22,7 @@ Every class of `physics/data/planet_class_fit.json` is judged on the same physic
 | `phase` | whether the family's liquid is a liquid at the body's pressure and temperature (`phase_gate`) |
 
 The cell of a class in a domain is the conditions of the fit table whose quantity is in that domain (`matrix`): a core edge and, past it, a shoulder
-(the table's `shoulders`). A class with no condition in a domain has the full range there (score 1). `domain_scores` grades a body in each
+(the width of the quantity in `fudge_table.json`, GEN.1314). A class with no condition in a domain has the full range there (score 1). `domain_scores` grades a body in each
 domain as the mean membership of the cell's conditions; `overall` is the weighted geometric mean of the six main domains (`weights` in the data file, equal to start).
 
 Quantities a body does not store (a row made before GEN.1108 has no bands, before GEN.1221 no humidity) are `None` and score 0, as everywhere in the fit table.

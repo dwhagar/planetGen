@@ -179,6 +179,14 @@ def test_star_and_comet_rules():
     assert sheet.applies("comet", "comet", "eccentricity", {"orbit_type": "parabolic"})
 
 
+def test_the_values_a_class_fudged_are_empty_for_a_full_fit():
+    """GEN.1314: `class_fudge_values` lists the quantities moved to fit the class, so a body that fits with none moved leaves it empty."""
+    for kind in ("planet", "moon"):
+        assert not sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": None})
+        assert not sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": 0.0})
+        assert sheet.applies(kind, "M", "class_fudge_values", {"roundness_ratio": 1.0, "class_fudge_amount": 0.4})
+
+
 def test_every_open_gap_names_a_column_of_its_kind_and_an_item():
     for (kind, key), item in sheet.OPEN_GAPS.items():
         assert key in {spec.key for spec in sheet.SPECS[kind]}, f"{kind} has no column {key}"

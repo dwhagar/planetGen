@@ -40,6 +40,10 @@ from planetgen.physics import acid_medium, aerosols, air_column, atmosphere, con
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "sulfur_cloud_set.json")
 
+INCLUDE_HYPOTHESES = False
+"""bool: Whether the chain may give a body V8 and V9, the single-source hypotheses (iron-PAH from cosmic dust, sulfur-chlorine products). Off by default (Boss's set, 11-08);
+turn it on to see them. V8 also needs a dust supply per planet, which the generator does not track yet, so V8 stays closed even then."""
+
 GLOBAL_OCEAN = ("surface ocean", "hycean")
 """tuple: The hydrosphere values that bury a body's rock under liquid, so no iron is exposed to the air."""
 
@@ -158,10 +162,15 @@ def uv_c_flux_w_m2(values):
     return flux * share
 
 
-def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=False):
+_UNSET = object()
+"""object: The default of `chemistry`'s `cloud`: the cloud is worked out from the values."""
+
+
+def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=False, cloud=_UNSET):
     """
     The `Chemistry` of a body's stored `values` (a column-named mapping with its gases: `atmosphere.GAS_FIELD`). `uv_c_w_m2` is the star's ultraviolet-C flux at the
-    body (else `uv_c_flux_w_m2(values)`), `carbon_dust` whether cosmic dust reaches it, `include_off_by_default` whether V8 and V9 may be given.
+    body (else `uv_c_flux_w_m2(values)`), `carbon_dust` whether cosmic dust reaches it, `include_off_by_default` whether V8 and V9 may be given. `cloud` is the acid
+    cloud the body's aerosols were drawn with (`None` for none), so gate 2 and the stored optical depth agree; left out, it is worked out from the values.
     """
     gas, share = _shares(values)
     absent = {}
@@ -172,7 +181,10 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
     oxidant = share.get("O2", 0.0) + share.get("CO2", 0.0)
     gate1 = sulfur >= acid_medium.number("so2_min_share") and oxidant >= acid_medium.number("oxidant_min_share") \
         and share.get("H2O", 0.0) >= acid_medium.number("water_min_share")
-    cloud = acid_cloud(values, gas) if gate1 else None
+    if cloud is _UNSET:
+        cloud = acid_cloud(values, gas) if gate1 else None
+    elif not gate1:
+        cloud = None
     gate2 = cloud is not None
     reductant = share.get("CO", 0.0) + share.get("OCS", 0.0)
     gate3 = gate1 and uv_c is not None and uv_c >= number("uv_c_min_w_m2") and reductant >= number("reductant_min_share")
@@ -205,6 +217,51 @@ def chemistry(values, uv_c_w_m2=None, carbon_dust=False, include_off_by_default=
         absent["V10"] = "replaced by the published spectrum of V8 or V9, not added to it"
     gates = tuple(i + 1 for i, opened in enumerate((gate1, gate2, gate3, gate4, gate5_iron or gate5_carbon, gate6)) if opened)
     return Chemistry(tuple(present), gates, cloud, absent)
+
+
+COLUMN = "cloud_chemistry"
+"""str: The column of `planets` and `moons` (and `rogue_planets`, which stays empty: no star, no light) that holds `encode(chemistry)` (GEN.1425)."""
+
+
+def encode(found):
+    """The text a body stores for a `Chemistry`: its species ids in order, comma separated (`V1,V2,V3,V10`); `None` when it has none."""
+    return ",".join(found.species) if found.species else None
+
+
+def species_of(stored):
+    """The species ids of a stored text (`encode`), in order; an empty tuple for `None`."""
+    return tuple(part for part in (stored or "").split(",") if part)
+
+
+def sentence(stored):
+    """The stored text as words for a page: the names of the species the chain gave the air, with the ones that are only candidates marked, e.g. `sulfuric acid water droplets: observed in a planet (Venus); sulfur dioxide gas: observed in a planet (Venus)`."""
+    names = []
+    for species_id in species_of(stored):
+        row = SPECIES.get(species_id)
+        if row is not None:
+            names.append(f"{row['name']}: {row['status']}")
+    return "; ".join(names)
+
+
+def fill(body, values):
+    """
+    Sets `cloud_chemistry` on a rocky planet or moon from its finished air, light and ground (`values` is `habitability_world.values_from_body`, with the energy flux set): the
+    species of the Venus set the chain gives it (GEN.1425). Gate 2 is the acid cloud the body's aerosols were drawn with (`sulfuric_cloud.window` at the aerosols' skin
+    temperature), the ultraviolet-C flux is the star's `uv_c_share` of the absorbed flux, and V8 and V9 (single-source hypotheses, off by default) follow
+    `INCLUDE_HYPOTHESES`. A body with no air stores `None`.
+    """
+    body.cloud_chemistry = None
+    from planetgen.physics import sulfuric_cloud       # imports this module
+    column = air_column.column_of(body)
+    temperature = getattr(body, "surface_temperature", None)
+    if column is None or not temperature:
+        return
+    star = getattr(body, "star", None)
+    share = getattr(star, "uv_c_share", None)
+    flux = values.get("energy_flux_w_m2")
+    uv_c = flux * share if flux and share is not None else None
+    cloud = sulfuric_cloud.window(column, temperature, aerosols.skin_of(body))
+    body.cloud_chemistry = encode(chemistry(values, uv_c_w_m2=uv_c, include_off_by_default=INCLUDE_HYPOTHESES, cloud=cloud))
 
 
 def absorber_depth(cloud_tau_550, so2_share, wavelength_um, center_um=None, fwhm_um=None):
