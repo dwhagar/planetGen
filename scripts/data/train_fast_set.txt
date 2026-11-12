@@ -1,0 +1,11 @@
+tests/test_american_spelling.py
+tests/test_citations_outside_the_registry.py
+tests/test_citations_links.py
+tests/test_wiring_guard.py
+tests/test_fudge_table.py
+tests/test_stand_in_values.py
+tests/test_references_stand_ins.py
+tests/test_property_sheet.py
+tests/test_storage_checksum.py
+tests/test_db_column_round_trip.py
+tests/test_bughunt_serialization_fuzz.py
