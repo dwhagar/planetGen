@@ -13343,11 +13343,6 @@ clears each one.
   Slice 0 done (Lane 06, as the lane reported 10:01 AM EST on 2026-11-12), reports/gen1648-black-hole-planets-2026-11-12.md: the generator is wrong and the test is right. Only millisecond pulsars and post-AGB pairs are intercepted in _generate_planets; a black hole falls through to _plan_architecture, whose inner_system_fraction depends on mass alone, so 16 of 40 disk-less stellar holes got planets at 0.1 to 0.6 AU. No disk survives the progenitor and no black hole planet is confirmed. Slice 1 (lock): return no bodies for a disk-less stellar black hole, keep the remnant rules for other remnants, add a multi-seed regression test.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
 
-- [ ] **OPS.153 Uncharted-sector index of Stage 17 as per-shell-range units across all workers (it runs at about 10k rows/s in one process: about 40 h at 1.5 billion sectors)**
-  Lane 13 (as the lane reported 1:02 PM EST on 2026-11-12), from OPS.152: uncharted_index.index runs at about 10k rows/s in one process (55 percent SQL: the 500-row INSERT into sectors and the anti-join read; 45 percent Python: wedge_count called 4 times per cell); batch size does not help and micro-optimisation gives 5 to 20 percent. At 100M parts cells that is about 2.8 h, at 1.5B about 40 h. Do: run the index as per-shell-range units across all workers (OPS.123 style), output identical, with a timing at a large size. The alternative (stop materializing placeholder sector rows) is a later design item.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top priority (Boss, 12:42 PM EST on 2026-11-12: he cannot generate a galaxy because of this stage). Prerequisites: OPS.152. Related: OPS.123, MAP.259, MAP.402.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
