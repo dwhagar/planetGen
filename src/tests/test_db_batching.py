@@ -75,8 +75,9 @@ def test_a_planet_that_carries_its_co2_sink_is_pickled_without_it_and_copied_wit
 
     def local_sink():
         return 1.0     # a closure: it cannot be pickled
-    system = _sector("Pickled Sector", ["Pickle One"]).entries[0].star_system
-    planet = next(obj for obj in system.planets if obj.body_type != "a")
+    sector = _sector("Pickled Sector", [f"Pickle {n}" for n in range(8)])      # eight systems: a bounded search for a planet that is not a belt
+    planet = next((obj for entry in sector.entries for obj in entry.star_system.planets if obj.body_type != "a"), None)
+    assert planet is not None, "none of the eight generated systems has a planet that is not a belt"
     planet._co2_sink = local_sink
     assert pickle.loads(pickle.dumps(planet))._co2_sink is None
     assert copy.copy(planet)._co2_sink is local_sink and copy.deepcopy(planet)._co2_sink is local_sink
