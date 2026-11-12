@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3970] - 2026-11-12
+
+**Headline:** When update.sh cannot reload Apache or start Redis, it now prints why.
+
+### Changed
+- **update.sh keeps the reason for a failed Apache, systemctl or Redis step (OPS.166).** The Apache configuration test's output, the output of a failed `systemctl restart/reload` and of the Redis install and start now appear, indented, under the warning that names the failure. Before, it was thrown away. generation-output: unchanged
+
 ## [8.0.3969] - 2026-11-12
 
 **Headline:** A statement that loses its MySQL connection now leaves a warning with what the server says about it.
