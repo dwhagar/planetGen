@@ -9,8 +9,10 @@ planet, a moon), how often and how long the moons and the inner planets eclipse 
 the sheet is made and are not columns: each is a pure function of stored data, the way the moon's longest eclipse in its planet's shadow is. Each row is `(group, key, label, value, raw)`.
 """
 
+import math
+
 from planetgen.describe import model
-from planetgen.physics import sky_clock
+from planetgen.physics import constants, field_dispersal, sky_clock
 
 CLOCK_KEY = "clock_lag_s_per_yr"
 """str: The key of the derived row for the seconds a year a clock on the body falls behind a distant clock."""
@@ -21,12 +23,18 @@ LENS_KEY = "lens_focus_au"
 ECLIPSE_KEY_PREFIX = "star_eclipses_"
 """str: The start of the key of the planet's derived rows for the eclipses of its star, one per blocker, numbered from 1 in the order of the shortest interval."""
 
+FIELD_COLUMN_KEY = "field_column_density_kg_m2"
+"""str: The key of an asteroid field's derived row for the mass over each square meter of its disk (shown over a square AU)."""
+
+FIELD_GRINDING_KEY = "field_grinding_ended_s"
+"""str: The key of an asteroid field's derived row for the time after which its largest piece stopped colliding."""
+
 MAX_ECLIPSE_ROWS = 4
 """int: The most blockers a planet's sheet lists; the ones that eclipse its star most often."""
 
 def is_derived_key(key):
     """Whether `key` is one of the rows this module gives (the clock, the lens, or an eclipse row)."""
-    return key in (CLOCK_KEY, LENS_KEY) or key.startswith(ECLIPSE_KEY_PREFIX)
+    return key in (CLOCK_KEY, LENS_KEY, FIELD_COLUMN_KEY, FIELD_GRINDING_KEY) or key.startswith(ECLIPSE_KEY_PREFIX)
 
 
 def _star_of(conn, planet):
@@ -114,6 +122,27 @@ def _eclipse_rows(conn, kind, object_id):
             for number, (name, eclipse) in enumerate(found[:MAX_ECLIPSE_ROWS], 1)]
 
 
+def _field_rows(conn, kind, object_id):
+    """The column density of an asteroid field (its mass over the disk of its rms radius) and how long its largest piece took to stop colliding (`field_dispersal`, GEN.1559)."""
+    if kind != "asteroid_field":
+        return []
+    field = conn.execute("SELECT mass_kg, radius_ly, rms_speed_kms, largest_body_kg FROM asteroid_fields WHERE id = ?", (object_id,)).fetchone()
+    if field is None or not field["mass_kg"] or not field["radius_ly"]:
+        return []
+    found = []
+    try:
+        column = field_dispersal.column_density_kg_m2(field["mass_kg"], field["radius_ly"] * constants.LIGHTYEAR_M)
+        found.append(("physical", FIELD_COLUMN_KEY, "Mass over each square AU of its disk", [model.qty("mass", column * constants.AU_M ** 2, "kg")], column))
+        if field["largest_body_kg"] and field["rms_speed_kms"]:
+            diameter = 2.0 * (3.0 * field["largest_body_kg"] / (4.0 * math.pi * field_dispersal.DEFAULT_DENSITY_KG_M3)) ** (1.0 / 3.0)
+            ended = field_dispersal.freeze_out_time_s(field["mass_kg"], diameter, field["rms_speed_kms"] * 1000.0)
+            found.append(("physical", FIELD_GRINDING_KEY, "Time its largest piece kept colliding with the others", [model.qty("time", ended, "s")], ended))
+    except field_dispersal.FieldDispersalError:
+        return []
+    return found
+
+
 def rows(conn, kind, object_id):
-    """The derived rows of the sheet of a star, planet or moon for its clock, its eclipses and its lens, `(group, key, label, value, raw)` each; none for any other kind."""
-    return _clock_rows(conn, kind, object_id) + _lens_rows(conn, kind, object_id) + _eclipse_rows(conn, kind, object_id)
+    """The derived rows of the sheet of a star, planet, moon or asteroid field for its clock, its eclipses, its lens and its spread, `(group, key, label, value, raw)` each; none for any other kind."""
+    return (_clock_rows(conn, kind, object_id) + _lens_rows(conn, kind, object_id) + _eclipse_rows(conn, kind, object_id)
+            + _field_rows(conn, kind, object_id))

@@ -26,7 +26,7 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 3. **Stellar particles (`dose_sep_msv_yr`, GEN.747).** A free-space `FREE_MSV_YR sqrt(N33 / N33_sun) / d_AU^2` (`FREE_MSV_YR` about 265 mSv/yr) times the
    square root of the flares' energy weight for the star's own frequency slope (`flare_energy_weight`, `flare_alpha`, GEN.805: a shallow distribution puts
    more of the energy in the big flares), the dose to the organs of the protons of the 47 measured solar events of 1997 to 2015 summed over their 18
-   years (`solar_particles`), times the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR) and the dipole's
+   years (`solar_particles`), times the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR, of the air's own gases by Bragg's rule, `proton_range.gas_material`, GEN.444) and the dipole's
    `Rc0 cos^4(latitude)`, averaged over the latitudes (`solar_particles.dose_share`; 1 without air or field).
 4. **Ground (`dose_ground_msv_yr`).** The gamma dose in air at 1 m over the surface rock and the radon of its uranium, from the
    body's own stored potassium, thorium and uranium (`radiogenic`, GEN.459), at its star's age: the same concentrations its interior
@@ -351,10 +351,10 @@ def companion_free_sep_msv_yr(star, distance_au):
     return total
 
 
-def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
-    """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space dose and a dipole's equatorial `cutoff_gv`: the share of the protons
-    of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
-    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2), cutoff_gv)
+def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv, material="air"):
+    """Rule 3's stellar-particle dose under `column_g_cm2` of `material` (air, a table row or a mixture of rows, `proton_range.gas_material`) for a free-space dose and a dipole's equatorial `cutoff_gv`:
+    the share of the protons of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
+    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2, material), cutoff_gv)
 
 
 def flare_energy_weight(flare_alpha):
@@ -492,7 +492,7 @@ def generate_dose(body):
     gcr = gcr_dose_msv_yr(column, cutoff, modulation)
     free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance, getattr(star, "flare_alpha", None)) \
         + companion_free_sep_msv_yr(star, distance)       # GEN.1442: the particles of the other stars too
-    sep = sep_dose_msv_yr(free, column, cutoff)
+    sep = sep_dose_msv_yr(free, column, cutoff, proton_range.gas_material(mixture.partial_pressures_pa(body)))     # GEN.444: the air's own gases stop the protons
     ground = _ground_dose(body, pressure_pa)
     p_o2_pa = mixture.partial_pressures_pa(body).get("O2", 0.0)
     body.ozone_column_du = ozone.draw_column_du(getattr(star, "temperature", None), p_o2_pa, getattr(body, "gravity", None))

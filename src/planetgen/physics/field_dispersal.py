@@ -20,8 +20,7 @@ formula of its age.
   `x0 + v t` plus shear. Two shapes: `ball` (a collision: from a point, isotropic velocities) and `annulus` (a belt unbound by a supernova: from a ring of radius `a` on a straight tangent at the
   speed it leaves with, `unbound_belt_speed_ms`, a thin pancake).
 
-Stand-ins are IF15 to IF18 of `docs/design/research/gap-filling-plan.md` section 6.105. Nothing reads the module yet: the field columns, the host rule and the bring-to-epoch step (GEN.1103,
-GEN.1104, GEN.1107) wire it.
+Stand-ins are IF15 to IF18 of `docs/design/research/gap-filling-plan.md` section 6.105. The field columns, the host rule and the bring-to-epoch step (GEN.1103, GEN.1104, GEN.1107) read the age and the radius; the field's sheet reads `column_density_kg_m2` and `freeze_out_time_s` (GEN.1559) and the page of one of its bodies reads `member_position_m`.
 """
 
 import math
@@ -180,6 +179,5 @@ def member_position_m(seed, rank, age_yr, rms_speed_ms, shape="ball", belt_radiu
     else:
         start = (0.0, 0.0, 0.0)
     vx, vy, vz = member_velocity_ms(seed, rank, rms_speed_ms, shape)
-    shear = OORT_A_KMS_KPC * _KMS_PER_KPC_TO_PER_S
-    drift = shear * (2.0 * start[0] * seconds + vx * seconds ** 2)       # 2 A (x0 t + v_x t^2 / 2): the along-track shear of a body that is at x0 + v_x t
+    drift = shear_displacement_m(start[0], age_yr) + shear_displacement_m(0.5 * vx * seconds, age_yr)       # 2 A (x0 t + v_x t^2 / 2): the along-track shear of a body that is at x0 + v_x t
     return (start[0] + vx * seconds, start[1] + vy * seconds - drift, start[2] + vz * seconds)

@@ -118,7 +118,7 @@ fitted to one Carrington-class event in 500 years. [Stand-in SE4, tier T3, tweak
 BFO_DEPTH_G_CM2 = 5.0
 """float: The depth of water at which the dose is taken, g/cm2: the blood-forming organs (NASA's standard 5 cm; recalled). Source tier T3."""
 PROTON_WEIGHT = 2.0
-"""float: ICRP 103 radiation weight of a proton (`surface_dose.WEIGHT_PROTON_PION`)."""
+"""float: ICRP 103 radiation weight of a proton (wR of a proton)."""
 GY_PER_MEV_PER_G = 1.602176634e-10
 """float: One MeV per gram, in gray."""
 

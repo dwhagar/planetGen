@@ -1,0 +1,10 @@
+**Headline:** the stellar-particle dose of a world is now stopped by the gases of its own air, and an asteroid field's page shows how thin its disk is, when its pieces stopped grinding, and where each body now is.
+
+### Changed
+
+- `physics/proton_range.py` (GEN.444, `gas_material`, registry row PR1): the partial pressures of a body's air become the mass fractions of the PSTAR rows (a gas with a row keeps it, any other is split by element, a missing element takes the nearest row); `radiation.generate_dose` hands them to `sep_dose_msv_yr`, which stopped every air as plain air before. The shift is small (Earth's air against CO2 moves the column's proton energy by 0.4 percent; a hydrogen air stops fewer protons per gram), so the stored `dose_sep_msv_yr` of most worlds moves in the third digit and of a hydrogen or helium world a little more.
+- `physics/surface_dose.py` (GEN.1559): the first slice of GEN.444 kept `share_past_cutoffs`, `effective_air_column_g_cm2` and `neutron_weight`, which `solar_particles.dose_share` (the 47 measured events), `proton_range` (PSTAR, mixed air) and the CORSIKA total biological dose of `radiation` replaced. They are removed with their tables; the Band spectrum stays.
+- `describe/clock_rows.py`: an asteroid field's sheet gains "Mass over each square AU of its disk" (`field_dispersal.column_density_kg_m2`) and "Time its largest piece kept colliding with the others" (`freeze_out_time_s`, from the largest piece and the field's speed); `describe/field_member_info.py`: the page of one of its bodies gains `position` (light-years from the field's center and its speed, `field_dispersal.member_position_m` at the field's age, seeded by the field's designation). `member_position_m` now takes its shear from `shear_displacement_m`, one formula.
+- Wiring register: `proton_range.csda_range_g_cm2` is by design (the forward function of the table whose inverse the generator reads); the GEN.444 and GEN.361 lines of the other functions are gone.
+
+generation-affects: fill

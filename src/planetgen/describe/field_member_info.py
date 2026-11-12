@@ -10,8 +10,11 @@ designations of the heavier and the lighter neighbour. A field has no star, so a
 `GET /api/objects/<ref>/field-members` and `GET /api/objects/<ref>/field-members/<rank>` serve them and the pages show them. Nothing here is stored.
 """
 
+import math
+
 from planetgen.galaxy import object_uid
-from planetgen.physics import belt_page as page_data
+from planetgen.generation.phenomena import asteroid_field
+from planetgen.physics import belt_page as page_data, constants, field_dispersal
 
 
 class FieldMemberNotFound(ValueError):
@@ -19,7 +22,7 @@ class FieldMemberNotFound(ValueError):
 
 
 def _field_row(conn, field_id):
-    row = conn.execute("SELECT id, uid, name, mass_kg, origin, history FROM asteroid_fields WHERE id = ?", (field_id,)).fetchone()
+    row = conn.execute("SELECT id, uid, name, mass_kg, origin, history, shape, rms_speed_kms, birth_age_yr FROM asteroid_fields WHERE id = ?", (field_id,)).fetchone()
     if row is None or row["uid"] is None:
         raise FieldMemberNotFound(f"no field has the id {field_id}")
     return row
@@ -45,6 +48,21 @@ def _rows(conn, field_id):
                         " FROM field_members WHERE field_id = ? ORDER BY member_rank", (field_id,)).fetchall()
 
 
+def _position(field, object_id, rank):
+    """Where the body of `rank` is now, light-years from the center of its field, and how fast it moves, from the field's designation as the seed (`field_dispersal.member_position_m`, GEN.1559): none for a field stored without its speed or age."""
+    if not field["rms_speed_kms"] or field["birth_age_yr"] is None:
+        return None
+    annulus = field["shape"] == "annulus"
+    seed = object_uid.format_id(object_id)
+    speed_ms = field["rms_speed_kms"] * 1000.0
+    shape = "annulus" if annulus else "ball"
+    ring_m = asteroid_field.RING_RADIUS_AU * constants.AU_M if annulus else 0.0
+    x, y, z = field_dispersal.member_position_m(seed, rank, field["birth_age_yr"], speed_ms, shape, ring_m)
+    vx, vy, vz = field_dispersal.member_velocity_ms(seed, rank, speed_ms, shape)
+    return {"from_center": page_data._q(math.sqrt(x * x + y * y + z * z) / constants.LIGHTYEAR_M, "ly"),
+            "speed": page_data._q(math.sqrt(vx * vx + vy * vy + vz * vz) / 1000.0, "km_s")}
+
+
 def members_of(conn, field_id):
     """
     The bodies the stored field `field_id` keeps: `field` (its designation, name and mass), `count` and `bodies`, heaviest first (empty for a field with no ledger).
@@ -64,7 +82,7 @@ def members_of(conn, field_id):
 
 def member_info(conn, field_id, rank):
     """
-    The page data of the body of `rank` (1 is the heaviest) of the stored field `field_id`: `designation`, `rank`, `member` (the entry the field's list holds), `share` of the field's mass, `field` and the
+    The page data of the body of `rank` (1 is the heaviest) of the stored field `field_id`: `designation`, `rank`, `member` (the entry the field's list holds), `share` of the field's mass, `field`, its `position` (light-years from the field's center and its speed, none for a field stored without them) and the
     `previous` and `next` designations (`None` at the ends).
 
     Raises:
@@ -86,6 +104,7 @@ def member_info(conn, field_id, rank):
         "member": shown,
         "share": rows[place]["mass_kg"] / float(mass) if mass else None,
         "field": {"designation": object_uid.format_id(object_id), "name": field["name"], "origin": field["origin"], "history": field["history"] or None, "individual_count": len(rows)},
+        "position": _position(field, object_id, rank),
         "previous": neighbour(place - 1),
         "next": neighbour(place + 1),
     }

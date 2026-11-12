@@ -82,3 +82,26 @@ def test_the_file_is_the_scripts_build_with_every_material_complete():
     assert set(data["materials"]) == set(pr.MATERIALS) >= {"H", "He", "N", "O", "air", "CO2", "CH4", "SiO2", "Fe"}
     for key, row in data["materials"].items():
         assert len(row["csda_range_g_cm2"]) == len(row["stopping_mev_cm2_g"]) == len(data["energies_mev"]), key
+
+
+def test_a_mixed_air_is_a_mixture_of_rows_by_mass():
+    """GEN.444: the gases of a body's air become table rows by mass (a compound with a row keeps it, any other is split into its elements)."""
+    mix = pr.gas_material({"N2": 78000.0, "O2": 21000.0, "CO2": 40.0})
+    assert set(mix) == {"N", "O", "CO2"}
+    assert sum(mix.values()) == pytest.approx(1.0)
+    assert mix["N"] == pytest.approx(78000 * 28.0134 / (78000 * 28.0134 + 21000 * 31.998 + 40 * 44.009), abs=1e-3)
+    assert pr.gas_material({}) == "air"
+    assert pr.gas_material({"CO2": 0.0}) == "air"
+
+
+def test_a_gas_with_an_element_the_table_lacks_takes_the_nearest_row():
+    mix = pr.gas_material({"SO2": 1.0})
+    assert set(mix) == {"Si", "O"}                  # sulfur (Z 16) is two from silicon (Z 14) and two from argon (Z 18): the lighter one on a tie
+    assert sum(mix.values()) == pytest.approx(1.0)
+
+
+def test_the_composition_of_the_air_moves_the_stopping_column_by_under_one_percent_for_mixed_air():
+    earth = pr.gas_material({"N2": 78000.0, "O2": 21000.0, "Ar": 900.0})
+    assert pr.energy_mev(1033.0, earth) == pytest.approx(pr.energy_mev(1033.0, "air"), rel=0.01)
+    hydrogen = pr.gas_material({"H2": 1.0})
+    assert pr.energy_mev(100.0, hydrogen) > 1.1 * pr.energy_mev(100.0, "air")      # hydrogen stops fewer protons per gram below the range of these columns

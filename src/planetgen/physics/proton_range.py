@@ -29,7 +29,7 @@ import json
 import math
 import os
 
-from planetgen.physics import elements
+from planetgen.physics import elements, gases
 from planetgen.physics.elements import DataError
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "proton_range.json")
@@ -122,6 +122,45 @@ def rigidity_gv(kinetic_mev):
     if kinetic_mev <= 0:
         return 0.0
     return math.sqrt(kinetic_mev ** 2 + 2.0 * kinetic_mev * PROTON_REST_MEV) / 1000.0
+
+
+COMPOUND_ROWS = {"CO2": "CO2", "CH4": "CH4", "H2O": "H2O vapor"}
+"""dict: The gases that have a row of their own in the table (the compounds' stopping power includes their binding), by gas-table formula."""
+
+
+def _nearest_row(symbol):
+    """The element row of the table whose atomic number is nearest the element `symbol`'s (the lighter one on a tie): an element with no row stops a proton about as the table element beside it does per gram."""
+    z = elements.element(symbol).z
+    rows = [(abs(elements.element(row).z - z), elements.element(row).z, row) for row in MATERIALS if row in elements._BY_SYMBOL]
+    return min(rows)[2]
+
+
+def gas_material(pressures_pa):
+    """
+    The material of a mixture of gases for `energy_mev` (GEN.444): the mass fractions of table rows, from the partial pressures `pressures_pa` (gas-table formula to Pa). A gas
+    with a row of its own (`COMPOUND_ROWS`) keeps it; any other gas is split into its elements by mass and each element takes its own row, or the row of the element nearest in atomic
+    number where the table has none (sulfur takes silicon's; registry row PR1). `"air"` for an empty mixture.
+
+    Raises:
+        planetgen.physics.gases.UnknownGas: A formula is not a row of the gas table.
+    """
+    masses = {}
+    for formula, pa in pressures_pa.items():
+        if pa <= 0.0:
+            continue
+        mass = pa * gases.gas(formula).molar_mass
+        if formula in COMPOUND_ROWS:
+            row = COMPOUND_ROWS[formula]
+            masses[row] = masses.get(row, 0.0) + mass
+            continue
+        atoms = elements.parse_formula(formula)
+        weights = {symbol: count * elements.element(symbol).molar_mass for symbol, count in atoms.items()}
+        total = sum(weights.values())
+        for symbol, weight in weights.items():
+            row = symbol if symbol in MATERIALS else _nearest_row(symbol)
+            masses[row] = masses.get(row, 0.0) + mass * weight / total
+    whole = sum(masses.values())
+    return {row: mass / whole for row, mass in masses.items()} if whole > 0.0 else "air"
 
 
 def _mixture_ranges(fractions):

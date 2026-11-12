@@ -343,6 +343,19 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
     assert 0.0 < doses["ultramafic"] < doses["felsic"] < float("inf")
 
 
+def test_the_stellar_particle_dose_is_stopped_by_the_gases_of_the_air_the_body_holds(monkeypatch):
+    """GEN.444: `generate_dose` gives `sep_dose_msv_yr` the mass fractions of the body's own gases, not air, and a world with air gets a finite dose from them."""
+    from planetgen.physics import mixture, proton_range
+    body = _rocky_world_with_air()
+    seen = []
+    real = rad.sep_dose_msv_yr
+    monkeypatch.setattr(rad, "sep_dose_msv_yr", lambda free, column, cutoff, material="air": (seen.append(material), real(free, column, cutoff, material))[1])
+    with deterministic_entropy(1):
+        rad.generate_dose(body)
+    assert seen == [proton_range.gas_material(mixture.partial_pressures_pa(body))]
+    assert body.dose_sep_msv_yr >= 0.0
+
+
 def _system_with_rocky_worlds():
     for seed in range(40):
         cfg = SystemConfig()
