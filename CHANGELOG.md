@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3969] - 2026-11-12
+
+**Headline:** A statement that loses its MySQL connection now leaves a warning with what the server says about it.
+
+### Changed
+- **Lost connections are explained (OPS.171).** When a statement run through the retry helper loses its connection, a warning gives the server's uptime (a small figure means it restarted), its idle timeout and its aborted-client count. The sky unit's own explanation is a warning too. generation-output: unchanged
+
 ## [8.0.3968] - 2026-11-12
 
 **Headline:** Warnings that were logged as ordinary lines now go out as warnings, so a warning reader and error.log see them.
