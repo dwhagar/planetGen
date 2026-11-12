@@ -1,6 +1,6 @@
 {
   "plan": "088b57d7e70b02e9d67bbe5b24bc7642b9b765f3f0b6ef3bdf2beb6d7f1d0ac9",
-  "region": "aca6a21871d9bcfe99a23bb762224b28b653ebd4e7d5ae625f8daa18aeefc706",
+  "region": "2241e2a1e47f48e9d52c30e1a0281191ac6f8cadc977855e69505878716a5bce",
   "sectors": {
     "0 0 0": {
       "digest": "05a516ce4be7752c08400d658d44f2b8fbfce3ed057069f7cede8d9215667d42",
@@ -379,35 +379,35 @@
       }
     },
     "1 0 9": {
-      "digest": "1fce0fe0fed00b9beffe28e9cbca10f1c253d03eaf25646cad69647521f8aab1",
+      "digest": "f368ff4b6ac7ddc1b5e99539f31d53c0707d9f1bf46610d98d5095af2b9cddd9",
       "sections": {
         "belt": [
-          "31277335f1a41ba2c80b30fe1828c9c647913936756d8a0969ce5f3b5c545541",
-          "d273a9f66284563bb7d754110d480b735eff9ceb5b87f99e0184d4382708fe0b"
+          "a816b3be3be4cb0429f0a085a1fc4ec03f8c73d2c75f8f224a055cf8b5f78a75",
+          "5621fd9bc206594d519c634cfa7e18432ca58e9484d8634629cd1d59c337ca7f"
         ],
         "comet": [
-          "5195aadc867d7c922b81579e1e37d70d502d776c96f7b3b325909b619609a97c",
-          "c827ee8f2b0104b7dd7a2598a38bc82f5a4f6aad885f2f909b8b99a4b0b2aa99"
+          "1564a3bc45895379a93229d7900bc6bd2b9e106197b4487888ec198527a9a9cf",
+          "776070f2ac5fc74f0ccdf70983ee7fca178fe7fd4beb6a88c36baab778aed09c"
         ],
         "moon": [
-          "accab82dccb76007d6c11e3649ae3e3b2283263c8779f0d8e48952bd8b638d65",
-          "6c4fe4c00c61175727436e1d2142e9987439bfcf3afb9607f59343ccd8399fcb"
+          "38ebbf75269c467a81344b0b5fcd3f07b418a80cb23805ed637d60822c81e7ae",
+          "5876ebd2e98a2a839d679a435986fec5f82ba321ad0519b16dd17564840b0aff"
         ],
         "planet": [
-          "22927ffb050d82681be863ec84bbfd427f9dab01fecb6e48e3a2bbaf20e15241",
-          "451fe09712037b49416166e392831a3cedf42ded10196e95dcb8192c860fd0e8"
+          "79984198e54b3640d004ff669cedf77036dee971d832cd4cafc07b4f7cb2b941",
+          "2e378f16d0731aca278045f644f78bdb9de178e7a83e7e47ea7094a681038843"
         ],
         "sector": [
           "e4fd2b09cefc859c8233defa5e32232a5d5b2305f0412784e95d5d6994364af6",
           "770841d0ccad0aa0feebe092fd139a57749f9710f7d0e7a47c15de4c1e0fdb0f"
         ],
         "star": [
-          "aaa8c9efcff98e51a6d16696ee30bdad6a3ca395b28d3df6e72bd1f99c41e3af",
-          "f16bf3c695c2d27aab33023d0c6e52435f8a0326c29827535ba8fab96843bd38"
+          "8f16db7ee46a921fe033d54abd10964f935d08a6003a470f90e818befcc43d05",
+          "42acf66bcc537905d70161281165cb25d3cd61b29f392584b117660ab9c7d2d8"
         ],
         "system": [
-          "150b7a6001cd7ad52c9e8dbca323d72e7fd32eb759f1f6fa06adbdef4e739f72",
-          "9c4bb410610c0566533b298e3644704a0c182184a5f312d190197bcca6384a35"
+          "5c2f0b6cfd98902c077455533ccdf8b3b934d8127a13731e9b7556f35521f236",
+          "a3405e73686868ba8a8363414e6684d6298ccae482df29fd883c1b0fc319a929"
         ]
       }
     },
@@ -2450,10 +2450,6 @@
     },
     "699 -471 1287": {
       "digest": "04a67ce777838a845e06bbfca5532ea6010b90d4b2e6afffff1ab2e33947723c",
-      "sections": {}
-    },
-    "7 -3 39": {
-      "digest": "ff0c54c30c376d69e17019f9380d8a499a9bf11b66c690f005e73d361eb0dceb",
       "sections": {}
     },
     "7 -4 4": {
