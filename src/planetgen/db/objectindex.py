@@ -34,6 +34,7 @@ from planetgen.db import query, uncharted
 from planetgen.galaxy import objectref
 from planetgen.physics import constants
 from planetgen.queue import redisclient
+from planetgen.util import log
 
 CHUNK = 50_000
 """int: Source ids one statement covers; a chunk commits before the next starts."""
@@ -330,7 +331,8 @@ def recorded(database):
         return {}
     try:
         raw = _client().hgetall(state_key(database))
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("objectindex", "reading the object index state from Redis failed", exc)
         return {}
     state = {}
     for kind, text in raw.items():
@@ -347,7 +349,8 @@ def recorded_size(database):
     """The bytes the table took when the last run ended (`0` without a record)."""
     try:
         return int(_client().hget(state_key(database), SIZE_FIELD) or 0)
-    except (redis.RedisError, OSError, ValueError):
+    except (redis.RedisError, OSError, ValueError) as exc:
+        log.degraded("objectindex", "reading the object index size from Redis failed", exc)
         return 0
 
 
@@ -355,7 +358,8 @@ def recorded_uncharted(database):
     """`{kind: how many}` uncharted objects when the last run ended (`db.uncharted.counts`), `{}` without a record."""
     try:
         return {kind: int(count) for kind, count in json.loads(_client().hget(state_key(database), UNCHARTED_FIELD) or "{}").items()}
-    except (redis.RedisError, OSError, ValueError, AttributeError):
+    except (redis.RedisError, OSError, ValueError, AttributeError) as exc:
+        log.degraded("objectindex", "reading the uncharted counts from Redis failed", exc)
         return {}
 
 
@@ -367,7 +371,8 @@ def reserved_bytes():
     try:
         client = _client()
         return sum(int(client.hget(key, SIZE_FIELD) or 0) for key in client.scan_iter(match=state_key("*"), count=100))
-    except (redis.RedisError, OSError, ValueError):
+    except (redis.RedisError, OSError, ValueError) as exc:
+        log.degraded("objectindex", "reading the total object index size from Redis failed", exc)
         return 0
 
 
@@ -383,13 +388,13 @@ def _remember(conn, database, kind, mode, since, rows, outcome):
         pipe.hset(state_key(database), SIZE_FIELD, size_bytes(conn))
         pipe.hset(state_key(database), UNCHARTED_FIELD, json.dumps(uncharted.counts(conn)))
         pipe.execute()
-    except (redis.RedisError, OSError):
-        pass
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("objectindex", "keeping the object index state in Redis failed", exc)
 
 
 def forget(database):
     """Drops the record of the runs, so the next `refresh` builds."""
     try:
         _client().delete(state_key(database))
-    except (redis.RedisError, OSError):
-        pass
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("objectindex", "dropping the object index state in Redis failed", exc)
