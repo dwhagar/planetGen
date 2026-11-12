@@ -2766,7 +2766,7 @@ def refresh_block_lights(mysql_config, args=None):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
-        log.normal(f"Warning: making the block light totals failed: {exc}")
+        log.warning(f"Making the block light totals failed: {exc}")
         return 0
     log.normal(f"Made {written:,} block light totals.")
     return written
@@ -3100,7 +3100,7 @@ class BlockLightsFollower(followed.Follower):
                 log.normal(line)
         if result["warning"]:
             self._failed = True
-            log.normal(f"Warning: making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
+            log.warning(f"Making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
 
 
 class _PhenomenaBook:
@@ -3539,8 +3539,8 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.normal(
-            f"WARNING: the galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
+        log.warning(
+            f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
             f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
             f"parameters really do produce a galaxy this large."
         )
