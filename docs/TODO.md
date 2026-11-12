@@ -574,7 +574,8 @@ with `clamp()`.
   one wrapper `util/draw.py` (GEN.56), every recalled source verified by
   a lane before use under the standing source rules, and any change to a
   drawn value bumps the generator epoch (OPS.56 rule).
-  Prerequisites: GEN.558, GEN.559. Related: GEN.550, GEN.446, TEST.159.
+  Prerequisites: GEN.558. Related: GEN.550, GEN.446, TEST.159.
+  Prerequisite GEN.559 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
 
 - [ ] **UX.143 A dedicated page for every kind of item: star, planet, moon, belt, comet, each phenomenon, nebula, cluster, system, sector and region, reached from its Object ID**
   Boss, 2026-10-21, 6:12 PM EDT, as the coordinator relayed (8.2):
@@ -1477,6 +1478,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Owner (TODO sweep, 2026-11-12): Lane 13 (maps).
+  Moved to 8.2 with the barycentre items it needs (GEN.576 to GEN.578), under Boss's 9:19 PM EST plan (TODO, 2026-11-12).
 
 - [ ] **MAP.257 Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug)**
   Boss's live observation (relayed 5:27 PM EDT 2026-10-23, typed in the
@@ -3938,6 +3940,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outside 8.1 is paused until 8.1 is complete).
   Prerequisites: UX.128. Related: GEN.349.
   Folded in (2026-11-07, Boss approved the TODO plan): GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.358 GEN.94's rules and the four exotic-environment additions reach planet formation**
   Split from GEN.95 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -6435,6 +6438,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   open as the umbrella until its children (GEN.553 to GEN.559 and
   GEN.565) are finished; the TODO thread retires it then, as its Done
   line says.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.553 One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6559,6 +6563,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane A at 7:53 PM EDT 2026-10-23 (lane A is free and Lane 14 is busy
   on its critical path; no branch existed; Lane 14 was told and keeps it
   only if it already had local work).
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): the birth step stays in 8.1 and is built with GEN.1611 (the formation snow line needs the star's birth luminosity) and GEN.1546 (age from the birth time, no raise). Owner: Lane 21 with Lane 11.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6683,6 +6688,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the neutron star mass function, the black hole mass from the
   progenitor, the placement of kicked remnants and the magnetar
   stand-in.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): the remaining slices stay in 8.1 with Lane 11's dark-member items (GEN.1528 to GEN.1531, GEN.1501). Owner: Lane 11.
 
 - [ ] **GEN.555 The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6727,6 +6733,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.556 `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6778,6 +6785,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6818,7 +6826,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Data we hold (2026-10-29 8:55 PM EDT): comet_population.json and
   comet_admission.json are in the repo; the Exoplanet Archive and JWST
   selection fits are in the harness JSONs. Catalog section 4.
-  Prerequisites: GEN.556. Related: GEN.550, GEN.457.
+  Prerequisites: none. Related: GEN.550, GEN.457.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): stays in 8.1, built in the moon routine with GEN.1449 (Hill limit under every perturber), GEN.1599 and GEN.1587's moon order; a free planet uses the ordinary moon routine with its own outer limit. Does not wait on (8.2). Owner: Lane 23.
+  Prerequisite GEN.556 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
 
 - [ ] **GEN.559 Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -6884,6 +6894,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comet_admission.json are in the repo; the Exoplanet Archive and JWST
   selection fits are in the harness JSONs. Catalog section 4.
   Prerequisites: GEN.557. Related: GEN.550, GEN.520.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in. GEN.559 (unbound comets) moved by the TODO thread's default under the same plan.
 
 - [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -7077,6 +7088,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 3, 26
   wait; Blocker I after PR 4.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -7124,6 +7136,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Order (the coordinator, 8:16 AM EDT 2026-10-22): Lane 14 owns GEN.568
   and GEN.569, and this item follows GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.571 Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7200,6 +7213,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   group is in.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.575 Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7226,6 +7240,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   under two units and the suffix test of DB.76 passes.
   Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.576 system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7283,6 +7298,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not a force). The step that makes the heaviest primary is GEN.581.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Folded in (2026-11-07, Boss approved the TODO plan): TEST.242 Tests: invariants for any system at any time: zero mass-weighted offset sum, add and remove returns exactly, a parent change keeps every absolute position, one member equals the binary formula bit for bit. Its Done line: all pass at several depths.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.577 Stored planet and moon states become the state of the barycentre of the body and its own members**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7323,6 +7339,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   golden digest changes with the epoch entry.
   Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.578 The point class gets the local frame and the barycentre system frame, and the system anchor is no longer the nearest star**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7384,6 +7401,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lines for the class plus about +80 for spin and velocity; the largest
   single change in the note. The record the point holds is GEN.584.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.581 primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7445,6 +7463,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   order, and no second copy of the swap is left.
   Prerequisites: GEN.315. Related: GEN.550, GEN.565, GEN.576, GEN.578.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.582 Origin and present-state split: fields marked origin or state in the Field table, the draw record held until validation finishes, and the zone and class re-run from the seed**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7497,9 +7516,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regenerating. Done: a body re-primaried keeps its origin values
   exactly and its present state equals a fresh computation about the new
   primary.
-  Prerequisites: GEN.565, GEN.570. Related: GEN.550, GEN.565, GEN.576,
+  Prerequisites: none. Related: GEN.550, GEN.576,
   GEN.578.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): stays in 8.1 as a light version: mark the Star, Planet and Moon fields as origin (drawn once at birth) or present state (recomputed), and a test that a remake recomputes every present field; built with GEN.1611, GEN.1596, GEN.1606, GEN.1605, GEN.1591 and GEN.1546 (the bug sweep's birth-against-present findings). The full Field-table version waits for GEN.565 in 8.2. Owner: Lane 21, with Lane 05 for the star side.
+  Prerequisite GEN.565, GEN.570 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
 
 - [ ] **GEN.583 reparent: the state-preserving change of a body's parent, shared by re-primary at an event, an ejection, a capture and a merger**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7549,9 +7570,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   becomes central without any body moving. Done: absolute position and
   velocity, total linear momentum and the orbital angular momentum about
   the barycentre are unchanged by `reparent`.
-  Prerequisites: GEN.578. Related: GEN.550, GEN.565, GEN.576, GEN.578.
+  Prerequisites: none. Related: GEN.550, GEN.565, GEN.576.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Folded in (2026-11-07, Boss approved the TODO plan): TEST.244 Tests: re-primary and reparent invariants, frame round trips, momentum conservation, a moon's velocity as the sum of its hops, a locked body's rate follows a primary change. Its Done line: all pass at several depths.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): stays in 8.1 as the state-preserving reparent used by GEN.1597 (a moved planet keeps its birth spin and state). Owner: Lane 23.
+  Prerequisite GEN.578 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
 
 - [ ] **GEN.584 The core's kinematic record: velocity, spin axis and rate, mass and epoch in the point, and the derived columns dropped**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -7657,6 +7680,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is declared (GEN.565c, #2308), but spin still lives on the body;
   moving it onto the point is this item, after GEN.578.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.587 Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set**
   Part of the unified orbited-body plan (GEN.550;
@@ -7707,6 +7731,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.836 (moon and rogue rings) so the two share a golden run.
   Prerequisites: none. Related: GEN.550, GEN.565, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **GEN.588 Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled**
   Part of the unified orbited-body plan (GEN.550;
@@ -9671,8 +9696,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Lane 15) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.558, GEN.559. Related: GEN.550.
+  Prerequisites: GEN.558. Related: GEN.550.
   Owner (TODO sweep, 2026-11-12): Lane 13 (galaxy fill).
+  Prerequisite GEN.559 lifted (TODO, 2026-11-12): moved to 8.2 under Boss's 9:19 PM EST plan; this item does not wait for it.
 
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
@@ -9978,6 +10004,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 11
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -10020,6 +10047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the 8.4 revision. GEN.564 is an 8.4 item: it stays in the pool, paused
   until 8.1 is complete (the coordinator, 9:46 PM EDT 2026-10-22).
   Prerequisites: none. Related: GEN.564, GEN.556, GEN.291, DB.73.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): stays in 8.1 and is designed with GEN.1547: both key a body's draws and number by host seed and orbit slot ({host_seed}:orbit:{slot}), so the later recursion (GEN.556, 8.2) reuses the keys. Owner: Lane 12, keys agreed with Lane 05.
 
 - [ ] **DB.78 Central-object offsets replace the wobble: the reflex_offset columns, calculate_reflex_offset, the SQL mirror and the nine binary position columns go**
   Part of the unified orbited-body plan (GEN.550; design note
@@ -10067,6 +10095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
   Owner (TODO sweep, 2026-11-12): Lane 12 (storage).
+  Moved to 8.2 with the barycentre items it needs (GEN.576 to GEN.578), under Boss's 9:19 PM EST plan (TODO, 2026-11-12).
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -12065,6 +12094,7 @@ clears each one.
   order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
   lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
   (reported 4:33 PM EDT 2026-10-18).
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **TEST.240 Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -12086,6 +12116,7 @@ clears each one.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Lane 14
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.565, DB.74. Related: GEN.550, TEST.239.
+  Moved to 8.2 by Boss, 9:19 PM EST on 2026-11-11 ('plan approved', unified-chain cross-check, reports/unified-chain-crossref-2026-11-12/): the full recursion and the code and storage rebuild wait until the 8.1 fixes are in.
 
 - [ ] **TEST.261 Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first)**
   Boss, 2026-10-21, 5:10 PM EDT: before 8.1 is stamped finished there
@@ -12526,38 +12557,6 @@ clears each one.
 - [ ] **ADM.139 In the admin console, an option to look at and reset manually edited items that were generated (8.2)**
   Boss (2:21 PM EST on 2026-11-07, as the coordinator relayed), while answering GEN.229, where a re-roll leaves systems in admin-edited sectors alone and names them: "in the admin console for 8.2 lets have an option to look at and reset manually edited items that were generated". Do: an admin page that lists every generated item (sector, system, star, planet, moon, phenomenon) an admin has edited by hand, from the edit record the edit tools keep, showing what was edited and the generated value it replaced, with a reset for one item or a chosen set that restores the generated value by drawing it again from the item's own seed (the way the GEN.229 re-roll does) and records who reset it and when. A reset never touches facilities or a placed bright star without naming them first. Done: the page lists edited items with their original and edited values, a reset restores the generated value and clears the edit mark, a test covers a reset of one item and of a set, and the edit record keeps the history. Lock-free. Goal issue #2350. Version 8.2. Owner: none yet (a waiting lane takes it when 8.2 opens, confirmed with TODO). Filed by the TODO thread.
   Prerequisites: none (runs after GEN.229, merged). Related: GEN.229, ADM.43.
-
-- [ ] **GEN.1364 Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N6 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size L; lock. Target: wave 2, train 18 or 19. The core is one number
-  (the light elements as a lump), so there is no eutectic, inner-core
-  growth or compositional dynamo. Do: split the light-element total by
-  oxidation state and pressure, add the Fe-FeS eutectic (recalled) and
-  inner-core freezing, and hand the dynamo the compositional term;
-  GEN.993 widened the total and GEN.820 holds the iron branch residuals,
-  so build on both. Data:
-  /mnt/project-files/research/real-material-data/core_compositions.csv;
-  /mnt/project-files/research/real-material-data-2-planet-interiors-and-phosphorus-2026-11-07.md
-  section 2. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 23.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Boss, 3:25 PM EST on 2026-11-08: do NOT skip the deep-interior rows; they stay in 8.1. Use the second-hand values of the deep-interior papers meanwhile, tier Confident or Marginal Unverified, and flag each such row for upgrade if Boss supplies the papers.
-  Prerequisites: GEN.1361. Related: GEN.993, GEN.820, GEN.1048, GEN.842.
 
 - [ ] **GEN.1369 Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
@@ -13096,12 +13095,14 @@ clears each one.
   Boss, 6:13 PM EST on 2026-11-11 ('Do it all'); handoffs/forward-build-order-2026-11-11.md. Every draw in the end stages comes from a stream keyed to the body (mass, formation distance, star) and not to the run stream, the age text or the final orbit; GEN.1493's _air_replay already does this for the air. The first-pass air currently draws from the run stream (physics/planets.py calculate_atmospheric_conditions); remake_end_stages (planets.py line 347) draws a second, independent set keyed on the body's distance and the star's age. Star dice (snow line, [Fe/H], disk streams in Star._finish_init) are keyed on the age text; with the star made once they stay, but key them on the star if anything ever rebuilds it. The prototype measured on 96 seeds: class changes after the settle 17 to 10 percent, temperature moves over 5 percent 28 to 15 percent, 90th percentile move 134 K to 24 K. Lock item (new epoch; the run's stream is spent differently, so seeds map to worlds differently once).
   Version 8.1. Owner (TODO, 2026-11-11): Lane 05. Prerequisites: GEN.1546. Related: GEN.1546, GEN.1548, GEN.1493.
   Filed by the TODO thread.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): key the dice by host seed and orbit slot ({host_seed}:orbit:{slot}), the key scheme DB.75 and GEN.556 use.
 
 - [ ] **GEN.1548 Forward build, item 3: reorder the system build so each thing is made once (star, bare bodies, spacing, trims and belts, orbits settled, air, water and surface on the final orbit, class and life last)**
   Boss, 6:13 PM EST on 2026-11-11 ('Do it all'); handoffs/forward-build-order-2026-11-11.md has the full order, the backward edges to cut and the test seeds. Order: star inputs (mass, birth [Fe/H], final age with the existing habitable tilt), star state once, bare bodies and moons' birth facts (mass, bulk composition, volatile inventory, birth orbit; a rocky body's radius from mass and composition), spacing, trims, belts, star history, planet-to-planet pull (secular exchange, resonant chains), giants and envelope worlds sized once on the final age and mean light, moons placed on the parent's final orbit, then air, water and surface once on the final orbit with each body's own dice, then class and life last; habitable-world requests judged after the settle. Backward edges to cut: moon_orbit_bounds_km reads the parent's scale_height (needs a bare-body stand-in); moon_history reads the parent's surface pressure through the thermal tide; interior_heat.surface_of falls back to SURFACE_TEMPERATURE_K at the bare stage in the tide decay; refinish_rocky, settle_giant, settle_envelope and refresh_at_final_age vanish once age is an input. Expected saving 25 to 35 percent of generation time. Test on the same seeds (default seeds 0 to 99 and the interaction seeds). Lock item (new epoch).
   Version 8.1. Owner (TODO, 2026-11-11): Lane 05 (with Lane 14 for the air side). Prerequisites: GEN.1546, GEN.1547. Related: GEN.1546, GEN.1547, GEN.1538, GEN.1402.
   Filed by the TODO thread.
   Fold (TODO sweep, 2026-11-12): GEN.1538 (design check: settle the orbit before the air) is retired into this item.
+  Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): write the reorder in the shape of GEN.556's recursion (stages that become the steps of populate(host): host, orbiters by slot, then air, water, class and life per body), so GEN.556 in 8.2 replaces the routine without redoing the order.
 
 - [ ] **GEN.1549 Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved**
   Boss, 6:13 PM EST on 2026-11-11. After GEN.1546 to GEN.1548 land the star ages, the class mix and the life shares move everywhere. Re-run the class, life, star, phenomena and systems censuses, decide each flag (real shift, re-baseline, or fault to file), and report the new age distribution of M dwarfs (the pile at 13.8 Gy should be gone). Same work as GEN.1537.
@@ -13461,6 +13462,7 @@ clears each one.
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L4, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 23. Prerequisites: none. Related: GEN.1547.
   Filed by the TODO thread. Bug sweep.
+  Status (TODO, 2026-11-12): Lane 23 built the fix on claude/bugsweep-lane23 (afc237cb6, lock item for the earliest train); the state-preserving reparent of GEN.583 is the general form.
 
 - [ ] **GEN.1598 (bug) habitability_world.inventories (about lines 315-321): 'C' is max(hydrogen, carbon...) and 'N' is max(hydrogen, nitrogen...), crediting carbon and nitrogen with the water inventory; looks like a copy slip, confirm intent first**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L5, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
@@ -13471,6 +13473,7 @@ clears each one.
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L6, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 23. Prerequisites: none. Related: none.
   Filed by the TODO thread. Bug sweep.
+  Status (TODO, 2026-11-12): Lane 23 found it a latent trap only (the two limits are the same number wherever a disk exists); fixed on claude/bugsweep-lane23 with no stored change.
 
 - [ ] **GEN.1600 (bug) system._secular_exchange (lines 2240-2242): problem tuples hold formatted distances, so an unchanged problem can read as new after a tiny move and keep the loop going**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L7, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
@@ -13496,6 +13499,7 @@ clears each one.
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, L11, read only, severity Low (rare, small, or a trap for later work). Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard or a count. Often rides with the owner's next change to the same file.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 23. Prerequisites: none. Related: GEN.1548.
   Filed by the TODO thread. Bug sweep.
+  Status (TODO, 2026-11-12): Lane 23 confirmed (seed 433 left 40 tide and heating ledger rows naming a dropped body); the drop now runs before the tides, on claude/bugsweep-lane23 (lock item).
 
 - [ ] **GEN.1605 (bug) A belt keeps the mass, largest body and density of the star's first age: settled once in generation/belt.py line 201, never redone after the age raise or a belt move, so 5 of 25 belts are 2 to 4.5 times off, and largest_body_km disagrees with the rank 1 member by 15 to 40 percent**
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', M7, confirmed by run. generation/belt.py line 201 settles mass, largest body and density at the star's age when the belt is built; system.py lines 452-476 raise the age afterwards and validation.py lines 225-229 move a belt, and nothing settles it again. Seeds 700 to 739: 5 of 25 belts stored a mass that differs from the same code at the final age (4.5x, 4.3x, 2x, 2x, and 2.2e21 kg against 3.9e12 kg); members are drawn later at the final age, so the members and the stored mass describe two belts; late accretion and the debris disk read the stale mass. With no age change, the stored largest_body_km and the rank 1 member's diameter still disagree by 15 to 40 percent (617 against 502 km, 1,670 against 1,909 km) because they come from different draws. Do: settle the belt at its final age and final place (GEN.1546 removes the age raise; this item covers the move and any remaining order), and take largest_body_km from the rank 1 member (or draw the member from the stored value), reusing the existing settle code; no second belt pass. Done: a test that stored mass equals a fresh settle at the final age and place, and that largest_body_km equals the rank 1 member, before and after belt mass counts. Lock item (changes output, new epoch).
@@ -13522,6 +13526,7 @@ clears each one.
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L16, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: none. Related: none.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
+  Status (TODO, 2026-11-12): Lane 23 found it by design (a hycean ocean lies deep under a hydrogen envelope, not the thin layer the tide formula is for); the reason is now in the module text and a test pins it, on claude/bugsweep-lane23, no value change.
 
 - [ ] **GEN.1610 (bug) belt._STARS is a weak map from belt to star that is not stored or pickled, so a belt copied or sent between processes before its members are first read returns no members**
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L17, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
@@ -14836,6 +14841,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: GEN.576, DB.78, GEN.578. Related: GEN.550, GEN.552,
   GEN.315, GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
+  Moved to 8.2 with the barycentre items it needs (GEN.576 to GEN.578), under Boss's 9:19 PM EST plan (TODO, 2026-11-12).
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
