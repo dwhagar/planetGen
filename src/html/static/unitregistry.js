@@ -101,6 +101,8 @@ export const UNITS = {
   "1/s": {"kind": "frequency", "symbol": "1/s", "name": "per second", "singular": "per second", "factor": 1.0, "offset": 0.0},
   "1/yr": {"kind": "frequency", "symbol": "1/yr", "name": "per year", "singular": "per year", "factor": 3.168808781402895e-08, "offset": 0.0},
   "1/Gy": {"kind": "frequency", "symbol": "1/Gy", "name": "per billion years", "singular": "per billion years", "factor": 3.168808781402895e-17, "offset": 0.0},
+  "1/Myr": {"kind": "frequency", "symbol": "1/Myr", "name": "per million years", "singular": "per million years", "factor": 3.168808781402895e-14, "offset": 0.0},
+  "1/d": {"kind": "frequency", "symbol": "1/d", "name": "per day", "singular": "per day", "factor": 1.1574074074074073e-05, "offset": 0.0},
   "m_s": {"kind": "speed", "symbol": "m/s", "name": "meters per second", "singular": "meter per second", "factor": 1.0, "offset": 0.0},
   "km_s": {"kind": "speed", "symbol": "km/s", "name": "kilometers per second", "singular": "kilometers per second", "factor": 1000.0, "offset": 0.0},
   "Mm_s": {"kind": "speed", "symbol": "Mm/s", "name": "megameters per second", "singular": "megameters per second", "factor": 1000000.0, "offset": 0.0},

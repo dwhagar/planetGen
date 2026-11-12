@@ -57579,7 +57579,7 @@
           "fields": [
             [
               "What it is",
-              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+              "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.companion_orbits takes it"
             ],
             [
               "The range it moves in",
@@ -57610,7 +57610,7 @@
           "tier_code": "T6",
           "tweak": "L0",
           "unread": null,
-          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.flux_at takes it"
+          "what": "a subtree of stars is one point at its center of mass (the node the source and the host meet at gives its orbit), as planet_zones.companion_orbits takes it"
         },
         {
           "burn_down": null,
