@@ -265,3 +265,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
 | module | planetgen.physics.obliquity_variation | GEN.1454 | the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table |
+| module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
