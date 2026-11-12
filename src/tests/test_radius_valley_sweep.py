@@ -75,7 +75,7 @@ def test_a_rocky_planet_is_never_larger_than_a_sub_neptune_can_be(sweep):
     # two planets of 8 and 9.9 Earth radii at 0.04 and 0.06 g/cc come out. A body under the definition's density edge is a puff whatever its type.
     puffed = [row for row in sweep if row.planet_type == planet_type.SUPER_PUFF or row.density < super_puff.DENSITY_RANGE_G_CM3[1]]
     ordinary = [row for row in sweep if row not in puffed]
-    # The ordinary tail is the 12 Earth-mass planets (the planet types stop at 12) whose puffed start the obliquity tide of GEN.1347 inflates to a density just over the super-puff edge:
+    # The ordinary tail is the 12 Earth-mass planets whose puffed start the obliquity tide of GEN.1347 inflates to a density just over the super-puff edge:
     # 2 of 2,416 rocky planets in 360 G2V systems (0.08 percent) pass 7.5 Earth radii, all at 12.0 Earth masses, 0.11 to 0.14 g/cc, envelope 0.15 to 0.19, 8.36 and 7.94 Earth radii on main and
     # 7.72 after the GEN.1521 respacing moved an orbit into the tide's range; none is a rocky letter. So the bound for an ordinary planet is 8.5, the tail's measured maximum with a margin.
     assert max(row.radius for row in ordinary) <= 8.5
