@@ -64259,6 +64259,90 @@
       ],
       "slug": "6-284-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
       "title": "Stand-ins of the Kozai-Lidov screen of a planet"
+    },
+    {
+      "key": "6.287",
+      "number": "6.287",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "acid_freezing.freezing_point_k: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K)"
+            ],
+            [
+              "The range it moves in",
+              "none (read, not fitted); the 1 K of the reading"
+            ],
+            [
+              "Where it holds",
+              "acid mole fraction 0 to 1 at 0.1 MPa; the equilibrium freezing point, below which a solid can be present"
+            ],
+            [
+              "What would show it wrong",
+              "a measured freezing point of a sulfuric acid solution more than 2 K from the curve"
+            ],
+            [
+              "What replaces it",
+              "the Gibbs-energy fit of [R4877] itself (Tables 6 to 8) evaluated for the liquidus, which removes the digitising"
+            ],
+            [
+              "Evidence",
+              "read first-hand from the scan of [R4877]; laboratory freezing points of Gable, Betz and Maron and of Kunzler and Giauque"
+            ]
+          ],
+          "id": "AF1",
+          "key": "6.287:AF1",
+          "kind": "P",
+          "slug": "6-287-af1",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": null,
+          "what": "acid_freezing.freezing_point_k: the stable liquidus by acid mole fraction, 60 points read from the printed calculated curves of [R4877: Figure 1] (to about 1 K) with the temperatures of [R4877: Table 6] where it prints them (273.15, 283.45, 281.63, 244.88 K and the incongruent 220.27 and 236.76 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "acid_freezing is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "cloud pressures up to a few bar"
+            ],
+            [
+              "What would show it wrong",
+              "a melting-curve slope of the hydrates above 0.1 K per bar"
+            ],
+            [
+              "What replaces it",
+              "the pressure dependence of the Gibbs-energy functions, if a source prints it"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the slopes of the ice and acid melting curves)"
+            ]
+          ],
+          "id": "AF2",
+          "key": "6.287:AF2",
+          "kind": "P",
+          "slug": "6-287-af2",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L0",
+          "unread": null,
+          "what": "acid_freezing is used at any pressure of a cloud: the melting curves of these solids move by a few hundredths of a kelvin per bar, which the 1 K of the reading hides"
+        }
+      ],
+      "slug": "6-287-stand-ins-of-the-freezing-curve-of-the-sulfuric-acid-hydrates-gen-1644",
+      "title": "Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)"
     }
   ]
 }
