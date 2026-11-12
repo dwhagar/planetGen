@@ -69,6 +69,20 @@ def test_schema_is_applied_once_per_process(mysql_config, monkeypatch):
     assert calls == []
 
 
+def test_a_planet_that_carries_its_co2_sink_is_pickled_without_it_and_copied_with_it():
+    """A body keeps the sink of its carbon (a closure over the body, GEN.1309 A) while it is built; a pickle of a sector, sent to another process, leaves it out and a copy keeps it."""
+    import copy
+
+    def local_sink():
+        return 1.0     # a closure: it cannot be pickled
+    system = _sector("Pickled Sector", ["Pickle One"]).entries[0].star_system
+    planet = next(obj for obj in system.planets if obj.body_type != "a")
+    planet._co2_sink = local_sink
+    assert pickle.loads(pickle.dumps(planet))._co2_sink is None
+    assert copy.copy(planet)._co2_sink is local_sink and copy.deepcopy(planet)._co2_sink is local_sink
+    assert planet._co2_sink is local_sink
+
+
 def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkeypatch):
     sector = _sector("Batch Sector", [f"Batchstar {n}" for n in range(8)], ["Lonely Wanderer"])
     store.get_connection(mysql_config).close()
@@ -83,7 +97,10 @@ def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkey
         assert systems["n"] == 8
         assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 1
         # One INSERT per table/statement shape, not one per row.
-        assert counter.statements.count("INSERT") < 40 < planets + moons + 16
+        # The tables with thousands of rows (a belt's members, the isotope records) take one statement for each `_BATCH_ROWS` of them.
+        wide = sum(-(-conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] // store._BATCH_ROWS)
+                   for table in ("belt_members", "planet_isotopes", "moon_isotopes"))
+        assert counter.statements.count("INSERT") < 40 + wide < planets + moons + 16 + wide
         # Every child points at a parent written in the same save.
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM moons m LEFT JOIN planets p ON p.id = m.planet_id WHERE p.id IS NULL"

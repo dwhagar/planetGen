@@ -624,7 +624,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers", "planet_deposit_types", "moon_deposit_types", "rogue_planet_deposit_types", "planet_isotopes", "moon_isotopes", "rogue_planet_isotopes",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition", "belt_members", "irregular_sets", "irregular_moons", "field_members",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members", "effect_ledger", "body_history",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -935,6 +935,7 @@ class Connection:
         self._batch_levels = {}
         self.prereserved_names = None
         self.deferred_name_confirmations = None
+        self.deferred_summary = None    # a sector save's list of the system ids whose summary and stamp are written once, after the last system
         self.claim_connection = None
         """`Connection` or `None`: a second connection of the same database on which `reserve_system_names` claims
         names in their own short transactions (PERF.49), so the registry's row locks are not held to this
@@ -4766,7 +4767,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
-        stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code
+        if getattr(conn, "deferred_summary", None) is None:
+            stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code (a sector save stamps all its systems at once)
         insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
 
@@ -4790,7 +4792,13 @@ def insert_body_history(conn, star_system_id, star_system, saved):
     columns = body_history.ROW_FIELDS
     if rows:
         marks = ", ".join("?" for _ in columns)
-        conn.executemany(f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+        sql = f"INSERT INTO body_history ({', '.join(columns)}) VALUES ({marks})"
+        values = [tuple(row[name] for name in columns) for row in rows]
+        if getattr(conn, "_batch", None) is not None:      # held back with the other child rows in a sector save, as `insert_effect_ledger`'s are
+            for params in values:
+                conn.execute(sql, params)
+        else:
+            conn.executemany(sql, values)
     return len(rows)
 
 
@@ -4814,7 +4822,13 @@ def insert_effect_ledger(conn, star_system_id, ledger, saved, floor=None):
     columns = effect_ledger.ROW_FIELDS
     if rows:
         marks = ", ".join("?" for _ in columns)
-        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({marks})", [tuple(row[name] for name in columns) for row in rows])
+        sql = f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({marks})"
+        values = [tuple(row[name] for name in columns) for row in rows]
+        if getattr(conn, "_batch", None) is not None:     # a sector save holds the rows back with the other child rows, one statement for all its systems (an `executemany` would flush them for every system)
+            for params in values:
+                conn.execute(sql, params)
+        else:
+            conn.executemany(sql, values)
     return len(rows)
 
 
@@ -5053,8 +5067,11 @@ def _insert_star_system_rows(conn, star_system: StarSystem, system_config: Syste
     for comet in star_system.secondary_comets:
         insert_comet(conn, comet, star_system_id, star_id=secondary_star_id)
 
-    system_summary.refresh(conn, [star_system_id])  # GEN.1478: what the rows just written add up to
-    stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
+    if getattr(conn, "deferred_summary", None) is not None:     # a sector save writes them once for all its systems (`_insert_sector_rows`): each one here would flush the batch
+        conn.deferred_summary.append(star_system_id)
+    else:
+        system_summary.refresh(conn, [star_system_id])  # GEN.1478: what the rows just written add up to
+        stamp_habitability(conn, [star_system_id])      # GEN.1479: its bodies were just scored by this code
     return star_system_id
 
 
@@ -8131,6 +8148,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     # in `deferred_name_confirmations` for one upsert at the end.
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
+    conn.deferred_summary = []
     conn.uid_issuer = _uid_issuer_for_sector(conn, sector_id, galaxy_position)
     try:
         # Every placed phenomenon is named by its Object ID (GEN.1256),
@@ -8187,6 +8205,11 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
                 built_scatter_ids.append(entry.scatter_id)
             _save_progressed(conn)
 
+        summarized, conn.deferred_summary = conn.deferred_summary, None
+        if summarized:      # GEN.1478, GEN.1479: what the systems' rows add up to and the stamp of the code that scored them, one statement for the sector
+            system_summary.refresh(conn, summarized)
+            stamp_habitability(conn, summarized)
+            stamp_ledger(conn, summarized)      # GEN.1498
         healed = confirm_system_names(conn, conn.deferred_name_confirmations)
         if healed:
             seen = set()
@@ -8198,6 +8221,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
     finally:
         conn.prereserved_names = None
         conn.deferred_name_confirmations = None
+        conn.deferred_summary = None
     if cluster_links:       # GEN.359: every star of a system built from a cluster's star points to the cluster
         conn.executemany("UPDATE stars SET cluster_id = ? WHERE star_system_id = ?", cluster_links)
         name_clusters(conn, [cluster_id for cluster_id, _system_id in cluster_links])
