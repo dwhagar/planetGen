@@ -198,7 +198,7 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 COLLISION_MASS_RETENTION = 0.9
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
-# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
+# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
 # ([R4897], read) and 0.27 percent of early M dwarfs ([R1504], read).
 GIANT_MIGRATION_SHARE = 0.0092
 GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
@@ -1327,6 +1327,19 @@ STELLAR_SOLAR_LOG_EPS = {
     "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
 """dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
 Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_HEAVY_LOG_EPS = {
+    "Sr": 2.83, "Y": 2.21, "Zr": 2.59, "Ba": 2.27, "La": 1.11, "Ce": 1.58, "Pr": 0.75, "Nd": 1.42, "Sm": 0.95, "Gd": 1.08, "Tb": 0.31, "Dy": 1.10,
+    "Ho": 0.48, "Er": 0.93, "Tm": 0.11, "Yb": 0.85, "Lu": 0.10, "Os": 1.35, "Ir": 1.32, "Pt": 1.61, "Au": 0.91, "Pb": 1.95}
+"""dict: GEN.1371: the heavy elements of the s- and r-process split, A21 Table 2 log eps (H = 12; Ir and Pt are the CI-chondrite value the table adopts, the rest the photosphere); Eu, Th and U are above.
+Tier T1 (read), tweak L0."""
+STELLAR_HEAVY_R_FRACTION = {
+    "Sr": 0.11, "Y": 0.08, "Zr": 0.18, "Ba": 0.15, "La": 0.25, "Ce": 0.18, "Pr": 0.49, "Nd": 0.42, "Sm": 0.67, "Gd": 0.85, "Tb": 0.93, "Dy": 0.88,
+    "Ho": 0.92, "Er": 0.83, "Tm": 0.83, "Yb": 0.68, "Lu": 0.79, "Os": 0.91, "Ir": 0.99, "Pt": 0.95, "Au": 0.94, "Pb": 0.19}
+"""dict: GEN.1371: the share of each element's solar abundance made by the r-process, as recalled from [R5228] (Table 10) and the papers that quote it (the Eu 0.97 and Ba 0.15 of the research
+note agree); the rest is the s-process. Tier T3 (Marginal Unverified, second hand), tweak L0; each value is flagged for upgrade if the table is supplied."""
+STELLAR_S_PROCESS_XFE = (0.030, -0.076, 0.149)
+"""tuple: `(a, b, sigma)`: [s/Fe] = a + b [Fe/H] with scatter sigma (dex), the s-process proxy, the [R0535] fit of [Y/Fe] against [Fe/H] for all 1,615 dwarfs (`research/real-material-data-1`
+section 1.2); the one trend in hand for the s-process, taken for Ba and every other s-process element. Tier T5, tweak L1."""
 STELLAR_PROTO_NO_OFFSET = ("Li",)
 """tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
 added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""

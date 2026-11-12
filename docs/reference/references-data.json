@@ -238273,6 +238273,33 @@
    "volume": "45",
    "year": 2007
   },
+  "10.1146/annurev.astro.46.060407.145207": {
+   "authors": [
+    [
+     "Sneden",
+     "C."
+    ],
+    [
+     "Cowan",
+     "J. J."
+    ],
+    [
+     "Gallino",
+     "R."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1146/annurev.astro.46.060407.145207",
+   "editors": [],
+   "journal": "ARA&A",
+   "page": "241",
+   "publisher": "Annual Reviews",
+   "src": "crossref",
+   "title": "Neutron-Capture Elements in the Early Galaxy",
+   "type": "journal-article",
+   "volume": "46",
+   "year": 2008
+  },
   "10.1146/annurev.astro.46.060407.145222": {
    "arxiv": "0909.0948",
    "authors": [
@@ -287393,6 +287420,7 @@
   "10.1146/annurev.astro.43.072103.150608": "R1498",
   "10.1146/annurev.astro.44.051905.092459": "R2158",
   "10.1146/annurev.astro.45.051806.110615": "R0948",
+  "10.1146/annurev.astro.46.060407.145207": "R5228",
   "10.1146/annurev.astro.46.060407.145222": "R0169",
   "10.1146/annurev.ea.05.050177.000433": "R3764",
   "10.1146/annurev.ea.13.050185.000525": "R0745",
