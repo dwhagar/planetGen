@@ -655,7 +655,8 @@ def population_status(conn):
             "EXISTS(SELECT 1 FROM species) AS species, EXISTS(SELECT 1 FROM polities) AS polities, "
             "EXISTS(SELECT 1 FROM system_owners) AS territories"
         ).fetchone()
-    except Exception:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+    except Exception as exc:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+        log.swallowed("population/model", "population_status", exc)
         return {"generated": False, "species": False, "polities": False, "territories": False}
     return {key: bool(row[key]) for key in ("generated", "species", "polities", "territories")}
 

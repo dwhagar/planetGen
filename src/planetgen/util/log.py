@@ -1593,6 +1593,15 @@ def error(message, *args, stderr=False, **kwargs):
     _logger.error(message, *args, **kwargs)
 
 
+def swallowed(area, what, exc):
+    """
+    Notes an error that a broad `except` deliberately goes on past (OPS.168): one debug line (`area`, `what` it was doing, the exception's type and text) and nothing at normal level, so
+    a run with debugging on is no longer blind where the code chooses to degrade. It never raises.
+    """
+    if _logger.isEnabledFor(logging.DEBUG):
+        _logger.debug(f"{area}: went on past {what}: {type(exc).__name__}: {exc}", stacklevel=2)
+
+
 def trace(message, *args, area="decision", **kwargs):
     """High-volume detail (an SQL statement, a cache hit), in `area` (one of `AREAS`). It goes where every other
     debug line goes (stdout, the debug log, a worker's relay); a no-op unless one of them is on, so the caller

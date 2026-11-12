@@ -408,7 +408,8 @@ def stage_name(conn, run_id, index):
     number only where the run record cannot say (a run already gone from Redis)."""
     try:
         label = stage_label(conn, run_id, index)
-    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+    except Exception as exc:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        log.swallowed("queue/wrapper", "stage_name", exc)
         label = None
     return label or str(index)
 
@@ -551,7 +552,8 @@ def expected_seconds(step, row):
             return stats.stage_seconds(conn, step.key, row["settings"])
         finally:
             conn.close()
-    except Exception:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+    except Exception as exc:  # noqa: BLE001 -- a time that cannot be read is a stage with none recorded
+        log.swallowed("queue/wrapper", "expected_seconds", exc)
         return None
 
 
@@ -696,8 +698,8 @@ def report_wait(holder, position):
             job.meta["waiting"] = None if holder is None else {"run": holder, "position": position,
                                                                "text": waiting_text(holder, position)}
             job.save_meta()
-    except Exception:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
-        pass
+    except Exception as exc:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
+        log.swallowed("queue/wrapper", "report_wait", exc)
 
 
 def stage_ensure(conn, url, kind, step_kind, workers_count=None):

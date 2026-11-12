@@ -46,7 +46,8 @@ def _redis(url):
         connection = redisqueue.connect(url)
         connection.ping()
         return connection
-    except Exception:  # noqa: BLE001 -- no server: nothing is queued
+    except Exception as exc:  # noqa: BLE001 -- no server: nothing is queued
+        log.swallowed("cli/reset_jobs", "_redis", exc)
         return None
 
 

@@ -12,6 +12,7 @@ How fast the units of each command work, in their own items a second (PERF.147),
 """
 
 from planetgen.queue import runrecord
+from planetgen.util import log
 
 KEEP_WEIGHT = 0.5
 """float: The share of a stored rate that stays when a run's rate is folded in."""
@@ -63,6 +64,7 @@ def rate_of(conn, run_id):
     def rate(kind):
         try:
             return read(conn, run_id).get(kind) or persisted(conn).get(kind)
-        except Exception:       # noqa: BLE001 -- a Redis that cannot answer for one poll leaves the bar with the running rate alone
+        except Exception as exc:       # noqa: BLE001 -- a Redis that cannot answer for one poll leaves the bar with the running rate alone
+            log.swallowed("queue/unitrates", "rate_of.rate", exc)
             return None
     return rate

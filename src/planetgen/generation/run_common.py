@@ -502,7 +502,8 @@ def sector_bar(progress, args, description, total):
 def _stats_or_none(args):
     try:
         return _generation_stats(args)
-    except Exception:  # noqa: BLE001 -- args without a database (a test's stand-in)
+    except Exception as exc:  # noqa: BLE001 -- args without a database (a test's stand-in)
+        log.swallowed("generation/run_common", "_stats_or_none", exc)
         return None
 
 
