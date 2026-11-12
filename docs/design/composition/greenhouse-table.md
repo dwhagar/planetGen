@@ -161,6 +161,10 @@ own (`aerosols.haze_stream_of`, seeded by the mass, radius and distance, which a
 go to the table. `generate_aerosols` makes the same haze of the final air (the life stage may have changed the air since, and the stored depth then follows the air, not the temperature).
 A hazy air is cooler at the ground than the same air clear (the anti-greenhouse of Titan): `test_haze_in_the_air.py`.
 
+## Minor gases (GEN.1588)
+
+The fit was made on airs whose minor gases are absent or at least a few parts in a hundred thousand of the air, so between the two the network invented a slope: ten parts per million of hydrogen cyanide added 76 K to Earth's air, a part in a hundred million of ozone 10 K, a trace of helium up to 100 K, and a trace of ammonia or hydrogen took the greenhouse away. `warming` now reads each gas other than water, carbon dioxide, methane, nitrogen and oxygen (`TRACE_EXEMPT`: the gases the fit saw at every share) that stands under `TRACE_FULL_SHARE` (1e-3 of the air) by its share over that share of what the table says it adds to the air without the minor gases, the optically thin limit, where the effect goes with the column. A gas at the share counts in full and a gas at zero not at all, so the answer is continuous where a gas crosses the share (only the small interaction between two traces steps). Registry row IR18 (tier T5, tweak L3, hand-chosen against the sweep). The better answer is a refit on airs with minor gases from 1e-9 up (`scripts/fit_greenhouse_table.py`); until then the table's own answer for a gas above 1e-3 stands, helium and hydrogen cyanide included, whose full-share effects are still larger than the physics gives.
+
 ## What moves
 
 Every planet and moon with an air: the surface temperature, and with it the class, the habitability and the life draw. 28 percent of the airs the generator makes shift by more than 5 K against the

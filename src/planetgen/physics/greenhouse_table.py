@@ -70,6 +70,13 @@ FITTED_UP_TO_K = 4000.0
 """float: The hottest surface the table was fitted on (the radiative-convective model's own limit, `radiative_convective.HIGHEST_SURFACE_K`). The table does not stop there (GEN.1580): the warming
 it gives is the same log ratio of the air and the flux above it, an extrapolation of the fit (stand-in, registry CC7), and the hottest surface of an air is the ionization of its gas
 (`ionization.ceiling_k`), not this."""
+TRACE_FULL_SHARE = 1.0e-3
+"""float: STAND-IN (IR18, tier T5, L3): the mole share at and above which a minor gas counts in full. The fit was made on airs whose minor gases are absent or at least a few parts in a
+hundred thousand (the family draws from 1e-5 up), so between absent and about 1e-3 the network invents a slope: ten parts per million of hydrogen cyanide added 76 K, a trace of helium up to
+100 K, a part in a hundred million of ozone 10 K (GEN.1588). Below this share the effect of each such gas is taken as its share over this share of what the table says it does in full, the
+optically thin limit (the effect goes with the column), and nothing at zero."""
+TRACE_EXEMPT = frozenset(("H2O", "CO2", "CH4", "N2", "O2"))
+"""frozenset: The gases the fit saw at every share (the water, carbon dioxide and methane of the airs it was made on, and the bulk gases): they count in full at any share, as Earth's 400 parts per million of carbon dioxide must."""
 DEFAULT_ALOFT_SHARE_OF_PRESSURE = 0.1
 """float: The pressure aloft, as a share of the surface pressure, of an air with no sunlight taken aloft (any value: the share is zero)."""
 
@@ -168,6 +175,25 @@ def _deep_air_rise(total_pa, vector):
     return max(1.0 - 1.0 / gamma, 0.0) * math.log(total_pa / top_pa)
 
 
+def _ratio_with_traces(partial_pressures_pa, total_pa, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa):
+    """
+    `ln(T_s / T_e)` of the air with each minor gas under `TRACE_FULL_SHARE` counted by its share (GEN.1588): the air without them gives the base, and each one adds its share over
+    `TRACE_FULL_SHARE` of what the table says it adds to that base. An air with no such gas is read as it is. A gas that reaches the share moves into the base with the whole of its
+    effect, so the answer does not jump at it (only the small interaction between two traces does).
+    """
+    traces = {formula: pascal for formula, pascal in partial_pressures_pa.items()
+              if formula not in TRACE_EXEMPT and 0.0 < pascal / total_pa < TRACE_FULL_SHARE}
+    base = {formula: pascal for formula, pascal in partial_pressures_pa.items() if formula not in traces}
+    if not traces or not base:
+        return log_ratio(vector)
+    base_ratio = log_ratio(features(base, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
+    ratio = base_ratio
+    for formula, pascal in traces.items():
+        with_gas = log_ratio(features({**base, formula: pascal}, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa))
+        ratio += pascal / total_pa / TRACE_FULL_SHARE * (with_gas - base_ratio)
+    return ratio
+
+
 def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None):
     """
     The warming of an air under an absorbed flux (the globally averaged W/m2 of `greenhouse.absorbed_flux_w_m2`): the table's reading of what
@@ -182,9 +208,11 @@ def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=
     if not 0.0 <= aloft_share < 1.0:
         raise ValueError(f"aloft_share must be in [0, 1), not {aloft_share!r}")
     effective = (absorbed_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
-    vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
-    ratio = log_ratio(vector)
     total = mixture.total_pressure_pa(partial_pressures_pa)
+    if aloft_pressure_pa is None:
+        aloft_pressure_pa = total * DEFAULT_ALOFT_SHARE_OF_PRESSURE        # fixed by the whole air, so leaving a trace gas out does not move the level the haze takes light at
+    vector = features(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
+    ratio = _ratio_with_traces(partial_pressures_pa, total, vector, gravity_m_s2, absorbed_flux_w_m2, aloft_share, aloft_pressure_pa)
     ratio += _deep_air_rise(total, vector)
     absorbing = sum(pressure for formula, pressure in partial_pressures_pa.items() if gases.gas(formula).ir != "none") / total
     ratio *= min(1.0, total / THIN_AIR_PA, absorbing / ABSORBER_SHARE_MIN)
