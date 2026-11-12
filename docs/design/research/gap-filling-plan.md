@@ -4105,3 +4105,11 @@ How a partner star's tide takes a star's spin toward the orbit's and turns the o
 |---|---|---|---|---|---|---|---|---|---|
 | KZP1 | P | T6 | L1 | `kozai_planets.screen_planets`: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only | the strongest, the sum of the pulls | planets with more than one perturber | an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's | a vector sum of the perturbers' torques | educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers) |
 | KZP2 | P | T6 | L1 | `kozai_planets.SIBLING_MASS_RATIO` 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis | 0.3 to 10 | outer sibling planets | a lighter outer planet that pumps an inner one in an N-body run | the planet-planet octupole test of GEN.1450 | educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps) |
+
+### 6.285 Stand-ins of the sulfur vapor curve (GEN.1564)
+
+The vapor pressure of disulfur over condensed sulfur, held in `physics/data/saturation_pressure.json` under `unread` and served by `saturation.unread_pressure_pa` until GEN.1564 slice 1 runs the freeze-out for it.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SV1 | P | T2 | L0 | saturation `unread` S2: ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T, 312 to 925 K, 8.8 percent at worst | the three coefficients (a fit to the gas table, no free choice) | sulfur vapor over condensed sulfur, hot rocky and giant atmospheres | a measured vapor pressure of sulfur that differs by more than the 8.8 percent over the window | a measured or critically evaluated curve for S2 and S8 over liquid sulfur | COMPUTED (the gas table section 6.3, T6: equilibrium of condensed and gas phases from NASA polynomials; 406, 504, 605, 763 and 882 K at 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa; test_saturation::test_the_held_back_sulfur_curve_reproduces_the_gas_tables_rows) |
