@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1609 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1616 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1583 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1590 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 185 | 20 | 11 | 1 | 0 | 217 |
+| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 52 | 10 | 9 | 0 | 184 |
-| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+| T3 | 113 | 52 | 11 | 9 | 0 | 185 |
+| T4 | 84 | 12 | 4 | 22 | 15 | 137 |
 | T5 | 81 | 24 | 6 | 1 | 1 | 113 |
-| T6 | 208 | 106 | 31 | 81 | 4 | 430 |
+| T6 | 208 | 106 | 31 | 82 | 4 | 431 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 923 | 310 | 77 | 246 | 53 | 1609 |
+| T9 | 45 | 16 | 5 | 92 | 35 | 193 |
+| All | 925 | 310 | 78 | 247 | 56 | 1616 |
 
 ## How the labels were given
 
@@ -1418,6 +1418,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TJ6 | P | T2 | L0 | trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455) | 2.0 to 3.5 | giants with another giant in the system | an N-body run of two giants 3.5 mutual Hill radii apart whose trojans stay for 1 Gyr | an N-body map of trojan survival beside a second giant | [R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii ([R1583], recalled) | predicted only | - | - |
 | TJ7 | P | T4 | L4 | trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: `1 - exp(-ramp (x - 1))` (GEN.1455) | 0.5 to 2 | every swarm with a neighbour | a swarm kept whole at one separation of the limit or lost at three | an N-body run of the survival of a swarm against separation | none read; the ramp is a smooth rise between lost and kept | predicted only | - | no data |
 | TJ8 | P | T4 | L4 | trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455) | 1.5 to 3 | giants of a star with a companion | an N-body run of a giant at half the stability limit that keeps its trojans | an N-body run of trojans inside the Holman and Wiegert limit | none read; [R1990] give the limit for a planet, not for its trojans | predicted only | - | no data |
+| TJ9 | P | T4 | L4 | trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150) | 6 to 15 | every swarm | a swarm of giants whose median libration amplitude is far from the scale times 1.18 | a fit to the Jupiter and Neptune Trojan catalogues | none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled) | predicted only | GEN.1151 | - |
+| TJ10 | P | T4 | L4 | trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150) | 0.04 to 0.1 | every swarm | a swarm whose mean eccentricity is over 0.15 | a fit to the proper elements of the Jupiter Trojans | none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled) | predicted only | GEN.1151 | - |
+| TJ11 | P | T4 | L4 | trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150) | 8 to 18 | every swarm | a swarm whose mean inclination is over 25 degrees | a fit to the proper elements of the Jupiter Trojans | none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled) | predicted only | GEN.1151 | - |
 
 ## 6.122 Stand-ins of the albedo colour of the star
 
@@ -2431,8 +2434,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BR3 | P | T2 | L0 | loss in unstable resonances after the planets settle: logarithmic in time, about 50 percent of the large (10 km and more) bodies lost since 1 My, 30 percent of the present number in each of 10 to 200 My and 0.2 to 4 Gy | 30 to 60 percent over 4 Gy | belts under a giant, bodies of 10 km and more | a belt whose old bodies show a loss history far from logarithmic | an N-body loss law for the actual giant orbits (Moons and Morbidelli 1995 not reached) | [R3093] ([R3093], READ); stands for Moons and Morbidelli 1995 | predicted only | - | - |
 | BR4 | P | T2 | L1 | survival of the belt after a Grand Tack type event: 2e-3 to 1e-2 of the primordial mass (a factor of several hundred; primordial about 1 Earth mass, now 4.0e-4) | one decade each way | belts of systems whose giants migrated through them | a system with a Grand Tack history whose belt is outside the range | N-body migration runs with the system's own giants (GEN.1054 origin table) | [R4603] ([R4603], READ); [R3150] ([R3150], READ) | predicted only | - | - |
 | BR5 | P | T2 | L1 | survival of a belt in a giant-planet instability alone: 0.1 to 0.5 of the mass (50 to 90 percent lost), then half of the rest by resonances (BR3) | 0.05 to 0.7 | belts of systems with a Nice type instability | a belt of such a system outside the range | N-body instability runs with the system's giants | [R4603] (READ); [R3150] (READ) | predicted only | - | - |
-| BR6 | P | T1 | L0 | dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | [R4159] ([R4159], READ) | predicted only | - | - |
-| BR7 | P | T1 | L0 | dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | [R2871, R2874] ([R2871], READ) | predicted only | - | - |
+| BR6 | P | T1 | L0 | body_status.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | [R4159] ([R4159], READ) | predicted only | - | - |
+| BR7 | P | T1 | L0 | body_status.MARGOT_COEFFICIENT 1.9e-4 and body_status.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | [R2871, R2874] ([R2871], READ) | predicted only | - | - |
 | BR8 | P | T2 | L0 | the radius where a solid body turns round (potato radius): 200 km for ice, 300 km for rock (3.3e19 kg and 3.4e20 kg) | 150 to 400 km | icy and rocky small bodies | a measured round body well below the radius or a lumpy one well above | the roundness engine's strengths (`physics/roundness.py`, GEN.1158; the BR9 band is retired, GEN.1160) | [R2703] ([R2703], READ); stands for [R4343] | predicted only | - | - |
 | BR10 | P | T2 | L0 | the largest body a young icy disc grows: radius about 1 750 km, at most 3 to 4 percent of the initial solids, nearly independent of disc mass, stellar mass and age | 1 000 to 2 500 km | icy discs at 30 to 150 au round 1 to 3 solar mass stars | a Kuiper-type disc whose largest body is outside this radius | the order statistic of the size law (GEN.1061) checked against it | [R2324] ([R2324], READ) | predicted only | - | - |
 | BR11 | P | T1 | L0 | the Kuiper belt size law: cold bright-end slope 1.5 (+0.4 -0.2), break H_B 6.9; hot slope 0.87, break 7.7; faint-end slope near 0.2; masses hot 0.01 and cold 3e-4 Earth masses; classical belt 0.010 Earth masses, mostly near 100 km, its largest 2 percent of its mass | measured errors | Kuiper-type discs | a belt whose size law is outside the errors | a size law derived from the disc's own collisional equilibrium | [R1439] ([R1439], READ); [R0362] ([R0362], READ) | predicted only | - | - |
@@ -2837,3 +2840,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
 | OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
 | OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
+
+## 6.276 Stand-ins of the moons of planet size around the giants
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| PSM1 | P | T9 | L0 | `planet_moons.PLANET_MOON_MIN_MASS_KG`: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107) | 0.05 to 0.2 Earth mass | every giant | none (a definition) | none | from needed output | predicted only | GEN.1157 | - |
+| PSM2 | D | T1 | L0 | `planet_moons.DISK_TOTAL_RATIO_MAX` 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent) | none (exact) | giants of 0.1 to 3 Jupiter masses, extended to ten ([R5229] restates the extension) | a regular moon system above 6.4e-4 of its planet | a disk model of the planet's own mass (GEN.466) | [R0642, R0643, R5229] (READ) | predicted only | GEN.1157 | - |
+| PSM3 | P | T3 | L2 | `planet_moons.CAPTURE_CHANCE` 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365] | 0.003 to 0.05 | giants beyond about 0.3 au | a survey of several hundred giants that finds none, or several candidates among 70 | an occurrence rate from a larger exomoon survey | [R2365]: one candidate (Kepler-1708 b-i) in 70; the Kepler-1625 b-i signal is disputed [R1900] | predicted only | GEN.1157 | - |
+| PSM4 | P | T6 | L3 | `planet_moons.EXCHANGE_MAX_RATIO` 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2 | 5e-3 to 5e-2 | every capture | a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower | the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners | [R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037] | predicted only | GEN.1157 | - |

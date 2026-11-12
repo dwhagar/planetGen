@@ -19,12 +19,12 @@
   <div class="panel-header"><h2 id="results-heading">{{ "{:,}".format(page.found) }} of {{ "{:,}".format(page.total) }} stand-ins</h2></div>
   {%- if not page.sections %}<p>No stand-in matches these filters.</p>{% endif %}
   {%- for part in page.sections %}
-  <h3 id="section-{{ part.slug }}">{{ part.number }} {{ part.title }}</h3>
+  <h3 id="section-{{ part.slug }}">{{ part.number }} {{ part.title|chem }}</h3>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Stand-in</th><th scope="col">What it is</th><th scope="col">Tier</th><th scope="col">Tweak</th></tr></thead>
     <tbody>
       {%- for row in part.rows %}
-      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id }}</a></th><td>{{ row.what|chem }}</td><td>{{ row.tier }}</td><td>{{ row.tweak }}</td></tr>
+      <tr><th scope="row"><a href="{{ row.url }}">{{ row.id|chem }}</a></th><td>{{ row.what|chem }}</td><td>{{ row.tier|chem }}</td><td>{{ row.tweak }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -34,11 +34,11 @@
   <div class="panel-header"><h2 id="legends-heading">The tiers and tweak levels</h2></div>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Tier</th><th scope="col">Name</th><th scope="col">Meaning</th></tr></thead>
-    <tbody>{%- for code, name, meaning in page.tiers %}<tr><th scope="row">{{ code }}</th><td>{{ name }}</td><td>{{ meaning }}</td></tr>{% endfor %}</tbody>
+    <tbody>{%- for code, name, meaning in page.tiers %}<tr><th scope="row">{{ code }}</th><td>{{ name|chem }}</td><td>{{ meaning|chem }}</td></tr>{% endfor %}</tbody>
   </table></div>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Level</th><th scope="col">Name</th><th scope="col">Meaning</th></tr></thead>
-    <tbody>{%- for code, name, meaning in page.tweaks %}<tr><th scope="row">{{ code }}</th><td>{{ name }}</td><td>{{ meaning }}</td></tr>{% endfor %}</tbody>
+    <tbody>{%- for code, name, meaning in page.tweaks %}<tr><th scope="row">{{ code }}</th><td>{{ name|chem }}</td><td>{{ meaning|chem }}</td></tr>{% endfor %}</tbody>
   </table></div>
 </section>
 {% endblock %}

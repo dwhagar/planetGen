@@ -594,8 +594,8 @@ def _phenomenon_not_shown(kind, **extra):
 
 
 _BODY_NOT_SHOWN = {
-    "sky_suns": "the other suns of the sky as stored text (GEN.1458); the light, seasons and temperatures it shapes are shown, not the text",
-    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses (GEN.1484); the temperatures and the energy it shapes are shown, not the factor",
+    "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
+    "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
@@ -800,7 +800,8 @@ def _value(spec, table, stored):
         return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
-        return [text[:1].upper() + text[1:]]
+        text = text[:1].upper() + text[1:]
+        return model.chem_text(text) or [text]  # UX.149: a gas the text names ("H+, e-, O2+") is written out
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
     if quantity == RATING:

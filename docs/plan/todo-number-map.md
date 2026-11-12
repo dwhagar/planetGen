@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.427 |
 | NAV | NAV.78 |
-| GEN | GEN.1641 |
+| GEN | GEN.1642 |
 | PERF | PERF.260 |
 | DB | DB.126 |
 | API | API.48 |
@@ -2217,7 +2217,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1440 | Per-planet cosmic dust and comet influx supply (the source V8 of the Venus chemistry set needs) | none | done, PR #5850 |
 | GEN.1441 | The radiation field of a system: the time-averaged light, UV, X-ray, flare and particle dose that every radiating object puts on any body, from 3D positions, and its use for the mean starlight of planets and moons | none | done, PR #5786 |
 | GEN.1442 | Every radiating object's UV, X-ray, flare and particle dose joins the dose and ozone calculation of planets and moons | GEN.1441 | done, PR #5786 |
-| GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | open |
+| GEN.1443 | Every bright source in the sky and in the day and night text: second suns, white dwarfs, neutron stars and accretion disks as seen from a body | GEN.1441 | done (already built: daylight.py GEN.1461 and the sky text, PR 5889; checked by Lane 11 2026-11-12; page summary still says its star is up with two suns, not worth a stored column) |
 | GEN.1444 | Belts, asteroids and comets get the same radiation field: temperature, ice survival and surface dose from all sources | GEN.1441 | done, PR #5869 |
 | GEN.1445 | Radiation field census and sweep: how many bodies change class, dose and temperature once every source counts | GEN.1441 | done, report gen1445-radiation-field-census-2026-11-08.md |
 | GEN.1446 | Tides between all bodies of a system: every star, planet and moon raises tides on every other by 3D position, joining ocean tides, tidal heating, locking and spin-down | none | done (Train 23, 2026-11-11) |
@@ -3828,6 +3828,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1638 | (bug) Class H is unreachable by construction: groundwater() is none for every liquid-surface world, so treat a liquid-surface world with ocean cover under 0.2 as having a reachable water table | none | open |
 | GEN.1639 | (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round) | GEN.1201 | open |
 | GEN.1640 | (bug) The pre-main-sequence luminosity is brighter than BHAC15 at 10 Myr from 0.5 solar masses up (1.0 Msun gives 0.75 Lsun against 0.46), and 1.4 Msun stars reach the main sequence at 8.6 Myr | none | open |
+| GEN.1641 | (bug) GEN.1521's chain rule pushes neighbouring planets past 40 mutual Hill radii, so belt_origin makes many gap belts and belts per system nearly double (G2V 1.21 to 1.73) | GEN.1521 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4632,7 +4633,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | open |
 | TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | done, PR #6122 |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | open |
-| TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | open |
+| TEST.728 | (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates) | none | done, PR #6184 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
@@ -4831,7 +4832,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.423 | (bug) Hot-star nebulae (emission, reflection, planetary, remnants) near the Sun and in the outer disk are effectively not drawn on the map | GEN.1267 | open |
 | MAP.424 | (bug) The Galaxy Map's sector list query (GET /api/galaxy/sectors) hits the 10 s database statement timeout on Boss's server, so /galaxy returns 504 and the cache warm-up fails with QUERY_TIMEOUT | none | open |
 | MAP.425 | (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame) | none | done, PR #6067 |
-| MAP.426 | (bug) After the wheel carries the map from the whole galaxy into a system, the page URL still holds sector=, so test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main | none | open |
+| MAP.426 | (bug) After the wheel carries the map from the whole galaxy into a system, the page URL still holds sector=, so test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main | none | done, PR #6190 (the sector= fault; the wheel-in stall folded into TEST.696) |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 
