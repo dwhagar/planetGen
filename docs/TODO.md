@@ -13417,11 +13417,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
   Filed by the TODO thread.
 
-- [ ] **OPS.166 update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H5). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
-  Filed by the TODO thread.
-
 - [ ] **OPS.168 log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M1). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
@@ -13435,11 +13430,6 @@ clears each one.
 - [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
-  Filed by the TODO thread.
-
-- [ ] **OPS.171 connection_loss.explain on every lost-connection retry**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M5). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
   Filed by the TODO thread.
 
 - [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
@@ -13510,6 +13500,81 @@ clears each one.
 - [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
   Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row D). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **OPS.177 A top-level legacy/ folder with one script that, only when a user runs it on purpose, converts data from the last version before 8.0 to 8.0 and does nothing else**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." No test run needed; the script only has to exist. Other legacy scripts go here later.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: DB.126, DB.127.
+  Filed by the TODO thread.
+
+- [ ] **DB.126 legacy/ script that bumps a pre-8.0 database to the 8.0 structure in one step**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." Lives beside OPS.177; run only by hand.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: OPS.177, DB.127.
+  Filed by the TODO thread.
+
+- [ ] **DB.127 Hard cut at 8.0: remove the database version migrations and tests for anything before 8.0, and refuse to open a database whose structure is older than 8.0 (pointing to legacy/)**
+  Boss, 3:53 PM EST on 2026-11-12: "Let's say we'll make it a hard cut: no generation before 8.0 is compatible with 8.0 and above"; 3:54 PM EST: "Add a folder to the GitHub tree called `legacy`. Write a script that, specifically upon user request, will convert the last version before 8.0 to 8.0. That's all it will do. We don't need a test run. We just need the script to exist and we will put other scripts there as we need. Also add migration code for the database. Same thing: no database structure before 8.0 will be accepted. In `legacy` write a singular script to bump a database to 8.0 and then streamline the code to remove version migrations and tests for anything before 8.0." First map which code serves structures older than 8.0 (8.0.0 began 2026-10-09; the Alembic baseline 0130 dates from 2026-10-24, inside 8.0); keep the 8.0-era chain that trains still add to. Rides a train so it cannot collide with migrations in flight; Lane 02 numbers it. Folds in TEST.733.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14, through Lane 02's train. Prerequisites: DB.126. Related: OPS.177, DB.126, TEST.729, TEST.731, TEST.733.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1649 Lock-free cleanup: the request bookkeeping list built once, not appended, removed and re-appended**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section E, with file:line, shape, risk and output impact). Output unchanged. One PR with GEN.1650, GEN.1655 and GEN.1660.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1650, GEN.1655, GEN.1660.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1650 Planet.__init__: drop the dead moves, the dead distance_override and the relic comment; one build path**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section F, with file:line, shape, risk and output impact). Output unchanged.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1651 BuildRecord dataclass replaces the twenty private attributes stashed on bodies during a build**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section G, with file:line, shape, risk and output impact). Output unchanged; makes GEN.1652 and GEN.1654 smaller.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1649. Related: GEN.1652, GEN.1654.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1652 One finish-a-body chain replacing the nine partial copies (planet.py, planets.py, validation.py, life.py, system.py)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section A, with file:line, shape, risk and output impact). Fixes bug-sweep H2.3, H3, M1 and M3 at the root. Output changes (fixes): one epoch, rides a train after Train 25.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1651. Related: GEN.1653, GEN.1654.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1653 apply_class runs only as the last step of the finish chain (class before bands is the H3 cause)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section H, with file:line, shape, risk and output impact). Same PR and epoch as GEN.1652.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1652. Related: GEN.1652.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1654 One air closure shared by surface_air.solve, biogenic_oxygen.store_air and the stored greenhouse factor**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section B, with file:line, shape, risk and output impact). Fixes bug-sweep H2.1. Output changes; can share GEN.1652's epoch.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1651. Related: GEN.1655, GEN.1652.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1655 rebalance_co2 folded into surface_air's fixed-point loop instead of storing an unfinished iteration**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section C, with file:line, shape, risk and output impact). Fixes bug-sweep H2.2. Same PR and epoch as GEN.1654.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1654. Related: GEN.1654.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1656 StarSystem.__init__: one _build_host for primary, secondary and members, and one ceiling trim after the age settles**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section D, with file:line, shape, risk and output impact). Output measured on the golden before merge.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1652. Related: GEN.1657.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1657 calculate_atmospheric_conditions: the three post-hoc corrections move into the solver**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section J, with file:line, shape, risk and output impact). Output measured on the golden before merge.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1654. Related: GEN.1656.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1658 Design: one BODY_COLUMNS table that generates the three body tables (a body column is named in ten places today)**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section K, with file:line, shape, risk and output impact). Boss's call before any build; check a generator against today's schema first.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04, design only until Boss decides. Prerequisites: none. Related: GEN.1651.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1659 Low: settle_giant runs twice per giant and _air_replay is set twice**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section L, with file:line, shape, risk and output impact). Folds into GEN.1652 or GEN.1654 where the code is touched.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1652, GEN.1654.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1660 Remove the backward-compat shims and the 13 functions nothing calls**
+  Boss, 3:37 PM EST on 2026-11-12: "start a bug fix scan. I want to avoid having fixes on top of fixes ... reducing it down to streamlined efficient code that does the same thing". Scan: /mnt/project-files/reports/layered-fixes-simplification-scan-2026-11-12.md (section I and M, with file:line, shape, risk and output impact). Shims: the init_app limiter, format_body_distance is_moon, materials.class_composition and legacy_names, the is_binary notes and from_dict fallback, and two thin wrappers in system.py (Boss's rule: no shims). Output unchanged; one PR with GEN.1649 and GEN.1650.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649, TEST.736.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
