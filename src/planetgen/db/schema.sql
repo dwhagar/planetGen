@@ -1629,7 +1629,8 @@
 --   now (the orbital update refiles it), so a sector row cannot vanish while a resident points at it, and deleting or regenerating a sector removes only what was born there (the first 56 bits of `uid`).
 -- v205 (GEN.1218b): `planets` and `moons` also keep the makeup of a methane, ethane or nitrogen sea (`surface_liquid_methane_mol`, `surface_liquid_ethane_mol`, `surface_liquid_nitrogen_mol`, mole fractions), the salt of a
 --   water sea (`surface_liquid_salt_wt`) and a second liquid with the share of the surface it covers (`surface_liquid_2`, `surface_liquid_2_fraction`). NULL where they do not apply and for a row made before v205.
--- v227 (MAP.402): no schema change. The migration makes a `sectors` row (the placeholder of MAP.399) for every cell that holds a waiting bright star or an unbuilt scattered phenomenon and has none (`db/uncharted_index.py`), as a scatter now does when it ends.
+-- v227 (MAP.402): no schema change. The migration made a `sectors` row (the placeholder of MAP.399) for every cell that holds a waiting bright star or an unbuilt scattered phenomenon and has none; OPS.154 ended that (see v247).
+-- v247 (OPS.154): no schema change. The placeholder rows of v227 are deleted (`db/uncharted_index.py`, `clear_unoccupied`) and no stage makes them: the Sectors list reads those cells from `galaxy_block_light_parts` (`db/query.py`, `virtual_cells`). A row a rogue planet or a system refers to stays.
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
