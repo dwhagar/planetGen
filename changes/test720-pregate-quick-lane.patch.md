@@ -1,0 +1,7 @@
+**Headline:** A pre-gate quick lane (`scripts/pregate.py`) runs in minutes the checks that turned most PRs red this week, before the long gate run.
+
+### Added
+- **`scripts/pregate.py` (TEST.720).** One command with no database: the PR merges with its base without a conflict (`git merge-tree`; when every conflicted file is generated it names `regenerate_generated.py --resolve`), the release note passes `bump_version.py --check-pr`, no module-level function or class is defined twice in a changed file (OPS.142 shadowed the Queue page's `_duration` this way; pyflakes' F811 is not used because it flags every pytest fixture import), ruff finds no undefined name or syntax error (`F821`, `F822`, `F823`, `E9`) in the changed Python files, `regenerate_generated.py --check` where that script exists, and a fixed set of test files that need no database (`scripts/data/pregate_set.txt`: spelling, citations, settings, own log formatting, constants, docs links and index, wiring guard, architecture map, release-note tool) plus the Train Manager's `scripts/data/train_fast_set.txt` plus the test files the PR edits. Reused: `bump_version.py --check-pr`, the train fast set file, `regenerate_generated.py`, and the existing tests as the checks; nothing is re-implemented. `src/tests/test_pregate.py` pins the duplicate-definition, merge-conflict and test-set parts.
+
+generation-output: unchanged
+generation-affects: none
