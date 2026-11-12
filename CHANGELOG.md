@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3925] - 2026-11-12
+
+**Headline:** The nitrogen, sulfur and noble gases of a giant's envelope now follow the ices that the pebbles carried inward, as its carbon and oxygen already do.
+
+### Changed
+
+- `disk_condensation.envelope_enrichments` takes the ice weights of the pebble drift (GEN.1516): the vapor of NH3, N2, H2S, argon, krypton and xenon that evaporated on the way to the giant is its weight times the static vapor, so a giant whose gas the pebbles enriched in a noble gas is no longer fixed at 1 times its star's. Weights of 1 give the factors of GEN.1372 exactly (tested at every temperature).
+- A giant that gathered its gas before the vapor could reach it keeps the static factors (GEN.1517), so most giants of Sun-like stars do not change; the giants of dwarfs and those that gather late do.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.3924] - 2026-11-12
 
 **Headline:** The time the disk's gas takes to carry the vapor of an ice line to a giant now comes from the disk's own drift speed (its temperature, the star's mass and the turbulence), not a fixed 0.05 Myr per AU.
