@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3896] - 2026-11-12
+
+**Headline:** a body that stores a NaN quantity can no longer be fitted to a class as a perfect match: the class fit scores a NaN as no match and the classifier stops with a plain error that names the quantity.
+
+### Changed
+
+- `class_fit.membership` reads a NaN quantity as 0, as a missing one already was (every comparison with NaN is false, so a NaN used to pass both a minimum and an upper line). A NaN pressure is on neither side of the air gate.
+- `class_fit.classify` (the path every build and census takes) raises `planet_classes.ClassError` naming the quantities that are not numbers, instead of choosing a best fit for them. No body stores a NaN today (none in 850 sampled bodies), so no generated output changes.
+
+## [8.0.3895] - 2026-11-12
+
+**Headline:** the page of a star now says it has no night, and the page of a free brown dwarf says it has no solid surface and no sun to make a day, as the pages of planets and moons already give their day and night state.
+
+### Changed
+
+- `describe/day_rows.py` (GEN.1153; reused: `physics/day_night.state`, the derived-row hook of `describe/clock_rows`): a star's sheet gets "State of its day and night: no night"; a rogue planet that stores no state (a brown dwarf) gets "no solid surface" (a giant; with no star there is no solar day). A rogue planet the planet chain built keeps the state it stores. Derived when the sheet is made, nothing is stored, so no migration.
+- `describe/clock_rows.py`, `describe/sheet.py`: the sheet adds the rows with the clock and heavy-element ones.
+
+generation-affects: none
+
+## [8.0.3894] - 2026-11-12
+
+**Headline:** The snow line a star's disk was built round can now be worked out for an evolved star from its birth, not from the luminosity it has today; nothing reads it yet.
+
+### Changed
+
+- GEN.1611 slice 0: new `physics/formation_snow_line.py` (`formation_luminosity_sol`, `formation_snow_line_au`): a main-sequence or contracting star keeps today's luminosity; an evolved one gets its track's luminosity at `FORMATION_DISK_AGE_GY` (0.01, stand-in PA18). A white dwarf born at 4.36 solar masses gets a line of about 42 AU where today's luminosity gave 0.02 AU. The generator does not read it yet (wiring register); slice 1 wires it, with the sourced scatter cap, as a lock item.
+
+generation-output: unchanged
+
 ## [8.0.3893] - 2026-11-12
 
 **Headline:** A generation run lowers its bulk worker count when jobs wait for memory and raises it again when memory is free, instead of leaving jobs to wait 300 s at the memory gate.
