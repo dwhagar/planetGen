@@ -48203,6 +48203,135 @@
       "number": "6.183",
       "rows": [
         {
+<<<<<<< HEAD
+=======
+          "burn_down": [
+            "no data",
+            "-",
+            "no survey gives the climate scatter among bodies of one class; the 5 K shoulder of the regional temperature lines is a width of the class fit, chosen so a class edge is not a cliff"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+            ],
+            [
+              "The range it moves in",
+              "3 to 10 K"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air and stored latitude bands"
+            ],
+            [
+              "What would show it wrong",
+              "a climate scatter among bodies of one class wider or narrower than the band the shoulders give"
+            ],
+            [
+              "What replaces it",
+              "the shoulder from the spread of the regional temperature among bodies of one class in the generator (the class sweep)"
+            ],
+            [
+              "Evidence",
+              "half the shoulder of the mean temperature (CF3, 10 K); the regional lines are the Earth-like extremes of the families design"
+            ]
+          ],
+          "id": "DM1",
+          "key": "6.183:DM1",
+          "kind": "P",
+          "slug": "6-183-dm1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.hottest_region_k, coldest_region_k, day_temperature_k, night_temperature_k: 5 K (the 310, 315, 330 K and 245, 250, 270, 285 K lines of the regional cells fade over 5 K)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no measurement of another world's wet-bulb limit is in hand; the 3 C shoulder is a width of the class fit around the human limit of 31 C"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586)"
+            ],
+            [
+              "The range it moves in",
+              "2 to 5 C"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a wet-bulb limit research that puts the lines elsewhere than 31 C"
+            ],
+            [
+              "What replaces it",
+              "the limit of the habitability index (habitability.wet_bulb_c, 31 C, [R4521]) with the class lines read from it"
+            ],
+            [
+              "Evidence",
+              "the uncompensable limit of 31 C in species_limits; M's old 28 C line was a design margin on that limit, and the daytime peak it was read against is about 15 K over the band mean, which put Earth itself on the edge"
+            ]
+          ],
+          "id": "DM2",
+          "key": "6.183:DM2",
+          "kind": "P",
+          "slug": "6-183-dm2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586)"
+        },
+        {
+          "burn_down": [
+            "no data",
+            "-",
+            "no class reads a humidity edge yet and no survey measures one; the shoulder waits for the first class that does"
+          ],
+          "fields": [
+            [
+              "What it is",
+              "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2"
+            ],
+            [
+              "Where it holds",
+              "terrestrial bodies with air"
+            ],
+            [
+              "What would show it wrong",
+              "a class whose humidity edge is measured"
+            ],
+            [
+              "What replaces it",
+              "the humidity edges of the classes from their water and temperature"
+            ],
+            [
+              "Evidence",
+              "none read yet"
+            ]
+          ],
+          "id": "DM3",
+          "key": "6.183:DM3",
+          "kind": "P",
+          "slug": "6-183-dm3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": null,
+          "what": "planet_class_fit.json shoulders.relative_humidity: 0.1 (no class reads a humidity edge yet; the shoulder is for GEN.1207)"
+        },
+        {
+>>>>>>> origin/claude/lane14-gen1586-wet-bulb
           "burn_down": null,
           "fields": [
             [

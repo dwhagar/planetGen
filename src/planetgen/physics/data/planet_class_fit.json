@@ -709,7 +709,7 @@
         },
         {
           "quantity": "wet_bulb_c",
-          "lt": 28.0
+          "lt": 31.0
         },
         {
           "quantity": "ocean_fraction",
