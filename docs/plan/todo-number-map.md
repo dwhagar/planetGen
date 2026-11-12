@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.429 |
 | NAV | NAV.78 |
-| GEN | GEN.1668 |
+| GEN | GEN.1669 |
 | PERF | PERF.262 |
 | DB | DB.130 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.49 |
-| TEST | TEST.738 |
+| TEST | TEST.739 |
 | USR | USR.33 |
 | OPS | OPS.181 |
 | DOC | DOC.121 |
@@ -3887,6 +3887,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1665 | One _advance_rows with a per-kind stepper replaces the three copies of one loop in store.advance_galactic_positions and its five sibling advance_* functions | none | open |
 | GEN.1666 | describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands | DB.128 | open |
 | GEN.1667 | (bug) test_secular_exchange_generation has 2 failures on Train 25: seed 1 no longer makes a belt | none | open |
+| GEN.1668 | Promoted belt planets run through settle_obliquity and the rest of the settle pass: tilt range, chaotic-tilt check, tides and moon tilts | GEN.1510 | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4702,6 +4703,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.735 | Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests | none | open |
 | TEST.736 | One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim | none | open |
 | TEST.737 | Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips | none | open |
+| TEST.738 | Pregate for every lock PR runs regenerate_generated.py so generated docs on the train head are never stale | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
