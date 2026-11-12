@@ -75,7 +75,7 @@ IRREGULAR_RETROGRADE_HILL_FRACTION = 0.55
 """float: A retrograde irregular moon is stable out to this share of the Hill radius, the middle of 0.5 to 0.6 of [R3263] as quoted by VNL08."""
 
 IRREGULAR_KOZAI_BAND_DEG = (55.0, 130.0)
-"""tuple: An orbit inclined between these angles to the planet's has its eccentricity driven into the planet or the regular moons by the star, so no irregular moon stays there."""
+"""tuple: An orbit inclined between these angles to the planet's has its eccentricity driven into the planet or the regular moons by the star, so no irregular moon stays there ([R3263]; the same 55 to 130 degree bounds as `moon_composition.KOZAI_FORBIDDEN_DEG`, kept separate so the verifier cannot share a bug with the generator)."""
 
 LIMIT_TOLERANCE = 1.0e-4
 """float: How far past a limit a value may stand before it is a violation: the generator places bodies exactly on a limit, and the

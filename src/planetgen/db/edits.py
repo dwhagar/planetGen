@@ -194,6 +194,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     """
     insolation.refresh_system(system)   # ADM.132: the light each body sums over the stars, from the orbits the edit left
     conn.execute("DELETE FROM effect_ledger WHERE star_system_id = ?", (system_id,))   # GEN.1465: an edited body's shares are no longer the ones generation noted; the ledger stays empty until the system's `refill-effect-ledger`
+    conn.execute("UPDATE system_summary SET ledger_stamp = NULL WHERE star_system_id = ?", (system_id,))   # GEN.1498: not current any more, so `refill-effect-ledger` writes its light and ultraviolet rows again
     store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
     for star_id, planets in _star_ids(conn, system_id, system):

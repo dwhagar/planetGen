@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import body_history, effect_ledger, isotope_record, ore_deposits
+from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -4766,6 +4766,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
+        stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code
         insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
 
@@ -5375,13 +5376,66 @@ def stamp_habitability(conn, system_ids):
         conn (Connection): Part of the caller's transaction.
         system_ids (iterable): `star_systems` ids.
     """
-    stamp = derived_stamp.current("habitability")
+    _stamp_family(conn, "habitability", system_ids)
+
+
+def stamp_ledger(conn, system_ids):
+    """
+    GEN.1498: records that the light and ultraviolet rows of the effect ledger of the systems `system_ids` were written by the running code
+    (`derived_stamp.current("ledger")`), so `refill-effect-ledger` leaves them alone. Called where the rows are written for a whole system: the save
+    of a new one and `refresh_effect_ledger`.
+    """
+    _stamp_family(conn, "ledger", system_ids)
+
+
+def _stamp_family(conn, family, system_ids):
+    """Writes the running code's stamp of `family` into `system_summary` for the systems `system_ids`."""
+    column = derived_stamp.STAMP_COLUMNS[family]
+    stamp = derived_stamp.current(family)
     ids = sorted(set(system_ids))
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
-        conn.execute("INSERT INTO system_summary (star_system_id, habitability_stamp) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + " ON DUPLICATE KEY UPDATE habitability_stamp = VALUES(habitability_stamp)",
+        conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
+                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
+
+
+def ledger_ids(system):
+    """`id(object)` to `(table, row id)` for the stars, planets and moons of a loaded `system`, the form `EffectLedger.rows` takes."""
+    ids = {}
+    for star in system.stars:
+        if getattr(star, "db_id", None) is not None:
+            ids[id(star)] = ("stars", star.db_id)
+    for planet in system.all_planets:
+        if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
+            ids[id(planet)] = ("planets", planet.db_id)
+        for moon in getattr(planet, "moons", ()):
+            if getattr(moon, "db_id", None) is not None:
+                ids[id(moon)] = ("moons", moon.db_id)
+    return ids
+
+
+def refresh_effect_ledger(conn, system_id):
+    """
+    GEN.1498: writes again the light and ultraviolet rows of one stored system's effect ledger (`physics/light_ledger.py`) at the floor of the running code
+    (`tuning.EFFECT_LEDGER_FLOOR`) and stamps the system. The rows of the other effects (tide, heating, secular, precession, eccentricity) are not touched: only the code that wrote
+    them can say what they were. The distance a body's light is made on is worked out from its stored orbit (`light_ledger.stored_distance_au`), so a row may differ from the one
+    generation wrote in its last digits and never in its sources. Nothing but the ledger and its stamp is written.
+
+    Returns:
+        int: The rows written.
+    """
+    system = load_star_system(conn, system_id)
+    ledger = effect_ledger.EffectLedger()
+    light_ledger.fill(ledger, system.all_planets, lambda body, planet: light_ledger.stored_distance_au(body, None if body is planet else planet))
+    rows = ledger.rows(system_id, ledger_ids(system))
+    codes = tuple(effect_ledger.EFFECT_CODES[name] for name in light_ledger.EFFECT_NAMES)
+    conn.execute(f"DELETE FROM effect_ledger WHERE star_system_id = ? AND effect IN ({', '.join('?' for _ in codes)})", (system_id, *codes))
+    columns = effect_ledger.ROW_FIELDS
+    if rows:
+        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})", [tuple(row[name] for name in columns) for row in rows])
+    stamp_ledger(conn, [system_id])
+    return len(rows)
 
 
 def refresh_habitability(conn, system_id):

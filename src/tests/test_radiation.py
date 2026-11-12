@@ -214,6 +214,9 @@ def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air
     for body in _bodies(system):
         if body.body_type == "g" or body.is_moon:
             continue    # a moon of a planet that was moved keeps its dose from the old distance (reported to TODO)
+        if not planet_type.has_ground(body):
+            assert body.uv_surface_index is None, body.planet_class      # GEN.1334: a planet under a deep envelope has no ground, so no ground dose and no UV index
+            continue
         expected = body_radiation.dna_dose_index(body)
         assert body.uv_surface_index == expected
         checked += expected is not None
@@ -388,6 +391,50 @@ def test_entering_and_leaving_a_cloud_moves_the_cosmic_ray_multiplier(mysql_conf
         rows = conn.execute("SELECT dose_helio_mult, surface_dose_msv_yr FROM planets WHERE body_type = 't'").fetchall()
         assert all(row["dose_helio_mult"] == 1.0 and row["surface_dose_msv_yr"] == pytest.approx(501.5)
                    for row in rows)
+    finally:
+        conn.close()
+
+
+def test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier(mysql_config):
+    """GEN.1607: `generate_dose` sets `dose_helio_mult` back to 1 each call, so a body whose life is applied again by an edit (`validation.reapply_life`)
+    is saved with the open-space multiplier; `save_system_edits` then works the cloud's multiplier out again from the stored container
+    (`store.refresh_system_dose`), so the system in a cloud ends with the squeezed-heliosphere multiplier, not 1."""
+    from planetgen.db import edits as edit_store
+    from planetgen.generation import validation
+    cfg, system = _system_with_rocky_worlds()
+    sector = SpaceSector("Dosed", edge_ly=11.5)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
+    })
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500, dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5,"
+                         " surface_dose_msv_yr = 501.5, dose_helio_mult = 1 WHERE body_type = 't'")
+            cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
+            conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
+            home = conn.execute("SELECT center_x_pc FROM nebulae WHERE id = ?", (cloud,)).fetchone()["center_x_pc"]
+            conn.execute("UPDATE nebulae SET center_x_pc = center_x_pc + 50 WHERE id = ?", (cloud,))
+            store.refresh_containment(conn, [sector_id])
+            conn.execute("UPDATE nebulae SET center_x_pc = ? WHERE id = ?", (home, cloud))
+            store.refresh_containment(conn, [sector_id])
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+        before = conn.execute("SELECT dose_helio_mult FROM planets WHERE body_type = 't'").fetchall()
+        assert before and all(row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01) for row in before)
+        loaded = store.load_star_system(conn, system_id)
+        grounded = []
+        for planet in loaded.planets:
+            if planet.body_type == "t" and planet_type.has_ground(planet):
+                grounded.append(planet.db_id)
+                validation.reapply_life(planet)
+                rad.generate_dose(planet)                      # what a changed air does in `life._rebuild`
+                assert planet.dose_helio_mult == 1.0         # the drawn dose is the open-space one until the container is read
+        with conn:
+            edit_store.save_system_edits(conn, system_id, loaded)
+        assert grounded
+        for planet_id in grounded:
+            assert conn.execute("SELECT dose_helio_mult FROM planets WHERE id = ?", (planet_id,)).fetchone()["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
     finally:
         conn.close()
 
