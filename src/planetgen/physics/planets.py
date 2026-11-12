@@ -124,18 +124,21 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
     return max(transition_kg, planet_mass.runaway_mass_kg(star_mass_kg))
 
 
-def apply_class(planet):
+def prepare_class(planet):
     """
-    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
-    written from the stored fractions, GEN.430). Called when the body is built (so a request can test it) and again once the system is
-    final (the seasonal swing of its starlight, `flux_variation`, is known only then). The words that describe a class are read at view
-    time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
+    What the class reads that the motion and the spin do not make (GEN.1587): the body type (`planet_type.fill`, GEN.1219: terrestrial, transitional, super-puff or gas, from the
+    envelope share (GEN.1226) and the super-puff gate (GEN.1343)) and the roundness ratio (`body_strength.generate`, GEN.1159; a giant body type has none), and the class cleared. The spin chain
+    (`generate_spin`) reads the body type, so this comes before it; `classify` comes after it, because the classes that read the latitude bands (M, O, H, P and R, through the hottest and coldest
+    region, the night side and the wet bulb) can only see them once `habitability_world.generate`, the end of that chain, has made them.
     """
     planet.planet_class = None
     planet.class_variant = planet.class_match = planet.runner_up_class = planet.runner_up_match = None
-    planet.class_fudge_values = planet.class_fudge_amount = None
-    planet_type.fill(planet)            # GEN.1219: terrestrial, transitional, super-puff or gas, from the envelope share (GEN.1226) and the super-puff gate (GEN.1343)
-    body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
+    planet_type.fill(planet)
+    body_strength.generate(planet)
+
+
+def classify(planet):
+    """The class letter, its match, the runner-up and the digit of a body `prepare_class` has prepared and whose bands exist (GEN.1587); an Asteroid gets none."""
     detail = planet_classes.classify_detail(planet)
     if detail is None:
         return      # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
@@ -143,9 +146,17 @@ def apply_class(planet):
     # GEN.1207: the best-fit class, its match, the runner-up and the digit of the class code (0, or 9 when the gravity or the air amount is the limit)
     planet.class_variant, planet.class_match = detail.digit, detail.match
     planet.runner_up_class, planet.runner_up_match = detail.runner_up, detail.runner_up_match
-    # GEN.1314: the values the class needed moved to fit (NULL for a full fit) and how far, in widths of the fudge table
-    planet.class_fudge_values = ",".join(detail.fudge_values) or None
-    planet.class_fudge_amount = detail.fudge_amount
+
+
+def apply_class(planet):
+    """
+    Sets the class of a finished planet or moon from its stored conditions (GEN.689, `planet_classes.classify`; the composition text is
+    written from the stored fractions, GEN.430). Called once the system is final (the seasonal swing of its starlight, `flux_variation`, is
+    known only then), when the latitude bands exist; a body being built is prepared first, given its spin (and so its bands) and classified after
+    (`prepare_class`, `classify`, GEN.1587). The words that describe a class are read at view time (`physics/planet_class_text.py`); a body keeps none (GEN.1212).
+    """
+    prepare_class(planet)
+    classify(planet)
 
 
 @finite_domain()
@@ -353,16 +364,19 @@ def remake_end_stages(body, planet):
     Makes a rocky planet's or moon's air, water, surface, class and spin again from a stream of the body's own (`refinish_rocky`). `planet` is the body
     itself for a planet and the parent for a moon.
     """
-    stream = draw.body_stream_of("refinish-rocky", body, slot=str(int(body.is_moon)))      # GEN.1547: the body's birth numbers alone, so a remake after a settled orbit or age re-rolls nothing
+    stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                         f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
     with draw.bound(stream):
         if body.is_moon:
             calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
-            apply_class(body)
+            prepare_class(body)
             generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+            classify(body)      # GEN.1587: after the spin, which makes the latitude bands the class reads
         else:
             calculate_atmospheric_conditions(body)
-            apply_class(body)
+            prepare_class(body)
             generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+            classify(body)
 
 
 def refinish_rocky(planet):
@@ -461,7 +475,6 @@ def apply_envelope(planet):
             del planet._formation_fractions
     if result is None:                  # it kept an envelope before and keeps none now: the drawn core again
         planet.envelope_helium_fraction = planet.envelope_z_fraction = None
-        planet._envelope_helium_y = None
         planet._tidal_radius_km = None
     else:
         envelope_share.restore(planet)  # the drawn fractions, before the envelope takes its share
@@ -475,8 +488,7 @@ def apply_envelope(planet):
                 setattr(planet, name, value * keep)
         planet.envelope_mass_fraction = fraction
         planet._captured_envelope = fraction
-        planet._envelope_helium_y = envelope_capture.helium_share(planet, start, tides=True)       # GEN.1527: hydrogen leaves first from a planet that lost half its envelope or more (W16); None otherwise
-        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's (its helium share changed by that loss) and the star's heavy elements
+        envelope_share.set_gas_detail(planet)       # the captured gas is the disk's: the star's helium and heavy elements
         planet.radius = radius_earth * constants.EARTH_RADIUS_KM
         planet._tidal_radius_km = planet.radius if tide_ratio > 1.0 + 1e-9 else None     # the radius the obliquity tide gave it, or None for a planet it did not inflate (GEN.1480: the ratio itself; the loss follows the tide, so an uninflated envelope is not the one to compare with)
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
@@ -526,11 +538,13 @@ def settle_giant(planet):
     if moved:
         planet.volume = (4 / 3) * math.pi * planet.radius ** 3
         calculate_surface_gravity(planet)
-    stream = draw.body_stream_of("settle-giant-air", planet)      # GEN.1547
+    stream = draw.Stream(f"settle-giant-air:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
+                         f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
-        apply_class(planet)
+        prepare_class(planet)
         generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))  # the birth spin again worn to the final age, then the field, the dose, the colour and the score
+        classify(planet)      # GEN.1587: after the score, which makes the latitude bands the class reads
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
@@ -626,15 +640,6 @@ def calculate_surface_gravity(planet):
 
 
 def calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
-    """
-    The air of `planet` made from a stream keyed to the body's birth (`draw.body_stream_of`, GEN.1547), so the first pass and every later one draw the same numbers
-    and the run's stream is not touched; the work is `_calculate_atmospheric_conditions`, whose docstring says what it makes.
-    """
-    with draw.bound(draw.body_stream_of("air", planet, slot=str(int(bool(planet.is_moon))))):
-        _calculate_atmospheric_conditions(planet, distance_override, host_eccentricity)
-
-
-def _calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
     """
     Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
@@ -745,16 +750,6 @@ def _calculate_atmospheric_conditions(planet, distance_override=None, host_eccen
     aerosols.generate_aerosols(planet)
     # GEN.1226: the true share of the hydrogen-rich air, in the envelope share of every rocky body (after the water and the ground, which read the drawn fractions)
     envelope_share.fill(planet)
-    apply_finished_body_oddities(planet)
-
-
-def apply_finished_body_oddities(planet):
-    """
-    The rows of lever L8 (GEN.1523, W26: the Hycean box of `hycean_candidate`; GEN.1527, W16: the helium-rich envelope of `helium_fractionation`) on the finished body: the mass, radius, density and
-    equilibrium temperature are settled once the air and the envelope share are, and a row names the body or not (it moves nothing). It is rolled again each time the air is made, from its own stream.
-    """
-    oddities.drop(planet, ("L8",))
-    oddities.apply(planet, levers=("L8",))
 
 
 def _air_oddities(planet, setting, air, start_k, starlight_w_m2, distance_au, albedo, giant):
@@ -836,10 +831,11 @@ def _remake_what_reads_the_air(planet):
     `remake_air` just made, the way `remake_end_stages` follows the air (GEN.992), from a stream of the planet's own so the run's stream does not move, and the moons' day and night shares (no
     draws) after the planet's new spin. The planet keeps its birth spin, so a planet whose air is made again with the same pressure and clouds keeps its day.
     """
-    stream = draw.body_stream_of("late-accretion-end", planet)      # GEN.1547
+    stream = draw.Stream(f"late-accretion-end:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
-        apply_class(planet)
+        prepare_class(planet)
         generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))
+        classify(planet)      # GEN.1587: after the score, which makes the latitude bands the class reads
     for moon in planet.moons:
         daylight.generate(moon, planet)
 
@@ -920,7 +916,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     planet._orbit_birth = birth  # not stored: `settle_orbit` takes the tides again once the star's age is final (GEN.985)
 
 
-def generate_orbital_motion_properties(planet, primary_mass_kg):
+def generate_orbit_state(planet, primary_mass_kg):
     """
     Sets a planet's (or moon's) 3D orbital orientation, position, orbital
     speed, and rotation period.
@@ -981,10 +977,17 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
     arg_periapsis_deg = orbit_elements.draw_argument_of_periapsis_deg()
     mean_anomaly_rad = draw.uniform(0, _TWO_PI_RAD)
-
-    generate_spin(planet, primary_mass_kg)
     true_anomaly_rad, _ = kepler.true_anomaly_and_distance_elliptical(mean_anomaly_rad, planet.eccentricity, planet.distance)
     update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
+
+
+def generate_orbital_motion_properties(planet, primary_mass_kg):
+    """
+    `generate_orbit_state` and then `generate_spin`: the orbit's orientation and the body's place on it, and its day (GEN.1548 split them: the orbit state needs only the mass and the orbit, so the
+    planets' pull on each other can be worked out on it before any air exists, and the spin reads the air, so it comes after).
+    """
+    generate_orbit_state(planet, primary_mass_kg)
+    generate_spin(planet, primary_mass_kg)
 
 
 def apply_orbit_oddities(planet):

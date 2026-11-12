@@ -473,7 +473,7 @@ class Planet(PlanetaryObject):
         self.mass, self.radius = given_mass, given_radius
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
+        planetPhysics.prepare_class(self)
         self._finish_motion_and_moons(primary_mass_kg, moon_count)
 
     def _draw_body(self, zone_override, primary_mass_kg, planned_objects, distance_override):
@@ -488,8 +488,13 @@ class Planet(PlanetaryObject):
         planetPhysics.generate_orbit_shape(self, primary_mass_kg, planned_objects, distance_override)
 
     def _finish_motion_and_moons(self, primary_mass_kg, moon_count):
-        """What `__init__` does after the air and the class: the motion, the age the body was made at and the moons."""
-        planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        """What `__init__` does after the air and the prepared class (`planets.prepare_class`): the motion, whose spin makes the latitude bands, the class (GEN.1587: judged on the bands, which M, O, H, P and R
+        read, so a request for one of them can be met), the age the body was made at and the moons."""
+        if self._motion_done:       # GEN.1548: the orbit state was made earlier (`finish_motion`); the spin, which reads the air, is made now
+            planetPhysics.generate_spin(self, primary_mass_kg)
+        else:
+            planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        planetPhysics.classify(self)
         self._age_drawn = self.star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
@@ -497,14 +502,13 @@ class Planet(PlanetaryObject):
 
     def finish_motion(self):
         """
-        Gives a body built with `defer_climate` its position, velocity and age drawn (GEN.1548), which need only its mass and orbit, so the planets' own
+        Gives a body built with `defer_climate` its orbit's orientation, position and velocity (`planets.generate_orbit_state`, GEN.1548), which need only its mass and orbit, so the planets' own
         orbit work (secular exchange, resonant chains) can run before any air is made. A body that is not deferred, or is done, does nothing.
         """
         if self._deferred_climate is None or self._motion_done:
             return
         self._motion_done = True
-        planetPhysics.generate_orbital_motion_properties(self, self.primary_mass_kg)
-        self._age_drawn = self.star.age
+        planetPhysics.generate_orbit_state(self, self.primary_mass_kg)
 
     def finish_climate(self):
         """
@@ -517,9 +521,8 @@ class Planet(PlanetaryObject):
         moon_count, distance_override = self._deferred_climate
         self._deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
-        planetPhysics.apply_class(self)
-        if moon_count != DEFER_MOONS:
-            self.add_moons(moon_count)
+        planetPhysics.prepare_class(self)
+        self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
 
     def add_moons(self, moon_count=None):
         """
