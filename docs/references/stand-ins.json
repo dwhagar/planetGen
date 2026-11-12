@@ -48119,7 +48119,7 @@
           "fields": [
             [
               "What it is",
-              "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+              "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586)"
             ],
             [
               "The range it moves in",
@@ -48131,7 +48131,7 @@
             ],
             [
               "What would show it wrong",
-              "a wet-bulb limit research that puts the lines elsewhere than 28 and 31 C"
+              "a wet-bulb limit research that puts the lines elsewhere than 31 C"
             ],
             [
               "What replaces it",
@@ -48139,7 +48139,7 @@
             ],
             [
               "Evidence",
-              "the uncompensable limit of 31 C in species_limits; 28 C is M's margin in the design"
+              "the uncompensable limit of 31 C in species_limits; M's old 28 C line was a design margin on that limit, and the daytime peak it was read against is about 15 K over the band mean, which put Earth itself on the edge"
             ]
           ],
           "id": "DM2",
@@ -48150,7 +48150,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25, 28 and 31 C lines fade over 3 C)"
+          "what": "planet_class_fit.json shoulders.wet_bulb_c: 3 C (the 15, 25 and 31 C lines fade over 3 C; M, O and R read the 31 C line, GEN.1586)"
         },
         {
           "burn_down": [
