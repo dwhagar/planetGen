@@ -91,6 +91,16 @@ BRIGHT_CLEAR_STAGE = {"mass": Stage("mass-clear", "Clear the earlier bright star
 """dict: The emptying of the bright stars before a scatter draws them again, by the scatter's first pass (OPS.123: the `clear-bright-stars`
 command, once the `prepare` of the shell scatter commands): the whole scatter before a mass pass, the luminosity pass alone before that."""
 
+BRIGHT_LIMITS_STAGE = {"mass": Stage("mass-limits", "Store the limits of the massive stars"),
+                       "luminosity": Stage("luminosity-limits", "Store the limits of the bright stars")}
+"""dict: The storing of the threshold, seed and mass limit a bright-star scatter used, by its last pass (OPS.123: the `store-scatter-limits`
+command, once half of the `conclude` of the shell scatter commands)."""
+
+BRIGHT_EPOCH_STAGE = {"mass": Stage("mass-epoch", "Store the generator epoch of the massive stars"),
+                      "luminosity": Stage("luminosity-epoch", "Store the generator epoch of the bright stars")}
+"""dict: The storing of the generator epoch a bright-star scatter was drawn under, by its last pass (OPS.123: the `store-scatter-epoch`
+command, the other half of that `conclude`)."""
+
 BLOCK_LIGHTS_STAGE = Stage("block-lights", "Make the block light totals")
 """Stage: The stage that makes the Galaxy Map's block light totals again, the last of a scatter (PERF.172) and of a galaxy run (PERF.251: after the backfill, the population and the
 run's own block totals, so it adds up what the run left and nothing after it changes a light)."""
@@ -108,6 +118,8 @@ def galaxy_stages(args):
         BRIGHT_CLEAR_STAGE["mass"],
         Stage("mass", "Scatter the massive stars"),
         Stage("luminosity", "Scatter the bright stars"),
+        BRIGHT_LIMITS_STAGE["luminosity"],
+        BRIGHT_EPOCH_STAGE["luminosity"],
         *PHENOMENA_STAGES,
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
@@ -152,7 +164,8 @@ def scatter_stages(args):
     if kind == "phenomena":
         return [*PHENOMENA_STAGES, BLOCK_LIGHTS_STAGE]
     if kind in ("mass", "luminosity"):
-        return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BLOCK_LIGHTS_STAGE]
+        return [BRIGHT_CLEAR_STAGE[kind], SCATTER_STAGE[kind], BRIGHT_LIMITS_STAGE[kind], BRIGHT_EPOCH_STAGE[kind],
+                BLOCK_LIGHTS_STAGE]
     if kind == "nebula-field":
         return [NEBULA_CLEAR_STAGE, SCATTER_STAGE[kind]]
     return [SCATTER_STAGE[kind]]

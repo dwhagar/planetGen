@@ -249,6 +249,34 @@ def test_the_clear_bright_stars_step_empties_the_stars_only_when_the_settings_sa
         conn.close()
 
 
+def test_the_store_steps_record_what_the_scatter_used_and_the_epoch_it_was_drawn_under(mysql_config):
+    """OPS.123: the storing was the `conclude` of the shell scatter commands; as two steps of their own they write the limits and the epoch from the last pass's record."""
+    from planetgen.queue import commands, wrapper
+    _seed_galaxy(mysql_config)
+    record = {"min_luminosity_sol": 321.0, "seed": 77, "mass_limit_sol": 8.5, "passes": ["mass"], "run_id": None}
+    params = {"database": wrapper.database_args(mysql_config), "record": record}
+    assert run_plan.expand_store_scatter_limits(params).units == [(params, 1.0)]
+    assert run_plan.expand_store_scatter_epoch(params).units == [(params, 1.0)]
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.bright_star_scatter_settings(conn) is None and store.scatter_epochs(conn) == {}
+    finally:
+        conn.close()
+    assert commands.run_alone("store-scatter-limits", params)["stored"]["seed"] == 77
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.bright_star_scatter_settings(conn) == (321.0, 77) and store.bright_star_mass_limit(conn) == 8.5
+        assert store.scatter_epochs(conn) == {}, "the limits step does not store the epoch"
+    finally:
+        conn.close()
+    assert commands.run_alone("store-scatter-epoch", params) == {"passes": ["mass"]}
+    conn = store.get_connection(mysql_config)
+    try:
+        assert list(store.scatter_epochs(conn)) == ["mass"]
+    finally:
+        conn.close()
+
+
 def test_the_scatter_reports_only_the_shells_that_drew_stars(mysql_config, monkeypatch):
     # GEN.79: "all 5685 layers were generated" hid that only the middle
     # ones held any stars. Shell 8 here draws none.
@@ -1036,7 +1064,7 @@ def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkey
     run_galaxy.run_galaxy(args)
     [followers] = runs
     assert [follower.key for follower in followers] == [
-        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw",
+        "start", "neighborhood", "link", "mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw",
         "backfill", "population", "territories", "settle", "run-blocks", "block-lights"]
     by_key = {follower.key: follower for follower in followers}
     # The limit is read when the stage opens (PERF.212): the followers carry what to read it from, which gives the limit it was given.

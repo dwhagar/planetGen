@@ -50,7 +50,7 @@ def test_a_galaxy_with_no_skeleton_skips_nothing(mysql_config):
 def test_the_star_passes_stand_together_with_the_settings_they_were_drawn_with(mysql_config):
     _stored(mysql_config, "mass", "luminosity")
     found = _skips(mysql_config)
-    assert set(found) == {"mass-clear", "mass", "luminosity"} and all("current epoch" in reason for reason in found.values())
+    assert set(found) == {"mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"} and all("current epoch" in reason for reason in found.values())
 
 
 def test_the_star_passes_are_drawn_again_when_only_one_of_them_is_stored(mysql_config):
@@ -83,7 +83,7 @@ def test_a_scatter_drawn_under_an_older_epoch_that_left_the_scatter_stage_alone_
     finally:
         conn.close()
     monkeypatch.setattr(generator_epoch, "stages_between", lambda first, last: ("fill", "population"))
-    assert set(_skips(mysql_config)) == {"mass-clear", "mass", "luminosity"}
+    assert set(_skips(mysql_config)) == {"mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"}
 
 
 def test_the_phenomena_stand_with_their_indexes_and_the_nebula_field_they_were_drawn_with(mysql_config):
@@ -195,8 +195,8 @@ def test_a_second_identical_galaxy_run_plans_no_scatter_and_no_block_light_stage
     _stored(mysql_config, "mass", "luminosity", "phenomena", "nebula-field")
     keys, listed = _galaxy_run(mysql_config, monkeypatch)
     assert keys == ["sectors", "link", "backfill", "population", "territories", "settle", "run-blocks"]
-    assert [key for key, reason in listed.items() if reason] == ["mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "block-lights"]
-    assert list(listed) == ["sectors", "link", "mass-clear", "mass", "luminosity", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "backfill", "population", "territories", "settle",
+    assert [key for key, reason in listed.items() if reason] == ["mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "block-lights"]
+    assert list(listed) == ["sectors", "link", "mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch", "phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index", "nebula-clear", "nebula-draw", "backfill", "population", "territories", "settle",
                             "run-blocks", "block-lights"], "the stage list keeps every stage, numbered"
 
 

@@ -627,7 +627,7 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
     One alone is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none
     of it stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the
     luminosity pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
-    The last pass stores what the scatter used (`conclude_scatter_pass`), which the stages after it read.
+    The last pass is followed by the steps that store what the scatter used (`store-scatter-limits`, `store-scatter-epoch`), which the stages after it read.
 
     Args:
         refuse (str, optional): The kind of scatter that is refused when its rows are stored (`_refuse_stored_scatter`, what
@@ -660,7 +660,9 @@ def bright_star_followers(args, passes=("mass", "luminosity"), refuse=None, tag=
             "min_luminosity_sol": min_luminosity_sol, "settings": settings("luminosity")}, None, book, last=True))
     if not passes:
         return [], book
-    return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers], book
+    return [ClearBrightStarsFollower(args, passes[0], settings(passes[0])), *book.followers,
+            StoreScatterLimitsFollower(args, passes[-1], settings(passes[-1])),
+            StoreScatterEpochFollower(args, passes[-1], settings(passes[-1]))], book
 
 
 def _bright_star_settings(marker):
@@ -765,21 +767,80 @@ class ClearBrightStarsFollower(followed.Follower):
         return {"settings": self._settings}
 
 
-def conclude_scatter_pass(params, plan, results, seconds):
-    """The `conclude` of the shell scatter commands (PERF.172): after the scatter's last pass, stores the threshold, seed
-    and mass limit it used (`store.record_bright_star_scatter`), which the stages after it read (`params["record"]`), and
-    the generator epoch the passes were drawn under (`store.record_scatter_epoch`)."""
-    record = params.get("record")
-    if record is None:
-        return {}
+def expand_store_scatter_limits(params):
+    """The `store-scatter-limits` command's stage: one unit."""
+    return commands.Expansion([(params, 1.0)], {})
+
+
+def store_scatter_limits_unit(params, report):
+    """
+    The `store-scatter-limits` command's unit (OPS.123; the first half of the `conclude` of the shell scatter commands before it,
+    PERF.172): after the scatter's last pass, stores the threshold, seed and mass limit it used
+    (`store.record_bright_star_scatter`), which the stages after it read.
+
+    Returns:
+        dict: `stored`, the record that went in.
+    """
+    record = params["record"]
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.record_bright_star_scatter(conn, record["min_luminosity_sol"], record["seed"], record["mass_limit_sol"])
+        conn.commit()
+    finally:
+        conn.close()
+    return {"stored": {key: record[key] for key in ("min_luminosity_sol", "seed", "mass_limit_sol")}}
+
+
+expand_store_scatter_epoch = expand_store_scatter_limits
+"""The `store-scatter-epoch` command's stage: one unit, cut as the limits' is."""
+
+
+def store_scatter_epoch_unit(params, report):
+    """
+    The `store-scatter-epoch` command's unit (OPS.123; the second half of the `conclude` of the shell scatter commands before it,
+    PERF.172): stores the generator epoch the passes of the scatter were drawn under (`store.record_scatter_epoch`).
+
+    Returns:
+        dict: `passes`, the passes the epoch was stored for.
+    """
+    record = params["record"]
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
         store.record_scatter_epoch(conn, record["passes"], record["run_id"])
         conn.commit()
     finally:
         conn.close()
-    return {}
+    return {"passes": record["passes"]}
+
+
+class _StoreScatterFollower(followed.Follower):
+    """
+    A store step after the last pass of a bright-star scatter as a stage of a run (OPS.123): it reads the same deferred settings as
+    that pass (`bright_star_followers`), whose `record` is what the scatter used. The stage is the last pass's:
+    `mass-limits` or `luminosity-limits` (and `-epoch`).
+    """
+
+    stage = None
+
+    def __init__(self, args, last_pass, settings):
+        super().__init__(args)
+        self.key, self.label = self.stage[last_pass].key, self.stage[last_pass].label
+        self._settings = settings
+
+    def params(self):
+        return {"settings": self._settings}
+
+
+class StoreScatterLimitsFollower(_StoreScatterFollower):
+    """The `store-scatter-limits` command, one unit, after the last pass of a bright-star scatter."""
+
+    stage = stages.BRIGHT_LIMITS_STAGE
+
+
+class StoreScatterEpochFollower(_StoreScatterFollower):
+    """The `store-scatter-epoch` command, one unit, after the limits are stored."""
+
+    stage = stages.BRIGHT_EPOCH_STAGE
 
 
 def scatter_bright_stars(args, passes=("mass", "luminosity"), refuse=None):
@@ -1518,7 +1579,7 @@ class ScatterFollower(followed.Follower):
     Args:
         key (str): The stage (`mass`, `luminosity` or `band`).
         params (dict): What the command's expansion and hooks read besides the database (`expand_scatter_mass` and the
-            others, `conclude_scatter_pass`).
+            others).
         seed (int or None): The pass's seed; `None` when it comes with the params' deferred settings (PERF.212).
         book (_BrightStarBook, optional): The scatter the pass is one of, which says its limits and adds it up.
         last (bool): Whether the pass is the scatter's last, which sums it up.
@@ -3478,7 +3539,7 @@ def _refuse_stored_scatter_of(args, kind):
         conn.close()
 
 
-STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
+STORED_SCATTER_STAGES = {"stars": ("mass-clear", "mass", "luminosity", "luminosity-limits", "luminosity-epoch"), "phenomena": ("phenomena-clear", "phenomena-unindex", "phenomena", "phenomena-index"), "nebula-field": (NEBULA_CLEAR_KEY, NEBULA_DRAW_KEY)}
 """dict: The stages of a `galaxy` run that each stored scatter stands for (PERF.256): the emptying of the earlier bright stars (OPS.123) and the two star passes, the phenomena clearing and index drop (OPS.123) with the shells and their indexes, the nebula clear and draw."""
 
 
