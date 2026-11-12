@@ -290,7 +290,7 @@
     {
       "letter": "R",
       "name": "Hothouse world",
-      "phrase": "a hothouse world with air you could breathe, too hot and wet for it to cool",
+      "phrase": "a hothouse world with air you could breathe that is too hot and too wet to cool",
       "kind": "t",
       "sentence": "A hothouse world, the oxygen-water world too hot and wet for its air to cool: a hot mean surface and a high wet-bulb temperature.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
@@ -306,7 +306,7 @@
     {
       "letter": "U",
       "name": "Methane-ethane world",
-      "phrase": "a cold world under a thick air with methane, cold enough for liquid methane and ethane",
+      "phrase": "a cold world under a thick air with methane that is cold enough for liquid methane and ethane",
       "kind": "t",
       "sentence": "A cold world under a thick air with methane in it, cold and pressed enough that liquid methane and ethane could stand at the surface.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
