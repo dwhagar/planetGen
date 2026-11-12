@@ -1,7 +1,7 @@
 # planetgen/physics/reparent.py
 
 """
-Reparent: the state-preserving change of a body's parent (GEN.583, docs/design/architecture/unified-system-barycentre.md sections 10.4 and 11.2)
+Reparent: the state-preserving change of a body's parent (GEN.583, docs/design/architecture/unified-system-barycenter.md sections 10.4 and 11.2)
 ==================================================================================================================================================
 
 A body's truth is its position and velocity **relative to its parent**, in the shared non-rotating axes (`MassObject`, `SpatialPosition3D`'s
@@ -12,8 +12,8 @@ the new parent is therefore the difference of two states, and the elements follo
     r' = r - R_p        v' = v - V_p        (both in the old parent's frame, R_p and V_p the new parent's state in it)
 
 This module is the pure part, in AU, AU a year and kilograms (the units `MassObject` keeps its motion in): the difference, the new pull, the elements and
-whether the body is still bound (`reparent_state`), and the three quantities that must not change in the process, the centre of mass, the total linear
-momentum and the orbital angular momentum about the centre of mass (`barycentre`, `momentum`, `angular_momentum`). `generation/reparent.py` applies it to
+whether the body is still bound (`reparent_state`), and the three quantities that must not change in the process, the center of mass, the total linear
+momentum and the orbital angular momentum about the center of mass (`barycenter`, `momentum`, `angular_momentum`). `generation/reparent.py` applies it to
 a `Planet` or moon and makes what depends on the new orbit again (the climate, the class, the spin, the Hill sphere) through the code GEN.1597 already uses.
 
 **The pull** follows the generator's own convention (`MassObject.orbit_mu_au3_per_year2`): the mass of the primary only, `4 pi^2 M / M_sun` in AU^3/yr^2, so
@@ -94,8 +94,8 @@ def reparent_state(position, velocity, new_parent_position, new_parent_velocity,
     return Reparented(relative_position, relative_velocity, mu, orbit, orbit["kind"] == "elliptical")
 
 
-def barycentre(masses, positions):
-    """The centre of mass of bodies of `masses` at `positions`, in the frame of the positions: `sum(m r) / sum(m)`."""
+def barycenter(masses, positions):
+    """The center of mass of bodies of `masses` at `positions`, in the frame of the positions: `sum(m r) / sum(m)`."""
     total = math.fsum(masses)
     weighted = (math.fsum(m * p[axis] for m, p in zip(masses, positions)) for axis in range(3))
     return tuple(w / total for w in weighted)
@@ -108,12 +108,12 @@ def momentum(masses, velocities):
 
 def angular_momentum(masses, positions, velocities, about=None):
     """
-    The orbital angular momentum of bodies about the point `about` (the centre of mass when not given): `sum(m (r - about) x (v - v_about))`, where `v_about` is the velocity of the centre of mass
+    The orbital angular momentum of bodies about the point `about` (the center of mass when not given): `sum(m (r - about) x (v - v_about))`, where `v_about` is the velocity of the center of mass
     for that point, so the figure is the one of the system's own motion and does not change with the frame the states are given in.
     """
-    centre = barycentre(masses, positions) if about is None else about
-    centre_velocity = _scale(momentum(masses, velocities), 1.0 / math.fsum(masses))
+    center = barycenter(masses, positions) if about is None else about
+    center_velocity = _scale(momentum(masses, velocities), 1.0 / math.fsum(masses))
     total = (0.0, 0.0, 0.0)
     for m, r, v in zip(masses, positions, velocities):
-        total = _add(total, _scale(_cross(_sub(r, centre), _sub(v, centre_velocity)), m))
+        total = _add(total, _scale(_cross(_sub(r, center), _sub(v, center_velocity)), m))
     return total

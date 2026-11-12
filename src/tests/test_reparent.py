@@ -2,7 +2,7 @@
 
 """
 GEN.583 (with TEST.244): the state-preserving reparent. A body keeps its absolute position and velocity when its parent changes; the total linear momentum and the orbital angular
-momentum about the centre of mass do not change; the body goes to its new parent and back to where it was; a moon's velocity in its star's frame is the sum of its hops; a body that
+momentum about the center of mass do not change; the body goes to its new parent and back to where it was; a moon's velocity in its star's frame is the sum of its hops; a body that
 would not be bound is raised before anything is changed; and a planet passed to a new parent keeps what it is and has the climate, the class and the spin of its new place.
 """
 
@@ -69,7 +69,7 @@ def test_a_body_that_would_leave_is_not_bound_and_is_reported():
     assert not state.bound and state.orbit["kind"] == "hyperbolic"
 
 
-def test_the_barycentre_the_momentum_and_the_angular_momentum_do_not_change_with_the_parent_a_state_is_measured_from():
+def test_the_barycenter_the_momentum_and_the_angular_momentum_do_not_change_with_the_parent_a_state_is_measured_from():
     masses = (MSUN, 0.5 * MSUN, 3.0e-6 * MSUN)
     positions = [(0.0, 0.0, 0.0), (4.0, 0.0, 0.0), circular(1.0, MSUN, phase=0.4, tilt=0.1)[0]]
     velocities = [(0.0, 0.0, 0.0), (0.0, 2.0, 0.0), circular(1.0, MSUN, phase=0.4, tilt=0.1)[1]]
@@ -77,7 +77,7 @@ def test_the_barycentre_the_momentum_and_the_angular_momentum_do_not_change_with
     state = kin.reparent_state(positions[2], velocities[2], positions[1], velocities[1], 0.5 * MSUN)
     positions_again = [positions[0], positions[1], kin.chain_sum([state.position, positions[1]])]
     velocities_again = [velocities[0], velocities[1], kin.chain_sum([state.velocity, velocities[1]])]
-    assert kin.barycentre(masses, positions_again) == pytest.approx(kin.barycentre(masses, positions), rel=1e-13)
+    assert kin.barycenter(masses, positions_again) == pytest.approx(kin.barycenter(masses, positions), rel=1e-13)
     assert kin.momentum(masses, velocities_again) == pytest.approx(kin.momentum(masses, velocities), rel=1e-13)
     assert kin.angular_momentum(masses, positions_again, velocities_again) == pytest.approx(kin.angular_momentum(masses, positions, velocities), rel=1e-12)
     # and the angular momentum is that of the system's own motion: a boost of every velocity leaves it as it was

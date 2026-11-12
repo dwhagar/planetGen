@@ -1,7 +1,7 @@
 # generation/reparent.py
 
 """
-Reparent a planet or a moon (GEN.583, docs/design/architecture/unified-system-barycentre.md sections 10.4 and 11.2)
+Reparent a planet or a moon (GEN.583, docs/design/architecture/unified-system-barycenter.md sections 10.4 and 11.2)
 ===================================================================================================================
 
 The state-preserving change of a body's parent. The body keeps its absolute position and velocity; only the point they are measured from changes
