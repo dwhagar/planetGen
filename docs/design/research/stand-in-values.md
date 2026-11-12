@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1629 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1630 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1603 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1604 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 190 | 20 | 11 | 1 | 0 | 222 |
 | T2 | 151 | 60 | 1 | 1 | 0 | 213 |
 | T3 | 116 | 52 | 10 | 10 | 0 | 188 |
-| T4 | 85 | 12 | 4 | 22 | 12 | 135 |
+| T4 | 85 | 13 | 4 | 22 | 12 | 136 |
 | T5 | 90 | 24 | 6 | 1 | 1 | 122 |
 | T6 | 211 | 107 | 30 | 71 | 4 | 423 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 45 | 17 | 5 | 93 | 35 | 195 |
-| All | 948 | 313 | 77 | 238 | 53 | 1629 |
+| All | 948 | 314 | 77 | 238 | 53 | 1630 |
 
 ## How the labels were given
 
@@ -2849,6 +2849,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CH1 | T | T1 | L0 | tuning.CHAIN_K_EFF 12: the minimum spacing for 1e9 years of stability of a compact system on orbits of eccentricity about 0.02 | 10 (circular orbits) to 12 | systems of four or more planets of small mass around any star | an N-body run of a chain at 12 that scatters within 1 Gyr, or one at 10.5 that does not | a spacing from a stability-time fit per system (the planet masses, the star's age) | abstract and section 2 of [R5227], read; the 10.0 to 11.4 chains of GEN.1468 that scattered in 2e4 years sit at K_eff 10.1 to 10.5 | predicted only | - | - |
 | CH2 | T | T6 | L0 | clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227: Eq. 10], found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window | window 4 to 7 planets | chains of four planets | a window whose scattering time is not that of equal gaps at K_eff | a per-chain stability time | the Eq. 10 and 11 of [R5227], read; the carry to a four-planet window is mine | predicted only | - | - |
 | CH3 | P | T6 | L0 | validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain | none | all systems | a chain broken by a belt that scatters like a chain | a chain test over every window, belts as bodies | design: the orbit spacing pass of GEN.1023 and GEN.1450 | predicted only | - | - |
+| CH4 | P | T4 | L1 | clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule | 1.5 to 3 | windows with a wide or unequal gap | a system the rule leaves at the pairwise floor that an N-body run scatters within 1 Gyr, or one pushed to twice its distance that holds at the floor | a chain stability time per window that says how far out a window needs to be | design: without a cap one eccentricity change of a part in a thousand moved a planet from 2.2 to 18.5 AU (M3V seed 1317) | predicted only | - | - |
 
 ## 6.273 Stand-ins of the mutual tides of the stars of a pair
 

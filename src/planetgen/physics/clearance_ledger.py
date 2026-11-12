@@ -231,6 +231,16 @@ def effective_spacing(gaps):
     return mean - 0.5 * math.sqrt(sum((gap - mean) ** 2 for gap in gaps) / len(gaps))
 
 
+CHAIN_SCAN_STEP = 1.02
+"""float: The factor `chain_distance_au` steps out from the pairwise distance by while it looks for the first distance that holds the chain's effective spacing. A search step, not a physical value: any step
+under about 1.1 finds the same first crossing of a curve that rises over a few percent of distance."""
+CHAIN_MAX_PUSH = 2.0
+"""float: The farthest, as a multiple of the pairwise distance, the chain rule pushes a planet. A planet beside a wide gap (a giant in the window) can reach the effective spacing only far out or never,
+because the gap in mutual Hill radii saturates with the distance; a rule that is met only by moving a planet more than this far out is taken as unmet by any distance, and the pairwise rule stands (the same
+as a window no distance closes). Without the cap a window whose best attainable spacing is just under `CHAIN_K_EFF` pushed a planet from 2.2 to 18.5 AU when one eccentricity moved by a part in a thousand.
+A stand-in (registry CH4, tier T4, tweak L1)."""
+
+
 def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg, start_au):
     """
     The nearest distance, at or beyond `start_au`, a new planet may sit if it is to be the last of a chain of `tuning.CHAIN_WINDOW` planets whose gaps have
@@ -241,7 +251,9 @@ def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass
             `CHAIN_WINDOW - 1` count. Fewer than that, or a `CHAIN_K_EFF` of 0, leave `start_au` as it is.
         start_au (float): The pairwise rules' nearest distance.
 
-    The spacing rises with the distance, so it is found by doubling the step from `start_au` and bisecting.
+    The effective spacing is not monotone in the distance: it is the mean of the gaps less half their spread, so a planet put farther out beside a window with one wide gap can lower it. The
+    first distance that holds it, within `CHAIN_MAX_PUSH` times `start_au`, is found by stepping out by `CHAIN_SCAN_STEP` and bisecting the step that crosses; a window that no such distance closes
+    leaves the pairwise rule (see `CHAIN_MAX_PUSH`).
     """
     need = tuning.CHAIN_WINDOW - 1
     if not tuning.CHAIN_K_EFF > 0.0 or len(inner_planets) < need:
@@ -255,14 +267,14 @@ def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass
 
     if spacing(start_au) >= tuning.CHAIN_K_EFF:
         return start_au
-    high = start_au
-    for _ in range(80):
-        high *= 1.5
+    low = high = start_au
+    limit = start_au * CHAIN_MAX_PUSH
+    while high < limit:
+        low, high = high, min(high * CHAIN_SCAN_STEP, limit)
         if spacing(high) >= tuning.CHAIN_K_EFF:
             break
     else:
-        return start_au                                  # a gap that no distance closes (a window whose gaps are not finite): leave the pairwise rule
-    low = start_au
+        return start_au                                  # no distance within `CHAIN_MAX_PUSH` closes the window (or its gaps are not finite): leave the pairwise rule
     for _ in range(60):
         middle = 0.5 * (low + high)
         low, high = (middle, high) if spacing(middle) < tuning.CHAIN_K_EFF else (low, middle)
