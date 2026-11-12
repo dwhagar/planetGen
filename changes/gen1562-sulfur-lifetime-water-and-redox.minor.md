@@ -5,6 +5,7 @@
 - GEN.1562 N1: the dry sulfation lifetime of surface sulfur at the Venus surface temperature is now 2 million to 20 million years (log), so both published figures sit inside the range.
 - GEN.1562 N2: that lifetime now scales with the surface temperature by the activation energy of the sulfation rate law (15248 K, second-hand, extrapolated below 873 K), so a cool dry world loses its sulfur dioxide far more slowly than Venus.
 - GEN.1562 N6: oxidized sulfur is removed by water only as far as one mole of sulfur per mole of water; a body with more than 2.75 m of global water layer removes it all as before, a body with less keeps the rest for the dry lifetime.
+- GEN.1562 N4: the mantle oxygen fugacity of rocky bodies drawn from the magma-ocean and later-mantle recipes is raised by 1.0 dex (T9, L3), which moves the oxidized share of rocky bodies from 24 to 39 percent. This is a separate, droppable commit.
 - The acid pool of Life Class 9 and the sulfuric acid world (class Y) are flagged as reputable fringe physics in the code and the docs: the literature supports warm, water-depleted, sulfur-rich worlds with acid pools or ionic liquid, not acid oceans.
 
 generation-output: changed

@@ -6401,6 +6401,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "sulfur_balance.WATER_LAYER_FULL_M"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "Evidence",
+              "CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; GEN.1562 N4)"
+            ],
+            [
+              "What it is",
+              "mixture_rocky.REDOX_SHIFT_DEX"
+            ],
+            [
+              "The range it moves in",
+              "+1.0 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies; 1.4 makes half"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies"
+            ],
+            [
+              "What would show it wrong",
+              "test_sulfur_balance::test_the_redox_shift_is_applied_to_the_magma_ocean_and_the_later_mantle"
+            ],
+            [
+              "What replaces it",
+              "measured fO2 of more mantles than the Earth's and the Moon's"
+            ]
+          ],
+          "id": "AM99",
+          "key": "6.7:AM99",
+          "kind": "B",
+          "slug": "6-7-am99",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L3",
+          "unread": null,
+          "what": "mixture_rocky.REDOX_SHIFT_DEX"
         }
       ],
       "slug": "6-7-stand-ins-of-the-atmosphere-mixture-draw",

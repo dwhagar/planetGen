@@ -163,3 +163,15 @@ def test_a_water_layer_changes_nothing_for_an_ocean_world_and_none_keeps_the_old
     kw = dict(age_s=AGE_S, oxidized_share=0.9, crust_kg_m2=_crust(), lifetimes=LIFETIMES)
     assert sb.balance(1.0e7, ocean_present=True, water_layer_m=0.001, **kw).air_mol_m2 == pytest.approx(sb.balance(1.0e7, ocean_present=True, **kw).air_mol_m2)
     assert sb.balance(1.0e7, ocean_present=False, **kw).air_mol_m2 == pytest.approx(_balance(1.0e7, False).air_mol_m2)
+
+
+def test_the_redox_shift_is_applied_to_the_magma_ocean_and_the_later_mantle():
+    """GEN.1562 N4: `mixture_rocky.draw_redox` returns the recipe's first value plus `REDOX_SHIFT_DEX`, and the building blocks' and the white dwarf debris's values are not moved."""
+    from types import SimpleNamespace
+    from planetgen.physics import mixture_rocky
+    recipe = lambda **values: SimpleNamespace(values=values)           # noqa: E731
+    subject = {"age_gy": 4.5, "long_lived_geology": False}
+    assert mixture_rocky.draw_redox(subject, recipe(a1=0.5), {}) == pytest.approx(0.5 + mixture_rocky.REDOX_SHIFT_DEX)
+    assert mixture_rocky.draw_redox(subject, recipe(a2=3.0), {}) == pytest.approx(3.0 + mixture_rocky.REDOX_SHIFT_DEX)
+    assert mixture_rocky.draw_redox(subject, recipe(a3=-1.0), {}) == -1.0
+    assert mixture_rocky.draw_redox(subject, recipe(a4=-1.2), {}) == -1.2

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1651 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1652 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1625 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1626 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -55,8 +55,8 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 213 | 113 | 31 | 71 | 4 | 432 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
-| T9 | 46 | 17 | 5 | 93 | 35 | 196 |
-| All | 954 | 324 | 80 | 237 | 56 | 1651 |
+| T9 | 46 | 17 | 5 | 94 | 35 | 197 |
+| All | 954 | 324 | 80 | 238 | 56 | 1652 |
 
 ## How the labels were given
 
@@ -281,6 +281,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | AM96 | P | T6 | L0 | mixture_lava.OXYGEN_SHARE_MAX | 0.99: the gas pressure over the melt is raised to what holds its buffered oxygen with 1 percent to spare when the surface pressure is lower; nothing changes where the oxygen takes under 99 percent | volatile-bearing lava worlds over 2500 K at surface pressures under a bar, and every temperature where the buffered oxygen exceeds the surface pressure | test_atmosphere_mixture_lava::test_a_surface_pressure_the_buffered_oxygen_fills_is_raised_and_the_carbon_solve_converges | a gas-over-melt model in which the oxygen is one more species of the melt's vapor, not a reservoir held at a fugacity (GEN.499) | design (source tier 6, tweak level 0; the carbon solve of a volatile-bearing lava world holds the oxygen at the redox buffer's fugacity, and when that oxygen (O2 and O) alone fills the surface pressure there is no room for carbon and `gas_equilibrium.solve` does not converge (GEN.1296); checked from 0.8 to 1.2 of the pressure at six temperatures between 2600 and 6000 K and three redox states: it converges for every share under 1 and fails for every share of 1 and over) | predicted only | - | - |
 | AM97 | B | T2 | L0 | sulfur_balance.SULFATION_ACTIVATION_K and SULFATION_REFERENCE_K | 15248 K, fixed (+/- 4 percent); 735 K; the dry lifetime at a surface temperature T is the AM46 lifetime times exp(15248 (1/T - 1/735)): 5e5 times at 450 K | a dry body cooler than Venus | test_sulfur_balance::test_a_cooler_dry_surface_sulfates_slower_by_the_activation_energy_of_the_rate_law | measured sulfation of basalt and calcite by SO2 at 300 to 700 K | SECOND-HAND ([R1343], through a quoted rate 10^19.64 exp(-15248/T) molecules cm-2 s-1, Ea 126.8 +/- 5.4 kJ/mol; the arithmetic checked: 15248 K x 8.314 = 126.8 kJ/mol, 4.4e10 at 735 K against the quoted 4.6e10; GEN.1562 N2) EXTRAPOLATED: the lab runs were 873 to 1123 K, so below that the scaling is an extension, and under about 450 K another route (water films on grains) would take over | predicted only | - | - |
 | AM98 | B | T2 | L1 | sulfur_balance.WATER_LAYER_FULL_M | 2.75 m of global water layer, fixed (0.055 m is the lower figure of a summary, not opened) | a body with no ocean: under the layer its oxidized sulfur is removed by water only as far as one mole per mole of water, the rest meets AM46 and AM97 | test_sulfur_balance::test_water_removes_at_most_one_mole_of_sulfur_per_mole_of_water_and_the_rest_meets_the_dry_lifetime | a photochemical lifetime of SO2 in an air with almost no water vapour | SECOND-HAND ([R2735]: more than 1e-3 of the Earth's ocean, 2.75 m over the globe, is incompatible with a sustained sulfuric acid haze; the stoichiometry SO2 + H2O to H2SO4 is one water per sulfur; GEN.1562 N6) | predicted only | - | - |
+| AM99 | B | T9 | L3 | mixture_rocky.REDOX_SHIFT_DEX | +1.0 log10 units on the magma-ocean stage (a1) and the later upper mantle (a2) of rocky bodies; 1.4 makes half | rocky bodies | test_sulfur_balance::test_the_redox_shift_is_applied_to_the_magma_ocean_and_the_later_mantle | measured fO2 of more mantles than the Earth's and the Moon's | CHOSEN so that about half of the rocky bodies are oxidized, which the sources do not fix (the recipe draw gives 24 percent at IW+2.5 or over and 31 percent at or under IW; GEN.1562 N4) | predicted only | - | - |
 
 ## 6.8 Stand-ins of the hours outside in a day
 
