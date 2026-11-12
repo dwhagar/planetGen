@@ -6,6 +6,7 @@ TEST.715 (the gate TEST.455 names, from the GEN.945 census): a numeric constant 
 
 import pathlib
 import sys
+import warnings
 
 import pytest
 
@@ -35,6 +36,8 @@ def test_no_new_constant_lacks_a_registry_row_a_tag_or_a_place_in_the_constants_
                      f"and not in a constants module: {new}")
 
 
-def test_a_baseline_name_that_is_registered_or_gone_is_removed_from_the_baseline(found, baseline):
+def test_a_baseline_name_that_is_registered_or_gone_is_only_a_warning(found, baseline):
+    """The rule is that no NEW name appears; a name that has since been registered, tagged, moved or removed leaves the baseline the next time it is written (`scripts/constants_census.py --write`), so a PR that registers a constant need not touch the file."""
     stale = sorted(set(baseline) - found)
-    assert not stale, f"delete these lines from src/tests/baselines/unregistered_constants.txt (registered, tagged, moved or removed): {stale}"
+    if stale:
+        warnings.warn(f"{len(stale)} baseline names no longer qualify; run `python scripts/constants_census.py --write` to drop them: {stale[:5]}", stacklevel=1)

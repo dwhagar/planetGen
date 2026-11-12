@@ -479,8 +479,6 @@ planetgen.physics.aerosols:SKIN_FACTOR
 planetgen.physics.aerosols:SUNLIGHT_BANDS_NM
 planetgen.physics.age_metallicity:AGE_CANDIDATES
 planetgen.physics.age_metallicity:THICK_OLDEST_GY
-planetgen.physics.aquifers:LIQUID_WATER_DENSITY_KG_M3
-planetgen.physics.aquifers:WATER_MELTING_K
 planetgen.physics.atmosphere:DENSE_KPA
 planetgen.physics.atmosphere:HUMID_H2O_FRACTION
 planetgen.physics.atmosphere:KPA_TO_PA
@@ -549,9 +547,7 @@ planetgen.physics.bulk_structure:_WATER_POINTS
 planetgen.physics.carbide_deposits:COHENITE_MEDIAN_KG
 planetgen.physics.carbide_deposits:MOISSANITE_MEDIAN_KG
 planetgen.physics.chemically_peculiar:SOLAR_RADIUS_KM
-planetgen.physics.class_domains:BAND_COUNT
 planetgen.physics.class_fit:LIMITED_DIGIT
-planetgen.physics.clathrate_brine:ICE_DENSITY_KG_M3
 planetgen.physics.clearance:HW_P_E_MAX
 planetgen.physics.clearance:HW_P_MU_RANGE
 planetgen.physics.clearance:HW_S_E_MAX
@@ -599,7 +595,6 @@ planetgen.physics.core_composition:ICB_TEMPERATURE_K
 planetgen.physics.core_composition:MERCURY_DELTA_IW
 planetgen.physics.core_composition:_EARTH_CORE_FE_WT_PERCENT
 planetgen.physics.core_composition:_MARS_FE_WT_PERCENT
-planetgen.physics.core_heat:GAS_CONSTANT
 planetgen.physics.core_heat:MANTLE_CONDUCTIVITY
 planetgen.physics.core_heat:MANTLE_DIFFUSIVITY
 planetgen.physics.core_heat:MANTLE_EXPANSIVITY
@@ -708,7 +703,6 @@ planetgen.physics.hydrosphere:ACID_SO2_SHARE
 planetgen.physics.hydrosphere:BRINE_MAX_WATER_FRACTION
 planetgen.physics.hydrosphere:HYCEAN_MIN_H2_SHARE
 planetgen.physics.hydrosphere:ICE_CONDUCTIVITY_A_W_M
-planetgen.physics.hydrosphere:LIQUID_WATER_DENSITY_KG_M3
 planetgen.physics.hydrosphere:MANTLE_BUFFER_RANGE
 planetgen.physics.hydrosphere:SODA_MIN_CO2_KPA
 planetgen.physics.hydrosphere:SODA_MIN_OCEAN_FRACTION
@@ -721,7 +715,6 @@ planetgen.physics.impact_history:LATE_ACCRETED_PERCENT_MAX
 planetgen.physics.impact_history:_ONE_MINUS_X2_TOTAL
 planetgen.physics.interior_heat:CORE_SPECIFIC_HEAT
 planetgen.physics.interior_heat:FIRST_STEP_GY
-planetgen.physics.interior_heat:GAS_CONSTANT
 planetgen.physics.interior_heat:HEAT_FLOW_EXPONENT
 planetgen.physics.interior_heat:MANTLE_CONDUCTIVITY
 planetgen.physics.interior_heat:MANTLE_DIFFUSIVITY
@@ -739,7 +732,6 @@ planetgen.physics.irregular_population:INTEGRAL_STEPS
 planetgen.physics.irregular_population:_KM
 planetgen.physics.irregular_zone:RETROGRADE_INCLINATION_DEG
 planetgen.physics.isotope_record:ARGON_MOLAR_KG
-planetgen.physics.isotope_record:AVOGADRO
 planetgen.physics.isotope_record:_EARTH_G
 planetgen.physics.jwst_selection:ESM_PREFACTOR
 planetgen.physics.kepler:KEPLER_XTOL
@@ -754,7 +746,6 @@ planetgen.physics.kozai_bodies:MAX_CYCLE_KOZAI_TIMES
 planetgen.physics.kozai_bodies:OCTUPOLE_MAXIMUM
 planetgen.physics.kozai_bodies:STEPS_PER_KOZAI_TIME
 planetgen.physics.late_supply:AU_M
-planetgen.physics.latitude_bands:BAND_COUNT
 planetgen.physics.latitude_bands:_MAX_STEPS
 planetgen.physics.latitude_bands:_MEAN_PHASES
 planetgen.physics.latitude_bands:_MEAN_SAMPLES_PER_DAY
@@ -903,7 +894,6 @@ planetgen.physics.planet_architecture:SURVIVAL_K_MINIMUM
 planetgen.physics.planet_architecture:SURVIVAL_K_OFFSET
 planetgen.physics.planet_architecture:SURVIVAL_K_SLOPE
 planetgen.physics.planet_architecture:_DAY_S
-planetgen.physics.planet_classes:BAND_COUNT
 planetgen.physics.planet_occurrence:SIGMAS
 planetgen.physics.planetary_nebula_ejecta:TYPE_I_HE_TO_H
 planetgen.physics.planetary_nebula_ejecta:_NITROGEN_PER_CARBON
@@ -971,7 +961,6 @@ planetgen.physics.radius_valley:WIDE_SURVEY_PLANETS
 planetgen.physics.rayleigh:GENERIC_DISPERSION_UM2
 planetgen.physics.rayleigh:MAXIMUM_DISPERSION_UM2
 planetgen.physics.rayleigh:REFERENCE_WAVELENGTHS_NM
-planetgen.physics.regional_temperature:BAND_COUNT
 planetgen.physics.regional_temperature:DAY_SIDE_RADIATIVE
 planetgen.physics.regional_temperature:TERMINATOR_RADIATIVE
 planetgen.physics.regional_temperature:_SEASON_STEPS
@@ -986,7 +975,6 @@ planetgen.physics.resonant_chains:_INTEGRAL_POINTS
 planetgen.physics.ring_darkening:REFERENCE_DISTANCE_AU
 planetgen.physics.ring_darkening:REFERENCE_PLANET_MASS_KG
 planetgen.physics.ring_darkening:REFERENCE_RING_RADIUS_KM
-planetgen.physics.rings:ICE_DENSITY_KG_M3
 planetgen.physics.rings:MAX_MASS_OVER_PLANET
 planetgen.physics.rings:MIN_WIDTH_RATIO
 planetgen.physics.rings:MOON_CLEARANCE
@@ -1137,7 +1125,6 @@ planetgen.physics.thermosphere:HYDRO_BASED_TEQ_RANGE_K
 planetgen.physics.thermosphere:_AVOGADRO
 planetgen.physics.thermosphere:_ERG_CM2_S_PER_W_M2
 planetgen.physics.thermosphere:_M_HYDROGEN_KG
-planetgen.physics.tidal_rheology:GAS_CONSTANT
 planetgen.physics.tidal_rheology:ICE_MELTING_K
 planetgen.physics.two_stream:MAX_ALBEDO_OF_SINGLE_SCATTERING
 planetgen.physics.uv_cross_sections:DOBSON_CM2
