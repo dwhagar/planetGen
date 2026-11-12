@@ -63101,6 +63101,128 @@
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
       "title": "Stand-ins of the spin axis and obliquity under every body"
+    },
+    {
+      "key": "6.277",
+      "number": "6.277",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_giant_profile.KAPPA_THERMAL_M2_KG: the constant thermal opacity, 1e-3 m2/kg (1e-2 cm2/g), one value for every hot giant"
+            ],
+            [
+              "The range it moves in",
+              "3e-4 to 3e-3 m2/kg"
+            ],
+            [
+              "Where it holds",
+              "hot giants between about 1e-3 and 10 bar"
+            ],
+            [
+              "What would show it wrong",
+              "a giant whose measured photosphere pressure at the equilibrium temperature differs from tau = 2/3 at this opacity by more than a factor of 3"
+            ],
+            [
+              "What replaces it",
+              "the opacity of the atmosphere's own mixture (line_opacity)"
+            ],
+            [
+              "Evidence",
+              "Guillot's value for HD 209458 b ([R1715], READ); reproduces his 65 mbar photosphere (66.7 mbar)"
+            ]
+          ],
+          "id": "PF1",
+          "key": "6.277:PF1",
+          "kind": "P",
+          "slug": "6-277-pf1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1577",
+          "what": "hot_giant_profile.KAPPA_THERMAL_M2_KG: the constant thermal opacity, 1e-3 m2/kg (1e-2 cm2/g), one value for every hot giant"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hot_giant_profile.GAMMA_AT_2000_K 0.6: the visible-to-thermal opacity ratio is 0.6 sqrt(T_irr / 2000 K)"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 2"
+            ],
+            [
+              "Where it holds",
+              "hot giants without strong visible absorbers"
+            ],
+            [
+              "What would show it wrong",
+              "a hot giant with TiO or VO where the profile must invert and gamma stays near 0.6; a measured day-side profile that disagrees by more than 200 K at 0.1 bar"
+            ],
+            [
+              "What replaces it",
+              "a gamma from the mixture's own visible absorbers"
+            ],
+            [
+              "Evidence",
+              "Guillot's kappa_v = 6e-3 sqrt(T_irr / 2000 K) cm2/g over kappa_th = 1e-2 cm2/g ([R1715], READ)"
+            ]
+          ],
+          "id": "PF2",
+          "key": "6.277:PF2",
+          "kind": "P",
+          "slug": "6-277-pf2",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": "GEN.1577",
+          "what": "hot_giant_profile.GAMMA_AT_2000_K 0.6: the visible-to-thermal opacity ratio is 0.6 sqrt(T_irr / 2000 K)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "the constant-opacity radiative-equilibrium profile is used from 1e-6 to 1e3 bar, with no convective joining"
+            ],
+            [
+              "The range it moves in",
+              "the deep isotherm by up to a few hundred K above 10 bar"
+            ],
+            [
+              "Where it holds",
+              "the upper atmosphere, 1e-6 to 10 bar"
+            ],
+            [
+              "What would show it wrong",
+              "a measured or modelled hot-Jupiter profile that is hotter than the isotherm by more than 300 K at 100 bar"
+            ],
+            [
+              "What replaces it",
+              "the radiative-convective join of [R3783] and the interior adiabat"
+            ],
+            [
+              "Evidence",
+              "[R1715]: constant kappa underestimates the deep temperature above about 10 bar (READ)"
+            ]
+          ],
+          "id": "PF3",
+          "key": "6.277:PF3",
+          "kind": "T",
+          "slug": "6-277-pf3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "the constant-opacity radiative-equilibrium profile is used from 1e-6 to 1e3 bar, with no convective joining"
+        }
+      ],
+      "slug": "6-277-stand-ins-of-the-temperature-pressure-profile-of-a-hot-giant",
+      "title": "Stand-ins of the temperature-pressure profile of a hot giant"
     }
   ]
 }
