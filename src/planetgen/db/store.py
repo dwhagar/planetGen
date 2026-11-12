@@ -10898,8 +10898,8 @@ def _advance_body_states(conn, clock, table, scale, budget=None):
         stepped, status = state_kernel.step_many(states, mus, clock.end_unix - epoch)
         failed = status != state_kernel.OK
         for index in np.flatnonzero(failed):
-            log.error(f"{table} {ids[index]}: the orbital step did not move it (status {int(status[index])}); "
-                      f"its state and epoch are kept")
+            log.error(f"The orbital step did not move a body of {table} (status {int(status[index])}), so its state and epoch are kept.",
+                      object_id=str(ids[index]))
         new_epoch = np.where(failed, epoch, clock.end_unix)
         speed = np.sqrt(stepped[:, 3] ** 2 + stepped[:, 4] ** 2 + stepped[:, 5] ** 2)
         with np.errstate(divide="ignore"):
