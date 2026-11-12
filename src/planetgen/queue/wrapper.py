@@ -31,7 +31,7 @@ import redis
 
 from planetgen.datasets import fetch
 from planetgen.queue import commandgaps, commands, progress_file, redisqueue, runline, runrecord, stagetimes, unitrates, unitwatch, units, workers
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.settings import get_settings
 
 
@@ -406,7 +406,7 @@ def stage_label(conn, run_id, index):
 def stop_line(run_id, stage_at, stage_count, exc, message, stopped):
     """OPS.163: the severity, text and fields of the line a generation run that stopped early logs. It says why and at which stage it stopped; a cancel (Ctrl+C,
     a SIGTERM) is a notice and not an error, the rule of `log.DELIBERATE_SIGNALS`."""
-    where = "" if stage_at is None else f" at stage {stage_at + 1} of {stage_count}"
+    where = "" if stage_at is None else f" at {logrecord.counting_text('Stage', stage_at + 1, stage_count)}"
     cause = "canceled" if stopped else type(exc).__name__
     reason = message if stopped else f"{cause}: {message}"
     fields = {"run_id": run_id, "cause": cause}
