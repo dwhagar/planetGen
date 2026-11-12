@@ -114,7 +114,8 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
         for planet in system.planets:
             if planet.body_type == "a":
                 continue
-            if planet.body_type == "g":
+            if planet.surface_dose_msv_yr is None:
+                # a body with no stored dose at all (a giant, a class T body under its envelope: `radiation.update_ground_dose`) has no belt dose either
                 assert planet.dose_belt_msv_yr is None
             else:
                 assert planet.dose_belt_msv_yr == 0.0
