@@ -148,3 +148,14 @@ def test_carry_axis_keeps_the_angle_round_the_normal_and_a_plane_turned_over_fli
     assert spin.obliquity_between(spin.carry_axis(axis, old, new, 4.0), new) == pytest.approx(4.0, abs=1e-9)
     flipped = spin.carry_axis(axis, old, tuple(-c for c in old))
     assert spin.obliquity_between(flipped, tuple(-c for c in old)) == pytest.approx(23.0, abs=1e-9)
+
+
+def test_gen1600_a_problem_the_system_had_is_the_same_problem_after_a_planet_moves_a_hair():
+    """GEN.1600: the message quotes distances; a tiny move changes the digits, not the problem."""
+    before = validation.Problem("Planet b", "its orbit is too close to Planet a's (at 1.234 AU, needs at least 1.3 AU)")
+    after = validation.Problem("Planet b", "its orbit is too close to Planet a's (at 1.2338 AU, needs at least 1.3004 AU)")
+    other = validation.Problem("Planet c", "its orbit is too close to Planet a's (at 1.234 AU, needs at least 1.3 AU)")
+    kind = StarSystem._problem_key
+    assert kind(before) == kind(after) and kind(before) != kind(other)
+    assert kind(validation.Problem("belt", "the belt at 2.5e-05 AU would be pushed outward")) == kind(validation.Problem("belt", "the belt at 3 AU would be pushed outward"))
+    assert kind(before) != kind(validation.Problem("Planet b", "it is listed after Planet a but orbits inside it"))

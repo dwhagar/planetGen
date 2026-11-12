@@ -20,6 +20,7 @@ the system.
 
 import dataclasses
 import math
+import re
 
 from planetgen.generation import irregular_moons
 from planetgen.generation.belt import AsteroidBelt, star_al26_ratio
@@ -554,7 +555,8 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
-                obj.born_beyond_snow_line = bool(obj.distance >= obj.star.snow_line_au)
+                line = getattr(obj.star, "snow_line_au", None)
+                obj.born_beyond_snow_line = None if line is None else planetPhysics.formed_beyond_snow_line(obj)      # GEN.1596: where it formed (the make-up reads that), not where it orbits now; none for a star with no line
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
 
@@ -2237,10 +2239,10 @@ class StarSystem:
         self.secular_outcomes = {}
         for star, planets in validation.star_lists(self):
             bodies = [p for p in planets if p.body_type != 'a']
-            baseline = {tuple(problem) for problem in self._planet_problems(planets)}
+            baseline = {self._problem_key(problem) for problem in self._planet_problems(planets)}
 
             def keeps(group, baseline=baseline):
-                return all(tuple(problem) in baseline for problem in self._planet_problems(group))
+                return all(self._problem_key(problem) in baseline for problem in self._planet_problems(group))
 
             outcome = planetPhysics.secular_exchange(planets, star.mass, star.age * 1.0e9, keeps) if len(bodies) > 1 else "unchanged"
             self.secular_outcomes[star.name] = outcome
@@ -2266,6 +2268,12 @@ class StarSystem:
                     planet.moons.remove(moon)
                     self.kozai_outcomes["lost"] += 1
                     log.debug(f"{moon.name}: lost to Kozai-Lidov pumping by {planet.star.name}")
+
+    @staticmethod
+    def _problem_key(problem):
+        """A problem as the secular exchange compares it (GEN.1600): its body and its message with the numbers taken out, because the message quotes distances and a planet that
+        moved a hair would otherwise make a problem the system already had read as a new one, and the exchange would be turned down for it."""
+        return problem.body, re.sub(r"[-+]?\d+(?:\.\d+)?(?:e[-+]?\d+)?", "#", problem.message)
 
     @staticmethod
     def _planet_problems(planets):

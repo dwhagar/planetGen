@@ -335,7 +335,7 @@ def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2, comp
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
     if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
-    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (values.get("light_factor") or 1.0)       # GEN.1484
+    light = LIGHT_SHARE * (luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2) + companion_w_m2) * (1.0 if values.get("light_factor") is None else values["light_factor"])       # GEN.1484, GEN.1606: a factor of 0 keeps no light
     return max(light, chemical)
 
 

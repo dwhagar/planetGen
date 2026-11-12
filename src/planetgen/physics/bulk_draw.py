@@ -561,10 +561,14 @@ def _draw_moon(body, origin, part, mass_given):
     if origin == "disk" and system is None:    # a moon built on its own: the disk of a body of its parent's mass
         system = moon_composition.draw_disk_system(body.primary_mass_kg)
     makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
+    ice_shares = None
+    if makeup.ice > 0.0:    # GEN.1603: the other ices of a moon with some are a draw of the comet volatiles, as an icy planet's, not every moon's median
+        percent = _with_nitrogen_ice(body, comet_population.draw_volatiles(RANGES["other_ice_comet_class"]).percent)
+        ice_shares = ice_species.shares_of_percent(percent) or None
     bulk = bulk_composition.BulkFractions(
         metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
         rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, core_ni=part.core_ni, core_light=part.core_light,
-        carbon_rock=False, origin="drawn", **_minor_oxides(part))
+        carbon_rock=False, origin="drawn", ice_shares=ice_shares, **_minor_oxides(part))
     if mass_given:
         # GEN.442: below the taper's end the radius follows from the mass by the same brittle law that gives the mass from the radius
         low, high = compaction.ROCK_FRACTION_RANGE
@@ -641,6 +645,7 @@ def _store_core(body, bulk):
 
 def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
+    ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)      # GEN.1603: the rock and the core's nickel follow the iron branch, as for a body drawn from its star
     part = dry_partition(ratios, feo, light, carbon_rock, graphite, _cut_k(body))
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
     mass_earth = _kg_to_mearth(body.mass)
