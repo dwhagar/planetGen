@@ -29,8 +29,9 @@ def _civilized():
         cfg.HABITABLE_WORLD = True
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
-        if any(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
-                                  getattr(p, "life_milestone_age_gyr", None)) for p in system.planets):
+        if any(getattr(population.timeline_of(getattr(p, "life_stage", None), getattr(p, "life_system_age_gyr", None),
+                                              getattr(p, "life_milestone_age_gyr", None)), "life_stage", None) == "technological_civilization"
+               for p in system.planets):      # only this stage can hold a civilization (`has_civilization`); a multicellular world has a timeline and no species
             return system, cfg
     pytest.fail("could not generate a system with a civilization")
 
