@@ -16,9 +16,9 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.426 |
 | NAV | NAV.78 |
-| GEN | GEN.1620 |
+| GEN | GEN.1635 |
 | PERF | PERF.260 |
-| DB | DB.122 |
+| DB | DB.126 |
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
@@ -3740,7 +3740,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1554 | K and M dwarf zone edges against the greenhouse spectrum: K5V worlds are cold in the inner third of the zone | none | open |
 | GEN.1555 | (bug) The surface air solver has two stable answers near the moist limit and water's boiling point, and the fixed point flips or never settles (a hot CO2 air against a cool one, or a steam air against a frozen airless body) | none | open |
 | GEN.1556 | The Cassini state of a moon's tilt from its real nodal regression (the planet's bulge and the star), part 2 of GEN.1536 | GEN.1536 | open |
-| GEN.1557 | (bug) The class T and class I sentences describe a small core and mostly ices, but the stored bodies are rock-dominated (class T rock 50 to 70 percent, envelope 1 to 18 percent), and the day-counter line says "No solid surface" without saying the rock lies deep under the envelope | none | open |
+| GEN.1557 | (bug) The class T and class I sentences describe a small core and mostly ices, but the stored bodies are rock-dominated (class T rock 50 to 70 percent, envelope 1 to 18 percent), and the day-counter line says "No solid surface" without saying the rock lies deep under the envelope | none | done, PR #6095 |
 | GEN.1558 | Retire the stepped pressure caps (recipe row d6: d3 = 1 kPa and d4 = 10 kPa) so supply, sinks and escape set the air pressure, with the built energy-limited loss added to the escape subtraction in the same single pass | GEN.1546, GEN.1547 | open |
 | GEN.1559 | Rewire burn-down: every physics module, function, registry row, data file, dataset and column that the wiring guard lists as unread and not by design gets wired, retired or marked by design, class-moving ones first | none | open |
 | GEN.1560 | Earth-mass planets in the temperate zone of FGK stars: the isolation-mass law gives a median 0.3 Earth masses at 0.7 to 2.5 AU, so add the merge of oligarchs (giant-impact stage) or fit the mass function to [R0572] | none | open |
@@ -3803,6 +3803,21 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1617 | (bug) Classes U, Y, A and X promise methane-ethane seas, liquid acid, volcanism and an ammonia ocean, but their conditions only check phase stability, 3 percent SO2, or a fraction no body stores | none | open |
 | GEN.1618 | (bug) No class covers bodies at 400 K and up with 10 kPa to 10 bar of air at 0.5 g or more, so classes G (7 of 26) and F (2 of 49) show bodies at match 0 up to 2,000 K | none | open |
 | GEN.1619 | tuning.PLANET_CLASSES composition strings are stale (C anthracite, V iridium and tungsten, B potassium) and nothing displays them | none | open |
+| GEN.1620 | Generator option to request a life class or class letter for a single system, with the fudge it took shown (for UX.302) | none | open |
+| GEN.1621 | (bug) The greenhouse table gives Earth's air 314 K against 289 K in the model it was fitted to: N2O at 0.033 Pa or O3 at 0.03 Pa each add 21 K in the table against 1 K in the model | none | open |
+| GEN.1622 | (bug) The climate model gives Venus 586 K (real 735 K) and Titan 114 K (real 94 K): no cloud greenhouse and no haze cooling in thick airs | none | open |
+| GEN.1623 | Star table: the Sun comes out at 1.107 Lsun and 5848 K (the raw MIST file agrees), so F, G and K dwarfs run 70 to 240 K hot | none | open |
+| GEN.1624 | (bug) Old brown dwarfs keep their young radius (13 Jupiter masses stays 1.50 Rjup, should be about 1.0) and their luminosity runs up to 2.4 times high (physics/brown_dwarf.py) | none | open |
+| GEN.1625 | (bug) The cool-dwarf wind law in generation/star.py (about lines 150-235) has no source: an M5 dwarf gets 2.8 times the Sun's mass loss, white dwarfs get a wind, and magnetism.wind_pressure_pa holds a second, different wind | none | open |
+| GEN.1626 | (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6) | none | open |
+| GEN.1627 | (bug) constants.py (about line 99) SOLAR_MASS_LOSS_RATE is wrong by a factor of 1e15 (nothing reads it) | none | open |
+| GEN.1628 | (bug) The Sm-146 half-life of 68 Myr is a retracted value (now 92 to 103 Myr) | none | open |
+| GEN.1629 | (bug) 52 of 124 gases have ir null, and the null is handled two different ways | none | open |
+| GEN.1630 | (bug) The HCl vapour-pressure curve runs 35 percent high above the triple point | none | open |
+| GEN.1631 | (bug) Earth's Th/U of 3.83 sits above the 95th percentile of drawn bodies | none | open |
+| GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | open |
+| GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | open |
+| GEN.1634 | (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3 | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |
@@ -4598,7 +4613,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.716 | The citation check's stop list ignores role words and time zones before a year ("Train Manager, 2026", "9:29 AM EST 2026") | none | done, PR #6053 |
 | TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | done, PR #6078 |
 | TEST.718 | Release gate: zero unread items that are not marked by design, beside SEC.33 and TEST.261, so a version cannot be released with built physics that nothing reads | GEN.1559 | done, PR #6084 |
-| TEST.719 | Make the class census a repeatable script (scripts/class_census.py from reports/class-census-2026-11-11/collect.py and report_tables.py), with forced-young and caps-off options, for GEN.1549 and every later train | none | open |
+| TEST.719 | Make the class census a repeatable script (scripts/class_census.py from reports/class-census-2026-11-11/collect.py and report_tables.py), with forced-young and caps-off options, for GEN.1549 and every later train | none | done, PR #6090 |
 | TEST.720 | Pre-gate quick lane (3 to 5 minutes) that the author runs before pushing and the gate runs before the long run: release note, pyflakes, spelling, own-log-format, citations, settings, wiring guard, constants, and merges cleanly with main | none | done, PR #6123 |
 | TEST.721 | Stop committing generated files that conflict, or give them a merge step that regenerates them (docs/generated, stand-in-values.md, overview.json, stand-ins.json, the references files) | none | done, PR #6111 |
 | TEST.722 | Re-run only the failed files after a fix, and pick tests from the changed modules with a stated time limit per PR (the rest left to the end-of-version run) | none | open |
@@ -4685,6 +4700,10 @@ Each citation below resolves to one item by its date.
 | DB.119 | SQL portability: a new VALUES() inside ON DUPLICATE KEY UPDATE and an unquoted reserved word | none | done, PR #5755 |
 | DB.120 | The table holding sky_tier_draws is on neither LAYOUTS nor NOT_BODIES in db/point_columns.py | none | done, PR #5755 |
 | DB.121 | Running galaxy totals and stored facet counts, updated by deltas in the sector save and delete: one totals row, and counts by sector and facet (class, type, life stage) (audit C9, F7, F9) | none | done, PR #5869 |
+| DB.122 | (bug) A planet's collision_count is not stored, so a loaded planet reads 0 (101 planets had 1 or more) and physics/oddities.py (about line 343) loses the collision oddity | none | open |
+| DB.123 | (bug) A moon's host_eccentricity is not stored, so a loaded moon reads 0.0 (40 moons) and re-solving its air (physics/planets.py about lines 649-650) gives a different temperature | none | open |
+| DB.124 | (bug) Belt and comet makeup are not stored: drawn shares, porosity, density and albedo come back empty after load (the words and chondrite group are kept) | none | open |
+| DB.125 | (bug) star_words of a wide binary pair come back empty after load (db/store.py about line 10089) | none | open |
 | items 64-69 (PR #154) | 2026-10-01 02:25Z | USR.2 to USR.7 |
 | TODO 64-73 (PR #155, commit a18bc46) | 2026-10-01 02:24Z to 02:26Z | drill-down: 64 MAP.28, 65 MAP.29, 66 MAP.16, 67 MAP.20, 68 MAP.21, 69 MAP.22, 70 MAP.23, 71 MAP.24, 72 MAP.25, 73 MAP.27 (note 6) |
 | "renumber the drill-down items to 70-79" (PR #156) | 2026-10-01 02:31Z | MAP.28, MAP.29, MAP.16 to MAP.27 |
@@ -4755,7 +4774,7 @@ Each citation below resolves to one item by its date.
 | UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | open |
 | UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | open |
 | UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | done, PR #6080 |
-| UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | open |
+| UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | done (measured clean by Lane 06, 2026-11-11) |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |
 | UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | done, PR #6072 |
 | UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | done, PR #6100 |
