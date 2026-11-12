@@ -13461,6 +13461,16 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11 (stars). Prerequisites: none. Related: TEST.714.
   Filed by the TODO thread.
 
+- [ ] **GEN.1613 (bug) The ideal-gas air equilibrium stops converging above about 3,900 bar and 3,980 K, so deep hot steam airs need a non-ideal gas equation of state**
+  Lane 14 (as the lane reported 9:44 PM EST on 2026-11-11), found while building GEN.1580 (PR 6135): 4 of the 62 census systems hit this before the fix; the fixed point now keeps the last solved air and marks it unsettled. Do: add a non-ideal equation of state for deep hot steam airs (reuse what the interior and ocean code already has for supercritical water before adding a new one), so the equilibrium converges and the unsettled mark is gone from the census. Cite only [R....] ids. Lock item (changes generated air).
+  Version 8.1 (Class M fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1580. Related: GEN.1580, GEN.1586.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1614 (bug) trace_air removes the equilibrium NO2 and N2O from hot airs instead of keeping them**
+  Lane 14 (as the lane reported 9:44 PM EST on 2026-11-11), found while building GEN.1580 (PR 6135, which fixed the stale molar mass only). Do: find why the trace-air pass drops NO2 and N2O that the hot-air equilibrium made, keep them, and test that a hot nitrogen-oxygen air keeps its equilibrium nitrogen oxides. Lock item (changes generated air).
+  Version 8.1 (Class M fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1580. Related: GEN.1580, GEN.1584, GEN.1585.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
