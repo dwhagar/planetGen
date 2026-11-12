@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3952] - 2026-11-12
+
+**Headline:** Pages that name a database (`?db=`) no longer scan every schema of the MySQL server on each request: the Galaxy Map's near-sector read took 20 to 26 seconds on a server with 147 schemas and takes about one second now.
+
+### Changed
+
+- `db.store.resolve_database` checked that a requested schema exists by calling `list_databases`, which reads the size and modification time of every schema with the prefix (one `information_schema.tables` scan each) and throws the numbers away. It now asks for that one name with one query for the names on `information_schema.schemata` (`_is_listed`), reading the prefixed names and comparing the requested one in Python, with the listing's rules unchanged: the prefix, not the control schema, and the name exactly as written. A name the schema column's collation cannot mix with (an emoji in `?db=`) is a 404, as before, and not a server error.
+- Why it mattered: a Galaxy Map view fetches a dozen stages, each resolving its schema, so one `/galaxy/near` call made 59 resolutions and 8,383 queries. On a test server that had gathered 147 schemas that was 20 to 26 seconds a call, and the whole-galaxy wheel-in browser test (TEST.696) failed because the sector scene arrived long after the camera had flown past the star.
+- The `list_databases` page of the admin screens is unchanged (it does want the sizes).
+
+generation-output: unchanged
+
 ## [8.0.3951] - 2026-11-12
 
 **Headline:** `planetgen system` can be asked for a planet class letter or a life class, and says what came of the request.
