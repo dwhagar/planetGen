@@ -64475,6 +64475,90 @@
       ],
       "slug": "6-283-stand-ins-of-the-nebula-contour",
       "title": "Stand-ins of the nebula contour"
+    },
+    {
+      "key": "6.284",
+      "number": "6.284",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_planets.screen_planets: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only"
+            ],
+            [
+              "The range it moves in",
+              "the strongest, the sum of the pulls"
+            ],
+            [
+              "Where it holds",
+              "planets with more than one perturber"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's"
+            ],
+            [
+              "What replaces it",
+              "a vector sum of the perturbers' torques"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers)"
+            ]
+          ],
+          "id": "KZP1",
+          "key": "6.284:KZP1",
+          "kind": "P",
+          "slug": "6-284-kzp1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": null,
+          "what": "kozai_planets.screen_planets: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "kozai_planets.SIBLING_MASS_RATIO 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 10"
+            ],
+            [
+              "Where it holds",
+              "outer sibling planets"
+            ],
+            [
+              "What would show it wrong",
+              "a lighter outer planet that pumps an inner one in an N-body run"
+            ],
+            [
+              "What replaces it",
+              "the planet-planet octupole test of GEN.1450"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps)"
+            ]
+          ],
+          "id": "KZP2",
+          "key": "6.284:KZP2",
+          "kind": "P",
+          "slug": "6-284-kzp2",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1645",
+          "what": "kozai_planets.SIBLING_MASS_RATIO 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis"
+        }
+      ],
+      "slug": "6-284-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
+      "title": "Stand-ins of the Kozai-Lidov screen of a planet"
     }
   ]
 }

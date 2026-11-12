@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1647 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1649 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1621 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1623 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
 | T4 | 85 | 14 | 4 | 22 | 15 | 140 |
 | T5 | 90 | 23 | 6 | 1 | 1 | 121 |
-| T6 | 216 | 106 | 31 | 76 | 4 | 433 |
+| T6 | 216 | 108 | 31 | 76 | 4 | 435 |
 | T7 | 58 | 21 | 10 | 31 | 0 | 120 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 49 | 18 | 5 | 92 | 35 | 199 |
-| All | 956 | 316 | 81 | 238 | 56 | 1647 |
+| All | 956 | 318 | 81 | 238 | 56 | 1649 |
 
 ## How the labels were given
 
@@ -2890,3 +2890,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | NC1 | P | T9 | L0 | `nebula_density.YOUNG_ANCHOR_FLOOR` = 0.8: a young-family nebula (emission, reflection, diffuse, planetary, remnant) anchors its own density on its sphere with the polynomial kernel of a cloud, 0.8 of it kept where the model young density is nil and the other 0.2 scaling with that density, the same split as `CLOUD_GAS_FLOOR` | 0.6 to 1.0 | a hot-star nebula anywhere in the disk, where the generator grows it around its hot stars wherever they are | a measured emission nebula in the outer disk whose extent is far under or over its cataloged radius at the form level | a young density from the placed stars themselves, so the anchor is the stars | measured on the test galaxy: the model young density alone is under the form level (0.35) from about 6 kpc out (0.6 percent of points at 8 kpc, none at 10 kpc), so a 40 pc emission nebula at the solar circle drew 15 points of 6/255 (MAP.423) | predicted only | - | - |
 | NC2 | P | T9 | L0 | `nebula_density.CONTAIN_DETAIL` = 3 octaves: the containment test reads the coarse form of the contour (finest wavelength 16 pc), which the map's finer octaves refine and do not move | 2 to 5 | any nebula of 10 pc or more | a star whose containment flips between 3 and 8 octaves in more than a few percent of nebulae | the full map detail at a higher cost (about 5 microseconds a point at 5 octaves in a batch) | `nebula_density.octave_bound`: a finer octave changes the value by at most its amplitude times the edge weight, so the coarse blobs stay; cost measured 3.6 to 5.5 microseconds a point | predicted only | - | - |
 | NC3 | P | T9 | L0 | `nebula_density.CONTAIN_ROUND` = 1e-4: the density is rounded to this before it is compared to the form level, so a last-bit difference of a platform's arithmetic cannot put a star across the outline | 1e-6 to 1e-3 | every containment test | a golden that differs between two machines on the nebula-contour case | exact arithmetic everywhere | `test_nebula_contour.test_the_form_level_comparison_is_rounded` | predicted only | - | - |
+
+## 6.284 Stand-ins of the Kozai-Lidov screen of a planet
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| KZP1 | P | T6 | L1 | `kozai_planets.screen_planets`: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only | the strongest, the sum of the pulls | planets with more than one perturber | an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's | a vector sum of the perturbers' torques | educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers) | predicted only | - | - |
+| KZP2 | P | T6 | L1 | `kozai_planets.SIBLING_MASS_RATIO` 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis | 0.3 to 10 | outer sibling planets | a lighter outer planet that pumps an inner one in an N-body run | the planet-planet octupole test of GEN.1450 | educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps) | predicted only | GEN.1645 | - |
