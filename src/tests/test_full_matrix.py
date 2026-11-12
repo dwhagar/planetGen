@@ -170,7 +170,7 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
     assert moon_count == system.moon_count
     assert planet_count + belt_count == len(system.planets)
 
-    objects = system.planets
+    objects = [p for p in system.planets if p.belt_rank is None]      # GEN.1510: a belt member promoted to a planet stays inside its belt's ring, so the spacing below is of the bodies that were placed
     for i in range(1, len(objects)):
         prev, cur = objects[i - 1], objects[i]
         gap = cur.distance - prev.upper_limit if prev.body_type == 'a' else cur.distance - prev.distance
