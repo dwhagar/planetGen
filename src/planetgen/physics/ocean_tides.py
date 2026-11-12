@@ -23,6 +23,8 @@ resonance, which this does not model, so it is an upper bound for an ocean that 
   loading of the floor by the sea's own weight and its self-attraction, which for a thin layer multiplies the tide by `1 / (1 - 3 rho_liquid / (5 rho_mean))` (recalled): 1.12 for water on the Earth. The factor goes singular as the liquid approaches 5/3 of the body's mean density, so a liquid heavier than
   `LOADING_REFUSE` of that is refused (`OceanTideError`): a global layer of a heavy liquid is not thin, and needs the fluid Love numbers, not this.
 * **An ice-covered ocean** has no free surface: the lid flexes, and the free-surface tide is not defined (zero, with the reason).
+* **A hycean ocean has none, by design (GEN.1609).** It lies under a hydrogen envelope of kilobars and is hundreds of kilometres deep, not the thin layer this formula and its loading factor are for
+  (the fluid Love numbers of GEN.1035 are what it needs), so its columns stay `None` though `magnetism` treats it as a global ocean (that needs only that it conducts).
 
 The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1035) are not here. Stand-ins are OT1, OT2 and OT6 to OT8 of
 `docs/design/research/gap-filling-plan.md` section 6.68.
