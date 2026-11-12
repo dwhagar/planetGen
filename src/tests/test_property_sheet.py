@@ -356,7 +356,7 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         body = response.get_json()
         assert body["kind"] == kind
         rows = _rows(body)
-        assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
+        assert [key for key in rows if not sheet.clock_rows.is_derived_key(key)] == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]    # GEN.1153: a brown dwarf's day and night state is derived
         assert all(row["text"] for row in rows.values()), kind
         assert any(row["stored"] for row in rows.values()), kind
 
