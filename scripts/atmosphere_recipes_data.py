@@ -333,17 +333,19 @@ MACHINE = {
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.1021", tunable=True,
-               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, Ar, OCS and SO2 are the host's own nitrogen, argon "
-                     "and sulfur per carbon over the nebula's carbon in CO, times a trapping share and the median CO/H2O, and O2, Kr and Xe keep one value (physics.comet_species, stand-in "
-                     "rows CK1 to CK6): the trapping shares and the three values are tuned to one measured comet (tier T7, tweak L3), so one comet still fixes the seven (GEN.520, GEN.1005)",
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="partly verified", tunable=True,
+               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database). N2, O2, Ar, OCS and SO2 are measured in two comets or a "
+                     "compilation, so each is log-uniform between the two (the widest range where two sources are in question): N2 per CO of 67P and C/2016 R2, Ar per water of 67P and Hale-Bopp "
+                     "(a coma, not a nucleus), OCS and SO2 the range of the comets, O2 Halley to 67P; the ends scale with the host's nitrogen, argon and sulfur per carbon. Kr and Xe have one "
+                     "comet (67P) and follow argon by its ratios (physics.comet_species, stand-in rows CB1 and CB2) (GEN.520, GEN.1005, GEN.1021)",
                dists={**{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": sd}
                          for name, v, sd in (("CH4", 6.8e-3, 0.33), ("C2H6", 4.1e-3, 0.33), ("H2CO", 2.5e-3, 0.35), ("H2S", 7.1e-3, 0.39))},
-                      **{name: {"kind": "normal", "log10": True,
-                                "mu": f"log10(comet_species_median('{name}', n_over_c, ar_over_c, s_over_c))", "sigma": "comet_species_sigma()"}
+                      **{name: {"kind": "loguniform",
+                                "lo": f"comet_species_low('{name}', n_over_c, ar_over_c, s_over_c)",
+                                "hi": f"comet_species_high('{name}', n_over_c, ar_over_c, s_over_c)"}
                          for name in ("N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe")}},
-               correction="GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon and the width is 0.4 dex (Bar-Nun's 5 K in the formation temperature) in place of the design 0.6; "
-                          "O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn."),
+               correction="GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon. GEN.1021: each of the seven is log-uniform between the two comets measured in place of a "
+                          "log-normal about 67P alone, argon moved from the CO to the water. Ne is only an upper limit (below 5e-8) and is not drawn."),
 
     # ---- l. white-dwarf and pulsar planets ----
     "l1": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
