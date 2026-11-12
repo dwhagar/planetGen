@@ -13471,6 +13471,11 @@ clears each one.
   Version 8.1 (Class M fixes, under Boss's fix-all of 2026-11-11). Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1580. Related: GEN.1580, GEN.1584, GEN.1585.
   Filed by the TODO thread.
 
+- [ ] **GEN.1615 (bug) A close (P-type) pair is judged stable at its drawn eccentricity, then the system build sets that eccentricity to zero, so the stored star tree differs from the judged one**
+  Lane 11 (as the lane reported 9:54 PM EST on 2026-11-11), found while building GEN.1016 (PR 6139): src/planetgen/generation/system.py, the `if kind == "close":` block of the stored-plan build (about line 1156), replaces the close pair node with eccentricity 0.0 after the tree draw, because the pair is tracked on a circle (BinaryStarProxy). The tree draw, the triple screen and the quadruple network (GEN.1016) all judged that node at its drawn eccentricity (up to about 0.7). One of 160 four-star systems (seed 112, a 2+2) is refused by the network on the stored numbers, and some trees were refused at e near 0.7 that are stable as stored. Do: in multistar, circularize a close pair's node (axis under tuning.WIDE_BINARY_SEPARATION_MIN_AU) in the record at the tree draw, with the mean anomaly shift, before stable_at and hierarchy_stable read it, so the system build has nothing left to change; test that the stored tree equals the judged tree. Lock item (changes output, epoch).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: GEN.1016. Related: GEN.1016.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
