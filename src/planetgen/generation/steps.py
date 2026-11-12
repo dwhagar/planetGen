@@ -95,6 +95,7 @@ STEP_KINDS = {
     "population": "Population pass",
     "territories": "Territories pass",
     "habitability": "Habitability re-score",
+    "ledger": "Effect ledger refill",
     "reset": "Reset",
     "orbits": "Orbit update",
     "migrate": "Migration",
@@ -112,7 +113,7 @@ a detail bar under its step."""
 
 STEP_UNITS = {
     "sector": "sector", "generate-unplaced-sector": "sector", "link": "sector", "paths": "sector", "backfill": "sector",
-    "topup": "sector", "save": "sector", "map-luminosity": "row", "habitability": "row", "population": "pass",
+    "topup": "sector", "save": "sector", "map-luminosity": "row", "habitability": "row", "ledger": "row", "population": "pass",
     "territories": "pass", "stages": "step", "reset": "step", "migrate": "step", "db-check": "system",
 }
 """dict: What a bar's count counts, by step kind, as a singular noun (API.33: a number is never shown without its unit).

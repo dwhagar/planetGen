@@ -57,7 +57,7 @@ SOURCES = {
 RANGES = {
     "enriched_cmf": (0.5, 0.8),
     "rock_feo": (0.02, 0.18),
-    "core_light_elements": (0.03, 0.12),
+    "core_light_elements": (0.02, 0.25),
     "graphite_over_rock": (0.05, 0.40),
     "porosity": (0.0, 0.30),
     "other_ice_comet_class": ice_species.COMET_CLASS,
@@ -69,8 +69,9 @@ RANGES = {
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
   [R2334]; Mercury, under 0.01, is outside it: the Mercury-like range belonged to class B,
   a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
-- `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
-  0.10 [R1950].
+- `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, the clip of a lognormal of median
+  `CORE_LIGHT_MEDIAN` and width `CORE_LIGHT_SCATTER_DEX` (GEN.993, stand-in BC18); Earth's core has 0.05 to 0.10 [R1950] and
+  Mars's is lighter than iron-nickel by more (0.07 to 0.20, [R4833]).
 - `graphite_over_rock`: a carbon body's graphite against its silicon carbide and oxide rock, uniform; a stand-in range until the
   carbon mantle's equation of state (GEN.428's open item) says what the interiors hold.
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
@@ -78,6 +79,10 @@ RANGES = {
 """
 
 IRON_SCATTER_DEX = 0.05
+CORE_LIGHT_MEDIAN = 0.08
+"""float: The median of the light elements' share of a core's metal (the Earth's 0.05 to 0.10 with the weight of the lighter cores of Mars; stand-in BC18, tier T7, tweak L2)."""
+CORE_LIGHT_SCATTER_DEX = 0.25
+"""float: The width of the lognormal of that share, in dex: 0.2 dex covers 0.05 to 0.13 and misses the high half of Mars's 0.07 to 0.20, so the widest-range rule takes 0.25 (stand-in BC18)."""
 """float: The scatter of a star-matched planet's Fe/Mg about its star's, dex (a normal draw): GEN.512 (`docs/design/composition/iron-branch-tuning.md`
 section 3 gives the tuning and the bracket)."""
 IRON_ENRICHED_WEIGHT = 0.01
@@ -327,6 +332,12 @@ def _cut_k(body):
     return volatile_depletion.cut_temperature_k(distance, luminosity)
 
 
+def core_light_elements():
+    """The light elements' share of a core's metal: a lognormal of median `CORE_LIGHT_MEDIAN` and width `CORE_LIGHT_SCATTER_DEX`, clipped to `RANGES["core_light_elements"]` (GEN.993). One draw."""
+    low, high = RANGES["core_light_elements"]
+    return min(high, max(low, CORE_LIGHT_MEDIAN * 10.0 ** (draw.gauss(0.0, 1.0) * CORE_LIGHT_SCATTER_DEX)))
+
+
 def dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock=0.0, cut_k=None):
     """
     The metal and rock shares of a dry body from the star's ratios, per Mg atom of the body.
@@ -530,7 +541,7 @@ def draw_terrestrial(body, radius_given, mass_given):
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
     water, ice, ice_shares = (0.0, 0.0, None) if origin else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])
-    light = draw.uniform(*RANGES["core_light_elements"])
+    light = core_light_elements()
     porosity = None if origin else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 

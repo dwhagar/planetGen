@@ -16,7 +16,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import scatter, swept_hand_on, unit_registry as units
 from planetgen.util import draw
 
-from tests.fuzz_support import deterministic_entropy
+from tests.fuzz_support import deterministic_entropy, first_seed_with
 
 EARTH_KG = units.convert(1.0, "Mearth", "kg")
 
@@ -63,7 +63,11 @@ def _system(seed):
 
 
 def test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system():
-    system = _system(51)             # a system whose outer disk a giant swept (an instability scattered 98 Earth masses of it)
+    def swept(system):
+        disks = [body for body in system.planets if body.body_type == 'a' and body.swept_kg]
+        return len(disks) == 1 and disks[0].swept_kg["ejected"] > disks[0].swept_kg["implanted"] > 0.0 and disks[0].swept_kg["captured"] > 0.0
+    # TEST.714: a system whose outer disk a giant swept and handed on to an inner belt and to captured moons, found by search (the draws behind a seed move with every change to the generator)
+    _seed, system = first_seed_with(_system, swept, seeds=range(1, 121), what="a system whose outer disk a giant swept")
     belts = [body for body in system.planets if body.body_type == 'a']
     [disk] = [belt for belt in belts if belt.swept_kg]
     gone = (disk.cleared_mass_earth + disk.scattered_mass_earth) * EARTH_KG

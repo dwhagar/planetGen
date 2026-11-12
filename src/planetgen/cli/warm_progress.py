@@ -24,7 +24,7 @@ done); the time left comes from that overall rate only.
 * With a terminal attached the `rich` bars are drawn (as the maintenance commands and the wipe step do): one for the
   whole warm-up and one for the stage in progress, each with elapsed time, time left and, for the stage, the seconds a
   chunk takes overall and how many run at once. Lines the warm-up logs are printed above the bars.
-* Without one (a log file, cron, a pipe) a stage of several chunks leaves a progress line when a minute and ten
+* Without one (a log file, cron, a pipe) a stage of several chunks leaves a progress line when the log cadence (30 s) and ten
   percentage points have both passed since the last one (OPS.99), `galaxy-nodes 16% (28 of 180 chunks), 1:56 elapsed, about
   10:10 left`, with the whole warm-up's time left after it once that is known, then one closing line for the stage that
   also says how many chunks ran at once and how long a chunk took on its worker. A stage of one unit prints its own line.
@@ -33,12 +33,15 @@ done); the time left comes from that overall rate only.
 import sys
 import time
 
-PROGRESS_SECONDS = 60.0
-"""float: Seconds that must pass since a stage's last progress line in a log before the next one (OPS.99)."""
+from planetgen import tuning
+
+PROGRESS_SECONDS = tuning.PROGRESS_LOG_SECONDS
+"""float: Seconds that must pass since a stage's last progress line in a log before the next one (OPS.99): the one progress cadence (OPS.169,
+`tuning.PROGRESS_LOG_SECONDS`)."""
 
 PROGRESS_PERCENT = 10
 """int: Percentage points a stage must advance since its last progress line in a log before the next one; with `PROGRESS_SECONDS` the rarer of
-the two rules decides, so a stage of hours leaves a line at each tenth and a stage of minutes one a minute."""
+the two rules decides, so a stage of hours leaves a line at each tenth and a stage of minutes one every cadence."""
 
 MIN_CHUNKS = 5
 """int: Chunks that must be done before a time left is shown (PERF.237): fewer say nothing of how long the rest takes."""
@@ -263,7 +266,7 @@ class WarmProgress:
         return int(100 * min(1.0, self._position() / self.units)) if self.units > 0 else 0
 
     def _due(self):
-        """Whether a progress line is owed: a minute and ten percentage points since the last (`PROGRESS_SECONDS`, `PROGRESS_PERCENT`)."""
+        """Whether a progress line is owed: `PROGRESS_SECONDS` and ten percentage points since the last (`PROGRESS_SECONDS`, `PROGRESS_PERCENT`)."""
         return (self.clock() - self.last_line_at >= PROGRESS_SECONDS
                 and self._percent() - self.last_line_percent >= PROGRESS_PERCENT)
 

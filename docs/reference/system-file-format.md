@@ -98,18 +98,16 @@ Notes on how slots interact with the rest of generation:
 
 - **Orbital distance isn't something you set directly.** Distances are
   computed sequentially, each orbit building outward from the last based on
-  the star's mass and the previous object's size. The one request that moves
-  an orbit is a class that can carry life (see [Planet classes](#planet-classes)):
-  if the orbit would land outside the habitable zone, the generator snaps it
-  into the zone, the way the orbit of a requested habitable world is placed. Any other
-  class keeps the orbit's own distance, and the planet is drawn again there
-  until it comes out as that class.
+  the star's mass and the previous object's size. A slot's `planet_class`
+  never moves its orbit (see [Planet classes](#planet-classes)): the planet
+  is drawn again at the orbit's own distance until it comes out as that class.
 - **`moons` is best-effort.** A planet only has so much stable orbital room
   for satellites (governed by its Hill sphere). If you ask for more moons
   than fit, you'll get as many as fit and no more — no error.
-- A slot with `planet_class` set to one of the habitable classes (see below)
-  still counts toward satisfying a top-level `habitable_world: true`
-  requirement.
+- A slot with a `planet_class` counts toward a top-level `habitable_world: true`
+  request only when the finished planet itself meets the request's conditions
+  (a mild surface, air, and water at the surface); the class letter alone does not
+  decide it.
 - An unknown `planet_class` (a typo, or a letter no class uses) raises a clear
   error at generation time rather than silently substituting something else.
   A real class that the draws cannot reach at that place is listed as an
@@ -117,52 +115,51 @@ Notes on how slots interact with the rest of generation:
 
 ## Planet classes
 
-These are the class letters valid for `slots[].planet_class`. A class is not drawn first. It is read off the finished
-body: the generator builds the whole planet (mass, make, air, temperature, water), then gives it the first class in the
-check order below whose rule it meets. A slot that names a class is generated again, up to 40 times, until the finished
-planet has that class.
+These are the class letters valid for `slots[].planet_class`: every letter below (Q is the only reserved letter and is
+not valid). A class is not drawn first. It is read off the finished body: the generator builds the whole planet (mass,
+make, air, temperature, water), then gives it the class it fits best. Every class has its own conditions in
+`src/planetgen/physics/data/planet_class_fit.json`; a condition just outside its edge lowers the match instead of ruling
+the class out, and the class with the highest match wins (a tie goes to the class with more conditions, then to the
+letter). No class relies on another having said no, so the order of the table does not matter. A slot that names a
+class is generated again, up to 40 times, until the finished planet has that class.
 
-Only a class that can carry life has a place. Those classes (the "Life?" column) need a world in the habitable zone, so
-a slot that asks for one is moved into the habitable zone if its orbit would land outside it. Every other class keeps the
-orbit's own distance, and the draws are made there. A class that cannot come out at that place (a white dwarf's habitable
-zone holds no air) is listed in the system's unmet requirements instead of being forced. An unknown letter raises an
-error at once, and a class that can carry life raises one when `habitable_world` is `false`. Only `"M"` is called out
-separately in the summary output, as a "class M world".
+A class that cannot come out at that place (a white dwarf's habitable zone holds no air) is listed in the system's
+unmet requirements instead of being forced. An unknown letter raises an error at once. Only `"M"` is called out
+separately in the summary output, as a "class M world". Whether life lives on a world is decided by its conditions and
+history, never by its class letter.
 
-The giants are checked first (T, then I, then J). Rocky bodies are checked in this order: D, S, C, A, T, N, V, L, K, E, P,
-B, F, G, O, H, M. The last class in each list takes every body that no earlier rule caught.
+The table gives the main conditions; the exact numbers and the other conditions (the temperature of the hottest and
+coldest regions, wet bulb temperature, the phase of the liquid) are in `planet_class_fit.json`, and the class page of the
+web interface lists them for each letter.
 
-| Class | Name | Type | Rule: what the finished body must be | Life? |
-|---|---|---|---|---|
-| `T` | Gas dwarf | gas giant | Mass below 10 Earth masses. | no |
-| `I` | Ice giant | gas giant | Mass below 35 Earth masses. | no |
-| `J` | Gas giant | gas giant | Every giant no earlier class took. | no |
-| `D` | Small icy body | terrestrial | No air (under 10 Pa) and at least 1 percent of its mass is water or ice. | no |
-| `S` | Airless super-Earth | terrestrial | No air (under 10 Pa) and at least 1.5 Earth masses. | no |
-| `C` | Dead world | terrestrial | No air (under 10 Pa). | no |
-| `A` | Volcanic world | terrestrial | At least 3 percent sulfur dioxide in the air. | no |
-| `T` | Gas dwarf | terrestrial | At least 30 percent hydrogen in the air and under 10 Earth masses. | no |
-| `N` | Hot dense world | terrestrial | Air of at least 10 bar, a mean surface at 400 K or more, and under 30 percent hydrogen. | no |
-| `V` | High-gravity world | terrestrial | Surface gravity of at least 2 g. | yes |
-| `L` | Marginal thin-air world | terrestrial | Air of 30 kPa to 3 bar, a mean surface of 273.15 K to 320 K, 1 percent or more carbon dioxide, 3 to 16 percent oxygen, and at least 0.5 g. | yes |
-| `K` | Thin-air world | terrestrial | Air under 3 kPa, a mean surface of 273.15 K to 320 K, and under 10 percent oxygen. | yes |
-| `E` | Deep-frozen world | terrestrial | A mean surface under 233.15 K (-40 C). | yes |
-| `P` | Glaciated world | terrestrial | A mean surface of 233.15 K to 273.15 K. | yes |
-| `W` | Frozen world | terrestrial | An air world with a mean surface of 233.15 K to 273.15 K, under 2 g, that class P does not hold (GEN.1306). | yes |
-| `B` | Small hot world | terrestrial | Surface gravity under 0.5 g. | no |
-| `F` | Anoxic world | terrestrial | Under 3 percent oxygen and under 20 percent carbon dioxide in the air, 0.5 to 1.4 g. | yes |
-| `G` | Carbon dioxide world | terrestrial | At least 20 percent carbon dioxide in the air. | yes |
-| `O` | Ocean world | terrestrial | At least 80 percent of the surface covered by water. | yes |
-| `H` | Desert world | terrestrial | Under 20 percent of the surface covered by water. | yes |
-| `M` | Temperate world | terrestrial | Every rocky body no earlier class took. | yes |
-
-The letters Q, R, U, W, X, Y and Z are not used. The rules above are the live ones, and the thresholds are tuned by the
-class sweep (`src/tests/class_shadow_cli.py`), so check `src/planetgen/physics/data/planet_classes.json` for the exact
-numbers.
-
-**Planned, class code system GEN.1220 (not live yet).** A class will be a letter plus a digit, and new letters are
-confirmed for new families of world: `Y` (sulfuric acid), `U` (methane and ethane), `X` (ammonia and water), `Z` (hot
-thin-air world) and `R` (Hothouse). None of these can be named in a slot until GEN.1220 is merged.
+| Class | Name | Type | Main conditions |
+|---|---|---|---|
+| `T` | Gas dwarf | gas giant | Under 10 Earth masses. A rocky body with a hydrogen and helium envelope of 0.5 percent of its mass or more is judged by the giant classes. |
+| `I` | Ice giant | gas giant | 10 to 35 Earth masses. |
+| `J` | Gas giant | gas giant | 35 Earth masses or more. |
+| `D` | Small airless world | terrestrial | No air (under 10 Pa), round, under 0.1 Earth masses. A body under a roundness ratio of 1 is an Asteroid and has no class. |
+| `S` | Airless super-Earth | terrestrial | No air and 1.5 Earth masses or more. |
+| `C` | Dead world | terrestrial | No air and 0.1 to 1.5 Earth masses. |
+| `A` | Volcanic world | terrestrial | Sulfur dioxide 3 percent or more of the air. |
+| `T` | Gas dwarf | terrestrial | Hydrogen 30 percent or more of the air and under 10 Earth masses. |
+| `N` | Hot dense world | terrestrial | Air of 10 bar or more, a mean surface of 400 K or more, hydrogen under 30 percent. |
+| `V` | High-gravity world | terrestrial | Air, 2 g or more, hydrogen under 30 percent, sulfur dioxide under 3 percent. |
+| `L` | Marginal thin-air world | terrestrial | Air of 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 kPa or more, oxygen 3 to 16 kPa, 0.5 to 2 g. |
+| `K` | Thin-air world | terrestrial | Air under 3 kPa, 273.15 to 320 K, under 2 g, any oxygen. |
+| `E` | Deep-frozen world | terrestrial | Air and a mean surface under 233.15 K (-40 C). |
+| `P` | Glaciated world | terrestrial | The Earth-like world too cold: mean 240 to 270 K, the hottest region 270 K or more, poles under 245 K, oxygen 16 to 35.5 kPa, air 50 to 250 kPa, 0.75 to 2 g. |
+| `W` | Frozen world | terrestrial | Air, a mean surface of 233.15 K to 273.15 K, under 2 g (class P wins where it fits). |
+| `B` | Small hot world | terrestrial | Air, under 0.5 g, a mean surface above freezing. |
+| `F` | Anoxic world | terrestrial | Oxygen under 3 kPa, carbon dioxide under 20 percent of the air, 273.15 to 400 K, 0.5 to 1.4 g. |
+| `G` | Carbon dioxide world | terrestrial | Carbon dioxide 20 percent or more of the air, 273.15 to 400 K, 0.5 to 2 g. |
+| `O` | Ocean world | terrestrial | M's too wet: water over 80 percent of the surface, mean 275 to 312 K, oxygen 16 to 35.5 kPa. |
+| `H` | Desert world | terrestrial | M's too dry: under 20 percent water with groundwater, mean 275 to 315 K, oxygen 16 to 35.5 kPa. |
+| `M` | Temperate world | terrestrial | Mean 275 to 305 K, liquid water over 20 to 80 percent of the surface, oxygen 16 to 35.5 kPa, carbon dioxide under 1 kPa, air 50 to 250 kPa, 0.75 to 2 g. |
+| `R` | Hothouse world | terrestrial | M's too hot: mean 312 to 345 K, wet bulb 31 C or more. |
+| `Z` | Hot thin-air world | terrestrial | 340 to 1500 K, air of 1 to 10 kPa, no ocean, 0.5 to 2 g. |
+| `U` | Methane-ethane world | terrestrial | 91 to 130 K, air of 50 to 500 kPa with methane, methane-ethane liquid stable. |
+| `Y` | Sulfuric acid world | terrestrial | 300 to 350 K, sulfur dioxide 3 percent or more of the air, sulfuric acid liquid stable. |
+| `X` | Ammonia-water world | terrestrial | No air, a liquid cover over 20 percent, ammonia 10 percent or more of the water, 190 to 240 K. |
 
 Moons are given a class by the same rules, so no letter is barred from a moon, and a slot's own `planet_class` always
 describes the planet itself, never its moons.

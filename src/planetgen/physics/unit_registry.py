@@ -287,6 +287,8 @@ def _times():
     _unit("1/s", "frequency", "1/s", "per second", 1.0, parts=(("s", -1),))
     _unit("1/yr", "frequency", "1/yr", "per year", 1.0 / _JULIAN_YEAR_S, parts=(("yr", -1),))
     _unit("1/Gy", "frequency", "1/Gy", "per billion years", 1.0 / (_JULIAN_YEAR_S * 1e9), parts=(("Gyr", -1),))
+    _unit("1/Myr", "frequency", "1/Myr", "per million years", 1.0 / (_JULIAN_YEAR_S * 1e6), parts=(("Myr", -1),))
+    _unit("1/d", "frequency", "1/d", "per day", 1.0 / 86400.0, parts=(("d", -1),))
 
 
 def _kinematics():

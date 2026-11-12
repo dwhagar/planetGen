@@ -25,7 +25,7 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, connection_loss, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, wrapper
@@ -599,7 +599,7 @@ def _sky_units(params, centers):
         cells[cell] = center
     units = []
     for cell in sorted(cells):
-        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits)
+        center, tiers = sky_charting.plan(cells[cell], limit, skeleton.edge_pc, limits=limits, skeleton=skeleton)
         owed = sky_charting.owed_tiers(tiers, ledger, center)
         if owed:
             seconds = sum(tier.visits for tier in owed) * sky_tiers.BLOCK_VISIT_SECONDS * SKY_WRITE_FACTOR
@@ -662,10 +662,20 @@ def _sky_unit(unit_args, report):
     """
     from planetgen.generation import sky_charting
     sky = unit_args["sky"]
+    before, opened, ticked = None, 0.0, 0.0
     for attempt in range(1, SKY_UNIT_CONNECTION_TRIES + 1):
         conn = store.get_connection(_mysql_config_of(unit_args))
         try:
-            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), progress=report)
+            if before is not None:
+                connection_loss.explain(conn, before, time.monotonic() - ticked, time.monotonic() - opened)      # DB.115: what the new connection says about the lost one
+            before, opened = connection_loss.facts(conn), time.monotonic()
+            ticked = opened
+
+            def tick(batches, cells, stars):
+                nonlocal ticked
+                ticked = time.monotonic()
+
+            result = sky_charting.chart(conn, tuple(sky["center"]), float(sky["limit"]), on_batch=tick, progress=report)
             break
         except BaseException as exc:
             conn.rollback()
@@ -673,7 +683,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
@@ -922,6 +932,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
     report(1, 2)
     try:
@@ -936,6 +947,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new sectors to the block totals failed: {exc}")
     return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
 
@@ -957,7 +969,7 @@ class RunBlocksFollower(followed.Follower):
         if result["nebulae"]:
             log.normal(f"Added {result['nebulae']:,} nebulae to the block totals.")
         for warning in result["warnings"]:
-            log.normal(f"Warning: {warning}")
+            log.warning(f"{warning}")
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -1416,7 +1428,7 @@ def _refresh_block_totals(config, address):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sector is saved; the totals can be made again
-        log.normal(f"Warning: adding the sector at {_format_address(address)} to the block totals failed: {exc}")
+        log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
 def regenerate_sector_cell(address, config):
@@ -1719,7 +1731,7 @@ class SectorsFollower(followed.Follower):
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
-            log.normal(f"Warning: {plan['detail']['warning']}")
+            log.warning(f"{plan['detail']['warning']}")
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
                        f"it is saved, so the first report can take a while in a dense region.")
@@ -2875,7 +2887,7 @@ def _check_plan(args, edge_pc):
     problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
                                    compute_battery=not getattr(args, "estimate_only", False))
     if warning:
-        log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
+        log.warning(f"{warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:
         log.error(problem)
         raise SystemExit(1)

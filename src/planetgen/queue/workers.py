@@ -93,12 +93,12 @@ STAGE_WORKER_MEMORY_MB = {
     "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
     "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
-    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
+    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "refill-effect-ledger": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB, "empty-nebula-field": LEAN_WORKER_MEMORY_MB, "clear-bright-stars": LEAN_WORKER_MEMORY_MB,
     "empty-phenomenon-scatter": LEAN_WORKER_MEMORY_MB, "drop-phenomenon-indexes": LEAN_WORKER_MEMORY_MB,
     "link-neighbors": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
     "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
     "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
-    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling) but cut into one unit per run of shells: 90 units on the full galaxy
+    "refresh-block-lights": LEAN_WORKER_MEMORY_MB,      # `whole` (no unit-length ceiling): the roll-up is one unit and the uncharted index one unit per run of about 300,000 cells with a part (OPS.153)
     "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
 }
 """dict: The command kinds of the stages with units, and what one worker takes at most in MB (`stage_worker_cap`). Every other
@@ -291,6 +291,8 @@ def _start_missing(queue, names, connection, url, mysql_host, count, waiting):
         cap = count or lane_cap(queue_name) or wanted(connection, mysql_host)
         if queue_name == redisqueue.BULK_QUEUE:
             cap = min(cap, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+            from planetgen.queue import adaptive
+            cap = adaptive.adapt(connection, cap, waiting)           # the cap, lowered while the host is short of memory
     live = live_worker_count(queue)
     need = min(waiting, cap) - live - starting
     log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
@@ -416,23 +418,31 @@ def maintenance_share(connection, mysql_host=None):
     return min(maintenance_cap(connection, mysql_host), busy + waiting)
 
 
-def shed_bulk(connection, cap):
+def staying_bulk_workers(connection):
+    """The live bulk workers that have not been asked to leave (`shed_bulk`), as RQ workers."""
+    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
+    return [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
+
+
+def shed_bulk(connection, cap, first=()):
     """
     The lend rule (PERF.150): asks the bulk workers over `cap` to finish their unit and exit (RQ's shutdown command),
     idle ones first and the newest first, so a maintenance worker can have a place without the host's total growing.
     A worker already asked is not asked again (`LENT_PREFIX`), and counts as gone. The bulk lane starts workers
     again by itself (`ensure_workers`) when the maintenance lane no longer needs the places.
 
+    `first` (the adaptive control, `queue.adaptive`) names workers to ask before any other: those that hold a job back at the memory gate and
+    run nothing, so shedding them costs no work (a worker that waits at the gate puts its job back at the front of its queue and exits).
+
     Returns:
         int: How many workers were asked.
     """
-    live = live_workers(redisqueue.queue(redisqueue.BULK_QUEUE, connection))
-    staying = [worker for worker in live if not connection.exists(LENT_PREFIX + worker.name)]
+    staying = staying_bulk_workers(connection)
     over = len(staying) - cap
     if over <= 0:
         return 0
-    staying.sort(key=lambda worker: (worker.get_state() != "idle", -(worker.birth_date.timestamp()
-                                                                        if worker.birth_date else 0.0)))
+    staying.sort(key=lambda worker: (worker.name not in first, worker.get_state() != "idle", -(worker.birth_date.timestamp()
+                                                                                              if worker.birth_date else 0.0)))
     for worker in staying[:over]:
         connection.set(LENT_PREFIX + worker.name, "1", ex=LENT_SECONDS)
         command.send_shutdown_command(connection, worker.name)
