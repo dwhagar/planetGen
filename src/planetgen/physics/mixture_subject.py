@@ -115,6 +115,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["nh3_mass_fraction"] = fractions.ice * shares.get("NH3", 0.0)
         quantities["water_mass_fraction"] = fractions.water
         quantities["rock_mass_fraction"] = fractions.rock
+        quantities["metal_mass_fraction"] = fractions.metal        # GEN.1584: the core the nitrogen is partitioned into
     core = getattr(body, "core_mass_earth", None)
     envelope = getattr(body, "envelope_mass_fraction", None)
     if not core and envelope is not None:  # a rocky planet's core is the mass its envelope (none, for a stripped one) leaves
@@ -180,7 +181,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metal_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

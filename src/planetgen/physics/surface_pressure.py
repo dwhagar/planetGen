@@ -48,9 +48,13 @@ PROCESSING_ENERGY_J_PER_KG = 7.81e6
 4.568 Gy) releases 3.49e6 J per kilogram of its mantle, which is `THETA_EARTH` of this (calibrated, tier 5, tweak level 1; it was 9.17e6 against 4.09e6
 before the mantle's ceiling became its liquidus, GEN.735, which lowers the heat the young Earth twin released)."""
 
-DEGAS_EFFICIENCY = {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
-"""dict: The share of an element the melt cannot hold dissolved. CO2 and N2 are far less soluble than water in basalt (Tosi et al.
-2017); sulfur stays partly in the melt as sulfide (a stand-in, tier 6)."""
+DEGAS_EFFICIENCY = {"C": 1.0, "Ar": 1.0, "S": 0.5}
+"""dict: The share of an element the melt cannot hold dissolved. CO2 is far less soluble than water in basalt (Tosi et al.
+2017); sulfur stays partly in the melt as sulfide (a stand-in, tier 6). Nitrogen is drawn (`DEGAS_EFFICIENCY_N`, GEN.1584)."""
+
+DEGAS_EFFICIENCY_N = (0.3, 0.55, "log")
+"""tuple: The same for nitrogen, drawn (GEN.1584). Johnson and Goldblatt 2015 [R2171] (their Table 4) keep 4 of 21 to 35 x 1e18 kg of the bulk silicate Earth's nitrogen in the air, 11 to 19
+percent, where the carbon-calibrated degassed share of the Earth twin is 36 percent: 0.31 to 0.53. Stand-in NB3 (tier T5, tweak level L1, a published ratio of two published numbers)."""
 
 DEGAS_EFFICIENCY_H = (0.05, 0.5, "log")
 """tuple: The same for hydrogen, drawn: water is highly soluble and the magma ocean retains much of it ([R4413]; Bower et al.
@@ -101,6 +105,7 @@ def degassed_share(released_j, mantle_kg):
 def draw_efficiencies(constants):
     """`{element: eps}` with the hydrogen share drawn (and recorded in `constants`)."""
     return {**DEGAS_EFFICIENCY, "H": bracket(constants, "degas_efficiency_h", DEGAS_EFFICIENCY_H),
+            "N": bracket(constants, "degas_efficiency_n", DEGAS_EFFICIENCY_N),
             "Cl": bracket(constants, "degas_efficiency_cl", DEGAS_EFFICIENCY_HALOGEN),
             "F": bracket(constants, "degas_efficiency_f", DEGAS_EFFICIENCY_HALOGEN)}
 
