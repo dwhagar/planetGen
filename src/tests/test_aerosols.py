@@ -228,15 +228,17 @@ def _body(**changes):
     return SimpleNamespace(**{**values, **changes})
 
 
-def test_the_aerosol_stream_is_keyed_on_the_bodys_identity_and_conditions_never_its_class_letter():
-    """GEN.917, GEN.915: two bodies that differ only in their class letter draw the same aerosols; one that differs in a condition
-    the draws read (the air pressure here, the surface temperature there) draws from another stream."""
+def test_the_aerosol_stream_is_keyed_on_the_bodys_birth_never_its_conditions_or_class_letter():
+    """GEN.917, GEN.915, GEN.1547: two bodies that differ only in their class letter, or in a condition the draws read (the air pressure here, the surface
+    temperature there), draw the same aerosols: the stream is keyed to the body's birth (mass, the distance it formed at, its star), so a remade air re-rolls nothing; a
+    different body draws from another stream."""
     def first(body):
         return aerosols.stream_of(body).random()
 
     assert first(_body(planet_class="M")) == first(_body(planet_class="D")) == first(_body(planet_class=None))
-    assert first(_body()) != first(_body(atmospheric_pressure=5e5))
-    assert first(_body()) != first(_body(surface_temperature=250.0))
+    assert first(_body()) == first(_body(atmospheric_pressure=5e5))
+    assert first(_body()) == first(_body(surface_temperature=250.0))
+    assert first(_body()) != first(_body(mass=5.5e24))
 
 
 # --- GEN.982: the methane the light can break limits the haze -------------------------------------------------------------------------
