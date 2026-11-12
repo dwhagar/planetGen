@@ -38,6 +38,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
 | data | fudge_table.json | GEN.1314 | the width of every class edge, built from the matrix (GEN.1313); `class_fit` will read it per edge in GEN.1314 and that item deletes this line |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
+| module | planetgen.physics.disk_dispersal | GEN.1551 | the star's own disk dispersal time; the star's disk stage and the planet cut (GEN.1551 and GEN.1552) read it, and those items delete this line |
+| row | 6.274:DD1 | GEN.1551 | `disk_dispersal.DISK_SURVIVAL_POINTS`, not read until the star's disk stage calls `disk_dispersal.disk_dispersal_time_yr` |
+| row | 6.274:DD2 | GEN.1551 | `disk_dispersal.COMPANION_EARLY_SHARE` and `COMPANION_EARLY_TIME_YR`, not read until the star's disk stage passes a companion distance |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
