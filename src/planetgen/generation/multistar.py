@@ -57,8 +57,9 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history,
-    remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, hierarchy_stability, imf, mass_boundaries, ms_lifetime, neutron_star,
+    pair_history, remnant_mass, remnant_progenitors, roche, stability, star_orbit_alignment, stellar_abundances, stellar_composition)
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -1284,6 +1285,26 @@ class _Builder:
         return all(pair_clears(record["separation_au"], record["eccentricity"], self.side(record["left"], by_sub),
                                self.side(record["right"], by_sub)) for record in self.nodes)
 
+    def hierarchy_stable(self):
+        """
+        GEN.1016: whether every level of the drawn tree is stable (`physics/hierarchy_stability.py`): each triple level at its own criterion, and a tree of four stars
+        also by the network of the quadruple paper, a 3+1 chain (an inner pair, a star, a star) or a 2+2 (two pairs). The pair draw tests each orbit as a triple against the
+        orbit it goes round (`stable_at`); only the quadruple network sees the outer star pumping the middle orbit, so it is asked here, once the whole tree is drawn. A tree
+        of three stars or fewer has no quadruple level and is as `stable_at` left it.
+        """
+        if len(self.leaves) < 4:
+            return True
+        nodes, members = [], []
+        for record in self.nodes:
+            nodes.append(OrbitNode(
+                node_no=record["node_no"], parent_node_no=record["parent_node_no"], slot=record["slot"], mass_solar=record["mass_solar"],
+                separation_km=record["separation_au"] * constants.AU_TO_KM, eccentricity=record["eccentricity"], inclination_deg=record["inclination_deg"],
+                ascending_node_deg=record["ascending_node_deg"], arg_periapsis_deg=record["arg_periapsis_deg"], mean_anomaly_deg=record["mean_anomaly_deg"],
+                epoch_unix=0.0, period_years=record["period_years"], kind=record["kind"], interaction=record["interaction"], flags=record["flags"]))
+            members += [TreeMember(member_no=child, parent_node_no=record["node_no"], slot=slot, mass_solar=self.leaves[child].mass)
+                        for slot, child in enumerate((record["left"], record["right"])) if isinstance(child, int)]
+        return hierarchy_stability.tree_is_stable(nodes, members)
+
     def finish(self):
         """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
         fragile = bool(self.nodes) and self.nodes[0]["separation_au"] > FRAGILE_AXIS_AU
@@ -2136,6 +2157,9 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
                 continue
             if not builder.clears_extents():
                 draw.redrawn("tree.restart_overlap")
+                continue
+            if not builder.hierarchy_stable():
+                draw.redrawn("tree.restart_unstable_hierarchy")      # GEN.1016: the quadruple network refuses the tree
                 continue
             builder.finish()
             alone = _contact_pair_alone(builder.leaves, builder, n_stars, rng)

@@ -867,6 +867,13 @@
       "first_release": "8.0.3844",
       "reason": "Train 23: tide sources and spin and heating from every body, Kozai moons, phosphorus gases, close-companion disk gas, belt members forced by companion stars, settled-orbit remake, oxygen sink with age, auto rogue count",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 146,
+      "first_release": null,
+      "pending": true,
+      "reason": "Four-star trees are drawn again when the quadruple stability network refuses a 3+1 or a 2+2 level (GEN.1016)",
+      "affects": ["scatter", "fill", "population"]
     }
   ]
 }
