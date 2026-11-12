@@ -294,6 +294,12 @@ NEVER_READ = {
     **{("irregular_moons", column): CHANCE for column in (
         "moon_rank", "capture_window", "mass_kg", "radius_km", "density_g_cm3", "taxon", "source_distance_km", "ice_loss", "rock_fraction", "metal_fraction", "water_fraction",
         "ice_fraction", "distance_km", "eccentricity", "inclination_deg", "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "belt_order", "belt_rank")},
+    # GEN.1209: the life rows of a moon are read back by `store.body_living` for every moon that bears life, and whether any moon of the seeded galaxy does is chance
+    # (a generation change moves it), so a galaxy without one leaves every column unread.
+    **{("moon_life", column): CHANCE for column in (
+        "moon_id", "life_class", "share", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr", "life_animal_grade", "life_complexity",
+        "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr", "life_age_multicellularity_gyr",
+        "life_age_technological_civilization_gyr", "life_microbial", "life_flora", "life_fauna", "life_sentient")},
     ("irregular_sets", "id"): "child row id",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
        for column in ("storage_checksum", "parity_dirty")},

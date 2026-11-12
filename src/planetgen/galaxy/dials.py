@@ -376,7 +376,7 @@ LEVERS = (
         choices=("none", "few", "normal", "many"),
         law="how many free-floating planets a sector may hold once its top-up has made up the mass its own systems did not (physics/rogue_topup): "
             "the systems' own ejections always land where they land, and the top-up only brings a sector to the level, never past it",
-        auto_text="few, the cheapest of the four to generate (GEN.1506: about 43 percent on top of the systems' own time against about 67 for normal)",
+        auto_text="few, the cheapest of the four to generate (about 43 percent on top of the systems' own time against about 67 for normal)",
         help="How many rogue planets a sector may hold after its top-up: none, few, normal or many. The top-up adds rogues only where the "
              "systems' own ejections left a sector short of its mass.",
         source="Boss, 5:36 PM and 5:39 PM EDT (region-object-store.md 8.5): the four words are accepted, normal on the low side of the observed 2 to "

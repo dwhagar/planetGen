@@ -17221,6 +17221,44 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.01"
+            ],
+            [
+              "Where it holds",
+              "evolved stars (a subgiant, giant, supergiant or white dwarf)"
+            ],
+            [
+              "What would show it wrong",
+              "test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_birth_not_of_today; a white dwarf's snow line under 1 AU"
+            ],
+            [
+              "What replaces it",
+              "a disk-evolution model of the luminosity history of the disk"
+            ],
+            [
+              "Evidence",
+              "a protoplanetary disk lasts 3 to 10 Myr (recalled); the longest, so a massive star is read on its main sequence"
+            ]
+          ],
+          "id": "PA18",
+          "key": "6.36:PA18",
+          "kind": "P",
+          "slug": "6-36-pa18",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1611",
+          "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",
@@ -29001,7 +29039,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium"
         },
         {
@@ -29039,7 +29077,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L1",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONIZED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1"
         },
         {
@@ -29077,7 +29115,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets"
         },
         {
@@ -29641,7 +29679,7 @@
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": null,
+          "unread": "GEN.1523",
           "what": "hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box"
         }
       ],
@@ -33481,6 +33519,120 @@
           "tweak": "L4",
           "unread": null,
           "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "6 to 15"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm of giants whose median libration amplitude is far from the scale times 1.18"
+            ],
+            [
+              "What replaces it",
+              "a fit to the Jupiter and Neptune Trojan catalogues"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled)"
+            ]
+          ],
+          "id": "TJ9",
+          "key": "6.121:TJ9",
+          "kind": "P",
+          "slug": "6-121-tj9",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean eccentricity is over 0.15"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled)"
+            ]
+          ],
+          "id": "TJ10",
+          "key": "6.121:TJ10",
+          "kind": "P",
+          "slug": "6-121-tj10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "8 to 18"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean inclination is over 25 degrees"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled)"
+            ]
+          ],
+          "id": "TJ11",
+          "key": "6.121:TJ11",
+          "kind": "P",
+          "slug": "6-121-tj11",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
@@ -33869,7 +34021,7 @@
           "fields": [
             [
               "What it is",
-              "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+              "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
             ],
             [
               "The range it moves in",
@@ -33881,7 +34033,7 @@
             ],
             [
               "What would show it wrong",
-              "a porous ice-rich body whose roundness the rule gets wrong (Proteus comes out round with exponential on)"
+              "a porous ice-rich body whose roundness the rule gets wrong (Proteus came out round with the old exponential on; the power rule is to be judged on it before it is switched on)"
             ],
             [
               "What replaces it",
@@ -33900,7 +34052,7 @@
           "tier_code": "T6",
           "tweak": "L3",
           "unread": null,
-          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); exponential strength * exp(-b phi), b 5, is built and off"
+          "what": "roundness.POROSITY_RULES: none in use (a void only lowers the density); power strength * (1 - phi/0.5)^1.67 ([R0083], RN12) is built and off (the recalled exponential is gone)"
         },
         {
           "burn_down": null,
@@ -34281,6 +34433,44 @@
           "tweak": "L0",
           "unread": "GEN.1201",
           "what": "roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), [R1956] (log10 A 5.04, n 3.5, E 530 kJ/mol) and [R2451] (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
+            ],
+            [
+              "The range it moves in",
+              "exponent 1.5 to 2 (the paper lists exponentials of b 4.8 to 9.3 for the same data); limit 0.4 to 0.6"
+            ],
+            [
+              "Where it holds",
+              "porous bodies, when the rule is switched on"
+            ],
+            [
+              "What would show it wrong",
+              "test_roundness::test_the_power_porosity_rule_is_the_carbonate_law_of_the_source; a measured strength of a porous ice-rich body far from the law (no ice law exists)"
+            ],
+            [
+              "What replaces it",
+              "an ice-rich porosity law (Ryugu boulders [R1700] give b of 7 to 9 at fragment scale)"
+            ],
+            [
+              "Evidence",
+              "[R0083] (READ, Boss upload): UCS = 60.251 (1 - 0.02 n)^1.67 MPa, n in percent, 178 training and 75 test points, 0.4 to 50 percent porosity, the limit 0.5 assumed and not fitted; right form, wrong material (carbonate, no ice)"
+            ]
+          ],
+          "id": "RN12",
+          "key": "6.126:RN12",
+          "kind": "P",
+          "slug": "6-126-rn12",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "roundness.POROSITY_RULES power, solid_limit 0.5 and exponent 1.67 in roundness_strengths.json (strength * (1 - phi/0.5)^1.67, the uniaxial strength of carbonate rock and gypsum against porosity) and roundness.POROSITY_FLOOR 0.1 (T9, L3: the argument is held at 0.1 so a body at the limit keeps 2 percent)"
         }
       ],
       "slug": "6-126-stand-ins-of-the-roundness-engine-and-the-binding-energy",
@@ -53713,7 +53903,7 @@
           "fields": [
             [
               "What it is",
-              "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
+              "body_status.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
             ],
             [
               "The range it moves in",
@@ -53744,14 +53934,14 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
+          "what": "body_status.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet"
         },
         {
           "burn_down": null,
           "fields": [
             [
               "What it is",
-              "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
+              "body_status.MARGOT_COEFFICIENT 1.9e-4 and body_status.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
             ],
             [
               "The range it moves in",
@@ -53782,7 +53972,7 @@
           "tier_code": "T1",
           "tweak": "L0",
           "unread": null,
-          "what": "dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
+          "what": "body_status.MARGOT_COEFFICIENT 1.9e-4 and body_status.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1"
         },
         {
           "burn_down": null,
@@ -63339,8 +63529,168 @@
       "title": "Stand-ins of the spin axis and obliquity under every body"
     },
     {
-      "key": "6.275",
-      "number": "6.275",
+      "key": "6.276",
+      "number": "6.276",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2 Earth mass"
+            ],
+            [
+              "Where it holds",
+              "every giant"
+            ],
+            [
+              "What would show it wrong",
+              "none (a definition)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "from needed output"
+            ]
+          ],
+          "id": "PSM1",
+          "key": "6.276:PSM1",
+          "kind": "P",
+          "slug": "6-276-psm1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": "GEN.1157",
+          "what": "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
+            ],
+            [
+              "The range it moves in",
+              "none (exact)"
+            ],
+            [
+              "Where it holds",
+              "giants of 0.1 to 3 Jupiter masses, extended to ten ([R5229] restates the extension)"
+            ],
+            [
+              "What would show it wrong",
+              "a regular moon system above 6.4e-4 of its planet"
+            ],
+            [
+              "What replaces it",
+              "a disk model of the planet's own mass (GEN.466)"
+            ],
+            [
+              "Evidence",
+              "[R0642, R0643, R5229] (READ)"
+            ]
+          ],
+          "id": "PSM2",
+          "key": "6.276:PSM2",
+          "kind": "D",
+          "slug": "6-276-psm2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1157",
+          "what": "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "giants beyond about 0.3 au"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of several hundred giants that finds none, or several candidates among 70"
+            ],
+            [
+              "What replaces it",
+              "an occurrence rate from a larger exomoon survey"
+            ],
+            [
+              "Evidence",
+              "[R2365]: one candidate (Kepler-1708 b-i) in 70; the Kepler-1625 b-i signal is disputed [R1900]"
+            ]
+          ],
+          "id": "PSM3",
+          "key": "6.276:PSM3",
+          "kind": "P",
+          "slug": "6-276-psm3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": "GEN.1157",
+          "what": "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+            ],
+            [
+              "The range it moves in",
+              "5e-3 to 5e-2"
+            ],
+            [
+              "Where it holds",
+              "every capture"
+            ],
+            [
+              "What would show it wrong",
+              "a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower"
+            ],
+            [
+              "What replaces it",
+              "the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners"
+            ],
+            [
+              "Evidence",
+              "[R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037]"
+            ]
+          ],
+          "id": "PSM4",
+          "key": "6.276:PSM4",
+          "kind": "P",
+          "slug": "6-276-psm4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1157",
+          "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+        }
+      ],
+      "slug": "6-276-stand-ins-of-the-moons-of-planet-size-around-the-giants",
+      "title": "Stand-ins of the moons of planet size around the giants"
+    },
+    {
+      "key": "6.277",
+      "number": "6.277",
       "rows": [
         {
           "burn_down": null,
@@ -63371,9 +63721,9 @@
             ]
           ],
           "id": "CH1",
-          "key": "6.275:CH1",
+          "key": "6.277:CH1",
           "kind": "T",
-          "slug": "6-275-ch1",
+          "slug": "6-277-ch1",
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
@@ -63409,9 +63759,9 @@
             ]
           ],
           "id": "CH2",
-          "key": "6.275:CH2",
+          "key": "6.277:CH2",
           "kind": "T",
-          "slug": "6-275-ch2",
+          "slug": "6-277-ch2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -63447,9 +63797,9 @@
             ]
           ],
           "id": "CH3",
-          "key": "6.275:CH3",
+          "key": "6.277:CH3",
           "kind": "P",
-          "slug": "6-275-ch3",
+          "slug": "6-277-ch3",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -63485,9 +63835,9 @@
             ]
           ],
           "id": "CH4",
-          "key": "6.275:CH4",
+          "key": "6.277:CH4",
           "kind": "P",
-          "slug": "6-275-ch4",
+          "slug": "6-277-ch4",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L1",
@@ -63495,12 +63845,12 @@
           "what": "clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule"
         }
       ],
-      "slug": "6-275-stand-ins-of-the-chain-spacing-test",
+      "slug": "6-277-stand-ins-of-the-chain-spacing-test",
       "title": "Stand-ins of the chain spacing test"
     },
     {
-      "key": "6.276",
-      "number": "6.276",
+      "key": "6.278",
+      "number": "6.278",
       "rows": [
         {
           "burn_down": null,
@@ -63527,13 +63877,13 @@
             ],
             [
               "Evidence",
-              "[R5230] take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
+              "[R5232] take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)"
             ]
           ],
           "id": "KT1",
-          "key": "6.276:KT1",
+          "key": "6.278:KT1",
           "kind": "P",
-          "slug": "6-276-kt1",
+          "slug": "6-278-kt1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -63565,13 +63915,13 @@
             ],
             [
               "Evidence",
-              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 [R5235]"
+              "the Sun's envelope is 2 to 3 percent; fully convective at 0.35 [R5237]"
             ]
           ],
           "id": "KT2",
-          "key": "6.276:KT2",
+          "key": "6.278:KT2",
           "kind": "P",
-          "slug": "6-276-kt2",
+          "slug": "6-278-kt2",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
@@ -63607,9 +63957,9 @@
             ]
           ],
           "id": "KT3",
-          "key": "6.276:KT3",
+          "key": "6.278:KT3",
           "kind": "P",
-          "slug": "6-276-kt3",
+          "slug": "6-278-kt3",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -63641,13 +63991,13 @@
             ],
             [
               "Evidence",
-              "the equilibrium-tide relaxation is linear in the spin; the tidal theory as given by [R5230]; the orbit is held because the generator has no orbit history"
+              "the equilibrium-tide relaxation is linear in the spin; the tidal theory as given by [R5232]; the orbit is held because the generator has no orbit history"
             ]
           ],
           "id": "KT4",
-          "key": "6.276:KT4",
+          "key": "6.278:KT4",
           "kind": "P",
-          "slug": "6-276-kt4",
+          "slug": "6-278-kt4",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -63675,7 +64025,7 @@
             ],
             [
               "What replaces it",
-              "the dissipation of a degenerate star [R5232]"
+              "the dissipation of a degenerate star [R5234]"
             ],
             [
               "Evidence",
@@ -63683,9 +64033,9 @@
             ]
           ],
           "id": "KT5",
-          "key": "6.276:KT5",
+          "key": "6.278:KT5",
           "kind": "P",
-          "slug": "6-276-kt5",
+          "slug": "6-278-kt5",
           "tier": "T5",
           "tier_code": "T5",
           "tweak": "L0",
@@ -63713,17 +64063,17 @@
             ],
             [
               "What replaces it",
-              "the obliquity equations of the tidal theory [R5230]"
+              "the obliquity equations of the tidal theory [R5232]"
             ],
             [
               "Evidence",
-              "[R5230]: the two relax on the same order"
+              "[R5232]: the two relax on the same order"
             ]
           ],
           "id": "KT6",
-          "key": "6.276:KT6",
+          "key": "6.278:KT6",
           "kind": "P",
-          "slug": "6-276-kt6",
+          "slug": "6-278-kt6",
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L0",
@@ -63751,7 +64101,7 @@
             ],
             [
               "What replaces it",
-              "the constants of a stellar model of the star's mass and age [R5231]"
+              "the constants of a stellar model of the star's mass and age [R5233]"
             ],
             [
               "Evidence",
@@ -63759,9 +64109,9 @@
             ]
           ],
           "id": "KT7",
-          "key": "6.276:KT7",
+          "key": "6.278:KT7",
           "kind": "P",
-          "slug": "6-276-kt7",
+          "slug": "6-278-kt7",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
@@ -63797,9 +64147,9 @@
             ]
           ],
           "id": "KT8",
-          "key": "6.276:KT8",
+          "key": "6.278:KT8",
           "kind": "P",
-          "slug": "6-276-kt8",
+          "slug": "6-278-kt8",
           "tier": "T7",
           "tier_code": "T7",
           "tweak": "L0",
@@ -63807,7 +64157,7 @@
           "what": "a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin"
         }
       ],
-      "slug": "6-276-stand-ins-of-the-mutual-tides-of-the-stars-of-a-pair",
+      "slug": "6-278-stand-ins-of-the-mutual-tides-of-the-stars-of-a-pair",
       "title": "Stand-ins of the mutual tides of the stars of a pair"
     }
   ]

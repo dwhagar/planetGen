@@ -115,7 +115,7 @@ def overshoot(condition, found):
     """
     quantity = condition["quantity"]
     value = found.get(quantity)
-    if value is None:
+    if value is None or value != value:     # a missing or NaN quantity is no match: every comparison with NaN is false, which would otherwise read as a pass (GEN.1593)
         return math.inf
     if "equals" in condition:
         return 0.0 if value == condition["equals"] else math.inf
@@ -191,6 +191,8 @@ def passes_gates(cls, found):
         return False
     if cls.air is None:
         return True
+    if found["pressure_pa"] != found["pressure_pa"]:        # a NaN pressure is on neither side of the gate
+        return False
     return (found["pressure_pa"] >= GATE_PRESSURE_PA) == cls.air
 
 
@@ -292,8 +294,12 @@ def classify(body):
 
     Raises:
         FitError: No class passes the gates of the body.
+        planet_classes.ClassError: The body stores a quantity that is NaN, or no mean temperature for a world with air.
     """
     found = _found(body)
+    not_a_number = sorted(name for name, value in found.items() if isinstance(value, float) and value != value)
+    if not_a_number:
+        raise planet_classes.ClassError(f"the body stores a quantity that is not a number ({', '.join(not_a_number)}); a class is never fitted to it")
     if found["body_type"] == planet_classes.TERRESTRIAL and found["pressure_pa"] >= GATE_PRESSURE_PA and found["temperature_k"] is None:
         raise planet_classes.ClassError("the classes read the mean surface temperature of a world with air, which the body does not store")
     ranked = _ranked(found)

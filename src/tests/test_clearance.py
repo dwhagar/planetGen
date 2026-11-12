@@ -188,6 +188,32 @@ def test_a_belt_holding_a_planets_orbit_or_past_the_stability_limit_is_found():
     assert "belt-s-type" in _kinds(wide)
 
 
+def test_the_irregular_limits_are_the_generators():
+    """GEN.1086: the verifier's own copies of the stable shares of the Hill radius and of the Kozai band equal the generator's."""
+    from planetgen.physics import irregular_zone, moon_composition
+
+    assert clearance.IRREGULAR_PROGRADE_HILL_FRACTION == irregular_zone.PROGRADE_STABLE_FRACTION
+    assert clearance.IRREGULAR_RETROGRADE_HILL_FRACTION == irregular_zone.RETROGRADE_STABLE_FRACTION
+    assert clearance.IRREGULAR_KOZAI_BAND_DEG == moon_composition.KOZAI_FORBIDDEN_DEG
+
+
+def test_an_irregular_moon_past_its_stable_share_in_the_kozai_band_or_inside_the_regular_moons_is_found():
+    rows = _with_planets(_pair(axis_au=300.0), {"distance_km": 5.0 * AU_KM, "mass_kg": 1.9e27, "radius_km": 70000.0})
+    hill_km = 5.0 * AU_KM * (1.9e27 / (3.0 * SOLAR)) ** (1.0 / 3.0)    # the host is star 1 alone
+    moon = {"id": 1, "planet_id": 1, "distance_km": 0.1 * hill_km, "eccentricity": 0.0, "radius_km": 2600.0, "mass_kg": 1.5e23}
+
+    def held(distance_hill, inclination=30.0, e=0.2):
+        return dict(rows, moons=[moon], irregular_moons=[{"planet_id": 1, "moon_rank": 0, "distance_km": distance_hill * hill_km, "eccentricity": e, "inclination_deg": inclination}])
+
+    assert not {"irregular-hill", "irregular-kozai", "irregular-inner"} & set(_kinds(held(0.3)))
+    assert "irregular-hill" in _kinds(held(0.45))                                # prograde: past 0.4 of the Hill radius
+    assert "irregular-hill" not in _kinds(held(0.45, inclination=150.0))        # retrograde: 0.55 holds it
+    assert "irregular-hill" in _kinds(held(0.6, inclination=150.0))
+    assert "irregular-kozai" in _kinds(held(0.3, inclination=90.0))
+    assert "irregular-inner" in _kinds(held(0.11, e=0.5))                       # the closest approach, 0.055, is inside the moon at 0.1
+    assert all(item.hard for item in clearance.audit(held(0.45)) if item.kind == "irregular-hill")
+
+
 def test_a_limit_outside_the_fit_is_applied_at_its_edge_and_says_so():
     light = {"stars": [_star(1, 1.0, 0.005, 0, 0), _star(2, 0.05, 0.001, 0, 1)], "nodes": [_node(0, None, 0, 1.05, 10.0)]}
     found = clearance.audit(_with_planets(light, {"distance_km": 4.5 * AU_KM}))

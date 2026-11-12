@@ -47,9 +47,11 @@ def type_of(envelope_fraction, body_type=None):
 
 def planet_type(body):
     """The type of a planet or moon (an object, or a column-named mapping). A transitional planet of a star that passes the gate of `super_puff.is_super_puff`
-    (GEN.1343, W15) is a super-puff: a planet of up to 30 Earth masses under 0.1 g/cc, at any period and any age (GEN.1470, GEN.1347)."""
+    (GEN.1343, W15) is a super-puff: a planet of up to 30 Earth masses under 0.1 g/cc, at any period and any age (GEN.1470, GEN.1347). A column-named mapping has no star to judge by, so a transitional one is a super-puff when its stored `planet_type` says so."""
     get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
     kind = type_of(get("envelope_mass_fraction"), get("body_type"))[0]
+    if kind == TRANSITIONAL and hasattr(body, "get") and get("planet_type") == SUPER_PUFF:
+        return SUPER_PUFF       # a stored row has no star or radius law to judge by, but it keeps the type its build gave it (GEN.1601)
     if kind == TRANSITIONAL and not hasattr(body, "get") and not getattr(body, "is_moon", False) and getattr(body, "star", None) is not None:
         if super_puff.is_super_puff(body.mass / constants.EARTH_MASS_TO_KG, body.radius / constants.EARTH_RADIUS_KM):
             return SUPER_PUFF

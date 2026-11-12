@@ -323,3 +323,15 @@ def test_a_moons_largest_eccentricity_is_the_domingos_fit_solved_for_it():
 def test_the_moon_bounds_are_the_window_as_numbers():
     low, high, extrapolated = ledger.moon_bounds_km(6371.0, 1.5e6, 0.3, margin_km=100.0, largest_moon_radius_km=2000.0)
     assert (low, high, extrapolated) == (pytest.approx(8471.0), pytest.approx(1.5e6 * 0.4895 * (1 - 1.0305 * 0.3)), False)
+
+
+def test_the_irregular_bounds_run_from_the_outermost_regular_moon_to_the_stable_share_of_the_hill_radius():
+    """GEN.1086: the span a planet's irregular moons hold, by the sense of the orbit; a hot planet's has no room."""
+    from planetgen.physics import irregular_zone
+
+    hill_km = 3.5e7
+    assert ledger.irregular_bounds_km(hill_km, 2.0e6) == (2.0e6, irregular_zone.PROGRADE_STABLE_FRACTION * hill_km)
+    low, high = ledger.irregular_bounds_km(hill_km, 2.0e6, retrograde=True)
+    assert (low, high) == (2.0e6, irregular_zone.RETROGRADE_STABLE_FRACTION * hill_km) and high > ledger.irregular_bounds_km(hill_km, 2.0e6)[1]
+    low, high = ledger.irregular_bounds_km(1.0e6, 9.0e6)
+    assert low >= high

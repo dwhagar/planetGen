@@ -276,12 +276,17 @@ def test_metal_with_its_own_strength_and_density_rounds_where_it_should(monkeypa
     assert iron == pytest.approx(math.sqrt(1.0e8 / (rn.stress_coefficient(rn.TABLE.sphericity_factor) * G * 7800.0 ** 2)))
 
 
-def test_the_exponential_porosity_rule_weakens_a_porous_body(monkeypatch):
+def test_the_power_porosity_rule_is_the_carbonate_law_of_the_source(monkeypatch):
+    # GEN.1175: [R0083] UCS ~ (1 - phi / 0.5)^1.67: relative strength 0.69, 0.43, 0.22, 0.07 at porosity 0.1, 0.2, 0.3, 0.4
     document = copy.deepcopy(_document())
-    document["porosity"] = {"rule": "exponential", "coefficient": 5.0}
+    document["porosity"] = {"rule": "power", "solid_limit": 0.5, "exponent": 1.67}
     monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
-    assert rn.yield_strength_pa(0.0, porosity=0.0) == pytest.approx(rn.ROCK_STRENGTH_PA)
-    assert rn.yield_strength_pa(0.0, porosity=0.5) == pytest.approx(rn.ROCK_STRENGTH_PA * math.exp(-2.5))
+    solid = rn.yield_strength_pa(0.0, porosity=0.0)
+    assert solid == pytest.approx(rn.ROCK_STRENGTH_PA)
+    for porosity, kept in ((0.1, 0.69), (0.2, 0.43), (0.3, 0.22), (0.4, 0.07)):
+        assert rn.yield_strength_pa(0.0, porosity=porosity) / solid == pytest.approx(kept, abs=0.01)
+    assert rn.yield_strength_pa(0.0, porosity=0.5) / solid == pytest.approx(rn.POROSITY_FLOOR ** 1.67)       # at the law's limit the floor holds
+    assert rn.yield_strength_pa(0.0, porosity=0.7) == rn.yield_strength_pa(0.0, porosity=0.5)
 
 
 def test_the_stand_in_porosity_rule_leaves_the_strength_alone():
