@@ -9,7 +9,7 @@ The air of a rocky body takes the nitrogen its mantle holds (`mixture_rocky.rock
 as gas), carbon's share being the Earth's calibration, and nothing took nitrogen back to the metal. Two pieces fix that, both neutral for an Earth twin.
 
 * *The metal takes nitrogen (A).* Nitrogen is siderophile: the metal/silicate partition coefficient `D_N` is 10 to 31 in the experiments (Suer and others 2023, their
-  section 2.3.3), 20 +/- 10 measured and 1.8 thermodynamic in Johnson and Goldblatt 2015 [R2171], nominal 10 with a range of 1 to 100 in Johansen and others 2023, and it
+  section 2.3.3), 20 +/- 10 measured and 1.8 thermodynamic in [R2171], nominal 10 with a range of 1 to 100 in Johansen and others 2023, and it
   rises with the oxygen fugacity: 1 (dIW -4) to 39 (dIW -1) at 20 GPa and 3000 K, 5 to 265 at 5 GPa and 2000 K (Suer and others 2023, Table 1). The mantle keeps
   `1 / (1 + D_N x)` of the nitrogen the body brought, `x` the core over the mantle mass. `D_N` here is the 20 GPa pair, log-linear in the redox (`metal_silicate_d`), held between 1
   and the 5 GPa oxidized value 265. The inventory's bracket is the Earth's, which already has the Earth's partition inside it, so only a body more oxidized than the reference

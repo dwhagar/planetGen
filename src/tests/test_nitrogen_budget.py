@@ -19,7 +19,7 @@ def test_the_partition_coefficient_follows_the_table_it_was_taken_from():
 
 def test_the_earth_twins_core_formation_sits_at_the_measured_partition():
     d = nb.metal_silicate_d(nb.REFERENCE_DIW + nb.CORE_FORMATION_OFFSET)
-    assert 5.0 < d < 31.0                                   # 10 to 31 measured (Suer 2023), nominal 10 (Johansen 2023), 20 +/- 10 (Johnson and Goldblatt 2015)
+    assert 5.0 < d < 31.0                                   # 10 to 31 measured, nominal 10, 20 +/- 10 [R2171] (the research of GEN.1583)
     assert nb.mantle_share(nb.REFERENCE_DIW, 0.47) == pytest.approx(1.0 / (1.0 + d * 0.47))
 
 
