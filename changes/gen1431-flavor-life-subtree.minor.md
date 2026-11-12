@@ -1,7 +1,0 @@
-**Headline:** A world with life of any kind now gets a life line that fits its chemistry: microbial mats in acid, carbon dioxide, methane, or brine, vent colonies, sunlit shallows, and signs of a civilization.
-
-### Changed
-- **The life lines read the life, not a "multicellular" flag (GEN.1431).** The life branch of the flavor tree (`physics/data/flavor_tree.json`) is now one node per solvent medium and energy source (water with light, water with chemicals, sulfuric acid, carbon dioxide, hydrocarbons, ammonia and water), with children by rung of the life (microbial rungs 2 and 3, multicellular rung 4, animals rung 5, civilization rung 6), and the oxygen-making or oxygen-free split for the water-and-light life. 53 new lines (`life:0` to `life:52`) cover every rung from 2 up that each medium reaches with at least three lines, so a world with microbes only gets a line where before it got none. The 21 old life lines keep their keys (`habitable:N`); they now go only to water-and-light life, so a vent world is no longer offered tortoises and trees, and the plant and fungus lines reach from rung 4 on. `physics/flavor_tree.py` adds the quantities `life_rung`, `life_medium`, `life_energy`, and `life_oxygen`, read from the stored stage, animal grade, and the life class's own row; no gate names a class. The multicellular-only trigger (`life_multicellular`) is gone. This changes the generator output, so it takes a generator epoch (the Train Manager assigns it).
-
-generation-output: changed
-generation-affects: fill
