@@ -772,32 +772,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.259 Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>'**
-  Boss answered 1, 1, 1, 1 at 5:14 PM EST on 2026-11-04 to the four
-  questions of reports/id-names-without-region-prefix-2026-11-04.md
-  section 7 (research thread): (1) a name is the local part of the
-  Object ID only, two words, with the sector shown beside it, and the
-  uid stays the identity; (2) one uid-derived scheme for every ID-named
-  object, retiring the position-ID names of rogues, nebulae and the
-  other phenomena; (3) scatter rows get a uid at scatter time; (4) the
-  old derived name is kept as a Formerly line when charting gives a
-  word-salad name. Pages and map side of questions 1 and 3. Do: the
-  uncharted star page title, its row in the Uncharted stars table and
-  the uncharted phenomenon page and lists show the local name from
-  GEN.1255; where a name stands alone (search results, the
-  uncharted-stars list, the map infobox and labels) it is followed by
-  the sector ('Hairun Binn, sector 00FA0FFFE9E240') and the sector is a
-  link; tables that already show 'Sector and cell' keep that column. The
-  Object ID shown on the page is the real uid of the scatter row.
-  Lock-free once GEN.1254 and GEN.1255 are on main. Done: no page, list,
-  label or infobox of an uncharted object carries 'Uncharted <class>
-  star <number>'; a test over the uncharted-star page, the phenomenon
-  page and the lists. Owner Lane 12 (map labels, infobox) with Lane 15
-  (pages), proposed by the TODO thread. Related: GEN.1254, GEN.1255,
-  API.38. Filed by the TODO thread.
-  Prerequisites: GEN.1254.
-  Owner (TODO sweep, 2026-11-12): Lane 06 (pages).
-
 - [ ] **UX.260 Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere**
   Boss, 5:36 PM EST on 2026-11-04, approved filing this as later with no
   lane (galaxy projection survey, report section 8, method 'all-sky').
@@ -11782,27 +11756,6 @@ clears each one.
   Prerequisites: GEN.309. Related: GEN.42.
   Owner (TODO sweep, 2026-11-12): Lane 13 (galaxy fill).
 
-- [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. When a
-  session-scoped fixture (for example the browser-test server) fails to
-  start, each test that needs it waits its whole 900 s timeout before
-  failing, so one fixture failure costs hours of the run. Done: a
-  fixture that fails marks its dependents as errors at once (pytest does
-  that already for a raised error, so the cause is in how the fixture
-  waits; find it and fix it), and a test shows a dead fixture ends the
-  run in seconds. Fails on main: yes. Frequency: whenever a session
-  fixture fails. Reproducer: make the server fixture raise after its
-  start and time the run.
-  Owner: Bug Hunt (proposed, Boss's lane started 10:20 PM EDT).
-  Status (2026-10-16, 11:43 PM EDT, Bug Hunt as relayed): could not
-  reproduce as described. pytest already fails the tests that depend on
-  a failed session fixture at once, so the 900 s wait this item
-  describes did not appear. Needed next time: The run log that shows
-  dependents waiting their full timeout, and the fixture that failed
-  first. Running log: the comments on issue #1694.
-  Prerequisites: none. Related: TEST.111.
-  Owner (TODO sweep, 2026-11-12): Lane 04 (test health).
-
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
   generation based on known galaxy types, as a chain of required items
@@ -13295,13 +13248,6 @@ clears each one.
   Filed by the TODO thread. Boss approved, 2026-11-11.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the sourced wet-bulb limit and the choice of reading (note, registry text); slice 1 lock: the row or reading change. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
-- [ ] **TEST.726 Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does**
-  Class M audit (coordinator relay, 2026-11-12), reports/class-m-audit-2026-11-12/class-m-generation-audit-2026-11-12.md fix 4. scripts/earth_analog.py (in the audit folder next to the report, with summarise.py and why_not_oxygenic.py) builds one G2V system, sets the star to the Sun and the planet to Earth, then runs the generator's own air, water, life and class code for many trials; the audit ran 800. Do: move the script into scripts/ (reuse its code; the real generator functions only, no copy of the physics), keep a committed baseline of the shares and medians, add a trial count that fits a gate slot (say 100 to 200, with the full 800 on request), and have scripts/train.py pr-body print the current numbers against the baseline in the train PR; the report flags a large move but never blocks a train (a physics train moves it on purpose). Not run in the per-PR gate. Done: the script in scripts/, the baseline file, the pr-body lines, a test that the script runs on a tiny trial count and that the baseline matches a seeded run.
-  Status (TODO, 2026-11-12): Boss's answer on audit item 4 reached the coordinator cut off ('4.' with no text); proposed until the coordinator confirms.
-  Boss approved, 8:55 PM EST on 2026-11-11 ('Confirmed fix all', 'Build it and Ship it'). Lane 07 PR 6122.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 07. Prerequisites: none. Related: GEN.1581, GEN.1584, GEN.1585, GEN.1586, TEST.719.
-  Filed by the TODO thread. Class M audit; lock-free.
-
 - [ ] **GEN.1587 (bug) The class is judged before the latitude bands exist, so M, O, H, P and R never match at build: FORCE_CLASS M is unmet on 10 of 10 seeds and every slot request wastes its draws (the moon class is also applied before its water is remade)**
   Bug sweep by reading and simulating the generator (first batch, coordinator relay 2026-11-12), reports/bug-sweep-read-and-simulate-2026-11-11.md, H3 and M1, confirmed by run. generation/planet.py lines 474-476 and 506-508, physics/planets.py lines 356-362 and 527-529 and generation/validation.py lines 183-195 apply the class, then make motion, spin and habitability_world.generate (the only place the bands are made); the classes that read the hottest and coldest region, the night side and the wet bulb (class_domains.derived) see None and score 0. An Earth twin without bands is F at match 0.0, with bands M at 1.0. StarSystem.build_planet (system.py lines 1989-2006) compares each fresh draw with the class asked for, so for M, O, H, P or R every draw is thrown away, the last is kept and _request_unreachable is set (FORCE_CLASS M unmet on all 10 seeds 0 to 9; FORCE_CLASS K met on 2 of 3); the system retry at system.py lines 438 and 480 judges forced classes on the same early class; a body remade at its final age is classed with old bands. The stored class of a finished planet is put right by _finish_planet (system.py line 2209), so finished labels are right; requests and slots are broken. Second part (M1): _finish_planet applies each moon's class (system.py lines 2211-2212) before _finish_moon (lines 2216-2219) runs refresh_at_final_age, which remakes hydrosphere, aquifer and groundwater; the class is applied again only if life changed the air. Do: make the bands (or whatever the band-reading classes need) before any class that judges a request, and apply the moon class after its water is remade, reusing habitability_world.generate and the existing class code (no second class pass). GEN.1548 (reorder, class and life last) removes the same ordering for the main build once built; this item is the fix for the request path and the retries and may fold into GEN.1548 if Lane 05 reaches it first (confirm with TODO; do not build the same thing twice). Done: a test that FORCE_CLASS M is met on a seeded system that can make an M (and O, H, P, R), the Earth-twin case, the moon case, before and after class counts on scripts/class_census.py. Bears directly on the class M yield. Lock item (changes output, new epoch).
   Priority (coordinator, 2026-11-12): does not change the Earth analog numbers, but blocks habitable-world and FORCE_CLASS requests from ever seeing an M, so it is high in the M fix order (with GEN.1581, GEN.1584). Split agreed 2026-11-12: Lane 14 builds the band-before-class piece and the force-class judgment first; Lane 05 builds the GEN.1548 reorder around it.
@@ -13601,11 +13547,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1520.
   Filed by the TODO thread.
 
-- [ ] **OPS.148 Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change**
-  Boss asked (as the building thread reported 10:07 PM EST on 2026-11-11). Built in PR 6147 (queue/adaptive.py; docs/design redis-and-the-work-queue.md section 5.17; changes/adaptive-worker-limit.patch.md). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: none. Related: OPS.118, PERF.254, OPS.130. No lock files, no change to generated output.
-  Filed by the TODO thread.
-
 - [ ] **OPS.149 Apply the adaptive worker limit to the maintenance lane (warm-ups)**
   Follow-up of OPS.148. Do: reuse queue/adaptive.py for the maintenance lane; test the same lower/raise/floor rules. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148. No lock files, no change to generated output.
@@ -13667,33 +13608,6 @@ clears each one.
   epoch; tests are scripts/test.py changed --resume; no fixed content
   from the Milky Way or the Solar System; built code needs a caller.
   Prerequisites: GEN.1368. Related: GEN.1231.
-
-- [ ] **GEN.1371 Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle**
-  Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
-  2026-11-07, as the coordinator relayed: all non-fictional generation
-  from the report is built in 8.1, the Solar Crystal and fictional
-  materials go to 8.2; earlier rulings of 5:20 PM EST: widen GEN.798 to
-  rocky crusts, accept the star-sample fits). Build plan:
-  /mnt/project-files/research/real-material-8.1-build-plan-2026-11-07.md
-  (this item is N2 there); gaps report:
-  /mnt/project-files/research/real-material-gaps-for-8.1-2026-11-07.md;
-  data index:
-  /mnt/project-files/research/real-material-data-index-2026-11-07.md.
-  Size M; lock. Target: wave 3, train 20. The solar table gives the
-  heavy elements; the s/r split is recalled. Do: add the split and the
-  heavy elements to the star element set and partition the siderophiles
-  between core and mantle with GEN.1364. Data:
-  /mnt/project-files/research/real-material-data-1-stars-disc-and-ices-2026-11-07.md
-  section 4. Owner (proposed by TODO, 2026-11-07, confirm with TODO
-  before taking; one lock-free item at a time while waiting): Lane 23.
-  Rules: open the primary or an accepted secondary source of every
-  recalled value before it enters GEN.725; draws through draw.py; every
-  stand-in gets a GEN.725 row with tier and tweak level; every number
-  has a unit or scale and a column_units entry; a change to drawn output
-  carries tests.golden_update --reason ... --affects fill and the next
-  epoch; tests are scripts/test.py changed --resume; no fixed content
-  from the Milky Way or the Solar System; built code needs a caller.
-  Prerequisites: GEN.1364. Related: GEN.1268.
 
 - [ ] **GEN.1373 Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
