@@ -19,15 +19,12 @@ an empty uncharted sector (`query.sector_coverage_condition`), which the Sectors
 """
 
 import math
-import time
 
 from planetgen.db import contention, store
 from planetgen.galaxy import uid as galaxyUid
 from planetgen.galaxy.spherical import provisional_sector_designation, sector_position_pc
 from planetgen.util import log
-
-SAY_SECONDS = 30.0
-"""float: How long the index goes without saying where it is."""
+from planetgen.util.ticker import Ticker
 
 BATCH_CELLS = 500
 """int: Cells one transaction makes rows for."""
@@ -154,7 +151,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
         epoch = generatorEpoch.generator_epoch()
         run_id = store.sector_run_id(conn, run_id)
         conn.commit()
-    last_said = time.monotonic()
+    ticker = Ticker("Uncharted sectors, shells", total=len(shells), say=say)
     for done, shell in enumerate(shells, start=1):
         cells = cells_without_a_row(conn, shell, from_parts)
         for start in range(0, len(cells), BATCH_CELLS):
@@ -166,9 +163,7 @@ def index(conn, edge_pc=None, on_progress=None, on_phase=None, run_id=None, shel
                 made += contention.run_with_retries(conn, write, gate="uncharted-sectors", label=f"Uncharted sectors, shell {shell}")
         if on_progress is not None:
             on_progress(done, len(shells))
-        if time.monotonic() - last_said >= SAY_SECONDS:
-            last_said = time.monotonic()
-            say(f"Uncharted sectors: shell {done:,} of {len(shells):,} done, {made:,} rows made so far.")
+        ticker.tick(done, f"{made:,} rows made")
     say(f"Made {made:,} uncharted sector rows in {len(shells):,} shells." if made else "Every cell that holds a waiting object already has its sector row.")
     log.debug(f"uncharted_index: {made} rows")
     return made
