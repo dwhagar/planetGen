@@ -13318,7 +13318,7 @@ clears each one.
 
 - [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
   Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
-  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: none. Related: GEN.1425, GEN.1307.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: GEN.1425, GEN.1307.
   Filed by the TODO thread.
 
 - [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
@@ -13618,6 +13618,7 @@ clears each one.
   Prerequisites: none. Related: TEST.237.
   Filed by the TODO thread.
   Added (TODO, 2026-11-12, from MAP.426): test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system (tests/test_web_browser_system_handover.py about line 122) stalls on the wheel in: the camera stops at dist 114.97 with an offscreen step at tick 65 and the system never opens (Lane 11, as the lane reported 4:22 AM EST). Owner for this row: Lane 11.
+  Wheel-in row done (TODO, 2026-11-12): PR 6237 (Lane 11). The stall was resolve_database scanning information_schema once per MySQL schema on every ?db= request (59 resolutions and 8,383 queries per near-read, 20 to 26 s with 147 test schemas); the whole-galaxy test now passes 3 of 3. Lane machines with many leftover planetgen_test_* schemas should drop them.
 
 - [ ] **GEN.1391 Minor core elements: Cr, Mn, P and Cu partition between the core and the mantle, read from the star element set (GEN.1360) and the core split (GEN.1364)**
   Lane 23 (as the lane reported 9:33 PM EST on 2026-11-07), follow-on to GEN.1364 (core composition split). Do: add Cr, Mn, P and Cu to the core make-up by their partition between metal and silicate (redox and pressure dependent), taking the totals from the star element set; store as columns with units; stand-ins in GEN.725 with tier and tweak level. Size M; lock (epoch and a migration). Target: train 19. Owner (proposed by TODO): Lane 23, after GEN.1364 and GEN.1360 have merged. Rules: tests are
