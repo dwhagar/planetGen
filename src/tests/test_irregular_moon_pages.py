@@ -44,7 +44,7 @@ def planet(site_db):
         belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
         if belt is None:    # the star keeps no belt: give it one, so a body caught from a belt has a belt to name
             system_id = conn.execute("SELECT star_system_id FROM planets WHERE id = ?", (row["id"],)).fetchone()["star_system_id"]
-            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), 9999))
+            belt_uid = object_uid.to_bytes(object_uid.with_body(object_uid.from_bytes(row["uid"]), object_uid.max_body()))
             insert_filled_row(conn, "asteroid_belts", star_system_id=system_id, star_id=row["star_id"], orbital_index=0, uid=belt_uid)
             conn.commit()
             belt = conn.execute("SELECT id, uid FROM asteroid_belts WHERE star_id = ? ORDER BY orbital_index, id LIMIT 1", (row["star_id"],)).fetchone()
