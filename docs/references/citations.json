@@ -26173,13 +26173,13 @@
     },
     "R5238": {
       "kind": "paper",
-      "label": "Saha 1920",
-      "title": "LIII. Ionization in the solar chromosphere"
+      "label": "Althaus et al. 2010a",
+      "title": "NEW CHEMICAL PROFILES FOR THE ASTEROSEISMOLOGY OF ZZ CETI STARS"
     },
     "R5239": {
-      "kind": "web",
-      "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
-      "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
+      "kind": "paper",
+      "label": "Metcalfe 2003",
+      "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate"
     },
     "R5240": {
       "kind": "paper",
@@ -26210,6 +26210,16 @@
       "kind": "paper",
       "label": "Vokrouhlický et al. 2024",
       "title": "Orbital and absolute magnitude distribution of Jupiter Trojans"
+    },
+    "R5246": {
+      "kind": "paper",
+      "label": "Saha 1920",
+      "title": "LIII. Ionization in the solar chromosphere"
+    },
+    "R5247": {
+      "kind": "web",
+      "label": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)",
+      "title": "NIST Atomic Spectra Database, Ionization Energies Form (Kramida et al.)"
     }
   }
 }

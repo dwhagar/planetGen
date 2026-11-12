@@ -791,7 +791,7 @@ TABLES = {
     "planets": {
         "id": ("id", "star_system_id", "star_id", "parent_id", "host_node_id"),
         "index": (
-            "orbital_index", "tier_pressure", "life_class",
+            "orbital_index", "belt_order", "belt_rank", "tier_pressure", "life_class",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
             "albedo_basis",
