@@ -259,6 +259,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.obliquity_variation | GEN.1454 | the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table |
 | module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
 | module | planetgen.physics.planet_moons | GEN.1157 | the disk ceiling and the capture rate and mass of a moon of planet size around a giant (lock-free slice 0); the wiring of `generate_moons` lifts the giants' 1e-3 moon cap to the disk ceiling and adds the capture moon, which changes output and rides a train |
+| function | planetgen.physics.potassium_depletion.depletion_of | by design | the depletion of one of the six table bodies by name, which the tests hold the table to; generation draws from `draw_depletion` |
 | row | 6.276:PSM1 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
 | row | 6.276:PSM2 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
 | row | 6.276:PSM3 | GEN.1157 | read when `generate_moons` takes the disk ceiling and the capture draw |
