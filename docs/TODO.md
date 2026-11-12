@@ -13381,6 +13381,7 @@ clears each one.
   Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
   Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
+  Hard test (Boss, 3:09 PM EST on 2026-11-12: "Write a test that verifies if a flag is ever set when something is not byte identical (test) then it should fail."): a test in the merge gate that collects every job and stage carrying the "dynamic split is byte identical" flag, runs each at two different cut sizes, and fails if any output differs. It fails, never warns or skips; a stage that cannot be run at two cut sizes in the test fails too, until its flag is removed. A newly flagged job is picked up automatically, with no list to update by hand.
   Filed by the TODO thread.
 
 - [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
