@@ -251,7 +251,7 @@ def sculpt(chain, star_mass_kg, age_yr, stream=None):
 
 def giant_impacts(bodies, star_mass_kg, snow_line_au, start_au, spacing):
     """
-    The giant-impact stage of the terrestrial zone (GEN.1560): the bodies of `bodies` (`sculpt`'s `[distance_au, mass_kg, merged]` lists) that lie from `start_au` to the snow line
+    The giant-impact stage of the terrestrial zone (GEN.1560): the bodies of `bodies` (`sculpt`'s `[distance_au, mass_kg, merged]` lists) that lie from `start_au` to the snow line (or `GIANT_IMPACT_END_AU`, whichever is nearer, as the caller passes it)
     collide and merge, the closest pair in mutual Hill radii first, until every pair of them is `spacing` mutual Hill radii apart or more. N-body runs of protoplanets spaced 10 Hill
     radii apart in a gas-free disk end in a few planets, two of them Earth-sized, after 100 Myr ([R2431], each protoplanet 0.16 Earth masses at 1 AU before): the stability to a Gyr that
     `sculpt` asks of the chain is the stability of the planets the stage leaves, not of the protoplanets that built them. Mass and angular momentum are kept as `_merge` keeps them.
@@ -432,7 +432,7 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
         start_au = max(start_au, chain_inner[-1][0] * tuning.OUTER_CHAIN_START_RATIO)
     chain = chain_inner + oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, start_au, outer_au)
     sculpted = sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
-    sculpted = giant_impacts(sculpted, star_mass_kg, snow_line_au, tuning.PLANET_ROCKY_ZONE_START_AU, tuning.GIANT_IMPACT_SPACING)
+    sculpted = giant_impacts(sculpted, star_mass_kg, min(snow_line_au, tuning.GIANT_IMPACT_END_AU), tuning.PLANET_ROCKY_ZONE_START_AU, tuning.GIANT_IMPACT_SPACING)
     merge_debris = sum(body[1] for body in chain) - sum(body[1] for body in sculpted)
     merges = sum(body[2] for body in sculpted) - len(sculpted)
     thinned, small = [], []

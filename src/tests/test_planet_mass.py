@@ -42,6 +42,12 @@ def test_the_core_is_the_isolation_mass_of_the_median_spacing_at_zero_scatter(mo
     assert got == pytest.approx(expected)
 
 
+def test_the_terrestrial_zone_boost_is_for_the_oligarchs_and_not_for_belts_or_dust():
+    # GEN.1560: belts (`belt_mass`, `belt_origin`) and the debris dust rings read the plain solids density; only the planets' cores take the pile-up
+    plain = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISK_SOLIDS_ENHANCEMENT)
+    assert planet_mass.solids_surface_density_gcm2(1.0, SUN_KG, SNOW_LINE_AU) == pytest.approx(plain)
+
+
 def test_solids_grow_outward_and_jump_at_the_snow_line():
     def assembled(distance):
         stream = draw.Stream(1)

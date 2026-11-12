@@ -205,6 +205,10 @@ COLLISION_MASS_RETENTION = 0.9
 # The spacing, in mutual Hill radii of the pair, the planets of the terrestrial zone are left at by the giant-impact stage (`planet_architecture.giant_impacts`, GEN.1560). 0 turns the stage off.
 # N-body runs of protoplanets 10 Hill radii apart end in a few planets, two of them Earth-sized, after 100 Myr [R2431]. A planetGen stand-in (tier T6, tweak L3) fitted with the boost above to [R0572].
 GIANT_IMPACT_SPACING = 25.0
+# The giant-impact stage ends at this distance, AU, or the snow line when that is nearer: protoplanets farther out, round A stars whose snow line lies at 10 AU and more, do not finish merging in the
+# age of the disk (the timescale grows steeply with distance, [R2431]), and merging them pulled the outermost planet in, which moved the outer disk and the debris disks of A stars from 10 to 27 of 40.
+# A planetGen stand-in (tier T6, tweak L3), registry PA17.
+GIANT_IMPACT_END_AU = 3.0
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
 # a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
