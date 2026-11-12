@@ -64259,6 +64259,318 @@
       ],
       "slug": "6-284-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
       "title": "Stand-ins of the Kozai-Lidov screen of a planet"
+    },
+    {
+      "key": "6.285",
+      "number": "6.285",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores; the models are at Z = 0.01 and the table is used at every metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "a model grid at another metallicity whose central oxygen differs by more than 0.05"
+            ],
+            [
+              "What replaces it",
+              "a grid of white dwarf models at the progenitor's metallicity (open item)"
+            ],
+            [
+              "Evidence",
+              "[R5238: Table 1] (READ)"
+            ]
+          ],
+          "id": "WDC1",
+          "key": "6.285:WDC1",
+          "kind": "D",
+          "slug": "6-285-wdc1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
+            ],
+            [
+              "The range it moves in",
+              "0.55 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores"
+            ],
+            [
+              "What would show it wrong",
+              "a third pulsator fitted outside the range"
+            ],
+            [
+              "What replaces it",
+              "more pulsators fitted"
+            ],
+            [
+              "Evidence",
+              "[R5239] (READ, two objects)"
+            ]
+          ],
+          "id": "WDC2",
+          "key": "6.285:WDC2",
+          "kind": "P",
+          "slug": "6-285-wdc2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores"
+            ],
+            [
+              "What would show it wrong",
+              "a core whose measured 22Ne is under half the progenitor's CNO"
+            ],
+            [
+              "What replaces it",
+              "a stellar model's 22Ne by progenitor metallicity"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the CNO ends as 14N in the hydrogen shell and as 22Ne in helium burning; no source opened for the share)"
+            ]
+          ],
+          "id": "WDC3",
+          "key": "6.285:WDC3",
+          "kind": "P",
+          "slug": "6-285-wdc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "polluted white dwarfs whose Fe/Mg indicates a metal share far from the draw's"
+            ],
+            [
+              "What replaces it",
+              "the Bayesian classes of [R1832] built on the drawn fragment"
+            ],
+            [
+              "Evidence",
+              "[R1832] (READ, the classes only; the cut is a stand-in)"
+            ]
+          ],
+          "id": "WDC4",
+          "key": "6.285:WDC4",
+          "kind": "P",
+          "slug": "6-285-wdc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 4"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a white dwarf population whose Ca/Mg crust-rich cut sits far from twice solar"
+            ],
+            [
+              "What replaces it",
+              "the classes of [R1832]"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics"
+            ]
+          ],
+          "id": "WDC5",
+          "key": "6.285:WDC5",
+          "kind": "P",
+          "slug": "6-285-wdc5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "polluted white dwarfs whose measured water fractions put the cut elsewhere"
+            ],
+            [
+              "What replaces it",
+              "the classes of [R1832]"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics"
+            ]
+          ],
+          "id": "WDC6",
+          "key": "6.285:WDC6",
+          "kind": "P",
+          "slug": "6-285-wdc6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
+            ],
+            [
+              "The range it moves in",
+              "the nickel in the table's ranges; the organics +-0.1"
+            ],
+            [
+              "Where it holds",
+              "the alloys and organics of the materials table that have no formula"
+            ],
+            [
+              "What would show it wrong",
+              "a measured composition of those solids that differs by 0.1 in any share"
+            ],
+            [
+              "What replaces it",
+              "per-material element lists in the materials table"
+            ],
+            [
+              "Evidence",
+              "the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in"
+            ]
+          ],
+          "id": "WDC7",
+          "key": "6.285:WDC7",
+          "kind": "P",
+          "slug": "6-285-wdc7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
+            ],
+            [
+              "The range it moves in",
+              "the end member chosen"
+            ],
+            [
+              "Where it holds",
+              "the six rows"
+            ],
+            [
+              "What would show it wrong",
+              "an analysis of the mineral that differs by more than 0.05 in any element share"
+            ],
+            [
+              "What replaces it",
+              "member lists in the materials table"
+            ],
+            [
+              "Evidence",
+              "the end members are the table's own member lists"
+            ]
+          ],
+          "id": "WDC8",
+          "key": "6.285:WDC8",
+          "kind": "P",
+          "slug": "6-285-wdc8",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
+        }
+      ],
+      "slug": "6-285-stand-ins-of-the-white-dwarf-core-and-the-accreted-pollutant",
+      "title": "Stand-ins of the white dwarf core and the accreted pollutant"
     }
   ]
 }
