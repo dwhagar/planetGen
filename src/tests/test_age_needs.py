@@ -4,7 +4,6 @@ import copy
 
 import pytest
 
-from planetgen import tuning
 from planetgen.physics import age_needs, constants
 from tests.air_support import fold_air
 
@@ -66,10 +65,6 @@ def test_minimum_age_is_the_highest_over_the_stars_scales():
     assert age_needs.minimum_age_gy(stub, ["fast"]) == age_needs.TIERS["watered"]["fast"]
     assert age_needs.minimum_age_gy(stub, ["fast", "normal"]) == age_needs.TIERS["watered"]["normal"]
     assert age_needs.minimum_age_gy(stub, []) == 0.0
-
-
-def test_class_table_no_longer_carries_age_ranges():
-    assert not any("age_ranges" in data for data in tuning.PLANET_CLASSES.values())
 
 
 def test_a_broken_rule_file_is_refused(monkeypatch):

@@ -48,8 +48,7 @@ def test_a_broken_copy_never_touches_the_original():
 
 
 def test_every_rule_has_a_name_a_check_and_a_breaker_and_the_names_are_unique():
-    assert len({rule.name for rule in rules.RULES}) == len(rules.RULES) >= 11
-    assert all(callable(rule.check) and callable(rule.breaker) for rule in rules.RULES)
+    sweep.assert_rules_are_complete(rules.RULES, 11)
 
 
 # --- The sweep -------------------------------------------------------------------------------------------------------------------
@@ -78,9 +77,7 @@ def test_the_sweep_repeats(everything):
 
 @pytest.mark.slow
 def test_every_body_of_the_sweep_obeys_every_rule(everything):
-    found = sweep.run_rules(rules.RULES, everything)
-    failures = {name: violations[:5] for name, violations in found.items() if violations}
-    assert not failures, "\n".join(f"{name}: {len(found[name])} bodies, first {violations}" for name, violations in failures.items())
+    sweep.assert_rules_obeyed(rules.RULES, everything)
 
 
 @pytest.mark.slow
@@ -141,5 +138,4 @@ def test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread():
 
 @pytest.mark.slow
 def test_each_rule_reports_a_body_with_exactly_that_rule_broken(everything):
-    result = sweep.prove_rules_can_fail(rules.RULES, everything)
-    assert result == {rule.name: True for rule in rules.RULES}, result
+    sweep.assert_every_rule_can_fail(rules.RULES, everything)

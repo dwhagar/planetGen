@@ -37,7 +37,7 @@ def test_o2_krypton_and_xenon_have_no_host_ratio_and_keep_one_value():
         cs.nebular_per_co("O2")
 
 
-def test_the_width_sits_inside_the_scatter_of_the_four_species_a_population_measures_and_the_old_design_width():
+def test_the_width_sits_inside_the_scatter_of_the_four_species_a_population_measures_and_the_wider_design_width():
     """The four k7 species measured in 9 to 18 comets scatter by 0.33 to 0.39 dex; the old width of the other seven was a design 0.6."""
     assert 0.33 <= cs.sigma_dex() <= 0.6
 
