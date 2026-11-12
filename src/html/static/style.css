@@ -4832,6 +4832,20 @@ body.app {
   color: var(--log-debug);
 }
 
+/* The state of a running unit on the Queue run page (OPS.139): quiet, dead and a suspect loop are errors, slow and a flagged loop are cautions. */
+.badge.unit-quiet,
+.badge.unit-dead,
+.badge.unit-looping.unit-suspect {
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.badge.unit-slow,
+.badge.unit-looping {
+  color: var(--log-warning);
+  border-color: var(--log-warning);
+}
+
 .badge.job-failed,
 .badge.job-interrupted {
   color: var(--error);

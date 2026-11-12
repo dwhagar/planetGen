@@ -35,7 +35,7 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import secular_chain, spin
+from planetgen.physics import secular_chain, spin, tide_sources
 from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
 from tests.tide_support import locking_time_s, rocky
@@ -141,7 +141,10 @@ def test_rotation_period_is_a_birth_spin_worn_down_by_the_tide_or_a_locked_or_re
         if spin.spin_state(moon.rotation_period_hours, moon.period)[0] != "free":
             continue
         min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[moon.body_type]
-        assert min(min_h, _orbital_hours(moon)) * (1 - 1e-9) <= moon.rotation_period_hours <= max(max_h, _orbital_hours(moon)) * (1 + 1e-9)
+        # GEN.1502: the other bodies that raise a tide on the moon (its star, the sibling planets, the other moons) pull its spin toward their own rates too, so a free spin
+        # lies between the birth range and the slowest rate any raiser turns the line to the moon at
+        slowest_hours = max([_orbital_hours(moon)] + [2.0 * math.pi / raiser.orbital_rate / 3600.0 for raiser in tide_sources.spin_raisers(moon) if raiser.orbital_rate > 0.0])
+        assert min(min_h, _orbital_hours(moon)) * (1 - 1e-9) <= moon.rotation_period_hours <= max(max_h, slowest_hours) * (1 + 1e-9)
 
 
 def _spin_rate(period_hours):

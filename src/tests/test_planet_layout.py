@@ -231,3 +231,10 @@ def test_the_summary_says_how_well_the_class_fits_and_what_the_runner_up_is():
     assert 'It fits class <a href="/classes/planet/M">M</a> 92 percent and class O 41 percent.' in text
     hole = " ".join(planet_summary.summary_sentences("Kepler b", {**ROW, "class_match": 0.0}, VALUES))
     assert 'No class fits it; class <a href="/classes/planet/M">M</a> is the nearest.' in hole
+
+
+def test_a_body_with_no_ground_says_its_numbers_are_at_the_reference_level():
+    """UX.297: a gas dwarf's temperature and pressure are at the 1 bar level, and the summary says so."""
+    text = " ".join(planet_summary.summary_sentences("Puff", {**ROW, "planet_type": "transitional"}, VALUES))
+    assert "its temperature at the 1 bar reference level is 288 K, the air at its reference level is 101 kPa, and gravity is 1 g." in text.replace("Its", "its")
+    assert "at the surface" not in text
