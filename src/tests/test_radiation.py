@@ -214,6 +214,9 @@ def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air
     for body in _bodies(system):
         if body.body_type == "g" or body.is_moon:
             continue    # a moon of a planet that was moved keeps its dose from the old distance (reported to TODO)
+        if not planet_type.has_ground(body):
+            assert body.uv_surface_index is None, body.planet_class      # GEN.1334: a planet under a deep envelope has no ground, so no ground dose and no UV index
+            continue
         expected = body_radiation.dna_dose_index(body)
         assert body.uv_surface_index == expected
         checked += expected is not None
