@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3977] - 2026-11-12
+
+**Headline:** The route snapshot and the link audit now know the two irregular-moon routes that GEN.1086 added, which turns main green again.
+
+### Changed
+
+- `src/tests/fixtures/api_routes.json` lists `/api/objects/<ref>/irregular-moons` and `/api/objects/<ref>/irregular-moons/<rank>` (added without a version bump, since a new route is additive).
+- `test_api_link_ids.py` names both in `NOT_AUDITED` with the reason (the planet is the ref in the path), as the belt pages are.
+
+generation-output: unchanged
+
 ## [8.0.3976] - 2026-11-12
 
 **Headline:** Every log line is now held to one message style, with one duration form (`340 ms`, `12.3 s`, `4:07`, `1:05:12`), and a test fails on a new line that breaks it; the lines already in the code are converted in the next three parts.
