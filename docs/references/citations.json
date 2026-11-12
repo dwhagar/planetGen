@@ -26125,6 +26125,16 @@
       "kind": "paper",
       "label": "Sneden et al. 2008",
       "title": "Neutron-Capture Elements in the Early Galaxy"
+    },
+    "R5229": {
+      "kind": "paper",
+      "label": "Heller 2018",
+      "title": "The nature of the giant exomoon candidate Kepler-1625 b-i"
+    },
+    "R5230": {
+      "kind": "paper",
+      "label": "Hamers and Portegies Zwart 2018",
+      "title": "Catching a Planet: A Tidal Capture Origin for the Exomoon Candidate Kepler 1625b I"
     }
   }
 }

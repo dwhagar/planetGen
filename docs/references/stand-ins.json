@@ -63291,6 +63291,166 @@
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
       "title": "Stand-ins of the spin axis and obliquity under every body"
+    },
+    {
+      "key": "6.276",
+      "number": "6.276",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
+            ],
+            [
+              "The range it moves in",
+              "0.05 to 0.2 Earth mass"
+            ],
+            [
+              "Where it holds",
+              "every giant"
+            ],
+            [
+              "What would show it wrong",
+              "none (a definition)"
+            ],
+            [
+              "What replaces it",
+              "none"
+            ],
+            [
+              "Evidence",
+              "from needed output"
+            ]
+          ],
+          "id": "PSM1",
+          "key": "6.276:PSM1",
+          "kind": "P",
+          "slug": "6-276-psm1",
+          "tier": "T9",
+          "tier_code": "T9",
+          "tweak": "L0",
+          "unread": "GEN.1157",
+          "what": "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
+            ],
+            [
+              "The range it moves in",
+              "none (exact)"
+            ],
+            [
+              "Where it holds",
+              "giants of 0.1 to 3 Jupiter masses, extended to ten ([R5229] restates the extension)"
+            ],
+            [
+              "What would show it wrong",
+              "a regular moon system above 6.4e-4 of its planet"
+            ],
+            [
+              "What replaces it",
+              "a disk model of the planet's own mass (GEN.466)"
+            ],
+            [
+              "Evidence",
+              "[R0642, R0643, R5229] (READ)"
+            ]
+          ],
+          "id": "PSM2",
+          "key": "6.276:PSM2",
+          "kind": "D",
+          "slug": "6-276-psm2",
+          "tier": "T1",
+          "tier_code": "T1",
+          "tweak": "L0",
+          "unread": "GEN.1157",
+          "what": "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
+            ],
+            [
+              "The range it moves in",
+              "0.003 to 0.05"
+            ],
+            [
+              "Where it holds",
+              "giants beyond about 0.3 au"
+            ],
+            [
+              "What would show it wrong",
+              "a survey of several hundred giants that finds none, or several candidates among 70"
+            ],
+            [
+              "What replaces it",
+              "an occurrence rate from a larger exomoon survey"
+            ],
+            [
+              "Evidence",
+              "[R2365]: one candidate (Kepler-1708 b-i) in 70; the Kepler-1625 b-i signal is disputed [R1900]"
+            ]
+          ],
+          "id": "PSM3",
+          "key": "6.276:PSM3",
+          "kind": "P",
+          "slug": "6-276-psm3",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L2",
+          "unread": "GEN.1157",
+          "what": "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+            ],
+            [
+              "The range it moves in",
+              "5e-3 to 5e-2"
+            ],
+            [
+              "Where it holds",
+              "every capture"
+            ],
+            [
+              "What would show it wrong",
+              "a confirmed exomoon above 2e-2 of its planet, or a capture model that caps the partner far lower"
+            ],
+            [
+              "What replaces it",
+              "the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners"
+            ],
+            [
+              "Evidence",
+              "[R5229] (READ, Eq. 1 not rebuilt), [R5230] (READ, planet-planet capture), [R0037]"
+            ]
+          ],
+          "id": "PSM4",
+          "key": "6.276:PSM4",
+          "kind": "P",
+          "slug": "6-276-psm4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L3",
+          "unread": "GEN.1157",
+          "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
+        }
+      ],
+      "slug": "6-276-stand-ins-of-the-moons-of-planet-size-around-the-giants",
+      "title": "Stand-ins of the moons of planet size around the giants"
     }
   ]
 }
