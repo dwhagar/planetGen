@@ -13652,6 +13652,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
   Filed by the TODO thread.
 
+- [ ] **OPS.180 (bug) Galaxy at a glance says no sectors are charted when sectors are charted**
+  Boss, 5:15 PM EST on 2026-11-12 (live observation on his server): "Galaxy at a glance says no sectors charted even though sectors are charted." Where it comes from: web/glance.galaxy_rows counts len(sectors) from GET /api/galaxy/sectors, which is db.query.galaxy_placed_sectors: placed sectors minus _UNCHARTED_SECTOR_SQL (a sector row whose cell the chart_ledger does not hold). Suspects (unconfirmed, TODO's read): charted sectors whose cell is missing from chart_ledger (so every row counts as an uncharted placeholder), or a cached API or page answer from before the run. Check the other charted counts on the same page (regions table) and the Sectors list against it. Do: find the cause on a galaxy with charted sectors, fix it at the cause, and add a test that the panel's count equals the charted sectors. Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top item. Prerequisites: none. Related: OPS.153, OPS.154, MAP.402.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
