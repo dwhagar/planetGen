@@ -2572,6 +2572,7 @@ CREATE TABLE IF NOT EXISTS planets (
     class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    collision_count             SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     energy_flux_w_m2            DOUBLE,
@@ -3109,6 +3110,7 @@ CREATE TABLE IF NOT EXISTS moons (
     class_fudge_values          VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount          DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                    VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    collision_count             SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
     sky_suns                    VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     energy_flux_w_m2            DOUBLE,
@@ -4596,6 +4598,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     class_fudge_values            VARCHAR(120),  -- v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class
     class_fudge_amount            DOUBLE,  -- v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store
     oddities                      VARCHAR(40),  -- v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221
+    collision_count               SMALLINT UNSIGNED NULL,  -- v247 (DB.122): how many mergers the planet architecture recorded in making the body, NULL for a row made before v247
     sky_suns                      VARCHAR(400),  -- v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236
     light_factor                  DOUBLE,  -- v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241
     moon_origin                 VARCHAR(8),  -- v207 (GEN.1111)
