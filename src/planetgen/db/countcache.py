@@ -38,6 +38,7 @@ import time
 import redis
 
 from planetgen.queue import redisqueue
+from planetgen.util import log
 from planetgen.util.settings import get_settings
 
 ENV_VAR = "PLANETGEN_COUNT_CACHE"
@@ -103,7 +104,8 @@ def _recall(database, key):
         return entry
     try:
         raw = _redis().get(_redis_key(database, key))
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("countcache", "reading a count from Redis failed, so it is counted again", exc)
         return None
     if raw is None:
         return None
@@ -123,23 +125,24 @@ def _store(database, key, entry):
             _memory.pop(next(iter(_memory)))
     try:
         _redis().set(_redis_key(database, key), json.dumps(entry), ex=MAX_AGE_SECONDS)
-    except (redis.RedisError, OSError, TypeError, ValueError):
-        pass
+    except (redis.RedisError, OSError, TypeError, ValueError) as exc:
+        log.degraded("countcache", "keeping a count in Redis failed", exc)
 
 
 def _claim(database, key):
     """Whether this caller may make the answer now (not another process)."""
     try:
         return bool(_redis().set(_redis_key(database, key, ":lock"), "1", nx=True, ex=LOCK_SECONDS))
-    except (redis.RedisError, OSError):
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("countcache", "the Redis lock for a count could not be asked, so this process alone decides", exc)
         return True  # no lock service: the in-process claim alone
 
 
 def _release(database, key):
     try:
         _redis().delete(_redis_key(database, key, ":lock"))
-    except (redis.RedisError, OSError):
-        pass
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("countcache", "releasing the Redis lock for a count failed", exc)
 
 
 def _make(config, database, key, compute, stamp, done):
