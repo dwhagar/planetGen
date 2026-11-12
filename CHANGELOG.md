@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3933] - 2026-11-12
+
+**Headline:** a moon whose orbit the star's pull reshapes now sits on its new orbit, not on the one it had before.
+
+### Changed
+
+- GEN.1540: the Kozai-Lidov pass (GEN.1447) sets a cycling moon's eccentricity to its place in the cycle at the star's age, but the moon's position and speed stayed on the ellipse it was drawn on, so a captured moon pumped down from a high eccentricity could sit far outside `a (1 + e)` (seen once as 0.507 AU against 0.233 to 0.313 AU; seed 1 of a G2V scan shows it every time). The moon is placed again on its new ellipse, in its place in its plane, as the tide settling does. Generation changes for the moons the pass changes: their stored position and speed.
+
+generation-output: changed
+generation-affects: fill
+
 ## [8.0.3932] - 2026-11-12
 
 **Headline:** A sub-Neptune that lost half of its envelope or more to its star now ends with the helium that hydrogen-first escape leaves behind, and the planets that reach a helium share of 0.4 are named as having a helium-rich envelope (oddity W16).
