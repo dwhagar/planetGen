@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3875] - 2026-11-12
+
+**Headline:** a spelling fix only: "centre" in the obliquity-variation code and its test is now "center".
+
+### Changed
+
+- `test_american_spelling` was red on main because the obliquity-variation module (GEN.1454 part 1) and its test used "centre" (including the field `cos_centre`). Renamed with the repo's own sweep (`scripts/american_spelling_sweep.py apply`); nothing else in the tree was found. No change in behavior.
+
 ## [8.0.3874] - 2026-11-12
 
 **Headline:** A test now fails when a new numeric constant is added to the generator's own modules without a registry row, a tag or a place in the constants module.
