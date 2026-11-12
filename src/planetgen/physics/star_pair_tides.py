@@ -35,7 +35,7 @@ GYRATION_SQUARED = 0.1
 ALIGN_FACTOR = 1.0
 """float: The alignment time over the synchronisation time ([R5230] gives the same order for the two; a stand-in, row KT6, tier Marginal educated guess from physics, tweak L0)."""
 
-ZAHN_RADIATIVE_E2_COEFFICIENT = 1.592e-9
+ZAHN_RADIATIVE_E2_COEFFICIENT = 1.592e-9    # [R5230] equation 42, GEN.1467 (the exponent below has the docstring)
 ZAHN_RADIATIVE_E2_EXPONENT = 2.84
 """float: The tidal coefficient of a radiative envelope, `E2 = 1.592e-9 (M / Msun)^2.84` (Zahn's dynamical tide as fitted by [R5230] equation 42)."""
 
@@ -51,7 +51,7 @@ RADIATIVE_MASS_SOL = 1.3
 
 APSIDAL_CONSTANT_FULLY_CONVECTIVE = 0.14
 APSIDAL_CONSTANT_SOLAR = 0.03
-APSIDAL_CONSTANT_MASSIVE = 0.004
+APSIDAL_CONSTANT_MASSIVE = 0.004    # GEN.1467: the k2 of a star of 5 solar masses and over (docstring below)
 APSIDAL_CONSTANT_GIANT = 0.005
 """float: The apsidal motion constant `k2` of a star: 0.14 for a fully convective one (a polytrope of index 1.5), 0.03 at a solar mass, 0.004 at 5 solar masses and over, 0.005 for a
 giant (centrally condensed); the log is interpolated in the mass between (observed `log k2` of main-sequence stars runs from about -1.5 at a solar mass to about -2.5 at 10;

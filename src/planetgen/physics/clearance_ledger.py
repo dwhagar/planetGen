@@ -232,7 +232,7 @@ def effective_spacing(gaps):
 
 
 CHAIN_SCAN_STEP = 1.02
-"""float: The factor `chain_distance_au` steps out from the pairwise distance by while it looks for the first distance that holds the chain's effective spacing. A search step, not a physical value: any step
+"""float: The factor `chain_distance_au` steps out from the pairwise distance by while it looks for the first distance that holds the chain's effective spacing. A numerical stand-in (GEN.1521), a search step, not a physical value: any step
 under about 1.1 finds the same first crossing of a curve that rises over a few percent of distance."""
 CHAIN_MAX_PUSH = 2.0
 """float: The farthest, as a multiple of the pairwise distance, the chain rule pushes a planet. A planet beside a wide gap (a giant in the window) can reach the effective spacing only far out or never,
