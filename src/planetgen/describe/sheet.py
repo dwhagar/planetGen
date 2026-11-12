@@ -450,7 +450,7 @@ _ROGUE_OWN = (
     *_rows("identity", ("planet_type", "Type", TEXT), ("planet_class", "Class", TEXT),
            ("mass_bin", "Mass class", TEXT)),
     *_rows("physical", ("mass_kg", "Mass"), ("radius_km", "Radius", "radius"), ("age_gy", "Age"),
-           ("has_moons", "Has moons", FLAG), ("density_g_cm3", "Mean density"),
+           ("density_g_cm3", "Mean density"),
            ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
            ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("composition", ("composition", "Composition", TEXT)),

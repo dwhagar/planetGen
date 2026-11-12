@@ -4280,7 +4280,6 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     radius_km           DOUBLE NOT NULL,
     composition         TEXT NULL,
     has_internal_heat   TINYINT(1) NULL CHECK (has_internal_heat IN (0, 1)),   -- v207: NULL for a row of the physics rogue
-    has_moons           TINYINT(1) NULL CHECK (has_moons IN (0, 1)),   -- v207: NULL for a row of the physics rogue (its moons are `moons` rows)
     -- v48: surface conditions (rogueSurface.rogue_surface_conditions).
     age_gy                   DOUBLE,
     internal_heat_flux_w_m2  DOUBLE,

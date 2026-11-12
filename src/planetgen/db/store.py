@@ -3890,7 +3890,6 @@ ROGUE_PLANET_FIELDS = (
     object_rows.optional("planet_class"), object_rows.attr("mass_bin"), object_rows.attr("mass_kg"),
     object_rows.attr("radius_km"), object_rows.attr("composition"),
     object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
-    object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
     object_rows.each(rogue_habitability.ROGUE_FIELDS),
     object_rows.each(rings.BODY_FIELDS),  # GEN.836
