@@ -5,10 +5,14 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 There are 1652 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 =======
 There are 1605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 >>>>>>> origin/claude/lane22-gen1021
+=======
+There are 1613 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/lane12-gen1267
 
 ## The source tiers
 
@@ -45,10 +49,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
 <<<<<<< HEAD
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1626 |
 =======
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1579 |
 >>>>>>> origin/claude/lane22-gen1021
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1587 |
+>>>>>>> origin/claude/lane12-gen1267
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -75,9 +83,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T6 | 207 | 106 | 31 | 81 | 4 | 429 |
 | T7 | 56 | 19 | 9 | 31 | 0 | 115 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+<<<<<<< HEAD
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
 | All | 923 | 309 | 77 | 243 | 53 | 1605 |
 >>>>>>> origin/claude/lane22-gen1021
+=======
+| T9 | 47 | 16 | 5 | 92 | 35 | 195 |
+| All | 927 | 310 | 77 | 246 | 53 | 1613 |
+>>>>>>> origin/claude/lane12-gen1267
 
 ## How the labels were given
 
@@ -2870,6 +2883,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB2 | P | T6 | L0 | `obliquity_variation.precession_constant_rad_yr`: `alpha = (3/2)(E/omega) sum G m / (a^3 (1-e^2)^(3/2))` over the star, the moons and a companion | none (a formula) | a spinning planet with its moons in the equator | the Earth's alpha off 50.3 arcsec a year by more than 10 percent | none | `test_obliquity_variation.py`: Sun 16.0, Sun and Moon 53.96 against 50.3 measured (7 percent) | predicted only | - | - |
 | OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
 | OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
+<<<<<<< HEAD
 | OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says; wired in `planets.companion_modes` (GEN.1535) with the mutual inclination of the planet's orbit normal and the companion's (OB8) | predicted only | - | - |
 | OB6 | P | T6 | L0 | `planets.settle_obliquity`: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt | none | free-spinning planets of a star with at least two planets, or with a companion star whose orbit is in another plane | a chaotic planet whose stored tilt stays at its birth value, or a regular planet that is moved | a numerical integration of the spin of the generated planet over the age of the star (the long-time distribution of the tilt) | even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is added with the siblings' (GEN.1535); the range of the tilt (`obliquity_min_deg`, `obliquity_max_deg`) is stored for every planet worked | predicted only | - | - |
 | OB7 | P | T6 | L0 | oddity W6 gate: a planet whose tilt `settle_obliquity` found in a chaotic zone of the spin-orbit resonances (`tilt_chaotic` 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions) | none | rocky planets that `settle_obliquity` works | a planet named whose tilt range is a few degrees (the label would then be wrong) | a numerical integration of the spin of the generated planet over the age of the star | the row only names the chaotic planets the module found; the rate is the share of planets the theory puts in a chaotic zone, which the interaction census (GEN.1448) measures | predicted only | - | - |
@@ -2906,3 +2920,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | KT6 | P | T6 | L0 | star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time | 0.3 to 3 | pairs whose tide reaches the star | a close binary whose spin-orbit angle is measured to survive the synchronisation time | the obliquity equations of the tidal theory [R5232] | [R5232]: the two relax on the same order | predicted only | - | - |
 | KT7 | P | T3 | L2 | star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass | the four values | main-sequence stars and giants | a star whose measured apsidal motion constant is off by a factor of three | the constants of a stellar model of the star's mass and age [R5233] | observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14 | predicted only | - | - |
 | KT8 | P | T7 | L0 | a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin | none | triples where the outer orbit is much wider than the inner | a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own | the Kozai and secular terms of GEN.1447 added to the apsidal rate | the pair node's own tide dominates by the sixth power of the axis ratio | predicted only | - | - |
+=======
+| OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
+
+## 6.274 Stand-ins of the nebula contour
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| NC1 | P | T9 | L0 | `nebula_density.YOUNG_ANCHOR_FLOOR` = 0.8: a young-family nebula (emission, reflection, diffuse, planetary, remnant) anchors its own density on its sphere with the polynomial kernel of a cloud, 0.8 of it kept where the model young density is nil and the other 0.2 scaling with that density, the same split as `CLOUD_GAS_FLOOR` | 0.6 to 1.0 | a hot-star nebula anywhere in the disk, where the generator grows it around its hot stars wherever they are | a measured emission nebula in the outer disk whose extent is far under or over its cataloged radius at the form level | a young density from the placed stars themselves, so the anchor is the stars | measured on the test galaxy: the model young density alone is under the form level (0.35) from about 6 kpc out (0.6 percent of points at 8 kpc, none at 10 kpc), so a 40 pc emission nebula at the solar circle drew 15 points of 6/255 (MAP.423) | predicted only | - | - |
+| NC2 | P | T9 | L0 | `nebula_density.CONTAIN_DETAIL` = 3 octaves: the containment test reads the coarse form of the contour (finest wavelength 16 pc), which the map's finer octaves refine and do not move | 2 to 5 | any nebula of 10 pc or more | a star whose containment flips between 3 and 8 octaves in more than a few percent of nebulae | the full map detail at a higher cost (about 5 microseconds a point at 5 octaves in a batch) | `nebula_density.octave_bound`: a finer octave changes the value by at most its amplitude times the edge weight, so the coarse blobs stay; cost measured 3.6 to 5.5 microseconds a point | predicted only | - | - |
+| NC3 | P | T9 | L0 | `nebula_density.CONTAIN_ROUND` = 1e-4: the density is rounded to this before it is compared to the form level, so a last-bit difference of a platform's arithmetic cannot put a star across the outline | 1e-6 to 1e-3 | every containment test | a golden that differs between two machines on the nebula-contour case | exact arithmetic everywhere | `test_nebula_contour.test_the_form_level_comparison_is_rounded` | predicted only | - | - |
+>>>>>>> origin/claude/lane12-gen1267

@@ -41,17 +41,26 @@
       "T6": 429,
       "T7": 115,
       "T8": 6,
-      "T9": 192
+      "T9": 195
     },
     "by_tweak": {
+<<<<<<< HEAD
       "L0": 923,
       "L1": 309,
+=======
+      "L0": 927,
+      "L1": 310,
+>>>>>>> origin/claude/lane12-gen1267
       "L2": 77,
       "L3": 243,
       "L4": 53
     },
+<<<<<<< HEAD
     "rows": 1605
 >>>>>>> origin/claude/lane22-gen1021
+=======
+    "rows": 1613
+>>>>>>> origin/claude/lane12-gen1267
   },
   "tiers": [
     [
@@ -130,12 +139,20 @@
   "verdict": {
     "chosen_for_the_output": {
       "percent": 12,
+<<<<<<< HEAD
       "rows": 196
     },
     "educated_guess_from_physics": {
 <<<<<<< HEAD
       "percent": 42,
       "rows": 688
+=======
+      "rows": 195
+    },
+    "educated_guess_from_physics": {
+      "percent": 41,
+      "rows": 669
+>>>>>>> origin/claude/lane12-gen1267
     },
     "fitted_to_a_result": {
       "percent": 23,

@@ -129,3 +129,4 @@ Commit each file came from:
 - v247: after GEN.1535's migration 0247 (obliquity range columns), before GEN.1510 planets belt_order and belt_rank columns (0248)
 - v248: after GEN.1510's migration 0248 (planets belt_order and belt_rank columns), before GEN.1567 ice cover column (0249)
 - v249: after GEN.1567's migration 0249 (ice cover column), before GEN.558 rogue_planets.has_moons dropped (0250)
+- v250: after GEN.558's migration 0250 (rogue_planets.has_moons dropped), before GEN.1267 drop of the nebula shape table and columns (0251)

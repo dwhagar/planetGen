@@ -587,7 +587,6 @@ _PHENOMENON_BOOKKEEPING = {
     **{f"velocity_{axis}_kms": "a component of its galactic motion; the galactic orbit rows summarize it" for axis in "xyz"},
     **{f"spin_axis_{axis}": _VECTORS for axis in "xyz"},
 }
-_SHAPE = "a parameter of the cloud's drawn 3D shape; bookkeeping for the 3D view"
 
 
 def _phenomenon_not_shown(kind, **extra):
@@ -671,11 +670,7 @@ NOT_SHOWN = {
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
-    "nebula": _phenomenon_not_shown(
-        "nebula", **{name: _SHAPE for name in ("shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x",
-                                               "shape_angle_y", "shape_angle_z", "shape_warp_amplitude",
-                                               "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
-                                               "shape_iso", "shape_scale")}),
+    "nebula": _phenomenon_not_shown("nebula"),
     "asteroid_field": _phenomenon_not_shown(
         "asteroid_field", formed_at="when the field formed, as a timestamp; bookkeeping",
         origin_event_id="the event that made it; bookkeeping"),

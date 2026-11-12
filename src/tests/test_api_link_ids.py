@@ -59,7 +59,7 @@ NOT_AUDITED = {
     "api.nav_chart": "a drawing of `api.nav`, which is audited",
     "api.system_sky_band_route": "an image of the glow, no object",
     "api.system_sky_route": "the sky of a system: packed stars and sprites, whose ids are printed IDs (tests/test_system_sky_route.py)",
-    "api.nebula_shape_route": "no nebula in the fixture; routed by printed ID", "api.nebula_surroundings_route": "no nebula in the fixture",
+    "api.nebula_surroundings_route": "no nebula in the fixture",
     "api.nebula_volume_route": "no nebula in the fixture", "api.galaxy_cloud_volume_route": "cloud bytes sampled at a sphere, no linked object", "api.object_sensor_route": "sensor readings of one object, which is the ref in the path", "api.object_belt_page_route": "the belt page of one object, which is the ref in the path", "api.object_belt_member_route": "the page of one belt member, which is the ref and rank in the path", "api.object_field_members_route": "the bodies of one field, which is the ref in the path (tests/test_field_member_page.py)", "api.object_field_member_route": "one body of a field, which is the ref in the path (tests/test_field_member_page.py)", "api.sector_gravity": "gravity map numbers of a sector, no linked object", "api.galaxy_nebula_volume_route": "no nebula in the fixture",
     "api.galaxy_bright_stars_in_cell": "scattered stars, not built systems", "api.galaxy_profile": "density profile numbers",
     "api.galaxy_uncharted_sector": "uncharted cell numbers", "api.uncharted_phenomenon": "scattered phenomenon, no built object",
