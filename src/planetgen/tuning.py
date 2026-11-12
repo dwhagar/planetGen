@@ -146,7 +146,7 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
-# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# The age, in Gy, at which the luminosity a star's disk saw is read (GEN.1611, `formation_snow_line`, `birth_luminosity`): the disk is gone in 3 to 10 Myr
 # (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
 FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
@@ -353,11 +353,15 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # The scatter of a star's own snow line around the blackbody position for its
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
-# law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
-# factor 2 to 3 the observed lines move.
+# law ([R3193, R3196], [R3193]). The draw is cut at the spread the lines are
+# found to move by with the accretion history and the dust, a factor of 3 either
+# way (the "factor 2 to 3" of [R3193], read at the abstract; the upper end is
+# taken, tier T2, tweak L1, registry PA19): `SNOW_LINE_SPREAD_FACTOR`, in sigmas
+# `SNOW_LINE_SCATTER_MAX_SIGMA`. (It was 3 sigma, a factor of 4, which put the line
+# inside the habitable zone for 104 of 3,000 stars, GEN.1611.)
 SNOW_LINE_SCATTER_DEX = 0.2
-SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
+SNOW_LINE_SPREAD_FACTOR = 3.0
+SNOW_LINE_SCATTER_MAX_SIGMA = _math.log10(SNOW_LINE_SPREAD_FACTOR) / SNOW_LINE_SCATTER_DEX
 
 # The farthest a planet zone in a hierarchy of stars reaches (GEN.314,
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is

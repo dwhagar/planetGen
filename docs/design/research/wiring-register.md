@@ -15,8 +15,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
-| module | planetgen.physics.birth_luminosity | GEN.1611 | the luminosity a star had while its disk was there (BHAC15 where it holds the mass, the zero-age light above 1.4 solar masses); GEN.1611 slice 1 (Lane 21) wires it into `formation_snow_line` |
-| module | planetgen.physics.formation_snow_line | GEN.1611 | the snow line a star's disk saw (an evolved star's from its track at the disk's age, not from today's luminosity); GEN.1611 slice 1 wires it into the star's snow line and belt birth |
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.disk_drift.cold_finger_enrichment | by design | the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473) |
@@ -45,7 +43,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
-| row | 6.36:PA18 | GEN.1611 | `tuning.FORMATION_DISK_AGE_GY`, read by `formation_snow_line`, which slice 1 wires |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |

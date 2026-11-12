@@ -23,7 +23,7 @@ import re
 from planetgen.generation import forced_star, helium_core_draw
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import (activity, age_metallicity, formation, imf, metallicity, pre_main_sequence,
+from planetgen.physics import (activity, age_metallicity, formation_snow_line, imf, metallicity, pre_main_sequence,
                               spin, stellar_state)
 from planetgen.util import draw
 from planetgen.util import log
@@ -344,9 +344,10 @@ class Star(StellarObject):
         # GEN.786 and GEN.785: its evolutionary state and, for a white dwarf, the age since it stopped burning (no draw).
         stellar_state.set_state(self)
         # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
-        # own, like the [Fe/H] above, so no older draw moves.
-        self.snow_line_au = formation.draw_snow_line_au(
-            self.luminosity, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
+        # own, like the [Fe/H] above, so no older draw moves. GEN.1611: the position is that of the luminosity its disk saw
+        # (its initial mass at the age the disk was there), not of the light it has today.
+        self.snow_line_au = formation_snow_line.draw_for_star(
+            self, draw.Stream(f"snow_line:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"))
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
