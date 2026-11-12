@@ -33521,7 +33521,11 @@
           "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1643",
+            "L4, the libration amplitude scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -33559,7 +33563,11 @@
           "what": "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1643",
+            "L4, the eccentricity scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -33597,7 +33605,11 @@
           "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1643",
+            "L4, the inclination scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+          ],
           "fields": [
             [
               "What it is",
@@ -42263,7 +42275,7 @@
         {
           "burn_down": [
             "replace",
-            "GEN.1425",
+            "GEN.1644",
             "L3, the cold cloud is taken liquid to 185 K because the freezing curve of the acid hydrates ([R4877: Table 5] and Figure 1) is not yet a function; it rides the cloud step's cold edge"
           ],
           "fields": [
@@ -42738,9 +42750,9 @@
         },
         {
           "burn_down": [
-            "replace",
-            "GEN.1425",
-            "L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base; a photochemistry model of the acid vapor or a second planet would replace it"
+            "no data",
+            "-",
+            "L3, the acid vapor share of the sulfur dioxide is calibrated to the one published base (GEN.1425, closed); no second planet measures it, and a photochemistry model of the acid vapor would replace it"
           ],
           "fields": [
             [
@@ -63989,7 +64001,11 @@
           "what": "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
         },
         {
-          "burn_down": null,
+          "burn_down": [
+            "replace",
+            "GEN.1157",
+            "L3, the cap on a captured moon is set above the Kepler-1625 b-i candidate; the bound of the binary encounter (Eq. 1 of [R5229]) built from the generated partners replaces it"
+          ],
           "fields": [
             [
               "What it is",

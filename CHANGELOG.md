@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3938] - 2026-11-12
+
+**Headline:** The CO2 far wing is confirmed to be in the greenhouse table already, so no refit is needed.
+
+### Changed
+- **GEN.1019: `co2_far_wing` marked by design in the wiring register.** `line_opacity` reads it, and the shipped greenhouse table agrees with the radiative-convective model with the wing to 0.4 K at Venus's 92 bar and is 54 K away from the model without it. Documentation only; report in `reports/gen1019-far-wing-check-2026-11-12.md`.
+
+generation-affects: none
+
 ## [8.0.3937] - 2026-11-12
 
 **Headline:** the two sweep tests that break the life model by class letter no longer fail when the habitability code scores a body from its values.

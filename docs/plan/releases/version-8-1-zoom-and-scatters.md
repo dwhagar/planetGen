@@ -625,7 +625,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) |  |  |
 
 ### Physics rectification: names, designations and Object IDs
 
@@ -728,3 +727,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.1639 | (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round) | GEN.1201 | Lane 21, 2026-11-12, deferred. |
 | GEN.1641 | (bug) GEN.1521's chain rule pushes neighbouring planets past 40 mutual Hill radii, so belt_origin makes many gap belts and belts per system nearly double (G2V 1.21 to 1.73) | GEN.1521 | Lane 14, 2026-11-12. |
 | GEN.1642 | Real-gas fugacity coefficients in gas_equilibrium.solve (Peng-Robinson for the species with critical constants, stand-ins for the rest), replacing the GEN.1613 fO2 clamp | GEN.1613 | Lane 15, 2026-11-12, deferred. |
+| GEN.1643 | Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues | GEN.1150 | unassigned, 2026-11-12. |
+| GEN.1644 | Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7) | none | unassigned, 2026-11-12. |
