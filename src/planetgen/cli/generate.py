@@ -184,21 +184,9 @@ def _validate_star_type(args, parser):
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
 
 
-def class_request_problem(letter, life_class):
-    """What is wrong with a request for a class letter and a life class (GEN.1620), or `None`: the letter must be a planet class, the life
-    class an id of `physics/life_classes.py` or a bare number of one."""
-    from planetgen.physics import life_classes, planet_classes
-    if letter and letter.upper() not in planet_classes.LETTERS:
-        return f"{letter!r} is not a planet class; the classes are {', '.join(planet_classes.LETTERS)}"
-    numbers = {one.rstrip("abc") for one in life_classes.IDS}
-    if life_class and life_class.lower() not in life_classes.IDS and life_class not in numbers:
-        return f"{life_class!r} is not a life class; the classes are {', '.join(life_classes.IDS)} (or just the number)"
-    return None
-
-
 def _validate_class_request(args, parser):
     """--force-class and --force-life-class must name a class, and --force-class cannot meet a system file's slots."""
-    problem = class_request_problem(args.force_class, args.force_life_class)
+    problem = run_system.class_request_problem(args.force_class, args.force_life_class)
     if problem:
         parser.error(f"--force-class/--force-life-class: {problem}.")
     if args.force_class and args.system_file:

@@ -35,7 +35,7 @@ from planetgen.queue import api_jobs
 from planetgen import describe
 from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
-from planetgen.generation.run_system import ODDS_OPTIONS, forced_oddity_ids, max_stars_problem, stars_problem
+from planetgen.generation.run_system import ODDS_OPTIONS, class_request_problem, forced_oddity_ids, max_stars_problem, stars_problem
 from planetgen.physics import oddities
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
@@ -110,7 +110,7 @@ def _starless_request(form, result_kind):
     so any other option that is filled in is refused instead of ignored."""
     others = [name for name, _label in TRISTATE_FIELDS if _tristate(form, name) is not None]
     others += [key for key in ("star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system", "flavor_chance_planet",
-                               "system_file", "weirdness_dial", "force_oddities") if _text(form, key)]
+                               "system_file", "weirdness_dial", "force_oddities", "force_class", "force_life_class") if _text(form, key)]
     if form.get("max_planet_flavor"):
         others.append("max_planet_flavor")
     if others:
@@ -124,6 +124,15 @@ def _starless_request(form, result_kind):
     if form.get("disregard_missing_data"):
         argv.append("--disregard-missing-data")
     return {"argv": argv, "debug": bool(form.get("debug")), "system_file": None, "command": "phenomenon"}
+
+
+def _slots_of(form):
+    """The `slots` of the form's system file when it is valid JSON that names some, else `None` (the full check comes after)."""
+    try:
+        data = json.loads(_text(form, "system_file") or "null")
+    except ValueError:
+        return None
+    return data.get("slots") if isinstance(data, dict) else None
 
 
 def system_request(form):
@@ -156,6 +165,13 @@ def system_request(form):
     max_flavor = bool(form.get("max_planet_flavor"))
     stars = _number(form, "stars", "Number of stars", int, minimum=1, maximum=MAX_STARS_CEILING)
     max_stars = _number(form, "max_stars", "Most stars", int, minimum=1, maximum=MAX_STARS_CEILING)
+    force_class = _text(form, "force_class").upper()
+    force_life_class = _text(form, "force_life_class").lower()
+    problem = class_request_problem(force_class, force_life_class)
+    if problem:
+        raise FormError(f"Class request: {problem}.")
+    if force_class and _slots_of(form):
+        raise FormError("A class letter can't be combined with a system file's slots: a slot already names its class.")
     weirdness = _number(form, "weirdness_dial", "Weirdness dial", float, minimum=0.0)
     oddity_ids = _text(form, "force_oddities")
     if oddity_ids:
@@ -217,6 +233,10 @@ def system_request(form):
         argv.append(f"--stars={stars}")
     if max_stars is not None:
         argv.append(f"--max-stars={max_stars}")
+    if force_class:
+        argv.append(f"--force-class={force_class}")
+    if force_life_class:
+        argv.append(f"--force-life-class={force_life_class}")
     if weirdness is not None:
         argv.append(f"--weirdness-dial={weirdness}")
     if oddity_ids:
@@ -238,7 +258,7 @@ def system_request(form):
             raise FormError(f"Debug areas: {exc}.") from None
         if debug:
             argv.append(f"--debug-areas={areas}")
-    return {"argv": argv, "debug": debug, "system_file": system_file}
+    return {"argv": argv, "debug": debug, "system_file": system_file, "asks": bool(force_class or force_life_class)}
 
 
 def _read(path):
@@ -251,6 +271,10 @@ def _read(path):
 
 def _tail(text, limit=MAX_LOG_BYTES):
     return text[-limit:] if len(text) > limit else text
+
+
+_ASKED_LINE = re.compile(r"^(Class|Life class) \S+ asked for: ")
+"""re.Pattern: The lines `planetgen system` prints for a class request (`run_system.class_request_report`)."""
 
 
 def run_generator(spec):
@@ -268,7 +292,7 @@ def run_generator(spec):
         # With --debug the generator narrates every choice to stdout, which
         # the page shows as the debug log; otherwise only errors.
         argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, spec.get("command", "system"), "--output", page_path,
-                "--debug" if spec["debug"] else "--quiet"]
+                *(["--debug"] if spec["debug"] else [] if spec.get("asks") else ["--quiet"])]
         if spec["system_file"] is not None:
             file_path = os.path.join(tmp, "system.json")
             with open(file_path, "w", encoding="utf-8") as f:
@@ -284,7 +308,8 @@ def run_generator(spec):
             output, ok = f"The generator could not be started: {done['error']}", False
         text = _read(page_path)
     output = _tail(output.strip())
-    return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else ""}
+    asked = [line for line in output.splitlines() if _ASKED_LINE.match(line)]    # GEN.1620: what came of a class request, said beside the system
+    return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else "", "asked": asked}
 
 
 def download_name(title, fmt):
