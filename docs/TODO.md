@@ -13577,6 +13577,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649, TEST.736.
   Filed by the TODO thread.
 
+- [ ] **GEN.1661 (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt**
+  Lane 02 (as the lane reported 4:03 PM EST on 2026-11-12), found by Lane 14's redraw census: StarSystem._settle_to_final_age -> _secular_exchange -> secular_chain.evolve -> np.linalg.solve raises LinAlgError "Singular matrix" for 23 of 600 systems generated with a habitable world and an asteroid belt asked (seeds crc32 of 'redraw:world-requested:40', 53, 83, 97, 124); 0 crashes in the ordinary group. It is in the belt secular pull (GEN.1464), which rides Train 25, so Train 25 waits for this fix. Do: find why the matrix is singular (likely two bodies at the same semi-major axis, or a zero-mass row) and treat that case from the physics, not by catching the error. Test: those five seeds generate, and the 600-system redraw group gives 0 crashes.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21, in Train 25. Prerequisites: none. Related: GEN.1464.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
