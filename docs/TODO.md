@@ -13411,6 +13411,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: GEN.1578. Related: GEN.1578, GEN.1555, GEN.1568, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **GEN.1580 Raise the 2,000 K upper temperature cap to a sourced, very high physical ceiling (the ionization or plasma temperature of the air's main gas at its pressure, tens of thousands of K), after checking nothing assumes 2,000 K**
+  Boss, 8:36 PM EST on 2026-11-11 (as the coordinator relayed): 'change the upper cap to something absurdly high, like the plasma temperature of oxygen at 1 atm or something similar, physics based but absurd, since nothing hits it now, I have a feeling it is going to come into play at some point.' Correction to the premise from the GEN.1568 report (reports/guards-2000k-375k-2026-11-12.md): the cap is hit today by 86 census bodies (49 class N, 22 T, 8 I, 5 G), so raising it changes their stored temperatures and may move some of them to other classes; this is a lock item, not a no-op. Do: pick a sourced ceiling (the ionization temperature of the dominant gas at the air's pressure, or the plasma-onset temperature; cite as an [R....] id and register it in GEN.725 with tier and tweak level; a single value is acceptable if the physics gives one for the gases that reach it), replace the 2,000 K constant, and search the code, class edges, sorts, displays, units and tests for anything that assumes 2,000 K (class N, B and the giant classes have no upper edge there per the GEN.1568 report; check the sheets, the sort keys and the golden fixtures). Done: census of the 86 bodies before and after (scripts/class_census.py) with each moved letter explained, the registry row, tests. Lock item, new epoch; it fits with GEN.1579 (the 375 K guard) in one air-stage change if both are ready.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14 (wrote the GEN.1568 report). Prerequisites: none. Related: GEN.1568, GEN.1579, GEN.725.
+  Filed by the TODO thread. Boss approved.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
