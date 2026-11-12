@@ -198,8 +198,8 @@ def test_the_option_is_off_in_a_run_that_was_not_told(handlers, monkeypatch):
     assert not fetch.disregarding_missing_data()
 
 
-def test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to(cache):
-    env = dict(os.environ, PLANETGEN_DATA_DIR=str(cache))
+def test_the_status_command_exits_0_for_a_missing_dataset_with_a_fallback_when_told_to(cache, queue_command_env):
+    env = dict(queue_command_env, PLANETGEN_DATA_DIR=str(cache))
     run = lambda *extra: subprocess.run(  # noqa: E731
         [sys.executable, "-m", "planetgen.cli.datasets", "status", *extra], capture_output=True, text=True, cwd=REPO,
         env=env, timeout=120)
