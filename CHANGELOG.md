@@ -2,6 +2,426 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3982] - 2026-11-12
+
+**Headline:** The system summary stamp upsert no longer uses the deprecated `VALUES()` function, which a new portability check refused.
+
+### Changed
+
+- `store._stamp_family` (the GEN.1498 ledger stamp and the other derived stamps it writes into `system_summary`) writes its upsert with the row alias form, `INSERT ... VALUES ... AS written ON DUPLICATE KEY UPDATE column = written.column`, as the other upserts since MySQL 8.0.20 do, so `test_sql_portability::test_no_new_values_function_in_on_duplicate_key_update` (TEST.695) passes again. The rows written are the same.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3981] - 2026-11-12
+
+**Headline:** The tuning fuzz check no longer mistakes the white dwarf core table for low-high ranges.
+
+### Fixed
+- **`test_every_numeric_constant_is_finite_and_every_pair_ordered` failed on `WD_CENTRAL_OXYGEN_BY_MASS_SOL` (GEN.1370).** The check reads every two-number tuple as (low, high); the table's knots are (white dwarf mass, central oxygen fraction), so the check now lists it with the other knot tables. Test only. generation-output: unchanged
+
+## [8.0.3980] - 2026-11-12
+
+**Headline:** The warm-up log tests read the one duration form that OPS.173 introduced, which turns main green again.
+
+### Changed
+
+- `test_warm_log.py` matches the closing lines of a warm-up run ("finished after 0 ms", "ended by Ctrl+C after 12.3 s") in any of the one duration forms instead of only `m:ss`; OPS.173 had left it on the old form.
+
+generation-output: unchanged
+
+## [8.0.3979] - 2026-11-12
+
+**Headline:** The progress lines of the long loops (block light totals, sector stages, downloads) work again: the ticker called a time formatter that the message text standard had removed, so its lines would have failed.
+
+### Changed
+- **`util/ticker.py` writes its time with `logrecord.duration_text` (OPS.173).** `joblog.clock_text` is gone; a ticker line now reads `Things: 1,240 of 4,000 done (31%), 41.3 per s, 30.0 s elapsed.` and the stamp `Adding up the levels (4:07 elapsed).` keeps its form from a minute on.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3978] - 2026-11-12
+
+**Headline:** The HEAD and OPTIONS check of every page route has a test value for the irregular-moons page, which turns main green again.
+
+### Changed
+
+- `test_web_old_urls_errors.py` gives `planet_ref` (`planet:1`) in the values it fills page routes with, so `/object/<planet_ref>/irregular-moons` and `/object/<planet_ref>/irregular/<rank>` (GEN.1086) are checked like the belt and field pages.
+
+generation-output: unchanged
+
+## [8.0.3977] - 2026-11-12
+
+**Headline:** The route snapshot and the link audit now know the two irregular-moon routes that GEN.1086 added, which turns main green again.
+
+### Changed
+
+- `src/tests/fixtures/api_routes.json` lists `/api/objects/<ref>/irregular-moons` and `/api/objects/<ref>/irregular-moons/<rank>` (added without a version bump, since a new route is additive).
+- `test_api_link_ids.py` names both in `NOT_AUDITED` with the reason (the planet is the ref in the path), as the belt pages are.
+
+generation-output: unchanged
+
+## [8.0.3976] - 2026-11-12
+
+**Headline:** Every log line is now held to one message style, with one duration form (`340 ms`, `12.3 s`, `4:07`, `1:05:12`), and a test fails on a new line that breaks it; the lines already in the code are converted in the next three parts.
+
+### Changed
+
+- OPS.173 (part 1 of the log reformat, Boss 3:06 PM EST on 2026-11-12): a "Message text" section in `docs/design/operations/logging-standard.md` with nine rules (one sentence with a capital first and a period last, no severity word and no component prefix, ids and figures as fields, one duration form, counts with separators, at most 160 characters, progress lines from one ticker, error lines say what then why, levels, f-strings above debug and `%` arguments for per-object debug lines).
+- `logrecord.duration_text` is the one duration form. The two copies of `clock_text` (`util/joblog.py`, `cli/warm_progress.py`) are gone; a job log's closing line and the warm-up's "about 4:07 left" now use it, so a job that took under a minute says `340 ms` or `12.3 s` instead of `0:00`.
+- TEST.183 gets a third scan: it reads the first argument of every logger call and fails on a severity word, a component prefix, a lowercase first letter, a missing final period or more than 160 characters of fixed text. The 111 functions that still break a rule are named in `MESSAGE_TEXT_ALLOWED` with the item that converts them (OPS.174: `queue/` and `generation/run_*`, OPS.175: the rest, OPS.176: `cli/`, `web/`, `api/`, `admin/`); each part empties its share.
+- The two "Block light totals, part N of 2" lines of the block-light step word their count through `counting_text` (a hand-made count failed TEST.183 on main).
+
+generation-output: unchanged
+
+## [8.0.3975] - 2026-11-12
+
+**Headline:** Every place that quietly goes on past an error now leaves a debug line saying what it went past.
+
+### Changed
+- **`log.swallowed` in every broad `except` (OPS.168).** 130 handlers in `queue/`, `web/`, `api/`, `db/`, `util/`, `cli/`, `generation/`, `admin/` and others caught every exception and wrote nothing, so a run with debugging on was blind exactly where a fault hid. Each now writes one debug line (the place, what it was doing, the error) and nothing at normal level; behavior is unchanged. A new test fails on any broad `except` that neither re-raises nor logs. generation-output: unchanged
+
+## [8.0.3974] - 2026-11-12
+
+**Headline:** A Redis that stops answering now shows up in the log as one warning, not as a silently slower site.
+
+### Changed
+- **A silent Redis fallback now says so (OPS.165).** The page cache, the single-flight claims, the estimate cache, the galaxy status, the count cache, the object index and the queue's page-job and warm-up helpers used to catch a Redis error and carry on with no line at all. Each now calls `log.degraded`, which writes a debug line every time and a warning (so it reaches error.log) at most once in five minutes for the same place. generation-output: unchanged
+
+## [8.0.3973] - 2026-11-12
+
+**Headline:** The run-stopped line words its stage count through the one counting helper.
+
+### Fixed
+- **The run-failure line (OPS.163) words "Stage N of M" with `logrecord.counting_text`,** as the counting test requires, so it reads `stopped at Stage 3 of 5`. generation-output: unchanged
+
+## [8.0.3972] - 2026-11-12
+
+**Headline:** Every long loop that says where it is now does it through one progress ticker at one cadence (a line every 30 seconds), with the same wording everywhere, instead of five hand-made clocks that each said it their own way.
+
+### Changed
+- **One ticker (OPS.169).** New `util/ticker.py`: `Ticker(label, total)` says `Label: 1,240 of 4,000 done (31%), 41.3 per s, 0:30 elapsed.` at most every `tuning.PROGRESS_LOG_SECONDS`; `Ticker(..., percent=True)` is for a counter on a bar's scale; `Pulse` is a thread that speaks on the cadence for work that goes quiet between counts; `stamp()` is the one form of the hand `[12 s into the stage]` stamp, now `(0:12 elapsed)`.
+- **The copies are gone.** `block_lights.PROGRESS_SAY_SECONDS`, `uncharted_index.SAY_SECONDS` and the `refresh_block_lights` and `BlockLightsFollower` hand throttles and thread are replaced by the ticker. The download lines (`datasets.fetch.PROGRESS_SECONDS`, was 10 s) and the warm-up lines (`warm_progress.PROGRESS_SECONDS`, was 60 s, still held back by ten percentage points) now use the same `tuning.PROGRESS_LOG_SECONDS`.
+- The lines read `Block light totals, units: 3 of 40 done (8%), 12,000 rows written, 0:41 elapsed.` and `Uncharted sectors, shells: ...` in place of the old per-place wording; the block light stage's pulse reads `Making the block light totals: 37% done, still working, 4:07 elapsed.`
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3971] - 2026-11-12
+
+**Headline:** `scripts/pick_tests.py` no longer names two example repo paths that do not exist, which turned `test_scripts_only_name_repo_paths_that_exist` red on main.
+
+### Fixed
+- **`scripts/pick_tests.py` (TEST.722).** Two docstring examples wrote made-up repository paths (`src/planetgen/a/b/c.py`, `src/tests/test_x.py`); the deploy-scripts test that checks every path a script names found them. They are reworded so the docstring names no path. No behaviour changed.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3970] - 2026-11-12
+
+**Headline:** When update.sh cannot reload Apache or start Redis, it now prints why.
+
+### Changed
+- **update.sh keeps the reason for a failed Apache, systemctl or Redis step (OPS.166).** The Apache configuration test's output, the output of a failed `systemctl restart/reload` and of the Redis install and start now appear, indented, under the warning that names the failure. Before, it was thrown away. generation-output: unchanged
+
+## [8.0.3969] - 2026-11-12
+
+**Headline:** A statement that loses its MySQL connection now leaves a warning with what the server says about it.
+
+### Changed
+- **Lost connections are explained (OPS.171).** When a statement run through the retry helper loses its connection, a warning gives the server's uptime (a small figure means it restarted), its idle timeout and its aborted-client count. The sky unit's own explanation is a warning too. generation-output: unchanged
+
+## [8.0.3968] - 2026-11-12
+
+**Headline:** Warnings that were logged as ordinary lines now go out as warnings, so a warning reader and error.log see them.
+
+### Changed
+- **Eight "Warning:" lines moved from normal level to warning (OPS.167).** They were in the sector and block-totals runs, the plan and the run helpers. A lost MySQL connection in the sky unit and a deadlock retry's final failed try are warnings too, and each deadlock retry is a notice. generation-output: unchanged
+
+## [8.0.3967] - 2026-11-12
+
+**Headline:** A failed after-commit step is now logged with its name and its traceback.
+
+### Changed
+- **After-commit failures name the step and carry the traceback (OPS.164).** These steps keep derived data such as caches and counts in step with the database, so a failure used to leave them drifting with only a one-line message. generation-output: unchanged
+
+## [8.0.3966] - 2026-11-12
+
+**Headline:** The line for a run that stopped early now says why and at which stage, and a cancel is no longer logged as an error.
+
+### Changed
+- **The run-failure line names the cause and the stage (OPS.163).** `Run … stopped at stage 3 of 5: ValueError: …`, with the run id, stage and cause as fields. A cancel (Ctrl+C or SIGTERM) is logged as a notice. generation-output: unchanged
+
+## [8.0.3965] - 2026-11-12
+
+**Headline:** The ring-costing sample size in the sky charting code now carries the tag the constants census asks for, which clears a red test on main.
+
+### Changed
+- `sky_charting.RING_COST_ROWS` is tagged as a stand-in sample size in its docstring (it only sizes a cost estimate and changes no drawn star), so `test_constants_completeness` passes again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3964] - 2026-11-12
+
+**Headline:** A failed unit now reaches error.log with its run, stage, unit and job kind beside the traceback.
+
+### Changed
+- **A failed unit's line in error.log carries its context (OPS.162).** It names the unit and the stage and has the run id, stage, unit and job kind as fields, so a failure can be found by run. generation-output: unchanged
+
+## [8.0.3963] - 2026-11-12
+
+**Headline:** The uncharted sector rows of the block light totals stage are now made by every worker at once, a run of shells to a unit, instead of one worker making them all one after the other.
+
+### Changed
+- **The stage is cut into units (OPS.153).** `expand_refresh_block_lights` checks the parts (the cheap check of OPS.152) and, when they are current, cuts the `block-lights` stage into the roll-up of the totals (one unit) and the uncharted index (one unit for each run of about 300,000 cells with a part, `uncharted_index.shell_runs`, never splitting a shell, at most `MAX_UNITS - 1` runs). The two halves read the parts and write different tables, so they run together. When the parts have to be made again (`rebuild`, or a failed check) the stage stays the one unit of old, since the index must wait for the parts. The index was one process at about 10,000 rows a second, which at the size of Boss's galaxy was hours.
+- **The bar and the log follow the units.** `BlockLightsFollower` weighs the units as the expansion costs them (the roll-up, then the runs), logs the cut and one summary line (`Made N block light totals and M uncharted sector rows.`), and says an index unit's lines only when it warns. `make_block_lights` takes `part` (`"all"`, `"roll"`, `"index"`) and `shells`; `fill-block-totals` and a run by hand still make both in one process.
+- The rows made are the rows the single unit made (the same cells, uids, names and centers); a unit that is run again makes none twice (`INSERT IGNORE` on the sector's uid).
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3962] - 2026-11-12
+
+**Headline:** The block light totals stage no longer counts every star in the galaxy at the end of a run, so it goes straight to rolling up the totals.
+
+### Changed
+- **No recount at the end of a run (OPS.152).** `block_lights.parts_current` and `totals_current` counted the unbuilt stars over `bright_stars` (a walk of every row of a full galaxy) and scanned `phenomenon_scatter` (no index on `built_at`) when the class counters were missing, which kept the stage silent before its first phase line. They now read small tables only: the parts against `phenomenon_scatter_classes`, empty parts against the first waiting star or phenomenon (`EXISTS`, which stops at one), and the totals against the parts' sums. `exact=True` (and `roll(exact=True)`) keeps the old count; `planetgen fill-block-totals` still rebuilds the parts from the objects, so it remains the repair and the proof. The roll also says its first phase ("Checking the parts the scatters kept against their counters...") before the check.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3961] - 2026-11-12
+
+**Headline:** The block light totals stage now writes to the job log while it works, so it can no longer go silent for hours.
+
+### Fixed
+- **Stage "Make the block light totals" printed nothing until it ended (bug).** Its phase lines were kept in a list and handed back only when the whole worker unit finished, so a long run looked hung. Each phase line now reaches the worker log and the unit's phase at once, with the seconds into the stage.
+- The job log gets a line every 30 seconds for as long as the stage runs (percent on the bar and time in), whatever the unit is doing.
+- Both parts are timed and named: part 1 (checking the parts and rolling up the levels) and part 2 (the uncharted sector rows). The roll-up and the uncharted index also say where they are every 30 seconds. Generated galaxies are unchanged.
+
+## [8.0.3960] - 2026-11-12
+
+**Headline:** The oxygen and neon in a white dwarf's core and the elements a polluted white dwarf takes from an accreted asteroid can now be worked out in one place; nothing reads them yet.
+
+### Changed
+
+- GEN.1370 (slice 0, N16 of the 8.1 real-material set): new `physics/white_dwarf_core.py`, pure. `central_oxygen` gives the central oxygen mass fraction of a carbon-oxygen white dwarf from its mass (the ten models of [R5238], linear between and held outside, kept inside the range two pulsating white dwarfs fit [R5239]); `neon22_fraction` gives the 22Ne from the carbon, nitrogen and oxygen of the progenitor's birth composition (0.0152 at the proto-solar mix); `core_fractions` gives the three central fractions, adding to 1. `pollutant` takes the stored materials of a belt body and returns its element mass fractions, the ratios to magnesium of the elements a white dwarf's spectrum shows (O, Mg, Si, Fe, Ca, Al, Ti, Cr, Mn, Ni, Na, K, S, C, P) and the class of the fragment: core-rich, crust-rich, volatile-rich or primitive [R1832]. Stand-ins WDC1 to WDC8 (tiers T2 to T6, tweak L0 and L1) are in section 6.286 of the gap-filling plan; the alloys, organics and six solid-solution minerals of the materials table that state no formula take the shares and end members of `tuning.py`.
+- Nothing in the generator reads it yet (wiring register): storing the core fractions in the white dwarf's layers and the pollutant in its pollution detail is the lock wiring of GEN.1370.
+
+generation-output: unchanged
+
+## [8.0.3959] - 2026-11-12
+
+**Headline:** The wiring register marks seven reference helpers by design and retires two duplicate helpers.
+
+### Changed
+- **Wiring triage, retire and by-design rows (GEN.1559).** `photometry.bolometric_correction_v` and `blackbody_colour` (the reference fits the sky and star colour are held to) and five `clathrate_brine` functions (the reference curves the tests hold the wired ones to) are marked by design in the wiring register, each with its reason. `comet_species.low_over_h2o` and `high_over_h2o`, one-line copies of `bracket_over_h2o`, are deleted; the register now names `bracket_over_h2o` for GEN.1021. Left for their owners: `planet_zones.flux_at` (asked of Lane 11) and `clearance_ledger.log_uniform_quantile` (belt birth, GEN.1068).
+generation-output: unchanged
+
+## [8.0.3958] - 2026-11-12
+
+**Headline:** The unused whole-job shell rate reader is retired; the per-unit ETA already does its job.
+
+### Changed
+- **PERF.147 closed on the reader side (GEN.1559).** `generation.stats.job_shells_per_second`, built to start the ETA of a task over 15 seconds, is deleted: the ETA now comes from `queue/taskprogress.py` and the per-command rates of `queue/unitrates.py`, and the stage times of `queue/runeta.py`, so nothing read the whole-job rate. The whole-job history row is still stored. Its register line is removed.
+generation-output: unchanged
+
+## [8.0.3957] - 2026-11-12
+
+**Headline:** Two oddity tests and the brown dwarf test now find their case by searching instead of naming the draw that had it.
+
+### Changed
+- **The dark-side air loss test (W19) and the second climate branch test (W20) search draw keys (TEST.714).** Each named one key (`w19-M3V-2`, `w20-G2V-10`) for a planet in a rare state: a locked M3V planet whose thin air the dark side takes, a G2V planet whose climate has a second branch. The W20 key was already replaced twice when the draws moved. Each now takes the first key of a bounded range that has the case and keeps its assertions, and names how many keys it tried when none does.
+- **The brown dwarf system helper in the dark light test keeps its six seeds and searches 200 more** if none of them draws a brown dwarf any more.
+
+generation-affects: none
+
+## [8.0.3956] - 2026-11-12
+
+**Headline:** A test of saving and reading back a planet's irregular moons no longer assumes its neighbouring planets hold none.
+
+### Changed
+
+- The stored-irregular-moons test compares each neighbouring planet with the irregular set the generator gave it before saving (none, or an empty set), instead of requiring none. Since GEN.1406 the sample system's outer planets hold an empty set and the test failed on main. Test only.
+
+generation-output: unchanged
+
+## [8.0.3955] - 2026-11-12
+
+**Headline:** The swept-disk mass-ledger test finds its system by searching seeds instead of naming the one that had it.
+
+### Changed
+- **`test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system` searches for its system (TEST.714).** It named seed 51 as the system whose outer disk a giant swept and handed on to an inner belt and to captured moons; any change to the draws behind a seed would move that away. It now takes the first seed from 1 to 120 whose system has exactly one such disk, with the same assertions, and fails naming how many seeds it tried when none has one.
+
+generation-affects: none
+
+## [8.0.3954] - 2026-11-12
+
+**Headline:** A planet that caught small bodies now has a page listing its irregular moons and a page for each one, with its size, makeup, orbit and how it was caught.
+
+### Changed
+
+- GEN.1086 (slice 1): a planet that keeps irregular moons shows a link on its page to `/object/planet:<ID>/irregular-moons`, the list of its bodies by designation with mass, diameter, type, makeup, distance, share of the planet's Hill radius, eccentricity, inclination, direction (forward or backward) and the window it was caught through, and what was not kept one by one. Each body has its own page, `/object/planet:<ID>/irregular/<rank>`, with a Sensor view, its orbit about the planet (closest and farthest distance, the period the planet's mass gives, the six elements) and links to the next heavier and lighter body. A body is called `<planet ID>.<rank hex>`, or by the belt's designation when it was caught from an inner belt.
+- New routes `GET /api/objects/<ref>/irregular-moons` and `.../irregular-moons/<rank>` (`describe/irregular_moon_info.py`); the API version stays.
+- Not yet: the irregular orbits on the System Map and the 3D view, and the clearance ledger taking the irregular zone as occupied space (the rest of GEN.1086).
+
+generation-output: unchanged
+
+## [8.0.3953] - 2026-11-12
+
+**Headline:** The three spreads of a trojan swarm (how widely its bodies librate, how eccentric and how tilted they are) are now fitted to the Jupiter and Neptune Trojans, with the values proposed; no constant has changed yet.
+
+### Changed
+
+- GEN.1643 (slice 0): new `scripts/fit_trojan_scales.py` turns the published Trojan laws into the Rayleigh scale the generator draws from, for the stand-ins TJ9 (libration amplitude), TJ10 (eccentricity) and TJ11 (inclination) of section 6.121 of the gap-filling plan. The sources are the debiased Jupiter Trojan laws of the proper amplitudes and of the libration integral (the Jupiter Trojan paper, [R5245]) and the Rayleigh widths of the Neptune Trojans [R5244]. The proposal, recorded in the registry rows and in `reports/gen1643-trojan-scales-2026-11-12.md`: libration 13 degrees (now 10), eccentricity 0.06 and inclination 12 degrees stay (the fit gives 0.058 and 11.7). Slice 1 sets them and lowers the rows to L1 or L2.
+- The same fit shows that `trojans.TADPOLE_LIMIT_DEG` (23.9) is the nearest a tadpole comes to the secondary, not a libration amplitude (that is 78 degrees at the edge of the zone), and that about a fifth of the real Jupiter Trojans librate wider than 23.9. The note is on the TJ3 row; the correction rides with slice 1.
+- No constant of the generator is changed and nothing is stored.
+
+generation-output: unchanged
+
+## [8.0.3952] - 2026-11-12
+
+**Headline:** Pages that name a database (`?db=`) no longer scan every schema of the MySQL server on each request: the Galaxy Map's near-sector read took 20 to 26 seconds on a server with 147 schemas and takes about one second now.
+
+### Changed
+
+- `db.store.resolve_database` checked that a requested schema exists by calling `list_databases`, which reads the size and modification time of every schema with the prefix (one `information_schema.tables` scan each) and throws the numbers away. It now asks for that one name with one query for the names on `information_schema.schemata` (`_is_listed`), reading the prefixed names and comparing the requested one in Python, with the listing's rules unchanged: the prefix, not the control schema, and the name exactly as written. A name the schema column's collation cannot mix with (an emoji in `?db=`) is a 404, as before, and not a server error.
+- Why it mattered: a Galaxy Map view fetches a dozen stages, each resolving its schema, so one `/galaxy/near` call made 59 resolutions and 8,383 queries. On a test server that had gathered 147 schemas that was 20 to 26 seconds a call, and the whole-galaxy wheel-in browser test (TEST.696) failed because the sector scene arrived long after the camera had flown past the star.
+- The `list_databases` page of the admin screens is unchanged (it does want the sizes).
+
+generation-output: unchanged
+
+## [8.0.3951] - 2026-11-12
+
+**Headline:** `planetgen system` can be asked for a planet class letter or a life class, and says what came of the request.
+
+### Changed
+- **`--force-class LETTER` and `--force-life-class ID` (GEN.1620).** The first sets the existing `SystemConfig.FORCE_CLASS` (a planet of that class, drawn again within the run's tries); the second sets a new `SystemConfig.FORCE_LIFE_CLASS` (a number such as `6`, or a number and variant such as `4c`), judged on the finished planets and moons the same way. The result then says which body holds the class and how well its conditions fit it (the class match, with "the nearest class the conditions allow" when it is not a full fit), or that none came out, and the run keeps its last try with the warning it already gives. Both are off by default and a default run never sets them, so a seeded system is unchanged (a test compares the two). A bad letter or life class, or `--force-class` with a system file's slots, is refused. The form control for the one-off page follows (UX.302).
+
+generation-output: unchanged
+
+## [8.0.3950] - 2026-11-12
+
+**Headline:** the vapor pressure curve of disulfur (S2) is in the saturation data file and tested, held back from use until the freeze-out of every gas is built.
+
+### Changed
+
+- `data/saturation_pressure.json` gains an `unread` block with S2, `ln(P/Pa) = 65.2805 - 16872.9/T - 5.1118 ln T` for 312 to 925 K (8.8 percent at worst against the gas table's NASA-polynomial rows, stand-in SV1, section 6.285), and `saturation.unread_pressure_pa` serves it. `saturation.has`, `saturation.saturation` and every caller are unchanged, so no generated output moves (GEN.1564 slice 0; slice 1 moves the row into `species` and runs the freeze-out for it).
+
+## [8.0.3949] - 2026-11-12
+
+**Headline:** The Earth analog now takes the Earth's late accretion of 0.7 percent instead of the 3.0 percent its generated system set.
+
+### Fixed
+- **TEST.726: `scripts/earth_analog.py` pins `_late_accreted_percent` at `impact_history.LATE_ACCRETED_PERCENT_EARTH` (0.7, Brasser and others 2016 Table 1; [R4598] 0.5 to 0.8).** The planet object came from the generated system 4001, whose belts set 3.0, about four times the Earth's veneer, which put roughly 60 kPa more nitrogen into every trial. The stored baseline is renewed (800 trials, median pressure 218 kPa, median temperature 331 K, class M 1 of 800). Script and data only; no generated output moves.
+
+generation-affects: none
+
+## [8.0.3948] - 2026-11-12
+
+**Headline:** The one-off system page and `planetgen system` can set the weirdness dial and force particular oddities.
+
+### Changed
+- **Weirdness dial and Force oddities (UX.299).** `planetgen system` takes `--weirdness-dial X` (0 turns every oddity off, 1 is the table's own rates) and `--force-oddities W10,G1` (the ids of `physics/oddities.py`; a body whose conditions allow them gets them without the roll, and the gate still applies). Both set the existing `SystemConfig.WEIRDNESS_DIAL` and `FORCE_ODDITIES` (GEN.1047); an unknown id or a negative dial is refused. The one-off system page has the same two boxes under Options, with the ids listed. Nothing stored changes.
+
+generation-output: unchanged
+
+## [8.0.3947] - 2026-11-12
+
+**Headline:** class texts now agree with what the classifier and the generated bodies do: dead world, hot dense, anoxic, carbon dioxide, marginal thin-air, small hot and hot thin-air worlds, plus two stale docs and a stale class-page note.
+
+### Changed
+
+- `physics/data/planet_classes.json`: class C no longer says "bare rock" only (about half the stored dead worlds carry ice or an ice-covered sea); class N says its air is usually mostly carbon dioxide, often with water vapor, not "carbon dioxide and sulfur" (sulfur is 3 percent of the stored air); classes F and G no longer say "mild" or "warm but not hot" (the conditions run from cool to 400 K); class L no longer says its air "is not toxic" (its carbon dioxide runs to tens of kilopascals); class B no longer says "not an ocean world" (nothing in its conditions bars an ocean); class Z no longer says "strong gravity" (its conditions start at half a gravity). The class page, planet page and system map read these words, so nothing stored changes.
+- Boss (9:01 PM EST): the code bugs stay as they are for now and the shown text follows what the code does today. T (terrestrial) says its air is mostly hydrogen and can be thin; U, Y and A say the liquid or sulfur dioxide could stand or is present, not that seas, acid or volcanoes are stored; X says it has no air; O, H, P and R say they have air you could breathe (their conditions ask for oxygen of 16 to 35.5 kPa); S says some are under ice.
+- The class page note on rogue planets no longer says classes "list interstellar space" (no class does); a rogue planet is classed by the same conditions.
+- `docs/reference/system-file-format.md`: the class table, the check order, the "Life?" column, the class-moves-the-orbit claim and the list of unused letters described the first-match classifier of October; they now describe the best-fit classifier and the 25 letters in use. `docs/design/habitability/condition-based-planet-classes.md`: the rule-file paragraph, class L's name, class B's rule and the reserve line are corrected and R, U, X and Y are added to the table.
+- Report: `reports/class-descriptions-vs-code-2026-11-12.md` lists the mismatches that need a code decision.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3946] - 2026-11-12
+
+**Headline:** The one-off system page can now generate a rogue planet or an interstellar comet, not only a star system.
+
+### Changed
+- **A Result choice on the one-off system page (UX.298).** Under Options, Result picks a star system (the default), a rogue planet or an interstellar comet. The two starless results come from the existing `planetgen phenomenon` generator, which now takes the same `--output` and `--format` that `planetgen system` has: it writes the description and saves nothing. Only the name and the debug log apply to a starless result, and any other filled-in option is refused with its name instead of being ignored. The page shows it as it shows a system, with the same downloads.
+
+generation-output: unchanged
+
+## [8.0.3945] - 2026-11-12
+
+**Headline:** The galaxy-placed occurrence census now records why classes O, P and Q have no target rate.
+
+### Changed
+
+- The docstrings of `tests/audit/prevalence_galaxy.py` and `tests/test_prevalence_galaxy_census.py` (TEST.395) say that the ocean, glaciated and Q classes are given no share to hit (Boss, 2026-10-30: physics drives, no game rates, and no survey measures a class): they are only tested for being possible when conditions allow them, and the report lists how many of each the sample drew. Comments only.
+
+generation-output: unchanged
+
+## [8.0.3944] - 2026-11-12
+
+**Headline:** The pull of a distant companion star or a heavy outer planet on a planet's orbit can now be worked out in one place; nothing reads it yet.
+
+### Changed
+
+- GEN.1447 (slice 0, planet and sibling-planet cases): new `physics/kozai_planets.py`, pure. `screen_planets` runs the Kozai-Lidov screen of `kozai_bodies` for each planet of a star against every perturber past three times its axis: a companion star or dark member with the plane of its orbit, and an outer planet at least as heavy as the planet. The other precession a cycle has to beat is `secular_chain.precession_rates` (siblings and relativity). Each planet gets the outcome of its strongest cycling pull (the eccentricity it reaches, where it stands at the star's age, whether the periapsis falls inside the star), the perturbers that cycle it and the ledger rate of every perturber. Stand-ins KZP1 and KZP2 (tier T6, tweak L1) are in section 6.284 of the gap-filling plan.
+- Nothing in the generator reads it yet (wiring register): applying the outcome to the planets is a lock item that waits for the stored companion planes of GEN.1500.
+
+generation-output: unchanged
+
+## [8.0.3943] - 2026-11-12
+
+**Headline:** A sky's mass rings are costed by what their walk does, so a sparse ring is no longer counted one visit to every cell of its sphere (GEN.1485).
+
+### Changed
+- **`sky_charting.cost_rings`.** The queue's sky units (`run_galaxy._sky_units`) now give each mass ring the visits `bright_stars.mass_sphere_walk_visits` counts over its drawn sphere: for each row, one visit to every cell of its window when a band of the ring is over `CANDIDATE_PATH_BOUND`, else one to every block of the window. It is the walk's own rule (`_sphere_batches`) applied to the rows with no star drawn, looked at on about 2,000 rows of the sphere and scaled. `sky_tiers.build` still costs a ring by its cells, since it has no galaxy to ask. The estimate of the time a sky unit takes drops for sparse rings (the 5 to 8 and 8 to 14 solar mass rings, which the audit found overstated); no cell is drawn differently and no star changes. Reused: `sphere_rows`, `bound_terms`, `bound_of` and `_row_chunks` of the walk itself, and the ring bands of `mass_sphere_batches` (now `_mass_paths`, shared by the draw and the cost) so the two cannot differ. Tests: the cost against an instrumented `mass_sphere_batches` for a sparse and a dense ring.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3942] - 2026-11-12
+
+**Headline:** The reds on main after Train 24 in the materials and rogue planet tests are fixed in the tests, with no change to what the generator makes.
+
+### Changed
+- **The materials reachability scan reads the evaporite sequence.** `physics/evaporite_sequence.py` names the 19 salts, carbonates and perchlorates it dries out of a brine (GEN.1357 and GEN.1366), but it takes its molar masses from its own formula table and does not import the materials table, so the scan skipped it and called the rows unread. It is now in the scan's always-read list.
+- **The rogue and bound planet parity test allows the air quantities to differ where only one of the pair holds an air.** A rogue world kept warm by its own heat holds an air; the matched planet at 3 K far from a star has frozen its gases out and stores no density, molar mass or scale height. The test already allowed the same case for its liquid surface and clouds.
+- **The rogue parity test allows `cloud_chemistry` to differ with the cloud.** The sulfur-cloud chemistry (GEN.1425) is read off the acid cloud the air holds, so it is filled on the one of a matched pair whose air holds one.
+- **The rogue and bound moon-code test finds a pair that made two moons each instead of pinning seed 0.** `generate_moons` attempts the count and makes fewer where the orbits have no room, so the test searches seeds (TEST.714) for a pair with two each.
+- **The stored UV index test skips a planet under a deep envelope.** Such a planet has no ground (GEN.1334), so it stores no dose and no UV index; the test now says so for it and checks the planets that have a ground. The seed's system holds two such class T planets after Train 24.
+
+generation-affects: none
+
+## [8.0.3941] - 2026-11-12
+
+**Headline:** An edited world inside a cloud keeps the cosmic-ray boost of the squeezed heliosphere.
+
+### Changed
+- **GEN.1607 confirmed not a bug; a test now holds it.** `radiation.generate_dose` does set `dose_helio_mult` back to 1.0 each call, but the only paths that re-apply life or air to a stored body are the admin edits, and `db.edits.save_system_edits` ends in `store.refresh_system_dose`, which works the multiplier and the surface dose out again from the container the system is stored in. `test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier` places a system in a dense cloud (multiplier 2.5), re-applies life and the dose to each grounded planet (multiplier 1.0), saves the edit and checks the stored multiplier is 2.5 again.
+
+generation-affects: none
+
+## [8.0.3940] - 2026-11-12
+
+**Headline:** Three unread dose functions that duplicated the production radiation code are retired.
+
+### Changed
+- **GEN.444: retired `surface_dose.share_past_cutoffs`, `surface_dose.rigidity_gv`, `surface_dose.neutron_weight` and the two event constants.** The share of a stellar particle event that passes a column and a cutoff is `solar_particles.dose_share` with `proton_range` (measured events, NIST PSTAR, mixtures by Bragg's rule), which `radiation.generate_dose` reads; the first slice's copy used a hand-fitted Band spectrum for the same job. The cosmic-ray table is already a dose in sieverts that includes its neutrons, so a separate neutron weight would count them twice. `proton_range.csda_range_g_cm2` is marked by design (its inverse `energy_mev` is the one the generator reads). `effective_air_column_g_cm2` stays open under GEN.444 until the interaction lengths of the other gases are sourced. No generated output changes.
+
+generation-affects: none
+
+## [8.0.3939] - 2026-11-12
+
+**Headline:** The solar particle event counts typed in the code now match the 265 events of the NOAA list the setup downloads.
+
+### Fixed
+- **GEN.805: `solar_particles.NOAA_CUMULATIVE_COUNTS` counted from the downloaded list.** The typed counts (255, 177, 109, 72, 40, 18, 9) came from an older 255-event table; the list that `datasets.noaa_proton_events` reads has 265 events and counts 265, 181, 112, 74, 41, 18, 9. A new test holds the typed numbers to the file. The dataset is marked by design in the wiring register as the calibration reference of the event rate. Only the test-side rate helpers read these counts, so no generated output moves.
+
+generation-affects: none
+
 ## [8.0.3938] - 2026-11-12
 
 **Headline:** The CO2 far wing is confirmed to be in the greenhouse table already, so no refit is needed.

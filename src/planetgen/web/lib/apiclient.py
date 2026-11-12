@@ -222,7 +222,8 @@ def _http_transport(method, target, data, headers, timeout):
     except urllib.error.HTTPError as exc:
         try:
             body = exc.read().decode("utf-8", errors="replace")
-        except Exception:
+        except Exception as swallowed_exc:
+            log.swallowed("web/lib/apiclient", "_http_transport", swallowed_exc)
             body = ""
         return TransportResponse(exc.code, body, [], exc.reason)
     except urllib.error.URLError as exc:
@@ -1001,6 +1002,19 @@ def get_belt_page(db, ref):
     asteroid belt -- see `describe/belt_info.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/belt-page", {"db": db})
+
+
+def get_irregular_moons(db, ref):
+    """Returns `GET /api/objects/<ref>/irregular-moons`'s dict (`planet`, `moons`, `not_stored`), the irregular moons a planet keeps -- see `describe/irregular_moon_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/irregular-moons", {"db": db})
+
+
+def get_irregular_moon(db, ref, rank):
+    """Returns `GET /api/objects/<ref>/irregular-moons/<rank>`'s dict (`moon`, `orbit`, `planet`, `previous`, `next`), the page data of one irregular moon of a planet -- see
+    `describe/irregular_moon_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/irregular-moons/{rank}", {"db": db})
 
 
 def get_belt_member(db, ref, rank):

@@ -208,7 +208,8 @@ def _settle_with_other_runs(origin, sleep=time.sleep, clock=time.monotonic, data
     try:
         conn = redisqueue.connect()
         conn.ping()
-    except Exception:       # noqa: BLE001 -- the run itself says that no Redis answers
+    except Exception as exc:       # noqa: BLE001 -- the run itself says that no Redis answers
+        log.swallowed("cli/warm", "_settle_with_other_runs", exc)
         return
     if origin == warm_log.AUTOMATIC:
         _wait_for_generation(conn, database, sleep)
@@ -244,7 +245,8 @@ def _make_room_after_busy(origin, sleep=time.sleep, clock=time.monotonic):
         if holder is None or not _holder_is_warm_up(conn, holder):
             return False
         _cancel_other_warm_up(conn, holder, sleep, clock)
-    except Exception:       # noqa: BLE001 -- no Redis: the start says so
+    except Exception as exc:       # noqa: BLE001 -- no Redis: the start says so
+        log.swallowed("cli/warm", "_make_room_after_busy", exc)
         return False
     return True
 

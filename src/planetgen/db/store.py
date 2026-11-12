@@ -1270,7 +1270,8 @@ class Connection:
             try:
                 callback()
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
-                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
+                name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
+                log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -1559,6 +1560,32 @@ def _schema_counts(conn, name):
     return {"sector_count": sectors, "system_count": systems}
 
 
+def _is_listed(base_config, name, prefix=None):
+    """
+    Whether `list_databases(base_config, prefix=prefix)` would offer schema `name`, asked with one query for the names and not the
+    listing's size query per schema (a request with `?db=` resolved its schema this way on every call, and each of the server's schemas
+    cost one `information_schema.tables` scan: 142 scans, 0.5 s a request, on a server with 147 test schemas; the pages that fetch a dozen
+    stages to draw one view took 20 s). The match is the listing's: the prefix, not the control schema, and the name exactly as written. The name
+    is compared here, not in SQL: a hostile `?db=` with a character the column's collation cannot mix would be a server error, and the server's
+    collation may fold case.
+    """
+    prefix = prefix or get_settings().mysql.database_prefix
+    conn = get_connection(
+        MySQLConfig(host=base_config.host, port=base_config.port,
+                    user=base_config.user, password=base_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ESCAPE '\\\\' AND schema_name <> ?",
+            (f"{escape_like(prefix)}%", configured_control_database()),
+        ).fetchall()
+        return any(row["name"] == name for row in rows)
+    finally:
+        conn.close()
+
+
 def resolve_database(base_config, name, prefix=None):
     """
     Validates a database name supplied by a caller (e.g. a web request's
@@ -1586,7 +1613,7 @@ def resolve_database(base_config, name, prefix=None):
     """
     if not name:
         raise ValueError("No database specified.")
-    if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+    if not _is_listed(base_config, name, prefix):
         raise ValueError(f"No such database: {name!r}")
     tables = _table_names(base_config, name)
     if "sectors" not in tables:
@@ -5370,7 +5397,7 @@ def _stamp_family(conn, family, system_ids):
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
         conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
+                     + ", ".join("(?, ?)" for _ in chunk) + f" AS written ON DUPLICATE KEY UPDATE {column} = written.{column}",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
 
 
@@ -7811,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()

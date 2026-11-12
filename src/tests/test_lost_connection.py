@@ -130,7 +130,7 @@ def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatc
     from planetgen.db import connection_loss as loss
     said, calls = [], []
     monkeypatch.setattr(loss, "facts", lambda conn: facts(uptime=40 if calls else 5000))
-    monkeypatch.setattr(run_galaxy.log, "normal", said.append)
+    monkeypatch.setattr(run_galaxy.log, "warning", said.append)       # OPS.171: the explanation is a warning
     monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
     monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
 
@@ -153,3 +153,23 @@ def test_facts_reads_a_real_server(mysql_config):
     finally:
         conn.close()
     assert found["uptime"] > 0 and found["wait_timeout"] > 0 and found["max_allowed_packet"] > 0 and found["aborted_clients"] >= 0
+
+
+def test_an_after_commit_step_that_fails_is_logged_with_its_name_and_traceback_and_the_others_run(monkeypatch):
+    """OPS.164: a failed callback keeps derived data out of step with the database, so the line names it and carries the traceback."""
+    seen = []
+    monkeypatch.setattr(store.log, "exception", lambda message, *a, **k: seen.append(message))
+    raw = DeadConnection()
+    raw.commit = lambda: None
+    conn = a_store_connection(raw)
+    conn.flush = lambda: None
+    ran = []
+
+    def refresh_the_counts():
+        raise RuntimeError("redis is gone")
+
+    conn.after_commit(refresh_the_counts)
+    conn.after_commit(lambda: ran.append("second"))
+    conn.commit()
+    assert ran == ["second"]
+    assert len(seen) == 1 and "refresh_the_counts" in seen[0] and "RuntimeError: redis is gone" in seen[0]

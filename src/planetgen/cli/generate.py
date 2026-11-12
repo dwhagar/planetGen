@@ -60,6 +60,7 @@ from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen import tuning as program_constants
+from planetgen.physics import oddities
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from planetgen.galaxy import region_run, scatter_limits
@@ -181,6 +182,43 @@ def _validate_star_type(args, parser):
         parser.error(f"--star-type {args.star_type!r} is not a spectral type: expected a class letter "
                      f"(OBAFGKM), a subclass digit (0-9) and a Yerkes class (0, IA+, IA, IAB, IB, II, "
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
+
+
+def class_request_problem(letter, life_class):
+    """What is wrong with a request for a class letter and a life class (GEN.1620), or `None`: the letter must be a planet class, the life
+    class an id of `physics/life_classes.py` or a bare number of one."""
+    from planetgen.physics import life_classes, planet_classes
+    if letter and letter.upper() not in planet_classes.LETTERS:
+        return f"{letter!r} is not a planet class; the classes are {', '.join(planet_classes.LETTERS)}"
+    numbers = {one.rstrip("abc") for one in life_classes.IDS}
+    if life_class and life_class.lower() not in life_classes.IDS and life_class not in numbers:
+        return f"{life_class!r} is not a life class; the classes are {', '.join(life_classes.IDS)} (or just the number)"
+    return None
+
+
+def _validate_class_request(args, parser):
+    """--force-class and --force-life-class must name a class, and --force-class cannot meet a system file's slots."""
+    problem = class_request_problem(args.force_class, args.force_life_class)
+    if problem:
+        parser.error(f"--force-class/--force-life-class: {problem}.")
+    if args.force_class and args.system_file:
+        try:
+            slots = run_system.load_system_file(args.system_file).get("slots")
+        except Exception as exc:        # the system file's own checks say what is wrong with it
+            log.swallowed("cli/generate", "_validate_class_request", exc)
+            slots = None
+        if slots:
+            parser.error("--force-class cannot be combined with a system file's slots: a slot already names its class.")
+
+def _validate_oddities(args, parser):
+    """--weirdness-dial must be 0 or more, and --force-oddities must name oddity ids of `physics/oddities.py` (UX.299)."""
+    if args.weirdness_dial is not None and args.weirdness_dial < 0:
+        parser.error("--weirdness-dial must be 0 or more.")
+    if args.force_oddities is not None:
+        try:
+            run_system.forced_oddity_ids(args.force_oddities)
+        except ValueError as exc:
+            parser.error(f"--force-oddities: {exc}.")
 
 
 def _validate_name(args, parser):
@@ -320,10 +358,28 @@ def add_system_arguments(parser):
     parser.add_argument('--star-type', type=str,
                         help="Force the generation of a specific star type (e.g., G2V).")
 
+    # A class letter or a life class to hold (GEN.1620)
+    parser.add_argument('--force-class', type=str, default=None, metavar='LETTER',
+                        help="Ask for a planet of this class letter (e.g. O): the system is drawn again until one is "
+                             "there, and the result says how well it fits (the nearest class the conditions allow) or "
+                             "that none came out. Cannot be combined with a system file's slots.")
+    parser.add_argument('--force-life-class', type=str, default=None, metavar='ID',
+                        help="Ask for a planet or moon living under this life class: a number (6) or a number and "
+                             "variant (4c). Drawn again until one is there, else the result says none came out.")
+
     # Number of Orbits
     parser.add_argument('--num-orbits', type=int,
                         help="Force an exact number of orbital slots (planets and asteroid belts "
                              "combined) to be generated.")
+
+    # Oddities (GEN.1047, UX.299)
+    parser.add_argument('--weirdness-dial', type=finite_float, default=None, metavar='X',
+                        help="Multiply the rate of every oddity (rare, physically plausible outcomes, "
+                             "docs/design/systems/weird-worlds.md) by X: 0 turns them all off, 1 is the table's own rates. "
+                             "Blank takes the settings' dial.")
+    parser.add_argument('--force-oddities', type=str, default=None, metavar='IDS',
+                        help="Oddity ids, comma separated (" + ", ".join(oddities.BY_ID) + "), that every body whose "
+                             "conditions allow them is given, without the roll. The gate still applies.")
 
     # Number of stars (GEN.267)
     parser.add_argument('--stars', type=int,
@@ -372,6 +428,9 @@ def validate_system_args(args, parser):
 
     _validate_star_type(args, parser)
     _validate_name(args, parser)
+    _validate_class_request(args, parser)
+
+    _validate_oddities(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
@@ -1364,6 +1423,14 @@ def add_phenomenon_arguments(parser):
     # Database persistence
     store.add_mysql_connection_args(parser)
 
+    # Write the description instead of saving (a one-off phenomenon, UX.298): the same two options `system` has
+    parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
+                        help="With --output, how to write the phenomenon: plain text (the default), Markdown "
+                             "or the Document as JSON.")
+    parser.add_argument('--output', '-o', type=str, metavar='FILE',
+                        help="Write the phenomenon's description (in --format) to FILE instead of saving it "
+                             "to the database; '-' writes it to stdout. Not combined with --sector-id.")
+
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")
 
@@ -1390,6 +1457,8 @@ def validate_phenomenon_args(args, parser):
         parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
+    if args.output and args.sector_id is not None:
+        parser.error("--output writes the phenomenon without saving it, so it can't be combined with --sector-id.")
     if args.sector_id is not None and args.anchor_system:
         parser.error("--sector-id cannot be combined with --anchor-system -- an anchored compact remnant "
                      "belongs to its own StarSystem, not directly to a sector.")
@@ -2354,7 +2423,8 @@ def _run_user():
     """Who ran this: the login name (`getpass.getuser`), or `None`."""
     try:
         return getpass.getuser()
-    except Exception:  # noqa: BLE001 -- no user name in this environment
+    except Exception as exc:  # noqa: BLE001 -- no user name in this environment
+        log.swallowed("cli/generate", "_run_user", exc)
         return None
 
 

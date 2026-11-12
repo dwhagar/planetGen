@@ -23,6 +23,7 @@ from planetgen.generation import sector_context, validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants
+from planetgen.util import log
 
 SEED_KIND = "system-reroll"
 """str: The kind of the unit seed a re-rolled system is drawn from (`galaxy.seed.unit_seed`); it must never change, or a galaxy would re-roll to a different system."""
@@ -74,6 +75,7 @@ def unstable(conn, say=None):
             system = store.load_star_system(conn, row["id"])
             problems, pair, unreadable = _problems(system), _pair(system), None
         except Exception as exc:  # noqa: BLE001 -- a system that will not load cannot be told stable
+            log.swallowed("galaxy/wide_binary_reroll", "unstable", exc)
             problems, pair, unreadable = [], None, f"{type(exc).__name__}: {exc}"
         if problems or unreadable:
             found.append({"id": row["id"], "name": row["name"], "sector_id": row["sector_id"], "problems": problems, "pair": pair,
@@ -185,6 +187,7 @@ def run(config, edited_sector_ids=(), dry_run=False, say=print):
                 with conn:
                     done = reroll(conn, item)
             except Exception as exc:  # noqa: BLE001 -- one system failing must not stop the others
+                log.swallowed("galaxy/wide_binary_reroll", "run", exc)
                 result["failed"].append((_label(item), str(exc)))
                 say(f"star system {_label(item)}: broke the rule ({broke}); the re-roll FAILED: {exc}")
                 continue
