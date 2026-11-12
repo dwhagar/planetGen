@@ -13,6 +13,7 @@
   },
   "stand_ins": {
     "by_tier": {
+<<<<<<< HEAD
       "T1": 224,
       "T2": 217,
       "T3": 187,
@@ -31,6 +32,26 @@
       "L4": 56
     },
     "rows": 1652
+=======
+      "T1": 218,
+      "T2": 214,
+      "T3": 183,
+      "T4": 134,
+      "T5": 114,
+      "T6": 429,
+      "T7": 115,
+      "T8": 6,
+      "T9": 192
+    },
+    "by_tweak": {
+      "L0": 923,
+      "L1": 309,
+      "L2": 77,
+      "L3": 243,
+      "L4": 53
+    },
+    "rows": 1605
+>>>>>>> origin/claude/lane22-gen1021
   },
   "tiers": [
     [
@@ -112,12 +133,21 @@
       "rows": 196
     },
     "educated_guess_from_physics": {
+<<<<<<< HEAD
       "percent": 42,
       "rows": 688
     },
     "fitted_to_a_result": {
       "percent": 23,
       "rows": 378
+=======
+      "percent": 41,
+      "rows": 664
+    },
+    "fitted_to_a_result": {
+      "percent": 23,
+      "rows": 373
+>>>>>>> origin/claude/lane22-gen1021
     },
     "read_from_a_source": {
       "percent": 27,

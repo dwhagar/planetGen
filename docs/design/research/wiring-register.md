@@ -250,8 +250,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
 | function | planetgen.physics.volatile_depletion.earth_over_ci | by design | the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it |
 | function | planetgen.physics.volatile_depletion.retained_fractions | by design | the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time |
-| function | planetgen.physics.comet_species.low_over_h2o | GEN.1021 | the low end of a species' bracket for the loguniform rows of atmosphere-k:k7 (OCS, SO2, O2); the wiring swap rides a train with GEN.1022's, in one epoch |
-| function | planetgen.physics.comet_species.high_over_h2o | GEN.1021 | the high end of the same bracket; wired with it |
 | module | planetgen.physics.comet_ice_formation | GEN.1022 | the latent ice formation temperature that draws a comet's CO/H2O, N2, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch |
 | row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
 | row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |

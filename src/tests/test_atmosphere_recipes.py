@@ -104,7 +104,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 53, "open": 0, "stand-in": 10}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 54, "open": 0, "stand-in": 9}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -113,7 +113,7 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
     assert RECIPES.open_rows() == [], "no row waits on research any more"
     researched = {r for entry in RECIPES.entries for r in entry.research}
     assert researched == set(RECIPES.research), "every research item concerns at least one row"
-    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595", "GEN.1021"}      # GEN.1021: the 67P calibration of row k7 (GEN.1005 replaced the rest with models)
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595"}
     for entry in RECIPES.entries:
         if entry.state == pt.STAND_IN:
             assert entry.replacement in builders, (entry.id, entry.replacement)
@@ -123,9 +123,9 @@ def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_b
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
     assert {"b5", "n7", "o3"} <= set(stand_ins)
     # GEN.1002: a row whose weights rest on Solar System bodies is a flagged stand-in with its replacing item; GEN.1005 replaced a1, a2 and b1 with models
-    # (the bodies are their tests) and left k7 resting on the one comet measured, until GEN.1021
-    assert stand_ins["k7"] == "GEN.1021" and not {"a1", "a2", "b1"} & set(stand_ins)
-    assert not {"k1", "k2", "k3", "k4", "k5"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
+    # (the bodies are their tests); GEN.1021 replaced the 67P calibration of k7 with the range between the comets measured
+    assert not {"a1", "a2", "b1"} & set(stand_ins)
+    assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database and the comets measured (GEN.520, GEN.1021)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
@@ -471,6 +471,19 @@ def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold(
     assert all(0.002 <= g["CH3OH"] <= 0.026 and 0.001 <= g["NH3"] <= 0.0073 and 0.0009 <= g["HCN"] <= 0.0029 for g in got)
     species = RECIPES.draw_value("k7", Subject("comet", dict(SOLAR_HOST)))
     assert set(species) == {"CH4", "C2H6", "H2CO", "H2S", "N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe"}
+
+
+def test_the_comet_species_k7_draws_between_the_comets_measured_and_covers_the_range():
+    """GEN.1021: each of the seven is log-uniform between its two comets; 67P, Hale-Bopp and C/2016 R2 are reachable, none is the median."""
+    from planetgen.physics import comet_species as cs
+    s = Subject("comet", dict(SOLAR_HOST))
+    with draw.bound(21):
+        got = [RECIPES.draw_value("k7", s) for _ in range(400)]
+    for species in cs.SPECIES:
+        low, high = cs.bracket_over_h2o(species)
+        values = [g[species] for g in got]
+        assert low <= min(values) and max(values) <= high * (1 + 1e-9), species
+        assert min(values) < low * (high / low) ** 0.1 and max(values) > low * (high / low) ** 0.9, species
 
 
 def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_it_has_one():

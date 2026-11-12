@@ -2540,17 +2540,15 @@
    "research": [
     "R9"
    ],
-   "notes": "O2 presence probability unsourced GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon and the width is 0.4 dex (Bar-Nun's 5 K in the formation temperature) in place of the design 0.6; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
-   "replacement": "GEN.1021",
+   "notes": "O2 presence probability unsourced GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon. GEN.1021: each of the seven is log-uniform between the two comets measured in place of a log-normal about 67P alone, argon moved from the CO to the water. Ne is only an upper limit (below 5e-8) and is not drawn.",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "stand-in",
-   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, Ar, OCS and SO2 are the host's own nitrogen, argon and sulfur per carbon over the nebula's carbon in CO, times a trapping share and the median CO/H2O, and O2, Kr and Xe keep one value (physics.comet_species, stand-in rows CK1 to CK6): the trapping shares and the three values are tuned to one measured comet (tier T7, tweak L3), so one comet still fixes the seven (GEN.520, GEN.1005)",
-   "items": [
-    "GEN.1021"
-   ],
+   "state": "partly verified",
+   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database). N2, O2, Ar, OCS and SO2 are measured in two comets or a compilation, so each is log-uniform between the two (the widest range where two sources are in question): N2 per CO of 67P and C/2016 R2, Ar per water of 67P and Hale-Bopp (a coma, not a nucleus), OCS and SO2 the range of the comets, O2 Halley to 67P; the ends scale with the host's nitrogen, argon and sulfur per carbon. Kr and Xe have one comet (67P) and follow argon by its ratios (physics.comet_species, stand-in rows CB1 and CB2) (GEN.520, GEN.1005, GEN.1021)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
@@ -2583,46 +2581,39 @@
      "sigma": 0.39
     },
     "N2": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('N2', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('N2', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('N2', n_over_c, ar_over_c, s_over_c)"
     },
     "O2": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('O2', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('O2', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('O2', n_over_c, ar_over_c, s_over_c)"
     },
     "OCS": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('OCS', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('OCS', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('OCS', n_over_c, ar_over_c, s_over_c)"
     },
     "SO2": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('SO2', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('SO2', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('SO2', n_over_c, ar_over_c, s_over_c)"
     },
     "Ar": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('Ar', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('Ar', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('Ar', n_over_c, ar_over_c, s_over_c)"
     },
     "Kr": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('Kr', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('Kr', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('Kr', n_over_c, ar_over_c, s_over_c)"
     },
     "Xe": {
-     "kind": "normal",
-     "log10": true,
-     "mu": "log10(comet_species_median('Xe', n_over_c, ar_over_c, s_over_c))",
-     "sigma": "comet_species_sigma()"
+     "kind": "loguniform",
+     "lo": "comet_species_low('Xe', n_over_c, ar_over_c, s_over_c)",
+     "hi": "comet_species_high('Xe', n_over_c, ar_over_c, s_over_c)"
     }
    }
   },

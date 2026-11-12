@@ -4,7 +4,11 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
+<<<<<<< HEAD
 There are 1652 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+=======
+There are 1605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/lane22-gen1021
 
 ## The source tiers
 
@@ -40,13 +44,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1626 |
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1579 |
+>>>>>>> origin/claude/lane22-gen1021
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
+<<<<<<< HEAD
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 153 | 62 | 1 | 1 | 0 | 217 |
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
@@ -57,6 +66,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 18 | 5 | 92 | 35 | 196 |
 | All | 956 | 318 | 81 | 241 | 56 | 1652 |
+=======
+| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
+| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
+| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
+| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
+| T6 | 207 | 106 | 31 | 81 | 4 | 429 |
+| T7 | 56 | 19 | 9 | 31 | 0 | 115 |
+| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
+| All | 923 | 309 | 77 | 243 | 53 | 1605 |
+>>>>>>> origin/claude/lane22-gen1021
 
 ## How the labels were given
 
@@ -974,7 +995,6 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| SSR4 | P | T7 | L0 | atmosphere-k:k7: N2, Ar, OCS and SO2 of a comet or asteroid from the host's ratios to carbon times a trapping share, and O2, Kr and Xe at one value: LN(median, 0.4 dex), the shares and values tuned to the species of one comet (67P) | the trapping shares (CK1, CK2), the three unscaled values (CK5), the width 0.4 dex (CK6) | comets and asteroids of any formation temperature | the same species measured in a second comet that differ from the chain by more than 0.4 dex, or a laboratory trapping table by formation temperature | GEN.1021 | one comet, 67P [R3835], is the calibration of the shares; the nebular amounts come from the host's own ratios (physics.comet_species, section 6.59). CH4, C2H6, H2CO and H2S of the same row are the mean of 9 to 18 comets and are not stand-ins | predicted only | - | - |
 | SSR5 | P | T7 | L0 | surface-ground-types:ultramafic: olivine 0.60 and enstatite 0.40, the primary crust after mantle overturn | the two proportions | a rocky body whose mantle overturned | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
 | SSR6 | P | T7 | L0 | surface-ground-types:anorthositic: plagioclase 0.97 and diopside 0.03, the primary flotation crust | the two proportions | a rocky body with a flotation crust and no overturn | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
 | SSR7 | P | T7 | L0 | surface-ground-types:basaltic: plagioclase 0.76, diopside 0.08, enstatite 0.06, basalt powder 0.05, olivine 0.01, the crust of decompression melting | the five proportions | a rocky body that still resurfaces by melting | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, [R2024: Table 2], a library of the Earth's and the Moon's crusts | predicted only | - | - |
@@ -2486,13 +2506,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| CK1 | P | T7 | L3 | comet_species.TRAPPED_OVER_NEBULAR N2 0.158 and Ar 0.0145 (the share of the nebular amount per CO, times CO/H2O, that is in the comet's ice) | 0.05 to 0.5 for N2; 0.005 to 0.05 for Ar | a comet that formed beyond the CO snow line | N2 or Ar per water measured in a second comet that departs from the chain at its host's ratios by more than 0.4 dex | GEN.1021 | tuned to the one comet measured ([R3835]: N2 8.9e-4, Ar 5.8e-6 per water); Bar-Nun: trapped gas drops six decades from 25 to 100 K, so the share depends on the formation temperature the generator does not carry; test_comet_species::test_a_host_of_solar_composition_gives_the_calibration_comet_within_two_percent | predicted only | - | replace (GEN.1021) |
-| CK2 | P | T7 | L3 | comet_species.TRAPPED_OVER_NEBULAR OCS 0.187 and SO2 0.592 (the share of the nebular sulfur per CO, times CO/H2O, in the ice, for each) | 0.05 to 1 each | a comet with sulfur species | OCS or SO2 per water measured in a second comet that departs from the chain by more than 0.4 dex | GEN.1021 | tuned to the one comet measured ([R3835]: OCS 4.1e-4, SO2 1.3e-3 per water); the sulfur of the two plus the population's H2S exceeds the nebular sulfur the chain allows, so the sulfur is not conserved across rows; test_comet_species::test_sulfur_species_follow_the_hosts_sulfur_and_argon_its_argon | predicted only | - | replace (GEN.1021) |
 | CK3 | P | T6 | L1 | comet_species.carbon_in_co_share 0.52 (1.5 per 10^4 hydrogen in CO over the proto-solar carbon, comet_ice_budget.NEBULA_PER_1E4_H and tuning.STELLAR_SOLAR_LOG_EPS) | 0.3 to 0.7 | a host of any composition | a disc whose carbon in CO is measured outside 0.3 to 0.7 of its carbon | a disc chemistry model (GEN.1021) | [R3322: Table 1] (1.5 per 10^4 H, READ) over the proto-solar carbon of [R0168]; test_comet_species::test_the_carbon_in_co_is_half_of_the_nebulas | predicted only | - | - |
-| CK4 | P | T3 | L2 | comet_species.CO_OVER_H2O_MEDIAN 10^-1.602 (the median CO/H2O of the comets of the population, row k5) | 10^-1.602 plus or minus 0.16 dex | comets at heliocentric distance up to 2.5 AU | a population median of CO/H2O outside 10^-1.76 to 10^-1.44 | the row k5 refit (GEN.520) | [R3782] database, per-comet medians of 16 comets (GEN.520, comet-composition-tuning.md); test_comet_species::test_a_host_of_solar_composition_gives_the_calibration_comet_within_two_percent | predicted only | - | - |
-| CK5 | P | T7 | L3 | comet_species.UNSCALED_OVER_H2O O2 3.1e-2, Kr 4.9e-7, Xe 2.4e-7 per water (no host ratio) | each by 0.4 dex | a comet or asteroid of any formation temperature | the same species measured in a second comet that differ from 67P by more than 0.4 dex | GEN.1021 | one comet, 67P [R3835]; O2 is not tied to the oxygen budget by any source read; krypton and xenon are not in the abundance table; test_comet_species::test_o2_krypton_and_xenon_have_no_host_ratio_and_keep_one_value | predicted only | - | replace (GEN.1021) |
-| CK6 | P | T6 | L1 | comet_species.SIGMA_DEX 0.4 (the width of every species, decades) | 0.33 to 0.6 | the seven species of row k7 that the chain covers | a spread of a species across comets measured outside 0.2 to 0.8 dex | GEN.1021 | Bar-Nun: the trapped gas drops six decades between 25 and 100 K (a decade per 12 K) and a comet's formation temperature is known to 5 K (48 +/- 5 K for Halley's CO); the four species a population measures scatter 0.33 to 0.39 dex; test_comet_species::test_the_width_sits_inside_the_scatter_of_the_four_species_a_population_measures_and_the_old_design_width | predicted only | - | - |
-| CB1 | P | T3 | L0 | comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio | the ends of each by their quoted errors | comets and asteroids of any formation temperature | a comet measured outside a species' bracket | a third comet widens it (GEN.1021 later part) | the widest range between the comets (two sources in question): N2 per CO of 67P and C/2016 R2 [R0109, R0836]; Ar per water of 67P and Hale-Bopp ([R3835, R4215], a coma, not a nucleus); OCS and SO2 the range of the comets in Table 7 of the 46P paper (A&A 648, A49, no comet named; a compilation, so T3); O2 Halley [R3836] to 67P [R0386]; test_comet_species::test_a_comet_measured_falls_inside_its_species_bracket | predicted only | - | - |
+| CK4 | P | T3 | L2 | comet_species.CO_OVER_H2O_MEDIAN 10^-1.602 (the median CO/H2O of the comets of the population, row k5) | 10^-1.602 plus or minus 0.16 dex | comets at heliocentric distance up to 2.5 AU | a population median of CO/H2O outside 10^-1.76 to 10^-1.44 | the row k5 refit (GEN.520) | [R3782] database, per-comet medians of 16 comets (GEN.520, comet-composition-tuning.md); test_comet_species::test_hale_bopps_argon_and_c2016_r2s_nitrogen_fall_inside_and_reach_the_ends | predicted only | - | - |
+| CB1 | P | T3 | L0 | comet_species.N2_OVER_CO (0.0287, 0.09), AR_OVER_H2O (5.8e-6, 8.7e-3), OCS_OVER_H2O (5e-4, 4e-3), SO2_OVER_H2O (3e-4, 2.3e-3) and O2_OVER_H2O (0.020, 0.0465): the bracket of each species between the comets measured, scaled by the host's ratio | the ends of each by their quoted errors | comets and asteroids of any formation temperature | a comet measured outside a species' bracket | a third comet widens it (GEN.1021 later part) | the widest range between the comets (two sources in question): N2 per CO of 67P and C/2016 R2 [R0109, R0836]; Ar per water of 67P and Hale-Bopp ([R3835, R4215], a coma, not a nucleus); OCS and SO2 the range of the comets in Table 7 of the 46P paper (A&A 648, A49, no comet named; a compilation, so T3); O2 Halley [R3836] to 67P [R0386]; test_comet_species::test_a_comet_measured_falls_inside_its_species_bracket; test_atmosphere_recipes::test_the_comet_species_k7_draws_between_the_comets_measured_and_covers_the_range | predicted only | - | - |
 | CB2 | P | T2 | L1 | comet_species.KR_OVER_AR 0.089 and XE_OVER_KR 0.269 (krypton follows argon, xenon follows krypton) | 0.089 +/- 0.021 and 0.269 +/- 0.064 | comets of any formation temperature | Kr per Ar or Xe per Kr measured in a second comet outside the errors | a second comet's noble gases | one comet, 67P [R3834]; the laboratory shifts Ar/Kr and Ar/Xe by at most 40 percent (read in the GEN.1021 report), which is the L1 slack; test_comet_species::test_krypton_and_xenon_are_argon_times_the_ratios_of_67p | predicted only | - | - |
 | CY1 | P | T2 | L1 | comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp) | 0.15 to 0.3 | comets of the population (row k5) | a comet at the cold end of its species with CO/H2O outside 0.15 to 0.3 | GEN.1022 (wiring); the value read when a source opens for Hale-Bopp's CO/H2O | Hale-Bopp's 'notably high CO' of about 0.2, recalled from the GEN.1021 report and not opened; test_comet_ice_formation::test_the_median_comet_has_the_warm_end_of_every_species_and_hale_bopp_the_cold_end | predicted only | GEN.1022 | - |
 | CY2 | P | T6 | L1 | comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades) | N2 0.03 to 0.1; Ar 0.2 to 0.8; ties 0.1 to 0.2 | comets of the population | the scatter of a species at fixed CO/H2O across comets measured outside the knob | GEN.1022 (wiring); a population of comets with the species measured | the range of N2 per CO in C/2016 R2 (0.06 to 0.09, 0.18 dex) and of argon in 67P over its season (1.4 decades) over the square root of 12, and the laboratory's 40 percent fractionation; test_comet_ice_formation::test_a_residual_moves_only_its_own_species_by_its_width | predicted only | GEN.1022 | - |

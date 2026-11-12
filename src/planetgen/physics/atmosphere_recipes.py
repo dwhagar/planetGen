@@ -46,7 +46,7 @@ drawn constant. Nothing is fixed: a constant is the seeded draw or the subject's
 Source states (Boss's rule of 3:02 AM EDT, composition-model.md section 4a item 10): a row whose weight source is read and
 computed is `verified`; one that also leans on a second-hand, snippet, recalled, not-reached or design part is `partly
 verified` with that as its limit; a row with no sourced weight is `open` and names its research item (R1 to R15 = GEN.480
-to GEN.494); a row built from a measured Solar System body is a `stand-in` (a2, k7). The tables register in
+to GEN.494); a row built from a measured Solar System body is a `stand-in` (l1). The tables register in
 `possibility_table.REGISTRY` as `atmosphere-a` to `atmosphere-p` so the report lists every open row with its item. Their
 weights for the sourced rows are the same expressions; the open rows carry `open` there, so the draw of this module
 (`Recipes.draw_group`, which gives an open row its seeded constant) is the one to use for them.
@@ -159,7 +159,7 @@ INPUTS = {
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "ch4_co_edge_k", "water_loss_edge_k", "comet_species_median", "comet_species_sigma", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "ch4_co_edge_k", "water_loss_edge_k", "comet_species_low", "comet_species_high", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -229,7 +229,7 @@ _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10
           "later_mantle_diw": magma_ocean_redox.later_mantle_diw,
           "ch4_co_edge_k": lambda pressure_bar: _regime_edge("ch4_co", pressure_bar),
           "water_loss_edge_k": lambda pressure_bar: _regime_edge("water", pressure_bar),
-          "comet_species_median": comet_species.median_over_h2o, "comet_species_sigma": comet_species.sigma_dex}
+          "comet_species_low": comet_species.low_over_h2o, "comet_species_high": comet_species.high_over_h2o}
 
 
 class Expression:

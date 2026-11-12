@@ -1,6 +1,6 @@
 # The comet species model (GEN.1005, k7)
 
-Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane. Sections 4 and 5 (GEN.1021 and GEN.1022, Lane 13) are modules not yet wired: the swap of rows k5 and k7 rides one train with one epoch. `src/planetgen/physics/comet_species.py`; tests in `src/tests/test_comet_species.py`; registry rows CK1 to CK6 (section 6.59 of the gap-filling plan); the row is `atmosphere-k:k7`, still a flagged stand-in, replaced by GEN.1021.
+Status: module, rows and flip, written 2026-10-30 (as the lane reported) by the Aux 3 lane. Section 4 (GEN.1021) is wired: row k7 draws the seven species log-uniform between the comets measured (the 67P calibration, rows CK1, CK2, CK5 and CK6, is retired). Section 5 (GEN.1022) is a module not yet wired: its swap rides a train with one epoch. `src/planetgen/physics/comet_species.py`; tests in `src/tests/test_comet_species.py`; registry rows CK1 to CK6 (section 6.59 of the gap-filling plan); the row is `atmosphere-k:k7`, no longer a stand-in since GEN.1021.
 
 ## 1. What replaces what
 
