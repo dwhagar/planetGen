@@ -18,6 +18,7 @@ from planetgen.util import log
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen import describe
+from planetgen.physics import oddities
 from planetgen.db import render
 from planetgen.db.render import render_star_system
 from planetgen.generation import followed, run_common
@@ -171,6 +172,11 @@ def build_system_config(args):
         system_config.FORCE_CLASS = args.force_class.upper()
     if getattr(args, "force_life_class", None):
         system_config.FORCE_LIFE_CLASS = args.force_life_class.lower()
+
+    if getattr(args, "weirdness_dial", None) is not None:
+        system_config.WEIRDNESS_DIAL = args.weirdness_dial
+    if getattr(args, "force_oddities", None):
+        system_config.FORCE_ODDITIES = forced_oddity_ids(args.force_oddities)
     if args.name is not None:
         system_config.NAME = args.name
     if args.age is not None:
@@ -402,6 +408,14 @@ def class_request_report(system, system_config):
         for body in held:
             lines.append(f"Life class {life} asked for: {body.name} holds it (class {body.life_class}{body.life_class_variant or ''}).")
     return "\n".join(lines) or None
+
+def forced_oddity_ids(text):
+    """The oddity ids a `--force-oddities` text names, as a tuple (upper case, in the order given). Raises `ValueError` for an unknown id."""
+    ids = tuple(part.strip().upper() for part in text.split(",") if part.strip())
+    unknown = [one for one in ids if one not in oddities.BY_ID]
+    if unknown:
+        raise ValueError(f"unknown oddity id {', '.join(unknown)}; the ids are {', '.join(oddities.BY_ID)}")
+    return ids
 
 
 def expand_system(params):
