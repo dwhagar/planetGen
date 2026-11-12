@@ -39,6 +39,7 @@ import json
 import redis
 
 from planetgen.queue import redisclient
+from planetgen.util import log
 from planetgen.web.lib import singleflight
 
 KEEP_SECONDS = 300
@@ -80,7 +81,8 @@ def _entry(key, versions):
     try:
         raw = _client().get(key)
         entry = json.loads(raw) if raw else None
-    except (redis.RedisError, OSError, ValueError):
+    except (redis.RedisError, OSError, ValueError) as exc:
+        log.degraded("estimatecache", "reading an estimate from Redis failed, so it is made again", exc)
         return None
     if not isinstance(entry, dict) or entry.get("versions") != versions:
         return None
@@ -97,8 +99,8 @@ def _write(key, versions, estimate):
     try:
         _client().set(key, json.dumps({"versions": versions, "estimate": estimate}, sort_keys=True),
                       ex=KEEP_SECONDS)
-    except (redis.RedisError, OSError):
-        pass  # the next request just runs the estimate again
+    except (redis.RedisError, OSError) as exc:
+        log.degraded("estimatecache", "keeping an estimate in Redis failed", exc)  # the next request just runs the estimate again
 
 
 def store(key, versions, estimate=None, error=None):
@@ -110,8 +112,8 @@ def store(key, versions, estimate=None, error=None):
         try:
             _client().set(key, json.dumps({"versions": versions, "error": str(error)}, sort_keys=True),
                           ex=FAILURE_SECONDS)
-        except (redis.RedisError, OSError):
-            pass
+        except (redis.RedisError, OSError) as exc:
+            log.degraded("estimatecache", "keeping an estimate failure in Redis failed", exc)
     singleflight.release([key, _gate_of(key)])
 
 
