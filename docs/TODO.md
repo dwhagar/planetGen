@@ -13533,6 +13533,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21 (composition chain; Lane 11 for the stellar-state birth luminosity). Prerequisites: none. Related: GEN.1596, GEN.1606, GEN.1539, GEN.1520, GEN.1546.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
 
+- [ ] **GEN.1612 (bug) About 40 percent of comets have an orbital period outside their family's period range, because the comet draw never reads the family's range**
+  Lane 22 (as the lane reported 9:06 PM EST on 2026-11-11, while building GEN.1608, PR 6127), confirmed by run: the comet shape draw never reads the family's period range, so about 40 percent of comets sit outside it (GEN.1608 only fixes the 200-year periodic and long-period split the designation uses). Coordinator, 9:14 PM EST on 2026-11-11: file and build under Boss's standing 'fix all the bug work finds for 8.1' (Boss may veto). Do: draw each comet's orbit within its family's period range (or draw the family from the drawn orbit), reusing comet.py _draw_shape and the family table; no second comet pass. Done: a test that every drawn comet's period sits in its family's range over a seeded sample, before and after family and ice-makeup counts. Lock item (changes stored comet values, new epoch). Split (TODO sweep, 2026-11-12): slice 0 lock-free: a check script that counts comets outside their family's range on main; slice 1 lock: the fix.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: GEN.1608. Related: GEN.1608, GEN.595.
+  Filed by the TODO thread. Bug work; approved under Boss's fix-all (veto open).
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
