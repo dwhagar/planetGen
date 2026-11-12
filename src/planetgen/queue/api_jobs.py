@@ -432,7 +432,7 @@ def run_command(argv, env, cwd, timeout, merge_stderr=False):
     except subprocess.TimeoutExpired as exc:
         out["timed_out"] = True
         out["stdout"] = (exc.stdout or b"").decode("utf-8", errors="replace")
-        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s")
+        log.get("queue").error(f"The command {_command_words(argv)} timed out after {timeout} s.")
     except OSError as exc:
         out["error"] = str(exc)
         log.get("queue").error(f"The command {_command_words(argv)} could not be started: {exc}")

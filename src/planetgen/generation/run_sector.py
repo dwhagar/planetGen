@@ -573,7 +573,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly, mass_solar=None)
             fill_stages.count(sector, fill_stages.FLAGS, "quasar")
             return sector.add_phenomenon(Quasar(nucleus_config, black_hole_mass_solar=mass_solar), "quasar",
                                          position=position)
-        log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
+        log.debug("Sector %r: galactic nucleus is quiescent (supermassive black hole, no quasar).", sector.name)
         black_hole = BlackHole(nucleus_config, mass_class="supermassive", mass_solar=mass_solar)
         fill_stages.count(sector, fill_stages.FLAGS, "black-hole")
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
@@ -942,12 +942,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
                 # from here), so stop generating and placing altogether
                 # rather than pay for `total - i - 1` more full
                 # StarSystem generations just to discard them too.
-                log.normal(
-                    f"Sector '{sector_name}': ran out of room after placing {len(sector.entries)} of "
-                    f"{total} requested systems -- the {sector.edge_ly:.1f} ly cube has no space left "
-                    f"that clears every already-placed system's Hill sphere. Returning the sector as-is "
-                    f"rather than the full requested count."
-                )
+                log.normal(f"Sector '{sector_name}' ran out of room after {len(sector.entries)} of {total} requested systems, so it is returned as it stands.",
+                           edge_ly=round(sector.edge_ly, 1))
                 break
 
     with log.timed_phase("generate_sector_phenomena"):
@@ -1141,7 +1137,7 @@ def run_sector(args):
     try:
         followed.run_followed(args, [follower], follower.label, galaxy=False)
     except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:
-        log.error(f"error: the sectors could not be generated: {exc}")
+        log.error(f"The sectors could not be generated: {exc}")
         raise SystemExit(1) from exc
 
     if args.num_sectors > 1:
