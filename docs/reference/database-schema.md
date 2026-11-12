@@ -122,6 +122,13 @@ dropped them (see "The searchable-field principle" below).
 
 ### Units of a column
 
+**The body tables are generated (GEN.1658).** `planets`, `moons` and `rogue_planets` share all but a few dozen of about 360 columns each, so their columns are declared once, one row each, in
+[`src/planetgen/db/body_fields.py`](../../src/planetgen/db/body_fields.py): the SQL type, `NOT NULL`, the default and any check on the column, the unit it is stored in, its comment, and which of the three
+tables hold it. `python scripts/build_body_tables.py` writes the three `CREATE TABLE` statements into `schema.sql` between the marker lines `-- BEGIN GENERATED body tables` and `-- END GENERATED body tables`
+(`--check` and `tests/test_body_fields.py` fail when they differ), and `db/column_units.py` takes the unit groups of the three tables from the same rows. To add a body column: add its row, add its Alembic revision,
+run `python scripts/build_body_tables.py` and `python scripts/generate_db_models.py`. Do not edit the statements between the markers; a merge conflict inside them is resolved by running the script.
+The keys and constraints are `CLAUSES` in that file. The rogue planet keeps its columns in the order its database holds them (`ORDERS`), because MySQL numbers an inline CHECK by its place and revisions name them by number.
+
 Every numeric column declares the unit it is stored in, in one list: `db/column_units.py` (DB.76). `TABLES` gives, for each
 table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
 (`physics/unit_registry.py`, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
