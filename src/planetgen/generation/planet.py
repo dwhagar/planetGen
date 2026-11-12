@@ -462,14 +462,11 @@ class Planet(PlanetaryObject):
         self.primary_mass_kg = primary_mass_kg
         # Calculate physical/orbital properties (no life data yet). A system that bars habitable worlds does not draw the body again: the finished body
         # is judged on its conditions at the end of the system and dropped if it is one (GEN.1397).
-        given_mass, given_radius = self.mass, self.radius
         self._deferred_climate = None
         if defer_climate and system_config.HABITABLE_WORLD is not False:
-            self.mass, self.radius = given_mass, given_radius
             self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
             self._deferred_climate = (moon_count, distance_override)
             return
-        self.mass, self.radius = given_mass, given_radius
         self._draw_body(zone_override, primary_mass_kg, planned_objects, distance_override)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.apply_class(self)

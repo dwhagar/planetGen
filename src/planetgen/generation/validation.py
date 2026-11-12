@@ -12,7 +12,7 @@ Three kinds of function live here:
 - **Spacing** (`space_orbits`, `reconcile_moved_planet`,
   `trim_to_orbit_ceiling`, `cross_star_clearance`, and the distance
   helpers they use) is the orbit-spacing pass generation has always run.
-  `StarSystem.validate_system`, `_trim_to_orbit_ceiling` and
+  `StarSystem.validate_system`, the trim and
   `_validate_cross_star_clearance` (`generation/system.py`) now call these, with
   the same results.
 - **Stabilizing** (`stabilize_lunar_system`, `stabilize_star_system`) is

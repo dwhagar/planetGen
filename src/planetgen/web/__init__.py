@@ -391,18 +391,14 @@ def _install_page_cache(app):
         return response
 
 
-def init_app(app, limiter=None):
+def init_app(app):
     """
-    Registers the pages on `app`. Called by `planetgen.web.app.create_app`.
+    Registers the pages on `app`. Called by `planetgen.web.app.create_app`. The pages' per-IP limits are declared on `bp` and its routes
+    (`api.limiter.page_limit`, configured by `RATELIMIT_PAGES`); the API calls they make in-process skip only the API's default limits
+    (`api.limiter.is_in_process_call`).
 
     Args:
         app (flask.Flask): The app.
-        limiter (flask_limiter.Limiter, optional): Unused; kept for
-            callers. The pages' per-IP limits are declared on `bp` and
-            its routes (`api.limiter.page_limit`, configured by
-            `RATELIMIT_PAGES`). The API calls they make in-process skip
-            only the API's default limits; see
-            `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
     # The math check (TEST.63) runs once per process, now: a failure is

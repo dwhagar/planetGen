@@ -33,7 +33,7 @@ from planetgen.physics import orbits
 from planetgen.physics.orbits import calculate_hill_sphere, calculate_reflex_offset, minimum_update_interval_years
 from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
-from planetgen.util.random import sample_bounded_bell, sample_power_law
+from planetgen.util.random import sample_bounded_bell
 from planetgen.physics import unit_registry as units
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -91,12 +91,6 @@ def giant_radius_km(mass_kg):
     else:
         m0, r0, slope = constants.GIANT_JOVIAN_MASS_RADIUS
     return r0 * (mass_earth / m0) ** slope * constants.EARTH_RADIUS_KM
-
-
-def _sample_giant_mass_kg(low_kg, high_kg):
-    """A giant's mass in [low_kg, high_kg], from dN/dlogM ~
-    M^-GIANT_MASS_FUNCTION_SLOPE."""
-    return sample_power_law(low_kg, high_kg, tuning.GIANT_MASS_FUNCTION_SLOPE)
 
 
 def sample_giant_radius_km(mass_kg):

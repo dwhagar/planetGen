@@ -4,14 +4,14 @@ System builder internals (TODO TEST.32).
 Direct tests of the `StarSystem` placement helpers that the validate
 module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
 `generate_slot_object`, `build_planet`,
-`_trim_to_orbit_ceiling`,
-`_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
+`validation.trim_to_orbit_ceiling`,
+`validation.reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
 `from_dict` newer-schema error. Systems are built planet-less so each
 helper is exercised on hand-placed bodies.
 """
 import pytest
 
-from planetgen.generation import system as systemData
+from planetgen.generation import system as systemData, validation
 from planetgen import tuning
 from planetgen.physics import constants, daylight, planet_classes, planets as planetPhysics
 from planetgen.physics import unit_registry as units
@@ -102,18 +102,18 @@ def test_slot_with_an_unknown_type_raises(system, slot_type):
         system.generate_slot_object(system.star, {"type": slot_type}, 1.0)
 
 
-# --- _trim_to_orbit_ceiling -----------------------------------------------
+# --- validation.trim_to_orbit_ceiling -----------------------------------------------
 
 def test_trim_on_an_empty_list_is_a_no_op(system):
     planets = []
-    assert system._trim_to_orbit_ceiling(planets, 1.0) is None
+    validation.trim_to_orbit_ceiling(planets, 1.0)
     assert planets == []
 
 
 def test_trim_removes_trailing_bodies_past_the_ceiling(system):
     planets = [planet_at(system, 6.0, GIANT_EARTH), planet_at(system, 30.0, GIANT_EARTH), planet_at(system, 60.0, GIANT_EARTH)]
     keep = planets[0]
-    system._trim_to_orbit_ceiling(planets, 10.0)
+    validation.trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [keep]
 
 
@@ -121,14 +121,14 @@ def test_trim_counts_a_planets_hill_sphere_not_just_its_center(system):
     planet = planet_at(system, 9.99, GIANT_EARTH)
     assert planet.distance < 10.0 < planet.distance + planet.min_orbit_distance
     planets = [planet]
-    system._trim_to_orbit_ceiling(planets, 10.0)
+    validation.trim_to_orbit_ceiling(planets, 10.0)
     assert planets == []
 
 
 def test_trim_uses_a_belts_upper_limit(system):
     inside, straddling = belt(system, 2.0, 4.0), belt(system, 8.0, 12.0)
     planets = [inside, straddling]
-    system._trim_to_orbit_ceiling(planets, 10.0)
+    validation.trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [inside]
 
 
@@ -137,23 +137,23 @@ def test_trim_only_works_from_the_outside_in(system):
     inside it: trimming stops at the first body that fits."""
     far, near = planet_at(system, 50.0, GIANT_EARTH), planet_at(system, 3.0, GIANT_EARTH)
     planets = [far, near]
-    system._trim_to_orbit_ceiling(planets, 10.0)
+    validation.trim_to_orbit_ceiling(planets, 10.0)
     assert planets == [far, near]
 
 
 def test_trim_keeps_everything_under_a_generous_ceiling(system):
     planets = [planet_at(system, 6.0, GIANT_EARTH), belt(system, 20.0, 25.0)]
     before = list(planets)
-    system._trim_to_orbit_ceiling(planets, 1e6)
+    validation.trim_to_orbit_ceiling(planets, 1e6)
     assert planets == before
 
 
-# --- _reconcile_moved_planet ----------------------------------------------
+# --- validation.reconcile_moved_planet ----------------------------------------------
 
 def test_reconcile_keeps_a_giant_in_the_cold_zone_after_a_move(system):
     planet = planet_at(system, system.star.habitable_zone[1] * 3, GIANT_EARTH)
     planet.distance *= 2
-    system._reconcile_moved_planet(planet)
+    validation.reconcile_moved_planet(planet)
     assert planet.body_type == "g" and planet.zone == 'c'
     assert planet.planet_class == planet_classes.classify(planet)
 
@@ -163,7 +163,7 @@ def test_reconcile_derives_the_class_again_for_a_planet_pushed_out_of_its_zone(s
     planet = planet_at(system, (inner + outer) / 2, EARTH)
     mass, radius = planet.mass, planet.radius
     planet.distance = outer * 4
-    system._reconcile_moved_planet(planet)
+    validation.reconcile_moved_planet(planet)
     assert planet.zone == 'c'
     assert planet.distance == outer * 4  # the move itself is kept
     assert (planet.mass, planet.radius) == (mass, radius)  # where it sits does not change what it is made of
@@ -175,7 +175,7 @@ def test_reconcile_refreshes_the_period_for_the_new_distance(system):
     planet = planet_at(system, (inner + outer) / 2, EARTH)
     old_period = planet.period
     planet.distance = outer * 4
-    system._reconcile_moved_planet(planet)
+    validation.reconcile_moved_planet(planet)
     assert planet.period > old_period
 
 
@@ -183,7 +183,7 @@ def test_reconcile_carries_moons_into_the_parents_new_zone(system):
     _, outer = system.star.habitable_zone
     planet = planet_at(system, system.star.habitable_zone[0] * 0.5, GIANT_EARTH, moon_count=3)
     planet.distance = outer * 4
-    system._reconcile_moved_planet(planet)
+    validation.reconcile_moved_planet(planet)
     assert planet.moons
     for moon in planet.moons:
         assert moon.zone == planet.zone == 'c'
@@ -199,7 +199,7 @@ def test_reconcile_reruns_spin_dose_and_score_for_each_moon_of_a_moved_planet(sy
     real = planetPhysics.generate_spin
     monkeypatch.setattr(planetPhysics, "generate_spin", lambda body, mass, **kwargs: (reran.append(body), real(body, mass, **kwargs))[1])
     planet.distance *= 2
-    system._reconcile_moved_planet(planet)
+    validation.reconcile_moved_planet(planet)
     assert all(any(body is moon for body in reran) for moon in planet.moons)
 
 
@@ -220,7 +220,7 @@ def test_reconcile_leaves_the_daylight_of_a_moved_planet_and_its_moons_in_step_w
         distance = outer * 3.0 if giant else (inner + outer) / 2
         planet = planet_at(system, distance, mass_earth, moon_count=2)
         planet.distance = distance * move if giant else outer * move
-        system._reconcile_moved_planet(planet)
+        validation.reconcile_moved_planet(planet)
         if planet.rotation_period_hours:
             assert planet.day_share_mean is not None
             assert planet.polar_circle_deg is not None
