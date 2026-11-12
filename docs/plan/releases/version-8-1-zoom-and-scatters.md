@@ -542,7 +542,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | 2026-11-12. |
 | OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | 2026-11-12. |
 | OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | 2026-11-12. |
-| OPS.152 | (bug) Galaxy job 20261111-223907-a86a goes quiet at Stage 17 of 19, 'Make the block light totals' | none | Lane 13, 2026-11-12, first priority. |
+| OPS.153 | Uncharted-sector index of Stage 17 as per-shell-range units across all workers (it runs at about 10k rows/s in one process: about 40 h at 1.5 billion sectors) | OPS.152 | Lane 13, 2026-11-12, top priority. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
 | GEN.1434 | Derived sky and clock fields from physics: gravitational time dilation, the host's sky size, the eclipse calendar and the solar-lens focus distance |  | Boss, 2026-11-08. |
