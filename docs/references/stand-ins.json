@@ -33301,7 +33301,7 @@
             ],
             [
               "Evidence",
-              "[R3220] ch. 3 (recalled, not opened). GEN.1643 finding (no constant changed): Eq. 3 and 4 of [R5239] at the edge of the tadpole zone (C 2.5) give 23.9 and 180 degrees for the turning points of the angle from the secondary, so 23.9 is the nearest a tadpole comes to the secondary and the amplitude about the point at 60 degrees is 78; the generator cuts the draw and splits tadpole from horseshoe at 23.9 as if it were an amplitude, and about a fifth of the real Jupiter Trojans librate wider ([R5239: Table 3]). Slice 1 of GEN.1643 raises the cut"
+              "[R3220] ch. 3 (recalled, not opened). GEN.1643 finding (no constant changed): Eq. 3 and 4 of [R5245] at the edge of the tadpole zone (C 2.5) give 23.9 and 180 degrees for the turning points of the angle from the secondary, so 23.9 is the nearest a tadpole comes to the secondary and the amplitude about the point at 60 degrees is 78; the generator cuts the draw and splits tadpole from horseshoe at 23.9 as if it were an amplitude, and about a fifth of the real Jupiter Trojans librate wider ([R5245: Table 3]). Slice 1 of GEN.1643 raises the cut"
             ]
           ],
           "id": "TJ3",
@@ -33549,7 +33549,7 @@
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, scripts/fit_trojan_scales.py, report reports/gen1643-trojan-scales-2026-11-12.md; no constant changed): 13 degrees, T2, L2, knobs 11 to 15. The Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5239: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5238]. Slice 1 sets it together with the cut of the draw, which the same fit shows is wrong (TJ3)"
+              "PROPOSAL (GEN.1643 slice 0, scripts/fit_trojan_scales.py, report reports/gen1643-trojan-scales-2026-11-12.md; no constant changed): 13 degrees, T2, L2, knobs 11 to 15. The Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5245: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5244]. Slice 1 sets it together with the cut of the draw, which the same fit shows is wrong (TJ3)"
             ]
           ],
           "id": "TJ9",
@@ -33591,7 +33591,7 @@
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 0.06, T2, L1, knobs 0.04 to 0.08. The Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5239: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5238]. The value is that of bodies; a region's mean is tighter (the fit does not separate them)"
+              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 0.06, T2, L1, knobs 0.04 to 0.08. The Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5245: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5244]. The value is that of bodies; a region's mean is tighter (the fit does not separate them)"
             ]
           ],
           "id": "TJ10",
@@ -33633,7 +33633,7 @@
             ],
             [
               "Evidence",
-              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 12 degrees, T2, L1, knobs 9 to 16. The Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5239: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5238]. The value is that of bodies; a region's mean is tighter"
+              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 12 degrees, T2, L1, knobs 9 to 16. The Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5245: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5244]. The value is that of bodies; a region's mean is tighter"
             ]
           ],
           "id": "TJ11",

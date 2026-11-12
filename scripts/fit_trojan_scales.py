@@ -10,14 +10,14 @@ The generator draws each of the three from a Rayleigh distribution. The papers f
 the Rayleigh scale that has the same mean (`mean / sqrt(pi/2)`) and, as a check, the same median (`median / sqrt(2 ln 2)`). The two agree when the shape is close to Rayleigh, and the gap
 between them says how far it is.
 
-* The Jupiter Trojans ([R5239], the debiased background population of Table 3 for the L4 and L5 clouds) are given as three independent laws in the proper amplitudes A (a sine of inclination),
+* The Jupiter Trojans ([R5245], the debiased background population of Table 3 for the L4 and L5 clouds) are given as three independent laws in the proper amplitudes A (a sine of inclination),
   B (an eccentricity) and C (the integral of the planar libration, Eq. 3 and 4 of the paper):
 
       dN/dA ~ A^a1 exp(-1/2 (A/sA)^a2)    dN/dB ~ B^b1 exp(-1/2 (B/sB)^b2)    dN/dC ~ exp(-1/2 ((C - 1.5)/sC)^g)
 
-  A is turned into an inclination with `asin`; C is turned into the libration amplitude (half the peak-to-peak range of the resonant angle, as the Neptune paper [R5238] gives it) by solving
+  A is turned into an inclination with `asin`; C is turned into the libration amplitude (half the peak-to-peak range of the resonant angle, as the Neptune paper [R5244] gives it) by solving
   `f(sigma) = C` of the paper's Eq. 4 for the two ends of the libration, with C cut at 2.5 (the paper's upper bound for a tadpole).
-* The Neptune Trojans [R5238] are given directly as Rayleigh widths (Table 4 and the abstract), so their Rayleigh equivalent is the width itself.
+* The Neptune Trojans [R5244] are given directly as Rayleigh widths (Table 4 and the abstract), so their Rayleigh equivalent is the width itself.
 
 It prints the table the report quotes and the proposed values; it changes no constant. Run it with no arguments.
 
@@ -26,30 +26,30 @@ It prints the table the report quotes and the proposed values; it changes no con
 import math
 
 C_MIN = 1.5
-"""The least value of the libration integral C: the orbit that sits at the point ([R5239: Eq. 3])."""
+"""The least value of the libration integral C: the orbit that sits at the point ([R5245: Eq. 3])."""
 
 C_MAX = 2.5
-"""The greatest value of C for a tadpole ([R5239: Eq. 3 to 4])."""
+"""The greatest value of C for a tadpole ([R5245: Eq. 3 to 4])."""
 
 A_MAX = 0.7
-"""The upper end of the paper's definition interval for A, the proper sine of inclination ([R5239: Table 2])."""
+"""The upper end of the paper's definition interval for A, the proper sine of inclination ([R5245: Table 2])."""
 
 B_MAX = 0.3
 """The upper end taken for B, the proper eccentricity (the paper's stable Trojans lie well inside it)."""
 
-# The debiased background law of each cloud, Table 3 of [R5239]: medians of the posterior. N is the complete population to H 14.5, used as the weight of a cloud.
+# The debiased background law of each cloud, Table 3 of [R5245]: medians of the posterior. N is the complete population to H 14.5, used as the weight of a cloud.
 JUPITER = {
     "L4": {"sA": 0.0533, "a1": 1.274, "a2": 1.008, "sB": 0.0191, "b1": 1.156, "b2": 1.144, "sC": 0.0507, "g": 0.941, "N": 3951},
     "L5": {"sA": 0.3352, "a1": 0.644, "a2": 3.012, "sB": 0.0307, "b1": 1.106, "b2": 1.140, "sC": 0.0443, "g": 0.929, "N": 2664},
 }
 
-# The fits to the observed (biased) Trojans, caption of Figure 10 of [R5239]: a second reading of the same shape, kept to show how far the debiasing moves it.
+# The fits to the observed (biased) Trojans, caption of Figure 10 of [R5245]: a second reading of the same shape, kept to show how far the debiasing moves it.
 JUPITER_BIASED = {
     "L4": {"sA": 0.095, "a1": 1.0, "a2": 1.3, "sB": 0.04, "b1": 0.87, "b2": 1.75, "sC": 0.045, "g": 1.0},
     "L5": {"sA": 0.15, "a1": 1.2, "a2": 1.6, "sB": 0.038, "b1": 0.85, "b2": 1.6, "sC": 0.045, "g": 1.0},
 }
 
-# The Neptune Trojans, [R5238]: the Rayleigh width of the libration amplitude (abstract; Table 4 uses 12), of the eccentricity, and of sin(i) as a width in degrees.
+# The Neptune Trojans, [R5244]: the Rayleigh width of the libration amplitude (abstract; Table 4 uses 12), of the eccentricity, and of sin(i) as a width in degrees.
 NEPTUNE = {
     "single": {"libration": 15.0, "ecc": 0.045, "inc": 14.0},
     "libration_table4": {"libration": 12.0},
@@ -89,7 +89,7 @@ def moments(pdf, low, high, steps=20000):
 
 
 def libration_function(sigma_deg):
-    """`f(sigma)` of Eq. 4 of [R5239]: `C = f` on the turning points of the libration of the angle `sigma` from Jupiter."""
+    """`f(sigma)` of Eq. 4 of [R5245]: `C = f` on the turning points of the libration of the angle `sigma` from Jupiter."""
     s = abs(math.sin(math.radians(sigma_deg) / 2.0))
     return (1.0 + 4.0 * s ** 3) / (2.0 * s)
 
