@@ -26123,7 +26123,6 @@
     },
     "R5228": {
       "kind": "paper",
-<<<<<<< HEAD
       "label": "Sneden et al. 2008",
       "title": "Neutron-Capture Elements in the Early Galaxy"
     },
@@ -26191,15 +26190,16 @@
       "kind": "paper",
       "label": "Birmingham and Colman 1979",
       "title": "Measurement of Carbon Dioxide Compensation Points of Freshwater Algae"
-=======
-      "label": "Correia and Rodríguez 2013",
-      "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES"
     },
-    "R5229": {
+    "R5242": {
       "kind": "paper",
       "label": "Noyelles and Lhotka 2013",
       "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury"
->>>>>>> origin/claude/lane21-gen1556
+    },
+    "R5243": {
+      "kind": "paper",
+      "label": "Correia and Rodríguez 2013",
+      "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES"
     }
   }
 }

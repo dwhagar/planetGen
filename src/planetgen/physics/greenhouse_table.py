@@ -71,7 +71,7 @@ FITTED_UP_TO_K = 4000.0
 it gives is the same log ratio of the air and the flux above it, an extrapolation of the fit (stand-in, registry CC7), and the hottest surface of an air is the ionization of its gas
 (`ionization.ceiling_k`), not this."""
 TRACE_FULL_SHARE = 1.0e-3
-"""float: STAND-IN (IR18, tier T5, L3): the mole share at and above which a minor gas counts in full. The fit was made on airs whose minor gases are absent or at least a few parts in a
+"""float: STAND-IN (IR19, tier T5, L3): the mole share at and above which a minor gas counts in full. The fit was made on airs whose minor gases are absent or at least a few parts in a
 hundred thousand (the family draws from 1e-5 up), so between absent and about 1e-3 the network invents a slope: ten parts per million of hydrogen cyanide added 76 K, a trace of helium up to
 100 K, a part in a hundred million of ozone 10 K (GEN.1588). Below this share the effect of each such gas is taken as its share over this share of what the table says it does in full, the
 optically thin limit (the effect goes with the column), and nothing at zero."""

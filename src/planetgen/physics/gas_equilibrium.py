@@ -53,7 +53,7 @@ STALL_LOG_STEP = 1e-4
 
 MAX_HELD_O2_SHARE = 0.9
 """float: The most of the gas the held oxygen may be, as a share of the total pressure (GEN.1613, stand-in GR1 of the gap plan, tweak level L3). A mantle holds the oxygen fugacity
-at a value that, in an ideal gas, is its partial pressure; over a deep hot air (4,000 K and 4,000 to 9,000 bar) a buffer at an oxidised redox asks for more than the total pressure
+at a value that, in an ideal gas, is its partial pressure; over a deep hot air (4,000 K and 4,000 to 9,000 bar) a buffer at an oxidized redox asks for more than the total pressure
 (10^4.1 bar in 9,255 bar), which no ideal gas can have (it takes a real gas, fugacity coefficient over 1: its own item), and the solve never settles. When the held value stops the solve
 and asks for more than this share, the solve is made again at this share (the solver settles at 0.9 of the total everywhere tried, up to 4,500 K and 10,000 bar)."""
 
