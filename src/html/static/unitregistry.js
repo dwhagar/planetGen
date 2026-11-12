@@ -32,6 +32,7 @@ export const KINDS = {
   "number_density": {"base": "m-3", "dimension": [-3, 0, 0, 0, 0], "low": 0.0, "high": null, "lowOpen": false, "highOpen": false},
   "flux": {"base": "W_m2", "dimension": [0, 1, -3, 0, 0], "low": 0.0, "high": null, "lowOpen": false, "highOpen": false},
   "magnetic_field": {"base": "T", "dimension": [0, 1, -2, 0, 0], "low": 0.0, "high": null, "lowOpen": false, "highOpen": false},
+  "dose_rate": {"base": "Sv_s", "dimension": [2, 0, -3, 0, 0], "low": 0.0, "high": null, "lowOpen": false, "highOpen": false},
   "gravitational_parameter": {"base": "m3_s2", "dimension": [3, 0, -2, 0, 0], "low": 0.0, "high": null, "lowOpen": false, "highOpen": false},
 };
 
@@ -204,6 +205,13 @@ export const UNITS = {
   "mT": {"kind": "magnetic_field", "symbol": "mT", "name": "milliteslas", "singular": "millitesla", "factor": 0.001, "offset": 0.0},
   "T": {"kind": "magnetic_field", "symbol": "T", "name": "teslas", "singular": "tesla", "factor": 1.0, "offset": 0.0},
   "G": {"kind": "magnetic_field", "symbol": "G", "name": "gauss", "singular": "gauss", "factor": 0.0001, "offset": 0.0},
+  "Sv_s": {"kind": "dose_rate", "symbol": "Sv/s", "name": "sieverts per second", "singular": "sieverts per second", "factor": 1.0, "offset": 0.0},
+  "nSv/yr": {"kind": "dose_rate", "symbol": "nSv/yr", "name": "nanosieverts per year", "singular": "nanosievert per year", "factor": 3.168808781402895e-17, "offset": 0.0},
+  "uSv/yr": {"kind": "dose_rate", "symbol": "µSv/yr", "name": "microsieverts per year", "singular": "microsievert per year", "factor": 3.168808781402895e-14, "offset": 0.0},
+  "mSv/yr": {"kind": "dose_rate", "symbol": "mSv/yr", "name": "millisieverts per year", "singular": "millisievert per year", "factor": 3.168808781402895e-11, "offset": 0.0},
+  "Sv/yr": {"kind": "dose_rate", "symbol": "Sv/yr", "name": "sieverts per year", "singular": "sievert per year", "factor": 3.168808781402895e-08, "offset": 0.0},
+  "kSv/yr": {"kind": "dose_rate", "symbol": "kSv/yr", "name": "kilosieverts per year", "singular": "kilosievert per year", "factor": 3.168808781402895e-05, "offset": 0.0},
+  "MSv/yr": {"kind": "dose_rate", "symbol": "MSv/yr", "name": "megasieverts per year", "singular": "megasievert per year", "factor": 0.03168808781402895, "offset": 0.0},
   "m2": {"kind": "area", "symbol": "m²", "name": "square meters", "singular": "square meters", "factor": 1.0, "offset": 0.0},
   "km2": {"kind": "area", "symbol": "km²", "name": "square kilometers", "singular": "square kilometers", "factor": 1000000.0, "offset": 0.0},
   "cm2": {"kind": "area", "symbol": "cm²", "name": "square centimeters", "singular": "square centimeters", "factor": 0.0001, "offset": 0.0},

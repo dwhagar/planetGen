@@ -431,6 +431,15 @@ def test_a_measure_is_shown_the_same_whatever_unit_it_was_held_in():
     assert format_measure(Quantity("mass", 1.0, "Mearth")) == "1 Earth mass"
 
 
+def test_a_dose_rate_is_shown_in_the_unit_that_keeps_it_out_of_scientific_notation():
+    """Boss, 2026-11-11: 13,200 mSv/yr read "1.32 × 10⁴ mSv/yr"; the ladder gives the sievert."""
+    from planetgen.physics.quantity import Quantity
+
+    shown = {value: format_measure(Quantity("dose_rate", value, "mSv/yr")) for value in (1e-4, 0.5, 2.4, 742.0, 13200.0, 4.2e7)}
+    assert shown == {1e-4: "100 nSv/yr", 0.5: "500 µSv/yr", 2.4: "2.4 mSv/yr", 742.0: "742 mSv/yr", 13200.0: "13.2 Sv/yr", 4.2e7: "42 kSv/yr"}
+    assert format_measure(Quantity("dose_rate", 13.2, "Sv/yr")) == format_measure(Quantity("dose_rate", 13200.0, "mSv/yr"))
+
+
 @pytest.mark.parametrize("ladder", ladders.LADDERS, ids=lambda ladder: ladder.quantity)
 def test_every_ladder_rung_round_trips_through_every_other_rung(ladder):
     """A value of one rung, read in each other rung of the ladder and back, is the value, 0.3 so a speed stays under c (GEN.299's property test)."""
