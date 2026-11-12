@@ -295,6 +295,7 @@ class Air:
         late (dict): The carbon and nitrogen the late accretion left, atoms per 100 g of mantle (`_late_accretion`); what `generation/late_accretion.py` compares a new late accretion to.
         late_state: The state of the ambient stream where the late accretion's draws began (`late_accretion_moves` draws them again).
         degassed (dict): The carbon and nitrogen the last step's volcanoes gave the surface, atoms per 100 g of mantle: the scale `late` is small or large against.
+        entry_state: The state of the ambient stream when `solve` began, before it drew the design constants, the seed and the late accretion. Solving again from it with another start temperature (`air_branches.other_branch`, GEN.1646) repeats every draw, so the second climate branch of a world holds the same inventory as the first.
     """
 
     mixture: object
@@ -316,6 +317,7 @@ class Air:
     late: dict = field(default_factory=dict)
     degassed: dict = field(default_factory=dict)
     late_state: object = None
+    entry_state: object = None
 
     @property
     def greenhouse_factor(self):
@@ -691,6 +693,7 @@ def solve(setting, start_temperature_k):
     Returns:
         Air: The air. Draws from the ambient stream once (the design constants and the seed of the replay).
     """
+    entry_state = draw.getstate()
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
@@ -838,7 +841,7 @@ def solve(setting, start_temperature_k):
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
                condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze, albedo=albedo_of_step,
-               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state)
+               retention_cap_pa=None if setting.giant else _retention_cap_pa(mixture, subject), knee=knee, co2_sink=sink_record.get("sink"), late=late, degassed=sink_record.get("degassed", {}), late_state=late_state, entry_state=entry_state)
 
 
 def _retention_cap_pa(mixture, subject):

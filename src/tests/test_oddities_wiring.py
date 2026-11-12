@@ -515,11 +515,34 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
-    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374) and again with GEN.993 (the core's light elements), so the seed that had one was replaced (10: 50 K and 0.34 apart)
-    other = _planet_at("G2V", 1.2, "w20-G2V-10", force=("W20",))
-    first = _planet_at("G2V", 1.2, "w20-G2V-10", dial=0.0)
+    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374) and again with GEN.993 (the core's light elements), so the seed that had one was replaced (and again at GEN.1646, when the other branch began to repeat the first solve's draws, so the world keeps its inventory and a seed that had a second branch only through a new inventory lost it; this one is 20: 50 K and 0.34 apart)
+    other = _planet_at("G2V", 1.2, "w20-G2V-20", force=("W20",))
+    first = _planet_at("G2V", 1.2, "w20-G2V-20", dial=0.0)
     assert "W20" in other.oddities and first.oddities == ()
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
+
+
+def test_the_other_branch_is_the_same_world_with_the_same_inventory_and_draws():
+    """GEN.1646: the second solve of W20 repeats every draw of the first (design constants, mixture seed, late accretion); only the start temperature differs."""
+    from planetgen.physics import surface_air
+
+    airs = []
+    real = surface_air.solve
+
+    def spy(setting, start_temperature_k):
+        air = real(setting, start_temperature_k)
+        airs.append(air)
+        return air
+
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        monkeypatch.setattr(surface_air, "solve", spy)
+        planet = _planet_at("G2V", 1.2, "w20-G2V-20", force=("W20",))
+    assert "W20" in planet.oddities and len(airs) >= 2
+    first, second = airs[0], airs[1]
+    assert first.entry_state is not None and second.entry_state == first.entry_state
+    assert second.constants == first.constants and second.late == first.late
+    assert second.mixture.inventory == first.mixture.inventory
+    assert second.temperature_k != first.temperature_k      # a different branch of the same world
 
 
 def test_a_world_with_no_second_branch_is_not_named_for_one():
