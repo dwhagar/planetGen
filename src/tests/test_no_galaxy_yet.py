@@ -128,3 +128,10 @@ def test_a_name_is_matched_as_written_and_inside_the_prefix(mysql_config):
     with pytest.raises(ValueError, match="No such database"):
         _db.resolve_database(mysql_config, mysql_config.database, prefix="no_such_prefix_")
     assert _db.resolve_database(mysql_config, mysql_config.database, prefix=mysql_config.database[:8]).database == mysql_config.database
+
+
+@pytest.mark.parametrize("name", ["\U0001F4A5", "caf\u00e9", "a'; DROP DATABASE x; --", "\x00", "x" * 300])
+def test_a_hostile_name_is_no_such_database_and_never_a_server_error(mysql_config, name):
+    """The name is compared in Python: a character the schema column's collation cannot mix with the name's was a server error (503) before."""
+    with pytest.raises(ValueError, match="No such database"):
+        _db.resolve_database(mysql_config, name)
