@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1615 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1586 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1589 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
 | T3 | 113 | 52 | 10 | 9 | 0 | 184 |
-| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+| T4 | 84 | 12 | 4 | 22 | 15 | 137 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
 | T6 | 208 | 107 | 31 | 81 | 4 | 431 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 925 | 311 | 77 | 246 | 53 | 1612 |
+| All | 925 | 311 | 77 | 246 | 56 | 1615 |
 
 ## How the labels were given
 
@@ -1418,6 +1418,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | TJ6 | P | T2 | L0 | trojans.HILL_SEPARATION_K 3.46: the separation, in mutual Hill radii, under which another giant takes the swarm of a giant (GEN.1455) | 2.0 to 3.5 | giants with another giant in the system | an N-body run of two giants 3.5 mutual Hill radii apart whose trojans stay for 1 Gyr | an N-body map of trojan survival beside a second giant | [R3984]-class analytic and numeric work on the stability of coorbitals beside a neighbour: the Hill stability of two planets lies near 3.46 mutual Hill radii ([R1583], recalled) | predicted only | - | - |
 | TJ7 | P | T4 | L4 | trojans.STABLE_RAMP 1.0: how fast the stable share climbs past the limit: `1 - exp(-ramp (x - 1))` (GEN.1455) | 0.5 to 2 | every swarm with a neighbour | a swarm kept whole at one separation of the limit or lost at three | an N-body run of the survival of a swarm against separation | none read; the ramp is a smooth rise between lost and kept | predicted only | - | no data |
 | TJ8 | P | T4 | L4 | trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455) | 1.5 to 3 | giants of a star with a companion | an N-body run of a giant at half the stability limit that keeps its trojans | an N-body run of trojans inside the Holman and Wiegert limit | none read; [R1990] give the limit for a planet, not for its trojans | predicted only | - | no data |
+| TJ9 | P | T4 | L4 | trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150) | 6 to 15 | every swarm | a swarm of giants whose median libration amplitude is far from the scale times 1.18 | a fit to the Jupiter and Neptune Trojan catalogues | none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled) | predicted only | GEN.1151 | - |
+| TJ10 | P | T4 | L4 | trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150) | 0.04 to 0.1 | every swarm | a swarm whose mean eccentricity is over 0.15 | a fit to the proper elements of the Jupiter Trojans | none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled) | predicted only | GEN.1151 | - |
+| TJ11 | P | T4 | L4 | trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150) | 8 to 18 | every swarm | a swarm whose mean inclination is over 25 degrees | a fit to the proper elements of the Jupiter Trojans | none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled) | predicted only | GEN.1151 | - |
 
 ## 6.122 Stand-ins of the albedo colour of the star
 
