@@ -24,7 +24,7 @@ from planetgen.physics import pre_main_sequence, stellar_evolution
 from planetgen.util import draw
 
 ARRIVAL_MARGIN = 1.05
-"""float: The factor on the contraction time at which a star above the table is read (just past its arrival on the main sequence)."""
+"""float: The factor on the contraction time at which a star above the table is read (just past its arrival on the main sequence). A numerical stand-in, tier T9, tweak L0: any margin that puts the read past the arrival gives the same zero-age light."""
 
 
 def table_luminosity_sol(initial_mass_sol, age_gy):
