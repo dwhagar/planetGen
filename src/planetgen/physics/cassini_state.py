@@ -49,9 +49,9 @@ FOSSIL_FACTOR_RANGE = (22.7, 94.2)
 """tuple: The observed `J2` over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform: the Moon's 203.8e-6 over 8.968e-6 and Mercury's 50.3e-6 over 0.534e-6 (Table 2 of [R5228]; Venus
 between, 86). Source tier T3 (three bodies), tweak level L1 (the bracket is the data; the log-uniform spread inside it is the stand-in)."""
 FOSSIL_C22_OVER_J2 = 0.133
-"""float: `C22 / J2` of a fossil figure: the geometric mean of Mercury's 0.161 and the Moon's 0.110 ([R5228] Table 2), against the hydrostatic 3/10. Source tier T2, tweak level L0."""
+"""float: `C22 / J2` of a fossil figure: the geometric mean of Mercury's 0.161 and the Moon's 0.110 [R5228: Table 2], against the hydrostatic 3/10. Source tier T2, tweak level L0."""
 HYDROSTATIC_C22_OVER_J2 = 0.3
-"""float: `C22 / J2` of a synchronously turning hydrostatic body, 3/10 ([R5228]). Source tier T1, tweak level L0."""
+"""float: `C22 / J2` of a synchronously turning hydrostatic body, 3/10 [R5228]. Source tier T1, tweak level L0."""
 RELAXED_HEAT_FLUX_W_M2 = 0.5
 """float: The internal heat flux above which a rocky body keeps its interior relaxed, so that its figure follows its spin (Io, 2.5; Venus and Mercury, under 0.1, are fossil). Source tier T3, tweak level L1."""
 

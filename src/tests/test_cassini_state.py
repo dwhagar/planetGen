@@ -14,12 +14,12 @@ MERCURY_MASS_KG = 3.3011e23
 MERCURY_RADIUS_M = 2439.7e3
 MERCURY_N = 2.0 * math.pi / (87.969 * 86400.0)
 MERCURY_E = 0.2056
-MERCURY_MODE = ov.Mode(-2.298e-5, math.radians(8.6))           # the regression of Mercury's node and its inclination to the Laplace plane ([R5229])
+MERCURY_MODE = ov.Mode(-2.298e-5, math.radians(8.6))           # the regression of Mercury's node and its inclination to the Laplace plane [R5229]
 
 
 def test_mercurys_hydrostatic_figure_is_the_one_the_table_prints():
     j2, c22 = cs.hydrostatic_figure(MERCURY_MASS_KG, MERCURY_RADIUS_M, 0.346, 1.5 * MERCURY_N, MERCURY_N, MERCURY_E)
-    assert j2 == pytest.approx(0.534e-6, rel=0.08)        # [R5228] Table 2, <J2> of Mercury, with its 3:2 spin
+    assert j2 == pytest.approx(0.534e-6, rel=0.08)        # [R5228: Table 2], <J2> of Mercury, with its 3:2 spin
     assert c22 == pytest.approx(0.3 * j2)
 
 
