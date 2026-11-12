@@ -845,6 +845,10 @@ def solve(setting, start_temperature_k):
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
     mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step, ceiling_k = last
+    if not setting.giant and pressure <= VACUUM_PRESSURE_PA:
+        # A settled air under the vacuum floor is an exosphere (a trace of sulfur vapor over a cold body, 1.3 mPa on a 120 K one): the
+        # floor the equilibrium stall applies above applies to the air that settles too, so a body never stores an air it calls thin.
+        return _airless(setting, mixture, step, design, ocean)
     converged = not gave_up and (setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K))
     knee = False
     if not converged:
