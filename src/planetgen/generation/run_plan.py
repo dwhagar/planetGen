@@ -43,6 +43,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util import step_timer as stepTimer
+from planetgen.util.ticker import Pulse, Ticker, stamp
 from planetgen.util.settings import get_settings
 from planetgen.galaxy.density import relative_density
 from planetgen.galaxy import scatter_limits, spherical
@@ -2751,14 +2752,12 @@ def refresh_block_lights(mysql_config, args=None):
                 try:
                     log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept; "
                                "made again from every pre-placed object only when they do not match)...")
-                    last_line = [time.monotonic()]
+                    ticker = Ticker("Making the block light totals", total=1.0, percent=True)
                     with steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=args, progress=progress,
                                     force=True) as bar:
                         def on_progress(done, total):
                             bar.update(completed=done, total=total)
-                            if time.monotonic() - last_line[0] >= program_constants.PROGRESS_LOG_SECONDS:
-                                last_line[0] = time.monotonic()
-                                log.normal(f"Making the block light totals: {done / total:.0%}.")
+                            ticker.tick(done / total)
 
                         written, _made = make_block_lights(conn, on_progress, log.normal, getattr(args, "generation_run_id", None))
                 finally:
@@ -3016,7 +3015,7 @@ def refresh_block_lights_unit(params, report):
 
     def say(text):
         """A phase line: kept for the stage's result and also said at once, in the worker's log and as the unit's phase, so a long part is never silent."""
-        stamped = f"{text} [{time.monotonic() - started:,.0f} s into the stage]"
+        stamped = stamp(text, started)
         lines.append(stamped)
         log.normal(stamped)
         unitbeat.phase(text[:120])
@@ -3042,9 +3041,9 @@ class BlockLightsFollower(followed.Follower):
     def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
-        self._started = time.monotonic()
+        self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
+        self._pulse = Pulse(log.normal, self._pulse_text)      # started with the plan
         self._weights, self._fractions = [1.0], {}
-        self._stop = threading.Event()
         self._lock = threading.Lock()
         self._written = self._made = 0
         self._failed = False
@@ -3063,8 +3062,9 @@ class BlockLightsFollower(followed.Follower):
             self._weights = [roll] + [detail["cells"] * INDEX_SECONDS_PER_CELL / detail["runs"]] * detail["runs"]
             log.normal(f"The block light totals are cut into {plan.get('units', len(self._weights)):,} units: the roll-up of {detail['cells']:,} cells with a part and "
                        f"the uncharted sector rows in {detail['runs']:,} runs of shells, worked by every worker.")
-        self._started = time.monotonic()
-        threading.Thread(target=self._speak, name="block-lights-log", daemon=True).start()
+        self._ticker = Ticker("Making the block light totals", total=1.0, percent=True)
+        self._pulse.stop()
+        self._pulse = Pulse(log.normal, self._pulse_text).start()
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
 
@@ -3080,14 +3080,12 @@ class BlockLightsFollower(followed.Follower):
             self._fractions[unit] = min(done / max(estimate, 1e-9), 1.0)
         self.bar.update(completed=BLOCK_LIGHTS_BAR_TOTAL * self._share(), total=BLOCK_LIGHTS_BAR_TOTAL)
 
-    def _speak(self):
-        """A line every `PROGRESS_LOG_SECONDS` for as long as the stage runs, from its own thread, so the log never goes quiet whatever the units are doing."""
-        while not self._stop.wait(program_constants.PROGRESS_LOG_SECONDS):
-            log.normal(f"Making the block light totals: still working, {self._share():.0%} on the bar, "
-                       f"{time.monotonic() - self._started:,.0f} s into the stage.")
+    def _pulse_text(self):
+        """What the stage says every `PROGRESS_LOG_SECONDS` from its own thread, so the log never goes quiet whatever the units are doing."""
+        return self._ticker.text(self._share(), "still working")
 
     def on_done(self, conclusion):
-        self._stop.set()
+        self._pulse.stop()
         if not self._failed:
             log.normal(f"Made {self._written:,} block light totals" + (f" and {self._made:,} uncharted sector rows." if self._made else "."))
 
