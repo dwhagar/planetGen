@@ -319,6 +319,6 @@ def classify(body):
                           tuple(sorted(best.moves)), None if math.isinf(total) else total)
 
 
-def rule_words(cls):
-    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`)."""
-    return [planet_classes.condition_words(condition) for condition in cls.when]
+def rule_words(cls, measure=None):
+    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`, which says what `measure` is)."""
+    return [planet_classes.condition_words(condition, measure) for condition in cls.when]
