@@ -104,7 +104,7 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
-    from tests.fuzz_support import deterministic_entropy
+    from tests.fuzz_support import deterministic_entropy, first_seed_with
     moons_in_belts = 0
     giant = None
     for seed in range(5, 60):
@@ -132,7 +132,23 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
     if not moons_in_belts:
         # The generated moons of a giant now sit mostly outside its radiation belts (46 giant radii and more), so no seed has one inside them: put the innermost moon of the first giant
         # with moons at 9.4 giant radii, in the belts, and check that the stored belt dose follows (TEST.557)
-        assert giant is not None, "no giant with moons in 55 systems"
+        if giant is None:
+            # The default systems of seeds 5 to 59 hold one giant in all and it has no moon; a system forced to hold a class I planet (GEN.791) is a cheap way to a giant with moons.
+            def build(seed):
+                config = SystemConfig()
+                config.FORCE_CLASS = "I"
+                draw.set_run_seed(seed)
+                return StarSystem(config, galactic_center_dist_ly=26000.0)
+
+            def _fit(planet):        # a giant with a moon that has a stored dose
+                return planet.body_type == "g" and planet.moons and planet.moons[0].dose_belt_msv_yr is not None
+
+            def has_giant_with_moons(system):
+                return any(_fit(planet) for planet in system.planets)
+
+            _seed, system = first_seed_with(build, has_giant_with_moons, seeds=range(5, 60), what="a giant with moons")
+            giant = next(planet for planet in system.planets if _fit(planet))
+            giant.magnetic_moment_a_m2 = JUPITER_MOMENT      # the generated giant's field is as it is drawn (often none); the belts need one
         moon = giant.moons[0]
         moon.distance = _orbit_au(giant, 9.4)
         radiation.apply_parent_belts(moon, giant)
