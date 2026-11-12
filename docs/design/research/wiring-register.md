@@ -129,6 +129,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.trojans.swarm_split | GEN.1150 | a swarm split into its L4 and L5 regions; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.point_label | GEN.1150 | the map label of a point, `Jupiter-L4`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
 | function | planetgen.physics.trojans.pair_text | GEN.1150 | the page text of a point, `L4 of Sun and Jupiter`; the swarm draw and the map icon call it (the survival of a swarm, `surviving_share`, is read since GEN.1455) |
+| module | planetgen.physics.trojan_swarm | GEN.1151 | the two regions of a swarm and the libration overlay (lock-free, GEN.1150 slice 0); the whole-body draw reads it, the stored swarm waits for GEN.1006 |
+| row | 6.121:TJ9 | GEN.1151 | `trojan_swarm.LIBRATION_SIGMA_DEG`, read when the whole-body draw lands |
+| row | 6.121:TJ10 | GEN.1151 | `trojan_swarm.ECC_SIGMA`, read when the whole-body draw lands |
+| row | 6.121:TJ11 | GEN.1151 | `trojan_swarm.INCLINATION_SIGMA_DEG`, read when the whole-body draw lands |
 | module | planetgen.physics.trojan_bodies | GEN.1151 | how much mass the rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
 | row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
 | row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISK_LIFETIME_MYR`, read when the whole-body draw lands |
