@@ -499,7 +499,7 @@ def _radiation_block(planet):
     terms = habitability_explain.radiation_terms(planet)
 
     def dose(msv_yr):
-        return qty("dose", msv_yr / 1000.0, "Sv/yr")
+        return qty("dose rate", msv_yr, "mSv/yr")
 
     air = ", ".join(f"{name} {three_figures_or_tiny(share * 100.0)} percent" for name, share in terms.air)
     shield = (f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air ({air})" if terms.column_g_cm2 > 0.0 and air

@@ -184,7 +184,20 @@ export const LADDERS = {
       {"symbol": "G", "factor": 0.0001, "name": "gauss", "start": 10000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "customary"]},
     ],
   },
+  "dose rate": {
+    "base": "Sv/s", "nonfinite": "Sv/yr", "zero": "mSv/yr",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "nSv/yr", "factor": 3.168808781402895e-17, "name": "nanosieverts per year", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "µSv/yr", "factor": 3.168808781402895e-14, "name": "microsieverts per year", "start": 3.168808781402895e-14, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "mSv/yr", "factor": 3.168808781402895e-11, "name": "millisieverts per year", "start": 3.168808781402895e-11, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "Sv/yr", "factor": 3.168808781402895e-08, "name": "sieverts per year", "start": 3.168808781402895e-08, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "kSv/yr", "factor": 3.168808781402895e-05, "name": "kilosieverts per year", "start": 3.168808781402895e-05, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "MSv/yr", "factor": 0.03168808781402895, "name": "megasieverts per year", "start": 0.03168808781402895, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+    ],
+  },
 };
 
 // The ladder a registry kind (unitregistry.js) is shown on.
-export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field"};
+export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field", "dose_rate": "dose rate"};

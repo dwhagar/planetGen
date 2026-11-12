@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import constants, core_composition
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
 GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
 """float: Seconds in a gigayear."""
