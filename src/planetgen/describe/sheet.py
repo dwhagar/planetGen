@@ -597,6 +597,7 @@ def _phenomenon_not_shown(kind, **extra):
 
 _BODY_NOT_SHOWN = {
     "sky_suns": "the other suns of the sky as stored text; the light, seasons and temperatures it shapes are shown, not the text",
+    "shape_temperature_k": "the temperature the body took its shape at (GEN.1201); the roundness it sets is shown, not the temperature",
     "light_factor": "the share of its host's light a circumbinary planet keeps after its stars' eclipses; the temperatures and the energy it shapes are shown, not the factor",
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
@@ -651,6 +652,8 @@ NOT_SHOWN = {
                    "spin_axis_z", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"), _VECTORS),
     },
     "planet": {**_BODY_NOT_SHOWN, "host_node_id": "the orbit tree node; bookkeeping",
+               "belt_order": "the number of the belt a promoted planet came from, which its designation carries (GEN.1510); bookkeeping",
+               "belt_rank": "the rank a promoted planet had among its belt's members, which its designation carries (GEN.1510); bookkeeping",
                **_excuse(("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km"), _VECTORS)},
     "moon": {**_BODY_NOT_SHOWN, "planet_id": "the planet it circles, a link in the Location chain",
              "rogue_planet_id": "the free planet it circles, a link in the Location chain"},
