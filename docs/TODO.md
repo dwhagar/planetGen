@@ -13545,12 +13545,14 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.1441, GEN.1452.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
+  Data audit D19 (batch 2): M dwarf heliospheres of 127 and 142 AU, larger than the Sun's; more evidence for this item.
 
 - [ ] **GEN.1626 (bug) age_needs.json settling times have no source and drive the 13.8 Gyr age pile-up (sweep finding M6)**
   Data audit batch 1, D6 (report reports/data-audit-2026-11-11.md, with file and line). Do: source the settling times (or register them as stand-ins in GEN.725 with tier and tweak) and check the pile-up. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.1546.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
+  Data audit D18 (batch 2): 36 of 270 systems have a star of exactly 13.8 Gyr; more evidence for this item.
 
 - [ ] **GEN.1627 (bug) constants.py (about line 99) SOLAR_MASS_LOSS_RATE is wrong by a factor of 1e15 (nothing reads it)**
   Data audit batch 1, D7 (report reports/data-audit-2026-11-11.md, with file and line). Do: fix or retire the constant (see GEN.1625). Lock-free.
@@ -13617,6 +13619,24 @@ clears each one.
 - [ ] **OPS.151 Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log**
   Follow-up of OPS.148. Waits on Boss sharing his full run log after his run ends. Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): the thread that built OPS.148 (PR 6147). Prerequisites: OPS.148. Related: OPS.118, PERF.254, OPS.130, OPS.148, OPS.143. No lock files, no change to generated output.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1635 (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower)**
+  Data audit batch 2, D15 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: label subdwarfs by [Fe/H] or by the model's own solar sequence. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 11. Prerequisites: none. Related: GEN.1623.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1636 (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores**
+  Data audit batch 2, D16 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: pick one reference (one constant, registered in GEN.725) and use it in all three places. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.725.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1637 (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies**
+  Data audit batch 2, D17 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: start the taper near 1e20 kg (or fit it to the measured bodies) and register the change. Lock item.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: none. Related: GEN.725.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

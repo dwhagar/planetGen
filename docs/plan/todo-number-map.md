@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.306 |
 | MAP | MAP.426 |
 | NAV | NAV.78 |
-| GEN | GEN.1635 |
+| GEN | GEN.1638 |
 | PERF | PERF.260 |
 | DB | DB.126 |
 | API | API.48 |
@@ -3822,6 +3822,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | open |
 | GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | open |
 | GEN.1634 | (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3 | none | open |
+| GEN.1635 | (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower) | none | open |
+| GEN.1636 | (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores | none | open |
+| GEN.1637 | (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies | none | open |
 | GEN.1532 | (bug) 88 percent of class T planets sit at 1.000 bar within 0.1 percent: find the pinned placeholder pressure | none | closed, by design: the 1 bar reference level of a groundless body (GEN.1334) |
 | GEN.1479 | A derived stamp per row and per family, so rescore-habitability, the effect-ledger refill and fill-map-luminosity touch only rows that are not current (audit C6, F6) | none | done, PR #5869 |
 | GEN.1478 | Stored system fields: mass of everything in the system, brightest-star luminosity, total luminosity and body counts on star_systems, and the mass and light centres on sector_stats (audit F1 to F5) | none | done (Train 22 or earlier, 2026-11-11) |

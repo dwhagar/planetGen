@@ -553,6 +553,9 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1632 | (bug) Stand-in registry: 102 ids reused across sections, 30 code tags with a different tier or tweak than the registry, 5 code ids not in the registry, 2 rows naming constants that no longer exist | none | Lane 07, 2026-11-12, deferred. |
 | GEN.1633 | (bug) physics/belt_mass.py cannot be imported on its own | none | Lane 22, 2026-11-12, deferred. |
 | GEN.1634 | (bug) The snow line scatter in the code is a factor of 4, but the text says 2 to 3 | none | Lane 14, 2026-11-12. |
+| GEN.1635 | (bug) Ordinary M dwarfs are labelled Subdwarf (class VI): the rule in stellar_evolution.py (about lines 228-232, 0.3 dex under the dwarf line) catches every M dwarf under 0.4 Msun with [Fe/H] of -0.2 or lower (13 of 270 single stars, all M3-M5 at [Fe/H] -0.08 to -0.34; real subdwarfs sit near -1 or lower) | none | Lane 11, 2026-11-12, deferred. |
+| GEN.1636 | (bug) Two Earth heat-flow references: surface_pressure uses 0.0614 W/m2 for outgassing, life_supply.json and hydrothermal_deposits use the measured 0.087 W/m2, so an exact Earth twin scores 0.6 to 0.7 for life energy and ores | none | Lane 21, 2026-11-12, deferred. |
+| GEN.1637 | (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies | none | Lane 22, 2026-11-12, deferred. |
 | GEN.1613 | (bug) The ideal-gas air equilibrium stops converging above about 3,900 bar and 3,980 K, so deep hot steam airs need a non-ideal gas equation of state | GEN.1580 | Lane 15, 2026-11-12. |
 | GEN.1614 | (bug) trace_air removes the equilibrium NO2 and N2O from hot airs instead of keeping them | GEN.1580 | Lane 15, 2026-11-12. |
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | Train Manager finding, Train 22, 2026-11-09. |
