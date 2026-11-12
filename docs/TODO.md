@@ -12826,12 +12826,6 @@ clears each one.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the belt mass research note and the target distribution; slice 1 lock: the build. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
-- [ ] **GEN.1562 Sulfur dioxide airs are never made: classes A and Y are unreachable (1,391 of 1,392 airs hold under 3 percent SO2); decide whether volcanic bodies (Io-like, tidally heated, close super-Earths) get SO2 airs and wire the supply, otherwise mark A and Y reserved**
-  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 3. Do: find where outgassing sets SO2 and why it stays under 3 percent, read the volcanic and tidal heating already built (reuse), wire the supply so tidally heated or volcanic bodies can hold an SO2 air with the sink that sulfur chemistry needs, and re-measure A and Y; if the physics says they should be rare to none, mark classes A and Y reserved with the reason and tell Boss. Done: census of SO2 airs by body type; tests. Lock item if it builds.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1563, GEN.1523.
-  Filed by the TODO thread.
-  Split (TODO sweep, 2026-11-12): slice 0 lock-free: trace why sulfur dioxide airs are never made (report); slice 1 lock: the fix. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
 - [ ] **GEN.1563 Ammonia-water fraction never reaches 0.1, so class X is unreachable (157 bodies pass every other condition); find where ammonia_water_mass_fraction is set and why it stays under 0.1**
   Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 4. Do: trace ammonia_water_mass_fraction from its source (ice-giant and ice-world composition, the cold-body freeze-out) to the class test, find why it stays under 0.1 (a mixing step, a missing ammonia supply, or the threshold itself), fix the cause and not the threshold unless the sources support it, and re-measure X. Done: census of the 157 bodies and how many reach X after; tests. Lock item if it builds.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1562.
