@@ -1550,6 +1550,7 @@
 -- v226 (GEN.1105): the table `field_members` keeps the individual bodies of an interstellar asteroid field (mass, radius, density, composition shares, status), one row each, heaviest first; `<field ID>.<rank hex>` names a body. A field made before v222 has none, and a field with no ledger (a hand-made or top-up one) has none.
 -- v236 (GEN.1458): `planets`, `moons` and `rogue_planets` gain `sky_suns` (VARCHAR(400), NULL): a planet's other suns as JSON `[[share, ux, uy, uz], ...]`, the share of the mean light of each other star of its system and its unit direction in the planet's equinox frame (`physics/sky_suns.py`); the seasons and the temperature of every place read it. NULL for a lone star, a moon and a row made before v236.
 -- v242 (GEN.1484): `planets`, `moons` and `rogue_planets` gain `light_factor` (DOUBLE, NULL): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other, NULL for every other body.
+-- v244 (GEN.1567): `planets`, `moons` and `rogue_planets` gain `ice_cover_fraction` (DOUBLE, NULL): the share of the surface the ice covers (the lid of an ice-covered ocean, or a body that is ice through), and `ocean_fraction` now counts the liquid sea alone (it counted liquid or frozen water before), `land_fraction` being the rest of the surface after the liquid sea; NULL for a body with no ground and for every row made before v244.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2423,6 +2424,7 @@ CREATE TABLE IF NOT EXISTS planets (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
+    ice_cover_fraction          DOUBLE,  -- v244 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -2957,6 +2959,7 @@ CREATE TABLE IF NOT EXISTS moons (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
+    ice_cover_fraction          DOUBLE,  -- v244 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -4401,6 +4404,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),  -- v207 (GEN.1111)
     ocean_fraction              DOUBLE,  -- v207 (GEN.1111)
     land_fraction               DOUBLE,  -- v207 (GEN.1111)
+    ice_cover_fraction          DOUBLE,  -- v244 (GEN.1567)
     ice_shell_km                DOUBLE,  -- v207 (GEN.1111)
     ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),  -- v207 (GEN.1111)
     ocean_ph                    DOUBLE,  -- v207 (GEN.1111)

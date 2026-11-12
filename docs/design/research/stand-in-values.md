@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1610 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1611 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1584 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1585 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,7 +48,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
-| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
+| T2 | 151 | 62 | 1 | 1 | 0 | 215 |
 | T3 | 113 | 51 | 10 | 9 | 0 | 183 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
@@ -56,7 +56,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 924 | 310 | 77 | 246 | 53 | 1610 |
+| All | 924 | 311 | 77 | 246 | 53 | 1611 |
 
 ## How the labels were given
 
@@ -2352,6 +2352,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | an Earth-like world whose measured hypsometric curve is far from two humps, or Earth's 2.7 km layer not covering 0.71 | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age [R5075] | Earth's 0.71 ocean cover; [R0914] (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | predicted only | - | - |
+| HY3 | P | T2 | L1 | hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of `HYPSOMETRY` sinks to the layer over its share of the area, no shallower than Earth's) | 5.7 to 11.4 km (Cowan and Abbot's 70 km maximum continental thickness over the density contrast, half to full) | rocky bodies with a surface ocean; not icy bodies | a world with 7 km of water at 1 g that a measured hypsometry would drown, or Earth's 2.7 km layer not covering 0.71 | isostasy with the mantle's own flow and the sea's weight ([R0914: Eq. 10] gives the form, the value read from the source) | Cowan and Abbot 2014 Eq. 10 ([R0914: Eq. 10]); Earth's 0.71 cover held by HY2 | predicted only | - | - |
 
 ## 6.146 Stand-ins of the thick disk's ages
 
