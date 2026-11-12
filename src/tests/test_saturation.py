@@ -464,3 +464,28 @@ def test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_t
     assert saturation.pressure_pa("HF", gases.gas("HF").boiling_point_k) == pytest.approx(101325.0, rel=0.15)
     for formula in ("HCl", "HF"):
         assert saturation.pressure_pa(formula, 68.0) < 1e-6 * 1e5 * 1e-3
+
+
+# GEN.1564 slice 0: the held-back sulfur curve. The gas table's T6 rows give the temperature at which condensed sulfur holds 1 mPa, 1 Pa, 100 Pa, 10 kPa and 100 kPa;
+# the fit was made to those and carries a worst-case error of 8.8 percent over 312 to 925 K (the table's temperatures are whole kelvin).
+S2_TABLE_K = ((1.0e-3, 406.0), (1.0, 504.0), (100.0, 605.0), (1.0e4, 763.0), (1.0e5, 882.0))
+
+
+@pytest.mark.parametrize("pressure_pa, temperature_k", S2_TABLE_K)
+def test_the_held_back_sulfur_curve_reproduces_the_gas_tables_rows(pressure_pa, temperature_k):
+    found = saturation.unread_pressure_pa("S2", temperature_k)
+    assert found == pytest.approx(pressure_pa, rel=0.10), (temperature_k, found)       # the fit's own worst error is 8.8 percent
+
+
+def test_the_held_back_sulfur_curve_rises_with_temperature_and_is_not_seen_by_the_callers():
+    temperatures = [320.0 + 20.0 * step for step in range(31)]
+    values = [saturation.unread_pressure_pa("S2", t) for t in temperatures]
+    assert all(b > a > 0.0 for a, b in zip(values, values[1:]))
+    assert saturation.unread_formulas() == ("S2",)
+    assert not saturation.has("S2") and "S2" not in saturation.formulas()
+    with pytest.raises(saturation.UnknownSpecies):
+        saturation.saturation("S2", 500.0)
+    with pytest.raises(saturation.UnknownSpecies):
+        saturation.unread_pressure_pa("H2O", 300.0)
+    with pytest.raises(ValueError):
+        saturation.unread_pressure_pa("S2", 0.0)

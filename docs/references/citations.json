@@ -26180,6 +26180,16 @@
       "kind": "paper",
       "label": "Metcalfe 2003",
       "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate"
+    },
+    "R5244": {
+      "kind": "paper",
+      "label": "Lin et al. 2021",
+      "title": "OSSOS: The eccentricity and inclination distributions of the stable neptunian Trojans"
+    },
+    "R5245": {
+      "kind": "paper",
+      "label": "Vokrouhlický et al. 2024",
+      "title": "Orbital and absolute magnitude distribution of Jupiter Trojans"
     }
   }
 }
