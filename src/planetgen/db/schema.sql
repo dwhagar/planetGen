@@ -1554,6 +1554,7 @@
 -- v248 (GEN.1510): `planets` gains `belt_order` and `belt_rank` (INT, NULL): a planet that is one of the heaviest round bodies of an asteroid belt (promoted to a planet, `generation/belt_planets.py`) keeps the belt's number among the belts of its star (`belt_order`, counted as `irregular_moons.belt_order` counts) and the rank it had among the belt's members (`belt_rank`), so the designation `<belt ID>.<rank>` still resolves. NULL for every other planet and for a row made before v244.
 -- v242 (GEN.1484): `planets`, `moons` and `rogue_planets` gain `light_factor` (DOUBLE, NULL): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other, NULL for every other body.
 -- v247 (GEN.1535): `planets`, `moons` and `rogue_planets` gain `obliquity_min_deg` and `obliquity_max_deg` (DOUBLE, NULL): the lowest and highest tilt a free-spinning planet's axis reaches over the age of its star, from the spin-orbit secular resonances (`physics/obliquity_variation.py`), NULL for a body that was not worked (a moon, a rogue planet, a locked or resonant body); a free-spinning planet with no mode to drive it has a range of its own tilt.
+-- v249 (GEN.1567): `planets`, `moons` and `rogue_planets` gain `ice_cover_fraction` (DOUBLE, NULL): the share of the surface the ice covers (the lid of an ice-covered ocean, or a body that is ice through), and `ocean_fraction` now counts the liquid sea alone (it counted liquid or frozen water before), `land_fraction` being the rest of the surface after the liquid sea; NULL for a body with no ground and for every row made before v249.
 -- v231 (GEN.1364): `planets`, `moons` and `rogue_planets` gain the metal core's make-up as mass fractions of the core: `core_ni_fraction`, `core_s_fraction`, `core_si_fraction`, `core_o_fraction`, `core_c_fraction` and `core_h_fraction` (the iron is the rest) and `core_light_fraction` (the five light elements together); all NULL for a body with no metal and on a row made before v230 (`physics/core_composition.py`, `migrations/versions/0231_core_composition.py`).
 -- v229 (GEN.1350): `planets`, `moons` and `rogue_planets` gain `dipole_tilt_deg` (the angle between the dipole's axis and the spin axis, 0 to 90 degrees) and `dipole_offset_class` (`centered` or `offset`), `stars` gains `surface_dipole_field_gauss` (the polar field of the star's dipole, gauss) and `neutron_stars` gains `magnetic_inclination_deg`; all NULL without a field and on a row made before v229 (`physics/magnetic_geometry.py`, `migrations/versions/0229_dipole_orientation.py`).
 -- v228 (GEN.1047): `planets`, `moons` and `rogue_planets` gain `oddities` (VARCHAR(40), NULL): the ids of the rows of the oddity table (`physics/oddities.py`) that gave the body its rare, physically plausible state, comma separated, NULL for none and for a row made before v221.
@@ -2427,6 +2428,7 @@ CREATE TABLE IF NOT EXISTS planets (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
+    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -2968,6 +2970,7 @@ CREATE TABLE IF NOT EXISTS moons (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),
     ocean_fraction              DOUBLE,
     land_fraction               DOUBLE,
+    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567): the share of the surface the ice covers (an ice lid, or a body that is ice through); `ocean_fraction` is the liquid sea alone
     ocean_depth_km              DOUBLE,
     ice_shell_km                DOUBLE,
     hp_ice_km                   DOUBLE,
@@ -4417,6 +4420,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapor', 'ice', 'ice-covered ocean', 'surface ocean', 'brine seep', 'hycean')),  -- v207 (GEN.1111)
     ocean_fraction              DOUBLE,  -- v207 (GEN.1111)
     land_fraction               DOUBLE,  -- v207 (GEN.1111)
+    ice_cover_fraction          DOUBLE,  -- v249 (GEN.1567)
     ice_shell_km                DOUBLE,  -- v207 (GEN.1111)
     ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),  -- v207 (GEN.1111)
     ocean_ph                    DOUBLE,  -- v207 (GEN.1111)

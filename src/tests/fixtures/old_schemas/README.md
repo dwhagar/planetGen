@@ -127,3 +127,4 @@ Commit each file came from:
 - v245: after GEN.1425's migration 0245 (cloud_chemistry column), before GEN.1498 system_summary ledger_stamp column (0246)
 - v246: after GEN.1498's migration 0246 (ledger_stamp column), before GEN.1535 obliquity range columns (0247)
 - v247: after GEN.1535's migration 0247 (obliquity range columns), before GEN.1510 planets belt_order and belt_rank columns (0248)
+- v248: after GEN.1510's migration 0248 (planets belt_order and belt_rank columns), before GEN.1567 ice cover column (0249)

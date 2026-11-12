@@ -264,7 +264,7 @@ _BODY_GROUPS = (
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("relative_humidity", "Relative humidity of the surface air"), ("groundwater", "Groundwater (liquid water underground)", TEXT),
-           ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
+           ("ocean_fraction", "Surface under liquid ocean"), ("ice_cover_fraction", "Surface under ice"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
            ("surface_liquid_depth_km", "Depth of that liquid"),
@@ -900,7 +900,7 @@ _MEAN_SWING = ("temp_mean_swing_k",)
 _COVERAGE_ROWS = ("temp_livable_share", "temp_livable_area", "temp_site_coldest_k", "temp_site_hottest_k", "temp_coldest_k", "temp_hottest_k")
 """tuple: The columns of what is read off the temperature of every place that the climate table shows (GEN.1265); a giant has none."""
 _SURFACE = (
-    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
+    "hydrosphere", "ocean_fraction", "ice_cover_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "relative_humidity", "groundwater",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, *surface_liquid_world.MIX_FIELDS, surface_liquid_world.SALT_FIELD, *surface_liquid_world.SECOND_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "ground_type", "ground_grain", *surface_composition.FRACTION_FIELDS,
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio", *CORE_FRACTIONS, "rock_na2o_fraction", "rock_k2o_fraction", "rock_tio2_fraction", "rock_cr2o3_fraction", "rock_mno_fraction", "rock_nio_fraction", "rock_p2o5_fraction",
