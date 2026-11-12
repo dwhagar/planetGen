@@ -12388,7 +12388,7 @@
     },
     "R2478": {
       "kind": "paper",
-      "label": "Kraus et al. 2011",
+      "label": "Kraus et al. 2011b",
       "title": "Impacts onto H2O ice: Scaling laws for melting, vaporization, excavation, and final crater size"
     },
     "R2479": {
@@ -26075,6 +26075,51 @@
       "kind": "paper",
       "label": "Levison and Duncan 1997",
       "title": "From the Kuiper Belt to Jupiter-Family Comets: The Spatial Distribution of Ecliptic Comets"
+    },
+    "R5219": {
+      "kind": "paper",
+      "label": "Parai and Mukhopadhyay 2015",
+      "title": "The evolution of MORB and plume mantle volatile budgets: Constraints from fission Xe isotopes in Southwest Indian Ridge basalts"
+    },
+    "R5220": {
+      "kind": "paper",
+      "label": "Kraus et al. 2016",
+      "title": "THE IMPACT OF STELLAR MULTIPLICITY ON PLANETARY SYSTEMS. I. THE RUINOUS INFLUENCE OF CLOSE BINARY COMPANIONS"
+    },
+    "R5221": {
+      "kind": "paper",
+      "label": "Kozai 1962",
+      "title": "Secular perturbations of asteroids with high inclination and eccentricity"
+    },
+    "R5222": {
+      "kind": "paper",
+      "label": "Lidov 1962",
+      "title": "The evolution of orbits of artificial satellites of planets under the action of gravitational perturbations of external bodies"
+    },
+    "R5223": {
+      "kind": "paper",
+      "label": "Innanen et al. 1997",
+      "title": "The Kozai Mechanism and the Stability of Planetary Orbits in Binary Star Systems"
+    },
+    "R5224": {
+      "kind": "paper",
+      "label": "Tremaine et al. 2009",
+      "title": "SATELLITE DYNAMICS ON THE LAPLACE SURFACE"
+    },
+    "R5225": {
+      "kind": "paper",
+      "label": "Kraus et al. 2011a",
+      "title": "THE ROLE OF MULTIPLICITY IN DISK EVOLUTION AND PLANET FORMATION"
+    },
+    "R5226": {
+      "kind": "paper",
+      "label": "Fabrycky and Tremaine 2007",
+      "title": "Shrinking Binary and Planetary Orbits by Kozai Cycles with Tidal Friction"
+    },
+    "R5227": {
+      "kind": "paper",
+      "label": "Laskar et al. 1993",
+      "title": "Stabilization of the Earth's obliquity by the Moon"
     }
   }
 }

@@ -37,7 +37,7 @@ there. The pipe takes over where the radiogenic heat plus the tide at that tempe
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, hydrosphere, tidal_rheology
+from planetgen.physics import constants, hydrosphere, tidal_rheology, tide_sources
 
 ROCK_RIGIDITY_PA = 7.0e10
 """float: The shear modulus of the solid mantle, Pa (PREM mantle average: 65 to 80 GPa). Source tier T2."""
@@ -97,22 +97,25 @@ class Forcing:
 
 
 def moon_tides_of(body):
-    """The `(mass_kg, distance_m, retrograde, orbital_rate_rad_s)` of each of a planet's moons and the planet's spin rate (rad/s, negative when retrograde) from the stored
-    fields, or `((), 0.0)` for a moon, a planet with no moons or one whose day is not stored."""
-    moons = getattr(body, "moons", None)
+    """The `(mass_kg, distance_m, retrograde, orbital_rate_rad_s)` of each body whose tide flexes `body` against its spin, and the spin rate (rad/s, negative when retrograde), from the stored
+    fields: a planet's moons and, for any planet or moon, every other body of the system that pulls on it (`tide_sources.spin_raisers`, GEN.1503; the rate is the one the line to it turns at).
+    `((), 0.0)` for a body whose day is not stored or that has nothing to flex it."""
     day_hours = getattr(body, "rotation_period_hours", None)
-    if not moons or getattr(body, "is_moon", False) or not day_hours:
+    if not day_hours:
         return (), 0.0
     tilt = getattr(body, "axial_tilt_deg", None) or 0.0
     spin = 2.0 * math.pi / (day_hours * 3600.0) * (-1.0 if tilt > 90.0 else 1.0)
     tides = []
-    for moon in moons:
-        distance_m = moon.distance * constants.AU_TO_M
-        retrograde = (getattr(moon, "orbital_inclination_deg", 0.0) or 0.0) > 90.0
-        rate = math.sqrt(constants.G * (body.mass + moon.mass) / distance_m ** 3) * (-1.0 if retrograde else 1.0)
-        tides.append((moon.mass, distance_m, retrograde, rate))
-    tides = tuple(tides)
-    return tides, spin
+    if not getattr(body, "is_moon", False):
+        for moon in getattr(body, "moons", None) or ():
+            distance_m = moon.distance * constants.AU_TO_M
+            retrograde = (getattr(moon, "orbital_inclination_deg", 0.0) or 0.0) > 90.0
+            rate = math.sqrt(constants.G * (body.mass + moon.mass) / distance_m ** 3) * (-1.0 if retrograde else 1.0)
+            tides.append((moon.mass, distance_m, retrograde, rate))
+    tides.extend((raiser.mass_kg, raiser.distance_m, False, raiser.orbital_rate) for raiser in tide_sources.spin_raisers(body))
+    if not tides:
+        return (), 0.0
+    return tuple(tides), spin
 
 
 def forcing_of(body):

@@ -223,6 +223,8 @@ def _status_view(status):
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
         "paused_at": _iso(status.get("paused_at")),
+        "paused_reason": status.get("paused_reason"),
+        "solo_unit": status.get("solo_unit"),
         "holder": status.get("holder"),
         "holder_title": status.get("holder_title"),
         "heartbeat": _duration(status.get("heartbeat_age_s")),
@@ -317,6 +319,26 @@ def _held_view(held):
     return {"total": held["total"], "shown": len(rows), "rows": rows}
 
 
+def _beating_view(body):
+    """The panel of jobs that are not units of a run (OPS.142), or `None` when none is running."""
+    jobs = (body or {}).get("jobs") or []
+    if not jobs:
+        return None
+    names = {"api": "API job", "web": "Generate page job", "tile-prefetch": "Map tile prefetch"}
+    return {"rows": [{"kind": names.get(job["kind"], job["kind"]), "label": job["label"], "id": job["job"], "state": job["state"], "dead": job["state"] == "dead",
+                      "phase": job["phase"], "running": _beat_gap(job["running_seconds"]), "heard": _beat_gap(job["beat_age_seconds"])} for job in jobs]}
+
+
+def _beat_gap(seconds):
+    """Seconds as `5 s`, `4 min` or `2 h 10 min` (the other-job rows; `_duration` is the long form of the stage and run pages)."""
+    seconds = int(max(seconds or 0, 0))
+    if seconds < 90:
+        return f"{seconds} s"
+    if seconds < 5400:
+        return f"{seconds // 60} min"
+    return f"{seconds // 3600} h {seconds % 3600 // 60} min"
+
+
 def _iso(seconds):
     """A time given in seconds since the epoch as the ISO text `time_text` reads, or `None`."""
     if not seconds:
@@ -333,7 +355,7 @@ def admin_queue():
     cookie_header = _cookie_header()
     error = None
     jobs_table = None
-    workers = warm = held = None
+    workers = warm = held = beating = None
     try:
         try:
             workers = apiclient.admin_work_workers(cookie_header)
@@ -343,6 +365,10 @@ def admin_queue():
             held = _held_view(apiclient.admin_work_held(cookie_header))
         except apiclient.ApiError:
             held = None
+        try:
+            beating = _beating_view(apiclient.admin_work_jobs(cookie_header))
+        except apiclient.ApiError:
+            beating = None
         try:
             warm = apiclient.admin_work_warm(cookie_header, db_name())
         except apiclient.ApiError:
@@ -357,7 +383,7 @@ def admin_queue():
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held,
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers, held=held, beating=beating,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),
     )
@@ -384,6 +410,70 @@ def _stage_rows(run):
     } for number, stage in enumerate(run["stages"], 1)]
 
 
+UNIT_STATE_LABELS = {"working": "Working", "slow": "Slow", "waiting": "Waiting", "quiet": "Quiet", "looping": "Looping", "dead": "Dead"}
+"""dict: The words for the states `beatjudge` gives a running unit (OPS.138), in the order the summary lists them."""
+
+UNIT_ROWS_SHOWN = 200
+"""int: The most units the run's page lists; the rest are counted in the summary (a wide stage runs a few hundred at once)."""
+
+
+def _unit_rows(run, units):
+    """
+    The running units of `run` as the page's rows (OPS.139): what `GET /api/admin/work/<id>/units` says about each, worst state first so the ones that need a look are on top.
+
+    Returns:
+        tuple: `(rows, summary, hidden)`: the rows (at most `UNIT_ROWS_SHOWN`), the summary line (`"12 units: 10 working, 2 quiet"`) and how many rows are left out,
+        `([], "", 0)` where none is running.
+    """
+    if not units:
+        return [], "", 0
+    order = {state: number for number, state in enumerate(reversed(list(UNIT_STATE_LABELS)))}
+    labels = [stage["label"] for stage in run["stages"]]
+    rows = []
+    for unit in sorted(units, key=lambda row: (order.get(row["state"], 99), -(row.get("beat_age_seconds") or 0.0), row["stage"], row["unit"])):
+        done, estimate = unit.get("done") or 0.0, unit.get("estimate") or 0.0
+        if not unit.get("counter"):
+            counter = "no counter"
+        elif estimate:
+            counter = f"{done:,.0f} of {estimate:,.0f}"
+        else:
+            counter = f"{done:,.0f}"
+        rate = unit.get("rate")
+        left = unit.get("projected_finish_seconds")
+        phase = unit.get("phase") or ""
+        if unit.get("waiting_on"):
+            phase = f"{phase} (waiting on {unit['waiting_on']})" if phase else f"waiting on {unit['waiting_on']}"
+        rows.append({
+            "stage": f"{unit['stage'] + 1}. {labels[unit['stage']]}" if 0 <= unit["stage"] < len(labels) else str(unit["stage"] + 1),
+            "unit": unit["unit"],
+            "state": unit["state"],
+            "state_label": UNIT_STATE_LABELS.get(unit["state"], unit["state"]),
+            "severity": unit.get("severity") or "",
+            "phase": phase,
+            "counter": counter,
+            "rate": "" if not rate else (f"{rate:,.1f} a second" if rate >= 1 else f"{1 / rate:,.1f} s each"),
+            "left": _duration(left) if left is not None else "",
+            "beat": _duration(unit.get("beat_age_seconds")),
+            "running": _duration(unit.get("running_seconds")),
+            "memory": f"{unit['resident_mb']:.0f} MB" if unit.get("resident_mb") else "",
+            "reason": unit.get("reason") or "",
+            "stop": bool(unit.get("agreed")),
+        })
+    counts = {state: sum(1 for unit in units if unit["state"] == state) for state in UNIT_STATE_LABELS}
+    summary = f"{len(units)} {counted('unit', len(units))}: " + ", ".join(f"{count} {state}" for state, count in counts.items() if count)
+    return rows[:UNIT_ROWS_SHOWN], summary, max(len(rows) - UNIT_ROWS_SHOWN, 0)
+
+
+def _live_units(cookie_header, run):
+    """The verdict on each running unit of a live run (OPS.138), `[]` for a run that is over or when the route does not answer."""
+    if not run["live"]:
+        return []
+    try:
+        return apiclient.admin_work_units(cookie_header, run["id"])
+    except apiclient.NotFoundError:
+        return []
+
+
 def _run_back_url():
     """Where Cancel returns to: the page the run's page was opened from, not a confirmation step or the page itself."""
     back = came_from(request.path)
@@ -402,10 +492,11 @@ def admin_queue_run(run_id):
     if run is None:
         abort(404, description="No such run.")
     flashed = _take_flash()
+    unit_rows, unit_summary, unit_hidden = _unit_rows(run, _live_units(_cookie_header(), run))
     return _render(
         "admin_queue_run.html", flashed=True, title=run["title"][:80] or "Run", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run")],
-        admin=admin, run=run_view(run), stages=_stage_rows(run), events=[_event_view(event) for event in body["events"]],
+        admin=admin, run=run_view(run), stages=_stage_rows(run), unit_rows=unit_rows, unit_summary=unit_summary, unit_hidden=unit_hidden, events=[_event_view(event) for event in body["events"]],
         back_url=_run_back_url(),
         error=flashed.get("error"), message=flashed.get("message"),
     )

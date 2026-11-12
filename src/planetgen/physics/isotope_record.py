@@ -214,7 +214,7 @@ CORE_ELEMENTS = {"core_ni_fraction": "Ni", "core_s_fraction": "S", "core_si_frac
 """dict: The light-element column of a core and the element it holds."""
 
 _EARTH_G = 9.80665
-AVOGADRO = 6.02214076e23
+AVOGADRO = constants.AVOGADRO
 _GY_S = radiogenic.GY_S
 
 
@@ -749,7 +749,18 @@ MANTLE_XE_129_OVER_130 = 7.9
 SOLAR_XE_129_OVER_130 = 6.286
 """float: The 129Xe/130Xe of the solar gas the radiogenic excess is counted from, 6.286 (the solar value of the lunar-sample work, recalled, not opened). The excess of another body's mantle is the Earth's times the body's birth 129I/127I over the early Solar System's (`ESS_INITIAL_RATIO`), the closure time (40 to 50 Myr, [R2923]) and the iodine over xenon of the mantle being the Earth's. [Stand-in ISO27 (the solar value, tier T4, tweak L0) and ISO28 (the scaling, tier T5, tweak L1).]"""
 
-MANTLE_SHEET_KEYS = tuple(f"isotope_mantle_{short}" for short in ("D/H", "13C/12C", "15N/14N", "129Xe/130Xe"))
+SOLAR_XE_136_OVER_130 = 1.797
+"""float: The 136Xe/130Xe of the solar gas the fission excess is counted from: the solar wind's 0.2985 over 0.1661 for 136Xe/132Xe and 130Xe/132Xe ([R5219: Table 3]; the ratio is their quotient). [Stand-in ISO35, tier T1, tweak L0.]"""
+
+MANTLE_XE_136_OVER_130 = 2.478
+"""float: The 136Xe/130Xe of the Earth's upper-mantle gas: the mean of the two segments of the Southwest Indian Ridge, 2.554 and 2.402 (136Xe/132Xe over 130Xe/132Xe of the sources corrected for air, [R5219: Table 2]). The excess over
+`SOLAR_XE_136_OVER_130` is 0.68. [Stand-in ISO36, tier T2, tweak L0.]"""
+
+PU_SHARE_OF_FISSION_XE136 = 0.28
+"""float: The share of the mantle's fission 136Xe that 244Pu made (the rest is 238U's): 0.28 (+0.11, -0.10) for the ridge basalts ([R5219: Sec. 4.2]; its other sections give 0.31 and 0.36 by the choice of primordial end member), read from a model
+summary of the paper. [Stand-in ISO37, tier T3, tweak L0.]"""
+
+MANTLE_SHEET_KEYS = tuple(f"isotope_mantle_{short}" for short in ("D/H", "13C/12C", "15N/14N", "129Xe/130Xe", "136Xe/130Xe"))
 """tuple: The keys of the lines `mantle_sheet_rows` gives."""
 
 
@@ -757,7 +768,8 @@ def mantle_sheet_rows(rows):
     """
     The derived lines for the mantle of a rocky body (GEN.1490), `[(key, label, text, ratio)]`, from its stored record `rows` (`{"isotope", "fraction", "initial_ratio"}` mappings): the ratios of the water, nitrogen
     and carbon in the mantle, which differ from the body's own by the fractionation of degassing and of the ocean's making (`MANTLE_DELTA_D`, `MANTLE_DELTA_N15`, `MANTLE_DELTA_C13`), and the 129Xe/130Xe of its
-    gas, the solar value plus the 129Xe that the decay of 129I made (the Earth's excess times the body's birth ratio of 129I over the early Solar System's). Empty for a body with no rock (no Mg in the record).
+    gas, the solar value plus the 129Xe that the decay of 129I made (the Earth's excess times the body's birth ratio of 129I over the early Solar System's), and its 136Xe/130Xe, the solar value plus the Earth's fission excess of which
+    the 244Pu share scales with the body's birth ratio of 244Pu over the early Solar System's and the 238U share stays the Earth's (GEN.1507; the 238U part is the Earth's for every body. [Stand-in ISO38, tier T6, tweak L0.]). Empty for a body with no rock (no Mg in the record).
     """
     fractions = {row["isotope"]: row["fraction"] for row in rows or ()}
     if "Mg-24" not in fractions:
@@ -781,6 +793,11 @@ def mantle_sheet_rows(rows):
         excess = (MANTLE_XE_129_OVER_130 - SOLAR_XE_129_OVER_130) * birth / ESS_INITIAL_RATIO["I-129"]
         ratio = SOLAR_XE_129_OVER_130 + excess
         add("129Xe/130Xe", "Xenon-129 over xenon-130 of the mantle's gas", f"129Xe/130Xe {ratio:.4g}", ratio)
+    pu_birth = next((row.get("initial_ratio") for row in rows if row["isotope"] == "Pu-244"), None)
+    if pu_birth is not None:
+        excess = (MANTLE_XE_136_OVER_130 - SOLAR_XE_136_OVER_130) * ((1.0 - PU_SHARE_OF_FISSION_XE136) + PU_SHARE_OF_FISSION_XE136 * pu_birth / ESS_INITIAL_RATIO["Pu-244"])
+        ratio = SOLAR_XE_136_OVER_130 + excess
+        add("136Xe/130Xe", "Xenon-136 over xenon-130 of the mantle's gas", f"136Xe/130Xe {ratio:.4g}", ratio)
     return shown
 
 def _one_row_per_isotope(rows):

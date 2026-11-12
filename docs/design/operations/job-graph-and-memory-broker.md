@@ -58,7 +58,7 @@ Boss, 2026-11-08, 3:32 PM EST: all jobs are executed as a sequence of singular c
 
 | Today | What it does in one go | Becomes, in sequence |
 |---|---|---|
-| `prepare_scatter_phenomena` | empties the earlier scatter, then takes off the indexes | `clear-phenomena` (exists as a command already), `drop-phenomenon-indexes` |
+| `prepare_scatter_phenomena` (built, OPS.123 slice 3) | empties the earlier scatter, then takes off the indexes | `empty-phenomenon-scatter` (built; `clear-scatter` was not reused: it refreshes the block lights and resets the epoch), `drop-phenomenon-indexes` (built) |
 | `finish_phenomena_unit` (the `finish-phenomena` command) | draws the special phenomena (nucleus, hypervelocity stars), writes them, builds the table's indexes one at a time, stamps the hypervelocity stars' epoch, records the scatter's seed and mass cut | `draw-special-phenomena`, `write-special-phenomena`, `build-index` (one per index), `stamp-hypervelocity-epoch`, `record-phenomenon-scatter` |
 | `conclude_scatter_phenomena` | counts the phenomena per class and stores them | `store-phenomenon-class-counts` |
 | `prepare_scatter_pass` (built, OPS.123 slice 3), `conclude_scatter_pass` | empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch | `clear-bright-stars` (built: one command for both, the stage `mass-clear` or `luminosity-clear`), `store-scatter-limits`, `store-scatter-epoch` |
@@ -144,6 +144,14 @@ The planner (replacing `galaxy_stages`, `for_command`, `KIND_OF_STAGE`, `build_s
 3. **Emits the sequence, lazily below the command.** The plan holds the commands. Each command's items (a range of sectors, a shell list, a block) are described compactly and written by the command's open job in windows (section 3.4), not stored up front.
 
 The order of a run is therefore a result of the planner, not a list someone typed. Add a command with `needs`/`makes` and it fits; ask for less and fewer jobs exist. The Generate page, the API and the command line all send the same thing (a goal and its settings) to the planner. The "Stage 4 of 13" bars become **groups**: each command in the plan is a group, bars and ETAs are the sum over the group's jobs, so `stagetimes`, the ETA and the Queue page keep their meaning.
+
+#### 3.2.1 The subtract rule, first built for the scatters of a `galaxy` run (PERF.256)
+
+Until the planner of OPS.128 exists, the rule is applied where the audit found the largest rescan (`reports/generation-rescans-and-stored-fields-2026-11-09.md`, C4): `galaxy` emptied and redrew its scatters on every run (65 minutes with 3 workers on a rerun). `run_plan.stored_scatter_skips` reads the stored facts and `stages.galaxy_stages` lists the stages they make as skipped with the reason (the list keeps every stage numbered; `args.stage_skips`); `run_galaxy` does not build their followers, and the estimate counts them as no time.
+
+- **The fact:** a scatter stands when `scatter_epochs` holds its record (every clear forgets it, so a record is a finished draw, rows or none), the epoch it was drawn under is one no later epoch changed the scatter stage of (`epoch_record.needs`, the staleness `bring_to_epoch` uses), and the settings of the request are the stored ones: the luminosity floor, the stellar mass limit and the star seed for the two star passes (they stand or are drawn together, since the bright stars are split from the massive ones at the mass limit); the seed and the lowest compact mass for the phenomena (which carry their indexes); the nebula field stands with its own record and is drawn again whenever the phenomena are. A galaxy with no seed, whose scatters draw one when they open, has no skips.
+- **The block light stage** is skipped too when every scatter stands, the run generates no sector (a backfill or a fill could still change a light) and the stored totals hold every unbuilt object (`block_lights.totals_current`, the counts GEN.1476's `parts_current` reads).
+- **What stays:** `_refuse_stored_scatter` answers a different question (an explicit `planetgen scatter` over rows that exist is refused so no draw replaces another) and `finished_by` carries a stopped run on; neither is a skip of a fresh request, so both stay until the planner of OPS.128 takes them over.
 
 ### 3.3 Dependencies
 

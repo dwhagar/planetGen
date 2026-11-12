@@ -391,3 +391,56 @@ def test_a_body_hotter_than_the_draper_point_glows_in_the_colour_of_its_heat_and
     giant = {"id": 4, "body_type": "g", "planet_class": "G", "surface_temperature_k": 1500.0, "radius_km": 80000.0}
     assert bl.planet_look(giant)["thermal"]["strength"] == pytest.approx(0.438, abs=0.001)
     assert "thermal" not in bl.planet_look(dict(giant, surface_temperature_k=300.0))
+
+
+# --- A belt member (MAP.412) ------------------------------------------------------------------------------------------------
+
+
+def _member(**over):
+    row = {"id": 7, "taxon": "C", "mass_kg": 1.0e19, "radius_km": 150.0, "density_g_cm3": 1.4, "rock_fraction": 0.9, "metal_fraction": 0.05,
+           "water_fraction": 0.05, "ice_fraction": 0.0}
+    row.update(over)
+    return row
+
+
+def test_a_belt_member_look_is_a_solid_body_with_a_seed_of_its_own_and_the_stored_size():
+    look = bl.member_look(_member())
+    assert (look["v"], look["kind"], look["body"], look["quality"]) == (1, "belt_member", "solid", "composition")
+    assert look["seed"] == bl.seed_for("belt_member", 7) != bl.seed_for("planet", 7)
+    assert (look["taxon"], look["radiusKm"], look["density"]) == ("C", 150.0, 1.4)
+    assert look["seed"] != bl.member_look(_member(id=8))["seed"]
+    assert bl.member_look(_member(id=None, belt_id=3, member_rank=9))["seed"] == bl.seed_for("belt_member", "3.9")
+    json.loads(bl.look_json(look))
+    assert "atm" not in look and "glow" not in look and "ocean" not in look
+
+
+def test_a_belt_members_colour_is_its_taxons_family_mixed_by_the_shares_of_its_mass():
+    carbon = bl.member_look(_member(rock_fraction=1.0, metal_fraction=0.0, water_fraction=0.0, ice_fraction=0.0))["color"]
+    assert carbon == bl.ASTEROID_GRAIN_COLORS["carbonaceous"]
+    stony = bl.member_look(_member(taxon="S", rock_fraction=1.0, metal_fraction=0.0, water_fraction=0.0, ice_fraction=0.0))["color"]
+    assert stony == bl.ASTEROID_GRAIN_COLORS["stony"] and bl.member_look(_member(taxon="V", rock_fraction=1.0, metal_fraction=0.0, water_fraction=0.0, ice_fraction=0.0))["color"] == bl.ASTEROID_GRAIN_COLORS["basaltic"]
+    icy = bl.member_look(_member(rock_fraction=0.0, metal_fraction=0.0, water_fraction=0.4, ice_fraction=0.6))["color"]
+    assert icy == bl.ASTEROID_GRAIN_COLORS["icy"]
+    metal = bl.member_look(_member(taxon="M", rock_fraction=0.0, metal_fraction=1.0, water_fraction=0.0, ice_fraction=0.0))["color"]
+    assert metal == bl.ASTEROID_GRAIN_COLORS["metallic"]
+
+    def lightness(colour):
+        return sum(int(colour[1 + 2 * k:3 + 2 * k], 16) for k in range(3))
+    dark = bl.member_look(_member(rock_fraction=1.0, metal_fraction=0.0, water_fraction=0.0, ice_fraction=0.0))["color"]
+    half = bl.member_look(_member(rock_fraction=0.5, metal_fraction=0.0, water_fraction=0.0, ice_fraction=0.5))["color"]
+    assert lightness(dark) < lightness(half) < lightness(icy)      # ice makes a body paler
+    assert bl.member_look(_member(rock_fraction=None, metal_fraction=None, water_fraction=None, ice_fraction=None))["color"] == bl.ASTEROID_GRAIN_COLORS["carbonaceous"]
+    assert bl.member_look(_member(taxon="?"))["color"].startswith("#")
+
+
+def test_a_small_belt_member_is_a_lump_and_a_round_one_is_not():
+    small = bl.member_look(_member())
+    assert small["lumpy"] is True and small["roundness"] < 1.0
+    round_one = bl.member_look(_member(mass_kg=9.4e20, radius_km=470.0, density_g_cm3=2.0))      # a Ceres
+    assert round_one["lumpy"] is False and round_one["roundness"] >= 1.0
+    assert "lumpy" not in bl.member_look({"id": 1, "taxon": "S"})      # no mass, no claim
+
+
+def test_the_info_panel_says_where_a_belt_members_colour_came_from():
+    assert bl.colour_account(bl.member_look(_member())).startswith("Color from its taxon and the shares of rock, metal, water and ice; drawn as a lump")
+    assert "lump" not in bl.colour_account(bl.member_look(_member(mass_kg=9.4e20, radius_km=470.0)))

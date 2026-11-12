@@ -228,6 +228,7 @@ _kind("volume", dimension(length=3), "m3", NON_NEGATIVE)
 _kind("number_density", dimension(length=-3), "m-3", NON_NEGATIVE)
 _kind("flux", dimension(mass=1, time=-3), "W_m2", NON_NEGATIVE)
 _kind("magnetic_field", dimension(mass=1, time=-2), "T", NON_NEGATIVE)
+_kind("dose_rate", dimension(length=2, time=-3), "Sv_s", NON_NEGATIVE)
 _kind("gravitational_parameter", dimension(length=3, time=-2), "m3_s2", NON_NEGATIVE)
 
 
@@ -359,6 +360,12 @@ def _energetic():
               singular="watt per square meter")
     _prefixed("magnetic_field", "T", "T", "teslas", 1.0, SI_PREFIXES[:4], singular="tesla")
     _unit("G", "magnetic_field", "G", "gauss", 1e-4)
+    # An effective dose rate (a sievert is a joule per kilogram, so a sievert a second is m²/s³). The keys are the column
+    # unit keys of db/column_units.py, which keep their slash (mSv/yr is what the API and a search name).
+    _unit("Sv_s", "dose_rate", "Sv/s", "sieverts per second", 1.0)
+    for ascii_prefix, symbol_prefix, name_prefix, power in SI_PREFIXES[:6]:      # n, µ, m, none, k, M
+        _unit(f"{ascii_prefix}Sv/yr", "dose_rate", f"{symbol_prefix}Sv/yr", f"{name_prefix}sieverts per year",
+              _power_of_ten(power) / _JULIAN_YEAR_S, singular=f"{name_prefix}sievert per year")
 
 
 def _fields():

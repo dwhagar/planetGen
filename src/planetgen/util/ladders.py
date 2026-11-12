@@ -463,12 +463,32 @@ MAGNETIC_FIELD = Ladder(
     ),
 )
 
-LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, TEMPERATURE_DIFFERENCE, FRACTION, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD)
+# A dose rate: effective dose a year, in sieverts with the SI prefixes. A body's dose runs from a hundredth of a microsievert
+# a year (the ground of an old basaltic world) to hundreds of sieverts a year (an airless moon in its planet's belts), so a
+# fixed milli would write the large ones in scientific notation ("1.32 × 10⁴ mSv/yr", Boss 2026-11-11); this writes "13.2 Sv/yr".
+# Base units are sieverts a second, so a registry value in any of these converts exactly.
+DOSE_RATE = Ladder(
+    quantity="dose rate",
+    base="Sv/s",
+    nonfinite="Sv/yr",
+    zero="mSv/yr",
+    rungs=(
+        rung("nSv/yr", start=0.0),
+        rung("uSv/yr"),
+        rung("mSv/yr"),
+        rung("Sv/yr"),
+        rung("kSv/yr"),
+        rung("MSv/yr"),
+    ),
+)
+
+LADDERS = (LENGTH, SPEED, TIME, TEMPERATURE, TEMPERATURE_DIFFERENCE, FRACTION, PRESSURE, GRAVITY, MASS, POWER, FLUX, NUMBER_DENSITY, MAGNETIC_FIELD,
+           DOSE_RATE)
 """Tuple[Ladder, ...]: Every ladder, in the order `unitladders.js` lists them."""
 
 _BY_KIND = dict(zip(
     ("length", "speed", "duration", "temperature", "delta_temperature", "fraction", "pressure", "acceleration", "mass", "power", "flux", "number_density",
-     "magnetic_field"), LADDERS))
+     "magnetic_field", "dose_rate"), LADDERS))
 _BY_KIND_OF_LADDER = {ladder.quantity: kind for kind, ladder in _BY_KIND.items()}
 LADDER_OF_KIND = {kind: ladder.quantity for kind, ladder in _BY_KIND.items()}
 """dict: The name of the ladder each registry kind is shown on (`unitladders.js` `LADDER_OF_KIND`)."""

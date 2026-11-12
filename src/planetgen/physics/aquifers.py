@@ -30,8 +30,8 @@ from planetgen.physics import constants, saturation
 AQUIFER_FIELDS = ("aquifer_depth_km", "aquifer_thickness_km")
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and `moons`."""
 
-WATER_MELTING_K = 273.15
-LIQUID_WATER_DENSITY_KG_M3 = 1000.0
+WATER_MELTING_K = constants.WATER_MELTING_K
+LIQUID_WATER_DENSITY_KG_M3 = constants.LIQUID_WATER_DENSITY_KG_M3
 SURFACE_STATES = ("dry", "ice", "vapor")
 """tuple: The hydrosphere states that can have an aquifer: the ones with no liquid water at the surface."""
 

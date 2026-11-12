@@ -376,8 +376,10 @@ def test_one_class_with_the_whole_share_is_the_old_single_class_air(world, monke
     assert _methane(world) == pytest.approx(_methane(split), rel=1e-9)
 
 
-def _mock_profile(monkeypatch, source=2.0, reductant=0.5, store=2.0e9):
+def _mock_profile(monkeypatch, source=2.0, reductant=0.5, store=2.0e9, history=True):
     monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(source * share, reductant, store + extra_store_mol, 1.0, 1.0, 1.0))
+    if history:      # the numbers of these tests are for a reductant that stays what it is now (GEN.1463's history is tested on its own below)
+        monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 1.0)
 
 
 def test_the_oxygen_rise_of_one_class_is_its_start_plus_the_delay(world, monkeypatch):
@@ -463,3 +465,22 @@ def test_each_gas_of_the_history_says_which_class_made_how_much_of_the_change(wo
             assert [(entry["life_class"], entry["share"]) for entry in by_gas[formula]] == [(2, 0.25), (8, 0.75)]
     assert "CH4" in by_gas
     assert all(abs(sum(entry["share"] for entry in shares) - 1.0) < 1e-5 for shares in by_gas.values() if shares)
+
+
+def test_a_reductant_that_was_larger_when_the_body_was_young_delays_the_rise(world, monkeypatch):
+    """GEN.1463: the surplus is summed with the reductant of the age, so a young body's rise comes later than at today's reductant, and a reductant that falls to its value now lets it come at all."""
+    _mock_profile(monkeypatch, source=2.0, reductant=1.5, store=2.0e9, history=False)
+    constant = 0.5 + 2.0e9 / 0.5 / 1e9
+    monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 1.0)
+    assert bo.rise_age_gyr(world, [(0.5, 1.0)]) == pytest.approx(constant)
+    monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 2.0 if age_gyr < 1.5 else 1.0)       # 3.0 > S before 1.5 Gyr: no surplus, then 0.5 a year
+    assert bo.rise_age_gyr(world, [(0.5, 1.0)]) == pytest.approx(1.5 + 2.0e9 / 0.5 / 1e9, rel=1e-3)
+    monkeypatch.setattr(bo, "reductant_history_factor", lambda body, age_gyr: 4.0)                                    # never below S inside the star's age, and past it R is what it is now
+    assert bo.rise_age_gyr(world, [(0.5, 1.0)]) > 3.0 + 2.0e9 / 0.5 / 1e9 - 1e-6
+
+
+def test_the_history_factor_is_one_now_and_larger_before_for_a_body_with_a_thermal_history(world):
+    assert bo.reductant_history_factor(world, world.star.age) == pytest.approx(1.0)
+    assert bo.reductant_history_factor(world, 10.0 * world.star.age) == pytest.approx(1.0)       # past the star's age R is what it is now
+    assert bo.reductant_history_factor(world, 0.5) > 1.2
+    assert bo.reductant_history_factor(None, 0.5) == 1.0

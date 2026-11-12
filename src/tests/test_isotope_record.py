@@ -362,6 +362,18 @@ def test_the_mantle_xenon_excess_is_the_earths_at_the_early_solar_systems_iodine
     assert ratio(poor) - ir.SOLAR_XE_129_OVER_130 == pytest.approx(0.5 * (ir.MANTLE_XE_129_OVER_130 - ir.SOLAR_XE_129_OVER_130))
     assert ir.mantle_sheet_rows([{"isotope": "H-1", "fraction": 1.0, "initial_ratio": None}]) == [] and ir.mantle_sheet_rows(None) == []        # no rock, no mantle
 
+def test_the_mantle_136xe_is_solar_plus_the_earths_fission_excess_with_the_plutonium_part_scaled_by_the_birth_ratio():
+    base = [{"isotope": "Mg-24", "fraction": 0.79, "initial_ratio": None}]
+    with_pu = lambda factor: base + [{"isotope": "Pu-244", "fraction": 1e-40, "initial_ratio": factor * ir.ESS_INITIAL_RATIO["Pu-244"]}]
+    ratio = lambda rows: [row for row in ir.mantle_sheet_rows(rows) if row[0] == "isotope_mantle_136Xe/130Xe"][0][3]
+    excess = ir.MANTLE_XE_136_OVER_130 - ir.SOLAR_XE_136_OVER_130
+    assert ratio(with_pu(1.0)) == pytest.approx(ir.MANTLE_XE_136_OVER_130)                                       # the Earth's early Solar System birth ratio gives the Earth's mantle
+    assert ratio(with_pu(0.0)) - ir.SOLAR_XE_136_OVER_130 == pytest.approx((1.0 - ir.PU_SHARE_OF_FISSION_XE136) * excess)   # no plutonium leaves the uranium part
+    assert ratio(with_pu(2.0)) > ratio(with_pu(1.0)) > ratio(with_pu(0.5)) > ir.SOLAR_XE_136_OVER_130
+    assert not [row for row in ir.mantle_sheet_rows(base) if row[0] == "isotope_mantle_136Xe/130Xe"]            # a record with no plutonium row shows no line
+    assert "isotope_mantle_136Xe/130Xe" in ir.MANTLE_SHEET_KEYS
+
+
 def _rock_world(**changes):
     body = _Air()
     body.rock_mass_fraction = 0.67
