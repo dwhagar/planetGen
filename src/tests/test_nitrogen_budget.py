@@ -53,3 +53,29 @@ def test_the_nitrogen_the_delivered_ratio_and_the_degassing_give_at_the_middle_i
     low, high, _ = mixture_rocky.INVENTORY["nitrogen_per_carbon"]
     elow, ehigh, _ = surface_pressure.DEGAS_EFFICIENCY_N
     assert math.sqrt(low * high) * math.sqrt(elow * ehigh) == pytest.approx(0.022, rel=0.1)  # the old log-middle of the nitrogen per carbon, so the Earth twin keeps its 78 kPa
+
+
+def _recipe(row):
+    class Group:
+        name = row
+    class Recipe:
+        groups = {"b": Group}
+        values = {}
+    return Recipe
+
+
+def test_the_nitrogen_of_a_wet_class_follows_the_dry_carbon_and_only_a_share_of_the_rest():
+    """GEN.1584 B (stand-in NB5): up to the dry class's log-middle all the carbon brings nitrogen, above it a drawn share."""
+    low, high, _ = mixture_rocky.INVENTORY["co2_dry_wt_percent"]
+    reference = math.sqrt(low * high) / mixture_rocky.AMU_G_MOL["CO2"]
+    share_low, share_high, shape = mixture_rocky.INVENTORY["nitrogen_with_wet_carbon"]
+    assert shape == "log" and 0.0 < share_low < share_high <= 1.0
+    dry = mixture_rocky._nitrogen_carbon(_recipe("b1"), 100.0 * reference, {})
+    assert dry == 100.0 * reference                                                      # the dry class is not touched
+    for row in ("b2", "b3", "b4"):
+        assert mixture_rocky._nitrogen_carbon(_recipe(row), 0.5 * reference, {}) == 0.5 * reference
+        constants = {}
+        counted = mixture_rocky._nitrogen_carbon(_recipe(row), 100.0 * reference, constants)
+        assert counted == pytest.approx(reference + constants["nitrogen_with_wet_carbon"] * 99.0 * reference)
+        assert share_low <= constants["nitrogen_with_wet_carbon"] <= share_high
+        assert counted < 100.0 * reference

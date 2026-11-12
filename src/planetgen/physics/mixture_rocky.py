@@ -80,6 +80,9 @@ INVENTORY = {
     # (`surface_pressure.DEGAS_EFFICIENCY_N`, 0.3 to 0.55) brings the nitrogen at the surface back to the Earth's, and `nitrogen_budget.mantle_retention` takes the metal's share off a
     # more oxidised body (stand-ins NB1 to NB4).
     "nitrogen_per_carbon": (0.012, 0.23, "log"),
+    # GEN.1584 B: the share of the carbon a wet or water-rich class holds above the dry class's middle that brings nitrogen with it (stand-in NB5): that carbon rides in with the water, and the water-rich bodies'
+    # nitrogen is not known to follow it (the Earth took about 2 percent carbonaceous material [R2923], its nitrogen mostly from the dry reservoir, Johansen and others 2023).
+    "nitrogen_with_wet_carbon": (0.03, 0.5, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
     # Potassium of the rock (weight percent), for the 40Ar: the bulk silicate Earth 0.024, the continental crust 2.1: open, GEN.492.
     "potassium_wt_percent": (0.005, 0.1, "log"),
@@ -184,6 +187,21 @@ def _metal_retention(subject, redox_diw):
     return nitrogen_budget.mantle_retention(redox_diw, metal / rock)
 
 
+def _nitrogen_carbon(recipe, carbon, constants):
+    """
+    The carbon atoms the nitrogen is counted from (GEN.1584 B): all of it for the dry class, and for a wet or water-rich class the carbon up to the dry class's log-middle plus a drawn share
+    (`nitrogen_with_wet_carbon`) of what is above it, because the carbon that arrives with the water is not shown to bring its nitrogen.
+    """
+    row = recipe.groups["b"].name if "b" in recipe.groups else "b2"
+    if row == "b1":
+        return carbon
+    low, high, _ = INVENTORY["co2_dry_wt_percent"]
+    reference = math.sqrt(low * high) / AMU_G_MOL["CO2"]
+    if carbon <= reference:
+        return carbon
+    return reference + bracket(constants, "nitrogen_with_wet_carbon", INVENTORY["nitrogen_with_wet_carbon"]) * (carbon - reference)
+
+
 def rocky_inventory(subject, recipe, constants, redox_diw=None):
     """
     The element budget of the outgassing stage, atoms per 100 g of body: hydrogen and carbon from the delivered water and carbon
@@ -192,7 +210,8 @@ def rocky_inventory(subject, recipe, constants, redox_diw=None):
     water, carbon_dioxide = _water_and_carbon_wt_percent(recipe, constants)
     hydrogen = 2.0 * water / AMU_G_MOL["H2O"]
     carbon = carbon_dioxide / AMU_G_MOL["CO2"]
-    nitrogen = carbon * bracket(constants, "nitrogen_per_carbon", INVENTORY["nitrogen_per_carbon"]) * _metal_retention(subject, redox_diw)
+    nitrogen = (_nitrogen_carbon(recipe, carbon, constants) * bracket(constants, "nitrogen_per_carbon", INVENTORY["nitrogen_per_carbon"])
+                * _metal_retention(subject, redox_diw))
     sulfur = carbon * bracket(constants, "sulfur_per_carbon", INVENTORY["sulfur_per_carbon"])
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1615 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1620 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1589 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1594 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -50,13 +50,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
 | T3 | 113 | 52 | 10 | 9 | 0 | 184 |
-| T4 | 84 | 12 | 4 | 22 | 15 | 137 |
-| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 208 | 107 | 31 | 81 | 4 | 431 |
+| T4 | 84 | 13 | 4 | 22 | 15 | 138 |
+| T5 | 82 | 25 | 7 | 1 | 1 | 116 |
+| T6 | 208 | 107 | 32 | 82 | 4 | 433 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 925 | 311 | 77 | 246 | 56 | 1615 |
+| All | 925 | 313 | 79 | 247 | 56 | 1620 |
 
 ## How the labels were given
 
@@ -2843,3 +2843,13 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB3 | P | T6 | L0 | `obliquity_variation.resonances_of`: the half-width `W = 2 sqrt(2 I abs(s) sin(eps_k) / alpha)` in cos(eps) of each mode's resonance (the pendulum of the Hamiltonian near `alpha cos(eps) = -s`) | none (derived in the module docstring) | small orbit inclinations (the first-order exchange's limits) | a zone width that differs from a numerical integration of the spin's equations by a factor of 2 | a numerical integration of the spin of the generated system (Laskar's frequency analysis) | derived in the docstring; the Earth with its Moon comes out at 22.6 to 24.3 against 22.1 to 24.5 measured; the true boundary of a chaotic zone is rougher than the isolated pendulums give | predicted only | - | - |
 | OB4 | P | T6 | L0 | `obliquity_variation._chains`: two resonances whose half-widths sum to at least the distance of their centres are one chaotic zone (Chirikov's criterion) | none (a criterion) | resonances of comparable strength | a pair that overlaps by the criterion and stays regular in a numerical integration, or the Moon-less Earth and Mars (chaotic over 0 to 85 and 0 to 60 degrees in the full theory) coming out as a lower bound | a frequency map of the generated planet's spin | `test_obliquity_variation.py`: the Moon-less Earth swings 5 times as far as the Earth with its Moon (17 degrees against 2), Mars sits inside a resonance (18 to 37) where the full theory finds it chaotic: the criterion is a lower bound, as the docstring says | predicted only | - | - |
 | OB5 | P | T6 | L0 | `obliquity_variation.companion_mode`: the nodal precession `-(3/4) n (M_c/M)(a/a_c)^3 (1-e_c^2)^(-3/2) cos(i)` of a planet's orbit about a distant companion's, with the mutual inclination as its amplitude | none (a formula) | a companion beyond five times the planet's distance; the mode is taken as separate from the siblings' | a planet whose orbit the companion drives faster than this by a factor of 2 in a numerical integration | a coupled Laplace-Lagrange matrix with the companion as a body | the secular quadrupole result (Murray and Dermott, recalled); the siblings' modes and the companion's are not coupled, which the docstring says | predicted only | - | - |
+
+## 6.281 Stand-ins of the nitrogen the metal and the melt keep
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| NB1 | P | T4 | L1 | `nitrogen_budget.D_N_REDUCED` 1 at dIW -4 and `D_N_OXIDISED` 39 at dIW -1 (20 GPa, 3000 K), held between 1 and `D_N_MAX` 265 (5 GPa, 2000 K): the metal/silicate partition coefficient of nitrogen, log-linear in the redox | 1 to 100 (Johansen and others 2023 range), 10 to 31 measured (Suer and others 2023) | every rocky body with a core and a magma-ocean redox | a measured D_N at dIW -2 and 20 GPa outside 3 to 40, or a core nitrogen that disagrees with Johnson and Goldblatt's 180 to 300 x 1e18 kg | a D_N law fitted on pressure, temperature and redox together (Grewal and others 2019 style) | Suer and others 2023, Front. Earth Sci. 11:1159412, Table 1 (a review of the experiments); [R2171] K_D 20 +/- 10 measured, 1.8 thermodynamic | predicted only | - | - |
+| NB2 | P | T6 | L2 | `nitrogen_budget.CORE_FORMATION_OFFSET` -2.5 and `REFERENCE_DIW` 0.5: the metal separated 2.5 log units below the magma-ocean surface redox `a1`, and the Earth-mass mean `a1` is the reference at which the inventory bracket already holds the Earth's partition | offset -1.5 to -3.5 | the redox ladder of the recipes | a core-formation redox of the Earth's mass analog outside IW-3 to IW-1 | a redox history of the magma ocean that carries the core-formation redox itself | the `a1` row of the recipes (Earth surface IW+0.5 [R4154], core formation about IW-2) | predicted only | - | - |
+| NB3 | P | T5 | L1 | `surface_pressure.DEGAS_EFFICIENCY_N` (0.3, 0.55, log): the share of the degassed nitrogen that stays gas | 0.2 to 0.7 | the nitrogen of every rocky body | an Earth twin whose nitrogen air is not 60 to 100 kPa at the bracket middles | a nitrogen solubility law (Libourel and others 2003 [R2675]; Grewal and others 2020 [R1684]) with the redox of the melt | [R2171] Table 4: 4 of 21 to 35 x 1e18 kg of the bulk silicate Earth's nitrogen is in the air (11 to 19 percent) over the carbon-calibrated 0.36 | predicted only | - | - |
+| NB4 | P | T5 | L2 | `mixture_rocky.INVENTORY["nitrogen_per_carbon"]` (0.012, 0.23, log): the delivered nitrogen per carbon atom, the lowest measured ratio (Kargel and Lewis 0.013) at the low end, the CI chondrites' 0.059 near the log-middle, Venus' air 0.074 | 0.008 to 0.3 | the nitrogen of every rocky body | a measured delivered ratio outside the bracket | a delivered-volatile table with its own nitrogen column | [R0357: Table S1] (BSE 1/49, CI 1/17, Venus 1/13.5, Mars 1/18), [R2171] BSE nitrogen 17 to 31 x 1e18 kg | predicted only | - | - |
+| NB5 | P | T6 | L3 | `mixture_rocky.INVENTORY["nitrogen_with_wet_carbon"]` (0.03, 0.5, log): the share of the carbon a wet or water-rich class holds above the dry class's log-middle (0.056 wt% CO2) that brings nitrogen with it | 0.01 to 1 | b2, b3 and b4 bodies | a measured nitrogen per water-linked carbon above the dry reservoir's | a delivered-volatile table with its own nitrogen column | [R2923] (Earth took about 2 percent carbonaceous material, nitrogen depleted about x10 against carbon), Johansen and others 2023 (nitrogen mostly from the dry reservoir); the share is hand-chosen against the Earth analog median (GEN.1584 B) | predicted only | - | no data |
