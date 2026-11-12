@@ -2166,7 +2166,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1368 | Accessory minerals in the asteroid taxon mixes: chromite, spinel, phosphates, CAI phases, Fe-Ni sulfides, carbonates, sulfates, phyllosilicates, nanodiamond and presolar grains, weights from the bulk | GEN.1362, GEN.1355 | done, PR #5697 |
 | GEN.1369 | Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it | GEN.1368, TEST.685 | open |
 | GEN.1370 | White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in | GEN.1362, GEN.1368 | open |
-| GEN.1371 | Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle | GEN.1360, GEN.1364 | open |
+| GEN.1371 | Heavy elements: the s- and r-process split from [Ba/Fe] and [Eu/Fe], REE, PGE, Au and Pb, and the highly siderophile partitioning between core and mantle | GEN.1360, GEN.1364 | done, PR #6138 |
 | GEN.1372 | Giant planet heavy-element species: C, N, O, S, P and the noble gases enriched element by element, not one Z share | GEN.1360, GEN.1363 | done, PR #5697 |
 | GEN.1373 | Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase | GEN.1372 | open |
 | GEN.1374 | Brown dwarf chemistry residuals: the lithium test, alkali wings, and the TiO and VO to hydride transition | GEN.1360 | done, PR #5697 |
@@ -2937,7 +2937,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.145 | Heartbeat part 11: after a unit is restarted, the other tasks pause and the restarted unit runs alone until it completes | OPS.140 | done (Train 22 or earlier, 2026-11-11) |
 | OPS.146 | Heartbeat part 12: a config setting runs any restarted job in debug mode with its own dedicated debug log file | OPS.140 | open |
 | OPS.147 | Per-stage golden digests so a train's declared stages can be checked against what its golden moved | OPS.133 | open |
-| OPS.148 | Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change | none | open |
+| OPS.148 | Adaptive bulk worker limit: lower the workers when a job waits over 30 s for memory, raise them when memory is free, never below 1, log each change | none | done, PR #6147 |
 | OPS.149 | Apply the adaptive worker limit to the maintenance lane (warm-ups) | OPS.148 | open |
 | OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | open |
 | OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | open |
@@ -3567,7 +3567,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.256 | Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug) | none | done, PR #4656 |
 | UX.257 | Object page life text: the life readings table overflows a phone and the species link fails contrast (bug) | none | done, PR #4734 |
 | UX.258 | The describer writes the hours outside in a day with a raw format (build.py line 516), failing the wording-agrees-with-the-index test (bug) | none | done, PR #4749 |
-| UX.259 | Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>' | none | open |
+| UX.259 | Uncharted star and phenomenon pages, lists, infobox and map labels show the local name with its sector, not 'Uncharted G2V star <row id>' | none | done, PR #6132 |
 | UX.260 | Later: an all-sky 'sky from this star' page: the whole sky seen from a chosen star, as a map of the celestial sphere | none | open |
 | UX.261 | Explainer links read as talking down and repeat links the page already has: drop the repeats, reword the rest to "More information" | none | done, PR #4950 |
 | UX.262 | Planet and moon page Life section: the adaptation traits of the living class (the last piece of UX.237) | none | dropped, folded into GEN.876 |
@@ -4104,7 +4104,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.187 | Browser-test failure reports are buried in the werkzeug request log: set that logger to WARNING in the test server | none | done, PR #2050 |
 | TEST.188 | The skimage marching-cubes call reads `.shape` in a way NumPy 2.5 deprecates: change the call and keep the warning out of the log | none | done, PR #2050 |
 | TEST.189 | A test that runs `migrate` leaves maintenance mode on: restore `state/maintenance.json` in the fixture (bug) | none | done, PR #2124 |
-| TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | open |
+| TEST.190 | A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug) | none | done, PR #6133 |
 | TEST.191 | The plan tests write real settings JSON into `/var/lib/planetGen/jobs/galaxy-settings` and log "No naming key drawn ... Unknown database": give them a temporary directory and a test database | none | done, PR #2070 |
 | TEST.192 | The galaxy-grid fuzz test `test_skeleton_bound_is_an_upper_bound_at_every_angle` fails on a float cancellation of the halo subtraction far above the disk (bug) | none | done, PR #1883 |
 | TEST.193 | A module fixture's `DROP DATABASE IF EXISTS` blocks for 853 s on a metadata lock that another connection holds, so a browser test hangs in teardown (bug) | none | done, PR #1997 |
@@ -4627,7 +4627,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.723 | Fail loudly when database tests are skipped for no MySQL login, and run a short smoke test of main after each merge | none | done, PR #6111 |
 | TEST.724 | Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json | none | open |
 | TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | open |
-| TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | open |
+| TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | done, PR #6122 |
 | TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
