@@ -925,7 +925,7 @@ TABLES = {
         "km": ("radius_km", "ice_shell_thickness_km", "ocean_depth_km", "hp_ice_km", "ring_inner_km", "ring_outer_km"),
         "tau": ("ring_optical_depth",),
         "frac": ("ring_ice_fraction",),
-        "flag": ("has_internal_heat", "has_moons", "has_liquid_water"),
+        "flag": ("has_internal_heat", "has_liquid_water"),
         "Gyr": ("age_gy", "galactic_orbital_period_gy"),
         "W_m2": ("internal_heat_flux_w_m2", "energy_flux_w_m2"),
         "K": ("effective_temperature_k", "surface_temperature_k"),

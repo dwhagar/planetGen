@@ -1777,7 +1777,7 @@ from any star. Since v207 (GEN.1111) it also carries every `planets` column apar
 | `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
-| `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | `has_internal_heat`: still geologically active (computed since v48; a giant always is). |
+| `has_internal_heat` | BOOLEAN | NOT NULL | Still geologically active (computed since v48; a giant always is). (`has_moons` was dropped in v244: a free planet's moons are `moons` rows.) |
 | `age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k` | DOUBLE | nullable | Added in v48: its age and its own heat (W/m^2, K). |
 | `surface_regime` | VARCHAR(24) | nullable | Added in v48: `bare-rock`, `frozen-atmosphere`, `ice-shell-ocean`, `ice-world`, `hydrogen-envelope`, `hycean` (v73: an ocean under the envelope with no high-pressure ice beneath), `gas-giant` or `brown-dwarf`. |
 | `surface_temperature_k`, `surface_pressure_pa` | DOUBLE | nullable | Added in v48: at the ground, or a giant's at 1 bar. |
@@ -2659,6 +2659,10 @@ Migration 0148 makes `habitable_systems` (`star_system_id` PK with a cascading F
 
 Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a center of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
 
+
+### v244 (GEN.558): `rogue_planets.has_moons` is gone
+
+A free planet's moons are `moons` rows the ordinary moon routine makes inside the outer edge its ejection left (`generation/phenomena/starless_host.py`), so the one-bit flag that a brown dwarf drew at 20 percent (and a physics rogue left NULL, v207) has nothing to say and is dropped by migration 0244. The `planet-satellites` host table that rolled it is removed with it; the chance that a free planet has a moon is an output of the ejection model.
 
 ### v243 (GEN.1497): `body_history`, the birth orbit and spin of planets and moons
 

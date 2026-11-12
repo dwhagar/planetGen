@@ -1889,7 +1889,6 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `radius_km` | DOUBLE | NOT NULL |  |
 | `composition` | TEXT | NULL |  |
 | `has_internal_heat` | TINYINT(1) | NULL | v207: NULL for a row of the physics rogue |
-| `has_moons` | TINYINT(1) | NULL | v207: NULL for a row of the physics rogue (its moons are `moons` rows) |
 | `age_gy` | DOUBLE | NULL |  |
 | `internal_heat_flux_w_m2` | DOUBLE | NULL |  |
 | `effective_temperature_k` | DOUBLE | NULL |  |

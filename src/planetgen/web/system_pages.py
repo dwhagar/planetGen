@@ -784,7 +784,6 @@ FIELD_SPECS = {
         ("gravity_g", "Surface Gravity", _quantity("g0")),
         ("composition", "Composition", str),
         ("has_internal_heat", "Geologically Active", _bool_text),
-        ("has_moons", "Has Moons", _bool_text),
         # Surface conditions (schema v48, rogueSurface): no star, so only
         # its own heat. A giant's temperature and pressure are at 1 bar.
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gyr"),
