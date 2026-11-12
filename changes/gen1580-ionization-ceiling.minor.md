@@ -2,7 +2,7 @@
 
 ### Changed
 
-- `surface_air.MAX_SURFACE_TEMPERATURE_K` (2,000 K, a recalled stand-in) is replaced by `ionization.ceiling_k`: the Saha half-ionization temperature [R5229] of the air's main gas (the largest partial pressure, its atom of the lowest first ionization energy [R5228], `physics/data/ionization_energies.json`) at the air's pressure. Registry row CC7 is rewritten (tier T5, tweak L0) and IR18 added for the extrapolation below.
+- `surface_air.MAX_SURFACE_TEMPERATURE_K` (2,000 K, a recalled stand-in) is replaced by `ionization.ceiling_k`: the Saha half-ionization temperature [R5238] of the air's main gas (the largest partial pressure, its atom of the lowest first ionization energy [R5228], `physics/data/ionization_energies.json`) at the air's pressure. Registry row CC7 is rewritten (tier T5, tweak L0) and IR18 added for the extrapolation below.
 - `greenhouse_table.warming` no longer clamps its surface at 4,000 K (`FITTED_UP_TO_K` is where the fit ends): above it the same log ratio gives the warming, an extrapolation. Bodies the cap and the clamp held (86 census bodies sat at 2,000 K) now settle where their air puts them; the before and after of the 62 census systems is in the PR.
 - A body held at the ceiling is a mistake of the model to explain: it logs one normal line (body, uncapped value, ceiling, air) and the test suite sets `PLANETGEN_CEILING_IS_ERROR`, so any seeded census or fuzz run that makes one fails.
 - `trace_air.apply` now stores the molar mass, density and scale height of the air it leaves in every case (it skipped them when it removed equilibrium NO2 or N2O from a hot air without drawing a trace gas, which the 4,000 K airs exposed).

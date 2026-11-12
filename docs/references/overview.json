@@ -5,63 +5,32 @@
   },
   "papers": {
     "books": 31,
-<<<<<<< HEAD
     "datasets": 26,
-    "entries": 5141,
+    "entries": 5142,
     "with_arxiv": 1521,
-    "with_doi": 4906,
-=======
-    "datasets": 25,
-    "entries": 5132,
-    "with_arxiv": 1519,
-    "with_doi": 4897,
->>>>>>> origin/claude/lane14-gen1580-ceiling
+    "with_doi": 4907,
     "without_doi": 235
   },
   "stand_ins": {
     "by_tier": {
-<<<<<<< HEAD
       "T1": 224,
-      "T2": 216,
+      "T2": 217,
       "T3": 187,
-      "T4": 139,
+      "T4": 140,
       "T5": 122,
-      "T6": 429,
+      "T6": 431,
       "T7": 124,
       "T8": 7,
       "T9": 197
-=======
-      "T1": 218,
-      "T2": 214,
-      "T3": 183,
-      "T4": 134,
-      "T5": 114,
-      "T6": 432,
-      "T7": 119,
-      "T8": 6,
-      "T9": 192
->>>>>>> origin/claude/lane21-gen1560
     },
     "by_tweak": {
-<<<<<<< HEAD
-      "L0": 954,
-      "L1": 318,
+      "L0": 955,
+      "L1": 319,
       "L2": 81,
-      "L3": 236,
+      "L3": 238,
       "L4": 56
-=======
-      "L0": 925,
-      "L1": 309,
-      "L2": 77,
-      "L3": 248,
-      "L4": 53
->>>>>>> origin/claude/lane14-gen1580-ceiling
     },
-<<<<<<< HEAD
-    "rows": 1645
-=======
-    "rows": 1612
->>>>>>> origin/claude/lane21-gen1560
+    "rows": 1649
   },
   "tiers": [
     [
@@ -143,29 +112,20 @@
       "rows": 197
     },
     "educated_guess_from_physics": {
-<<<<<<< HEAD
       "percent": 41,
-      "rows": 682
+      "rows": 684
     },
     "fitted_to_a_result": {
       "percent": 23,
-      "rows": 373
-=======
-      "percent": 42,
-      "rows": 671
-    },
-    "fitted_to_a_result": {
-      "percent": 23,
-      "rows": 378
->>>>>>> origin/claude/lane21-gen1560
+      "rows": 375
     },
     "read_from_a_source": {
       "percent": 27,
-      "rows": 440
+      "rows": 441
     },
     "unverified": {
       "percent": 20,
-      "rows": 326
+      "rows": 327
     }
   }
 }

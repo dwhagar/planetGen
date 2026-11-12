@@ -12979,7 +12979,7 @@
           "fields": [
             [
               "What it is",
-              "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+              "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5238] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
             ],
             [
               "The range it moves in",
@@ -13010,7 +13010,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+          "what": "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5238] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
         },
         {
           "burn_down": null,
@@ -17227,7 +17227,6 @@
           "fields": [
             [
               "What it is",
-<<<<<<< HEAD
               "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
             ],
             [
@@ -17260,7 +17259,12 @@
           "tweak": "L0",
           "unread": "GEN.1611",
           "what": "tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, formation_snow_line, GEN.1611)"
-=======
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
               "tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU)"
             ],
             [
@@ -17331,7 +17335,6 @@
           "tweak": "L3",
           "unread": null,
           "what": "tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, planet_architecture.giant_impacts) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks)"
->>>>>>> origin/claude/lane21-gen1560
         }
       ],
       "slug": "6-36-stand-ins-of-the-planet-architecture",

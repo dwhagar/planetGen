@@ -4,11 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-<<<<<<< HEAD
-There are 1645 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
-=======
-There are 1612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
->>>>>>> origin/claude/lane21-gen1560
+There are 1649 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,49 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-<<<<<<< HEAD
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1619 |
-=======
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1586 |
->>>>>>> origin/claude/lane21-gen1560
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1623 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-<<<<<<< HEAD
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
-| T2 | 153 | 61 | 1 | 1 | 0 | 216 |
+| T2 | 153 | 62 | 1 | 1 | 0 | 217 |
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
-| T4 | 85 | 13 | 4 | 22 | 15 | 139 |
-| T5 | 90 | 24 | 6 | 1 | 1 | 122 |
-| T6 | 215 | 108 | 31 | 71 | 4 | 429 |
+| T4 | 85 | 14 | 4 | 22 | 15 | 140 |
+| T5 | 91 | 23 | 6 | 1 | 1 | 122 |
+| T6 | 215 | 108 | 31 | 73 | 4 | 431 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 19 | 5 | 92 | 35 | 197 |
-| All | 954 | 318 | 81 | 236 | 56 | 1645 |
-=======
-| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
-| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
-| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
-<<<<<<< HEAD
-| T5 | 83 | 23 | 6 | 1 | 1 | 114 |
-| T6 | 207 | 107 | 31 | 81 | 4 | 430 |
-| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
-| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 925 | 309 | 77 | 246 | 53 | 1610 |
->>>>>>> origin/claude/lane14-gen1580-ceiling
-=======
-| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 207 | 107 | 31 | 83 | 4 | 432 |
-| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
-| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
-| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 924 | 310 | 77 | 248 | 53 | 1612 |
->>>>>>> origin/claude/lane21-gen1560
+| All | 955 | 319 | 81 | 238 | 56 | 1649 |
 
 ## How the labels were given
 
@@ -549,7 +519,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CC4 | P | T6 | L3 | tuning.ALBEDO_WET_RANGE (0.25, 0.40), ALBEDO_WET_MIN_WATER_FRACTION 1e-4 (the ice-free Bond albedo a body with surface water draws, before its air and ground are known; the frozen range 0.45 to 0.70 and the 230 K line left in GEN.972, the ice now follows the temperature along the law of CC15 and CC16) | each range edge 0.05 | all hosts | test_climate_draws::albedo regime tests; a measured Bond albedo of an ocean world outside 0.2 to 0.45 | a ground and cloud albedo from composition (GEN.414, GEN.462) | RECALLED (Earth 0.30, Mars 0.25, Europa 0.68, Enceladus 0.8; the dry range is the old class ranges) | predicted only | - | replace (GEN.684) |
 | CC5 | P | T7 | L1 | tuning.GIANT_MIN_RADIUS_KM 15000 (a radius given alone names a giant from here; a given mass above 20 Earth masses names one too) | 12000 to 20000 | given inputs only | test_planet_kind::test_a_given_radius_names_the_kind_and_the_mass_wins | the radius law of the envelope (GEN.822) | RECALLED (Uranus and Neptune 25000 km; a 4 Earth radius sub-Neptune 25000 km; the edge between rocky and gas-rich near 1.7 Earth radii) | predicted only | - | - |
 | CC6 | P | T4 | L3 | tuning.PLANET_MIN_MASS_KG 1e21 (the lightest body drawn as a planet; lighter ones are small bodies of the belts) | 1e20 to 1e22 | every host | test_planet_mass floor tests | a size-frequency model joining planets and belts | design (about Ceres, 9e20 kg) | predicted only | - | no data |
-| CC7 | T | T5 | L0 | ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (`ionization.ceiling_k`): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580) | the share defining the ceiling 0.1 to 0.9 (moves T by under 20 percent); weight ratio 0.5 to 6 (under 2 percent) | every body with air; 12,500 K for 1 bar of CO2, 15,400 K for 1 bar of N2, 40,000 K for 10,000 bar of N2 | test_ionization; test_surface_air::test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named; the suite fails on any generated body at the ceiling | a radiative model of a hot plasma air | READ (Saha equation and NIST energies); the choice of half ionization as the ceiling is a DESIGN stand-in (Boss, 2026-11-12: a sourced, very high physical ceiling, tens of thousands of K); the 80-system sweep reached 5,900 K at most | predicted only | - | - |
+| CC7 | T | T5 | L0 | ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (`ionization.ceiling_k`): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5238] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580) | the share defining the ceiling 0.1 to 0.9 (moves T by under 20 percent); weight ratio 0.5 to 6 (under 2 percent) | every body with air; 12,500 K for 1 bar of CO2, 15,400 K for 1 bar of N2, 40,000 K for 10,000 bar of N2 | test_ionization; test_surface_air::test_a_runaway_greenhouse_stops_at_the_ionization_ceiling_and_the_body_is_named; the suite fails on any generated body at the ceiling | a radiative model of a hot plasma air | READ (Saha equation and NIST energies); the choice of half ionization as the ceiling is a DESIGN stand-in (Boss, 2026-11-12: a sourced, very high physical ceiling, tens of thousands of K); the 80-system sweep reached 5,900 K at most | predicted only | - | - |
 | CC8 | P | T5 | L0 | surface_air.VACUUM_PRESSURE_PA 1 (below it the fixed point has no air to equilibrate: the body keeps an exosphere and is airless) | 0.1 to 10 | rocky bodies | test_surface_air::test_a_pressure_that_falls_to_a_vacuum_is_airless | an exosphere model | READ-level fact (the Moon and Mercury hold 1e-10 Pa and under); the edge is the solver's | predicted only | - | - |
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) | predicted only | - | - |
 | CC10 | P | T9 | L3 | tuning.REQUEST_ODDS 10, REQUEST_PLANET_DRAW_BUDGET 60 and REQUEST_MAX_TIMELINE_TRIES 200 (what a request for a habitable world or intelligent life multiplies the odds of the outcome by, GEN.1130; the draw limit of a timeline) | odds 3 to 30; tries 50 to 1000 | the request only | test_request_odds; test_habitable_request::test_a_request_raises_the_odds_of_a_habitable_planet_in_the_ecosphere_and_moves_nothing; test_life_timeline::test_a_request_raises_the_odds_of_a_timeline_that_finishes_and_forces_none | the user's own choice of strength; the budget is a time limit | design (needed output: a strength that moves a rare outcome without forcing it; nobody knows the right one) | predicted only | - | no data |
@@ -727,12 +697,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | [R0114] ([R0114], READ: 0.7 dex); [R4898] (30 percent Sun-like); [R4812] (75 percent under 5000 K, 35 percent over 6500 K) | predicted only | - | - |
 | PA14 | P | T9 | L3 | tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range) | free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000 | slot and forced-class requests | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist | the class-conditioned draw of the architecture (a plan that places the requested class) | design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not) | predicted only | - | no data |
 | PA15 | P | T6 | L3 | tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ) | 0.25 to 0.5 | systems with an inner system | test_planet_architecture::test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike; test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet; a share of FGK stars with a planet of 0.8 to 1.25 Earth radii inside 85 days outside 10 to 23 percent | a formation model of the scale of an inner system (pebble flux and disk mass) | tuned to a published statistic: [R1459] (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md) | predicted only | - | no data |
-<<<<<<< HEAD
 | PA18 | P | T6 | L0 | tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, `formation_snow_line`, GEN.1611) | 0.003 to 0.01 | evolved stars (a subgiant, giant, supergiant or white dwarf) | test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_birth_not_of_today; a white dwarf's snow line under 1 AU | a disk-evolution model of the luminosity history of the disk | a protoplanetary disk lasts 3 to 10 Myr (recalled); the longest, so a massive star is read on its main sequence | predicted only | GEN.1611 | - |
-=======
 | PA16 | P | T6 | L3 | tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU) | boost 2 to 6; start 0.3 to 0.7 | the zone from 0.45 AU to the snow line | test_planet_architecture::test_gen1560_the_terrestrial_zone_has_earth_sized_planets_at_about_the_surveyed_rate; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star | a disk-evolution and pebble-flux model of the terrestrial zone (GEN.509) | tuned to a published statistic: [R0572] 0.37 to 0.60 planets of 0.5 to 1.5 Earth radii per Sun-like star in the habitable zone, with PA17 (the model gave 0.95, of Mars mass: median 0.26 Earth masses); [R0771] (recalled) for the several-times-minimum-mass solids; GEN.1396's jump of 1.967 at the snow line now sits on top of a higher inside, so the density falls across the line (a pile-up inside it, [R0572] does not constrain it) | predicted only | - | - |
 | PA17 | P | T6 | L3 | tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, `planet_architecture.giant_impacts`) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks) | spacing 20 to 35; end 2.5 to 5 | the zone from 0.45 AU to the snow line or 3 AU | test_planet_architecture::test_gen1560_the_giant_impact_stage_merges_the_closest_pair_until_the_zone_is_spaced_out; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star | an N-body giant-impact stage of the zone's oligarchs | tuned to [R0572] with PA16; N-body runs of protoplanets 10 Hill radii apart end in about two Earth-sized planets after 100 Myr ([R2431: Eq. 2]: 0.16 Earth masses at 1 AU before); the merge keeps `COLLISION_MASS_RETENTION` (PA8) | predicted only | - | - |
->>>>>>> origin/claude/lane21-gen1560
 
 ## 6.37 Stand-ins of the brown dwarf ceiling
 
@@ -2381,6 +2348,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | an Earth-like world whose measured hypsometric curve is far from two humps, or Earth's 2.7 km layer not covering 0.71 | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age [R5075] | Earth's 0.71 ocean cover; [R0914] (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | predicted only | - | - |
+| HY3 | P | T2 | L1 | hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of `HYPSOMETRY` sinks to the layer over its share of the area, no shallower than Earth's) | 5.7 to 11.4 km (Cowan and Abbot's 70 km maximum continental thickness over the density contrast, half to full) | rocky bodies with a surface ocean; not icy bodies | a world with 7 km of water at 1 g that a measured hypsometry would drown, or Earth's 2.7 km layer not covering 0.71 | isostasy with the mantle's own flow and the sea's weight ([R0914: Eq. 10] gives the form, the value read from the source) | [R0914: Eq. 10] ([R0914: Eq. 10]); Earth's 0.71 cover held by HY2 | predicted only | - | - |
 
 ## 6.146 Stand-ins of the thick disk's ages
 
@@ -2905,6 +2873,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CH2 | T | T6 | L0 | clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227: Eq. 10], found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window | window 4 to 7 planets | chains of four planets | a window whose scattering time is not that of equal gaps at K_eff | a per-chain stability time | the Eq. 10 and 11 of [R5227], read; the carry to a four-planet window is mine | predicted only | - | - |
 | CH3 | P | T6 | L0 | validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain | none | all systems | a chain broken by a belt that scatters like a chain | a chain test over every window, belts as bodies | design: the orbit spacing pass of GEN.1023 and GEN.1450 | predicted only | - | - |
 | CH4 | P | T4 | L1 | clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule | 1.5 to 3 | windows with a wide or unequal gap | a system the rule leaves at the pairwise floor that an N-body run scatters within 1 Gyr, or one pushed to twice its distance that holds at the floor | a chain stability time per window that says how far out a window needs to be | design: without a cap one eccentricity change of a part in a thousand moved a planet from 2.2 to 18.5 AU (M3V seed 1317) | predicted only | - | - |
+| CH5 | P | T4 | L1 | clearance_ledger.CHAIN_MAX_GAP_K 40: the chain rule opens no gap of this many mutual Hill radii or more between semi-major axes (the width at which the belt rule BG1 reads a gap as a belt, measured as it does); a window whose first closing distance would leaves the pairwise rule | 30 to 60 | windows beside a wide gap | an N-body run of a system the rule leaves at the pairwise floor that scatters within 1 Gyr, or a gap pushed to 40 that holds at 30 | a chain stability time per window that says how wide a gap the window needs | design: the effective spacing is the mean less half the spread, so beside one wide gap the next planet was pushed to gaps of 43 to 60 and the share of neighbour pairs at 40 or more went from 7 to 16 percent (G2V belts 1.21 to 1.73 on 80 seeded systems, Lane 22) | predicted only | - | - |
 
 ## 6.278 Stand-ins of the mutual tides of the stars of a pair
 

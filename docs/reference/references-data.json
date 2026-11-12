@@ -283272,11 +283272,7 @@
   }
  },
  "id_aliases": {},
-<<<<<<< HEAD
- "id_next": 5238,
-=======
- "id_next": 5230,
->>>>>>> origin/claude/lane14-gen1580-ceiling
+ "id_next": 5240,
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -285460,7 +285456,7 @@
   "10.1080/03147538708712456": "R0933",
   "10.1080/10409230490496577": "R3648",
   "10.1080/13669877.2017.1304975": "R1618",
-  "10.1080/14786441008636148": "R5229",
+  "10.1080/14786441008636148": "R5238",
   "10.1080/14786443109461710": "R0729",
   "10.1080/19466315.2026.2658638": "R3529",
   "10.1086/107463": "R0593",
@@ -289790,7 +289786,7 @@
   "web:https://ntrs.nasa.gov/citations/20150002905": "R5029",
   "web:https://ntrs.nasa.gov/citations/20250004555": "R5027",
   "web:https://ntrs.nasa.gov/citations/20260005907": "R5028",
-  "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5228",
+  "web:https://physics.nist.gov/physrefdata/asd/ionenergy.html": "R5239",
   "web:https://ryandowlingsoka.com/unreal/triplanar-dither-biplanar/": "R5059",
   "web:https://shoelace.style/": "R5033",
   "web:https://tanstack.com/table/": "R5034",

@@ -2,7 +2,7 @@
  "retrieved": "2026-11-12",
  "title": "First ionization energies of the elements an atmosphere holds (GEN.1580)",
  "sources": [
-  "NIST Atomic Spectra Database, Ionization Energies Form [R5228] (ground-state atom to ion, eV, with the stated uncertainty), fetched 2026-11-12 for the 26 elements of the gas list (`gases.json`)"
+  "NIST Atomic Spectra Database, Ionization Energies Form [R5239] (ground-state atom to ion, eV, with the stated uncertainty), fetched 2026-11-12 for the 26 elements of the gas list (`gases.json`)"
  ],
  "notes": "ev is the energy to take the first electron off the ground-state atom, eV; unc_ev its stated uncertainty. Read by `physics/ionization.py`; D and T count as H.",
  "elements": {

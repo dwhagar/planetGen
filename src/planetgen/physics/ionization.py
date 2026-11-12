@@ -10,9 +10,9 @@ molecular air does. No radiative model of this repository reaches there (the gre
 to: the ceiling is the temperature the air's main gas is **half ionized** at the air's pressure, so a body that arrives at it is a mistake in the
 model to explain, not a state to keep (`surface_air.Air.at_ceiling`, the warning `planets` logs, the test that fails on it).
 
-The law is the Saha equation [R5229] for the first ionization of the atoms of the main gas, a plasma of one electron per ion,
+The law is the Saha equation [R5238] for the first ionization of the atoms of the main gas, a plasma of one electron per ion,
 `x^2 / (1 - x^2) = K / P` for the ionized share `x`, with `K = 2 (g_ion / g_atom) (m_e k T / (2 pi hbar^2))^(3/2) k T exp(-chi / k T)`: the
-electron's translation, the Boltzmann factor of the first ionization energy `chi` ([R5228]; `data/ionization_energies.json`), and `P` the air's
+electron's translation, the Boltzmann factor of the first ionization energy `chi` ([R5239]; `data/ionization_energies.json`), and `P` the air's
 total pressure (the atoms' share of it is below the whole, which moves `T` by a few percent, because `chi / k T` is large).
 The statistical weights are taken as `g_ion / g_atom = 1` (a stand-in; the ground-state ratio is 1/2 to 6, which moves `T` by under 2 percent).
 
@@ -57,7 +57,7 @@ def _energies_ev():
 
 
 def first_ionization_energy_ev(symbol):
-    """The energy that takes the first electron off the atom of `symbol`, eV [R5228]; deuterium and tritium are hydrogen.
+    """The energy that takes the first electron off the atom of `symbol`, eV [R5239]; deuterium and tritium are hydrogen.
 
     Raises:
         KeyError: The element is not one an air can hold (not in `data/ionization_energies.json`).
@@ -66,7 +66,7 @@ def first_ionization_energy_ev(symbol):
 
 
 def ionized_share(temperature_k, pressure_pa, energy_ev):
-    """The share of the atoms ionized once at `temperature_k` and `pressure_pa` for an atom of first ionization energy `energy_ev` (Saha, [R5229]), in [0, 1]."""
+    """The share of the atoms ionized once at `temperature_k` and `pressure_pa` for an atom of first ionization energy `energy_ev` (Saha, [R5238]), in [0, 1]."""
     kt = constants.BOLTZMANN * temperature_k
     exponent = -energy_ev * constants.ELECTRON_VOLT_J / kt
     if exponent < -700.0:
