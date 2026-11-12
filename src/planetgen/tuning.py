@@ -324,11 +324,11 @@ MUTUAL_HILL_RADII_SEPARATION = 10
 
 # Chains of planets need more than the pairwise floor (GEN.1521). Lane 04's N-body spot-check (GEN.1468, reports/gen1468-nbody-screens-2026-11-09.md)
 # found the pairwise screen holds for pairs but three chains of four or more small planets, every pair at 10.0 to 11.4 mutual Hill radii, scattered within
-# 2e4 years. Pu and Wu 2015 ([R5229]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
+# 2e4 years. Pu and Wu 2015 ([R5231]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
 # radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
 # equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
 # `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
-# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.275.]
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.277.]
 CHAIN_WINDOW = 4
 CHAIN_K_EFF = 12.0
 
