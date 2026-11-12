@@ -12542,6 +12542,7 @@ clears each one.
 - [ ] **GEN.1486 Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown**
   Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09): the ring cost is in stars drawn, 590k stored for 4.1k shown. Do: measure how the stars drawn fall with finer ring edges, and if the saving is real change the edges. Changing ring edges changes which stars are drawn, so this is a lock item with a scatter-stage epoch (--affects scatter), stand-ins registered in GEN.725 with tier and tweak level; time and stored size before and after; reuse sky_tiers and bright_stars.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
+  Boss, 5:00 PM EST on 2026-11-12 (card): yield 0.005, "Skip the faintest, lose 1%": 1.4 times fewer stars drawn, about 1 percent of stars that would show are not drawn. Slice 1 builds that cut; scatter-stage epoch, rides Train 26.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the measurement of drawn against shown stars per ring (report); slice 1 lock: narrower rings. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
