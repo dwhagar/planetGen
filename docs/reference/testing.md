@@ -404,6 +404,15 @@ observed rates (`src/tests/data/prevalence_occurrence_expectations.json`, kind `
 are read). One live test draws the systems once for both; their reports are `system-census-latest.md` and
 `occurrence-census-latest.md`. A system that raises is the `error` flag, as one over 180 s is `hang`.
 
+Part E on the galaxy's own stars (TEST.395, `src/tests/audit/prevalence_galaxy.py`, `src/tests/test_prevalence_galaxy_census.py`): the
+same observed bands, on the systems of 100 seeded sectors at the reference solar position (`census.fill_region_sector`, about 300
+systems, about 4 minutes on 4 cores), so the host mix is the galaxy's (about 80 percent M dwarfs) and the planets carry their final
+classes and stored life. A host group of 25 stars or more is a cell of its own, widened for its own count; the `galaxy` cell pools every
+group that has a band for the measure and averages the groups' ranges by their stars, so the small groups still count. A flag names its
+cell and measure and carries the known-gap item of its group in the stored occurrence file. The report is
+`occurrence-galaxy-latest.md` and also lists the final class mix and the bodies with life per star (no survey measures a class, so that
+part only reports).
+
 Re-baselining B and E: `python -m tests.audit.prevalence_systems measure` and `build`, `python -m tests.audit.prevalence_occurrence`.
 
 Part C, the star census (TEST.432, `src/tests/audit/prevalence_stars.py`, `src/tests/test_prevalence_stars_census.py`), draws 40,000
