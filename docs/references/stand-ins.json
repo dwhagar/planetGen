@@ -12885,7 +12885,7 @@
           "fields": [
             [
               "What it is",
-              "ionization.ceiling_k: the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+              "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
             ],
             [
               "The range it moves in",
@@ -12916,7 +12916,7 @@
           "tier_code": "T5",
           "tweak": "L0",
           "unread": null,
-          "what": "ionization.ceiling_k: the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
+          "what": "ionization.STATISTICAL_WEIGHT_RATIO 1 and HALF_IONIZED 0.5 (ionization.ceiling_k): the hottest surface of an air is the temperature its main gas (the largest partial pressure, its atom of the lowest first ionization energy) is half ionized at the air's pressure, the Saha equation [R5229] with the NIST first ionization energies [R5228] and a statistical weight ratio of 1 (replacing surface_air.MAX_SURFACE_TEMPERATURE_K 2000, GEN.1580)"
         },
         {
           "burn_down": null,

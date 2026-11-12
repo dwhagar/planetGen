@@ -57,7 +57,7 @@ def _energies_ev():
 
 
 def first_ionization_energy_ev(symbol):
-    """The energy that takes the first electron off the atom of `symbol`, eV ([R5228]); deuterium and tritium are hydrogen.
+    """The energy that takes the first electron off the atom of `symbol`, eV [R5228]; deuterium and tritium are hydrogen.
 
     Raises:
         KeyError: The element is not one an air can hold (not in `data/ionization_energies.json`).
