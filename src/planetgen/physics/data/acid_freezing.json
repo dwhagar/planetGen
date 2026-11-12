@@ -1,7 +1,7 @@
 {
  "version": 1,
  "title": "The freezing curve of the sulfuric acid hydrates (GEN.1644)",
- "description": "The temperature at which the first solid appears out of aqueous sulfuric acid at 0.1 MPa, by acid mole fraction: the stable liquidus read off Figure 1 of Zeleznik 1991 ([R4877], the calculated freezing curves, which reproduce the Gable, Betz and Maron and Kunzler and Giauque points), anchored where the printed Table 6 and the figure give an exact temperature. Read to about 1 K; the metastable branches below the stable liquidus (the supercooled extensions of ice and of the hydrates) are left out. The congruent and incongruent melting points of Table 6 are in `anchors`.",
+ "description": "The temperature at which the first solid appears out of aqueous sulfuric acid at 0.1 MPa, by acid mole fraction: the stable liquidus read off Figure 1 of [R4877] (the calculated freezing curves, which reproduce the Gable, Betz and Maron and Kunzler and Giauque points), anchored where the printed Table 6 and the figure give an exact temperature. Read to about 1 K; the metastable branches below the stable liquidus (the supercooled extensions of ice and of the hydrates) are left out. The congruent and incongruent melting points of Table 6 are in `anchors`.",
  "tier": "T1",
  "tweak": "L0",
  "basis": "[R4877: Figure 1, Section 2.4 and Table 6] read first-hand from the scan Boss uploaded: the points are the printed calculated curve digitised from the figure (about 1 K, set by the line width) and the anchors are printed numbers",

@@ -4116,7 +4116,7 @@ The vapor pressure of disulfur over condensed sulfur, held in `physics/data/satu
 
 ### 6.287 Stand-ins of the freezing curve of the sulfuric acid hydrates (GEN.1644)
 
-`physics/acid_freezing.py` holds the stable liquidus of aqueous sulfuric acid at 0.1 MPa, read off Figure 1 of Zeleznik 1991 ([R4877]) and anchored at the temperatures of its Table 6, in `physics/data/acid_freezing.json`. Pure and unwired: GEN.1644 slice 1 makes the cold acid cloud (`sulfuric_cloud`) read it in place of the 185 K floor of row 6.228:SV7.
+`physics/acid_freezing.py` holds the stable liquidus of aqueous sulfuric acid at 0.1 MPa, read off Figure 1 of [R4877] and anchored at the temperatures of its Table 6, in `physics/data/acid_freezing.json`. Pure and unwired: GEN.1644 slice 1 makes the cold acid cloud (`sulfuric_cloud`) read it in place of the 185 K floor of row 6.228:SV7.
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|

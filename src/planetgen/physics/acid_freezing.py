@@ -5,8 +5,7 @@ The freezing curve of the sulfuric acid hydrates (GEN.1644, registry rows 6.287:
 ==========================================================================================================================================
 
 An aqueous sulfuric acid droplet does not stay liquid as it cools: at 0.1 MPa the first solid appears at the freezing temperature of
-its acid mole fraction, and which solid it is (ice, one of the five hydrates, or the pure acid) follows the same curve. Zeleznik 1991
-([R4877]) fitted the Gibbs energy of the solution and of each solid to the freezing points of Gable, Betz and Maron and of Kunzler and
+its acid mole fraction, and which solid it is (ice, one of the five hydrates, or the pure acid) follows the same curve. [R4877] fitted the Gibbs energy of the solution and of each solid to the freezing points of Gable, Betz and Maron and of Kunzler and
 Giauque, and printed the resulting phase diagram (Figure 1). `physics/data/acid_freezing.json` holds that diagram's stable liquidus, read off
 the printed curve to about 1 K and anchored at the exact temperatures of Table 6.
 

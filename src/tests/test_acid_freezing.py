@@ -1,6 +1,6 @@
 # tests/test_acid_freezing.py
 
-"""GEN.1644: the freezing curve of the sulfuric acid hydrates (`physics/acid_freezing.py`), read from Figure 1 of Zeleznik 1991 [R4877]."""
+"""GEN.1644: the freezing curve of the sulfuric acid hydrates (`physics/acid_freezing.py`), read from Figure 1 of [R4877]."""
 
 import numpy as np
 import pytest
