@@ -3673,7 +3673,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | GEN.1482 | Read link-neighbors and the other whole-run reads for rescans (audit S6, not read in detail), and fix what the read finds | GEN.1477 | done, closed as a finding (Lane 14 retime, 2026-11-09) |
 | GEN.1483 | Nebula block sums left by the field slabs as they are drawn, the same pattern as GEN.1476 (audit C3) | GEN.1476 | done, closed as a finding (Lane 12 measured 2026-11-09: 1M nebulae 14 s and 314 MB, no change needed) |
 | GEN.1484 | Circumbinary planets lose light to the mutual eclipses of their two stars: a per-planet factor in the stored light | GEN.1462 | done (Train 22 or earlier, 2026-11-11) |
-| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | open |
+| GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | done, PR #5898 |
 | GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | open |
 | GEN.1487 | Isotope record for comets, interstellar comets and belt members, from the ice fractionation law already built | none | done, PR #5842 |
 | GEN.1488 | Isotope record for star surfaces | none | done, PR #5852 |
