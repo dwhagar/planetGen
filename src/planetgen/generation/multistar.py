@@ -1148,6 +1148,14 @@ class _Builder:
             circular = (lambda both: both is not None and any(leaf.circular for leaf in both))(self.pair_leaves(left, right))
             if circular:
                 e = 0.0                      # the companion of a helium-core white dwarf the star draw made (GEN.996)
+            if self.pair_leaves(left, right) is not None and axis < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                # GEN.1615: two single stars closer than the least a wide pair has are a P-type pair, tracked on a circle (`System`
+                # sets the pair's node that way). It is circular here, at the draw, so the tree the stability judges is the tree
+                # that is stored; a circle has no periapsis, so the angle from the ascending node (the argument plus the anomaly)
+                # is carried in the anomaly.
+                e = 0.0
+                anomaly = (anomaly + arg) % (2.0 * math.pi)
+                arg = 0.0
             interaction, member_flags = self.interaction(left, right, axis, e)
             if circular:
                 interaction = "post-common-envelope"

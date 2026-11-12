@@ -172,6 +172,23 @@ def test_every_quadruple_the_generator_draws_clears_the_network_at_both_shapes()
     assert {"3+1", "2+2"} <= shapes
 
 
+def test_a_close_pair_is_circular_in_the_tree_that_is_judged():
+    """GEN.1615: a pair of two single stars closer than `tuning.WIDE_BINARY_SEPARATION_MIN_AU` is circular at the tree draw (eccentricity 0, no periapsis), so the tree
+    the network judges is the tree that is stored. Seed 112 drew an eccentric close 2+2 pair, passed, and was stored circular by `StarSystem`, which the network then refused."""
+    from planetgen import tuning
+    closes = 0
+    for seed in [112, *range(1, 25)]:
+        system, members = _four_star_system(seed)
+        for node in system.orbit_nodes:
+            under = [member for member in members if member.parent_node_no == node.node_no]
+            if len(under) == 2 and node.separation_km / constants.AU_TO_KM < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
+                closes += 1
+                assert node.eccentricity == 0.0 and node.arg_periapsis_deg == 0.0, (seed, node)
+        found = hs.verdicts(system.orbit_nodes, members)
+        assert all(verdict.stable for verdict in found), (seed, found)
+    assert closes
+
+
 def test_a_tree_the_network_always_refuses_loses_its_lightest_loose_member(monkeypatch):
     """The restart is bounded: when no draw of a four-star shape passes, the tree drops a member as it does for a shape no overlap screen passes (`tree.member_dropped`)
     and the three stars left have no quadruple level to refuse."""
