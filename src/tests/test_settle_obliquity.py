@@ -173,3 +173,26 @@ def test_a_planet_in_a_chaotic_zone_is_named_by_the_wandering_tilt_oddity_and_a_
     regular.oddities = ()
     planets.settle_obliquity([regular, _planet(5.0)], SUN)
     assert regular.oddities == ()
+
+
+def test_a_locked_moon_takes_the_cassini_tilt_of_its_nodal_regression_in_its_planets_frame(monkeypatch):
+    """GEN.1556: the moon's axis is set against its orbit normal in the planet's equator frame and turned back; a free-spinning moon is left."""
+    monkeypatch.setattr(planets, "internal_heat_flux_w_m2", lambda body: 0.02)
+    monkeypatch.setattr(planets.daylight, "generate", lambda *args: None)
+    planet = _planet(1.0)
+    moon_period = 27.32 / 365.25
+    moon = SimpleNamespace(mass=7.346e22, radius=1737.4, distance=384400e3 / 1.495978707e11, eccentricity=0.05, period=moon_period, orbital_inclination_deg=5.1, orbital_ascending_node_deg=30.0,
+                           rotation_period_hours=moon_period * 8766.0, spin_axis_x=0.0, spin_axis_y=0.0, spin_axis_z=1.0, axial_tilt_deg=0.0, body_type="t",
+                           star=SimpleNamespace(snow_line_au=2.7), formation_distance_au=1.0)
+    free = SimpleNamespace(**{**vars(moon), "rotation_period_hours": 20.0, "axial_tilt_deg": 11.0})
+    planet.moons = [moon, free]
+    assert planets.settle_moon_tilts([planet], SUN) == 1
+    assert 0.0 < moon.axial_tilt_deg <= 5.1 and free.axial_tilt_deg == 11.0
+    normal = planets.spin.orbit_normal(5.1, 30.0)
+    axis = (moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z)
+    assert math.degrees(math.acos(sum(a * b for a, b in zip(axis, normal)))) == pytest.approx(moon.axial_tilt_deg, abs=1e-6)
+    again = SimpleNamespace(**vars(moon))
+    again.spin_axis_x, again.spin_axis_y, again.spin_axis_z = 0.0, 0.0, 1.0
+    planet.moons = [again]
+    planets.settle_moon_tilts([planet], SUN)
+    assert again.axial_tilt_deg == moon.axial_tilt_deg

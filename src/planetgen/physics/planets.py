@@ -1143,6 +1143,42 @@ def settle_obliquity(planets, host_mass_kg):
     return changed
 
 
+def settle_moon_tilts(planets, host_mass_kg):
+    """
+    GEN.1556: a regular moon of one star's planets that is locked to its planet takes the tilt of its first Cassini state from its nodal regression (the planet's bulge and the star,
+    `cassini_state.locked_moon_tilt_deg`) and its own figure, in place of the share `tidal_spin.cassini_tilt_deg` drew early. The moon's axis is turned in its planet's equator frame (where its
+    inclination is measured) and back; its day and night shares follow. One draw per moon from a stream of its own. Called after `settle_obliquity` has set the planets' tilts (which turned the
+    moons with them). Returns how many moons changed tilt.
+    """
+    from planetgen.physics import cassini_state
+
+    changed = 0
+    for planet in planets:
+        if getattr(planet, "is_moon", False) or not getattr(planet, "period", None) or not planet.mass or not planet.radius or not getattr(planet, "rotation_period_hours", None):
+            continue
+        for moon in getattr(planet, "moons", None) or ():
+            rotation = getattr(moon, "rotation_period_hours", None)
+            axis = tuple(getattr(moon, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+            if not (rotation and moon.period and moon.mass and moon.radius and moon.distance) or any(c is None for c in axis):
+                continue
+            if spin.spin_state(rotation, moon.period)[0] != "locked":
+                continue
+            stream = draw.Stream(f"cassini-figure:{float(moon.mass)!r}:{float(moon.distance)!r}:{float(planet.mass)!r}:{float(moon.radius)!r}")
+            heat = internal_heat_flux_w_m2(moon) + (getattr(moon, "tidal_flux_w_m2", None) or 0.0)
+            new_tilt = cassini_state.locked_moon_tilt_deg(moon, planet, heat, moon.period, stream.random())
+            frame = getattr(moon, "_frame_axis", None)
+            equator_axis = spin.turn_from_axis(axis, frame) if frame is not None else axis
+            normal = spin.orbit_normal(moon.orbital_inclination_deg or 0.0, moon.orbital_ascending_node_deg or 0.0)
+            new_axis = spin.carry_axis(equator_axis, normal, normal, new_tilt)
+            if frame is not None:
+                new_axis = spin.turn_to_axis(new_axis, frame)
+            moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z = new_axis
+            moon.axial_tilt_deg = new_tilt
+            daylight.generate(moon, planet)
+            changed += 1
+    return changed
+
+
 def _retilt(body, axis, new_tilt):
     """Gives `body` the tilt `new_tilt` with its axis kept at its angle round the orbit's normal; the sky of the other suns, the day and night shares and the moons follow (`carry_spin_with_orbit`)."""
     normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)

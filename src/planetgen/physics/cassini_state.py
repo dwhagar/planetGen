@@ -37,8 +37,16 @@ so a body whose interior can relax (an icy body, or a rocky one heated above `RE
 in at an earlier, faster spin: `FOSSIL_FACTOR_RANGE` times the hydrostatic `J2` (drawn log-uniform, a stand-in between the Moon and Mercury), with the observed share `FOSSIL_C22_OVER_J2` of it in
 `C22` (Mercury 0.161, the Moon 0.110) in place of the hydrostatic 0.3. The figure is derived, not stored in a column: it is a function of the body and one draw from a stream of its own.
 
-**What it does not do.** Moons (`tidal_spin.cassini_tilt_deg` still stands for them: their nodal regression comes from the planet's bulge and the star, not from planet-planet modes, GEN.1536
-part 2); a Cassini state 2 (the Moon's own, reached through a different tidal path); the exact, not small-angle, state; a body in a resonance above 3:2 uses the 3:2 coefficient.
+**A moon (GEN.1556).** The node of a moon's orbit regresses about its Laplace plane because its planet's bulge pulls on it and the star pulls on it:
+
+    |s| = (3/2) n J2p (Rp / a)^2 + (3/4) n_p^2 / n
+
+for the moon's mean motion `n` and semi-major axis `a`, the planet's `J2p` (the fluid figure its spin gives it: Jupiter's comes out at 0.0228 against the 0.0147 measured, since the Darwin-Radau relation overstates a giant's figure; the regression is 55 percent high there, which moves a Galilean moon's tilt by under a tenth of a degree), radius `Rp` and mean motion `n_p`. The moon's tilt is the
+same `eps = i |s| / (V + |s|)` with `i` its orbit's inclination to the planet's equator (the Laplace plane of a moon inside the Laplace radius; a moon outside it is taken with the same inclination, a
+simplification) and `V` from the moon's own figure (hydrostatic for the icy moons, a tidally hot Io; fossil for a cold rocky moon). Europa comes out at 0.1 degrees, the Moon at 4 degrees of the 6.7 of its state 2.
+
+**What it does not do.** A Cassini state 2 (the Moon's own, reached through a different tidal path); the exact, not small-angle, state; a body in a resonance above 3:2 uses the 3:2 coefficient; the
+Laplace plane of a moon outside the Laplace radius.
 """
 
 import math
@@ -100,6 +108,15 @@ def tilt_deg(modes, precession):
     return math.degrees(math.sqrt(total))
 
 
+def moon_regression_rad_yr(moon_mean_motion_rad_s, moon_distance_m, planet_j2, planet_radius_m, planet_mean_motion_rad_s):
+    """`|s| = (3/2) n J2p (Rp / a)^2 + (3/4) n_p^2 / n`, radians per year: the regression of a moon's node from its planet's bulge and the star."""
+    if not (moon_mean_motion_rad_s > 0.0 and moon_distance_m > 0.0):
+        raise ValueError("a moon needs a positive mean motion and distance")
+    bulge = 1.5 * moon_mean_motion_rad_s * planet_j2 * (planet_radius_m / moon_distance_m) ** 2
+    star = 0.75 * planet_mean_motion_rad_s ** 2 / moon_mean_motion_rad_s
+    return (bulge + star) * constants.SECONDS_PER_YEAR
+
+
 def is_relaxed(body, heat_flux_w_m2):
     """Whether the interior of the body keeps the figure of its spin: an icy body, or a rocky one heated above `RELAXED_HEAT_FLUX_W_M2`."""
     return bulk_draw.origin_of(body) == bulk_draw.ICY or heat_flux_w_m2 >= RELAXED_HEAT_FLUX_W_M2
@@ -119,3 +136,23 @@ def locked_tilt_deg(body, heat_flux_w_m2, modes, mean_motion_rad_s, turns_per_or
     inclination = abs(getattr(body, "orbital_inclination_deg", 0.0) or 0.0)
     ceiling = min(inclination, 180.0 - inclination)      # `x` is at most 1 (GEN.1165): the quadrature sum of the modes' amplitudes can pass the orbit's inclination of this moment, the tilt does not
     return min(tilt_deg(modes, precession), ceiling)
+
+
+def locked_moon_tilt_deg(moon, planet, heat_flux_w_m2, moon_period_yr, u):
+    """
+    GEN.1556: the Cassini-state tilt of a moon locked to its planet, degrees: its nodal regression from the planet's bulge and the star (`moon_regression_rad_yr`) against its own precession constant
+    (`locked_tilt_deg`'s figure, 1:1), for the inclination of its orbit to the planet's equator. `moon_period_yr` is its period round the planet; `u` the unit draw of its fossil figure.
+    """
+    moment_factor = tidal_spin.moment_factor(moon)
+    eccentricity = getattr(moon, "eccentricity", 0.0) or 0.0
+    n = 2.0 * math.pi / (moon_period_yr * constants.SECONDS_PER_YEAR)
+    n_planet = 2.0 * math.pi / (planet.period * constants.SECONDS_PER_YEAR)
+    j2_hydro, _ = hydrostatic_figure(moon.mass, moon.radius * 1000.0, moment_factor, n, n, eccentricity)
+    j2, c22 = frozen_figure(j2_hydro, is_relaxed(moon, heat_flux_w_m2), u)
+    precession = precession_rad_yr(j2, c22, moment_factor, n, eccentricity, False)
+    planet_spin = 2.0 * math.pi / (abs(planet.rotation_period_hours) * 3600.0)
+    planet_j2, _ = hydrostatic_figure(planet.mass, planet.radius * 1000.0, tidal_spin.moment_factor(planet), planet_spin, 0.0, 0.0)
+    regression = moon_regression_rad_yr(n, moon.distance * constants.AU_TO_M, planet_j2, planet.radius * 1000.0, n_planet)
+    inclination = abs(getattr(moon, "orbital_inclination_deg", 0.0) or 0.0)
+    inclination = min(inclination, 180.0 - inclination)
+    return min(tilt_deg([obliquity_variation.Mode(-regression, math.radians(inclination))], precession), inclination)

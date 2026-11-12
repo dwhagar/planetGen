@@ -8604,14 +8604,14 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "a locked or resonant planet now takes its Cassini-state tilt from the nodal modes of its orbit and a fossil or hydrostatic figure (GEN.1536, OB9 to OB12); a moon still has no secular frequencies or fossil shapes to give the Cassini-state share of the inclination, and a Laplace-Lagrange run of the generated system with the body's gravity field replaces the log-uniform share, which is kept inside Mercury's 0.004 and the bound 1"
+            "GEN.1536 and GEN.1556 (2026-11-11): a locked or resonant planet takes its Cassini-state tilt from the nodal modes of its orbit and a fossil or hydrostatic figure, a locked moon from its nodal regression (planet bulge and star) and its figure (OB9 to OB14); the log-uniform share stays only as the early value the settle overwrites; the tilts of the Galilean moons and the Moon check out"
           ],
           "fields": [
             [
               "Evidence",
-              "GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at eps = x i with x = abs(g) / (alpha + abs(g)) between 0 (a shape that holds the axis) and 1 (no hold); x is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; for a planet this is replaced (GEN.1536, OB9 to OB12: the nodal modes of its orbit and a fossil figure give g and alpha); a moon still has no secular frequencies or fossil shapes to give alpha and g, and a hydrostatic alpha is far under a real body's; the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753)"
+              "GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at eps = x i with x = abs(g) / (alpha + abs(g)) between 0 (a shape that holds the axis) and 1 (no hold); x is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; this is the early value, overwritten at the settle by the real Cassini state (GEN.1536 and GEN.1556, OB9 to OB14: the nodal modes of a planet's orbit or a moon's regression, and a fossil or hydrostatic figure, give g and alpha); the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753)"
             ],
             [
               "What it is",
@@ -63363,6 +63363,82 @@
           "tweak": "L0",
           "unread": null,
           "what": "cassini_state.precession_rad_yr and tilt_deg: V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)] and eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2) over the nodal modes, the tilt at most the orbit's inclination"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a moon locked to its planet"
+            ],
+            [
+              "What would show it wrong",
+              "the nodal period of a measured moon outside 10 percent of the formula (the Moon: 17.8 years against 18.6)"
+            ],
+            [
+              "What replaces it",
+              "a numerical Laplace-Lagrange run of the moons with the planet's measured field"
+            ],
+            [
+              "Evidence",
+              "the Moon's node period, 18.6 years, and Europa's about 30 years follow within 5 percent; Jupiter's fluid J2 is 0.0228 against the measured 0.0147 (Darwin-Radau overstates a giant's figure), which the tilt tolerates"
+            ]
+          ],
+          "id": "OB13",
+          "key": "6.271:OB13",
+          "kind": "P",
+          "slug": "6-271-ob13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a moon inside its planet's Laplace radius"
+            ],
+            [
+              "What would show it wrong",
+              "a moon outside the Laplace radius whose plane is the planet's orbit plane (the Moon is tilted 5.1 degrees to the ecliptic, 18 to 28 to the equator)"
+            ],
+            [
+              "What replaces it",
+              "the Laplace plane of each moon from a_L = (J2p Rp^2 a_p^3 M_p / M_star)^(1/5) and the Cassini state 2 of the Moon"
+            ],
+            [
+              "Evidence",
+              "the Galilean moons come out at 0.01 to 0.14 degrees (Io under 0.04, Europa 0.1 measured) and the Moon at 3.7 to 4.7 against the 6.7 of its state 2"
+            ]
+          ],
+          "id": "OB14",
+          "key": "6.271:OB14",
+          "kind": "P",
+          "slug": "6-271-ob14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
