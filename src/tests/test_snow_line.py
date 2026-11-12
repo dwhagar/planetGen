@@ -13,6 +13,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import condensate_shares, constants, formation, formation_snow_line
+from planetgen.physics import planets as planetPhysics
 from planetgen.util import draw
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
@@ -96,7 +97,7 @@ def test_a_planet_is_born_beyond_the_line_of_its_star_when_it_orbits_at_or_beyon
         for planet in system.planets:
             if planet.body_type == 'a':
                 continue
-            assert planet.born_beyond_snow_line == (planet.distance >= planet.star.snow_line_au)
+            assert planet.born_beyond_snow_line == (planetPhysics.formation_distance_au(planet) >= planet.star.snow_line_au)   # GEN.1596: where it formed, not where it has moved to
             seen.add(planet.born_beyond_snow_line)
             assert all(moon.born_beyond_snow_line == planet.born_beyond_snow_line for moon in planet.moons)
     assert seen == {True, False}
