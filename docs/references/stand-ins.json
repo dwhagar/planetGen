@@ -63455,6 +63455,44 @@
           "tweak": "L0",
           "unread": null,
           "what": "validation._chain_needed: only the last planet of a window is tested, the planets inside are held when the planet outside them is placed (space_orbits pushes outward only); a belt in the window breaks the chain"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 3"
+            ],
+            [
+              "Where it holds",
+              "windows with a wide or unequal gap"
+            ],
+            [
+              "What would show it wrong",
+              "a system the rule leaves at the pairwise floor that an N-body run scatters within 1 Gyr, or one pushed to twice its distance that holds at the floor"
+            ],
+            [
+              "What replaces it",
+              "a chain stability time per window that says how far out a window needs to be"
+            ],
+            [
+              "Evidence",
+              "design: without a cap one eccentricity change of a part in a thousand moved a planet from 2.2 to 18.5 AU (M3V seed 1317)"
+            ]
+          ],
+          "id": "CH4",
+          "key": "6.272:CH4",
+          "kind": "P",
+          "slug": "6-272-ch4",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule"
         }
       ],
       "slug": "6-272-stand-ins-of-the-chain-spacing-test",

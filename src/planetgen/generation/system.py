@@ -2377,6 +2377,12 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+            # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
+            # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
+            for _star, planets in validation.star_lists(self):
+                if validation.check_orbit_spacing(planets):
+                    for moved in validation.space_orbits(planets):
+                        log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled")
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""
