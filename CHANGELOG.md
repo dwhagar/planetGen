@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3969] - 2026-11-12
+
+**Headline:** A statement that loses its MySQL connection now leaves a warning with what the server says about it.
+
+### Changed
+- **Lost connections are explained (OPS.171).** When a statement run through the retry helper loses its connection, a warning gives the server's uptime (a small figure means it restarted), its idle timeout and its aborted-client count. The sky unit's own explanation is a warning too. generation-output: unchanged
+
+## [8.0.3968] - 2026-11-12
+
+**Headline:** Warnings that were logged as ordinary lines now go out as warnings, so a warning reader and error.log see them.
+
+### Changed
+- **Eight "Warning:" lines moved from normal level to warning (OPS.167).** They were in the sector and block-totals runs, the plan and the run helpers. A lost MySQL connection in the sky unit and a deadlock retry's final failed try are warnings too, and each deadlock retry is a notice. generation-output: unchanged
+
+## [8.0.3967] - 2026-11-12
+
+**Headline:** A failed after-commit step is now logged with its name and its traceback.
+
+### Changed
+- **After-commit failures name the step and carry the traceback (OPS.164).** These steps keep derived data such as caches and counts in step with the database, so a failure used to leave them drifting with only a one-line message. generation-output: unchanged
+
+## [8.0.3966] - 2026-11-12
+
+**Headline:** The line for a run that stopped early now says why and at which stage, and a cancel is no longer logged as an error.
+
+### Changed
+- **The run-failure line names the cause and the stage (OPS.163).** `Run … stopped at stage 3 of 5: ValueError: …`, with the run id, stage and cause as fields. A cancel (Ctrl+C or SIGTERM) is logged as a notice. generation-output: unchanged
+
 ## [8.0.3965] - 2026-11-12
 
 **Headline:** The ring-costing sample size in the sky charting code now carries the tag the constants census asks for, which clears a red test on main.
