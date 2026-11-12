@@ -6540,6 +6540,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only if it already had local work).
   Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): the birth step stays in 8.1 and is built with GEN.1611 (the formation snow line needs the star's birth luminosity) and GEN.1546 (age from the birth time, no raise). Owner: Lane 21 with Lane 11.
   Lane 11 (as the lane reported 1:30 AM EST on 2026-11-12): the birth luminosity function is PR 6180 (physics/birth_luminosity.py, birth_luminosity_sol(initial_mass_sol, fe_h, age_gy), lock-free, unwired), for GEN.1611 slice 1 (Lane 21). It has a 1.8x step at 1.4 Msun from the track mismatch in GEN.1640.
+  Second-pass layered-fix scan (/mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md, N10, 2026-11-12): fold the three Schwarzschild-radius functions into one here.
 
 - [ ] **GEN.554 Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -13603,10 +13604,56 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: GEN.1649, TEST.736.
   Boss, 4:08 PM EST on 2026-11-12: "All right fix all of the stacked bug fix recommendations. Hold train 26 until all epoch and generator code from that is in. Work on all non-lock code outside and let's move on to scan."
   Filed by the TODO thread.
+  Second-pass scan (N10): also remove load_star_system's is_binary fallback (store.py, about line 10127).
 
 - [ ] **GEN.1661 (bug) Belt secular pull crashes with a singular matrix for about 3.8% of systems asked for a habitable world and an asteroid belt**
   Lane 02 (as the lane reported 4:03 PM EST on 2026-11-12), found by Lane 14's redraw census: StarSystem._settle_to_final_age -> _secular_exchange -> secular_chain.evolve -> np.linalg.solve raises LinAlgError "Singular matrix" for 23 of 600 systems generated with a habitable world and an asteroid belt asked (seeds crc32 of 'redraw:world-requested:40', 53, 83, 97, 124); 0 crashes in the ordinary group. It is in the belt secular pull (GEN.1464), which rides Train 25, so Train 25 waits for this fix. Do: find why the matrix is singular (likely two bodies at the same semi-major axis, or a zero-mass row) and treat that case from the physics, not by catching the error. Test: those five seeds generate, and the 600-system redraw group gives 0 crashes.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21, in Train 25. Prerequisites: none. Related: GEN.1464.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1662 Bright-star backfill: one Band object and one loop replace the two parallel luminosity and mass pipelines in run_plan and bright_stars (about 85% identical)**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N1). Output unchanged, no epoch; lock-free. Same streams; check order on the golden or census.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.1665.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1663 Sector phenomena: generate_sector_phenomena's five per-kind branches become columns of phenomena/registry.py**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N2). Output unchanged, no epoch; lock-free. Stage E of GEN.556.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: GEN.556, GEN.1666.
+  Filed by the TODO thread.
+
+- [ ] **DB.128 One kind-table registry: the twelve hand-written kind-table tuples in store, query, fingerprint and edits become groups of db/kind_tables.KIND_TABLES, and the ten black_holes/neutron_stars special cases become one anchored flag**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N3). Output unchanged, no epoch; lock-free. One PR with DB.129 and OPS.178.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.129, OPS.178, GEN.1666.
+  Filed by the TODO thread.
+
+- [ ] **DB.129 SaveSession dataclass replaces the ten attributes stashed on the database connection during a save**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N4). Output unchanged, no epoch; lock-free. The twin of GEN.1651.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.128, GEN.1651.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1664 StarSystem.hosts (host, orbiters) becomes the one list, replacing planets, secondary_planets and member_planets (135 sites) and the 52 binary_type tests; store and load loop once**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N5). Output unchanged, no epoch; lock-free. Slice two of GEN.1656, a prerequisite of GEN.556; check order on the golden.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 04. Prerequisites: GEN.1656. Related: GEN.1656, GEN.556.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1665 One _advance_rows with a per-kind stepper replaces the three copies of one loop in store.advance_galactic_positions and its five sibling advance_* functions**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N6). Output unchanged, no epoch; lock-free. First slice of GEN.584; check order on the golden.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: GEN.584.
+  Filed by the TODO thread.
+
+- [ ] **OPS.178 CLI validate_sectors_args: the forty pairwise option exclusions become a mode table**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N7). Output unchanged, no epoch; lock-free. One PR with DB.128 and DB.129.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: DB.128.
+  Filed by the TODO thread.
+
+- [ ] **OPS.179 cli/worker.worker_class: the eight stacked hooks become an ordered JobGate list**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N8). Output unchanged, no epoch; lock-free. Low.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05, after its logging items. Prerequisites: none. Related: OPS.178.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1666 describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands**
+  Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N9). Output unchanged, no epoch; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: DB.128. Related: DB.128, GEN.1663.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
