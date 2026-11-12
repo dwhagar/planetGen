@@ -121,8 +121,9 @@ def quantile_for(*parts):
 
 
 def quantile_of(body):
-    """The strength quantile of a planet or a moon, from a stream of its own (mass, radius, distance and whether it is a moon)."""
-    return quantile_for(float(body.mass), float(body.radius), float(getattr(body, "distance", 0.0) or 0.0), int(bool(getattr(body, "is_moon", False))))
+    """The strength quantile of a planet or a moon, from a stream of its own keyed to its birth (mass, the distance it formed at, its star's mass and whether it is a moon; GEN.1547)."""
+    with draw.bound(draw.body_stream_of(STRENGTH_DRAW_STREAM, body, slot=str(int(bool(getattr(body, "is_moon", False)))))):
+        return draw.random()
 
 
 def generate(body):

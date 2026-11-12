@@ -99,7 +99,7 @@ def state_of(body):
 
 def stream_of(body, kind):
     """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
-    return draw.Stream(f"carbide:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(getattr(body, 'star', None), 'age', None)!r}")
+    return draw.body_stream_of(f"carbide:{kind}", body, slot=str(bool(getattr(body, 'is_moon', False))))      # GEN.1547: keyed to the body's birth, not its radius, orbit or the star's age
 
 
 def generate(body):

@@ -241,10 +241,11 @@ def body_stream(kind, mass_kg, formation_distance_au, star_mass_kg, slot=None):
 
 def body_stream_of(kind, body, slot=None):
     """
-    `body_stream` of `body`: its mass, its formation distance (its own distance when it records none, the parent's for a moon) and its star's mass.
+    `body_stream` of `body`: its mass, its formation distance (its own distance when it records none, the parent's for a moon) and its star's mass (0 for a body with no star).
     """
     formation = getattr(body, "formation_distance_au", None)
-    return body_stream(kind, body.mass, body.distance if formation is None else formation, body.star.mass, slot)
+    star_mass = getattr(getattr(body, "star", None), "mass", None)      # a rogue body has no star: its key holds 0
+    return body_stream(kind, body.mass, body.distance if formation is None else formation, 0.0 if star_mass is None else star_mass, slot)
 
 
 def set_run_seed(seed):

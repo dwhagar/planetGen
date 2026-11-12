@@ -219,12 +219,10 @@ def _store_body(planet, mass_earth, ratios, regime, heavy_earth, envelope_z, flu
         setattr(planet, attribute, value)
 
 
-def settle_stream(planet, drawn):
+def settle_stream(planet):
     """The stream a settled giant's interior is drawn from: its own, keyed by what it is once the star's age is final (the run's stream
-    is not touched, so nothing drawn after it moves). The key is the giant's mass, distance, star and the age and radius it settles
-    from, which no other giant shares."""
-    return draw.Stream(f"settle-giant:{float(planet.mass)!r}:{float(planet.distance)!r}:{float(planet.star.mass)!r}:"
-                       f"{float(planet.star.age)!r}:{drawn.radius_km!r}")
+    is not touched, so nothing drawn after it moves). The key is the giant's mass, formation distance and star mass (GEN.1547), which no other giant shares."""
+    return draw.body_stream_of("settle-giant", planet)      # GEN.1547: the giant's birth numbers alone; the radius it settles from is no part of the key
 
 
 def settle(planet):
@@ -257,7 +255,7 @@ def settle(planet):
     radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
     if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
         return False
-    stream = settle_stream(planet, drawn)
+    stream = settle_stream(planet)
     planet.radius = radius_km
     with draw.bound(stream):
         _store_body(planet, mass_earth, drawn.ratios, regime, drawn.heavy_earth, drawn.envelope_z, flux_w_m2)

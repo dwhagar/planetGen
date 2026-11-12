@@ -219,7 +219,7 @@ def state_of(body):
 def stream_of(body, kind):
     """The body's own stream for one type: seeded from what is final about the body and the type, so no draw of the run's stream moves and adding a type moves no other."""
     star = getattr(body, "star", None)
-    return draw.Stream(f"sediment:{kind}:{getattr(body, 'is_moon', False)}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(star, 'age', None)!r}")
+    return draw.body_stream_of(f"sediment:{kind}", body, slot=str(bool(getattr(body, 'is_moon', False))))      # GEN.1547: keyed to the body's birth, not its radius, orbit or the star's age
 
 
 def assess(kind, state, stream):
