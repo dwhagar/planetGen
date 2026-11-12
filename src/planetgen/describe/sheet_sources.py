@@ -86,8 +86,7 @@ _STAR = {
                              "the rest of the carbon and oxygen is carbon.",
     "chemistry_core_carbon": "What the central oxygen and the neon-22 leave of the core [R5238, R5239].",
     "chemistry_core_neon22": "Every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as neon-22 in the core, so the share rises with the star's metal fraction.",
-    "chemistry_pollutant_class": "A polluted white dwarf shows the rock of a body that fell in [R1832]; the body is one belt body of the star's system, chosen in proportion to its mass, "
-                                 "read as the mix of materials of its taxon and sorted by its metal, water and calcium-and-aluminum content.",
+    "chemistry_pollutant_class": "[R1832]: a polluted white dwarf shows the rock of a body that fell in; here one belt body of its system, picked by mass, sorted by its metal, ice and calcium and aluminum.",
     "chemistry_pollutant_ratios": "The elements a white dwarf's spectrum shows, over the magnesium, from the materials of the accreted body's taxon [R1832].",
 }
 """dict: A star's column key (or the key of a row worked out from the stored values, UX.254) -> its source line."""
