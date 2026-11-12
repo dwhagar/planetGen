@@ -733,6 +733,17 @@ def _irregular_moons_url(db, kind, ref):
     return page_url("irregular_moons_page", planet_ref=ref) if kept else None
 
 
+def _irregular_moons_url(db, kind, ref):
+    """GEN.1086: the list of the irregular moons a planet keeps, when it keeps any; nothing for another kind, a planet with none or when the API cannot say."""
+    if kind != "planet":
+        return None
+    try:
+        kept = apiclient.get_irregular_moons(db, ref)["moons"]
+    except (apiclient.NotFoundError, apiclient.ApiError):    # the page does not wait on a second call: without the list it just has no link
+        return None
+    return page_url("irregular_moons_page", planet_ref=ref) if kept else None
+
+
 def render_item(kind, printed_id):
     """The page of one star, planet, moon, belt, comet, facility, globular cluster or superbubble; a missing one is a 404."""
     ref = f"{kind}:{printed_id}"

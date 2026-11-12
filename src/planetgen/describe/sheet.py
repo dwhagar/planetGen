@@ -23,12 +23,12 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model
+from planetgen.describe import clock_rows, day_rows, heavy_rows, influx_row, model, sky_size_rows
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
 from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
-                               life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
+                               life_classes, stellar_abundances, stellar_composition, sulfur_cloud_set, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -190,6 +190,8 @@ _BODY_GROUPS = (
     *_rows("identity", ("planet_class", "Class", TEXT), ("class_variant", "Class variant (the digit of the class code; 0 is the ideal of the class, 9 a world limited by its gravity or air amount)"),
            ("class_match", "Class match (how well the class fits the body; 0 when no class fits it and this is the nearest)"),
            ("runner_up_class", "Runner-up class", TEXT), ("runner_up_match", "Runner-up class match"),
+           ("class_fudge_values", "Values fudged to fit the class (the quantities the class needed moved, comma separated; the temperatures as temperature_k; empty for a full fit)", TEXT),
+           ("class_fudge_amount", "Class fudge (the total move of those values in widths of the fudge table; 0 for a full fit, about 1 for the edge of fitting)"),
            ("planet_type", "Body type (terrestrial, transitional, super-puff or gas, by the share of its mass that is a hydrogen-helium envelope; a super-puff is a transitional planet under 0.1 g/cc in the period range of the Kepler super-puffs)", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
@@ -249,7 +251,7 @@ _BODY_GROUPS = (
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
-           ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
+           ("cloud_cover", "Cloud cover"), ("cloud_chemistry", "Sulfur-cloud chemistry (the Venus set the air, light and ground allow)", TEXT), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"),
@@ -798,6 +800,8 @@ def _value(spec, table, stored):
     quantity = spec.quantity
     if spec.stored_column() == "life_traits":
         return [adaptation_traits.sentence(stored)]      # GEN.876: "radiation (tolerant), sulfide (extreme)"
+    if spec.stored_column() == sulfur_cloud_set.COLUMN:
+        return [sulfur_cloud_set.sentence(stored)]       # GEN.1425: the species of the Venus set, as words
     if quantity == TEXT:
         text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         text = text[:1].upper() + text[1:]
@@ -939,10 +943,12 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+    (("planet_class", "class_variant", "class_match", "runner_up_class", "runner_up_match", "class_fudge_values", "class_fudge_amount"), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
      "a body under a roundness ratio of 1 is an Asteroid and has no class letter, digit or match"),
     (("runner_up_class",), lambda klass, row: row is None or (row.get("runner_up_match") or 0.0) > 0.0,
      "a runner-up is a second class that fits the body at more than 0 percent; where only one class fits (a class that matches 0 percent is no runner-up, `class_fit.classify`) the column is empty and the match is 0"),
+    (("class_fudge_values",), lambda klass, row: row is None or (row.get("class_fudge_amount") or 0.0) > 0.0,
+     "a body that fits its class with no value moved (the fit is full, `class_fudge.fit`) has nothing fudged, so the list of values is empty and the amount is 0 or empty (GEN.1314)"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
@@ -979,6 +985,8 @@ _BODY_RULES = [
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen, or airless body has none"),
     (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
      "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
+    (("cloud_chemistry",), lambda klass, row: row is None or row.get("cloud_chemistry") is not None,
+     "only a rocky body whose air, light and ground open at least one gate of the Venus sulfur-cloud set (GEN.1425) stores its species; a body with no air, or an air with none of the sulfur, chlorine, carbon monoxide or carbonyl sulfide the gates need, stores none"),
     (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
      "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (surface_liquid_world.MIX_FIELDS, lambda klass, row: row is None or row.get("surface_liquid") in surface_liquid_world.HYDROCARBON_SEAS,
@@ -1381,7 +1389,7 @@ def sheet(conn, kind, object_id):
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
     for group, key, label, value, raw in (*clock_rows.rows(conn, kind, object_id), *heavy_rows.rows(conn, kind, object_id),
-                                            *day_rows.rows(conn, kind, object_id)):
+                                            *day_rows.rows(conn, kind, object_id), *sky_size_rows.rows(conn, kind, object_id)):
         by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
                                 "show_absent": False})
     arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None

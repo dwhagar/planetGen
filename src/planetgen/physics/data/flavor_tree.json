@@ -356,115 +356,707 @@
      "id": "planet.life",
      "gate": [
       {
-       "quantity": "life_multicellular",
+       "quantity": "life_present",
        "equals": 1
       }
      ],
-     "lines": [
+     "children": [
       {
-       "id": "habitable:0",
-       "weight": 1.0,
-       "text": "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence."
+       "id": "planet.life.water_light",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 1
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 1
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.water_light.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:0",
+           "weight": 1.0,
+           "text": "slimy films on wet rock at the water's edge, thickest where the light is strongest."
+          },
+          {
+           "id": "life:1",
+           "weight": 1.0,
+           "text": "pale stains on the sea floor where mats have died and settled in thin layers."
+          }
+         ],
+         "children": [
+          {
+           "id": "planet.life.water_light.micro.oxygen",
+           "gate": [
+            {
+             "quantity": "life_oxygen",
+             "equals": 1
+            }
+           ],
+           "lines": [
+            {
+             "id": "life:2",
+             "weight": 1.0,
+             "text": "green-gray mats that spread across the shallows and bubble oxygen into the water."
+            },
+            {
+             "id": "life:3",
+             "weight": 1.0,
+             "text": "clouds of drifting single cells that tint the surface water in broad bands."
+            }
+           ]
+          },
+          {
+           "id": "planet.life.water_light.micro.anoxic",
+           "gate": [
+            {
+             "quantity": "life_oxygen",
+             "equals": 0
+            }
+           ],
+           "lines": [
+            {
+             "id": "life:4",
+             "weight": 1.0,
+             "text": "purple and green mats that stain the shallows, with a faint smell of methane in the air."
+            },
+            {
+             "id": "life:5",
+             "weight": 1.0,
+             "text": "thick, layered mats in the shallows, rippling where gas rises through them."
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "planet.life.water_light.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "habitable:0",
+           "weight": 1.0,
+           "text": "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence."
+          },
+          {
+           "id": "habitable:6",
+           "weight": 1.0,
+           "text": "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods."
+          },
+          {
+           "id": "habitable:7",
+           "weight": 1.0,
+           "text": "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases."
+          },
+          {
+           "id": "habitable:9",
+           "weight": 1.0,
+           "text": "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources."
+          },
+          {
+           "id": "habitable:11",
+           "weight": 1.0,
+           "text": "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins."
+          },
+          {
+           "id": "life:6",
+           "weight": 1.0,
+           "text": "dense colonies that cover rock in the shallows in layered crusts, banded green and brown."
+          },
+          {
+           "id": "life:7",
+           "weight": 1.0,
+           "text": "tangled growth that forms floating rafts across calm water."
+          }
+         ],
+         "children": [
+          {
+           "id": "planet.life.water_light.multicellular.anoxic",
+           "gate": [
+            {
+             "quantity": "life_oxygen",
+             "equals": 0
+            }
+           ],
+           "lines": [
+            {
+             "id": "life:8",
+             "weight": 1.0,
+             "text": "domes of living mat that float on trapped methane."
+            }
+           ]
+          },
+          {
+           "id": "planet.life.water_light.multicellular.oxygen",
+           "gate": [
+            {
+             "quantity": "life_oxygen",
+             "equals": 1
+            }
+           ],
+           "lines": [
+            {
+             "id": "life:9",
+             "weight": 1.0,
+             "text": "stands of tall, green growth in the shallows, swaying with the current."
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "id": "planet.life.water_light.animals",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 5
+          }
+         ],
+         "lines": [
+          {
+           "id": "habitable:1",
+           "weight": 1.0,
+           "text": "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand."
+          },
+          {
+           "id": "habitable:2",
+           "weight": 1.0,
+           "text": "high-altitude predators with hyper-thin membranous wings that ride the solar wind."
+          },
+          {
+           "id": "habitable:3",
+           "weight": 1.0,
+           "text": "jagged, forest-like continental structures built from the hard mineral shells of colonial insects."
+          },
+          {
+           "id": "habitable:4",
+           "weight": 1.0,
+           "text": "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton."
+          },
+          {
+           "id": "habitable:5",
+           "weight": 1.0,
+           "text": "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids."
+          },
+          {
+           "id": "habitable:8",
+           "weight": 1.0,
+           "text": "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers."
+          },
+          {
+           "id": "habitable:10",
+           "weight": 1.0,
+           "text": "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust."
+          },
+          {
+           "id": "habitable:12",
+           "weight": 1.0,
+           "text": "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides."
+          },
+          {
+           "id": "habitable:13",
+           "weight": 1.0,
+           "text": "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls."
+          },
+          {
+           "id": "habitable:14",
+           "weight": 1.0,
+           "text": "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on."
+          },
+          {
+           "id": "habitable:15",
+           "weight": 1.0,
+           "text": "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them."
+          },
+          {
+           "id": "habitable:16",
+           "weight": 1.0,
+           "text": "lichen-like organisms that ride migrating herds, trading camouflage for transport."
+          },
+          {
+           "id": "habitable:17",
+           "weight": 1.0,
+           "text": "herd animals that bury themselves and estivate for years to survive multi-year droughts."
+          },
+          {
+           "id": "habitable:18",
+           "weight": 1.0,
+           "text": "predators whose skin patterns mimic local flora so precisely they vanish at rest."
+          },
+          {
+           "id": "habitable:19",
+           "weight": 1.0,
+           "text": "colonial organisms that briefly link into a single distributed nervous system during seasonal migration."
+          },
+          {
+           "id": "habitable:20",
+           "weight": 1.0,
+           "text": "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:1",
-       "weight": 1.0,
-       "text": "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand."
+       "id": "planet.life.water_chemical",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 1
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 2
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.water_chemical.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:10",
+           "weight": 1.0,
+           "text": "pale communities in the dark that make methane from hydrogen and carbon dioxide, with no light at all."
+          },
+          {
+           "id": "life:11",
+           "weight": 1.0,
+           "text": "deep wells in the rock that bubble with gas made by living communities."
+          },
+          {
+           "id": "life:12",
+           "weight": 1.0,
+           "text": "mats that coat the rock around a vent, living on the chemical difference between the vent water and the sea."
+          },
+          {
+           "id": "life:13",
+           "weight": 1.0,
+           "text": "slick films on rock in the dark, thickest where warm water seeps out."
+          },
+          {
+           "id": "life:14",
+           "weight": 1.0,
+           "text": "white threads of living cells trailing in the water downstream of a seep."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.water_chemical.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:15",
+           "weight": 1.0,
+           "text": "dense colonies of chemical feeders around a vent field, banded white, orange, and black."
+          },
+          {
+           "id": "life:16",
+           "weight": 1.0,
+           "text": "thick, pale mats that wrap the rock for kilometers along a seep."
+          },
+          {
+           "id": "life:17",
+           "weight": 1.0,
+           "text": "pillars of mineral and living crust that rise from the sea floor above a vent."
+          },
+          {
+           "id": "life:18",
+           "weight": 1.0,
+           "text": "beds of pale, ropy growth packed into cracks in the rock where warm water rises."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.water_chemical.animals",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 5
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:19",
+           "weight": 1.0,
+           "text": "tube-like animals crowded around a vent, with clams and grazers among them."
+          },
+          {
+           "id": "life:20",
+           "weight": 1.0,
+           "text": "small, pale grazers that swarm over the mats around a vent and scatter when the water changes."
+          },
+          {
+           "id": "life:21",
+           "weight": 1.0,
+           "text": "clams and snails packed along a seep, each one fed by cells living inside it."
+          },
+          {
+           "id": "life:22",
+           "weight": 1.0,
+           "text": "swarms of tiny, blind animals that drift up from the vents in the warm plume."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:2",
-       "weight": 1.0,
-       "text": "high-altitude predators with hyper-thin membranous wings that ride the solar wind."
+       "id": "planet.life.sulfuric",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 4
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 2
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.sulfuric.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:23",
+           "weight": 1.0,
+           "text": "droplets in the cloud deck that carry living cells."
+          },
+          {
+           "id": "life:24",
+           "weight": 1.0,
+           "text": "mats that line pools of concentrated acid and shed solid sulfur crusts."
+          },
+          {
+           "id": "life:25",
+           "weight": 1.0,
+           "text": "silica-rimmed pools of acid where living mats slowly build white terraces."
+          },
+          {
+           "id": "life:26",
+           "weight": 1.0,
+           "text": "yellow films on the rock above the acid, thickest where the vapor condenses."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.sulfuric.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:27",
+           "weight": 1.0,
+           "text": "dense colonies of living droplets in the cloud deck, thick enough to darken the layer."
+          },
+          {
+           "id": "life:28",
+           "weight": 1.0,
+           "text": "thick mats on the acid pools, layered yellow and white."
+          },
+          {
+           "id": "life:29",
+           "weight": 1.0,
+           "text": "crusts of sulfur and silica built up by mats around the rims of acid pools."
+          },
+          {
+           "id": "life:30",
+           "weight": 1.0,
+           "text": "stringy growths that hang in the acid pools like curtains."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:3",
-       "weight": 1.0,
-       "text": "jagged, forest-like continental structures built from the hard mineral shells of colonial insects."
+       "id": "planet.life.carbon_dioxide",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 3
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 2
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.carbon_dioxide.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:31",
+           "weight": 1.0,
+           "text": "slow communities living in pools of liquid carbon dioxide, growing only a few millimeters in a year."
+          },
+          {
+           "id": "life:32",
+           "weight": 1.0,
+           "text": "slow mats that take hydrogen as fuel and shed the water they make."
+          },
+          {
+           "id": "life:33",
+           "weight": 1.0,
+           "text": "thin films on the rock around carbon dioxide seeps, thicker where hydrogen rises."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.carbon_dioxide.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:34",
+           "weight": 1.0,
+           "text": "mats thick enough to see from a ridge, layered in dull gray and brown, on the floor of a carbon dioxide pool."
+          },
+          {
+           "id": "life:35",
+           "weight": 1.0,
+           "text": "slow colonies that coat the rock around hydrogen seeps."
+          },
+          {
+           "id": "life:36",
+           "weight": 1.0,
+           "text": "gray crusts at the edge of a carbon dioxide pool, growing a few centimeters in a century."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:4",
-       "weight": 1.0,
-       "text": "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton."
+       "id": "planet.life.hydrocarbon",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 2
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 2
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.hydrocarbon.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:37",
+           "weight": 1.0,
+           "text": "slow mats on the floor of a hydrocarbon sea, giving off methane as they feed on acetylene and hydrogen."
+          },
+          {
+           "id": "life:38",
+           "weight": 1.0,
+           "text": "dark, slow communities in a sea of liquid methane, far too cold for water."
+          },
+          {
+           "id": "life:39",
+           "weight": 1.0,
+           "text": "dark films in the shore pools, thickest where acetylene rains out of the air."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.hydrocarbon.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:40",
+           "weight": 1.0,
+           "text": "mats thick enough to see at the shore of a methane sea, dark brown and slow to change."
+          },
+          {
+           "id": "life:41",
+           "weight": 1.0,
+           "text": "dark crusts that line the beds of hydrocarbon lakes."
+          },
+          {
+           "id": "life:42",
+           "weight": 1.0,
+           "text": "tangled dark growth in the shallows of a methane lake, matted by the waves."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:5",
-       "weight": 1.0,
-       "text": "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids."
+       "id": "planet.life.ammonia_water",
+       "gate": [
+        {
+         "quantity": "life_medium",
+         "equals": 5
+        },
+        {
+         "quantity": "life_energy",
+         "equals": 2
+        }
+       ],
+       "children": [
+        {
+         "id": "planet.life.ammonia_water.micro",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 2
+          },
+          {
+           "quantity": "life_rung",
+           "lt": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:43",
+           "weight": 1.0,
+           "text": "communities in veins of cold brine inside the ice."
+          },
+          {
+           "id": "life:44",
+           "weight": 1.0,
+           "text": "slow colonies in brine channels under a thick ice lid."
+          },
+          {
+           "id": "life:45",
+           "weight": 1.0,
+           "text": "dark threads of living cells frozen into the ice where brine pockets once lay."
+          },
+          {
+           "id": "life:46",
+           "weight": 1.0,
+           "text": "thin films on the underside of the ice, where the brine meets the cold."
+          }
+         ]
+        },
+        {
+         "id": "planet.life.ammonia_water.multicellular",
+         "gate": [
+          {
+           "quantity": "life_rung",
+           "min": 4
+          }
+         ],
+         "lines": [
+          {
+           "id": "life:47",
+           "weight": 1.0,
+           "text": "ropy mats in the brine channels, thick enough to slow the flow."
+          },
+          {
+           "id": "life:48",
+           "weight": 1.0,
+           "text": "dark, branching colonies that fill the cracks in the ice."
+          },
+          {
+           "id": "life:49",
+           "weight": 1.0,
+           "text": "layered mats on the underside of the ice, banded where the brine has risen and frozen again."
+          }
+         ]
+        }
+       ]
       },
       {
-       "id": "habitable:6",
-       "weight": 1.0,
-       "text": "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods."
-      },
-      {
-       "id": "habitable:7",
-       "weight": 1.0,
-       "text": "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases."
-      },
-      {
-       "id": "habitable:8",
-       "weight": 1.0,
-       "text": "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers."
-      },
-      {
-       "id": "habitable:9",
-       "weight": 1.0,
-       "text": "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources."
-      },
-      {
-       "id": "habitable:10",
-       "weight": 1.0,
-       "text": "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust."
-      },
-      {
-       "id": "habitable:11",
-       "weight": 1.0,
-       "text": "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins."
-      },
-      {
-       "id": "habitable:12",
-       "weight": 1.0,
-       "text": "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides."
-      },
-      {
-       "id": "habitable:13",
-       "weight": 1.0,
-       "text": "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls."
-      },
-      {
-       "id": "habitable:14",
-       "weight": 1.0,
-       "text": "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on."
-      },
-      {
-       "id": "habitable:15",
-       "weight": 1.0,
-       "text": "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them."
-      },
-      {
-       "id": "habitable:16",
-       "weight": 1.0,
-       "text": "lichen-like organisms that ride migrating herds, trading camouflage for transport."
-      },
-      {
-       "id": "habitable:17",
-       "weight": 1.0,
-       "text": "herd animals that bury themselves and estivate for years to survive multi-year droughts."
-      },
-      {
-       "id": "habitable:18",
-       "weight": 1.0,
-       "text": "predators whose skin patterns mimic local flora so precisely they vanish at rest."
-      },
-      {
-       "id": "habitable:19",
-       "weight": 1.0,
-       "text": "colonial organisms that briefly link into a single distributed nervous system during seasonal migration."
-      },
-      {
-       "id": "habitable:20",
-       "weight": 1.0,
-       "text": "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
+       "id": "planet.life.civilization",
+       "gate": [
+        {
+         "quantity": "life_rung",
+         "min": 6
+        }
+       ],
+       "lines": [
+        {
+         "id": "life:50",
+         "weight": 1.0,
+         "text": "lit cities on the nightside, in bright webs along the coasts."
+        },
+        {
+         "id": "life:51",
+         "weight": 1.0,
+         "text": "dense radio chatter across a wide band of the spectrum."
+        },
+        {
+         "id": "life:52",
+         "weight": 1.0,
+         "text": "orbital traffic: a steady stream of ships leaving the surface and crossing between orbits."
+        }
+       ]
       }
      ]
     }

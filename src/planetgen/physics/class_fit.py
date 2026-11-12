@@ -10,19 +10,23 @@ own positive conditions (`physics/data/planet_class_fit.json`), each condition i
 
 * **Gates (kinds, not degrees):** giant versus terrestrial (`body_type`) and, for terrestrial classes, air versus no air (pressure
   at or above `gate_pressure_pa`, 10 Pa). A class is only scored against bodies that pass its gates.
-* **Condition membership:** 1 inside the edge; across the shoulder beyond it a straight line down to 0; 0 past that. A `min` edge e
-  with shoulder s is 1 at e or more, 0 at e - s or less. An `lt` edge e is 1 below e, 0 at e + s or more. `equals` is 0 or 1. A
+* **Condition membership:** 1 inside the edge; across the shoulder beyond it a straight line down to 0; 0 past that. The shoulder of an edge is its width in the fudge table
+  (`physics/data/fudge_table.json`, GEN.1313: how far the quantity could move if the stand-ins that make it were wrong by what the registry says), measured in the quantity's own
+  unit, or as the natural log of the ratio for a pressure, a gravity or a mass; a body `z` widths past an edge has the membership `1 - z`. `equals` is 0 or 1. A
   quantity the body does not store scores 0.
 * **Domains (GEN.1221):** each quantity belongs to one domain of the class-by-domain matrix (`physics/class_domains.py`); `domain_scores` grades a body in each.
-* **Class match:** the geometric mean of the memberships of the class's conditions, so one condition badly missed pulls the match
-  down and a condition missed outright makes it 0.
-* **Best class:** the highest match; a tie goes to the class with more conditions (the narrower description), then to the letter.
+* **Fudge (GEN.1314, plan section 4c):** we only fudge when we must and by as little as possible. A body that fits a class on every condition takes it and nothing is fudged. Otherwise a class
+  needs some **values** moved to fit (the mean temperature with the regional, day and night temperatures counts as one value), each by some number of widths; the body takes the class that
+  needs the fewest values moved, then the smallest total move, then the one with more conditions (the narrower description), then the letter. A class that needs a value moved past a cap is
+  not eligible, and the caps come in tiers (`CAP_TIERS`): the smaller tier is tried first and the next opens only for a body the smaller cannot place.
+* **Class match:** 1 for a full fit, and for a fudged class `1 - total / (values * largest cap)`, so it is above 0 for every eligible fit; 0 for a body no class is eligible for.
+* **Best class:** the one the fudge rule takes.
 
 `classify` (GEN.1207) is the one that decides a stored class: the best class, its match, the runner-up and its match, and the digit of the class code.
-A body that no class fits (every class has a condition missed outright) is a hole in the class set and is settled in two steps, both stand-ins (GEN.725, section 6.189):
-the conditions of the gravity and the air-amount domains are set aside (`LIMIT_DOMAINS`) and the best class of what is left among the families (`LIMITED_FAMILIES`) is the letter, with the digit 9
-(limited by another domain, `class_code`); a body that still fits no class takes the class it is nearest to (the highest geometric mean with every membership
-lifted to `HOLE_FLOOR`, among the ordinary worlds `NEAREST_FAMILIES`), with a stored match of 0. `fit` and `best_class` are also used by the shadow scorer `src/tests/class_fit_cli.py` (GEN.1206).
+A body that no class is eligible for (every class needs a value moved past the largest cap) is a hole in the class set and is settled in two steps, both stand-ins (GEN.725, section 6.189):
+the conditions of the gravity and the air-amount domains are set aside (`LIMIT_DOMAINS`) and the class of what is left among the families (`LIMITED_FAMILIES`) is the letter, with the digit 9
+(limited by another domain, `class_code`); a body that still fits no class takes the class it is nearest to (the fewest values and the smallest move with no cap, among the ordinary worlds
+`NEAREST_FAMILIES`), with a stored match of 0. The class a body takes keeps which values were fudged and by how many widths (`Classification.fudge_values`, `fudge_amount`). `fit` and `best_class` are also used by the shadow scorer `src/tests/class_fit_cli.py` (GEN.1206).
 
 Use:
 
@@ -39,6 +43,7 @@ from collections.abc import Mapping
 from planetgen.physics import class_domains, elements, planet_classes
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_class_fit.json")
+FUDGE_FILE = os.path.join(elements.DATA_DIRECTORY, "fudge_table.json")
 
 
 class FitError(ValueError):
@@ -62,8 +67,10 @@ class FitClass:
 def _load():
     with open(DATA_FILE, encoding="utf-8") as handle:
         document = json.load(handle)
+    with open(FUDGE_FILE, encoding="utf-8") as handle:
+        fudge = json.load(handle)
     classes = tuple(FitClass(row) for row in document["classes"])
-    shoulders = document["shoulders"]
+    widths = {quantity: {"unit": entry["unit"], "edges": {row["edge"]: row["width"] for row in entry["edges"]}} for quantity, entry in fudge["quantities"].items()}
     for cls in classes:
         if not cls.when:
             raise FitError(f"class {cls.letter} ({cls.kind}) has no conditions of its own")
@@ -73,67 +80,109 @@ def _load():
             keys = set(condition) - {"quantity", "min", "lt", "equals"}
             if keys or len(condition) != 2:
                 raise FitError(f"class {cls.letter}: condition {condition!r} is not one quantity with one of min, lt or equals")
-            if "equals" not in condition and condition["quantity"] not in shoulders:
-                raise FitError(f"class {cls.letter}: {condition['quantity']!r} has no shoulder")
+            if "equals" not in condition:
+                edge = condition.get("min", condition.get("lt"))
+                if edge not in widths.get(condition["quantity"], {"edges": {}})["edges"]:
+                    raise FitError(f"class {cls.letter}: the fudge table has no width for {condition['quantity']!r} at {edge}; run python scripts/build_fudge_table.py")
             try:
                 class_domains.domain_of(condition["quantity"])
             except KeyError:
                 raise FitError(f"class {cls.letter}: {condition['quantity']!r} belongs to no domain of the class-by-domain matrix") from None
     if len({(c.letter, c.kind) for c in classes}) != len(classes):
         raise FitError("a class letter is used twice for one kind")
-    return document, classes
+    return document, classes, widths
 
 
-DOCUMENT, CLASSES = _load()
-"""tuple: The `FitClass` rows; `DOCUMENT` the whole file."""
+DOCUMENT, CLASSES, WIDTHS = _load()
+"""tuple: The `FitClass` rows; `DOCUMENT` the whole file; `WIDTHS` the fudge table's width at each edge, `{quantity: {"unit": "ln" or "plain", "edges": {edge: width}}}`."""
 
 GATE_PRESSURE_PA = DOCUMENT["gate_pressure_pa"]
-SHOULDERS = DOCUMENT["shoulders"]
 LETTERS = tuple(sorted({c.letter for c in CLASSES}))
 
+THERMAL_QUANTITIES = ("temperature_k", "hottest_region_k", "coldest_region_k", "day_temperature_k", "night_temperature_k")
+"""tuple: The quantities that move together when the mean surface temperature moves; they count as one value in the fudge rule."""
+THERMAL_KEY = "temperature_k"
+"""str: The name the thermal value goes by in `Classification.fudge_values`."""
+CAP_TIERS = (0.25, 1.0)
+"""tuple: The caps, in widths, a value may be moved by (registry CP1): the sweep of 1,624 bodies (reports/fudge-cap-sweep-2026-11-06.md) closed its near misses at 0.25 width and its remaining
+fits by 1; the smaller tier is tried first, and the largest is also the scale of the match."""
 
-def shoulder_width(quantity, edge):
-    """The width of the shoulder beyond `edge` of `quantity`, in the quantity's unit."""
-    entry = SHOULDERS[quantity]
-    if "absolute" in entry:
-        return entry["absolute"]
-    return max(entry["relative"] * abs(edge), entry.get("floor", 0.0))
+
+def overshoot(condition, found):
+    """
+    How far past the edge of one class condition the quantities `found` are, in widths of the edge in the fudge table: 0 inside, infinity for a quantity the body does not store, an `equals`
+    that differs, a width of 0 or a log of a quantity that is not above 0. A pressure, a gravity or a mass is measured as the natural log of the ratio to the edge.
+    """
+    quantity = condition["quantity"]
+    value = found.get(quantity)
+    if value is None or value != value:     # a missing or NaN quantity is no match: every comparison with NaN is false, which would otherwise read as a pass (GEN.1593)
+        return math.inf
+    if "equals" in condition:
+        return 0.0 if value == condition["equals"] else math.inf
+    below = "min" in condition
+    edge = condition["min"] if below else condition["lt"]
+    if (value >= edge) if below else (value < edge):
+        return 0.0
+    entry = WIDTHS[quantity]
+    width = entry["edges"][edge]
+    if width <= 0.0:
+        return math.inf
+    if entry["unit"] == "ln":
+        if value <= 0.0 or edge <= 0.0:
+            return math.inf
+        return abs(math.log(edge / value)) / width
+    return abs(edge - value) / width
 
 
 def membership(condition, found):
-    """The membership (0 to 1) of the named quantities `found` in one condition of a class."""
-    value = found.get(condition["quantity"])
-    if value is None or value != value:     # a missing or NaN quantity is no match: every comparison with NaN is false, which would otherwise read as a pass (GEN.1593)
-        return 0.0
-    if "equals" in condition:
-        return 1.0 if value == condition["equals"] else 0.0
-    if "min" in condition:
-        edge = condition["min"]
-        width = shoulder_width(condition["quantity"], edge)
-        if value >= edge:
-            return 1.0
-        return 0.0 if width <= 0.0 or value <= edge - width else (value - (edge - width)) / width
-    edge = condition["lt"]
-    width = shoulder_width(condition["quantity"], edge)
-    if value < edge:
-        return 1.0
-    return 0.0 if width <= 0.0 or value >= edge + width else 1.0 - (value - edge) / width
+    """The membership (0 to 1) of the named quantities `found` in one condition of a class: 1 inside the edge, `1 - z` for a body `z` widths past it (`overshoot`), 0 from one width."""
+    return max(0.0, 1.0 - overshoot(condition, found))
 
 
-def match(cls, found, relax=(), floor=0.0):
-    """The percent match of `cls` for the named quantities `found`, as a fraction (the geometric mean of its memberships). The conditions in the domains
-    `relax` are left out (the class is judged on the rest); with a `floor` above 0 every membership is lifted to it, so a missed condition lowers the
-    mean and does not zero it."""
-    total, count = 0.0, 0
+Option = namedtuple("Option", ("match", "cls", "moves", "tier"))
+"""namedtuple: One class a body could take: its `match`, the class, the values it would have to move (`{value: widths}`, the thermal ones as one under `THERMAL_KEY`) and the first tier of
+`CAP_TIERS` that holds every move (`None` when a move is past the largest cap)."""
+
+
+def moves_of(cls, found, relax=()):
+    """`{value: widths}` the body would have to move to fit `cls`: the conditions in the domains `relax` are left out; the thermal quantities count as one value (the largest of their moves)."""
+    moves = {}
     for condition in cls.when:
         if relax and class_domains.domain_of(condition["quantity"]) in relax:
             continue
-        m = max(membership(condition, found), floor)
-        if m <= 0.0:
-            return 0.0
-        total += math.log(m)
-        count += 1
-    return math.exp(total / count) if count else 1.0
+        z = overshoot(condition, found)
+        if z > 0.0:
+            key = THERMAL_KEY if condition["quantity"] in THERMAL_QUANTITIES else condition["quantity"]
+            moves[key] = max(moves.get(key, 0.0), z)
+    return moves
+
+
+def tier_of(moves):
+    """The index of the first tier of `CAP_TIERS` that holds every move, or `None`."""
+    largest = max(moves.values(), default=0.0)
+    for index, cap in enumerate(CAP_TIERS):
+        if largest <= cap and (index < len(CAP_TIERS) - 1 or largest < cap):        # the largest cap is the width at which the membership reaches 0: a move of it is no fit
+            return index
+    return None
+
+
+def match_of(moves):
+    """The match of a class that needs `moves`: 1 for none, `1 - total / (values * largest cap)` for moves within the caps, 0 past them."""
+    if not moves:
+        return 1.0
+    if tier_of(moves) is None:
+        return 0.0
+    return 1.0 - sum(moves.values()) / (len(moves) * CAP_TIERS[-1])
+
+
+def _order(option):
+    moves = option.moves
+    return (len(CAP_TIERS) if option.tier is None else option.tier, len(moves), round(sum(moves.values()), 9), -len(option.cls.when), option.cls.letter)
+
+
+def match(cls, found, relax=()):
+    """The match of `cls` for the named quantities `found` (`match_of` of the moves it needs); the conditions in the domains `relax` are left out."""
+    return match_of(moves_of(cls, found, relax))
 
 
 def passes_gates(cls, found):
@@ -156,15 +205,25 @@ def _found(body):
     return found
 
 
-def _ranked(found, relax=(), floor=0.0, only=None):
-    scored = [(match(cls, found, relax, floor), cls) for cls in CLASSES if passes_gates(cls, found) and (only is None or cls.letter in only)]
-    scored.sort(key=lambda pair: (-pair[0], -len(pair[1].when), pair[1].letter))
-    return scored
+def _options(found, relax=(), only=None):
+    """The `Option` of every class whose gates the body passes (among the letters `only`, if given), in no order."""
+    options = []
+    for cls in CLASSES:
+        if passes_gates(cls, found) and (only is None or cls.letter in only):
+            moves = moves_of(cls, found, relax)
+            options.append(Option(match_of(moves), cls, moves, tier_of(moves)))
+    return options
+
+
+def _ranked(found, relax=(), only=None):
+    """The options best first by the fudge rule: the smaller tier, then the fewest values moved, then the smallest total move, then more conditions, then the letter. Options past the
+    largest cap come last, in the same order."""
+    return sorted(_options(found, relax, only), key=_order)
 
 
 def class_scores(body):
-    """Every class whose gates the body passes, as a list of `(match, FitClass)` best first (ties: more conditions, then letter)."""
-    return _ranked(_found(body))
+    """Every class whose gates the body passes, as a list of `(match, FitClass)` best first by the fudge rule."""
+    return [(option.match, option.cls) for option in _ranked(_found(body))]
 
 
 def domain_scores(body, letter):
@@ -193,7 +252,7 @@ def best_class(body):
     best_m, best = ranked[0]
     if best_m <= 0.0:
         return None, 0.0, None, 0.0
-    if len(ranked) == 1:
+    if len(ranked) == 1 or ranked[1][0] <= 0.0:
         return best.letter, best_m, None, 0.0
     return best.letter, best_m, ranked[1][1].letter, ranked[1][0]
 
@@ -201,9 +260,6 @@ def best_class(body):
 LIMIT_DOMAINS = ("gravity", "air_amount")
 """tuple: The domains a hole body is judged without (GEN.1207, registry HC1): a body whose class is found only with its gravity and its air amount set aside is limited by
 another domain, digit 9 of the class code."""
-
-HOLE_FLOOR = 0.01
-"""float: The lift of every membership when a body that fits no class takes the class it is nearest to (GEN.1207, registry HC2)."""
 
 NEAREST_FAMILIES = ("M", "R", "P", "O", "H", "F", "G")
 """tuple: The classes a body that fits none takes its nearest from (registry HC2): the ordinary worlds with air. A class with a narrow window (Y, Z, U, X) or one defined by an edge
@@ -216,9 +272,19 @@ own edges, so setting them aside would match it to everything."""
 LIMITED_DIGIT = 9
 """int: The digit of the class code of a body whose class is found with its gravity and air amount set aside (`class_code.POSITION`, "limited by another domain")."""
 
-Classification = namedtuple("Classification", ("letter", "kind", "match", "runner_up", "runner_up_match", "digit"))
+Classification = namedtuple("Classification", ("letter", "kind", "match", "runner_up", "runner_up_match", "digit", "fudge_values", "fudge_amount"))
 """namedtuple: The class of a body: its letter and kind, the match (0 when no class fits it), the runner-up letter (`None` when no other class matches at all) and its
-match, and the digit of the class code (0, or 9 when the body is limited by another domain)."""
+match, the digit of the class code (0, or 9 when the body is limited by another domain), the values the class needed moved (a sorted tuple of quantity names, the thermal ones as
+`THERMAL_KEY`; empty for a full fit) and the total move in widths (0.0 for a full fit; `None` when a value the class reads is not stored)."""
+
+
+def _nearest(found):
+    """The class a hole body is nearest to: the fewest values moved and then the smallest move with no cap, among the ordinary worlds (or any class that passes the gates), as an `Option`."""
+    for only in (NEAREST_FAMILIES, None):
+        options = _options(found, only=only)
+        if options:
+            return sorted(options, key=lambda o: (len(o.moves), round(sum(o.moves.values()), 9), -len(o.cls.when), o.cls.letter))
+    return []
 
 
 def classify(body):
@@ -233,25 +299,26 @@ def classify(body):
     found = _found(body)
     not_a_number = sorted(name for name, value in found.items() if isinstance(value, float) and value != value)
     if not_a_number:
-        raise planet_classes.ClassError(f"the body stores a quantity that is not a number ({', '.join(not_a_number)}); a class is never fitted to it (GEN.1593)")
+        raise planet_classes.ClassError(f"the body stores a quantity that is not a number ({', '.join(not_a_number)}); a class is never fitted to it")
     if found["body_type"] == planet_classes.TERRESTRIAL and found["pressure_pa"] >= GATE_PRESSURE_PA and found["temperature_k"] is None:
         raise planet_classes.ClassError("the classes read the mean surface temperature of a world with air, which the body does not store")
     ranked = _ranked(found)
     if not ranked:
         raise FitError("no class passes the gates of the body")
     digit = 0
-    if ranked[0][0] <= 0.0:
+    if ranked[0].tier is None:
         relaxed = _ranked(found, relax=LIMIT_DOMAINS, only=LIMITED_FAMILIES)
-        if relaxed and relaxed[0][0] > 0.0:
+        if relaxed and relaxed[0].tier is not None:
             ranked, digit = relaxed, LIMITED_DIGIT
         else:
-            nearest = _ranked(found, floor=HOLE_FLOOR, only=NEAREST_FAMILIES) or _ranked(found, floor=HOLE_FLOOR)
-            ranked = [(0.0, cls) for _m, cls in nearest]
-    best_m, best = ranked[0]
-    runner = ranked[1] if len(ranked) > 1 and ranked[1][0] > 0.0 else None       # a class that matches 0 percent is no runner-up
-    return Classification(best.letter, best.kind, best_m, None if runner is None else runner[1].letter, 0.0 if runner is None else runner[0], digit)
+            ranked = [option._replace(match=0.0, tier=None) for option in _nearest(found)]
+    best = ranked[0]
+    runner = ranked[1] if len(ranked) > 1 and ranked[1].match > 0.0 else None       # a class that matches 0 percent is no runner-up
+    total = sum(best.moves.values())
+    return Classification(best.cls.letter, best.cls.kind, best.match, None if runner is None else runner.cls.letter, 0.0 if runner is None else runner.match, digit,
+                          tuple(sorted(best.moves)), None if math.isinf(total) else total)
 
 
-def rule_words(cls):
-    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`)."""
-    return [planet_classes.condition_words(condition) for condition in cls.when]
+def rule_words(cls, measure=None):
+    """The conditions of a `FitClass` as a list of plain phrases (`planet_classes.condition_words`, which says what `measure` is)."""
+    return [planet_classes.condition_words(condition, measure) for condition in cls.when]

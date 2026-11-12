@@ -212,6 +212,16 @@ def test_the_stored_system_flavour_lines_are_in_plain_words():
     for line in lines:
         for sentence in plainwords.sentences("Sensors show " + line):
             assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))
+def test_the_stored_life_flavour_lines_are_in_plain_words():
+    """GEN.1431: every line of the life subtree, read after "Sensors show", meets the guide."""
+    from planetgen.physics import flavor_tree
+    ids = [i for i in flavor_tree.load()[1] if i.startswith("life:")]
+    assert len(ids) == 53
+    for line_id in ids:
+        for sentence in plainwords.sentences("Sensors show " + flavor_tree.text_of(line_id)):
+            assert not plainwords.check_sentence(sentence), (line_id, sentence, plainwords.check_sentence(sentence))
+
+
 def test_a_list_built_by_the_code_has_the_comma_before_its_last_word():
     from planetgen.util.wordlist import join_words
     assert join_words([]) == ""

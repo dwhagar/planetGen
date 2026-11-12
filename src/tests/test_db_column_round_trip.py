@@ -137,6 +137,7 @@ NULL_IN_THIS_GALAXY = {
     # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
     ("planets", "porosity"): CHANCE,
     **{(table, "life_traits"): CHANCE for table in ("planets", "moons")},      # GEN.876: only a world whose life drew a trait has one
+    **{(table, "cloud_chemistry"): CHANCE for table in ("planets", "moons", "rogue_planets")},  # GEN.1425: only a body with an air that holds sulfur, an oxidiser or reductant gets a species of the Venus set
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "ocean_phosphate_umol_l", "water_activity", "tidal_flux_w_m2")},
@@ -234,6 +235,7 @@ NULL_IN_THIS_GALAXY = {
     **{("field_members", column): CHANCE for column in (
         "id", "field_id", "member_rank", "mass_kg", "radius_km", "density_g_cm3", "rock_fraction", "metal_fraction", "water_fraction", "ice_fraction", "status")},
     ("moons", "runner_up_class"): CHANCE,   # a moon has a runner-up class only when two classes pass the gates
+    **{(table, "class_fudge_values"): CHANCE for table in ("moons", "rogue_planets")},   # GEN.1314: written only for a body the class fit had to move
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
         "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
