@@ -574,6 +574,10 @@ class StarSystem:
                 self._finish_planet(obj)
                 for moon in obj.moons:
                     self._finish_moon(moon, obj)
+            for star in self.stars:
+                planetLife.decide_flavor_text_alone(star, "star")      # GEN.1433: a star and a comet show a line of their own scopes, like a belt
+            for comet in (*self.comets, *getattr(self, "secondary_comets", ())):
+                planetLife.decide_flavor_text_alone(comet, "comet")
             self._tide_pass()  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.

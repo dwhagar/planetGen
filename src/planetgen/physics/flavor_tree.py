@@ -35,7 +35,10 @@ _yr_to_h = units.converter("yr", "h")
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "flavor_tree.json")
 """str: The data file."""
 
-SCOPES = ("system", "planet", "belt")
+MAPPED_SCOPES = ("star", "comet", "black_hole", "neutron_star", "nebula", "remnant", "quasar", "interstellar_comet", "asteroid_field")
+"""tuple: The scopes of the kinds of object that name their own quantities in the data file (`quantities` on the scope's root node)."""
+
+SCOPES = ("system", "planet", "belt", "star", "comet", "black_hole", "neutron_star", "nebula", "remnant", "quasar", "interstellar_comet", "asteroid_field")
 """tuple: The scopes the file holds a tree for."""
 
 QUANTITIES = ("has_ground", "life_present", "has_air", "life_rung", "life_medium", "life_energy", "life_oxygen", "starless", "is_moon", "tidally_locked")
@@ -143,10 +146,27 @@ def _belt_quantities(belt):
     return found
 
 
+def _mapped_quantities(scope, body):
+    """The quantities of a kind of object that names its own in the data file (`quantities` on the scope's root node: name to the attribute it reads, with `per` to divide by a constant of `constants` and `flag` for a yes-or-no attribute)."""
+    trees, _lines = _tree()
+    found = {}
+    for name, spec in (trees[scope].get("quantities") or {}).items():
+        value = getattr(body, spec["attr"], None)
+        if value is None:
+            continue
+        if spec.get("flag"):
+            found[name] = 1 if value else 0
+        else:
+            found[name] = float(value) / (spec["per"] if isinstance(spec.get("per"), (int, float)) else getattr(constants, spec["per"])) if spec.get("per") else float(value)
+    return found
+
+
 def quantities_of(body, scope="planet"):
     """The named quantities the gates read for `body`: the table of `oddities.quantities_of` and `QUANTITIES` (a belt's are `BELT_QUANTITIES`). A quantity the body lacks is left out and a gate on it fails."""
     if scope == "belt":
         return _belt_quantities(body)
+    if scope not in ("system", "planet"):
+        return _mapped_quantities(scope, body)
     found = oddities.quantities_of(body)
     ground = planet_type.has_ground(body) and getattr(body, "surface_liquid", None) not in surface_liquid_world.LAVA_IDS
     found["has_ground"] = 1 if ground else 0
@@ -204,6 +224,9 @@ def walk(scope, body, off=()):
 
 def seed_of(scope, body, star=None):
     """The seed of the body's own flavor stream: what is final about the body and its star, nothing about the order the system made its bodies in."""
+    kind = scope.rpartition(":")[2]         # "roll:star" is the roll of the "star" scope
+    if kind in MAPPED_SCOPES:      # the kinds that name their own quantities: what they are, and their name
+        return f"flavor:{scope}:{getattr(body, 'name', None)!r}:{sorted(_mapped_quantities(kind, body).items())!r}"
     star = star if star is not None else getattr(body, "star", None)
     return (f"flavor:{scope}:{getattr(body, 'is_moon', False)}:{getattr(body, 'mass', getattr(body, 'mass_kg', None))!r}:{getattr(body, 'radius', getattr(body, 'upper_limit', None))!r}:"
             f"{getattr(body, 'distance', None)!r}:{getattr(star, 'age', None)!r}:{getattr(star, 'mass', None)!r}")

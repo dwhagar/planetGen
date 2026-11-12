@@ -170,7 +170,7 @@ class Nebula(LazySaladName):
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "nebula_class", "nebula_type", "radius_ly", "composition", "formation_cause",
+        "name", "flavor_key", "nebula_class", "nebula_type", "radius_ly", "composition", "formation_cause",
         "dominant_species", "density_cm3", "temperature_k", "extinction_av",
         "age_myr", "q_total", "hosts",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
@@ -179,6 +179,9 @@ class Nebula(LazySaladName):
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference, threaded into `from_dict` rather than
     serialized redundantly)."""
+
+    flavor_key = None
+    """str or None: The id of the flavor line `life.decide_flavor_text_alone` drew from the tree (GEN.1433), `None` for none."""
 
     def __init__(self, system_config: SystemConfig, name=None, nebula_type=None, nebula_class=None,
                  host=None, age_myr=None):

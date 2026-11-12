@@ -52,6 +52,7 @@ from planetgen.physics import (
     sky_view,
     unit_registry,
 )
+from planetgen.physics import flavor_tree
 from planetgen.physics.quantity import Quantity
 from planetgen.util.format import three_figures_or_tiny
 from planetgen.util.wordlist import join_words
@@ -218,6 +219,13 @@ def _wobble_row(star):
     return []
 
 
+def flavor_blocks(body):
+    """GEN.1433: the "Sensors show ..." sentence of the line a kind of object was given (a star, comet, black hole, neutron star, nebula, remnant, quasar, interstellar comet or asteroid field), as a list of
+    zero or one prose block. It reads the stored `flavor_key` and draws nothing."""
+    line = flavor_tree.text_of(getattr(body, "flavor_key", None))
+    return [prose("flavor", f"Sensors show {line}")] if line else []
+
+
 def _black_hole_blocks(hole):
     rows = [
         fact("type", "Type", hole.type),
@@ -245,7 +253,7 @@ def _black_hole_blocks(hole):
                 if hole.has_accretion_disk else
                 inline("No companion star or debris disk remains, so only its gravity shows it is there."))
         sentences = [origin, inline("Nothing, not even light, escapes from inside its event horizon."), disk]
-    return [facts("Black hole", rows), prose("summary", *sentences)]
+    return [facts("Black hole", rows), prose("summary", *sentences), *flavor_blocks(hole)]
 
 
 def _neutron_star_blocks(star):
@@ -272,7 +280,7 @@ def _neutron_star_blocks(star):
                                 "every ", spin, "."))
     else:
         sentences.append(inline("Its beam no longer sweeps across this vantage point."))
-    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block()]
+    return [facts("Neutron star", rows), prose("summary", *sentences), _crust_block(), *flavor_blocks(star)]
 
 
 def _density(g_cm3):
@@ -313,8 +321,8 @@ def _star_section(star, children=()):
         return section("black-hole", _ref("star", star), star.name, _black_hole_blocks(star), children)
     if star.yerkes_class == "NS":
         return section("neutron-star", _ref("star", star), star.name, _neutron_star_blocks(star), children)
-    return section("star", _ref("star", star), star.name, [_star_facts(star), prose("summary", _star_age_sentence(star))],
-                   children)
+    return section("star", _ref("star", star), star.name,
+                   [_star_facts(star), prose("summary", _star_age_sentence(star)), *flavor_blocks(star)], children)
 
 
 def _close_pair_section(pair):
@@ -704,7 +712,7 @@ def _comet_section(comet):
                 else "It is inactive, its surface ices dormant.")
     return section("comet", _ref("comet", comet), comet.name,
                    [facts("Comet", rows), prose("description", orbit, activity),
-                    model.composition("Composition", summary=comet.get_composition_summary())])
+                    model.composition("Composition", summary=comet.get_composition_summary()), *flavor_blocks(comet)])
 
 
 def _body_section(body):

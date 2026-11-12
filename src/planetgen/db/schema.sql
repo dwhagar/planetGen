@@ -2229,6 +2229,7 @@ CREATE TABLE IF NOT EXISTS stars (
     star_system_id            BIGINT UNSIGNED NOT NULL,
     role                      VARCHAR(16) NOT NULL CHECK (role IN ('primary', 'secondary', 'single', 'member')),  -- v133 (GEN.630): 'member'
     name                      VARCHAR(255) NOT NULL,
+    flavor_key                VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the star shows, an id of the `star` scope of physics/data/flavor_tree.json (NULL for none)
     star_type                 VARCHAR(64) NOT NULL,   -- Star.type, e.g. "G2V Yellow Main Sequence Star"
     yerkes_class              VARCHAR(16) NOT NULL,
     mass_kg                   DOUBLE NOT NULL,
@@ -3603,6 +3604,7 @@ CREATE TABLE IF NOT EXISTS comets (
     star_system_id              BIGINT UNSIGNED NOT NULL,
     star_id                     BIGINT UNSIGNED,
     name                        VARCHAR(255) NOT NULL,
+    flavor_key                  VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the comet shows, an id of the `comet` scope of physics/data/flavor_tree.json (NULL for none)
     orbit_type                  VARCHAR(16) NOT NULL CHECK (orbit_type IN ('elliptical', 'parabolic')),
     -- period_class: only set for orbit_type = 'elliptical' (flavor/
     -- plausibility metadata only -- see program_constants.COMET_PERIOD_CLASSES).
@@ -3708,6 +3710,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- --sector-id, exactly like before v21).
     sector_id                 BIGINT UNSIGNED,
     name                      VARCHAR(255) NOT NULL,
+    flavor_key                VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the black hole shows, an id of the `black_hole` scope of physics/data/flavor_tree.json (NULL for none)
     -- v36: 'stellar', 'intermediate' (IMBH, ~1e2-1e5 Msun) or
     -- 'supermassive' (a galaxy's quiescent central black hole, placed by
     -- generate.add_galactic_nucleus; no galactic orbit).
@@ -3806,6 +3809,7 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     -- v21: same sector-link/placement convention as black_holes above.
     sector_id                 BIGINT UNSIGNED,
     name                      VARCHAR(255) NOT NULL,
+    flavor_key                VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the neutron star shows, an id of the `neutron_star` scope of physics/data/flavor_tree.json (NULL for none)
     mass_solar                DOUBLE NOT NULL,
     radius_km                 DOUBLE NOT NULL,
     spin_period_ms            DOUBLE NOT NULL,
@@ -3904,6 +3908,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- iff center_x/y/z_pc are NULL (never placed in the galaxy at all).
     sector_id         BIGINT UNSIGNED,
     name              VARCHAR(255) NOT NULL,
+    flavor_key        VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the nebula shows, an id of the `nebula` scope of physics/data/flavor_tree.json (NULL for none)
     -- v38: letter class A-Q (program_constants.NEBULA_CLASSES); nebula_type
     -- is the class's family.
     nebula_class      CHAR(1) NOT NULL,
@@ -4069,6 +4074,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     id                                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id                         BIGINT UNSIGNED,
     name                              VARCHAR(255) NOT NULL,
+    flavor_key                        VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the remnant shows, an id of the `remnant` scope of physics/data/flavor_tree.json (NULL for none)
     -- v38: letter class R-W (program_constants.NEBULA_CLASSES); the class
     -- fixes the morphology.
     remnant_class                     CHAR(1) NOT NULL,
@@ -4192,6 +4198,7 @@ CREATE TABLE IF NOT EXISTS quasars (
     id                              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id                       BIGINT UNSIGNED,
     name                            VARCHAR(255) NOT NULL,
+    flavor_key                      VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the quasar shows, an id of the `quasar` scope of physics/data/flavor_tree.json (NULL for none)
     black_hole_mass_solar           DOUBLE NOT NULL,
     event_horizon_radius_km         DOUBLE NOT NULL,
     eddington_ratio                 DOUBLE NOT NULL,
@@ -4769,6 +4776,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id              BIGINT UNSIGNED,
     name                   VARCHAR(255) NOT NULL,
+    flavor_key             VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the interstellar comet shows, an id of the `interstellar_comet` scope of physics/data/flavor_tree.json (NULL for none)
     nucleus_diameter_km    DOUBLE NOT NULL,
     velocity_kms           DOUBLE NOT NULL,
     is_active              TINYINT(1) NOT NULL CHECK (is_active IN (0, 1)),
@@ -4883,6 +4891,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     -- see nebulae's identical "v18" column comment above.
     sector_id             BIGINT UNSIGNED,
     name                  VARCHAR(255) NOT NULL,
+    flavor_key            VARCHAR(32) NULL,  -- v244 (GEN.1433): the flavor line the asteroid field shows, an id of the `asteroid_field` scope of physics/data/flavor_tree.json (NULL for none)
     -- v38: letter (composition and density) plus size digit, e.g. 'C3'
     -- (program_constants.ASTEROID_FIELD_COMPOSITIONS).
     field_class           VARCHAR(4) NOT NULL,
@@ -6601,3 +6610,5 @@ CREATE OR REPLACE VIEW sector_objects AS
     JOIN star_systems ss ON ss.id = c.star_system_id;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- v244 (GEN.1433): `stars`, `comets`, `black_holes`, `neutron_stars`, `nebulae`, `supernova_remnants`, `quasars`, `interstellar_comets` and `asteroid_fields` gain `flavor_key` (VARCHAR(32), NULL) as `asteroid_belts` do: the id of the flavor line the object shows, a line of its own scope of `physics/data/flavor_tree.json`; NULL for none and for a row made before v244.

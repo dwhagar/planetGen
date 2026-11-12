@@ -510,10 +510,12 @@ def decide_flavor_text(planet):
 
 def decide_flavor_text_alone(body, scope="planet"):
     """
-    GEN.1433: the flavor line of a body that belongs to no system's list of lines, a rogue planet or one of its moons (`starless_host.build_rogue_body`) or an asteroid belt (`scope="belt"`). The same roll
+    GEN.1433: the flavor line of a body that belongs to no system's list of lines, a rogue planet or one of its moons (`starless_host.build_rogue_body`), an asteroid belt (`scope="belt"`), or one of the other kinds of object (a star, comet, black hole, neutron star, nebula, remnant, quasar, interstellar comet, asteroid field: the scope is the kind). The same roll
     (`tuning.FLAVOR_CHANCE_PLANET`) and the same tree walk as `decide_flavor_text`, on the body's own stream, with no system bookkeeping to share: there is no
     system total to fill and no ids already shown, so what one rogue shows never changes what another does. Sets `flavor_key` and `flavor_text_count` in place.
     """
+    if getattr(body, "flavor_key", None) is not None:      # decided already (stored, or drawn when it was made): the same body never draws twice
+        return
     with draw.bound(draw.Stream(flavor_tree.seed_of(f"roll:{scope}", body))):
         rolled = draw.random()
     if rolled >= tuning.FLAVOR_CHANCE_PLANET:

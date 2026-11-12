@@ -185,6 +185,15 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1433: a rogue planet shows a flavor line with the planet chance, so a small galaxy may hold none.
     ("rogue_planets", "flavor_key"): CHANCE,
     ("asteroid_belts", "flavor_key"): CHANCE,
+    ("asteroid_fields", "flavor_key"): CHANCE,
+    ("black_holes", "flavor_key"): CHANCE,
+    ("interstellar_comets", "flavor_key"): CHANCE,
+    ("nebulae", "flavor_key"): CHANCE,
+    ("quasars", "flavor_key"): CHANCE,
+    ("supernova_remnants", "flavor_key"): CHANCE,
+    ("stars", "flavor_key"): CHANCE,
+    ("comets", "flavor_key"): CHANCE,
+    ("neutron_stars", "flavor_key"): CHANCE,
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_class", "life_class_variant", "life_class_best", "life_class_best_score",

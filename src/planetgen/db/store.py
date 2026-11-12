@@ -2841,7 +2841,7 @@ def anchored_parent(star_id):
 
 STAR_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("role"),
-    object_rows.attr("name"), object_rows.attr("star_type", "type"), object_rows.attr("yerkes_class"),
+    object_rows.attr("name"), object_rows.optional("flavor_key"), object_rows.attr("star_type", "type"), object_rows.attr("yerkes_class"),
     object_rows.attr("mass_kg", "mass"), object_rows.attr("radius_km", "radius"),
     object_rows.computed("temperature_k", lambda star, context: star.temperature,
                          lambda row: {"temperature": _whole_number(row["temperature_k"])}),
@@ -2872,6 +2872,19 @@ STAR_FIELDS = (
 """tuple: The `Field`s of a `stars` row (`object_rows`)."""
 
 
+def _decide_flavor(body, scope):
+    """GEN.1433: draws the flavor line of a kind of object that has none yet (`life.decide_flavor_text_alone`) before its row is written, so every path that stores it gives the same line."""
+    from planetgen.generation import life        # imported here: the generation package imports this module
+
+    life.decide_flavor_text_alone(body, scope)
+
+
+def _store_flavor_key(conn, table, row_id, body):
+    """The `flavor_key` of a row written by an INSERT that lists its columns (a nebula, a supernova remnant, a quasar): one UPDATE when the object has a line."""
+    if getattr(body, "flavor_key", None) is not None:
+        conn.execute(f"UPDATE {table} SET flavor_key = ? WHERE id = ?", (body.flavor_key, row_id))
+
+
 def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au=(0.0, 0.0, 0.0), slot=None, flags=0) -> int:
     """
     Inserts a `stars` row for one individual `Star` (never a
@@ -2892,6 +2905,7 @@ def insert_star(conn, star, star_system_id, role, parent_node_id=None, offset_au
     Returns:
         int: The new `stars.id`.
     """
+    _decide_flavor(star, "star")
     return object_rows.insert_row(conn, "stars", STAR_FIELDS, star, {
         "star_system_id": star_system_id, "role": role, "parent_node_id": parent_node_id, "offset_au": offset_au,
         "slot": slot, "flags": flags})
@@ -3466,7 +3480,7 @@ COMET_FIELDS = (
     object_rows.context("star_system_id"), object_rows.context("star_id"),
     object_rows.computed(("parent_type", "parent_id"),
                          lambda comet, context: planet_parent(context["star_id"], context["star_system_id"])),
-    object_rows.attr("name"), object_rows.attr("orbit_type"), object_rows.attr("period_class"),
+    object_rows.attr("name"), object_rows.optional("flavor_key"), object_rows.attr("orbit_type"), object_rows.attr("period_class"),
     object_rows.attr("nucleus_diameter_km"),
     object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
     object_rows.scaled("perihelion_distance_km", "perihelion_distance_au", _AU_KM),
@@ -3509,6 +3523,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
     Returns:
         int: The new `comets.id`.
     """
+    _decide_flavor(comet, "comet")
     comet_id = object_rows.insert_row(conn, "comets", COMET_FIELDS, comet, {
         "star_system_id": star_system_id, "star_id": star_id})
 
@@ -3541,7 +3556,7 @@ _REMNANT_GALACTIC_FIELD = object_rows.computed(
 _REMNANT_SPIN_FIELD = object_rows.computed(spin.SPIN_FIELDS, _remnant_spin)
 
 BLACK_HOLE_FIELDS = (
-    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"), object_rows.optional("flavor_key"),
     object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_class"), object_rows.attr("mass_solar"), object_rows.attr("event_horizon_radius_km"),
     object_rows.attr("spin"), _flag("has_accretion_disk"),
@@ -3553,7 +3568,7 @@ BLACK_HOLE_FIELDS = (
 """tuple: The `Field`s of a `black_holes` row."""
 
 NEUTRON_STAR_FIELDS = (
-    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"),
+    object_rows.context("star_id"), object_rows.context("sector_id"), object_rows.attr("name"), object_rows.optional("flavor_key"),
     object_rows.computed(("parent_type", "parent_id"), lambda remnant, context: anchored_parent(context["star_id"])),
     object_rows.attr("mass_solar"), object_rows.attr("radius_km", "radius"), object_rows.attr("spin_period_ms"),
     object_rows.attr("magnetic_field_gauss"), object_rows.attr("magnetic_inclination_deg"), object_rows.attr("pulsar_type"),
@@ -3614,6 +3629,7 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
     Returns:
         int: The new `black_holes.id`.
     """
+    _decide_flavor(black_hole, "black_hole")
     name_base = None
     if register_name and star_id is None:
         name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole, "black-hole", placement)
@@ -3650,6 +3666,7 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     Returns:
         int: The new `neutron_stars.id`.
     """
+    _decide_flavor(neutron_star, "neutron_star")
     name_base = None
     if register_name and star_id is None:
         name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star, "neutron-star", placement)
@@ -3712,6 +3729,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `nebulae.id`.
     """
+    _decide_flavor(nebula, "nebula")
     name_base, diminutive_index = _reserve_phenomenon_name(conn, nebula, "nebula", placement)
     placement = placement or {}
     cur = conn.execute(
@@ -3736,6 +3754,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
+    _store_flavor_key(conn, "nebulae", cur.lastrowid, nebula)
     _store_nebula_shape(conn, cur.lastrowid, nebula)
     store_composition(conn, "nebulae", cur.lastrowid)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
@@ -3822,6 +3841,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     Returns:
         int: The new `supernova_remnants.id`.
     """
+    _decide_flavor(remnant, "remnant")
     old_name = remnant.name
     name_base, diminutive_index = _reserve_phenomenon_name(conn, remnant, "supernova-remnant", placement)
     core = remnant.compact_remnant
@@ -3869,6 +3889,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         ),
     )
     confirm_object_name(conn, name_base, "supernova_remnants", cur.lastrowid, diminutive_index)
+    _store_flavor_key(conn, "supernova_remnants", cur.lastrowid, remnant)
     store_composition(conn, "supernova_remnants", cur.lastrowid)
     _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
@@ -4227,7 +4248,7 @@ def _next_in_sector(conn, table, sector_id):
 
 
 INTERSTELLAR_COMET_FIELDS = (
-    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("nucleus_diameter_km"),
+    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.optional("flavor_key"), object_rows.attr("nucleus_diameter_km"),
     object_rows.attr("velocity_kms"), object_rows.computed("is_active", lambda comet, context: int(comet.is_active)),
     object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
     _FREE_VECTOR_FIELD,
@@ -4253,6 +4274,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
     Returns:
         int: The new `interstellar_comets.id`.
     """
+    _decide_flavor(comet, "interstellar_comet")
     if not _named_by_object_id(conn, comet, "comet", placement):
         comet.name = interstellar_comet_designation(
             sector_code(conn, sector_id), _next_in_sector(conn, "interstellar_comets", sector_id),
@@ -4270,7 +4292,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
 
 
 ASTEROID_FIELD_FIELDS = (
-    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
+    object_rows.context("sector_id"), object_rows.attr("name"), object_rows.optional("flavor_key"), object_rows.attr("field_class"),
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
     object_rows.optional("chondrite_group"),
     object_rows.optional("rms_speed_kms"), object_rows.optional("birth_age_yr"), object_rows.optional("shape"), object_rows.optional("origin"),
@@ -4305,6 +4327,7 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     Returns:
         int: The new `asteroid_fields.id`.
     """
+    _decide_flavor(field, "asteroid_field")
     if not _named_by_object_id(conn, field, "asteroid-field", placement):
         field.name = asteroid_field_designation(
             field.field_class, sector_code(conn, sector_id), _next_in_sector(conn, "asteroid_fields", sector_id),
@@ -4358,6 +4381,7 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `quasars.id`.
     """
+    _decide_flavor(quasar, "quasar")
     name_base, diminutive_index = _reserve_phenomenon_name(
         conn, quasar, "quasar", GALACTIC_CENTER_PLACEMENT if placement is not None else None)
     cur = conn.execute(
@@ -4382,6 +4406,7 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "quasars", cur.lastrowid, diminutive_index)
+    _store_flavor_key(conn, "quasars", cur.lastrowid, quasar)
     return cur.lastrowid
 
 

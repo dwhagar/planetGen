@@ -76,7 +76,7 @@ def _nebula(nebula):
     sentences = [inline(f"{nebula.name} is {_article(nebula.nebula_type)} {nebula.nebula_type} nebula about ",
                         _ly(nebula.radius_ly), " in radius."),
                  inline(f"It formed via {nebula.formation_cause}."), _orbit(nebula)]
-    return section("nebula", None, nebula.name, [facts("Nebula", rows), prose("summary", *sentences)])
+    return section("nebula", None, nebula.name, [facts("Nebula", rows), prose("summary", *sentences), *build.flavor_blocks(nebula)])
 
 
 def _quasar(quasar):
@@ -102,7 +102,7 @@ def _quasar(quasar):
         inline("Twin relativistic jets punch out of the galaxy entirely and feed its radio lobes." if quasar.is_radio_loud
                else "It is radio-quiet, with no large-scale jets."),
     ]
-    return section("quasar", None, quasar.name, [facts("Quasar", rows), prose("summary", *sentences)])
+    return section("quasar", None, quasar.name, [facts("Quasar", rows), prose("summary", *sentences), *build.flavor_blocks(quasar)])
 
 
 def _rogue_surface_sentences(planet):
@@ -170,7 +170,7 @@ def _interstellar_comet(comet):
                  inline(activity), _orbit(comet)]
     return section("interstellar-comet", None, comet.name,
                    [facts("Interstellar comet", rows), prose("summary", *sentences),
-                    model.composition("Composition", summary=comet.get_composition_summary())])
+                    model.composition("Composition", summary=comet.get_composition_summary()), *build.flavor_blocks(comet)])
 
 
 def _asteroid_field(field):
@@ -188,7 +188,7 @@ def _asteroid_field(field):
                         _ly(field.radius_ly), " in radius."), _orbit(field)]
     return section("asteroid-field", None, field.name,
                    [facts("Asteroid field", rows), prose("summary", *sentences),
-                    model.composition("Composition", parts, format_composition_summary(field.composition))])
+                    model.composition("Composition", parts, format_composition_summary(field.composition)), *build.flavor_blocks(field)])
 
 
 def _supernova_remnant(remnant):
@@ -215,8 +215,8 @@ def _supernova_remnant(remnant):
     elif remnant.progenitor_type == "core-collapse":
         sentences.append(inline("Whatever compact remnant the collapse left behind, if any, has not been found in the "
                                 "debris."))
-    return section("supernova-remnant", None, remnant.name, [facts("Supernova remnant", rows), prose("summary", *sentences)],
-                   children)
+    return section("supernova-remnant", None, remnant.name,
+                   [facts("Supernova remnant", rows), prose("summary", *sentences), *build.flavor_blocks(remnant)], children)
 
 
 def _compact(remnant):

@@ -14,9 +14,9 @@ def _body(body_type="t", surface_liquid=None, life_stage=None, life_class=None, 
 
 def test_the_file_keeps_every_old_line_under_the_key_it_was_stored_under():
     ids = flavor_tree.load()[1]
-    legacy = [i for i in ids if i.split(":")[0] not in ("life", "belt")]
+    legacy = [i for i in ids if i.split(":")[0] in ("system", "planet", "orbital", "habitable")]
     assert len(legacy) == 82 and len(set(ids)) == len(ids)
-    assert {i.split(":")[0] for i in ids} == {"system", "planet", "orbital", "habitable", "life", "belt"}
+    assert {i.split(":")[0] for i in ids} == {"system", "planet", "orbital", "habitable", "life", "belt", "star", "comet", "blackhole", "pulsar", "nebula", "remnant", "quasar", "icomet", "field"}
     assert flavor_tree.text_of("planet:3").startswith("a solar-powered beacon")
     assert flavor_tree.text_of(None) is None
 
@@ -24,6 +24,7 @@ def test_the_file_keeps_every_old_line_under_the_key_it_was_stored_under():
 def test_no_gate_names_a_class_letter_or_a_quantity_that_does_not_exist():
     document = json.load(open(flavor_tree.DATA_FILE, encoding="utf-8"))
     known = set(json.load(open(oddities.DATA_FILE, encoding="utf-8"))["quantities"]) | set(flavor_tree.QUANTITIES) | set(flavor_tree.BELT_QUANTITIES)
+    known |= {name for tree in document["scopes"].values() for name in tree.get("quantities", {})}     # the kinds that name their own (star_teff_k, ...)
 
     def visit(node):
         for condition in node.get("gate") or []:
