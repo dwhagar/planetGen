@@ -33349,6 +33349,120 @@
           "tweak": "L4",
           "unread": null,
           "what": "trojans.STAR_LIMIT_MARGIN 2.0: how many times the stability limit of a companion star must lie past the giant's distance for the swarm to be whole (GEN.1455)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "6 to 15"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm of giants whose median libration amplitude is far from the scale times 1.18"
+            ],
+            [
+              "What replaces it",
+              "a fit to the Jupiter and Neptune Trojan catalogues"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled)"
+            ]
+          ],
+          "id": "TJ9",
+          "key": "6.121:TJ9",
+          "kind": "P",
+          "slug": "6-121-tj9",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.LIBRATION_SIGMA_DEG 10: the Rayleigh scale of the libration amplitude of a swarm's bodies, cut at the tadpole limit (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "0.04 to 0.1"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean eccentricity is over 0.15"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled)"
+            ]
+          ],
+          "id": "TJ10",
+          "key": "6.121:TJ10",
+          "kind": "P",
+          "slug": "6-121-tj10",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.ECC_SIGMA 0.06: the Rayleigh scale of the mean eccentricity of a region, cut at ECC_MAX (GEN.1150)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
+            ],
+            [
+              "The range it moves in",
+              "8 to 18"
+            ],
+            [
+              "Where it holds",
+              "every swarm"
+            ],
+            [
+              "What would show it wrong",
+              "a swarm whose mean inclination is over 25 degrees"
+            ],
+            [
+              "What replaces it",
+              "a fit to the proper elements of the Jupiter Trojans"
+            ],
+            [
+              "Evidence",
+              "none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled)"
+            ]
+          ],
+          "id": "TJ11",
+          "key": "6.121:TJ11",
+          "kind": "P",
+          "slug": "6-121-tj11",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L4",
+          "unread": "GEN.1151",
+          "what": "trojan_swarm.INCLINATION_SIGMA_DEG 12: the Rayleigh scale of the mean inclination of a region to the secondary's plane, cut at INCLINATION_MAX_DEG (GEN.1150)"
         }
       ],
       "slug": "6-121-stand-ins-of-the-lagrange-trojans",
