@@ -1502,6 +1502,8 @@ class StarSystem:
         the belt's, so the disk and the belt are one thing; a star without such a belt, or whose belt is too faint, holds none. Where two belts are outer disks the brighter one is the disk.
         """
         holder = star.stars[0] if isinstance(star, BinaryStarProxy) else star       # a close pair's circumbinary belt is the pair's: its disk is kept on the primary
+        if holder.disk_kind not in (None, debris_dust.DEBRIS_KIND):                  # GEN.1550: a young star's own class 0, I or II disk (`pre_main_sequence.draw_disk`) is not this method's to clear
+            return
         holder.disk_kind = holder.disk_mass_solar = holder.disk_inner_au = holder.disk_outer_au = None
         if any(member.yerkes_class not in debris_dust.DEBRIS_CLASSES for member in getattr(star, "stars", [star])):
             return

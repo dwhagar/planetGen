@@ -37,7 +37,7 @@
     "astropy": "8.0.2",
     "numpy": "2.5.4",
     "platform": "Linux-6.18.44-fc-v378-x86_64-with-glibc2.39",
-    "python": "3.13.17"
+    "python": "3.13.16"
   },
   "overall": "c9c02fbad2a88c5a7988fc805bacd8d97c712f4cfc77cb0d73cf9e6ef10dd777"
 }
