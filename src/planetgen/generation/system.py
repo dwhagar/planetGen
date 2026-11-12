@@ -1514,6 +1514,8 @@ class StarSystem:
             return
         with log.timed_phase("belt planets"):
             for star, bodies in validation.star_lists(self):
+                if self._too_young_for_planets(star):      # a star under 10 Myr keeps its belts and holds no planets (`_apply_star_history`); a round member of its debris is not one either
+                    continue
                 belt_planets.promote(self, star, bodies)
 
     def _add_irregular_moons(self):
@@ -1673,6 +1675,10 @@ class StarSystem:
         letter = self.system_config.FORCE_CLASS
         return not letter or any(getattr(planet, "planet_class", None) == letter for planet in self.planets)
 
+    def _too_young_for_planets(self, star):
+        """Whether `star` is younger than `tuning.PLANET_MIN_STAR_AGE_GY`, so it holds a debris disk (belts) and no planets, unless the config asks for a class or lists its slots."""
+        return star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY and not self._explicit_request()
+
     def _apply_star_history(self, planets, star):
         """
         Removes, in place, the bodies `star`'s age and history rule out: a
@@ -1686,8 +1692,7 @@ class StarSystem:
         """
         explicit_request = self._explicit_request()
         engulfed_au = self._engulfment_radius_au(star, explicit_request)
-        too_young = (star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY
-                     and not explicit_request)
+        too_young = self._too_young_for_planets(star)
         kept = []
         for body in planets:
             if body.body_type == 'a':
