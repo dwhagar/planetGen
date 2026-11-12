@@ -3403,6 +3403,12 @@ def _json_or_none(value):
     return json.dumps(value, sort_keys=True) if value else None
 
 
+def _makeup_json(body):
+    """The drawn makeup of a belt or a comet (`SmallBodyMakeup.to_dict`) as JSON text, or None for a body made without one (DB.124)."""
+    makeup = getattr(body, "makeup", None)
+    return None if makeup is None else json.dumps(makeup.to_dict(), sort_keys=True)
+
+
 def _json_loads(text, default):
     """The value a JSON column holds, or `default` for NULL."""
     return default if text is None else json.loads(text)
@@ -3432,6 +3438,7 @@ BELT_FIELDS = (
                          lambda row: {"origin_history": _json_loads(row["origin_history"], [])}),
     object_rows.computed("scatter_fates", lambda belt, context: _json_or_none(belt.scatter_fates),
                          lambda row: {"scatter_fates": _json_loads(row["scatter_fates"], None)}),
+    object_rows.computed("makeup", lambda belt, context: _makeup_json(belt), lambda row: {"makeup": _json_loads(row["makeup"], None)}),   # DB.124
     # GEN.1232: what the star's evolution did to the belt, as one paragraph (NULL when nothing did), read back as the sentences' one line.
     object_rows.computed("history_text", lambda belt, context: belt_history.history_text(belt) or None,
                          load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
@@ -3507,6 +3514,7 @@ COMET_FIELDS = (
     object_rows.attr("velocity_x_kms"), object_rows.attr("velocity_y_kms"), object_rows.attr("velocity_z_kms"),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.attr("mass_kg"),
+    object_rows.computed("makeup", lambda comet, context: _makeup_json(comet), lambda row: {"makeup": _json_loads(row["makeup"], None)}),   # DB.124
     object_rows.each(body_strength.COMET_FIELDS),
 )
 """tuple: The `Field`s of a `comets` row."""

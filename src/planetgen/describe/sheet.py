@@ -662,11 +662,13 @@ NOT_SHOWN = {
         "co_causes": "the other formation causes that coincide with the first; the origin sentence names them",
         "origin_history": "the sentences of what shaped the belt, a list; the belt page prints them whole under the origin sentence",
         "scatter_fates": "the share of an outer disk in each population after the scatter step, a mapping; the belt's information page lists the shares (`belt_page.fates_list`)",
+        "makeup": "the drawn composition as one JSON object (the shares of the materials, porosity, densities, albedo), kept so a loaded belt reads as it was drawn; the words and the density beside it are what the page shows",
     },
     "comet": {
         **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                    "min_update_interval_years", "name")),
         "parabolic_mean_anomaly": "the anomaly of an unbound orbit, which the Orbit rows summarize",
+        "makeup": "the drawn composition as one JSON object (the shares of the materials, porosity, densities, albedo), kept so a loaded comet reads as it was drawn; the words beside it are what the page shows",
         **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                    "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     },
