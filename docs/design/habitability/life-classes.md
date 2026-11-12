@@ -54,7 +54,7 @@ Class number is the metabolism. A letter after it is the pigment or habitat vari
 
 | Class | Name | Drinks | Eats | Breathes | Gives off | Needs (window) | Reaches | Tier of the class |
 |---|---|---|---|---|---|---|---|---|
-| **1** | Oxygenic light-eaters | water | light + CO2 + water, plus N, P, Fe | O2 once it exists (aerobes); before that nothing | **O2** (net, after the sinks fill), buried organic carbon; CH4 only through a small food web | Sunlit water (surface ocean, hycean, or surface water on land); mean habitat 255 to 395 K for microbes, up to about 333 K for animals; CO2 at least about 5 Pa; light in the pigment's band at least 1 percent of Earth's for plants and mats (0.01 percent for deep microbes) (T7, L3) | Animals | T1 |
+| **1** | Oxygenic light-eaters | water | light + CO2 + water, plus N, P, Fe | O2 once it exists (aerobes); before that nothing | **O2** (net, after the sinks fill), buried organic carbon; CH4 only through a small food web | Sunlit water (surface ocean, hycean, or surface water on land); mean habitat 255 to 395 K for microbes, up to about 333 K for animals; CO2 at least 2.0 Pa (20 ppm of one atmosphere: the lowest air at which cyanobacteria grow with the carbon-concentrating mechanism fully induced [R5229]; algal compensation points run 0.2 to 41.5 ppm [R5230]; GEN.1581); light in the pigment's band at least 1 percent of Earth's for plants and mats (0.01 percent for deep microbes) (T7, L3) | Animals | T1 |
 | 1a | visible pigment (Chlorophyll a) | | 400 to 700 nm | | | star spectrum rich in 400 to 700 nm: F, G, K and bright early M | | T1 |
 | 1b | blue and UV adapted (Blue-Optimized, with fluorescence) | | 300 to 500 nm | | | hot bright stars: late B to F; UV shield from fluorescent proteins | | T6 to T7 |
 | 1c | far-red (chlorophyll d and f) | | 700 to 760 nm and beyond | | | K and M stars; efficiency penalty for the lower photon energy | | T5 (chemistry), T7 (penalty) |
@@ -421,7 +421,7 @@ Read for this note: the three reports named at the top; docs/design/habitability
 
 Core 1's design doc was read (the branch copy of 9:19 PM EDT); its code was not. No probe was run for this design (the review's measurements are quoted, not repeated).
 
-Recalled, not re-opened: the Class 1 timing for the first and second O2 rises, the 0.1 percent organic burial, the ozone shield threshold, the water-ammonia eutectic near 176 K, CO2 critical constants (304 K, 73 bar), the sponge O2 floor [R3084], the [R0691] size argument, the CO2 compensation of about 5 Pa and the light compensation thresholds. The proposed complexity thresholds in 7.3 are starting values, not sourced numbers. Spot-check every number before it becomes a test limit, as the review asked.
+Recalled, not re-opened: the Class 1 timing for the first and second O2 rises, the 0.1 percent organic burial, the ozone shield threshold, the water-ammonia eutectic near 176 K, CO2 critical constants (304 K, 73 bar), the sponge O2 floor [R3084], the [R0691] size argument, the light compensation thresholds (the CO2 gate of the oxygenic classes is sourced since GEN.1581, section 3.1). The proposed complexity thresholds in 7.3 are starting values, not sourced numbers. Spot-check every number before it becomes a test limit, as the review asked.
 
 ## Life readings: abundance, trend and security (GEN.1210)
 

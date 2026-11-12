@@ -11045,7 +11045,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11076,7 +11076,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1a: solvent water factor 1; energy light 400 to 700 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
@@ -11087,7 +11087,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11118,7 +11118,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1b: solvent water factor 1; energy light 300 to 500 nm efficiency 1; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
@@ -11129,7 +11129,7 @@
           "fields": [
             [
               "What it is",
-              "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+              "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
             ],
             [
               "The range it moves in",
@@ -11160,7 +11160,7 @@
           "tier_code": "T9",
           "tweak": "L3",
           "unread": null,
-          "what": "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 5.0; gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
+          "what": "life_classes.json Class 1c: solvent water factor 1; energy light 700 to 800 nm efficiency 0.8; gate hydrosphere in surface ocean/hycean; gate pressure_pa min 10.0; gate co2_partial_pa min 2.0 (sourced, GEN.1581: T2, L1); gate band_light_vs_earth min 0.01; window temperature_k 255 to 395 (sigma 15, 15); life oxygenic breathing o2"
         },
         {
           "burn_down": [
