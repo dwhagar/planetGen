@@ -297,7 +297,7 @@ class Star(StellarObject):
         its mass-radius relation). Also fixes `age`/`lifespan` (read by
         `__init__`),
         `initial_mass_sol` (a binary secondary's mass is a fraction of it)
-        and `phase_end_age_gy` (`adjust_age_for_planets` keeps the age
+        and `phase_end_age_gy` (the age the star is drawn at stays
         inside the present phase).
 
         `+large_star` truncates the IMF at `LARGE_STAR_MIN_MASS_SOL`, and a
@@ -462,34 +462,6 @@ class Star(StellarObject):
             log.choice("Star", self.type, f"forced type the model never makes: its nearest {model_class} star, "
                                           f"initial mass {found.initial_mass_sol:.3g} Msun, at "
                                           f"{state['temperature_k']:.0f} K")
-
-
-def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets, members=()):
-    """
-    Settles one shared age for a binary pair's two stars (GEN.53): old
-    enough for every planet each star hosts (judged by that star's own
-    evolutionary scales), and no older than either star's generated state
-    allows. The primary's `adjust_age_for_planets` does the work, bounded
-    by the companion's `age_ceiling_gy`; the companion then takes the
-    result. Both stars start at the same age (the companion is born with
-    the primary), so neither moves outside what it was generated as.
-
-    Args:
-        primary (Star): The heavier star.
-        secondary (Star): Its companion.
-        primary_planets (list): Bodies judged against the primary's scales.
-        secondary_planets (list): Bodies judged against the companion's (a
-            close pair passes its circumbinary planets for both).
-        members (list of tuple): `(star, planets)` for each further star of the system (GEN.332): they share the age
-            too, so their planets set a minimum and their states a ceiling like the companion's.
-    """
-    min_required = max([secondary.planet_age_requirement_gy(secondary_planets),
-                        *(star.planet_age_requirement_gy(bodies) for star, bodies in members)])
-    ceiling = min([secondary.age_ceiling_gy(), *(star.age_ceiling_gy() for star, _ in members)])
-    primary.adjust_age_for_planets(primary_planets, min_required_age_gy=min_required, age_ceiling_gy=ceiling)
-    secondary.age = primary.age
-    for star, _ in members:
-        star.age = primary.age
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

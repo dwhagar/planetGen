@@ -11,9 +11,8 @@ Life data is intentionally NOT computed during `Planet` construction (see
 `physics.planets.generate_planet_properties`) -- every planet and moon is
 generated in a "no life data yet" state. Instead, `StarSystem.__init__`
 calls `apply_life_data` on every planet and moon in the system, after all
-of them have been generated and after `Star.adjust_age_for_planets` has
-finalized the star's age, so evolutionary timelines are computed against
-the star's final age rather than a provisional pre-adjustment one.
+of them have been generated, so evolutionary timelines are computed against
+the star's age, which is fixed when the star is made (GEN.1546).
 
 The class switch (GEN.889, docs/design/habitability/life-classes.md): `physics.life_classes` scores the body for each life class from its
 stored conditions; the class that lives on it is the supported one with the most net primary production (ties within a factor of 2 are
@@ -45,8 +44,8 @@ def apply_life_data(planet, keep_stored=False):
     (`physics.biogenic_oxygen`, GEN.855), its complexity and animal grade (`physics.life_complexity`) and the evolutionary timeline.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
-    and moons in the system have been generated and the star's age has been
-    finalized by `Star.adjust_age_for_planets`.
+    and moons in the system have been generated and the star's age is
+    fixed from the star's own state (GEN.1546).
 
     Every draw is made on a stream of the body's own; the run's stream moves by one draw however many are made (GEN.872), and by none for an edit (`keep_stored`).
 

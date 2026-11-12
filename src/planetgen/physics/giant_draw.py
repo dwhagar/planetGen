@@ -19,8 +19,8 @@ fixed and is part of the generator epoch:
    masses, a moon, a body whose heavy elements outweigh what the tables hold).
 4. **The interior** (`giant_interior.draw_interior`): the layers, whose whole-body totals are the body's bulk composition.
 
-The star's age is final only after the planets are (`Star.adjust_age_for_planets`), so a table radius is drawn at a provisional age and
-`settle` takes it again once the age and the orbit are final (GEN.961); the interior, which is made to that radius, is drawn again
+The star's age is fixed when the star is made (GEN.1546), so a table radius is drawn at the final age and
+`settle` takes it again only when the orbit has moved (GEN.961); the interior, which is made to that radius, is drawn again
 with it.
 
 The one-bar temperature that decides helium rain is the effective temperature (starlight and the planet's own heat) times
@@ -232,8 +232,8 @@ def settle(planet):
     Takes a table-sized giant's radius again at the star's final age and the mean light of the orbit, and draws its interior again to it
     (GEN.961, GEN.976).
 
-    A giant is drawn when the star's age is provisional, and the eccentricity it is lit by comes after the radius; the age rises when the
-    planets are in (`Star.adjust_age_for_planets`) and the table radius falls with it, by up to 9 percent. The radius is the tables' (no
+    A giant is drawn at the star's final age, and the eccentricity it is lit by comes after the radius; the eccentricity settles when the
+    planets are in and the light of the orbit moves with it, so the table radius moves, by up to 9 percent. The radius is the tables' (no
     draw) at the age now and the light of `orbit_elements.flux_distance_au`. A giant that the tables moved by under `SETTLE_TOLERANCE`, one
     sized any other way and a moon are left as drawn. Otherwise the radius, the volume, the density and the gravity are set again, and the
     interior (the layers, the bulk composition and the text) is drawn from `settle_stream`. The star's ratios, the envelope's Z and the

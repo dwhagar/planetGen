@@ -837,11 +837,6 @@
      "ceiling": 2.125,
      "events": 637
     },
-    "system.planets_regenerated_after_age": {
-     "baseline": 0.125,
-     "ceiling": 0.251667,
-     "events": 75
-    },
     "tree.restart_overlap": {
      "baseline": 0.003333,
      "ceiling": 0.008333,

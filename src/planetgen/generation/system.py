@@ -38,7 +38,7 @@ from planetgen.util import draw, request_odds
 from planetgen.util import log
 from planetgen.generation import belt_birth, belt_planets, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
-from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from planetgen.generation.star import Star
 from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
@@ -260,8 +260,7 @@ class StarSystem:
 
         Every `Planet` (and moon) is generated without life data — see
         `physics.planets`'s module docstring. Once all planets/moons exist,
-        orbits are validated, and the star's age has been finalized via
-        `Star.adjust_age_for_planets`, this constructor makes one pass over
+        orbits are validated, and the star's age is the one it was made with (GEN.1546), this constructor makes one pass over
         every planet and moon and applies `planetLife.apply_life_data` and
         `planetLife.decide_flavor_text` to each, so evolutionary timelines
         reflect the star's final age and flavor text is a fixed fact by the
@@ -383,106 +382,76 @@ class StarSystem:
         # list's outermost planet if the two stars' own disks would
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
-        # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
-        # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
-        # once, placing under the settled age, before the request is given up as unmet.
         self.build_ledger()
         self._request_unreachable = False
         self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
-        for _round in range(2):
-            for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
-                with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
-                    primary_ceiling_au = self._orbit_ceiling_au(self.star)
-                    self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
-                    self._clear_circumbinary_floor(self.planets)
+        for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
+            with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
+                primary_ceiling_au = self._orbit_ceiling_au(self.star)
+                self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+                self._clear_circumbinary_floor(self.planets)
+                self.validate_system(self.planets)
+                # validate_system only ever pushes a body's distance further
+                # OUTWARD to resolve a spacing collision with its inner
+                # neighbor, never closer -- for the galactic-Hill-sphere
+                # ceiling this correction is negligible next to a light-year-
+                # scale boundary, but a much tighter S-type a_crit ceiling
+                # makes it a real possibility, so re-trim afterward using each
+                # body's own final position.
+                self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                self._add_belts(self.planets, self.star, primary_ceiling_au)
+                self._apply_star_history(self.planets, self.star)
+                # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
+                if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
                     self.validate_system(self.planets)
-                    # validate_system only ever pushes a body's distance further
-                    # OUTWARD to resolve a spacing collision with its inner
-                    # neighbor, never closer -- for the galactic-Hill-sphere
-                    # ceiling this correction is negligible next to a light-year-
-                    # scale boundary, but a much tighter S-type a_crit ceiling
-                    # makes it a real possibility, so re-trim afterward using each
-                    # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
-                    self._add_belts(self.planets, self.star, primary_ceiling_au)
-                    self._apply_star_history(self.planets, self.star)
-                    # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
-                    if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
-                        self.validate_system(self.planets)
-                        self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
-                    self.secondary_planets = []
-                    if self.binary_type == "wide":
-                        secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
-                        self.secondary_planets = self._generate_planets(
-                            self.secondary_star, self.secondary_star.habitable_zone,
-                            secondary_ceiling_au, apply_guarantees=False,
-                        )
+                self.secondary_planets = []
+                if self.binary_type == "wide":
+                    secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
+                    self.secondary_planets = self._generate_planets(
+                        self.secondary_star, self.secondary_star.habitable_zone,
+                        secondary_ceiling_au, apply_guarantees=False,
+                    )
+                    self.validate_system(self.secondary_planets)
+                    self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                    self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
+                    self._apply_star_history(self.secondary_planets, self.secondary_star)
+                    if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
+                                                          self._explicit_request()):
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                        self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
-                        self._apply_star_history(self.secondary_planets, self.secondary_star)
-                        if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
-                                                              self._explicit_request()):
-                            self.validate_system(self.secondary_planets)
-                            self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                        # Runs last, once both lists reflect their own truly final
-                        # (post-validate_system, post-trim) positions -- see this
-                        # method's own docstring.
-                        self._validate_cross_star_clearance()
+                    # Runs last, once both lists reflect their own truly final
+                    # (post-validate_system, post-trim) positions -- see this
+                    # method's own docstring.
+                    self._validate_cross_star_clearance()
 
-                    self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
+                self.member_planets = [self._generate_member_planets(member) for member in self.member_stars]
 
-                    habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
-                    belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-                    class_satisfied = self._forced_class_present()
-                    habitable_stands = self._habitable_request_stands()
-                if habitable_stands and belt_satisfied and class_satisfied:
-                    log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
-                              f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
-                              f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
-                    break
-                draw.redrawn("system.planets_regenerated")
-                log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
-                          f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
-                          f"required and found: {belt_satisfied})")
-                if self._request_unreachable:
-                    break
-
-            if remnant_orbits.is_post_agb_pair(self.star):
-                remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
-
-            # A pair's two stars share one age (GEN.53): a close pair's proxy
-            # settles it for both, a wide pair's from both stars' own planets.
-            if self.binary_type == "wide":
-                adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets,
-                                            self.member_hosts())
-            elif self.binary_type == "close":
-                self.star.adjust_age_for_planets(self.planets, self.member_hosts())
-            else:
-                self.star.adjust_age_for_planets(self.planets)
-
-            # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
-            # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
-            # habitable world and belt on what is left.
-            self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
-            if self.binary_type == "wide":
-                self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
-            for member, bodies in self.member_hosts():
-                self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
-            if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
-                # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
-                self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
-            tide_sources.register(self.all_planets)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
-            self._settle_to_final_age()
-            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
-            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-            class_satisfied = self._forced_class_present()
-            # A request for a habitable world is not drawn a second time under the settled age: it only raises odds, and a system that did
-            # not stand has had its tries.
-            if (belt_satisfied and class_satisfied) or _round or self._request_unreachable:
+                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
+                belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+                class_satisfied = self._forced_class_present()
+                habitable_stands = self._habitable_request_stands()
+            if habitable_stands and belt_satisfied and class_satisfied:
+                log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
+                          f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
+                          f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
                 break
-            draw.redrawn("system.planets_regenerated_after_age")
+            draw.redrawn("system.planets_regenerated")
+            log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+                      f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
+                      f"required and found: {belt_satisfied})")
+            if self._request_unreachable:
+                break
+
+        if remnant_orbits.is_post_agb_pair(self.star):
+            remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
+
+        tide_sources.register(self.all_planets)  # GEN.1502: who else pulls on each body, for the spin history run again at the final age
+        self._settle_to_final_age()
+        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
+        belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+        class_satisfied = self._forced_class_present()
         self.unmet_requirements = []
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
@@ -1210,6 +1179,8 @@ class StarSystem:
         self.star = primary
         self.member_stars = tuple(built[member.member_no] for member in others)
         self.stars = [primary, secondary, *self.member_stars]
+        for star in (secondary, *self.member_stars):
+            star.age = primary.age      # the stars of a tree share one age (GEN.53), the heavier star's, set here and no longer by the planets (GEN.1546)
         self.orbit_nodes = tuple(nodes)
         self._ledger = None
         if others or self.dark_members or not direct:
@@ -2384,8 +2355,8 @@ class StarSystem:
 
     def _settle_to_final_age(self):
         """
-        Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the age only ever rises, once, after the
-        planets are in, `Star.adjust_age_for_planets`). For every planet, in order: a giant sized from the radius tables is sized again at
+        Makes what the star's age touches again, now that it is final (GEN.961, GEN.985, GEN.992; the star's age is fixed when the star is made, GEN.1546, so
+        only the orbit can still move what an age touched). For every planet, in order: a giant sized from the radius tables is sized again at
         that age and the mean light of its orbit and its interior and air are drawn again (`planets.settle_giant`); the tides of its orbit
         and its captured moons' are taken again (`planets.settle_orbit`); a rocky planet and the moons of any planet made at a younger age
         have their air, class, spin and what follows them made again (`planets.refinish_rocky`). Every draw is from a stream of the body's
