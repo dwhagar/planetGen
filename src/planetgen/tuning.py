@@ -146,6 +146,9 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
+# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
+FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
