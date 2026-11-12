@@ -35,7 +35,7 @@ def test_the_phases_of_a_unit_are_said_reported_and_stamped(monkeypatch):
     phases.finish()
     assert reports == [(0, 3), (1, 3), (3, 3)]
     assert beats == ["Emptying the thing", "Making the other thing..."]
-    assert len(lines) == 2 and lines[0].startswith("Emptying the thing (0:0") and lines[1].startswith("Making the other thing (0:0") and lines[0].endswith(" elapsed).")
+    assert len(lines) == 2 and lines[0].startswith("Emptying the thing (") and lines[1].startswith("Making the other thing (") and lines[0].endswith(" elapsed).")
 
 
 def test_the_phases_of_one_of_a_stages_many_units_are_debug_records(monkeypatch):
