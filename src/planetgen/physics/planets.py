@@ -1186,7 +1186,12 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
         planet.rotation_period_hours = period_hours / found.ratio
         tilt = tidal_spin.cassini_tilt_deg(planet.orbital_inclination_deg, draw.random())    # GEN.1165: the first Cassini state, not exactly 0
     else:
-        planet.rotation_period_hours = 2.0 * math.pi / abs(found.rate) / 3600.0
+        rate = abs(found.rate)
+        if found.kind == "asynchronous" and not planet.is_moon:
+            # the balance of the thermal and the gravitational tide has no limit of its own: a puffy planet's (3.5 Earth masses at 9 Earth radii) came out at 6.2 hours,
+            # faster than the 24 hours at which its surface would leave the ground; no body turns past `spin.BREAKUP_FRACTION` of its breakup rate
+            rate = min(rate, spin.BREAKUP_FRACTION * spin.critical_spin_rad_s(planet.mass, planet.radius))
+        planet.rotation_period_hours = 2.0 * math.pi / rate / 3600.0
         if found.kind == "asynchronous":
             tilt = 0.0 if found.rate > 0.0 else 180.0      # the tides have brought it to its balance: upright, or upside down (Venus)
         else:
