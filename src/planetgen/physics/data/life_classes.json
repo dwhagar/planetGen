@@ -61,7 +61,7 @@
      "min": 2.0,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5230], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
     },
     {
      "quantity": "band_light_vs_earth",
@@ -153,7 +153,7 @@
      "min": 2.0,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5230], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
     },
     {
      "quantity": "band_light_vs_earth",
@@ -250,7 +250,7 @@
      "min": 2.0,
      "tier": "T2",
      "tweak": "L1",
-     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5230], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
+     "basis": "Carbon dioxide at least 20 ppm of one atmosphere, 2.0 Pa: the lowest air at which cyanobacteria were grown with the carbon-concentrating mechanism fully induced at 20 to 350 ppm [R5240]; freshwater algae fix carbon above compensation points of 0.2 to 41.5 ppm [R5241], so the gate sits inside that range and the 5 Pa stand-in is retired (GEN.1581)"
     },
     {
      "quantity": "band_light_vs_earth",
