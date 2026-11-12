@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1639 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1641 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1613 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1615 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -52,11 +52,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
 | T4 | 85 | 13 | 4 | 22 | 15 | 139 |
 | T5 | 90 | 24 | 6 | 1 | 1 | 122 |
-| T6 | 212 | 107 | 31 | 71 | 4 | 425 |
+| T6 | 212 | 109 | 31 | 71 | 4 | 427 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 17 | 5 | 93 | 35 | 196 |
-| All | 951 | 315 | 80 | 237 | 56 | 1639 |
+| All | 951 | 317 | 80 | 237 | 56 | 1641 |
 
 ## How the labels were given
 
@@ -2877,3 +2877,10 @@ The tier says how good the source of a number is; the **evidence status** says w
 | KT6 | P | T6 | L0 | star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time | 0.3 to 3 | pairs whose tide reaches the star | a close binary whose spin-orbit angle is measured to survive the synchronisation time | the obliquity equations of the tidal theory [R5232] | [R5232]: the two relax on the same order | predicted only | - | - |
 | KT7 | P | T3 | L2 | star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass | the four values | main-sequence stars and giants | a star whose measured apsidal motion constant is off by a factor of three | the constants of a stellar model of the star's mass and age [R5233] | observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14 | predicted only | - | - |
 | KT8 | P | T7 | L0 | a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin | none | triples where the outer orbit is much wider than the inner | a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own | the Kozai and secular terms of GEN.1447 added to the apsidal rate | the pair node's own tide dominates by the sixth power of the axis ratio | predicted only | - | - |
+
+## 6.279 Stand-ins of the Kozai-Lidov screen of a planet
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| KZP1 | P | T6 | L1 | `kozai_planets.screen_planets`: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only | the strongest, the sum of the pulls | planets with more than one perturber | an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's | a vector sum of the perturbers' torques | educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers) | predicted only | - | - |
+| KZP2 | P | T6 | L1 | `kozai_planets.SIBLING_MASS_RATIO` 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis | 0.3 to 10 | outer sibling planets | a lighter outer planet that pumps an inner one in an N-body run | the planet-planet octupole test of GEN.1450 | educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps) | predicted only | GEN.1500 | - |
