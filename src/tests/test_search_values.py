@@ -138,13 +138,15 @@ def test_a_range_returns_exactly_the_bodies_whose_stored_value_is_in_it(scored_g
     least, most = values[len(values) // 4], values[3 * len(values) // 4]
     unit = sv.KEYS[key].default_unit(entity)
     shown = lambda number: sv.convert(number, stored, unit)
-    want = {b["name"] for b in bodies if least <= b[column] <= most}
-    answer = _search(scored_galaxy.config, ranges={entity: {key: (shown(least), shown(most), unit)}})
+    # the bounds are the stored values taken to the shown unit and back: a body that sits exactly on a bound is kept by a margin the size of that rounding
+    low, high = least - abs(least) * 1e-9, most + abs(most) * 1e-9
+    want = {b["name"] for b in bodies if low <= b[column] <= high}
+    answer = _search(scored_galaxy.config, ranges={entity: {key: (shown(low), shown(high), unit)}})
     got = answer["results"][panel]["rows"]
     assert {r["name"] for r in got} == want and want
     for row in got:
         assert row["values"][key]["unit"] == unit
-        assert shown(least) * (1 - 1e-9) <= row["values"][key]["value"] <= shown(most) * (1 + 1e-9)
+        assert shown(low) - abs(shown(low)) * 1e-9 <= row["values"][key]["value"] <= shown(high) + abs(shown(high)) * 1e-9
     assert answer["active_ranges"][0]["key"] == key and answer["active_ranges"][0]["unit"] == unit
 
 
