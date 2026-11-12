@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3879] - 2026-11-12
+
+**Headline:** Sheet rows for a magnetic field and for how often flares and lethal events happen now read in a fitting unit instead of a fixed one.
+
+### Changed
+- **A magnetic field shows in tesla with gauss in brackets, and event rates go on a ladder (UX.304).** The magnetic-field rows of the sheets (planets and stars) used the `.4g` number with a bare "G"; they now use the existing magnetic-field ladder, so "50 µT (0.5 G)" and "20 mT (200 G)". The flare rate (per year) and the lethal-event rate (per billion years) use a new rate ladder (`1/Gy`, `1/Myr`, `1/yr`, `1/d`; new registry units `1/Myr` and `1/d`), so "25000 per billion years" reads "25 1/Myr" and never goes scientific. Display only: nothing stored changes. The accretion rate stays in solar masses a year, the unit the literature gives it in.
+
 ## [8.0.3878] - 2026-11-12
 
 **Headline:** A pre-gate quick lane (`scripts/pregate.py`) runs in minutes the checks that turned most PRs red this week, before the long gate run.
