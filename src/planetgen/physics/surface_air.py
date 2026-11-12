@@ -63,6 +63,9 @@ table warms to 1,000 K) from carrying the ocean past the critical point of water
 MAX_STEPS = 60
 """int: The most steps of the fixed point. A body that has not settled by then keeps its last step and says so (`Air.converged`)."""
 
+ESCAPE_MIN_STEPS = 12
+"""int: The fewest steps the light-gas escape pass gets after the air has settled without it (GEN.1594: `MAX_STEPS` ended a loop that settled on its last step with the escape never in the air, and the air was called converged)."""
+
 FREEZE_AFTER = 8
 """int: From this step on the recipe draw of the last step is kept (the regimes can no longer flip)."""
 
@@ -718,7 +721,9 @@ def solve(setting, start_temperature_k):
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
-    for step in range(1, MAX_STEPS + 1):
+    step, step_limit = 0, MAX_STEPS
+    while step < step_limit:
+        step += 1
         pressure = math.exp(ln_pressure)
         if cycling:
             ocean = True
@@ -731,6 +736,7 @@ def solve(setting, start_temperature_k):
             ocean = ocean or cycling
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
+        sink_record.pop("sink", None)        # GEN.1594: the record is the latest step's; a step that does not weather leaves none, not an earlier step's
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidized_share), ocean, weathers, temperature,
                          water_world, late, sink_record)
         try:
@@ -814,6 +820,7 @@ def solve(setting, start_temperature_k):
             # that has lost its share already would lose it again at every step, and the first steps' reducing mixtures, which the settled air does not
             # keep, would take the whole air); the fixed point goes on with the loss in it.
             escape_bar = new_pressure / 1.0e5
+            step_limit = max(step_limit, step + ESCAPE_MIN_STEPS)       # GEN.1594: an air that settles without the escape on its last allowed step still gets the pass that has it in
             ln_pressure, temperature = math.log(new_pressure), new_temperature
             damping, previous_residual, history = [DAMPING, DAMPING], (0.0, 0.0), [[], []]
             continue
