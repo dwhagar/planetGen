@@ -248,7 +248,7 @@ class Planet(PlanetaryObject):
         *habitability_world.BODY_FIELDS,
         *aerosols.BODY_FIELDS,
         *body_colour.BODY_FIELDS,
-        *body_strength.FIELDS,
+        *body_strength.BODY_FIELDS,
         *planet_type.FIELDS, *class_code.FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "born_beyond_snow_line", "host_eccentricity", "oddities", "sky_suns", "light_factor", "obliquity_min_deg", "obliquity_max_deg", "collision_count", "belt_order", "belt_rank",
@@ -466,7 +466,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.FIELDS + planet_type.FIELDS + class_code.FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + core_composition.BODY_FIELDS + phosphorus_budget.COLUMN_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + ocean_tides.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + moon_composition.DISK_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + ore_deposits.COLUMN_FIELDS + (ore_deposits.ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS + body_strength.BODY_FIELDS + planet_type.FIELDS + class_code.FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
