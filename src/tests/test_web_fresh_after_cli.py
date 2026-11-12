@@ -261,7 +261,10 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     assert escape(first["name"]) in site.html(f"/sector/{pid('sector', first['id'])}")
 
     def linked():
-        return {entry["sectorId"] for entry in site.get(scene_url).get_json()["neighbors"] if entry.get("sectorId")}
+        # A rogue planet in a cell nobody charted gets a sector row of its own (GEN.1111 part 7) that the scene may list as a neighbor: it is no sector
+        # the CLI placed, so only the charted ones are compared.
+        charted = {pid("sector", row["id"], mysql_config) for row in _sectors(mysql_config)}
+        return {entry["sectorId"] for entry in site.get(scene_url).get_json()["neighbors"] if entry.get("sectorId")} & charted
 
     assert linked() == set()
 

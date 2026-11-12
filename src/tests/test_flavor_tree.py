@@ -8,14 +8,15 @@ from planetgen.physics import flavor_tree, oddities
 from planetgen.physics.elements import DataError
 
 
-def _body(body_type="t", surface_liquid=None, life_stage=None, life_class=None, **extra):
-    return SimpleNamespace(body_type=body_type, surface_liquid=surface_liquid, life_class=life_class, life_stage=life_stage, mass=5.0e24, radius=6400.0, distance=1.0, **extra)
+def _body(body_type="t", surface_liquid=None, life_stage=None, life_class=None, life_class_id=None, life_animal_grade=0, **extra):
+    return SimpleNamespace(body_type=body_type, surface_liquid=surface_liquid, life_class=life_class, life_class_id=life_class_id, life_animal_grade=life_animal_grade, life_stage=life_stage, mass=5.0e24, radius=6400.0, distance=1.0, **extra)
 
 
 def test_the_file_keeps_every_old_line_under_the_key_it_was_stored_under():
     ids = flavor_tree.load()[1]
-    assert len(ids) == 82 and len(set(ids)) == 82
-    assert {i.split(":")[0] for i in ids} == {"system", "planet", "orbital", "habitable"}
+    legacy = [i for i in ids if i.split(":")[0] != "life"]
+    assert len(legacy) == 82 and len(set(ids)) == len(ids)
+    assert {i.split(":")[0] for i in ids} == {"system", "planet", "orbital", "habitable", "life"}
     assert flavor_tree.text_of("planet:3").startswith("a solar-powered beacon")
     assert flavor_tree.text_of(None) is None
 
@@ -38,8 +39,8 @@ def test_the_walk_offers_only_the_lines_whose_gates_pass_and_prunes_a_tagged_fam
     ground = flavor_tree.walk("planet", _body())
     assert ground and all(option.id.startswith("planet:") for option in ground)
     assert flavor_tree.walk("planet", _body(), off=("ancient_works",)) == []
-    life = flavor_tree.walk("planet", _body(life_stage="multicellularity", life_class=3), off=("ancient_works",))
-    assert life and all(option.id.startswith("habitable:") for option in life)
+    life = flavor_tree.walk("planet", _body(life_stage="multicellularity", life_class=1, life_class_id="1a", life_animal_grade=2), off=("ancient_works",))
+    assert life and all(option.id.startswith(("habitable:", "life:")) for option in life)
 
 
 def test_the_draw_depends_on_the_body_alone_and_skips_the_ids_already_used():

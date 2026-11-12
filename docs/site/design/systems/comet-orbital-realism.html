@@ -99,6 +99,14 @@ eccentricity range and the largest inclination.</li>
 <li>Perihelion <code>q</code> is drawn from <code>COMET_PERIHELION_DISTANCE_RANGE_AU</code>
 (0.05 to 5 AU). The semi-major axis is <code>q / (1 - e)</code>, and the period comes
 from Kepler's third law with the host star's mass.</li>
+<li><strong>A giant holds the Jupiter family (GEN.1457).</strong> A star with a giant gives its Jupiter-family comets the orbits a giant can control: the
+Tisserand parameter <code>T = a_g / a + 2 cos i sqrt((a / a_g)(1 - e^2))</code> about the star's most massive giant (<code>a_g</code> its distance) must lie in
+2 to 3 (<code>physics/comet_control.py</code>, stand-in rows CT1 to CT4 of section 6.251). <code>StarSystem._generate_comets</code> passes the giant's distance
+(<code>Comet(giant_au=...)</code>), the perihelion, eccentricity and inclination are drawn again (the redraw kind <code>comet.tisserand</code>) up to
+<code>COMET_CEILING_ATTEMPTS</code> times, and a comet no orbit of which that giant holds is of another family, drawn among the others by their
+weights. A star with no giant, and every other family, draw exactly as before. The ceiling cut of a wide pair (GEN.228, GEN.591) is
+applied to every redraw. 67P (a = 3.46 AU, e = 0.64, i = 7.0 degrees, giant at 5.2 AU) gives T = 2.75, inside the range. Left out: a
+lighter giant that also holds part of the family, the giant's own eccentricity and drift, and the galactic tide on the far cloud (GEN.1466).</li>
 <li>The class's <code>period_range_years</code> is not used by generation. Because the
 period is computed from <code>q</code> and <code>e</code>, a comet tagged Jupiter-family can come
 out with a period outside 3.3 to 20 years. The tag is descriptive only.</li>
@@ -124,6 +132,10 @@ built.</li>
 distance, not on orbit type: <code>cometData._activity_chance</code> falls linearly from
 0.9 at <code>q = 0</code> to 0.05 at <code>q &gt;= 3 AU</code> (<code>COMET_ACTIVITY_*</code>). Interstellar
 comets keep a flat roll (<code>INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5</code>).</p>
+<p>The distance is the Sun's, read for the host (GEN.1491): a comet's perihelion is first made the distance from a lone star that is lit as much (every star's light
+counts, GEN.1444), then divided by <code>sqrt(L / Lsun)</code> (<code>physics/comet_activity.py</code>), the distance round the Sun that gives the same flux on an airless body. So 3 AU round
+the Sun is 30 AU round a star of 100 solar luminosities and 0.3 AU round one of 0.01. A host of the Sun's luminosity, alone, gives the old chance. The disk's temperature
+law is not used: it is for a passively heated disk, not a bare nucleus. Rows CA1 to CA3 of section 6.253.</p>
 <h3 id="names">Names</h3>
 <p><code>cometData.comet_designation</code> (7.31.0, schema v40) names a star-bound comet
 <code>P/&lt;host&gt;-&lt;n&gt;</code> when it is elliptical with a period under 200 years, and
