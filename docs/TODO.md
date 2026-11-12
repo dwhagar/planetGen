@@ -8709,46 +8709,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   without human review. Times to Boss in EDT only.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
-- [ ] **GEN.1019 Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in)**
-  Split from GEN.852 part 1 by Sources 1 (relayed 12:19 PM EDT
-  2026-10-30 as the lane reported). A far-wing line shape for CO2 needs
-  a chi-factor or line-wing treatment; the HITRAN CO2 line list is not
-  held in reduced form, and a Venus cloud needs a sulphuric-acid cloud
-  layer in the aerosol model. Do: (1) source a published CO2 far-wing
-  treatment (second-hand is fine, widest range when two are in question)
-  and use it in place of the labelled IR3 stand-in; (2) add a
-  sulphuric-acid cloud layer to the aerosol model from published Venus
-  cloud models (mode sizes, optical depth, base and top heights) so a
-  Venus-like air gets its cloud, drawn from the air and not from Venus
-  itself (no fixed Solar System content); (3) register every stand-in in
-  GEN.725 with tier and tweak level. Done: a thick-CO2 test air gets a
-  surface temperature inside the published range for the model, an air
-  with no sulphur gets no acid cloud, and the registry rows exist. The
-  pure module, tests and registry rows are lock-free; wiring that
-  changes stored output rides a train. Owner: Sources 1.
-  Progress (2026-10-30 1:38 PM EDT): Sources 1 (as the lane reported
-  1:37 PM EDT): GEN.1020 lock-free merged in #4061 (Mie, acid-cloud
-  infrared optics from the HITRAN acid indices, SO2/CO/H2O wings, rows
-  CF1 to CF5, FW6, FW7) and #4063 (the infrared column uses the sourced
-  CO2 wing, IR3 deleted, radiative_convective.solve takes
-  cloud=(tau_550, radius_um)). Clear-sky Venus-like test air: sourced
-  wing alone 539 K, wing plus a 1 micron acid cloud of depth 25 = 757 K
-  (measured 735 K); droplet radius across the published modes spans
-  about 620 to 820 K; minor-gas wings add under 1 K. Report
-  reports/gen1020-cloud-infrared-2026-10-30.md. Nothing in generation
-  calls radiative_convective or line_opacity yet (GEN.850, Air 1), so
-  #4063 moved no stored value. Still to ride a train: branch
-  claude/gen1019-wire (3900b800f) puts the acid cloud into the aerosol
-  draw (bodies with SO2 at 1 ppm or more, an oxidiser and water, cold
-  top below 367 K gain a cloud 20 to 30 deep covering the sky),
-  --affects fill, no migration, no new draw or column, airs without
-  sulfur unchanged to the digit; ground-UV, radiation score and sky
-  colour fields that read the aerosols move with it. Air 1 note for
-  GEN.850: when it wires the column, pass
-  cloud=sulfuric_cloud.of_body(body)[::2] to solve.
-  Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
-  Owner (TODO sweep, 2026-11-12): Lane 15 (air).
-
 - [ ] **GEN.1021 Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table**
   Filed for Aux 3 (relayed 1:10 PM EDT 2026-10-30 as the lane reported)
   as the replaced_by item of the k7 registry row. After GEN.1005 k7,
@@ -12578,11 +12538,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 02 (Train Manager). Prerequisites: none. Related: GEN.1479, OPS.130.
   Filed by the TODO thread.
 
-- [ ] **GEN.1485 Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell**
-  Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09). None of the 8.3e9 visits are rings (that count is the 11-05 per-cell luminosity count; the luminosity bands are now 3.4e7 block visits at a 7.5 sky). Rings are 3.5e6 visits (9 percent) through the same walk; dense rings cannot prune, sparse ones should, and the ring cost is in stars drawn (590k stored for 4.1k shown). No Poisson split. Do: cost sparse rings by block in sky_tiers.build with the same block bound the luminosity bands use; time before and after on the report's sky; the drawn cells and stars must be byte-identical (no epoch). Reuse bright_stars, sky_tiers and the block memo; no second walk.
-  Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock-free. Prerequisites: none. Related: GEN.1481, GEN.1486, GEN.1476.
-  Filed by the TODO thread.
-
 - [ ] **GEN.1486 Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown**
   Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09): the ring cost is in stars drawn, 590k stored for 4.1k shown. Do: measure how the stars drawn fall with finer ring edges, and if the saving is real change the edges. Changing ring edges changes which stars are drawn, so this is a lock item with a scatter-stage epoch (--affects scatter), stand-ins registered in GEN.725 with tier and tweak level; time and stored size before and after; reuse sky_tiers and bright_stars.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
@@ -12826,11 +12781,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-11): Lane 15 (wrote the CO2 measure). Prerequisites: none. Related: GEN.909, GEN.1403, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the zone-edge research note against the greenhouse spectrum; slice 1 lock: the edge change. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **UX.298 The single-system generator page cannot ask for a rogue planet or a starless result**
-  Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the control (reusing the generator's existing rogue-planet option; no new option) with wording, a result link and a test. Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-11): Lane 06. Prerequisites: GEN.1620 (the generator option, filed 2026-11-12). Related: UX.283, GEN.1620.
-  Filed by the TODO thread.
 
 - [ ] **UX.299 The single-system generator page has no weirdness dial or oddities control**
   Boss, 6:40 PM EST on 2026-11-06 (UX.283); Lane 06 first pass found the gap (as the lane reported 6:11 PM EST on 2026-11-11). Do: Add the weirdness dial and the oddities choice the CLI already has, with the same wording and limits, and a test. Lock-free.
@@ -13126,11 +13076,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1596.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
 
-- [ ] **GEN.1607 (bug) radiation.generate_dose sets dose_helio_mult back to 1.0 on every call, so a body whose life or air is re-applied after the system was placed in a cloud loses the heliosphere multiplier**
-  Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L14, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: none. Related: GEN.1589, GEN.1590.
-  Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
-
 - [ ] **GEN.1608 (bug) A comet's period class is a label drawn before its orbit: where the star's orbit ceiling cuts the eccentricity (comet.py _draw_shape, low = min(low, high)) a 'long_period' comet can have a period of tens of years and gets the periodic 'P/' designation**
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L15, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: none. Related: none.
@@ -13373,6 +13318,32 @@ clears each one.
   Lane 15 (as the lane reported 5:51 AM EST on 2026-11-12), from GEN.1613: the failing solves are dry high-pressure airs whose held mantle fO2 (10^4.1 bar) exceeds the total pressure (9,255 bar), which an ideal gas cannot hold. GEN.1613 clamps the held log fO2 as a registered stand-in; this item replaces the clamp with real-gas fugacity coefficients (Peng-Robinson with critical constants for the 34 species that have them, stand-ins from sigma for the rest, registered in GEN.725). Moves every high-pressure air by a few percent (Venus-like worlds included). Research first, then a lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1613. Related: GEN.1613, GEN.1622.
   Deferred (TODO, 2026-11-12): after the generation fixes, with the other deferred code items (Boss, 10:01 PM EST on 2026-11-11).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1643 Fit the trojan swarm scales TJ9 to TJ11 (libration amplitude, eccentricity, inclination) to the proper elements of the Jupiter and Neptune Trojan catalogues**
+  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): registry rows 6.121:TJ9, TJ10 and TJ11 sit at L4 with no burn-down line. The Rayleigh scales of `trojan_swarm` (LIBRATION_SIGMA_DEG 10, ECC_SIGMA 0.06, INCLINATION_SIGMA_DEG 12) are recalled, not read. Do: read a proper-element catalogue (secondary sources accepted), fit the three scales, and lower the rows to L1 or L2. The catalogue is a calibration reference only; no fixed Solar System content enters the output.
+  Version 8.1. Owner: Lane 23. Prerequisites: GEN.1150. Related: GEN.1151, GEN.1647.
+  Filed by the TODO thread.
+  Owner (TODO, 2026-11-12): Lane 23. Slice 0 (fit and proposal, lock-free) is PR 6233; slice 1 (lock) sets TJ9 to 13 degrees and lowers the rows, together with GEN.1647.
+
+- [ ] **GEN.1644 Freezing curve of the sulfuric acid hydrates for the cold acid cloud (registry row 6.228:SV7)**
+  Found by the burn-down test (Lane 15, as the lane reported 6:21 AM EST on 2026-11-12): 6.228:SV7 named GEN.1425, which closed with Train 24 while the row is still L3. The cold acid cloud stays liquid to 185 K because the freezing curve of [R4877: figure 1 and section 4.3] is not yet a function. Do: turn that curve into a function, read it where the cloud step places the acid aerosol, and lower SV7 to L0 or L1.
+  Version 8.1. Owner: unassigned (next waiting lane). Prerequisites: none. Related: GEN.1425, GEN.1307.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1645 Wire the planet and sibling-planet Kozai screen (physics/kozai_planets.py, stand-ins KZP1 and KZP2) into generation once the companion planes are stored**
+  Lane 23 (as the lane reported 6:54 AM EST on 2026-11-12): GEN.1447 slice 0 (PR 6228, lock-free) built kozai_planets.py, which screens a planet against a companion star or a heavier outer planet; report reports/gen1447-planet-case-2026-11-12.md. Do: read the screen in generation (planets in the Kozai band are driven to high eccentricity or removed, as the screen says), using the stored companion planes of GEN.1500. Lock item: it changes output.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: GEN.1500. Related: GEN.1447, GEN.1352.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1646 Trace the nitrogen air excess left after GEN.1583 A, B and C (Earth-analog N2 median about 134 kPa against about 80); first suspect the dry carbon bracket middle (0.056 wt% CO2 against the bulk silicate Earth 0.042)**
+  Lane 15 (as the lane reported 7:01 AM EST on 2026-11-12), reports/gen1583-nitrogen-budget-2026-11-12.md: at the Earth late accretion of 0.7 percent (PR 6225), 100 analog trials give N2 quartiles 88/236/507 kPa on main, 46/184/278 with A and C (PR 6192), and 43/134/263 with B as well (PR 6230). The target near 80 kPa is not reached and the remaining excess is not wet-class carbon. Do: trace where the remaining nitrogen comes from (start with the dry carbon bracket middle) and propose a sourced fix; measure first, fudge last.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: GEN.1583. Related: GEN.1584, GEN.1583.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1647 Trojan tadpole cut: the swarm draw and trojans.motion cut at TADPOLE_LIMIT_DEG 23.9 (the nearest a tadpole comes to the secondary), not at the widest tadpole libration amplitude (about 78 degrees), so the generated mean amplitude cannot reach the observed one**
+  Lane 23 (as the lane reported 7:17 AM EST on 2026-11-12), GEN.1643 slice 0 (PR 6233, reports/gen1643-trojan-scales-2026-11-12.md): about a fifth of the real Jupiter Trojans librate wider than 23.9 degrees, and with the cut there the mean amplitude cannot reach the observed mean of 16.2 degrees; a scale of 13 with the cut at the edge of the zone gives 16.3. Do: cut the swarm draw and split tadpole from horseshoe in trojans.motion at the libration amplitude edge, and fix the falsifier of registry row TJ3. Lock item; built together with GEN.1643 slice 1 in one PR.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

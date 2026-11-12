@@ -2,6 +2,95 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3946] - 2026-11-12
+
+**Headline:** The one-off system page can now generate a rogue planet or an interstellar comet, not only a star system.
+
+### Changed
+- **A Result choice on the one-off system page (UX.298).** Under Options, Result picks a star system (the default), a rogue planet or an interstellar comet. The two starless results come from the existing `planetgen phenomenon` generator, which now takes the same `--output` and `--format` that `planetgen system` has: it writes the description and saves nothing. Only the name and the debug log apply to a starless result, and any other filled-in option is refused with its name instead of being ignored. The page shows it as it shows a system, with the same downloads.
+
+generation-output: unchanged
+
+## [8.0.3945] - 2026-11-12
+
+**Headline:** The galaxy-placed occurrence census now records why classes O, P and Q have no target rate.
+
+### Changed
+
+- The docstrings of `tests/audit/prevalence_galaxy.py` and `tests/test_prevalence_galaxy_census.py` (TEST.395) say that the ocean, glaciated and Q classes are given no share to hit (Boss, 2026-10-30: physics drives, no game rates, and no survey measures a class): they are only tested for being possible when conditions allow them, and the report lists how many of each the sample drew. Comments only.
+
+generation-output: unchanged
+
+## [8.0.3944] - 2026-11-12
+
+**Headline:** The pull of a distant companion star or a heavy outer planet on a planet's orbit can now be worked out in one place; nothing reads it yet.
+
+### Changed
+
+- GEN.1447 (slice 0, planet and sibling-planet cases): new `physics/kozai_planets.py`, pure. `screen_planets` runs the Kozai-Lidov screen of `kozai_bodies` for each planet of a star against every perturber past three times its axis: a companion star or dark member with the plane of its orbit, and an outer planet at least as heavy as the planet. The other precession a cycle has to beat is `secular_chain.precession_rates` (siblings and relativity). Each planet gets the outcome of its strongest cycling pull (the eccentricity it reaches, where it stands at the star's age, whether the periapsis falls inside the star), the perturbers that cycle it and the ledger rate of every perturber. Stand-ins KZP1 and KZP2 (tier T6, tweak L1) are in section 6.284 of the gap-filling plan.
+- Nothing in the generator reads it yet (wiring register): applying the outcome to the planets is a lock item that waits for the stored companion planes of GEN.1500.
+
+generation-output: unchanged
+
+## [8.0.3943] - 2026-11-12
+
+**Headline:** A sky's mass rings are costed by what their walk does, so a sparse ring is no longer counted one visit to every cell of its sphere (GEN.1485).
+
+### Changed
+- **`sky_charting.cost_rings`.** The queue's sky units (`run_galaxy._sky_units`) now give each mass ring the visits `bright_stars.mass_sphere_walk_visits` counts over its drawn sphere: for each row, one visit to every cell of its window when a band of the ring is over `CANDIDATE_PATH_BOUND`, else one to every block of the window. It is the walk's own rule (`_sphere_batches`) applied to the rows with no star drawn, looked at on about 2,000 rows of the sphere and scaled. `sky_tiers.build` still costs a ring by its cells, since it has no galaxy to ask. The estimate of the time a sky unit takes drops for sparse rings (the 5 to 8 and 8 to 14 solar mass rings, which the audit found overstated); no cell is drawn differently and no star changes. Reused: `sphere_rows`, `bound_terms`, `bound_of` and `_row_chunks` of the walk itself, and the ring bands of `mass_sphere_batches` (now `_mass_paths`, shared by the draw and the cost) so the two cannot differ. Tests: the cost against an instrumented `mass_sphere_batches` for a sparse and a dense ring.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3942] - 2026-11-12
+
+**Headline:** The reds on main after Train 24 in the materials and rogue planet tests are fixed in the tests, with no change to what the generator makes.
+
+### Changed
+- **The materials reachability scan reads the evaporite sequence.** `physics/evaporite_sequence.py` names the 19 salts, carbonates and perchlorates it dries out of a brine (GEN.1357 and GEN.1366), but it takes its molar masses from its own formula table and does not import the materials table, so the scan skipped it and called the rows unread. It is now in the scan's always-read list.
+- **The rogue and bound planet parity test allows the air quantities to differ where only one of the pair holds an air.** A rogue world kept warm by its own heat holds an air; the matched planet at 3 K far from a star has frozen its gases out and stores no density, molar mass or scale height. The test already allowed the same case for its liquid surface and clouds.
+- **The rogue parity test allows `cloud_chemistry` to differ with the cloud.** The sulfur-cloud chemistry (GEN.1425) is read off the acid cloud the air holds, so it is filled on the one of a matched pair whose air holds one.
+- **The rogue and bound moon-code test finds a pair that made two moons each instead of pinning seed 0.** `generate_moons` attempts the count and makes fewer where the orbits have no room, so the test searches seeds (TEST.714) for a pair with two each.
+- **The stored UV index test skips a planet under a deep envelope.** Such a planet has no ground (GEN.1334), so it stores no dose and no UV index; the test now says so for it and checks the planets that have a ground. The seed's system holds two such class T planets after Train 24.
+
+generation-affects: none
+
+## [8.0.3941] - 2026-11-12
+
+**Headline:** An edited world inside a cloud keeps the cosmic-ray boost of the squeezed heliosphere.
+
+### Changed
+- **GEN.1607 confirmed not a bug; a test now holds it.** `radiation.generate_dose` does set `dose_helio_mult` back to 1.0 each call, but the only paths that re-apply life or air to a stored body are the admin edits, and `db.edits.save_system_edits` ends in `store.refresh_system_dose`, which works the multiplier and the surface dose out again from the container the system is stored in. `test_an_edited_world_in_a_cloud_keeps_the_cosmic_ray_multiplier` places a system in a dense cloud (multiplier 2.5), re-applies life and the dose to each grounded planet (multiplier 1.0), saves the edit and checks the stored multiplier is 2.5 again.
+
+generation-affects: none
+
+## [8.0.3940] - 2026-11-12
+
+**Headline:** Three unread dose functions that duplicated the production radiation code are retired.
+
+### Changed
+- **GEN.444: retired `surface_dose.share_past_cutoffs`, `surface_dose.rigidity_gv`, `surface_dose.neutron_weight` and the two event constants.** The share of a stellar particle event that passes a column and a cutoff is `solar_particles.dose_share` with `proton_range` (measured events, NIST PSTAR, mixtures by Bragg's rule), which `radiation.generate_dose` reads; the first slice's copy used a hand-fitted Band spectrum for the same job. The cosmic-ray table is already a dose in sieverts that includes its neutrons, so a separate neutron weight would count them twice. `proton_range.csda_range_g_cm2` is marked by design (its inverse `energy_mev` is the one the generator reads). `effective_air_column_g_cm2` stays open under GEN.444 until the interaction lengths of the other gases are sourced. No generated output changes.
+
+generation-affects: none
+
+## [8.0.3939] - 2026-11-12
+
+**Headline:** The solar particle event counts typed in the code now match the 265 events of the NOAA list the setup downloads.
+
+### Fixed
+- **GEN.805: `solar_particles.NOAA_CUMULATIVE_COUNTS` counted from the downloaded list.** The typed counts (255, 177, 109, 72, 40, 18, 9) came from an older 255-event table; the list that `datasets.noaa_proton_events` reads has 265 events and counts 265, 181, 112, 74, 41, 18, 9. A new test holds the typed numbers to the file. The dataset is marked by design in the wiring register as the calibration reference of the event rate. Only the test-side rate helpers read these counts, so no generated output moves.
+
+generation-affects: none
+
+## [8.0.3938] - 2026-11-12
+
+**Headline:** The CO2 far wing is confirmed to be in the greenhouse table already, so no refit is needed.
+
+### Changed
+- **GEN.1019: `co2_far_wing` marked by design in the wiring register.** `line_opacity` reads it, and the shipped greenhouse table agrees with the radiative-convective model with the wing to 0.4 K at Venus's 92 bar and is 54 K away from the model without it. Documentation only; report in `reports/gen1019-far-wing-check-2026-11-12.md`.
+
+generation-affects: none
+
 ## [8.0.3937] - 2026-11-12
 
 **Headline:** the two sweep tests that break the life model by class letter no longer fail when the habitability code scores a body from its values.
