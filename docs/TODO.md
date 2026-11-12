@@ -8709,46 +8709,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   without human review. Times to Boss in EDT only.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
-- [ ] **GEN.1019 Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in)**
-  Split from GEN.852 part 1 by Sources 1 (relayed 12:19 PM EDT
-  2026-10-30 as the lane reported). A far-wing line shape for CO2 needs
-  a chi-factor or line-wing treatment; the HITRAN CO2 line list is not
-  held in reduced form, and a Venus cloud needs a sulphuric-acid cloud
-  layer in the aerosol model. Do: (1) source a published CO2 far-wing
-  treatment (second-hand is fine, widest range when two are in question)
-  and use it in place of the labelled IR3 stand-in; (2) add a
-  sulphuric-acid cloud layer to the aerosol model from published Venus
-  cloud models (mode sizes, optical depth, base and top heights) so a
-  Venus-like air gets its cloud, drawn from the air and not from Venus
-  itself (no fixed Solar System content); (3) register every stand-in in
-  GEN.725 with tier and tweak level. Done: a thick-CO2 test air gets a
-  surface temperature inside the published range for the model, an air
-  with no sulphur gets no acid cloud, and the registry rows exist. The
-  pure module, tests and registry rows are lock-free; wiring that
-  changes stored output rides a train. Owner: Sources 1.
-  Progress (2026-10-30 1:38 PM EDT): Sources 1 (as the lane reported
-  1:37 PM EDT): GEN.1020 lock-free merged in #4061 (Mie, acid-cloud
-  infrared optics from the HITRAN acid indices, SO2/CO/H2O wings, rows
-  CF1 to CF5, FW6, FW7) and #4063 (the infrared column uses the sourced
-  CO2 wing, IR3 deleted, radiative_convective.solve takes
-  cloud=(tau_550, radius_um)). Clear-sky Venus-like test air: sourced
-  wing alone 539 K, wing plus a 1 micron acid cloud of depth 25 = 757 K
-  (measured 735 K); droplet radius across the published modes spans
-  about 620 to 820 K; minor-gas wings add under 1 K. Report
-  reports/gen1020-cloud-infrared-2026-10-30.md. Nothing in generation
-  calls radiative_convective or line_opacity yet (GEN.850, Air 1), so
-  #4063 moved no stored value. Still to ride a train: branch
-  claude/gen1019-wire (3900b800f) puts the acid cloud into the aerosol
-  draw (bodies with SO2 at 1 ppm or more, an oxidiser and water, cold
-  top below 367 K gain a cloud 20 to 30 deep covering the sky),
-  --affects fill, no migration, no new draw or column, airs without
-  sulfur unchanged to the digit; ground-UV, radiation score and sky
-  colour fields that read the aerosols move with it. Air 1 note for
-  GEN.850: when it wires the column, pass
-  cloud=sulfuric_cloud.of_body(body)[::2] to solve.
-  Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
-  Owner (TODO sweep, 2026-11-12): Lane 15 (air).
-
 - [ ] **GEN.1021 Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table**
   Filed for Aux 3 (relayed 1:10 PM EDT 2026-10-30 as the lane reported)
   as the replaced_by item of the k7 registry row. After GEN.1005 k7,
