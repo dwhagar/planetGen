@@ -31,12 +31,15 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
   object, the same sums for that cell, added to by the two scatter writers (`store.insert_bright_stars` and
   `store.insert_phenomenon_scatter` call `note_rows` in the transaction that writes the rows). A scatter, a backfill and a luminosity-free
   rerun therefore never read the two big tables again to total them; a scatter's last stage rolls the parts up. The parts are checked
-  before they are trusted (`parts_current`: their object counts equal the tables' unbuilt counts); when they are not, `roll` is a
-  `rebuild`, which also writes the parts again, so an old galaxy, a prune or a missed writer heals on the next stage.
+  before they are trusted (`parts_current`); when they are not, `roll` is a `rebuild`, which also writes the parts again, so an old galaxy, a prune or a missed
+  writer heals on the next stage. The check at the end of a run reads only small tables (OPS.152: the count of the unbuilt stars over `bright_stars` walks
+  every row of a full galaxy and kept the run silent for hours): the parts against the phenomena counters, and a finished star scatter against the parts it
+  must have left. The exact check (`exact=True`: the unbuilt objects of both tables counted) is `fill-block-totals`' proof, which rebuilds the parts anyway.
 """
 
 import math
 import struct
+import time
 
 from planetgen.db import query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
@@ -441,6 +444,9 @@ def _unit_rows(conn, shells):
     return [row for batch in _unit_batches(conn, shells) for row in batch]
 
 
+PROGRESS_SAY_SECONDS = 30.0
+"""float: How long a long loop of the block light work goes without saying where it is (`on_phase`)."""
+
 ABOVE_ROLL_SHARE = 0.8
 """float: The share of `_above_unit`'s progress that adding up the stored rows takes (the rest is writing the rows made)."""
 
@@ -514,6 +520,7 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
     def note_parts(shell, found):
         _write_parts(conn, [tuple(address) + tuple(_part_row(sums)) for address, sums in sorted(found.items())])
 
+    last_said = time.monotonic()
     for done, unit in enumerate(sorted(units), start=1):
         for batch in _unit_batches(conn, units[unit], from_parts=from_parts, on_found=note_parts if parts else None):
             _write_rows(conn, batch)
@@ -521,6 +528,9 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
         conn.commit()
         if on_progress is not None:
             on_progress(done, len(units))
+        if on_phase is not None and time.monotonic() - last_said >= PROGRESS_SAY_SECONDS:
+            last_said = time.monotonic()
+            on_phase(f"Block light totals: unit {done:,} of {len(units):,} done, {written:,} rows written.")
     if on_phase is not None:
         on_phase("Adding up the levels above the units...")
     written += _above_unit(conn, on_above)
@@ -528,36 +538,64 @@ def rebuild(conn, on_progress=None, on_phase=None, on_above=None, parts=False, f
     return written
 
 
-def _unbuilt_points(conn):
+def _unbuilt_points(conn, scan=True):
     """How many scattered phenomena are not built. `phenomenon_scatter_classes` keeps it exactly (`placed - built`, the Phenomena table reads it); when it holds the
     scatter it answers with one small read. Without it (a scatter not finished, a table filled by hand) the answer is a scan of `phenomenon_scatter`, which has no
-    index on `built_at`."""
+    index on `built_at`; with `scan` false that answer is `None` instead (OPS.152)."""
     held = conn.execute("SELECT COUNT(*) AS n, COALESCE(SUM(placed), 0) AS placed, COALESCE(SUM(built), 0) AS built FROM phenomenon_scatter_classes").fetchone()
     if held["n"]:
         return int(held["placed"]) - int(held["built"])
+    if not scan:
+        return None
     return conn.execute(f"SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE {_POINTS_WHERE}").fetchone()["n"]
 
 
-def parts_current(conn):
-    """Whether the parts hold every unbuilt object once: their counts equal the unbuilt counts of the scatter. The stars are counted by the index of
-    `star_system_id` (a covering `ref` read of the NULL entries, no table scan), the phenomena by `_unbuilt_points`. A galaxy scattered before the parts
-    existed, a prune or a clear that did not reach them, or a scatter written by a writer that did not note its rows, fails this, and `roll` then
-    rebuilds (GEN.1476)."""
+def _exists(conn, table, where):
+    """Whether `table` holds a row that `where` names: it stops at the first, so it is quick wherever one waits (a table with none is walked once, and only when the parts are empty)."""
+    return conn.execute(f"SELECT 1 AS one FROM {table} WHERE {where} LIMIT 1").fetchone() is not None
+
+
+def parts_current(conn, exact=False):
+    """
+    Whether the parts hold every unbuilt object once (GEN.1476). A galaxy scattered before the parts existed, a prune or a clear that did not reach them, or a
+    scatter written by a writer that did not note its rows, fails this, and `roll` then rebuilds.
+
+    The check reads small tables only (OPS.152): the parts' phenomenon count must equal the phenomena counters (`phenomenon_scatter_classes`) when the scatter has
+    them, and parts that hold no star must not sit beside a waiting star (one `EXISTS` row). The counters of the scatter are not scanned for when
+    they are missing, and the stars are not counted over `bright_stars`, which walks every row of a full galaxy (the count that kept a run silent for hours).
+    With `exact` the unbuilt stars are counted from the table (the entries of `star_system_id`'s index) and the phenomena from the table when no counters hold them:
+    the proof `fill-block-totals` keeps and the tests use.
+    """
     held = conn.execute("SELECT COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_light_parts").fetchone()
-    stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
-    return int(held["stars"]) == stars and int(held["points"]) == _unbuilt_points(conn)
+    if exact:
+        stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
+        return int(held["stars"]) == stars and int(held["points"]) == _unbuilt_points(conn)
+    points = _unbuilt_points(conn, scan=False)
+    if points is not None and int(held["points"]) != points:
+        return False
+    if int(held["stars"]) == 0 and _exists(conn, "bright_stars", _STARS_WHERE):      # parts that hold no star beside stars that wait: a galaxy scattered before the parts
+        return False
+    return not (points is None and int(held["points"]) == 0 and _exists(conn, "phenomenon_scatter", _POINTS_WHERE))
 
 
-def totals_current(conn):
+def totals_current(conn, exact=False):
     """
     Whether the stored block light totals hold every unbuilt object once (PERF.256): at each level the totals carry, the objects counted in the rows equal the
-    unbuilt objects of the scatter, counted as `parts_current` counts them (the stars by the index of `star_system_id`, the phenomena by `_unbuilt_points`), and no
-    level is missing where there are objects. A scatter whose last stage did not end (the totals are then missing or partial) fails this, so the stage that makes
-    them is planned again; a galaxy run that left the scatter as it was and the totals whole does not plan it. The counts do not see a luminosity a later
+    unbuilt objects, and no level is missing where there are objects. A scatter whose last stage did not end (the totals are then missing or partial) fails this, so the
+    stage that makes them is planned again; a galaxy run that left the scatter as it was and the totals whole does not plan it. The counts do not see a luminosity a later
     `fill-map-luminosity` left unfilled; that command makes its own totals.
+
+    The unbuilt objects are the parts' (OPS.152): the sums of `galaxy_block_light_parts`, a small table the scatter writers keep, when `parts_current` holds them; so the check
+    does not count the two scatter tables. With `exact` they are counted from the tables as `parts_current(exact=True)` counts them.
     """
-    stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
-    points = _unbuilt_points(conn)
+    if exact:
+        stars = conn.execute(f"SELECT COUNT(*) AS n FROM bright_stars WHERE {_STARS_WHERE}").fetchone()["n"]
+        points = _unbuilt_points(conn)
+    else:
+        if not parts_current(conn):
+            return False
+        sums = conn.execute("SELECT COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_light_parts").fetchone()
+        stars, points = int(sums["stars"]), int(sums["points"])
     held = {row["m"]: (int(row["stars"]), int(row["points"])) for row in conn.execute(
         "SELECT m, COALESCE(SUM(star_count), 0) AS stars, COALESCE(SUM(point_count), 0) AS points FROM galaxy_block_lights GROUP BY m").fetchall()}
     if stars + points == 0:
@@ -565,13 +603,15 @@ def totals_current(conn):
     return len(held) == len(LEVELS) and all(found == (stars, points) for found in held.values())
 
 
-def roll(conn, on_progress=None, on_phase=None, on_above=None):
+def roll(conn, on_progress=None, on_phase=None, on_above=None, exact=False):
     """
     The block light rows made from the parts, the stage a scatter ends with (GEN.1476): the same rows `rebuild` makes, without reading the
     two object tables, which at full size is the hour and the memory the stage cost. When `parts_current` fails it is a `rebuild` that also
     writes the parts again. Returns `(rows written, whether the parts were used)`.
     """
-    if parts_current(conn):
+    if on_phase is not None:
+        on_phase("Checking the parts the scatters kept against their counters...")
+    if parts_current(conn, exact=exact):
         return rebuild(conn, on_progress, on_phase, on_above, from_parts=True), True
     if on_phase is not None:
         on_phase("The stored parts do not match the scatter (a galaxy scattered before them, or a prune): making them again from the objects.")

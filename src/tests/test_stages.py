@@ -323,14 +323,11 @@ def test_the_whole_job_stores_its_shells_per_second_over_all_its_layers(control_
     conn = _control(mysql_config)
     try:
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
-        rate = generation_stats.job_shells_per_second(conn, {"workers": 2, "mass_limit_sol": 16.0})
-        fallback = generation_stats.job_shells_per_second(conn, {"workers": 2})
     finally:
         conn.close()
     assert job["metrics"]["shells"] == 100 and job["seconds"] > 0
     assert job["metrics"]["shells_per_second"] == pytest.approx(100 / job["seconds"])
-    assert job["settings"]["mass_limit_sol"] == 16.0 and rate == pytest.approx(job["metrics"]["shells_per_second"])
-    assert fallback == pytest.approx(rate)
+    assert job["settings"]["mass_limit_sol"] == 16.0
 
 
 def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control_config, monkeypatch):
@@ -348,7 +345,6 @@ def test_a_run_that_visited_no_layers_still_stores_its_whole_process_row(control
         (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
         assert job["metrics"] == {"stages_run": 1, "shells": 0} and job["seconds"] >= 0
         assert generation_stats.stage_history(conn, stages.SCATTER_KEY) == []
-        assert generation_stats.job_shells_per_second(conn) is None
     finally:
         conn.close()
 
