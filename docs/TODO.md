@@ -13591,6 +13591,12 @@ clears each one.
   Version 8.1 (gate flake and stored-vs-generated mismatch). Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: DB.122, DB.123, DB.124, DB.125.
   Filed by the TODO thread.
 
+- [ ] **GEN.1639 (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round)**
+  Lane 21 (as the lane reported 1:24 AM EST on 2026-11-12), found while wiring GEN.1201 (PR 6175; gap written in gap-filling-plan section 6.162). Do: add latent heat of ice melting and convective (or hydrothermal) heat loss to physics/shape_temperature.py from the research ([R....] ids only), and check the analogues against their measured shapes. Lock item (changes roundness).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1201. Related: GEN.1201.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
