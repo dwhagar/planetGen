@@ -35,7 +35,8 @@ from planetgen.queue import api_jobs
 from planetgen import describe
 from planetgen.describe import DOCUMENT_FORMAT, html as describe_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
-from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, stars_problem
+from planetgen.generation.run_system import ODDS_OPTIONS, forced_oddity_ids, max_stars_problem, stars_problem
+from planetgen.physics import oddities
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
 from planetgen.util import log as planetgen_log
@@ -55,6 +56,9 @@ TRISTATE_FIELDS = (
     ("wide_binary", "Wide (S-type) binary"),
     ("planets", "At least one planet or belt"),
 )
+
+ODDITY_IDS = tuple(oddities.BY_ID)
+"""tuple: The oddity ids the Force oddities box accepts (UX.299)."""
 
 TRISTATE_CHOICES = (("", "Generator decides"), ("yes", "Yes"), ("no", "No"))
 
@@ -122,6 +126,13 @@ def system_request(form):
     max_flavor = bool(form.get("max_planet_flavor"))
     stars = _number(form, "stars", "Number of stars", int, minimum=1, maximum=MAX_STARS_CEILING)
     max_stars = _number(form, "max_stars", "Most stars", int, minimum=1, maximum=MAX_STARS_CEILING)
+    weirdness = _number(form, "weirdness_dial", "Weirdness dial", float, minimum=0.0)
+    oddity_ids = _text(form, "force_oddities")
+    if oddity_ids:
+        try:
+            oddity_ids = ",".join(forced_oddity_ids(oddity_ids))
+        except ValueError as exc:
+            raise FormError(f"Force oddities: {exc}.") from None
 
     if len(name) > SYSTEM_NAME_MAX_LENGTH:
         raise FormError(f"The name is {len(name)} characters; a system name can be at most {SYSTEM_NAME_MAX_LENGTH}.")
@@ -176,6 +187,10 @@ def system_request(form):
         argv.append(f"--stars={stars}")
     if max_stars is not None:
         argv.append(f"--max-stars={max_stars}")
+    if weirdness is not None:
+        argv.append(f"--weirdness-dial={weirdness}")
+    if oddity_ids:
+        argv.append(f"--force-oddities={oddity_ids}")
     if chance_system is not None:
         argv.append(f"--flavor-chance-system={chance_system}")
     if chance_planet is not None:
@@ -262,7 +277,7 @@ def _page(admin, form=None, result=None, error=None, status=200):
         status=status, description="Generate one star system without saving it to the database.",
         tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, odds_choices=ODDS_CHOICES,
         odds_options=ODDS_OPTIONS, max_stars_ceiling=MAX_STARS_CEILING, max_stars_default=MAX_STARS_DEFAULT, system_file_example=SYSTEM_FILE_EXAMPLE,
-        max_num_orbits=MAX_NUM_ORBITS, debug_areas=planetgen_log.AREAS, result=result)
+        max_num_orbits=MAX_NUM_ORBITS, oddity_ids=", ".join(ODDITY_IDS), debug_areas=planetgen_log.AREAS, result=result)
 
 
 @bp.route("/admin/generate/system", methods=["GET", "POST"])
