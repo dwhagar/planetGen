@@ -16,14 +16,14 @@ constant for it (the block light units, the uncharted index, the download lines 
 * `stamp(text, began)`: `text` with the time since `began`, `Text (4:07 elapsed).`, the one form of the hand stamp the block light lines had.
 
 The clock is `time.monotonic` and can be given, so a test needs no wait. The text is one sentence with a capital and a period (the logging
-standard's message text). Time is `joblog.clock_text`.
+standard's message text). Time is `logrecord.duration_text`.
 """
 
 import threading
 import time
 
 from planetgen import tuning
-from planetgen.util import joblog, log
+from planetgen.util import log, logrecord
 
 
 def _seconds(every):
@@ -32,7 +32,7 @@ def _seconds(every):
 
 def stamp(text, began, clock=time.monotonic):
     """`text` (a trailing period or ellipsis is dropped) with how long it has been since `began`: `Adding up the levels (4:07 elapsed).`"""
-    return f"{text.rstrip('. ')} ({joblog.clock_text(clock() - began)} elapsed)."
+    return f"{text.rstrip('. ')} ({logrecord.duration_text(clock() - began)} elapsed)."
 
 
 class Ticker:
@@ -63,7 +63,7 @@ class Ticker:
             if done and elapsed >= 1.0:
                 body += f", {done / elapsed:,.1f} per s"
         tail = f", {detail}" if detail else ""
-        return f"{self.label}: {body}{tail}, {joblog.clock_text(elapsed)} elapsed."
+        return f"{self.label}: {body}{tail}, {logrecord.duration_text(elapsed)} elapsed."
 
     def tick(self, done, detail=None):
         """Says the line when `every` seconds have passed since the last one (or the start). Returns whether it did."""
