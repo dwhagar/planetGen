@@ -1602,6 +1602,28 @@ def swallowed(area, what, exc):
         _logger.debug(f"{area}: went on past {what}: {type(exc).__name__}: {exc}", stacklevel=2)
 
 
+_degraded_said = {}
+"""dict: When `degraded` last warned for each `(area, what)`, on the monotonic clock."""
+
+DEGRADED_WARN_SECONDS = 300
+"""int: How often `degraded` warns again for the same place (OPS.165)."""
+
+
+def degraded(area, what, exc):
+    """
+    Notes a fallback that goes on without a service (a Redis that does not answer, say), where the code used to carry on with no trace (OPS.165): `what` happened,
+    `exc` is why, and the caller goes on with its fallback. A debug line is written every time; a warning (which reaches error.log) at most once in
+    `DEGRADED_WARN_SECONDS` for the same `area` and `what`, so a dead Redis shows up as one line and not as a line per request.
+    """
+    text = f"{area}: {what}: {type(exc).__name__}: {exc}"
+    _logger.debug(text, stacklevel=2)
+    key, now = (area, what), time.monotonic()
+    last = _degraded_said.get(key)
+    if last is None or now - last >= DEGRADED_WARN_SECONDS:
+        _degraded_said[key] = now
+        _logger.warning(f"A fallback is in use ({text}); this warns again in {DEGRADED_WARN_SECONDS // 60} min.", stacklevel=2)
+
+
 def trace(message, *args, area="decision", **kwargs):
     """High-volume detail (an SQL statement, a cache hit), in `area` (one of `AREAS`). It goes where every other
     debug line goes (stdout, the debug log, a worker's relay); a no-op unless one of them is on, so the caller

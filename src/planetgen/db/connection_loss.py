@@ -68,6 +68,28 @@ def verdict(before, after, idle_s, passed_s):
 def explain(conn, before, idle_s, passed_s):
     """Logs `verdict` for a connection that was lost, from a new connection `conn`; never raises."""
     try:
-        log.normal(f"MySQL connection lost: {verdict(before, facts(conn), idle_s, passed_s)}.")
+        log.warning(f"MySQL connection lost: {verdict(before, facts(conn), idle_s, passed_s)}.")
     except Exception as exc:
-        log.normal(f"MySQL connection lost: the cause could not be read ({exc!r}).")
+        log.warning(f"MySQL connection lost: the cause could not be read ({exc!r}).")
+
+
+def describe(after):
+    """What `facts` read after a loss, in one sentence, for a place that has no earlier `facts` to compare with (OPS.171): a small uptime says the server restarted."""
+    if after.get("uptime") is None:
+        return "cannot tell why: this MySQL account cannot read the server status"
+    return (f"the server's uptime is {after['uptime']:,} s (a small figure means it restarted), its wait_timeout {after.get('wait_timeout')} s, "
+            f"{after.get('aborted_clients')} clients aborted so far and max_allowed_packet {after.get('max_allowed_packet')} bytes")
+
+
+def explain_lost(config, exc):
+    """Logs, as a warning, that a statement lost its connection (`exc`) and what a new connection to `config` says about the server; never raises (OPS.171)."""
+    try:
+        from planetgen.db import store
+        conn = store.get_connection(config)
+        try:
+            what = describe(facts(conn))
+        finally:
+            conn.close()
+        log.warning(f"MySQL connection lost ({exc!r}): {what}.")
+    except Exception as again:
+        log.warning(f"MySQL connection lost ({exc!r}): the cause could not be read ({again!r}).")

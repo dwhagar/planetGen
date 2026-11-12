@@ -683,7 +683,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
@@ -969,7 +969,7 @@ class RunBlocksFollower(followed.Follower):
         if result["nebulae"]:
             log.normal(f"Added {result['nebulae']:,} nebulae to the block totals.")
         for warning in result["warnings"]:
-            log.normal(f"Warning: {warning}")
+            log.warning(f"{warning}")
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -1428,7 +1428,7 @@ def _refresh_block_totals(config, address):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sector is saved; the totals can be made again
-        log.normal(f"Warning: adding the sector at {_format_address(address)} to the block totals failed: {exc}")
+        log.warning(f"Adding the sector at {_format_address(address)} to the block totals failed: {exc}")
 
 
 def regenerate_sector_cell(address, config):
@@ -1731,7 +1731,7 @@ class SectorsFollower(followed.Follower):
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
         if plan["detail"].get("warning"):
-            log.normal(f"Warning: {plan['detail']['warning']}")
+            log.warning(f"{plan['detail']['warning']}")
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
                        f"it is saved, so the first report can take a while in a dense region.")
@@ -2887,7 +2887,7 @@ def _check_plan(args, edge_pc):
     problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc,
                                    compute_battery=not getattr(args, "estimate_only", False))
     if warning:
-        log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
+        log.warning(f"{warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
     if problem:
         log.error(problem)
         raise SystemExit(1)
