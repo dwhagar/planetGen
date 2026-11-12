@@ -250,10 +250,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_classes.classify_values | by design | the class of a plain mapping of values, which the sweeps and tests call; the generator classifies a finished body through the best-fit classifier |
 | function | planetgen.physics.volatile_depletion.earth_over_ci | by design | the Earth-over-CI abundance of an element, read by the tests to check the retention curve against it |
 | function | planetgen.physics.volatile_depletion.retained_fractions | by design | the retained share of every element in the table at once, read by the tests; the generator reads one element's share at a time |
-| module | planetgen.physics.comet_ice_formation | GEN.1022 | the latent ice formation temperature that draws a comet's CO/H2O, N2, Ar, Kr and Xe together; the wiring swap of k5 and k7 rides a train with GEN.1021's, in one epoch |
-| row | 6.59:CY1 | GEN.1022 | the cold end of the comets (Hale-Bopp's CO/H2O) that `comet_ice_formation` reads; wired with the swap of rows k5 and k7 |
-| row | 6.59:CY2 | GEN.1022 | the residual widths of the latent species; wired with the same swap |
-| row | 6.59:CY3 | GEN.1022 | the laboratory law of formation temperature against CO/H2O; wired with the same swap |
 | module | planetgen.physics.hot_condensates | GEN.994 | the host-scaled condensation temperatures of the Cr, MnS, Na2S, ZnS and KCl clouds and the trace elements and gases of hot atmospheres; the hot-giant regime wiring reads them when it places the cloud decks |
 | data | hot_condensates.json | GEN.994 | read by `physics/hot_condensates.py` only |
 | row | 6.217:HK1 | GEN.994 | the trace elements' [X/Fe] follow the cloud and gas reader |

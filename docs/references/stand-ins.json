@@ -55897,7 +55897,7 @@
             ],
             [
               "What replaces it",
-              "GEN.1022 (wiring); the value read when a source opens for Hale-Bopp's CO/H2O"
+              "the value read when a source opens for Hale-Bopp's CO/H2O"
             ],
             [
               "Evidence",
@@ -55911,7 +55911,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1022",
+          "unread": null,
           "what": "comet_ice_formation.COLD_CO_OVER_H2O 0.2 (the CO/H2O of the cold end of the comets measured, Hale-Bopp)"
         },
         {
@@ -55935,7 +55935,7 @@
             ],
             [
               "What replaces it",
-              "GEN.1022 (wiring); a population of comets with the species measured"
+              "a population of comets with the species measured"
             ],
             [
               "Evidence",
@@ -55949,7 +55949,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1022",
+          "unread": null,
           "what": "comet_ice_formation.RESIDUAL_DEX N2 0.05 and Ar 0.4, and NOBLE_TIE_DEX 0.15 (decades)"
         },
         {
@@ -55973,7 +55973,7 @@
             ],
             [
               "What replaces it",
-              "GEN.1022 (wiring); the table of trapping by temperature, which cannot be read in the open text ([R0802] shows the trapping also depends on deposition rate and partial pressure)"
+              "the table of trapping by temperature, which cannot be read in the open text ([R0802] shows the trapping also depends on deposition rate and partial pressure)"
             ],
             [
               "Evidence",
@@ -55987,7 +55987,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1022",
+          "unread": null,
           "what": "comet_ice_formation.K_PER_DECADE 12.5 (75 K over six decades) through the Halley anchor (3.5 percent CO at 48 K)"
         }
       ],
