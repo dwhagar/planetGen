@@ -223,6 +223,20 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_
 
     assert {c.name for c in reloaded.comets} == {c.name for c in system.comets}
     assert {c.name for c in reloaded.secondary_comets} == {c.name for c in system.secondary_comets}
+
+
+def test_a_wide_pairs_star_words_come_back_from_the_names_its_stars_carry(mysql_config):
+    """DB.125: `star_words` is no column; the load reads the two words from the star names (`<first word> <word>`), and a reloaded pair names its planets as it did."""
+    system, cfg = _make_wide_binary_system_with_comets()
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
+    finally:
+        conn.close()
+    assert system.star_words and reloaded.star_words == tuple(system.star_words)
+    assert [planet.name for planet in reloaded.secondary_planets] == [planet.name for planet in system.secondary_planets]
     assert reloaded.comet_count == system.comet_count
 
 
