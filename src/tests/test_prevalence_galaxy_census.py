@@ -5,6 +5,10 @@ TEST.395, the galaxy-placed repeat: the planets of the stars a seeded galaxy pla
 observed bands as the system draw's occurrence census (`test_prevalence_systems_census.py`), with the host mix the galaxy's own. The
 live census draws sectors and fails on a flag no known gap explains; the rest of the file holds the harness to its rules on small
 hand-made records.
+
+Classes O (ocean world), P (glaciated world) and Q are given no target rate here (Boss, 2026-10-30: physics drives, no game rates, and no
+survey measures a class): they are only tested for being possible when conditions allow them (the class sweep), and the report lists how
+many of each the sample drew.
 """
 
 import re
