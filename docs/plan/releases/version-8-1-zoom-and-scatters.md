@@ -393,7 +393,6 @@ Moved into 8.1 from 9.0 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.1559 | Rewire burn-down: every physics module, function, registry row, data file, dataset and column that the wiring guard lists as unread and not by design gets wired, retired or marked by design, class-moving ones first | none | Boss, 2026-11-11, wiring audit. |
-| GEN.994 | Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants |  |  |
 
 ## Phase 11: Composition and colour in the product
 
@@ -420,7 +419,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1369 | Vocabulary reconciliation: each of the 84 asteroid component names is drawable (a speciation step names its host mineral) or tagged vocabulary-only, and a test enforces it |  | |
 | GEN.1370 | White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in |  | |
 | GEN.1373 | Ice giant materials: rock-heavy mixed interiors, diamond precipitation, MgO and SiO2 and water miscibility, ammonia in the superionic phase |  | |
-| GEN.1425 | Venus chemistry set V1 to V10 as registered stand-ins and the chain gates that add them to any planet when the physics supports it |  | Boss, 2026-11-08. |
 | UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | Lane 06 first pass, 2026-11-11. |
 | UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | Lane 06 first pass, 2026-11-11. |
 | GEN.1447 | Kozai and secular pumping between all bodies: a companion star, sibling planets and the host drive eccentricity and inclination of every planet and moon over the age of the system | none | Boss, 2026-11-08. |
@@ -428,27 +426,15 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1454 | Spin and obliquity under every body: the torques of sibling planets, a companion star and the moons on a planet's spin axis over time | none | Boss, 2026-11-08. |
 | GEN.1464 | Belts, asteroids and comets as tiny gravity sources: counted in the secular and tide terms of the planets, and a large asteroid or dwarf planet raising tides on its own moons |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1466 | Galactic tide and passing stars on the outer edge of a system: the local galactic field sets the Oort-type cloud, the outer limit and the stability of very wide companions |  | Boss, 2026-11-08, approved for Train 21. |
-| GEN.1467 | Mutual tides, spin and apsidal precession between the stars of a binary or triple |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1468 | An N-body spot-check of the stability screens: a short integration of a sample of generated systems against the Hill spacing, Kozai and Laplace-Lagrange screens (report and test only) |  | Boss, 2026-11-08, approved for Train 21. |
 | GEN.1485 | Cost the sparse mass rings by block in sky_tiers.build, so a ring that holds few stars is not walked cell by cell | none | Lane 13 read for GEN.1481, 2026-11-09. |
 | GEN.1486 | Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown | GEN.1485 | Lane 13 read for GEN.1481, 2026-11-09. |
 | GEN.1492 | A companion star's secular excitation of a belt: forced eccentricity and inclination of belt members from the other stars of the system |  | Lane 22 finding in GEN.1451, 2026-11-09. |
 | GEN.1493 | The air reads the dust and comet influx: late accretion from the belts and giants of the system feeds the planet's atmosphere, which needs the planet and belt generation order changed |  | Lane 22 finding in GEN.1453, 2026-11-09. |
-| GEN.1498 | The refill-effect-ledger job: fill ledger rows for systems drawn before the ledger existed, changing no result | GEN.1497 | Split from GEN.1465 at Lane 12's request, 2026-11-09. |
 | GEN.1499 | Planets forced by a companion star: the companion's stellar term in the planets' secular exchange | GEN.1492 | Split from GEN.1492 at Lane 22's request, 2026-11-09. |
 | GEN.1500 | Mutual inclination of the orbits of the stars in a binary or triple | none | Split from GEN.1492 at Lane 22's request, 2026-11-09. |
-| GEN.1501 | Dark members of the orbit tree give light: neutron star cooling, black hole accretion disk, brown dwarf cooling | GEN.1443 | Split from GEN.1443 at Lane 11's request, 2026-11-09. |
-| GEN.1514 | Pebble flux decays smoothly after the first million years instead of a step at the pebble end (GEN.1473 stand-in DE3) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
-| GEN.1515 | Pebble lag window scales with the disk's drift speed instead of a fixed 0.05 Myr per AU (GEN.1473 stand-in DE5) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
-| GEN.1516 | Nitrogen, sulfur and noble gases follow the drifted ice weights in a giant's envelope enrichments (N2, NH3, H2S, Ar, Kr, Xe volatility lines) | GEN.1473 | Lane 14 follow-up, 2026-11-11. |
-| GEN.1517 | (bug) The water drift model starts the gas inside each ice line as pure evaporated ice | GEN.1473 | Lane 14, 2026-11-11. |
-| GEN.1518 | Giant gas-gathering age from a pebble accretion efficiency (stand-in DE9) | GEN.1517 | Lane 14, 2026-11-11. |
-| GEN.1519 | Provenance of the planetesimals a giant accretes (where they formed), so noble gases reach the envelope through solids that froze them | GEN.1514 | Lane 14, 2026-11-11. |
 | GEN.1520 | The disk outer edge: research the observed gas and dust disk sizes by stellar mass and replace the 18 snow line multiplier (tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER) | GEN.1514 | Lane 14, 2026-11-11. |
-| GEN.1521 | Chain-aware spacing test for tight chains of small planets (N-body screen follow-up) | GEN.1468 | Lane 04 report, 2026-11-11. |
-| GEN.1523 | Wire the four built-but-unread physics modules: atmosphere_retention, helium_fractionation, hycean_candidate and small_body_composition.draw_ring | none | Wiring guard after retiring GEN.1047 and GEN.1055, 2026-11-11. |
 | GEN.1525 | Replace the shortlist constants that held data can check or derive: MIST ages, neutron star EOS maxima, Harris clusters, the mass function integral, the occurrence fit, pre-main-sequence tracks | GEN.1524 | Lane 21 GEN.945 audit, 2026-11-11. |
-| GEN.1527 | Wire helium fractionation (W16): the envelope-loss history reaches the envelope mixture's helium budget at the capture step | none | Lane 21 split from GEN.1523, 2026-11-11. |
 | GEN.1528 | Effect-ledger storage of dark sources: store the member number and kind of a dark source (brown dwarf, neutron star, black hole) so a planet's ledger share for light includes them | GEN.1501 | Lane 11 follow-up, 2026-11-11. |
 | GEN.1529 | A standalone neutron star reads its surface temperature from dark_light.surface_temperature_k at the age since collapse, so a neutron star in a tree and a lone one agree | GEN.1501 | Lane 11 follow-up, 2026-11-11. |
 | GEN.1530 | Stripped helium star light: a luminosity from its mass (stellar-state tables) and an XUV share, in dark_light.source_of (stand-in row DL7 notes the gap) | GEN.1501 | Lane 11 follow-up, 2026-11-11. |
@@ -458,7 +444,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1535 | Obliquity variation, part 3: wire the companion star's mode, store the range (two columns) for the seasonal swing, the Cassini state from the real precession constant, an oddity name for chaotic obliquity | GEN.1454 | Lane 21, 2026-11-11. |
 | GEN.1536 | The Cassini state of a planet's tilt from its real precession constant (needs the stored J2 or C22 figure), replacing the log-uniform stand-in | GEN.1535 | Lane 21, 2026-11-11. |
 | GEN.1539 | Scale the outer-disk belt start (tuning.PLANET_OUTER_GROWTH_AU, 11.36 au for every star) with the star's mass or disk size | GEN.1520 | Lane 14, 2026-11-11. |
-| GEN.1540 | (bug) A rare captured moon's position radius is outside its allowed range (a wrong or stale frame), so test_orbital_motion fails by draw luck | none | Lane 23, 2026-11-11. |
 | GEN.1542 | Per-planet dust supply for the Venus sulfur cloud set (the V8 species), so a planet's dust decides whether the V8 layer exists | GEN.1425 | Lane 14, 2026-11-11. |
 | GEN.1543 | (bug) The dust influx of physics/influx.py treats a system's belt and comet dust as an isotropic stream, so the Earth gets about 45 kg a year against 1e7 measured: fix the geometry and the scale, then rewire the V8 sulfur cloud dust to it | GEN.1542 | Lane 14, 2026-11-11. |
 | GEN.1544 | (bug) A planet's cosmogenic isotope rows (Al-26, Be-10) are first made before its magnetic field exists, so they use a field factor of 1.0 until the final-age pass remakes them | none | Train Manager (filed 2026-11-11). |
@@ -561,7 +546,6 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | OPS.150 | Status page and admin line for the adaptive worker limit and its recent changes (Redis list planetgen:gate:adaptive:recent) | OPS.148 | 2026-11-12. |
 | OPS.151 | Tune the adaptive worker limit edges (30 s wait, 120 s, 75 percent memory) from Boss's full run log | OPS.148 | 2026-11-12. |
 | GEN.1459 | Settled eccentricity under every body: the pumping of siblings, moons and a companion against the tidal wearing-down | none | Boss, 2026-11-08. |
-| GEN.1431 | Flavor text life subtree: lines for all nine life classes at rungs 2 to 5, gated on the life's solvent medium, energy source, rung and animal grade (replaces the multicellular-only trigger) | GEN.1430 | Boss, 2026-11-08. |
 | GEN.1433 | Flavor text for rogue planets, belts, comets, stars and phenomena: one root of the tree for each scope | GEN.1430 | Boss, 2026-11-08. |
 | GEN.1434 | Derived sky and clock fields from physics: gravitational time dilation, the host's sky size, the eclipse calendar and the solar-lens focus distance |  | Boss, 2026-11-08. |
 | GEN.1437 | Design notes for the chaotic triple-star zone and the dimming star (debris stream or disintegrating planet with irregular transits) |  | Boss, 2026-11-08. |
@@ -685,7 +669,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.1314 | Fudge table part 4: class_fit reads fudge_table.json for the edge shoulders, the hand-picked CF and DM rows are deleted, the miss budget and matches for former holes are stored | GEN.1313 |  |
 | GEN.1315 | Fudge table part 5: outcomes read the match (habitable count by threshold, the barred-world loop, +habitable_world, search filters) | GEN.1314 |  |
 | GEN.1316 | Fudge table part 6: the stand-in ranking report gets a share-of-fudge column; condition-based-planet-classes.md and the /classes pages explain the fudge | GEN.1313 |  |
 | GEN.1317 | Fudge table part 7: update checks the data against the epoch and regenerates the fudge table automatically when the epoch has changed | GEN.1313 |  |
@@ -711,8 +694,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.944 | Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars) |  |  |
-| GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets |  |  |
-| GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 |  |  |
 | GEN.91 | Classes like S and V in the hot and cold zones |  |  |
 
 ### Temperature coverage, nebula composition and belt rules (rows filed in the 8.2 file by mistake, moved here)
