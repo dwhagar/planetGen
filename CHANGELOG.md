@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3878] - 2026-11-12
+
+**Headline:** A pre-gate quick lane (`scripts/pregate.py`) runs in minutes the checks that turned most PRs red this week, before the long gate run.
+
+### Added
+- **`scripts/pregate.py` (TEST.720).** One command with no database: the PR merges with its base without a conflict (`git merge-tree`; when every conflicted file is generated it names `regenerate_generated.py --resolve`), the release note passes `bump_version.py --check-pr`, no module-level function or class is defined twice in a changed file (OPS.142 shadowed the Queue page's `_duration` this way; pyflakes' F811 is not used because it flags every pytest fixture import), ruff finds no undefined name or syntax error (`F821`, `F822`, `F823`, `E9`) in the changed Python files, `regenerate_generated.py --check` where that script exists, and a fixed set of test files that need no database (`scripts/data/pregate_set.txt`: spelling, citations, settings, own log formatting, constants, docs links and index, wiring guard, architecture map, release-note tool) plus (with `--train`) the Train Manager's `scripts/data/train_fast_set.txt` plus the test files the PR edits. Reused: `bump_version.py --check-pr`, the train fast set file, `regenerate_generated.py`, and the existing tests as the checks; nothing is re-implemented. `src/tests/test_pregate.py` pins the duplicate-definition, merge-conflict and test-set parts.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3877] - 2026-11-12
 
 **Headline:** A gate run now fails, instead of skipping, when the database tests cannot reach MySQL, and a merge conflict in a generated file has a one-command repair.
