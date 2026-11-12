@@ -1328,7 +1328,7 @@ def test_system_page_renders_every_option(site, client):
     for name, _label in system_page.TRISTATE_FIELDS:
         assert f'name="{name}"' in html
     for name in ("name", "star_type", "age", "num_orbits", "stars", "max_stars", "flavor_chance_system",
-                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug"):
+                 "flavor_chance_planet", "max_planet_flavor", "system_file", "debug", "debug_areas", "disregard_missing_data"):
         assert f'name="{name}"' in html
     assert "Raise the odds" in html  # habitable world and intelligent life only raise the odds (GEN.1130)
     # Linked from the Generate page.
@@ -1803,7 +1803,11 @@ def test_redo_scatters_clears_then_draws_each_ticked_scatter_with_its_setting(si
         ["scatter", "--luminosity", "--bright-star-min-luminosity", "2500"],
         ["scatter", "--phenomena", "--compact-min-mass", "2"]]
     for step in steps:
-        assert step["stages"][0]["label"] == step["label"], "the step's own stage comes first, any it ends with after it"
+        # The step's own stage is in its list; what comes before it is only what it empties first (OPS.123: the earlier bright stars, phenomena, indexes and nebula field are stages
+        # of the scatter that draws them again), and what it ends with comes after.
+        labels = [entry["label"] for entry in step["stages"]]
+        assert step["label"] in labels, (step["label"], labels)
+        assert all(label.startswith(("Clear the earlier", "Take off the")) for label in labels[:labels.index(step["label"])]), labels
         assert [entry["skipped"] for entry in step["stages"]] == [None] * len(step["stages"])
 
 
@@ -2125,3 +2129,16 @@ def test_bring_to_epoch_does_not_start_when_it_has_nothing_it_can_do(site, clien
     resp = _post(client, action="bring_to_epoch")
     assert resp.status_code == 400 and said in resp.get_data(as_text=True)
     assert no_spawn == []
+
+
+def test_system_request_passes_disregard_missing_data_on():
+    assert "--disregard-missing-data" in system_page.system_request({"disregard_missing_data": "on"})["argv"]
+    assert "--disregard-missing-data" not in system_page.system_request({})["argv"]
+
+
+def test_system_request_debug_areas():
+    argv = system_page.system_request({"debug": "on", "debug_areas": "decision,-draw"})["argv"]
+    assert "--debug-areas=decision,-draw" in argv
+    assert not any(a.startswith("--debug-areas") for a in system_page.system_request({"debug_areas": "sql"})["argv"])
+    with pytest.raises(system_page.FormError, match="not a debug area"):
+        system_page.system_request({"debug": "on", "debug_areas": "nope"})

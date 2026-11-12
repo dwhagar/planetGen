@@ -36,7 +36,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, disk_condensation, gas_equilibrium, helium_fractionation, saturation, species_thermo, stellar_abundances, unit_registry as units
+from planetgen.physics import constants, disk_condensation, disk_drift, gas_equilibrium, helium_fractionation, saturation, species_thermo, stellar_abundances, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 
@@ -114,7 +114,20 @@ def _disk_c_over_o(subject, log_enrichment_over_host):
     if temperature is None:
         return None
     return disk_condensation.envelope_c_over_o(temperature, disk_condensation.ENVELOPE_METAL_SHARE * 10.0 ** log_enrichment_over_host,
-                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0))
+                                               subject.get("disk_carbon", 1.0), subject.get("disk_oxygen", 1.0), _disk_ice_weights(subject, temperature))
+
+
+def _disk_ice_weights(subject, temperature):
+    """
+    The `disk_drift.giant_ice_weights` of the gas the subject gathered (GEN.1473: pebbles carried the ices inward and evaporated them at their lines); `None` for a subject whose snow
+    line or host mass is not known, which keeps the static disk (every `E` equal to 1).
+    """
+    snow_line = subject.get("disk_snow_line_au")
+    host_mass = subject.get("host_mass_solar")
+    if snow_line is None or host_mass is None:
+        return None
+    metals = subject.get("metallicity_fe_h")
+    return disk_drift.giant_ice_weights(temperature, snow_line, host_mass, 1.0 if metals is None else 10.0 ** metals)
 
 
 def _disk_enrichments(subject, log_enrichment_over_host):

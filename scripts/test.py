@@ -712,6 +712,8 @@ def main(argv=None):
     environment.setdefault("PLANETGEN_REPORT_DIR", os.path.join(ROOT, ".test-progress", "reports"))
     if args.command == "budget":
         environment["PLANETGEN_BUDGET"] = "1"
+    if args.command != "quick":     # TEST.723: `quick` runs no database test; every other command must fail, not skip, when the MySQL test server cannot be reached
+        environment["PLANETGEN_REQUIRE_MYSQL"] = "1"
     if args.command == "full":
         environment["PLANETGEN_VERSION_GATE"] = "1"   # the end-of-version run also builds the pinned galaxy at four workers
     phase = "before the first phase"

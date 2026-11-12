@@ -583,6 +583,11 @@ class Web(_Section):
                           "folder.", env="PLANETGEN_ASSETS_DIR", editable=False, group="paths",
                           label="Uploaded images folder",
                           summary="Where uploaded icons and pictures are stored.")
+    belt_bodies_drawn: int = opt(200, "How many of each asteroid belt's heaviest stored bodies the 3D system view draws one by one, as lumps "
+                                 "or balls among the belt's dust (0 draws only the dust). More bodies look fuller and cost the browser more memory.",
+                                 unit="bodies", group="look", ge=0, le=2000,
+                                 label="Belt bodies drawn in 3D",
+                                 summary="How many of each belt's heaviest bodies the 3D system view draws one by one.")
 
     @field_validator("title_template")
     @classmethod

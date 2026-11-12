@@ -27,7 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
 from planetgen.physics import activity, bulk_composition, bulk_draw, bulk_structure, climate_draws, condensate_shares, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, planet_type, unit_registry as units
-from planetgen.physics import radiation_field
+from planetgen.physics import eclipses, radiation_field
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -152,6 +152,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
             ratios = bulk_draw.ice_forming_ratios(star)
             if ratios is not None and formation_au:
                 quantities["formation_temperature_k"] = condensate_shares.ICE_CONDENSATION_K["H2O"] * math.sqrt(snow_line / formation_au)
+                quantities["disk_snow_line_au"] = snow_line                       # GEN.1473: the pebbles' clocks need the stored snow line, the star's mass and metals
                 quantities["disk_carbon"], quantities["disk_oxygen"] = ratios
                 quantities["disk_nitrogen"], quantities["disk_sulfur"], quantities["disk_noble"] = bulk_draw.disk_volatile_ratios(star)       # GEN.1372
     zone_edges = getattr(star, "habitable_zone", None)
@@ -168,7 +169,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["xuv_index"] = index
     if getattr(star, "log_lx_lbol", None) is not None:
         quantities["log_lx_lbol"] = star.log_lx_lbol
-    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)     # GEN.1441
+    flux = (climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM) + radiation_field.companion_light_w_m2(star, distance_au)) * (eclipses.light_factor_of(body) or 1.0)     # GEN.1441, GEN.1484
     albedo = getattr(body, "bond_albedo", None)
     if albedo is not None:
         teq = climate_draws.equilibrium_temperature_k(albedo, flux)
@@ -181,7 +182,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
+OPTIONAL_INPUTS = ("envelope_helium_y", "log_lx_lbol", "host_mass_solar", "host_distance_au", "xuv_companions", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction", "metallicity_fe_h", "formation_temperature_k", "disk_snow_line_au", "disk_carbon", "disk_oxygen", "disk_nitrogen", "disk_sulfur", "disk_noble")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.

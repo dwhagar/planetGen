@@ -198,7 +198,7 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 COLLISION_MASS_RETENTION = 0.9
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
-# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
+# a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
 # ([R4897], read) and 0.27 percent of early M dwarfs ([R1504], read).
 GIANT_MIGRATION_SHARE = 0.0092
 GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
@@ -1317,6 +1317,19 @@ STELLAR_SOLAR_LOG_EPS = {
     "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
 """dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
 Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_HEAVY_LOG_EPS = {
+    "Sr": 2.83, "Y": 2.21, "Zr": 2.59, "Ba": 2.27, "La": 1.11, "Ce": 1.58, "Pr": 0.75, "Nd": 1.42, "Sm": 0.95, "Gd": 1.08, "Tb": 0.31, "Dy": 1.10,
+    "Ho": 0.48, "Er": 0.93, "Tm": 0.11, "Yb": 0.85, "Lu": 0.10, "Os": 1.35, "Ir": 1.32, "Pt": 1.61, "Au": 0.91, "Pb": 1.95}
+"""dict: GEN.1371: the heavy elements of the s- and r-process split, A21 Table 2 log eps (H = 12; Ir and Pt are the CI-chondrite value the table adopts, the rest the photosphere); Eu, Th and U are above.
+Tier T1 (read), tweak L0."""
+STELLAR_HEAVY_R_FRACTION = {
+    "Sr": 0.11, "Y": 0.08, "Zr": 0.18, "Ba": 0.15, "La": 0.25, "Ce": 0.18, "Pr": 0.49, "Nd": 0.42, "Sm": 0.67, "Gd": 0.85, "Tb": 0.93, "Dy": 0.88,
+    "Ho": 0.92, "Er": 0.83, "Tm": 0.83, "Yb": 0.68, "Lu": 0.79, "Os": 0.91, "Ir": 0.99, "Pt": 0.95, "Au": 0.94, "Pb": 0.19}
+"""dict: GEN.1371: the share of each element's solar abundance made by the r-process, as recalled from [R5228] (Table 10) and the papers that quote it (the Eu 0.97 and Ba 0.15 of the research
+note agree); the rest is the s-process. Tier T3 (Marginal Unverified, second hand), tweak L0; each value is flagged for upgrade if the table is supplied."""
+STELLAR_S_PROCESS_XFE = (0.030, -0.076, 0.149)
+"""tuple: `(a, b, sigma)`: [s/Fe] = a + b [Fe/H] with scatter sigma (dex), the s-process proxy, the [R0535] fit of [Y/Fe] against [Fe/H] for all 1,615 dwarfs (`research/real-material-data-1`
+section 1.2); the one trend in hand for the s-process, taken for Ba and every other s-process element. Tier T5, tweak L1."""
 STELLAR_PROTO_NO_OFFSET = ("Li",)
 """tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
 added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""
@@ -2414,101 +2427,7 @@ the R4 chance T4); set from the first census, not fixed.
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.
 FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
-MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
-
-SYSTEM_FLAVOR = [ # System-only flavor text. Stored as the line itself (GEN.1212: plain words, 23 lines, order fixed so the draw does not move).
-    "a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason.",
-    "an automated buoy with a mass driver. It catches data pods and flings them toward the inner system.",
-    "a huge, thin sheet of reflective foil adrift in the system. It was once set up to shade a world.",
-    "thousands of small, passive reflectors scattered across the system. They bounce radio waves back and forth.",
-    "an ancient navigation beacon at the edge of the system. It runs on nuclear power and is kept up by a local artificial intelligence.",
-    "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm.",
-    "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center.",
-    "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it.",
-    "a round dead zone in deep space. Every scan, signal, and burst of radiation that enters it drops to nothing.",
-    "a jagged, glowing crack in space-time. It keeps venting energy into the void around it.",
-    "a network of automated defense satellites spread across the system.",
-    "an array of laser transceivers. They hold a steady, high-speed optical link with one another.",
-    "a swarm of automated solar collectors skimming the star's corona. They feed steady power to huge, fully charged battery arrays.",
-    "a half-built ring of solar collectors around the star. The gaps suggest the work was abandoned.",
-    "a cluster of dormant, self-replicating probes holding formation. Their fabrication cycles stopped partway through.",
-    "a derelict generation ship on a slow, decaying orbit. Its hull is dark, and its drive is cold after generations adrift.",
-    "a mirror array angled to turn the star's light pressure into a gentle push. It has come loose and is drifting.",
-    "a pair of gravitational lensing relays aimed at a target far beyond the system. They are still listening.",
-    "a broken ring segment holding a stable orbit by itself. It seems to wait for the rest of the structure to return.",
-    "a scattering of paired relay buoys. They still send signals to partners that fell silent long ago.",
-    "an automated probe holding station at the edge of the system. Its greeting message loops with no one to hear it.",
-    "a magnetic siphon rig drawing material from the star's outer layers. It is still running long after its operators left.",
-    "a shell of solar-collecting satellites in a wide, half-finished orbit. Their construction drones are nowhere to be found."
-]
-
-PLANET_FLAVOR = [ # Flavor text for any planet.
-    "a massive hollow metallic cylinder embedded in the crust.",
-    "the crashed hull of a derelict pre-warp ship.",
-    "the crashed hull of a derelict primitive warp ship.",
-    "a solar-powered beacon looping a brief audio distress call.",
-    "an array of automated radio dishes tracking empty coordinates in deep space.",
-    "a vast, precise grid of ancient cargo containers showing faint energy readings.",
-    "an abandoned solar farm attached to overfilled battery capacitors that periodically discharge themselves in violent plasma arcs.",
-    "a vast, perfectly smooth glass crater with refined materials fused into its center.",
-    "an automated surface rover actively sorting stones by size and composition into a grid.",
-    "the collapsed base of a space elevator, its severed cable coiled across the surrounding terrain for kilometers.",
-    "a sealed cryogenic vault built into the bedrock, its status lights still cycling after some uncounted span of time.",
-    "a field of dormant terraforming seeders, half-buried and inert, that should have blanketed the world in engineered soil long ago.",
-    "a buried genetic seed vault with a collapsed access shaft, its contents unknown.",
-    "a standing obelisk of unidentified alloy on an otherwise featureless plain, untouched by weathering.",
-    "an abandoned colony's foundation grid, its structural bones outlining streets and buildings that were never raised.",
-    "the fallen anchor of an orbital elevator, its counterweight long gone, embedded deep in the crust.",
-    "an automated excavation still cutting the same exhausted mineral seam decades after it ran dry.",
-    "a scorched landing zone cleared by a controlled burn that was, by every visible sign, never used.",
-    "a shallow crater ringed with fused glass, the unmistakable signature of an old kinetic impact test."
-]
-
-ORBITAL_FLAVOR = [ # Flavor text for orbital space only.
-    "several dead delivery drones and cargo pods in stable orbits.",
-    "a dense debris ring consisting of shattered hull wreckage, dormant escape pods, and thousands of desiccated corpses in identical hazard suits.",
-    "a non-sentient drone swarm operating via networked intelligence that actively intercepts passing vessels it flags as requiring extensive repairs.",
-    "a primitive interstellar probe caught in orbit.",
-    "a derelict light cruiser venting plasma slowly into the surrounding void.",
-    "a derelict transport ship whose severed bow trails forty kilometers behind its own stern.",
-    "a dense ring of cobalt-ferrite dust, in a thick fog of ionized sodium-potassium gas broadcasting radio signals across a variety of frequencies.",
-    "a monolithic stone sculpture of a humanoid hand orbiting with its index finger pointing at magnetic north.",
-    "a constellation of large solar mirrors suspended in a rough orbital grid.",
-    "a ring of cryostasis pods tumbling freely, their occupants' status unreadable at this range.",
-    "the wreckage of a one-sided battle, hulls scattered with no intact vessel among them.",
-    "a stationary listening post bristling with dish arrays, all aimed at a patch of empty sky.",
-    "a dormant ring-shaped gate of unfamiliar design, its inner surface dark and its function unconfirmed.",
-    "a cluster of sealed seed pods tumbling in a slow, decaying orbit, clearly not of local origin.",
-    "an automated checkpoint platform still broadcasting docking instructions in a language no database recognizes.",
-    "a field of armed kinetic interceptors, live and waiting, with no record of who deployed them.",
-    "a solitary dark-hulled relay emitting a tight beam toward the star and nothing else.",
-    "the fused, burned-out frame of an old drive test rig, its containment ring melted solid.",
-    "a loose formation of repair drones still patrolling a ship that no longer exists."
-]
-
-HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
-    "microscopic airborne organisms that cause nighttime clouds to glow with blue bioluminescence.",
-    "armored, tortoise-like animals that eat raw rock and excrete exceptionally fine glass sand.",
-    "high-altitude predators with hyper-thin membranous wings that ride the solar wind.",
-    "jagged, forest-like continental structures built from the hard mineral shells of colonial insects.",
-    "massive, lighter-than-air floating beasts that use natural gas bladders to filter-feed on atmospheric plankton.",
-    "migratory animals that navigate along the electromagnetic hum of buried, abandoned colonial power grids.",
-    "tall, iron-rich trees that act as natural lightning rods to pop open their heat-activated seed pods.",
-    "lowland basins heavily blanketed in a thick yellow fog caused by massive fungal spore releases.",
-    "pack hunters communicating via low-frequency infrasound that induces unexplained dread and vertigo in explorers.",
-    "dense subterranean vines that register rapid, targeted growth vectors toward concentrated heat sources.",
-    "large, eyeless amphibious predators observed actively tracking the dissolved chemical residue of engine exhaust.",
-    "radiotrophic fungi that thrive in irradiated caverns, growing darker and denser near hot mineral veins.",
-    "colonial filter-feeders anchored to reef structures, pulsing in loose synchrony with the tides.",
-    "burrowing, desiccation-proof invertebrates that survive years dormant between rare rainfalls.",
-    "grazing animals with slowly crystallizing shells that eventually fuse into the rock formations they feed on.",
-    "blind cave-dwellers that navigate total darkness by sensing faint bioelectric fields in the walls around them.",
-    "lichen-like organisms that ride migrating herds, trading camouflage for transport.",
-    "herd animals that bury themselves and estivate for years to survive multi-year droughts.",
-    "predators whose skin patterns mimic local flora so precisely they vanish at rest.",
-    "colonial organisms that briefly link into a single distributed nervous system during seasonal migration.",
-    "subterranean dwellers that cultivate bacterial mats in lightless tunnels as a stable food source across generations."
-]
+# The flavor lines themselves are the gated tree `physics/data/flavor_tree.json` (`physics/flavor_tree.py`, GEN.1430).
 
 # --- Exotic Stellar Phenomena (phenomenonGen.py, generation/phenomena/compact_remnant.py,
 # nebulaData.py, supernovaRemnantData.py, roguePlanetData.py) ---

@@ -39,7 +39,7 @@ from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 BAND_WIDTH_DEG = 90.0 / 3.5
 """float: The width of each band in latitude, degrees: the equator band is this wide centered on the equator and each of the three on a side is this wide. [Stand-in LB1, tier T9, tweak L0.]"""
 
@@ -314,6 +314,8 @@ def compute(values, alpha_deg=0.0):
     rotation = values.get("rotation_period_hours")
     if not mean or mean <= 0.0 or not rotation or rotation <= 0.0:
         return []
+    if values.get("starless") or values.get("day_share_mean") == 0.0:
+        return []           # GEN.1496: no star is ever up (a rogue planet, or the moon of one), so there is no sun for a band to follow
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
     period_years = values.get("period_years")
