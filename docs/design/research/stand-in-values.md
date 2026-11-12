@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1609 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,23 +40,23 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1586 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1583 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
+| T1 | 185 | 20 | 11 | 1 | 0 | 217 |
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
 | T3 | 113 | 52 | 10 | 9 | 0 | 184 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
-| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
-| T6 | 208 | 107 | 31 | 81 | 4 | 431 |
+| T5 | 81 | 24 | 6 | 1 | 1 | 113 |
+| T6 | 208 | 106 | 31 | 81 | 4 | 430 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
-| All | 925 | 311 | 77 | 246 | 53 | 1612 |
+| All | 923 | 310 | 77 | 246 | 53 | 1609 |
 
 ## How the labels were given
 
@@ -2300,12 +2300,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | RGP1 | P | T1 | L0 | resonance_gaps.CHAOTIC_ZONE_COEFFICIENT 1.3, resonance_gaps.EXTENDED_ZONE_COEFFICIENT 1.8, resonance_gaps.CRITICAL_ECCENTRICITY_COEFFICIENT 0.21, resonance_gaps.MAX_ECCENTRICITY_COEFFICIENT 2.1, resonance_gaps.LOW_ECCENTRICITY_WIDTH 3.2 and resonance_gaps.HIGH_ECCENTRICITY_WIDTH 7.78: the chaotic zone half-width over a giant's distance 1.3 mu^(2/7) (1.8 (e mu)^(1/5) above e_crit = 0.21 mu^(3/7), crossing above 2.1 mu^(1/4)) and a first-order resonance's width 3.2 mu^(2/3) j^(1/3) (7.78 (e mu j)^(1/2) above) | coefficient 1.3 to 1.4 (numerically 1.35 mu^0.278); 0.86 mu^0.208 numerically for the extended zone | planets of mu 1e-6 to 1e-2, particles of low to moderate eccentricity | a numerical zone differing from the law by more than 20 percent | the eccentricity-dependent zone from the system's own N-body maps | [R3226] ([R3226], READ), af[R4727] (not reached) | predicted only | - | - |
-| RGP2 | P | T6 | L1 | resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1)) | exponent 0.3 to 0.7; a factor 0.3 to 3 on the width | resonances of order 2 to 4 | a measured Kirkwood gap width ratio far from the scaling (3:1 against 2:1) | the order-dependent libration widths from Murray and Dermott's resonance Hamiltonians, read | the libration width of a resonance of order k goes as e^(k/2) (recalled); no coefficient taken | predicted only | GEN.1092 | - |
-| RGP3 | P | T2 | L1 | resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones | 1 to 100 Myr | belts under a giant | a belt a few Myr old with its zones already empty, or a Gyr belt with them full | the logarithmic loss history of [R3093] applied to each zone | the design note's "1 to 10 Myr" ([R4728] and Moons and Morbidelli 1995, not reached); [R3093] ([R3093], READ) for the tail | predicted only | GEN.1092 | - |
-| RGP4 | P | T9 | L0 | resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed | order 3 to 6; p 8 to 20 | every belt | not applicable (a list bound) | a strength cut instead of an order cut | needed output (the Kirkwood list is order 4 and below) | predicted only | GEN.1092 | - |
-| RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | [R4784] (recalled, not opened); the leading secular term | predicted only | GEN.1092 | - |
-| RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of [R4568] | [R4568] ([R4568], READ); Bennu's measured drift | predicted only | GEN.1092 | - |
-| RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law [R2324] | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | predicted only | GEN.1092 | - |
+| RGP2 | P | T6 | L1 | resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1)) | exponent 0.3 to 0.7; a factor 0.3 to 3 on the width | resonances of order 2 to 4 | a measured Kirkwood gap width ratio far from the scaling (3:1 against 2:1) | the order-dependent libration widths from Murray and Dermott's resonance Hamiltonians, read | the libration width of a resonance of order k goes as e^(k/2) (recalled); no coefficient taken | predicted only | - | - |
+| RGP3 | P | T2 | L1 | resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones | 1 to 100 Myr | belts under a giant | a belt a few Myr old with its zones already empty, or a Gyr belt with them full | the logarithmic loss history of [R3093] applied to each zone | the design note's "1 to 10 Myr" ([R4728] and Moons and Morbidelli 1995, not reached); [R3093] ([R3093], READ) for the tail | predicted only | - | - |
+| RGP4 | P | T9 | L0 | resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed | order 3 to 6; p 8 to 20 | every belt | not applicable (a list bound) | a strength cut instead of an order cut | needed output (the Kirkwood list is order 4 and below) | predicted only | - | - |
+| RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | [R4784] (recalled, not opened); the leading secular term | predicted only | - | - |
+| RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of [R4568] | [R4568] ([R4568], READ); Bennu's measured drift | predicted only | - | - |
+| RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law [R2324] | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | predicted only | - | - |
 
 ## 6.117 Stand-ins of the history of a belt
 
@@ -2466,9 +2466,6 @@ The tier says how good the source of a number is; the **evidence status** says w
 | BG2 | P | T6 | L0 | belt_origin.MIN_BELT_RATIO 1.1, the least outer over inner distance of a belt | 1.05 to 1.3 | every belt | a belt of the ledger narrower than 10 percent in distance | the ledger's own minimum belt width | the ledger keeps `MIN_ASTEROID_BELT_SEPARATION` of 0.05 AU between a belt and a planet; 10 percent is the width at which one stretch is still a ring | predicted only | - | - |
 | BG3 | P | T6 | L0 | belt_origin.MIN_BELT_MASS_EARTH 1e-6, the least primordial mass of a belt (about 6e18 kg) | 1e-7 to 1e-5 | every belt | a belt of the census with fewer than one body above the individual-tier cut | the cut of row BR17 (1e19 kg) | one body of the individual tier of the ledger (belt-evolution section 3) | predicted only | - | - |
 | BG4 | P | T4 | L0 | belt_origin.SNOW_BUMP_WIDTH 0.15, the half-width of the snow-line pile-up as a share of the snow line | 0.05 to 0.4 | discs with a quiet snow line | a survey of belt radii against the snow line that finds them outside 15 percent | a disc model with the pebble flux and the viscosity | [R2074] (row BR16, READ) say a pressure bump forms at the snow line but give no width | predicted only | - | - |
-| BG5 | P | T1 | L0 | belt_origin.CHAOTIC_ZONE_COEFFICIENT 1.3, the chaotic zone round a giant reaches 1.3 mu^(2/7) times its distance each side | 1.3 to 1.95 | low eccentricity particles | a numerical zone differing from it by more than 20 percent | the eccentricity-dependent width (row BR2) | [R4727], read in [R3175]: half-width c mu^(2/7) a with c = 1.3, and full clearing out to 1.5 to 1.95 (row BR2, [R3226], READ) | predicted only | - | - |
-| BG6 | D | T5 | L0 | belt_origin.RESONANCES 4:1, 3:1, 5:2, 7:3 and 2:1, the gaps a giant cuts in a belt inside its orbit, at `a_g (q/p)^(2/3)` | none | belts inside a giant | a giant whose belt is cleared at another ratio | a resonance map from an N-body run of the system's giants | Kepler's third law gives 2.06, 2.50, 2.82, 2.96 and 3.28 AU for a giant at 5.2 AU, the Kirkwood gaps | predicted only | - | - |
-| BG7 | P | T6 | L1 | belt_origin.RESONANCE_HALF_WIDTH 0.015, the half-width of a resonance gap as a share of its distance for a giant of 9.5e-4 of its star, scaling as the square root of the giant's mass ratio | 0.005 to 0.04 | giants of 0.1 to 10 Jupiter masses | a belt whose gaps are more than twice as wide or narrow at the same giant | the resonance width from the pendulum model with the belt's eccentricity | the Kirkwood gaps are about 1 to 3 percent of their distance; the square root is the width of a first-order resonance in the pendulum model | predicted only | - | - |
 | BG8 | P | T6 | L0 | belt_origin.STIR_ZONE_WIDTHS 3.0, a belt within 3 chaotic half-widths of a giant is stirred by it | 2 to 5 | belts near giants | a belt 3 half-widths out with a flat, cold size distribution | the stirring of the belt's eccentricity from the secular model | [R3175] (read) follow the clearing out to 3.0 mu^(2/7) a | predicted only | - | - |
 | BG9 | P | T2 | L1 | belt_origin.INSTABILITY_SURVIVAL_RANGE 0.002 to 0.01, the share of the swept stretch a giant that migrated through it leaves, log-uniform | one decade each way | belts of systems whose giants migrated through them | a system with a migration history whose belt is outside the range | N-body migration runs of the system's own giants | row BR4: [R4603] (READ) and [R3150] (READ); a Nice type instability alone leaves 0.1 to 0.5 (row BR5), not used until the architecture records instabilities (GEN.1082) | predicted only | - | - |
 | BG10 | P | T4 | L0 | belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt | 0.1 to 0.9 | planets destroyed by collision or tide | a collision run of a planet that leaves under 10 percent in orbit | the retained share of `collision_outcome` for the event | no source; the rest is ejected or falls onto the star | predicted only | - | - |

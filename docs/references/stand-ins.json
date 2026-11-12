@@ -51677,7 +51677,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1))"
         },
         {
@@ -51715,7 +51715,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones"
         },
         {
@@ -51753,7 +51753,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed"
         },
         {
@@ -51791,7 +51791,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2)"
         },
         {
@@ -51829,7 +51829,7 @@
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L1",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2"
         },
         {
@@ -51867,7 +51867,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L1",
-          "unread": "GEN.1092",
+          "unread": null,
           "what": "resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for"
         }
       ],
@@ -55061,120 +55061,6 @@
           "tweak": "L0",
           "unread": null,
           "what": "belt_origin.SNOW_BUMP_WIDTH 0.15, the half-width of the snow-line pile-up as a share of the snow line"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_origin.CHAOTIC_ZONE_COEFFICIENT 1.3, the chaotic zone round a giant reaches 1.3 mu^(2/7) times its distance each side"
-            ],
-            [
-              "The range it moves in",
-              "1.3 to 1.95"
-            ],
-            [
-              "Where it holds",
-              "low eccentricity particles"
-            ],
-            [
-              "What would show it wrong",
-              "a numerical zone differing from it by more than 20 percent"
-            ],
-            [
-              "What replaces it",
-              "the eccentricity-dependent width (row BR2)"
-            ],
-            [
-              "Evidence",
-              "[R4727], read in [R3175]: half-width c mu^(2/7) a with c = 1.3, and full clearing out to 1.5 to 1.95 (row BR2, [R3226], READ)"
-            ]
-          ],
-          "id": "BG5",
-          "key": "6.97:BG5",
-          "kind": "P",
-          "slug": "6-97-bg5",
-          "tier": "T1",
-          "tier_code": "T1",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_origin.CHAOTIC_ZONE_COEFFICIENT 1.3, the chaotic zone round a giant reaches 1.3 mu^(2/7) times its distance each side"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_origin.RESONANCES 4:1, 3:1, 5:2, 7:3 and 2:1, the gaps a giant cuts in a belt inside its orbit, at a_g (q/p)^(2/3)"
-            ],
-            [
-              "The range it moves in",
-              "none"
-            ],
-            [
-              "Where it holds",
-              "belts inside a giant"
-            ],
-            [
-              "What would show it wrong",
-              "a giant whose belt is cleared at another ratio"
-            ],
-            [
-              "What replaces it",
-              "a resonance map from an N-body run of the system's giants"
-            ],
-            [
-              "Evidence",
-              "Kepler's third law gives 2.06, 2.50, 2.82, 2.96 and 3.28 AU for a giant at 5.2 AU, the Kirkwood gaps"
-            ]
-          ],
-          "id": "BG6",
-          "key": "6.97:BG6",
-          "kind": "D",
-          "slug": "6-97-bg6",
-          "tier": "T5",
-          "tier_code": "T5",
-          "tweak": "L0",
-          "unread": null,
-          "what": "belt_origin.RESONANCES 4:1, 3:1, 5:2, 7:3 and 2:1, the gaps a giant cuts in a belt inside its orbit, at a_g (q/p)^(2/3)"
-        },
-        {
-          "burn_down": null,
-          "fields": [
-            [
-              "What it is",
-              "belt_origin.RESONANCE_HALF_WIDTH 0.015, the half-width of a resonance gap as a share of its distance for a giant of 9.5e-4 of its star, scaling as the square root of the giant's mass ratio"
-            ],
-            [
-              "The range it moves in",
-              "0.005 to 0.04"
-            ],
-            [
-              "Where it holds",
-              "giants of 0.1 to 10 Jupiter masses"
-            ],
-            [
-              "What would show it wrong",
-              "a belt whose gaps are more than twice as wide or narrow at the same giant"
-            ],
-            [
-              "What replaces it",
-              "the resonance width from the pendulum model with the belt's eccentricity"
-            ],
-            [
-              "Evidence",
-              "the Kirkwood gaps are about 1 to 3 percent of their distance; the square root is the width of a first-order resonance in the pendulum model"
-            ]
-          ],
-          "id": "BG7",
-          "key": "6.97:BG7",
-          "kind": "P",
-          "slug": "6-97-bg7",
-          "tier": "T6",
-          "tier_code": "T6",
-          "tweak": "L1",
-          "unread": null,
-          "what": "belt_origin.RESONANCE_HALF_WIDTH 0.015, the half-width of a resonance gap as a share of its distance for a giant of 9.5e-4 of its star, scaling as the square root of the giant's mass ratio"
         },
         {
           "burn_down": null,
