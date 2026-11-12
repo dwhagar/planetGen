@@ -141,7 +141,8 @@ def estimate(database, kind, argv, versions, compute):
     """
     try:
         current = json.loads(json.dumps(versions(), sort_keys=True))
-    except Exception:  # noqa: BLE001 -- fail open: no versions, no cache
+    except Exception as exc:  # noqa: BLE001 -- fail open: no versions, no cache
+        log.swallowed("web/lib/estimatecache", "estimate", exc)
         return compute()
     key = cache_key(database, kind, argv)
     stored = _read(key, current)
@@ -194,7 +195,8 @@ def estimate_in_background(database, kind, argv, versions, compute, start):
     """
     try:
         current = json.loads(json.dumps(versions(), sort_keys=True))
-    except Exception:  # noqa: BLE001 -- fail open: no versions, no cache
+    except Exception as exc:  # noqa: BLE001 -- fail open: no versions, no cache
+        log.swallowed("web/lib/estimatecache", "estimate_in_background", exc)
         return compute()
     key = cache_key(database, kind, argv)
     entry = _entry(key, current)
@@ -210,7 +212,8 @@ def estimate_in_background(database, kind, argv, versions, compute, start):
     queued = False
     try:
         queued = bool(start(key, current))
-    except Exception:  # noqa: BLE001 -- no queue: the estimate is worked out here
+    except Exception as exc:  # noqa: BLE001 -- no queue: the estimate is worked out here
+        log.swallowed("web/lib/estimatecache", "estimate_in_background", exc)
         queued = False
     if queued:
         raise Working()

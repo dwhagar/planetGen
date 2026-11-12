@@ -97,7 +97,8 @@ def run_docs():
 def _actor():
     try:
         return f"cli:{getpass.getuser()}"
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("cli/config", "_actor", exc)
         return "cli"
 
 

@@ -7838,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()

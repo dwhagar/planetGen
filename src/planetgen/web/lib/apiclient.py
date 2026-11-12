@@ -222,7 +222,8 @@ def _http_transport(method, target, data, headers, timeout):
     except urllib.error.HTTPError as exc:
         try:
             body = exc.read().decode("utf-8", errors="replace")
-        except Exception:
+        except Exception as swallowed_exc:
+            log.swallowed("web/lib/apiclient", "_http_transport", swallowed_exc)
             body = ""
         return TransportResponse(exc.code, body, [], exc.reason)
     except urllib.error.URLError as exc:

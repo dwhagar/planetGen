@@ -38,6 +38,7 @@ from planetgen import tuning
 from planetgen.db.fingerprint_tree import CLOCK_KEYS
 from planetgen.util import draw
 from planetgen.util import fingerprint_encoding as encoding
+from planetgen.util import log
 
 GALAXY_SEED = bytes(range(1, 17))
 """bytes: The galaxy seed of the sector cases and of the known answer."""
@@ -314,15 +315,16 @@ def start_running_digest():
     try:
         pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
         future = pool.submit(kept_battery_digest)
-    except Exception:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
+    except Exception as exc:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
+        log.swallowed("generation/generator_battery", "start_running_digest", exc)
         return lambda: None
 
     def finish():
         global _running
         try:
             _running = future.result()
-        except Exception:  # noqa: BLE001 -- the digest is then worked out where it is asked for
-            pass
+        except Exception as exc:  # noqa: BLE001 -- the digest is then worked out where it is asked for
+            log.swallowed("generation/generator_battery", "start_running_digest.finish", exc)
         finally:
             pool.shutdown()
 
