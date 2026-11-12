@@ -87023,6 +87023,30 @@
    "volume": "48",
    "year": 2011
   },
+  "10.1016/j.asr.2013.09.024": {
+   "arxiv": "1211.7027",
+   "authors": [
+    [
+     "Noyelles",
+     "B."
+    ],
+    [
+     "Lhotka",
+     "C."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1016/j.asr.2013.09.024",
+   "editors": [],
+   "journal": "AdSpR",
+   "page": "2085",
+   "publisher": "Elsevier BV",
+   "src": "crossref",
+   "title": "The influence of orbital dynamics, shape and tides on the obliquity of Mercury",
+   "type": "journal-article",
+   "volume": "52",
+   "year": 2013
+  },
   "10.1016/j.asr.2016.08.043": {
    "arxiv": "1612.02446",
    "authors": [
@@ -168863,6 +168887,30 @@
    "title": "THE FALSE POSITIVE RATE OF KEPLER AND THE OCCURRENCE OF PLANETS",
    "type": "journal-article",
    "volume": "766",
+   "year": 2013
+  },
+  "10.1088/0004-637x/767/2/128": {
+   "arxiv": "1304.1425",
+   "authors": [
+    [
+     "Correia",
+     "A. C. M."
+    ],
+    [
+     "Rodríguez",
+     "A."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/767/2/128",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "128",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES",
+   "type": "journal-article",
+   "volume": "767",
    "year": 2013
   },
   "10.1088/0004-637x/768/1/45": {
@@ -283326,7 +283374,11 @@
   }
  },
  "id_aliases": {},
+<<<<<<< HEAD
  "id_next": 5242,
+=======
+ "id_next": 5230,
+>>>>>>> origin/claude/lane21-gen1556
  "ids": {
   "10.1001/archinte.1945.00210280021003": "R5019",
   "10.1002/0470033452": "R3877",
@@ -283818,6 +283870,7 @@
   "10.1016/j.asr.2009.08.013": "R3043",
   "10.1016/j.asr.2010.12.023": "R0222",
   "10.1016/j.asr.2011.06.009": "R0221",
+  "10.1016/j.asr.2013.09.024": "R5229",
   "10.1016/j.asr.2016.08.043": "R0173",
   "10.1016/j.asr.2017.05.014": "R3919",
   "10.1016/j.asr.2020.10.029": "R3178",
@@ -285957,6 +286010,7 @@
   "10.1088/0004-637x/766/2/136": "R4980",
   "10.1088/0004-637x/766/2/76": "R5091",
   "10.1088/0004-637x/766/2/81": "R1459",
+  "10.1088/0004-637x/767/2/128": "R5228",
   "10.1088/0004-637x/768/1/45": "R3266",
   "10.1088/0004-637x/769/1/6": "R2027",
   "10.1088/0004-637x/770/1/23": "R4919",
@@ -288554,6 +288608,7 @@
   "arxiv:1211.2816": "R2975",
   "arxiv:1211.5401": "R0216",
   "arxiv:1211.6520": "R5198",
+  "arxiv:1211.7027": "R5229",
   "arxiv:1212.2654": "R2271",
   "arxiv:1212.2980": "R2479",
   "arxiv:1301.0365": "R2032",
@@ -288574,6 +288629,7 @@
   "arxiv:1303.5632": "R2058",
   "arxiv:1303.6283": "R0877",
   "arxiv:1303.6286": "R2505",
+  "arxiv:1304.1425": "R5228",
   "arxiv:1304.2909": "R4919",
   "arxiv:1304.3714": "R4915",
   "arxiv:1304.6083": "R3211",

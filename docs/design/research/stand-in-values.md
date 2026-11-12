@@ -6,6 +6,7 @@ A stand-in is any value that is not a verified measurement of the thing it stand
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 There are 1652 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 =======
 There are 1605 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
@@ -13,6 +14,9 @@ There are 1605 rows below. A row may be a family of values (a recipe table, a se
 =======
 There are 1613 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 >>>>>>> origin/claude/lane12-gen1267
+=======
+There are 1619 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/lane21-gen1556
 
 ## The source tiers
 
@@ -50,6 +54,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1626 |
 =======
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1579 |
@@ -57,6 +62,9 @@ The tier says how good the source of a number is; the **evidence status** says w
 =======
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1587 |
 >>>>>>> origin/claude/lane12-gen1267
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1593 |
+>>>>>>> origin/claude/lane21-gen1556
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -76,21 +84,31 @@ The tier says how good the source of a number is; the **evidence status** says w
 | All | 956 | 318 | 81 | 241 | 56 | 1652 |
 =======
 | T1 | 186 | 20 | 11 | 1 | 0 | 218 |
-| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
-| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
+| T2 | 152 | 61 | 1 | 1 | 0 | 215 |
+| T3 | 113 | 53 | 10 | 9 | 0 | 185 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+<<<<<<< HEAD
 | T5 | 82 | 24 | 6 | 1 | 1 | 114 |
 | T6 | 207 | 106 | 31 | 81 | 4 | 429 |
 | T7 | 56 | 19 | 9 | 31 | 0 | 115 |
+=======
+| T5 | 82 | 25 | 6 | 1 | 1 | 115 |
+| T6 | 212 | 107 | 31 | 81 | 4 | 435 |
+| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
+>>>>>>> origin/claude/lane21-gen1556
 | T8 | 0 | 0 | 0 | 5 | 1 | 6 |
 <<<<<<< HEAD
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
+<<<<<<< HEAD
 | All | 923 | 309 | 77 | 243 | 53 | 1605 |
 >>>>>>> origin/claude/lane22-gen1021
 =======
 | T9 | 47 | 16 | 5 | 92 | 35 | 195 |
 | All | 927 | 310 | 77 | 246 | 53 | 1613 |
 >>>>>>> origin/claude/lane12-gen1267
+=======
+| All | 930 | 313 | 77 | 246 | 53 | 1619 |
+>>>>>>> origin/claude/lane21-gen1556
 
 ## How the labels were given
 
@@ -413,7 +431,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | SP19 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | a speed rising with mass above 1.8 solar masses (the paper's Table 4 trend, about 46 km/s per solar mass in the mode) | [R4914] (A&A 537:A120, [R4914: Table 4], read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which the model does not follow (hot stars of every mass above 1.8 keep 180 km/s with a log-normal width of 0.45, a planetGen choice wider than the paper's 54 / 160); their lowest bin starts at 1.6 solar masses | predicted only | - | - |
 | SP20 | P | T6 | L0 | spin.KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_FULL_SPEED_MASS_SOL, spin.hot_star_median_speed_kms | a straight line in v or in ln v | a dwarf of 1.41 to 1.8 solar masses | the same speed by mass from a sample of F and early A stars with masses | between the top of the break (1.41 solar masses, SP18's 80 km/s) and the first mass the paper covers (SP19) the median speed is interpolated, linear in ln v over mass; no source covers the stars of 1.41 to 1.6 solar masses (the break paper gives one mean for all hotter stars); the interpolation is a bridge between two read anchors, not fitted | predicted only | - | - |
 | SP21 | P | T6 | L0 | spin.HOT_STAR_PEAK_MASS_SOL, HOT_STAR_PEAK_SPEED_KMS, HOT_STAR_FALL_MASS_SOL | peak 240 to 290 km/s; fall mass 6 to 10 solar masses | a dwarf of 1.8 solar masses or more | a speed by mass from a table of mean equatorial speeds of B stars with their masses | GEN.1170: above 1.8 solar masses the median runs up to 268 km/s at 3.5 solar masses ([R4914: Table 4]: the last bin, 3.15 to 3.85 solar masses, has a mode of 238 km/s, a mean 1.128 times it; the mode rises about 46 km/s per solar mass from 1.8), then falls back to 180 km/s at 8 solar masses and stays there ([R2030]:605, [R2030: Section 5]: the share of newborn B stars under half the critical speed is 37%, 53% and 84% for 2 to 4, 4 to 8 and 8 solar masses and more, the whole sample's mode 0.49 of the critical speed; the paper gives shares, not speeds, so the fall to 180 km/s is a stand-in: 84% under half of a critical speed of about 580 km/s puts the median near 175 km/s, with the critical speed read from a summary of the paper's tables, not verified); the line between the anchors is straight in ln v | predicted only | - | - |
-| SP22 | P | T4 | L3 | tidal_spin.CASSINI_COUPLING_RANGE | 0.001 to 0.01 low end; 1 high end | a locked or resonant planet or moon; falsifier: the obliquity of a measured locked body (Mercury 0.034, the Moon's state 2, Io and Europa under 0.1 degrees) outside the draw's range, or a Laplace-Lagrange run of the generated system | the nodal regression g from the system's secular theory and alpha from the body's measured or modelled J2 | GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at `eps = x i` with `x = abs(g) / (alpha + abs(g))` between 0 (a shape that holds the axis) and 1 (no hold); `x` is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; the generator has no secular frequencies or fossil shapes to give alpha and g, and a hydrostatic alpha is far under a real planet's; the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753) | predicted only | - | no data |
+| SP22 | P | T4 | L3 | tidal_spin.CASSINI_COUPLING_RANGE | 0.001 to 0.01 low end; 1 high end | a locked or resonant planet or moon; falsifier: the obliquity of a measured locked body (Mercury 0.034, the Moon's state 2, Io and Europa under 0.1 degrees) outside the draw's range, or a Laplace-Lagrange run of the generated system | the nodal regression g from the system's secular theory and alpha from the body's measured or modelled J2 | GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at `eps = x i` with `x = abs(g) / (alpha + abs(g))` between 0 (a shape that holds the axis) and 1 (no hold); `x` is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; this is the early value, overwritten at the settle by the real Cassini state (GEN.1536 and GEN.1556, OB9 to OB14: the nodal modes of a planet's orbit or a moon's regression, and a fossil or hydrostatic figure, give g and alpha); the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753) | predicted only | - | replaced |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 
@@ -2888,6 +2906,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | OB6 | P | T6 | L0 | `planets.settle_obliquity`: a free-spinning planet whose tilt lies in a chaotic zone takes a tilt drawn even in the cosine of the zone, from a stream of its own; a regular, locked or resonant planet keeps its tilt | none | free-spinning planets of a star with at least two planets, or with a companion star whose orbit is in another plane | a chaotic planet whose stored tilt stays at its birth value, or a regular planet that is moved | a numerical integration of the spin of the generated planet over the age of the star (the long-time distribution of the tilt) | even in the cosine because the time spent between two tilts on the sphere goes as the difference of their cosines; the regular wander (a few degrees) is not applied, the stored tilt is one place in it; the companion star's mode is added with the siblings' (GEN.1535); the range of the tilt (`obliquity_min_deg`, `obliquity_max_deg`) is stored for every planet worked | predicted only | - | - |
 | OB7 | P | T6 | L0 | oddity W6 gate: a planet whose tilt `settle_obliquity` found in a chaotic zone of the spin-orbit resonances (`tilt_chaotic` 1), rate 1 (no extra draw: the zone is the planet's own, from the modes of its star's other planets and companions) | none | rocky planets that `settle_obliquity` works | a planet named whose tilt range is a few degrees (the label would then be wrong) | a numerical integration of the spin of the generated planet over the age of the star | the row only names the chaotic planets the module found; the rate is the share of planets the theory puts in a chaotic zone, which the interaction census (GEN.1448) measures | predicted only | - | - |
 | OB8 | P | T6 | L0 | `StarSystem.ORBIT_NORMAL_FRACTION` 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later | 0.05 to 0.25 | a companion on a Keplerian orbit about its host; a hierarchical triple's relative vector is only nearly planar | a companion whose normal differs from its pair node's plane by more than a degree | the pair node's own inclination and node, once the tree gives the plane of every member | for a Keplerian orbit any two places not on a line through the host give the same plane; 0.1 keeps the two apart without a near-degenerate cross product | predicted only | - | - |
+<<<<<<< HEAD
 
 ## 6.276 Stand-ins of the moons of planet size around the giants
 
@@ -2931,3 +2950,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | NC2 | P | T9 | L0 | `nebula_density.CONTAIN_DETAIL` = 3 octaves: the containment test reads the coarse form of the contour (finest wavelength 16 pc), which the map's finer octaves refine and do not move | 2 to 5 | any nebula of 10 pc or more | a star whose containment flips between 3 and 8 octaves in more than a few percent of nebulae | the full map detail at a higher cost (about 5 microseconds a point at 5 octaves in a batch) | `nebula_density.octave_bound`: a finer octave changes the value by at most its amplitude times the edge weight, so the coarse blobs stay; cost measured 3.6 to 5.5 microseconds a point | predicted only | - | - |
 | NC3 | P | T9 | L0 | `nebula_density.CONTAIN_ROUND` = 1e-4: the density is rounded to this before it is compared to the form level, so a last-bit difference of a platform's arithmetic cannot put a star across the outline | 1e-6 to 1e-3 | every containment test | a golden that differs between two machines on the nebula-contour case | exact arithmetic everywhere | `test_nebula_contour.test_the_form_level_comparison_is_rounded` | predicted only | - | - |
 >>>>>>> origin/claude/lane12-gen1267
+=======
+| OB9 | P | T3 | L1 | `cassini_state.FOSSIL_FACTOR_RANGE` (22.7, 94.2): the observed `J2` over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform (GEN.1536) | 22.7 to 94.2 (Moon to Mercury; Venus 86) | a cold rocky planet locked or resonant with its star | a measured `J2` of a despun rocky body outside the bracket (an exoplanet's, or Mars-sized Moon-like bodies) | a frozen-spin history of the body: the spin at which its lithosphere stopped following the tide, from its heat flux and despin time | READ: the Moon's 203.8e-6 over 8.968e-6, Mercury's 50.3e-6 over 0.534e-6 and Venus's 4.46e-6 over 0.0516e-6, Table 2 of [R5228]; three bodies, so the spread inside the bracket is the stand-in | predicted only | - | - |
+| OB10 | P | T2 | L0 | `cassini_state.FOSSIL_C22_OVER_J2` 0.133 and `HYDROSTATIC_C22_OVER_J2` 0.3: the share of `C22` in `J2` of a fossil and of a hydrostatic figure | fossil 0.110 to 0.161; hydrostatic 3/10 | a locked or resonant planet | a fossil figure outside 0.11 to 0.16 | none needed | the Moon's 22.4/203.8, Mercury's 8.1/50.3 ([R5228: Table 2]) and the 10/3 of a synchronous hydrostatic body [R5228] | predicted only | - | - |
+| OB11 | P | T3 | L1 | `cassini_state.RELAXED_HEAT_FLUX_W_M2` 0.5: the heat flow above which a rocky body's interior keeps the figure of its spin (GEN.1536) | 0.2 to 1 W/m2 | a rocky locked or resonant planet | a hot rocky body with a fossil figure or a cold one with a hydrostatic figure | a relaxation time of the body (Maxwell time against the despin time) | Io (about 2.5 W/m2) keeps the hydrostatic figure (observed over hydrostatic 1.01, [R5228: Table 2]); Venus and Mercury (under 0.1) are fossil; an icy body is always relaxed (Europa, Ganymede, Titan, Rhea, Callisto all 0.95 to 1.02) | predicted only | - | - |
+| OB12 | P | T6 | L0 | `cassini_state.precession_rad_yr` and `tilt_deg`: `V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)]` and `eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2)` over the nodal modes, the tilt at most the orbit's inclination | none (a formula) | a locked or resonant planet; the `C22` term only for a resonance above 1:1 | Mercury's tilt from its MESSENGER figure outside 2.04 arcmin by more than 0.6 | the exact (not small-angle) state and a Cassini state 2 | [R5229: Eq. 1]; Mercury's figure with its 8.6 degrees and its node's regression gives 2.4 arcmin against the 2.04 measured | predicted only | - | - |
+| OB13 | P | T6 | L0 | `cassini_state.moon_regression_rad_yr`: `abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n`, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's `J2p` the fluid figure of its spin | none (a formula) | a moon locked to its planet | the nodal period of a measured moon outside 10 percent of the formula (the Moon: 17.8 years against 18.6) | a numerical Laplace-Lagrange run of the moons with the planet's measured field | the Moon's node period, 18.6 years, and Europa's about 30 years follow within 5 percent; Jupiter's fluid J2 is 0.0228 against the measured 0.0147 (Darwin-Radau overstates a giant's figure), which the tilt tolerates | predicted only | - | - |
+| OB14 | P | T5 | L1 | `cassini_state.locked_moon_tilt_deg`: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556) | none | a moon inside its planet's Laplace radius | a moon outside the Laplace radius whose plane is the planet's orbit plane (the Moon is tilted 5.1 degrees to the ecliptic, 18 to 28 to the equator) | the Laplace plane of each moon from `a_L = (J2p Rp^2 a_p^3 M_p / M_star)^(1/5)` and the Cassini state 2 of the Moon | the Galilean moons come out at 0.01 to 0.14 degrees (Io under 0.04, Europa 0.1 measured) and the Moon at 3.7 to 4.7 against the 6.7 of its state 2 | predicted only | - | - |
+>>>>>>> origin/claude/lane21-gen1556

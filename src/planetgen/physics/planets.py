@@ -1195,7 +1195,11 @@ def settle_obliquity(planets, host_mass_kg):
         axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
         if tilt is None or not rotation or not body.radius or any(c is None for c in axis):
             continue
-        if spin.spin_state(rotation, body.period)[0] != "free":
+        state, turns = spin.spin_state(rotation, body.period)
+        if state in ("locked", "resonant"):
+            changed += _settle_cassini_tilt(body, state, turns, axis, index, bodies, host_mass_kg, a_au, masses, inclinations, nodes)       # GEN.1536
+            continue
+        if state != "free":
             continue
         omega = 2.0 * math.pi / (abs(rotation) * 3600.0)
         torquers = [obliquity_variation.Torquer(host_mass_kg, body.distance * constants.AU_TO_M, getattr(body, "eccentricity", 0.0) or 0.0)]
@@ -1212,19 +1216,78 @@ def settle_obliquity(planets, host_mass_kg):
             continue
         stream = draw.Stream(f"chaotic-obliquity:{float(body.mass)!r}:{float(body.distance)!r}:{float(host_mass_kg)!r}:{float(body.radius)!r}")
         new_tilt = obliquity_variation.chaotic_tilt_deg(variation, stream.random())
-        normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
-        body.spin_axis_x, body.spin_axis_y, body.spin_axis_z = spin.carry_axis(axis, normal, normal, new_tilt)
-        body.axial_tilt_deg = new_tilt
+        _retilt(body, axis, new_tilt)
         body.oddity_quantities = {**(getattr(body, "oddity_quantities", None) or {}), "tilt_chaotic": 1}       # GEN.1535: oddities W6 and W61 name it
         oddities.apply(body, levers=("L1",), rows=[row for row in oddities.ROWS if row.id in CHAOTIC_TILT_ODDITIES])
-        daylight.generate(body)
-        body.sky_suns = sky_suns.encode(sky_suns.suns_of(
-            body.star, (body.spin_axis_x, body.spin_axis_y, body.spin_axis_z), normal,
-            orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))))
-        if getattr(body, "moons", None):
-            orient_moons(body)
         changed += 1
     return changed
+
+
+def settle_moon_tilts(planets, host_mass_kg):
+    """
+    GEN.1556: a regular moon of one star's planets that is locked to its planet takes the tilt of its first Cassini state from its nodal regression (the planet's bulge and the star,
+    `cassini_state.locked_moon_tilt_deg`) and its own figure, in place of the share `tidal_spin.cassini_tilt_deg` drew early. The moon's axis is turned in its planet's equator frame (where its
+    inclination is measured) and back; its day and night shares follow. One draw per moon from a stream of its own. Called after `settle_obliquity` has set the planets' tilts (which turned the
+    moons with them). Returns how many moons changed tilt.
+    """
+    from planetgen.physics import cassini_state
+
+    changed = 0
+    for planet in planets:
+        if getattr(planet, "is_moon", False) or not getattr(planet, "period", None) or not planet.mass or not planet.radius or not getattr(planet, "rotation_period_hours", None):
+            continue
+        for moon in getattr(planet, "moons", None) or ():
+            rotation = getattr(moon, "rotation_period_hours", None)
+            axis = tuple(getattr(moon, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+            if not (rotation and moon.period and moon.mass and moon.radius and moon.distance) or any(c is None for c in axis):
+                continue
+            if spin.spin_state(rotation, moon.period)[0] != "locked":
+                continue
+            stream = draw.Stream(f"cassini-figure:{float(moon.mass)!r}:{float(moon.distance)!r}:{float(planet.mass)!r}:{float(moon.radius)!r}")
+            heat = internal_heat_flux_w_m2(moon) + (getattr(moon, "tidal_flux_w_m2", None) or 0.0)
+            new_tilt = cassini_state.locked_moon_tilt_deg(moon, planet, heat, moon.period, stream.random())
+            frame = getattr(moon, "_frame_axis", None)
+            equator_axis = spin.turn_from_axis(axis, frame) if frame is not None else axis
+            normal = spin.orbit_normal(moon.orbital_inclination_deg or 0.0, moon.orbital_ascending_node_deg or 0.0)
+            new_axis = spin.carry_axis(equator_axis, normal, normal, new_tilt)
+            if frame is not None:
+                new_axis = spin.turn_to_axis(new_axis, frame)
+            moon.spin_axis_x, moon.spin_axis_y, moon.spin_axis_z = new_axis
+            moon.axial_tilt_deg = new_tilt
+            daylight.generate(moon, planet)
+            changed += 1
+    return changed
+
+
+def _retilt(body, axis, new_tilt):
+    """Gives `body` the tilt `new_tilt` with its axis kept at its angle round the orbit's normal; the sky of the other suns, the day and night shares and the moons follow (`carry_spin_with_orbit`)."""
+    normal = spin.orbit_normal(body.orbital_inclination_deg or 0.0, body.orbital_ascending_node_deg or 0.0)
+    body.spin_axis_x, body.spin_axis_y, body.spin_axis_z = spin.carry_axis(axis, normal, normal, new_tilt)
+    body.axial_tilt_deg = new_tilt
+    daylight.generate(body)
+    body.sky_suns = sky_suns.encode(sky_suns.suns_of(
+        body.star, (body.spin_axis_x, body.spin_axis_y, body.spin_axis_z), normal,
+        orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))))
+    if getattr(body, "moons", None):
+        orient_moons(body)
+
+
+def _settle_cassini_tilt(body, state, turns, axis, index, bodies, host_mass_kg, a_au, masses, inclinations, nodes):
+    """
+    GEN.1536: a rocky planet locked to its star or in a resonance with it takes the tilt of its first Cassini state from the real precession constant (`cassini_state`: the figure it keeps,
+    hydrostatic where its interior relaxes and a fossil one where it has despun cold) against the nodal modes of its orbit (the siblings', and a companion star's), in place of the share
+    `tidal_spin.cassini_tilt_deg` drew early. The figure's one draw comes from a stream of the body's own, so no draw moves the run's stream. Returns 1 if the tilt changed, else 0.
+    """
+    from planetgen.physics import cassini_state, obliquity_variation
+
+    if body.body_type != "t":
+        return 0
+    modes = [*obliquity_variation.all_sibling_modes(a_au, masses, host_mass_kg, inclinations, nodes)[index], *companion_modes(body, host_mass_kg)]
+    mean_motion = 2.0 * math.pi / (body.period * constants.SECONDS_PER_YEAR)
+    stream = draw.Stream(f"cassini-figure:{float(body.mass)!r}:{float(body.distance)!r}:{float(host_mass_kg)!r}:{float(body.radius)!r}")
+    new_tilt = cassini_state.locked_tilt_deg(body, internal_heat_flux_w_m2(body) + (getattr(body, "tidal_flux_w_m2", None) or 0.0), modes, mean_motion, turns, stream.random())
+    _retilt(body, axis, new_tilt)
+    return 1
 
 
 SECULAR_OUTCOMES = ("exchanged", "held by the spacing", "unchanged", "outside the theory")

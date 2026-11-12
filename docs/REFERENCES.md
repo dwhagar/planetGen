@@ -8,7 +8,11 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
+<<<<<<< HEAD
 **5118 papers and books, 26 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+=======
+**5108 papers and books, 25 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,147 author-year citations in the notes, reports and code (30,843 places), 3,854 are tied to a paper above, 286 are labelled as not a paper, and 7 are listed for review.**
+>>>>>>> origin/claude/lane21-gen1556
 
 ## Contents
 
@@ -952,6 +956,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r0895"></a>**R0895** Correia, A. C. & Laskar, J. 2003, Long-term evolution of the spin of Venus, Icarus, 163, 24, doi:10.1016/s0019-1035(03)00043-5. [paper](https://doi.org/10.1016/s0019-1035(03)00043-5) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/s0019-1035(03)00043-5/abstract)
 - <a id="paper-r0896"></a>**R0896** Correia, A. C. M. & Laskar, J. 2001, The four final rotation states of Venus, Nature, 411, 767, doi:10.1038/35081000. [paper](https://doi.org/10.1038/35081000) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/35081000/abstract)
 - <a id="paper-r0897"></a>**R0897** Correia, A. C. M. & Laskar, J. 2004, Mercury's capture into the 3/2 spin-orbit resonance as a result of its chaotic dynamics, Nature, 429, 848, doi:10.1038/nature02609. [paper](https://doi.org/10.1038/nature02609) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature02609/abstract)
+- <a id="paper-r5228"></a>**R5228** Correia, A. C. M. & Rodríguez, A. 2013, ON THE EQUILIBRIUM FIGURE OF CLOSE-IN PLANETS AND SATELLITES, ApJ, 767, 128, doi:10.1088/0004-637x/767/2/128, arXiv:1304.1425. [paper](https://doi.org/10.1088/0004-637x/767/2/128) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/767/2/128/abstract)
 - <a id="paper-r0898"></a>**R0898** Corsini, E., et al. 1999, Mass Structure of Sa Spirals: NGC 2179 &amp; NGC 2775, Symp. - Int. Astron. Union, 186, 196, doi:10.1017/s0074180900112562. [paper](https://doi.org/10.1017/s0074180900112562) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s0074180900112562/abstract)
 - <a id="paper-r0899"></a>**R0899** Corsini, E. M., L. Aguerri, J. A., & Debattista, V. P. 2004, Fast bars in SBO galaxies, Symp. - Int. Astron. Union, 220, 271, doi:10.1017/s0074180900183354. [paper](https://doi.org/10.1017/s0074180900183354) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/s0074180900183354/abstract)
 - <a id="paper-r0900"></a>**R0900** Corsini, E. M., Pizzella, A., Coccato, L., & Bertola, F. 2003, Minor-axis velocity gradients in spirals and the case of inner polar disks$^{\\bf,}$, A&A, 408, 873, doi:10.1051/0004-6361:20030951. [paper](https://doi.org/10.1051/0004-6361%3A20030951) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361%3A20030951/abstract)
@@ -3501,6 +3506,7 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - <a id="paper-r3317"></a>**R3317** Notesco, G. & Bar-Nun, A. 2005, A ∼25 K temperature of formation for the submicron ice grains which formed comets, Icarus, 175, 546, doi:10.1016/j.icarus.2004.12.001. [paper](https://doi.org/10.1016/j.icarus.2004.12.001) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2004.12.001/abstract)
 - <a id="paper-r3318"></a>**R3318** Notsu, Y., et al. 2019, Do Kepler Superflare Stars Really Include Slowly Rotating Sun-like Stars?—Results Using APO 3.5 m Telescope Spectroscopic Observations and Gaia-DR2 Data, ApJ, 876, 58, doi:10.3847/1538-4357/ab14e6, arXiv:1904.00142. [paper](https://doi.org/10.3847/1538-4357/ab14e6) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/ab14e6/abstract)
 - <a id="paper-r3319"></a>**R3319** Nowak, M. & Schuster, P. 1989, Error thresholds of replication in finite populations mutation frequencies and the onset of muller's ratchet, Journal of Theoretical Biology, 137, 375, doi:10.1016/s0022-5193(89)80036-0. [paper](https://doi.org/10.1016/s0022-5193(89)80036-0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/s0022-5193(89)80036-0/abstract)
+- <a id="paper-r5229"></a>**R5229** Noyelles, B. & Lhotka, C. 2013, The influence of orbital dynamics, shape and tides on the obliquity of Mercury, AdSpR, 52, 2085, doi:10.1016/j.asr.2013.09.024, arXiv:1211.7027. [paper](https://doi.org/10.1016/j.asr.2013.09.024) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.asr.2013.09.024/abstract)
 - <a id="paper-r3320"></a>**R3320** Nuding, D., et al. 2014, Deliquescence and efflorescence of calcium perchlorate: An investigation of stable aqueous solutions relevant to Mars, Icarus, 243, 420, doi:10.1016/j.icarus.2014.08.036. [paper](https://doi.org/10.1016/j.icarus.2014.08.036) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2014.08.036/abstract)
 
 ### O

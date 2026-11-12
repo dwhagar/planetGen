@@ -8698,14 +8698,14 @@
         },
         {
           "burn_down": [
-            "no data",
+            "replaced",
             "-",
-            "the generator holds no secular frequencies or fossil shapes to give the Cassini-state share of the inclination; a Laplace-Lagrange run of the generated system with the body's gravity field replaces the log-uniform share, which is kept inside Mercury's 0.004 and the bound 1"
+            "GEN.1536 and GEN.1556 (2026-11-11): a locked or resonant planet takes its Cassini-state tilt from the nodal modes of its orbit and a fossil or hydrostatic figure, a locked moon from its nodal regression (planet bulge and star) and its figure (OB9 to OB14); the log-uniform share stays only as the early value the settle overwrites; the tilts of the Galilean moons and the Moon check out"
           ],
           "fields": [
             [
               "Evidence",
-              "GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at eps = x i with x = abs(g) / (alpha + abs(g)) between 0 (a shape that holds the axis) and 1 (no hold); x is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; the generator has no secular frequencies or fossil shapes to give alpha and g, and a hydrostatic alpha is far under a real planet's; the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753)"
+              "GEN.1165: the obliquity of a locked or resonant body is its first Cassini state: the axis precesses about the orbit normal at alpha, the normal about the Laplace plane's at g, and the axis settles at eps = x i with x = abs(g) / (alpha + abs(g)) between 0 (a shape that holds the axis) and 1 (no hold); x is drawn log-uniform over 0.003 to 1, the low end Mercury's 0.034 degrees (2.04 arcmin, recalled) against about 8 degrees to its Laplace plane; this is the early value, overwritten at the settle by the real Cassini state (GEN.1536 and GEN.1556, OB9 to OB14: the nodal modes of a planet's orbit or a moon's regression, and a fossil or hydrostatic figure, give g and alpha); the spread was chosen so a locked body's median tilt is a fraction of a degree and its p95 under 5 (sweep row 7 of GEN.753)"
             ],
             [
               "What it is",
@@ -63777,6 +63777,234 @@
           "tweak": "L0",
           "unread": null,
           "what": "StarSystem.ORBIT_NORMAL_FRACTION 0.1: the plane a companion star moves in about the host is the normal of the cross product of its places now and a tenth of its period later"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.FOSSIL_FACTOR_RANGE (22.7, 94.2): the observed J2 over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform (GEN.1536)"
+            ],
+            [
+              "The range it moves in",
+              "22.7 to 94.2 (Moon to Mercury; Venus 86)"
+            ],
+            [
+              "Where it holds",
+              "a cold rocky planet locked or resonant with its star"
+            ],
+            [
+              "What would show it wrong",
+              "a measured J2 of a despun rocky body outside the bracket (an exoplanet's, or Mars-sized Moon-like bodies)"
+            ],
+            [
+              "What replaces it",
+              "a frozen-spin history of the body: the spin at which its lithosphere stopped following the tide, from its heat flux and despin time"
+            ],
+            [
+              "Evidence",
+              "READ: the Moon's 203.8e-6 over 8.968e-6, Mercury's 50.3e-6 over 0.534e-6 and Venus's 4.46e-6 over 0.0516e-6, Table 2 of [R5228]; three bodies, so the spread inside the bracket is the stand-in"
+            ]
+          ],
+          "id": "OB9",
+          "key": "6.271:OB9",
+          "kind": "P",
+          "slug": "6-271-ob9",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.FOSSIL_FACTOR_RANGE (22.7, 94.2): the observed J2 over the hydrostatic one of a cold rocky body that has despun, drawn log-uniform (GEN.1536)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.FOSSIL_C22_OVER_J2 0.133 and HYDROSTATIC_C22_OVER_J2 0.3: the share of C22 in J2 of a fossil and of a hydrostatic figure"
+            ],
+            [
+              "The range it moves in",
+              "fossil 0.110 to 0.161; hydrostatic 3/10"
+            ],
+            [
+              "Where it holds",
+              "a locked or resonant planet"
+            ],
+            [
+              "What would show it wrong",
+              "a fossil figure outside 0.11 to 0.16"
+            ],
+            [
+              "What replaces it",
+              "none needed"
+            ],
+            [
+              "Evidence",
+              "the Moon's 22.4/203.8, Mercury's 8.1/50.3 ([R5228: Table 2]) and the 10/3 of a synchronous hydrostatic body [R5228]"
+            ]
+          ],
+          "id": "OB10",
+          "key": "6.271:OB10",
+          "kind": "P",
+          "slug": "6-271-ob10",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.FOSSIL_C22_OVER_J2 0.133 and HYDROSTATIC_C22_OVER_J2 0.3: the share of C22 in J2 of a fossil and of a hydrostatic figure"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.RELAXED_HEAT_FLUX_W_M2 0.5: the heat flow above which a rocky body's interior keeps the figure of its spin (GEN.1536)"
+            ],
+            [
+              "The range it moves in",
+              "0.2 to 1 W/m2"
+            ],
+            [
+              "Where it holds",
+              "a rocky locked or resonant planet"
+            ],
+            [
+              "What would show it wrong",
+              "a hot rocky body with a fossil figure or a cold one with a hydrostatic figure"
+            ],
+            [
+              "What replaces it",
+              "a relaxation time of the body (Maxwell time against the despin time)"
+            ],
+            [
+              "Evidence",
+              "Io (about 2.5 W/m2) keeps the hydrostatic figure (observed over hydrostatic 1.01, [R5228: Table 2]); Venus and Mercury (under 0.1) are fossil; an icy body is always relaxed (Europa, Ganymede, Titan, Rhea, Callisto all 0.95 to 1.02)"
+            ]
+          ],
+          "id": "OB11",
+          "key": "6.271:OB11",
+          "kind": "P",
+          "slug": "6-271-ob11",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.RELAXED_HEAT_FLUX_W_M2 0.5: the heat flow above which a rocky body's interior keeps the figure of its spin (GEN.1536)"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.precession_rad_yr and tilt_deg: V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)] and eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2) over the nodal modes, the tilt at most the orbit's inclination"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a locked or resonant planet; the C22 term only for a resonance above 1:1"
+            ],
+            [
+              "What would show it wrong",
+              "Mercury's tilt from its MESSENGER figure outside 2.04 arcmin by more than 0.6"
+            ],
+            [
+              "What replaces it",
+              "the exact (not small-angle) state and a Cassini state 2"
+            ],
+            [
+              "Evidence",
+              "[R5229: Eq. 1]; Mercury's figure with its 8.6 degrees and its node's regression gives 2.4 arcmin against the 2.04 measured"
+            ]
+          ],
+          "id": "OB12",
+          "key": "6.271:OB12",
+          "kind": "P",
+          "slug": "6-271-ob12",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.precession_rad_yr and tilt_deg: V = (n/c) [J2 (1-e^2)^(-3/2) + 2 C22 (7/2 e - 123/16 e^3)] and eps = sqrt(sum (i_k abs(s_k) / (V + abs(s_k)))^2) over the nodal modes, the tilt at most the orbit's inclination"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+            ],
+            [
+              "The range it moves in",
+              "none (a formula)"
+            ],
+            [
+              "Where it holds",
+              "a moon locked to its planet"
+            ],
+            [
+              "What would show it wrong",
+              "the nodal period of a measured moon outside 10 percent of the formula (the Moon: 17.8 years against 18.6)"
+            ],
+            [
+              "What replaces it",
+              "a numerical Laplace-Lagrange run of the moons with the planet's measured field"
+            ],
+            [
+              "Evidence",
+              "the Moon's node period, 18.6 years, and Europa's about 30 years follow within 5 percent; Jupiter's fluid J2 is 0.0228 against the measured 0.0147 (Darwin-Radau overstates a giant's figure), which the tilt tolerates"
+            ]
+          ],
+          "id": "OB13",
+          "key": "6.271:OB13",
+          "kind": "P",
+          "slug": "6-271-ob13",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": null,
+          "what": "cassini_state.moon_regression_rad_yr: abs(s) = (3/2) n J2p (Rp/a)^2 + (3/4) n_p^2 / n, the regression of a moon's node from its planet's bulge and the star (GEN.1556), the planet's J2p the fluid figure of its spin"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
+            ],
+            [
+              "The range it moves in",
+              "none"
+            ],
+            [
+              "Where it holds",
+              "a moon inside its planet's Laplace radius"
+            ],
+            [
+              "What would show it wrong",
+              "a moon outside the Laplace radius whose plane is the planet's orbit plane (the Moon is tilted 5.1 degrees to the ecliptic, 18 to 28 to the equator)"
+            ],
+            [
+              "What replaces it",
+              "the Laplace plane of each moon from a_L = (J2p Rp^2 a_p^3 M_p / M_star)^(1/5) and the Cassini state 2 of the Moon"
+            ],
+            [
+              "Evidence",
+              "the Galilean moons come out at 0.01 to 0.14 degrees (Io under 0.04, Europa 0.1 measured) and the Moon at 3.7 to 4.7 against the 6.7 of its state 2"
+            ]
+          ],
+          "id": "OB14",
+          "key": "6.271:OB14",
+          "kind": "P",
+          "slug": "6-271-ob14",
+          "tier": "T5",
+          "tier_code": "T5",
+          "tweak": "L1",
+          "unread": null,
+          "what": "cassini_state.locked_moon_tilt_deg: the inclination of a moon's orbit to its planet's equator is taken as its inclination to its Laplace plane, and the Cassini state is the first (small-angle) one (GEN.1556)"
         }
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
