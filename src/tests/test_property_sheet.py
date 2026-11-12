@@ -541,7 +541,15 @@ def test_a_white_dwarf_shows_its_core_and_a_polluted_one_the_body_it_accreted(cl
         assert rows["chemistry_core_neon22"]["raw"] == pytest.approx(core.neon22) and rows["chemistry_core_oxygen"]["value"][0]["qty"]["unit"] == "frac"
         assert all(rows[name]["source"] for name in ("chemistry_core_oxygen", "chemistry_core_carbon", "chemistry_core_neon22"))
         if makeup.detail["polluted"]:
-            taxon = white_dwarf_core.accreted_taxon([(1.0e20, "M"), (0.5e20, "S")], makeup.draws.u_pollutant)
+            conn = store.get_connection(mysql_config)
+            try:
+                stored = [(found["mass_kg"], found["taxon"]) for found in conn.execute(
+                    "SELECT m.mass_kg, m.taxon FROM belt_members m JOIN asteroid_belts b ON b.id = m.belt_id WHERE b.star_system_id = ? ORDER BY b.id, m.member_rank",
+                    (star["star_system_id"],)).fetchall()]
+            finally:
+                conn.close()
+            assert len(stored) >= 2    # the two this test stored, and any the saved system has of its own
+            taxon = white_dwarf_core.accreted_taxon(stored, makeup.draws.u_pollutant)
             found = white_dwarf_core.pollutant_of_taxon(taxon)
             assert rows["chemistry_pollutant_class"]["text"] == sheet._POLLUTANT_WORDS[found.kind]
             assert rows["chemistry_pollutant_class"]["source"] and rows["chemistry_pollutant_ratios"]["source"]
