@@ -98,7 +98,7 @@ MANTLE_BUFFER_RANGE = (1.0, 8.0)
 COVER_SNAP = 0.999
 """float: A cover this high is all of the surface: the last tenth of a percent of a Gaussian tail is a seamount, not an island."""
 ISOSTATIC_BASIN_KM = 11.4
-"""float: The deepest the mean ocean basin gets at Earth's gravity before the continents are covered, km (GEN.1573; Cowan and Abbot 2014: continental crust
+"""float: The deepest the mean ocean basin gets at Earth's gravity before the continents are covered, km (GEN.1573; [R0914]: continental crust
 flows above 70 km / g thick, so a basin deeper than 11.4 km / g~ leaves no land). Stand-in row HY3."""
 HYPSOMETRY = ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9))
 """tuple: The surface of a rocky body as two Gaussians of height, each `(share of the area, mean height km, spread km)` at Earth's gravity: ocean crust and
@@ -214,7 +214,7 @@ def ocean_fraction(layer_km, gravity_m_s2, icy=False):
     `HYPSOMETRY` (found by bisection, the volume rising with the level), and the share of the surface under `z`. The relief is scaled as 1 / g.
     The ocean crust sinks under the water it carries (GEN.1573, isostasy, [R0914: Eq. 10]): its mean depth is the layer over its share of the area
     where that is deeper than Earth's, so a heavier ocean does not flood the continents until its basins are `ISOSTATIC_BASIN_KM / g~` deep; the water
-    beyond that fills the continents (Cowan and Abbot's waterworld: no land left). Earth's 2.7 km layer is untouched: its basins are already as deep as
+    beyond that fills the continents ([R0914]'s waterworld: no land left). Earth's 2.7 km layer is untouched: its basins are already as deep as
     that layer needs.
     For `icy` (GEN.833) it is at most Earth's: observed icy relief is a few to 20 km on bodies of any gravity (Enceladus, Callisto, Iapetus), ice
     being strength-limited, so it does not grow as 1 / g below Earth's, and the basins do not sink (ice is not an isostatic load).

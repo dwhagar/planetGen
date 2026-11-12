@@ -322,7 +322,7 @@ def test_gen1567_water_cover_is_the_larger_of_the_sea_and_the_ice():
 
 
 def test_gen1573_a_heavy_ocean_sinks_its_basins_and_keeps_the_continents_dry_until_the_basin_is_too_deep():
-    """GEN.1573 (Cowan and Abbot 2014, Eq. 10): Earth's 2.7 km layer still covers 0.71; more water deepens the basins instead of flooding the land
+    """GEN.1573 ([R0914: Eq. 10]): Earth's 2.7 km layer still covers 0.71; more water deepens the basins instead of flooding the land
     (cover never falls, and stays under a waterworld's until the mean basin passes 11.4 km / g~); past it the continents go under."""
     g = constants.EARTH_GRAVITY
     assert hy.ocean_fraction(2.7, g) == pytest.approx(0.71, abs=0.02)

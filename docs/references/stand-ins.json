@@ -52351,6 +52351,44 @@
           "tweak": "L2",
           "unread": null,
           "what": "hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of HYPSOMETRY sinks to the layer over its share of the area, no shallower than Earth's)"
+            ],
+            [
+              "The range it moves in",
+              "5.7 to 11.4 km (Cowan and Abbot's 70 km maximum continental thickness over the density contrast, half to full)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies with a surface ocean; not icy bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a world with 7 km of water at 1 g that a measured hypsometry would drown, or Earth's 2.7 km layer not covering 0.71"
+            ],
+            [
+              "What replaces it",
+              "isostasy with the mantle's own flow and the sea's weight ([R0914: Eq. 10] gives the form, the value read from the source)"
+            ],
+            [
+              "Evidence",
+              "[R0914: Eq. 10] ([R0914: Eq. 10]); Earth's 0.71 cover held by HY2"
+            ]
+          ],
+          "id": "HY3",
+          "key": "6.134:HY3",
+          "kind": "P",
+          "slug": "6-134-hy3",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": null,
+          "what": "hydrosphere.ISOSTATIC_BASIN_KM 11.4 (the deepest mean ocean basin before the continents are covered, km at Earth's gravity, scaling as 1 / g; the ocean crust of HYPSOMETRY sinks to the layer over its share of the area, no shallower than Earth's)"
         }
       ],
       "slug": "6-134-stand-ins-of-the-ocean-cover-law-and-the-mantle-s-water-store",
