@@ -13369,6 +13369,26 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 07 prebuild (profile function), Lane 14 review and the wiring. Prerequisites: GEN.994 (equilibrium_edges, PR 5976). Related: GEN.994, GEN.1559, GEN.725.
   Filed by the TODO thread.
 
+- [ ] **TEST.720 Pre-gate quick lane (3 to 5 minutes) that the author runs before pushing and the gate runs before the long run: release note, pyflakes, spelling, own-log-format, citations, settings, wiring guard, constants, and merges cleanly with main**
+  Lane 03 (Gate) report /mnt/project-files/gate/gate-time-savings-2026-11-12.md (hours are its estimates, not measurements; about 5 to 6 of its 14 daily test hours re-prove things after a red), as the coordinator relayed Boss's question at 8:10 PM EST on 2026-11-11. Saves about 3 to 4 machine hours and 3 to 5 lane hours a day (the avoidable reds this week: 5947 own log formatting, 5967 a duplicate function, 6101 spelling, the citation phrases, 5987 three times, and others). Do: one script (scripts/pre_gate.py) running the fast checks that already exist, no new rules; named in docs/plan/lanes.md as the author step before a push and the gate step before the long run. The same fast set is the train pre-gate of the Train Manager (Boss approved that at 8:15 PM EST), so build it once and reuse it for both. Done: runs in 5 minutes or less, fails on a seeded example of each check, documented in lanes.md. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: Train Manager pre-gate, TEST.721, TEST.722.
+  Filed by the TODO thread.
+
+- [ ] **TEST.721 Stop committing generated files that conflict, or give them a merge step that regenerates them (docs/generated, stand-in-values.md, overview.json, stand-ins.json, the references files)**
+  Lane 03 (Gate) report /mnt/project-files/gate/gate-time-savings-2026-11-12.md (hours are its estimates, not measurements; about 5 to 6 of its 14 daily test hours re-prove things after a red), as the coordinator relayed Boss's question at 8:10 PM EST on 2026-11-11. Nine conflicts this week (5898, 6012, 5918, the 6003, 6004, 6006 and 6010 batch, 5889), each 1 to 2 hours of round trips: 5 to 9 lane hours a day. Do: for each generated file decide whether it is committed at all; for those that must be, add a regeneration step on merge (the merge tool or a .gitattributes merge driver that rebuilds the file) so two PRs never conflict on it, and make the pre-gate (TEST.720) fail only on a stale file with the fix command printed. Reuse the existing build scripts (build_todo_docs.py, build_global_docs.py). Done: two PRs that both touch a registry row merge with no hand edit of a generated file. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: none. Related: TEST.720.
+  Filed by the TODO thread.
+
+- [ ] **TEST.722 Re-run only the failed files after a fix, and pick tests from the changed modules with a stated time limit per PR (the rest left to the end-of-version run)**
+  Lane 03 (Gate) report /mnt/project-files/gate/gate-time-savings-2026-11-12.md (hours are its estimates, not measurements; about 5 to 6 of its 14 daily test hours re-prove things after a red), as the coordinator relayed Boss's question at 8:10 PM EST on 2026-11-11. Saves about 4 hours a day together: 5896 re-ran 468 tests to prove 2, and wide name globs cost hours (5889 at 2 h 22). Do: a gate command that reruns only the failed files and their direct dependents after a fix; test selection by the changed modules (scripts/test.py changed, the existing rule) with a per-PR limit of about 20 minutes. Reuse scripts/test.py changed --resume. Done: documented, and a PR with a fix to two tests reruns only those. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 03. Prerequisites: none. Related: TEST.720.
+  Filed by the TODO thread.
+
+- [ ] **TEST.723 Fail loudly when database tests are skipped for no MySQL login, and run a short smoke test of main after each merge**
+  Lane 03 (Gate) report /mnt/project-files/gate/gate-time-savings-2026-11-12.md (hours are its estimates, not measurements; about 5 to 6 of its 14 daily test hours re-prove things after a red), as the coordinator relayed Boss's question at 8:10 PM EST on 2026-11-11. Two cheap safeguards: (1) database tests skipped because MySQL refused the login or died must make the run red, not green (it happened on Lane 04's, Lane 06's and the gate machine, and PR 6055 came back with 317 skipped and was nearly reported green); (2) a short smoke run of main after each merge so a red main shows within an hour, not a day (five reds had to be fixed in PR 6017). Done: a skipped-for-login run exits non-zero; the smoke run is a documented command. Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 07. Prerequisites: none. Related: TEST.720.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
