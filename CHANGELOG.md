@@ -2,6 +2,71 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3961] - 2026-11-12
+
+**Headline:** The block light totals stage now writes to the job log while it works, so it can no longer go silent for hours.
+
+### Fixed
+- **Stage "Make the block light totals" printed nothing until it ended (bug).** Its phase lines were kept in a list and handed back only when the whole worker unit finished, so a long run looked hung. Each phase line now reaches the worker log and the unit's phase at once, with the seconds into the stage.
+- The job log gets a line every 30 seconds for as long as the stage runs (percent on the bar and time in), whatever the unit is doing.
+- Both parts are timed and named: part 1 (checking the parts and rolling up the levels) and part 2 (the uncharted sector rows). The roll-up and the uncharted index also say where they are every 30 seconds. Generated galaxies are unchanged.
+
+## [8.0.3960] - 2026-11-12
+
+**Headline:** The oxygen and neon in a white dwarf's core and the elements a polluted white dwarf takes from an accreted asteroid can now be worked out in one place; nothing reads them yet.
+
+### Changed
+
+- GEN.1370 (slice 0, N16 of the 8.1 real-material set): new `physics/white_dwarf_core.py`, pure. `central_oxygen` gives the central oxygen mass fraction of a carbon-oxygen white dwarf from its mass (the ten models of [R5238], linear between and held outside, kept inside the range two pulsating white dwarfs fit [R5239]); `neon22_fraction` gives the 22Ne from the carbon, nitrogen and oxygen of the progenitor's birth composition (0.0152 at the proto-solar mix); `core_fractions` gives the three central fractions, adding to 1. `pollutant` takes the stored materials of a belt body and returns its element mass fractions, the ratios to magnesium of the elements a white dwarf's spectrum shows (O, Mg, Si, Fe, Ca, Al, Ti, Cr, Mn, Ni, Na, K, S, C, P) and the class of the fragment: core-rich, crust-rich, volatile-rich or primitive [R1832]. Stand-ins WDC1 to WDC8 (tiers T2 to T6, tweak L0 and L1) are in section 6.286 of the gap-filling plan; the alloys, organics and six solid-solution minerals of the materials table that state no formula take the shares and end members of `tuning.py`.
+- Nothing in the generator reads it yet (wiring register): storing the core fractions in the white dwarf's layers and the pollutant in its pollution detail is the lock wiring of GEN.1370.
+
+generation-output: unchanged
+
+## [8.0.3959] - 2026-11-12
+
+**Headline:** The wiring register marks seven reference helpers by design and retires two duplicate helpers.
+
+### Changed
+- **Wiring triage, retire and by-design rows (GEN.1559).** `photometry.bolometric_correction_v` and `blackbody_colour` (the reference fits the sky and star colour are held to) and five `clathrate_brine` functions (the reference curves the tests hold the wired ones to) are marked by design in the wiring register, each with its reason. `comet_species.low_over_h2o` and `high_over_h2o`, one-line copies of `bracket_over_h2o`, are deleted; the register now names `bracket_over_h2o` for GEN.1021. Left for their owners: `planet_zones.flux_at` (asked of Lane 11) and `clearance_ledger.log_uniform_quantile` (belt birth, GEN.1068).
+generation-output: unchanged
+
+## [8.0.3958] - 2026-11-12
+
+**Headline:** The unused whole-job shell rate reader is retired; the per-unit ETA already does its job.
+
+### Changed
+- **PERF.147 closed on the reader side (GEN.1559).** `generation.stats.job_shells_per_second`, built to start the ETA of a task over 15 seconds, is deleted: the ETA now comes from `queue/taskprogress.py` and the per-command rates of `queue/unitrates.py`, and the stage times of `queue/runeta.py`, so nothing read the whole-job rate. The whole-job history row is still stored. Its register line is removed.
+generation-output: unchanged
+
+## [8.0.3957] - 2026-11-12
+
+**Headline:** Two oddity tests and the brown dwarf test now find their case by searching instead of naming the draw that had it.
+
+### Changed
+- **The dark-side air loss test (W19) and the second climate branch test (W20) search draw keys (TEST.714).** Each named one key (`w19-M3V-2`, `w20-G2V-10`) for a planet in a rare state: a locked M3V planet whose thin air the dark side takes, a G2V planet whose climate has a second branch. The W20 key was already replaced twice when the draws moved. Each now takes the first key of a bounded range that has the case and keeps its assertions, and names how many keys it tried when none does.
+- **The brown dwarf system helper in the dark light test keeps its six seeds and searches 200 more** if none of them draws a brown dwarf any more.
+
+generation-affects: none
+
+## [8.0.3956] - 2026-11-12
+
+**Headline:** A test of saving and reading back a planet's irregular moons no longer assumes its neighbouring planets hold none.
+
+### Changed
+
+- The stored-irregular-moons test compares each neighbouring planet with the irregular set the generator gave it before saving (none, or an empty set), instead of requiring none. Since GEN.1406 the sample system's outer planets hold an empty set and the test failed on main. Test only.
+
+generation-output: unchanged
+
+## [8.0.3955] - 2026-11-12
+
+**Headline:** The swept-disk mass-ledger test finds its system by searching seeds instead of naming the one that had it.
+
+### Changed
+- **`test_the_mass_an_outer_disk_lost_is_all_accounted_for_in_a_built_system` searches for its system (TEST.714).** It named seed 51 as the system whose outer disk a giant swept and handed on to an inner belt and to captured moons; any change to the draws behind a seed would move that away. It now takes the first seed from 1 to 120 whose system has exactly one such disk, with the same assertions, and fails naming how many seeds it tried when none has one.
+
+generation-affects: none
+
 ## [8.0.3954] - 2026-11-12
 
 **Headline:** A planet that caught small bodies now has a page listing its irregular moons and a page for each one, with its size, makeup, orbit and how it was caught.
