@@ -130,7 +130,7 @@ def test_a_sky_unit_that_loses_its_connection_says_why_on_the_new_one(monkeypatc
     from planetgen.db import connection_loss as loss
     said, calls = [], []
     monkeypatch.setattr(loss, "facts", lambda conn: facts(uptime=40 if calls else 5000))
-    monkeypatch.setattr(run_galaxy.log, "normal", said.append)
+    monkeypatch.setattr(run_galaxy.log, "warning", said.append)       # OPS.171: the explanation is a warning
     monkeypatch.setattr(store, "get_connection", lambda config=None, **options: a_store_connection(DeadConnection()))
     monkeypatch.setattr(run_galaxy, "_mysql_config_of", lambda args: None)
 
