@@ -296,7 +296,7 @@ DELIVERED_WATER_RICH_MAX = 0.5
 ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
-# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
+# it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock takes the albedo of its ground (`physics/ground_albedo`, rows GA1 to GA3); a body with surface water
 # (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
 # temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).

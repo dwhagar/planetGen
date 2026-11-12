@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1639 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1642 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1613 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1616 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -51,12 +51,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 153 | 61 | 1 | 1 | 0 | 216 |
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
 | T4 | 85 | 13 | 4 | 22 | 15 | 139 |
-| T5 | 90 | 24 | 6 | 1 | 1 | 122 |
-| T6 | 212 | 107 | 31 | 71 | 4 | 425 |
+| T5 | 90 | 25 | 6 | 1 | 1 | 123 |
+| T6 | 213 | 107 | 31 | 72 | 4 | 427 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 17 | 5 | 93 | 35 | 196 |
-| All | 951 | 315 | 80 | 237 | 56 | 1639 |
+| All | 952 | 316 | 80 | 238 | 56 | 1642 |
 
 ## How the labels were given
 
@@ -2877,3 +2877,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 | KT6 | P | T6 | L0 | star_pair_tides.ALIGN_FACTOR 1.0: the alignment time of the spin axis with the orbit normal is the synchronisation time | 0.3 to 3 | pairs whose tide reaches the star | a close binary whose spin-orbit angle is measured to survive the synchronisation time | the obliquity equations of the tidal theory [R5232] | [R5232]: the two relax on the same order | predicted only | - | - |
 | KT7 | P | T3 | L2 | star_pair_tides.APSIDAL_CONSTANT_SOLAR 0.03 with APSIDAL_CONSTANT_FULLY_CONVECTIVE, _MASSIVE and _GIANT: k2 of 0.14 for a fully convective star, 0.03 at 1 solar mass, 0.004 at 5 and over, 0.005 for a giant, log-interpolated in the mass | the four values | main-sequence stars and giants | a star whose measured apsidal motion constant is off by a factor of three | the constants of a stellar model of the star's mass and age [R5233] | observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14 | predicted only | - | - |
 | KT8 | P | T7 | L0 | a hierarchy is taken a pair node at a time, each star against the mass of the other side of its node; no third-body term enters the precession or the spin | none | triples where the outer orbit is much wider than the inner | a triple whose outer star changes the inner pair's apsidal motion by more than the pair's own | the Kozai and secular terms of GEN.1447 added to the apsidal rate | the pair node's own tide dominates by the sixth power of the axis ratio | predicted only | - | - |
+
+## 6.283 Stand-ins of the Bond albedo of a dry body's ground
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| GA1 | P | T5 | L1 | `ground_albedo.VISIBLE_TO_BOND` 1.0: the factor from the mean laboratory reflectance of the three visible bands to a Bond albedo (the conversion over the whole spectrum is an open gap) | 0.8 to 1.3 | a dry rocky ground (basalt powder 0.215) | a measured Bond albedo of an airless basalt surface outside 0.09 to 0.14 at 3 to 4.5 Gyr, or a measured fresh basalt outside 0.17 to 0.27 | the band-integrated Bond albedo of the table's spectra over the star's spectrum and the phase integral | the Moon's Bond albedo 0.11 and Mercury's 0.088 against 0.117 for the table's basalt after 3.5 Gyr at the middle of the weathering ranges; [R3425] for the table | predicted only | - | - |
+| GA2 | B | T6 | L0 | `ground_albedo.dry_ground_type`: a carbon rock is carbon, a body with a metal share of `surface_composition.RANGES["metal_stripped"]` (0.7) or more is metal (the stand-in ground albedo 0.15), else basalt, the ground the melt of an ordinary mantle makes | none (a rule) | a rocky body with no surface water, before its air and heat flow are solved | a dry airless body whose later drawn ground is mostly felsic, ultramafic or oxidised, which is brighter or darker than basalt | the dominant ground of the draw (`surface_composition.draw_surface`) made before the air, from the melt (`volcanic_ground_type`), once the heat flow is known earlier | the table of dominant grounds (`surface_composition.DOMINANT_TABLE`) and its gates | predicted only | - | - |
+| GA3 | P | T6 | L3 | `ground_albedo.weathered_albedo`: the fresh albedo times `1 - d (1 - exp(-t / tau_w))` with t the body's age, tau_w log-uniform 1 to 2 Gyr and d uniform 0.3 to 0.7, applied only to a body that ends with no air (the placeholders of the design note, `ground_albedo.TAU_W_GY`, `DEPTH`) | tau_w 0.5 to 4 Gyr; d 0.2 to 0.8 | an airless dry surface older than 0.5 Gyr | a measured spread of airless Bond albedos wider than 0.07 to 0.16 for basalt | a fit of the darkening to lunar and asteroid reflectance by age | the decay of the unweathered fraction [R4713]; the placeholders are not fitted; the Moon 0.11 and Mercury 0.088 sit inside the range they give | predicted only | - | no data |
