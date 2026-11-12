@@ -568,6 +568,7 @@ def fetch(dataset, *, opener=None, progress=None):
             _derive(dataset)
             changed = True
         except Exception as exc:  # a parser meeting an unexpected file must not stop an update
+            log.swallowed("datasets/fetch", "fetch", exc)
             return Result(dataset, "missing", (f"{dataset.key}: deriving its files failed ({type(exc).__name__}: {exc})",),
                           tuple(handled))
     return Result(dataset, "fetched" if changed else "present", (), tuple(handled))

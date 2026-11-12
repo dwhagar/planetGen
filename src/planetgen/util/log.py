@@ -1593,6 +1593,15 @@ def error(message, *args, stderr=False, **kwargs):
     _logger.error(message, *args, **kwargs)
 
 
+def swallowed(area, what, exc):
+    """
+    Notes an error that a broad `except` deliberately goes on past (OPS.168): one debug line (`area`, `what` it was doing, the exception's type and text) and nothing at normal level, so
+    a run with debugging on is no longer blind where the code chooses to degrade. It never raises.
+    """
+    if _logger.isEnabledFor(logging.DEBUG):
+        _logger.debug(f"{area}: went on past {what}: {type(exc).__name__}: {exc}", stacklevel=2)
+
+
 _degraded_said = {}
 """dict: When `degraded` last warned for each `(area, what)`, on the monotonic clock."""
 
