@@ -3147,6 +3147,7 @@ rogue_planets = sa.Table(
     sa.Column('ocean_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('land_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('ice_cover_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('shape_temperature_k', mysql.DOUBLE(), nullable=True),
     sa.Column('ice_shell_km', mysql.DOUBLE(), nullable=True),
     sa.Column('ocean_class', sa.String(16), nullable=True),
     sa.Column('ocean_ph', mysql.DOUBLE(), nullable=True),

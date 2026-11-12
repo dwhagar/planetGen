@@ -919,7 +919,7 @@ TABLES = {
         "flag": ("has_internal_heat", "has_liquid_water"),
         "Gyr": ("age_gy", "galactic_orbital_period_gy"),
         "W_m2": ("internal_heat_flux_w_m2", "energy_flux_w_m2"),
-        "K": ("effective_temperature_k", "surface_temperature_k"),
+        "K": ("effective_temperature_k", "shape_temperature_k", "surface_temperature_k"),
         "Pa": ("surface_pressure_pa", "yield_strength_pa"),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years", "ring_age_yr"),
