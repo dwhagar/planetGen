@@ -207,6 +207,7 @@ class Planet(PlanetaryObject):
 
     _deferred_climate = None
     """tuple or None: `(moon_count, distance_override)` of a body built with `defer_climate` whose air and moons `finish_climate` still owes (GEN.1282)."""
+    _motion_done = False
 
     SERIALIZABLE_FIELDS = [
         "is_moon", "zone", "atm_molar_density", "gravity",
@@ -494,18 +495,31 @@ class Planet(PlanetaryObject):
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count)
 
+    def finish_motion(self):
+        """
+        Gives a body built with `defer_climate` its position, velocity and age drawn (GEN.1548), which need only its mass and orbit, so the planets' own
+        orbit work (secular exchange, resonant chains) can run before any air is made. A body that is not deferred, or is done, does nothing.
+        """
+        if self._deferred_climate is None or self._motion_done:
+            return
+        self._motion_done = True
+        planetPhysics.generate_orbital_motion_properties(self, self.primary_mass_kg)
+        self._age_drawn = self.star.age
+
     def finish_climate(self):
         """
-        Makes the air, the class, the motion and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now.
-        Called by `StarSystem.validate_system` once the spacing has settled the orbits; a body that is not deferred does nothing.
+        Makes the air, the class and the moons of a body built with `defer_climate` (GEN.1282), at the distance it has now (and its motion first, if
+        `finish_motion` has not). Called by `StarSystem._settle_to_final_age` once the planets' orbit work is done; a body that is not deferred does nothing.
         """
         if self._deferred_climate is None:
             return
+        self.finish_motion()
         moon_count, distance_override = self._deferred_climate
         self._deferred_climate = None
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)
         planetPhysics.apply_class(self)
-        self._finish_motion_and_moons(self.primary_mass_kg, moon_count)
+        if moon_count != DEFER_MOONS:
+            self.add_moons(moon_count)
 
     def add_moons(self, moon_count=None):
         """

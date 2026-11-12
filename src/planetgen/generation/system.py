@@ -2260,7 +2260,15 @@ class StarSystem:
         habitable world, belt and class are judged, so they are judged on the finished classes.
         """
         with log.timed_phase("settle pass"):
+            for obj in self.all_planets:    # GEN.1548: a body built bare has its position and velocity now, for the planets' pull on each other
+                if obj.body_type != 'a':
+                    obj.finish_motion()
             self._secular_exchange()    # GEN.1450: the planets' pull on each other, before the tide wears an eccentricity down
+            # GEN.1548: the planets' own orbit work is done (spacing, trims, secular exchange); the air, class and moons of the bodies built bare (GEN.1282) are made now
+            # on the orbit they will keep, so the air is made once
+            for obj in self.all_planets:
+                if obj.body_type != 'a':
+                    obj.finish_climate()
             self._kozai_pumping()       # GEN.1447: the star's pull on each moon, before the tide wears an eccentricity down
             self._give_belts_their_planets()    # GEN.1492: the apsidal rate of the planets beside each belt, which dilutes a companion star's forcing of its members
             # GEN.1049: the planets' places in a resonant chain (oddity W5) are known once the orbits are final
@@ -2521,9 +2529,6 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
-        for body in planets:   # GEN.1282: the planets built without their climate get it at the distance the spacing left them
-            if body.body_type != 'a':
-                body.finish_climate()
 
     def _reconcile_moved_planet(self, planet):
         """
