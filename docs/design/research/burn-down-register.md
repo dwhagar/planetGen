@@ -93,6 +93,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA9 | replaced | - | GEN.946 (2026-11-11): lowered to L2; the extra metallicity exponent 2.2 is 3.4 - 1.2 from the two read exponents [R2172, R3499], the period ceiling 10 d is the read hot-Jupiter edge, and the share is tuned to the read 0.62 and 0.27 percent [R1504, R4897]; no hand tuning remains |
 | 6.36:PA10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of [R0960, R1479]; no survey measures the migration |
 | 6.36:PA11 | no data | - | [R4271] (read) give the planet counts per log mass ratio beyond the snow line down to their sensitivity edge but no floor below it; the lightest oligarch that counts stays tuned to those counts; tier T5, tweak L3 stay |
+| 6.36:PA16 | no data | - | L3, the terrestrial-zone solids boost of 4 and its start at 0.45 AU were tuned to [R0572] 0.37 to 0.60 Earth-sized planets per Sun-like star in the habitable zone (with PA17); no disk-evolution or pebble-flux model of the zone is in hand |
+| 6.36:PA17 | no data | - | L3, the giant-impact spacing of 25 mutual Hill radii and its end at 3 AU were tuned to [R0572] with PA16; no N-body run of the zone's oligarchs is in hand |
 | 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
 | 6.40:RD1 | no data | - | no atmosphere of a runaway-greenhouse planet has been measured; TRAPPIST-1 b and c only forbid keeping all of it |
 | 6.40:RD2 | no data | - | no abiotic oxygen air has been detected or ruled out on an M-dwarf habitable-zone planet; Luger and Barnes fix only the possible amount |
@@ -187,6 +189,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.185:BPO2 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the resonant eccentricity range stands until a self-stirring or capture model gives it |
 | 6.185:BPO3 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the crossing perihelion range stands until a self-stirring or capture model gives it |
 | 6.185:BPO4 | no data | - | no survey of another star's outer disk gives the orbits of its populations; the detached perihelion range stands until a self-stirring or capture model gives it |
+| 6.183:DM1 | no data | - | no survey of other worlds gives the spread of regional temperature among bodies of one class; the 5 K shoulder is half the shoulder of the mean temperature (CF3) and fades the Earth-like extremes of the families design |
+| 6.183:DM2 | no data | - | no observed world fixes how sharply the 15, 25 and 31 C wet-bulb lines bind a species; the 3 C shoulder is read against the uncompensable limit of 31 C in `species_limits` |
+| 6.183:DM3 | no data | - | no class reads a humidity edge yet, so there is nothing to measure the 0.1 shoulder against; it waits for GEN.1207 |
 | 6.183:DM5 | no data | - | the edges of classes M, H, O, P and R are the plan's reading of the class definitions; no survey of other worlds fits them, so they stay as fitted to the finished bodies (reports/class-fit-shadow-2026-10-31.md) |
 | 6.183:DM6 | no data | - | no observed hot thin-air world fixes the box of class Z; the edges are the gap in the class table, filled and checked by the shadow sweep |
 | 6.183:DM7 | no data | - | no observed methane-ethane or sulfuric-acid world is in hand beyond Titan and Venus; the ranges of U and Y are read from those two and widened |
