@@ -22,7 +22,7 @@ release is stamped.
 | API | API.48 |
 | ADM | ADM.154 |
 | SEC | SEC.48 |
-| TEST | TEST.727 |
+| TEST | TEST.728 |
 | USR | USR.33 |
 | OPS | OPS.148 |
 | DOC | DOC.120 |
@@ -2159,7 +2159,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1361 | Volatility depletion law for the moderately volatile elements by 50 percent condensation temperature and formation distance | GEN.1360 | done, PR #5688 |
 | GEN.1362 | Mantle oxides complete: Na2O, K2O, TiO2, Cr2O3, MnO, NiO and P2O5 in rock_oxides and the stored mantle, so the norm has albite, orthoclase, ilmenite, apatite and chromite and the alkali-silica bands use the alkalis (the blocker for GEN.474) | GEN.1360, GEN.1361, GEN.1355 | done, PR #5688 |
 | GEN.1363 | Disc condensation with CO, CO2, N2, H2S, Ar/Kr/Xe clathrate and ammonium salts, and the carbon split between refractory, CO, CO2 and CH4, feeding ice shares and giant C/O | GEN.1359, GEN.1022 | done, PR #5697 |
-| GEN.1364 | Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input | GEN.1360, GEN.1361 | open |
+| GEN.1364 | Core composition split: Fe-Ni, S, Si, O, C and H with a redox and pressure tie, eutectic melting, inner-core growth and the compositional dynamo input | GEN.1360, GEN.1361 | done, Train 18 (migration 0231, physics/core_composition.py) |
 | GEN.1365 | Mantle water and carbon reservoirs: hydrous wadsleyite and ringwoodite, brucite, phase A, carbonates, and diamond or graphite by redox | GEN.1362, GEN.1355 | done, PR #5697 |
 | GEN.1366 | Evaporite and salt sequence from the GEN.1319 brine: calcite, gypsum and anhydrite, halite, sylvite, carnallite, epsomite, kieserite, perchlorate and natrite, replacing the placeholder recipe | GEN.1357 | done, PR #5697 |
 | GEN.1367 | Phosphorus budget: stellar P to crustal apatite, schreibersite and merrillite to ocean phosphate by weathering and redox, replacing the high, limited and starved label | GEN.1360, GEN.1362, GEN.1366 | done, PR #5697 |
@@ -4599,6 +4599,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.724 | Cut gate flakes: each shard machine gets its own Redis database and MySQL prefix, at most 3 test workers with nothing else running, and the rare unseeded failures go on scripts/data/known_reds.json | none | open |
 | TEST.725 | Output-changing fixes found in a train gate ride the next train (unless they crash, lose data or change a visible page), with a known-issue line in the train PR and in the merge message, a cap near 1 percent of draws, and the fix first in the next train | none | open |
 | TEST.726 | Earth analog as a standing script: report the class shares (M, O, F), median surface temperature, nitrogen and CO2 of an exact Earth analog each train, so a regression shows before a census does | none | open |
+| TEST.727 | (bug) test_forced_star::test_a_subdwarf_is_an_old_metal_poor_star fails by draw on main: about 5 percent of forced K5VI draws come out classed V at about 4,400 K, and the test takes 10 draws | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
