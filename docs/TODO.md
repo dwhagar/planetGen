@@ -13354,6 +13354,7 @@ clears each one.
   Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
   Boss, 3:00 PM EST on 2026-11-12: build it and ship it, as a full dynamic queue chain (OPS.161); the three defaults confirmed at 2:57 PM EST.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
+  Logging review item 9 (finding M4, /mnt/project-files/reports/logging-review-2026-11-12.md) folded in here: the stage finish record carries peak and average memory and CPU per stage and unit, taken with memwatch.PeakTracker.
   Boss, 3:04 PM EST on 2026-11-12: "Every stage and part of every job should be logged for time, memory, and CPU usage peek and average for each". So every stage and every part (unit, item batch) of every job records time, memory and CPU, each as peak and average, in the log and in the stored profile.
   Filed by the TODO thread.
 
@@ -13410,6 +13411,81 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: OPS.155, PERF.260. Related: OPS.122, OPS.123, OPS.156, OPS.157, PERF.261.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread. Top priority (Boss: build it and ship it).
+
+- [ ] **OPS.162 Failed units reach error.log with run id, stage, unit, kind and traceback (unit_failed)**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H1). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.163 Run-failure line names the cause and stage; a cancel logs as notice, not error (wrapper.py)**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H2). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.164 After-commit callback failures logged with traceback and the callback's name (store.py)**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H3). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.165 log.degraded helper (rate-limited warning) used at every silent Redis fallback**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H4). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.166 update.sh keeps the reason: Apache config test, systemctl restart and reload, Redis install and enable output shown under the warning**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H5). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.167 Warnings at the right level: the eight 'Warning:' INFO lines, lost connection, retry and final-retry levels**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H6, M5 (levels)). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.168 log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M1). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.169 One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M3). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: OPS.170, OPS.172.
+  Filed by the TODO thread.
+
+- [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
+  Filed by the TODO thread.
+
+- [ ] **OPS.171 connection_loss.explain on every lost-connection retry**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M5). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
+  Filed by the TODO thread.
+
+- [ ] **OPS.172 Per-sector saved line moves to debug, with a roll-up through the progress ticker**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M6). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169. Related: OPS.169.
+  Filed by the TODO thread.
+
+- [ ] **OPS.173 Log reformat part 1: a Message text section in the logging standard, logrecord.duration_text, and a TEST.183 message-text scan with an allow list of what is not yet converted**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat). Lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: none. Related: OPS.174, OPS.175, OPS.176.
+  Filed by the TODO thread.
+
+- [ ] **OPS.174 Log reformat part 2: queue/ and generation/run_* lines converted to the style, with ids as fields**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
+
+- [ ] **OPS.175 Log reformat part 3: generation/ (other), physics/, galaxy/ and db/ lines, plus the debug efficiency fix (log.choice, % arguments)**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, L1). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
+
+- [ ] **OPS.176 Log reformat part 4: cli/, web/, api/ and admin/ lines, and the TEST.183 allow list emptied**
+  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding reformat, M7). Lock-free. Touches many files: own branch, merge quickly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
+  Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
