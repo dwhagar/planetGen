@@ -13336,6 +13336,11 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: GEN.1643. Related: GEN.1150, GEN.1151.
   Filed by the TODO thread.
 
+- [ ] **GEN.1648 Planets around a black hole with no accretion disk: 18 of 40 seeds carry planets (up to 7), while a test and its comment say the snow-line physics leaves none; decide from physics which is right**
+  Lane 04 (as the lane reported 9:51 AM EST on 2026-11-12), from TEST.714: test_star_system_anchored_by_black_hole_defaults_to_no_planets pins seed 0 and its comment says a remnant with no light collapses planets to zero, but across 40 seeds 18 disk-less black holes carry planets (up to 7, seed 12). Do: a short decision note from physics (planets that survive or re-form around a stellar black hole from a fallback disk or capture, against what the architecture does); then either the generator stops leaking planets there or the test and comment are corrected to the physics. Lock-free note first; any generator change is a lock item. Physics drives (Boss, 10-30).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14 when free. Prerequisites: none. Related: TEST.714.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
