@@ -2,7 +2,7 @@
 <html lang="en">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>01 Gas table: thermodynamics, phase data, vapor pressure curves, real-gas and mixture formulas - planetGen docs</title>
+<title>01 Gas table: thermodynamics, phase data, vapour pressure curves, real-gas and mixture formulas - planetGen docs</title>
 <meta name="description" content="Part 01 of the v9.0 atmosphere and composition notes (research worker output; the repository was not edited).">
 <style>
 :root{--bg:#F3F5F8;--surface:#fff;--sunk:#E9EDF3;--ink:#152030;--muted:#566275;--line:#D8DEE7;--link:#1F5FA8;--code:#EEF1F6}
@@ -43,13 +43,13 @@ main{padding:16px 16px 60px}}
 <div class="layout">
 <nav id="nav" data-root="../../../" data-here="design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.html"><a href="../../../index.html">Site index</a></nav>
 <main>
-<h1 id="01-gas-table-thermodynamics-phase-data-vapor-pressure-curves-real-gas-and-mixture-formulas">01 Gas table: thermodynamics, phase data, vapor pressure curves, real-gas and mixture formulas</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md</p><details class="toc"><summary>On this page (25 headings)</summary><ul><li style="margin-left:0px"><a href="#0-provenance-and-which-domains-worked">0. Provenance and which domains worked</a></li><li style="margin-left:0px"><a href="#1-scope-and-generator-feed">1. Scope and generator feed</a></li><li style="margin-left:0px"><a href="#2-t1-identity-mass-flags-photolysis-threshold">2. T1: identity, mass, flags, photolysis threshold</a></li><li style="margin-left:0px"><a href="#3-t2-phase-points-and-critical-constants">3. T2: phase points and critical constants</a></li><li style="margin-left:0px"><a href="#4-t3-heat-capacity-gamma-enthalpies">4. T3: heat capacity, gamma, enthalpies</a></li><li style="margin-left:0px"><a href="#5-extras-refractory-and-hot-atmosphere-species">5. Extras: refractory and hot-atmosphere species</a></li><li style="margin-left:0px"><a href="#6-saturation-vapor-pressure-correlations">6. Saturation vapor pressure correlations</a></li><li style="margin-left:14px"><a href="#61-t4-best-published-correlation-per-species-tested-against-tb-and-tt">6.1 T4: best published correlation per species, tested against Tb and Tt</a></li><li style="margin-left:14px"><a href="#62-t5-wagner-fits-to-nist-eos-saturation-tables-liquid-branch">6.2 T5: Wagner fits to NIST EOS saturation tables (liquid branch)</a></li><li style="margin-left:14px"><a href="#63-t6-nasa-polynomial-equilibrium-vapor-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapor pressure (metals, salts, TiO, sulfur, H2SO4)</a></li><li style="margin-left:0px"><a href="#7-replacement-for-the-two-point-condensation_k-rows">7. Replacement for the two-point CONDENSATION_K rows</a></li><li style="margin-left:14px"><a href="#71-recipe">7.1 Recipe</a></li><li style="margin-left:14px"><a href="#72-t9-r1445-sublimation-polynomials">7.2 T9: [R1445] sublimation polynomials</a></li><li style="margin-left:14px"><a href="#73-t10-laboratory-curves-versus-f-and-s-at-low-temperature">7.3 T10: laboratory curves versus F and S at low temperature</a></li><li style="margin-left:14px"><a href="#74-new-entries-nh3-h2s-nh4sh-hcn-c2h6-h2so4">7.4 New entries: NH3, H2S, NH4SH, HCN, C2H6, H2SO4</a></li><li style="margin-left:14px"><a href="#75-t8-old-two-point-rows-against-the-checked-curves">7.5 T8: old two-point rows against the checked curves</a></li><li style="margin-left:0px"><a href="#8-henry-constants">8. Henry constants</a></li><li style="margin-left:0px"><a href="#9-viscosity">9. Viscosity</a></li><li style="margin-left:0px"><a href="#10-ideal-versus-real-gas">10. Ideal versus real gas</a></li><li style="margin-left:0px"><a href="#11-formulas-for-the-generator">11. Formulas for the generator</a></li><li style="margin-left:0px"><a href="#12-test-case-table">12. Test-case table</a></li><li style="margin-left:0px"><a href="#13-boss-must-research">13. Boss must research</a></li><li style="margin-left:0px"><a href="#14-recalled--to-verify">14. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#15-row-counts-by-status">15. Row counts by status</a></li><li style="margin-left:0px"><a href="#16-cross-links">16. Cross-links</a></li></ul></details>
+<h1 id="01-gas-table-thermodynamics-phase-data-vapour-pressure-curves-real-gas-and-mixture-formulas">01 Gas table: thermodynamics, phase data, vapour pressure curves, real-gas and mixture formulas</h1><p class="meta">docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md</p><details class="toc"><summary>On this page (25 headings)</summary><ul><li style="margin-left:0px"><a href="#0-provenance-and-which-domains-worked">0. Provenance and which domains worked</a></li><li style="margin-left:0px"><a href="#1-scope-and-generator-feed">1. Scope and generator feed</a></li><li style="margin-left:0px"><a href="#2-t1-identity-mass-flags-photolysis-threshold">2. T1: identity, mass, flags, photolysis threshold</a></li><li style="margin-left:0px"><a href="#3-t2-phase-points-and-critical-constants">3. T2: phase points and critical constants</a></li><li style="margin-left:0px"><a href="#4-t3-heat-capacity-gamma-enthalpies">4. T3: heat capacity, gamma, enthalpies</a></li><li style="margin-left:0px"><a href="#5-extras-refractory-and-hot-atmosphere-species">5. Extras: refractory and hot-atmosphere species</a></li><li style="margin-left:0px"><a href="#6-saturation-vapour-pressure-correlations">6. Saturation vapour pressure correlations</a></li><li style="margin-left:14px"><a href="#61-t4-best-published-correlation-per-species-tested-against-tb-and-tt">6.1 T4: best published correlation per species, tested against Tb and Tt</a></li><li style="margin-left:14px"><a href="#62-t5-wagner-fits-to-nist-eos-saturation-tables-liquid-branch">6.2 T5: Wagner fits to NIST EOS saturation tables (liquid branch)</a></li><li style="margin-left:14px"><a href="#63-t6-nasa-polynomial-equilibrium-vapour-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapour pressure (metals, salts, TiO, sulfur, H2SO4)</a></li><li style="margin-left:0px"><a href="#7-replacement-for-the-two-point-condensation_k-rows">7. Replacement for the two-point CONDENSATION_K rows</a></li><li style="margin-left:14px"><a href="#71-recipe">7.1 Recipe</a></li><li style="margin-left:14px"><a href="#72-t9-r1445-sublimation-polynomials">7.2 T9: [R1445] sublimation polynomials</a></li><li style="margin-left:14px"><a href="#73-t10-laboratory-curves-versus-f-and-s-at-low-temperature">7.3 T10: laboratory curves versus F and S at low temperature</a></li><li style="margin-left:14px"><a href="#74-new-entries-nh3-h2s-nh4sh-hcn-c2h6-h2so4">7.4 New entries: NH3, H2S, NH4SH, HCN, C2H6, H2SO4</a></li><li style="margin-left:14px"><a href="#75-t8-old-two-point-rows-against-the-checked-curves">7.5 T8: old two-point rows against the checked curves</a></li><li style="margin-left:0px"><a href="#8-henry-constants">8. Henry constants</a></li><li style="margin-left:0px"><a href="#9-viscosity">9. Viscosity</a></li><li style="margin-left:0px"><a href="#10-ideal-versus-real-gas">10. Ideal versus real gas</a></li><li style="margin-left:0px"><a href="#11-formulas-for-the-generator">11. Formulas for the generator</a></li><li style="margin-left:0px"><a href="#12-test-case-table">12. Test-case table</a></li><li style="margin-left:0px"><a href="#13-boss-must-research">13. Boss must research</a></li><li style="margin-left:0px"><a href="#14-recalled--to-verify">14. Recalled / to verify</a></li><li style="margin-left:0px"><a href="#15-row-counts-by-status">15. Row counts by status</a></li><li style="margin-left:0px"><a href="#16-cross-links">16. Cross-links</a></li></ul></details>
 <p>Part 01 of the v9.0 atmosphere and composition notes (research worker output; the repository was not edited).</p>
 <h2 id="0-provenance-and-which-domains-worked">0. Provenance and which domains worked</h2>
-<p>Worked: export.arxiv.org PDFs ([R2711], 2309.05078 [R1708], astro-ph/0511136 [R4562], 2410.11138 [R2732], 1312.3750 [R1516]; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov ([R0418] (PSS 244, 105863, [R0418]; NASA NTRS record dated 2025), equilibrium vapor pressures of NH<sub>3</sub> and O<sub>2</sub> ices). Refused or not reached: ScienceDirect [R1445], NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.</p>
+<p>Worked: export.arxiv.org PDFs ([R2711], 2309.05078 [R1708], astro-ph/0511136 [R4562], 2410.11138 [R2732], 1312.3750 [R1516]; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov ([R0418] (PSS 244, 105863, [R0418]; NASA NTRS record dated 2025), equilibrium vapour pressures of NH<sub>3</sub> and O<sub>2</sub> ices). Refused or not reached: ScienceDirect [R1445], NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.</p>
 <p>Cp tags: J JANAF 1998 (chemicals), N NASA-7 (cantera), S Shomate, f NIST fluid at 1e-4 MPa, x NASA-7 extrapolated below its 200 K range (unreliable), C computed 5R/2, P Poling polynomial. Phase-point tags: h heos_constants (EOS values), e NIST EOS table, n NIST WebBook median, y Yaws, c CRC; &quot;sub&quot; marks a sublimation point at 101325 Pa. Row counts by label are in section 15.</p>
 <h2 id="1-scope-and-generator-feed">1. Scope and generator feed</h2>
-<p>Input: species, T, total pressure P, partial pressures. Output: molar mass, saturation pressure or condensation temperature, ideal and real density, Cp and gamma, scale height, Henry solubility, viscosity and flags (condenses, absorbs IR, photolysed). The species are the 72 gases of T1 plus the extras of section 5. Section 7 replaces the two-point rows of <code>CONDENSATION_K</code> in <code>src/planetgen/physics/atmosphere.py</code> (lines 77 to 84; <code>vapor_pressure_kpa</code>, line 137, interpolates ln P between the temperature at 100 kPa and at 0.001 kPa). Solar System bodies appear only as labelled test points (section 12).</p>
+<p>Input: species, T, total pressure P, partial pressures. Output: molar mass, saturation pressure or condensation temperature, ideal and real density, Cp and gamma, scale height, Henry solubility, viscosity and flags (condenses, absorbs IR, photolysed). The species are the 72 gases of T1 plus the extras of section 5. Section 7 replaces the two-point rows of <code>CONDENSATION_K</code> in <code>src/planetgen/physics/atmosphere.py</code> (lines 77 to 84; <code>vapour_pressure_kpa</code>, line 137, interpolates ln P between the temperature at 100 kPa and at 0.001 kPa). Solar System bodies appear only as labelled test points (section 12).</p>
 <p>Flags (defined here, not sourced): IR column: monatomic none, homonuclear diatomics CIA only (collision-induced absorption), all others IR (greenhouse candidate; strengths are in the infrared part). Volatility class from the normal boiling or sublimation point: UV below 30 K, SV 30 to 150 K, V 150 to 350 K, SmV 350 to 1000 K, Ref above 1000 K; &quot;condensible&quot; on a body when the class is SV or V and x_i P exceeds the saturation curve. NUV = Y when the thermodynamic photolysis threshold is at or beyond 300 nm. This is a necessary condition only (threshold = lowest bond-energy channel from NASA enthalpies, lambda_nm = 119626.565 / dH in kJ/mol); H<sub>2</sub>, CH<sub>4</sub> and H<sub>2</sub>O have long thresholds but absorb only in the vacuum UV. True fragility needs cross sections (part 03).</p>
 <h2 id="2-t1-identity-mass-flags-photolysis-threshold">2. T1: identity, mass, flags, photolysis threshold</h2>
 <p>M (g/mol) is COMPUTED from periodictable 2.1.0 element masses (isotope masses for 3He, HD, HDO). CAS from NIST WebBook (DATA). Threshold: nm and products of the lowest channel (cantera nasa_gas.yaml enthalpies), COMPUTED.</p>
@@ -2350,7 +2350,7 @@ main{padding:16px 16px 60px}}
 <th>Cp 100</th>
 <th>Cp 300</th>
 <th>Cp 1000</th>
-<th>Phase or vapor data</th>
+<th>Phase or vapour data</th>
 <th>Status</th>
 </tr>
 </thead>
@@ -2787,11 +2787,57 @@ main{padding:16px 16px 60px}}
 <td>no phase data; free energy in species_thermo.py</td>
 <td>COMPUTED</td>
 </tr>
+<tr>
+<td>P</td>
+<td>30.974</td>
+<td>-</td>
+<td>20.79</td>
+<td>20.79</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PO</td>
+<td>46.973</td>
+<td>-</td>
+<td>31.76</td>
+<td>35.98</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PN</td>
+<td>44.981</td>
+<td>-</td>
+<td>29.71</td>
+<td>35.47</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PS</td>
+<td>63.034</td>
+<td>-</td>
+<td>35.26</td>
+<td>37.38</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
+<tr>
+<td>PH</td>
+<td>31.982</td>
+<td>-</td>
+<td>29.18</td>
+<td>33.10</td>
+<td>no phase data; free energy in species_thermo.py</td>
+<td>COMPUTED</td>
+</tr>
 </tbody>
 </table></div>
 <p>The last three rows (Cl, F, F<sub>2</sub>; GEN.1337) are the halogen atoms and fluorine that a hot outgassed gas holds once its hydrogen halides dissociate: <code>physics/gas_equilibrium.py</code> already carries their free energies, and a drawn mixture whose unlisted share was above the 1e-3 limit of <code>mixture_base.finish</code> failed with a MixtureError (about 1 in 240 G2V systems) until the table listed them. Cp is the NASA Glenn fit, as above.</p>
 <p>The four lithium rows (Li, LiH, LiOH, LiCl; GEN.1374) are the lithium gases of a brown dwarf's air: atomic Li down to 1520 K at 1 bar, then LiCl, with LiOH and LiH beside them ([R2731] section 1.5.5). Cp is the NASA Glenn fit, as above. The FeH and CrH rows above are no longer &quot;NOT REACHED&quot; for their free energy: <code>species_thermo</code> holds both since GEN.1374, made from atoms and the equilibrium constants of [R5162].</p>
-<h2 id="6-saturation-vapor-pressure-correlations">6. Saturation vapor pressure correlations</h2>
+<p>The five phosphorus rows (P, PO, PN, PS, PH; GEN.1512) are the phosphorus gases a hot giant holds: before them P2 and PH<sub>3</sub> were the only gases with phosphorus, both fitted only to 6000 K, so a giant hotter than that had no gas to put its phosphorus in. Atomic P is fitted to 20000 K in the NASA Glenn database [R2968], which is the one species that carries the element above 6000 K; PO, PN, PS and PH are fitted to 6000 K and hold the phosphorus between 1000 and 6000 K. Cp is the NASA Glenn fit, as above.</p>
+<h2 id="6-saturation-vapour-pressure-correlations">6. Saturation vapour pressure correlations</h2>
 <h3 id="61-t4-best-published-correlation-per-species-tested-against-tb-and-tt">6.1 T4: best published correlation per species, tested against Tb and Tt</h3>
 <p>All candidates in chemicals (NIST Antoine, Poling Antoine, Landolt-Bornstein Antoine, Perry DIPPR101, Alcock and Wagner forms) were evaluated at Tb and Tt; the table shows the best by error at Tb (solid fits penalised). Forms: A log10(P/bar) = a - b/(T + c); a log10(P/Pa) = a - b/(T + c); L ln(P/Pa) = a - b/(T + c); P ln(P/Pa) = a + b/T + c ln T + d T^e; suffix S = sublimation. Error columns: pressure error at Tb against 101325 Pa (percent, with the equivalent temperature shift) and at Tt against Pt. Several fits (Xe, K, Rn, NO<sub>2</sub>, N<sub>2</sub>O<sub>4</sub>, C<sub>4</sub>H<sub>2</sub>) sit at or beyond their published range at Tb and must not be used there; N<sub>2</sub>O<sub>4</sub> and NO<sub>2</sub> interconvert and the tabulated curve belongs to the mixture.</p>
 <div class="table"><table>
@@ -3687,8 +3733,8 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<h3 id="63-t6-nasa-polynomial-equilibrium-vapor-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapor pressure (metals, salts, TiO, sulfur, H<sub>2</sub>SO<sub>4</sub>)</h3>
-<p>P = exp(-dG/RT) x 1 bar for the condensed phase and gas from NASA-7 polynomials (cantera nasa_gas.yaml, nasa_condensed.yaml), COMPUTED from DATA. Columns: T (K) at 1 mPa, 1 Pa, 100 Pa, 10 kPa, 100 kPa; Tb (Yaws); fit ln(P/Pa) = a + b/T + c ln T with a, b, c, its range in K and its maximum fit error in percent. Check: the 100 kPa temperature agrees with Yaws Tb within 0.1 to 1.2% for Na, K, Ca, Mg and Fe and 3.0 to 3.5% for NaCl and KCl (100 versus 101.325 kPa explains up to 0.4%). The ideal-vapor assumption fails at high pressure: H<sub>2</sub>O is within 1% to 348 K, -4% at 423 K, -12% at 498 K and -25% at 572 K against the NIST table. S<sub>2</sub> is the S<sub>2</sub> partial pressure only; S<sub>8</sub> was computed to 100 Pa only.</p>
+<h3 id="63-t6-nasa-polynomial-equilibrium-vapour-pressure-metals-salts-tio-sulfur-h2so4">6.3 T6: NASA-polynomial equilibrium vapour pressure (metals, salts, TiO, sulfur, H<sub>2</sub>SO<sub>4</sub>)</h3>
+<p>P = exp(-dG/RT) x 1 bar for the condensed phase and gas from NASA-7 polynomials (cantera nasa_gas.yaml, nasa_condensed.yaml), COMPUTED from DATA. Columns: T (K) at 1 mPa, 1 Pa, 100 Pa, 10 kPa, 100 kPa; Tb (Yaws); fit ln(P/Pa) = a + b/T + c ln T with a, b, c, its range in K and its maximum fit error in percent. Check: the 100 kPa temperature agrees with Yaws Tb within 0.1 to 1.2% for Na, K, Ca, Mg and Fe and 3.0 to 3.5% for NaCl and KCl (100 versus 101.325 kPa explains up to 0.4%). The ideal-vapour assumption fails at high pressure: H<sub>2</sub>O is within 1% to 348 K, -4% at 423 K, -12% at 498 K and -25% at 572 K against the NIST table. S<sub>2</sub> is the S<sub>2</sub> partial pressure only; S<sub>8</sub> was computed to 100 Pa only.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -4521,7 +4567,7 @@ main{padding:16px 16px 60px}}
 </tr>
 </tbody>
 </table></div>
-<p>Columns give the checked condensation temperature (K) at each pressure; the H<sub>2</sub>SO<sub>4</sub> row is the NASA fit (the pure-acid K and L curve is 42 K warmer at 100 Pa, 442 K versus 400 K, and 71 K warmer at 100 kPa, 679 K versus 608 K; it is extrapolated far above the temperatures of the Venus aerosol layer). &quot;Max dev two-point&quot; is the largest temperature error between 1 mPa and 100 kPa of a two-point Clausius-Clapeyron interpolation anchored at this table's 100 kPa and 1 Pa temperatures (the form <code>vapor_pressure_kpa</code> uses): 0.2 to 2.3 K for H<sub>2</sub>, Ar, N<sub>2</sub>, O<sub>2</sub>, CO, CH<sub>4</sub>, H<sub>2</sub>S; 3.4 K for C<sub>2</sub>H<sub>6</sub>; 5.3 to 8.8 K for NH<sub>3</sub>, H<sub>2</sub>O, SO<sub>2</sub>, HCN, CO<sub>2</sub> and H<sub>2</sub>SO<sub>4</sub>. Corrected two-point anchors are enough for the first group and not for the second, which should use the composite curve.</p>
+<p>Columns give the checked condensation temperature (K) at each pressure; the H<sub>2</sub>SO<sub>4</sub> row is the NASA fit (the pure-acid K and L curve is 42 K warmer at 100 Pa, 442 K versus 400 K, and 71 K warmer at 100 kPa, 679 K versus 608 K; it is extrapolated far above the temperatures of the Venus aerosol layer). &quot;Max dev two-point&quot; is the largest temperature error between 1 mPa and 100 kPa of a two-point Clausius-Clapeyron interpolation anchored at this table's 100 kPa and 1 Pa temperatures (the form <code>vapour_pressure_kpa</code> uses): 0.2 to 2.3 K for H<sub>2</sub>, Ar, N<sub>2</sub>, O<sub>2</sub>, CO, CH<sub>4</sub>, H<sub>2</sub>S; 3.4 K for C<sub>2</sub>H<sub>6</sub>; 5.3 to 8.8 K for NH<sub>3</sub>, H<sub>2</sub>O, SO<sub>2</sub>, HCN, CO<sub>2</sub> and H<sub>2</sub>SO<sub>4</sub>. Corrected two-point anchors are enough for the first group and not for the second, which should use the composite curve.</p>
 <h3 id="75-t8-old-two-point-rows-against-the-checked-curves">7.5 T8: old two-point rows against the checked curves</h3>
 <p>Each cell: checked / project temperature (K) at that pressure; last column checked minus project at 1 Pa (the project's 0.001 kPa anchor). H<sub>2</sub>S in the project is a copy of the SO<sub>2</sub> row: 20 to 50 K warm. CO<sub>2</sub> project row is 0.6 to 7 K warm, worst at low pressure. N<sub>2</sub>, CO, Ar, O<sub>2</sub>, CH<sub>4</sub> are 0.7 to 5 K cold, worst at low pressure. SO<sub>2</sub> is 2 to 16 K cold. H<sub>2</sub>O is 3 to 6 K warm at 100 Pa to 10 kPa (its pressure low by 18 to 31% mid-range). NH<sub>3</sub>, C<sub>2</sub>H<sub>6</sub> have no project row.</p>
 <div class="table"><table>
@@ -5535,17 +5581,17 @@ main{padding:16px 16px 60px}}
 <h2 id="13-boss-must-research">13. Boss must research</h2>
 <ol>
 <li>[R1445] (Planet. Space Sci. 57, 2053): validity per polynomial, enthalpies, data. ScienceDirect refused; T9 rests on it.</li>
-<li>Solid H<sub>2</sub> vapor pressure (Woolley); HD, HDO, D2O, 3He, 4He vapor pressures.</li>
+<li>Solid H<sub>2</sub> vapour pressure (Woolley); HD, HDO, D2O, 3He, 4He vapour pressures.</li>
 <li>[R2137, R4166] (CO<sub>2</sub> sublimation and EOS; 0.5% spread at Tt).</li>
 <li>H<sub>2</sub>SO<sub>4</sub>-H2O: [R4289] W(T, pH2O), [R2895, R4877], and the [R0210] original. Venus cloud acid pressure depends on W by orders of magnitude.</li>
 <li>NH<sub>4</sub>SH constant, units and range; [R2726] abundances.</li>
 <li>Clathrate hydrate dissociation curves (NIST SRD 156 subscription only; Sloan and Koh; [R0779]).</li>
-<li>Perchlorates and carbonates: HClO<sub>4</sub> has no NIST data or Cp; the salts need decomposition and vapor data.</li>
+<li>Perchlorates and carbonates: HClO<sub>4</sub> has no NIST data or Cp; the salts need decomposition and vapour data.</li>
 <li>Ortho-para equilibrium H<sub>2</sub> Cp, 20 to 300 K (JANAF H<sub>2</sub>); Lobo-Ferreira data ranges (openknowledge.nau.edu/id/eprint/6246).</li>
 <li>Gibbs formation data for FeH, CrH, CaOH, VO, AlH (FastChem fits).</li>
 <li>Ideal-gas Cp for HC<sub>3</sub>N, HClO<sub>4</sub>, NH<sub>4</sub>Cl.</li>
-<li>Rn triple point and a better vapor curve (Poling Antoine is +9.5% at Tb).</li>
-<li>Vapor pressure for SiO, SiH<sub>4</sub>, SO, HNCO, C<sub>3</sub>O<sub>2</sub>, CN, S<sub>2</sub> (total sulfur vapor), SO<sub>3</sub> above 332 K; real critical constants for metals.</li>
+<li>Rn triple point and a better vapour curve (Poling Antoine is +9.5% at Tb).</li>
+<li>Vapour pressure for SiO, SiH<sub>4</sub>, SO, HNCO, C<sub>3</sub>O<sub>2</sub>, CN, S<sub>2</sub> (total sulfur vapour), SO<sub>3</sub> above 332 K; real critical constants for metals.</li>
 <li>Binary interaction parameters and tested mixing rules (H<sub>2</sub>-He, H<sub>2</sub>-CH4, CO<sub>2</sub>-N2, CO<sub>2</sub>-H2O).</li>
 <li>Photolysis channels, cross sections and yields for NUV-flagged species; diffusion coefficients (parts 03 and neighbours).</li>
 </ol>

@@ -77,7 +77,7 @@ from planetgen import tuning
 from planetgen.galaxy import resident_mass, component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import nebula_columns as nebulaColumns, oddities, phosphorus_budget
-from planetgen.physics import body_history, effect_ledger, isotope_record, ore_deposits
+from planetgen.physics import body_history, effect_ledger, isotope_record, light_ledger, ore_deposits
 from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, class_code, core_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, planet_type, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery, irregular_moons
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -1270,7 +1270,8 @@ class Connection:
             try:
                 callback()
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
-                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
+                name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
+                log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -1559,6 +1560,32 @@ def _schema_counts(conn, name):
     return {"sector_count": sectors, "system_count": systems}
 
 
+def _is_listed(base_config, name, prefix=None):
+    """
+    Whether `list_databases(base_config, prefix=prefix)` would offer schema `name`, asked with one query for the names and not the
+    listing's size query per schema (a request with `?db=` resolved its schema this way on every call, and each of the server's schemas
+    cost one `information_schema.tables` scan: 142 scans, 0.5 s a request, on a server with 147 test schemas; the pages that fetch a dozen
+    stages to draw one view took 20 s). The match is the listing's: the prefix, not the control schema, and the name exactly as written. The name
+    is compared here, not in SQL: a hostile `?db=` with a character the column's collation cannot mix would be a server error, and the server's
+    collation may fold case.
+    """
+    prefix = prefix or get_settings().mysql.database_prefix
+    conn = get_connection(
+        MySQLConfig(host=base_config.host, port=base_config.port,
+                    user=base_config.user, password=base_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ESCAPE '\\\\' AND schema_name <> ?",
+            (f"{escape_like(prefix)}%", configured_control_database()),
+        ).fetchall()
+        return any(row["name"] == name for row in rows)
+    finally:
+        conn.close()
+
+
 def resolve_database(base_config, name, prefix=None):
     """
     Validates a database name supplied by a caller (e.g. a web request's
@@ -1586,7 +1613,7 @@ def resolve_database(base_config, name, prefix=None):
     """
     if not name:
         raise ValueError("No database specified.")
-    if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+    if not _is_listed(base_config, name, prefix):
         raise ValueError(f"No such database: {name!r}")
     tables = _table_names(base_config, name)
     if "sectors" not in tables:
@@ -4740,6 +4767,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     with object_rows.logged_rows() as saved:
         star_system_id = _insert_star_system_rows(conn, star_system, system_config, sector_id=sector_id, position=position, location=location)
         insert_effect_ledger(conn, star_system_id, getattr(star_system, "effect_ledger", None), saved)
+        stamp_ledger(conn, [star_system_id])        # GEN.1498: its light and ultraviolet rows were just written by this code
         insert_body_history(conn, star_system_id, star_system, saved)
     return star_system_id
 
@@ -5349,13 +5377,66 @@ def stamp_habitability(conn, system_ids):
         conn (Connection): Part of the caller's transaction.
         system_ids (iterable): `star_systems` ids.
     """
-    stamp = derived_stamp.current("habitability")
+    _stamp_family(conn, "habitability", system_ids)
+
+
+def stamp_ledger(conn, system_ids):
+    """
+    GEN.1498: records that the light and ultraviolet rows of the effect ledger of the systems `system_ids` were written by the running code
+    (`derived_stamp.current("ledger")`), so `refill-effect-ledger` leaves them alone. Called where the rows are written for a whole system: the save
+    of a new one and `refresh_effect_ledger`.
+    """
+    _stamp_family(conn, "ledger", system_ids)
+
+
+def _stamp_family(conn, family, system_ids):
+    """Writes the running code's stamp of `family` into `system_summary` for the systems `system_ids`."""
+    column = derived_stamp.STAMP_COLUMNS[family]
+    stamp = derived_stamp.current(family)
     ids = sorted(set(system_ids))
     for start in range(0, len(ids), 1000):
         chunk = ids[start:start + 1000]
-        conn.execute("INSERT INTO system_summary (star_system_id, habitability_stamp) VALUES "
-                     + ", ".join("(?, ?)" for _ in chunk) + " ON DUPLICATE KEY UPDATE habitability_stamp = VALUES(habitability_stamp)",
+        conn.execute(f"INSERT INTO system_summary (star_system_id, {column}) VALUES "
+                     + ", ".join("(?, ?)" for _ in chunk) + f" ON DUPLICATE KEY UPDATE {column} = VALUES({column})",
                      tuple(value for system_id in chunk for value in (system_id, stamp)))
+
+
+def ledger_ids(system):
+    """`id(object)` to `(table, row id)` for the stars, planets and moons of a loaded `system`, the form `EffectLedger.rows` takes."""
+    ids = {}
+    for star in system.stars:
+        if getattr(star, "db_id", None) is not None:
+            ids[id(star)] = ("stars", star.db_id)
+    for planet in system.all_planets:
+        if getattr(planet, "db_id", None) is not None and getattr(planet, "body_type", None) != "a":
+            ids[id(planet)] = ("planets", planet.db_id)
+        for moon in getattr(planet, "moons", ()):
+            if getattr(moon, "db_id", None) is not None:
+                ids[id(moon)] = ("moons", moon.db_id)
+    return ids
+
+
+def refresh_effect_ledger(conn, system_id):
+    """
+    GEN.1498: writes again the light and ultraviolet rows of one stored system's effect ledger (`physics/light_ledger.py`) at the floor of the running code
+    (`tuning.EFFECT_LEDGER_FLOOR`) and stamps the system. The rows of the other effects (tide, heating, secular, precession, eccentricity) are not touched: only the code that wrote
+    them can say what they were. The distance a body's light is made on is worked out from its stored orbit (`light_ledger.stored_distance_au`), so a row may differ from the one
+    generation wrote in its last digits and never in its sources. Nothing but the ledger and its stamp is written.
+
+    Returns:
+        int: The rows written.
+    """
+    system = load_star_system(conn, system_id)
+    ledger = effect_ledger.EffectLedger()
+    light_ledger.fill(ledger, system.all_planets, lambda body, planet: light_ledger.stored_distance_au(body, None if body is planet else planet))
+    rows = ledger.rows(system_id, ledger_ids(system))
+    codes = tuple(effect_ledger.EFFECT_CODES[name] for name in light_ledger.EFFECT_NAMES)
+    conn.execute(f"DELETE FROM effect_ledger WHERE star_system_id = ? AND effect IN ({', '.join('?' for _ in codes)})", (system_id, *codes))
+    columns = effect_ledger.ROW_FIELDS
+    if rows:
+        conn.executemany(f"INSERT INTO effect_ledger ({', '.join(columns)}) VALUES ({', '.join('?' for _ in columns)})", [tuple(row[name] for name in columns) for row in rows])
+    stamp_ledger(conn, [system_id])
+    return len(rows)
 
 
 def refresh_habitability(conn, system_id):
@@ -7757,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()

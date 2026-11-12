@@ -34,6 +34,7 @@ import re
 from planetgen.galaxy.spherical import provisional_sector_designation
 from planetgen.galaxy import object_uid
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
+from planetgen.util import log
 
 CODEC_VERSION = 2
 """int: The codec's version; see the module docstring. 2: local names from the Object ID (GEN.1255)."""
@@ -191,6 +192,25 @@ def local_name_with_sector(uid, key):
     return f"{local_name(uid, key)}, sector {sector_text(uid)}"
 
 
+def scatter_identity(raw_uid):
+    """
+    The identity of a scatter row (a `bright_stars` or `phenomenon_scatter` row, GEN.1254) for a page (UX.259): its printed Object ID `uid`, its local name `local_name`, its birth sector `sector_text`
+    and the two together, `name_with_sector`, which is how a name that stands alone is written. A row with no Object ID (made before v213) gives an empty dict, and with no naming key in force the Object ID alone, so a
+    caller falls back to the name it wrote before.
+
+    Args:
+        raw_uid (bytes or None): The row's `uid` column.
+    """
+    if raw_uid is None:
+        return {}
+    uid = object_uid.from_bytes(raw_uid)
+    found = {"uid": object_uid.format_id(uid)}
+    key = active_key()
+    if key is not None:
+        found.update(local_name=local_name(uid, key), sector_text=sector_text(uid), name_with_sector=local_name_with_sector(uid, key))
+    return found
+
+
 def uid_of_local_name(name, sector, key):
     """
     The Object ID (an integer) a local name stands for in `sector`, under `key` (the inverse of `local_name`). `sector` is the birth
@@ -323,7 +343,8 @@ def uid_of_typed_name(typed, key=None):
     name, _comma, sector = typed.partition(",")
     try:
         return uid_of_local_name(name, sector, key)
-    except Exception:  # noqa: BLE001 -- the codec rejects what it can't read
+    except Exception as exc:  # noqa: BLE001 -- the codec rejects what it can't read
+        log.swallowed("names/naming_key", "uid_of_typed_name", exc)
         return None
 
 

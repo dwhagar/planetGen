@@ -338,7 +338,10 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=2e-3)       # a thin cold air's G of a few 1e-4 moves T by under 0.05 percent and cannot be read back from the stored haze closer than that
     assert bodies > 5
-    assert skipped <= max(1, bodies // 10)          # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them
+    # the unsettled airs are few: more would mean the fixed point stopped settling, not that the test cannot read them. The share is a property of the
+    # solver (a world near its boiling point swings between a cool air and a steam one, GEN.1344), not of one sample: over seeds 10 to 59 it is 10 of
+    # 132 airs on main and 8 of 129 on Train 24 (GEN.993), and a draw of ten seeds ranges from none to three of 28, so a tenth was a luck bound, a fifth is three times the share
+    assert skipped <= max(1, bodies // 5)
 
 
 def test_a_system_replays_to_the_same_air():

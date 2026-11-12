@@ -246,7 +246,8 @@ def population_status():
     if status is None:
         try:
             status = apiclient.get_population_status(db_name())
-        except Exception:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+        except Exception as exc:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+            log.swallowed("web/helpers", "population_status", exc)
             status = dict(apiclient.POPULATION_NONE)
         g.web_population = status
     return status

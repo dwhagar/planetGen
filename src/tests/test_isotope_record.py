@@ -171,6 +171,7 @@ def test_a_gas_giant_with_no_interior_content_has_primordial_argon_only(sun):
 
 def test_the_same_body_gets_the_same_record_and_the_run_stream_does_not_move(sun):
     planet = _planet(sun, seed=3)
+    ir.generate(planet)                    # the record of the draw is made before the magnetic field is (cosmogenic rows read the moment): settle it first, then compare two calls on the same finished body
     before = [dict(row) for row in planet.isotopes]
     with draw.bound("isotope-record:outer-a"):
         ir.generate(planet)

@@ -153,6 +153,10 @@ REGISTRY = _commands(
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
                 conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
+    CommandSpec("refill-effect-ledger", "Refill the effect ledger: one unit per run of ids",
+                unit=("planetgen.generation.run_plan", "refill_effect_ledger_unit"),
+                expand=("planetgen.generation.run_plan", "expand_refill_effect_ledger"),
+                unit_seconds=25),
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
                 unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
                 expand=("planetgen.generation.run_plan", "expand_clean_nebula_field"), whole=True),
@@ -350,7 +354,7 @@ def validate_order(steps):
 KIND_OF_STAGE = {
     "mass": "scatter-mass", "skeleton": "plan-skeleton", "phenomena": "scatter-phenomena",
     "luminosity": "scatter-luminosity", "backfill": "scatter-backfill", "band": "scatter-band",
-    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability",
+    "map-luminosity": "fill-map-luminosity", "habitability": "rescore-habitability", "ledger": "refill-effect-ledger",
     "nebula-field": "clean-nebula-field", "nebula-draw": "draw-nebula-field", "nebula-clear": "empty-nebula-field",
     "phenomena-clear": "empty-phenomenon-scatter", "phenomena-unindex": "drop-phenomenon-indexes",
     "mass-clear": "clear-bright-stars", "luminosity-clear": "clear-bright-stars", "start": "generate-start-sector",
@@ -467,7 +471,7 @@ def expand_function(kind):
 
 
 STAGED_COMMANDS = ("galaxy", "sectors", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
-                   "clean-nebula-field", "link", "backfill", "settle", "population", "territories")
+                   "refill-effect-ledger", "clean-nebula-field", "link", "backfill", "settle", "population", "territories")
 """tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
 
 

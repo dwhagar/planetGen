@@ -47,13 +47,13 @@ main{padding:16px 16px 60px}}
 <p>Status: plan (Boss said yes 4:27 PM EDT 2026-10-30; nothing built). Written 4:45 PM EDT 2026-10-30 as the lane reported. No generator code changed. Asked for by Boss (4:19 PM EDT 2026-10-30): evolve belts &quot;so we know exactly what is in them, are they planets&quot;, and start an idea to &quot;catalogue every single object in a star system individually with its own point of mass data&quot;. Companion: <code>reports/belt-root-cause-2026-10-30.md</code> (outside the repo) (what exists). Related: GEN.1014 (clearance ledger covers belts), GEN.1006, <code>systems/weird-worlds.md</code>, <code>docs/design/composition/small-bodies-composition.md</code> sections 13 and 14, <code>small-body-size-laws.md</code>.</p>
 <p>Evidence tags: [S] standard result, number as published as far as recalled; [R] recalled, <strong>no paper opened this session</strong> (web research was not run), so the building lane must read the source before the number is used; [REPO] read in the repo; [C] computed from repo values. Anything still [R] when built is registered in GEN.725 as a stand-in (T2 or T3, L0 to L1).</p>
 <h2 id="1-the-idea-in-one-paragraph">1. The idea in one paragraph</h2>
-<p>A belt is not a ring with a word; it is the <strong>surviving tail of a planetesimal population</strong> that the system's planets, star and age have acted on. Generate it as: (1) what formed, from the disk solids over its annulus; (2) a size distribution with a known top end; (3) the history that removes mass (collisional grinding, giant-planet clearing and resonances, early instability, drift, sweeping, star changes); (4) a <strong>ledger</strong>: the largest bodies kept as individual objects with their own mass, the rest as a population with a size law and a total mass. &quot;Is it a planet?&quot; then falls out of the IAU test applied to each ledger body.</p>
+<p>A belt is not a ring with a word; it is the <strong>surviving tail of a planetesimal population</strong> that the system's planets, star and age have acted on. Generate it as: (1) what formed, from the disc solids over its annulus; (2) a size distribution with a known top end; (3) the history that removes mass (collisional grinding, giant-planet clearing and resonances, early instability, drift, sweeping, star changes); (4) a <strong>ledger</strong>: the largest bodies kept as individual objects with their own mass, the rest as a population with a size law and a total mass. &quot;Is it a planet?&quot; then falls out of the IAU test applied to each ledger body.</p>
 <h2 id="2-physics-to-build-on">2. Physics to build on</h2>
 <h3 id="21-what-forms-and-where">2.1 What forms and where</h3>
 <ul>
 <li>Solids over the annulus: <code>planet_mass.solids_surface_density_gcm2</code> integrated (<code>belt_mass.primordial_mass_earth</code>) [REPO].</li>
-<li>Belts sit where growth stalled: inside the snow line at the giant's inner edge (a gap left by an oligarch chain whose next mass would exceed the isolation mass), at the snow line (pressure bump, [R2074] [R]), and beyond the last giant (the outer, Kuiper-type disk, [R1585] review [R]). The architecture (GEN.728) already holds the chain; a belt is a <strong>gap or an unfinished tail</strong> in it, not a 10 percent roll.</li>
-<li>Occurrence of cold debris disks by star type: [R4081] [REPO, GEN.787]. Keep it as the occurrence for the outer disk; the warm belt is the architecture's.</li>
+<li>Belts sit where growth stalled: inside the snow line at the giant's inner edge (a gap left by an oligarch chain whose next mass would exceed the isolation mass), at the snow line (pressure bump, [R2074] [R]), and beyond the last giant (the outer, Kuiper-type disc, [R1585] review [R]). The architecture (GEN.728) already holds the chain; a belt is a <strong>gap or an unfinished tail</strong> in it, not a 10 percent roll.</li>
+<li>Occurrence of cold debris discs by star type: [R4081] [REPO, GEN.787]. Keep it as the occurrence for the outer disc; the warm belt is the architecture's.</li>
 </ul>
 <h3 id="22-collisional-grinding-built-not-wired">2.2 Collisional grinding (built, not wired)</h3>
 <p>[R4785] [S, READ in repo]: <code>M(t) = M0 / (1 + t / tc)</code>, late mass independent of M0, <code>M_max ~ rho r^3.5 (dr/r) Dc / (M*^0.5 t)</code>. <code>belt_mass_earth</code> implements it. The size distribution in equilibrium is Dohnanyi <code>q = 11/6</code> cumulative for the strength-dominated tail [S], steeper (q about 4) for the gravity-dominated bodies above ~100 km ([R2108] [REPO table]). Grinding needs <code>Dc</code>, the largest body, which the ledger supplies.</p>
@@ -75,10 +75,10 @@ main{padding:16px 16px 60px}}
 <li>Main-sequence luminosity rise moves the snow line outward by <code>L^0.5</code> (the repo has <code>snow_line_au</code>); the composition of a belt is set at <strong>formation</strong>, so belts keep their formation snow-line position (store it), do not recompute from the present star.</li>
 <li>Giant branch: mass loss widens orbits by <code>M_form / M_now</code> (built for white dwarfs, <code>widen_for_mass_loss</code>). Add: an AGB/RGB star's luminosity drives Yarkovsky/YORP hard and ablates small bodies and melts ice [R]; a belt inside the engulfment or sublimation radius is lost partly, not whole (fix the inner-edge-only rule: keep the surviving outer part). Belts beyond a few AU survive and are <strong>destabilised</strong> by the sudden <code>M</code> drop: the resonance map moves, a share is scattered inward. The scattered share is what pollutes a white dwarf: 25 to 50 percent of white dwarfs show metals from accreted rock [S, [R4917], 2010; [R2415]], with accretion rates of 1e8 g/s typical [R]. The repo already has the <code>white-dwarf-pollution</code> row (multistar.py); link it to <strong>whether a belt or planet survives</strong> in the ledger.</li>
 <li>Binaries: a companion truncates a belt at about 1/3 of the periastron ([R1990] [REPO]); Kozai excitation of a belt by a distant companion; a circumbinary belt starts beyond the stability limit. Close-pair stars that merge or go through common envelope clear the belt (GEN.318 already removes planets there).</li>
-<li>Young star: debris-disk phase is stirred by self-stirring of Pluto-size bodies ([R2323], 2008 [R]): the <strong>number of dwarf planets</strong> a young belt holds follows from the size law's top end.</li>
+<li>Young star: debris-disc phase is stirred by self-stirring of Pluto-size bodies ([R2323], 2008 [R]): the <strong>number of dwarf planets</strong> a young belt holds follows from the size law's top end.</li>
 </ul>
 <h2 id="3-what-a-belt-is-made-of-the-ledger">3. What a belt is made of: the ledger</h2>
-<p>Three tiers per belt (and per outer disk). Sizes are in diameters; the cut is a <strong>mass cut</strong>, so it is the same rule for every system.</p>
+<p>Three tiers per belt (and per outer disc). Sizes are in diameters; the cut is a <strong>mass cut</strong>, so it is the same rule for every system.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -129,7 +129,7 @@ Status word: <code>planet</code>, <code>dwarf planet</code> (round, not cleared)
 <h2 id="4-evolving-a-belt-the-algorithm">4. Evolving a belt (the algorithm)</h2>
 <p>Order, per belt, once when the system is built (and again by the epoch step when a star changes):</p>
 <ol>
-<li><strong>Birth</strong>: annulus from the architecture's gap or tail; <code>M0</code> from disk solids; formation snow line stored.</li>
+<li><strong>Birth</strong>: annulus from the architecture's gap or tail; <code>M0</code> from disc solids; formation snow line stored.</li>
 <li><strong>Giant acts</strong>: list the giants' final and historic orbits; remove the chaotic zone of each giant at its <strong>formation</strong> and migration track; excite the rest (<code>e</code> up, mass down); mark resonance gaps for the present giants.</li>
 <li><strong>Early depletion</strong>: if the system had a giant instability (architecture event), multiply <code>M0</code> by a drawn survival (stand-in lognormal about 0.01 to 0.3, widest range until read: [R4603] [R], [R3681] [R]); record the fact.</li>
 <li><strong>Grind</strong>: <code>belt_mass_earth(M0, ..., age, Dc)</code>; top end from the order statistic.</li>
@@ -140,14 +140,14 @@ Because grinding is <code>1/t</code>, a stored <code>age</code> is enough to rep
 </ol>
 <h2 id="5-the-ledger-of-the-whole-system-the-idea-boss-asked-for">5. The ledger of the whole system (the idea Boss asked for)</h2>
 <ul>
-<li><strong>Everything has a mass.</strong> Star(s), planets, moons, rings (mass given by existing <code>draw_ring</code>), L1 bodies of every belt, comets above <code>M_L1</code> (a comet nucleus mass exists via <code>draw_comet</code>), the belt L3 tails as extended masses. A system view is then <code>sum(m_i) = M_total</code>, an N-body-ready table, and a <strong>barycenter</strong> that includes the belts (the Sun's barycenter wobble from the belts is a test).</li>
+<li><strong>Everything has a mass.</strong> Star(s), planets, moons, rings (mass given by existing <code>draw_ring</code>), L1 bodies of every belt, comets above <code>M_L1</code> (a comet nucleus mass exists via <code>draw_comet</code>), the belt L3 tails as extended masses. A system view is then <code>sum(m_i) = M_total</code>, an N-body-ready table, and a <strong>barycentre</strong> that includes the belts (the Sun's barycentre wobble from the belts is a test).</li>
 <li><strong>One list, one rule.</strong> A flat system table (<code>system_bodies</code>: id, parent id, kind, mass, radius, density, a, e, i, status, tier) with <code>kind</code> in star, planet, moon, belt-member, comet, ring, extended. Existing tables (<code>planets</code>, <code>moons</code>, <code>asteroid_belts</code>, <code>comets</code>) stay the typed store; the ledger is a view or a generated index (decision for the DB lane: view vs table; recommended: view first, no new storage).</li>
 <li><strong>Mass cut is the one rule</strong> for what is its own object; the IDs of L1 bodies are stable (derived from belt seed and rank). L2 bodies are addressable by <code>(belt id, rank)</code>, rebuilt, never stored; a <strong>generate anywhere</strong> (8.9) path asks the belt for rank k.</li>
 <li><strong>Where it plugs in</strong>: Mass-Object class (<code>mass_object.py</code>) already family-bases <code>SmallBody</code>; L1 members are <code>SmallBody</code>s with a parent link. GEN.1014 (clearance ledger) already needs &quot;which radii are occupied&quot;: the belt's gap map (resonance gaps, chaotic zones) is exactly a clearance entry; reuse it so planets are not placed into a belt's gap and belts into a planet's.</li>
 <li><strong>Map and pages</strong>: system map draws the belt as an annulus plus L1 dots at true orbits; a body page for each L1 object (status, mass, composition, history).</li>
 </ul>
 <h2 id="6-weird-world-hooks-for-the-weird-worlds-table-kept-separate">6. Weird-world hooks (for the weird-worlds table, kept separate)</h2>
-<p>Belt oddities this model makes possible without painting: a <strong>heavy belt that never accreted</strong> (a failed planet: a 5 Earth-mass belt at a gap, rare); <strong>rubble belt of a destroyed planet</strong> (collisional belt with one family composition, differentiated shards; Theia-like impactor remnants); <strong>white dwarf with an intact outer belt</strong> and ongoing pollution; <strong>double belt with a giant between</strong> (Epsilon Eridani-type, Su 2005 [R]); <strong>Trojan swarms</strong> (Jupiter Trojans outnumber the main belt above 10 km [R]); <strong>dwarf-planet-dominated belt</strong> (a belt whose mass is one Ceres, as ours is 1/3 Ceres); <strong>circumbinary belt</strong> beyond the stability limit; <strong>resonance-locked belt</strong> (Plutinos, Neptune 3:2); <strong>belt around a pulsar</strong> (the repo's pulsar planets already built from a disrupted disk). Feed the table with the trigger inputs listed above; no extra generator work.</p>
+<p>Belt oddities this model makes possible without painting: a <strong>heavy belt that never accreted</strong> (a failed planet: a 5 Earth-mass belt at a gap, rare); <strong>rubble belt of a destroyed planet</strong> (collisional belt with one family composition, differentiated shards; Theia-like impactor remnants); <strong>white dwarf with an intact outer belt</strong> and ongoing pollution; <strong>double belt with a giant between</strong> (Epsilon Eridani-type, Su 2005 [R]); <strong>Trojan swarms</strong> (Jupiter Trojans outnumber the main belt above 10 km [R]); <strong>dwarf-planet-dominated belt</strong> (a belt whose mass is one Ceres, as ours is 1/3 Ceres); <strong>circumbinary belt</strong> beyond the stability limit; <strong>resonance-locked belt</strong> (Plutinos, Neptune 3:2); <strong>belt around a pulsar</strong> (the repo's pulsar planets already built from a disrupted disc). Feed the table with the trigger inputs listed above; no extra generator work.</p>
 <h2 id="7-stand-ins-this-design-needs-register-in-gen725">7. Stand-ins this design needs (register in GEN.725)</h2>
 <p>Stand-in values to register when built: <code>M_L1</code> and <code>M_L2</code> cuts; the early-depletion survival lognormal; the Yarkovsky size-cut coefficient (until the da/dt law is read and calibrated, tier T2, tweak L1); the instability depletion fraction; the dwarf-planet roundness masses by composition; the Soter mu thresholds if a word cut is used. All carry tier and tweak level; none reads the Solar System as an input; the Solar System belt, Kuiper belt and the Ceres/Pluto/Eris masses are <strong>test targets</strong>.</p>
 <h2 id="8-what-to-read-before-building-research-list">8. What to read before building (research list)</h2>
@@ -220,7 +220,7 @@ Because grinding is <code>1/t</code>, a stored <code>age</code> is enough to rep
 <tr>
 <td>GEN.1066</td>
 <td>7</td>
-<td>System body table or view and barycenter design</td>
+<td>System body table or view and barycentre design</td>
 <td>Planets 1</td>
 <td>after GEN.1014 wiring</td>
 </tr>
@@ -255,7 +255,7 @@ Because grinding is <code>1/t</code>, a stored <code>age</code> is enough to rep
 <tr>
 <td>GEN.1071</td>
 <td>12</td>
-<td>Outer Kuiper-type disk as a belt (lock)</td>
+<td>Outer Kuiper-type disc as a belt (lock)</td>
 <td>Sources 2</td>
 <td>train 16</td>
 </tr>
@@ -311,7 +311,7 @@ Because grinding is <code>1/t</code>, a stored <code>age</code> is enough to rep
 <li><strong>Mass cut for individual objects: decided, the rule (option E), 4:27 PM EDT 2026-10-30.</strong> Store every body above 1e19 kg; if that is fewer than the bodies needed to cover 90 percent of the belt mass, add the next heaviest up to 300 per belt. The values are stand-ins registered in GEN.725. The options considered are kept below.</li>
 </ol>
 <h3 id="111-options-for-the-individual-object-cut-all-counts-rc-order-of-magnitude-for-a-sun-like-star">11.1 Options for the individual-object cut (all counts [R]/[C], order of magnitude, for a Sun-like star)</h3>
-<p>Diameter is for rock at 2,500 kg/m3 (m = rho pi D^3 / 6). The Solar System rows are the only worked check; they are test targets, not inputs. &quot;Main-belt-like&quot; is a belt of about 0.5 thousandths of an Earth mass; &quot;Kuiper-like&quot; is a disk of about 0.02 Earth masses [R].</p>
+<p>Diameter is for rock at 2,500 kg/m3 (m = rho pi D^3 / 6). The Solar System rows are the only worked check; they are test targets, not inputs. &quot;Main-belt-like&quot; is a belt of about 0.5 thousandths of an Earth mass; &quot;Kuiper-like&quot; is a disc of about 0.02 Earth masses [R].</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -373,7 +373,7 @@ Because grinding is <code>1/t</code>, a stored <code>age</code> is enough to rep
 </tbody>
 </table></div>
 <p>Each row below the cut is still drawn on demand (tier L2) and is addressable, so nothing is lost by choosing a higher cut: the cut decides what is stored and listed, not what exists.</p>
-<p><strong>Chosen: E with a floor of 1e19 kg (B) as the bound for the unit of &quot;individual&quot;.</strong> In words: store every body above 1e19 kg, and if that is fewer than the bodies needed to reach 90 percent of the belt's mass, keep adding the next heaviest up to 300. The Solar System belt falls in 10 to 30 objects (Ceres, Vesta, Pallas, Hygiea and neighbours) which a reader can name; a rich outer disk is bounded at 300; mass is always accounted for.</p>
+<p><strong>Chosen: E with a floor of 1e19 kg (B) as the bound for the unit of &quot;individual&quot;.</strong> In words: store every body above 1e19 kg, and if that is fewer than the bodies needed to reach 90 percent of the belt's mass, keep adding the next heaviest up to 300. The Solar System belt falls in 10 to 30 objects (Ceres, Vesta, Pallas, Hygiea and neighbours) which a reader can name; a rich outer disc is bounded at 300; mass is always accounted for.</p>
 <h2 id="12-the-asteroid-belt-information-page-boss-437-pm-edt-2026-10-30">12. The asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30)</h2>
 <p>A page per belt: (1) the individually tracked bodies by designation (no names), each linked to its member page; (2) the contents and sizes of the rest of the belt mass as diameter bins (count, mass share, typical composition) that sum with the listed bodies to the stored belt mass; (3) the density factor, objects per square astronomical unit above a stated diameter (1, 10 and 100 km), plus mass per square AU. The unit is registered in the unit registry so no number shows without it. Items: GEN.1093, UX.240, UX.241. Scatter placement: the scatter sweep runs after the giants are placed and before the belts are finalised (belt-origins.md).</p>
 

@@ -39,7 +39,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import planet_zones, unit_registry as units
+from planetgen.physics import irregular_zone, planet_zones, unit_registry as units
 
 _msun_to_kg = units.converter("Msun", "kg")
 
@@ -219,6 +219,68 @@ def planet_exclusion(distance_au, eccentricity, mass_kg, central_mass_kg, new_ma
     return inner, outer
 
 
+def edge_gap_hill_radii(inner_au, inner_eccentricity, inner_mass_kg, outer_au, outer_eccentricity, outer_mass_kg, central_mass_kg):
+    """The gap between two planets in mutual Hill radii (at their mean distance), from the inner one's apoapsis to the outer one's periapsis: what the pairwise floor `MUTUAL_HILL_RADII_SEPARATION` counts."""
+    radius = 0.5 * (inner_au + outer_au) * ((inner_mass_kg + outer_mass_kg) / (3.0 * central_mass_kg)) ** (1.0 / 3.0)
+    return (outer_au * (1.0 - outer_eccentricity) - inner_au * (1.0 + inner_eccentricity)) / radius
+
+
+def effective_spacing(gaps):
+    """`K_eff = mean - 0.5 sigma` of a window's gaps in mutual Hill radii (Pu and Wu 2015, Eq. 10; sigma is the population spread)."""
+    mean = sum(gaps) / len(gaps)
+    return mean - 0.5 * math.sqrt(sum((gap - mean) ** 2 for gap in gaps) / len(gaps))
+
+
+CHAIN_SCAN_STEP = 1.02
+"""float: The factor `chain_distance_au` steps out from the pairwise distance by while it looks for the first distance that holds the chain's effective spacing. A numerical stand-in (GEN.1521), a search step, not a physical value: any step
+under about 1.1 finds the same first crossing of a curve that rises over a few percent of distance."""
+CHAIN_MAX_PUSH = 2.0
+"""float: The farthest, as a multiple of the pairwise distance, the chain rule pushes a planet. A planet beside a wide gap (a giant in the window) can reach the effective spacing only far out or never,
+because the gap in mutual Hill radii saturates with the distance; a rule that is met only by moving a planet more than this far out is taken as unmet by any distance, and the pairwise rule stands (the same
+as a window no distance closes). Without the cap a window whose best attainable spacing is just under `CHAIN_K_EFF` pushed a planet from 2.2 to 18.5 AU when one eccentricity moved by a part in a thousand.
+A stand-in (registry CH4, tier T4, tweak L1)."""
+
+
+def chain_distance_au(inner_planets, new_mass_kg, new_eccentricity, central_mass_kg, start_au):
+    """
+    The nearest distance, at or beyond `start_au`, a new planet may sit if it is to be the last of a chain of `tuning.CHAIN_WINDOW` planets whose gaps have
+    `effective_spacing` of at least `tuning.CHAIN_K_EFF` mutual Hill radii (GEN.1521).
+
+    Args:
+        inner_planets (list): `(distance_au, eccentricity, mass_kg)` of the planets just inside, in orbital order, with no belt among them; only the last
+            `CHAIN_WINDOW - 1` count. Fewer than that, or a `CHAIN_K_EFF` of 0, leave `start_au` as it is.
+        start_au (float): The pairwise rules' nearest distance.
+
+    The effective spacing is not monotone in the distance: it is the mean of the gaps less half their spread, so a planet put farther out beside a window with one wide gap can lower it. The
+    first distance that holds it, within `CHAIN_MAX_PUSH` times `start_au`, is found by stepping out by `CHAIN_SCAN_STEP` and bisecting the step that crosses; a window that no such distance closes
+    leaves the pairwise rule (see `CHAIN_MAX_PUSH`).
+    """
+    need = tuning.CHAIN_WINDOW - 1
+    if not tuning.CHAIN_K_EFF > 0.0 or len(inner_planets) < need:
+        return start_au
+    window = list(inner_planets)[-need:]
+    gaps = [edge_gap_hill_radii(a[0], a[1], a[2], b[0], b[1], b[2], central_mass_kg) for a, b in zip(window, window[1:])]
+    last = window[-1]
+
+    def spacing(distance):
+        return effective_spacing(gaps + [edge_gap_hill_radii(last[0], last[1], last[2], distance, new_eccentricity, new_mass_kg, central_mass_kg)])
+
+    if spacing(start_au) >= tuning.CHAIN_K_EFF:
+        return start_au
+    low = high = start_au
+    limit = start_au * CHAIN_MAX_PUSH
+    while high < limit:
+        low, high = high, min(high * CHAIN_SCAN_STEP, limit)
+        if spacing(high) >= tuning.CHAIN_K_EFF:
+            break
+    else:
+        return start_au                                  # no distance within `CHAIN_MAX_PUSH` closes the window (or its gaps are not finite): leave the pairwise rule
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        low, high = (middle, high) if spacing(middle) < tuning.CHAIN_K_EFF else (low, middle)
+    return high
+
+
 def belt_exclusion(lower_au, upper_au, new_mass_kg, central_mass_kg, new_eccentricity=0.0):
     """
     The stretch of semi-major axis a new planet may not take because of a belt on `[lower_au, upper_au]`: its Hill sphere (five Hill radii, the
@@ -278,6 +340,17 @@ def moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_e
     """
     fraction, extrapolated = moon_hill_fraction(planet_eccentricity, moon_eccentricity, retrograde)
     return planet_radius_km + largest_moon_radius_km + margin_km, hill_radius_km * fraction, extrapolated
+
+
+def irregular_bounds_km(hill_radius_km, outermost_regular_moon_km=0.0, retrograde=False):
+    """
+    The span `(low_km, high_km)` of a planet's Hill sphere that its irregular moons hold (GEN.1086), km from the planet's center: from the orbit of the outermost regular moon (0 with none) out to the stable share
+    of the Hill radius for the sense of the orbit (`irregular_zone.PROGRADE_STABLE_FRACTION`, `irregular_zone.RETROGRADE_STABLE_FRACTION`). It is the space a regular moon may not be placed in once the
+    irregulars are drawn (and the space the irregulars take from a planet's neighbors: it lies inside the Hill sphere, and a planet keeps `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii from it). `low_km >= high_km`
+    means a hot planet whose stable limit lies inside its regular moons: no room.
+    """
+    fraction = irregular_zone.RETROGRADE_STABLE_FRACTION if retrograde else irregular_zone.PROGRADE_STABLE_FRACTION
+    return outermost_regular_moon_km, hill_radius_km * fraction
 
 
 # --- the ledger of one system ----------------------------------------------------------------------------------------------------------

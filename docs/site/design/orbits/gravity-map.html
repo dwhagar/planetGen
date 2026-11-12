@@ -90,7 +90,7 @@ are marked.</p>
 <ul>
 <li><strong>Zones.</strong> A sector (edge 4 pc, <code>DEFAULT_SECTOR_EDGE_PC</code>) is cut into
 equal zones; the default is 16 per edge (0.25 pc), a setting. The field
-is sampled at each zone's center.</li>
+is sampled at each zone's centre.</li>
 <li><strong>Sources.</strong> Every point mass in the sector and its neighbours: <strong>one per
 star system</strong> (its stars, planets and moons together at the system's place,
 which changes the field at a zone's size by under 0.1 percent; MAP.386,
@@ -102,7 +102,7 @@ potential (GEN.115) is the background, joined by the rule in &quot;The smooth
 galaxy and the generated stars&quot; below (MAP.383). Plummer softening keeps a
 zone that holds a source finite.</li>
 <li><strong>Near and far.</strong> Sources close to a zone are summed exactly; distant
-ones are summed as one point per cell (mass and center of mass) of a
+ones are summed as one point per cell (mass and centre of mass) of a
 hierarchy with 0.5 pc leaf cells, the way a tree code does
 (MAP.385, <code>galaxy/gravity_tree.py</code>; the MAP.151 region is the data window and
 holds no masses). The cost study (PERF.72) fixes the split, the opening

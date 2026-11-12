@@ -374,7 +374,7 @@ ensure_datasets() {
 # it only says what to run. A server that doesn't answer warns rather than
 # stopping the install or update.
 ensure_redis() {
-    local url host
+    local url host reason
     url="$("$PYTHON" -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)")" || {
         log_warning "couldn't read redis.url from config.json; skipping the Redis check."
         return 0
@@ -388,10 +388,16 @@ ensure_redis() {
             && command -v apt-get >/dev/null 2>&1; then
         if ! command -v redis-server >/dev/null 2>&1; then
             log_info "Redis: installing redis-server."
-            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends redis-server || true
+            if ! reason="$(DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends redis-server 2>&1)"; then
+                log_warning "Redis: installing redis-server failed."
+                log_reason "$reason"
+            fi
         fi
         if command -v systemctl >/dev/null 2>&1; then
-            systemctl enable --now redis-server >/dev/null 2>&1 || true
+            if ! reason="$(systemctl enable --now redis-server 2>&1)"; then
+                log_warning "Redis: starting redis-server failed."
+                log_reason "$reason"
+            fi
         fi
         if redis_answers "$url"; then
             log_info "Redis: answering at $url"
@@ -509,22 +515,25 @@ reload_web_if_running() {
             log_info "Testing Apache's configuration, then ${verb}ing it (a request still running is cut off):"
             if ! apache_configtest; then
                 log_warning "Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)."
+                log_reason "$APACHE_TEST_OUTPUT"
                 failed=1
-            elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
+            elif reason="$(systemctl "$verb" "$unit" 2>&1)"; then
                 log_info "${verb}ed Apache."
                 wait_for_health "$health_url" Apache "$health_from" || unhealthy=1
             else
                 log_warning "systemctl $verb $unit failed."
+                log_reason "$reason"
                 failed=1
             fi
         fi
         if systemctl is-active --quiet planetgen-gunicorn 2>/dev/null; then
             acted=1
-            if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
+            if reason="$(systemctl reload planetgen-gunicorn 2>&1)"; then
                 log_info "reloaded gunicorn."
                 wait_for_health "$health_url" gunicorn "$health_from" || unhealthy=1
             else
                 log_warning "systemctl reload planetgen-gunicorn failed."
+                log_reason "$reason"
                 failed=1
             fi
         fi
@@ -545,17 +554,25 @@ print_reload_commands() {
     fi
 }
 
-# Apache's own configuration test (apache2ctl, apachectl or httpd -t); true when there is none to run.
+# The last lines of what a failed command said, under the warning that names the failure (OPS.166): the reason is not thrown away.
+log_reason() {
+    [[ -n "${1:-}" ]] || return 0
+    printf '%s\n' "$1" | tail -n 5 | sed 's/^/  /' | log_lines warning
+}
+
+# Apache's own configuration test (apache2ctl, apachectl or httpd -t); true when there is none to run. What it said is left in
+# APACHE_TEST_OUTPUT, for the warning that follows a failure.
 apache_configtest() {
     local tool
+    APACHE_TEST_OUTPUT=""
     for tool in apache2ctl apachectl; do
         if command -v "$tool" >/dev/null 2>&1; then
-            "$tool" configtest >/dev/null 2>&1
+            APACHE_TEST_OUTPUT="$("$tool" configtest 2>&1)"
             return
         fi
     done
     if command -v httpd >/dev/null 2>&1; then
-        httpd -t >/dev/null 2>&1
+        APACHE_TEST_OUTPUT="$(httpd -t 2>&1)"
         return
     fi
     return 0
