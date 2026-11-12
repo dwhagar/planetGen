@@ -265,9 +265,13 @@ def groundwater(values):
     return "reachable" if (values.get("aquifer_depth_km") or 0.0) <= tuning.AQUIFER_REACH_KM else "deep"
 
 
+LIQUID_WATER_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
+"""tuple: The hydrospheres that hold liquid water at the surface or under an ice lid (all of which have a water table under any land they leave)."""
+
+
 def solvent(values):
     """"water", "hydrocarbon" or `None`: the stable liquid life would use."""
-    if values.get("hydrosphere") in ("surface ocean", "brine seep", "hycean", "ice-covered ocean") or groundwater(values) != "none":
+    if values.get("hydrosphere") in LIQUID_WATER_STATES or groundwater(values) != "none":
         return "water"
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")

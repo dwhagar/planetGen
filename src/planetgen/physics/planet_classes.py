@@ -303,7 +303,7 @@ def condition_words(condition, measure=None):
     if "equals" in condition and name.startswith("phase_") and condition["equals"] == 1.0:
         parts.append(f"the {name[len('phase_'):].replace('_', '-')} family's liquid is a liquid at the surface temperature and pressure")
     elif "equals" in condition and name == "groundwater_present" and condition["equals"] == 1.0:
-        parts.append("liquid groundwater under a dry surface")
+        parts.append("liquid water under a dry surface, or a water table under the land of a world with a small sea")
     elif "equals" in condition:
         parts.append(f"{label} is {condition['equals']}")
     if "not_equals" in condition:

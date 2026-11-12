@@ -307,3 +307,13 @@ def test_a_terrestrial_body_under_a_roundness_ratio_of_one_is_an_asteroid_with_n
     assert pc.ASTEROID.letter is None and pc.ASTEROID.name == "Asteroid"
     assert pc.classify(body(body_type="g", mass_earth=300.0, roundness_ratio=0.1)) == "J"           # a giant is never an asteroid
     assert pc.classify(airless(mass_earth=0.01)) == "D"                                              # a body that states no ratio is not one
+
+
+def test_a_world_with_a_small_sea_has_a_water_table_and_is_a_desert_world():
+    """GEN.1638: class H needs water under a dry surface; a world with liquid at its surface and under a fifth of it covered has a water table under its land (it was unreachable: only a dry world got an aquifer)."""
+    desert = body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="surface ocean")
+    assert pc.classify(desert) == "H"
+    assert pc.classify(body(surface_temperature_k=290.0, ocean_fraction=0.1, hydrosphere="brine seep")) == "H"
+    assert pc.classify(body(ocean_fraction=0.8)) == "M"                                            # an ocean world is still M
+    dry = body(surface_temperature_k=290.0, ocean_fraction=0.0, hydrosphere="dry", groundwater="none")
+    assert pc.classify(dry) != "H"                                                                 # no water at all is no desert world with some
