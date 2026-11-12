@@ -46,7 +46,7 @@ def draw_snow_line_au(luminosity_w, stream=None):
     (`snow_line_au`) times 10 to a normal draw of `tuning.SNOW_LINE_SCATTER_DEX`
     dex, redrawn while it lies beyond `tuning.SNOW_LINE_SCATTER_MAX_SIGMA`
     sigma (a factor of 3 either way, `tuning.SNOW_LINE_SPREAD_FACTOR`), the factor 2 to 3
-    that real lines move with the accretion history and the dust ([R3193]). Drawn once for a star and stored with it.
+    that real lines move with the accretion history and the dust, [R3193]. Drawn once for a star and stored with it.
 
     Args:
         luminosity_w (float): The star's luminosity, in Watts.
