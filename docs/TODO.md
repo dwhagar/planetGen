@@ -13487,6 +13487,51 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 23. Prerequisites: OPS.173. Related: OPS.173.
   Filed by the TODO thread.
 
+- [ ] **TEST.729 Old-schema migration test keeps the baseline plus the newest 3 stored schemas; the other 109 fixtures go (about 1,350 s per full run)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.730 Retire test_bughunt_sector_placement, covered by test_fuzz_sector_placement (about 1,100 s)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.731 Retire the 29 shape-only downgrade-and-migrate migration tests, keeping each file's save-and-load round trip**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Covered by test_db_old_schemas (shape) and test_db_column_round_trip.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: TEST.729. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.732 (bug) test_isotope_record.py defines the same test name twice, so the first never runs**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row A4). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. Rename or delete the stale one; pyflakes F811 in the pre-gate would catch more.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.733 Retire the 23 data-backfill migration tests for migrations Boss's server has already run, keeping the not-yet-applied ones**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B1). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. HELD: Lane 02 to confirm which migrations Boss's server has applied (the scan suggests keeping 0222, 0232, 0235).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.734 Serialization fuzz cut from 20 seeds to 5 and its two identical tests folded into one (about 400 s)**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B2). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.735 Merge the duplicate registry and sweep rule checks into shared helpers or parametrised tests**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row B3). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.736 One clean-up PR for removal guards and old-value comparisons, and the back-compat tests that guard a shim**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row C). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan. The wiki-routes-gone tests would block the 9.1 spakr link plan. A back-compat path is retired together with its test (cross-check with the layered-fix scan).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
+- [ ] **TEST.737 Seed-dependent skips (about 60) become fixed seeds known to produce the body, so no test silently skips**
+  Boss, 3:37 PM EST on 2026-11-12: "Run a dedicated thread to scan for and retire old tests that we don't need anymore". Scan: /mnt/project-files/reports/test-retirement-scan-2026-11-12.md (row D). Merge as a lock-free non-failing PR: `scripts/test.py changed --resume` plus the covering tests named in the scan.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: TEST.261.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
