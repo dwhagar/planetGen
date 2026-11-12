@@ -14,8 +14,8 @@ reached the ground (the ground-level enhancements, GLE, with four of them in a s
 whole event at 1 AU and `R` in GV. The spectra are hard or soft, the fluences span five orders of magnitude, and a few events carry the dose.
 
 **The rate.** The events are all the events of `RECORD_YEARS` years that the fits cover and that were large enough to fit. They are the
-events of 100 pfu (>10 MeV peak flux) and above: NOAA SWPC's list of 255 events of 10 pfu or more in 42 years (1976 to 2017;
-`NOAA_CUMULATIVE_COUNTS`) has 2.6 a year above 100 pfu and the set has 2.4 (`events_per_year_above`, tested), and the smaller ones add under
+events of 100 pfu (>10 MeV peak flux) and above: NOAA SWPC's list of 265 events of 10 pfu or more in 42 years (1976 to 2017;
+`NOAA_CUMULATIVE_COUNTS`) has 2.7 a year above 100 pfu and the set has 2.4 (`events_per_year_above`, tested), and the smaller ones add under
 a few percent of the fluence. So the yearly mean spectrum of the Sun at 1 AU is the sum of the 47 spectra over the record (`yearly_fluence`),
 with no model of the size distribution between them.
 
@@ -95,9 +95,10 @@ RECORD_YEARS = 18.0
 """float: The years the set covers: the events run from 1997-11-04 to 2015-10-29 (17.98 years). Source tier T3, tweak level L0."""
 
 NOAA_YEARS = 42.0
-NOAA_CUMULATIVE_COUNTS = ((10.0, 255), (30.0, 177), (100.0, 109), (300.0, 72), (1000.0, 40), (3000.0, 18), (10000.0, 9))
-"""tuple: `(peak flux above 10 MeV, pfu; events at or above it)` in the NOAA SWPC list of 1976 to 2017 (`NOAA_YEARS`), counted from the 255
-events of 10 pfu or more (reports/best-guess-standins-2026-10-24.md section 17). Source tier T1 (the list is NOAA's; the counts are computed)."""
+NOAA_CUMULATIVE_COUNTS = ((10.0, 265), (30.0, 181), (100.0, 112), (300.0, 74), (1000.0, 41), (3000.0, 18), (10000.0, 9))
+"""tuple: `(peak flux above 10 MeV, pfu; events at or above it)` in the NOAA SWPC list of 1976 to 2017 (`NOAA_YEARS`), counted from the 265
+events of 10 pfu or more that `datasets.noaa_proton_events` reads (the 255-event table of reports/best-guess-standins-2026-10-24.md section 17 left ten of the newest out;
+`test_the_typed_counts_are_the_counts_of_the_downloaded_list` holds these numbers to the file). Source tier T1 (the list is NOAA's; the counts are computed)."""
 TAIL_ANCHOR_PFU = 1.2e5
 """float: The peak flux above 10 MeV, pfu, paired with an annual fluence above 30 MeV of 1e10 cm-2 (`TAIL_ANCHOR_RATE_PER_YEAR`); the pairing is
 McCracken's for the Carrington event, recalled (reports/best-guess-standins-2026-10-24.md section 17). [Stand-in SE4, tier T3, tweak level L1.]"""
@@ -118,7 +119,7 @@ fitted to one Carrington-class event in 500 years. [Stand-in SE4, tier T3, tweak
 BFO_DEPTH_G_CM2 = 5.0
 """float: The depth of water at which the dose is taken, g/cm2: the blood-forming organs (NASA's standard 5 cm; recalled). Source tier T3."""
 PROTON_WEIGHT = 2.0
-"""float: ICRP 103 radiation weight of a proton (`surface_dose.WEIGHT_PROTON_PION`)."""
+"""float: ICRP 103 radiation weight of a proton (wR = 2)."""
 GY_PER_MEV_PER_G = 1.602176634e-10
 """float: One MeV per gram, in gray."""
 
@@ -199,7 +200,7 @@ def dose_share(rigidity_gv, geomagnetic_cutoff_gv=0.0, steps=90):
 
 def events_per_year_above(peak_flux_pfu):
     """The events a year of the NOAA list at or above a peak flux (>10 MeV, pfu): straight lines in log-log between `NOAA_CUMULATIVE_COUNTS`,
-    `TAIL_SLOPE` from 10 000 pfu to `TAIL_ANCHOR_PFU` and `EXTREME_SLOPE` beyond; the count of the first node (255 in 42 years) held below
+    `TAIL_SLOPE` from 10 000 pfu to `TAIL_ANCHOR_PFU` and `EXTREME_SLOPE` beyond; the count of the first node (265 in 42 years) held below
     10 pfu."""
     nodes = NOAA_CUMULATIVE_COUNTS
     if peak_flux_pfu <= nodes[0][0]:

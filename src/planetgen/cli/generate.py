@@ -1364,6 +1364,14 @@ def add_phenomenon_arguments(parser):
     # Database persistence
     store.add_mysql_connection_args(parser)
 
+    # Write the description instead of saving (a one-off phenomenon, UX.298): the same two options `system` has
+    parser.add_argument('--format', choices=run_system.OUTPUT_FORMATS, default=run_system.OUTPUT_FORMATS[0],
+                        help="With --output, how to write the phenomenon: plain text (the default), Markdown "
+                             "or the Document as JSON.")
+    parser.add_argument('--output', '-o', type=str, metavar='FILE',
+                        help="Write the phenomenon's description (in --format) to FILE instead of saving it "
+                             "to the database; '-' writes it to stdout. Not combined with --sector-id.")
+
     # Name
     parser.add_argument('--name', type=str, help="Force the name of the generated phenomenon.")
 
@@ -1390,6 +1398,8 @@ def validate_phenomenon_args(args, parser):
         parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
+    if args.output and args.sector_id is not None:
+        parser.error("--output writes the phenomenon without saving it, so it can't be combined with --sector-id.")
     if args.sector_id is not None and args.anchor_system:
         parser.error("--sector-id cannot be combined with --anchor-system -- an anchored compact remnant "
                      "belongs to its own StarSystem, not directly to a sector.")

@@ -71,7 +71,7 @@ BEST_CORRECTION = _best_correction()
 Tier = collections.namedtuple("Tier", "ledger key low high reach_pc cells visits")
 """One tier: `ledger` is "luminosity" or "mass", `key` the band number (luminosity) or the ring's low mass, `low` and `high` its limits (Lsun, or solar
 masses; `high` may be `None`), `reach_pc` the radius of the sphere it is drawn over, `cells` the cells in that sphere and `visits` what drawing it takes
-(`block_visits` for a luminosity band, a visit to every cell for a ring, whose band is on the cell path)."""
+(`block_visits` for a luminosity band, a visit to every cell for a ring, which `build` has no galaxy to cost better; `sky_charting.cost_rings` costs it by its walk, GEN.1485)."""
 
 SkyTiers = collections.namedtuple("SkyTiers", "limit_mag observer_pc edge_pc budget luminosity dropped rings curve")
 """The table for one observer: the luminosity bands to draw, the bands the budget cut off, the mass rings, the inputs and the dust `curve` the radii were worked out from (what `floor_table` reads)."""
