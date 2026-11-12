@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3958] - 2026-11-12
+
+**Headline:** The unused whole-job shell rate reader is retired; the per-unit ETA already does its job.
+
+### Changed
+- **PERF.147 closed on the reader side (GEN.1559).** `generation.stats.job_shells_per_second`, built to start the ETA of a task over 15 seconds, is deleted: the ETA now comes from `queue/taskprogress.py` and the per-command rates of `queue/unitrates.py`, and the stage times of `queue/runeta.py`, so nothing read the whole-job rate. The whole-job history row is still stored. Its register line is removed.
+generation-output: unchanged
+
 ## [8.0.3957] - 2026-11-12
 
 **Headline:** Two oddity tests and the brown dwarf test now find their case by searching instead of naming the draw that had it.
