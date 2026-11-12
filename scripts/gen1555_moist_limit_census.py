@@ -7,7 +7,7 @@ The air solve (`surface_air.solve`) has more than one fixed point near the moist
 * the bodies that sit EXACTLY on `surface_air.MOIST_LIMIT_K` (the pin of the `held_cool` rule, 375.0 K),
 * the bodies near the boiling point of their own surface pressure (within `NEAR_BOILING_K`, which `test_surface_air` swings at a pinned 10 kPa), and
 * for every body that kept at least 10 kPa of air or sits in one of those two groups, the start dependence: the same final `Setting` solved from `STARTS_K` with one draw
-  stream, and the spread of the answers (a body is `bistable` when the temperatures differ by more than `BISTABLE_K` and `BISTABLE_RELATIVE` of their mean, or one start finds no air).
+  stream, and the spread of the answers (a body is `bistable` (fresh probe stream) and `bistable_production` (the draw state of the production solve, so a pinned body is judged under its own design constants) when the temperatures differ by more than `BISTABLE_K` and `BISTABLE_RELATIVE` of their mean, or one start finds no air).
 
     python scripts/gen1555_moist_limit_census.py draw --out before.json [--systems 100] [--stars G2V K5V] [--workers 4]
     python scripts/gen1555_moist_limit_census.py report before.json [after.json]
@@ -70,7 +70,7 @@ def _one(job):
     def recording(setting, start_temperature_k):
         planet = sys._getframe(1).f_locals.get("planet")
         if planet is not None:
-            last[id(planet)] = (planet, setting)
+            last[id(planet)] = (planet, setting, draw.getstate())        # the draw state the production solve starts from: its design constants are drawn from it
         return real(setting, start_temperature_k)
 
     surface_air.solve = recording
@@ -85,7 +85,7 @@ def _one(job):
     finally:
         surface_air.solve = real
     rows = []
-    kept = {id(p): (p, s) for p, s in last.values()}
+    kept = {id(p): (p, s, state) for p, s, state in last.values()}
     for planet in [b for p in system.planets for b in [p] + list(getattr(p, "moons", None) or [])]:
         if getattr(planet, "body_type", None) != "t" or id(planet) not in kept:
             continue
@@ -97,18 +97,31 @@ def _one(job):
         pinned = abs(temperature - surface_air.MOIST_LIMIT_K) <= PIN_TOLERANCE_K
         near = boiling is not None and abs(temperature - boiling) <= NEAR_BOILING_K
         row = dict(star=star_type, index=index, au=round(planet.distance, 4), moon=bool(getattr(planet, "is_moon", False)), t=temperature, p=pressure,
-                   cls=getattr(planet, "planet_class", None), pinned=pinned, near_boiling=near, boiling_k=boiling, answers=None, bistable=None)
+                   cls=getattr(planet, "planet_class", None), pinned=pinned, near_boiling=near, boiling_k=boiling, answers=None, bistable=None,
+                   answers_production=None, bistable_production=None)
         if pressure >= AIR_PA or pinned or near:
-            answers = []
-            for start in STARTS_K:
-                with draw.bound("gen1555-probe"):
-                    air = real(kept[id(planet)][1], start)
-                answers.append(None if air is None else [round(air.temperature_k, 2), round(air.pressure_pa, 1)])
-            temperatures = [a[0] for a in answers if a is not None]
-            row["answers"] = answers
-            gap = max(temperatures) - min(temperatures) if temperatures else 0.0
-            mean = sum(temperatures) / len(temperatures) if temperatures else 1.0
-            row["bistable"] = (len(temperatures) < len(answers) and bool(temperatures)) or (gap > BISTABLE_K and gap > BISTABLE_RELATIVE * mean)
+            setting, state = kept[id(planet)][1], kept[id(planet)][2]
+
+            def probe(production):
+                answers = []
+                for start in STARTS_K:
+                    with draw.bound("gen1555-probe"):
+                        if production:
+                            draw.setstate(state)         # the production draw state: the constants the body was designed with, not a fresh stream's
+                        air = real(setting, start)
+                    answers.append(None if air is None else [round(air.temperature_k, 2), round(air.pressure_pa, 1)])
+                return answers
+
+            def is_bistable(answers):
+                temperatures = [a[0] for a in answers if a is not None]
+                gap = max(temperatures) - min(temperatures) if temperatures else 0.0
+                mean = sum(temperatures) / len(temperatures) if temperatures else 1.0
+                return (len(temperatures) < len(answers) and bool(temperatures)) or (gap > BISTABLE_K and gap > BISTABLE_RELATIVE * mean)
+
+            row["answers"] = probe(False)
+            row["bistable"] = is_bistable(row["answers"])
+            row["answers_production"] = probe(True)
+            row["bistable_production"] = is_bistable(row["answers_production"])
         rows.append(row)
     return rows
 
@@ -130,6 +143,7 @@ def _summary(rows):
         probed = [r for r in group if r["bistable"] is not None]
         temperate = [r for r in air if TEMPERATE_K[0] <= r["t"] <= TEMPERATE_K[1]]
         out[star] = dict(bodies=len(group), air10kpa=len(air), temperate=len(temperate), pinned_at_375=sum(r["pinned"] for r in group),
+                         pinned_bistable_production=sum(1 for r in group if r["pinned"] and r.get("bistable_production")),
                          near_boiling=sum(r["near_boiling"] for r in group), probed=len(probed), bistable=sum(1 for r in probed if r["bistable"]))
     return out
 
@@ -141,7 +155,7 @@ def command_report(args):
         for star, s in _summary(rows).items():
             share = s["bistable"] / s["probed"] if s["probed"] else math.nan
             print(f"  {star}: {s['bodies']} bodies, {s['air10kpa']} with 10 kPa, {s['temperate']} temperate; pinned at 375.0 K {s['pinned_at_375']}; "
-                  f"near boiling {s['near_boiling']}; probed {s['probed']}, bistable {s['bistable']} ({share:.0%})")
+                  f"of those bistable under the production draw state {s['pinned_bistable_production']}; near boiling {s['near_boiling']}; probed {s['probed']}, bistable {s['bistable']} ({share:.0%})")
         for r in rows:
             if r["pinned"] or r["near_boiling"] or r["bistable"]:
                 tag = ",".join(k for k, v in (("pinned", r["pinned"]), ("boiling", r["near_boiling"]), ("bistable", r["bistable"])) if v)

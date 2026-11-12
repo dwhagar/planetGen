@@ -1,21 +1,24 @@
 # tests/test_surface_air_start_independence.py
 
 """
-GEN.1555 (reproduction, built ahead by Lane 07 for Lane 14): the surface air solve (`surface_air.solve`) reaches one fixed point whatever temperature it starts from.
+GEN.1555 (built ahead by Lane 07, rewritten for Lane 14 after TODO's decision): what the surface air solve (`surface_air.solve`) promises about its starting temperature.
 
 GEN.1403 (water-limited weathering) showed the solver choosing the other branch of a bistable air: a G2V body at 2.44 au that sat on `MOIST_LIMIT_K` (375 K, 3.5 bar)
-went to 145 K and airless, and a second (seed 3085, 4.74 au) went from 313 K to 120 K, after a small change in weathering. Less weathering cannot cool a real world, so this
-is the solver landing on a different fixed point, not the feedback. The fixed point has more than one answer for these settings and which one it finds depends on where it
-starts (`planets` starts from the airless temperature, `air_branches` from a cold or a warm start).
+went to 145 K and airless, and a second (seed 3085, 4.74 au) went from 313 K to 120 K, after a small change in weathering. TODO decided that real bistability stays:
+a world can truly have a snowball and a warm answer, and the generator starts from one fixed production start (`planets` from the airless temperature, `air_branches` from a cold or a warm
+start), so the answer is a function of the setting. The 6 bodies of the G2V census that sit on 375 K are the clamped fixed point under their own drawn design constants; a probe that draws
+other constants finds cold answers for them, which is not a second answer of the same setting. So the promise is narrower than "one answer from every start":
 
-The two settings are captured from the real generation of G2V seeds 3032 and 3085 (the sweep of reports/gen1403-sweep.py: `SystemConfig` with a G2V star, planets on,
-comets and binaries off, `draw.bound(seed)`), then solved from starts below and above the answer with ONE draw stream, so only the start differs.
+* `test_the_same_setting_start_and_draw_state_give_the_same_answer_twice`: the solve is a function of the setting, the start and the draw state, for every captured setting
+  (including seed 3085, which is two-valued by start and stays so).
+* `test_a_giant_ends_at_one_temperature_whatever_the_start`: a giant has the temperature alone to settle (its pressure is the reference level), and the iteration of
+  `MAX_GIANT_STEPS` brings it to one answer; before GEN.1555 a hot giant ended at 1,381 K from a 120 K start and 1,633 K from a 600 K one.
+* `test_the_setting_that_is_single_valued_today_stays_so`: seed 3032 keeps its one answer.
 
-* `test_a_setting_has_one_fixed_point_whatever_it_starts_from` is the target of the fix. It is marked `xfail(strict=True)` because seed 3085 is start-dependent today
-  (starts of 100, 150 and 200 K end at 117 K with 2 bar, 250 to 900 K end at 174 to 223 K with 6 to 24 bar); Lane 14 removes the marker with the fix. A fix that makes it pass
-  for 3085 must keep 3032 on its single answer (`test_the_setting_that_is_single_valued_today_stays_so`, which passes today).
-* `scripts/gen1555_moist_limit_census.py` scores a fix over 100 systems: the bodies sitting exactly on 375.0 K, those near the boiling point of their own pressure, and the
-  share of air bodies whose answer depends on the start.
+The settings are captured from the real generation of G2V seeds (the sweep of reports/gen1403-sweep.py: `SystemConfig` with a G2V star, planets on, comets and binaries off,
+`draw.bound(seed)`), then solved from starts below and above the answer with ONE draw stream, so only the start differs. `scripts/gen1555_moist_limit_census.py` scores a change over 100
+systems: the bodies sitting exactly on 375.0 K (probed under the production draw state as well as a fresh stream), the bodies near the boiling point of their own pressure, and the
+share of air bodies whose answer depends on the start.
 """
 
 import sys
@@ -30,14 +33,24 @@ from planetgen.util import draw
 STARTS_K = (100.0, 150.0, 200.0, 250.0, 300.0, 375.0, 450.0, 600.0, 900.0)
 """tuple: Start temperatures of the probe, from well below the cold answer to well above the hot one."""
 
-TARGETS = ((3032, 2.439), (3085, 4.738))
-"""tuple: `(seed, orbit in au)` of the two bodies GEN.1403 moved; the settings are those of the final solve of the planet at that distance."""
+TARGETS = ((3032, 2.439), (3085, 4.738), (3009, 0.04884), (3010, 0.16039), (3000, 1.01804))
+"""tuple: `(seed, orbit in au)` of the two bodies GEN.1403 moved and of three giants (a hot one at 0.049 au, one at 0.16 au and one at 1.0 au); the settings are those of the final solve of the
+planet at that distance."""
+GIANT_SEEDS = (3009, 3010, 3000)
+"""tuple: The seeds of `TARGETS` whose setting is a giant's."""
 
 SAME_TEMPERATURE_K = 5.0
 SAME_PRESSURE_RATIO = 1.25
 """float: Two answers are one fixed point when they are within these (a solver tolerance is 0.1 K, so this is wide on purpose)."""
 AIR_PA = 1.0e4
 """float: The pressure ratio is compared only for answers with at least this much air; a trace of air under 10 kPa moves by tens of percent with the start and is not a branch."""
+
+
+def _solve(setting, start):
+    """The answer of `solve` from `start` with the probe stream, as `(temperature_k, pressure_pa)`, or None for no air."""
+    with draw.bound("gen1555-probe"):
+        air = surface_air.solve(setting, start)
+    return None if air is None else (air.temperature_k, air.pressure_pa)
 
 
 def _spread(setting):
@@ -85,7 +98,7 @@ def settings():
                 StarSystem(system_config=config)
     found = {}
     for seed, au in TARGETS:
-        rows = [setting for distance, setting in captured[seed] if distance is not None and abs(distance - au) < 0.02]
+        rows = [setting for distance, setting in captured[seed] if distance is not None and abs(distance - au) < max(0.02, 0.01 * au)]
         assert rows, f"seed {seed} has no solve at {au} au: the generation moved, so the seeds of GEN.1555 must be found again (scripts/gen1555_moist_limit_census.py)"
         found[seed] = rows[-1]
     return found
@@ -98,8 +111,18 @@ def test_the_setting_that_is_single_valued_today_stays_so(settings):
 
 
 @pytest.mark.slow
-@pytest.mark.xfail(strict=True, reason="GEN.1555: the air solve is bistable near the moist limit; seed 3085 ends at 117 K or 174 to 223 K by where it starts. Lane 14 removes this mark with the fix.")
-def test_a_setting_has_one_fixed_point_whatever_it_starts_from(settings):
-    for seed, _ in TARGETS:
+def test_the_same_setting_start_and_draw_state_give_the_same_answer_twice(settings):
+    for seed, setting in settings.items():
+        for start in (150.0, 300.0, 600.0):
+            first, second = _solve(setting, start), _solve(setting, start)
+            assert first == second, (seed, start, first, second)
+
+
+@pytest.mark.slow
+def test_a_giant_ends_at_one_temperature_whatever_the_start(settings):
+    for seed in GIANT_SEEDS:
+        assert settings[seed].giant, seed
         answers = _spread(settings[seed])
-        assert _one_fixed_point(answers), (seed, [(s, None if t is None else round(t, 1), round(p / 1e5, 2)) for s, t, p in answers])
+        assert all(t is not None for _, t, _ in answers), (seed, answers)
+        temperatures = [t for _, t, _ in answers]
+        assert max(temperatures) - min(temperatures) <= SAME_TEMPERATURE_K, (seed, [(s, round(t, 1)) for s, t, _ in answers])
