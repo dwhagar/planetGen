@@ -39,6 +39,7 @@ from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
 from planetgen.describe import belt_info, belt_member_info, field_member_info, irregular_moon_info
 from planetgen.describe.sheet import sheet as object_sheet
+from planetgen.util import log
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
@@ -449,6 +450,7 @@ def health():
         # Already logged by get_db.
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
     except Exception as exc:
+        log.swallowed("api/routes", "health", exc)
         _log_database_error(exc)
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
 
@@ -463,7 +465,8 @@ def health():
     try:
         schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
         schema_version = schema_row["version"] if schema_row else None
-    except Exception:
+    except Exception as swallowed_exc:
+        log.swallowed("api/routes", "health", swallowed_exc)
         schema_version = None
 
     body = {

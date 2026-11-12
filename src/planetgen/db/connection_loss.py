@@ -34,14 +34,14 @@ def facts(conn):
         rows = conn.execute("SHOW GLOBAL STATUS WHERE Variable_name IN ('Uptime', 'Aborted_clients', 'Aborted_connects')").fetchall()
         status = {row["Variable_name"]: int(row["Value"]) for row in rows}
         out.update(uptime=status.get("Uptime"), aborted_clients=status.get("Aborted_clients"), aborted_connects=status.get("Aborted_connects"))
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("db/connection_loss", "facts", exc)
     try:
         row = conn.execute("SELECT @@global.wait_timeout AS wait_timeout, @@global.net_read_timeout AS net_read_timeout,"
                            " @@global.net_write_timeout AS net_write_timeout, @@global.max_allowed_packet AS max_allowed_packet").fetchone()
         out.update({key: int(row[key]) for key in ("wait_timeout", "net_read_timeout", "net_write_timeout", "max_allowed_packet")})
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("db/connection_loss", "facts", exc)
     return out
 
 

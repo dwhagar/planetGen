@@ -12542,6 +12542,7 @@ clears each one.
 - [ ] **GEN.1486 Finer ring edges for the sky backfill: measure, then try narrower rings so fewer stars are drawn than shown**
   Lane 13's read for GEN.1481 step 1 (reports/gen1481-ring-walk-read-2026-11-09.md, 2026-11-09): the ring cost is in stars drawn, 590k stored for 4.1k shown. Do: measure how the stars drawn fall with finer ring edges, and if the saving is real change the edges. Changing ring edges changes which stars are drawn, so this is a lock item with a scatter-stage epoch (--affects scatter), stand-ins registered in GEN.725 with tier and tweak level; time and stored size before and after; reuse sky_tiers and bright_stars.
   Version 8.1. Owner (TODO, proposed 2026-11-09, confirm with TODO before taking): Lane 13, lock item for a train. Prerequisites: GEN.1485. Related: GEN.1481, GEN.1485.
+  Boss, 5:00 PM EST on 2026-11-12 (card): yield 0.005, "Skip the faintest, lose 1%": 1.4 times fewer stars drawn, about 1 percent of stars that would show are not drawn. Slice 1 builds that cut; scatter-stage epoch, rides Train 26.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the measurement of drawn against shown stars per ring (report); slice 1 lock: narrower rings. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
@@ -12824,12 +12825,6 @@ clears each one.
   Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 14. Prerequisites: GEN.1560. Related: GEN.1560, GEN.1492, GEN.725.
   Filed by the TODO thread.
   Split (TODO sweep, 2026-11-12): slice 0 lock-free: the belt mass research note and the target distribution; slice 1 lock: the build. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
-
-- [ ] **GEN.1562 Sulfur dioxide airs are never made: classes A and Y are unreachable (1,391 of 1,392 airs hold under 3 percent SO2); decide whether volcanic bodies (Io-like, tidally heated, close super-Earths) get SO2 airs and wire the supply, otherwise mark A and Y reserved**
-  Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 3. Do: find where outgassing sets SO2 and why it stays under 3 percent, read the volcanic and tidal heating already built (reuse), wire the supply so tidally heated or volcanic bodies can hold an SO2 air with the sink that sulfur chemistry needs, and re-measure A and Y; if the physics says they should be rare to none, mark classes A and Y reserved with the reason and tell Boss. Done: census of SO2 airs by body type; tests. Lock item if it builds.
-  Version 8.1. Owner (TODO, proposed 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1563, GEN.1523.
-  Filed by the TODO thread.
-  Split (TODO sweep, 2026-11-12): slice 0 lock-free: trace why sulfur dioxide airs are never made (report); slice 1 lock: the fix. Slice 0 can start now on its own branch and merge after the gate; slice 1 rides the earliest train.
 
 - [ ] **GEN.1563 Ammonia-water fraction never reaches 0.1, so class X is unreachable (157 bodies pass every other condition); find where ammonia_water_mass_fraction is set and why it stays under 0.1**
   Census thread (as relayed 7:10 PM EST on 2026-11-11), reports/class-census-2026-11-11.md section 9 item 4. Do: trace ammonia_water_mass_fraction from its source (ice-giant and ice-world composition, the cold-body freeze-out) to the class test, find why it stays under 0.1 (a mixing step, a missing ammonia supply, or the threshold itself), fix the cause and not the threshold unless the sources support it, and re-measure X. Done: census of the 157 bodies and how many reach X after; tests. Lock item if it builds.
@@ -13413,21 +13408,6 @@ clears each one.
   Logging (Boss, 3:03 PM EST on 2026-11-12: "ALL of this is logged including decisions when the queue changes values"): every profile sample written, and every change the engine makes to a claim, worker count, split or expected time, logs the job kind, the old and new value, the samples behind it, the reason and which split flag applied, through the existing log layer (logging-standard.md); recent changes also show on the Queue page; each run's log records the cut it used and why.
   Filed by the TODO thread. Top priority (Boss: build it and ship it).
 
-- [ ] **OPS.165 log.degraded helper (rate-limited warning) used at every silent Redis fallback**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding H4). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
-  Filed by the TODO thread.
-
-- [ ] **OPS.168 log.swallowed helper used in every broad except, with a TEST.183 scan for broad handlers**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M1). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: OPS.155.
-  Filed by the TODO thread.
-
-- [ ] **OPS.169 One progress ticker (PROGRESS_LOG_SECONDS) replacing the four copied constants and the hand stamp**
-  Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M3). Lock-free.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: none. Related: OPS.170, OPS.172.
-  Filed by the TODO thread.
-
 - [ ] **OPS.170 Bars and phase lines for the 11 units that never report, where OPS.155 profiles show them running longer than PROGRESS_BAR_SECONDS**
   Boss, 3:05 PM EST on 2026-11-12: "Start a thread using Opus to review all code for appropriate logging both debug on and normal out as well as error reporting"; 3:06 PM EST: "Reformat all log entries to be efficient and readable and consistent". Review: /mnt/project-files/reports/logging-review-2026-11-12.md (finding M2). Lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13. Prerequisites: OPS.169, OPS.155. Related: OPS.169.
@@ -13654,6 +13634,31 @@ clears each one.
 - [ ] **GEN.1666 describe/sheet.sheet becomes per-kind row providers on the kind-table registry; query.resolve_object follows when DB.73 lands**
   Boss, 4:08 PM EST on 2026-11-12: "fix all of the stacked bug fix recommendations ... Have the thread scan the rest of the codebase". Second-pass scan: /mnt/project-files/reports/layered-fixes-second-pass-2026-11-12.md (section N9). Output unchanged, no epoch; lock-free.
   Version 8.1. Owner (TODO, 2026-11-12): the layered-fix scan thread (Boss, 4:25 PM EST: it implements what it finds).176. Prerequisites: DB.128. Related: DB.128, GEN.1663.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1667 (bug) test_secular_exchange_generation has 2 failures on Train 25: seed 1 no longer makes a belt**
+  Lane 21 (as the lane reported 4:52 PM EST on 2026-11-12), seen while fixing GEN.1661: on claude/train-25 (70c55b8b6), even without the GEN.1661 patch, two tests in test_secular_exchange_generation.py fail because seed 1 no longer generates a belt, so the belt secular case is not exercised. Do: pick a seed (or a forced belt request) that makes a belt on the Train 25 generator and check the belt's secular pull is still tested; if the belt loss itself is wrong, say so. A test fix inside Train 25.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23 (GEN.1464 part A), in Train 25. Prerequisites: none. Related: GEN.1464, GEN.1661.
+  Filed by the TODO thread.
+
+- [ ] **SEC.48 Mask keys and credentials in every log: the first 4 characters, X's for the middle, the last 2 characters**
+  Boss, 5:02 PM EST on 2026-11-12: "mask keys and credentials in logs with the first 4 characters and the last 2 characters and the rest are X's". Do: one masking helper in the log layer (util/log, logrecord) applied to every record at every level (normal, debug, error, error.log, job logs, warm-up log and the Queue page stream): API keys, integration keys, session and reset tokens, passwords, database and Redis URLs with credentials, and secrets from config.json, found by field name and by known value. Shape: abcdXXXXXXXXyz (a value of 6 characters or fewer is all X's, so nothing is revealed). Test: a test that fails if any key, token or password appears unmasked in any log output, run over the log fixtures and a sample of real log calls. Output unchanged; lock-free, merges directly.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 05. Prerequisites: none. Related: SEC.47, SEC.33, OPS.168.
+  Filed by the TODO thread.
+
+- [ ] **OPS.180 (bug) Galaxy at a glance says no sectors are charted when sectors are charted**
+  Boss, 5:15 PM EST on 2026-11-12 (live observation on his server): "Galaxy at a glance says no sectors charted even though sectors are charted." Where it comes from: web/glance.galaxy_rows counts len(sectors) from GET /api/galaxy/sectors, which is db.query.galaxy_placed_sectors: placed sectors minus _UNCHARTED_SECTOR_SQL (a sector row whose cell the chart_ledger does not hold). Suspects (unconfirmed, TODO's read): charted sectors whose cell is missing from chart_ledger (so every row counts as an uncharted placeholder), or a cached API or page answer from before the run. Check the other charted counts on the same page (regions table) and the Sectors list against it. Do: find the cause on a galaxy with charted sectors, fix it at the cause, and add a test that the panel's count equals the charted sectors. Output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 13, top item. Prerequisites: none. Related: OPS.153, OPS.154, MAP.402.
+  Filed by the TODO thread.
+
+- [ ] **MAP.427 Sector view: the wireframe stays fixed around the current focus sector, and the user moves to a neighbouring sector through a POI icon at the middle of each sector edge**
+  Boss, 5:21 PM EST on 2026-11-12: "The wireframe around a selected sector in sector view should be static around the current focus sector. User can nevigate to other sectors through POI icons at the middle of each sector edge." Do: in the Sector Map (web/maps/starmap.py and its client), keep the sector wireframe anchored to the focus sector while the view pans, rotates or zooms; place one POI icon at the midpoint of each face edge that has a neighbour sector (named on hover), and clicking it opens that sector as the new focus (reuse the existing sector links and the galactic navigation route data). Edges with no neighbour (galaxy edge) show no icon. Browser test: the wireframe does not move with the camera, and each icon opens the right neighbour. Map drawing only, output unchanged; lock-free.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, after OPS.176. Prerequisites: none. Related: MAP.426.
+  Filed by the TODO thread.
+
+- [ ] **MAP.428 Wide binaries and multiples read as one system in the nav and sector views: a link line or ring around the group and one shared system label**
+  Boss, 5:28 PM EST on 2026-11-12 (via the coordinator, with screenshots, as Lane 23 relayed): wide binaries and multiples display poorly in the nav and sector views. Example: Ofriggor, a quadruple (A G8V, B M4VI, C M3VI, D M0V) where D sits about 8 AU out and shows as its own point with its own label. Do: as the view approaches a wide binary or multiple, show that the stars are one system (a link line or ring around the group, one shared system label instead of a label per star). Display only, output unchanged; lock-free. One PR with MAP.427.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 23, with MAP.427. Prerequisites: none. Related: MAP.427, MAP.136.
   Filed by the TODO thread.
 
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**

@@ -34,6 +34,7 @@ import time
 from datetime import datetime, timezone
 
 from planetgen.admin import maintenance, updateguard
+from planetgen.util import log
 
 MAX_REBUILD_SECONDS = 12 * 3600
 """int: A warm-up marker older than this is ignored."""
@@ -115,7 +116,8 @@ def _generation_since():
             for item in updateguard.RunRecordSource().items():
                 if item["kind"] == runrecord.GENERATION:
                     since = min(since or item["started"] or "", item["started"] or "")
-        except Exception:  # noqa: BLE001
+        except Exception as exc:  # noqa: BLE001
+            log.swallowed("admin/cachebuild", "_generation_since", exc)
             since = None
         _RUN_MEMO.update(at=now, since=since)
     return _RUN_MEMO["since"]

@@ -158,8 +158,8 @@ def _make(config, database, key, compute, stamp, done):
         json.dumps(value)
         _store(database, key, {"value": value, "stamp": stamp, "made": time.time(), "started": started,
                                "took": time.time() - started})
-    except Exception:  # noqa: BLE001 -- a count that fails is simply not stored; the next request tries again
-        pass
+    except Exception as exc:  # noqa: BLE001 -- a count that fails is simply not stored; the next request tries again
+        log.swallowed("db/countcache", "_make", exc)
     finally:
         _release(database, key)
         with _lock:
