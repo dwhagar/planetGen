@@ -3000,6 +3000,8 @@ class BlockLightsFollower(followed.Follower):
     def __init__(self, args, rebuild=False):
         super().__init__(args)
         self.bar = None
+        self._started, self._done, self._estimate = time.monotonic(), 0.0, BLOCK_LIGHTS_BAR_TOTAL
+        self._stop = threading.Event()
         self.rebuild = rebuild      # make the parts again from the objects whatever the check says (GEN.1476)
 
     def params(self):
@@ -3009,8 +3011,7 @@ class BlockLightsFollower(followed.Follower):
     def on_plan(self, plan):
         log.normal("Making the block light totals for the Galaxy Map (rolled up from the parts the scatters kept"
                    + ("; made again from every pre-placed object)..." if self.rebuild else ")..."))
-        self._started, self._done, self._estimate = time.monotonic(), 0.0, BLOCK_LIGHTS_BAR_TOTAL
-        self._stop = threading.Event()
+        self._started = time.monotonic()
         threading.Thread(target=self._speak, name="block-lights-log", daemon=True).start()
         self.bar = self.hold(steps.Step("Making the block light totals", "block-lights", BLOCK_LIGHTS_BAR_TOTAL, args=self.args,
                                         progress=self.progress, force=True))
