@@ -8,7 +8,7 @@ def _chunk(warmed=64, built=64, seconds=38.0):
             "seconds": seconds, "line": "unused"}
 
 
-def _run(chunks, show=True, each=20.0, own=38.0, cost=None, expected=None):
+def _run(chunks, show=True, each=20.0, own=20.0, cost=None, expected=None):
     lines, now = [], [0.0]
 
     def clock():
@@ -30,7 +30,7 @@ def test_a_progress_line_comes_when_the_log_cadence_and_ten_percent_have_passed(
     assert progress[0] == "galaxy-deep-nodes 25% (2 of 8 chunks), 0:40 elapsed"
     assert len(progress) == 3 and progress[2].startswith("galaxy-deep-nodes 75% (6 of 8 chunks)")
     assert lines[-1] == ("galaxy-deep-nodes: 512 nodes warmed (512 built, 0 already stored) in 2:40 over 8 chunks of up to 64 nodes; "
-                         "1 chunk at once, 38.0 s a chunk on its worker; family 2 of 2")
+                         "1 chunk at once, 20.0 s a chunk on its worker; family 2 of 2")
 
 
 def test_no_time_left_is_shown_from_fewer_than_a_few_chunks():
