@@ -2,6 +2,27 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3902] - 2026-11-12
+
+**Headline:** The roundness engine's off-by-default porosity rule is now the sourced carbonate-rock power law, not a recalled ceramics exponential; the rule in use is still "none", so nothing moves.
+
+### Changed
+
+- GEN.1175: `roundness.POROSITY_RULES` loses `exponential` and gains `power`: strength times `(1 - phi / 0.5)^1.67` ([R0083], 253 uniaxial tests of carbonate rock and gypsum, 0.4 to 50 percent porosity; relative strength 0.69, 0.43, 0.22, 0.07 at porosity 0.1 to 0.4), with the argument held at `POROSITY_FLOOR` 0.1 (stand-in RN12, tier T3, tweak L1; the floor T9, L3). Right form, wrong material (no ice-rich law exists), so the rule stays `none` in `roundness_strengths.json`; switching it on is a separate, lock decision after the law is judged on Proteus.
+
+generation-output: unchanged
+
+## [8.0.3901] - 2026-11-12
+
+**Headline:** A star's light while its disk was there can now be worked out for any mass, with the contracting stage the main-sequence value leaves out; nothing reads it yet.
+
+### Changed
+
+- GEN.553 (birth step, for GEN.1611): new `physics/birth_luminosity.py` (`birth_luminosity_sol(initial_mass_sol, fe_h, age_gy)`, a pure function). From 0.01 to 1.4 solar masses it reads the isochrones of [R0254] at the age, so a Sun-like star at 10 Myr has 0.46 of a solar luminosity and a 0.3 solar-mass star 0.059 against 0.02 on the main sequence; above 1.4 solar masses it reads the zero-age main-sequence luminosity from `stellar_evolution.evolve_star`, so a star that is dead at 10 Myr (30 solar masses) is read as it began. The model's own contraction track is brighter than [R0254] at 10 Myr from 0.5 solar masses up (0.75 against 0.46 at 1 solar mass), so the two meet in a step at 1.4 solar masses (1.95 against 3.5 solar luminosities); the function does not hide it and the step is reported to the owner of the contraction track.
+- Nothing in the generator reads it yet (wiring register): Lane 21 wires it into the formation snow line in GEN.1611 slice 1.
+
+generation-output: unchanged
+
 ## [8.0.3900] - 2026-11-12
 
 **Headline:** Every stored field of a star, planet and moon is now marked as a birth value or as present state, with tests that a remake keeps the first and works out the second again; nothing reads the list yet.
