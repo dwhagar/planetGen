@@ -150,10 +150,17 @@ def main(argv=None):
 
     py = [name for name in changed if name.endswith(".py")]
     if py:
-        ruff = _run([sys.executable, "-m", "ruff", "check", "--select", "F821,F822,F823,E9", "--no-cache", "--output-format", "concise", *py])
-        if ruff.returncode not in (0, 1) and "No module named" in ruff.stderr:
-            ruff = _run(["ruff", "check", "--select", "F821,F822,F823,E9", "--no-cache", "--output-format", "concise", *py])
-        results.append(step("ruff (names, syntax)", ruff.returncode == 0, ruff.stdout[-800:] + ruff.stderr[-300:]))
+        flags = ["check", "--select", "F821,F822,F823,E9", "--no-cache", "--output-format", "concise", *py]
+        ruff = _run([sys.executable, "-m", "ruff", *flags])
+        if "No module named" in ruff.stderr:
+            try:
+                ruff = _run(["ruff", *flags])
+            except FileNotFoundError:
+                ruff = None
+        if ruff is None:
+            print("%-22s skipped (ruff is not installed: pip install ruff)" % "ruff (names, syntax)")
+        else:
+            results.append(step("ruff (names, syntax)", ruff.returncode == 0, ruff.stdout[-800:] + ruff.stderr[-300:]))
 
     regenerate = ROOT / "scripts" / "regenerate_generated.py"
     if regenerate.exists():
