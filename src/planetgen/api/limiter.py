@@ -23,6 +23,7 @@ from flask import current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+from planetgen.util import log
 from planetgen.util.settings import RatePages
 
 IN_PROCESS_ENVIRON_KEY = "planetgen.in_process"
@@ -57,7 +58,8 @@ def limit_key():
     from planetgen.api.authz import request_api_key_id
     try:
         key_id = request_api_key_id()
-    except Exception:  # noqa: BLE001 -- a control database that doesn't answer limits by address
+    except Exception as exc:  # noqa: BLE001 -- a control database that doesn't answer limits by address
+        log.swallowed("api/limiter", "limit_key", exc)
         key_id = None
     return f"key:{key_id}" if key_id is not None else get_remote_address()
 
@@ -76,7 +78,8 @@ def exempt_from_default_limits():
     try:
         from planetgen.api.authz import request_api_key_id
         return request_api_key_id() is not None
-    except Exception:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001
+        log.swallowed("api/limiter", "exempt_from_default_limits", exc)
         return False
 
 

@@ -1270,7 +1270,8 @@ class Connection:
             try:
                 callback()
             except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
-                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
+                name = getattr(callback, "__qualname__", None) or repr(callback)       # OPS.164: which step, and where it broke
+                log.exception(f"After-commit step {name} failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -7837,11 +7838,13 @@ def _naming_key_of(conn):
         return None
     try:
         control = get_control_connection(control_mysql_config(config))
-    except Exception:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+    except Exception as exc:  # noqa: BLE001 -- no control database: the clusters stay unnamed until a fill that can read one
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     try:
         return naming_key.key_of(control, config.database)
-    except Exception:  # noqa: BLE001 -- a control schema older than v9
+    except Exception as exc:  # noqa: BLE001 -- a control schema older than v9
+        log.swallowed("db/store", "_naming_key_of", exc)
         return None
     finally:
         control.close()

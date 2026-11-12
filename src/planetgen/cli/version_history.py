@@ -36,7 +36,8 @@ def _galaxy_databases(config):
         try:
             try:
                 seed = store.get_galaxy_seed(conn)
-            except Exception:  # noqa: BLE001 -- not a planetGen database, or older than v51
+            except Exception as exc:  # noqa: BLE001 -- not a planetGen database, or older than v51
+                log.swallowed("cli/version_history", "_galaxy_databases", exc)
                 seed = None
         finally:
             conn.close()

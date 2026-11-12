@@ -683,7 +683,7 @@ def _sky_unit(unit_args, report):
             # records the spheres, so a fresh connection goes on from the last batch (and the server released the draw's named lock with the old one).
             if attempt == SKY_UNIT_CONNECTION_TRIES or not store.is_lost_connection(exc):
                 raise
-            log.normal(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
+            log.warning(f"Sky tiers: the connection to MySQL was lost ({exc!r}); going on from the last committed batch on a new one (try {attempt + 1} of {SKY_UNIT_CONNECTION_TRIES}).")
         finally:
             conn.close()
     drawn = [item for item in result["tiers"] if not item.skipped]
@@ -932,6 +932,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the nebulae are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new nebulae to the block totals failed: {exc}")
     report(1, 2)
     try:
@@ -946,6 +947,7 @@ def refresh_run_blocks_unit(params, report):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the totals can be made again
+        log.swallowed("generation/run_galaxy", "refresh_run_blocks_unit", exc)
         warnings.append(f"adding the new sectors to the block totals failed: {exc}")
     return {"nebulae": nebulae, "sectors": sectors, "warnings": warnings}
 

@@ -934,7 +934,8 @@ def step_stages(step):
             _parser, parsers = generate_cli.build_parser()
             args = parsers[command].parse_args(argv[start + 1:])
             found = stages.for_command(command, args)
-        except (SystemExit, Exception):  # noqa: BLE001 -- the step is then one stage
+        except (SystemExit, Exception) as exc:  # noqa: BLE001 -- the step is then one stage
+            log.swallowed("web/generate_page", "step_stages", exc)
             found = []
         if found:
             return [{"label": stage.label, "skipped": stage.skip} for stage in found]

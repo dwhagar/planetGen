@@ -181,8 +181,8 @@ def worker_class(round_robin=False):
             try:
                 runrecord.log(self.connection, job.args[0], f"Memory gate: {job.description or job.id} waited {admission.waited:,.0f} s for "
                               f"{claim.mb:,.0f} MB ({admission.decision.reason}).", kind="gate.wait", level="warning" if admission.timed_out else "info")
-            except Exception:  # noqa: BLE001 -- a log line is never a reason to fail the job
-                pass
+            except Exception as exc:  # noqa: BLE001 -- a log line is never a reason to fail the job
+                log.swallowed("cli/worker", "worker_class.WarmWorker._report_wait", exc)
 
         def prepare_execution(self, job):
             if units.sheds_tables_for(job):

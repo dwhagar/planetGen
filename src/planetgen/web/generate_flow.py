@@ -20,6 +20,7 @@ from urllib.parse import urlencode
 from flask import abort, current_app, jsonify, redirect, request, url_for
 
 from planetgen.admin import recipes
+from planetgen.util import log
 
 from . import adminregistry, bp, generate_commands, jobs
 from .generate_page import (
@@ -123,7 +124,8 @@ def recipe_views(username):
     be deleted. An unreachable control database lists none."""
     try:
         found = recipes.list_recipes(username, current_app.config["CONTROL_MYSQL_CONFIG"])
-    except Exception:  # noqa: BLE001 -- the Start screen must still draw when the control database does not answer
+    except Exception as exc:  # noqa: BLE001 -- the Start screen must still draw when the control database does not answer
+        log.swallowed("web/generate_flow", "recipe_views", exc)
         return []
     views = []
     for recipe in found:

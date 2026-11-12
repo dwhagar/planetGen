@@ -123,8 +123,8 @@ def _purge_page_cache(database):
         keys = list(client.scan_iter(match=f"planetgen:page:{database}:*", count=1000))
         for start in range(0, len(keys), 500):
             client.unlink(*keys[start:start + 500])
-    except Exception:  # noqa: BLE001 -- the cache expires by itself; the wipe is done
-        pass
+    except Exception as exc:  # noqa: BLE001 -- the cache expires by itself; the wipe is done
+        log.swallowed("cli/reset", "_purge_page_cache", exc)
 
 
 def _confirm(database, host, total_rows):

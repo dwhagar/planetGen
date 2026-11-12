@@ -51,6 +51,7 @@ from datetime import datetime, timezone
 
 from planetgen.admin import maintenance, stop_reason
 from planetgen.queue import stopall
+from planetgen.util import log
 
 UPDATE_CAUSE = "update"
 """str: The maintenance `cause` of an update."""
@@ -346,7 +347,8 @@ class QueuedJobSource:
         from planetgen.queue import redisqueue
         try:
             connection = self._connection()
-        except Exception:  # noqa: BLE001 -- no Redis server: nothing is queued
+        except Exception as exc:  # noqa: BLE001 -- no Redis server: nothing is queued
+            log.swallowed("admin/updateguard", "QueuedJobSource.items", exc)
             return []
         from planetgen.queue import workers
         workers.reap_dead_jobs(connection)      # a job whose worker was killed is not running
@@ -393,7 +395,8 @@ class RunRecordSource:
         from planetgen.queue import runrecord
         try:
             connection = self._connection()
-        except Exception:  # noqa: BLE001 -- no Redis server: no run records
+        except Exception as exc:  # noqa: BLE001 -- no Redis server: no run records
+            log.swallowed("admin/updateguard", "RunRecordSource.items", exc)
             return []
         found = []
         for run_id in runrecord.recent_runs(connection, limit=100_000):
@@ -518,6 +521,7 @@ def cancel_all(sources, items, write=print, why=None):
         try:
             by_name[item["source"]].cancel(item)
         except Exception as exc:  # noqa: BLE001 -- reported; the wait below decides whether it stopped
+            log.swallowed("admin/updateguard", "cancel_all", exc)
             write(f"  could not ask {item['title']} ({item['kind']} {item['id']}) to stop: {exc}")
 
 
