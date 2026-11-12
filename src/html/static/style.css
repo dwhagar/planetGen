@@ -6249,6 +6249,23 @@ p.hint a {
 }
 .map-wall-arrow { font-size: 0.8rem; }
 
+/* The stars of one system (MAP.428, systemgroups.js): thin dashed links from the brightest member to the others, under the names. */
+.map-system-links {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+.map-system-links line {
+  stroke: var(--accent, #4f5fe8);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  stroke-opacity: 0.8;
+}
+
 /* The map's names (MAP.268, maplabels.js): laid over the map, never picked, with a halo that reads on both
    themes; a fade in and out that reduced motion drops. */
 .map-labels {
