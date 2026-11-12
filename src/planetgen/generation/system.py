@@ -39,7 +39,7 @@ from planetgen.util import log
 from planetgen.generation import belt_birth, disk_ejection, habitable_request, late_accretion, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, capture_windows, clearance_ledger, comet_control, cluster_unbinding, debris_dust, disk_truncation, effect_ledger, kozai_bodies, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, tide_sources
+from planetgen.physics import activity, bulk_draw, capture_windows, clearance_ledger, cluster_unbinding, comet_control, dark_light, debris_dust, disk_truncation, effect_ledger, kozai_bodies, light_ledger, planet_architecture, planet_mass, planet_zones, radiation_field, resonant_chains, spin, star_pair_tides, tide_sources
 from planetgen.physics import system_tree
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.orbits import calculate_reflex_offset
@@ -644,19 +644,7 @@ class StarSystem:
         distance the body's light was made on (`radiation_field.field_at`, GEN.1441), by source. It draws nothing and changes no value; a body with no
         air-solved distance (a belt) has none.
         """
-        for obj in self.all_planets:
-            for body in (obj, *getattr(obj, "moons", ())):
-                distance = getattr(body, "_air_light_au", None)
-                host = getattr(body, "star", None)
-                if not distance or host is None:
-                    continue
-                field = radiation_field.field_at(host, distance)
-                stars = {companion.member_no: companion.star for companion in radiation_field.companions_of(host)}
-                stars[None] = host
-                for effect, band in (("light", field.bolometric_w_m2), ("uv", field.far_uv_ratio)):
-                    for member_no, value in band.by_source.items():
-                        if value > 0.0 and member_no in stars:
-                            self.effect_ledger.add(effect, body, stars[member_no], value)
+        light_ledger.fill(self.effect_ledger, self.all_planets, lambda body, planet: getattr(body, "_air_light_au", None))
 
     @property
     def all_planets(self):
@@ -757,16 +745,41 @@ class StarSystem:
 
     def _attach_sources(self, ledger, kind, number, star):
         """Gives `star` the other radiating objects its bodies see, each with the orbit it moves in against the host (GEN.1441, `radiation_field`): the
-        stars of `stars` that hang elsewhere in the orbit tree. A dark member gives no light and a `group` node has no orbit to average over, so a young
+        stars of `stars` that hang elsewhere in the orbit tree. A dark member that glows (GEN.1501, `dark_light`) is one of them, and a `group` node has no orbit to average over, so a young
         system that is not hierarchical has none."""
         try:
             orbits = planet_zones.companion_orbits(ledger.zone((kind, number)), ledger.nodes, ledger.members)
         except ValueError:
             orbits = []
         offsets = self._offsets_from_host(ledger, kind, number)
-        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no], member_no, axis, eccentricity,
-                                                                None if offsets is None else offsets.get(member_no))
-                                      for member_no, axis, eccentricity in orbits if member_no < len(self.stars)])
+        dark = self._dark_sources(ledger)
+        radiation_field.attach(star, [radiation_field.Companion(self.stars[member_no] if member_no < len(self.stars) else dark[member_no], member_no, axis, eccentricity,
+                                                                None if offsets is None else offsets.get(member_no), dark=member_no >= len(self.stars))
+                                      for member_no, axis, eccentricity in orbits if member_no < len(self.stars) or member_no in dark])
+
+    def _dark_sources(self, ledger):
+        """
+        `{member_no: dark_light.DarkSource}` of the dark members of the tree that glow (GEN.1501), numbered on from the stars as the ledger numbers them: a brown dwarf and a neutron star by their
+        age, a black hole by the winds of the stars beside it at their separations from it at the orbit nodes' epoch. A member that gives no light is left out.
+        """
+        if not self.dark_members:
+            return {}
+        age = getattr(self.primary_star, "age", None)
+        try:
+            places = system_tree.member_offsets_au(ledger.members, ledger.nodes, ledger.nodes[0].epoch_unix)
+        except (ValueError, KeyError, IndexError):
+            places = {}
+        found = {}
+        for index, member in enumerate(self.dark_members):
+            number = len(self.stars) + index
+            separations = []
+            if number in places:
+                separations = [math.dist(places[number], places[other]) if other in places else None for other in range(len(self.stars))]
+            source = dark_light.source_of(member, age, dark_light.feeders_of(self.stars, separations))
+            if source is not None:
+                source.member_no = number
+                found[number] = source
+        return found
 
     def _offsets_from_host(self, ledger, kind, number):
         """`{member_no: (x, y, z)}`, each member's place from the host of the zone `(kind, number)` at the orbit nodes' epoch, AU, in the system's frame (GEN.1458);
@@ -1178,6 +1191,7 @@ class StarSystem:
         # the first under the node's slot 1, has it turned half way round)
         if not direct and plan.slot_under(next(m for m in plan.members if m.member_no == first), pair_no) == 1:
             pair_node = dataclasses.replace(pair_node, arg_periapsis_deg=(pair_node.arg_periapsis_deg + 180.0) % 360.0)
+        self._tidal_spin_of_stars(nodes, slots, [(first, primary), (second, secondary), *((member.member_no, built[member.member_no]) for member in others)])
         if self.binary_type == "close":
             self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
@@ -1186,6 +1200,50 @@ class StarSystem:
             # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
             # instances (see Star.a_crit_au's own docstring).
             self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
+
+    def _tidal_spin_of_stars(self, nodes, slots, stars):
+        """
+        GEN.1467: the tide a star's partner raises on it. For every lit star of the tree, `star_pair_tides.spin_state` takes its spin toward the pair's orbit over the star's age:
+        a star close enough to its partner has its rotation period set to the pseudo-synchronous one and its spin axis turned toward the orbit normal, and its activity (which reads the
+        spin) is made again from a stream of the star's own, so no draw of the run moves. A star whose partner is far, a lone star, a white dwarf, a neutron star or a black hole
+        keeps what it was drawn with. The pair's apsidal precession (relativity, both tidal bulges, both rotational bulges) is noted in the effect ledger (effect 6) for the two stars of a
+        pair node whose children are both of the `stars`. It runs before the planets and the close pair's merged proxy are made, so both read the finished stars.
+
+        Args:
+            nodes (list): The tree's orbits after the pair's node was set.
+            slots (dict): `member_no -> (parent_node_no, slot)`.
+            stars (list): `(member_no, Star)` of every lit star.
+        """
+        by_no = {node.node_no: node for node in nodes}
+        pole = spin.GALACTIC_POLE
+        under = {}
+        for member_no, star in stars:
+            slot = slots.get(member_no)
+            node = by_no.get(slot[0]) if slot else None
+            if node is None:
+                continue
+            under.setdefault(node.node_no, []).append(star)
+            partner_kg = (node.mass_solar - _kg_to_msun(star.mass)) * constants.SOLAR_MASS_TO_KG
+            if partner_kg <= 0.0 or not star.age:
+                continue
+            result = star_pair_tides.spin_state(star, partner_kg, _km_to_au(node.separation_km), node.eccentricity, star.age * 1.0e9)
+            if not result.changed:
+                continue
+            star.rotation_period_hours = result.rotation_period_hours
+            axis = tuple(getattr(star, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+            if not any(c is None for c in axis):
+                normal = spin.orbit_normal(node.inclination_deg, node.ascending_node_deg)
+                star.spin_axis_x, star.spin_axis_y, star.spin_axis_z = star_pair_tides.aligned_axis(axis, normal, result.obliquity_factor)
+                star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)
+            with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
+                activity.generate_activity(star)
+            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr)")
+        for node_no, pair in under.items():
+            if len(pair) == 2:
+                node = by_no[node_no]
+                rate = star_pair_tides.apsidal_precession(pair[0], pair[1], _km_to_au(node.separation_km), node.eccentricity).total / constants.SECONDS_PER_YEAR
+                for receiver, source in ((pair[0], pair[1]), (pair[1], pair[0])):
+                    self.effect_ledger.add("precession", receiver, source, rate)
 
     def _disk_outer_edge_au(self, star):
         """
@@ -2260,7 +2318,11 @@ class StarSystem:
                 if planet.body_type == 'a' or not planet.moons:
                     continue
                 self.kozai_outcomes["screened"] += len(planet.moons)
+                before = {id(moon): moon.eccentricity for moon in planet.moons}
                 lost = kozai_bodies.pump_moons(planet, self.effect_ledger)
+                for moon in planet.moons:
+                    if moon not in lost and moon.eccentricity != before[id(moon)]:
+                        planetPhysics.update_orbital_position(moon)     # GEN.1540: the moon goes on the ellipse of the eccentricity it now has, in its place in its plane
                 self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
                 for moon in lost:
                     planet.moons.remove(moon)
@@ -2315,6 +2377,18 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+            # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
+            # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
+            respaced = False
+            for star, planets in validation.star_lists(self):
+                if validation.check_orbit_spacing(planets):
+                    for moved in validation.space_orbits(planets):
+                        log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled")
+                    # the pass only pushes outward, so it can carry the outermost body past the star's stability ceiling (a wide binary's a_crit) as the first spacing pass can: trimmed the same way
+                    validation.trim_to_orbit_ceiling(planets, validation.orbit_ceiling_au(star))
+                    respaced = True
+            if respaced and self.binary_type == "wide":
+                self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
 
     def _give_belts_their_planets(self):
         """Tells every belt the semi-major axes and masses of the planets of its own star (GEN.1492, `AsteroidBelt.give_secular_planets`), now that the orbits are final."""

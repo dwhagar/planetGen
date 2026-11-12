@@ -128,9 +128,9 @@ main{padding:16px 16px 60px}}
 </thead>
 <tbody>
 <tr>
-<td><code>prepare_scatter_phenomena</code></td>
+<td><code>prepare_scatter_phenomena</code> (built, OPS.123 slice 3)</td>
 <td>empties the earlier scatter, then takes off the indexes</td>
-<td><code>clear-phenomena</code> (exists as a command already), <code>drop-phenomenon-indexes</code></td>
+<td><code>empty-phenomenon-scatter</code> (built; <code>clear-scatter</code> was not reused: it refreshes the block lights and resets the epoch), <code>drop-phenomenon-indexes</code> (built)</td>
 </tr>
 <tr>
 <td><code>finish_phenomena_unit</code> (the <code>finish-phenomena</code> command)</td>
@@ -143,14 +143,14 @@ main{padding:16px 16px 60px}}
 <td><code>store-phenomenon-class-counts</code></td>
 </tr>
 <tr>
-<td><code>prepare_scatter_pass</code>, <code>conclude_scatter_pass</code></td>
+<td><code>prepare_scatter_pass</code> (built, OPS.123 slice 3), <code>conclude_scatter_pass</code></td>
 <td>empties bright stars (or the luminosity pass); stores threshold, seed and mass limit; stores the generator epoch</td>
-<td><code>clear-bright-stars</code> (or <code>clear-luminosity-pass</code>), <code>store-scatter-limits</code>, <code>store-scatter-epoch</code></td>
+<td><code>clear-bright-stars</code> (built: one command for both, the stage <code>mass-clear</code> or <code>luminosity-clear</code>), <code>store-scatter-limits</code>, <code>store-scatter-epoch</code></td>
 </tr>
 <tr>
-<td><code>prepare_draw_nebula_field</code>, <code>conclude_draw_nebula_field</code></td>
+<td><code>prepare_draw_nebula_field</code> (built, OPS.123 slice 3), <code>conclude_draw_nebula_field</code></td>
 <td>checks the skeleton and empties the table; links the stored nebulae to their rows and makes the nebula block totals</td>
-<td><code>clear-nebula-field</code> (exists), <code>link-nebulae-to-field</code>, <code>make-nebula-block-totals</code></td>
+<td><code>empty-nebula-field</code> (built: the skeleton check and the no-outline guard stay with the step, which is why <code>clear-scatter</code> was not reused), <code>link-nebulae-to-field</code>, <code>make-nebula-block-totals</code></td>
 </tr>
 <tr>
 <td><code>conclude_field</code> (<code>warm-cluster-field</code>)</td>
@@ -351,6 +351,13 @@ main{padding:16px 16px 60px}}
 </li>
 </ol>
 <p>The order of a run is therefore a result of the planner, not a list someone typed. Add a command with <code>needs</code>/<code>makes</code> and it fits; ask for less and fewer jobs exist. The Generate page, the API and the command line all send the same thing (a goal and its settings) to the planner. The &quot;Stage 4 of 13&quot; bars become <strong>groups</strong>: each command in the plan is a group, bars and ETAs are the sum over the group's jobs, so <code>stagetimes</code>, the ETA and the Queue page keep their meaning.</p>
+<h4 id="321-the-subtract-rule-first-built-for-the-scatters-of-a-galaxy-run-perf256">3.2.1 The subtract rule, first built for the scatters of a <code>galaxy</code> run (PERF.256)</h4>
+<p>Until the planner of OPS.128 exists, the rule is applied where the audit found the largest rescan (<code>reports/generation-rescans-and-stored-fields-2026-11-09.md</code>, C4): <code>galaxy</code> emptied and redrew its scatters on every run (65 minutes with 3 workers on a rerun). <code>run_plan.stored_scatter_skips</code> reads the stored facts and <code>stages.galaxy_stages</code> lists the stages they make as skipped with the reason (the list keeps every stage numbered; <code>args.stage_skips</code>); <code>run_galaxy</code> does not build their followers, and the estimate counts them as no time.</p>
+<ul>
+<li><strong>The fact:</strong> a scatter stands when <code>scatter_epochs</code> holds its record (every clear forgets it, so a record is a finished draw, rows or none), the epoch it was drawn under is one no later epoch changed the scatter stage of (<code>epoch_record.needs</code>, the staleness <code>bring_to_epoch</code> uses), and the settings of the request are the stored ones: the luminosity floor, the stellar mass limit and the star seed for the two star passes (they stand or are drawn together, since the bright stars are split from the massive ones at the mass limit); the seed and the lowest compact mass for the phenomena (which carry their indexes); the nebula field stands with its own record and is drawn again whenever the phenomena are. A galaxy with no seed, whose scatters draw one when they open, has no skips.</li>
+<li><strong>The block light stage</strong> is skipped too when every scatter stands, the run generates no sector (a backfill or a fill could still change a light) and the stored totals hold every unbuilt object (<code>block_lights.totals_current</code>, the counts GEN.1476's <code>parts_current</code> reads).</li>
+<li><strong>What stays:</strong> <code>_refuse_stored_scatter</code> answers a different question (an explicit <code>planetgen scatter</code> over rows that exist is refused so no draw replaces another) and <code>finished_by</code> carries a stopped run on; neither is a skip of a fresh request, so both stay until the planner of OPS.128 takes them over.</li>
+</ul>
 <h3 id="33-dependencies">3.3 Dependencies</h3>
 <ul>
 <li><strong>Counters, not RQ <code>depends_on</code> for wide fan-in.</strong> RQ's <code>depends_on</code> is quadratic when one job waits on N: 2.3 s, 10.1 s, 45.4 s for 200, 500, 1,000 units. [R, measured] The linear way, 7 ms a unit, is an atomic counter in Redis. So each held job has a <code>waiting</code> count; each fact has a list of dependants; a finishing job runs one Lua script that decrements them and moves any that reach zero to <code>ready</code>. That is the done-set barrier of 5.1, made general.</li>

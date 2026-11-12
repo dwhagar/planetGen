@@ -13,7 +13,7 @@ section 3):
 2. **Combine.** Each cell is first clipped: a body that moves farther than half the gap between two class edges of the quantity has changed class whatever the distance (a runaway greenhouse, a
    tectonic switch), so no movement counts for more than that half-gap (`clip`; a quantity with one edge clips at `UNCAPPED_CLIP_SHOULDERS` hand shoulders). `sigma` of a quantity is the root sum of squares of its column, each cell multiplied by the factor of the row's tier (`TIER_FACTORS`: a range of tier T1 to T3 is used as printed, T4 to T8 widened by
    1.5, T9 by 2). The shoulder width is `SIGMA_MULTIPLE` (2) sigma: a value one sigma past a class edge keeps half its membership.
-3. **Cap.** No width may exceed half the gap between a class edge and the nearest other edge of the same quantity in the class table (`caps`, in the quantity's own unit); where the cap binds the table says so,
+3. **Cap.** No width may exceed half the gap between a class edge and the nearest other edge of the same quantity in the class table, or the limit the quantity cannot pass (0, and 1 for a share); where the cap binds the table says so,
    because that is a place a class is missing, not a place for a fudge.
 4. **Quantities with no measurement.** The frozen sample makes the end stages of rocky planets and moons again (air, water, surface, class, spin), so a quantity fixed before those stages (the mass and
    the gravity) has no column, and a quantity no registered constant moves has none either. Such a quantity takes the shoulder it has today (the hand-chosen CF/DM row of `planet_class_fit.json`) scaled by
@@ -46,8 +46,10 @@ TIER_FACTORS = ((3, 1.0), (8, 1.5), (9, 2.0))
 """tuple: `(highest tier number, factor)`: the factor a row's range is widened by (registry row FT2)."""
 SIGMA_MULTIPLE = 2.0
 """float: The shoulder is this many sigma wide: a value one sigma past the edge keeps half its membership (registry row FT3)."""
-UNCAPPED_CLIP_SHOULDERS = 4.0
-"""float: Where a quantity has no second class edge to cap it, a movement is clipped at this many of its hand shoulders (registry row FT4)."""
+UNCAPPED_CLIP_LN = math.log(10.0)
+"""float: Where a log quantity has a single class edge, a movement is clipped at a factor of ten (registry row FT4)."""
+THERMAL = ("temperature_k", "hottest_region_k", "coldest_region_k", "day_temperature_k", "night_temperature_k")
+"""tuple: The quantities that move together with the mean temperature; one of them with a single edge takes the median half-gap of the others as its clip (registry row FT4)."""
 TOP_CONTRIBUTORS = 5
 """int: How many rows are named as the makers of a width."""
 FALLBACK_SCORES = {
@@ -56,12 +58,18 @@ FALLBACK_SCORES = {
     "hottest_region_k": 5.1, "coldest_region_k": 5.1, "day_temperature_k": 5.1, "night_temperature_k": 5.1, "wet_bulb_c": 5.1, "relative_humidity": 5.1,
 }
 """dict: The mean unreliability score of the area that makes each quantity (the ranking report of 11-06, section 2b): the stand-in of registry row FT1."""
+FALLBACK_BASE = {"mass_earth": 0.510826, "gravity_g": 0.105361}
+"""dict: The hand shoulders the class fit had before the table (a mass, 40 percent: the log of 1 / 0.6; a gravity, 10 percent: the log of 1 / 0.9), in the width's unit. The frozen
+sample cannot move the mass or the gravity (both are fixed before the end stages it makes again), so they keep these, scaled by `1 + score / 12` (registry row FT1); a measured run that moves the
+mass law and the radius law with the population held (GEN.1318) replaces them."""
 TIER = "T6"
 TWEAK = "L0"
 """str: The tier and tweak of the widths themselves: propagated registry ranges with a stated factor, the physics argued (registry row FT3)."""
 LOG_QUANTITIES = ("gravity_g", "pressure_pa", "mass_earth", "o2_partial_pa", "co2_partial_pa", "flux_variation")
 """tuple: The quantities that move by orders of magnitude: their movement and width are natural logs of a ratio (the same list as `stand_in_sensitivity.LOG_QUANTITIES`)."""
 EPSILON = 1.0e-9
+SHARES = ("ocean_fraction", "water_mass_fraction", "ammonia_water_mass_fraction", "share_co2", "share_h2", "share_so2", "share_ch4", "reducing_share", "relative_humidity")
+"""tuple: The quantities that are shares or fractions: they stop at 0 and at 1, and the nearer stop acts as an edge when a cap is worked out (registry row FT4)."""
 
 
 def tier_factor(tier):
@@ -86,8 +94,13 @@ def edges_of(quantity, classes):
 
 
 def cap_of(quantity, edge, edges):
-    """Half the gap from `edge` to the nearest other edge of the same quantity in the unit of the width (the log for a log quantity), or `None` when it is the only edge."""
+    """
+    Half the gap from `edge` to the nearest other edge of the same quantity in the unit of the width (the log for a log quantity), or `None` when there is none. The limit a quantity cannot
+    pass counts as an edge: a share stops at 0 and 1, so a shoulder never reaches past half the way to the limit. A temperature, a pressure and a mass have no limit that matters to a class.
+    """
     others = [other for other in edges if other != edge]
+    if quantity in SHARES:
+        others = [other for other in others + [0.0, 1.0] if other != edge]
     if not others:
         return None
     if quantity in LOG_QUANTITIES:
@@ -104,18 +117,9 @@ def clipped_rms(cell, clip):
     return math.sqrt(sum(min(step, clip) ** 2 for step in steps) / cell["bodies"])
 
 
-def hand_width(quantity, shoulders, edges):
-    """The hand shoulder (CF/DM) of `quantity` in the unit of the width: for a relative shoulder, the log of the ratio it stands for at the middle edge."""
-    entry = shoulders[quantity]
-    if "absolute" in entry:
-        return entry["absolute"]
-    relative = entry["relative"]
-    if quantity in LOG_QUANTITIES:
-        return -math.log(1.0 - relative) if relative < 1.0 else math.inf
-    if edges:
-        middle = edges[len(edges) // 2]
-        return max(relative * abs(middle), entry.get("floor", 0.0))
-    return entry.get("floor", 0.0)
+def fallback_base(quantity):
+    """The width a quantity takes when no row of the matrix moves it, before the score scales it: the hand shoulder the class fit had before the table (`FALLBACK_BASE`), or `None`."""
+    return FALLBACK_BASE.get(quantity)
 
 
 def column(quantity, matrix, by_id, clip):
@@ -133,21 +137,36 @@ def column(quantity, matrix, by_id, clip):
     return contributions, math.sqrt(sum(item["variance"] for item in contributions))
 
 
-def build(matrix, rows, classes, shoulders):
-    """The table as a dict, from the matrix document, the registry `rows` (`stand_in_sensitivity.read_rows`), the class table and its shoulders."""
+def class_conditions(path=None):
+    """The class table (`planet_class_fit.json`) as objects with a `when` list, read straight from the file so the build does not need a table to exist."""
+    import types
+
+    with open(path or os.path.join(DATA, "planet_class_fit.json"), encoding="utf-8") as handle:
+        document = json.load(handle)
+    return [types.SimpleNamespace(letter=row["letter"], when=row["when"]) for row in document["classes"]]
+
+
+def build(matrix, rows, classes):
+    """The table as a dict, from the matrix document, the registry `rows` (`stand_in_sensitivity.read_rows`) and the class table (`class_conditions`)."""
     by_id = {row["fill_id"]: row for row in rows}
     quantities = {}
-    for quantity in sorted(shoulders):
+    names = sorted({condition["quantity"] for cls in classes for condition in cls.when if "equals" not in condition})
+    thermal_caps = [cap for name in names if name in THERMAL for cap in (cap_of(name, edge, edges_of(name, classes)) for edge in edges_of(name, classes)) if cap is not None]
+    thermal_clip = statistics.median(thermal_caps) if thermal_caps else None
+    for quantity in names:
         edges = edges_of(quantity, classes)
-        hand = hand_width(quantity, shoulders, edges)
+        hand = fallback_base(quantity)
+        uncapped = UNCAPPED_CLIP_LN if quantity in LOG_QUANTITIES else (thermal_clip if quantity in THERMAL else None)
         caps = [cap_of(quantity, edge, edges) for edge in edges]
-        uncapped = UNCAPPED_CLIP_SHOULDERS * hand if math.isfinite(hand) and hand > 0.0 else None
+        caps = [uncapped if cap is None else cap for cap in caps]        # an edge with no neighbour is capped at the clip of a lone edge (a factor of ten, or the median half-gap of the thermal values)
         clip = statistics.median([cap for cap in caps if cap is not None]) if any(cap is not None for cap in caps) else uncapped        # the quantity's own figure clips at the middle half-gap; each edge's width below at its own
         contributions, sigma = column(quantity, matrix, by_id, clip)
         total = sigma * sigma
         unit = "ln" if quantity in LOG_QUANTITIES else "plain"
         measured = bool(contributions)
-        fallback = hand * (1.0 + FALLBACK_SCORES[quantity] / 12.0)
+        if not measured and hand is None:
+            raise SystemExit(f"{quantity}: no row of the matrix moves it and it has no fallback base (FALLBACK_BASE)")
+        fallback = hand * (1.0 + FALLBACK_SCORES[quantity] / 12.0) if hand else None
         width, basis = (SIGMA_MULTIPLE * sigma, "measured") if measured else (fallback, "fallback")
         top = sorted(contributions, key=lambda item: (-item["variance"], item["fill_id"]))[:TOP_CONTRIBUTORS]
         edge_rows = []
@@ -159,7 +178,7 @@ def build(matrix, rows, classes, shoulders):
                               "width": round(edge_width if cap is None else min(edge_width, cap), 6)})
         quantities[quantity] = {
             "unit": unit, "basis": basis, "rows": len(contributions), "clip": round(clip, 6) if clip is not None else None, "sigma": round(sigma, 6), "width": round(width, 6),
-            "hand_shoulder": round(hand, 6) if math.isfinite(hand) else None, "tier": TIER, "tweak": TWEAK,
+            "fallback_base": round(hand, 6) if hand else None, "tier": TIER, "tweak": TWEAK,
             "tuned_share": round(sum(item["variance"] for item in contributions if tuned(item["tweak"])) / total, 4) if total else 0.0,
             "contributors": [{"fill_id": item["fill_id"], "tier": item["tier"], "tweak": item["tweak"], "movement": round(item["movement"], 6), "share": round(item["variance"] / total, 4)} for item in top],
             "edges": edge_rows,
@@ -226,11 +245,10 @@ def render(table):
 
 def make():
     import stand_in_sensitivity
-    from planetgen.physics import class_fit
 
     with open(MATRIX, encoding="utf-8") as handle:
         matrix = json.load(handle)
-    return render(build(matrix, stand_in_sensitivity.read_rows(), class_fit.CLASSES, class_fit.SHOULDERS))
+    return render(build(matrix, stand_in_sensitivity.read_rows(), class_conditions()))
 
 
 def main(argv=None):

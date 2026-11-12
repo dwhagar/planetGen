@@ -17,13 +17,14 @@ index) for rows nothing ever changes. So the lists, the search and Nearby read t
 row id, the field by its key, the counts from `phenomenon_scatter_classes` (exact, kept by the scatter) and one count of the field.
 
 A list shows the charted objects first, in the order asked for, and the uncharted ones after them, field clouds then scattered rows, each
-in its table's order (`page`). A scattered row is named "Uncharted <kind> <shell>.<band>.<wedge>" like the Phenomena table names it and
+in its table's order (`page`). A scattered row is named by its local name and birth sector (UX.259), or "Uncharted <kind> <shell>.<band>.<wedge>" with no Object ID or naming key, like the Phenomena table names it and
 links to the page of its scatter row (`/uncharted-phenomenon/<id>`); a field cloud has no page.
 """
 
 from planetgen import tuning
 from planetgen.db import query, region
 from planetgen.galaxy import object_uid
+from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen.util import detmath
 
@@ -143,10 +144,16 @@ def _cloud_item(row):
             "mass_kg": None, "radius_km": radius_ly * KM_PER_LY, "placed": True, "uncharted": True, "scatter_id": None}
 
 
+def _scatter_name(row):
+    """What a scatter phenomenon is called where its name stands alone (UX.259): its local name and birth sector (`naming_key.local_name_with_sector`), or "Uncharted <kind> <cell>" for a row with no Object ID or no naming key."""
+    return (naming_key.scatter_identity(row["uid"]).get("name_with_sector")
+            or f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}")
+
+
 def _scatter_item(row, kind, descriptor):
     mass = row["mass_solar"]
     return {"kind": kind, "id": _printed(row["uid"]), "source_id": None,
-            "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}",
+            "name": _scatter_name(row),
             "sector_id": None, "system_id": None, "parent_id": None, "object_class": descriptor,
             "mass_kg": None if mass is None else float(mass) * SOLAR_MASS_KG, "radius_km": None, "placed": True,
             "uncharted": True, "scatter_id": row["id"]}
@@ -219,7 +226,7 @@ def within(conn, center, distance, kinds):
         point = (row["x"], row["y"], row["z"])
         away = detmath.dist(center, point)
         if away <= distance:
-            name = f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}"
+            name = _scatter_name(row)
             found.append((away, kind, _printed(row["uid"]), name, point, row["id"]))
     if "nebula" in wanted:
         position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
@@ -274,10 +281,10 @@ def search_rows(conn, types, limit, offset, field_codes=None, scatter_types=None
             params.extend([entry["kind"], entry["subtype"]])
         by_class = {(entry["kind"], entry["subtype"]): entry["type"] for entry in classes}
         for row in conn.execute(
-                "SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index FROM phenomenon_scatter"
+                "SELECT id, uid, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index FROM phenomenon_scatter"
                 f" WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id LIMIT ? OFFSET ?",
                 [*params, room, max(0, offset - field_total)]).fetchall():
             rows.append({"type": by_class[(row["kind"], row["subtype"])], "id": row["id"],
-                         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}.{row['wedge_index']}",
+                         "name": _scatter_name(row),
                          "phenomenon_class": row["subtype"] or None, "sector_id": None, "scatter_id": row["id"], "uncharted": True})
     return rows, int(field_total + scatter_total)

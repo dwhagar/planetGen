@@ -170,6 +170,7 @@ class Decision:
     reason: str
     need_mb: float
     free_mb: float
+    memory: bool = False
 
 
 @dataclass(frozen=True)
@@ -329,7 +330,7 @@ def decide(claim, host, held, own_mb=0.0, places=None, name=None):
     free = host.available_mb - reserve - keep - unrealised
     if need > free:
         return Decision(False, f"needs {need:,.0f} MB, {free:,.0f} MB are free ({host.available_mb:,.0f} available, {reserve:,.0f} kept for the host, "
-                               f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free)
+                               f"{keep:,.0f} for the short lanes, {unrealised:,.0f} still to be taken by the claims held)", need, free, True)
     cap = host.cores * (INTERACTIVE_CPU_SHARE if short else CPU_SHARE) - (0.0 if short else kept_cores(others, host, places))
     busy = sum(holder.claim.cpu for holder in others)
     if busy + claim.cpu > cap:
@@ -394,6 +395,7 @@ def acquire(conn, claim, name, job="", pid=None, cap_of=None, on_wait=None, cloc
 def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wait, scheduler):
     started = clock()
     announced = float("-inf")
+    memory_since = None
     asked = claim
     while True:
         waited = clock() - started
@@ -417,12 +419,28 @@ def _acquire(conn, claim, name, job, pid, cap_of, on_wait, clock, sleep, max_wai
                 if timed_out:
                     log.warning(f"The memory gate let {claim.kind} in after {waited:,.0f} s of waiting, by the table cap: {decision.reason}")
                 return Admission(waited, timed_out, decision)
+        if decision.memory:
+            memory_since = clock() if memory_since is None else memory_since
+            _adapt_to_wait(conn, claim, name, clock() - memory_since)
+        else:
+            memory_since = None
         if waited - announced >= 60.0:
             announced = waited
             log.normal(f"The memory gate holds {claim.kind} ({claim.mb:,.0f} MB) for {name}: {decision.reason}.")
         if on_wait is not None:
             on_wait(decision, waited)
         sleep(POLL_SECONDS)
+
+
+def _adapt_to_wait(conn, claim, name, memory_waited):
+    """A bulk job has waited `memory_waited` seconds for memory: tells the adaptive control (`queue.adaptive`), which lowers the worker limit once it is long. Never raises."""
+    if claim.lane != LANE_BULK or not enabled():
+        return
+    try:
+        from planetgen.queue import adaptive
+        adaptive.on_memory_wait(conn, name, claim.kind, memory_waited)
+    except Exception as exc:  # noqa: BLE001 -- the control is an optimisation; a wait at the gate goes on without it
+        log.debug("gate: the adaptive worker control failed: %s", exc, area="queue")
 
 
 def refresh(conn, name, now=None):

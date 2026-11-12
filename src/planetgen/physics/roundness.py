@@ -27,8 +27,8 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    rock 16.5 MPa (confirmed three ways, range 4 to 30); ice 1 MPa by default (the creep strength of pure ice near 158 K, range 0.4 to 3), and when a shape-set `temperature_k` is given the
    [R1190] creep law of ice at 1e-15 per second (0.1 MPa at 200 K, 3.6 at 140 K, 34 at 100 K); metal 100 MPa (range 50 to 250, [R3552]); and a mix that follows
    the *volume* shares, ice strength times `exp(2 f)` for the solids' volume fraction `f` (measured to 0.56), continued to 0.65 and then geometric to the solids' strength at 1.
-   Porosity is `none`: meteorites show no clear strength trend with porosity [R3552]. An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
-   Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
+   Porosity is `none`: meteorites show no clear strength trend with porosity [R3552]. A `power` rule (the carbonate-rock law of [R0083], strength times `(1 - phi / 0.5)^1.67`, GEN.1175) is built and off; the recalled ceramics
+   exponential it replaces made Proteus (a porous ice-rich moon, 210 km, not round) come out round, and the power law has not yet been judged on it. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
    other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
    **Hot rock.** A rock body that took its shape hot is weaker than cold rock: with a shape-set `temperature_k` the rock strength follows the creep of dry olivine (`TEMPERATURE_RULES`,
    `olivine-creep-law`), between the [R1956, R2451] columns, and never above the cold whole-body strength of 16.5 MPa, which stands for the brittle limit. So
@@ -263,9 +263,22 @@ MIXING_RULES = {"exp-volume": _exp_volume}
 
 POROSITY_RULES = {
     "none": lambda table, strength, porosity: strength,
-    "exponential": lambda table, strength, porosity: strength * math.exp(-_positive(table.porosity["coefficient"], "coefficient") * porosity),
+    "power": lambda table, strength, porosity: strength * _porosity_factor(table, porosity),
 }
-"""dict: Rules for what voids do to the strength, each `(table, strength_pa, porosity)` -> Pa. `none` leaves it to the density; `exponential` is `sigma exp(-b phi)` with `b` in the file (4 to 7 in the research). [Stand-in RN5, tier T3, tweak L3.]"""
+"""dict: Rules for what voids do to the strength, each `(table, strength_pa, porosity)` -> Pa. `none` leaves it to the density; `power` is `sigma (1 - phi / phi*)^m` with `phi*` (`solid_limit`) and `m`
+(`exponent`) in the file, the law fitted to 253 uniaxial tests of carbonate rocks and gypsum, 0.4 to 50 percent porosity ([R0083]: 1.67 with phi* 0.5 assumed, not fitted; it replaces the recalled
+ceramics exponential). [Stand-ins RN5 (which rule is in use) and RN12 (the power law), GEN.1175.]"""
+
+
+def _porosity_factor(table, porosity):
+    """The share of its strength a body keeps with voids of share `porosity`: `(1 - phi / phi*)^m` ([R0083], RN12), the argument held at `POROSITY_FLOOR` of the solid so that a body at the law's limit keeps a little
+    strength and does not divide a round radius by zero."""
+    limit, exponent = _positive(table.porosity["solid_limit"], "solid_limit"), _positive(table.porosity["exponent"], "exponent")
+    return max(1.0 - porosity / limit, POROSITY_FLOOR) ** exponent
+
+
+POROSITY_FLOOR = 0.1
+"""float: The least `1 - phi / phi*` the `power` porosity rule uses, so a body at or past the law's solid limit keeps `0.1^1.67` (2 percent) of its strength. [Stand-in RN12, tier T9, tweak L3: the data stop at 50 percent porosity.]"""
 
 
 def _mohr_coulomb(table):

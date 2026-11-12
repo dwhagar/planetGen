@@ -20,6 +20,8 @@
   <form method="post" action="{{ url_for('web.generate_system') }}#system-result" class="search-form">
     {{ csrf_field() }}
     <div class="search-fields">
+      {{ ui_select("result_kind", "Result", result_choices, form.get("result_kind", ""),
+                   hint="A rogue planet or comet has no star: only the name and the debug log apply.") }}
       {{ field("name", "Name", placeholder="random") }}
       {{ field("star_type", "Star type", placeholder="random, e.g. G2V") }}
       {{ ui_select("age", "Age", [{"value": "", "label": "Generator decides"}, {"value": "young", "label": "Young"}, {"value": "old", "label": "Old"}], form.get("age", "")) }}

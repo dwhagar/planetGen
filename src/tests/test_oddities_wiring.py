@@ -503,9 +503,9 @@ def _planet_at(star_type, distance_au, seed, force=(), dial=None, mass_earth=1.0
 
 
 def test_a_locked_planet_with_a_thin_air_loses_it_to_its_dark_side_and_is_left_airless():
-    lost = _planet_at("M3V", 0.12, "w19-M3V-1", force=("W19",))
+    lost = _planet_at("M3V", 0.12, "w19-M3V-2", force=("W19",))
     assert lost.oddities == ("W19",) and lost.atmospheric_pressure == 0.0
-    kept = _planet_at("M3V", 0.12, "w19-M3V-1", dial=0.0)
+    kept = _planet_at("M3V", 0.12, "w19-M3V-2", dial=0.0)
     assert kept.oddities == () and kept.atmospheric_pressure > 0.0
 
 
@@ -515,9 +515,9 @@ def test_a_planet_that_is_not_locked_never_loses_its_air_to_a_dark_side_even_whe
 
 
 def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_first_answer():
-    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374), so the seed that had one was replaced (7: 47 K and 0.29 apart)
-    other = _planet_at("G2V", 1.2, "w20-G2V-7", force=("W20",))
-    first = _planet_at("G2V", 1.2, "w20-G2V-7", dial=0.0)
+    # a pinned seed whose planet has a second branch; the generator's draws moved at epoch 140 (GEN.1363, GEN.1374) and again with GEN.993 (the core's light elements), so the seed that had one was replaced (10: 50 K and 0.34 apart)
+    other = _planet_at("G2V", 1.2, "w20-G2V-10", force=("W20",))
+    first = _planet_at("G2V", 1.2, "w20-G2V-10", dial=0.0)
     assert "W20" in other.oddities and first.oddities == ()
     assert abs(other.surface_temperature - first.surface_temperature) >= 20.0 and abs(other.bond_albedo - first.bond_albedo) >= 0.1
 
@@ -525,6 +525,63 @@ def test_the_other_branch_of_a_bistable_climate_is_a_distinct_climate_from_the_f
 def test_a_world_with_no_second_branch_is_not_named_for_one():
     hot = _planet_at("G2V", 0.4, "w20-hot", force=("W20",))
     assert "W20" not in hot.oddities
+
+
+# --- GEN.1523: W26 (the Hycean box of `hycean_candidate`) ------------------------------------------------------------------------
+
+def test_a_sub_neptune_inside_the_hycean_box_is_named_and_one_that_is_too_light_for_its_size_is_not():
+    from planetgen.physics import hycean_candidate
+
+    inside = _planet_at("K2V", 0.3, "hy-2-0.3-0", mass_earth=2.0, force=("W26",))
+    found = oddities.quantities_of(inside)
+    assert "W26" in inside.oddities and set(inside.oddities) <= {"W26", "W1"}      # the draw may also tip the planet into the tilt row W1
+    assert hycean_candidate.hycean_candidate(found["mass_earth"], found["radius_earth"], found["equilibrium_temperature_k"])
+    puffy = _planet_at("K2V", 1.0, "hy-2-1.0-0", mass_earth=2.0, force=("W26",))
+    found = oddities.quantities_of(puffy)       # 2.0 Earth radii at 1.4 g/cc: under the box's density
+    assert found["density_g_cm3"] < 1.5 and "W26" not in puffy.oddities
+    assert not hycean_candidate.hycean_candidate(found["mass_earth"], found["radius_earth"], found["equilibrium_temperature_k"])
+
+
+def test_the_gate_of_the_hycean_row_reads_the_same_box_as_the_module():
+    row = oddities.BY_ID["W26"]
+    from planetgen.physics import hycean_candidate as box
+
+    bounds = {(c["quantity"], "min" if "min" in c else "lt"): c.get("min", c.get("lt")) for c in row.requires if c["quantity"] != "body_type"}
+    assert bounds[("mass_earth", "min")] == box.HYCEAN_MASS_EARTH[0] and abs(bounds[("mass_earth", "lt")] - box.HYCEAN_MASS_EARTH[1]) < 1e-6
+    assert bounds[("radius_earth", "min")] == box.HYCEAN_RADIUS_EARTH[0] and abs(bounds[("radius_earth", "lt")] - box.HYCEAN_RADIUS_EARTH[1]) < 1e-6
+    assert bounds[("equilibrium_temperature_k", "min")] == box.HYCEAN_TEMPERATURE_K[0] and abs(bounds[("equilibrium_temperature_k", "lt")] - box.HYCEAN_TEMPERATURE_K[1]) < 1e-6
+    assert bounds[("density_g_cm3", "min")] == box.HYCEAN_DENSITY_G_CM3[0] and abs(bounds[("density_g_cm3", "lt")] - box.HYCEAN_DENSITY_G_CM3[1]) < 1e-6
+
+
+def test_the_dial_at_zero_names_no_hycean_candidate_and_a_moon_has_no_equilibrium_temperature_quantity():
+    off = _planet_at("K2V", 0.3, "hy-2-0.3-0", mass_earth=2.0, dial=0.0)
+    assert off.oddities == ()
+    moon = _body(star=types.SimpleNamespace(luminosity=3.8e26), is_moon=True)
+    assert "equilibrium_temperature_k" not in oddities.quantities_of(moon)
+
+
+# --- GEN.1527: W16 (the helium-rich envelope of `helium_fractionation`) ----------------------------------------------------------
+
+def test_a_planet_that_lost_most_of_its_envelope_ends_richer_in_helium_than_the_star_and_one_that_lost_little_does_not():
+    from planetgen.physics import bulk_draw
+
+    stripped = _planet_at("K2V", 0.1, "he2-K2V-6-0.1-0", mass_earth=6.0)         # lost more than half of the envelope it started with
+    host = bulk_draw.host_ratios(stripped.star)
+    assert stripped._envelope_helium_y > host.y_envelope and stripped.envelope_helium_fraction > host.y_envelope * (1.0 - host.z)
+    far = _planet_at("G2V", 0.04, "he-3-0.04-0", mass_earth=3.0)
+    assert getattr(far, "_envelope_helium_y", None) is None                     # no envelope at all
+
+
+def test_the_helium_row_names_the_planets_that_reached_the_enhanced_share_and_no_others():
+    from planetgen.physics import helium_fractionation as hf
+
+    row = oddities.BY_ID["W16"]
+    assert any(c["quantity"] == "envelope_helium_y" and c.get("min") == hf.MIN_HELIUM_FOR_ENHANCED for c in row.requires)
+    rich = _body(_envelope_helium_y=0.5)
+    assert oddities.apply(rich, levers=("L8",), dial=1.0) == ["W16"]
+    for y in (0.3, None):
+        poor = _body(_envelope_helium_y=y)
+        assert oddities.apply(poor, levers=("L8",), dial=1.0) == []
 
 
 # --- GEN.1047 isolation: the dial at 0 changes no other draw ---------------------------------------------------------------------

@@ -69,7 +69,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>What stays</td>
-<td>The vapor pressure of the gas (<code>physics/saturation.py</code>) at the night side's temperature</td>
+<td>The vapour pressure of the gas (<code>physics/saturation.py</code>) at the night side's temperature</td>
 <td>none (physics)</td>
 </tr>
 <tr>
@@ -87,7 +87,7 @@ main{padding:16px 16px 60px}}
 <p>The 0.1 bar of the design note's table is the paper's own figure (collapse &quot;for any stellar flux given p &lt; 0.1 bar&quot;); the 0.03 bar found by [R2201] was a grey-gas estimate and the paper explains the difference by windows in the CO<sub>2</sub> spectrum and by a weaker coupling of the air to the night-side surface than grey gas gives. [R2605] (listed in the work item) was not read: the paper found in the search is about land planets and moist bistability, not collapse.</p>
 <h2 id="3-what-it-does-and-does-not-claim">3. What it does and does not claim</h2>
 <ul>
-<li>Under the critical pressure the loss feeds on itself, so the air does not settle half way: what stays is at most the vapor pressure at the night side's temperature, a tiny share (0.1 bar of CO<sub>2</sub> at Earth's flux keeps about a quarter, 0.05 bar keeps under one percent, Mars-like 600 Pa keeps none to the precision of the model). The retained share is the number to use; <code>collapsed</code> (under half) is a convenience.</li>
+<li>Under the critical pressure the loss feeds on itself, so the air does not settle half way: what stays is at most the vapour pressure at the night side's temperature, a tiny share (0.1 bar of CO<sub>2</sub> at Earth's flux keeps about a quarter, 0.05 bar keeps under one percent, Mars-like 600 Pa keeps none to the precision of the model). The retained share is the number to use; <code>collapsed</code> (under half) is a convenience.</li>
 <li>It is not asked for a planet that does not lock; the caller (GEN.1051) checks <code>regional_temperature.is_locked</code>.</li>
 <li>Air that is a mix of CO<sub>2</sub> and a non-condensing gas is outside the fit. The paper says the pure-CO2 fit is conservative (a background gas lowers the collapse pressure). The module takes the main gas as the whole air.</li>
 <li>Outside 0.2 to 3.0 times Earth's flux the fit is held at its edge and the <code>Collapse</code> says <code>extrapolated</code>. At the paper's lowest flux the fit gives 2.9 bar while its text says collapse at every pressure it ran; the module follows the fit, and a Mars-like world is therefore marked extrapolated and collapsed.</li>
