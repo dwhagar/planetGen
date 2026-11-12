@@ -331,6 +331,8 @@ class AsteroidBelt:
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
+        data["history"] = list(self.history)        # a tuple until the star's evolution has written a line; a read-back belt holds a list, and the two must agree
+        data["origin_history"] = list(self.origin_history)
         data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
         data["members"] = self.members
         return data
