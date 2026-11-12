@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3882] - 2026-11-12
+
+**Headline:** The one-off system page can now pick which debug areas its debug log shows.
+
+### Added
+- **A "Debug areas" box on the one-off system page (UX.300).** `/admin/generate/system` takes the same area list `--debug-areas` takes (names separated by commas, `all`, or a leading `-` to leave one out); it is checked the way the command line checks it and passed on when the debug log is ticked.
+
 ## [8.0.3881] - 2026-11-12
 
 **Headline:** tests only: the tests that run a queue command in a process of their own no longer read the machine's data folder through a leftover worker.
