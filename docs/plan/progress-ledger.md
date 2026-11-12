@@ -3186,3 +3186,14 @@ Baseline: PR #1817.
 | GEN.1620 | 8.1 | TODO sweep |
 | OPS.152 | 8.1 | TODO sweep |
 | OPS.153 | 8.1 | TODO sweep |
+| DOC.120 | 8.1 | TODO sweep |
+| OPS.162 | 8.1 | TODO sweep |
+| OPS.163 | 8.1 | TODO sweep |
+| OPS.164 | 8.1 | TODO sweep |
+| OPS.167 | 8.1 | TODO sweep |
+| OPS.171 | 8.1 | TODO sweep |
+| OPS.166 | 8.1 | TODO sweep |
+| OPS.165 | 8.1 | TODO sweep |
+| OPS.168 | 8.1 | TODO sweep |
+| OPS.169 | 8.1 | TODO sweep |
+| GEN.1562 | 8.1 | TODO sweep |

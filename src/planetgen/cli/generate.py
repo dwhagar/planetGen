@@ -204,7 +204,8 @@ def _validate_class_request(args, parser):
     if args.force_class and args.system_file:
         try:
             slots = run_system.load_system_file(args.system_file).get("slots")
-        except Exception:        # the system file's own checks say what is wrong with it
+        except Exception as exc:        # the system file's own checks say what is wrong with it
+            log.swallowed("cli/generate", "_validate_class_request", exc)
             slots = None
         if slots:
             parser.error("--force-class cannot be combined with a system file's slots: a slot already names its class.")
@@ -2422,7 +2423,8 @@ def _run_user():
     """Who ran this: the login name (`getpass.getuser`), or `None`."""
     try:
         return getpass.getuser()
-    except Exception:  # noqa: BLE001 -- no user name in this environment
+    except Exception as exc:  # noqa: BLE001 -- no user name in this environment
+        log.swallowed("cli/generate", "_run_user", exc)
         return None
 
 

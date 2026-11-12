@@ -2,6 +2,162 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3981] - 2026-11-12
+
+**Headline:** The tuning fuzz check no longer mistakes the white dwarf core table for low-high ranges.
+
+### Fixed
+- **`test_every_numeric_constant_is_finite_and_every_pair_ordered` failed on `WD_CENTRAL_OXYGEN_BY_MASS_SOL` (GEN.1370).** The check reads every two-number tuple as (low, high); the table's knots are (white dwarf mass, central oxygen fraction), so the check now lists it with the other knot tables. Test only. generation-output: unchanged
+
+## [8.0.3980] - 2026-11-12
+
+**Headline:** The warm-up log tests read the one duration form that OPS.173 introduced, which turns main green again.
+
+### Changed
+
+- `test_warm_log.py` matches the closing lines of a warm-up run ("finished after 0 ms", "ended by Ctrl+C after 12.3 s") in any of the one duration forms instead of only `m:ss`; OPS.173 had left it on the old form.
+
+generation-output: unchanged
+
+## [8.0.3979] - 2026-11-12
+
+**Headline:** The progress lines of the long loops (block light totals, sector stages, downloads) work again: the ticker called a time formatter that the message text standard had removed, so its lines would have failed.
+
+### Changed
+- **`util/ticker.py` writes its time with `logrecord.duration_text` (OPS.173).** `joblog.clock_text` is gone; a ticker line now reads `Things: 1,240 of 4,000 done (31%), 41.3 per s, 30.0 s elapsed.` and the stamp `Adding up the levels (4:07 elapsed).` keeps its form from a minute on.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3978] - 2026-11-12
+
+**Headline:** The HEAD and OPTIONS check of every page route has a test value for the irregular-moons page, which turns main green again.
+
+### Changed
+
+- `test_web_old_urls_errors.py` gives `planet_ref` (`planet:1`) in the values it fills page routes with, so `/object/<planet_ref>/irregular-moons` and `/object/<planet_ref>/irregular/<rank>` (GEN.1086) are checked like the belt and field pages.
+
+generation-output: unchanged
+
+## [8.0.3977] - 2026-11-12
+
+**Headline:** The route snapshot and the link audit now know the two irregular-moon routes that GEN.1086 added, which turns main green again.
+
+### Changed
+
+- `src/tests/fixtures/api_routes.json` lists `/api/objects/<ref>/irregular-moons` and `/api/objects/<ref>/irregular-moons/<rank>` (added without a version bump, since a new route is additive).
+- `test_api_link_ids.py` names both in `NOT_AUDITED` with the reason (the planet is the ref in the path), as the belt pages are.
+
+generation-output: unchanged
+
+## [8.0.3976] - 2026-11-12
+
+**Headline:** Every log line is now held to one message style, with one duration form (`340 ms`, `12.3 s`, `4:07`, `1:05:12`), and a test fails on a new line that breaks it; the lines already in the code are converted in the next three parts.
+
+### Changed
+
+- OPS.173 (part 1 of the log reformat, Boss 3:06 PM EST on 2026-11-12): a "Message text" section in `docs/design/operations/logging-standard.md` with nine rules (one sentence with a capital first and a period last, no severity word and no component prefix, ids and figures as fields, one duration form, counts with separators, at most 160 characters, progress lines from one ticker, error lines say what then why, levels, f-strings above debug and `%` arguments for per-object debug lines).
+- `logrecord.duration_text` is the one duration form. The two copies of `clock_text` (`util/joblog.py`, `cli/warm_progress.py`) are gone; a job log's closing line and the warm-up's "about 4:07 left" now use it, so a job that took under a minute says `340 ms` or `12.3 s` instead of `0:00`.
+- TEST.183 gets a third scan: it reads the first argument of every logger call and fails on a severity word, a component prefix, a lowercase first letter, a missing final period or more than 160 characters of fixed text. The 111 functions that still break a rule are named in `MESSAGE_TEXT_ALLOWED` with the item that converts them (OPS.174: `queue/` and `generation/run_*`, OPS.175: the rest, OPS.176: `cli/`, `web/`, `api/`, `admin/`); each part empties its share.
+- The two "Block light totals, part N of 2" lines of the block-light step word their count through `counting_text` (a hand-made count failed TEST.183 on main).
+
+generation-output: unchanged
+
+## [8.0.3975] - 2026-11-12
+
+**Headline:** Every place that quietly goes on past an error now leaves a debug line saying what it went past.
+
+### Changed
+- **`log.swallowed` in every broad `except` (OPS.168).** 130 handlers in `queue/`, `web/`, `api/`, `db/`, `util/`, `cli/`, `generation/`, `admin/` and others caught every exception and wrote nothing, so a run with debugging on was blind exactly where a fault hid. Each now writes one debug line (the place, what it was doing, the error) and nothing at normal level; behavior is unchanged. A new test fails on any broad `except` that neither re-raises nor logs. generation-output: unchanged
+
+## [8.0.3974] - 2026-11-12
+
+**Headline:** A Redis that stops answering now shows up in the log as one warning, not as a silently slower site.
+
+### Changed
+- **A silent Redis fallback now says so (OPS.165).** The page cache, the single-flight claims, the estimate cache, the galaxy status, the count cache, the object index and the queue's page-job and warm-up helpers used to catch a Redis error and carry on with no line at all. Each now calls `log.degraded`, which writes a debug line every time and a warning (so it reaches error.log) at most once in five minutes for the same place. generation-output: unchanged
+
+## [8.0.3973] - 2026-11-12
+
+**Headline:** The run-stopped line words its stage count through the one counting helper.
+
+### Fixed
+- **The run-failure line (OPS.163) words "Stage N of M" with `logrecord.counting_text`,** as the counting test requires, so it reads `stopped at Stage 3 of 5`. generation-output: unchanged
+
+## [8.0.3972] - 2026-11-12
+
+**Headline:** Every long loop that says where it is now does it through one progress ticker at one cadence (a line every 30 seconds), with the same wording everywhere, instead of five hand-made clocks that each said it their own way.
+
+### Changed
+- **One ticker (OPS.169).** New `util/ticker.py`: `Ticker(label, total)` says `Label: 1,240 of 4,000 done (31%), 41.3 per s, 0:30 elapsed.` at most every `tuning.PROGRESS_LOG_SECONDS`; `Ticker(..., percent=True)` is for a counter on a bar's scale; `Pulse` is a thread that speaks on the cadence for work that goes quiet between counts; `stamp()` is the one form of the hand `[12 s into the stage]` stamp, now `(0:12 elapsed)`.
+- **The copies are gone.** `block_lights.PROGRESS_SAY_SECONDS`, `uncharted_index.SAY_SECONDS` and the `refresh_block_lights` and `BlockLightsFollower` hand throttles and thread are replaced by the ticker. The download lines (`datasets.fetch.PROGRESS_SECONDS`, was 10 s) and the warm-up lines (`warm_progress.PROGRESS_SECONDS`, was 60 s, still held back by ten percentage points) now use the same `tuning.PROGRESS_LOG_SECONDS`.
+- The lines read `Block light totals, units: 3 of 40 done (8%), 12,000 rows written, 0:41 elapsed.` and `Uncharted sectors, shells: ...` in place of the old per-place wording; the block light stage's pulse reads `Making the block light totals: 37% done, still working, 4:07 elapsed.`
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3971] - 2026-11-12
+
+**Headline:** `scripts/pick_tests.py` no longer names two example repo paths that do not exist, which turned `test_scripts_only_name_repo_paths_that_exist` red on main.
+
+### Fixed
+- **`scripts/pick_tests.py` (TEST.722).** Two docstring examples wrote made-up repository paths (`src/planetgen/a/b/c.py`, `src/tests/test_x.py`); the deploy-scripts test that checks every path a script names found them. They are reworded so the docstring names no path. No behaviour changed.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3970] - 2026-11-12
+
+**Headline:** When update.sh cannot reload Apache or start Redis, it now prints why.
+
+### Changed
+- **update.sh keeps the reason for a failed Apache, systemctl or Redis step (OPS.166).** The Apache configuration test's output, the output of a failed `systemctl restart/reload` and of the Redis install and start now appear, indented, under the warning that names the failure. Before, it was thrown away. generation-output: unchanged
+
+## [8.0.3969] - 2026-11-12
+
+**Headline:** A statement that loses its MySQL connection now leaves a warning with what the server says about it.
+
+### Changed
+- **Lost connections are explained (OPS.171).** When a statement run through the retry helper loses its connection, a warning gives the server's uptime (a small figure means it restarted), its idle timeout and its aborted-client count. The sky unit's own explanation is a warning too. generation-output: unchanged
+
+## [8.0.3968] - 2026-11-12
+
+**Headline:** Warnings that were logged as ordinary lines now go out as warnings, so a warning reader and error.log see them.
+
+### Changed
+- **Eight "Warning:" lines moved from normal level to warning (OPS.167).** They were in the sector and block-totals runs, the plan and the run helpers. A lost MySQL connection in the sky unit and a deadlock retry's final failed try are warnings too, and each deadlock retry is a notice. generation-output: unchanged
+
+## [8.0.3967] - 2026-11-12
+
+**Headline:** A failed after-commit step is now logged with its name and its traceback.
+
+### Changed
+- **After-commit failures name the step and carry the traceback (OPS.164).** These steps keep derived data such as caches and counts in step with the database, so a failure used to leave them drifting with only a one-line message. generation-output: unchanged
+
+## [8.0.3966] - 2026-11-12
+
+**Headline:** The line for a run that stopped early now says why and at which stage, and a cancel is no longer logged as an error.
+
+### Changed
+- **The run-failure line names the cause and the stage (OPS.163).** `Run … stopped at stage 3 of 5: ValueError: …`, with the run id, stage and cause as fields. A cancel (Ctrl+C or SIGTERM) is logged as a notice. generation-output: unchanged
+
+## [8.0.3965] - 2026-11-12
+
+**Headline:** The ring-costing sample size in the sky charting code now carries the tag the constants census asks for, which clears a red test on main.
+
+### Changed
+- `sky_charting.RING_COST_ROWS` is tagged as a stand-in sample size in its docstring (it only sizes a cost estimate and changes no drawn star), so `test_constants_completeness` passes again.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3964] - 2026-11-12
+
+**Headline:** A failed unit now reaches error.log with its run, stage, unit and job kind beside the traceback.
+
+### Changed
+- **A failed unit's line in error.log carries its context (OPS.162).** It names the unit and the stage and has the run id, stage, unit and job kind as fields, so a failure can be found by run. generation-output: unchanged
+
 ## [8.0.3963] - 2026-11-12
 
 **Headline:** The uncharted sector rows of the block light totals stage are now made by every worker at once, a run of shells to a unit, instead of one worker making them all one after the other.
