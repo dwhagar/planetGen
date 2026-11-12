@@ -42,6 +42,7 @@ from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.util import logrecord
 from planetgen.util import step_timer as stepTimer
 from planetgen.util.ticker import Pulse, Ticker, stamp
 from planetgen.util.settings import get_settings
@@ -2714,7 +2715,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
     written = made = 0
     if part != "index":
         begun = time.monotonic()
-        say("Block light totals, part 1 of 2: " + ("making the parts and the totals again from every pre-placed object." if rebuild
+        say(f"Block light totals, {logrecord.counting_text('Part', 1, 2)}: " + ("making the parts and the totals again from every pre-placed object." if rebuild
                                                      else "checking that the stored parts match the scatter."))
         if rebuild:
             written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
@@ -2724,7 +2725,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
         report(roll_total if part == "roll" else index_start, roll_total if part == "roll" else total)
     if part != "roll":
         begun = time.monotonic()
-        say("Block light totals, part 2 of 2: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
+        say(f"Block light totals, {logrecord.counting_text('Part', 2, 2)}: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
         if shells is None:
             shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
             say(f"{len(shells):,} shells hold objects ({time.monotonic() - begun:,.0f} s to list them).")
