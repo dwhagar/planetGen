@@ -6,3 +6,4 @@
 - Planets with a deeply stripped envelope draw a different air, so seeds change for them: the golden and the epoch are Lane 02's to regenerate.
 
 generation-output: changed
+generation-affects: fill
