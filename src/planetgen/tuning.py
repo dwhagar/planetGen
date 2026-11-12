@@ -1485,6 +1485,41 @@ STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
 STELLAR_WD_ONE_CORE_MIN_SOL = 1.05
 """float: A white dwarf above this mass has an oxygen-neon core [R0085]."""
 STELLAR_WD_DA_SHARE = 0.80
+# The core of a carbon-oxygen white dwarf and what a polluted one accreted (GEN.1370, `physics.white_dwarf_core`).
+WD_CENTRAL_OXYGEN_BY_MASS_SOL = ((0.5249, 0.788), (0.5701, 0.686), (0.5932, 0.704), (0.6096, 0.723), (0.6323, 0.755), (0.6598, 0.730),
+                                 (0.7051, 0.661), (0.7670, 0.655), (0.8373, 0.641), (0.8779, 0.620))
+"""tuple: `(white dwarf mass in solar masses, central oxygen mass fraction)` of the ten carbon-oxygen models of [R5238: Table 1], after the
+Rayleigh-Taylor mixing (the column `X_O(RT)`), progenitors of 1 to 5 solar masses at Z = 0.01. Linear in the mass between the points and
+held outside them. The values rise to a peak near 0.63 solar masses (a 2.25 solar mass progenitor) and fall to 0.62 at 0.88. [Stand-in WDC1.]"""
+WD_CENTRAL_OXYGEN_RANGE = (0.61, 0.84)
+"""tuple: The lowest and highest central oxygen mass fraction of the two helium-atmosphere white dwarf pulsators fitted by asteroseismology,
+CBS 114 and GD 358 [R5239]; the central fraction is held to it. [Stand-in WDC2.]"""
+WD_NEON22_PER_CNO = 1.0
+"""float: The 22Ne atoms made per carbon, nitrogen and oxygen atom of the progenitor: every one of the three ends as 22Ne (14N, then 18O, then 22Ne in
+the helium burning that follows the CNO cycle). The progenitor's CNO is its birth composition's. [Stand-in WDC3.]"""
+POLLUTANT_CORE_RICH_METAL_FRACTION = 0.5
+"""float: A body accreted by a white dwarf is a fragment of a core when at least this share of its grains is metal: the 8 of 202 polluted systems of
+[R1832] that need an iron, nickel and chromium rich fragment are the extreme end of a distribution of mostly chondritic bodies. [Stand-in WDC4.]"""
+POLLUTANT_CRUST_RICH_FACTOR = 2.0
+"""float: A rock with no such metal is a fragment of a crust when its (Ca + Al) over Mg is at least this many times the proto-solar one: the single
+crust-rich system of [R1832] has calcium and aluminium well above chondritic. [Stand-in WDC5.]"""
+POLLUTANT_VOLATILE_RICH_FRACTION = 0.2
+"""float: A body is volatile-rich (a comet-like or water-rich fragment) when its water and ice make at least this share of its grains. [Stand-in WDC6.]"""
+POLLUTANT_ELEMENT_SHARES = {
+    "kamacite": {"Fe": 0.94, "Ni": 0.06}, "taenite": {"Fe": 0.72, "Ni": 0.28},
+    "complex_organics": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "insoluble_organic_matter": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03},
+    "kerogen": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "tholin": {"C": 0.55, "N": 0.25, "H": 0.10, "O": 0.10},
+}
+"""dict: The element mass fractions of the materials-table rows that have no formula and are not minerals. The alloys take the middle of the
+nickel ranges the table states (kamacite 5 to 7 percent, taenite 25 to 31 percent by mass); the organic solids are mostly carbon with the
+oxygen, hydrogen and nitrogen of a kerogen-like solid, and tholin is nitrogen-rich. [Stand-in WDC7.]"""
+POLLUTANT_FORMULAS = {
+    "cronstedtite": "Fe4SiO9H4", "saponite": "CaMg24Si28Al4O80(OH)16", "tochilinite": "Fe27S30Mg25O50H50", "hibonite": "CaAl12O19",
+    "melilite": "Ca2Al2SiO7", "schreibersite": "Fe2NiP",
+}
+"""dict: An end-member formula for the belt materials whose table row names a solid solution (the table keeps the member lists, not one formula):
+cronstedtite with its iron(III), saponite without its hydration water (eight formula units, to whole subscripts), tochilinite from its 6 Fe0.9 S and 5 Mg(OH)2 (five units), hibonite as the calcium end
+member, melilite as gehlenite and schreibersite as two iron to one nickel (the table states (Fe,Ni)3P). [Stand-in WDC8.]"""
 # The layers of a white dwarf whose core the downloaded sequences do not hold (GEN.743, `physics.white_dwarf_layers`).
 WD_ONE_CORE_MASS_FRACTIONS = {"oxygen": 0.55, "neon": 0.30, "trace": 0.15}
 """dict: The mass fractions of an oxygen-neon core: 16O about 0.55 and 20Ne about 0.30 [R0627] (Sect. 2.2, read); the

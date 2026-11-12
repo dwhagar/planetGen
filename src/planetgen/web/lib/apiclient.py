@@ -1003,6 +1003,19 @@ def get_belt_page(db, ref):
     return _request(f"/objects/{ref}/belt-page", {"db": db})
 
 
+def get_irregular_moons(db, ref):
+    """Returns `GET /api/objects/<ref>/irregular-moons`'s dict (`planet`, `moons`, `not_stored`), the irregular moons a planet keeps -- see `describe/irregular_moon_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/irregular-moons", {"db": db})
+
+
+def get_irregular_moon(db, ref, rank):
+    """Returns `GET /api/objects/<ref>/irregular-moons/<rank>`'s dict (`moon`, `orbit`, `planet`, `previous`, `next`), the page data of one irregular moon of a planet -- see
+    `describe/irregular_moon_info.py`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}/irregular-moons/{rank}", {"db": db})
+
+
 def get_belt_member(db, ref, rank):
     """Returns `GET /api/objects/<ref>/belt-members/<rank>`'s dict (`member`, `orbit`, `share`, `belt`, `previous`, `next`), the page data of one body an asteroid belt keeps
     individually (`rank` as the designation writes it) -- see `describe/belt_member_info.py`."""

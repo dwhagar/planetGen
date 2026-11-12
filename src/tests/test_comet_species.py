@@ -30,7 +30,6 @@ BRACKET_SPECIES = ("N2", "Ar", "OCS", "SO2", "O2", "Kr", "Xe")
 def test_every_bracket_is_a_proper_range_above_zero(species):
     low, high = cs.bracket_over_h2o(species)
     assert 0.0 < low < high
-    assert (cs.low_over_h2o(species), cs.high_over_h2o(species)) == (low, high)
 
 
 @pytest.mark.parametrize("species, measured", [("N2", 8.9e-4), ("Ar", 5.8e-6), ("SO2", 1.3e-3), ("OCS", 7e-4), ("O2", 3.8e-2), ("O2", 3.7e-2)])
@@ -52,7 +51,7 @@ def test_argon_follows_the_water_not_the_co():
     """Hale-Bopp's argon per CO (0.043) is 2.7 times what the nebula holds per CO, so a share of the CO chain cannot reach it."""
     per_co_at_hale_bopp = 8.7e-3 / 0.2
     assert per_co_at_hale_bopp > 2.0 * cs.nebular_per_co("Ar")
-    assert cs.high_over_h2o("Ar") > cs.nebular_per_co("Ar") * cs.CO_OVER_H2O_MEDIAN * 10
+    assert cs.bracket_over_h2o("Ar")[1] > cs.nebular_per_co("Ar") * cs.CO_OVER_H2O_MEDIAN * 10
 
 
 def test_krypton_and_xenon_are_argon_times_the_ratios_of_67p():

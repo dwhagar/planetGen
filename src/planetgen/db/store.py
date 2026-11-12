@@ -1559,6 +1559,32 @@ def _schema_counts(conn, name):
     return {"sector_count": sectors, "system_count": systems}
 
 
+def _is_listed(base_config, name, prefix=None):
+    """
+    Whether `list_databases(base_config, prefix=prefix)` would offer schema `name`, asked with one query for the names and not the
+    listing's size query per schema (a request with `?db=` resolved its schema this way on every call, and each of the server's schemas
+    cost one `information_schema.tables` scan: 142 scans, 0.5 s a request, on a server with 147 test schemas; the pages that fetch a dozen
+    stages to draw one view took 20 s). The match is the listing's: the prefix, not the control schema, and the name exactly as written. The name
+    is compared here, not in SQL: a hostile `?db=` with a character the column's collation cannot mix would be a server error, and the server's
+    collation may fold case.
+    """
+    prefix = prefix or get_settings().mysql.database_prefix
+    conn = get_connection(
+        MySQLConfig(host=base_config.host, port=base_config.port,
+                    user=base_config.user, password=base_config.password, database=""),
+        ensure_schema=False,
+    )
+    try:
+        rows = conn.execute(
+            "SELECT schema_name AS name FROM information_schema.schemata "
+            "WHERE schema_name LIKE ? ESCAPE '\\\\' AND schema_name <> ?",
+            (f"{escape_like(prefix)}%", configured_control_database()),
+        ).fetchall()
+        return any(row["name"] == name for row in rows)
+    finally:
+        conn.close()
+
+
 def resolve_database(base_config, name, prefix=None):
     """
     Validates a database name supplied by a caller (e.g. a web request's
@@ -1586,7 +1612,7 @@ def resolve_database(base_config, name, prefix=None):
     """
     if not name:
         raise ValueError("No database specified.")
-    if name not in {entry["name"] for entry in list_databases(base_config, prefix=prefix)}:
+    if not _is_listed(base_config, name, prefix):
         raise ValueError(f"No such database: {name!r}")
     tables = _table_names(base_config, name)
     if "sectors" not in tables:

@@ -33339,7 +33339,7 @@
             ],
             [
               "Evidence",
-              "[R3220] ch. 3 (recalled, not opened)"
+              "[R3220] ch. 3 (recalled, not opened). GEN.1643 finding (no constant changed): Eq. 3 and 4 of [R5245] at the edge of the tadpole zone (C 2.5) give 23.9 and 180 degrees for the turning points of the angle from the secondary, so 23.9 is the nearest a tadpole comes to the secondary and the amplitude about the point at 60 degrees is 78; the generator cuts the draw and splits tadpole from horseshoe at 23.9 as if it were an amplitude, and about a fifth of the real Jupiter Trojans librate wider ([R5245: Table 3]). Slice 1 of GEN.1643 raises the cut"
             ]
           ],
           "id": "TJ3",
@@ -33562,7 +33562,7 @@
           "burn_down": [
             "replace",
             "GEN.1643",
-            "L4, the libration amplitude scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+            "L4, the libration amplitude scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (13 degrees proposed), slice 1 sets it and lowers the row to L2"
           ],
           "fields": [
             [
@@ -33587,7 +33587,7 @@
             ],
             [
               "Evidence",
-              "none read; the Jupiter Trojans' amplitudes are mostly 5 to 25 degrees (recalled)"
+              "PROPOSAL (GEN.1643 slice 0, scripts/fit_trojan_scales.py, report reports/gen1643-trojan-scales-2026-11-12.md; no constant changed): 13 degrees, T2, L2, knobs 11 to 15. The Rayleigh scale with the mean of the debiased Jupiter Trojan law of the libration integral C ([R5245: Table 3], Eq. 3 and 4, L4 and L5 weighted by their populations) is 13.0 (L4 13.3, L5 12.5; by the median 12.7); the Neptune Trojans give a Rayleigh width of 15 (best fit) and 12 (Table 4) [R5244]. Slice 1 sets it together with the cut of the draw, which the same fit shows is wrong (TJ3)"
             ]
           ],
           "id": "TJ9",
@@ -33604,7 +33604,7 @@
           "burn_down": [
             "replace",
             "GEN.1643",
-            "L4, the eccentricity scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+            "L4, the eccentricity scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (0.058, the value 0.06 stays), slice 1 lowers the row to L1"
           ],
           "fields": [
             [
@@ -33629,7 +33629,7 @@
             ],
             [
               "Evidence",
-              "none read; the Jupiter Trojans' proper eccentricities are mostly under 0.15 (recalled)"
+              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 0.06, T2, L1, knobs 0.04 to 0.08. The Rayleigh scale with the mean of the debiased Jupiter law of the proper eccentricity B ([R5245: Table 3]) is 0.058 (L4 0.047, L5 0.074; by the median 0.054); the Neptune Trojans give 0.045 for the whole population, 0.02 cold and 0.05 hot [R5244]. The value is that of bodies; a region's mean is tighter (the fit does not separate them)"
             ]
           ],
           "id": "TJ10",
@@ -33646,7 +33646,7 @@
           "burn_down": [
             "replace",
             "GEN.1643",
-            "L4, the inclination scale is recalled from the Jupiter Trojans, not read; a fit to the proper elements of the Trojan catalogues replaces it"
+            "L4, the inclination scale is recalled from the Jupiter Trojans, not read; slice 0 fitted it to the Jupiter and Neptune Trojan papers (11.7 degrees, the value 12 stays), slice 1 lowers the row to L1"
           ],
           "fields": [
             [
@@ -33671,7 +33671,7 @@
             ],
             [
               "Evidence",
-              "none read; the Jupiter Trojans reach 40 degrees and most lie under 20 (recalled)"
+              "PROPOSAL (GEN.1643 slice 0, same fit; no constant changed): keep 12 degrees, T2, L1, knobs 9 to 16. The Rayleigh scale with the mean of the debiased Jupiter law of the proper sine of inclination A (inclination is its arcsine, [R5245: Table 3]) is 11.7 degrees (L4 10.7, L5 13.2; by the median 11.3); the Neptune Trojans give 14 (12 to 16) for the whole population, 6 cold and 18 hot [R5244]. The value is that of bodies; a region's mean is tighter"
             ]
           ],
           "id": "TJ11",
@@ -64559,6 +64559,318 @@
       ],
       "slug": "6-284-stand-ins-of-the-kozai-lidov-screen-of-a-planet",
       "title": "Stand-ins of the Kozai-Lidov screen of a planet"
+    },
+    {
+      "key": "6.286",
+      "number": "6.286",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
+            ],
+            [
+              "The range it moves in",
+              "none (the table)"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores; the models are at Z = 0.01 and the table is used at every metallicity"
+            ],
+            [
+              "What would show it wrong",
+              "a model grid at another metallicity whose central oxygen differs by more than 0.05"
+            ],
+            [
+              "What replaces it",
+              "a grid of white dwarf models at the progenitor's metallicity (open item)"
+            ],
+            [
+              "Evidence",
+              "[R5238: Table 1] (READ)"
+            ]
+          ],
+          "id": "WDC1",
+          "key": "6.286:WDC1",
+          "kind": "D",
+          "slug": "6-286-wdc1",
+          "tier": "T2",
+          "tier_code": "T2",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
+            ],
+            [
+              "The range it moves in",
+              "0.55 to 0.9"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores"
+            ],
+            [
+              "What would show it wrong",
+              "a third pulsator fitted outside the range"
+            ],
+            [
+              "What replaces it",
+              "more pulsators fitted"
+            ],
+            [
+              "Evidence",
+              "[R5239] (READ, two objects)"
+            ]
+          ],
+          "id": "WDC2",
+          "key": "6.286:WDC2",
+          "kind": "P",
+          "slug": "6-286-wdc2",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L0",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_CENTRAL_OXYGEN_RANGE (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
+            ],
+            [
+              "The range it moves in",
+              "0.5 to 1"
+            ],
+            [
+              "Where it holds",
+              "carbon-oxygen cores"
+            ],
+            [
+              "What would show it wrong",
+              "a core whose measured 22Ne is under half the progenitor's CNO"
+            ],
+            [
+              "What replaces it",
+              "a stellar model's 22Ne by progenitor metallicity"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics (the CNO ends as 14N in the hydrogen shell and as 22Ne in helium burning; no source opened for the share)"
+            ]
+          ],
+          "id": "WDC3",
+          "key": "6.286:WDC3",
+          "kind": "P",
+          "slug": "6-286-wdc3",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1370",
+          "what": "tuning.WD_NEON22_PER_CNO 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
+            ],
+            [
+              "The range it moves in",
+              "0.3 to 0.7"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "polluted white dwarfs whose Fe/Mg indicates a metal share far from the draw's"
+            ],
+            [
+              "What replaces it",
+              "the Bayesian classes of [R1832] built on the drawn fragment"
+            ],
+            [
+              "Evidence",
+              "[R1832] (READ, the classes only; the cut is a stand-in)"
+            ]
+          ],
+          "id": "WDC4",
+          "key": "6.286:WDC4",
+          "kind": "P",
+          "slug": "6-286-wdc4",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_CORE_RICH_METAL_FRACTION 0.5: a fragment with at least this mass fraction of metal grains is core-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
+            ],
+            [
+              "The range it moves in",
+              "1.5 to 4"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "a white dwarf population whose Ca/Mg crust-rich cut sits far from twice solar"
+            ],
+            [
+              "What replaces it",
+              "the classes of [R1832]"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics"
+            ]
+          ],
+          "id": "WDC5",
+          "key": "6.286:WDC5",
+          "kind": "P",
+          "slug": "6-286-wdc5",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_CRUST_RICH_FACTOR 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
+            ],
+            [
+              "The range it moves in",
+              "0.1 to 0.4"
+            ],
+            [
+              "Where it holds",
+              "polluting belt bodies"
+            ],
+            [
+              "What would show it wrong",
+              "polluted white dwarfs whose measured water fractions put the cut elsewhere"
+            ],
+            [
+              "What replaces it",
+              "the classes of [R1832]"
+            ],
+            [
+              "Evidence",
+              "educated guess from physics"
+            ]
+          ],
+          "id": "WDC6",
+          "key": "6.286:WDC6",
+          "kind": "P",
+          "slug": "6-286-wdc6",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_VOLATILE_RICH_FRACTION 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
+            ],
+            [
+              "The range it moves in",
+              "the nickel in the table's ranges; the organics +-0.1"
+            ],
+            [
+              "Where it holds",
+              "the alloys and organics of the materials table that have no formula"
+            ],
+            [
+              "What would show it wrong",
+              "a measured composition of those solids that differs by 0.1 in any share"
+            ],
+            [
+              "What replaces it",
+              "per-material element lists in the materials table"
+            ],
+            [
+              "Evidence",
+              "the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in"
+            ]
+          ],
+          "id": "WDC7",
+          "key": "6.286:WDC7",
+          "kind": "P",
+          "slug": "6-286-wdc7",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_ELEMENT_SHARES: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
+            ],
+            [
+              "The range it moves in",
+              "the end member chosen"
+            ],
+            [
+              "Where it holds",
+              "the six rows"
+            ],
+            [
+              "What would show it wrong",
+              "an analysis of the mineral that differs by more than 0.05 in any element share"
+            ],
+            [
+              "What replaces it",
+              "member lists in the materials table"
+            ],
+            [
+              "Evidence",
+              "the end members are the table's own member lists"
+            ]
+          ],
+          "id": "WDC8",
+          "key": "6.286:WDC8",
+          "kind": "P",
+          "slug": "6-286-wdc8",
+          "tier": "T3",
+          "tier_code": "T3",
+          "tweak": "L1",
+          "unread": "GEN.1370",
+          "what": "tuning.POLLUTANT_FORMULAS: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite)"
+        }
+      ],
+      "slug": "6-286-stand-ins-of-the-white-dwarf-core-and-the-accreted-pollutant",
+      "title": "Stand-ins of the white dwarf core and the accreted pollutant"
     }
   ]
 }

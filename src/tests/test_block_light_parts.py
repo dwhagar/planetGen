@@ -120,8 +120,8 @@ def test_parts_that_do_not_match_the_scatter_are_made_again_by_the_roll(conn):
     rebuilt = _stored(conn)
     conn.execute("DELETE FROM galaxy_block_light_parts WHERE shell_index = 10")      # a galaxy scattered before the parts, or a prune that missed them
     conn.commit()
-    assert not block_lights.parts_current(conn)
-    _written, used = block_lights.roll(conn)
+    assert not block_lights.parts_current(conn, exact=True)      # the proof counts the objects; the end of a run does not (OPS.152)
+    _written, used = block_lights.roll(conn, exact=True)
     assert not used
     _assert_same(_stored(conn), rebuilt)
     _assert_same(_parts(conn), _from_tables(conn))
@@ -133,7 +133,7 @@ def test_a_sector_build_or_delete_puts_its_cell_right(conn):
     _write(conn, stars, points)
     conn.execute("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE shell_index = 12")      # the sector was built: its phenomena are in the sector now
     conn.commit()
-    assert not block_lights.parts_current(conn)
+    assert not block_lights.parts_current(conn, exact=True)
     block_lights.refresh_chain(conn, (12, 0, 1))
     conn.commit()
     assert (12, 0, 1) not in _parts(conn) and block_lights.parts_current(conn)
@@ -186,7 +186,6 @@ def test_a_v238_galaxy_gets_the_parts_table_empty_and_a_second_run_changes_nothi
 
 def test_a_luminosity_fill_keeps_the_parts_current_so_the_stage_rolls_them(conn, mysql_config):
     from planetgen.generation import run_plan
-
     stars, points = _rows()
     kind_at, mass_at = store.PHENOMENON_SCATTER_COLUMNS.index("kind"), store.PHENOMENON_SCATTER_COLUMNS.index("mass_solar")
     points = [row[:kind_at] + ("hypervelocity-star",) + row[kind_at + 1:mass_at] + (2.0,) + row[mass_at + 1:-1] + (None,) for row in points]      # scattered before the map luminosity existed: a mass, no value
@@ -224,3 +223,100 @@ def test_many_cells_are_put_right_together_and_a_cell_with_no_part_is_left_alone
     conn.commit()
     _assert_same(_parts(conn), _from_tables(conn))
     assert block_lights.parts_current(conn)
+
+
+def test_shells_are_cut_into_runs_of_neighbors_that_never_split_a_shell():
+    """OPS.153: a unit of the index takes shells until it holds the cells it is cut for; more cells per unit when the cut would make too many."""
+    counts = [(1, 100), (2, 150), (3, 400), (4, 10), (7, 30), (9, 500)]
+    assert uncharted_index.shell_runs(counts, 100, unit_cells=250) == [([1, 2], 250), ([3], 400), ([4, 7, 9], 540)]
+    assert uncharted_index.shell_runs(counts, 2, unit_cells=1) == [([1, 2, 3], 650), ([4, 7, 9], 540)]      # at most 2 runs: 1,190 cells over 2
+    assert uncharted_index.shell_runs([], 5) == []
+    runs = uncharted_index.shell_runs(counts, 100, unit_cells=250)
+    assert [shell for shells, _held in runs for shell in shells] == [shell for shell, _n in counts]
+
+
+def _sector_rows(conn):
+    rows = conn.execute("SELECT shell_index, band_index, wedge_index, uid, name, center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors ORDER BY shell_index, band_index, wedge_index").fetchall()
+    return [tuple(row.values()) for row in rows]
+
+
+def _run_units(mysql_config, expansion):
+    from planetgen.generation import run_plan
+
+    results = []
+    for params, _cost in expansion.units:
+        reports = []
+        results.append(run_plan.refresh_block_lights_unit(params, lambda done, total, reports=reports: reports.append((done, total))))
+        assert reports and reports[-1][0] == reports[-1][1]      # every unit ends its own bar
+    return results
+
+
+def test_the_stage_is_cut_into_a_roll_up_and_runs_of_shells_that_make_the_rows_the_single_unit_makes(conn, mysql_config, monkeypatch):
+    """OPS.153: the same totals and the same uncharted sector rows, whichever way the stage is cut."""
+    from planetgen.generation import run_plan
+
+    monkeypatch.setattr(uncharted_index, "UNIT_CELLS", 2)
+    monkeypatch.setattr("planetgen.db.query.galaxy_edge_pc", lambda conn: 4.0)
+    stars, points = _rows()
+    _write(conn, stars, points)
+    params = {"database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}, "run_id": None, "rebuild": False}
+    expansion = run_plan.expand_refresh_block_lights(params)
+    parts = [unit_params["part"] for unit_params, _cost in expansion.units]
+    assert parts[0] == "roll" and set(parts[1:]) == {"index"} and len(parts) > 2
+    assert expansion.plan["runs"] == len(parts) - 1 and expansion.plan["cells"] == len(_parts(conn))
+    shells = [shell for unit_params, _cost in expansion.units[1:] for shell in unit_params["shells"]]
+    assert shells == sorted(set(shells)) and set(shells) == {cell[0] for cell in _parts(conn)}
+
+    results = _run_units(mysql_config, expansion)
+    conn.commit()      # a new snapshot: the units committed on connections of their own
+    assert all(result["warning"] is None for result in results)
+    assert results[0]["written"] > 0 and sum(result["made"] for result in results) == len(_parts(conn))
+    cut_totals, cut_sectors = _stored(conn), _sector_rows(conn)
+    assert len(cut_sectors) == len(_parts(conn))
+
+    conn.execute("DELETE FROM sectors")
+    conn.execute("DELETE FROM galaxy_block_lights")
+    conn.commit()
+    whole = run_plan.refresh_block_lights_unit(dict(params, part="all"), lambda done, total: None)
+    conn.commit()
+    assert whole["written"] == results[0]["written"] and whole["made"] == sum(result["made"] for result in results)
+    _assert_same(_stored(conn), cut_totals)
+    assert _sector_rows(conn) == cut_sectors
+
+
+def test_parts_that_must_be_made_again_keep_the_stage_one_unit(conn, mysql_config):
+    from planetgen.generation import run_plan
+
+    stars, points = _rows()
+    _write(conn, stars, points)
+    params = {"database": {"host": mysql_config.host, "port": mysql_config.port, "user": mysql_config.user, "database": mysql_config.database}, "run_id": None}
+    assert [unit_params["part"] for unit_params, _cost in run_plan.expand_refresh_block_lights(dict(params, rebuild=True)).units] == ["all"]
+    conn.execute("DELETE FROM galaxy_block_light_parts")      # a galaxy scattered before the parts: the index must wait for them to be made
+    conn.commit()
+    assert [unit_params["part"] for unit_params, _cost in run_plan.expand_refresh_block_lights(dict(params, rebuild=False)).units] == ["all"]
+
+def test_the_check_at_the_end_of_a_run_reads_no_scatter_table(conn):
+    """OPS.152: the count of the unbuilt stars over `bright_stars` and the scan of `phenomenon_scatter` kept a full galaxy's run silent for hours."""
+    stars, points = _rows()
+    _write(conn, stars, points)
+    block_lights.rebuild(conn, parts=True)
+    conn.execute("INSERT INTO phenomenon_scatter_classes (kind, subtype, placed, built) VALUES ('black-hole', '', ?, 0)", (len(points),))
+    conn.commit()
+    block_lights.rebuild(conn)
+    seen = []
+    execute = conn.execute
+
+    def recording(sql, *args, **kwargs):
+        seen.append(" ".join(str(sql).split()))
+        return execute(sql, *args, **kwargs)
+
+    conn.execute = recording
+    try:
+        assert block_lights.parts_current(conn) and block_lights.totals_current(conn)
+        written, used = block_lights.roll(conn)
+    finally:
+        del conn.execute
+    assert used and written
+    reads = [sql for sql in seen if "FROM bright_stars" in sql or "FROM phenomenon_scatter " in sql or "FROM phenomenon_scatter WHERE" in sql]
+    assert not reads, reads
+

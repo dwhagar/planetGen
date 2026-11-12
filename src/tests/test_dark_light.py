@@ -107,7 +107,7 @@ def _system_with_a_brown_dwarf():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
-    for seed in (2, 74, 90, 128, 172, 276):         # seeds that drew one (a bounded search; any of them will do)
+    for seed in (2, 74, 90, 128, 172, 276, *range(300, 500)):         # seeds that drew one, then a bounded search onward (TEST.714: the first ones move with the generator; any will do)
         config = SystemConfig()
         config.PLANETS = False
         with draw.bound(seed):

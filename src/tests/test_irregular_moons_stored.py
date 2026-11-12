@@ -68,12 +68,16 @@ def test_a_saved_planet_reads_back_its_irregular_moons(mysql_config, make):
         for other in planets[1:]:
             other.irregulars = irregular_moons.NO_IRREGULARS         # the system's own draws may have given them some
         planets[0].irregulars = held
+        generated = [body.irregulars for body in planets[1:]]       # whatever the generator gave the other planets (none, or an empty set that keeps its remainder): it must read back the same
         saved = store.save_system(system, config, config=mysql_config)
         with store.get_connection(mysql_config) as conn:
             loaded = store.load_star_system(conn, saved)
         read = [body for body in loaded.planets if body.body_type != 'a' and not body.is_moon and body.belt_rank is None]
         assert _approx_dict(held.to_dict()) == read[0].irregulars.to_dict()
-        assert all(body.irregulars is irregular_moons.NO_IRREGULARS for body in read[1:])
+        assert len(read) == len(planets)
+        for body, before in zip(read[1:], generated):
+            assert (body.irregulars is irregular_moons.NO_IRREGULARS) == (before is irregular_moons.NO_IRREGULARS)
+            assert _approx_dict(before.to_dict()) == body.irregulars.to_dict()
         return
     pytest.fail("no system with a planet in 29 tries")
 
