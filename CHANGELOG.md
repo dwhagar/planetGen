@@ -2,6 +2,93 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3893] - 2026-11-12
+
+**Headline:** A generation run lowers its bulk worker count when jobs wait for memory and raises it again when memory is free, instead of leaving jobs to wait 300 s at the memory gate.
+
+### Changed
+
+- Adaptive worker control (`queue/adaptive.py`): a bulk job that has waited 30 s at the memory gate for memory, or a host whose available memory is under three quarters of the gate's reserve, lowers the bulk worker limit by one (never below 1); the workers that wait at the gate leave first and put their jobs back at the front of the queue. After 120 s with no memory wait and room for one more worker, the limit goes up by one. Each change is logged and kept in Redis. See `redis-and-the-work-queue.md` section 5.17.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3892] - 2026-11-12
+
+**Headline:** the sheet of a rocky planet or moon now lists its heavy elements (rare earths, platinum group, gold, lead, strontium, barium and the rest), shared between the rock and the metal core from the star it formed around.
+
+### Changed
+
+- `physics/heavy_elements.py` (GEN.1371, registry rows HE1 to HE7): each heavy element of the star is the solar value of [R0768] moved to the star's [Fe/H] and shared between the r- and s-process by the Sun's r-fraction; the r share follows the star's [Eu/Fe] (the draw the thorium of `radiogenic` uses) and the s share the Brewer and Fischer trend of Y with a scatter on its own stream, `heavy:{key}`, so no existing draw moves. Nothing is stored.
+- The element-to-magnesium ratio of the star, times the magnesium of the rock, gives a body's mass of each element, shared between silicate and metal core by a metal-silicate partition coefficient (platinum group and gold nearly all in the core, rare earths and large-ion lithophiles in the mantle). Late accretion is not added.
+- `describe/heavy_rows.py`, `describe/clock_rows.py`, `describe/sheet.py`: the sheet of a body with rock gains the group sums, silicate and metal, as derived rows beside the clock rows (reuse: `clock_rows`' derived-row hook and `radiogenic.host_offset_dex`' star-to-solar pattern).
+- `tuning.py`: `STELLAR_HEAVY_LOG_EPS`, `STELLAR_HEAVY_R_FRACTION` (second-hand [R5228] values, Marginal Unverified, flagged for upgrade) and `STELLAR_S_PROCESS_XFE`.
+
+generation-affects: none
+
+## [8.0.3891] - 2026-11-12
+
+**Headline:** tests only: a fixture that hung once (the browser tests' server, say) is no longer waited for again by every later module.
+
+### Changed
+
+- TEST.190: a session fixture that fails is raised again for its dependents at once, but a module- or class-scoped one is set up again by each module, so a server that never came up cost every module its whole 900 s timeout. The new `tests/dead_fixtures.py` plugin (loaded in `pytest.ini`) remembers a fixture of a scope wider than one test whose setup `pytest-timeout` stopped, and fails the later tests that need it at once, naming the test that waited first. A function-scoped fixture is left alone. `PLANETGEN_TEST_RETRY_DEAD_FIXTURES=1` turns it off. `tests/test_dead_fixtures.py` shows three modules waiting once, not three times. No program code changes.
+
+## [8.0.3890] - 2026-11-12
+
+**Headline:** An uncharted star or scattered object is now shown by its local name and birth sector, with its real Object ID, instead of "Uncharted G2V star 123".
+
+### Changed
+- **Uncharted objects carry their local name and Object ID on every page and list (UX.259).** The uncharted star page, the uncharted phenomenon page, the Uncharted stars table, the sector page rows, the Nearby list and the scattered-phenomena lists now name a scatter row by its local name (with its sector where the name stands alone) and show its Object ID, read from the row's own `uid` (GEN.1254, GEN.1255). A row made before the Object IDs existed, or a galaxy with no naming key, keeps the older label. Display only: nothing stored changes. Map labels and the map infobox are Lane 12's side and follow once the API fields land.
+
+generation-output: unchanged
+
+## [8.0.3889] - 2026-11-12
+
+**Headline:** The train PR's body now shows how an exact Earth comes out of the generator against a stored baseline, so the items that move the air, water, life or class can quote a before and after.
+
+### Changed
+
+- TEST.726 (stacked draft; proposed, to be confirmed by TODO before it merges): the Earth analog of the Class M audit is now `scripts/earth_analog.py` (`run`, `baseline`, `compare`), with its baseline of 800 paired trials in `scripts/data/earth_analog_baseline.json` (made on main at the commit it names). `python scripts/train.py pr-body` prints a "## Earth analog" section: the classes, hydrospheres, temperature bins, medians and failing Class M conditions of the first 400 trials against the baseline, and the trials whose class changed. The draws are paired by seed, so a train that changes nothing shows no movement. It is for information and never blocks a train (any failure is one sentence in the body; `--no-earth-analog` leaves it out). The analysis-only measurement hooks of the audit copy (scaling the volcanic nitrogen, the carbon dioxide gate, the wet-bulb edge) are not carried over.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3888] - 2026-11-12
+
+**Headline:** The multi-star light of a planet has one implementation: the unused `planet_zones.flux_at`, which repeated `radiation_field`, is gone.
+
+### Changed
+
+- GEN.1559 (wiring burn-down, found by `scripts/wiring_guard.py`): `planet_zones.flux_at` was built for the multi-star planet climate and read by nothing; `radiation_field` (GEN.1441) already sums the light of the host and of every star outside it from `planet_zones.companion_orbits`. `host_members` stays, now marked by design in the wiring register (the radiation field's host choice is tested against it). The function, its tests, its wiring-register line and the mentions in the design notes and registry row RF2 are removed or point at `radiation_field`.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3887] - 2026-11-12
+
+**Headline:** the gas dwarf and ice giant class texts now describe what the bodies are made of (rock and metal under a thick envelope), and the no-surface line says the rock lies deep under it.
+
+### Changed
+
+- Classes T and I in `physics/data/planet_classes.json`: the gas dwarf was "a deep hydrogen and helium envelope over a small core" and the ice giant "mostly water, ammonia, and methane ices"; the stored bodies are rock and metal 80 to 90 percent of the mass under an envelope of 1 to 18 percent (class T), and two sampled ice giants hold no water. The gas dwarf now reads "mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on"; the ice giant "a thick hydrogen and helium envelope over an interior of rock, metal, and the ices its disk gave it". The class page, the planet page and the system map read these words when they are built, so nothing stored changes.
+- The day-counter line of a body with no surface (state word `no solid surface`, unchanged) now reads "No surface to stand on: any rock lies deep under a thick envelope. The day below counts the turn of its clouds."
+- New test `test_giant_class_words.py`: the texts name rock and do not say "small core" or "mostly ices", and the gas dwarfs of a generated system store more rock and metal than envelope.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3886] - 2026-11-12
+
+**Headline:** The class census is now a repeatable script, `scripts/class_census.py`, with the same tables on every run.
+
+### Changed
+
+- `scripts/class_census.py collect` draws the census samples (natural, hab, stars, young, youngforced, capsoff) on fixed seeds through the host's memory and load gate, with `--workers`, `--forced-young` (every random primary star aged 0.5 to 50 Myr, for the disk-by-age row of GEN.1553) and `--caps-off all|d34`; a stopped run continues. `report` prints tables A to K of reports/class-census-2026-11-11.md in one markdown format from a directory of collected files, with numpy only (no pandas). On the stored 11-11 data it gives the report's class counts, funnel, flux-distance mass, pressure pile-up, star and value-check tables exactly.
+- `tests/test_class_census_script.py` holds the table format, the funnel, the crosstab, the age bins, the fixed sample seeds and one real system drawn into a record the report reads.
+
+generation-output: unchanged
+
 ## [8.0.3885] - 2026-11-12
 
 **Headline:** A version can no longer be stamped while built physics sits unread: the wiring guard has a release mode that fails on any unread item the register does not mark by design.
