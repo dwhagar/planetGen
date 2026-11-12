@@ -527,6 +527,8 @@ def draw_terrestrial(body, radius_given, mass_given):
     carbon_rock = kind != "silicate"
     inverse = radius_given and mass_given
     origin = None if inverse else getattr(body, "moon_origin", None)
+    if origin == "exchange":    # GEN.1157: a captured moon of planet size is made as any planet is; only its orbit is a captured one
+        origin = None
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
     water, ice, ice_shares = (0.0, 0.0, None) if origin else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])

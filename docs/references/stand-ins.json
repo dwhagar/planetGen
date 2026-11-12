@@ -12535,7 +12535,7 @@
           "fields": [
             [
               "What it is",
-              "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, MOON_GIANT_PARENT_MAX_MASS_RATIO 1e-3, MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
+              "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, the giants' cap planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4 (GEN.1157, row PSM2; it was 1e-3), MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
             ],
             [
               "The range it moves in",
@@ -12566,7 +12566,7 @@
           "tier_code": "T7",
           "tweak": "L3",
           "unread": null,
-          "what": "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, MOON_GIANT_PARENT_MAX_MASS_RATIO 1e-3, MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
+          "what": "tuning.MOON_MASS_FUNCTION_SLOPE 0.5, the giants' cap planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4 (GEN.1157, row PSM2; it was 1e-3), MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO 0.1 (a moon's mass is dN/dlogM ~ M^-0.5 up to a share of its parent)"
         },
         {
           "burn_down": null,
@@ -63331,7 +63331,7 @@
           "tier": "T9",
           "tier_code": "T9",
           "tweak": "L0",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.PLANET_MOON_MIN_MASS_KG: 0.1 Earth mass, the lightest moon counted as one of planet size (Mars is 0.107)"
         },
         {
@@ -63369,7 +63369,7 @@
           "tier": "T1",
           "tier_code": "T1",
           "tweak": "L0",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.DISK_TOTAL_RATIO_MAX 6.4e-4: the most the moons of one circumplanetary disk hold of their parent, [R0643: Eq. 4.15] at the top of the alpha/f range (the common scaling of [R0642] is 1e-4 to 2.4e-4 of the parent)"
         },
         {
@@ -63407,7 +63407,7 @@
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L2",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.CAPTURE_CHANCE 1/70: the share of giants with a captured moon of planet size, tuned to one candidate in the 70 cool giants of [R2365]"
         },
         {
@@ -63445,7 +63445,7 @@
           "tier": "T6",
           "tier_code": "T6",
           "tweak": "L3",
-          "unread": "GEN.1157",
+          "unread": null,
           "what": "planet_moons.EXCHANGE_MAX_RATIO 1e-2: the most a captured moon holds of its parent, set above the 5.4e-3 of the Kepler-1625 b-i candidate and at the Earth and Moon's 1.2e-2"
         }
       ],

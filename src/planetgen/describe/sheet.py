@@ -1026,7 +1026,7 @@ _BODY_RULES = [
 
 _PLANET_RULES = [
     (("moon_origin",), lambda klass, row: False,
-     "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
+     "only a moon has an origin (disk, impact, captured, ring, binary or exchange); a planet orbits its star alone"),
     (("parent_shadow_share",), lambda klass, row: False,
      "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
 ]

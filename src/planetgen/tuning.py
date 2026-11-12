@@ -267,13 +267,13 @@ PLANET_MIN_MASS_KG = 1.0e21
 # planetGen stand-ins (tier "educated guess from physics", level L3) until a moon-formation law is wired:
 # moon masses follow dN/dlogM ~ M^-MOON_MASS_FUNCTION_SLOPE between the lightest moon the generator makes and a share of the
 # parent's mass. Regular satellites of the giants are at most a few 1e-4 of the parent (Titan 2.4e-4 of Saturn; Ganymede 7.8e-5
-# of Jupiter), so the giants' cap is 1e-3; a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
+# of Jupiter), so the giants' cap is the most a circumplanetary disk can hold of its parent, 6.4e-4 (`physics/planet_moons.DISK_TOTAL_RATIO_MAX`, [R0643]; GEN.1157; a capture moon of planet size is drawn apart);
+# a rocky parent can hold a moon of a tenth of its mass (the Moon 0.012, Charon 0.12 of
 # Pluto), which is also the largest `physics/planets.moon_size_limits` allows.
 MOON_MASS_FUNCTION_SLOPE = 0.5
 # The lightest moon generated (about an Enceladus, 250 km across): the generator leaves the swarm of smaller captured rocks to the belts and
 # rings. A planetGen stand-in (tier L3): the old class draw built moons of 500 km and more, 1.1 per planet.
 MOON_MIN_MASS_KG = 1.0e20
-MOON_GIANT_PARENT_MAX_MASS_RATIO = 1.0e-3
 MOON_TERRESTRIAL_PARENT_MAX_MASS_RATIO = 0.1
 
 # GEN.962: a rocky planet's moons come from giant impacts (its regular moons) and capture (the small irregular ones of `captured_moons`), and a planet with no
