@@ -95,6 +95,8 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+# OPS.155: the job profiles (what each kind of unit costs, in the control database) are not recorded by the tests; tests/test_job_profiles.py turns them on.
+os.environ.setdefault("PLANETGEN_JOB_PROFILES", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
 # VIEW.25: charting builds the sky tiers by default (`queue.sky_limit` 7.5, half an hour a cell on a real galaxy); a test galaxy would take minutes to

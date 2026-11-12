@@ -456,8 +456,26 @@ def refresh(conn, name, now=None):
     current = held_mb(int(row["pid"]))
     row["peak"] = max(float(row.get("peak", 0.0)), current)
     row["expires"] = now + CLAIM_SECONDS
+    _note_usage(row, int(row["pid"]), current, now)
     conn.hset(_key("claims"), name, json.dumps(row))
     return current
+
+
+def _note_usage(row, pid, current, now):
+    """OPS.155: keeps beside the peak what the claim needs for an average of the memory and the processor (cores) over its life: the sum and count of the readings, the
+    processor seconds at the first and the last look and the busiest interval between two looks. Best effort."""
+    try:
+        from planetgen.queue import usage
+        if current > 0.0:
+            row["sum"], row["n"] = float(row.get("sum", 0.0)) + current, int(row.get("n", 0)) + 1
+        used = usage.cpu_seconds(pid)
+        if "cpu0" not in row:
+            row.update(cpu0=used, cpu_last=used, t0=now, t_last=now)
+        elif now - float(row["t_last"]) >= 1.0:
+            row["cpu_peak"] = max(float(row.get("cpu_peak", 0.0)), max(used - float(row["cpu_last"]), 0.0) / (now - float(row["t_last"])))
+            row["cpu_last"], row["t_last"] = used, now
+    except Exception:       # noqa: BLE001 -- an average is not worth a heartbeat
+        pass
 
 
 def release(conn, name):
@@ -470,6 +488,12 @@ def release(conn, name):
     peak = float(row.get("peak", 0.0))
     if peak > 0.0:
         learn(conn, row["kind"], peak)
+    if not str(row["kind"]).startswith("unit:"):        # OPS.155: a unit's own row is written by the unit, with its items
+        from planetgen.queue import jobprofiles
+        lived = float(row["t_last"]) - float(row["t0"]) if "t0" in row else 0.0
+        jobprofiles.record(row["kind"], seconds=max(0.0, time.time() - float(row.get("started", time.time()))), peak_mb=peak or None,
+                           avg_mb=float(row["sum"]) / int(row["n"]) if row.get("n") else None, cpu_peak=row.get("cpu_peak"),
+                           cpu_avg=(float(row["cpu_last"]) - float(row["cpu0"])) / lived if lived >= 1.0 else None)
     from planetgen.queue import scheduler
     if not row.get("solo"):         # OPS.145: a solo run is not a turn of its kind, so the jobs it held back are not behind it afterwards
         scheduler.charge(conn, row["kind"], max(0.0, time.time() - float(row.get("started", time.time()))) * float(row.get("cpu", 1.0)))
