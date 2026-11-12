@@ -50964,11 +50964,11 @@
           "fields": [
             [
               "What it is",
-              "planet_classes.json class O: ocean_fraction min 0.8 (was 0.9) and class H: ocean_fraction lt 0.2 (was 0.15); M is 0.2 to 0.8"
+              "planet_class_fit.json class O: ocean_fraction min 0.95 (GEN.1570; was 0.8, and 0.9 before that) and class M: ocean_fraction lt 0.95; class H: ocean_fraction lt 0.2 (was 0.15), unchanged by GEN.1570; M is 0.2 to 0.95 (the cover is the liquid sea since GEN.1567)"
             ],
             [
               "The range it moves in",
-              "O 0.75 to 0.9; H 0.1 to 0.25"
+              "O 0.9 to 0.97; H 0.1 to 0.25"
             ],
             [
               "Where it holds",
@@ -50984,18 +50984,18 @@
             ],
             [
               "Evidence",
-              "Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it"
+              "Boss's number (95 percent for O, set 7:25 PM EST 2026-11-11, GEN.1570; the papers support only 'mostly dry, ocean plus continents, global ocean with at most islands'); earlier Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it"
             ]
           ],
           "id": "CL6",
           "key": "6.128:CL6",
           "kind": "P",
           "slug": "6-128-cl6",
-          "tier": "T9",
-          "tier_code": "T9",
-          "tweak": "L1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
           "unread": null,
-          "what": "planet_classes.json class O: ocean_fraction min 0.8 (was 0.9) and class H: ocean_fraction lt 0.2 (was 0.15); M is 0.2 to 0.8"
+          "what": "planet_class_fit.json class O: ocean_fraction min 0.95 (GEN.1570; was 0.8, and 0.9 before that) and class M: ocean_fraction lt 0.95; class H: ocean_fraction lt 0.2 (was 0.15), unchanged by GEN.1570; M is 0.2 to 0.95 (the cover is the liquid sea since GEN.1567)"
         }
       ],
       "slug": "6-128-stand-ins-of-the-class-lines-of-the-train-6-epoch",

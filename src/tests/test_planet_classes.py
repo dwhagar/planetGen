@@ -148,9 +148,10 @@ def test_the_air_gate_is_an_edge_and_every_other_edge_is_a_shoulder_that_lowers_
     assert pc.classify(body(atmospheric_pressure_pa=9.99, p_o2_kpa=0, p_n2_kpa=0, p_ar_kpa=0, p_co2_kpa=0,
                             hydrosphere="dry", ocean_fraction=0.0, surface_temperature_k=300.0)) == "C"
     assert pc.classify_detail(body(ocean_fraction=0.8)).match == pytest.approx(1.0)
+    assert pc.classify(body(ocean_fraction=0.85)) == "M"                      # GEN.1570: M runs up to 95 percent liquid cover
     soft = pc.classify_detail(body(surface_temperature_k=306.0, ocean_fraction=0.5))
     assert soft.letter == "M" and 0.0 < soft.match < 1.0                      # past the temperature edge the match falls, it does not drop to another class
-    assert pc.classify(body(ocean_fraction=0.85)) == "O"                      # GEN.1342: past the water edge the world is O, at any temperature from M's floor
+    assert pc.classify(body(ocean_fraction=0.97)) == "O"                      # GEN.1342, GEN.1570: past the water edge (95 percent) the world is O, at any temperature from M's floor
     assert pc.classify_detail(body(surface_temperature_k=274.0)).match > pc.classify_detail(body(surface_temperature_k=275.0)).match - 1e-9 or True
     assert 0.0 < pc.classify_detail(body(surface_temperature_k=274.0)).match < 1.0
 

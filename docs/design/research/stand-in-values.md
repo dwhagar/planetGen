@@ -47,6 +47,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
+<<<<<<< HEAD
 | T1 | 191 | 20 | 12 | 1 | 0 | 224 |
 | T2 | 153 | 62 | 1 | 1 | 0 | 217 |
 | T3 | 114 | 52 | 12 | 9 | 0 | 187 |
@@ -57,6 +58,18 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 19 | 5 | 92 | 35 | 197 |
 | All | 955 | 319 | 81 | 238 | 56 | 1649 |
+=======
+| T1 | 186 | 20 | 11 | 1 | 0 | 218 |
+| T2 | 151 | 61 | 1 | 1 | 0 | 214 |
+| T3 | 113 | 51 | 10 | 9 | 0 | 183 |
+| T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
+| T6 | 208 | 107 | 31 | 81 | 4 | 431 |
+| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
+| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T9 | 44 | 15 | 5 | 92 | 35 | 191 |
+| All | 925 | 309 | 77 | 246 | 53 | 1610 |
+>>>>>>> origin/claude/lane21-gen1570
 
 ## How the labels were given
 
@@ -2258,7 +2271,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | CL4 | P | T9 | L1 | planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, no oxygen cap (the cap `share_o2 lt 0.1` was removed by AW4, GEN.1306; a thin-air adaptable world; the cold part is class P) | 2 to 5 kPa; 300 to 330 K | terrestrial bodies with a thin air | the old definition ("adaptable world with a thin atmosphere", system-file-format.md) and a habitability model of thin air | the survival equipment fields of thin air | 43 of 44 K bodies were frozen ocean under the old under-273 K line (GEN.29) | predicted only | - | - |
 | CL5 | D | T1 | L0 | planet_classes.json class P: temperature_k lt 273.15 at the top (every mean surface below freezing is glaciated; was 210 K) | none (the freezing point of water) | terrestrial bodies with air | not applicable (a definition) | not applicable | the freezing point of water at 1 bar; Boss 6:57 PM EDT 10-30 | predicted only | - | - |
 | CL7 | P | T9 | L1 | planet_classes.json class E (the deep-frozen world, was the retired wet reducing E): temperature_k lt 233.15 (-40 C), and class P from there up to 273.15 K | 213 to 253 K | terrestrial bodies with air | a measured change of the surface (ice behaviour, a habitable subsurface ocean) between 233 K and 253 K | the lines of the habitability index for cold | Boss's decision, 7:06 PM EDT 10-30 (P ends at -40 C); GEN.1143 and GEN.29 find most air-bearing bodies are cold, with a median near 125 K for the old Q bodies | predicted only | - | - |
-| CL6 | P | T9 | L1 | planet_classes.json class O: ocean_fraction min 0.8 (was 0.9) and class H: ocean_fraction lt 0.2 (was 0.15); M is 0.2 to 0.8 | O 0.75 to 0.9; H 0.1 to 0.25 | terrestrial bodies with air | the ocean share of measured or modelled Earth-like worlds (Boss asked for the source of the 20 percent) | the land share of the habitable-zone model of the planet generator's water inventory | Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it | predicted only | - | - |
+| CL6 | P | T6 | L0 | planet_class_fit.json class O: ocean_fraction min 0.95 (GEN.1570; was 0.8, and 0.9 before that) and class M: ocean_fraction lt 0.95; class H: ocean_fraction lt 0.2 (was 0.15), unchanged by GEN.1570; M is 0.2 to 0.95 (the cover is the liquid sea since GEN.1567) | O 0.9 to 0.97; H 0.1 to 0.25 | terrestrial bodies with air | the ocean share of measured or modelled Earth-like worlds (Boss asked for the source of the 20 percent) | the land share of the habitable-zone model of the planet generator's water inventory | Boss's number (95 percent for O, set 7:25 PM EST 2026-11-11, GEN.1570; the papers support only 'mostly dry, ocean plus continents, global ocean with at most islands'); earlier Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it | predicted only | - | - |
 
 ## 6.105 Stand-ins of the field dispersal
 
