@@ -66,15 +66,6 @@ def swept():
     return bodies
 
 
-def _air_on_the_light_now(body):
-    """Whether the body's air, temperature, dose and spectrum were made on the light its stored orbit gives. A rocky planet whose orbit settled (`settle_orbit`, its
-    eccentricity worn down) after its air was made, with the star's age risen by under `planets.AGE_SETTLE_TOLERANCE`, is not made again (`refinish_rocky`), so
-    its values are those of the older light: a known gap the rules below must not read as a break in them."""
-    made_on = getattr(body, "_air_light_au", None)
-    now = getattr(body, "_star_distance_au", None)
-    return made_on is None or not now or math.isclose(made_on, now, rel_tol=1e-9)
-
-
 def _starlight_w_m2(body):
     """The starlight at the body, W/m2, or `None` for a body with no star light or no stored distance."""
     distance_au = getattr(body, "_star_distance_au", None)
@@ -127,7 +118,7 @@ def climate_problems(body):
     if not _has_air(body) and factor != 0.0:
         problems.append("an airless body has a greenhouse factor")
     flux = _starlight_w_m2(body)
-    if flux is not None and _air_on_the_light_now(body):
+    if flux is not None:
         expected = climate_draws.surface_temperature_k(albedo, factor, flux)
         cap = surface_air.MAX_SURFACE_TEMPERATURE_K
         if _same(temperature, cap):
@@ -151,7 +142,7 @@ def dose_problems(body, is_moon):
         problems.append("a dose term is negative, or the cosmic-ray or ground term is not positive")
     if belt > 0.0 and not is_moon:
         problems.append("a planet has a belt dose")
-    if is_moon or not _air_on_the_light_now(body):
+    if is_moon:
         return problems
     column = rad.column_g_cm2(getattr(body, "atmospheric_pressure", None) or 0.0, getattr(body, "gravity", None))
     cutoff = rad.cutoff_rigidity_gv(getattr(body, "magnetic_moment_a_m2", None) or 0.0, body.radius)
@@ -174,7 +165,7 @@ def ultraviolet_problems(body, is_moon):
     if (body.ozone_column_du > 0.0) != (holds_oxygen and has_light):
         problems.append("the ozone column is not positive exactly when the air holds oxygen under a lit star")
     index = body_radiation.dna_dose_index(body)
-    if not is_moon and index is not None and _air_on_the_light_now(body) and not _same(body.uv_surface_index, index):
+    if not is_moon and index is not None and not _same(body.uv_surface_index, index):
         problems.append(f"stored UV index {body.uv_surface_index:.6g} is not the Setlow dose of the spectrum {index:.6g}")
     bare = body_radiation.bare_dna_dose_w_m2(body)
     if _has_air(body) and bare is not None and not is_moon:
@@ -278,13 +269,13 @@ class _Brighter:
 
 
 def test_a_greenhouse_that_disagrees_with_the_temperature_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _air_on_the_light_now(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * surface_air.MAX_SURFACE_TEMPERATURE_K)
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.9 * surface_air.MAX_SURFACE_TEMPERATURE_K)
     body.greenhouse_factor += 1.0
     assert any("albedo and greenhouse give" in text for text in climate_problems(body))
 
 
 def test_a_surface_held_at_the_cap_with_a_cooler_greenhouse_is_named(swept):
-    body, _ = _first(swept, lambda b, m: _has_air(b) and _air_on_the_light_now(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * surface_air.MAX_SURFACE_TEMPERATURE_K)
+    body, _ = _first(swept, lambda b, m: _has_air(b) and _starlight_w_m2(b) is not None and b.surface_temperature < 0.5 * surface_air.MAX_SURFACE_TEMPERATURE_K)
     body.surface_temperature = surface_air.MAX_SURFACE_TEMPERATURE_K
     assert any("cap" in text for text in climate_problems(body))
 
@@ -304,14 +295,14 @@ def test_a_dose_that_is_not_its_terms_is_named(swept):
 
 
 def test_a_cosmic_ray_dose_the_column_does_not_give_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b))
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m)
     body.dose_gcr_msv_yr *= 100.0
     body.surface_dose_msv_yr = body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr
     assert any("cosmic-ray dose" in text for text in dose_problems(body, is_moon))
 
 
 def test_a_stellar_particle_dose_the_flares_do_not_give_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b) and b.dose_sep_msv_yr > 0.0)
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and b.dose_sep_msv_yr > 0.0)
     body.dose_sep_msv_yr *= 3.0
     body.surface_dose_msv_yr = body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr
     assert any("stellar-particle dose" in text for text in dose_problems(body, is_moon))
@@ -328,7 +319,7 @@ def test_a_giant_with_a_dose_and_a_planet_with_a_belt_are_named(swept):
 
 
 def test_an_ultraviolet_index_that_is_not_the_spectrums_is_named(swept):
-    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and _air_on_the_light_now(b) and body_radiation.dna_dose_index(b) is not None)
+    body, is_moon = _first(swept, lambda b, m: planet_type.has_ground(b) and not m and body_radiation.dna_dose_index(b) is not None)
     body.uv_surface_index = body.uv_surface_index * 2.0 + 1.0
     assert any("UV index" in text for text in ultraviolet_problems(body, is_moon))
 

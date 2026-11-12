@@ -33,3 +33,10 @@ def test_the_report_counts_every_body():
             {"type": "gas", "known": True, "envelope": 0.9, "body_type": "g", "class": "J", "moon": False, "radius": 10.0, "water": 0.0, "mass": 300.0}]
     text = cli.format_report(rows, 1, 0, 0.0)
     assert "| terrestrial | 1 | 0 | 0 | 1 |" in text and "| gas | 0 | 1 | 0 | 1 |" in text
+
+
+def test_a_body_with_no_ground_names_its_pressure_the_reference_level():
+    """UX.297, GEN.1532: the stored pressure of a giant or a body under a deep envelope is the 1 bar reference level, not a surface."""
+    assert pt.pressure_label("terrestrial") == "Surface pressure" and pt.pressure_label(None) == "Surface pressure"
+    for kind in ("transitional", "super-puff", "gas"):
+        assert pt.pressure_label(kind) == pt.REFERENCE_PRESSURE_LABEL == "Pressure at the 1 bar reference level"

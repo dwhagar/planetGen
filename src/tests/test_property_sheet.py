@@ -8,7 +8,7 @@ comet, so a column a later change adds cannot be forgotten, and `GET /api/object
 import pytest
 
 from planetgen.db import column_units, models
-from planetgen.describe import model, sheet
+from planetgen.describe import model, quantity, sheet
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import unit_registry
 
@@ -56,7 +56,12 @@ def test_a_unit_decides_how_a_number_is_shown():
     assert sheet._value(spec, "planets", 5.97e24)[0]["qty"]["kind"] == "mass"
     assert sheet._value(spec, "planets", None) == [sheet.NOT_STORED]
     dose = sheet.PropertySpec("surface_dose_msv_yr", "Dose", "radiation")
-    assert sheet._value(dose, "planets", 2.4) == ["2.4 mSv/yr"]
+    assert sheet._value(dose, "planets", 2.4) == [{"qty": {"kind": "dose rate", "value": 2.4, "unit": "mSv/yr"}}]
+    # Boss, 2026-11-11: 13,200 mSv/yr read "1.32 × 10⁴ mSv/yr"; the ladder picks the sievert, so it reads as a plain number
+    assert quantity.quantity_text(sheet._value(dose, "planets", 13200.0)[0]["qty"]) == "13.2 Sv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 2.4)[0]["qty"]) == "2.4 mSv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 0.0004)[0]["qty"]) == "400 nSv/yr"
+    assert quantity.quantity_text(sheet._value(dose, "planets", 4.2e7)[0]["qty"]) == "42 kSv/yr"
     flag = sheet.PropertySpec("ozone_loss_flag", "Ozone", "atmosphere", sheet.FLAG)
     assert sheet._value(flag, "planets", 1) == ["Yes"] and sheet._value(flag, "planets", 0) == ["No"]
     tier = sheet.PropertySpec("tier_air", "Air", "habitability", sheet.TIER)
@@ -245,7 +250,7 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key != sheet.influx_row.INFLUX_KEY and not sheet.clock_rows.is_derived_key(key) and key not in sheet.CHEMISTRY_KEYS and key not in sheet.ISOTOPE_KEYS]   # UX.205, UX.254, GEN.1377: derived, not a spec (the influx row appears only when a belt or comet reservoir reaches the planet, and generation is random)
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS

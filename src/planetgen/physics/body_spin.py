@@ -25,7 +25,7 @@ rows of `docs/design/research/gap-filling-plan.md` sections 6.14 (SP7 to SP10, n
 import math
 
 from planetgen.physics import constants, icy_tide, interior_heat, radiogenic, spin_torques, tidal_heating, tidal_spin
-from planetgen.physics import eclipses, radiation_field
+from planetgen.physics import eclipses, radiation_field, tide_sources
 
 
 def planet_of(body):
@@ -76,10 +76,10 @@ def thermal_tide_of(body, star_raiser):
 
 
 def torques_of(body, host_mass_kg, semi_major_axis_m, moons=()):
-    """The `spin_torques.Torques` on `body`: the tide of what it orbits (first), the tide of each moon in `moons` (`spin_torques.Raiser`s) and the thermal tide of its air."""
+    """The `spin_torques.Torques` on `body`: the tide of what it orbits (first), the tide of each moon in `moons` (`spin_torques.Raiser`s), the tide of every other body of the system that pulls on it (`tide_sources.spin_raisers`, GEN.1502) and the thermal tide of its air."""
     planet = planet_of(body)
     star = spin_torques.Raiser(host_mass_kg, semi_major_axis_m, spin_torques.orbital_rate(host_mass_kg, semi_major_axis_m))
-    return spin_torques.Torques(planet, (star, *moons), dissipation_of(body, planet), thermal_tide_of(body, star))
+    return spin_torques.Torques(planet, (star, *moons, *tide_sources.spin_raisers(body)), dissipation_of(body, planet), thermal_tide_of(body, star))
 
 
 def evolve(body, host_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity=0.0, moons=(), capture_units=spin_torques.ALWAYS_CAPTURED):

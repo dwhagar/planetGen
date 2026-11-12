@@ -23,11 +23,11 @@ import dataclasses
 from planetgen import tuning
 from planetgen.datasets import fetch
 from planetgen.db import column_units, models
-from planetgen.describe import influx_row, model
+from planetgen.describe import clock_rows, influx_row, model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
 from planetgen.galaxy import scales
-from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, regional_temperature,
+from planetgen.physics import (adaptation_traits, agb_carbon, binding_energy, chemically_peculiar, magnetic_geometry, compaction, constants, daylight, gases, habitability_world, isotope_record, latitude_bands, life_classes, nebula_columns, outside_hours, phosphorus_budget, planet_type, regional_temperature,
                                life_classes, stellar_abundances, stellar_composition, surface_composition, surface_liquid_world, unit_registry, units, variability, water_layer)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -108,6 +108,7 @@ NOT_STORED = "not stored"
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
     "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "dose_rate": "dose rate",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
@@ -711,7 +712,7 @@ def specs_for(kind):
 
 _SYMBOLS = {
     "A*m2": " A·m²", "R_planet": " planet radii", "xuv-earth": "× Earth's", "1/yr": " a year", "1/Gy": " per billion years",
-    "mSv/yr": " mSv/yr", "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
+    "kg/mol": " kg/mol", "DU": " DU", "ppm": " ppm", "dex": " dex", "rad": " rad",
 }
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
@@ -1300,6 +1301,10 @@ def bands_table(row):
     return {"locked": locked, "bands": bands, "rows": rows}
 
 
+PRESSURE_KEYS = ("atmospheric_pressure_pa", "surface_pressure_pa")
+"""tuple: The rows whose label follows the body's ground (`planet_type.pressure_label`, UX.297)."""
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -1336,13 +1341,15 @@ def sheet(conn, kind, object_id):
     if row is None:
         raise ValueError(f"no {table} row with id {object_id}")
     by_group = {key: [] for key in GROUPS}
+    pressure_label = planet_type.pressure_label(row["planet_type"]) if "planet_type" in row.keys() else None      # UX.297: a body with no ground shows its reference-level pressure under that name
     for spec in specs:
         stored = row[spec.stored_column()]
         value = _range_value(spec, table, stored, row)
         absent = stored is None or stored == 0 or stored == ""
         if spec.key == "zone" and kind in ("planet", "moon") and stored:
             value = _zone_value(stored, {s.key: row[s.stored_column()] for s in specs}, specs, table) or value
-        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
+        label = pressure_label if pressure_label and spec.key in PRESSURE_KEYS else spec.label
+        by_group[spec.group].append({"key": spec.key, "label": label, "value": value,
                                      "text": inline_text(value), "raw": stored if isinstance(stored, (int, float)) else None,
                                      "stored": stored is not None, "absent": absent, "source": source_of(kind, spec.key),
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
@@ -1362,6 +1369,9 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    for group, key, label, value, raw in clock_rows.rows(conn, kind, object_id):
+        by_group[group].append({"key": key, "label": label, "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False, "source": None,
+                                "show_absent": False})
     arriving = influx_row.influx_kg_per_yr(conn, object_id) if kind == "planet" else None
     if arriving:
         value = [model.qty("mass", arriving, "kg")]

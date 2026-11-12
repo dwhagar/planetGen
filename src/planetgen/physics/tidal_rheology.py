@@ -61,7 +61,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import constants
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K)."""
 MAX_VISCOSITY_EXPONENT = 200.0
 """float: The largest `Ea / R T` the viscosity law is evaluated at (a viscosity of 1e87 times the prefactor): a mantle colder than that does not relax in any

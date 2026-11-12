@@ -62,7 +62,7 @@ UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "rin
 ROCHE_COEFFICIENT = 2.456
 """float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; [R3220]). Recalled, T2, L0."""
 
-ICE_DENSITY_KG_M3 = 917.0
+ICE_DENSITY_KG_M3 = physical_constants.ICE_DENSITY_KG_M3
 """float: Water ice Ih, the density of a ring's ice (the repo's ice density, `constants`-free so the module stands alone)."""
 ROCK_DENSITY_KG_M3 = 2500.0
 """float: The density of a ring's silicate or dark rock; a stand-in between chondritic grains (3300) and porous dust (1000 to 2000), T6, L0."""

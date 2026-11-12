@@ -26,9 +26,9 @@ def test_the_moon_covers_a_small_share_of_the_suns_light_and_touches_it_rarely()
     assert 1.0e-4 < touched < 2.0e-4
 
 
-def test_venus_crosses_the_sun_for_earth_eight_times_in_243_years():
+def test_venus_crosses_the_sun_for_earth_four_times_in_243_years():
     covered, touched = eclipses.orbiting_the_star(SUN_R, 1.0, 1.0, 6051.8, 0.723, 0.6152, 3.39, KM)
-    assert touched == pytest.approx(8 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
+    assert touched == pytest.approx(4 * 6.0 / (243.0 * 8766.0), rel=0.5)      # about six hours each
     assert 0.0 < covered < touched
 
 
