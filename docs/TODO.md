@@ -13348,6 +13348,47 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 13, design note after GEN.1486. Prerequisites: OPS.153. Related: OPS.152, MAP.259, MAP.402.
   Filed by the TODO thread.
 
+- [ ] **OPS.155 Self-tuning step 1: job_profiles table in the control database and writers that record peak MB, seconds, items, MB per item and seconds per item for every finished unit of every job kind and size bucket (no readers; nothing changes in a run)**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Do: the table, its migration and roll-up job, and writers fed from memorygate.release, unitrates.note, stagetimes.record and units.horse_killed, as under "Record first" in the note. Ships first and alone. Test: a small run fills it for every command it ran.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Defaults taken until Boss says otherwise: control database, other-machine profiles at half trust, splits last and only for cut-neutral stages (the note's three recommendations).
+  Filed by the TODO thread.
+
+- [ ] **OPS.156 Self-tuning step 2: the gate claim reads the job profile (95th percentile times a margin that shrinks with samples), with the typed figures as fallback**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: no history gives today's claims; history lowers a claim and a memory kill raises it.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **OPS.157 Self-tuning step 3: stage worker caps and the adaptive starting limit read the job profile**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Test: caps equal today's with no history.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.156. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **OPS.158 Self-tuning step 4: Queue page and admin display of typed and learned figures per job kind, with pin and clear**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Extends OPS.150.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **PERF.260 Per-stage cut-neutral golden test: a stage's output is byte-identical at two unit sizes, and only then may its split be tuned**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Sets the cut_neutral flag per stage (safety rule in the note).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: none. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **PERF.261 Self-tuning step 5: split targets from the job profile, one stage at a time behind PERF.260, starting with the Stage 17 uncharted index**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). Then block lights, link, settle and warm-up chunks; the typed constants stay as default and clamp.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: PERF.260. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **OPS.159 Self-tuning step 6: expected unit seconds and the heartbeat judge read the job profile before roughtime**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.155. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
+- [ ] **OPS.160 Self-tuning step 7: retire the typed tables as primary figures where the profile has run a full galaxy on Boss's server (constants stay as default and clamp)**
+  Boss, 2:50 to 2:52 PM EST on 2026-11-12 ("Is there a way for the system to use stored values for ram and process times and worker counts and splits to be calculated by the system based on memory and performance?", "Not just 17 but all job queues", "I want to start putting memory usage per unit and item in with time per unit and item"); design note docs/design/operations/self-tuning-jobs.md (DOC.120, PR 6271). After OPS.157, PERF.261 and OPS.159 have run on a full galaxy.
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 06. Prerequisites: OPS.157. Related: OPS.148, OPS.149, OPS.150, OPS.151, OPS.154.
+  Filed by the TODO thread.
+
 - [ ] **GEN.1370 White dwarf core and pollutant: C/O ratio and 22Ne by progenitor, and the polluted white dwarf's element ratios from the belt body that fell in**
   Real-material gaps (research, 2026-11-07; Boss, 5:24 PM EST on
   2026-11-07, as the coordinator relayed: all non-fictional generation
