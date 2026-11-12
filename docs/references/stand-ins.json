@@ -63101,6 +63101,52 @@
       ],
       "slug": "6-271-stand-ins-of-the-spin-axis-and-obliquity-under-every-body",
       "title": "Stand-ins of the spin axis and obliquity under every body"
+    },
+    {
+      "key": "6.273",
+      "number": "6.273",
+      "rows": [
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "bare_body.BARE_ROCKY_MOLAR_MASS_KG_MOL: the mean molar mass of the gas a bare rocky body could hold, 28 g/mol (nitrogen), for the scale height that keeps a moon 15 heights clear of its planet before the air is solved"
+            ],
+            [
+              "The range it moves in",
+              "0.028 to 0.044 kg/mol (nitrogen to carbon dioxide)"
+            ],
+            [
+              "Where it holds",
+              "rocky bodies and moons of rocky planets at the bare stage"
+            ],
+            [
+              "What would show it wrong",
+              "a margin that matters: a moon that the solved air's scale height would have placed closer or farther than the bare one by more than a planet radius"
+            ],
+            [
+              "What replaces it",
+              "the scale height of the solved air, once the air is made before the moons are placed"
+            ],
+            [
+              "Evidence",
+              "derived: 7.5 km for the Earth twin against the solved 6.4 km; 59 km at 3 au for ten Earth masses against 54 km"
+            ]
+          ],
+          "id": "BB1",
+          "key": "6.273:BB1",
+          "kind": "P",
+          "slug": "6-273-bb1",
+          "tier": "T6",
+          "tier_code": "T6",
+          "tweak": "L0",
+          "unread": "GEN.1548",
+          "what": "bare_body.BARE_ROCKY_MOLAR_MASS_KG_MOL: the mean molar mass of the gas a bare rocky body could hold, 28 g/mol (nitrogen), for the scale height that keeps a moon 15 heights clear of its planet before the air is solved"
+        }
+      ],
+      "slug": "6-273-stand-ins-of-the-bare-body-before-its-air",
+      "title": "Stand-ins of the bare body before its air"
     }
   ]
 }
