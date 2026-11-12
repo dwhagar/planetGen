@@ -4,7 +4,11 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
+<<<<<<< HEAD
 There are 1645 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+=======
+There are 1612 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+>>>>>>> origin/claude/lane21-gen1560
 
 ## The source tiers
 
@@ -40,7 +44,11 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
+<<<<<<< HEAD
 | predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1619 |
+=======
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1586 |
+>>>>>>> origin/claude/lane21-gen1560
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -63,6 +71,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T2 | 151 | 61 | 1 | 1 | 0 | 214 |
 | T3 | 113 | 51 | 10 | 9 | 0 | 183 |
 | T4 | 84 | 12 | 4 | 22 | 12 | 134 |
+<<<<<<< HEAD
 | T5 | 83 | 23 | 6 | 1 | 1 | 114 |
 | T6 | 207 | 107 | 31 | 81 | 4 | 430 |
 | T7 | 57 | 19 | 9 | 34 | 0 | 119 |
@@ -70,6 +79,14 @@ The tier says how good the source of a number is; the **evidence status** says w
 | T9 | 44 | 16 | 5 | 92 | 35 | 192 |
 | All | 925 | 309 | 77 | 246 | 53 | 1610 |
 >>>>>>> origin/claude/lane14-gen1580-ceiling
+=======
+| T5 | 82 | 24 | 6 | 1 | 1 | 114 |
+| T6 | 207 | 107 | 31 | 83 | 4 | 432 |
+| T7 | 57 | 19 | 9 | 34 | 0 | 119 |
+| T8 | 0 | 0 | 0 | 5 | 1 | 6 |
+| T9 | 44 | 16 | 5 | 92 | 35 | 192 |
+| All | 924 | 310 | 77 | 248 | 53 | 1612 |
+>>>>>>> origin/claude/lane21-gen1560
 
 ## How the labels were given
 
@@ -710,7 +727,12 @@ The tier says how good the source of a number is; the **evidence status** says w
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISK_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | [R0114] ([R0114], READ: 0.7 dex); [R4898] (30 percent Sun-like); [R4812] (75 percent under 5000 K, 35 percent over 6500 K) | predicted only | - | - |
 | PA14 | P | T9 | L3 | tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range) | free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000 | slot and forced-class requests | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist | the class-conditioned draw of the architecture (a plan that places the requested class) | design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not) | predicted only | - | no data |
 | PA15 | P | T6 | L3 | tuning.INNER_SYSTEM_SCALE_SIGMA_DEX 0.4 (the spread, in dex, of the mass scale between inner systems about the median of PA4: a system's planets are alike, systems differ) | 0.25 to 0.5 | systems with an inner system | test_planet_architecture::test_systems_differ_in_scale_and_the_planets_of_one_system_stay_alike; test_a_share_of_the_inner_systems_of_a_k_dwarf_hold_an_earth_size_planet; a share of FGK stars with a planet of 0.8 to 1.25 Earth radii inside 85 days outside 10 to 23 percent | a formation model of the scale of an inner system (pebble flux and disk mass) | tuned to a published statistic: [R1459] (1301.0842): 16.5 +- 3.6 percent of FGK stars have a planet of 0.8 to 1.25 Earth radii with periods up to 85 days; the FGK weights used (15, 21 and 64 percent of F, G and K) are a stand-in; GEN.1335 measured 9.9 percent with no spread between systems and 15.6 with 0.4 dex (reports/gen1335-inner-mass-function-2026-11-07.md) | predicted only | - | no data |
+<<<<<<< HEAD
 | PA18 | P | T6 | L0 | tuning.FORMATION_DISK_AGE_GY 0.01 (the age at which the luminosity an evolved star's disk saw is read from its track, `formation_snow_line`, GEN.1611) | 0.003 to 0.01 | evolved stars (a subgiant, giant, supergiant or white dwarf) | test_formation_snow_line::test_an_evolved_star_gets_the_snow_line_of_its_birth_not_of_today; a white dwarf's snow line under 1 AU | a disk-evolution model of the luminosity history of the disk | a protoplanetary disk lasts 3 to 10 Myr (recalled); the longest, so a massive star is read on its main sequence | predicted only | GEN.1611 | - |
+=======
+| PA16 | P | T6 | L3 | tuning.PLANET_ROCKY_ZONE_SOLIDS_BOOST 4.0 and PLANET_ROCKY_ZONE_START_AU 0.45 (the solids of the terrestrial zone, from 0.45 AU to the snow line, are 4 times the disk's elsewhere: a pile-up inside the ice line and the several-times-minimum-mass solids the Kepler systems need at 1 AU) | boost 2 to 6; start 0.3 to 0.7 | the zone from 0.45 AU to the snow line | test_planet_architecture::test_gen1560_the_terrestrial_zone_has_earth_sized_planets_at_about_the_surveyed_rate; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star | a disk-evolution and pebble-flux model of the terrestrial zone (GEN.509) | tuned to a published statistic: [R0572] 0.37 to 0.60 planets of 0.5 to 1.5 Earth radii per Sun-like star in the habitable zone, with PA17 (the model gave 0.95, of Mars mass: median 0.26 Earth masses); [R0771] (recalled) for the several-times-minimum-mass solids; GEN.1396's jump of 1.967 at the snow line now sits on top of a higher inside, so the density falls across the line (a pile-up inside it, [R0572] does not constrain it) | predicted only | - | - |
+| PA17 | P | T6 | L3 | tuning.GIANT_IMPACT_SPACING 25 (the spacing, in mutual Hill radii, the oligarchs of the terrestrial zone are merged out to by the giant-impact stage, `planet_architecture.giant_impacts`) and GIANT_IMPACT_END_AU 3 (the stage ends there, or at the snow line when nearer: farther out the merging does not finish in the disk's age, and for A stars with snow lines at 10 AU and more it moved the outer disk inward and tripled the debris disks) | spacing 20 to 35; end 2.5 to 5 | the zone from 0.45 AU to the snow line or 3 AU | test_planet_architecture::test_gen1560_the_giant_impact_stage_merges_the_closest_pair_until_the_zone_is_spaced_out; a Sun-like star with an Earth-sized planet in its habitable zone outside 0.37 to 0.70 per star | an N-body giant-impact stage of the zone's oligarchs | tuned to [R0572] with PA16; N-body runs of protoplanets 10 Hill radii apart end in about two Earth-sized planets after 100 Myr ([R2431: Eq. 2]: 0.16 Earth masses at 1 AU before); the merge keeps `COLLISION_MASS_RETENTION` (PA8) | predicted only | - | - |
+>>>>>>> origin/claude/lane21-gen1560
 
 ## 6.37 Stand-ins of the brown dwarf ceiling
 

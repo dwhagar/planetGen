@@ -104,6 +104,12 @@ PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # so that a Sun-like star has about 0.8 planets of 1 to 20 Earth masses inside 0.45 AU and an M dwarf about 1 (Petigura et al.
 # 2018; [R1156]: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISK_STEEPENING = 0.75
+# The terrestrial zone (GEN.1560): from this distance to the star's snow line the solids the oligarchs are built from are this many times the rest of the disk's (`planet_mass.solids_surface_density_gcm2`).
+# `PLANET_DISK_SOLIDS_ENHANCEMENT` is fitted to the giants beyond the snow line; the Kepler systems' extrasolar nebula needs several times the minimum-mass solids at 1 AU ([R0771], recalled),
+# and the giant-impact stage below then merges the oligarchs it builds. A planetGen stand-in (tier T6, tweak L3) fitted with `GIANT_IMPACT_SPACING` to the share of Sun-like stars with an Earth-sized
+# planet in the habitable zone ([R0572]: 0.37 to 0.60 for 0.5 to 1.5 Earth radii).
+PLANET_ROCKY_ZONE_SOLIDS_BOOST = 4.0
+PLANET_ROCKY_ZONE_START_AU = 0.45
 # Beyond this distance the cores of the outer disk have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disk is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
@@ -199,6 +205,13 @@ PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 # The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
 # collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
 COLLISION_MASS_RETENTION = 0.9
+# The spacing, in mutual Hill radii of the pair, the planets of the terrestrial zone are left at by the giant-impact stage (`planet_architecture.giant_impacts`, GEN.1560). 0 turns the stage off.
+# N-body runs of protoplanets 10 Hill radii apart end in a few planets, two of them Earth-sized, after 100 Myr [R2431]. A planetGen stand-in (tier T6, tweak L3) fitted with the boost above to [R0572].
+GIANT_IMPACT_SPACING = 25.0
+# The giant-impact stage ends at this distance, AU, or the snow line when that is nearer: protoplanets farther out, round A stars whose snow line lies at 10 AU and more, do not finish merging in the
+# age of the disk (the timescale grows steeply with distance, [R2431]), and merging them pulled the outermost planet in, which moved the outer disk and the debris disks of A stars from 10 to 27 of 40.
+# A planetGen stand-in (tier T6, tweak L3), registry PA17.
+GIANT_IMPACT_END_AU = 3.0
 # The share of giants that migrate in to a hot Jupiter orbit, and how its rate rises with [Fe/H] beyond the giants' (10 to the 3.4
 # for hot [R3499], read, against 1.2 for giants, [R2172], read):
 # a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L2) to 0.6 percent of Sun-like stars
