@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3909] - 2026-11-12
+
+**Headline:** the message for a body that stores a quantity that is not a number no longer shows an item code.
+
+### Changed
+
+- `class_fit.classify` (GEN.1593) raised a `ClassError` whose text ended in the item code, which a reader sees; the code is gone from the message (it stays in the comment and the test), and `test_no_todo_codes_shown` passes again.
+
 ## [8.0.3908] - 2026-11-12
 
 **Headline:** The unused dwarf-population module is retired: what it did, the belt member status words and the size-law order statistics, is already done by the running code.
