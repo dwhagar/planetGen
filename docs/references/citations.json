@@ -423,7 +423,7 @@
     },
     "R0085": {
       "kind": "paper",
-      "label": "Althaus et al. 2010",
+      "label": "Althaus et al. 2010b",
       "title": "Evolutionary and pulsational properties of white dwarf stars"
     },
     "R0086": {
@@ -26170,6 +26170,16 @@
       "kind": "paper",
       "label": "Chabrier and Baraffe 1997a",
       "title": "Structure and evolution of low-mass stars"
+    },
+    "R5238": {
+      "kind": "paper",
+      "label": "Althaus et al. 2010a",
+      "title": "NEW CHEMICAL PROFILES FOR THE ASTEROSEISMOLOGY OF ZZ CETI STARS"
+    },
+    "R5239": {
+      "kind": "paper",
+      "label": "Metcalfe 2003",
+      "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate"
     },
     "R5244": {
       "kind": "paper",

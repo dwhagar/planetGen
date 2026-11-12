@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1641 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1649 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,7 +40,7 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|
 | observed in a planet | the thing itself has been measured in a planet, moon, star or other body (a solar-system body counts) | 3 |
 | observed in a lab | made or measured in a laboratory, shock or diamond-cell experiment, but not found in a body | 20 |
-| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1615 |
+| predicted only | theory, a model or a recalled value stands for it: nobody has seen the thing, or the row has not recorded that someone has | 1623 |
 | disputed | a detection or a measurement is claimed and doubted, or the sources disagree about whether it exists | 3 |
 
 ## How many rows are at each tier and tweak level
@@ -48,15 +48,15 @@ The tier says how good the source of a number is; the **evidence status** says w
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 191 | 20 | 11 | 1 | 0 | 223 |
-| T2 | 153 | 61 | 1 | 1 | 0 | 216 |
-| T3 | 114 | 52 | 12 | 9 | 0 | 187 |
+| T2 | 153 | 62 | 1 | 1 | 0 | 217 |
+| T3 | 115 | 53 | 12 | 9 | 0 | 189 |
 | T4 | 85 | 13 | 4 | 22 | 15 | 139 |
 | T5 | 90 | 24 | 6 | 1 | 1 | 122 |
-| T6 | 212 | 109 | 31 | 71 | 4 | 427 |
+| T6 | 213 | 113 | 31 | 71 | 4 | 432 |
 | T7 | 59 | 21 | 10 | 34 | 0 | 124 |
 | T8 | 1 | 0 | 0 | 5 | 1 | 7 |
 | T9 | 46 | 17 | 5 | 93 | 35 | 196 |
-| All | 951 | 317 | 80 | 237 | 56 | 1641 |
+| All | 953 | 323 | 80 | 237 | 56 | 1649 |
 
 ## How the labels were given
 
@@ -2884,3 +2884,16 @@ The tier says how good the source of a number is; the **evidence status** says w
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | KZP1 | P | T6 | L1 | `kozai_planets.screen_planets`: a planet takes the pull of the perturber that cycles it with the shortest Kozai time; the others stay in the ledger only | the strongest, the sum of the pulls | planets with more than one perturber | an N-body run of a planet beside two perturbers whose cycle differs from the strongest pull's | a vector sum of the perturbers' torques | educated guess from physics (the shortest Kozai time is the fastest torque; two perturbers at once is the octupole-and-beyond case no source here covers) | predicted only | - | - |
 | KZP2 | P | T6 | L1 | `kozai_planets.SIBLING_MASS_RATIO` 1: an outer sibling is a perturber only if at least as heavy as the planet, and past three times its axis | 0.3 to 10 | outer sibling planets | a lighter outer planet that pumps an inner one in an N-body run | the planet-planet octupole test of GEN.1450 | educated guess from physics (a lighter outer body is a test particle's equal and quenches rather than pumps) | predicted only | GEN.1645 | - |
+
+## 6.286 Stand-ins of the white dwarf core and the accreted pollutant
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Evidence status (GEN.1428) | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| WDC1 | D | T2 | L1 | `tuning.WD_CENTRAL_OXYGEN_BY_MASS_SOL`: the central oxygen mass fraction at ten white dwarf masses from 0.5249 to 0.8779 solar (0.788, 0.686, 0.704, 0.723, 0.755, 0.730, 0.661, 0.655, 0.641, 0.620), linear between and held outside | none (the table) | carbon-oxygen cores; the models are at Z = 0.01 and the table is used at every metallicity | a model grid at another metallicity whose central oxygen differs by more than 0.05 | a grid of white dwarf models at the progenitor's metallicity (open item) | [R5238: Table 1] (READ) | predicted only | GEN.1370 | - |
+| WDC2 | P | T3 | L0 | `tuning.WD_CENTRAL_OXYGEN_RANGE` (0.61, 0.84): the central oxygen the asteroseismology of two white dwarf pulsators fits, the bounds the table is held to | 0.55 to 0.9 | carbon-oxygen cores | a third pulsator fitted outside the range | more pulsators fitted | [R5239] (READ, two objects) | predicted only | GEN.1370 | - |
+| WDC3 | P | T6 | L0 | `tuning.WD_NEON22_PER_CNO` 1.0: every carbon, nitrogen and oxygen nucleus of the progenitor's birth composition ends as 22Ne in the core | 0.5 to 1 | carbon-oxygen cores | a core whose measured 22Ne is under half the progenitor's CNO | a stellar model's 22Ne by progenitor metallicity | educated guess from physics (the CNO ends as 14N in the hydrogen shell and as 22Ne in helium burning; no source opened for the share) | predicted only | GEN.1370 | - |
+| WDC4 | P | T6 | L1 | `tuning.POLLUTANT_CORE_RICH_METAL_FRACTION` 0.5: a fragment with at least this mass fraction of metal grains is core-rich | 0.3 to 0.7 | polluting belt bodies | polluted white dwarfs whose Fe/Mg indicates a metal share far from the draw's | the Bayesian classes of [R1832] built on the drawn fragment | [R1832] (READ, the classes only; the cut is a stand-in) | predicted only | GEN.1370 | - |
+| WDC5 | P | T6 | L1 | `tuning.POLLUTANT_CRUST_RICH_FACTOR` 2.0: a rock whose (Ca + Al) over Mg is twice the proto-solar one is crust-rich | 1.5 to 4 | polluting belt bodies | a white dwarf population whose Ca/Mg crust-rich cut sits far from twice solar | the classes of [R1832] | educated guess from physics | predicted only | GEN.1370 | - |
+| WDC6 | P | T6 | L1 | `tuning.POLLUTANT_VOLATILE_RICH_FRACTION` 0.2: a fragment with at least this mass fraction of water and other ice is volatile-rich | 0.1 to 0.4 | polluting belt bodies | polluted white dwarfs whose measured water fractions put the cut elsewhere | the classes of [R1832] | educated guess from physics | predicted only | GEN.1370 | - |
+| WDC7 | P | T6 | L1 | `tuning.POLLUTANT_ELEMENT_SHARES`: kamacite Fe 0.94, Ni 0.06; taenite Fe 0.72, Ni 0.28; the organic solids C 0.70, O 0.20, H 0.07, N 0.03; tholin C 0.55, N 0.25, H 0.10, O 0.10 | the nickel in the table's ranges; the organics +-0.1 | the alloys and organics of the materials table that have no formula | a measured composition of those solids that differs by 0.1 in any share | per-material element lists in the materials table | the nickel is the middle of the ranges the table states; the organics are a kerogen-like stand-in | predicted only | GEN.1370 | - |
+| WDC8 | P | T3 | L1 | `tuning.POLLUTANT_FORMULAS`: an end-member formula for the solid-solution rows of the belt (cronstedtite, saponite, tochilinite, hibonite, melilite, schreibersite) | the end member chosen | the six rows | an analysis of the mineral that differs by more than 0.05 in any element share | member lists in the materials table | the end members are the table's own member lists | predicted only | GEN.1370 | - |

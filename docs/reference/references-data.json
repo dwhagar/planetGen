@@ -165393,6 +165393,50 @@
    "volume": "716",
    "year": 2010
   },
+  "10.1088/0004-637x/717/2/897": {
+   "arxiv": "1005.2612",
+   "authors": [
+    [
+     "Althaus",
+     "L. G."
+    ],
+    [
+     "Córsico",
+     "A. H."
+    ],
+    [
+     "Bischoff-Kim",
+     "A."
+    ],
+    [
+     "Romero",
+     "A. D."
+    ],
+    [
+     "Renedo",
+     "I."
+    ],
+    [
+     "García-Berro",
+     "E."
+    ],
+    [
+     "Miller Bertolami",
+     "M. M."
+    ]
+   ],
+   "book": "",
+   "doi": "10.1088/0004-637x/717/2/897",
+   "editors": [],
+   "journal": "ApJ",
+   "page": "897",
+   "publisher": "American Astronomical Society",
+   "src": "crossref",
+   "title": "NEW CHEMICAL PROFILES FOR THE ASTEROSEISMOLOGY OF ZZ CETI STARS",
+   "type": "journal-article",
+   "volume": "717",
+   "year": 2010
+  },
   "10.1088/0004-637x/719/1/810": {
    "authors": [
     [
@@ -282856,6 +282900,24 @@
    "volume": "",
    "year": 2002
   },
+  "arXiv:astro-ph/0303039": {
+   "arxiv": "astro-ph/0303039",
+   "authors": [
+    [
+     "Metcalfe",
+     "T. S."
+    ]
+   ],
+   "doi": "",
+   "journal": "",
+   "journal_ref": "Astrophys.J. 587 (2003) L43-L46",
+   "page": "",
+   "src": "arxiv",
+   "title": "White Dwarf Asteroseismology and the ^12C(alpha,gamma)^16O Rate",
+   "type": "preprint",
+   "volume": "",
+   "year": 2003
+  },
   "arXiv:astro-ph/0303456": {
    "arxiv": "astro-ph/0303456",
    "authors": [
@@ -285913,6 +285975,7 @@
   "10.1088/0004-637x/715/2/1050": "R0455",
   "10.1088/0004-637x/716/2/1060": "R4561",
   "10.1088/0004-637x/716/2/1191": "R4748",
+  "10.1088/0004-637x/717/2/897": "R5238",
   "10.1088/0004-637x/719/1/810": "R2075",
   "10.1088/0004-637x/719/1/865": "R4025",
   "10.1088/0004-637x/720/1/569": "R3840",
@@ -288440,6 +288503,7 @@
   "arxiv:1004.1406": "R3058",
   "arxiv:1004.1507": "R1331",
   "arxiv:1004.2039": "R1539",
+  "arxiv:1005.2612": "R5238",
   "arxiv:1005.3084": "R2172",
   "arxiv:1006.0022": "R4000",
   "arxiv:1006.0106": "R1731",
@@ -289729,6 +289793,7 @@
   "arxiv:astro-ph/0211361": "R1530",
   "arxiv:astro-ph/0301527": "R4048",
   "arxiv:astro-ph/0301540": "R2530",
+  "arxiv:astro-ph/0303039": "R5239",
   "arxiv:astro-ph/0303456": "R5079",
   "arxiv:astro-ph/0308159": "R3682",
   "arxiv:astro-ph/0308388": "R1270",
