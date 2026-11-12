@@ -13086,11 +13086,6 @@ clears each one.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: none. Related: GEN.1596.
   Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
 
-- [ ] **GEN.1607 (bug) radiation.generate_dose sets dose_helio_mult back to 1.0 on every call, so a body whose life or air is re-applied after the system was placed in a cloud loses the heliosphere multiplier**
-  Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L14, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
-  Version 8.1. Owner (TODO, 2026-11-12): Lane 15. Prerequisites: none. Related: GEN.1589, GEN.1590.
-  Filed by the TODO thread. Bug sweep; Boss approved (fix all, build and ship).
-
 - [ ] **GEN.1608 (bug) A comet's period class is a label drawn before its orbit: where the star's orbit ceiling cuts the eccentricity (comet.py _draw_shape, low = min(low, high)) a 'long_period' comet can have a period of tens of years and gets the periodic 'P/' designation**
   Bug sweep second batch (coordinator relay 2026-11-12; Boss: fix all sweep findings in 8.1, 'Build it and Ship it'), reports/bug-sweep-read-and-simulate-2026-11-11.md section 'Second batch', L15, read only, severity Low. Do: confirm by a hand case or a run, fix in place reusing the existing code, add a test for the case; say in the PR whether any stored value changes. Lock item if output changes; lock-free if only a guard.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: none. Related: none.
