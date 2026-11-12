@@ -141,7 +141,17 @@ def min_distance_after_au(body, inner_bodies):
             edge = clearance_ledger.planet_exclusion(inner.distance, inner.eccentricity or 0.0, inner.mass, body.star.mass, body.mass,
                                                      eccentricity)[1]
         needed = max(needed, edge)
-    return needed
+    return _chain_needed(body, inner_bodies, needed)
+
+
+def _chain_needed(body, inner_bodies, needed):
+    """`needed` raised, for a planet that is the last of a chain of `tuning.CHAIN_WINDOW` planets (GEN.1521), to the nearest distance that holds the chain's effective spacing (`clearance_ledger.chain_distance_au`).
+    A belt among the planets just inside breaks the chain: it is the pairwise rule alone."""
+    run = inner_bodies[-(tuning.CHAIN_WINDOW - 1):]
+    if len(run) < tuning.CHAIN_WINDOW - 1 or any(inner.body_type == 'a' for inner in run):
+        return needed
+    planets = [(inner.distance, inner.eccentricity or 0.0, inner.mass) for inner in run]
+    return clearance_ledger.chain_distance_au(planets, body.mass, body.eccentricity or 0.0, body.star.mass, needed)
 
 
 def moon_clearance_au(inner_moons):

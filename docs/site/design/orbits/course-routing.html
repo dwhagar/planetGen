@@ -219,7 +219,7 @@ corridor from the sector cells along the segment through the address index
 (1,000 to 52,000 rows in 15 to 60 ms and a route in 2 to 34 ms on a
 1e7-system, 1.56 million-sector test database [C], section 6), a cKDTree
 for the k-nearest graph and the island join, and noted that
-<code>idx_sectors_center</code> prunes only on X because it is <code>(center_x_pc, center_y_pc, center_z_pc)</code>. The built version reads the center index in
+<code>idx_sectors_center</code> prunes only on X because it is <code>(center_x_pc, center_y_pc, center_z_pc)</code>. The built version reads the centre index in
 pieces along the line; revisit the cell-based read if the benchmark above
 grows slow on a full galaxy. The stored <code>nearest_systems</code> table cannot back
 routing (3 neighbours per object, within 4 pc, no island data).</li>
@@ -696,7 +696,7 @@ entry; under <code>prefers-reduced-motion</code> red without the pulse; readable
 themes; the list also labels it &quot;unknown space&quot; in text.</li>
 <li><strong>Course diagram (NAV.67, with NAV.36).</strong> A panel below the NAV page's map
 (<code>web/maps/navdiagram.py</code>) draws the ribbon of <code>navribbon.layout_ribbon</code> (NAV.66) as SVG:
-the stops left to right, a glyph for each kind (a disk for a system, a hexagon for a
+the stops left to right, a glyph for each kind (a disc for a system, a hexagon for a
 phenomenon, and a shape of its own for each kind of stop in unknown space, so the kinds read
 by shape and not by colour), the hop's length on it and its course where the gap is wide
 enough, the start ringed dashed and the destination ringed twice. A hop through unknown

@@ -20,7 +20,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.radiation_field.companion_share | by design | the companions' light over the host's at a body, the number the geometry tests and the before-and-after census read (GEN.1445) |
 | function | planetgen.physics.photolysis.outside_templates | by design | says when a star's template ratio is the end template's (read by the tests and by the notes of the table) |
 | function | planetgen.physics.disk_drift.cold_finger_enrichment | by design | the rise of the ice-to-rock ratio just outside a line when part of the vapor goes back out (design note 2.4): reported and read by the tests, not by the generator (GEN.1473) |
-| function | planetgen.physics.disk_drift.front_au | by design | the distance the dust-growth front has reached at an age: read by the tests and the design note, the generator reads the ice weights instead (GEN.1473) |
 | row | 6.242:DE4 | by design | the viscous gas flux constants of the water drift model; the disc mass cancels in the enrichment ratio the generator reads, so the constants are kept for the tests and the note (GEN.1473) |
 | function | planetgen.physics.planet_zones.host_members | by design | which stars the planets of a zone go round: the reference the radiation field's choice of host is held to (`test_radiation_field.py`); the generator reads the host from the body itself (GEN.1559) |
 | function | planetgen.physics.eclipses.orbiting_the_star | by design | the mean share of a star's light a sibling planet inside the observer's orbit covers: read by the tests and the census, and by the effect ledger when it keeps the light eclipsed by planets (GEN.1465); only a close pair's eclipses are applied to the light (GEN.1484) |
@@ -32,15 +31,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mantle_stripping.speed_for_core_fraction | by design | the impact speed that leaves a given iron share, for the tests and for a check of the energy-ratio range of MT8 against Mercury's iron |
 | function | planetgen.physics.mantle_stripping.strip_probability | by design | the share of random impacts inside the head-on angle (MT7); the W10 rate (WR4) is already a rate on the merged population, so the effect does not apply it again |
 | data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
-| data | fudge_table.json | GEN.1314 | the width of every class edge, built from the matrix (GEN.1313); `class_fit` will read it per edge in GEN.1314 and that item deletes this line |
 | function | planetgen.galaxy.nebula_density.octave_bound | by design | the most one more noise octave can move the density, which the tests of the finer levels (the coarse blobs stay put as filaments are added) and the tuning of the drawing read; the node reader asks for the density only |
 | function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
-| data | fudge_matrix.json | by design | the measured movement of every class quantity under every stand-in row (GEN.1313, `scripts/stand_in_sensitivity.py screen --frozen`); `scripts/build_fudge_table.py` turns it into `fudge_table.json` and `test_fudge_table.py` holds the table to it; the generator reads the table, not the matrix |
-| data | fudge_table.json | GEN.1314 | the width of every class edge, built from the matrix (GEN.1313); `class_fit` will read it per edge in GEN.1314 and that item deletes this line |
-| module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
+| function | planetgen.physics.equilibrium_edges.h2_dissociation_temperature | by design | the temperature at which half of the hydrogen is atomic, the third regime edge of the module; no recipe row has an edge there (row h3 starts at the water line), the test checks it against the recorded computation |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
@@ -79,11 +75,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
-| module | planetgen.physics.atmosphere_retention | GEN.1523 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
-| row | 6.74:SH1 | GEN.1523 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH2 | GEN.1523 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH3 | GEN.1523 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
-| row | 6.74:SH4 | GEN.1523 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
+| module | planetgen.physics.atmosphere_retention | by design | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note, held against the generator by the tests and the census (GEN.1523 settled it): the pressure stage reads the Berta-Thompson logistic of the atmosphere recipes rows d, which is the fit to the observed planets, and not this module's K-window fit, so the module is a tested library and the stage never takes its cap from it |
+| row | 6.74:SH1 | by design | `atmosphere_retention.SHORELINE_K`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH2 | by design | `atmosphere_retention.VERDICT_EDGES`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH3 | by design | `atmosphere_retention.PRESSURE_CAPS_PA`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| row | 6.74:SH4 | by design | `atmosphere_retention.JEANS_KEEP`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -91,12 +87,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.98:BW4 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW5 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW6 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
-| module | planetgen.physics.helium_fractionation | GEN.1523 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
-| row | 6.77:HF1 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF2 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| row | 6.77:HF3 | GEN.1523 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.hycean_candidate | GEN.1523 | the Hycean box as a flag on mass, radius and temperature (no class letter); the oddity line names the planets it selects when the oddity wiring lands |
-| row | 6.79:HC1 | GEN.1523 | the four ranges of the Hycean box, read when its wiring step lands |
 | module | planetgen.physics.rock_assemblage | GEN.474 | the mineral assemblage of a rock as the CIPW norm of its oxides on the rows of the materials table (lock-free part 2 of GEN.474); the wiring step replaces the fixed ground recipes of `GROUND_TYPES` with it |
 | function | planetgen.physics.rock_types.divalent_pool | GEN.474 | the divalent pool of a rock's norm, read by the unwired rock_assemblage; wired with it |
 | module | planetgen.physics.shape_temperature | GEN.1201 | the temperature a body took its shape at (surface plus accretion plus the heat made in the conduction time, capped at the liquidus; lock-free pure part of GEN.1201); the wiring step passes it to the roundness engine in `body_strength` and stores it, once GEN.1159's columns are on main |
@@ -269,6 +259,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.179:NBC18 | by design | the silicon share of SiC in the diffuse, dense and reflection mixes of `GRAIN_MIXES` (0.0035, 0.003, 0.0032 of the dust) is this limit applied to each mix's silicate share; the constant is what `test_nebula_composition` holds those three shares to, and the mixes stay written as the dust shares the model uses |
 | row | 6.270:AUD25 | by design | the scope of the radius valley survey (`radius_valley`, a check run by the tuning tests; the generator never reads it, see the module's line) |
 | row | 6.270:AUD26 | by design | the scope of the iron branch sample (`iron_branch_tuning`, run by the tuning tests; the generator never reads it, see the module's line) |
+| function | planetgen.physics.helium_fractionation.critical_mass_flux_kg_s | by design | the total mass loss at and under which only hydrogen leaves (Hu 2015 eq. 14), the threshold `partition` crosses; the tests read it to check the paper's numbers and `partition` works from the same flux |
 | module | planetgen.physics.obliquity_variation | GEN.1454 | the range and chaos of a planet's tilt under the star, its moons, its siblings and a companion; part 2 of GEN.1454 wires it into the settle pass, the seasonal swing and the oddity table |
 | module | planetgen.generation.body_state_fields | GEN.565 | the birth and present-state split of the stored fields of stars, planets and moons (GEN.582 light); the Field table of GEN.565 absorbs the list, and the forward build (GEN.1548) reads it when a body is made again |
 | module | planetgen.physics.planet_moons | GEN.1157 | the disk ceiling and the capture rate and mass of a moon of planet size around a giant (lock-free slice 0); the wiring of `generate_moons` lifts the giants' 1e-3 moon cap to the disk ceiling and adds the capture moon, which changes output and rides a train |

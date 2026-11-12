@@ -53,6 +53,9 @@ class Companion:
     offset_au: tuple | None = None
     """tuple or None: Where the source stood from the host at the system's epoch, `(x, y, z)` AU in the system's frame (GEN.1458: the direction its light comes
     from, which `sky_suns` turns into a declination). `None` when the tree has no positions to give."""
+    dark: bool = False
+    """bool: Whether the source is a dark member of the tree that glows (a brown dwarf, a neutron star, a black hole with a disk; `dark_light.DarkSource`, GEN.1501) and not a star: it gives
+    light, and a reader that counts the mass or the stars of the system (the truncation of a disk) leaves it out."""
 
 
 def attach(host, companions):

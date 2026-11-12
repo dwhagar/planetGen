@@ -119,7 +119,7 @@ main{padding:16px 16px 60px}}
 <td>G2.2a</td>
 <td>Sub-solar [Fe/H] stars have elevated [Th/Fe] and [U/Fe]</td>
 <td>PARTLY</td>
-<td>Th: solar twins show [Th/Fe]_ZAMS = +0.082 - 0.338 [Fe/H] (slope -0.338 +-0.049, 6.9 sigma, rms 0.040 dex) but only over [Fe/H] within +-0.1 dex; Eu (the proxy) falls relative to alpha elements with metallicity: slopes of [Eu/H] against [alpha/H] are 0.77 to 0.84 (less than 1). U: not measured in any disk star</td>
+<td>Th: solar twins show [Th/Fe]_ZAMS = +0.082 - 0.338 [Fe/H] (slope -0.338 +-0.049, 6.9 sigma, rms 0.040 dex) but only over [Fe/H] within +-0.1 dex; Eu (the proxy) falls relative to alpha elements with metallicity: slopes of [Eu/H] against [alpha/H] are 0.77 to 0.84 (less than 1). U: not measured in any disc star</td>
 <td>[R0478, R0479] [R0479: Table 4]; [R0664] [R0664: Table 1] and section 6.1</td>
 <td>READ</td>
 </tr>
@@ -135,15 +135,15 @@ main{padding:16px 16px 60px}}
 <td>G2.2c</td>
 <td>... &quot;higher radiogenic heating per unit silicate mass in early-formed systems&quot;</td>
 <td>PARTLY</td>
-<td>Two different axes are mixed. (1) Thin-disk solar twins: [Th/Si] at birth is <strong>lower</strong> for older stars (+0.149 now falling by 0.0121 dex per Gyr of age; +0.045 at 8.6 Gyr). (2) Galactic chemical evolution models of the total initial heat budget (K-40, U-235, U-238, Th) give a larger initial budget for planets formed earlier in Galactic time, because K-40 and U-235 decay in the ISM and non-radioactive rock-formers dilute the rest; that is a model result ([R1438], used by [R4468]) not a metallicity law. Heat per silicate mass at a given age also depends on exp(-lambda t) since formation (part E 2.8c), not only on abundance</td>
+<td>Two different axes are mixed. (1) Thin-disc solar twins: [Th/Si] at birth is <strong>lower</strong> for older stars (+0.149 now falling by 0.0121 dex per Gyr of age; +0.045 at 8.6 Gyr). (2) Galactic chemical evolution models of the total initial heat budget (K-40, U-235, U-238, Th) give a larger initial budget for planets formed earlier in Galactic time, because K-40 and U-235 decay in the ISM and non-radioactive rock-formers dilute the rest; that is a model result ([R1438], used by [R4468]) not a metallicity law. Heat per silicate mass at a given age also depends on exp(-lambda t) since formation (part E 2.8c), not only on abundance</td>
 <td>[R0479: Table 4]; [R4468] Appendix B.1 and Fig. A1; [R1438] (Icarus, only a search summary read)</td>
 <td>READ; Frank SNIPPET</td>
 </tr>
 <tr>
 <td>G2.2d</td>
 <td>(implicit) [U/Fe] elevated, U usable as an input</td>
-<td>UNVERIFIABLE for disk dwarfs</td>
-<td>U has not been measured in Sun-like or disk stars (&quot;uranium has yet to be measured in young Sun-like stars&quot;; &quot;few actual U measurements have been made in the Galactic disk&quot;). Eight r-process-enhanced halo giants with [Fe/H] about -3 have both Th and U detected (CS 31082-001, BD+17 3248, HE 1523-0901 [log eps(U) = -2.06, log eps(Th) = -1.20], CS 29497-004, J2038-0023, J0954+5246, J2003-1142, J2213-5137). Disk U must be derived from Th or Eu with a production ratio</td>
+<td>UNVERIFIABLE for disc dwarfs</td>
+<td>U has not been measured in Sun-like or disc stars (&quot;uranium has yet to be measured in young Sun-like stars&quot;; &quot;few actual U measurements have been made in the Galactic disk&quot;). Eight r-process-enhanced halo giants with [Fe/H] about -3 have both Th and U detected (CS 31082-001, BD+17 3248, HE 1523-0901 [log eps(U) = -2.06, log eps(Th) = -1.20], CS 29497-004, J2038-0023, J0954+5246, J2003-1142, J2213-5137). Disc U must be derived from Th or Eu with a production ratio</td>
 <td>[R4468] Appendix A.4; [R0664] introduction; [R1447] [R0761, R1447] introduction (the eight stars)</td>
 <td>READ (2ND-HAND for the list of stars)</td>
 </tr>
@@ -454,7 +454,7 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>[R0479]. <strong>No separate [R0478] Th paper was found</strong> (the search returns a 2020 Botelho paper on carbon isotopes)</td>
-<td>Th II 4019.129 A in 53 thin-disk solar twins (58 listed with the Sun), HARPS R = 115 000, precision 0.025 dex; ages from [R0309]</td>
+<td>Th II 4019.129 A in 53 thin-disc solar twins (58 listed with the Sun), HARPS R = 115 000, precision 0.025 dex; ages from [R0309]</td>
 <td>see parametrisation 3.1; U: &quot;no measurable line of uranium in the HARPS spectral coverage&quot;</td>
 <td>READ</td>
 </tr>
@@ -640,10 +640,10 @@ main{padding:16px 16px 60px}}
 <h3 id="31-stellar-th-and-u-relative-to-rock-forming-elements">3.1 Stellar Th (and U) relative to rock-forming elements</h3>
 <p>Needs stored [Fe/H] and stellar age (both already stored). Quantity wanted: <code>x_Th</code>, the birth log abundance of Th relative to Mg or Si against the Solar System formation value.</p>
 <ol>
-<li>Solar-metallicity disks, |[Fe/H]| up to about 0.1 dex, ages 0 to 8.6 Gyr: <code>[Th/Si]_birth = +0.149 - 0.0121 * age_Gyr + N(0, 0.053)</code> dex ([R0479: Table 4]: a = -0.0121 +-0.0018 dex per Gyr, b = +0.149 +-0.010, rms 0.053). Equivalent in iron: <code>[Th/Fe]_birth = +0.082 - 0.338 * [Fe/H] + N(0, 0.040)</code> (a = -0.338 +-0.049, b = +0.082 +-0.003); there is no age trend in [Th/Fe]_ZAMS (slope -0.0009 +-0.0015 dex per Gyr; mean +0.086 +-0.008, rms 0.047). The reference zero is the Solar System at formation (a normalisation, not a preset: only differences enter).</li>
+<li>Solar-metallicity discs, |[Fe/H]| up to about 0.1 dex, ages 0 to 8.6 Gyr: <code>[Th/Si]_birth = +0.149 - 0.0121 * age_Gyr + N(0, 0.053)</code> dex ([R0479: Table 4]: a = -0.0121 +-0.0018 dex per Gyr, b = +0.149 +-0.010, rms 0.053). Equivalent in iron: <code>[Th/Fe]_birth = +0.082 - 0.338 * [Fe/H] + N(0, 0.040)</code> (a = -0.338 +-0.049, b = +0.082 +-0.003); there is no age trend in [Th/Fe]_ZAMS (slope -0.0009 +-0.0015 dex per Gyr; mean +0.086 +-0.008, rms 0.047). The reference zero is the Solar System at formation (a normalisation, not a preset: only differences enter).</li>
 <li>Wider [Fe/H] (about -0.8 to +0.4): no Th data. Use the Eu proxy: <code>[Eu/alpha] = (B - 1) * [alpha/H] + c</code> with B = 0.77 to 0.84 (so -0.16 to -0.23 dex of Eu/alpha per dex of metallicity), tight intrinsic scatter 0.025 dex but add 0.06 to 0.08 dex for measurement and catalogue systematics (SD of the detrended fits: 0.071, 0.081). <code>[Th/Eu] = 0.014 +-0.045</code> at solar metallicity; below [Fe/H] about -0.2 [Th/Eu] rises with larger scatter ([R3096], 2ND-HAND), so treat Th/Mg as at least the Eu value there.</li>
 <li>A single, wider prior if the generator does not condition on [Fe/H]: log-normal in Th/Mg with sigma 0.10 dex ([R4468], 72 solar twins and analogues; mean 1.21 of the Solar System ratio) up to 0.16 dex (Eu/Mg, 2000 Hypatia stars) and about 0.23 dex for the Nimmo 10 to 90 percent range (+-0.3 dex). Truncate at +-0.5 dex (Nimmo 1 to 99 percent).</li>
-<li>U: no direct stellar value exists for disks. Derive <code>U = Th * r_UTh</code> with the 238U/232Th production ratio 0.571 (+0.037 -0.031) in atoms ([R1001], via [R4609, R4610, R4611, R4616]), about +-0.025 dex; the ratio at the star's birth is lower by the decay between the r-process event and star formation, a model dependence [R1438] that has no measurement; carry an extra N(0, 0.05) dex as a placeholder and label it as such. At the Solar System formation epoch the bulk silicate Earth has Th/U (mass) 1.77 (99 and 56 ppb, [R2986]) rising to 3.77 now; use only as a test target.</li>
+<li>U: no direct stellar value exists for discs. Derive <code>U = Th * r_UTh</code> with the 238U/232Th production ratio 0.571 (+0.037 -0.031) in atoms ([R1001], via [R4609, R4610, R4611, R4616]), about +-0.025 dex; the ratio at the star's birth is lower by the decay between the r-process event and star formation, a model dependence [R1438] that has no measurement; carry an extra N(0, 0.05) dex as a placeholder and label it as such. At the Solar System formation epoch the bulk silicate Earth has Th/U (mass) 1.77 (99 and 56 ppb, [R2986]) rising to 3.77 now; use only as a test target.</li>
 <li>K is not an r-process element. Use the volatile rule: K/Mg of the star is log-normal sigma 0.26 dex (Hypatia, 179 stars, includes systematics), but the planet's K/U spread is much larger (below).</li>
 <li>The sign statement &quot;sub-solar [Fe/H] gives higher Th&quot; is supported only per Fe, and weakly (0.34 dex per dex over a 0.2 dex range). Per rock-forming element ([Th/Mg], what controls heat per silicate mass) the metallicity trend is -0.16 to -0.23 per dex (Eu) and the age trend in the solar-twin sample runs the other way (younger stars richer). Do not hard-code &quot;low metallicity means more heat&quot;.</li>
 </ol>
@@ -735,8 +735,8 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>3</td>
-<td>[R3096], the Th in 276 disk dwarfs</td>
-<td>the only Th data below [Fe/H] -0.2 and against thick-disk stars; read only through [R0664]</td>
+<td>[R3096], the Th in 276 disc dwarfs</td>
+<td>the only Th data below [Fe/H] -0.2 and against thick-disc stars; read only through [R0664]</td>
 <td>[Th/Eu] against [Fe/H] and its scatter</td>
 </tr>
 <tr>
@@ -811,7 +811,7 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>UNVERIFIABLE</td>
 <td>1</td>
-<td>G2.2d (U in disk stars)</td>
+<td>G2.2d (U in disc stars)</td>
 </tr>
 </tbody>
 </table></div>

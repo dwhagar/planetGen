@@ -49,13 +49,13 @@ block-first draw that replaces GEN.42's &quot;drop sectors by probability&quot;)
 tests that prove a draw exact and reject the drop-and-boost form, what the
 backfill costs, the arithmetic behind GEN.102 (fill the voids) and its
 recommendation, a resumable-run design (PERF.29, PERF.30), and the sampling
-rules for generation directives (GEN.96) and random neighbourhood centers
+rules for generation directives (GEN.96) and random neighbourhood centres
 (GEN.97). The grid is in <a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>,
 the density in <a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>, the per-unit
 seeds in <a href="reproducible-galaxies.html">reproducible-galaxies.md</a> section 3 and
 <a href="generation-determinism.html">generation-determinism.md</a>, and fill order and
 region enumeration in <a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a>.</p>
-<p>The cost of the queue that runs these tasks, canceling a task mid-run, and the time-left estimate for a long backfill are in <a href="../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a>.</p>
+<p>The cost of the queue that runs these tasks, cancelling a task mid-run, and the time-left estimate for a long backfill are in <a href="../operations/performance-eta-queue-and-caching.html">performance-eta-queue-and-caching.md</a>.</p>
 <p>Informs: GEN.40, GEN.41, GEN.42, GEN.43, GEN.96, GEN.97, GEN.99, GEN.102, PERF.18, PERF.29, PERF.30 (and the GEN.39 rule that one seed gives the same stars wherever a run lands)</p>
 <p>Status: research, 2026-10-09; decisions marked &quot;Boss&quot; are his, everything else is a recommendation</p>
 <p>Built (GEN.308): the block-first draw of section 2 is <code>bright_stars.block_candidates</code>, with <code>block_bound</code>, <code>cell_band_rate</code> and <code>candidate_stream</code>; the block is a band's 256 wedges (<code>BLOCK_WEDGES</code>), its bound has the halo's own share added to the other populations' largest, and the count is <code>util/poisson.py</code>'s exact <code>poisson_count</code>.</p>
@@ -117,7 +117,7 @@ mask and resume by re-running the unfinished <code>generation_runs</code> comman
 exact by truncated Poisson inversion; habitable-world directives need bounded
 whole-sector rejection with the attempt in the seed key (section 8).</li>
 <li><strong>GEN.97:</strong> plain rejection on density is unbiased (about 77 proposals per
-center); density-weighted centers cost 14 times more to fill (section 9).</li>
+centre); density-weighted centres cost 14 times more to fill (section 9).</li>
 <li>Earlier figures this supersedes (500 L_sun, 61 million stars, 88 billion
 systems, the timing report's &quot;26B&quot; column, &quot;cost per cell is unmeasured&quot;) are
 in section 10.</li>
@@ -384,11 +384,11 @@ ly sphere, tiers 100/250/500/750 L_sun, ceiling 1000 L_sun [C]:</p>
 </tbody>
 </table></div>
 <p>The prototype reproduces the expected count, a Poisson dispersion of 1 and the
-radial distribution (shell p = 0.97 and 0.72). Work by center [C, <code>tiers_tbl.py</code>]:</p>
+radial distribution (shell p = 0.97 and 0.72). Work by centre [C, <code>tiers_tbl.py</code>]:</p>
 <div class="table"><table>
 <thead>
 <tr>
-<th>Center</th>
+<th>Centre</th>
 <th>Density</th>
 <th>Cells</th>
 <th>Expected stars</th>
@@ -431,7 +431,7 @@ radial distribution (shell p = 0.97 and 0.72). Work by center [C, <code>tiers_tb
 </tr>
 </tbody>
 </table></div>
-<p>At the solar center the outermost tier (50 to 100 ly, floor 750) is 88% of the
+<p>At the solar centre the outermost tier (50 to 100 ly, floor 750) is 88% of the
 cells and 72% of the stars (1,584 cells, 4.09 stars of 5.70).</p>
 <h3 id="43-the-real-run-against-mariadb-1011">4.3 The real run against MariaDB 10.11</h3>
 <p>Scratch database, default plan, no ceiling, 4-core box at load 15 to 25 (wall
@@ -489,7 +489,7 @@ without (34 edges). RQ forks one work horse per job (<code>queue/redisqueue.py</
 <code>worker_class</code>; <code>SpawnWorker</code> where there is no fork loses the cache too), so
 every queued backfill job pays it again [S].</p>
 <h3 id="44-verdicts">4.4 Verdicts</h3>
-<p><strong>GEN.41.</strong> At the solar center the backfill visits 1,804 sectors for 5.7 stars
+<p><strong>GEN.41.</strong> At the solar centre the backfill visits 1,804 sectors for 5.7 stars
 (317 per star), at the bulge edge 11, at the core 2.6. A perfect pre-pass cuts
 visits by 99.7% at solar density but saves only about 0.1 s of a 3.4 s run (the
 rest is SQL and the ledger) plus the avoidable cold start. <strong>GEN.42 as written:
@@ -506,7 +506,7 @@ cell has zero density. The test is section 3.3.</p>
 <li>Make the task a chunk of many thousands of cells, not one 1,800-cell sphere:
 queue and fork overhead (tens of ms) equals a sphere's draw time. Discovery
 currently enumerates a 60-fold redundant cell list around every generated
-center (<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section
+centre (<a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section
 3.5); enumerate once around the run's boundary.</li>
 <li>Pre-warm <code>bright_star_fraction</code> for every canonical band edge in the worker
 parent before it forks, or compute the tables at plan time and store them (they
@@ -892,7 +892,7 @@ systems) cannot reach it either, from the Poisson tail of the system count and, 
 worlds, Panjer's recursion over <code>HABITABLE_COUNT_PMF</code> (the 6,000-system table of 8.1; the
 function reproduces the table's rows). The count is <code>--num-systems</code> exactly, or about
 <code>--density</code> times the sector's expected systems for a <code>sector</code> run, or the densest sector the
-model has (<code>tuning.PEAK_RELATIVE_DENSITY</code>, 160, above the 154.2 of the center) for a <code>galaxy</code>
+model has (<code>tuning.PEAK_RELATIVE_DENSITY</code>, 160, above the 154.2 of the centre) for a <code>galaxy</code>
 or <code>sectors</code> run. The Generate page's override section reaches the same refusal, as its
 estimate runs the command line's validation.</p>
 <p>Not recommended: generating each system conditional on a pre-drawn habitable
@@ -900,22 +900,22 @@ count. It is exact and cheaper, but the pmf depends on star type, age and the
 nebula, so the table would be rebuilt for every setting.</p>
 <h2 id="9-gen97-n-random-neighbourhoods">9. GEN.97: N random neighbourhoods</h2>
 <ul>
-<li><strong>Unbiased density-weighted centers.</strong> Propose a cell uniformly (cells are
+<li><strong>Unbiased density-weighted centres.</strong> Propose a cell uniformly (cells are
 within about 6% of equal volume; for exactness weight by pi x (2i + 1) x edge^3 /
 slots(i)), accept with probability (rho / rho_max)^gamma, rho_max = 154.2.
 gamma = 0 is uniform by volume (what <code>GalaxyBounds.random_address</code> does,
 <a href="../galaxy/fill-order-curves-and-core.html">fill-order-curves-and-core.md</a> section 3.5), 1 is
 proportional to star density. Acceptance at gamma = 1 is 1.29%, about 77
-proposals per center at about 10 us each. Never clip rho at a cap: it biases
+proposals per centre at about 10 us each. Never clip rho at a cap: it biases
 the weighting.</li>
 <li><strong>Cost depends on gamma, not on the sampler.</strong> Systems in a 100 ly neighbourhood
-(1,887 cells) [C, <code>centers.py</code>]; time is 40 ms per sector plus 16.4 ms per system:</li>
+(1,887 cells) [C, <code>centres.py</code>]; time is 40 ms per sector plus 16.4 ms per system:</li>
 </ul>
 <div class="table"><table>
 <thead>
 <tr>
 <th>gamma</th>
-<th>Mean density at center</th>
+<th>Mean density at centre</th>
 <th>Systems per neighbourhood</th>
 <th>One worker</th>
 </tr>
@@ -947,12 +947,12 @@ the weighting.</li>
 </tr>
 </tbody>
 </table></div>
-<p>At gamma = 1 about 40% of centers land in the 1.7% of sectors with density
+<p>At gamma = 1 about 40% of centres land in the 1.7% of sectors with density
 above 20 (the bulge). Default gamma = 0: the least surprising reading and the
 cheapest.</p>
 <ul>
 <li><strong>Qualifying criteria</strong>, in this order: inside the outline; the whole
-neighbourhood inside (3% of uniform centers have a 100 ly sphere crossing the
+neighbourhood inside (3% of uniform centres have a 100 ly sphere crossing the
 edge, 7% at 250 ly); density at least 1/E (the project's &quot;predicted star count
 <blockquote>
 <p>= 1&quot;); optionally not within r of a filled sector (one indexed box query on
@@ -960,14 +960,14 @@ edge, 7% at 250 ly); density at least 1/E (the project's &quot;predicted star co
 </blockquote>
 </li>
 <li><strong>No overlap, by dart throwing.</strong> Keep a hash grid of cell size 2r over accepted
-centers and reject a candidate closer than 2r plus a margin (Poisson-disk
+centres and reject a candidate closer than 2r plus a margin (Poisson-disk
 sampling; [R0539], SIGGRAPH sketches) [R]. A 100 ly neighbourhood excludes
 9.7 x 10^5 pc^3 and random sequential packing fills about 30% of the volume, so
-it succeeds for up to about 4.8 x 10^5 centers (3.0 x 10^4 at 250 ly) galaxy-wide
+it succeeds for up to about 4.8 x 10^5 centres (3.0 x 10^4 at 250 ly) galaxy-wide
 and 3.4 x 10^4 in the bulge alone. Cap attempts at 200 x N and report a shortfall.</li>
 <li><strong>Determinism.</strong> Candidate j draws from a stream keyed by (galaxy seed, run
 seed, &quot;neighbourhood&quot;, j), so the accepted list depends only on the seed and the
-arguments. If the filled-space test is on, record the chosen centers in the
+arguments. If the filled-space test is on, record the chosen centres in the
 <code>generation_runs</code> row (or its arguments) so <code>--resume</code> and <code>reproduce</code> replay
 the same list.</li>
 </ul>
@@ -1022,7 +1022,7 @@ the same list.</li>
 <p>Cross-checked and standing: E = 6.31 and the outline in
 <a href="../galaxy/galaxy-disk-density.html">galaxy-disk-density.md</a>; 26.9 million at 1000 L_sun in
 <a href="../galaxy/galaxy-coordinate-system.html">galaxy-coordinate-system.md</a>; the 1,886-cell 100 ly
-backfill in <a href="../orbits/sky-view.html">sky-view.md</a> (1,800 to 1,895 depending on the center).</p>
+backfill in <a href="../orbits/sky-view.html">sky-view.md</a> (1,800 to 1,895 depending on the centre).</p>
 <h2 id="evidence-notes">Evidence notes</h2>
 <p>Computed [C] with scripts in the research scratchpad <code>r13</code>: outline and sector
 count (<code>outline.py</code>); void counts and locations (<code>void.py</code>, <code>void2.py</code>); exactness
@@ -1030,7 +1030,7 @@ tests, benchmark and determinism (<code>samp.c</code>, <code>harness.py</code>, 
 <code>trunc.py</code>); prototype and real backfill (<code>proto_bf.py</code>, <code>proto_test.py</code>,
 <code>realbf2.py</code>, <code>tiers_tbl.py</code>); the MariaDB run (<code>dbbf2.py</code>, scratch 10.11.14,
 default shape, shared host); habitable-world statistics (<code>hab2.py</code>, <code>hab_math.py</code>);
-centers (<code>centers.py</code>); star totals (<code>galaxy_totals.py</code>). The dispersion formula
+centres (<code>centres.py</code>); star totals (<code>galaxy_totals.py</code>). The dispersion formula
 (section 3.1) and the time columns in sections 5.2 and 9 were recomputed in the
 integration pass.</p>
 <p>Recalled [R], to verify when paper access is allowed (the research environment

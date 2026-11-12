@@ -867,6 +867,13 @@
       "first_release": "8.0.3844",
       "reason": "Train 23: tide sources and spin and heating from every body, Kozai moons, phosphorus gases, close-companion disk gas, belt members forced by companion stars, settled-orbit remake, oxygen sink with age, auto rogue count",
       "affects": ["fill", "population"]
+    },
+    {
+      "epoch": 146,
+      "first_release": null,
+      "pending": true,
+      "reason": "Train 24 union golden at epoch 146: GEN.1314 GEN.1425 GEN.1498 GEN.1521 (chain push cap, respace after settle, wide-binary ceiling trim) GEN.1523 GEN.1527 GEN.1540 and the rest of the train",
+      "affects": ["plan", "scatter", "fill", "population"]
     }
   ]
 }
