@@ -233,7 +233,7 @@ def classify(body):
     found = _found(body)
     not_a_number = sorted(name for name, value in found.items() if isinstance(value, float) and value != value)
     if not_a_number:
-        raise planet_classes.ClassError(f"the body stores a quantity that is not a number ({', '.join(not_a_number)}); a class is never fitted to it (GEN.1593)")
+        raise planet_classes.ClassError(f"the body stores a quantity that is not a number ({', '.join(not_a_number)}); a class is never fitted to it")
     if found["body_type"] == planet_classes.TERRESTRIAL and found["pressure_pa"] >= GATE_PRESSURE_PA and found["temperature_k"] is None:
         raise planet_classes.ClassError("the classes read the mean surface temperature of a world with air, which the body does not store")
     ranked = _ranked(found)
