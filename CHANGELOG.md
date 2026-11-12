@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3916] - 2026-11-12
+
+**Headline:** `scripts/pick_tests.py` picks the tests a PR needs, stops at a stated time limit, and re-runs only the files that failed.
+
+### Added
+- **`scripts/pick_tests.py` (TEST.722).** Without arguments it lists, in priority order, the test files the PR edits, then those whose name holds a changed module's name, then those that import a changed module (fewest imports of it first). `--run [--minutes N]` runs them in small batches and starts no batch after the limit (default 20 minutes), then names the files "left to the end-of-version run"; `--failed` (or `--failed-from LOG` for a pytest log) runs only the files that failed in the last run, so a fix is proved by its failed files and not by the whole set again. The pre-gate set (`scripts/data/pregate_set.txt`) is left out because `scripts/pregate.py` runs it. Reused: `pregate.changed_files` and `pregate._lines`; the gate's by-hand name matching becomes the second rule. `src/tests/test_pick_tests.py` pins the module names, the import forms, the order, the limit and the failed-file reading.
+
+generation-output: unchanged
+generation-affects: none
+
 ## [8.0.3915] - 2026-11-12
 
 **Headline:** the sheet of a planet or a moon now shows how wide its sun looks in its sky, a moon's sheet how wide its planet looks, and the sheet of a body in a multiple system how wide each other sun looks.
