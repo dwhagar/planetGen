@@ -26170,6 +26170,16 @@
       "kind": "paper",
       "label": "Chabrier and Baraffe 1997a",
       "title": "Structure and evolution of low-mass stars"
+    },
+    "R5238": {
+      "kind": "paper",
+      "label": "Lin et al. 2021",
+      "title": "OSSOS: The eccentricity and inclination distributions of the stable neptunian Trojans"
+    },
+    "R5239": {
+      "kind": "paper",
+      "label": "Vokrouhlický et al. 2024",
+      "title": "Orbital and absolute magnitude distribution of Jupiter Trojans"
     }
   }
 }
