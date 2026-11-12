@@ -95,6 +95,14 @@ test, which cost 0.66 s each on an idle machine.
   counters with a new database, and fail the test that left a difference.
   Run it after changing the schema or adding a cache keyed by database.
 
+### A database test that cannot reach MySQL fails the run (TEST.723)
+
+A database test needs a real MySQL server (`mysql_config`). When the server is down or refuses the login, the tests that need it used to skip, and a run could come back with hundreds of skips and no failure (a gate's report came back 317 skipped and was nearly read as a pass). With `PLANETGEN_REQUIRE_MYSQL` set, a test that skipped with "No MySQL test server reachable" is a failure instead, with the server's own message. Every command of `scripts/test.py` except `quick` (which runs no database test) sets it. A plain `pytest` run, and a contributor without MySQL, still skip.
+
+### Generated files that conflict: `scripts/regenerate_generated.py` (TEST.721)
+
+The stand-in list, the references pages and the data tables built from a script are copies of their sources, so two pull requests that change a source also change the copy and the second conflicts on a file no one can merge by hand. `python scripts/regenerate_generated.py --list` names these files and their builders; with no argument it rebuilds them all; `--check` names the ones that are out of date (the pre-gate quick lane runs it); and in a merge with conflicts `--resolve` rebuilds the conflicted generated files from the merged sources and `git add`s them. Resolve the conflicts in real sources first, then run `--resolve`, then `git commit`. The global documents (`docs/generated`, `docs/site`) are not in this set: only the TODO thread rebuilds them.
+
 ## The math check
 
 `src/planetgen/physics/mathcheck.py` is a fixed list of checks that the

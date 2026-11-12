@@ -76,8 +76,10 @@ GLANCE = {
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
     "black_hole": ("mass_class", "mass_solar", "event_horizon_radius_km", "spin", "has_accretion_disk", "luminosity_w"),
     "neutron_star": ("pulsar_type", "mass_solar", "radius_km", "magnetic_field_gauss", "spin_period_ms"),
-    "nebula": ("nebula_class", "nebula_type", "radius_ly", "mass_kg", "temperature_k", "density_cm3"),
-    "supernova_remnant": ("remnant_class", "age_years", "radius_ly", "compact_remnant_kind", "temperature_k"),
+    "nebula": ("nebula_class", "nebula_type", "radius_ly", "mass_kg", "temperature_k", "density_cm3",
+               "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"),
+    "supernova_remnant": ("remnant_class", "age_years", "radius_ly", "compact_remnant_kind", "temperature_k",
+                          "mass_fraction_h", "mass_fraction_he", "mass_fraction_z", "dust_to_gas"),
     "rogue_planet": ("planet_class", "mass_kg", "radius_km", "surface_temperature_k", "surface_pressure_pa",
                      "has_liquid_water"),
     "asteroid_field": ("field_class", "radius_ly", "density", "mass_kg", "composition_summary"),
@@ -108,10 +110,13 @@ NOT_STORED = "not stored"
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
     "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
-    "dose_rate": "dose rate",
+    "dose_rate": "dose rate", "magnetic_field": "magnetic field",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
+
+RATE_UNITS = ("1/yr", "1/Gy")
+"""tuple: The column units of how often something happens; they go on the rate ladder (UX.304). Another frequency, such as the photons a second of a nebula, stays a plain number."""
 
 TEXT, FLAG, TIER, RATING, LIMIT, AUTO = "text", "flag", "tier", "rating", "limit", "auto"
 """str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, as a facility
@@ -810,7 +815,7 @@ def _value(spec, table, stored):
         return [INFINITE_ENERGY]    # GEN.1162: a black hole stores -1 for an infinite binding energy
     unit = column_units.COLUMNS[(table, column)]
     info = column_units.unit_info(unit)
-    kind = quantity if quantity != AUTO else REGISTRY_QUANTITIES.get(info.kind)
+    kind = quantity if quantity != AUTO else ("rate" if unit in RATE_UNITS else REGISTRY_QUANTITIES.get(info.kind))
     if kind is None or info.factor is None or (quantity == AUTO and unit not in unit_registry.UNITS):
         return [_plain_number(stored, unit)]
     value = float(stored)

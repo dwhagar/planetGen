@@ -6,6 +6,7 @@ servers are fakes here: no test stops or starts the MySQL or Redis the other tes
 """
 
 import json
+import pathlib
 import threading
 import types
 
@@ -422,3 +423,42 @@ def test_a_browser_that_will_not_start_fails_the_browser_phase_only(monkeypatch)
     assert _run_report_hook(monkeypatch, "No Chromium for Playwright (Executable doesn't exist)", required=True).outcome == "failed"
     assert _run_report_hook(monkeypatch, "Playwright could not start (x)", required=False).outcome == "skipped"       # other phases still skip
     assert _run_report_hook(monkeypatch, "no WebGL in this Chromium", required=True).outcome == "skipped"            # an ordinary skip stays one
+
+
+def _run_mysql_hook(monkeypatch, reason, required):
+    from tests import conftest
+
+    class Report:
+        skipped = True
+        outcome = "skipped"
+        longrepr = ("file.py", 10, f"Skipped: {reason}")
+
+    report = Report()
+    monkeypatch.delenv("PLANETGEN_REQUIRE_BROWSER", raising=False)
+    if required:
+        monkeypatch.setenv("PLANETGEN_REQUIRE_MYSQL", "1")
+    else:
+        monkeypatch.delenv("PLANETGEN_REQUIRE_MYSQL", raising=False)
+    hook = conftest.pytest_runtest_makereport.__wrapped__ if hasattr(conftest.pytest_runtest_makereport, "__wrapped__") else conftest.pytest_runtest_makereport
+    generator = hook(None, None)
+    next(generator)
+    outcome = types.SimpleNamespace(get_result=lambda: report)
+    try:
+        generator.send(outcome)
+    except StopIteration:
+        pass
+    return report
+
+
+def test_a_database_test_skipped_for_no_mysql_login_fails_when_the_run_requires_mysql(monkeypatch):
+    """TEST.723: a refused login or a dead server must not turn a gate's database tests into skips."""
+    reason = "No MySQL test server reachable ((1045, \"Access denied for user 'lane'@'localhost'\")) -- set PLANETGEN_TEST_MYSQL_HOST"
+    report = _run_mysql_hook(monkeypatch, reason, required=True)
+    assert report.outcome == "failed" and "MySQL test server could not be reached" in report.longrepr and "Access denied" in report.longrepr
+    assert _run_mysql_hook(monkeypatch, reason, required=False).outcome == "skipped"                       # a contributor without MySQL still skips
+    assert _run_mysql_hook(monkeypatch, "no Redis server (PLANETGEN_TEST_REDIS_URL is not set)", required=True).outcome == "skipped"   # another skip stays one
+
+
+def test_scripts_test_sets_the_mysql_requirement_for_every_command_but_quick():
+    text = (pathlib.Path(__file__).resolve().parents[2] / "scripts" / "test.py").read_text(encoding="utf-8")
+    assert 'if args.command != "quick":' in text and 'environment["PLANETGEN_REQUIRE_MYSQL"] = "1"' in text

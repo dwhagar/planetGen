@@ -92,6 +92,37 @@ def test_the_scene_has_every_body_with_orbit_elements(saved):
     assert len(comet["position_km"]) == 3
 
 
+def test_every_orbit_ring_lies_in_the_plane_its_body_moves_in(saved):
+    """
+    MAP.425: a moon's stored inclination and node are measured in its planet's equator while its stored state is in the star's frame, so the ring the browser draws
+    from those columns lay in another plane than the moon (Boss, 2026-11-11: the highlighted ring of Agnowee VIb, VIc and VIg missed the highlighted moon). The
+    plane the scene gives is the plane of the state: the body's position and velocity are in it, and its distance is between the periapsis and apoapsis of the ellipse.
+    """
+    import math
+
+    config, ids = saved
+    conn = store.get_connection(config)
+    try:
+        scene = build_scene(conn, ids[0])
+    finally:
+        conn.close()
+    bodies = [(planet, "planet") for planet in scene["planets"]] + [(moon, "moon") for planet in scene["planets"] for moon in planet["moons"]]
+    assert any(kind == "moon" for _, kind in bodies)
+    for body, kind in bodies:
+        orbit = body["orbit"]
+        i, node = math.radians(orbit["inclination_deg"]), math.radians(orbit["ascending_node_deg"])
+        normal = (math.sin(i) * math.sin(node), -math.sin(i) * math.cos(node), math.cos(i))
+        for name in ("position_km", "velocity_kms"):
+            vector = orbit[name]
+            size = math.sqrt(sum(c * c for c in vector))
+            if size > 0:
+                assert abs(sum(a * b for a, b in zip(vector, normal))) / size < 1e-6, f"{body['ref']} ({kind}): {name} is out of the drawn plane"
+        radius = math.sqrt(sum(c * c for c in orbit["position_km"]))
+        if radius > 0 and orbit["eccentricity"] < 1.0:
+            a, e = orbit["distance_km"], orbit["eccentricity"]
+            assert a * (1.0 - e) * (1 - 1e-6) <= radius <= a * (1.0 + e) * (1 + 1e-6), f"{body['ref']}: {radius:.6g} km outside {a * (1 - e):.6g} to {a * (1 + e):.6g}"
+
+
 def test_a_binary_pair_is_two_positioned_stars_with_a_mutual_orbit(saved):
     config, ids = saved
     if len(ids) < 2:
