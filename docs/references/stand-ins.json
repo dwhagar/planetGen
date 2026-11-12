@@ -64071,6 +64071,44 @@
           "tweak": "L1",
           "unread": null,
           "what": "clearance_ledger.CHAIN_MAX_PUSH 2: the chain rule moves a planet at most this multiple of its pairwise distance out; a window that no such distance closes (the gap in mutual Hill radii saturates with the distance, so a window of gaps near 10 and 11 beside a giant reaches the effective spacing only at 9 times the distance, or never) leaves the pairwise rule"
+        },
+        {
+          "burn_down": null,
+          "fields": [
+            [
+              "What it is",
+              "clearance_ledger.CHAIN_MAX_GAP_K 40: the chain rule opens no gap of this many mutual Hill radii or more between semi-major axes (the width at which the belt rule BG1 reads a gap as a belt, measured as it does); a window whose first closing distance would leaves the pairwise rule"
+            ],
+            [
+              "The range it moves in",
+              "30 to 60"
+            ],
+            [
+              "Where it holds",
+              "windows beside a wide gap"
+            ],
+            [
+              "What would show it wrong",
+              "an N-body run of a system the rule leaves at the pairwise floor that scatters within 1 Gyr, or a gap pushed to 40 that holds at 30"
+            ],
+            [
+              "What replaces it",
+              "a chain stability time per window that says how wide a gap the window needs"
+            ],
+            [
+              "Evidence",
+              "design: the effective spacing is the mean less half the spread, so beside one wide gap the next planet was pushed to gaps of 43 to 60 and the share of neighbour pairs at 40 or more went from 7 to 16 percent (G2V belts 1.21 to 1.73 on 80 seeded systems, Lane 22)"
+            ]
+          ],
+          "id": "CH5",
+          "key": "6.277:CH5",
+          "kind": "P",
+          "slug": "6-277-ch5",
+          "tier": "T4",
+          "tier_code": "T4",
+          "tweak": "L1",
+          "unread": null,
+          "what": "clearance_ledger.CHAIN_MAX_GAP_K 40: the chain rule opens no gap of this many mutual Hill radii or more between semi-major axes (the width at which the belt rule BG1 reads a gap as a belt, measured as it does); a window whose first closing distance would leaves the pairwise rule"
         }
       ],
       "slug": "6-277-stand-ins-of-the-chain-spacing-test",
