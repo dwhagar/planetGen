@@ -97,10 +97,27 @@ def cumulative_table(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio
     return edges, masses
 
 
-def semi_major_axis_au(table, u):
-    """The distance below which a share `u` (0 to 1) of the disk's solids lies: the table inverted, log-linear between points."""
+def mass_below(table, a_au):
+    """The solids of the disk inside `a_au` (Earth masses), the table read forward: log-linear between points."""
     edges, masses = table
-    target = u * masses[-1]
+    if a_au <= edges[0]:
+        return 0.0
+    if a_au >= edges[-1]:
+        return masses[-1]
+    lo, hi = 0, len(edges) - 1
+    while hi - lo > 1:
+        mid = (lo + hi) // 2
+        if edges[mid] <= a_au:
+            lo = mid
+        else:
+            hi = mid
+    fraction = (math.log(a_au) - math.log(edges[lo])) / (math.log(edges[hi]) - math.log(edges[lo]))
+    return masses[lo] + fraction * (masses[hi] - masses[lo])
+
+
+def _distance_at(table, target):
+    """The distance below which `target` Earth masses of the disk's solids lie: the table inverted, log-linear between points."""
+    edges, masses = table
     lo, hi = 0, len(masses) - 1
     while hi - lo > 1:
         mid = (lo + hi) // 2
@@ -113,8 +130,28 @@ def semi_major_axis_au(table, u):
     return math.exp(math.log(edges[lo]) + fraction * (math.log(edges[hi]) - math.log(edges[lo])))
 
 
+def semi_major_axis_au(table, u, cleared=()):
+    """
+    The distance below which a share `u` (0 to 1) of the disk's solids lies: the table inverted, log-linear between points.
+
+    `cleared` is a list of `(low, high)` stretches the giants emptied (GEN.1092, `belt_origin.BeltOrigin.cleared_spans`): the share `u` is then of the solids outside them, so no body is
+    placed in one.
+    """
+    edges, masses = table
+    spans = sorted((max(a, edges[0]), min(b, edges[-1])) for a, b in cleared if min(b, edges[-1]) > max(a, edges[0]))
+    if not spans:
+        return _distance_at(table, u * masses[-1])
+    removed = [(mass_below(table, a), mass_below(table, b)) for a, b in spans]
+    target = u * (masses[-1] - sum(high - low for low, high in removed))
+    for low, high in removed:                # the solids outside the stretches, counted from the star: each stretch passed adds its own mass to the table's
+        if target + 0.0 < low:
+            break
+        target += high - low
+    return _distance_at(table, target)
+
+
 @finite_domain()
-def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, stream, populations=None, giant_au=None):
+def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, stream, populations=None, giant_au=None, cleared=()):
     """
     The `Entry` of each of `count` stored bodies (rank 1 first) of a belt between `lower_au` and `upper_au`.
 
@@ -123,6 +160,7 @@ def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_rat
         stream: An object with `random()` (a `draw.Stream` of the belt's own); `DRAWS_PER_BODY * belt_ledger.LEDGER_MAX_BODIES` draws are taken, whatever `count` is.
         populations (tuple or None): `(tag, weight)` of the populations that hold members (`belt_populations.member_weights`); None for a belt the scatter step did not act on, whose bodies have no tag.
         giant_au (float or None): The distance of the giant that swept the disk, for the populations that depend on it (None: all the members are cold).
+        cleared (sequence): The `(low, high)` stretches the giants cleared of everything (GEN.1092); the members of the cold population are not placed in them.
     """
     if not 0.0 < lower_au < upper_au:
         raise BeltRosterError("the belt needs 0 < lower < upper")
@@ -134,7 +172,7 @@ def draw_roster(count, lower_au, upper_au, star_mass_kg, snow_line_au, metal_rat
     i_rms = e_rms / E_OVER_I
     entries = []
     for u_taxon, u_porosity, u_a, u_e, u_i, u_node, u_peri, u_anomaly, u_pop, u_pa, u_pe in numbers[:count]:
-        a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a), 1.0, None, None
+        a_au, e_scale, e_fixed, tag = semi_major_axis_au(table, u_a, cleared), 1.0, None, None
         if populations is not None:
             tag, a_au, e_scale, e_fixed = belt_populations.orbit(belt_populations.pick(populations, u_pop), a_au, lower_au, upper_au, giant_au, u_pa, u_pe)
         inclination = min(math.degrees(rayleigh(u_i, i_rms * (e_scale if e_scale is not None else 1.0))), I_MAX_DEG)
