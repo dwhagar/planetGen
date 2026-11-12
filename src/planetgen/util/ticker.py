@@ -96,7 +96,8 @@ class Pulse:
         while not self._stop.wait(self.every):
             try:
                 self._say(self._text())
-            except Exception:  # noqa: BLE001 -- a progress line is never worth the work it reports on
+            except Exception as exc:  # noqa: BLE001 -- a progress line is never worth the work it reports on
+                log.swallowed("util/ticker", "Pulse._run", exc)
                 continue
 
     def start(self):
