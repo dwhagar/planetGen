@@ -63,7 +63,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.61:KD4 | GEN.492 | `potassium_depletion.MAX_DEPLETION`, not read until `radiogenic` calls the module |
 | data | co2_far_wing.json | GEN.1019 | the carbon dioxide far-wing rules (Perrin and Hartmann chi, widths, reach); `line_opacity` will read them when the wing replaces IR3 |
 | module | planetgen.physics.co2_far_wing | GEN.1019 | the far wing of carbon dioxide; replaces the flat `CO2_FAR_WING_M2_KG` of IR3 once `line_opacity` calls it |
-| module | planetgen.physics.clearance | GEN.1016 | the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands |
 | data | acid_cloud_optics.json | by design | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | function | planetgen.physics.sulfuric_cloud.infrared_cloud | by design | the acid cloud's depth, droplet radius, base temperature and strength as `radiative_convective.solve(cloud=)` takes them; the column solver is run by the fit and the tests, not by generation (GEN.850 built) |
@@ -82,6 +81,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH2 | by design | `atmosphere_retention.VERDICT_EDGES`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
 | row | 6.74:SH3 | by design | `atmosphere_retention.PRESSURE_CAPS_PA`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
 | row | 6.74:SH4 | by design | `atmosphere_retention.JEANS_KEEP`, a constant of the retention library module (see the module's line): the pressure stage reads the logistic of rows d |
+| module | planetgen.physics.atmosphere_retention | GEN.1523 | the shoreline ratio, verdict, pressure cap and Jeans gate of the design note; the pressure stage reads the logistic of rows d until the envelope-survival rule (GEN.963) reads the module and the pressure stage takes its cap from it |
+| row | 6.74:SH1 | GEN.1523 | `atmosphere_retention.SHORELINE_K`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH2 | GEN.1523 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH3 | GEN.1523 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
+| row | 6.74:SH4 | GEN.1523 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
