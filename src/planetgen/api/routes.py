@@ -37,8 +37,9 @@ from flask import Blueprint, current_app, g, jsonify, request
 from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.api import gravity as gravity_api, nav_system, system_bodies, system_sky
-from planetgen.describe import belt_info, belt_member_info, field_member_info
+from planetgen.describe import belt_info, belt_member_info, field_member_info, irregular_moon_info
 from planetgen.describe.sheet import sheet as object_sheet
+from planetgen.util import log
 from planetgen.web.lib import sensor, skypack, tilecache
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
@@ -446,6 +447,7 @@ def health():
         # Already logged by get_db.
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
     except Exception as exc:
+        log.swallowed("api/routes", "health", exc)
         _log_database_error(exc)
         return jsonify({"status": "error", "detail": DATABASE_UNAVAILABLE}), 503
 
@@ -460,7 +462,8 @@ def health():
     try:
         schema_row = get_db().execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
         schema_version = schema_row["version"] if schema_row else None
-    except Exception:
+    except Exception as swallowed_exc:
+        log.swallowed("api/routes", "health", swallowed_exc)
         schema_version = None
 
     body = {
@@ -2083,6 +2086,40 @@ def object_belt_member_route(ref, rank):
             raise ValueError(f"{ref} is not an asteroid belt")
         return jsonify(belt_member_info.member_info(get_db(), object_id, object_uid.parse_rank(rank)))
     except ValueError as exc:  # includes ids.IdError and belt_member_info.BeltMemberNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/irregular-moons")
+def object_irregular_moons_route(ref):
+    """
+    `GET /api/objects/<ref>/irregular-moons` (GEN.1086) -- the irregular moons a planet keeps (`describe/irregular_moon_info.py`): `planet` (its `designation`, `name`, `star`, `mass` and
+    `hill_radius`), `moons` (heaviest first, each with its `rank` (the page address), `designation` (`<planet ID>.<rank hex>`, or the belt's designation for a body caught from an inner belt),
+    `window` (`gas`, `encounter` or `exchange`), `retrograde`, mass, diameter, density, `taxon`, `analogue`, composition shares, the `distance` about the planet, `eccentricity`, `inclination` and
+    `hill_fraction`) and `not_stored` (`remainder`, `above_floor`, `lost`, `temporary`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "planet":
+            raise ValueError(f"{ref} is not a planet")
+        return jsonify(irregular_moon_info.list_info(get_db(), object_id))
+    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
+        return jsonify({"error": str(exc)}), 404
+
+
+@bp.route("/objects/<ref>/irregular-moons/<rank>")
+def object_irregular_moon_route(ref, rank):
+    """
+    `GET /api/objects/<ref>/irregular-moons/<rank>` (GEN.1086) -- one irregular moon of a planet (`describe/irregular_moon_info.py`), `rank` written as a designation writes it (hex, at least four
+    digits; 1 is the heaviest): `designation`, `rank`, `moon` (the entry the list has), `orbit` (the six elements about the planet, the `closest_distance`, `farthest_distance`, `period`,
+    `retrograde` and the `hill_fraction`), `planet` and the `previous` and `next` neighbours (`{rank, designation}`). Every number is `{value, unit, text}`. 404 for a reference that is not a planet, a rank that is not
+    written canonically, or a body the planet does not keep.
+    """
+    try:
+        kind, object_id = _body_of(ref)
+        if kind != "planet":
+            raise ValueError(f"{ref} is not a planet")
+        return jsonify(irregular_moon_info.moon_info(get_db(), object_id, object_uid.parse_rank(rank)))
+    except ValueError as exc:  # includes ids.IdError and irregular_moon_info.IrregularMoonNotFound
         return jsonify({"error": str(exc)}), 404
 
 

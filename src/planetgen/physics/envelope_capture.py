@@ -31,10 +31,17 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape, orbit_elements, super_puff
+from planetgen.physics import bulk_structure, constants, envelope_escape, helium_fractionation, orbit_elements, super_puff
 from planetgen.physics import radiation_field
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
+
+HELIUM_LOSS_GATE = 0.5
+"""float: The share of its starting envelope a planet must have lost before the helium history is worked out: [R2839] find a planet must lose at least half of its envelope to reach
+a helium mass fraction of 0.4 (registry GEN.725 row HF3 of section 6.77)."""
+
+HELIUM_HISTORY_POINTS = 40
+"""int: The most steps of the loss history `helium_fractionation` is given (a numerical stand-in of GEN.1527: the loss takes up to thousands of steps)."""
 
 MIN_MASS_EARTH = 1.0
 """float: The lightest planet that captures an envelope (the e1 and e2 rows start at 1 Earth mass; a lighter one cannot hold a nebular gas)."""
@@ -125,6 +132,53 @@ def tidal_q_prime(body):
         return math.exp(math.log(low) + draw.random() * (math.log(high) - math.log(low)))
 
 
+def _loss(body, start, tides, trace=None):
+    """
+    The loss of a starting envelope of `start` of the mass of `body` (a rocky planet with its star, mass, orbit and the star's final age):
+    `(mass in Earth masses, insolation, flux (the insolation floored at the fit's), envelope left in Earth masses)`. With `tides` the radius the loss sees is the one
+    the obliquity tide gave (`kept_with_tide`). `trace`, a list, is filled with the history of the envelope (`envelope_escape.envelope_left_earth`).
+    """
+    star = body.star
+    mass_earth = _kg_to_mearth(body.mass)
+    luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
+    distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
+    insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
+    flux_floor = bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0]       # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
+    flux = max(insolation, flux_floor)
+    step_ratio = None
+    if tides and getattr(body, "axial_tilt_deg", None) is not None:
+        def step_ratio(mass, fraction, radius):
+            return tidal_ratio(body, mass, fraction, flux, radius)
+    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, distance_au=distance_au if radiation_field.companions_of(star) else None,
+                                               emitters=radiation_field.xuv_emitters(star, distance_au), radius_ratio=step_ratio, trace=trace)      # GEN.1442: the other stars' XUV too
+    return mass_earth, insolation, flux, left
+
+
+def helium_share(body, start, tides=False):
+    """
+    The helium share of the mass of the hydrogen-helium part of the envelope `body` still has after the loss of a starting envelope of `start` of its mass, when the loss was large enough to
+    have changed it (GEN.1527, `helium_fractionation`, W16): hydrogen drags helium out only while the escape flux is large, so a planet that lost
+    `HELIUM_LOSS_GATE` of its envelope or more is left richer in helium than the star's gas. `None` for a planet that lost less (its envelope is the star's gas, no history is
+    worked out), that kept nothing, or that has no star's gas to start from. The start is the star's own share (`bulk_draw.host_ratios`); the history is the loss of
+    `kept_with_tide` run once more with its steps kept.
+    """
+    if start <= 0.0 or getattr(body, "star", None) is None:
+        return None
+    from planetgen.physics import bulk_draw      # imported here: bulk_draw is loaded by the planet before this module is used
+    mass_earth, insolation, flux, left = _loss(body, start, tides)
+    start_earth = min(start, envelope_escape.MAX_ENVELOPE) * mass_earth / (1.0 - min(start, envelope_escape.MAX_ENVELOPE))
+    if left <= 0.0 or left > (1.0 - HELIUM_LOSS_GATE) * start_earth:
+        return None
+    trace = []
+    _loss(body, start, tides, trace=trace)
+    stride = max(1, len(trace) // HELIUM_HISTORY_POINTS)
+    history = trace[::stride]
+    if history[-1] != trace[-1]:
+        history.append(trace[-1])
+    _, y = helium_fractionation.helium_fraction_from_history(mass_earth, history, flux, bulk_draw.host_ratios(body.star).y_envelope)
+    return y
+
+
 def kept(body, start, tides=False):
     """
     The envelope `body` (a rocky planet with its star, mass, orbit and the star's final age) still has after the loss of a starting
@@ -149,18 +203,7 @@ def kept_with_tide(body, start, tides=False):
     if start <= 0.0:
         return None
     star = body.star
-    mass_earth = _kg_to_mearth(body.mass)
-    luminosity = star.luminosity / constants.SOLAR_LUMINOSITY
-    distance_au = orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", 0.0))
-    insolation = luminosity / distance_au ** 2 + radiation_field.companion_insolation_sol(star, distance_au)     # GEN.1441: the other stars' light too
-    flux_floor = bulk_structure.CLOSED_FORM_RANGES["envelope"]["flux_earth"][0]       # the law is fitted from 0.1 Earth's light up; a cold or starless planet is read there
-    flux = max(insolation, flux_floor)
-    step_ratio = None
-    if tides and getattr(body, "axial_tilt_deg", None) is not None:
-        def step_ratio(mass, fraction, radius):
-            return tidal_ratio(body, mass, fraction, flux, radius)
-    left = envelope_escape.envelope_left_earth(mass_earth, start, insolation, _kg_to_msun(star.mass), luminosity, star.age, distance_au=distance_au if radiation_field.companions_of(star) else None,
-                                               emitters=radiation_field.xuv_emitters(star, distance_au), radius_ratio=step_ratio)      # GEN.1442: the other stars' XUV too
+    mass_earth, insolation, flux, left = _loss(body, start, tides)
     if left <= 0.0:
         return None
     fraction = left / (mass_earth + left)

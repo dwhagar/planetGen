@@ -372,8 +372,8 @@ def warm_unit(job):
             warm_star_tables()
         if spec.warm is not None:
             commands.warm_function(kind)(args)
-    except Exception:
-        pass
+    except Exception as exc:
+        log.swallowed("queue/units", "warm_unit", exc)
 
 
 def warm_shape(unit_args):
@@ -402,8 +402,13 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
                   f"{exc_value}); the run goes on.")
         return
     from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
+    stage_name = wrapper.stage_name(connection, run_id, stage)
+    # OPS.162: the failure reaches error.log with the run, stage, unit and kind beside the traceback (RQ's own copy has none of them)
+    log.record_error("queue", f"Unit {unit} of stage {stage_name} failed: {exc_type.__name__}: {exc_value}",
+                     exc_info=(exc_type, exc_value, _traceback), run_id=run_id, stage=stage, stage_name=stage_name, unit=unit,
+                     kind=job.args[3] if len(job.args) > 3 else "?")
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
+                         error=f"unit {unit} of stage {stage_name} failed: "
                                f"{exc_type.__name__}: {exc_value}", killed=exc_type.__name__ in KILLED_EXCEPTIONS)
     requires.job_failed(job, connection, exc_type, exc_value)      # PERF.247: a job held for this unit does not wait for it for ever
 
@@ -525,8 +530,8 @@ def follow_stage(conn, run_id, stage, units, on_result, on_progress=None, ensure
         if watch is not None:
             try:
                 watch.clear()
-            except Exception:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
-                pass
+            except Exception as exc:   # noqa: BLE001 -- the verdicts are for the page; the end of the stage does not wait on them
+                log.swallowed("queue/units", "follow_stage", exc)
 
 
 def _follow(conn, run_id, stage, units, on_result, on_progress, ensure, clock, sleep, on_debug, touch, watch):

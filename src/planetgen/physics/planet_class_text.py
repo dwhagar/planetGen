@@ -4,13 +4,13 @@
 The one-line description of each planet class (UX.252, GEN.1212)
 ================================================================
 
-"a small, round, airless world", "an ocean world, its surface mostly liquid water": the phrase the planet page and the system map
+"a small, round, airless world", "an ocean world with air you could breathe, its surface mostly liquid water": the phrase the planet page and the system map
 put after "It is". The words are the `phrase` of each row of `physics/data/planet_classes.json` (GEN.1432: one row holds a class's phrase and its page sentence), read when a page is built, so the text is the page's own and
 a body keeps no copy of it (GEN.1212 removes the stored `description` column and the text in `tuning.PLANET_CLASSES`).
 
 Use:
 
-    description("O")                # "an ocean world, its surface mostly liquid water"
+    description("O")                # "an ocean world with air you could breathe, its surface mostly liquid water"
     description(None)               # the Asteroid type, which has no letter
     description("O", moon=True)     # the same with "planet" written as "moon"; a class text is written generically
 """

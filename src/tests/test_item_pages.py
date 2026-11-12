@@ -111,6 +111,7 @@ def client(monkeypatch):
     monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: _sheet(ref))
     monkeypatch.setattr(apiclient, "get_life_air", lambda db, kind, body_id: {"id": body_id, "life_class_id": None, "life_air": None})
     monkeypatch.setattr(apiclient, "get_object_children", lambda db, ref, limit=None, after=None: _children(ref))
+    monkeypatch.setattr(apiclient, "get_irregular_moons", lambda db, ref: {"planet": {}, "moons": [], "not_stored": {}})
     app = create_app(_FakeConfig)
     app.testing = True
     return app.test_client()

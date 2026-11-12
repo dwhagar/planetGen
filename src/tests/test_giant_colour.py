@@ -8,11 +8,20 @@ import math
 
 import pytest
 
+from planetgen.datasets import fetch
 from planetgen.physics import air_column, atmosphere_colour as ac, giant_colour as gc
+from tests import datasets_support as support
 
 SUN_K = 5772.0
 H2_HE = {"H2": 0.86, "He": 0.14}
 ICE_GIANT = {"H2": 0.83, "He": 0.15, "CH4": 0.04}
+
+
+@pytest.fixture(autouse=True)
+def methane(tmp_path, monkeypatch):
+    """The methane table of Karkoschka (GEN.949) on a fixture, in a cache folder of its own."""
+    support.reset_caches(tmp_path / "cache", monkeypatch)
+    return support.install_methane(monkeypatch)
 
 
 def _channels(hex_colour):
@@ -32,10 +41,11 @@ def test_a_conservative_cloud_deck_reflects_about_six_tenths_and_an_absorbing_on
     assert (absorbing < white).all()
 
 
-def test_methane_reddens_less_light_through_and_marks_the_colour_partial():
+def test_methane_reddens_less_light_through_and_its_colour_is_full_with_the_table_and_partial_without_it(methane, monkeypatch):
     clear = gc.giant_atmosphere_colour(H2_HE, 8.7, temperature_k=SUN_K, cloud_deck=ac.Aerosol(10.0, 1.0, 0.85))
     methane = gc.giant_atmosphere_colour(ICE_GIANT, 8.7, temperature_k=SUN_K, cloud_deck=ac.Aerosol(10.0, 1.0, 0.85))
-    assert clear.colour_quality == "full" and methane.colour_quality == "partial"
+    assert clear.colour_quality == "full" and methane.colour_quality == "full"          # GEN.949: the methane bands are read
+    assert gc.giant_atmosphere_colour({"H2": 0.8, "He": 0.15, "NH3": 0.05}, 8.7, temperature_k=SUN_K).colour_quality == "partial"      # ammonia is still the bins
     assert _channels(methane.atmosphere.hex)[0] < _channels(clear.atmosphere.hex)[0]       # the red band is taken out
     assert methane.has_cloud_deck
 
@@ -71,3 +81,13 @@ def test_the_reference_level_is_never_deeper_than_a_bar():
     assert gc.reference_pressure_pa(None) == 1e5
     assert gc.reference_pressure_pa(3e4) == 3e4
     assert gc.reference_pressure_pa(8e5) == 1e5
+
+
+def test_without_the_methane_table_a_run_that_disregards_missing_data_marks_methane_partial(tmp_path, monkeypatch):
+    support.reset_caches(tmp_path / "bare", monkeypatch)             # no download in this cache
+    assert gc.partial_gases() == ("CH4", "NH3", "H2O")
+    with fetch.disregard_missing_data():
+        result = gc.giant_atmosphere_colour(ICE_GIANT, 8.7, temperature_k=SUN_K)
+        assert result.colour_quality == "partial" and len(result.atmosphere.hex) == 7
+    with pytest.raises(fetch.DataMissing):
+        gc.giant_atmosphere_colour(ICE_GIANT, 8.7, temperature_k=SUN_K)

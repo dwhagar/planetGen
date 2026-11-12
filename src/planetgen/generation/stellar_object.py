@@ -158,6 +158,10 @@ class StellarObject(LazySaladName, MassObject):
     def _decode(self, data):
         self.habitable_zone = tuple(data["habitable_zone"])
         self.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
+        # GEN.786: the state word and the age since a white dwarf stopped burning are stored columns (`stars.state`, `stars.decay_age_yr`), not serialized fields; a star read
+        # back keeps them, so a text that names its kind ("a young star", `physics.sky_view.kind_of`) says what the generated star said.
+        self.state = data.get("state")
+        self.decay_age_yr = data.get("decay_age_yr")
 
 
     def calculate_system_perimeter(self, galactic_center_dist_ly=None):

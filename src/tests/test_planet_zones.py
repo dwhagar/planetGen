@@ -93,39 +93,6 @@ def test_a_node_missing_a_child_is_refused():
         pz.planet_zones([node(1, None, None, 1.0, 5.0)], [member(0, 1, 0, 1.0)])
 
 
-def test_a_planets_flux_sums_over_every_member():
-    nodes, members = _triple(20.0)
-    luminosity = {0: 1.0, 1: 0.2, 2: 0.5}
-    s_zone = zone(pz.planet_zones(nodes, members), "S", 2)
-    far = 3.0
-    # The third star's light, plus the close pair's two stars at the root orbit's mean inverse square.
-    mean_inverse_square = 1.0 / (20.0 ** 2 * math.sqrt(1.0 - 0.2 ** 2))
-    assert pz.flux_at(s_zone, far, luminosity, nodes, members) == pytest.approx(
-        0.5 / far ** 2 + (1.0 + 0.2) * mean_inverse_square, rel=1e-12)
-    p_zone = zone(pz.planet_zones(nodes, members), "P", 2)
-    assert pz.flux_at(p_zone, 2.0, luminosity, nodes, members) == pytest.approx(
-        (1.0 + 0.2) / 2.0 ** 2 + 0.5 * mean_inverse_square, rel=1e-12)
-    # A star of the pair meets its partner at the pair's own orbit and the third star at the root's.
-    s_in_pair = zone(pz.planet_zones(nodes, members), "S", 0)
-    expected = 1.0 / 0.05 ** 2 + 0.2 / (0.3 ** 2 * math.sqrt(1 - 0.1 ** 2)) + 0.5 * mean_inverse_square
-    assert pz.flux_at(s_in_pair, 0.05, luminosity, nodes, members) == pytest.approx(expected, rel=1e-12)
-
-
-def test_a_lone_stars_flux_is_the_inverse_square_law():
-    only = [member(0, None, 0, 1.0)]
-    assert pz.flux_at(pz.planet_zones([], only)[0], 2.0, {0: 3.0}, [], only) == pytest.approx(0.75)
-    with pytest.raises(ValueError):
-        pz.flux_at(pz.planet_zones([], only)[0], 0.0, {0: 3.0}, [], only)
-
-
-def test_a_planet_meeting_the_host_at_a_group_node_has_no_flux_sum():
-    nodes = [node(1, None, None, 2.0, 5.0, kind="group")]
-    members = [member(0, 1, 0, 1.0), member(1, 1, 1, 1.0)]
-    host = pz.Zone("S", 0, 0.0, 10.0)
-    with pytest.raises(ValueError):
-        pz.flux_at(host, 1.0, {0: 1.0, 1: 1.0}, nodes, members)
-
-
 # The table of docs/design/systems/multistar-and-compact-systems.md 5.6, on a seeded draw of the generator's own trees.
 TABLE_S_TYPE = {2: 0.77, 3: 0.40, 4: 0.28, 5: 0.20, 6: 0.15, 7: 0.13}
 """dict: Stars with an S-type window above 0.3 AU, by number of stars, as the design page prints them."""

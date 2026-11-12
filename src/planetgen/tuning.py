@@ -146,6 +146,9 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # About 1500 K ([R1180, R2858], secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
+# The age, in Gy, at which the luminosity an evolved star's disk saw is read from its track (GEN.1611, `formation_snow_line`): the disk is gone in 3 to 10 Myr
+# (the longest of them, so a massive star is read on its main sequence and a Sun-like one just onto it). A planetGen stand-in (tier T6, tweak L0).
+FORMATION_DISK_AGE_GY = 0.01
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law ([R3621], read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
 # change of orbits is the orbital update (GEN.105). A planetGen stand-in (tier T6, tweak L0).
@@ -322,6 +325,16 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # `Planet.min_orbit_distance`/`physics.planets.generate_moons`).
 MUTUAL_HILL_RADII_SEPARATION = 10
 
+# Chains of planets need more than the pairwise floor (GEN.1521). Lane 04's N-body spot-check (GEN.1468, reports/gen1468-nbody-screens-2026-11-09.md)
+# found the pairwise screen holds for pairs but three chains of four or more small planets, every pair at 10.0 to 11.4 mutual Hill radii, scattered within
+# 2e4 years. Pu and Wu 2015 ([R5231]; ApJ 807, 44) integrate seven-planet systems and find the minimum spacing for 1e9 years of stability is about 10 mutual Hill
+# radii on circular orbits and about 12 on orbits of eccentricity about 0.02, and that a system with gaps of mean K and spread sigma survives like one of
+# equal gaps K_eff = K - 0.5 sigma (their Eq. 10). A planet that would be the fourth in a run of `CHAIN_WINDOW` planets is held to
+# `CHAIN_K_EFF` for K_eff over the gaps of its window, measured as the pairwise floor is (the inner body's apoapsis to the outer body's periapsis).
+# A value of 0 turns the chain test off. [Stand-ins CH1 to CH3, GEN.725 section 6.277.]
+CHAIN_WINDOW = 4
+CHAIN_K_EFF = 12.0
+
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
 # to carry more solid mass around more massive stars, and steeply so --
 # not a flat "1 + log10(solar_masses)" scaling. Disk dust-mass-vs-
@@ -351,8 +364,8 @@ DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 # luminosity (`formation.draw_snow_line_au`, GEN.458): 0.2 dex in log10, the
 # 0.4 dex scatter of accretion rates carried through the steady-disk snow-line
 # law ([R3193, R3196], [R3193]). The draw is cut at
-# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way, inside the
-# factor 2 to 3 the observed lines move.
+# `SNOW_LINE_SCATTER_MAX_SIGMA` sigma, a factor of 4 either way (wider than the
+# factor 2 to 3 the observed lines are said to move, so it clips only the tail).
 SNOW_LINE_SCATTER_DEX = 0.2
 SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 
@@ -1314,6 +1327,19 @@ STELLAR_SOLAR_LOG_EPS = {
     "Li": 3.25, "P": 5.41, "Ti": 4.97, "V": 3.90, "Cr": 5.62, "Mn": 5.42, "Co": 4.94, "Cu": 4.18, "Zn": 4.56}
 """dict: Element symbol to A21 log eps (H = 12); the 14 elements that make 99.7 percent of Z, the nine of GEN.1360 (Li, P, Ti, V, Cr, Mn, Co,
 Cu, Zn; Li is the CI-chondrite value, the others the photosphere), and Eu, Th and U."""
+STELLAR_HEAVY_LOG_EPS = {
+    "Sr": 2.83, "Y": 2.21, "Zr": 2.59, "Ba": 2.27, "La": 1.11, "Ce": 1.58, "Pr": 0.75, "Nd": 1.42, "Sm": 0.95, "Gd": 1.08, "Tb": 0.31, "Dy": 1.10,
+    "Ho": 0.48, "Er": 0.93, "Tm": 0.11, "Yb": 0.85, "Lu": 0.10, "Os": 1.35, "Ir": 1.32, "Pt": 1.61, "Au": 0.91, "Pb": 1.95}
+"""dict: GEN.1371: the heavy elements of the s- and r-process split, A21 Table 2 log eps (H = 12; Ir and Pt are the CI-chondrite value the table adopts, the rest the photosphere); Eu, Th and U are above.
+Tier T1 (read), tweak L0."""
+STELLAR_HEAVY_R_FRACTION = {
+    "Sr": 0.11, "Y": 0.08, "Zr": 0.18, "Ba": 0.15, "La": 0.25, "Ce": 0.18, "Pr": 0.49, "Nd": 0.42, "Sm": 0.67, "Gd": 0.85, "Tb": 0.93, "Dy": 0.88,
+    "Ho": 0.92, "Er": 0.83, "Tm": 0.83, "Yb": 0.68, "Lu": 0.79, "Os": 0.91, "Ir": 0.99, "Pt": 0.95, "Au": 0.94, "Pb": 0.19}
+"""dict: GEN.1371: the share of each element's solar abundance made by the r-process, as recalled from [R5228] (Table 10) and the papers that quote it (the Eu 0.97 and Ba 0.15 of the research
+note agree); the rest is the s-process. Tier T3 (Marginal Unverified, second hand), tweak L0; each value is flagged for upgrade if the table is supplied."""
+STELLAR_S_PROCESS_XFE = (0.030, -0.076, 0.149)
+"""tuple: `(a, b, sigma)`: [s/Fe] = a + b [Fe/H] with scatter sigma (dex), the s-process proxy, the [R0535] fit of [Y/Fe] against [Fe/H] for all 1,615 dwarfs (`research/real-material-data-1`
+section 1.2); the one trend in hand for the s-process, taken for Ba and every other s-process element. Tier T5, tweak L1."""
 STELLAR_PROTO_NO_OFFSET = ("Li",)
 """tuple: The elements whose log eps is already proto-solar, not photospheric, so the diffusion offset (`STELLAR_PROTO_METAL_OFFSET_DEX`) is not
 added: Li, taken from the CI chondrites (meteorites hold the unmixed, undepleted material)."""
@@ -1440,6 +1466,41 @@ STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
 STELLAR_WD_ONE_CORE_MIN_SOL = 1.05
 """float: A white dwarf above this mass has an oxygen-neon core [R0085]."""
 STELLAR_WD_DA_SHARE = 0.80
+# The core of a carbon-oxygen white dwarf and what a polluted one accreted (GEN.1370, `physics.white_dwarf_core`).
+WD_CENTRAL_OXYGEN_BY_MASS_SOL = ((0.5249, 0.788), (0.5701, 0.686), (0.5932, 0.704), (0.6096, 0.723), (0.6323, 0.755), (0.6598, 0.730),
+                                 (0.7051, 0.661), (0.7670, 0.655), (0.8373, 0.641), (0.8779, 0.620))
+"""tuple: `(white dwarf mass in solar masses, central oxygen mass fraction)` of the ten carbon-oxygen models of [R5238: Table 1], after the
+Rayleigh-Taylor mixing (the column `X_O(RT)`), progenitors of 1 to 5 solar masses at Z = 0.01. Linear in the mass between the points and
+held outside them. The values rise to a peak near 0.63 solar masses (a 2.25 solar mass progenitor) and fall to 0.62 at 0.88. [Stand-in WDC1.]"""
+WD_CENTRAL_OXYGEN_RANGE = (0.61, 0.84)
+"""tuple: The lowest and highest central oxygen mass fraction of the two helium-atmosphere white dwarf pulsators fitted by asteroseismology,
+CBS 114 and GD 358 [R5239]; the central fraction is held to it. [Stand-in WDC2.]"""
+WD_NEON22_PER_CNO = 1.0
+"""float: The 22Ne atoms made per carbon, nitrogen and oxygen atom of the progenitor: every one of the three ends as 22Ne (14N, then 18O, then 22Ne in
+the helium burning that follows the CNO cycle). The progenitor's CNO is its birth composition's. [Stand-in WDC3.]"""
+POLLUTANT_CORE_RICH_METAL_FRACTION = 0.5
+"""float: A body accreted by a white dwarf is a fragment of a core when at least this share of its grains is metal: the 8 of 202 polluted systems of
+[R1832] that need an iron, nickel and chromium rich fragment are the extreme end of a distribution of mostly chondritic bodies. [Stand-in WDC4.]"""
+POLLUTANT_CRUST_RICH_FACTOR = 2.0
+"""float: A rock with no such metal is a fragment of a crust when its (Ca + Al) over Mg is at least this many times the proto-solar one: the single
+crust-rich system of [R1832] has calcium and aluminium well above chondritic. [Stand-in WDC5.]"""
+POLLUTANT_VOLATILE_RICH_FRACTION = 0.2
+"""float: A body is volatile-rich (a comet-like or water-rich fragment) when its water and ice make at least this share of its grains. [Stand-in WDC6.]"""
+POLLUTANT_ELEMENT_SHARES = {
+    "kamacite": {"Fe": 0.94, "Ni": 0.06}, "taenite": {"Fe": 0.72, "Ni": 0.28},
+    "complex_organics": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "insoluble_organic_matter": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03},
+    "kerogen": {"C": 0.70, "O": 0.20, "H": 0.07, "N": 0.03}, "tholin": {"C": 0.55, "N": 0.25, "H": 0.10, "O": 0.10},
+}
+"""dict: The element mass fractions of the materials-table rows that have no formula and are not minerals. The alloys take the middle of the
+nickel ranges the table states (kamacite 5 to 7 percent, taenite 25 to 31 percent by mass); the organic solids are mostly carbon with the
+oxygen, hydrogen and nitrogen of a kerogen-like solid, and tholin is nitrogen-rich. [Stand-in WDC7.]"""
+POLLUTANT_FORMULAS = {
+    "cronstedtite": "Fe4SiO9H4", "saponite": "CaMg24Si28Al4O80(OH)16", "tochilinite": "Fe27S30Mg25O50H50", "hibonite": "CaAl12O19",
+    "melilite": "Ca2Al2SiO7", "schreibersite": "Fe2NiP",
+}
+"""dict: An end-member formula for the belt materials whose table row names a solid solution (the table keeps the member lists, not one formula):
+cronstedtite with its iron(III), saponite without its hydration water (eight formula units, to whole subscripts), tochilinite from its 6 Fe0.9 S and 5 Mg(OH)2 (five units), hibonite as the calcium end
+member, melilite as gehlenite and schreibersite as two iron to one nickel (the table states (Fe,Ni)3P). [Stand-in WDC8.]"""
 # The layers of a white dwarf whose core the downloaded sequences do not hold (GEN.743, `physics.white_dwarf_layers`).
 WD_ONE_CORE_MASS_FRACTIONS = {"oxygen": 0.55, "neon": 0.30, "trace": 0.15}
 """dict: The mass fractions of an oxygen-neon core: 16O about 0.55 and 20Ne about 0.30 [R0627] (Sect. 2.2, read); the

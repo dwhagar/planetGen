@@ -206,7 +206,10 @@ def gas_layers(column, centers, edges):
     for formula, pressure in column.partials_pa.items():
         if formula == "O3" or pressure / column.pressure_pa < 1e-12:
             continue
-        tau_absorption = tau_absorption + column.number_column_cm2(formula) * uv_cross_sections.cross_section_cm2(formula, edges)
+        if formula == "CH4":
+            tau_absorption = tau_absorption + uv_cross_sections.methane_optical_depth(column.number_column_cm2(formula), edges)   # GEN.949: the bands of Karkoschka
+        else:
+            tau_absorption = tau_absorption + column.number_column_cm2(formula) * uv_cross_sections.cross_section_cm2(formula, edges)
     return tau_rayleigh, tau_absorption
 
 

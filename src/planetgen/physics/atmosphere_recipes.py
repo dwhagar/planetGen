@@ -67,6 +67,7 @@ Use:
 """
 
 import ast
+import functools
 import json
 import math
 import os
@@ -158,7 +159,7 @@ INPUTS = {
 }
 """dict: Every stored quantity a gate or a weight may read, with its meaning and unit. `body_class` is the class of the subject."""
 
-FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "comet_species_median", "comet_species_sigma", "w", "p", "pdist")
+FUNCTIONS = ("phi", "window", "exp", "log", "log10", "sqrt", "min", "max", "abs", "clamp", "loglog", "envelope_lost_fraction", "saturation_time_myr", "magma_ocean_diw", "magma_ocean_diw_sigma", "later_mantle_diw", "ch4_co_edge_k", "water_loss_edge_k", "comet_species_median", "comet_species_sigma", "w", "p", "pdist")
 SHAPES = ("log", "uniform")
 DIST_KINDS = ("normal", "uniform", "loguniform", "mixture")
 
@@ -201,11 +202,33 @@ def loglog(x, *anchors):
     raise ValueError("no anchor interval")
 
 
+REGIME_EDGE_METALLICITY = 1.0
+"""float: The metals, times the reference, of the gas the hot-giant regime edges are computed for (rows h1 to h3; the anchors they replace were computed at solar metals). [Stand-in RD7, tier T5, tweak L0.]"""
+
+REGIME_EDGE_C_TO_O = 0.55
+"""float: The carbon to oxygen ratio of the gas the hot-giant regime edges are computed for (the anchors they replace were computed at C/O 0.55). [Stand-in RD7, tier T5, tweak L0.]"""
+
+REGIME_EDGE_WATER_SHARE = 0.9
+"""float: The share of the water left at the temperature that edges the thermally dissociated regime (a tenth destroyed; row h3). [Stand-in RD7, tier T5, tweak L0.]"""
+
+
+@functools.lru_cache(maxsize=256)
+def _regime_edge(kind, pressure_bar):
+    """The temperature, K, of one hot-giant regime edge at `pressure_bar` (GEN.994): `equilibrium_edges` on the reference budget, computed once for each pressure."""
+    from planetgen.physics import equilibrium_edges      # a late import: that module reads the giant mixture, which reads these recipes
+    budget = equilibrium_edges.reference_budget(REGIME_EDGE_METALLICITY, REGIME_EDGE_C_TO_O)
+    if kind == "ch4_co":
+        return equilibrium_edges.ch4_co_temperature(pressure_bar, budget)
+    return equilibrium_edges.h2o_survival_temperature(pressure_bar, budget, share=REGIME_EDGE_WATER_SHARE)
+
+
 _PLAIN = {"phi": phi, "window": window, "exp": math.exp, "log": math.log, "log10": math.log10, "sqrt": math.sqrt,
           "min": min, "max": max, "abs": abs, "clamp": clamp, "loglog": loglog, "envelope_lost_fraction": envelope_escape.lost_fraction,
           "saturation_time_myr": saturation_time.saturation_time_myr,
           "magma_ocean_diw": magma_ocean_redox.surface_diw, "magma_ocean_diw_sigma": magma_ocean_redox.diw_sigma,
           "later_mantle_diw": magma_ocean_redox.later_mantle_diw,
+          "ch4_co_edge_k": lambda pressure_bar: _regime_edge("ch4_co", pressure_bar),
+          "water_loss_edge_k": lambda pressure_bar: _regime_edge("water", pressure_bar),
           "comet_species_median": comet_species.median_over_h2o, "comet_species_sigma": comet_species.sigma_dex}
 
 
