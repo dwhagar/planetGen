@@ -13000,6 +13000,7 @@ clears each one.
   Fold (TODO sweep, 2026-11-12): GEN.1538 (design check: settle the orbit before the air) is retired into this item.
   Boss approved, 9:19 PM EST on 2026-11-11 (unified-chain cross-check): write the reorder in the shape of GEN.556's recursion (stages that become the steps of populate(host): host, orbiters by slot, then air, water, class and life per body), so GEN.556 in 8.2 replaces the routine without redoing the order.
   Stream key (TODO, 2026-11-12, agreed by Lane 05 and Lane 12): GEN.1547 keeps the birth-numbers key in draw.body_stream_of; this item swaps it to {kind}:{host_seed}:orbit:{slot} (host_seed = host's draw seed plus star ordinal, a moon nests its planet's key; slot = trim-stable index in the spacing sequence), so the key changes output only once. DB.75's stored body number derives from the same path.
+  Lane 21 (as the lane reported 1:05 AM EST on 2026-11-12, from GEN.582 light, PR 6169): 115 of 352 stored Planet fields (life, spectra and rings among them) are not recomputed by remake_after_orbit_change, so the forward build must remake them; generation/body_state_fields.py lists which are birth and which present.
 
 - [ ] **GEN.1549 Census re-tag after the forward build (items 1 to 3): re-measure the class, life, star and age census shares and re-baseline the ranges the new order moved**
   Boss, 6:13 PM EST on 2026-11-11. After GEN.1546 to GEN.1548 land the star ages, the class mix and the life shares move everywhere. Re-run the class, life, star, phenomena and systems censuses, decide each flag (real shift, re-baseline, or fault to file), and report the new age distribution of M dwarfs (the pile at 13.8 Gy should be gone). Same work as GEN.1537.
@@ -13577,6 +13578,22 @@ clears each one.
 - [ ] **GEN.1637 (bug) The small-body density taper (compaction.py, a stand-in) makes 300 to 450 km bodies 20 to 100 percent denser than measured Kuiper belt bodies**
   Data audit batch 2, D17 (report reports/data-audit-2026-11-11.md, section "Batch 2"). Do: start the taper near 1e20 kg (or fit it to the measured bodies) and register the change. Lock item.
   Version 8.1. Owner (TODO, 2026-11-12): Lane 22. Prerequisites: none. Related: GEN.725.
+  Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
+  Filed by the TODO thread.
+
+- [ ] **GEN.1638 (bug) Class H is unreachable by construction: groundwater() is none for every liquid-surface world, so treat a liquid-surface world with ocean cover under 0.2 as having a reachable water table**
+  Lane 14 (as the lane reported 12:46 AM EST on 2026-11-12), first answer to GEN.1585 (report reports/gen1585-class-h-reachability-2026-11-12.md): H needs groundwater_present, but groundwater() is none unless the hydrosphere is dry, ice or vapour with an aquifer, and at 275 to 315 K and 50 kPa any world with water is a surface ocean or brine seep; a probe of bulk water 1e-10 to 5e-5 (40 trials each) gave 0 H. Do: in groundwater(), a liquid-surface world with ocean cover under 0.2 has a reachable water table; update the stored groundwater and reuse the H row; census before and after. Lock item.
+  Version 8.1 (Class M audit, approved by Boss's fix-all of 2026-11-11; not deferred). Owner (TODO, 2026-11-12): Lane 14. Prerequisites: none. Related: GEN.1585.
+  Filed by the TODO thread.
+
+- [ ] **TEST.728 (bug) A wide binary's second star reads young star when generated but M-type star after store and load, so test_describe::test_a_stored_system_is_described_like_the_generated_one fails with PYTHONHASHSEED=1 (its seed comes from hash(), so it flakes in gates)**
+  Lane 04 (as the lane reported 1:05 AM EST on 2026-11-12): the stored star's pre-main-sequence state differs from the generated one's. A real stored-against-generated mismatch, not a test problem. Do: find which pre-main-sequence field is not stored or not read back for the companion star, fix the round trip, and seed the test from a fixed value instead of hash(). Lock item only if a column is added.
+  Version 8.1 (gate flake and stored-vs-generated mismatch). Owner (TODO, 2026-11-12): Lane 04. Prerequisites: none. Related: DB.122, DB.123, DB.124, DB.125.
+  Filed by the TODO thread.
+
+- [ ] **GEN.1639 (bug) The shape-setting temperature has no latent heat or convective loss, so with canonical 26Al every rocky body over about 100 km and every ice-rock body over 200 km comes out round (Proteus, Hyperion, Phoebe and Pallas analogues would be round)**
+  Lane 21 (as the lane reported 1:24 AM EST on 2026-11-12), found while wiring GEN.1201 (PR 6175; gap written in gap-filling-plan section 6.162). Do: add latent heat of ice melting and convective (or hydrothermal) heat loss to physics/shape_temperature.py from the research ([R....] ids only), and check the analogues against their measured shapes. Lock item (changes roundness).
+  Version 8.1. Owner (TODO, 2026-11-12): Lane 21. Prerequisites: GEN.1201. Related: GEN.1201.
   Deferred (Boss, 10:01 PM EST on 2026-11-11: code bugs are filed and revisited after the other generation fixes).
   Filed by the TODO thread.
 
