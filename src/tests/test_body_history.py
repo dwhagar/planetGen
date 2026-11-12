@@ -9,7 +9,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import body_history, effect_ledger, spin_torques, unit_registry
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 
 class _Body:
@@ -112,22 +111,4 @@ def test_an_edit_keeps_the_history_of_the_bodies_it_keeps_and_drops_that_of_a_de
         assert conn.execute("SELECT COUNT(*) AS n FROM body_history WHERE star_system_id = ? AND body_type = 2 AND body_id = ?", (system_id, gone.db_id)).fetchone()["n"] == 0
     finally:
         conn.rollback()
-        conn.close()
-
-
-@pytest.mark.fresh_database
-def test_a_v242_galaxy_gets_the_table_empty_and_a_second_run_changes_nothing(mysql_config):
-    load_old_schema(mysql_config, 242)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert "body_history" not in {next(iter(row.values())) for row in conn.execute("SHOW TABLES").fetchall()}
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert [row["Field"] for row in conn.execute("SHOW COLUMNS FROM body_history").fetchall()] == list(body_history.ROW_FIELDS)
-        assert conn.execute("SELECT COUNT(*) AS n FROM body_history").fetchone()["n"] == 0
-    finally:
         conn.close()

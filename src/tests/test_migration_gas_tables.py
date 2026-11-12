@@ -12,11 +12,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere
 from planetgen.util import draw
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
-
-_GASES = ("o2", "co2", "co", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2")
 
 
 def _system():
@@ -52,36 +49,4 @@ def test_a_saved_system_keeps_every_bodys_air(mysql_config):
         assert stored == sum(len(air) for air in before)
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v154_galaxy_gets_its_air_in_the_child_tables(mysql_config):
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 154)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in ("planets", "moons"):
-            conn.execute(f"UPDATE {table} SET p_o2_kpa = 21.2, p_n2_kpa = 78.8, p_ch4_kpa = 0 WHERE star_system_id = ?", (system_id,))
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        columns = {row["COLUMN_NAME"] for row in conn.execute(
-            "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('planets', 'moons')").fetchall()}
-        assert not any(f"p_{gas}_kpa" in columns for gas in _GASES)
-        rows = conn.execute("SELECT g.gas, g.partial_pa FROM planet_gases g JOIN planets p ON p.id = g.planet_id WHERE p.star_system_id = ?",
-                            (system_id,)).fetchall()
-        assert rows and {row["gas"] for row in rows} == {"O2", "N2"}
-        assert {row["gas"]: row["partial_pa"] for row in rows}["O2"] == pytest.approx(21200.0)
-        loaded = store.load_star_system(conn, system_id)
-        assert all(air in ({}, {"O2": pytest.approx(21200.0), "N2": pytest.approx(78800.0)}) for air in _airs(loaded))
-    finally:
         conn.close()

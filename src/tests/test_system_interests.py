@@ -22,7 +22,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
 from tests.test_migration_habitable_worlds import ADDRESS, CENTER_PC
-from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -281,93 +280,6 @@ def test_a_world_with_a_technological_civilization_or_a_colony_is_inhabited(mysq
         conn.close()
 
 
-def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        want = _kept(conn, system_id)
-    finally:
-        conn.close()
-    # make it a v164 galaxy again: the table gone, the old one back, the rows kept
-    db_schema_support.downgrade_to(mysql_config, 164)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        got = _kept(conn, system_id)
-        assert got == want
-        assert conn.execute("SHOW TABLES LIKE 'habitable_systems'").fetchone() is None
-    finally:
-        conn.close()
-
-
-def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        conn.execute("UPDATE planets SET body_type = 't', phi4 = ? WHERE star_system_id = ?", (0.1, system_id))
-        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density,"
-                     " composition_summary) VALUES (?, 3, 4.0e8, 3.0e8, 5.0e8, 'typical', 'iron')", (system_id,))
-        store.recount_habitable_worlds(conn, [system_id])
-        conn.commit()
-        want = _kept(conn, system_id)
-        assert interests.UNINHABITABLE in want and interests.ASTEROID_FIELD in want
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM system_interests WHERE reason IN ('uninhabitable', 'asteroid-field')")
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 165)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        got = _kept(conn, system_id)
-        assert got == want
-    finally:
-        conn.close()
-
-
-def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
-        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'M', body_type = 't', phi4 = 0.82 WHERE id = ?",
-                     (first,))
-        store.recount_habitable_worlds(conn, [system_id])
-        conn.commit()
-        want = _kept(conn, system_id)
-        assert interests.INHABITED in want
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM system_interests WHERE reason = 'inhabited'")
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 166)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        got = _kept(conn, system_id)
-        assert got == want
-    finally:
-        conn.close()
-
-
-def _kept(conn, system_id):
-    """`{reason: (n, best_score)}` of the system's rows without the life class ones: a test that goes back below v175 loses the life class of every
-    body (`migrations/versions/0175_life_classes.py` cannot keep it), so those rows are not what it restores (MAP.351 has its own test)."""
-    return {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()
-            if not reason.startswith(interests.LIFE_CLASS_PREFIX)}
-
-
 def _class_counts(conn, system_id):
     """How many planets and moons of the system there are of each class, from the bodies themselves."""
     counts = {}
@@ -510,33 +422,6 @@ def test_a_small_node_lists_the_classes_with_the_worlds_and_a_big_node_does_not(
         conn.close()
 
 
-def test_a_v171_galaxy_gets_the_class_reasons_from_what_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        _set_classes(conn, system_id, ["K", "K", "O"])
-        conn.commit()
-        want = _kept(conn, system_id)
-        assert "class-K" in want and "class-O" in want
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM system_interests WHERE reason LIKE ?", (interests.CLASS_PREFIX + "%",))
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 171)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        got = _kept(conn, system_id)
-        assert got == want
-    finally:
-        conn.close()
-
-
 def _clear_life(conn, system_id):
     for table in ("planets", "moons"):
         conn.execute(f"UPDATE {table} SET life_microbial = NULL, life_flora = NULL, life_fauna = NULL, life_sentient = NULL,"
@@ -576,38 +461,6 @@ def test_life_sentient_life_and_a_civilization_are_reasons_read_from_the_stored_
         assert found[0]["reasons"][interests.CIVILIZATION] == {"n": 1} and found[0]["reasons"][interests.LIFE] == {"n": 2}
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v172_galaxy_gets_the_life_reasons_from_what_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        _clear_life(conn, system_id)
-        first, second = [row["id"] for row in conn.execute(
-            "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 2", (system_id,)).fetchall()]
-        conn.execute("UPDATE planets SET life_microbial = 4 WHERE id = ?", (first,))
-        conn.execute("UPDATE planets SET life_sentient = 1, life_stage = 'technological_civilization', planet_class = 'M' WHERE id = ?", (second,))
-        store.recount_habitable_worlds(conn, [system_id])
-        conn.commit()
-        want = _kept(conn, system_id)
-        assert {interests.LIFE, interests.SENTIENT, interests.CIVILIZATION} <= set(want)
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM system_interests WHERE reason IN ('life', 'sentient', 'civilization')")
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 172)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        got = _kept(conn, system_id)
-        assert got == want
-    finally:
         conn.close()
 
 
@@ -653,37 +506,6 @@ def test_a_civilization_keeps_the_technology_level_of_its_most_advanced_species_
                    if reason in (interests.LIFE, interests.SENTIENT))
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v173_galaxy_gets_the_technology_level_from_the_species_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        _clear_life(conn, system_id)
-        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
-        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'M' WHERE id = ?", (first,))
-        _give_species(conn, first, system_id, "Migrant", 2.6)
-        store.recount_habitable_worlds(conn, [system_id])
-        interests.refresh_technology(conn)
-        conn.commit()
-        want = _rows(conn, system_id)[interests.CIVILIZATION]["best_score"]
-        assert want == pytest.approx(2.6)
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("UPDATE system_interests SET best_score = NULL WHERE reason = 'civilization'")
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 173)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert _rows(conn, system_id)[interests.CIVILIZATION]["best_score"] == pytest.approx(want)
-    finally:
         conn.close()
 
 
@@ -791,32 +613,6 @@ def test_the_world_query_leaves_the_life_classes_out_and_the_class_query_lists_t
         assert "lifeclass-3a" in by_class[0]["reasons"] and by_class[0]["reasons"]["lifeclass-3a"] == {"n": 1}
     finally:
         conn.rollback()
-        conn.close()
-
-
-def test_a_v175_galaxy_gets_the_life_class_reasons_from_what_it_holds(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        sector_id, _expected = _fill_one_sector(conn)
-        system_id = _place(conn, sector_id)
-        _set_life_classes(conn, system_id, [(1, "a"), (4, "c")])
-        conn.commit()
-        want = _life_class_rows(conn, system_id)
-        assert want
-    finally:
-        conn.close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM system_interests WHERE reason LIKE ?", (interests.LIFE_CLASS_PREFIX + "%",))
-        conn.commit()
-    finally:
-        conn.close()
-    db_schema_support.downgrade_to(mysql_config, 175)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert _life_class_rows(conn, system_id) == want
-    finally:
         conn.close()
 
 

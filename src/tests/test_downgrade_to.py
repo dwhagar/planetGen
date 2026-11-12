@@ -7,10 +7,11 @@ from the checked-in schema of that release, so a migration test does not keep a 
 
 import pytest
 
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
 from tests.db_schema_support import (
     downgrade_to,
     load_old_schema,
+    old_schema_versions,
     schema_differences,
     schema_snapshot,
     scratch_database,
@@ -19,7 +20,7 @@ from tests.db_schema_support import (
 pytestmark = pytest.mark.fresh_database
 
 
-@pytest.mark.parametrize("version", [131, 140, 150, 165, 173])
+@pytest.mark.parametrize("version", [alembic_runner.BASELINE_VERSION, old_schema_versions()[-1]])      # the baseline and the newest checked-in schema (TEST.729)
 def test_a_downgraded_database_has_the_shape_of_the_old_release(mysql_config, version):
     store.get_connection(mysql_config).close()          # the current schema
     downgrade_to(mysql_config, version)
@@ -49,7 +50,7 @@ def test_a_downgrade_keeps_the_rows_and_the_migrations_bring_it_back(mysql_confi
     finally:
         conn.close()
     assert planets > 0
-    downgrade_to(mysql_config, 150)
+    downgrade_to(mysql_config, alembic_runner.BASELINE_VERSION)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM planets").fetchone()["n"] == planets

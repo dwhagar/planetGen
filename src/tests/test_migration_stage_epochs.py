@@ -13,9 +13,8 @@ from planetgen.galaxy import epoch_record
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
-
 from tests.test_bright_star_scatter import _seed_galaxy, light_steps  # noqa: F401 -- a fixture
-from tests import db_schema_support
+
 
 pytestmark = pytest.mark.fresh_database
 
@@ -37,35 +36,6 @@ def _make_species(conn, system_id, name="Tester"):
     planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
     conn.execute("INSERT INTO species (name, homeworld_planet_id, star_system_id, life_stage, build, climate, size) "
                  "VALUES (?, ?, ?, 'technological_civilization', 'stocky', 'temperate', 'medium')", (name, planet_id, system_id))
-
-
-def test_a_v163_galaxy_gets_the_epochs_it_can(mysql_config):
-    _seed_galaxy(mysql_config)
-    system, cfg = _system()
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            system_id = store.insert_star_system(conn, system, cfg)
-            sector_id = conn.execute("INSERT INTO sectors (name, edge_mpc, generator_epoch) VALUES ('Epoch sector', 1000, 80)").lastrowid
-            conn.execute("UPDATE star_systems SET sector_id = ? WHERE id = ?", (sector_id, system_id))
-            _make_species(conn, system_id)
-            conn.execute("UPDATE galaxy_shape SET generator_epoch = 70 WHERE id = 1")
-            conn.execute("INSERT INTO nebula_field (cell_i, cell_j, cell_k, n, nebula_class, radius_ly, center_x_pc, center_y_pc, center_z_pc)"
-                         " VALUES (0, 0, 0, 0, 'M', 5, 1, 2, 3)")
-    finally:
-        conn.close()
-    # a v163 database: no table, no column
-    db_schema_support.downgrade_to(mysql_config, 163)
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert store.scatter_epochs(conn) == {"nebula-field": 70}      # the kinds with rows, at the plan's epoch
-        found = epoch_record.recorded(conn)
-        assert found["plan"] == 70 and found["fill"] == {80: 1} and found["population"] == {80: 1}
-        # run again: nothing changes
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_a_stale_stage_is_found_by_its_own_epochs(mysql_config):

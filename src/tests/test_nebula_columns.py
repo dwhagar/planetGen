@@ -19,7 +19,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.physics import nebula_columns as nc
-from tests.db_schema_support import load_old_schema
 
 REMNANT_CLASSES = [letter for letter, data in tuning.NEBULA_CLASSES.items() if data["family"] == "supernova-remnant"]
 NEBULA_CLASSES = [letter for letter, data in tuning.NEBULA_CLASSES.items() if data["family"] != "supernova-remnant"]
@@ -113,36 +112,5 @@ def test_an_inserted_nebula_and_remnant_carry_their_composition(mysql_config):
         assert {column: row[column] for column in nc.COMMON_COLUMNS} == pytest.approx(again, nan_ok=True)
         remnant_row_ = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
         assert remnant_row_["progenitor_mass_sol"] > 0 and remnant_row_["ejecta_mass_sol"] > 0 and remnant_row_["swept_mass_sol"] > 0
-    finally:
-        conn.close()
-
-
-@pytest.mark.fresh_database
-def test_migration_0214_fills_the_rows_of_a_v213_galaxy_with_the_numbers_of_the_model(mysql_config):
-    load_old_schema(mysql_config, 213)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for column in ("mass_fraction_h", "progenitor_mass_sol"):
-            assert not conn.execute("SHOW COLUMNS FROM nebulae LIKE '" + column + "'").fetchall()
-        conn.execute(
-            "INSERT INTO nebulae (name, nebula_class, nebula_type, radius_ly, composition, formation_cause, dominant_species, density_cm3, temperature_k, extinction_av,"
-            " galactic_orbital_period_gy, galactic_orbital_phase_deg, galactic_min_update_interval_years, galactic_radius_pc, center_x_pc, center_y_pc, center_z_pc, uid)"
-            " VALUES ('Old', 'K', 'planetary', 1.0, 'old text', 'cause', 'old species', 100.0, 10000.0, 0.5, 0.2, 10.0, 1000.0, 8000.0, 8000.0, 0.0, 0.0, ?)", (b"\x05" * 12,))
-        conn.execute(
-            "INSERT INTO supernova_remnants (name, remnant_class, morphology, age_years, radius_ly, progenitor_type, dominant_species, density_cm3, temperature_k, extinction_av,"
-            " galactic_orbital_period_gy, galactic_orbital_phase_deg, galactic_min_update_interval_years, galactic_radius_pc, center_x_pc, center_y_pc, center_z_pc, uid)"
-            " VALUES ('Old remnant', 'W', 'shell', 500.0, 10.0, 'Type Ia', 'old species', 1.0, 1e6, 0.1, 0.2, 10.0, 1000.0, 8000.0, 8000.0, 0.0, 0.0, ?)", (b"\x06" * 12,))
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        row = conn.execute("SELECT * FROM nebulae WHERE name = 'Old'").fetchone()
-        expected = nc.nebula_values({"nebula_class": "K", "density_cm3": 100.0, "radius_ly": 1.0, "galactic_radius_pc": 8000.0, "uid": b"\x05" * 12, "name": "Old", "hosts": None})
-        assert {column: row[column] for column in nc.COMMON_COLUMNS} == pytest.approx(expected, nan_ok=True)
-        assert row["composition"] != "old text" and row["dominant_species"] != "old species"
-        remnant = conn.execute("SELECT * FROM supernova_remnants WHERE name = 'Old remnant'").fetchone()
-        assert remnant["progenitor_mass_sol"] > 0 and remnant["ejecta_mass_sol"] > 0 and remnant["dominant_species"] != "old species"
     finally:
         conn.close()

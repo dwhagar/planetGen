@@ -17,7 +17,8 @@ To change the schema:
    (`tests/test_db_models.py` fails while it disagrees with `schema.sql`).
 4. Check in `tests/fixtures/old_schemas/schema_v<previous>.sql.gz`, as
    `tests/fixtures/old_schemas/README.md` describes, so the migration is
-   tested against the schema it starts from.
+   tested against the schema it starts from. Only the baseline and the newest three
+   fixtures are kept (TEST.729): delete the oldest one above the baseline.
 
 There are no downgrades.
 
