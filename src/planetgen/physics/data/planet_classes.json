@@ -162,9 +162,9 @@
     {
       "letter": "C",
       "name": "Dead world",
-      "phrase": "an airless rocky world",
+      "phrase": "an airless world of rock or ice",
       "kind": "t",
-      "sentence": "A dead world: bare rock with no air, more massive than a small airless world and lighter than a super-Earth.",
+      "sentence": "A dead world: a solid body with no air, bare rock or ice at its surface, more massive than a small airless world and lighter than a super-Earth.",
       "basis": "design: 10 Pa, the edge of an exosphere; 0.1 Earth masses and up (Boss 8:41 PM EDT 2026-10-30)"
     },
     {
@@ -188,7 +188,7 @@
       "name": "Hot dense world",
       "phrase": "a hot world under a very thick, heavy air",
       "kind": "t",
-      "sentence": "A hot world under a very thick air that is not hydrogen, usually carbon dioxide and sulfur.",
+      "sentence": "A hot world under a very thick air that is not hydrogen, usually mostly carbon dioxide, often with water vapor.",
       "basis": "design stand-in (GEN.1142, registry CL2): 10 bar, 400 K and under 30 percent hydrogen; cooler thick-air bodies take the later rows by their own conditions"
     },
     {
@@ -204,7 +204,7 @@
       "name": "Marginal thin-air world",
       "phrase": "a mild world whose air is too thin in oxygen to breathe without a mask",
       "kind": "t",
-      "sentence": "A marginal world, Earth-like but hard to breathe without a mask. The air is not toxic, but its oxygen is thin and it holds some carbon dioxide.",
+      "sentence": "A marginal world, Earth-like in pressure and temperature but hard to breathe without a mask. Its oxygen is thin and it holds carbon dioxide, which at the high end is a poison of its own.",
       "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
     {
@@ -244,7 +244,7 @@
       "name": "Small hot world",
       "phrase": "a small world that holds on to air and stays above freezing",
       "kind": "t",
-      "sentence": "A small world with air and a mean surface above freezing, not an ocean world, with low surface gravity.",
+      "sentence": "A small world with air and a mean surface above freezing, with low surface gravity. It can be scorching, and some hold liquid water.",
       "basis": "design: 0.5 g"
     },
     {
@@ -252,7 +252,7 @@
       "name": "Anoxic world",
       "phrase": "a world with air that has almost no free oxygen",
       "kind": "t",
-      "sentence": "A world with an anoxic air (almost no free oxygen, and not mostly carbon dioxide), a mild temperature, and a gravity near Earth's.",
+      "sentence": "A world with an anoxic air (almost no free oxygen, and not mostly carbon dioxide), a surface above freezing that runs from cool to hot, and a gravity not far from Earth's.",
       "basis": "design"
     },
     {
@@ -260,7 +260,7 @@
       "name": "Carbon dioxide world",
       "phrase": "a rocky world with a carbon dioxide air",
       "kind": "t",
-      "sentence": "A rocky world with a carbon dioxide air (whatever the oxygen), warm but not hot, and neither light nor heavy.",
+      "sentence": "A rocky world with a carbon dioxide air (whatever the oxygen), a surface above freezing that runs from cool to hot (hotter and denser is class N), and neither light nor very heavy.",
       "basis": "design"
     },
     {
@@ -300,7 +300,7 @@
       "name": "Hot thin-air world",
       "phrase": "a hot world with thin air and no ocean",
       "kind": "t",
-      "sentence": "A hot, thin-air world: strong gravity, a very hot surface, thin air, and no ocean.",
+      "sentence": "A hot, thin-air world: a hot surface, thin air, no ocean, and gravity short of class V's.",
       "basis": "design (GEN.1221, Boss confirmed the letter at 11:59 AM EDT 2026-10-31); the conditions are its row of physics/data/planet_class_fit.json"
     },
     {
