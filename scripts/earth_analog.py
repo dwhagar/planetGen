@@ -8,7 +8,7 @@ what comes out held against a stored baseline, so a change to the air, water, li
     python scripts/earth_analog.py compare [--n 400] [--workers K]                   the numbers now against the baseline, for the train PR's body
 
 The analog: a generated G2V system (seed 4001) supplies a rocky planet object; the star is set to the Sun (1 Msun, 3.828e26 W, 5772 K, age `--age`, default 4.6 Gy, snow line 2.7 AU) and
-the planet to Earth (5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
+the planet to Earth (late accretion 0.7 percent, `impact_history.LATE_ACCRETED_PERCENT_EARTH`; 5.972e24 kg, 6371 km, 1 g, 5514 kg/m3, 1 AU, e 0.0167, metal 0.32, tilt 23.4, day 24 h). Each trial draws the bulk water, then calls
 `planets.calculate_atmospheric_conditions`, `planets.apply_class`, `life.apply_life_data` and `planets.apply_class` as the system build does, on its own draw seed `BLOCK * 100000 + i`.
 `--water` is `sample` (default: `delivered_water.sample_fraction` at 1 AU and a 2.7 AU snow line), a Bern class (`low`, `high`, `dry`, `rich`), or a fixed bulk water mass fraction.
 
@@ -45,7 +45,7 @@ def _setup(age_gy):
     """The Earth analog planet and Class M, built once per process."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
-    from planetgen.physics import class_fit
+    from planetgen.physics import class_fit, impact_history
     from planetgen.util import draw
 
     config = SystemConfig()
@@ -63,6 +63,7 @@ def _setup(age_gy):
     planet.ice_mass_fraction = planet.envelope_mass_fraction = 0.0
     planet.primary_mass_kg, planet._star_distance_au, planet.formation_distance_au = star.mass, 1.0, 1.0
     planet.rotation_period_hours, planet.axial_tilt_deg = 24.0, 23.4
+    planet._late_accreted_percent = impact_history.LATE_ACCRETED_PERCENT_EARTH     # the generated system's own belts set 3.0, six times the Earth's veneer (0.7: Brasser et al. 2016 Table 1; [R4598] 0.5 to 0.8)
     return planet, [c for c in class_fit.CLASSES if c.letter == "M"][0]
 
 

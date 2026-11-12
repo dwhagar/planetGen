@@ -4789,8 +4789,8 @@ Each citation below resolves to one item by its date.
 | UX.295 | The class page Conditions line prints raw pascals and kelvins and ignores the visitor's unit setting | none | done, PR #6195 |
 | UX.296 | The Wiki panel on object and phenomenon pages, the mark on system tree rows, and the Help menu and footer link | API.46 | open |
 | UX.297 | A groundless body (sub-Neptune or gas dwarf) shows its pressure as a reference level, not a surface pressure, on the sheet, the page and the docs | none | done, PR #6005 |
-| UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | open |
-| UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | open |
+| UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | done, PR #6140 |
+| UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | done, PR #6144 |
 | UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | done, PR #6080 |
 | UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | done (measured clean by Lane 06, 2026-11-11) |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |

@@ -2,6 +2,58 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3949] - 2026-11-12
+
+**Headline:** The Earth analog now takes the Earth's late accretion of 0.7 percent instead of the 3.0 percent its generated system set.
+
+### Fixed
+- **TEST.726: `scripts/earth_analog.py` pins `_late_accreted_percent` at `impact_history.LATE_ACCRETED_PERCENT_EARTH` (0.7, Brasser and others 2016 Table 1; [R4598] 0.5 to 0.8).** The planet object came from the generated system 4001, whose belts set 3.0, about four times the Earth's veneer, which put roughly 60 kPa more nitrogen into every trial. The stored baseline is renewed (800 trials, median pressure 218 kPa, median temperature 331 K, class M 1 of 800). Script and data only; no generated output moves.
+
+generation-affects: none
+
+## [8.0.3948] - 2026-11-12
+
+**Headline:** The one-off system page and `planetgen system` can set the weirdness dial and force particular oddities.
+
+### Changed
+- **Weirdness dial and Force oddities (UX.299).** `planetgen system` takes `--weirdness-dial X` (0 turns every oddity off, 1 is the table's own rates) and `--force-oddities W10,G1` (the ids of `physics/oddities.py`; a body whose conditions allow them gets them without the roll, and the gate still applies). Both set the existing `SystemConfig.WEIRDNESS_DIAL` and `FORCE_ODDITIES` (GEN.1047); an unknown id or a negative dial is refused. The one-off system page has the same two boxes under Options, with the ids listed. Nothing stored changes.
+
+generation-output: unchanged
+
+## [8.0.3947] - 2026-11-12
+
+**Headline:** class texts now agree with what the classifier and the generated bodies do: dead world, hot dense, anoxic, carbon dioxide, marginal thin-air, small hot and hot thin-air worlds, plus two stale docs and a stale class-page note.
+
+### Changed
+
+- `physics/data/planet_classes.json`: class C no longer says "bare rock" only (about half the stored dead worlds carry ice or an ice-covered sea); class N says its air is usually mostly carbon dioxide, often with water vapor, not "carbon dioxide and sulfur" (sulfur is 3 percent of the stored air); classes F and G no longer say "mild" or "warm but not hot" (the conditions run from cool to 400 K); class L no longer says its air "is not toxic" (its carbon dioxide runs to tens of kilopascals); class B no longer says "not an ocean world" (nothing in its conditions bars an ocean); class Z no longer says "strong gravity" (its conditions start at half a gravity). The class page, planet page and system map read these words, so nothing stored changes.
+- Boss (9:01 PM EST): the code bugs stay as they are for now and the shown text follows what the code does today. T (terrestrial) says its air is mostly hydrogen and can be thin; U, Y and A say the liquid or sulfur dioxide could stand or is present, not that seas, acid or volcanoes are stored; X says it has no air; O, H, P and R say they have air you could breathe (their conditions ask for oxygen of 16 to 35.5 kPa); S says some are under ice.
+- The class page note on rogue planets no longer says classes "list interstellar space" (no class does); a rogue planet is classed by the same conditions.
+- `docs/reference/system-file-format.md`: the class table, the check order, the "Life?" column, the class-moves-the-orbit claim and the list of unused letters described the first-match classifier of October; they now describe the best-fit classifier and the 25 letters in use. `docs/design/habitability/condition-based-planet-classes.md`: the rule-file paragraph, class L's name, class B's rule and the reserve line are corrected and R, U, X and Y are added to the table.
+- Report: `reports/class-descriptions-vs-code-2026-11-12.md` lists the mismatches that need a code decision.
+
+generation-output: unchanged
+generation-affects: none
+
+## [8.0.3946] - 2026-11-12
+
+**Headline:** The one-off system page can now generate a rogue planet or an interstellar comet, not only a star system.
+
+### Changed
+- **A Result choice on the one-off system page (UX.298).** Under Options, Result picks a star system (the default), a rogue planet or an interstellar comet. The two starless results come from the existing `planetgen phenomenon` generator, which now takes the same `--output` and `--format` that `planetgen system` has: it writes the description and saves nothing. Only the name and the debug log apply to a starless result, and any other filled-in option is refused with its name instead of being ignored. The page shows it as it shows a system, with the same downloads.
+
+generation-output: unchanged
+
+## [8.0.3945] - 2026-11-12
+
+**Headline:** The galaxy-placed occurrence census now records why classes O, P and Q have no target rate.
+
+### Changed
+
+- The docstrings of `tests/audit/prevalence_galaxy.py` and `tests/test_prevalence_galaxy_census.py` (TEST.395) say that the ocean, glaciated and Q classes are given no share to hit (Boss, 2026-10-30: physics drives, no game rates, and no survey measures a class): they are only tested for being possible when conditions allow them, and the report lists how many of each the sample drew. Comments only.
+
+generation-output: unchanged
+
 ## [8.0.3944] - 2026-11-12
 
 **Headline:** The pull of a distant companion star or a heavy outer planet on a planet's orbit can now be worked out in one place; nothing reads it yet.
