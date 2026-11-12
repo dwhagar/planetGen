@@ -122,17 +122,17 @@
     {
       "letter": "T",
       "name": "Gas dwarf",
-      "phrase": "a gas dwarf: a deep hydrogen and helium envelope over a small core",
+      "phrase": "a gas dwarf: mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on",
       "kind": "g",
-      "sentence": "A gas dwarf: a giant lighter than the ice giants, with a deep hydrogen and helium envelope over a small core.",
+      "sentence": "A gas dwarf: lighter than the ice giants, mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on.",
       "basis": "design: 10 Earth masses, the lower edge of the ice giants' range; the sweep finds no better cut"
     },
     {
       "letter": "I",
       "name": "Ice giant",
-      "phrase": "an ice giant, mostly water, ammonia, and methane ices under a hydrogen and helium envelope",
+      "phrase": "an ice giant: a thick hydrogen and helium envelope over an interior of rock, metal, and the ices its disk gave it",
       "kind": "g",
-      "sentence": "An ice giant: heavier than a gas dwarf and lighter than a gas giant, mostly water, ammonia, and methane ices and rock under a hydrogen and helium envelope.",
+      "sentence": "An ice giant: between a gas dwarf and a gas giant in mass, a thick hydrogen and helium envelope over rock, metal, and ices.",
       "basis": "design: 35 Earth masses, the cut that misplaces fewest of the drawn ice and gas giants (15 percent; their mass ranges overlap from 30 to 60); the envelope share of GEN.428 replaces it at the cut-over"
     },
     {
@@ -178,9 +178,9 @@
     {
       "letter": "T",
       "name": "Gas dwarf",
-      "phrase": "a gas dwarf: a deep hydrogen and helium envelope over a small core",
+      "phrase": "a gas dwarf: mostly rock and metal under a thick hydrogen and helium envelope, with no surface to stand on",
       "kind": "t",
-      "sentence": "A gas dwarf: a small world, lighter than the ice giants, whose air is a deep, hydrogen-dominated envelope over a rocky core.",
+      "sentence": "A gas dwarf: a small world, lighter than the ice giants, with a deep hydrogen envelope over an interior of mostly rock and metal.",
       "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose envelope outweighs a thin air"
     },
     {

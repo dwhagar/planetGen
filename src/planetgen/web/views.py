@@ -150,7 +150,7 @@ _POPULATION_LABELS = {"young": "Young disk", "intermediate": "Disk", "old": "Old
 def _uncharted_row(star, can_generate):
     """One Uncharted stars table row (UX.87): the scattered star's own data, where it is and a
     Generate button for an admin."""
-    label = f"Uncharted {star['star_type']} star {star['id']}"
+    label = star.get("local_name") or f"Uncharted {star['star_type']} star {star['id']}"      # UX.259: the local name, its sector is a column of the table
     coords = ", ".join(f"{star[axis]:.2f}" for axis in ("x", "y", "z"))
     local = ", ".join(f"{star[f'local_{axis}']:.2f}" for axis in ("x", "y", "z"))
     generate = {"text": ""}
@@ -312,9 +312,10 @@ def uncharted_star(bright_star_id):
         abort(404)
     if detail.get("system_id") is not None:
         return redirect(page_url("system", system_id=detail["system_id"]), code=302)
-    name = f"Uncharted {detail['star_type']} star {detail['id']}"
+    name = detail.get("name_with_sector") or f"Uncharted {detail['star_type']} star {detail['id']}"      # UX.259: a name that stands alone is followed by its sector
     population = _POPULATION_LABELS.get(detail["population"], detail["population"])
     fields = [
+        *([("Object ID", detail["uid"])] if detail.get("uid") else []),      # UX.259: the scatter row's own Object ID
         ("Star", f"{detail['star_type']} ({population})"),
         ("Luminosity", format_luminosity_sol(detail["luminosity_sol"])),
         ("Temperature", f"{format_number(round(detail['temperature_k']))} K"),
@@ -332,8 +333,8 @@ def uncharted_star(bright_star_id):
                                           f"{nebula['nebula_class']} ({nebula['class_name']}), "
                                           f"radius {format_distance_ly(nebula['radius_ly'])}"))
     if detail.get("member_count"):
-        fields.insert(4, ("Members", f"{detail['member_count']} (see below)"))
-        fields.insert(5, ("System mass", format_mass_solar(detail["system_mass_solar"])))
+        fields.insert(5 if detail.get("uid") else 4, ("Members", f"{detail['member_count']} (see below)"))
+        fields.insert(6 if detail.get("uid") else 5, ("System mass", format_mass_solar(detail["system_mass_solar"])))
     return render_page(
         "uncharted_star.html",
         title=name,

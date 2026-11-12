@@ -20,7 +20,7 @@ average of `1 / (R^2 + d^2 - 2 R d cos(phi))` over `phi` is exactly `1 / (R^2 - 
 `ORBIT_SAMPLES` points in mean anomaly. A body round a close pair has the pair as its host (a combined source) and the stars further out as these.
 
 **What it leaves out (stated).** The two orbits are taken coplanar (a mutual inclination only lengthens the mean separation, so this is the upper bound on the
-companion's part); a subtree of stars is one point at its center of mass, as `planet_zones.flux_at` takes it; no star shadows another; a source with no stored
+companion's part); a subtree of stars is one point at its center of mass, as `planet_zones.companion_orbits` takes it; no star shadows another; a source with no stored
 value of a band gives none of that band (`None` is skipped, not guessed).
 
 **What it feeds.** `starlight_w_m2` is the mean starlight a body's temperature, air, albedo, ice and runaway greenhouse test go by; `field_at` gives the whole field
@@ -75,6 +75,12 @@ def _distances_au(axis_au, eccentricity):
     for _ in range(_KEPLER_ITERATIONS):
         anomaly = anomaly - (anomaly - eccentricity * np.sin(anomaly) - mean) / (1.0 - eccentricity * np.cos(anomaly))
     return axis_au * (1.0 - eccentricity * np.cos(anomaly))
+
+
+def separations_au(axis_au, eccentricity):
+    """The distance of a body on an orbit of semi-major axis `axis_au` and eccentricity `eccentricity` from its primary at `ORBIT_SAMPLES` points uniform in time (the grid every
+    mean over a source's orbit here is taken on; GEN.1446 reads it for the mean of `1 / d^3`)."""
+    return _distances_au(axis_au, eccentricity)
 
 
 def mean_inverse_square(distance_au, axis_au, eccentricity):

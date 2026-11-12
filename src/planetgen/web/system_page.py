@@ -38,6 +38,7 @@ from planetgen.generation.limits import MAX_NUM_ORBITS
 from planetgen.generation.run_system import ODDS_OPTIONS, max_stars_problem, stars_problem
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db.store import SYSTEM_NAME_MAX_LENGTH
+from planetgen.util import log as planetgen_log
 from planetgen.tuning import MAX_STARS_CEILING, MAX_STARS_DEFAULT
 
 TRISTATE_FIELDS = (
@@ -181,7 +182,18 @@ def system_request(form):
         argv.append(f"--flavor-chance-planet={chance_planet}")
     if max_flavor:
         argv.append("--max-planet-flavor")
-    return {"argv": argv, "debug": bool(form.get("debug")), "system_file": system_file}
+    if form.get("disregard_missing_data"):
+        argv.append("--disregard-missing-data")
+    debug = bool(form.get("debug"))
+    areas = _text(form, "debug_areas")
+    if areas:
+        try:
+            planetgen_log.parse_areas(areas)
+        except ValueError as exc:
+            raise FormError(f"Debug areas: {exc}.") from None
+        if debug:
+            argv.append(f"--debug-areas={areas}")
+    return {"argv": argv, "debug": debug, "system_file": system_file}
 
 
 def _read(path):
@@ -250,7 +262,7 @@ def _page(admin, form=None, result=None, error=None, status=200):
         status=status, description="Generate one star system without saving it to the database.",
         tristate_fields=TRISTATE_FIELDS, tristate_choices=TRISTATE_CHOICES, odds_choices=ODDS_CHOICES,
         odds_options=ODDS_OPTIONS, max_stars_ceiling=MAX_STARS_CEILING, max_stars_default=MAX_STARS_DEFAULT, system_file_example=SYSTEM_FILE_EXAMPLE,
-        max_num_orbits=MAX_NUM_ORBITS, result=result)
+        max_num_orbits=MAX_NUM_ORBITS, debug_areas=planetgen_log.AREAS, result=result)
 
 
 @bp.route("/admin/generate/system", methods=["GET", "POST"])

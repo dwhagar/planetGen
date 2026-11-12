@@ -2929,7 +2929,7 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     if after is not None:
         later, params, offset = "id > ? AND " + later, [after] + params, 0
     query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, shell_index, band_index, wedge_index,"
-             f" member_count, system_mass_solar FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) "
+             f" member_count, system_mass_solar, uid FROM phenomenon_scatter WHERE built_at IS NULL AND {later}({' OR '.join(clauses)}) "
              f"ORDER BY id{' DESC' if last else ''}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
@@ -2937,10 +2937,10 @@ def _scattered_page(conn, classes, limit, offset, after=None, first=None, last=F
     rows = conn.execute(query, params).fetchall()
     return [
         {"id": row["id"], "scatter_id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
-         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
+         "name": naming_key.scatter_identity(row["uid"]).get("local_name") or f"Uncharted {row['kind'].replace('-', ' ')} {row['shell_index']}.{row['band_index']}."
                  f"{row['wedge_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
-         "sector_id": None, "sector_name": None, "placed": True, "scattered": True, **_member_fields(row)}
+         "sector_id": None, "sector_name": None, "placed": True, "scattered": True, **_member_fields(row), **naming_key.scatter_identity(row["uid"])}
         for row in (reversed(rows) if last else rows)
     ]
 
@@ -4030,7 +4030,7 @@ def scattered_phenomenon_detail(conn, scatter_id):
         "type": _SCATTER_TYPES.get(row["kind"], row["kind"]), "built": row["built_at"] is not None,
         "address": [row["shell_index"], row["band_index"], row["wedge_index"]],
         "x": point[0], "y": point[1], "z": point[2], "distance_from_core_pc": distance_pc,
-        "mass_solar": row["mass_solar"], **_member_fields(row),
+        "mass_solar": row["mass_solar"], **_member_fields(row), **naming_key.scatter_identity(row["uid"]),
     }
     if detail["member_count"] and not detail["built"]:
         detail.update(scatter_member_tree(conn, "phenomenon_scatter", row["id"]))
@@ -4503,10 +4503,15 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
 
 def galaxy_placed_sectors(conn):
     """
-    Every sector with a galaxy position, plus its live system count -- the
+    Every sector with a galaxy position, plus its system count -- the
     data the `/galaxy` Galaxy Map (`planetgen/web/maps/galaxymap.py`) plots.
     Unplaced sectors (`center_x_pc IS NULL`) have nothing to plot and are
     excluded at the query itself.
+
+    The count is read from `sector_system_counts`, the stored table the Sectors list reads (`list_sectors`), made by one background
+    `refresh_sector_system_counts` through `countcache`. It used to be a scan of every system in the galaxy on every request, which passed the
+    web limit once the galaxy held millions of systems (MAP.424: /galaxy gave 504 and the warm-up stopped). A sector made since the last
+    refresh has no row yet and comes back with `system_count` `None` (not counted yet; the map reads it as zero).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -4515,13 +4520,13 @@ def galaxy_placed_sectors(conn):
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
             `galactic_radius_pc`, `shell_index`, `system_count`.
     """
+    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     rows = conn.execute(
         f"""
         SELECT sec.id, sec.name, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.shell_index, COALESCE(counts.n, 0) AS system_count
+               sec.galactic_radius_pc, sec.shell_index, c.system_count AS system_count
         FROM sectors sec
-        LEFT JOIN (SELECT sector_id, COUNT(*) AS n FROM star_systems
-                   WHERE sector_id IS NOT NULL GROUP BY sector_id) counts ON counts.sector_id = sec.id
+        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id
         WHERE sec.center_x_pc IS NOT NULL AND NOT {_UNCHARTED_SECTOR_SQL}
         ORDER BY sec.galactic_radius_pc
         """,
@@ -5289,7 +5294,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
             offset = 0
     query = (f"SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
              f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
-             f" member_count, system_mass_solar FROM bright_stars WHERE {where} ORDER BY {order}, id {direction}")
+             f" member_count, system_mass_solar, uid FROM bright_stars WHERE {where} ORDER BY {order}, id {direction}")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params = params + [int(limit), int(offset or 0)]
@@ -5311,7 +5316,7 @@ def _uncharted_item(row, edge_pc):
         "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
         "designation": provisional_sector_designation(*address),
         "x": x, "y": y, "z": z, "local_x": local[0], "local_y": local[1], "local_z": local[2],
-        "galactic_radius_pc": math.sqrt(x * x + y * y + z * z), **_member_fields(row),
+        "galactic_radius_pc": math.sqrt(x * x + y * y + z * z), **_member_fields(row), **naming_key.scatter_identity(row["uid"]),
     }
 
 
@@ -5328,7 +5333,7 @@ def uncharted_system_detail(conn, bright_star_id):
     row = conn.execute(
         "SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
         " population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
-        " member_count, system_mass_solar, star_system_id, rotation_period_hours, nuclear_arrival_age_gy FROM bright_stars WHERE id = ?",
+        " member_count, system_mass_solar, star_system_id, rotation_period_hours, nuclear_arrival_age_gy, uid FROM bright_stars WHERE id = ?",
         (int(bright_star_id),)).fetchone()
     if row is None:
         raise ValueError(f"no bright_stars row with id {bright_star_id}")
@@ -5369,7 +5374,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
         stars = []
     rows = conn.execute(
         f"""
-        SELECT id, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")},
+        SELECT id, uid, kind, subtype, mass_solar, {point_columns.LAYOUTS["phenomenon_scatter"].select("position", "velocity")},
                member_count, system_mass_solar
         FROM phenomenon_scatter
         WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND built_at IS NULL
@@ -5385,7 +5390,7 @@ def uncharted_sector_contents(conn, shell_index, band_index, wedge_index):
          "z": row["position_z_mpc"] / MPC_PER_PC,
          "speed_kms": None if row["velocity_x_kms"] is None else math.sqrt(
              row["velocity_x_kms"] ** 2 + row["velocity_y_kms"] ** 2 + row["velocity_z_kms"] ** 2),
-         **_member_fields(row)}
+         **_member_fields(row), **naming_key.scatter_identity(row["uid"])}
         for row in rows
     ]
     try:

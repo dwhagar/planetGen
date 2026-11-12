@@ -7,7 +7,7 @@ Thermodynamics of the gases and condensed phases of the atmosphere chemistry (GE
 The one source of free energies for every equilibrium the atmosphere chain computes: the outgassing speciation over a
 mantle of a given oxygen fugacity (`physics/outgassing.py`), the giant-planet and brown-dwarf chemistry (GEN.454), the
 lava-world vapor (GEN.499) and the buffer reactions of `physics/oxygen_fugacity.py`. It holds the NASA Glenn 9-coefficient
-fits ([R2968], NASA/TP-2002-211556) of 112 species (two of them, FeH and CrH, made from atoms and the equilibrium constants of [R5162] in the same form: GEN.1374): ideal gases and a few condensed phases, each with
+fits ([R2968], NASA/TP-2002-211556) of 117 species (two of them, FeH and CrH, made from atoms and the equilibrium constants of [R5162] in the same form: GEN.1374): ideal gases and a few condensed phases, each with
 its elements, its molar mass and the temperature intervals of its fit.
 
 The data are `physics/data/nasa_glenn_species.json`, read from the NASA CEA database `thermo.inp` by
@@ -36,7 +36,7 @@ import math
 import os
 from dataclasses import dataclass
 
-from planetgen.physics import elements
+from planetgen.physics import constants, elements
 from planetgen.physics.elements import DataError
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "nasa_glenn_species.json")
@@ -48,7 +48,7 @@ FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS", "AL": "Al", "ALO": "A
 MOLAR_MASS_TOLERANCE_G_MOL = 0.01
 """float: How far the database's molar mass may be from the sum of the element table's atomic weights."""
 
-GAS_CONSTANT = 8.314462618
+GAS_CONSTANT = constants.GAS_CONSTANT
 """float: J/(mol K), exact in the SI since 2019."""
 
 

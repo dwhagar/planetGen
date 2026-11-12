@@ -36,7 +36,7 @@ Use:
 
 import math
 
-from planetgen.physics import atmosphere, habitability, phase_gate
+from planetgen.physics import atmosphere, constants, habitability, phase_gate
 
 DOMAINS = ("structure", "gravity", "thermal", "air_amount", "air_chemistry", "water")
 """tuple: The six main domains, over which the overall score is taken."""
@@ -56,7 +56,7 @@ QUANTITY_DOMAIN = {
 }
 """dict: The domain of each quantity of the fit table that is not a gas share (`share_<gas>` is air chemistry, `phase_<family>` is the phase gate)."""
 
-BAND_COUNT = 7
+BAND_COUNT = constants.BAND_COUNT
 
 
 def domain_of(quantity):

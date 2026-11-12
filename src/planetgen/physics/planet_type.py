@@ -47,9 +47,11 @@ def type_of(envelope_fraction, body_type=None):
 
 def planet_type(body):
     """The type of a planet or moon (an object, or a column-named mapping). A transitional planet of a star that passes the gate of `super_puff.is_super_puff`
-    (GEN.1343, W15) is a super-puff: a planet of up to 30 Earth masses under 0.1 g/cc, at any period and any age (GEN.1470, GEN.1347)."""
+    (GEN.1343, W15) is a super-puff: a planet of up to 30 Earth masses under 0.1 g/cc, at any period and any age (GEN.1470, GEN.1347). A column-named mapping has no star to judge by, so a transitional one is a super-puff when its stored `planet_type` says so."""
     get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
     kind = type_of(get("envelope_mass_fraction"), get("body_type"))[0]
+    if kind == TRANSITIONAL and hasattr(body, "get") and get("planet_type") == SUPER_PUFF:
+        return SUPER_PUFF       # a stored row has no star or radius law to judge by, but it keeps the type its build gave it (GEN.1601)
     if kind == TRANSITIONAL and not hasattr(body, "get") and not getattr(body, "is_moon", False) and getattr(body, "star", None) is not None:
         if super_puff.is_super_puff(body.mass / constants.EARTH_MASS_TO_KG, body.radius / constants.EARTH_RADIUS_KM):
             return SUPER_PUFF
@@ -64,6 +66,24 @@ def has_ground(body):
     """
     get = body.get if hasattr(body, "get") else lambda name: getattr(body, name, None)
     return type_of(get("envelope_mass_fraction"), get("body_type"))[0] == TERRESTRIAL
+
+
+SURFACE_PRESSURE_LABEL = "Surface pressure"
+"""str: What a page calls the stored pressure of a body with a ground."""
+
+REFERENCE_PRESSURE_LABEL = "Pressure at the 1 bar reference level"
+"""str: What a page calls the stored pressure of a body with no ground (UX.297, GEN.1532): a giant, or a rocky planet under a deep envelope (a sub-Neptune, a gas dwarf), has no
+surface to stand on, so its air is solved at the 1 bar level (`surface_air.REFERENCE_PRESSURE_BAR`, GEN.1334) and the stored pressure is that convention, not a surface."""
+
+
+def has_ground_type(type_text):
+    """Whether a stored `planet_type` text is a body with a ground (GEN.1334): terrestrial, or no type stored (`None`, an older row), which is read as having one."""
+    return type_text in (None, TERRESTRIAL)
+
+
+def pressure_label(type_text):
+    """The label of a body's stored pressure from its stored `planet_type` text: the surface pressure for a ground, the reference-level pressure for none (UX.297)."""
+    return SURFACE_PRESSURE_LABEL if has_ground_type(type_text) else REFERENCE_PRESSURE_LABEL
 
 
 FIELDS = ("planet_type",)
