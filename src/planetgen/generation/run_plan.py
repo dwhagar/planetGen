@@ -42,6 +42,7 @@ from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util import log
+from planetgen.util import logrecord
 from planetgen.util import step_timer as stepTimer
 from planetgen.util import ticker
 from planetgen.util.ticker import Pulse, Ticker, stamp
@@ -2818,7 +2819,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
     written = made = 0
     if part != "index":
         begun = time.monotonic()
-        say("Block light totals, part 1 of 2: " + ("making the parts and the totals again from every pre-placed object." if rebuild
+        say(f"Block light totals, {logrecord.counting_text('Part', 1, 2)}: " + ("making the parts and the totals again from every pre-placed object." if rebuild
                                                      else "checking that the stored parts match the scatter."))
         if rebuild:
             written = block_lights.rebuild(conn, on_progress=units, on_phase=say, on_above=above, parts=True)
@@ -2828,7 +2829,7 @@ def make_block_lights(conn, report, say, run_id=None, rebuild=False, part="all",
         report(roll_total if part == "roll" else index_start, roll_total if part == "roll" else total)
     if part != "roll":
         begun = time.monotonic()
-        say("Block light totals, part 2 of 2: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
+        say(f"Block light totals, {logrecord.counting_text('Part', 2, 2)}: the uncharted sector rows, one for each cell that holds an object and has no sector row.")
         if shells is None:
             shells = uncharted_index.shells_with_objects(conn, from_parts=True)       # the parts are current: rolled, or just written
             say(f"{len(shells):,} shells hold objects ({time.monotonic() - begun:,.0f} s to list them).")
@@ -2869,7 +2870,7 @@ def refresh_block_lights(mysql_config, args=None):
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
-        log.normal(f"Warning: making the block light totals failed: {exc}")
+        log.warning(f"Making the block light totals failed: {exc}")
         return 0
     log.normal(f"Made {written:,} block light totals.")
     return written
@@ -3203,7 +3204,7 @@ class BlockLightsFollower(followed.Follower):
                 log.normal(line)
         if result["warning"]:
             self._failed = True
-            log.normal(f"Warning: making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
+            log.warning(f"Making the block light totals failed ({result.get('part', 'all')}): {result['warning']}")
 
 
 class _PhenomenaBook:
@@ -3655,8 +3656,8 @@ def log_skeleton_summary(args, summary):
         f"{summary['outer_shell_index']}, ~{summary['total_candidate_sectors']:,} candidate sectors."
     )
     if not summary["edge_confirmed"]:
-        log.normal(
-            f"WARNING: the galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
+        log.warning(
+            f"The galactic plane still qualified at the --edge ({dials.lever('edge').format(args.edge)}) -- the "
             f"galaxy's true edge was not reached. Re-run with a larger --edge, or none, if these shape "
             f"parameters really do produce a galaxy this large."
         )

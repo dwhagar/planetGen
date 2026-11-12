@@ -403,6 +403,19 @@ def stage_label(conn, run_id, index):
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
 
 
+def stop_line(run_id, stage_at, stage_count, exc, message, stopped):
+    """OPS.163: the severity, text and fields of the line a generation run that stopped early logs. It says why and at which stage it stopped; a cancel (Ctrl+C,
+    a SIGTERM) is a notice and not an error, the rule of `log.DELIBERATE_SIGNALS`."""
+    where = "" if stage_at is None else f" at stage {stage_at + 1} of {stage_count}"
+    cause = "canceled" if stopped else type(exc).__name__
+    reason = message if stopped else f"{cause}: {message}"
+    fields = {"run_id": run_id, "cause": cause}
+    if stage_at is not None:
+        fields["stage"] = stage_at + 1
+    return ("notice" if stopped else "error",
+            f"Run {run_id} stopped{where}: {reason}. 'planetgen finish-run' carries it on from the first stage that did not finish.", fields)
+
+
 def stage_name(conn, run_id, index):
     """What a message calls stage `index` (PERF.221): the label the page shows for it, not the internal number; the
     number only where the run record cannot say (a run already gone from Redis)."""
@@ -785,6 +798,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         run_id = start()
     beat = runrecord.Heartbeat(conn, run_id)        # the run is followed from here to the end, whatever this process is busy with
     relay = events = None
+    stage_at = None
     try:
         beat.start()
         # ADM.136: everything after the machine is taken is inside the try, so a failure of the set-up ends the run instead of leaving it
@@ -799,6 +813,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         log.attach(events)
         advance(conn, run_id, 0)
         for index in range(len(steps)):
+            stage_at = index
             ensure = ensures[index]
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
@@ -832,8 +847,8 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
             pass        # a full Redis refuses this write too; the original error is the one to show
         log.trace(f"run {run_id} finished: {'canceled' if stopped else 'failed'} ({message})", area="queue")
         if galaxy_seed and kind == runrecord.GENERATION:
-            log.error(f"Run {run_id} stopped before it was done. 'planetgen finish-run' carries it on from the first stage "
-                      f"that did not finish.")
+            severity, line, fields = stop_line(run_id, stage_at, len(steps), exc, message, stopped)
+            log.get("queue").log(severity, line, **fields)
         if relay:
             relay.finish()
         if full:

@@ -45,7 +45,7 @@ BATCH = 6
 
 
 def module_names(path):
-    """`('a.b.c', 'c')` for `src/planetgen/a/b/c.py`: the dotted name and the base name; `__init__` names its package."""
+    """`('a.b.c', 'c')` for the file `a/b/c.py` under the package folder: the dotted name and the base name; `__init__` names its package."""
     parts = pathlib.PurePosixPath(path).with_suffix("").parts
     if parts[:2] != ("src", "planetgen"):
         return None
@@ -100,7 +100,7 @@ def pick(changed, tests_dir=TESTS, skip=()):
 
 
 def failed_files(log_text):
-    """The test files with a `FAILED` or `ERROR` line in a pytest log (`FAILED src/tests/test_x.py::name - ...`), sorted."""
+    """The test files with a `FAILED` or `ERROR` line in a pytest log (`FAILED <test file>::<name> - ...`), sorted."""
     return sorted(set(re.findall(r"^(?:FAILED|ERROR)\s+(src/tests/test_[^\s:]+\.py)", log_text, flags=re.MULTILINE)))
 
 
