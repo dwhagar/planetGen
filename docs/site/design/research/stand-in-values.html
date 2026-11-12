@@ -200,21 +200,21 @@ main{padding:16px 16px 60px}}
 </tr>
 <tr>
 <td>T2</td>
-<td>150</td>
-<td>59</td>
+<td>151</td>
+<td>60</td>
 <td>1</td>
 <td>1</td>
 <td>0</td>
-<td>211</td>
+<td>213</td>
 </tr>
 <tr>
 <td>T3</td>
-<td>117</td>
-<td>53</td>
+<td>116</td>
+<td>52</td>
 <td>10</td>
 <td>10</td>
 <td>0</td>
-<td>190</td>
+<td>188</td>
 </tr>
 <tr>
 <td>T4</td>
@@ -1009,7 +1009,7 @@ main{padding:16px 16px 60px}}
 <td>L0</td>
 <td>Band strengths from neighbouring molecule bands;</td>
 <td>a measured giant colour disagrees</td>
-<td>tables replace. GEN.949 (2026-11-11): the visible methane is now read from the Karkoschka 1998 table (fill AD12 of 6.6, T1); ammonia and water stay on the bins</td>
+<td>tables replace. GEN.949 (2026-11-11): the visible methane is now read from the [R2259] table (fill AD12 of 6.6, T1); ammonia and water stay on the bins</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -1031,7 +1031,7 @@ main{padding:16px 16px 60px}}
 <td>D</td>
 <td>T5</td>
 <td>L0</td>
-<td><code>datasets/methane_visible.py</code>: the one effective spectrum of Karkoschka (1998), which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives</td>
+<td><code>datasets/methane_visible.py</code>: the one effective spectrum of [R2259], which the paper puts near 100 K, serves every temperature and pressure; the band strengths of warmer methane (the band model of [R2265] gives 198 and 296 K) are weaker in the strong bands and are not applied, so a warm methane air (Titan's surface, a planet with some methane) has deeper bands than the physics gives</td>
 <td>a retrieved warm-methane spectrum differs</td>
 <td>the temperature dependence from the band parameters of [R2265]</td>
 <td>predicted only</td>
@@ -1497,7 +1497,7 @@ main{padding:16px 16px 60px}}
 <td>L0</td>
 <td>the 35 coarse band means of the gas table for methane in the visible, which flatten the strong bands (727, 790, 840, 890 nm) and the windows between them</td>
 <td>the methane download (<code>methane_visible.py</code>, read by <code>physics/uv_cross_sections.methane_optical_depth</code> and so by every colour with methane in its air; GEN.949, the visible part of AD1)</td>
-<td>[R2259] (Karkoschka 1998), [R2258] (Karkoschka 1994); the band model of [R2265] (Karkoschka and Tomasko 2010) is not read</td>
+<td>[R2258, R2259]; the band model of [R2265] is not read</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -23451,7 +23451,7 @@ main{padding:16px 16px 60px}}
 <td>rocky differentiated parents, no crust layer</td>
 <td>a measured mantle xenolith mix outside 0.4 to 0.7 olivine</td>
 <td>the mantle of the parent from its own composition (GEN.553)</td>
-<td>the ring builder of <code>small_body_composition.draw_ring</code> (precedent), recalled peridotite modal mineralogy</td>
+<td>the earlier ring builder of <code>small_body_composition</code> (precedent, removed in GEN.1523), recalled peridotite modal mineralogy</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -26894,7 +26894,7 @@ main{padding:16px 16px 60px}}
 <td>giants with a disk; the edge is the generator's (18 snow lines, DE3, GEN.1520)</td>
 <td>a giant's heavy-element pattern that needs a nearer or a farther source</td>
 <td>a model of the planetesimals scattered into a giant's feeding zone by its own growth</td>
-<td>the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids ([R5163]); where those solids formed is mine</td>
+<td>the Galileo probe's noble gases (Ar 2.5, Kr 2.7, Xe 2.6 times solar) need cold solids [R5163]; where those solids formed is mine</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28772,8 +28772,8 @@ main{padding:16px 16px 60px}}
 <td>0 to 10 Gy</td>
 <td>stars with no population age</td>
 <td>a thin-disk age window other than the disk history's</td>
-<td><code>galaxy.disk_history</code> (GEN.935 family)</td>
-<td>the thin disk's 0 to 10 Gy; population ages by position come on top</td>
+<td>the thin disk's population windows (<code>tuning.STELLAR_POPULATION_AGE_RANGES_GY</code>, <code>THIN_DISK_OLD_WINDOW_GY</code>; <code>test_age_windows_held_to_populations.py</code> holds the window to them)</td>
+<td>checked on 2026-11-11 (GEN.1525): young 0 to 0.1, intermediate 0.1 to 3 and the thin disk's old 3 to 10 lay end to end over exactly 0 to 10, under the age of the Universe; <code>galaxy.disk_history</code> reads the top as its span; population ages by position come on top; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28787,8 +28787,8 @@ main{padding:16px 16px 60px}}
 <td>1e-5 to 10 Gy</td>
 <td>white dwarfs, neutron stars and black holes drawn free</td>
 <td>a free neutron star younger than its first 10 kyr</td>
-<td><code>galaxy.disk_history</code> for the upper edge</td>
-<td>a clip; the floor keeps a free neutron star from being young enough to be a magnetar (GEN.278)</td>
+<td>the star-formation window's top (<code>test_age_windows_held_to_populations.py</code>)</td>
+<td>checked on 2026-11-11 (GEN.1525): the ceiling equals the thin disk's 10 Gy and the floor equals the magnetar active life (10 kyr), so a free neutron star is never young enough to be one (GEN.278); a clip; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28856,14 +28856,14 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>AUD10</td>
 <td>B</td>
-<td>T3</td>
-<td>L0</td>
-<td><code>tuning.CLUSTER_MASS_RANGE_SOL</code> (1e4, 3e6): the globular cluster mass range</td>
-<td>1e4 to 3e6 solar masses</td>
+<td>T2</td>
+<td>L1</td>
+<td><code>tuning.CLUSTER_MASS_RANGE_SOL</code> (1e4, 3e6): the globular cluster mass range; and <code>CLUSTER_MASS_PEAK_SOL</code> 2e5, the centre of the log-normal</td>
+<td>peak 1.3e5 to 2.1e5 (M/L_V of 1.5 to 2.6); 1e4 to 3e6</td>
 <td>globular clusters</td>
-<td>a globular outside the range in the Harris catalogue</td>
-<td>the Harris catalogue (GEN.297, reader built)</td>
-<td>compared with the catalogue when GEN.297 reads it</td>
+<td>a cluster brighter than M_V of -6 outside the range, or a bright-cluster median outside the peak band, in the Harris catalog</td>
+<td>the Harris fit (<code>test_cluster_laws_harris.py</code> holds the tuning to it); a floor under 1e4 if the dissolving tail is modelled</td>
+<td>checked against [R1827] (2010 edition, 156 clusters with M_V) on 2026-11-11 (GEN.1525): the bright-cluster median is 1.3e5 (M/L 1.5) to 2.1e5 (M/L 2.6), the heaviest cluster 2.2e6, and 8 to 10 percent of the catalog is under the floor of 1e4 (evolved clusters a log-normal does not make); values unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -28871,14 +28871,14 @@ main{padding:16px 16px 60px}}
 <tr>
 <td>AUD11</td>
 <td>B</td>
-<td>T3</td>
-<td>L1</td>
+<td>T2</td>
+<td>L0</td>
 <td><code>tuning.CLUSTER_MASS_SIGMA_DEX</code> 0.5: the width of the globular cluster mass function</td>
-<td>0.4 to 0.6 dex</td>
-<td>globular cluster ensembles</td>
-<td>a measured mass function width outside 0.4 to 0.6 dex</td>
-<td>the Harris catalogue fit (GEN.297)</td>
-<td>recalled; next to <code>CLUSTER_MASS_PEAK_SOL</code> 2e5</td>
+<td>0.37 to 0.67 dex</td>
+<td>globular clusters</td>
+<td>a measured width outside the band of the bright clusters (0.37 dex) and the whole catalog (0.67 dex)</td>
+<td>the Harris fit (<code>test_cluster_laws_harris.py</code>)</td>
+<td>checked against [R1827] on 2026-11-11 (GEN.1525): 0.37 dex for the clusters brighter than M_V of -6, 0.67 dex with the faint tail; the turnover width of 1.2 mag is 0.48 dex; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29057,8 +29057,8 @@ main{padding:16px 16px 60px}}
 <td>1.5 to 3</td>
 <td>pre-main-sequence stars</td>
 <td>a track set that differs by more than the factor</td>
-<td>the MIST and BHAC15 pre-main-sequence tracks</td>
-<td>derived from the tracks when <code>pre_main_sequence</code> reads them</td>
+<td>the MIST isochrones' nuclear arrival (<code>isochrones.pre_main_sequence_arrival_yr</code>; <code>test_pms_energy_factor_held_data.py</code> holds the model's Kelvin-Helmholtz time to it) and the BHAC15 tracks</td>
+<td>checked on 2026-11-11 (GEN.1525): against MIST's nuclear arrival at 0.15 to 3 solar masses the model with 2.0 is within 0.32 dex (0.03 at 1); against the BHAC15 radius-settled times the best factor is near 1.0 (2.0 runs 0.27 dex long, rms 0.31 against 0.16 at 1.0), but the track is stretched onto those times (<code>scale</code>, GEN.1174) so the factor changes only the nuclear-arrival stand-in below MIST's mass reach (0.05 to 0.1 solar masses: 2.9 to 0.75 Gy at 2.0, half that at 1.0); kept at 2.0 as the nuclear-arrival fit; value unchanged</td>
 <td>predicted only</td>
 <td>-</td>
 <td>no data</td>
@@ -29292,7 +29292,7 @@ main{padding:16px 16px 60px}}
 <td>T</td>
 <td>T6</td>
 <td>L0</td>
-<td>clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227] Eq. 10, found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window</td>
+<td>clearance_ledger.effective_spacing: the window's survival is that of equal gaps K_eff = mean - 0.5 sigma ([R5227: Eq. 10], found for seven-planet systems with Gaussian gaps), applied to the three gaps of a four-planet window</td>
 <td>window 4 to 7 planets</td>
 <td>chains of four planets</td>
 <td>a window whose scattering time is not that of equal gaps at K_eff</td>
@@ -29349,7 +29349,7 @@ main{padding:16px 16px 60px}}
 <td>main-sequence stars and giants</td>
 <td>a star whose measured moment of inertia is off by more than a factor of two</td>
 <td>a moment of inertia from the star's structure (polytrope index by mass)</td>
-<td>Hurley, Tout and Pols 2002 take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)</td>
+<td>[R5229] take 0.1 for every star; the Sun is 0.059, a fully convective star 0.2 (recalled, not opened)</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29364,7 +29364,7 @@ main{padding:16px 16px 60px}}
 <td>dwarfs and giants below the radiative limit</td>
 <td>an envelope share from a stellar model that differs by a factor of three at a mass</td>
 <td>the envelope mass from the stellar evolution track of the star</td>
-<td>the Sun's envelope is 2 to 3 percent; fully convective at 0.35 (Chabrier and Baraffe 1997)</td>
+<td>the Sun's envelope is 2 to 3 percent; fully convective at 0.35 [R5234]</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29394,7 +29394,7 @@ main{padding:16px 16px 60px}}
 <td>pairs whose orbit has not moved much since birth</td>
 <td>a pair whose orbit was wide and shrank by a factor of two or more (the star kept a faster spin than the formula gives)</td>
 <td>the orbit and the spin integrated together over the age (with magnetic braking)</td>
-<td>the equilibrium-tide relaxation is linear in the spin; Zahn 1977, Hut 1981; the orbit is held because the generator has no orbit history</td>
+<td>the equilibrium-tide relaxation is linear in the spin; the tidal theory as given by [R5229]; the orbit is held because the generator has no orbit history</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29408,7 +29408,7 @@ main{padding:16px 16px 60px}}
 <td>none</td>
 <td>compact members of a pair</td>
 <td>a tidally locked white dwarf in a close double</td>
-<td>the dissipation of a degenerate star (Willems et al 2010)</td>
+<td>the dissipation of a degenerate star [R5231]</td>
 <td>a white dwarf's tide is orders of magnitude weaker per unit of R/a; the double white dwarf pairs are measured to be unsynchronised</td>
 <td>predicted only</td>
 <td>-</td>
@@ -29423,8 +29423,8 @@ main{padding:16px 16px 60px}}
 <td>0.3 to 3</td>
 <td>pairs whose tide reaches the star</td>
 <td>a close binary whose spin-orbit angle is measured to survive the synchronisation time</td>
-<td>the Hut 1981 obliquity equations</td>
-<td>Hut 1981: the two relax on the same order</td>
+<td>the obliquity equations of the tidal theory [R5229]</td>
+<td>[R5229]: the two relax on the same order</td>
 <td>predicted only</td>
 <td>-</td>
 <td>-</td>
@@ -29438,7 +29438,7 @@ main{padding:16px 16px 60px}}
 <td>the four values</td>
 <td>main-sequence stars and giants</td>
 <td>a star whose measured apsidal motion constant is off by a factor of three</td>
-<td>the constants of a stellar model of the star's mass and age (Claret and Gimenez 2010)</td>
+<td>the constants of a stellar model of the star's mass and age [R5230]</td>
 <td>observed log k2 runs from about -1.5 at a solar mass to about -2.5 at 10 (recalled, not opened); the n=1.5 polytrope gives 0.14</td>
 <td>predicted only</td>
 <td>-</td>

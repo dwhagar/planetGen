@@ -77,9 +77,9 @@ def fit(shares=SHARES, box_pc=70.0, seed=7):
     """`[(share, ks distance, share of systems placed)]` against the Gaia sample, and the sample's size and density."""
     from planetgen.datasets import gaia_nearby
 
-    centres = gaia_nearby.systems()
-    sample = gaia_nearby.nearest_neighbour_distances_pc(centres)
-    density = gaia_nearby.system_density_per_pc3(centres)
+    centers = gaia_nearby.systems()
+    sample = gaia_nearby.nearest_neighbour_distances_pc(centers)
+    density = gaia_nearby.system_density_per_pc3(centers)
     rows = []
     for share in shares:
         model, kept = simulate(share, density, box_pc, seed)

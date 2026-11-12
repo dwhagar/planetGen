@@ -41,7 +41,7 @@ from rq.job import Callback
 
 from planetgen.datasets import fetch
 from planetgen.db import store
-from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat
+from planetgen.queue import commands, commandgaps, redisqueue, requires, runrecord, unitbeat, unitrates
 from planetgen.util import log
 
 UNIT_FUNCTION = "planetgen.queue.units.run_unit"
@@ -223,7 +223,9 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     with unitbeat.UnitBeat(conn, run_id, stage, unit, resident=resident_mb, stack_file=unitbeat.stack_path(run_id, stage, unit)) as report:       # OPS.136: a thread of this horse writes the beat while the work loop only sets numbers
         result = commands.unit_function(kind)(args, report)
         gap = report.longest_gap()
+        finished, worked = report.totals()
     commandgaps.note(conn, run_id, kind, gap)       # OPS.135
+    unitrates.note(conn, run_id, kind, finished, worked)        # PERF.147: how fast this command's units work, for the ETA of a unit's bar
     seconds = time.monotonic() - started
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it

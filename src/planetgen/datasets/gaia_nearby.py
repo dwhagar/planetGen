@@ -34,8 +34,8 @@ LIMIT_PC = 25.0
 MERGE_PC = 0.1
 """float: Stars closer than this to a neighbour are one system (wide pairs and their companions, whose separations run to 20,000 AU), as the galaxy places a system once however many stars it holds."""
 
-CENTRE_PC = 15.0
-"""float: Only systems nearer than this are asked for their nearest neighbour, so that the neighbour is always inside the complete sample (`LIMIT_PC`) and none is missed at its edge: the nearest neighbour of a system nearer than `CENTRE_PC` is nearer than 10 pc."""
+CENTER_PC = 15.0
+"""float: Only systems nearer than this are asked for their nearest neighbour, so that the neighbour is always inside the complete sample (`LIMIT_PC`) and none is missed at its edge: the nearest neighbour of a system nearer than `CENTER_PC` is nearer than 10 pc."""
 
 DATASET = fetch.Dataset(
     key="gaia_nearby",
@@ -67,7 +67,7 @@ def positions_pc():
 
 def systems(positions=None, merge_pc=MERGE_PC):
     """
-    The centres (numpy array, parsecs) of the systems the sources make: sources closer than `merge_pc` to one another, directly or through a chain, are one system at the mean of their places.
+    The centers (numpy array, parsecs) of the systems the sources make: sources closer than `merge_pc` to one another, directly or through a chain, are one system at the mean of their places.
     `positions` is the list of `(x, y, z)` to use instead of the downloaded sample (a test's).
     """
     import numpy as np
@@ -90,21 +90,21 @@ def systems(positions=None, merge_pc=MERGE_PC):
     return np.array([points[members].mean(axis=0) for members in groups.values()])
 
 
-def nearest_neighbour_distances_pc(centres=None, centre_pc=CENTRE_PC):
+def nearest_neighbour_distances_pc(centers=None, center_pc=CENTER_PC):
     """
-    The distance to the nearest other system, parsecs, of every system within `centre_pc` of the Sun (sorted), from the system centres `centres` (`systems()` when omitted). The neighbours are
+    The distance to the nearest other system, parsecs, of every system within `center_pc` of the Sun (sorted), from the system centers `centers` (`systems()` when omitted). The neighbours are
     searched among all the systems of the sample, which is complete out to 25 pc, so a system within 15 pc never misses its nearest neighbour at the edge.
     """
     import numpy as np
     from scipy.spatial import cKDTree
 
-    centres = systems() if centres is None else np.asarray(centres, dtype=float).reshape(-1, 3)
-    inner = centres[np.linalg.norm(centres, axis=1) < centre_pc]
-    distances, _ = cKDTree(centres).query(inner, k=2)
+    centers = systems() if centers is None else np.asarray(centers, dtype=float).reshape(-1, 3)
+    inner = centers[np.linalg.norm(centers, axis=1) < center_pc]
+    distances, _ = cKDTree(centers).query(inner, k=2)
     return np.sort(distances[:, 1])
 
 
-def system_density_per_pc3(centres=None):
+def system_density_per_pc3(centers=None):
     """The number of systems per cubic parsec inside `LIMIT_PC`."""
-    centres = systems() if centres is None else centres
-    return len(centres) / (4.0 / 3.0 * math.pi * LIMIT_PC ** 3)
+    centers = systems() if centers is None else centers
+    return len(centers) / (4.0 / 3.0 * math.pi * LIMIT_PC ** 3)

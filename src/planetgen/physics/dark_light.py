@@ -47,7 +47,7 @@ NEUTRON_STAR_PROGENITOR_LIFE_GY = 0.03
 """float: How long the star that became the neutron star lived, Gy: a core-collapse progenitor of 8 to 25 solar masses lives 0.01 to 0.04 Gy, so the neutron star is younger than its system by this much. [DL3, T8, L0.]"""
 
 NEUTRON_STAR_MIN_AGE_GY = 1.0e-6
-"""float: The youngest age the cooling curve is read at (a star of the system's own age less its progenitor's life, never under this), Gy."""
+"""float: The youngest age the cooling curve is read at (a star of the system's own age less its progenitor's life, never under this), Gy (a numerical stand-in of GEN.1501: the cooling curve needs an age above zero)."""
 
 DISK_EFFICIENCY = 0.1
 """float: The share of the rest mass of what a black hole takes in that leaves as light: 0.057 for a non-rotating hole's thin disk [R4037], up to 0.42 for a maximally rotating one. [DL4, T4, L0.]"""

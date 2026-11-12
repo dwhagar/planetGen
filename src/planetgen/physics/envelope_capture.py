@@ -41,7 +41,7 @@ HELIUM_LOSS_GATE = 0.5
 a helium mass fraction of 0.4 (registry GEN.725 row HF3 of section 6.77)."""
 
 HELIUM_HISTORY_POINTS = 40
-"""int: The most steps of the loss history `helium_fractionation` is given (numerical: the loss takes up to thousands of steps)."""
+"""int: The most steps of the loss history `helium_fractionation` is given (a numerical stand-in of GEN.1527: the loss takes up to thousands of steps)."""
 
 MIN_MASS_EARTH = 1.0
 """float: The lightest planet that captures an envelope (the e1 and e2 rows start at 1 Earth mass; a lighter one cannot hold a nebular gas)."""

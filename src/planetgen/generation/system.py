@@ -1267,7 +1267,7 @@ class StarSystem:
                 star.axial_tilt_deg = spin.obliquity_between((star.spin_axis_x, star.spin_axis_y, star.spin_axis_z), pole)
             with draw.bound(draw.Stream(f"pair-activity:{star.mass!r}:{star.age!r}:{partner_kg!r}:{_km_to_au(node.separation_km)!r}")):
                 activity.generate_activity(star)
-            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronisation time {result.sync_time_yr:.3g} yr)")
+            log.debug(f"{star.name}: spin set by its partner's tide to {result.rotation_period_hours:.4g} h (synchronization time {result.sync_time_yr:.3g} yr)")
         for node_no, pair in under.items():
             if len(pair) == 2:
                 node = by_no[node_no]
@@ -2359,7 +2359,11 @@ class StarSystem:
                 if planet.body_type == 'a' or not planet.moons:
                     continue
                 self.kozai_outcomes["screened"] += len(planet.moons)
+                before = {id(moon): moon.eccentricity for moon in planet.moons}
                 lost = kozai_bodies.pump_moons(planet, self.effect_ledger)
+                for moon in planet.moons:
+                    if moon not in lost and moon.eccentricity != before[id(moon)]:
+                        planetPhysics.update_orbital_position(moon)     # GEN.1540: the moon goes on the ellipse of the eccentricity it now has, in its place in its plane
                 self.kozai_outcomes["cycling"] += sum(1 for moon in planet.moons if getattr(moon, "_kozai", None) is not None)
                 for moon in lost:
                     planet.moons.remove(moon)
@@ -2414,6 +2418,18 @@ class StarSystem:
                 made = planetPhysics.refinish_rocky(obj)
                 if made:
                     log.debug(f"{obj.name}: {made} bod{'y' if made == 1 else 'ies'} made again at the star's age of {obj.star.age:.3g} Gyr")
+            # An eccentricity the settle pass raised or the oddities forced (a resonant chain's, W5) can close the gap the spacing pass left exactly at its rule; where the final check would now refuse a
+            # star's planets, the pass is run once more on that star (it moves nothing where the rule holds, so a system that passes is untouched).
+            respaced = False
+            for star, planets in validation.star_lists(self):
+                if validation.check_orbit_spacing(planets):
+                    for moved in validation.space_orbits(planets):
+                        log.debug(f"{getattr(moved, 'name', 'a belt')}: moved to {moved.distance:.4g} AU, the eccentricities having settled")
+                    # the pass only pushes outward, so it can carry the outermost body past the star's stability ceiling (a wide binary's a_crit) as the first spacing pass can: trimmed the same way
+                    validation.trim_to_orbit_ceiling(planets, validation.orbit_ceiling_au(star))
+                    respaced = True
+            if respaced and self.binary_type == "wide":
+                self._validate_cross_star_clearance()       # and the two stars' outermost bodies keep clear of each other
             for star, planets in validation.star_lists(self):      # GEN.1454: the orbits and the moons are final, so the planets' pull on each other's tilt can be judged
                 moved = planetPhysics.settle_obliquity(planets, star.mass)
                 if moved:

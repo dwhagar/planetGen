@@ -44,6 +44,7 @@ from planetgen.physics import (
     neutron_star_crust,
     outside_hours,
     planet_class_text,
+    planet_type,
     pre_main_sequence,
     protection,
     orbit_elements,
@@ -469,7 +470,7 @@ def _planet_facts(planet):
     else:
         rows.append(fact("temperature", "Surface temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
-        rows.append(fact("pressure", "Surface pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        rows.append(fact("pressure", planet_type.pressure_label(planet_type.planet_type(planet)), _pascal(0.0 if airless else planet.atmospheric_pressure)))      # UX.297: a rocky planet under a deep envelope has no surface
         colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
         if colour is not None:
             rows.append(fact("atmosphere_colour", "Atmosphere color", swatch(colour.hex, colour.label)))
@@ -498,7 +499,7 @@ def _radiation_block(planet):
     terms = habitability_explain.radiation_terms(planet)
 
     def dose(msv_yr):
-        return qty("dose", msv_yr / 1000.0, "Sv/yr")
+        return qty("dose rate", msv_yr, "mSv/yr")
 
     air = ", ".join(f"{name} {three_figures_or_tiny(share * 100.0)} percent" for name, share in terms.air)
     shield = (f" under {three_figures_or_tiny(terms.column_g_cm2)} g/cm2 of air ({air})" if terms.column_g_cm2 > 0.0 and air

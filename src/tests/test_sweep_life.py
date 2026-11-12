@@ -131,11 +131,16 @@ def capable_entry(everything):
     return best
 
 
+def _letter_of(body):
+    """The class letter of what the life model is asked to score: the habitability code passes a column-named mapping of the body's values, the sweep a body."""
+    return body.get("planet_class") if isinstance(body, dict) else body.planet_class
+
+
 @pytest.mark.slow
 def test_a_life_model_that_reads_the_letter_is_reported_with_the_letter_and_the_class(monkeypatch, capable_entry):
     real = life_classes.score_classes
     letter = next(letter for letter in rules.letters() if letter != capable_entry.body.planet_class)
-    monkeypatch.setattr(life_classes, "score_classes", lambda body: {} if body.planet_class == letter else real(body))
+    monkeypatch.setattr(life_classes, "score_classes", lambda body: {} if _letter_of(body) == letter else real(body))
     problems = rules._check_scores_class_blind(capable_entry)
     assert problems and all(f"as class {letter}" in problem for problem in problems), problems
     assert any("the best life class is None" in problem for problem in problems)
@@ -150,7 +155,7 @@ def test_a_single_score_that_moves_with_the_letter_names_that_life_class(monkeyp
 
     def nudged(body):
         scores = real(body)
-        if body.planet_class == letter:
+        if _letter_of(body) == letter:
             scores[class_id] = types.SimpleNamespace(id=class_id, likelihood=scores[class_id].likelihood, score=scores[class_id].score - 1)
         return scores
 

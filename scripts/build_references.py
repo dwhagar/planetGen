@@ -58,7 +58,8 @@ Late Early Circa Approx Total Count Counts Mark Release Released Filed Added Fix
 Decided Decision Decisions Built Merged Opened Written Started Ended Dated Report Epochs Stage Era Eras Unit Units Mass Radius Age Time
 Date Dates Number Numbers Size Sizes Level Levels Class Classes Type Types Model Models Method Methods Result Results Source Sources
 Gate Gates Pass Passes Run Runs Row Rows Entry Entries List Lists Case Cases Set Sets Test Group Groups Task Tasks Page Pages Line Lines
-Index Code Tier Tiers Tweak Tweaks Value Values Range Ranges Fill Fills Gap Gaps Win Wins Fix Fixes Bugs Wave Waves Batch Batches Slice""".split())
+Index Code Tier Tiers Tweak Tweaks Value Values Range Ranges Fill Fills Gap Gaps Win Wins Fix Fixes Bugs Wave Waves Batch Batches Slice
+Manager EST EDT UTC""".split())
 
 NOT_CITATIONS = {"EDT", "EST", "UTC", "Wikipedia", "OSHA", "Orbital", "TwinMind", "NASA", "Python", "GitHub", "Claude", "Anthropic", "Alembic", "Redis", "MySQL"}
 

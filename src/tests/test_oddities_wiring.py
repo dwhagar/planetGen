@@ -534,7 +534,7 @@ def test_a_sub_neptune_inside_the_hycean_box_is_named_and_one_that_is_too_light_
 
     inside = _planet_at("K2V", 0.3, "hy-2-0.3-0", mass_earth=2.0, force=("W26",))
     found = oddities.quantities_of(inside)
-    assert inside.oddities == ("W26",)
+    assert "W26" in inside.oddities and set(inside.oddities) <= {"W26", "W1"}      # the draw may also tip the planet into the tilt row W1
     assert hycean_candidate.hycean_candidate(found["mass_earth"], found["radius_earth"], found["equilibrium_temperature_k"])
     puffy = _planet_at("K2V", 1.0, "hy-2-1.0-0", mass_earth=2.0, force=("W26",))
     found = oddities.quantities_of(puffy)       # 2.0 Earth radii at 1.4 g/cc: under the box's density

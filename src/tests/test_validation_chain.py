@@ -78,3 +78,39 @@ def test_a_chain_spaced_as_the_rule_asks_validates_and_a_loose_one_is_untouched(
     assert validation.check_orbit_spacing(inner + [body]) == []
     loose = [types.SimpleNamespace(body_type="t", distance=0.1 * 2.5 ** i, eccentricity=0.0, mass=1e24, star=body.star) for i in range(5)]
     assert validation.check_orbit_spacing(loose) == []
+
+
+# The window of M3V seed 1317 as it stood after the settle pass: gaps of 10.7 and 11.2 mutual Hill radii and a 276 Earth-mass giant last, so the spacing a planet beyond can reach saturates at 12.0 (a last gap
+# tops out near 22 mutual Hill radii) and only a distance of 18.5 AU holds it. A tenth of a percent of eccentricity either way turned this between "no distance closes it" and 18.5 AU.
+SEED_1317_WINDOW = [(0.17736489065683342, 0.00010530538382627255, 2.1589670278845407e-05 * MSUN_KG), (0.2663213215446025, 0.03867301011741685, 3.1198164823724346e-05 * MSUN_KG),
+                    (0.780980104277751, 0.011812512097469878, 0.000828067362132774 * MSUN_KG)]
+
+
+def test_a_window_only_a_far_distance_closes_is_left_to_the_pairwise_rule():
+    start = 1.9469395113748464
+    found = ledger.chain_distance_au(SEED_1317_WINDOW, 3.0742534385850345e-06 * MSUN_KG, 0.010332050185493899, 0.4787564990065853 * MSUN_KG, start)
+    assert found == start, "a push of more than CHAIN_MAX_PUSH times the pairwise distance is not the chain rule"
+
+
+def test_the_push_is_the_nearest_distance_when_a_near_one_closes_the_window(monkeypatch):
+    planets = system(SEED_282)
+    body = planets[-1]
+    inner = [(p.distance, p.eccentricity, p.mass) for p in planets[:-1]]
+    start = body.distance * 0.9
+    found = ledger.chain_distance_au(inner, body.mass, body.eccentricity, body.star.mass, start)
+    monkeypatch.setattr(ledger, "CHAIN_SCAN_STEP", 1.001)
+    assert ledger.chain_distance_au(inner, body.mass, body.eccentricity, body.star.mass, start) == pytest.approx(found, rel=1e-12)
+
+
+@pytest.mark.parametrize("seed", [1273, 1317])
+def test_m3v_systems_that_failed_the_final_check_after_the_settle_pass_validate(seed):
+    """Seed 1273: an eccentricity the oddities forced after the spacing pass closed a belt's gap by 0.13 percent; seed 1317: the knife edge above."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+
+    config = SystemConfig()
+    config.STAR_TYPE, config.PLANETS, config.COMETS, config.BINARY_SYSTEM = "M3V", True, False, False
+    with draw.bound(seed):
+        system = StarSystem(system_config=config)
+    assert validation.check_star_system(system) == []

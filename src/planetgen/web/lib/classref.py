@@ -29,6 +29,7 @@ Sequence Star" -> ("G", "V")).
 
 import functools
 import math
+import re
 
 from markupsafe import Markup, escape
 
@@ -42,7 +43,7 @@ from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 from planetgen.util import chem, log
-from planetgen.web.lib import help_registry
+from planetgen.web.lib import fmt, help_registry
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -197,6 +198,31 @@ def _star_luminosity():
     }
 
 
+_RULE_UNITS = {"Pa": "Pa", "K": "K", "C": "degC", "g": "g0", "Earth masses": "Mearth"}
+"""dict: The registry unit of each unit a class condition is written in (`planet_classes.DOCUMENT`'s quantities)."""
+
+_SLOT = re.compile("\ue000(\\d+)\ue001")
+
+
+def _rule_html(words_of, prefix=""):
+    """
+    The words of a class's conditions with every number that has a unit written as a `fmt.measured_html` span, so the visitor's unit setting
+    shows it in the units chosen (UX.295; `static/units.js` reads `data-si`). `words_of(measure)` is `class_fit.rule_words` with the hook. The words are
+    escaped; only the spans, which the unit registry writes, are markup.
+    """
+    spans = []
+
+    def measure(value, unit):
+        key = _RULE_UNITS.get(unit)
+        if key is None:
+            return None
+        spans.append(fmt.measured_html(key, value, companions=False))
+        return f"\ue000{len(spans) - 1}\ue001"
+
+    text = prefix + "; ".join(words_of(measure))
+    return Markup(_SLOT.sub(lambda found: spans[int(found.group(1))], str(escape(text))))
+
+
 def _planet():
     """The planet and moon classes (`physics/planet_classes.py`, GEN.645, GEN.1207): a class is what the finished body's conditions say, so a page gives the conditions
     of the class, not a table of ranges it was drawn from. Every class has its own conditions and none relies on another having said no (GEN.1208)."""
@@ -204,14 +230,13 @@ def _planet():
     ordered = planet_classes.CLASSES
     for cls in sorted(ordered, key=lambda c: c.letter):
         fit = next(row for row in class_fit.CLASSES if row.letter == cls.letter and row.kind == cls.kind)
-        rule = class_fit.rule_words(fit)
         if cls.letter in classes:     # GEN.1142: T has a giant row and a terrestrial one; the page is the giant row's, with a line for the other
-            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(rule)))
+            classes[cls.letter]["facts"].append(("Also", _rule_html(lambda measure: class_fit.rule_words(fit, measure), f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: ")))
             continue
         facts = [
             ("Name", cls.name),
             ("Type", PLANET_TYPE_LABELS[cls.kind]),
-            ("Conditions", "; ".join(rule)),
+            ("Conditions", _rule_html(lambda measure: class_fit.rule_words(fit, measure))),
             ("Core class", "Yes" if cls.core else "No"),
         ]
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)

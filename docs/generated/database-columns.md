@@ -633,8 +633,6 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `class_match` | DOUBLE | NULL | v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body |
 | `runner_up_class` | CHAR(1) | NULL | v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates |
 | `runner_up_match` | DOUBLE | NULL | v218 (GEN.1207): its match |
-| `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
-| `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
@@ -777,7 +775,6 @@ planets -- top-level planets only as of schema v2 (see the header comment's "v2"
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active |
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
-| `cloud_chemistry` | VARCHAR(48) | NULL | v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
 | `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
@@ -1117,8 +1114,6 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `class_match` | DOUBLE | NULL | v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body |
 | `runner_up_class` | CHAR(1) | NULL | v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates |
 | `runner_up_match` | DOUBLE | NULL | v218 (GEN.1207): its match |
-| `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
-| `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
@@ -1256,7 +1251,6 @@ moons -- one row per moon, as of schema v2 (see the header comment's "v2" note).
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active |
 | `life_complexity` | DOUBLE | NULL | v175: the complexity index of its life class, 1 for an Earth-like biosphere |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876): the adaptation traits of its life, text such as radiation:2,sulfide:3 (stress and grade), NULL for none |
-| `cloud_chemistry` | VARCHAR(48) | NULL | v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea |
 | `tide_range_neap_m` | DOUBLE | NULL | v191 (GEN.1034): the neap range, metres |
 | `ocean_liquid` | VARCHAR(40) | NULL | v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea |
@@ -2205,8 +2199,6 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `class_match` | DOUBLE | NULL | v218 (GEN.1207): the percent match of the class as a fraction, 0 when no class fits the body |
 | `runner_up_class` | CHAR(1) | NULL | v218 (GEN.1207): the letter of the next best class, NULL when only one passes the gates |
 | `runner_up_match` | DOUBLE | NULL | v218 (GEN.1207): its match |
-| `class_fudge_values` | VARCHAR(120) | NULL | v244 (GEN.1314): the values fudged to fit the class (the quantity names, comma separated, the temperatures count as 'temperature_k'), NULL for a full fit and for a body with no class |
-| `class_fudge_amount` | DOUBLE | NULL | v244 (GEN.1314): the total move of those values in widths of the fudge table, 0 for a full fit, NULL for a body with no class or a value it does not store |
 | `oddities` | VARCHAR(40) | NULL | v228 (GEN.1047): the ids of the oddities the body has, comma separated ('W10,G1'), NULL for none and for a row made before v221 |
 | `sky_suns` | VARCHAR(400) | NULL | v236 (GEN.1458): the other suns in the planet's sky, JSON `[[share, ux, uy, uz], ...]` (each other star's share of the mean light and its unit direction in the planet's equinox frame, `physics/sky_suns.py`), NULL for a lone star and for a row made before v236 |
 | `light_factor` | DOUBLE | NULL | v242 (GEN.1484): the share of its host's light a circumbinary planet keeps after its two stars eclipse each other (`physics/eclipses.py`), NULL for every other body and for a row made before v241 |
@@ -2244,7 +2236,6 @@ rogue_planets -- v16 exotic phenomenon, always standalone (a rogue planet is by 
 | `life_animal_grade` | TINYINT UNSIGNED | NULL | v207 (GEN.1111) |
 | `life_complexity` | DOUBLE | NULL | v207 (GEN.1111) |
 | `life_traits` | VARCHAR(48) | NULL | v223 (GEN.876) |
-| `cloud_chemistry` | VARCHAR(48) | NULL | v245 (GEN.1425): the species of the Venus sulfur-cloud set its air gives it, ids such as V1,V2,V10 (`physics/sulfur_cloud_set.py`), NULL for none |
 | `tide_range_spring_m` | DOUBLE | NULL | v207 (GEN.1111) |
 | `tide_range_neap_m` | DOUBLE | NULL | v207 (GEN.1111) |
 | `ocean_liquid` | VARCHAR(40) | NULL | v207 (GEN.1111) |
@@ -2620,7 +2611,6 @@ system_summary (v238, GEN.1479; v241, GEN.1478): a narrow row for each star syst
 |---|---|---|---|
 | `star_system_id` | BIGINT UNSIGNED | NOT NULL |  |
 | `habitability_stamp` | INT UNSIGNED | NULL |  |
-| `ledger_stamp` | INT UNSIGNED | NULL |  |
 | `stars_mass_kg` | DOUBLE | NULL |  |
 | `system_mass_kg` | DOUBLE | NULL |  |
 | `brightest_star_luminosity_w` | DOUBLE | NULL |  |

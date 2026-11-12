@@ -153,6 +153,12 @@ def _units(oxides):
     raise ValueError("the silica is too short for any norm")
 
 
+def divalent_pool(oxides):
+    """The mole fractions of the divalent oxides (`MgO`, `FeO`, `MnO`, `NiO`) of a rock that the mafic minerals of its norm carry: `{oxide: share}`, adding to 1 (empty where the rock has none)."""
+    _units_, iron = _units(oxides)
+    return dict(iron)
+
+
 def _mass(name, iron):
     """The mass of one formula unit of a normative mineral, g/mol (`iron` is the divalent pool's mole fractions)."""
     total = 0.0

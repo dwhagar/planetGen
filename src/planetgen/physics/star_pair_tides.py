@@ -6,12 +6,12 @@ Mutual tides, spin and apsidal precession between the two stars of a pair (GEN.1
 
 The stars of a binary raise tides on each other. Three things follow, none of which a star drawn alone can have:
 
-* **Spin-orbit locking.** The equilibrium tide drags a star's spin toward the orbit's. A star's spin approaches the pseudo-synchronous rate `Omega_ps` (Hut 1981) with a
-  synchronisation time `t_sync`: `Omega(t) = Omega_ps + (Omega_0 - Omega_ps) exp(-t / t_sync)`. The time is Zahn's (1977, 1989) for a star with a convective envelope, in the
-  form of Rasio et al. (1996) and Hurley et al. (2002) equation 21 on, and Zahn's (1975) dynamical tide for a star with a radiative envelope (Hurley et al. 2002 equations 41 and
-  42). A giant has a convective envelope; a white dwarf, a neutron star and a black hole keep the spin they were drawn with.
+* **Spin-orbit locking.** The equilibrium tide drags a star's spin toward the orbit's. A star's spin approaches the pseudo-synchronous rate `Omega_ps` as given by [R5232] with a
+  synchronisation time `t_sync`: `Omega(t) = Omega_ps + (Omega_0 - Omega_ps) exp(-t / t_sync)`. The time is Zahn's equilibrium tide for a star with a convective envelope, in the
+  form of [R5232, R5235] equation 21 on, and Zahn's dynamical tide for a star with a radiative envelope, [R5232] equations 41 and
+  42,. A giant has a convective envelope; a white dwarf, a neutron star and a black hole keep the spin they were drawn with.
 * **Spin-orbit alignment.** The same torque turns the spin axis onto the orbit normal; the angle between them falls as `exp(-t / t_align)` with `t_align = ALIGN_FACTOR t_sync`.
-* **Apsidal precession.** The orbit's periapsis turns because of the stars' tidal bulges, their rotational bulges and general relativity (Sterne 1939; Hilditch 2001): with `n`
+* **Apsidal precession.** The orbit's periapsis turns because of the stars' tidal bulges, their rotational bulges and general relativity [R5236]: with `n`
   the mean motion, `omega_dot = n (c_rot + c_tide) + omega_dot_GR`, `c_rot = k2 (Omega / n)^2 (1 + m_other / m_this) (R / a)^5 g(e)` and `c_tide = 15 k2 (m_other / m_this)
   (R / a)^5 f(e)` for each star, `g = (1 - e^2)^-2` and `f = (1 + 3 e^2 / 2 + e^4 / 8) (1 - e^2)^-5`. Relativity is `stability.gr_precession_period_yr`.
 
@@ -19,7 +19,7 @@ Everything here is pure: it reads a star's mass, radius, temperature, class and 
 to the stars of a pair (a hierarchy is taken a pair node at a time, each star against the mass of the other side) and notes the precession in the effect ledger (effect 6).
 The orbit is held as it is today (the period and eccentricity cuts of GEN.1011), so no stored orbit moves; the circular cut below 7 days stays (`multistar.CIRCULAR_BELOW_DAYS`).
 
-Stand-ins are KT1 to KT8 of `docs/design/research/gap-filling-plan.md` section 6.273: the radius of gyration (KT1), the convective envelope share by mass (KT2), the convective and
+Stand-ins are KT1 to KT8 of `docs/design/research/gap-filling-plan.md` section 6.278: the radius of gyration (KT1), the convective envelope share by mass (KT2), the convective and
 radiative choice (KT3), the first-order relaxation over the whole age with the orbit held and the breakup cap (KT4), the white dwarf, neutron star and black hole exclusions (KT5), the
 alignment time (KT6), the apsidal constants by kind (KT7), and the pair-by-pair reading of a hierarchy with no third-body term (KT8).
 """
@@ -30,14 +30,14 @@ from dataclasses import dataclass
 from planetgen.physics import constants, magnetic_geometry, spin, stability
 
 GYRATION_SQUARED = 0.1
-"""float: `I / (M R^2)`, the star's moment of inertia over `M R^2` (Hurley et al. 2002 take 0.1 for every star; a stand-in, row KT1, tier Confident Unverified, tweak L0)."""
+"""float: `I / (M R^2)`, the star's moment of inertia over `M R^2` ([R5232] take 0.1 for every star; a stand-in, row KT1, tier Confident Unverified, tweak L0)."""
 
 ALIGN_FACTOR = 1.0
-"""float: The alignment time over the synchronisation time (Hut 1981 gives the same order for the two; a stand-in, row KT6, tier Marginal educated guess from physics, tweak L0)."""
+"""float: The alignment time over the synchronisation time ([R5232] gives the same order for the two; a stand-in, row KT6, tier Marginal educated guess from physics, tweak L0)."""
 
-ZAHN_RADIATIVE_E2_COEFFICIENT = 1.592e-9
+ZAHN_RADIATIVE_E2_COEFFICIENT = 1.592e-9    # [R5232] equation 42, GEN.1467 (the exponent below has the docstring)
 ZAHN_RADIATIVE_E2_EXPONENT = 2.84
-"""float: The tidal coefficient of a radiative envelope, `E2 = 1.592e-9 (M / Msun)^2.84` (Zahn 1975 as fitted by Hurley et al. 2002 equation 42)."""
+"""float: The tidal coefficient of a radiative envelope, `E2 = 1.592e-9 (M / Msun)^2.84` (Zahn's dynamical tide as fitted by [R5232] equation 42)."""
 
 ENVELOPE_MASS_SHARE = ((0.35, 1.0), (0.6, 0.25), (1.0, 0.03), (1.3, 0.003))
 """tuple: `(mass in solar masses, convective envelope share of the mass)` points of a dwarf, interpolated in the log of the share: fully convective at 0.35 and below, the Sun's 2 to 3
@@ -51,11 +51,11 @@ RADIATIVE_MASS_SOL = 1.3
 
 APSIDAL_CONSTANT_FULLY_CONVECTIVE = 0.14
 APSIDAL_CONSTANT_SOLAR = 0.03
-APSIDAL_CONSTANT_MASSIVE = 0.004
+APSIDAL_CONSTANT_MASSIVE = 0.004    # GEN.1467: the k2 of a star of 5 solar masses and over (docstring below)
 APSIDAL_CONSTANT_GIANT = 0.005
 """float: The apsidal motion constant `k2` of a star: 0.14 for a fully convective one (a polytrope of index 1.5), 0.03 at a solar mass, 0.004 at 5 solar masses and over, 0.005 for a
 giant (centrally condensed); the log is interpolated in the mass between (observed `log k2` of main-sequence stars runs from about -1.5 at a solar mass to about -2.5 at 10;
-Claret and Gimenez 2010; stand-ins, row KT7, tier Marginal unverified, tweak L2)."""
+[R5233]; stand-ins, row KT7, tier Marginal unverified, tweak L2)."""
 
 KT_MASS_POINTS = ((0.35, APSIDAL_CONSTANT_FULLY_CONVECTIVE), (1.0, APSIDAL_CONSTANT_SOLAR), (5.0, APSIDAL_CONSTANT_MASSIVE))
 
@@ -114,7 +114,7 @@ def apsidal_constant(star):
 
 
 def pseudo_synchronous_ratio(eccentricity):
-    """`Omega_ps / n`: the spin rate an eccentric orbit's tide settles a star at, over the mean motion (Hut 1981 equation 42)."""
+    """`Omega_ps / n`: the spin rate an eccentric orbit's tide settles a star at, over the mean motion [R5232]."""
     e2 = eccentricity * eccentricity
     return (1.0 + 7.5 * e2 + 45.0 / 8.0 * e2 * e2 + 5.0 / 16.0 * e2 ** 3) / ((1.0 + 3.0 * e2 + 3.0 / 8.0 * e2 * e2) * (1.0 - e2) ** 1.5)
 

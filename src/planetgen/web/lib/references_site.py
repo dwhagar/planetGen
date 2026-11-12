@@ -21,6 +21,8 @@ import urllib.parse
 
 from markupsafe import Markup
 
+from planetgen.util import chem
+
 from . import citations, references_usage
 from .reference_urls import anchor, paper_anchor, reference_path
 
@@ -258,11 +260,12 @@ def compact_html(entry):
     """
     escape = lambda text: html.escape(str(text), quote=True)
     first = entry["links"][0]
+    written = lambda text: chem.mark_html(str(text))        # UX.149: a formula in a title is written out
     used = (". Used in " + escape(", ".join(entry["areas"]))) if entry["areas"] else ""
     anchor_id = f' id="{entry["anchor"]}"' if entry["anchor"] else ""
-    venue = (". " + escape(entry["venue"])) if entry["venue"] else ""
+    venue = (". " + written(entry["venue"])) if entry["venue"] else ""
     return (f'<li class="reference-entry reference-compact"{anchor_id}><strong>{escape(entry["label"])}</strong> '
-            f'<a class="reference-id" href="{escape(entry["search"])}">{entry["id"]}</a>. {escape(entry["title"])}{venue}. '
+            f'<a class="reference-id" href="{escape(entry["search"])}">{entry["id"]}</a>. {written(entry["title"])}{venue}. '
             f'<a href="{escape(first["url"])}" rel="noopener noreferrer">{escape(first["label"])}</a>{used}.</li>')
 
 
@@ -646,7 +649,7 @@ def standins(data, overview, tier=None, tweak=None, section=None, text=None):
         "tiers": [list(row) for row in overview["tiers"]], "tweaks": [list(row) for row in overview["tweaks"]],
         "tier_options": [{"value": "", "label": "Any tier"}] + [{"value": code, "label": f"{code}: {name}"} for code, name, _meaning in overview["tiers"]],
         "tweak_options": [{"value": "", "label": "Any tweak level"}] + [{"value": code, "label": f"{code}: {name}"} for code, name, _meaning in overview["tweaks"]],
-        "section_options": [{"value": "", "label": "Every section"}] + [{"value": part["slug"], "label": f"{part['number']} {part['title']}"}
+        "section_options": [{"value": "", "label": "Every section"}] + [{"value": part["slug"], "label": chem.mark_text(f"{part['number']} {part['title']}")}        # an option holds no tags (UX.149)
                                                                          for part in data["sections"]],
     }
 
@@ -871,7 +874,7 @@ def method_page(area, data, properties, usage):
             "id": "stand-ins", "heading": "Stand-ins of this area", "paragraphs": [
                 "Each is a value that is not a verified measurement of the thing it stands for. Its page says how it is filled, where it is wrong, and what would replace it."],
             "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
-                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), row["id"]), summary(row["what"]), row["tier_code"], row["tweak"]]
+                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), Markup(chem.mark_html(row["id"]))), summary(row["what"]), row["tier_code"], row["tweak"]]
                 for _section, row in rows]}})
     page["sections"].append({
         "id": "sources", "heading": "Sources of this area", "paragraphs": [
@@ -916,7 +919,7 @@ def gaps_page(data, usage):
         page["sections"].append({
             "id": area, "heading": _area_title(area), "paragraphs": paragraphs,
             "table": {"head": ["Stand-in", "What it is", "Tier", "Level"], "rows": [
-                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), row["id"]), summary(row["what"]), row["tier_code"], row["tweak"]]
+                [Markup('<a href="{}">{}</a>').format(reference_path("stand-in", row["key"]), Markup(chem.mark_html(row["id"]))), summary(row["what"]), row["tier_code"], row["tweak"]]
                 for _section, row in shown]} if shown else None})
     return page
 

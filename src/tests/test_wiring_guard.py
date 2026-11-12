@@ -227,3 +227,23 @@ def test_the_real_columns_and_functions_found_are_the_register_s(code):
     assert {("column", name) for name in code.unread_columns()} <= found
     assert {("function", name) for name in code.shadow_functions()} <= found
     assert any(kind == "column" for kind, _ in guard.load_register()) and any(kind == "function" for kind, _ in guard.load_register())
+
+
+def test_the_release_gate_fails_on_a_seeded_unread_item_and_passes_at_zero():
+    """TEST.718: the gate lists every unread thing the register does not mark by design, and nothing else."""
+    by_design = {("module", "planetgen.physics.a"): (guard.BY_DESIGN, "the tests read it")}
+    open_item = {("function", "planetgen.physics.b.f"): ("GEN.9", "wired by GEN.9")}
+    assert guard.release_problems({("module", "planetgen.physics.a")}, by_design) == []
+    seeded = guard.release_problems({("module", "planetgen.physics.a"), ("function", "planetgen.physics.b.f")}, {**by_design, **open_item})
+    assert len(seeded) == 1 and "planetgen.physics.b.f" in seeded[0] and "GEN.9" in seeded[0]
+    unregistered = guard.release_problems({("column", "x")}, {})
+    assert len(unregistered) == 1 and "NOT IN THE REGISTER" in unregistered[0]
+    assert guard.release_problems(set(), {}) == []
+
+
+def test_the_release_gate_names_every_unread_line_that_is_not_by_design(code):
+    """The gate is red until the burn-down (GEN.1559) ends: it names exactly the lines the register does not mark by design."""
+    entries = guard.load_register()
+    found = guard.unread(code)
+    expected = {key for key in found if entries.get(key, (None,))[0] != guard.BY_DESIGN}
+    assert len(guard.release_problems(found, entries)) == len(expected)
