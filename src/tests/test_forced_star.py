@@ -91,9 +91,7 @@ def test_a_forced_subdwarf_always_classifies_as_a_subdwarf_at_the_temperature_it
     import random
     for seed in range(60):
         found = forced_star.sample(letter, subclass, "VI", rng=random.Random(seed))
-        state = dict(found.state)
-        if not found.exact:
-            state["temperature_k"] = forced_star.target_temperature_k(letter, subclass)
+        state = forced_star._shown(found.state, found.exact, letter, subclass)
         assert (stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": state["luminosity_sol"],
                                                    "temperature_k": state["temperature_k"]}) == "VI"
                 or forced_star._hot_subdwarf(found.state)), (letter, subclass, seed)
