@@ -321,11 +321,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
-        haze_temperature = body.surface_temperature
-        if not planet_type.has_ground(body):
-            # a giant takes one step of the fixed point, so its haze is the one of the temperature the step starts from (the no-air one at the stored albedo)
-            starlight = body.star.luminosity / (4.0 * math.pi * (body._star_distance_au * constants.AU_M) ** 2)
-            haze_temperature = climate_draws.equilibrium_temperature_k(body.bond_albedo, starlight)
+        haze_temperature = body.surface_temperature        # a giant iterates to its fixed point too (GEN.1555), so its haze is the one of the temperature it ends at
         haze = aerosols.haze_of(air, gravity, haze_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
         if not planet_type.has_ground(body):

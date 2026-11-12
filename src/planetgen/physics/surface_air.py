@@ -63,8 +63,23 @@ table warms to 1,000 K) from carrying the ocean past the critical point of water
 MAX_STEPS = 60
 """int: The most steps of the fixed point. A body that has not settled by then keeps its last step and says so (`Air.converged`)."""
 
+MAX_GIANT_STEPS = 24
+"""int: The most steps of a giant's fixed point, which has the temperature alone to settle (its pressure is the reference level). Before GEN.1555 a giant took one step, so its temperature at the reference level was the
+one step from the airless start, and the same giant ended hundreds of kelvin apart by where it started (a hot giant: 1,381 K from 120 K, 1,633 K from 600 K)."""
+
 FREEZE_AFTER = 8
-"""int: From this step on the recipe draw of the last step is kept (the regimes can no longer flip)."""
+"""int: The earliest step at which the recipe draw is kept (the regimes can no longer flip), once the fixed point has come near its answer (`FREEZE_NEAR_K`, `FREEZE_NEAR_LN_P`)."""
+
+FREEZE_LATEST = 30
+"""int: The step at which the recipe draw is kept whether or not the fixed point has come near its answer (a fixed point that swings for ever must still end)."""
+
+FREEZE_NEAR_K = 3.0
+"""float: The change of the temperature (K) and of the log of the pressure (`FREEZE_NEAR_LN_P`) under which a step is near the answer. The recipe regimes are drawn from the state the
+fixed point is in when they are kept; kept at a fixed step they were drawn from a transient, so the same body ended with a hydrogen-rich or a nitrogen-rich air by where it started (GEN.1555).
+Registry row AS2: a search constant of the solver (a stand-in, tier T9, tweak L0)."""
+
+FREEZE_NEAR_LN_P = 0.15
+"""float: See `FREEZE_NEAR_K`."""
 
 DAMPING = 0.6
 """float: The share of each step taken (in ln P and in T) to start with; a variable whose change has the sign opposite to the last
@@ -714,11 +729,12 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    near = False            # the last step came near its answer (`FREEZE_NEAR_K`)
     sink_record = {}        # the carbon sink of the latest step (`CarbonSink`), for the life stage's second balance (GEN.1309 A)
     window = []             # (temperature the step started from, temperature it found) of the last steps, for the chatter of an unsettled fixed point (GEN.1344)
     held_cool = water_moles > 0.0 and not setting.steam_possible and not setting.giant        # GEN.1329: no steam under the runaway limit
     escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
-    for step in range(1, MAX_STEPS + 1):
+    for step in range(1, (MAX_GIANT_STEPS if setting.giant else MAX_STEPS) + 1):
         pressure = math.exp(ln_pressure)
         if cycling:
             ocean = True
@@ -750,7 +766,7 @@ def solve(setting, start_temperature_k):
             ln_pressure = 0.5 * (ln_pressure + math.log(last[2]))
             temperature = 0.5 * (temperature + last[3])
             continue
-        if step == FREEZE_AFTER:
+        if recipe_subject is None and step >= FREEZE_AFTER and (near or step >= FREEZE_LATEST):
             recipe_subject = subject
         family = mixture.family
         if mixture.mole_fractions:
@@ -804,10 +820,11 @@ def solve(setting, start_temperature_k):
             new_temperature = min(new_temperature, MOIST_LIMIT_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
+        near = change_p < FREEZE_NEAR_LN_P and change_t < FREEZE_NEAR_K
         window.append((temperature, new_temperature))
         del window[:-SLIDING_WINDOW]
         last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step)
-        if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
+        if change_t < TOLERANCE_K and (setting.giant or change_p < TOLERANCE_LN_P):        # a giant's pressure is the reference level: only its temperature settles
             if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
                 break
             # The air has settled without the escape. The loss acts on the air that stands, so it is compared to this pressure (the pressure of a step
@@ -831,7 +848,7 @@ def solve(setting, start_temperature_k):
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
     mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze, albedo_of_step = last
-    converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
+    converged = change_t < TOLERANCE_K and (setting.giant or change_p < TOLERANCE_LN_P)
     knee = False
     if not converged:
         temperature_k, knee = sliding_temperature(window, temperature_k)
