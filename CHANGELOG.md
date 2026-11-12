@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3937] - 2026-11-12
+
+**Headline:** the two sweep tests that break the life model by class letter no longer fail when the habitability code scores a body from its values.
+
+### Changed
+
+- The stand-ins that `test_sweep_life.py` puts in place of `life_classes.score_classes` read `body.planet_class`; the habitability code calls it with a column-named mapping (`_class_rater`), which has no letter, so they raised `AttributeError` as soon as a sweep body reached that call (train 24). They read the letter with `getattr(body, "planet_class", None)` now and pass a mapping to the real function. Test only.
+
 ## [8.0.3936] - 2026-11-12
 
 **Headline:** The temperatures at which a hot giant's air changes regime (methane to carbon monoxide, water to dissociated gas) are now computed by the equilibrium solver for each giant's layer pressure instead of read from a short table.
