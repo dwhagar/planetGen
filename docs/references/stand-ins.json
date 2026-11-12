@@ -63103,8 +63103,8 @@
       "title": "Stand-ins of the spin axis and obliquity under every body"
     },
     {
-      "key": "6.274",
-      "number": "6.274",
+      "key": "6.276",
+      "number": "6.276",
       "rows": [
         {
           "burn_down": null,
@@ -63135,9 +63135,9 @@
             ]
           ],
           "id": "DD1",
-          "key": "6.274:DD1",
+          "key": "6.276:DD1",
           "kind": "P",
-          "slug": "6-274-dd1",
+          "slug": "6-276-dd1",
           "tier": "T2",
           "tier_code": "T2",
           "tweak": "L0",
@@ -63173,9 +63173,9 @@
             ]
           ],
           "id": "DD2",
-          "key": "6.274:DD2",
+          "key": "6.276:DD2",
           "kind": "P",
-          "slug": "6-274-dd2",
+          "slug": "6-276-dd2",
           "tier": "T3",
           "tier_code": "T3",
           "tweak": "L0",
@@ -63211,17 +63211,17 @@
             ]
           ],
           "id": "DD3",
-          "key": "6.274:DD3",
+          "key": "6.276:DD3",
           "kind": "P",
-          "slug": "6-274-dd3",
+          "slug": "6-276-dd3",
           "tier": "T4",
           "tier_code": "T4",
           "tweak": "L0",
-          "unread": "GEN.1551",
+          "unread": null,
           "what": "disk_dispersal: the dispersal time does not depend on the star's mass"
         }
       ],
-      "slug": "6-274-stand-ins-of-the-disk-dispersal-time-of-a-young-star",
+      "slug": "6-276-stand-ins-of-the-disk-dispersal-time-of-a-young-star",
       "title": "Stand-ins of the disk dispersal time of a young star"
     }
   ]
