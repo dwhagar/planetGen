@@ -99,7 +99,6 @@ def test_the_stale_air_mark_is_cleared_by_the_final_age_refresh(systems):
                     assert not planetPhysics.age_moved(body), (body.name, body._age_drawn)
 
 
-<<<<<<< HEAD
 def test_a_belt_pulls_on_the_planets_of_its_star_and_a_system_without_belt_pull_differs(monkeypatch):
     """GEN.1464: the same system made with the belts' rings left out of the exchange leaves the planets on other orbits; the belts are not in the exchange's result."""
     with_belt = _system(1)
@@ -121,7 +120,8 @@ def test_the_rings_of_a_belt_keep_clear_of_the_planets_and_carry_the_belts_mass(
     assert axes and sum(masses) <= sum(b.mass_kg for b in belts) * (1.0 + 1e-9)
     assert all(min(a, p.distance) / max(a, p.distance) <= 0.9 for a in axes for p in bodies)
     assert planetPhysics.belt_rings_of([p for p in system.planets if p.body_type != 'a'], [1.0]) == ([], [])
-=======
+
+
 def _planets_with_axes(systems):
     return [p for s in systems for p in s.planets if hasattr(p, "moons") and getattr(p, "spin_axis_x", None) is not None]
 
@@ -171,4 +171,14 @@ def test_carry_axis_keeps_the_angle_round_the_normal_and_a_plane_turned_over_fli
     assert spin.obliquity_between(spin.carry_axis(axis, old, new, 4.0), new) == pytest.approx(4.0, abs=1e-9)
     flipped = spin.carry_axis(axis, old, tuple(-c for c in old))
     assert spin.obliquity_between(flipped, tuple(-c for c in old)) == pytest.approx(23.0, abs=1e-9)
->>>>>>> origin/main
+
+
+def test_gen1600_a_problem_the_system_had_is_the_same_problem_after_a_planet_moves_a_hair():
+    """GEN.1600: the message quotes distances; a tiny move changes the digits, not the problem."""
+    before = validation.Problem("Planet b", "its orbit is too close to Planet a's (at 1.234 AU, needs at least 1.3 AU)")
+    after = validation.Problem("Planet b", "its orbit is too close to Planet a's (at 1.2338 AU, needs at least 1.3004 AU)")
+    other = validation.Problem("Planet c", "its orbit is too close to Planet a's (at 1.234 AU, needs at least 1.3 AU)")
+    kind = StarSystem._problem_key
+    assert kind(before) == kind(after) and kind(before) != kind(other)
+    assert kind(validation.Problem("belt", "the belt at 2.5e-05 AU would be pushed outward")) == kind(validation.Problem("belt", "the belt at 3 AU would be pushed outward"))
+    assert kind(before) != kind(validation.Problem("Planet b", "it is listed after Planet a but orbits inside it"))

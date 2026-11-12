@@ -675,7 +675,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     planet._air_eccentricity = float(planet.host_eccentricity if planet.is_moon else planet.eccentricity)      # kept, not stored: the orbit this air was made on (`orbit_moved`, GEN.1402)
     planet._air_light_au = distance     # kept, not stored: the light this air, temperature, dose and spectrum were made on (a later settled orbit moves `_star_distance_au` and leaves them)
     planet.light_factor = eclipses.light_factor_of(planet)       # GEN.1484: the share of its light a circumbinary planet keeps after its two stars eclipse each other; None for every other body
-    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * (planet.light_factor or 1.0)     # GEN.1441: the host's light and every other star's, by position
+    solar_output_at_orbit = radiation_field.starlight_w_m2(planet.star, distance) * eclipses.kept_share(planet.light_factor)     # GEN.1441: the host's light and every other star's, by position
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
     albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
@@ -688,6 +688,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     # GEN.699: the heat the interior has carried out (no draws), which the degassing of the air follows; GEN.88: the surface water, drawn
     # before the air because the ocean is the reservoir the air's water vapor and its carbonate cycle stand in contact with.
     magnetism.update_exposure(planet, distance)     # GEN.86: the star's XUV and flares at this distance (no draws); the water loss reads it
+    planet.lid_regime = None                        # GEN.1591: the first build solves under a stagnant lid and the default surface (`interior_heat.lid_of`, `surface_of`), and so does a remake, not under
+    planet.surface_temperature = None               # the regime and the temperature the pass before it left (the regime is drawn after the hydrosphere, below)
     heat = interior_heat.update_heat(planet)
     giant = not planet_type.has_ground(planet)      # GEN.1334: a giant, or a rocky planet under a deep envelope, has no surface; the air is solved at its 1 bar level
     own_heat_w_m2 = (getattr(planet, "internal_heat_flux_w_m2", None) or 0.0) + (getattr(planet, "tidal_flux_w_m2", None) or 0.0)
@@ -859,7 +861,7 @@ def remake_air(planet, late_accreted_percent, gate=LATE_ACCRETION_GATE):
     state, distance_override, host_eccentricity, settled = replay
     planet._air_replay = None       # the replay is spent; the memory it held goes
     planet._late_accreted_percent = late_accreted_percent
-    if settled is None:      # no air was made, so no late accretion reached one
+    if settled is None:      # no air was made, so no late accretion reached one (GEN.1595, checked: of 25 rocky planets that came out airless in 15 full systems, none gained an air on a full replay with its system's late accretion, up to the law's cap of 3 percent; the loss that left them bare is not the supply)
         return False
     if gate > 0.0 and surface_air.late_accretion_moves(*settled, late_accreted_percent) < gate:
         return False

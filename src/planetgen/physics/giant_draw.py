@@ -94,7 +94,7 @@ def starlight_w_m2(planet):
     """The starlight at a planet (not a moon), W/m2; `None` for a moon, which does not carry its parent's distance."""
     if planet.is_moon:
         return None
-    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM) * (eclipses.light_factor_of(planet) or 1.0)       # GEN.1484
+    return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM) * eclipses.kept_share(eclipses.light_factor_of(planet))       # GEN.1484
 
 
 def own_flux_w_m2(planet):
@@ -144,7 +144,10 @@ def _table_radius_km(mass_earth, core_earth, flux_w_m2, age_gy):
 
 
 def _ice_shares(planet, regime):
-    if planet.is_moon or planet.distance < planet.star.snow_line_au:
+    """The ices a giant's interior holds: those of a giant that formed beyond its star's snow line, by where it formed and not where it orbits now (GEN.1606), none for a star with no line."""
+    line = getattr(planet.star, "snow_line_au", None)
+    formed = getattr(planet, "formation_distance_au", None)
+    if planet.is_moon or line is None or (planet.distance if formed is None else formed) < line:
         return {}
     low, high = WATER_SHARE_OF_HEAVY[regime]
     water = draw.uniform(low, high)
@@ -253,7 +256,7 @@ def settle(planet):
     light_au = orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)
     flux_w_m2 = climate_draws.starlight_w_m2(planet.star.luminosity, light_au * constants.AU_TO_KM) \
         + radiation_field.companion_light_w_m2(planet.star, light_au)       # GEN.1441: the other stars' light too
-    flux_w_m2 *= eclipses.light_factor_of(planet) or 1.0       # GEN.1484: a circumbinary giant keeps the share its two stars' eclipses leave
+    flux_w_m2 *= eclipses.kept_share(eclipses.light_factor_of(planet))       # GEN.1484: a circumbinary giant keeps the share its two stars' eclipses leave
     radius_km = _table_radius_km(mass_earth, core_earth, flux_w_m2, planet.star.age)
     if abs(radius_km - drawn.radius_km) <= SETTLE_TOLERANCE * drawn.radius_km:
         return False
