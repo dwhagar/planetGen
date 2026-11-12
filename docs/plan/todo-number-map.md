@@ -2067,7 +2067,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1269 | Nebula composition part a: one shared model for diffuse, emission, reflection, dark and field-cloud nebulae (mass fractions, gas phases, dust, metals from the place) | none | done, PR #5002 |
 | GEN.1270 | Nebula composition part b: planetary nebulae with the progenitor's ejecta and dredge-up enrichment | none | done, PR #4986 |
 | GEN.1271 | Nebula composition part c: supernova remnants as swept-up gas plus ejecta, checked against Cassiopeia A | none | done, PR #5500 |
-| GEN.1272 | Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks | none | open |
+| GEN.1272 | Nebula composition part d: the nebula page, the describe sheet and the Properties sheet show the composition with units and derived marks | none | done, PR #5984 |
 | GEN.1273 | Nebula composition part e: the Magellanic Clouds' gas metallicity as a place value | none | done, PR #5540 |
 | GEN.1274 | Nebula composition part f: read the sources marked recalled and replace their stand-ins | none | done, PR #5000 |
 | GEN.1275 | The habitable_world option (and its prevalence setting) does not mean what the prevalence count measures: it bars only Earth-like ecosphere worlds, the count includes every body of a life-carrying class (bug) | none | done, PR #5334 |
@@ -4113,7 +4113,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.225 | `test_random_start_neighborhood_matches_the_real_skeleton_plan` generated 18,210 systems against a predicted 83,346.6 in one gate run (bug) | none | done, PR #2227 |
 | TEST.226 | Tests for the plan configuration and its two switches: the interior is identical with each combination, off generates nothing beyond the boundaries, addresses outside them are refused, the 8.1 sphere is the all-on case | none | open |
 | TEST.227 | test_a_failed_job_shows_its_error_and_try_again_starts_a_new_one[light-phone] failed in a loaded browser run and passes alone (bug) | none | done, PR #2261 |
-| TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid | none | open |
+| TEST.228 | test_stars_and_phenomena_fit_within_their_sectors_real_cells compares a dark cloud's centre with its sector's cell, but the cloud is filed by its centroid | none | done (already fixed on main, confirmed by Lane 04 2026-11-12) |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) | none | dropped, folded into TEST.344 |
 | TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) | none | done, PR #2128 |
 | TEST.231 | test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug) | none | done, PR #2147 |
@@ -4589,8 +4589,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.714 | Tests that pin a seed for a rare case find the case by searching seeds instead | none | open |
 | TEST.715 | The constants completeness gate: turn the GEN.945 census into a test with a committed baseline of unregistered constant names that may only shrink | none | done, PR #5987 |
 | TEST.716 | The citation check's stop list ignores role words and time zones before a year ("Train Manager, 2026", "9:29 AM EST 2026") | none | done, PR #6053 |
-| TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | open |
-| TEST.718 | Release gate: zero unread items that are not marked by design, beside SEC.33 and TEST.261, so a version cannot be released with built physics that nothing reads | GEN.1559 | open |
+| TEST.717 | (bug) test_math_gate and test_datasets_gate fail together on main: the status-command subprocess tests see /var/cache/planetgen/datasets from the machine instead of the test's own data directory | none | done, PR #6078 |
+| TEST.718 | Release gate: zero unread items that are not marked by design, beside SEC.33 and TEST.261, so a version cannot be released with built physics that nothing reads | GEN.1559 | done, PR #6084 |
 | TEST.719 | Make the class census a repeatable script (scripts/class_census.py from reports/class-census-2026-11-11/collect.py and report_tables.py), with forced-young and caps-off options, for GEN.1549 and every later train | none | open |
 | TEST.720 | Pre-gate quick lane (3 to 5 minutes) that the author runs before pushing and the gate runs before the long run: release note, pyflakes, spelling, own-log-format, citations, settings, wiring guard, constants, and merges cleanly with main | none | done, PR #6123 |
 | TEST.721 | Stop committing generated files that conflict, or give them a merge step that regenerates them (docs/generated, stand-in-values.md, overview.json, stand-ins.json, the references files) | none | done, PR #6111 |
@@ -4671,7 +4671,7 @@ Each citation below resolves to one item by its date.
 | TODO 35 (PR #152) | 2026-10-01 02:22Z | DB.1 |
 | DB.113 | The generate run stops at stage 7 (Scatter the massive stars) on a MySQL deadlock (error 1213) in unit 11, with 15 workers (bug) | none | done, PR #5408 |
 | DB.114 | The backfill and sky-charting writes use the same Object ID step as the scatter writers with other writes in the same transaction and have no deadlock retry (follow-up to DB.113) | DB.113 | done, PR #5508 |
-| DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) | none | open |
+| DB.115 | A generation job stage fails with InterfaceError (0, '') after a dropped MySQL connection: find out why MySQL dropped the connection (the masking rollback and the sky-tier retry are fixed) (bug) | none | done, PR #5965 |
 | DB.116 | Fictional materials part 4: the galaxy_fiction table and the plan write (the chosen settings are stored with the galaxy at generation time; migration) | GEN.1410 | open |
 | DB.117 | Fictional materials part 10: the per-body rare-material table (migration) | GEN.1413 | open |
 | DB.118 | Literal-insert path misses a newly added column: 'Column count doesn't match value count' in test_literal_insert (likely a real bug) | none | done, PR #5765 |
@@ -4747,11 +4747,11 @@ Each citation below resolves to one item by its date.
 | UX.297 | A groundless body (sub-Neptune or gas dwarf) shows its pressure as a reference level, not a surface pressure, on the sheet, the page and the docs | none | done, PR #6005 |
 | UX.298 | The single-system generator page cannot ask for a rogue planet or a starless result | UX.283 | open |
 | UX.299 | The single-system generator page has no weirdness dial or oddities control | UX.283 | open |
-| UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | open |
+| UX.300 | The single-system generator page has no debug-areas choice for the debug log | UX.283 | done, PR #6080 |
 | UX.301 | Phone-width and accessibility check of the single-system generator page and its result document | UX.283 | open |
 | UX.302 | The single-system generator page has no life-class, class-letter or fudge override on its form | UX.283 | open |
-| UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | open |
-| UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | open |
+| UX.303 | Dose rates on the sheets use a unit ladder (nSv/yr to MSv/yr) instead of scientific notation, so "1.32 x 10^4 mSv/yr" reads "13.2 Sv/yr" | none | done, PR #6072 |
+| UX.304 | Other rate rows still go scientific or lack a ladder: magnetic field in gauss (uT/mT), flare rates (1/yr), accretion rate (Msun/yr), 1/Gy rates (.4g) | UX.303 | done, PR #6100 |
 
 ### Code tags `TODO(<area> #N)`
 
@@ -4792,7 +4792,7 @@ commit that wrote them. Only the last row is still in the code.
 | MAP.422 | The info panel line says which of cloud and haze were drawn, and from what | MAP.418 | open |
 | MAP.423 | (bug) Hot-star nebulae (emission, reflection, planetary, remnants) near the Sun and in the outer disk are effectively not drawn on the map | GEN.1267 | open |
 | MAP.424 | (bug) The Galaxy Map's sector list query (GET /api/galaxy/sectors) hits the 10 s database statement timeout on Boss's server, so /galaxy returns 504 and the cache warm-up fails with QUERY_TIMEOUT | none | open |
-| MAP.425 | (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame) | none | open |
+| MAP.425 | (bug) On the 3D system view the highlighted orbit ring of a moon does not pass through the highlighted moon (the ring is drawn from inclination and node measured in the planet's equator, the moon from a state vector in the star's frame) | none | done, PR #6067 |
 | Still in the code at 7.40.0 | facilities #36, galaxy-map #19, installers #50 (a test asserting it is gone), phenomena #25, phenomena #26, web-pages #56 | UX.5, MAP.1, OPS.3, UX.17, UX.18, UX.1 |
 | Still in the code at 7.58.2 | installers #50 only (the test asserting it is gone); the others left with their items | OPS.3 |
 
